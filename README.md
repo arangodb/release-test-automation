@@ -3,7 +3,7 @@
 
 Dependencies
 ------------
-- Python expect - https://github.com/pexpect/pexpect
+- Python expect - https://github.com/pexpect/pexpect https://pexpect.readthedocs.io/en/stable/
 - pywinservicemanager  - https://pypi.org/project/pywinservicemanager/1.0.2/
 
 
