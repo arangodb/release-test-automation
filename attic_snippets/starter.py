@@ -72,15 +72,15 @@ require("@arangodb/replication").setupReplicationGlobal({
     incremental: true,
     autoResync: true
     });
-""" % (leader.port)
+""" % (leader.port + 1)
 
 beforeReplJS = """
 db._create("testCollectionBefore");
-db.testCollection.save({"hello": "world"})
+db.testCollectionBefore.save({"hello": "world"})
 """
 afterReplJS =  """
 db._create("testCollectionAfter");
-db.testCollection.save({"hello": "world"})
+db.testCollectionAfter.save({"hello": "world"})
 """
 checkReplJS = """
 if (!db.testCollectionBefore.toArray()[0]["hello"] === "world") {
