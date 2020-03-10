@@ -50,19 +50,19 @@ class arangoshExecutor(object):
             print('.')
         return cmd.exitstatus
 
-print("launching Leader")
-leader = starterManager('/tmp/lf/leader', mode='single', port=1234)
-print("launching Follower")
-follower = starterManager('/tmp/lf/follower', mode='single', port=2345)
-leaderArangosh = arangoshExecutor(leader.username, leader.passvoid, leader.port + 1)
-followerArangosh = arangoshExecutor(follower.username, follower.passvoid, follower.port + 1)
+def LeaderFollower():
+    print("launching Leader")
+    leader = starterManager('/tmp/lf/leader', mode='single', port=1234)
+    print("launching Follower")
+    follower = starterManager('/tmp/lf/follower', mode='single', port=2345)
+    leaderArangosh = arangoshExecutor(leader.username, leader.passvoid, leader.port + 1)
+    followerArangosh = arangoshExecutor(follower.username, follower.passvoid, follower.port + 1)
+    print("waiting for the instances to become alive")
+    while not leader.isInstanceUp() and not follower.isInstanceUp():
+        print('.')
+        time.sleep(1)
 
-print("waiting for the instances to become alive")
-while not leader.isInstanceUp() and not follower.isInstanceUp():
-    print('.')
-    time.sleep(1)
-
-startReplJS = """
+    startReplJS = """
 require("@arangodb/replication").setupReplicationGlobal({
     endpoint: "tcp://127.0.0.1:%d",
     username: "root",
@@ -74,15 +74,15 @@ require("@arangodb/replication").setupReplicationGlobal({
     });
 """ % (leader.port + 1)
 
-beforeReplJS = """
+    beforeReplJS = """
 db._create("testCollectionBefore");
 db.testCollectionBefore.save({"hello": "world"})
 """
-afterReplJS =  """
+    afterReplJS =  """
 db._create("testCollectionAfter");
 db.testCollectionAfter.save({"hello": "world"})
 """
-checkReplJS = """
+    checkReplJS = """
 if (!db.testCollectionBefore.toArray()[0]["hello"] === "world") {
   throw new Error("before not yet there?");
 }
@@ -91,22 +91,25 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
 }
 """
 
-print("creating a document...")
-print(leaderArangosh.runCommand(beforeReplJS))
-print("launching replication")
-print(followerArangosh.runCommand(startReplJS))
-print("creating some more documents...")
-print(leaderArangosh.runCommand(afterReplJS))
+    print("creating a document...")
+    print(leaderArangosh.runCommand(beforeReplJS))
+    print("launching replication")
+    print(followerArangosh.runCommand(startReplJS))
+    print("creating some more documents...")
+    print(leaderArangosh.runCommand(afterReplJS))
 
-print("checking for the replication")
+    print("checking for the replication")
 
-count = 0
-while count < 300:
-    if followerArangosh.runCommand(checkReplJS) == 0:
-        break
-    print(".")
-    time.sleep(1)
-    count += 1
-if (count > 29):
-    raise Exception("replication didn't make it in 30s!")
-print("all OK!")
+    count = 0
+    while count < 300:
+        if followerArangosh.runCommand(checkReplJS) == 0:
+            break
+        print(".")
+        time.sleep(1)
+        count += 1
+    if (count > 29):
+        raise Exception("replication didn't make it in 30s!")
+    print("all OK!")
+        
+
+LeaderFollower();
