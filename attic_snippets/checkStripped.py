@@ -26,6 +26,10 @@ installSymlinks = [
     '/usr/sbin/arango-init-database',
     '/usr/sbin/arango-secure-installation']
 
+enterpriseBinaries = [
+    '/usr/bin/arangobackup',# enterprise
+    '/usr/bin/arangosync', # enterprise
+    '/usr/sbin/rclone-arangodb'] # enterprise
 
 
 for symlink in installSymlinks:

@@ -10,11 +10,11 @@ class arangoshExecutor(object):
         self.username = username
         self.passvoid = passvoid
         self.jwtfile = jwt
-        self.port = port;
+        self.port = port
 
     def runCommand(self, command):
-        cmdstr = ("arangosh" +
-                  " --server.endpoint tcp://127.0.0.1:%d" %(self.port) +
+        cmdstr = ("/usr/bin/arangosh" +
+                  " --server.endpoint tcp://127.0.0.1:%d" %(int(self.port)) +
                   " --server.username '%s'" % (self.username) +
                   " --server.password '%s'" % (self.passvoid) +
                   " --javascript.execute-string '%s'" % (command))
@@ -44,7 +44,7 @@ class starterManager(object):
         if self.port != None:
             self.frontendPort = port + 1
             moreopts += " --starter.port %d" % port
-        self.arguments = "arangodb --log.console=false --log.file=true --starter.data-dir=%s --starter.mode %s %s" % (
+        self.arguments = "/usr/bin/arangodb --log.console=false --log.file=true --starter.data-dir=%s --starter.mode %s %s" % (
             self.basedir,
             self.mode,
             moreopts)
@@ -108,7 +108,7 @@ class starterManager(object):
                     self.coordinator = instance
                     self.frontendPort = instance['port']
                 elif instance['type'] == 'resilientsingle':
-                    self.coordinator = instance
+                    self.dbInstance = instance
                     self.frontendPort = instance['port']
                 else:
                     self.dbInstance = instance
@@ -181,6 +181,7 @@ def activeFailover():
     for node in instances:
         if not node.isLeader:
             followerNodes.append(node)
+    print("system ready, starting test")
     success = True
     r = requests.get('http://127.0.0.1:' + leader.getFrontendPort())
     print(r)
@@ -292,8 +293,9 @@ def LeaderFollower():
     leader = starterManager('/tmp/lf/leader', mode='single', port=1234)
     print("launching Follower")
     follower = starterManager('/tmp/lf/follower', mode='single', port=2345)
-    leaderArangosh = arangoshExecutor(leader.username, leader.passvoid, leader.port + 1)
-    followerArangosh = arangoshExecutor(follower.username, follower.passvoid, follower.port + 1)
+    print(leader.port)
+    leaderArangosh = arangoshExecutor(username=leader.username, passvoid=leader.passvoid, port=leader.frontendPort)
+    followerArangosh = arangoshExecutor(username=follower.username, passvoid=follower.passvoid, port=follower.frontendPort)
     print("waiting for the instances to become alive")
     while not leader.isInstanceUp() and not follower.isInstanceUp():
         print('.')
@@ -352,6 +354,6 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
     follower.killInstance()
     print('test ended')
 
-LeaderFollower()
+# LeaderFollower()
 activeFailover()
 cluster()
