@@ -5,6 +5,28 @@ import sys
 import re
 import requests
 
+class arangoshExecutor(object):
+    def __init__(self, username, port, passvoid="", jwt=None):
+        self.username = username
+        self.passvoid = passvoid
+        self.jwtfile = jwt
+        self.port = port;
+
+    def runCommand(self, command):
+        cmdstr = ("arangosh" +
+                  " --server.endpoint tcp://127.0.0.1:%d" %(self.port) +
+                  " --server.username '%s'" % (self.username) +
+                  " --server.password '%s'" % (self.passvoid) +
+                  " --javascript.execute-string '%s'" % (command))
+        print(cmdstr)
+        cmd = pexpect.spawnu(cmdstr)
+        print("waiting for arangosh to exit")
+        print(cmd.after)
+        cmd.expect(pexpect.EOF, timeout=30)
+        while cmd.isalive():
+            print('.')
+        return cmd.exitstatus
+
 class starterManager(object):
     def __init__(self, basedir, mode, port=None, moreopts = ""):
         self.basedir = basedir
@@ -15,8 +37,10 @@ class starterManager(object):
         self.mode = mode
         self.isMaster = None
         self.isLeader = False
+        self.arangoshExecutor = None
         self.frontendPort = None
         self.allInstances = []
+        self.executor = None
         if self.port != None:
             self.frontendPort = port + 1
             moreopts += " --starter.port %d" % port
@@ -26,6 +50,11 @@ class starterManager(object):
             moreopts)
         self.instance = pexpect.spawnu(self.arguments)
         time.sleep(2)
+
+    def executeFrontend(self, cmd):
+        if self.arangoshExecutor == None:
+            self.arangoshExecutor = arangoshExecutor(username="root", port=int(self.frontendPort), passvoid="")
+        return self.arangoshExecutor.runCommand(command=cmd)
 
     def killInstance(self):
         print("Killing: " + self.arguments)
@@ -77,6 +106,10 @@ class starterManager(object):
                     self.agentInstance = instance
                 elif instance['type'] == 'coordinator':
                     self.coordinator = instance
+                    self.frontendPort = instance['port']
+                elif instance['type'] == 'resilientsingle':
+                    self.coordinator = instance
+                    self.frontendPort = instance['port']
                 else:
                     self.dbInstance = instance
                 self.allInstances.append(instance)
@@ -120,6 +153,9 @@ class starterManager(object):
         return False
 
 def activeFailover():
+    print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+    print("xx           Active Failover Test      ")
+    print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
     instances = []
     print("launching 0")
     instances.append(starterManager('/tmp/AFO/node1', mode='activefailover'))
@@ -199,30 +235,59 @@ def activeFailover():
         success = False
     print("state of this test is: " + "Success" if success else "Failed")
     input("Press Enter to finish this test")
+    for node in instances:
+        node.killInstance()
+    print('test ended')
 
+def cluster():
+    print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+    print("xx           Cluster Test      ")
+    print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+    instances = []
+    jwtfile = '/tmp/secret'
+    f = open(jwtfile, 'w')
+    f.write(str(time.clock()))
+    f.close()
+    print("launching 0")
+    instances.append(starterManager('/tmp/cluster/node1', mode='cluster', moreopts='--auth.jwt-secret ' + jwtfile))
+    print("launching 1")
+    instances.append(starterManager('/tmp/cluster/node2', mode='cluster', moreopts='--auth.jwt-secret ' + jwtfile + ' --starter.join 127.0.0.1' ))
+    print("launching 2")
+    instances.append(starterManager('/tmp/cluster/node3', mode='cluster', moreopts='--auth.jwt-secret ' + jwtfile + ' --starter.join 127.0.0.1'))
+    print("waiting for the instances to become alive")
+    while not instances[0].isInstanceUp() and not instances[1].isInstanceUp() and not instances[1].isInstanceUp():
+        print('.')
+        time.sleep(1)
+    for node in instances:
+        node.detectLogfiles()
+        print('coordinator can be reached at: ' + 'http://35.246.150.144:' + node.getFrontendPort())
+
+    print('Starting instance without jwt')
+    deadInstance = starterManager('/tmp/cluster/nodeX', mode='cluster', moreopts='--starter.join 127.0.0.1')
+    deadInstance.instance.expect(pexpect.EOF, timeout=120)
+    print('dead instance is dead?')
+
+    instances[0].executeFrontend("""
+db._create("testCollection",  { numberOfShards: 6, replicationFactor: 2});
+db.testCollection.save({test: "document"})
+""")
+    input("Press Enter to continue")
+
+    print("stopping instance 2")
+    instances[2].killInstance()
+    input("Press Enter to continue")
+
+    instances[2].respawnInstance()
     
-class arangoshExecutor(object):
-    def __init__(self, username, passvoid, port):
-        self.username = username
-        self.passvoid = passvoid
-        self.port = port;
-
-    def runCommand(self, command):
-        cmdstr = ("arangosh" +
-                  " --server.endpoint tcp://127.0.0.1:%d" %(self.port) +
-                  " --server.username '%s'" % (self.username) +
-                  " --server.password '%s'" % (self.passvoid) +
-                  " --javascript.execute-string '%s'" % (command))
-        print(cmdstr)
-        cmd = pexpect.spawnu(cmdstr)
-        print("waiting for arangosh to exit")
-        print(cmd.after)
-        cmd.expect(pexpect.EOF, timeout=30)
-        while cmd.isalive():
-            print('.')
-        return cmd.exitstatus
-
+    input("Press Enter to finish this test")
+    for node in instances:
+        node.killInstance()
+    print('test ended')
+        
 def LeaderFollower():
+    print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+    print("xx           Leader Follower Test      ")
+    print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
     print("launching Leader")
     leader = starterManager('/tmp/lf/leader', mode='single', port=1234)
     print("launching Follower")
@@ -282,6 +347,11 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
     if (count > 29):
         raise Exception("replication didn't make it in 30s!")
     print("all OK!")
+    input("Press Enter to finish this test")
+    leader.killInstance()
+    follower.killInstance()
+    print('test ended')
 
-# LeaderFollower();
+LeaderFollower()
 activeFailover()
+cluster()
