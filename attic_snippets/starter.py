@@ -14,7 +14,9 @@ class starterManager(object):
         self.passvoid = ''
         self.mode = mode
         self.isMaster = None
+        self.isLeader = False
         self.frontendPort = None
+        self.allInstances = []
         if self.port != None:
             self.frontendPort = port + 1
             moreopts += " --starter.port %d" % port
@@ -61,9 +63,41 @@ class starterManager(object):
                 continue
             return True
         return False
+
+    def detectLogfiles(self):
+        for one in os.listdir(self.basedir):
+            if os.path.isdir(os.path.join(self.basedir, one)):
+                m = re.match(r'([a-z]*)(\d*)', one)
+                instance = {
+                    'type': m.group(1),
+                    'port': m.group(2),
+                    'logfile': os.path.join(self.basedir, one, 'arangod.log')
+                    }
+                if instance['type'] == 'agent':
+                    self.agentInstance = instance
+                elif instance['type'] == 'coordinator':
+                    self.coordinator = instance
+                else:
+                    self.dbInstance = instance
+                self.allInstances.append(instance)
+                print(self.allInstances)
+
+    def detectLeader(self):
+        lf = self.readInstanceLogfile()
+        self.isLeader = ((lf.find('Became leader in') >= 0) or
+                         (lf.find('Successful leadership takeover: All your base are belong to us') >= 0))
+        return self.isLeader
+    
+    def readInstanceLogfile(self):
+        return open(self.dbInstance['logfile']).read()
+
+    def readAgentLogfile(self):
+        return open(self.agent['logfile']).read()
+    
     def ActiveFailoverDetectHosts(self):
         if not self.instance.isalive():
             raise Exception("my instance is gone! " + self.basedir)
+        # this is the way to detect the master starter...
         lf = self.getLogFile()
         if lf.find('Just became master') >= 0:
             self.isMaster = True
@@ -97,16 +131,22 @@ def activeFailover():
     while not instances[0].isInstanceUp() and not instances[1].isInstanceUp() and not instances[1].isInstanceUp():
         print('.')
         time.sleep(1)
-    master = None
-    followerNodes = []
     for node in instances:
+        node.detectLogfiles()
         node.ActiveFailoverDetectHosts()
-        if node.isMaster:
-            master = node
-        else:
+
+    leader = None
+    followerNodes = []
+    while leader == None:
+        for node in instances:
+            if node.detectLeader():
+                leader = node
+                break
+    for node in instances:
+        if not node.isLeader:
             followerNodes.append(node)
     success = True
-    r = requests.get('http://127.0.0.1:' + master.getFrontendPort())
+    r = requests.get('http://127.0.0.1:' + leader.getFrontendPort())
     print(r)
     if r.status_code != 200:
         print(r.text)
@@ -122,41 +162,43 @@ def activeFailover():
     if r.status_code != 503:
         success = False
     print(success)
-    print(dir(master))
-
-    master.killInstance()
-    print("waiting for new master...")
-    newMaster = None
-    while newMaster == None:
+    print('leader can be reached at: ' + 'http://35.246.150.144:' + leader.getFrontendPort())
+    input("Press Enter to continue...")
+    leader.killInstance()
+    print("waiting for new leader...")
+    newLeader = None
+    while newLeader == None:
         for node in followerNodes:
-            node.ActiveFailoverDetectHosts()
-            if node.isMaster:
-                print('have a new master: ' + node.arguments)
-                newMaster = node;
+            node.detectLeader()
+            if node.isLeader:
+                print('have a new leader: ' + node.arguments)
+                newLeader = node;
                 break
             print('.')
         time.sleep(1)
-    print(newMaster)
-    r = requests.get('http://127.0.0.1:' + newMaster.getFrontendPort())
+    print(newLeader)
+    r = requests.get('http://127.0.0.1:' + newLeader.getFrontendPort() + '/_db/_system/_admin/aardvark/index.html#replication')
     print(r)
     if r.status_code != 200:
         print(r.text)
         success = False
+    print('new leader can be reached at: ' + 'http://35.246.150.144:' + newLeader.getFrontendPort())
+    input("Press Enter to continue...")
     
-    master.respawnInstance()
+    leader.respawnInstance()
 
-    print("waiting for old master to show up as follower")
-    while not master.ActiveFailoverDetectHostNowFollower():
+    print("waiting for old leader to show up as follower")
+    while not leader.ActiveFailoverDetectHostNowFollower():
         print('.')
         time.sleep(1)
     print("Now is follower")
-    r = requests.get('http://127.0.0.1:' + master.getFrontendPort())
+    r = requests.get('http://127.0.0.1:' + leader.getFrontendPort())
     print(r)
     print(r.text)
     if r.status_code != 503:
         success = False
-    print(success)
-    time.sleep(500)
+    print("state of this test is: " + "Success" if success else "Failed")
+    input("Press Enter to finish this test")
 
     
 class arangoshExecutor(object):
