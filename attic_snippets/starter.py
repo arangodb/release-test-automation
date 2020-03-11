@@ -1,9 +1,11 @@
+
 import time
-import pexpect
 import os
 import sys
 import re
 import requests
+import subprocess
+Popen=subprocess.Popen
 
 class arangoshExecutor(object):
     def __init__(self, username, port, passvoid="", jwt=None):
@@ -13,22 +15,28 @@ class arangoshExecutor(object):
         self.port = port
 
     def runCommand(self, command):
-        cmdstr = ("/usr/bin/arangosh" +
-                  " --server.endpoint tcp://127.0.0.1:%d" %(int(self.port)) +
-                  " --server.username '%s'" % (self.username) +
-                  " --server.password '%s'" % (self.passvoid) +
-                  " --javascript.execute-string '%s'" % (command))
-        print(cmdstr)
-        cmd = pexpect.spawnu(cmdstr)
-        print("waiting for arangosh to exit")
-        print(cmd.after)
-        cmd.expect(pexpect.EOF, timeout=30)
-        while cmd.isalive():
-            print('.')
-        return cmd.exitstatus
+        cmd = ["/usr/bin/arangosh",
+               "--server.endpoint", "tcp://127.0.0.1:%d" %(int(self.port)),
+               "--server.username", "%s" % (self.username),
+               "--server.password", "%s" % (self.passvoid),
+               "--javascript.execute-string", "%s" % (command)]
+
+        print(cmd)
+        PIPE=subprocess.PIPE
+        Popen=subprocess.Popen
+        p = Popen(cmd)#, stdout=PIPE, stdin=PIPE, stderr=PIPE, universal_newlines=True)
+        # print('l')
+        # l = p.stdout.read()
+        # print(l)
+        # print('p')
+        # e = p.stderr.read()
+        # print(p)
+        # print('wait')
+        return p.wait(timeout=30)
+        
 
 class starterManager(object):
-    def __init__(self, basedir, mode, port=None, moreopts = ""):
+    def __init__(self, basedir, mode, port=None, moreopts = []):
         self.basedir = basedir
         self.logfileName = basedir + "/arangodb.log"
         self.port = port
@@ -43,13 +51,15 @@ class starterManager(object):
         self.executor = None
         if self.port != None:
             self.frontendPort = port + 1
-            moreopts += " --starter.port %d" % port
-        self.arguments = "/usr/bin/arangodb --log.console=false --log.file=true --starter.data-dir=%s --starter.mode %s %s" % (
-            self.basedir,
-            self.mode,
-            moreopts)
-        self.instance = pexpect.spawnu(self.arguments)
-        time.sleep(2)
+            moreopts += ["--starter.port", "%d" % port]
+        self.arguments = ["/usr/bin/arangodb",
+                          "--log.console=false",
+                          "--log.file=true",
+                          "--starter.data-dir=%s" % self.basedir,
+                          "--starter.mode",
+                          self.mode ] + moreopts
+        self.instance = Popen(self.arguments)
+        time.sleep(1)
 
     def executeFrontend(self, cmd):
         if self.arangoshExecutor == None:
@@ -57,16 +67,14 @@ class starterManager(object):
         return self.arangoshExecutor.runCommand(command=cmd)
 
     def killInstance(self):
-        print("Killing: " + self.arguments)
-        self.instance.kill(15)
-        self.instance.expect(pexpect.EOF, timeout=30)
-        while self.instance.isalive():
-            print('.')
+        print("Killing: " + str(self.arguments))
+        self.instance.terminate()
+        print(self.instance.wait(timeout=30))
         print("Instance now dead.")
         
     def respawnInstance(self):
         print("respawning instance")
-        self.instance = pexpect.spawnu(self.arguments)
+        self.instance = Popen(self.arguments)
         time.sleep(2)        
         
     def getFrontendPort(self):
@@ -78,7 +86,8 @@ class starterManager(object):
         return open(self.logfileName).read()
 
     def isInstanceUp(self):
-        if not self.instance.isalive():
+        print(self.instance.poll())
+        if self.instance.poll() != None:
             raise Exception("my instance is gone! " + self.basedir)
         lf = self.getLogFile()
         rx = re.compile('(\w*) up and running ')
@@ -128,7 +137,8 @@ class starterManager(object):
         return open(self.agent['logfile']).read()
     
     def ActiveFailoverDetectHosts(self):
-        if not self.instance.isalive():
+        print(self.instance.poll())
+        if self.instance.poll() != None:
             raise Exception("my instance is gone! " + self.basedir)
         # this is the way to detect the master starter...
         lf = self.getLogFile()
@@ -144,7 +154,7 @@ class starterManager(object):
             raise Exception("Unable to get my host state! " + self.basedir + " - " + lf)
         self.frontendPort = m.groups()[0]
     def ActiveFailoverDetectHostNowFollower(self):
-        if not self.instance.isalive():
+        if self.instance.poll() != None:
             raise Exception("my instance is gone! " + self.basedir)
         lf = self.getLogFile()
         if lf.find('resilientsingle up and running as follower') >= 0:
@@ -160,9 +170,9 @@ def activeFailover():
     print("launching 0")
     instances.append(starterManager('/tmp/AFO/node1', mode='activefailover'))
     print("launching 1")
-    instances.append(starterManager('/tmp/AFO/node2', mode='activefailover', moreopts='--starter.join 127.0.0.1' ))
+    instances.append(starterManager('/tmp/AFO/node2', mode='activefailover', moreopts=['--starter.join', '127.0.0.1'] ))
     print("launching 2")
-    instances.append(starterManager('/tmp/AFO/node3', mode='activefailover', moreopts='--starter.join 127.0.0.1'))
+    instances.append(starterManager('/tmp/AFO/node3', mode='activefailover', moreopts=['--starter.join','127.0.0.1']))
     print("waiting for the instances to become alive")
     while not instances[0].isInstanceUp() and not instances[1].isInstanceUp() and not instances[1].isInstanceUp():
         print('.')
@@ -188,11 +198,13 @@ def activeFailover():
     if r.status_code != 200:
         print(r.text)
         success = False
+    print('http://127.0.0.1:' + followerNodes[0].getFrontendPort())
     r = requests.get('http://127.0.0.1:' + followerNodes[0].getFrontendPort())
     print(r)
     print(r.text)
     if r.status_code != 503:
         success = False
+    print('http://127.0.0.1:' + followerNodes[1].getFrontendPort())
     r = requests.get('http://127.0.0.1:' + followerNodes[1].getFrontendPort())
     print(r)
     print(r.text)
@@ -208,7 +220,7 @@ def activeFailover():
         for node in followerNodes:
             node.detectLeader()
             if node.isLeader:
-                print('have a new leader: ' + node.arguments)
+                print('have a new leader: ' + str(node.arguments))
                 newLeader = node;
                 break
             print('.')
@@ -250,11 +262,11 @@ def cluster():
     f.write(str(time.clock()))
     f.close()
     print("launching 0")
-    instances.append(starterManager('/tmp/cluster/node1', mode='cluster', moreopts='--auth.jwt-secret ' + jwtfile))
+    instances.append(starterManager('/tmp/cluster/node1', mode='cluster', moreopts=['--auth.jwt-secret', jwtfile]))
     print("launching 1")
-    instances.append(starterManager('/tmp/cluster/node2', mode='cluster', moreopts='--auth.jwt-secret ' + jwtfile + ' --starter.join 127.0.0.1' ))
+    instances.append(starterManager('/tmp/cluster/node2', mode='cluster', moreopts=['--auth.jwt-secret', jwtfile, '--starter.join', '127.0.0.1']))
     print("launching 2")
-    instances.append(starterManager('/tmp/cluster/node3', mode='cluster', moreopts='--auth.jwt-secret ' + jwtfile + ' --starter.join 127.0.0.1'))
+    instances.append(starterManager('/tmp/cluster/node3', mode='cluster', moreopts=['--auth.jwt-secret', jwtfile, '--starter.join', '127.0.0.1']))
     print("waiting for the instances to become alive")
     while not instances[0].isInstanceUp() and not instances[1].isInstanceUp() and not instances[1].isInstanceUp():
         print('.')
@@ -264,8 +276,8 @@ def cluster():
         print('coordinator can be reached at: ' + 'http://35.246.150.144:' + node.getFrontendPort())
 
     print('Starting instance without jwt')
-    deadInstance = starterManager('/tmp/cluster/nodeX', mode='cluster', moreopts='--starter.join 127.0.0.1')
-    deadInstance.instance.expect(pexpect.EOF, timeout=120)
+    deadInstance = starterManager('/tmp/cluster/nodeX', mode='cluster', moreopts=['--starter.join', '127.0.0.1'])
+    print(deadInstance.instance.wait(timeout=120))
     print('dead instance is dead?')
 
     instances[0].executeFrontend("""
@@ -354,6 +366,6 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
     follower.killInstance()
     print('test ended')
 
-# LeaderFollower()
+#LeaderFollower()
 activeFailover()
 cluster()
