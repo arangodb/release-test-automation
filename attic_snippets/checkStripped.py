@@ -1,8 +1,9 @@
 #!/usr/bin/python3
-import pexpect
 import os
 import sys
 import re
+import subprocess
+
 
 installStrippedBinaries = [
     '/usr/bin/arangobackup',# enterprise
@@ -31,20 +32,26 @@ enterpriseBinaries = [
     '/usr/bin/arangosync', # enterprise
     '/usr/sbin/rclone-arangodb'] # enterprise
 
+def runFileCommand(fileToCheck):
+    Popen=subprocess.Popen
+    PIPE=subprocess.PIPE
+    Popen=subprocess.Popen
+    p = Popen(['file', fileToCheck], stdout=PIPE, stdin=PIPE, stderr=PIPE, universal_newlines=True)
+    l = p.stdout.readline()
+    print(l)
+    return l
 
 for symlink in installSymlinks:
     if not os.path.islink(symlink):
         raise Exception(" expected " + symlink + " to be a symlink ")
 
 for strippedFile in installStrippedBinaries:
-    fileData = pexpect.spawnu('file ' + strippedFile)
-    output = fileData.readline();
+    output = runFileCommand(strippedFile)
     if output.find(', stripped') < 0:
         raise Exception("expected " + strippedFile + " to be stripped, but its not: " + output)
 
 for nonStrippedFile in installNonStrippedBinaries:
-    fileData = pexpect.spawnu('file ' + nonStrippedFile)
-    output = fileData.readline();
+    output = runFileCommand(nonStrippedFile)
     if output.find(', not stripped') < 0:
         raise Exception("expected " + nonStrippedFile + " to be stripped, but its not: " + output)
 
