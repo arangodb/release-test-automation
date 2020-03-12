@@ -12,7 +12,8 @@ def log(string):
     print(timestamp() + " " + string)
 
 import miniupnpc
-
+basebindirectory = "/"
+basetestdatabir = "/tmp/"
 u = miniupnpc.UPnP()
 u.discoverdelay = 200
 u.discover()
@@ -27,7 +28,7 @@ class arangoshExecutor(object):
         self.port = port
 
     def runCommand(self, command, description):
-        cmd = ["/usr/bin/arangosh",
+        cmd = [basebindirectory + "usr/bin/arangosh",
                "--server.endpoint", "tcp://127.0.0.1:%d" %(int(self.port)),
                "--server.username", "%s" % (self.username),
                "--server.password", "%s" % (self.passvoid),
@@ -48,7 +49,7 @@ class arangoshExecutor(object):
         
 
 class starterManager(object):
-    def __init__(self, basedir, mode, port=None, moreopts=[]):
+    def __init__(self, basedir, mode, port=None, jwtStr=None, moreopts=[]):
         self.basedir = basedir
         self.logfileName = basedir + "/arangodb.log"
         self.port = port
@@ -63,10 +64,18 @@ class starterManager(object):
         self.allInstances = []
         self.executor = None
         self.moreopts = moreopts
+        if jwtStr != None:
+            print("JWT!")
+            os.makedirs(self.basedir)
+            jwtfile = os.path.join(self.basedir, jwtStr)
+            f = open(jwtfile, 'w')
+            f.write(jwtStr)
+            f.close()
+            self.moreopts = ['--auth.jwt-secret', jwtfile] + self.moreopts
         if self.port != None:
             self.frontendPort = port + 1
             self.moreopts += ["--starter.port", "%d" % port]
-        self.arguments = ["/usr/bin/arangodb",
+        self.arguments = [basebindirectory + "usr/bin/arangodb",
                           "--log.console=false",
                           "--log.file=true",
                           "--starter.data-dir=%s" % self.basedir,
@@ -149,8 +158,6 @@ class starterManager(object):
                     continue
                 pos = lf.rfind('\n', 0, pos)
                 epos = lf.find('\n', pos + 1, len(lf))
-                log(str(pos))
-                log(str(epos))
                 line = lf[pos: epos]
                 m = re.search(r'Z \[(\d*)\]', line)
                 if m == None:
@@ -201,11 +208,11 @@ def activeFailover():
     log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
     instances = []
     log("launching 0")
-    instances.append(starterManager('/tmp/AFO/node1', mode='activefailover', moreopts=[]))
+    instances.append(starterManager(basetestdatabir + 'AFO/node1', mode='activefailover', moreopts=[]))
     log("launching 1")
-    instances.append(starterManager('/tmp/AFO/node2', mode='activefailover', moreopts=['--starter.join', '127.0.0.1'] ))
+    instances.append(starterManager(basetestdatabir + 'AFO/node2', mode='activefailover', moreopts=['--starter.join', '127.0.0.1'] ))
     log("launching 2")
-    instances.append(starterManager('/tmp/AFO/node3', mode='activefailover', moreopts=['--starter.join','127.0.0.1']))
+    instances.append(starterManager(basetestdatabir + 'AFO/node3', mode='activefailover', moreopts=['--starter.join','127.0.0.1']))
     log("waiting for the instances to become alive")
     while not instances[0].isInstanceUp() and not instances[1].isInstanceUp() and not instances[1].isInstanceUp():
         log('.')
@@ -290,16 +297,13 @@ def cluster():
     log("xx           Cluster Test      ")
     log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
     instances = []
-    jwtfile = '/tmp/secret'
-    f = open(jwtfile, 'w')
-    f.write(str(time.clock()))
-    f.close()
+    jwtdatastr = str(time.clock())
     log("launching 0")
-    instances.append(starterManager('/tmp/cluster/node1', mode='cluster', moreopts=['--auth.jwt-secret', jwtfile]))
+    instances.append(starterManager(basetestdatabir + 'cluster/node1', mode='cluster', jwtStr=jwtdatastr, moreopts=[]))
     log("launching 1")
-    instances.append(starterManager('/tmp/cluster/node2', mode='cluster', moreopts=['--auth.jwt-secret', jwtfile, '--starter.join', '127.0.0.1']))
+    instances.append(starterManager(basetestdatabir + 'cluster/node2', mode='cluster', jwtStr=jwtdatastr, moreopts=['--starter.join', '127.0.0.1']))
     log("launching 2")
-    instances.append(starterManager('/tmp/cluster/node3', mode='cluster', moreopts=['--auth.jwt-secret', jwtfile, '--starter.join', '127.0.0.1']))
+    instances.append(starterManager(basetestdatabir + 'cluster/node3', mode='cluster', jwtStr=jwtdatastr, moreopts=['--starter.join', '127.0.0.1']))
     log("waiting for the instances to become alive")
     while not instances[0].isInstanceUp() and not instances[1].isInstanceUp() and not instances[1].isInstanceUp():
         log('.')
@@ -310,8 +314,8 @@ def cluster():
         log('coordinator can be reached at: ' + 'http://35.246.150.144:' + node.getFrontendPort())
 
     log('Starting instance without jwt')
-    deadInstance = starterManager('/tmp/cluster/nodeX', mode='cluster', moreopts=['--starter.join', '127.0.0.1'])
-    log(str(deadInstance.instance.wait(timeout=120)))
+    deadInstance = starterManager(basetestdatabir + 'cluster/nodeX', mode='cluster', jwtStr=None, moreopts=['--starter.join', '127.0.0.1'])
+    log(str(deadInstance.instance.wait(timeout=160)))
     log('dead instance is dead?')
 
     instances[0].executeFrontend("""
@@ -337,9 +341,9 @@ def LeaderFollower():
     log("xx           Leader Follower Test      ")
     log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
     log("launching Leader")
-    leader = starterManager('/tmp/lf/leader', mode='single', port=1234, moreopts=[])
+    leader = starterManager(basetestdatabir + 'lf/leader', mode='single', port=1234, moreopts=[])
     log("launching Follower")
-    follower = starterManager('/tmp/lf/follower', mode='single', port=2345, moreopts=[])
+    follower = starterManager(basetestdatabir + 'lf/follower', mode='single', port=2345, moreopts=[])
     leaderArangosh = arangoshExecutor(username=leader.username, passvoid=leader.passvoid, port=leader.frontendPort)
     followerArangosh = arangoshExecutor(username=follower.username, passvoid=follower.passvoid, port=follower.frontendPort)
     log("waiting for the instances to become alive")
