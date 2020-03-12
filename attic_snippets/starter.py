@@ -201,7 +201,7 @@ def activeFailover():
     log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
     instances = []
     log("launching 0")
-    instances.append(starterManager('/tmp/AFO/node1', mode='activefailover'))
+    instances.append(starterManager('/tmp/AFO/node1', mode='activefailover', moreopts=[]))
     log("launching 1")
     instances.append(starterManager('/tmp/AFO/node2', mode='activefailover', moreopts=['--starter.join', '127.0.0.1'] ))
     log("launching 2")
@@ -337,9 +337,9 @@ def LeaderFollower():
     log("xx           Leader Follower Test      ")
     log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
     log("launching Leader")
-    leader = starterManager('/tmp/lf/leader', mode='single', port=1234)
+    leader = starterManager('/tmp/lf/leader', mode='single', port=1234, moreopts=[])
     log("launching Follower")
-    follower = starterManager('/tmp/lf/follower', mode='single', port=2345)
+    follower = starterManager('/tmp/lf/follower', mode='single', port=2345, moreopts=[])
     leaderArangosh = arangoshExecutor(username=leader.username, passvoid=leader.passvoid, port=leader.frontendPort)
     followerArangosh = arangoshExecutor(username=follower.username, passvoid=follower.passvoid, port=follower.frontendPort)
     log("waiting for the instances to become alive")
@@ -402,6 +402,5 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
     log('test ended')
 
 LeaderFollower()
-input("Press Enter to continue")
 activeFailover()
 cluster()
