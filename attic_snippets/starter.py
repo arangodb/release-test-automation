@@ -13,12 +13,13 @@ def log(string):
 
 import miniupnpc
 basebindirectory = "/"
-basetestdatabir = "/tmp/"
+basetestdatadir = "/tmp/"
 u = miniupnpc.UPnP()
 u.discoverdelay = 200
 u.discover()
 u.selectigd()
 print('external ip address: {}'.format(u.externalipaddress()))
+IP='192.168.173.88'
       
 class arangoshExecutor(object):
     def __init__(self, username, port, passvoid="", jwt=None):
@@ -208,11 +209,11 @@ def activeFailover():
     log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
     instances = []
     log("launching 0")
-    instances.append(starterManager(basetestdatabir + 'AFO/node1', mode='activefailover', moreopts=[]))
+    instances.append(starterManager(basetestdatadir + 'AFO/node1', mode='activefailover', moreopts=[]))
     log("launching 1")
-    instances.append(starterManager(basetestdatabir + 'AFO/node2', mode='activefailover', moreopts=['--starter.join', '127.0.0.1'] ))
+    instances.append(starterManager(basetestdatadir + 'AFO/node2', mode='activefailover', moreopts=['--starter.join', '127.0.0.1'] ))
     log("launching 2")
-    instances.append(starterManager(basetestdatabir + 'AFO/node3', mode='activefailover', moreopts=['--starter.join','127.0.0.1']))
+    instances.append(starterManager(basetestdatadir + 'AFO/node3', mode='activefailover', moreopts=['--starter.join','127.0.0.1']))
     log("waiting for the instances to become alive")
     while not instances[0].isInstanceUp() and not instances[1].isInstanceUp() and not instances[1].isInstanceUp():
         log('.')
@@ -251,7 +252,7 @@ def activeFailover():
     if r.status_code != 503:
         success = False
     log("success" if success else "fail")
-    log('leader can be reached at: ' + 'http://35.246.150.144:' + leader.getFrontendPort())
+    log('leader can be reached at: ' + 'http://' + IP + ':' + leader.getFrontendPort())
     input("Press Enter to continue...")
     leader.killInstance()
     log("waiting for new leader...")
@@ -271,7 +272,7 @@ def activeFailover():
     if r.status_code != 200:
         log(r.text)
         success = False
-    log('new leader can be reached at: ' + 'http://35.246.150.144:' + newLeader.getFrontendPort())
+    log('new leader can be reached at: ' + 'http://' + IP + ':' + newLeader.getFrontendPort())
     input("Press Enter to continue...")
     
     leader.respawnInstance()
@@ -299,11 +300,11 @@ def cluster():
     instances = []
     jwtdatastr = str(time.clock())
     log("launching 0")
-    instances.append(starterManager(basetestdatabir + 'cluster/node1', mode='cluster', jwtStr=jwtdatastr, moreopts=[]))
+    instances.append(starterManager(basetestdatadir + 'cluster/node1', mode='cluster', jwtStr=jwtdatastr, moreopts=[]))
     log("launching 1")
-    instances.append(starterManager(basetestdatabir + 'cluster/node2', mode='cluster', jwtStr=jwtdatastr, moreopts=['--starter.join', '127.0.0.1']))
+    instances.append(starterManager(basetestdatadir + 'cluster/node2', mode='cluster', jwtStr=jwtdatastr, moreopts=['--starter.join', '127.0.0.1']))
     log("launching 2")
-    instances.append(starterManager(basetestdatabir + 'cluster/node3', mode='cluster', jwtStr=jwtdatastr, moreopts=['--starter.join', '127.0.0.1']))
+    instances.append(starterManager(basetestdatadir + 'cluster/node3', mode='cluster', jwtStr=jwtdatastr, moreopts=['--starter.join', '127.0.0.1']))
     log("waiting for the instances to become alive")
     while not instances[0].isInstanceUp() and not instances[1].isInstanceUp() and not instances[1].isInstanceUp():
         log('.')
@@ -311,10 +312,10 @@ def cluster():
     for node in instances:
         node.detectLogfiles()
         node.detectInstancePIDs()
-        log('coordinator can be reached at: ' + 'http://35.246.150.144:' + node.getFrontendPort())
+        log('coordinator can be reached at: ' + 'http://' + IP + ':' + node.getFrontendPort())
 
     log('Starting instance without jwt')
-    deadInstance = starterManager(basetestdatabir + 'cluster/nodeX', mode='cluster', jwtStr=None, moreopts=['--starter.join', '127.0.0.1'])
+    deadInstance = starterManager(basetestdatadir + 'cluster/nodeX', mode='cluster', jwtStr=None, moreopts=['--starter.join', '127.0.0.1'])
     log(str(deadInstance.instance.wait(timeout=160)))
     log('dead instance is dead?')
 
@@ -341,9 +342,9 @@ def LeaderFollower():
     log("xx           Leader Follower Test      ")
     log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
     log("launching Leader")
-    leader = starterManager(basetestdatabir + 'lf/leader', mode='single', port=1234, moreopts=[])
+    leader = starterManager(basetestdatadir + 'lf/leader', mode='single', port=1234, moreopts=[])
     log("launching Follower")
-    follower = starterManager(basetestdatabir + 'lf/follower', mode='single', port=2345, moreopts=[])
+    follower = starterManager(basetestdatadir + 'lf/follower', mode='single', port=2345, moreopts=[])
     leaderArangosh = arangoshExecutor(username=leader.username, passvoid=leader.passvoid, port=leader.frontendPort)
     followerArangosh = arangoshExecutor(username=follower.username, passvoid=follower.passvoid, port=follower.frontendPort)
     log("waiting for the instances to become alive")
@@ -405,6 +406,86 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
     follower.killInstance()
     log('test ended')
 
-LeaderFollower()
-activeFailover()
-cluster()
+def dc2dc():
+    def Popen(cmds):
+        print(cmds)
+        return subprocess.Popen(cmds)
+    certificateDir = os.path.join(basetestdatadir, "dc2dc", "certs")
+    dataDir = os.path.join(basetestdatadir, "dc2dc", "data")
+    os.makedirs(certificateDir)
+    os.makedirs(dataDir)
+    arangodbBin = basebindirectory + 'usr/bin/arangodb'
+    log('Create TLS certificates')
+    Popen([arangodbBin, 'create', 'tls', 'ca',
+           '--cert=' + certificateDir + '/tls-ca.crt',
+           '--key=' + certificateDir + '/tls-ca.key']).wait()
+    Popen([arangodbBin, 'create', 'tls', 'keyfile'
+           '--cacert=' + certificateDir + '/tls-ca.crt',
+           '--cakey=' + certificateDir + '/tls-ca.key',
+           '--keyfile=' + certificateDir + '/cluster1/tls.keyfile',
+           '--host=' + IP, '--host=localhost']).wait()
+    Popen([arangodbBin, 'create', 'tls', 'keyfile',
+           '--cacert=' + certificateDir + '/tls-ca.crt',
+           '--cakey=' + certificateDir + '/tls-ca.key',
+           '--keyfile=' + certificateDir + '/cluster2/tls.keyfile',
+           '--host=' + IP, '--host=localhost']).wait()
+    log('Create client authentication certificates')
+    Popen([arangodbBin, 'create', 'client-auth', 'ca',
+           '--cert=' + certificateDir + '/client-auth-ca.crt',
+           '--key=' + certificateDir + '/client-auth-ca.key']).wait()
+    Popen([arangodbBin, 'create', 'client-auth', 'keyfile',
+           '--cacert=' + certificateDir + '/client-auth-ca.crt',
+           '--cakey=' + certificateDir + '/client-auth-ca.key',
+           '--keyfile=' + certificateDir + '/client-auth-ca.keyfile']).wait()
+    log('Create JWT secrets')
+    Popen([arangodbBin, 'create', 'jwt-secret', '--secret=' + certificateDir + '/cluster1/syncmaster.jwtsecret']).wait()
+    Popen([arangodbBin, 'create', 'jwt-secret', '--secret=' + certificateDir + '/cluster1/arangodb.jwtsecret']).wait()
+    Popen([arangodbBin, 'create', 'jwt-secret', '--secret=' + certificateDir + '/cluster2/syncmaster.jwtsecret']).wait()
+    Popen([arangodbBin, 'create', 'jwt-secret', '--secret=' + certificateDir + '/cluster2/arangodb.jwtsecret']).wait()
+
+    log('starting first cluster')
+    firstCluster=starterManager(basedir=dataDir + '/cluster1', mode='cluster', moreopts=[
+        '--starter.sync',
+        '--starter.local',
+        '--auth.jwt-secret=' + certificateDir + '/cluster1/arangodb.jwtsecret',
+        '--sync.server.keyfile=' + certificateDir + '/cluster1/tls.keyfile',
+        '--sync.server.client-cafile=' + certificateDir + '/client-auth-ca.crt',
+        '--sync.master.jwt-secret=' + certificateDir + '/cluster1/syncmaster.jwtsecret',
+        '--starter.address=' + IP])
+    time.sleep(10)
+    secondCluster=starterManager(basedir=dataDir + '/cluster2', mode='cluster', port=9528, moreopts=[
+        '--starter.sync',
+        '--starter.local',
+        '--auth.jwt-secret=' + certificateDir + '/cluster2/arangodb.jwtsecret',
+        '--sync.server.keyfile=' + certificateDir + '/cluster2/tls.keyfile',
+        '--sync.server.client-cafile=' + certificateDir + '/client-auth-ca.crt',
+        '--sync.master.jwt-secret=' + certificateDir + '/cluster2/syncmaster.jwtsecret',
+        '--starter.address=' + IP])
+    log('waiting')
+    time.sleep(30)# todo!
+    
+    syncInstance = Popen(['arangosync', 'configure', 'sync',
+                          '--master.endpoint=https://' + IP + ':9542',
+                          '--master.keyfile=' + certificateDir + '/client-auth-ca.keyfile',
+                          '--source.endpoint=https://' + IP + ':8542',
+                          '--master.cacert=' + certificateDir + '/tls-ca.crt',
+                          '--source.cacert=' + certificateDir + '/tls-ca.crt',
+                          '--auth.keyfile=' + certificateDir + '/client-auth-ca.keyfile'])
+    log('Check status of cluster 1')
+    checkSync=Popen(['arangosync', 'get', 'status',
+                     '--master.cacert=' + certificateDir + '/tls-ca.crt',
+                     '--master.endpoint=https://' + IP + ':8542',
+                     '--auth.keyfile=' + certificateDir + '/client-auth-ca.keyfile',
+                     '--verbose']).wait()
+
+    log('Check status of cluster 2')
+    checkSync2=Popen(['arangosync', 'get', 'status',
+                      '--master.cacert=' + certificateDir + '/tls-ca.crt',
+                      '--master.endpoint=https://' + IP + ':9542',
+                      '--auth.keyfile=' + certificateDir + '/client-auth-ca.keyfile',
+                      '--verbose']).wait()
+
+dc2dc()
+#LeaderFollower()
+#activeFailover()
+#cluster()
