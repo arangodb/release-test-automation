@@ -80,8 +80,8 @@ class starterManager(object):
                           "--log.console=false",
                           "--log.file=true",
                           "--starter.data-dir=%s" % self.basedir,
-                          "--starter.mode",
-                          self.mode ] + self.moreopts
+                         # "--starter.mode", self.mode
+        ] + self.moreopts
         log("launching " + str(self.arguments))
         self.instance = Popen(self.arguments)
         time.sleep(self.startupwait)
@@ -452,7 +452,8 @@ def dc2dc():
         '--sync.server.client-cafile=' + certificateDir + '/client-auth-ca.crt',
         '--sync.master.jwt-secret=' + certificateDir + '/cluster1/syncmaster.jwtsecret',
         '--starter.address=' + IP])
-    time.sleep(10)
+    time.sleep(20)
+    print(requests.get('http://'+IP+':8542'))
     secondCluster=starterManager(basedir=dataDir + '/cluster2', mode='cluster', port=9528, moreopts=[
         '--starter.sync',
         '--starter.local',
@@ -462,8 +463,11 @@ def dc2dc():
         '--sync.master.jwt-secret=' + certificateDir + '/cluster2/syncmaster.jwtsecret',
         '--starter.address=' + IP])
     log('waiting')
-    time.sleep(30)# todo!
-    
+    print(requests.get('http://'+IP+':8542'))
+    time.sleep(20)# todo!
+    print(requests.get('http://'+IP+':9542'))
+    print(requests.get('http://'+IP+':8542'))
+
     syncInstance = Popen(['arangosync', 'configure', 'sync',
                           '--master.endpoint=https://' + IP + ':9542',
                           '--master.keyfile=' + certificateDir + '/client-auth-ca.keyfile',
