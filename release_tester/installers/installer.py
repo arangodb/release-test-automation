@@ -122,7 +122,7 @@ basebindirectory = INSTALLATIONFOLDER + '\\'
 
 
 def get():
-    (winver, ,) = platform.win32_ver()
+    (winver, x, y) = platform.win32_ver()
     if winver != "":
         return installerW()
     return installerDeb()
