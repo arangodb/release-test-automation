@@ -116,8 +116,7 @@ class installerW(installerBase):
         install.wait()
         print ("x"*80)
 
-
-basebindirectory = INSTALLATIONFOLDER + '\\'
+        basebindirectory = INSTALLATIONFOLDER + '\\'
 
 
 
