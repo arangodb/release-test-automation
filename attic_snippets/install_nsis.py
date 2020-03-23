@@ -1,18 +1,20 @@
 import datetime
 import time
 import os
+import sys
 import re
 import shutil
 import psutil
 import win32serviceutil
 
 COMPACT_VERSION='3.6.2'
+# COMPACT_VERSION='3.3.25-1'
 installPrefix= "c:/Programme/ArangoDB3e 3.6.2/" 
 installPrefix="C:/tmp"
 
 INSTALLER = "c:/Users/willi/Downloads/ArangoDB3e-" + COMPACT_VERSION + "_win64.exe"
 
-
+success = True
 UNINSTALLER="Uninstall.exe"
 TMP_UNINSTALLER="c:/tmp/" + UNINSTALLER
 PASSWORD='passvoid'
@@ -70,8 +72,8 @@ cmd = [INSTALLER,
       '/INSTALL_SCOPE_ALL=1']
 
 print(cmd)
-#install = psutil.Popen(cmd)
-#install.wait()
+install = psutil.Popen(cmd)
+install.wait()
 print ("x"*80)
 
 jsVersionCheck = '''
@@ -82,16 +84,27 @@ print(jsVersionCheck)
 
 service = psutil.win_service_get('ArangoDB')
 
-print(service)
-print(dir(service))
 print(service.status())
 if service.status() == 'running':
-    print(arangosh.runCommand(jsVersionCheck, 'check version'))
+    print("arangod running - first check with arangosh: ")
+    rc = arangosh.runCommand(jsVersionCheck, 'check version')
+    if rc != 0:
+        print("arangosh exited with failure!")
+        success = False
     service.stop()
-print(service.status())
+while service.status() != "stopped":
+    print(service.status())
+    time.sleep(1)
 service.start()
 
-print(arangosh.runCommand(jsVersionCheck, 'check version'))
+while service.status() != "running":
+    print(service.status())
+    time.sleep(1)
+rc = arangosh.runCommand(jsVersionCheck, 'check version')
+if rc != 0:
+    print("arangosh exited with failure!")
+    success = False
+
 
 
 
@@ -100,7 +113,31 @@ print(arangosh.runCommand(jsVersionCheck, 'check version'))
 shutil.copyfile(os.path.join(INSTALLATIONFOLDER, UNINSTALLER), TMP_UNINSTALLER)
 
 cmd = [TMP_UNINSTALLER, '/PURGE_DB=1', '/S', '_?=' + INSTALLATIONFOLDER]
-# print(cmd)
+print(cmd)
 
-#uninstall = psutil.Popen(cmd)
-#uninstall.wait()
+uninstall = psutil.Popen(cmd)
+uninstall.wait()
+
+if os.path.exists(INSTALLATIONFOLDER):
+    print("Path not removed: " + INSTALLATIONFOLDER)
+    success = False
+if os.path.exists(APPFOLDER):
+    print("Path not removed: " + APPFOLDER)
+    success = False
+if os.path.exists(DBFOLDER):
+    print("Path not removed: " + DBFOLDER)
+    success = False
+
+try:
+    print(psutil.win_service_get('ArangoDB'))
+    service = psutil.win_service_get('ArangoDB')
+    if service.status() != 'stopped':
+        print("service shouldn't exist anymore!")
+        success = False
+except:
+    pass
+
+if not success:
+    print("exiting with failure.")
+    sys.exit(1)
+sys.exit(0)
