@@ -121,7 +121,7 @@ class installerW(installerBase):
 
 
 def get():
-    (winver, x, y) = platform.win32_ver()
+    (winver, x, y, z) = platform.win32_ver()
     if winver != "":
         return installerW()
     return installerDeb()
