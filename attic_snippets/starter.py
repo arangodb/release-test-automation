@@ -5,24 +5,28 @@ import sys
 import re
 import requests
 import subprocess
-Popen=subprocess.Popen
+import signal
+import psutil
+Popen=psutil.Popen
 def timestamp():
     return datetime.datetime.utcnow().isoformat()
 def log(string):
     print(timestamp() + " " + string)
 
-import miniupnpc
-basebindirectory = "/"
-basetestdatadir = "/tmp/"
-u = miniupnpc.UPnP()
-u.discoverdelay = 200
-u.discover()
-u.selectigd()
-print('external ip address: {}'.format(u.externalipaddress()))
+basebindirectory = "c:/Programme/ArangoDB3e 3.6.2/"
+basetestdatadir = "c:/tmp/"
+#
+os.chdir(basebindirectory)
+# import miniupnpc
+#u = miniupnpc.UPnP()
+#u.discoverdelay = 200
+#u.discover()
+#u.selectigd()
+#print('external ip address: {}'.format(u.externalipaddress()))
 IP='192.168.173.88'
       
 class arangoshExecutor(object):
-    def __init__(self, username, port, passvoid="", jwt=None):
+    def __init__(self, username, port8529, passvoid="", jwt=None):
         self.username = username
         self.passvoid = passvoid
         self.jwtfile = jwt
@@ -37,7 +41,8 @@ class arangoshExecutor(object):
 
         log("launching " + description)
         # PIPE=subprocess.PIPE
-        Popen=subprocess.Popen
+        Popen=psutil.Popen
+        log(str(cmd))
         p = Popen(cmd)#, stdout=PIPE, stdin=PIPE, stderr=PIPE, universal_newlines=True)
         # print('l')
         # l = p.stdout.read()
@@ -68,7 +73,7 @@ class starterManager(object):
         if jwtStr != None:
             print("JWT!")
             os.makedirs(self.basedir)
-            jwtfile = os.path.join(self.basedir, jwtStr)
+            jwtfile = os.path.join(self.basedir, 'jwt')
             f = open(jwtfile, 'w')
             f.write(jwtStr)
             f.close()
@@ -80,7 +85,7 @@ class starterManager(object):
                           "--log.console=false",
                           "--log.file=true",
                           "--starter.data-dir=%s" % self.basedir,
-                         # "--starter.mode", self.mode
+                          "--starter.mode", self.mode
         ] + self.moreopts
         log("launching " + str(self.arguments))
         self.instance = Popen(self.arguments)
@@ -93,7 +98,7 @@ class starterManager(object):
 
     def killInstance(self):
         log("Killing: " + str(self.arguments))
-        self.instance.terminate()
+        self.instance.send_signal(signal.CTRL_C_EVENT)
         log(str(self.instance.wait(timeout=30)))
         log("Instance now dead.")
         
@@ -110,8 +115,14 @@ class starterManager(object):
     def getLogFile(self):
         return open(self.logfileName).read()
 
+    def isInstanceRunning(self):
+        return self.instance.is_running()
+                          
     def isInstanceUp(self):
-        if self.instance.poll() != None:
+        if not self.instance.is_running():
+            print(self.instance)
+            print(self.instance.status())
+            print(dir(self.instance))
             raise Exception(timestamp() + "my instance is gone! " + self.basedir)
         lf = self.getLogFile()
         rx = re.compile('(\w*) up and running ')
@@ -179,7 +190,8 @@ class starterManager(object):
         return open(self.agent['logfile']).read()
     
     def ActiveFailoverDetectHosts(self):
-        if self.instance.poll() != None:
+        if not self.instance.is_running():
+            print(self.instance)
             raise Exception(timestamp() + "my instance is gone! " + self.basedir)
         # this is the way to detect the master starter...
         lf = self.getLogFile()
@@ -195,7 +207,7 @@ class starterManager(object):
             raise Exception(timestamp() + "Unable to get my host state! " + self.basedir + " - " + lf)
         self.frontendPort = m.groups()[0]
     def ActiveFailoverDetectHostNowFollower(self):
-        if self.instance.poll() != None:
+        if not self.instance.is_running():
             raise Exception(timestamp() + "my instance is gone! " + self.basedir)
         lf = self.getLogFile()
         if lf.find('resilientsingle up and running as follower') >= 0:
@@ -298,7 +310,7 @@ def cluster():
     log("xx           Cluster Test      ")
     log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
     instances = []
-    jwtdatastr = str(time.clock())
+    jwtdatastr = str(timestamp())
     log("launching 0")
     instances.append(starterManager(basetestdatadir + 'cluster/node1', mode='cluster', jwtStr=jwtdatastr, moreopts=[]))
     log("launching 1")
@@ -314,10 +326,20 @@ def cluster():
         node.detectInstancePIDs()
         log('coordinator can be reached at: ' + 'http://' + IP + ':' + node.getFrontendPort())
 
-    log('Starting instance without jwt')
-    deadInstance = starterManager(basetestdatadir + 'cluster/nodeX', mode='cluster', jwtStr=None, moreopts=['--starter.join', '127.0.0.1'])
-    log(str(deadInstance.instance.wait(timeout=160)))
-    log('dead instance is dead?')
+    #log('Starting instance without jwt')
+    #deadInstance = starterManager(basetestdatadir + 'cluster/nodeX', mode='cluster', jwtStr=None, moreopts=['--starter.join', '127.0.0.1'])
+    #i = 0
+    #while True:
+    #    log("." + str(i))
+    #    if not deadInstance.isInstanceRunning():
+    #        break
+    #    if i > 30:
+    #        log('Giving up wating for the starter to exit')
+    #        raise Exception("non-jwt-ed starter won't exit")
+    #    i += 1
+    #    time.sleep(10)
+    #log(str(deadInstance.instance.wait(timeout=320)))
+    #log('dead instance is dead?')
 
     instances[0].executeFrontend("""
 db._create("testCollection",  { numberOfShards: 6, replicationFactor: 2});
@@ -409,7 +431,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
 def dc2dc():
     def Popen(cmds):
         print(cmds)
-        return subprocess.Popen(cmds)
+        return psutil.Popen(cmds)
     certificateDir = os.path.join(basetestdatadir, "dc2dc", "certs")
     dataDir = os.path.join(basetestdatadir, "dc2dc", "data")
     os.makedirs(certificateDir)
@@ -489,7 +511,7 @@ def dc2dc():
                       '--auth.keyfile=' + certificateDir + '/client-auth-ca.keyfile',
                       '--verbose']).wait()
 
-dc2dc()
+#dc2dc()
 #LeaderFollower()
 #activeFailover()
-#cluster()
+cluster()
