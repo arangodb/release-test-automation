@@ -202,8 +202,8 @@ class installerW(installerBase):
         cmd = [os.path.join(self.cfg.packageDir, self.serverPackage),
                '/PASSWORD=' + self.cfg.passvoid,
                '/INSTDIR=' + self.cfg.installPrefix,
-               '/DATABASEDIR=' + dbdir,
-               '/APPDIR=' + appdir,
+               '/DATABASEDIR=' + self.cfg.dbdir,
+               '/APPDIR=' + self.cfg.appdir,
                '/PATH=0',
                '/S',
                '/INSTALL_SCOPE_ALL=1']
@@ -216,7 +216,7 @@ class installerW(installerBase):
 
     def unInstallPackage(self):
         uninstaller="Uninstall.exe"
-        tmp_uninstaller=path.join("c:/tmp/", uninstaller)
+        tmp_uninstaller=os.path.join("c:/tmp/", uninstaller)
         # copy out the uninstaller as the windows facility would do:
         shutil.copyfile(os.path.join(self.cfg.installPrefix, uninstaller), tmp_uninstaller)
 

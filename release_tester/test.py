@@ -1,6 +1,7 @@
 import sys
 import installers.installer as installer
 
+# python test.py 3.6.2 enterprise c:/Users/willi/Downloads
 
 # python3 test.py 3.6.2 enterprise /home/willi/Downloads
 
