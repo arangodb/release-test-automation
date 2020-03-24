@@ -3,8 +3,12 @@
 
 Dependencies
 ------------
-- Python expect - https://github.com/pexpect/pexpect https://pexpect.readthedocs.io/en/stable/
-- pywinservicemanager  - https://pypi.org/project/pywinservicemanager/1.0.2/
+- Python expect - https://github.com/pexpect/pexpect https://pexpect.readthedocs.io/en/stable/ (debian only)
+- PS-util  https://psutil.readthedocs.io/en/latest/#windows-services on windows `_pswindows.py` needs to be copied 
+ into the python installation after the pip run: 
+   - python install root (i.e. Users/willi/AppData/Local/Programs/Python)
+   -  /Python38-32/Lib/site-packages/psutil/_pswindows.py
+ the upstream distribution doesn't enable the wrappers to start/stop service 
 
 
 
