@@ -1,5 +1,8 @@
 import sys
 import installers.installer as installer
+import installers.arangosh as arangosh
+import installers.log as loglog
+log = loglog.log
 
 # python test.py 3.6.2 enterprise c:/Users/willi/Downloads
 
@@ -15,6 +18,10 @@ if enterprise == 'enterprise':
 else:
     enterprise = False
 
+jsVersionCheck = (
+    "if (db._version()!='%s') { throw 'fail'}" % (version),
+    'check version')
+
 myInstaller = installer.get(version, enterprise, packagedir)
 
 myInstaller.calculatePackageNames()
@@ -25,6 +32,10 @@ myInstaller.startService()
 myInstaller.checkInstalledPaths()
 myInstaller.checkEngineFile()
 
+systemInstallArangosh = arangosh.arangoshExecutor(myInstaller.cfg)
+
+if not systemInstallArangosh.runCommand(jsVersionCheck):
+    log("Version Check failed!")
 input("Press Enter to continue")
 
 myInstaller.unInstallPackage()

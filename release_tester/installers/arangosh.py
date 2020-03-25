@@ -1,31 +1,22 @@
+import os
 import psutil
-import installers.log.log as log
+import installers.log as loglog
+log = loglog.log
 
 
 class arangoshExecutor(object):
-    def __init__(self, username, port8529, passvoid="", jwt=None):
-        self.username = username
-        self.passvoid = passvoid
-        self.jwtfile = jwt
-        self.port = port
+    def __init__(self, config):
+        self.cfg = config
 
-    def runCommand(self, command, description):
-        cmd = [basebindirectory + "usr/bin/arangosh",
-               "--server.endpoint", "tcp://127.0.0.1:%d" %(int(self.port)),
-               "--server.username", "%s" % (self.username),
-               "--server.password", "%s" % (self.passvoid),
-               "--javascript.execute-string", "%s" % (command)]
+    def runCommand(self, cmd):
+        cmd = [os.path.join(self.cfg.basePath, "usr/bin/arangosh"),
+               "--server.endpoint", "tcp://127.0.0.1:%d" %(int(self.cfg.port)),
+               "--server.username", "%s" % (self.cfg.username),
+               "--server.password", "%s" % (self.cfg.passvoid),
+               "--javascript.execute-string", "%s" % (cmd[0])]
 
-        log("launching " + description)
+        log("launching " + cmd[1])
         # PIPE=subprocess.PIPE
-        Popen=psutil.Popen
         log(str(cmd))
-        p = Popen(cmd)#, stdout=PIPE, stdin=PIPE, stderr=PIPE, universal_newlines=True)
-        # print('l')
-        # l = p.stdout.read()
-        # print(l)
-        # print('p')
-        # e = p.stderr.read()
-        # print(p)
-        # print('wait')
-        return p.wait(timeout=30)
+        p = psutil.Popen(cmd)#, stdout=PIPE, stdin=PIPE, stderr=PIPE, universal_newlines=True)
+        return p.wait(timeout=30) == 0
