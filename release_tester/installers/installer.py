@@ -54,6 +54,13 @@ class installerBase(ABC):
         open(self.getAranodConf(), 'w').write(newArangodConf[0])
         log("arangod now configured for broadcast bind")
 
+    def enableLogging(self):
+        arangodconf = open(self.getAranodConf(), 'r').read()
+        ipMatch = re.compile('# file = @ROOTDIR@.*')
+        newArangodConf = ipMatch.subn('file = ' + os.path.join(self.cfg.logDir, 'arangod.log'), arangodconf)
+        open(self.getAranodConf(), 'w').write(newArangodConf[0])
+        log("arangod now configured for logging")
+        
     def checkInstalledPaths(self):
         if (not os.path.exists(self.cfg.dbdir) or
             not os.path.exists(self.cfg.appdir) or
@@ -134,6 +141,7 @@ class installerDeb(installerBase):
     def installPackage(self):
         import pexpect
         self.cfg.installPrefix = "/"
+        self.cfg.logDir = '/var/log/arangodb3'
         self.cfg.dbdir = '/var/lib/arangodb3'
         self.cfg.appdir = '/var/lib/arangodb3-apps'
         self.cfg.cfgdir = '/etc/arangodb3'
@@ -206,6 +214,7 @@ class installerW(installerBase):
             architecture)
 
     def installPackage(self):
+        self.cfg.logDir = re.sub('/', '\\\\', self.cfg.installPrefix + "/LOG")
         self.cfg.dbdir = re.sub('/', '\\\\', self.cfg.installPrefix + "/DB")
         self.cfg.appdir = re.sub('/', '\\\\', self.cfg.installPrefix + "/APP")
         self.cfg.installPrefix = os.path.join(re.sub('/', '\\\\', self.cfg.installPrefix), "PROG")
@@ -223,9 +232,10 @@ class installerW(installerBase):
         install = psutil.Popen(cmd)
         install.wait()
         self.service = psutil.win_service_get('ArangoDB')
+        self.cfg.logDir
         self.cfg.allInstances = {
             'single': {
-                'logfile': self.cfg.installPrefix + '/var/log/arangod.log'
+                'logfile': self.cfg.logDir + '/arangod.log'
             }
         }
         self.logExaminer = arangodLog.arangodLogExaminer(self.cfg);
