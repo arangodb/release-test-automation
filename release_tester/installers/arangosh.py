@@ -1,7 +1,6 @@
 import os
 import psutil
-import installers.log as loglog
-log = loglog.log
+from installers.log import log
 
 
 class arangoshExecutor(object):

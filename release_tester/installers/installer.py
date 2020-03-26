@@ -10,8 +10,7 @@ import platform
 import sys
 import re
 import installers.arangodlog as arangodLog
-import installers.log as loglog
-log = loglog.log
+from installers.log import log
 from abc import ABC, abstractmethod
 
 class installConfig(object):

@@ -1,8 +1,7 @@
 import sys
 import installers.installer as installer
-import installers.arangosh as arangosh
-import installers.log as loglog
-log = loglog.log
+from installers.arangosh import arangoshExecutor
+from installers.log import log
 
 # python test.py 3.6.2 enterprise c:/Users/willi/Downloads
 
@@ -32,7 +31,7 @@ myInstaller.startService()
 myInstaller.checkInstalledPaths()
 myInstaller.checkEngineFile()
 
-systemInstallArangosh = arangosh.arangoshExecutor(myInstaller.cfg)
+systemInstallArangosh = arangoshExecutor(myInstaller.cfg)
 
 if not systemInstallArangosh.runCommand(jsVersionCheck):
     log("Version Check failed!")
