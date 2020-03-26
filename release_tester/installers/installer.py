@@ -56,9 +56,11 @@ class installerBase(ABC):
 
     def enableLogging(self):
         arangodconf = open(self.getAranodConf(), 'r').read()
-        ipMatch = re.compile('# file = @ROOTDIR@.*')
-        newArangodConf = ipMatch.subn('file = ' + os.path.join(self.cfg.logDir, 'arangod.log'), arangodconf)
-        open(self.getAranodConf(), 'w').write(newArangodConf[0])
+        print(arangodconf)
+        os.mkdir(self.cfg.logDir)
+        newArangodConf = arangodconf.replace('[log]', '[log]\nfile = ' + os.path.join(self.cfg.logDir, 'arangod.log'))
+        print(newArangodConf)
+        open(self.getAranodConf(), 'w').write(newArangodConf)
         log("arangod now configured for logging")
         
     def checkInstalledPaths(self):
@@ -232,14 +234,19 @@ class installerW(installerBase):
         install = psutil.Popen(cmd)
         install.wait()
         self.service = psutil.win_service_get('ArangoDB')
-        self.cfg.logDir
+        while not self.checkServiceUp():
+            log('starting...')
+            time.sleep(1)
+        self.enableLogging()
+        self.stopService()
+        time.sleep(1)
         self.cfg.allInstances = {
             'single': {
                 'logfile': self.cfg.logDir + '/arangod.log'
             }
         }
         self.logExaminer = arangodLog.arangodLogExaminer(self.cfg);
-        self.logExaminer.detectInstancePIDs()
+        self.startService()
         log('Installation successfull')
 
     def unInstallPackage(self):
@@ -271,6 +278,8 @@ class installerW(installerBase):
         while self.service.status() != "running":
             log(self.service.status())
             time.sleep(1)
+            if self.service.status() == "stopped":
+                raise Exception("arangod service stopped again on its own! Configuration / Port problem?")
         self.logExaminer.detectInstancePIDs()
 
     def stopService(self):

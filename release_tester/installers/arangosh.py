@@ -9,7 +9,7 @@ class arangoshExecutor(object):
         self.cfg = config
 
     def runCommand(self, cmd):
-        cmd = [os.path.join(self.cfg.basePath, "usr/bin/arangosh"),
+        runCmd = [os.path.join(self.cfg.installPrefix, "usr/bin/arangosh"),
                "--server.endpoint", "tcp://127.0.0.1:%d" %(int(self.cfg.port)),
                "--server.username", "%s" % (self.cfg.username),
                "--server.password", "%s" % (self.cfg.passvoid),
@@ -17,6 +17,6 @@ class arangoshExecutor(object):
 
         log("launching " + cmd[1])
         # PIPE=subprocess.PIPE
-        log(str(cmd))
-        p = psutil.Popen(cmd)#, stdout=PIPE, stdin=PIPE, stderr=PIPE, universal_newlines=True)
+        log(str(runCmd))
+        p = psutil.Popen(runCmd)#, stdout=PIPE, stdin=PIPE, stderr=PIPE, universal_newlines=True)
         return p.wait(timeout=30) == 0
