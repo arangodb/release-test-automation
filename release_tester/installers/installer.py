@@ -10,7 +10,7 @@ import platform
 import sys
 import re
 import installers.arangodlog as arangodLog
-from installers.log import log
+from logging import info as log
 from abc import ABC, abstractmethod
 from pathlib import Path
 

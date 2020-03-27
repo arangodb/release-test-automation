@@ -1,6 +1,6 @@
 import os
 import psutil
-from installers.log import log
+from logging import info as log
 
 
 class arangoshExecutor(object):

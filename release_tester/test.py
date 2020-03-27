@@ -1,7 +1,7 @@
 import sys
 import installers.installer as installer
 from installers.arangosh import arangoshExecutor
-from installers.log import log
+from logging import info as log
 from pathlib import Path
 
 # python test.py 3.6.2 enterprise c:/Users/willi/Downloads

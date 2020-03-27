@@ -1,7 +1,6 @@
 import re
 import time
-import installers.log as loglog
-log = loglog.log
+from logging import info as log
 
 
 class arangodLogExaminer(object):
