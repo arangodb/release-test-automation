@@ -11,7 +11,6 @@ import sys
 import re
 import installers.arangodlog as arangodLog
 from logging import info as log
-from abc import ABC, abstractmethod
 from pathlib import Path
 
 class installConfig(object):
@@ -31,19 +30,26 @@ class installConfig(object):
         self.passvoid = 'cde'
 
 
-class installerBase(ABC):
+class installerBase(object):
+    @abstractmethod
     def calculatePackageNames(self):
         pass
+    @abstractmethod
     def installPackage(self):
         pass
+    @abstractmethod
     def unInstallPackage(self):
         pass
+    @abstractmethod
     def checkServiceUp(self):
         pass
+    @abstractmethod
     def startService(self):
         pass
+    @abstractmethod
     def stopService(self):
         pass
+    @abstractmethod
     def getArangodConf(self):
         return self.cfg.cfgdir / 'arangod.conf'
 
@@ -94,6 +100,7 @@ class installerBase(ABC):
 class installerDeb(installerBase):
     def __init__(self, installConfig):
         self.cfg = installConfig
+        self.cfg.baseTestDir = Path('/tmp')
 
     def calculatePackageNames(self):
         enterprise = 'e' if self.cfg.enterprise else ''
@@ -201,7 +208,8 @@ class installerW(installerBase):
 
     def __init__(self, installConfig):
         self.cfg = installConfig
-        self.cfg.installPrefix=Path("C:/tmp")
+        self.cfg.installPrefix = Path("C:/tmp")
+        self.cfg.baseTestDir = Path('/tmp')
 
     def calculatePackageNames(self):
         enterprise = 'e' if self.cfg.enterprise else ''
