@@ -78,18 +78,15 @@ class installerBase(ABC):
     def checkUninstallCleanup(self):
         success = True
         
-        if self.cfg.installPrefix != Path("/") :
-            print('sanoteuh')
-            print(self.cfg.installPrefix)
         if (self.cfg.installPrefix != Path("/") and
             self.cfg.installPrefix.is_dir()):
-            log("Path not removed: " + self.cfg.installPrefix)
+            log("Path not removed: " + str(self.cfg.installPrefix))
             success = False
         if os.path.exists(self.cfg.appdir):
-            log("Path not removed: " + self.cfg.appdir)
+            log("Path not removed: " + str(self.cfg.appdir))
             success = False
         if os.path.exists(self.cfg.dbdir):
-            log("Path not removed: " + self.cfg.dbdir)
+            log("Path not removed: " + str(self.cfg.dbdir))
             success = False
         return success
 
@@ -204,7 +201,7 @@ class installerW(installerBase):
 
     def __init__(self, installConfig):
         self.cfg = installConfig
-        self.cfg.installPrefix="C:/tmp"
+        self.cfg.installPrefix=Path("C:/tmp")
 
     def calculatePackageNames(self):
         enterprise = 'e' if self.cfg.enterprise else ''
@@ -227,9 +224,9 @@ class installerW(installerBase):
         self.cfg.cfgdir = self.cfg.installPrefix / 'etc/arangodb3'
         cmd = [str(self.cfg.packageDir / self.serverPackage),
                '/PASSWORD=' + self.cfg.passvoid,
-               '/INSTDIR=' + PureWindowsPath(self.cfg.installPrefix),
-               '/DATABASEDIR=' + PureWindowsPath(self.cfg.dbdir),
-               '/APPDIR=' + PureWindowsPath(self.cfg.appdir),
+               '/INSTDIR=' + str(PureWindowsPath(self.cfg.installPrefix)),
+               '/DATABASEDIR=' + str(PureWindowsPath(self.cfg.dbdir)),
+               '/APPDIR=' + str(PureWindowsPath(self.cfg.appdir)),
                '/PATH=0',
                '/S',
                '/INSTALL_SCOPE_ALL=1']
@@ -255,17 +252,20 @@ class installerW(installerBase):
 
     def unInstallPackage(self):
         from pathlib import PureWindowsPath
+        self.getArangodConf().unlink() # once we modify it, the uninstaller will leave it there...
         uninstaller="Uninstall.exe"
-        tmp_uninstaller=path("c:/tmp") / uninstaller
+        tmp_uninstaller=Path("c:/tmp") / uninstaller
         # copy out the uninstaller as the windows facility would do:
         shutil.copyfile(self.cfg.installPrefix / uninstaller, tmp_uninstaller)
 
-        cmd = [tmp_uninstaller, '/PURGE_DB=1', '/S', '_?=' + PureWindowsPath(self.cfg.installPrefix)]
+        cmd = [tmp_uninstaller, '/PURGE_DB=1', '/S', '_?=' + str(PureWindowsPath(self.cfg.installPrefix))]
         log('running windows package uninstaller')
         log(str(cmd))
         uninstall = psutil.Popen(cmd)
         uninstall.wait()
-
+        shutil.rmtree(self.cfg.logDir)
+        tmp_uninstaller.unlink()
+        time.sleep(2)
         try:
             log(psutil.win_service_get('ArangoDB'))
             service = psutil.win_service_get('ArangoDB')
