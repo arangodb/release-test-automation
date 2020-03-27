@@ -12,10 +12,11 @@ import re
 import installers.arangodlog as arangodLog
 from installers.log import log
 from abc import ABC, abstractmethod
+from pathlib import Path
 
 class installConfig(object):
     def __init__(self, version, enterprise, packageDir):
-        self.basePath = "/"
+        self.basePath = Path("/")
         self.username = "root"
         self.passvoid = "abc"
         self.enterprise = enterprise
@@ -43,41 +44,45 @@ class installerBase(ABC):
         pass
     def stopService(self):
         pass
-    def getAranodConf(self):
-        return os.path.join(self.cfg.cfgdir, 'arangod.conf')
+    def getArangodConf(self):
+        return self.cfg.cfgdir / 'arangod.conf'
 
     def broadcastBind(self):
-        arangodconf = open(self.getAranodConf(), 'r').read()
+        arangodconf = open(self.getArangodConf(), 'r').read()
         ipMatch = re.compile('127\\.0\\.0\\.1')
         newArangodConf = ipMatch.subn('0.0.0.0', arangodconf)
-        open(self.getAranodConf(), 'w').write(newArangodConf[0])
+        open(self.getArangodConf(), 'w').write(newArangodConf[0])
         log("arangod now configured for broadcast bind")
 
     def enableLogging(self):
-        arangodconf = open(self.getAranodConf(), 'r').read()
+        arangodconf = open(self.getArangodConf(), 'r').read()
         print(arangodconf)
         os.mkdir(self.cfg.logDir)
-        newArangodConf = arangodconf.replace('[log]', '[log]\nfile = ' + os.path.join(self.cfg.logDir, 'arangod.log'))
+        newArangodConf = arangodconf.replace('[log]', '[log]\nfile = ' + str(self.cfg.logDir / 'arangod.log'))
         print(newArangodConf)
-        open(self.getAranodConf(), 'w').write(newArangodConf)
+        open(self.getArangodConf(), 'w').write(newArangodConf)
         log("arangod now configured for logging")
         
     def checkInstalledPaths(self):
-        if (not os.path.exists(self.cfg.dbdir) or
-            not os.path.exists(self.cfg.appdir) or
-            not os.path.exists(self.cfg.cfgdir)):
+        if (not self.cfg.dbdir.is_dir() or
+            not self.cfg.appdir.is_dir() or
+            not self.cfg.cfgdir.is_dir()):
             raise Exception("expected installation paths are not there")
 
-        if not os.path.isfile(self.getAranodConf()):
+        if not self.getArangodConf().is_file():
             raise Exception("configuration files aren't there")
     def checkEngineFile(self):
-        if not os.path.isfile(os.path.join(self.cfg.dbdir, 'ENGINE')):
+        if not Path(self.cfg.dbdir / 'ENGINE').is_file():
             raise Exception("database engine file not there!")
 
     def checkUninstallCleanup(self):
         success = True
-        if (self.cfg.installPrefix != "/" and
-            os.path.exists(self.cfg.installPrefix)):
+        
+        if self.cfg.installPrefix != Path("/") :
+            print('sanoteuh')
+            print(self.cfg.installPrefix)
+        if (self.cfg.installPrefix != Path("/") and
+            self.cfg.installPrefix.is_dir()):
             log("Path not removed: " + self.cfg.installPrefix)
             success = False
         if os.path.exists(self.cfg.appdir):
@@ -141,16 +146,15 @@ class installerDeb(installerBase):
 
     def installPackage(self):
         import pexpect
-        self.cfg.installPrefix = "/"
-        self.cfg.logDir = '/var/log/arangodb3'
-        self.cfg.dbdir = '/var/lib/arangodb3'
-        self.cfg.appdir = '/var/lib/arangodb3-apps'
-        self.cfg.cfgdir = '/etc/arangodb3'
+        self.cfg.installPrefix = Path("/")
+        self.cfg.logDir = Path('/var/log/arangodb3')
+        self.cfg.dbdir = Path('/var/lib/arangodb3')
+        self.cfg.appdir = Path('/var/lib/arangodb3-apps')
+        self.cfg.cfgdir = Path('/etc/arangodb3')
         log("installing Arangodb debian package")
         os.environ['DEBIAN_FRONTEND']= 'readline'
         serverInstall = pexpect.spawnu('dpkg -i ' +
-                                       os.path.join(self.cfg.packageDir,
-                                                    self.serverPackage))
+                                       str(self.cfg.packageDir / self.serverPackage))
         serverInstall.expect('user:')
         serverInstall.sendline(self.cfg.passvoid)
         serverInstall.expect('user:')
@@ -173,7 +177,7 @@ class installerDeb(installerBase):
         log('Installation successfull')
         self.cfg.allInstances = {
             'single': {
-                'logfile': self.cfg.installPrefix + '/var/log/arangodb3/arangod.log'
+                'logfile': self.cfg.installPrefix / '/var/log/arangodb3/arangod.log'
             }
         }
         self.logExaminer = arangodLog.arangodLogExaminer(self.cfg);
@@ -215,16 +219,17 @@ class installerW(installerBase):
             architecture)
 
     def installPackage(self):
-        self.cfg.logDir = re.sub('/', '\\\\', self.cfg.installPrefix + "/LOG")
-        self.cfg.dbdir = re.sub('/', '\\\\', self.cfg.installPrefix + "/DB")
-        self.cfg.appdir = re.sub('/', '\\\\', self.cfg.installPrefix + "/APP")
-        self.cfg.installPrefix = os.path.join(re.sub('/', '\\\\', self.cfg.installPrefix), "PROG")
-        self.cfg.cfgdir = re.sub('/', '\\\\', self.cfg.installPrefix + '/etc/arangodb3')
-        cmd = [os.path.join(self.cfg.packageDir, self.serverPackage),
+        from pathlib import PureWindowsPath
+        self.cfg.logDir = self.cfg.installPrefix / "LOG"
+        self.cfg.dbdir = self.cfg.installPrefix / "DB"
+        self.cfg.appdir = self.cfg.installPrefix / "APP"
+        self.cfg.installPrefix = self.cfg.installPrefix / "PROG"
+        self.cfg.cfgdir = self.cfg.installPrefix / 'etc/arangodb3'
+        cmd = [str(self.cfg.packageDir / self.serverPackage),
                '/PASSWORD=' + self.cfg.passvoid,
-               '/INSTDIR=' + self.cfg.installPrefix,
-               '/DATABASEDIR=' + self.cfg.dbdir,
-               '/APPDIR=' + self.cfg.appdir,
+               '/INSTDIR=' + PureWindowsPath(self.cfg.installPrefix),
+               '/DATABASEDIR=' + PureWindowsPath(self.cfg.dbdir),
+               '/APPDIR=' + PureWindowsPath(self.cfg.appdir),
                '/PATH=0',
                '/S',
                '/INSTALL_SCOPE_ALL=1']
@@ -241,7 +246,7 @@ class installerW(installerBase):
         time.sleep(1)
         self.cfg.allInstances = {
             'single': {
-                'logfile': self.cfg.logDir + '/arangod.log'
+                'logfile': self.cfg.logDir / 'arangod.log'
             }
         }
         self.logExaminer = arangodLog.arangodLogExaminer(self.cfg);
@@ -249,12 +254,13 @@ class installerW(installerBase):
         log('Installation successfull')
 
     def unInstallPackage(self):
+        from pathlib import PureWindowsPath
         uninstaller="Uninstall.exe"
-        tmp_uninstaller=os.path.join("c:/tmp/", uninstaller)
+        tmp_uninstaller=path("c:/tmp") / uninstaller
         # copy out the uninstaller as the windows facility would do:
-        shutil.copyfile(os.path.join(self.cfg.installPrefix, uninstaller), tmp_uninstaller)
+        shutil.copyfile(self.cfg.installPrefix / uninstaller, tmp_uninstaller)
 
-        cmd = [tmp_uninstaller, '/PURGE_DB=1', '/S', '_?=' + self.cfg.installPrefix]
+        cmd = [tmp_uninstaller, '/PURGE_DB=1', '/S', '_?=' + PureWindowsPath(self.cfg.installPrefix)]
         log('running windows package uninstaller')
         log(str(cmd))
         uninstall = psutil.Popen(cmd)
@@ -290,6 +296,6 @@ class installerW(installerBase):
 
 def get(*args, **kwargs):
     (winver, x, y, z) = platform.win32_ver()
-    if winver != "":
+    if winver:
         return installerW(installConfig(*args, **kwargs))
     return installerDeb(installConfig(*args, **kwargs))

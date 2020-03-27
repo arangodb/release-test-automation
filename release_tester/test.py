@@ -2,6 +2,7 @@ import sys
 import installers.installer as installer
 from installers.arangosh import arangoshExecutor
 from installers.log import log
+from pathlib import Path
 
 # python test.py 3.6.2 enterprise c:/Users/willi/Downloads
 
@@ -21,7 +22,7 @@ jsVersionCheck = (
     "if (db._version()!='%s') { throw 'fail'}" % (version),
     'check version')
 
-myInstaller = installer.get(version, enterprise, packagedir)
+myInstaller = installer.get(version, enterprise, Path(packagedir))
 
 myInstaller.calculatePackageNames()
 myInstaller.installPackage()
