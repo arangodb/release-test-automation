@@ -2,6 +2,7 @@
 Dependencies
 ------------
 - python 3
+- python requests to talk to the instances https://requests.readthedocs.io/en/latest/
 - Python expect - https://github.com/pexpect/pexpect https://pexpect.readthedocs.io/en/stable/ (debian only)
 - PS-util  https://psutil.readthedocs.io/en/latest/#windows-services on windows `_pswindows.py` needs to be copied 
  into the python installation after the pip run: 
@@ -10,7 +11,7 @@ Dependencies
  the upstream distribution doesn't enable the wrappers to start/stop service 
 - pyyaml - for parsing saved data.
 
-`pip3 install psutil pyyaml pexpect`
+`pip3 install psutil pyyaml pexpect requests`
 
 Using
 -----
