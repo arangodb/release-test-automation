@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import datetime
 import time
 import os
@@ -12,7 +14,7 @@ import re
 import installers.arangodlog as arangodLog
 from logging import info as log
 from pathlib import Path
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 import yaml
 
 class installConfig(object):
@@ -44,7 +46,7 @@ class installConfig(object):
         self.passvoid = 'cde'
 
 
-class installerBase(object):
+class installerBase(ABC):
     @abstractmethod
     def calculatePackageNames(self):
         pass
@@ -79,25 +81,32 @@ class installerBase(object):
         self.calcConfigFileName().write_text(yaml.dump(self.cfg))
 
     def loadConfig(self):
-        self.cfg = yaml.load(self.calcConfigFileName().open(), Loader=yaml.Loader)
+        with open(self.calcConfigFileName()) as fh:
+            self.cfg = yaml.load(fh, Loader=yaml.Loader)
         self.logExaminer = arangodLog.arangodLogExaminer(self.cfg);
-        
+
     def broadcastBind(self):
-        arangodconf = open(self.getArangodConf(), 'r').read()
+        arangodconf = None
+        with open(self.getArangodConf(), 'r') as fh:
+            arangodconf = fh.read()
         ipMatch = re.compile('127\\.0\\.0\\.1')
         newArangodConf = ipMatch.subn('0.0.0.0', arangodconf)
-        open(self.getArangodConf(), 'w').write(newArangodConf[0])
+        with open(self.getArangodConf(), 'w') as fh:
+            fh.write(newArangodConf[0])
         log("arangod now configured for broadcast bind")
 
     def enableLogging(self):
-        arangodconf = open(self.getArangodConf(), 'r').read()
+        arangodconf = None
+        with open(self.getArangodConf(), 'r') as fh:
+            arangodconf = fh.read()
         print(arangodconf)
-        os.mkdir(self.cfg.logDir)
+        self.cfg.logDir.mkdir(parents=True)
         newArangodConf = arangodconf.replace('[log]', '[log]\nfile = ' + str(self.cfg.logDir / 'arangod.log'))
         print(newArangodConf)
-        open(self.getArangodConf(), 'w').write(newArangodConf)
+        with open(self.getArangodConf(), 'w') as fh:
+            fh.write(newArangodConf)
         log("arangod now configured for logging")
-        
+
     def checkInstalledPaths(self):
         if (not self.cfg.dbdir.is_dir() or
             not self.cfg.appdir.is_dir() or
@@ -112,7 +121,7 @@ class installerBase(object):
 
     def checkUninstallCleanup(self):
         success = True
-        
+
         if (self.cfg.installPrefix != Path("/") and
             self.cfg.installPrefix.is_dir()):
             log("Path not removed: " + str(self.cfg.installPrefix))
@@ -136,21 +145,15 @@ class installerDeb(installerBase):
         packageVersion = '1'
         architecture = 'amd64'
 
-        self.serverPackage = 'arangodb3%s_%s-%s_%s.deb' %(
-            enterprise,
-            self.cfg.version,
-            packageVersion,
-            architecture)
-        self.clientPackage = 'arangodb3%s-client_%s-%s_%s.deb'  %(
-            enterprise,
-            self.cfg.version,
-            packageVersion,
-            architecture)
-        self.debugPackage = 'arangodb3%s-dbg_%s-%s_%s.deb'  %(
-            enterprise,
-            self.cfg.version,
-            packageVersion,
-            architecture)
+        desc = { "ep": enterprise
+               , "cfg" : self.cfg.version
+               , "ver" : packageVersion
+               , "arch" : architecture
+               }
+
+        self.serverPackage = 'arangodb3{ep}_{cfg}-{ver}_{arch}.deb'.format(**desc)
+        self.clientPackage = 'arangodb3{ep}-client_{cfg}-{ver}_{arch}.deb'.format(**desc)
+        self.debugPackage = 'arangodb3{ep}-dbg_{cfg}-{ver}_{arch}.deb'.format(**desc)
 
     def checkServiceUp(self):
         time.sleep(1) # TODO
@@ -215,14 +218,14 @@ class installerDeb(installerBase):
         }
         self.logExaminer = arangodLog.arangodLogExaminer(self.cfg);
         self.logExaminer.detectInstancePIDs()
-        
+
     def unInstallPackage(self):
         import pexpect
         uninstall = pexpect.spawnu('dpkg --purge ' + 'arangodb3' + 'e' if self.cfg.enterprise else '')
 
         uninstall.expect('Purging')
         uninstall.expect(pexpect.EOF)
-        
+
 
 
 class installerRPM(installerBase):
