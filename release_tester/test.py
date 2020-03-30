@@ -3,7 +3,8 @@ import installers.installer as installer
 from installers.arangosh import arangoshExecutor
 from logging import info as log
 from pathlib import Path
-
+from installers.starterenvironment import get as getStarterenv
+from installers.starterenvironment import runnertype
 # python test.py 3.6.2 enterprise c:/Users/willi/Downloads all
 
 # python3 test.py 3.6.2 enterprise /home/willi/Downloads all
@@ -43,6 +44,9 @@ if runmode == 'all' or runmode == 'tests':
     if not systemInstallArangosh.runCommand(jsVersionCheck):
         log("Version Check failed!")
     input("Press Enter to continue")
+
+    stenv = getStarterenv(runnertype.LEADER_FOLLOWER, myInstaller.cfg)
+    
 
 if runmode == 'all' or runmode == 'uninstall':
     myInstaller.unInstallPackage()
