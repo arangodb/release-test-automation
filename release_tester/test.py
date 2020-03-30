@@ -1,3 +1,4 @@
+#/usr/bin/env python3
 import sys
 import installers.installer as installer
 from installers.arangosh import arangoshExecutor
