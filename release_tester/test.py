@@ -32,24 +32,26 @@ myInstaller.calculatePackageNames()
 if runmode == 'all' or runmode == 'install':
     myInstaller.installPackage()
     myInstaller.saveConfig()
+    myInstaller.stopService()
+    myInstaller.broadcastBind()
+    myInstaller.startService()
+    myInstaller.checkInstalledPaths()
+    myInstaller.checkEngineFile()
 else:
     myInstaller.loadConfig()
 
 if runmode == 'all' or runmode == 'tests':
-    #myInstaller.stopService()
-    #myInstaller.broadcastBind()
-    #myInstaller.startService()
-    #myInstaller.checkInstalledPaths()
-    #myInstaller.checkEngineFile()
-    #
-    #systemInstallArangosh = arangoshExecutor(myInstaller.cfg)
-    #
-    #if not systemInstallArangosh.runCommand(jsVersionCheck):
-    #    log("Version Check failed!")
-    #input("Press Enter to continue")
+    myInstaller.stopService()
+    myInstaller.startService()
+
+    systemInstallArangosh = arangoshExecutor(myInstaller.cfg)
+
+    if not systemInstallArangosh.runCommand(jsVersionCheck):
+        log("Version Check failed!")
+    input("Press Enter to continue")
+    myInstaller.stopService()
 
     stenv = getStarterenv(runnertype.LEADER_FOLLOWER, myInstaller.cfg)
-
     stenv.setup()
     stenv.run()
     stenv.postSetup()

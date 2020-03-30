@@ -19,7 +19,11 @@ Parameter:
  - `version` which Arangodb Version you want to run the test on
  - `[enterprise|community]` whether its an enterprise or community package you want to install
  - `packageDir` The directory where you downloaded the nsis .exe / deb [/ rpm TODO]
- - `[all|install|uninstall|tests]` (you need to either use `all`, or `install` once and subsequently `tests` until you decide to run `uninstall` to clean your system.
+ - `[all|install|uninstall|tests]` 
+   - `all` is intended to run the full flow. This is the production flow.
+   - `install` to only install the package onto the system and store its setting to the temp folder (development) 
+   - `tests`  to read the config file from the temp folder and run the tetss. 
+   - `uninstall` to clean up your system.
 
 Example usage:
  - Windows: `python3 ./release_tester/test.py 3.6.2 enterprise c:/Users/willi/Downloads all`
