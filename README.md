@@ -26,7 +26,16 @@ Example usage:
  - Linux (ubuntu|debian) `python3 ./release_tester/test.py 3.6.2 enterprise /home/willi/Downloads all`
  - Linux (centos|fedora|sles) TODO
 
-
+Source distribution
+-------------------
+ - `release_tester/test.py` - main process flow, install, run test, uninstall
+ - `release_tester/installers/installer.py` distribuiton / OS specific [un]installation automation
+ - `release_tester/startermanager.py` manage one starter instance and get information about its launched processes
+ - `release_tester/installers/arangodlog.py` arangod log examining to detect PID, `ready for business`-helo, leadership takeover. 
+ - `release_tester/installers/arangosh.py` launch an arangosh with javascript snippets against the starter installation
+ - `release_tester/installers/starterenvironment.py` set up one of [Leader/Follower | Active Failover | Cluster | DC2DC]
+ 
+ - `attic_snippets` - trial and error scripts of start phase, to be deleted at some time.
 GOAL
 ====
 create most of the flow of i.e. https://github.com/arangodb/release-qa/issues/264 in a portable way. 
