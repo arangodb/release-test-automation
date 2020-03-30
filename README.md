@@ -9,7 +9,7 @@ Dependencies
    - python install root (i.e. Users/willi/AppData/Local/Programs/Python)
    -  /Python38-32/Lib/site-packages/psutil/_pswindows.py
  the upstream distribution doesn't enable the wrappers to start/stop service 
-
+- pyyaml - for parsing saved data.
 
 
 GOAL

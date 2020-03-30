@@ -4,15 +4,15 @@ from installers.arangosh import arangoshExecutor
 from logging import info as log
 from pathlib import Path
 
-# python test.py 3.6.2 enterprise c:/Users/willi/Downloads
+# python test.py 3.6.2 enterprise c:/Users/willi/Downloads all
 
-# python3 test.py 3.6.2 enterprise /home/willi/Downloads
+# python3 test.py 3.6.2 enterprise /home/willi/Downloads all
 
-if len(sys.argv) != 4:
-    print("usage: version enterprise|community packageDir ")
+if len(sys.argv) != 5:
+    print("usage: version [enterprise|community] packageDir [all|install|uninstall|tests]")
 print(sys.argv)
 
-(selffile, version, enterprise, packagedir) = sys.argv
+(selffile, version, enterprise, packagedir, runmode) = sys.argv
 if enterprise == 'enterprise':
     enterprise = True
 else:
@@ -25,19 +25,25 @@ jsVersionCheck = (
 myInstaller = installer.get(version, enterprise, Path(packagedir))
 
 myInstaller.calculatePackageNames()
-myInstaller.installPackage()
-myInstaller.stopService()
-myInstaller.broadcastBind()
-myInstaller.startService()
-myInstaller.checkInstalledPaths()
-myInstaller.checkEngineFile()
+if runmode == 'all' or runmode == 'install':
+    myInstaller.installPackage()
+    myInstaller.saveConfig()
+else:
+    myInstaller.loadConfig()
 
-systemInstallArangosh = arangoshExecutor(myInstaller.cfg)
+if runmode == 'all' or runmode == 'tests':
+    myInstaller.stopService()
+    myInstaller.broadcastBind()
+    myInstaller.startService()
+    myInstaller.checkInstalledPaths()
+    myInstaller.checkEngineFile()
 
-if not systemInstallArangosh.runCommand(jsVersionCheck):
-    log("Version Check failed!")
-input("Press Enter to continue")
+    systemInstallArangosh = arangoshExecutor(myInstaller.cfg)
 
-myInstaller.unInstallPackage()
+    if not systemInstallArangosh.runCommand(jsVersionCheck):
+        log("Version Check failed!")
+    input("Press Enter to continue")
 
-myInstaller.checkUninstallCleanup()
+if runmode == 'all' or runmode == 'uninstall':
+    myInstaller.unInstallPackage()
+    myInstaller.checkUninstallCleanup()

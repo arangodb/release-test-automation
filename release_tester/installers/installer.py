@@ -12,19 +12,33 @@ import re
 import installers.arangodlog as arangodLog
 from logging import info as log
 from pathlib import Path
+from abc import abstractmethod
+import yaml
 
 class installConfig(object):
-    def __init__(self, version, enterprise, packageDir):
-        self.basePath = Path("/")
-        self.username = "root"
-        self.passvoid = "abc"
-        self.enterprise = enterprise
-        self.version = version
-        self.packageDir = packageDir
-        self.installPrefix = ''
-        self.jwt = ''
-        self.port=8529
-        self.allInstances = {}
+    def __init__(self, version, enterprise, packageDir, yamlcfg=None):
+        if yamlcfg != None:
+            self.basePath = Path("/")
+            self.username = "root"
+            self.passvoid = "abc"
+            self.enterprise = enterprise
+            self.version = version
+            self.packageDir = packageDir
+            self.installPrefix = ''
+            self.jwt = ''
+            self.port=8529
+            self.allInstances = {}
+        else:
+            self.basePath = Path("/")
+            self.username = "root"
+            self.passvoid = "abc"
+            self.enterprise = enterprise
+            self.version = version
+            self.packageDir = packageDir
+            self.installPrefix = Path('/')
+            self.jwt = ''
+            self.port=8529
+            self.allInstances = {}
 
     def generatePassword(self):
         self.passvoid = 'cde'
@@ -49,10 +63,25 @@ class installerBase(object):
     @abstractmethod
     def stopService(self):
         pass
-    @abstractmethod
+
     def getArangodConf(self):
         return self.cfg.cfgdir / 'arangod.conf'
 
+    def calcConfigFileName(self):
+        cfgFile = Path()
+        if self.cfg.installPrefix == Path('/'):
+            cfgFile = Path('/') / 'tmp' / 'config.yml'
+        else:
+            cfgFile = Path('c:') / 'tmp' / 'config.yml'
+        return cfgFile;
+
+    def saveConfig(self):
+        self.calcConfigFileName().write_text(yaml.dump(self.cfg))
+
+    def loadConfig(self):
+        self.cfg = yaml.load(self.calcConfigFileName().open(), Loader=yaml.Loader)
+        self.logExaminer = arangodLog.arangodLogExaminer(self.cfg);
+        
     def broadcastBind(self):
         arangodconf = open(self.getArangodConf(), 'r').read()
         ipMatch = re.compile('127\\.0\\.0\\.1')
