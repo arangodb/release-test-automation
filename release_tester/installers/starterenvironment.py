@@ -6,6 +6,7 @@ from pathlib import Path
 from abc import abstractmethod
 from startermanager import starterManager
 from installers.arangosh import arangoshExecutor
+__name__ = "starterenvironment"
 
 class runnertype(Enum):
     LEADER_FOLLOWER=1

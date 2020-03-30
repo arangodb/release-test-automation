@@ -1,7 +1,7 @@
 import os
 import psutil
 from logging import info as log
-
+__name__ = "arangosh"
 
 class arangoshExecutor(object):
     def __init__(self, config):

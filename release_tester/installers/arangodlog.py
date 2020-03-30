@@ -2,7 +2,7 @@ import re
 import time
 from logging import info as log
 
-
+__name__ = "arangodlog"
 class arangodLogExaminer(object):
     def __init__(self, config):
         self.cfg = config
