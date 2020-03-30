@@ -52,7 +52,8 @@ if __name__ == "__main__":
         input("Press Enter to continue")
         myInstaller.stopService()
     
-        stenv = getStarterenv(runnertype.LEADER_FOLLOWER, myInstaller.cfg)
+        # stenv = getStarterenv(runnertype.LEADER_FOLLOWER, myInstaller.cfg)
+        stenv = getStarterenv(runnertype.ACTIVE_FAILOVER, myInstaller.cfg)
         stenv.setup()
         stenv.run()
         stenv.postSetup()

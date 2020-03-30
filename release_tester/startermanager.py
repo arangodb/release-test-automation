@@ -3,6 +3,7 @@ import os
 import psutil
 import signal
 import time
+import re
 from logging import info as log
 from installers.arangosh import arangoshExecutor
 from pathlib import Path
