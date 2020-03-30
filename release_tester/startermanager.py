@@ -3,10 +3,14 @@ import os
 import psutil
 import signal
 import time
+import re
 from logging import info as log
 from installers.arangosh import arangoshExecutor
 from pathlib import Path
 from installers.installer import installConfig
+
+__name__ = "startermanager"
+
 class starterManager(object):
     def __init__(self, basecfg, installprefix, mode=None, port=None, jwtStr=None, moreopts=[]):
         self.cfg = copy.deepcopy(basecfg)

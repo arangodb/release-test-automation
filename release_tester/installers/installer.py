@@ -16,6 +16,7 @@ from logging import info as log
 from pathlib import Path
 from abc import abstractmethod, ABC
 import yaml
+__name__ = "installer"
 
 class installConfig(object):
     def __init__(self, version, enterprise, packageDir, yamlcfg=None):
