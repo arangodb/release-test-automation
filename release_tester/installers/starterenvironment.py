@@ -1,7 +1,10 @@
-
+import time
 from logging import info as log
 from enum import Enum
+from pathlib import Path
 from abc import abstractmethod
+from startermanager import starterManager
+from installers.arangosh import arangoshExecutor
 
 class runnertype(Enum):
     LEADER_FOLLOWER=1
@@ -64,22 +67,21 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
 """, "checking documents")
 
     def setup(self):
-        self.leader = starterManager(self.basecfg.baseTestDir / 'lf'/ 'leader',
-                                     self.basecfg.installPrefix,
+        self.leader = starterManager(self.basecfg,
+                                     Path('lf')/ 'leader',
                                      mode='single',
                                      port=1234,
                                      moreopts=[])
-        self.follower = starterManager(self.basecfg.baseTestDir / 'lf' / 'follower',
+        self.follower = starterManager(self.basecfg,
+                                       Path('lf') / 'follower',
                                        mode='single',
                                        port=2345,
                                        moreopts=[])
-        self.leaderArangosh = arangoshExecutor(self.leader.cfg)
-        self.followerArangosh = arangoshExecutor(self.follower.cfg)
 
     def run(self):
-        self.fleader.runStarter()
+        self.leader.runStarter()
         self.follower.runStarter()
-        log(str(self.leaderArangosh.runCommand(beforeReplJS)))
+        log(str(self.leader.executeFrontend(self.beforeReplJS)))
         self.startReplJS = ("""
 require("@arangodb/replication").setupReplicationGlobal({
     endpoint: "tcp://127.0.0.1:%d",
@@ -90,16 +92,16 @@ require("@arangodb/replication").setupReplicationGlobal({
     incremental: true,
     autoResync: true
     });
-""" % (self.leader.port + 1), "launching replication")
-        log(str(self.followerArangosh.runCommand(self.startReplJS)))
-        log(str(self.leaderArangosh.runCommand(self.afterReplJS)))
+""" % (self.leader.getFrontendPort()), "launching replication")
+        log(str(self.follower.executeFrontend(self.startReplJS)))
+        log(str(self.leader.executeFrontend(self.afterReplJS)))
     def postSetup(self):
 
         log("checking for the replication")
 
         count = 0
         while count < 30:
-            if not self.followerArangosh.runCommand(self.checkReplJS):
+            if self.follower.executeFrontend(self.checkReplJS):
                 break
             log(".")
             time.sleep(1)
@@ -173,20 +175,17 @@ class dc2dc(runner):
         pass
 
 
-
-
-
-
-
 def get(typeof, baseconfig):
+    print("get!")
     if typeof == runnertype.LEADER_FOLLOWER:
-        return activeFailover(baseconfig)
+        return LeaderFollower(baseconfig)
         
     if typeof == runnertype.ACTIVE_FAILOVER:
-        return LeaderFollower(baseconfig)
+        return activeFailover(baseconfig)
         
     if typeof == runnertype.CLUSTER:
         return cluster(baseconfig)
         
     if typeof == runnertype.DC2DC:
         return dc2dc(baseconfig)
+    raise Exception("unknown starter type")

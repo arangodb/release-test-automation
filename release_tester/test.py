@@ -33,20 +33,26 @@ else:
     myInstaller.loadConfig()
 
 if runmode == 'all' or runmode == 'tests':
-    myInstaller.stopService()
-    myInstaller.broadcastBind()
-    myInstaller.startService()
-    myInstaller.checkInstalledPaths()
-    myInstaller.checkEngineFile()
-
-    systemInstallArangosh = arangoshExecutor(myInstaller.cfg)
-
-    if not systemInstallArangosh.runCommand(jsVersionCheck):
-        log("Version Check failed!")
-    input("Press Enter to continue")
+    #myInstaller.stopService()
+    #myInstaller.broadcastBind()
+    #myInstaller.startService()
+    #myInstaller.checkInstalledPaths()
+    #myInstaller.checkEngineFile()
+    #
+    #systemInstallArangosh = arangoshExecutor(myInstaller.cfg)
+    #
+    #if not systemInstallArangosh.runCommand(jsVersionCheck):
+    #    log("Version Check failed!")
+    #input("Press Enter to continue")
 
     stenv = getStarterenv(runnertype.LEADER_FOLLOWER, myInstaller.cfg)
-    
+
+    stenv.setup()
+    stenv.run()
+    stenv.postSetup()
+    stenv.jamAttempt()
+    input("Press Enter to continue")
+    stenv.shutdown()
 
 if runmode == 'all' or runmode == 'uninstall':
     myInstaller.unInstallPackage()

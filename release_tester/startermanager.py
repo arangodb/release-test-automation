@@ -1,15 +1,18 @@
+import copy
 import os
 import psutil
+import signal
+import time
 from logging import info as log
 from installers.arangosh import arangoshExecutor
 from pathlib import Path
-
+from installers.installer import installConfig
 class starterManager(object):
-    def __init__(self, basedir, installprefix, mode=None, port=None, jwtStr=None, moreopts=[]):
-        self.basedir = basedir
-        self.installprefix
-        self.logfileName = basedir / "arangodb.log"
-        self.port = port
+    def __init__(self, basecfg, installprefix, mode=None, port=None, jwtStr=None, moreopts=[]):
+        self.cfg = copy.deepcopy(basecfg)
+        self.basedir = self.cfg.baseTestDir / installprefix
+        self.logfileName = self.basedir / "arangodb.log"
+        self.starterPort = port
         self.startupwait = 1
         self.username = 'root'
         self.passvoid = ''
@@ -33,10 +36,10 @@ class starterManager(object):
             f.write(jwtStr)
             f.close()
             self.moreopts = ['--auth.jwt-secret', str(self.jwtfile)] + self.moreopts
-        if self.port != None:
-            self.frontendPort = port + 1
-            self.moreopts += ["--starter.port", "%d" % port]
-        self.arguments = [self.installprefix / 'usr' / 'bin' / 'arangodb',
+        if self.starterPort != None:
+            self.frontendPort = self.starterPort + 1
+            self.moreopts += ["--starter.port", "%d" % self.starterPort]
+        self.arguments = [self.cfg.installPrefix / 'usr' / 'bin' / 'arangodb',
                           "--log.console=false",
                           "--log.file=true",
                           "--starter.data-dir=%s" % self.basedir
@@ -49,12 +52,14 @@ class starterManager(object):
 
     def executeFrontend(self, cmd):
         if self.arangoshExecutor == None:
-            self.arangoshExecutor = arangoshExecutor(username="root", port=int(self.frontendPort), passvoid="")
+            self.cfg.port = self.getFrontendPort()
+            self.arangoshExecutor = arangoshExecutor(self.cfg)
         return self.arangoshExecutor.runCommand(cmd)
 
     def killInstance(self):
         log("Killing: " + str(self.arguments))
-        self.instance.send_signal(signal.CTRL_C_EVENT)
+        #self.instance.send_signal(signal.CTRL_C_EVENT)
+        self.instance.kill()
         log(str(self.instance.wait(timeout=30)))
         log("Instance now dead.")
         

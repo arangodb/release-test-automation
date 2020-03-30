@@ -16,6 +16,7 @@ class arangoshExecutor(object):
 
         log("launching " + cmd[1])
         # PIPE=subprocess.PIPE
-        log(str(runCmd))
+        # print(str(runCmd))
         p = psutil.Popen(runCmd)#, stdout=PIPE, stdin=PIPE, stderr=PIPE, universal_newlines=True)
-        return p.wait(timeout=30) == 0
+        x = p.wait(timeout=30)
+        return x == 0
