@@ -182,7 +182,7 @@ class activeFailover(runner):
         if r.status_code != 503:
             self.success = False
         log("success" if self.success else "fail")
-        log('leader can be reached at: ' + 'http://' + self.cfg.publicip + ':' + self.leader.getFrontendPort())
+        log('leader can be reached at: ' + 'http://' + self.basecfg.publicip + ':' + self.leader.getFrontendPort())
 
     def postSetup(self):
         pass
@@ -205,7 +205,7 @@ class activeFailover(runner):
         if r.status_code != 200:
             log(r.text)
             self.success = False
-        log('new leader can be reached at: ' + 'http://' + self.cfg.publicip + ':' + self.newLeader.getFrontendPort())
+        log('new leader can be reached at: ' + 'http://' + self.basecfg.publicip + ':' + self.newLeader.getFrontendPort())
         input("Press Enter to continue...")
         
         self.leader.respawnInstance()
