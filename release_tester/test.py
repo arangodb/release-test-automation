@@ -1,7 +1,7 @@
 #/usr/bin/env python3
 import sys
 import click
-import installers.installer as installer
+import installers.installers as installers
 from installers.arangosh import arangoshExecutor
 from logging import info as log
 import logging
@@ -22,7 +22,7 @@ def runTest(version, package_dir, enterprise, mode, publicip):
         "if (db._version()!='%s') { throw 'fail'}" % (version),
         'check version')
     
-    myInstaller = installer.get(version, enterprise, Path(package_dir), publicip)
+    myInstaller = installers.get(version, enterprise, Path(package_dir), publicip)
     
     myInstaller.calculatePackageNames()
     if mode == 'all' or mode == 'install':

@@ -17,8 +17,7 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 from pathlib import Path
 from abc import abstractmethod, ABC
-import yaml
-__name__ = "installer"
+__name__ = "installers"
 
 class installConfig(object):
     def __init__(self, version, enterprise, packageDir, publicip, yamlcfg=None):
@@ -49,7 +48,6 @@ class installConfig(object):
 
     def generatePassword(self):
         self.passvoid = 'cde'
-
 
 class installerBase(ABC):
     @abstractmethod
@@ -83,9 +81,11 @@ class installerBase(ABC):
         return cfgFile;
 
     def saveConfig(self):
+        import yaml
         self.calcConfigFileName().write_text(yaml.dump(self.cfg))
 
     def loadConfig(self):
+        import yaml
         with open(self.calcConfigFileName()) as fh:
             self.cfg = yaml.load(fh, Loader=yaml.Loader)
         self.logExaminer = arangodLog.arangodLogExaminer(self.cfg);

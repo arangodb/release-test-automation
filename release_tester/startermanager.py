@@ -9,7 +9,7 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 from installers.arangosh import arangoshExecutor
 from pathlib import Path
-from installers.installer import installConfig
+from installers.installers import installConfig
 
 __name__ = "startermanager"
 
