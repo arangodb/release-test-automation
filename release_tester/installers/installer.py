@@ -21,8 +21,9 @@ import yaml
 __name__ = "installer"
 
 class installConfig(object):
-    def __init__(self, version, enterprise, packageDir, yamlcfg=None):
+    def __init__(self, version, enterprise, packageDir, publicip, yamlcfg=None):
         if yamlcfg != None:
+            self.publicip = publicip
             self.basePath = Path("/")
             self.username = "root"
             self.passvoid = "abc"
@@ -34,6 +35,7 @@ class installConfig(object):
             self.port=8529
             self.allInstances = {}
         else:
+            self.publicip = publicip
             self.basePath = Path("/")
             self.username = "root"
             self.passvoid = "abc"

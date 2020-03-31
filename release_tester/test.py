@@ -1,5 +1,6 @@
 #/usr/bin/env python3
 import sys
+import click
 import installers.installer as installer
 from installers.arangosh import arangoshExecutor
 from logging import info as log
@@ -9,28 +10,22 @@ from installers.starterenvironment import get as getStarterenv
 from installers.starterenvironment import runnertype
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
-# python test.py 3.6.2 enterprise c:/Users/willi/Downloads all
+@click.command()
+@click.option('--version', help='ArangoDB version number.')
+@click.option('--package-dir', default='/tmp/', help='directory to load the packages from.')
+@click.option('--enterprise', default=True, help='Enterprise or community?')
+@click.option('--mode', default='all', help='operation mode - [all|install|uninstall|tests].')
+@click.option('--publicip', default='127.0.0.1', help='IP for the click to browser hints.')
 
-# python3 test.py 3.6.2 enterprise /home/willi/Downloads all
-if __name__ == "__main__": 
-    if len(sys.argv) != 5:
-        print("usage: version [enterprise|community] packageDir [all|install|uninstall|tests]")
-    print(sys.argv)
-    
-    (selffile, version, enterprise, packagedir, runmode) = sys.argv
-    if enterprise == 'enterprise':
-        enterprise = True
-    else:
-        enterprise = False
-    
+def runTest(version, package_dir, enterprise, mode, publicip):
     jsVersionCheck = (
         "if (db._version()!='%s') { throw 'fail'}" % (version),
         'check version')
     
-    myInstaller = installer.get(version, enterprise, Path(packagedir))
+    myInstaller = installer.get(version, enterprise, Path(package_dir), publicip)
     
     myInstaller.calculatePackageNames()
-    if runmode == 'all' or runmode == 'install':
+    if mode == 'all' or mode == 'install':
         myInstaller.installPackage()
         myInstaller.saveConfig()
         myInstaller.stopService()
@@ -41,7 +36,7 @@ if __name__ == "__main__":
     else:
         myInstaller.loadConfig()
     
-    if runmode == 'all' or runmode == 'tests':
+    if mode == 'all' or mode == 'tests':
         myInstaller.stopService()
         myInstaller.startService()
     
@@ -61,6 +56,9 @@ if __name__ == "__main__":
         input("Press Enter to continue")
         stenv.shutdown()
     
-    if runmode == 'all' or runmode == 'uninstall':
+    if mode == 'all' or mode == 'uninstall':
         myInstaller.unInstallPackage()
         myInstaller.checkUninstallCleanup()
+
+if __name__ == "__main__": 
+    runTest()

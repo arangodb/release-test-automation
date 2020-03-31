@@ -9,7 +9,6 @@ from abc import abstractmethod
 from startermanager import starterManager
 from installers.arangosh import arangoshExecutor
 __name__ = "starterenvironment"
-IP = "bruecklinux"
 class runnertype(Enum):
     LEADER_FOLLOWER=1
     ACTIVE_FAILOVER=2
@@ -183,7 +182,7 @@ class activeFailover(runner):
         if r.status_code != 503:
             self.success = False
         log("success" if self.success else "fail")
-        log('leader can be reached at: ' + 'http://' + IP + ':' + self.leader.getFrontendPort())
+        log('leader can be reached at: ' + 'http://' + self.cfg.publicip + ':' + self.leader.getFrontendPort())
 
     def postSetup(self):
         pass
@@ -206,7 +205,7 @@ class activeFailover(runner):
         if r.status_code != 200:
             log(r.text)
             self.success = False
-        log('new leader can be reached at: ' + 'http://' + IP + ':' + self.newLeader.getFrontendPort())
+        log('new leader can be reached at: ' + 'http://' + self.cfg.publicip + ':' + self.newLeader.getFrontendPort())
         input("Press Enter to continue...")
         
         self.leader.respawnInstance()
