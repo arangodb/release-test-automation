@@ -49,7 +49,9 @@ def runTest(version, package_dir, enterprise, mode, publicip):
         myInstaller.stopService()
     
         # stenv = getStarterenv(runnertype.LEADER_FOLLOWER, myInstaller.cfg)
-        stenv = getStarterenv(runnertype.ACTIVE_FAILOVER, myInstaller.cfg)
+        #stenv = getStarterenv(runnertype.ACTIVE_FAILOVER, myInstaller.cfg)
+        # stenv = getStarterenv(runnertype.CLUSTER, myInstaller.cfg)
+        stenv = getStarterenv(runnertype.DC2DC, myInstaller.cfg)
         stenv.setup()
         stenv.run()
         stenv.postSetup()

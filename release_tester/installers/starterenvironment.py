@@ -1,3 +1,4 @@
+import datetime
 import time
 import requests
 from logging import info as log
@@ -8,7 +9,11 @@ from pathlib import Path
 from abc import abstractmethod
 from startermanager import starterManager
 from installers.arangosh import arangoshExecutor
-__name__ = "starterenvironment"
+import psutil
+
+def timestamp():
+    return datetime.datetime.utcnow().isoformat()
+
 class runnertype(Enum):
     LEADER_FOLLOWER=1
     ACTIVE_FAILOVER=2
@@ -235,35 +240,211 @@ class cluster(runner):
         log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
         log("xx           cluster test      ")
         log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+        self.createTestCollection = ("""
+db._create("testCollection",  { numberOfShards: 6, replicationFactor: 2});
+db.testCollection.save({test: "document"})
+""", "create test collection")
         self.basecfg = cfg
+        self.starterInstances = []
+        self.jwtdatastr = str(timestamp())
+        self.starterInstances.append(starterManager(self.basecfg,
+                                                    Path('CLUSTER') / 'node1',
+                                                    mode='cluster',
+                                                    jwtStr=self.jwtdatastr,
+                                                    moreopts=[]))
+        self.starterInstances.append(starterManager(self.basecfg,
+                                                    Path('CLUSTER') / 'node2',
+                                                    mode='cluster',
+                                                    jwtStr=self.jwtdatastr,
+                                                    moreopts=['--starter.join', '127.0.0.1'] ))
+        self.starterInstances.append(starterManager(self.basecfg,
+                                                    Path('CLUSTER') / 'node3',
+                                                    mode='cluster',
+                                                    jwtStr=self.jwtdatastr,
+                                                    moreopts=['--starter.join','127.0.0.1']))
     def setup(self):
-        pass
+        for node in self.starterInstances:
+            log("Spawning instance")
+            node.runStarter()
+        log("waiting for the starters to become alive")
+        while (not self.starterInstances[0].isInstanceUp()
+               and not self.starterInstances[1].isInstanceUp()
+               and not self.starterInstances[1].isInstanceUp()):
+            log('.')
+            time.sleep(1)
+        log("waiting for the cluster instances to become alive")
+        for node in self.starterInstances:
+            node.detectLogfiles()
+            node.detectInstancePIDs()
+            log('coordinator can be reached at: ' + 'http://' + self.basecfg.publicip + ':' + node.getFrontendPort())
+        log("instances are ready")
+
     def run(self):
-        pass
+        input("Press Enter to continue")
+        
+        log("stopping instance 2")
+        self.starterInstances[2].killInstance()
+        input("Press Enter to continue")
+        self.starterInstances[2].respawnInstance()
+        input("Press Enter to finish this test")
+
     def postSetup(self):
         pass
     def jamAttempt(self):
+        log('Starting instance without jwt')
+        deadInstance = starterManager(self.basecfg,
+                                      Path('CLUSTER') / 'nodeX',
+                                      mode='cluster',
+                                      jwtStr=None,
+                                      moreopts=['--starter.join', '127.0.0.1'])
+        deadInstance.runStarter()
+        i = 0
+        while True:
+            log("." + str(i))
+            if not deadInstance.isInstanceRunning():
+                break
+            if i > 40:
+                log('Giving up wating for the starter to exit')
+                raise Exception("non-jwt-ed starter won't exit")
+            i += 1
+            time.sleep(10)
+        log(str(deadInstance.instance.wait(timeout=320)))
+        log('dead instance is dead?')
         pass
     def shutdown(self):
-        pass
+        for node in self.starterInstances:
+            node.killInstance()
+        log('test ended')
 
 class dc2dc(runner):
     def __init__(self, cfg):
+        def certOp(args):
+            #print(args)
+            psutil.Popen([self.basecfg.installPrefix / 'usr' / 'bin' / 'arangodb',
+                          'create'] +
+                         args).wait()
         log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
         log("xx           dc 2 dc test      ")
         log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
         self.basecfg = cfg
+        self.testdir = Path("DC2DC")
+        self.cluster1RelDir = self.testdir / 'custer1'
+        self.cluster2RelDir = self.testdir / 'custer2'
+        self.certDir = self.basecfg.baseTestDir / self.testdir / "certs"
+        self.certDir.mkdir(parents=True, exist_ok=True)
+        self.dataDir = self.basecfg.baseTestDir / self.testdir / "data"
+        self.certDir.mkdir(parents=True, exist_ok=True)
+        self.clientCert = self.certDir / 'client-auth-ca.crt'
+        self.cluster1 = {"dir": self.certDir / self.cluster1RelDir
+                        ,"SyncSecret": self.certDir / self.cluster1RelDir / 'syncmaster.jwtsecret'
+                        ,"JWTSecret": self.certDir / self.cluster1RelDir / 'arangodb.jwtsecret'
+                        ,"tlsKeyfile": self.certDir / self.cluster1RelDir / 'tls.keyfile'
+                        }
+        self.cluster2 = {"dir": self.certDir / self.cluster2RelDir
+                        ,"SyncSecret": self.certDir / self.cluster2RelDir / 'syncmaster.jwtsecret'
+                        ,"JWTSecret": self.certDir / self.cluster2RelDir / 'arangodb.jwtsecret'
+                        ,"tlsKeyfile": self.certDir / self.cluster2RelDir / 'tls.keyfile'
+                        }
+        self.cacert = self.certDir / 'tls-ca.crt'
+        self.cakey = self.certDir / 'tls-ca.key'
+        self.clientauthKey = self.certDir / 'client-auth-ca.key'
+        self.clientkeyfile = self.certDir / 'client-auth-ca.keyfile'
+        log('Create TLS certificates')
+        certOp(['tls', 'ca',
+                '--cert=' + str(self.cacert),
+                '--key=' + str(self.cakey)])
+        certOp(['tls', 'keyfile',
+                '--cacert=' + str(self.cacert),
+                '--cakey=' + str(self.cakey),
+                '--keyfile=' + str(self.cluster1["tlsKeyfile"]),
+                '--host=' + self.basecfg.publicip, '--host=localhost'])
+        certOp(['tls', 'keyfile',
+                '--cacert=' + str(self.cacert),
+                '--cakey=' + str(self.cakey),
+                '--keyfile=' + str(self.cluster2["tlsKeyfile"]),
+                '--host=' + self.basecfg.publicip, '--host=localhost'])
+        log('Create client authentication certificates')
+        certOp(['client-auth', 'ca',
+                '--cert=' + str(self.clientCert),
+                '--key=' + str(self.clientauthKey)])
+        certOp(['client-auth', 'keyfile',
+                '--cacert=' + str(self.clientCert),
+                '--cakey=' + str(self.clientauthKey),
+                '--keyfile=' + str(self.clientkeyfile)])
+        log('Create JWT secrets')
+        certOp(['jwt-secret', '--secret=' + str(self.cluster1["SyncSecret"])])
+        certOp(['jwt-secret', '--secret=' + str(self.cluster1["JWTSecret"])])
+        certOp(['jwt-secret', '--secret=' + str(self.cluster2["SyncSecret"])])
+        certOp(['jwt-secret', '--secret=' + str(self.cluster2["JWTSecret"])])
+
+        def clusterArgs(val):
+            return [
+                '--starter.sync',
+                '--starter.local',
+                '--auth.jwt-secret=' + str(val["JWTSecret"]),
+                '--sync.server.keyfile=' + str(val["tlsKeyfile"]),
+                '--sync.server.client-cafile=' + str(self.clientCert),
+                '--sync.master.jwt-secret=' + str(val["SyncSecret"]),
+                '--starter.address=' + self.basecfg.publicip]
+        self.cluster1["instance"] = starterManager(
+            self.basecfg,
+            self.cluster1RelDir,    
+            mode='cluster',
+            moreopts=clusterArgs(self.cluster1))
+        self.cluster2["instance"] = starterManager(
+            self.basecfg,
+            self.cluster2RelDir,
+            mode='cluster',
+            port=9528, 
+            moreopts=clusterArgs(self.cluster2))
+
     def setup(self):
-        pass
+        self.cluster1["instance"].runStarter()
+        while not self.cluster1["instance"].isInstanceUp():
+            log('.')
+            time.sleep(1)
+        self.cluster1["instance"].detectLogfiles()
+        print(requests.get('http://'+ self.basecfg.publicip +':8542'))
+
+        self.cluster2["instance"].runStarter()
+        while not self.cluster2["instance"].isInstanceUp():
+            log('.')
+            time.sleep(1)
+        self.cluster2["instance"].detectLogfiles()
+        print(requests.get('http://'+ self.basecfg.publicip +':8542'))
+
+        self.syncInstance = psutil.Popen(['arangosync', 'configure', 'sync',
+                                          '--master.endpoint=https://' + self.basecfg.publicip + ':9542',
+                                          '--master.keyfile=' + str(self.clientkeyfile),
+                                          '--source.endpoint=https://' + self.basecfg.publicip + ':8542',
+                                          '--master.cacert=' + str(self.cacert),
+                                          '--source.cacert=' + str(self.cacert),
+                                          '--auth.keyfile=' + str(self.clientkeyfile)])
+
     def run(self):
-        pass
+        log('Check status of cluster 1')
+        self.checkSync=psutil.Popen(['arangosync', 'get', 'status',
+                                     '--master.cacert=' + str(self.cacert),
+                                     '--master.endpoint=https://' + self.basecfg.publicip + ':9542',
+                                     '--auth.keyfile=' + str(self.clientkeyfile),
+                                     '--verbose']).wait()
+
+        log('Check status of cluster 1')
+        self.checkSync=psutil.Popen(['arangosync', 'get', 'status',
+                                     '--master.cacert=' + str(self.cacert),
+                                     '--master.endpoint=https://' + self.basecfg.publicip + ':9542',
+                                     '--auth.keyfile=' + str(self.clientkeyfile),
+                                     '--verbose']).wait()
+
     def postSetup(self):
         pass
     def jamAttempt(self):
         pass
     def shutdown(self):
-        pass
-
+        self.syncInstance.terminate()
+        self.syncInstance.wait(timeout=30)
+        self.cluster1["instance"].killInstance()
+        self.cluster2["instance"].killInstance()
 
 def get(typeof, baseconfig):
     print("get!")

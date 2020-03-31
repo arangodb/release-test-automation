@@ -225,7 +225,7 @@ class installerDeb(installerBase):
 
     def unInstallPackage(self):
         import pexpect
-        uninstall = pexpect.spawnu('dpkg --purge ' + 'arangodb3' + 'e' if self.cfg.enterprise else '')
+        uninstall = pexpect.spawnu('dpkg --purge ' + 'arangodb3' + ('e' if self.cfg.enterprise else ''))
 
         uninstall.expect('Purging')
         uninstall.expect(pexpect.EOF)

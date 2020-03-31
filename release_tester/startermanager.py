@@ -33,12 +33,9 @@ class starterManager(object):
         self.moreopts += moreopts
         self.jwtfile = Path()
         if jwtStr:
-            print("JWT!")
-            os.makedirs(self.basedir)
+            self.basedir.mkdir(parents=True, exist_ok=True)
             self.jwtfile = self.basedir / 'jwt'
-            f = open(jwtfile, 'w')
-            f.write(jwtStr)
-            f.close()
+            self.jwtfile.write_text(jwtStr)
             self.moreopts = ['--auth.jwt-secret', str(self.jwtfile)] + self.moreopts
         if self.starterPort != None:
             self.frontendPort = self.starterPort + 1
