@@ -5,6 +5,8 @@ import signal
 import time
 import re
 from logging import info as log
+import logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 from installers.arangosh import arangoshExecutor
 from pathlib import Path
 from installers.installer import installConfig
@@ -63,13 +65,13 @@ class starterManager(object):
     def killInstance(self):
         log("Killing: " + str(self.arguments))
         #self.instance.send_signal(signal.CTRL_C_EVENT)
-        self.instance.kill()
+        self.instance.terminate()
         log(str(self.instance.wait(timeout=30)))
         log("Instance now dead.")
         
     def respawnInstance(self):
         log("respawning instance " + str(self.arguments))
-        self.instance = Popen(self.arguments)
+        self.instance = psutil.Popen(self.arguments)
         time.sleep(self.startupwait)
         
     def getFrontendPort(self):

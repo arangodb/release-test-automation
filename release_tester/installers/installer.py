@@ -13,6 +13,8 @@ import sys
 import re
 import installers.arangodlog as arangodLog
 from logging import info as log
+import logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 from pathlib import Path
 from abc import abstractmethod, ABC
 import yaml

@@ -1,13 +1,15 @@
 import time
 import requests
 from logging import info as log
+import logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 from enum import Enum
 from pathlib import Path
 from abc import abstractmethod
 from startermanager import starterManager
 from installers.arangosh import arangoshExecutor
 __name__ = "starterenvironment"
-
+IP = "bruecklinux"
 class runnertype(Enum):
     LEADER_FOLLOWER=1
     ACTIVE_FAILOVER=2
@@ -162,25 +164,25 @@ class activeFailover(runner):
         pass
     def run(self):
         log("starting test")
-        success = True
-        r = requests.get('http://127.0.0.1:' + self.leader.getFrontendPort())
+        self.success = True
+        r = requests.get('http://ip6-localhost:' + self.leader.getFrontendPort())
         log(str(r))
         if r.status_code != 200:
             log(r.text)
-            success = False
-        log('http://127.0.0.1:' + self.followerNodes[0].getFrontendPort())
-        r = requests.get('http://127.0.0.1:' + self.followerNodes[0].getFrontendPort())
+            self.success = False
+        log('http://ip6-localhost:' + self.followerNodes[0].getFrontendPort())
+        r = requests.get('http://ip6-localhost:' + self.followerNodes[0].getFrontendPort())
         log(str(r))
         log(r.text)
         if r.status_code != 503:
-            success = False
-        log('http://127.0.0.1:' + self.followerNodes[1].getFrontendPort())
-        r = requests.get('http://127.0.0.1:' + self.followerNodes[1].getFrontendPort())
+            self.success = False
+        log('http://ip6-localhost:' + self.followerNodes[1].getFrontendPort())
+        r = requests.get('http://ip6-localhost:' + self.followerNodes[1].getFrontendPort())
         log(str(r))
         log(r.text)
         if r.status_code != 503:
-            success = False
-        log("success" if success else "fail")
+            self.success = False
+        log("success" if self.success else "fail")
         log('leader can be reached at: ' + 'http://' + IP + ':' + self.leader.getFrontendPort())
 
     def postSetup(self):
@@ -199,11 +201,11 @@ class activeFailover(runner):
                 log('.')
             time.sleep(1)
         log(str(self.newLeader))
-        r = requests.get('http://127.0.0.1:' + self.newLeader.getFrontendPort() + '/_db/_system/_admin/aardvark/index.html#replication')
+        r = requests.get('http://ip6-localhost:' + self.newLeader.getFrontendPort() + '/_db/_system/_admin/aardvark/index.html#replication')
         log(str(r))
         if r.status_code != 200:
             log(r.text)
-            success = False
+            self.success = False
         log('new leader can be reached at: ' + 'http://' + IP + ':' + self.newLeader.getFrontendPort())
         input("Press Enter to continue...")
         
@@ -214,12 +216,12 @@ class activeFailover(runner):
             log('.')
             time.sleep(1)
         log("Now is follower")
-        r = self.requests.get('http://127.0.0.1:' + leader.getFrontendPort())
+        r = requests.get('http://ip6-localhost:' + self.leader.getFrontendPort())
         log(str(r))
         log(r.text)
         if r.status_code != 503:
-            success = False
-        log("state of this test is: " + "Success" if success else "Failed")
+            self.success = False
+        log("state of this test is: " + "Success" if self.success else "Failed")
     
     def shutdown(self):
         for node in self.starterInstances:

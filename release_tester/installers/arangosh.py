@@ -1,6 +1,8 @@
 import os
 import psutil
 from logging import info as log
+import logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 __name__ = "arangosh"
 
 class arangoshExecutor(object):

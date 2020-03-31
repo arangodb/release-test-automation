@@ -1,6 +1,8 @@
 import re
 import time
 from logging import info as log
+import logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 __name__ = "arangodlog"
 class arangodLogExaminer(object):
