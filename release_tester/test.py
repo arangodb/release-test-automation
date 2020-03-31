@@ -13,11 +13,12 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 @click.command()
 @click.option('--version', help='ArangoDB version number.')
 @click.option('--package-dir', default='/tmp/', help='directory to load the packages from.')
-@click.option('--enterprise', default=True, help='Enterprise or community?')
+@click.option('--enterprise', default='True', help='Enterprise or community?')
 @click.option('--mode', default='all', help='operation mode - [all|install|uninstall|tests].')
 @click.option('--publicip', default='127.0.0.1', help='IP for the click to browser hints.')
 
 def runTest(version, package_dir, enterprise, mode, publicip):
+    enterprise = enterprise == 'True'
     jsVersionCheck = (
         "if (db._version()!='%s') { throw 'fail'}" % (version),
         'check version')
