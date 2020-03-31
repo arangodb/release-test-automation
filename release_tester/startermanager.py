@@ -11,8 +11,6 @@ from installers.arangosh import arangoshExecutor
 from pathlib import Path
 from installers.installers import installConfig
 
-__name__ = "startermanager"
-
 class starterManager(object):
     def __init__(self, basecfg, installprefix, mode=None, port=None, jwtStr=None, moreopts=[]):
         self.cfg = copy.deepcopy(basecfg)
@@ -68,12 +66,12 @@ class starterManager(object):
         self.instance.terminate()
         log(str(self.instance.wait(timeout=30)))
         log("Instance now dead.")
-        
+
     def respawnInstance(self):
         log("respawning instance " + str(self.arguments))
         self.instance = psutil.Popen(self.arguments)
         time.sleep(self.startupwait)
-        
+
     def getFrontendPort(self):
         if self.frontendPort == None:
             raise Exception(timestamp() + "no frontend port detected")
@@ -84,7 +82,7 @@ class starterManager(object):
 
     def isInstanceRunning(self):
         return self.instance.is_running()
-                          
+
     def isInstanceUp(self):
         if not self.instance.is_running():
             print(self.instance)
@@ -149,13 +147,13 @@ class starterManager(object):
         self.isLeader = ((lf.find('Became leader in') >= 0) or
                          (lf.find('Successful leadership takeover: All your base are belong to us') >= 0))
         return self.isLeader
-    
+
     def readInstanceLogfile(self):
         return open(self.dbInstance['logfile']).read()
 
     def readAgentLogfile(self):
         return open(self.agent['logfile']).read()
-    
+
     def ActiveFailoverDetectHosts(self):
         if not self.instance.is_running():
             print(self.instance)

@@ -17,7 +17,6 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 from pathlib import Path
 from abc import abstractmethod, ABC
-__name__ = "installers"
 
 class installConfig(object):
     def __init__(self, version, enterprise, packageDir, publicip, yamlcfg=None):
