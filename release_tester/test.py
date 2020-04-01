@@ -27,27 +27,27 @@ def runTest(version, package_dir, enterprise, mode, publicip):
         log("searching for leftover processes")
         for process in psutil.process_iter(['pid', 'name']):
             if process.name() == 'arangod':
-                arangods.append(process)
+                arangods.append(psutil.Process(process.pid))
             if process.name() == 'arangodb':
-                arangodbs.append(process)
+                arangodbs.append(psutil.Process(process.pid))
             if process.name() == 'arangosync':
-                arangosyncs.append(process)
+                arangosyncs.append(psutil.Process(process.pid))
             
         for process in arangosyncs:
-            log("cleanup killing " + str(process))
-            p = psutil.Process(process.pid)
-            p.terminate()
-            p.wait()
+            if process.is_running():
+                log("cleanup killing " + str(process))
+                process.terminate()
+                process.wait()
         for process in arangodbs:
-            log("cleanup killing " + str(process))
-            p = psutil.Process(process.pid)
-            p.terminate()
-            p.wait()
+            if process.is_running():
+                log("cleanup killing " + str(process))
+                process.terminate()
+                process.wait()
         for process in arangods:
-            log("cleanup killing " + str(process))
-            p = psutil.Process(process.pid)
-            p.terminate()
-            p.wait()
+            if process.is_running():
+                log("cleanup killing " + str(process))
+                process.terminate()
+                process.wait()
     enterprise = enterprise == 'True'
     jsVersionCheck = (
         "if (db._version()!='%s') { throw 'fail'}" % (version),
