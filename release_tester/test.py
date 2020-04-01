@@ -39,25 +39,26 @@ def runTest(version, package_dir, enterprise, mode, publicip):
     
     if mode == 'all' or mode == 'tests':
         myInstaller.stopService()
-        #myInstaller.startService()
-        #
-        #systemInstallArangosh = arangoshExecutor(myInstaller.cfg)
-        #
-        #if not systemInstallArangosh.runCommand(jsVersionCheck):
-        #    log("Version Check failed!")
-        #input("Press Enter to continue")
+        myInstaller.startService()
+        
+        systemInstallArangosh = arangoshExecutor(myInstaller.cfg)
+        
+        if not systemInstallArangosh.runCommand(jsVersionCheck):
+            log("Version Check failed!")
+        input("Press Enter to continue")
         myInstaller.stopService()
     
-        # stenv = getStarterenv(runnertype.LEADER_FOLLOWER, myInstaller.cfg)
-        #stenv = getStarterenv(runnertype.ACTIVE_FAILOVER, myInstaller.cfg)
-        # stenv = getStarterenv(runnertype.CLUSTER, myInstaller.cfg)
-        stenv = getStarterenv(runnertype.DC2DC, myInstaller.cfg)
-        stenv.setup()
-        stenv.run()
-        stenv.postSetup()
-        stenv.jamAttempt()
-        input("Press Enter to continue")
-        stenv.shutdown()
+        for runner  in [runnertype.LEADER_FOLLOWER,
+                        runnertype.ACTIVE_FAILOVER,
+                        runnertype.CLUSTER,
+                        runnertype.DC2DC]:
+            stenv = getStarterenv(runner, myInstaller.cfg)
+            stenv.setup()
+            stenv.run()
+            stenv.postSetup()
+            stenv.jamAttempt()
+            input("Press Enter to continue")
+            stenv.shutdown()
     
     if mode == 'all' or mode == 'uninstall':
         myInstaller.unInstallPackage()
