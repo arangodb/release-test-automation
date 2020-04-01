@@ -12,6 +12,12 @@ Dependencies
 - pyyaml - for parsing saved data.
 - click - for commandline parsing https://click.palletsprojects.com/en/7.x/
 
+
+`apt-get install python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect`
+
+`yum update ; yum install python3 python3-pyyaml python3-requests python3-click gcc platform-python-devel python3-distro; pip3 install psutil `
+
+
 `pip3 install psutil pyyaml pexpect requests click`
 
 Using

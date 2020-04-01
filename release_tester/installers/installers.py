@@ -235,10 +235,66 @@ class installerDeb(installerBase):
 class installerRPM(installerBase):
     def __init__(self, installConfig):
         self.cfg = installConfig
-    def installPackage(self):
-        import blarg
-        print('aoeu')
+        self.cfg.baseTestDir = Path('/tmp')
 
+    def calculatePackageNames(self):
+        enterprise = 'e' if self.cfg.enterprise else ''
+        packageVersion = '1.0'
+        architecture = 'x86_64'
+
+        desc = { "ep": enterprise
+               , "cfg" : self.cfg.version
+               , "ver" : packageVersion
+               , "arch" : architecture
+               }
+
+        self.serverPackage = 'arangodb3{ep}-{cfg}-{ver}.{arch}.rpm'.format(**desc)
+        self.clientPackage = 'arangodb3{ep}-client-{cfg}-{ver}.{arch}.rpm'.format(**desc)
+        self.debugPackage = 'arangodb3{ep}-debuginfo-{cfg}-{ver}.{arch}.rpm'.format(**desc)
+
+    def checkServiceUp(self):
+        time.sleep(1) # TODO
+
+    def startService(self):
+        startServer = psutil.Popen(['service', 'arangodb3', 'start'])
+        log("waiting for eof")
+        startServer.wait()
+        time.sleep(0.1)
+        self.logExaminer.detectInstancePIDs()
+
+    def stopService(self):
+        stopServer = psutil.Popen(['service', 'arangodb3', 'stop'])
+        log("waiting for eof")
+        stopServer.wait()
+
+    def installPackage(self):
+        self.cfg.installPrefix = Path("/")
+        self.cfg.logDir = Path('/var/log/arangodb3')
+        self.cfg.dbdir = Path('/var/lib/arangodb3')
+        self.cfg.appdir = Path('/var/lib/arangodb3-apps')
+        self.cfg.cfgdir = Path('/etc/arangodb3')
+        log("installing Arangodb RPM package")
+        os.environ['ARANGODB_DEFAULT_ROOT_PASSWORD']= self.cfg.passvoid
+        serverInstall = psutil.Popen(['rpm', '-i', str(self.cfg.packageDir / self.serverPackage)])
+        log("waiting for the installation to finish")
+        serverInstall.wait(timeout=60)
+        #pwset = psutil.Popen(['/usr/sbin/arangod'
+        #                     ,'--database.init-database'
+        #                     ,'--server.rest-server', 'false'
+        #                     ,'--server.statistics', 'false'
+        #                     ,'--foxx.queues', 'false'])
+
+        self.cfg.allInstances = {
+            'single': {
+                'logfile': self.cfg.installPrefix / '/var/log/arangodb3/arangod.log'
+            }
+        }
+        self.logExaminer = arangodLog.arangodLogExaminer(self.cfg);
+        self.logExaminer.detectInstancePIDs()
+
+    def unInstallPackage(self):
+        uninstall = psutil.Popen(['rpm', '-e', 'arangodb3' + ('e' if self.cfg.enterprise else '')])
+        uninstall.wait()
 
 class installerW(installerBase):
 
@@ -342,4 +398,17 @@ def get(*args, **kwargs):
     (winver, x, y, z) = platform.win32_ver()
     if winver:
         return installerW(installConfig(*args, **kwargs))
-    return installerDeb(installConfig(*args, **kwargs))
+    (macver, x, y) = platform.mac_ver()
+    if macver:
+        raise Exception("mac not yet implemented")
+
+    if platform.system() == "linux" or platform.system() == "Linux":
+        import distro
+        (distro, x, y) = distro.linux_distribution(full_distribution_name=False)
+
+        if distro == 'debian' or distro == 'ubuntu':
+            return installerDeb(installConfig(*args, **kwargs))
+        elif distro == 'centos' or distro == 'redhat' or 'suse':
+            return installerRPM(installConfig(*args, **kwargs))
+        raise Exception('unsupported linux distribution: ' + distro)
+    raise Exception('unsupported os' + platform.system())
