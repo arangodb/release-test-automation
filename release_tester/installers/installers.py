@@ -279,7 +279,7 @@ class installerRPM(installerBase):
         if not package.is_file():
             log("package doesn't exist: " + str(package))
             raise Exception("failed to find package")
-        serverInstall = psutil.Popen(['rpm', '-i', str()])
+        serverInstall = psutil.Popen(['rpm', '-i', str(package)])
         log("waiting for the installation to finish")
         serverInstall.wait(timeout=60)
         #pwset = psutil.Popen(['/usr/sbin/arangod'
