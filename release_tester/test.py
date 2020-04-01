@@ -5,6 +5,7 @@ import installers.installers as installers
 from installers.arangosh import arangoshExecutor
 from logging import info as log
 import logging
+import psutil
 from pathlib import Path
 from installers.starterenvironment import get as getStarterenv
 from installers.starterenvironment import runnertype
@@ -17,12 +18,41 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 @click.option('--mode', default='all', help='operation mode - [all|install|uninstall|tests].')
 @click.option('--publicip', default='127.0.0.1', help='IP for the click to browser hints.')
 
+
 def runTest(version, package_dir, enterprise, mode, publicip):
+    def killallprocesses():
+        arangods = []
+        arangodbs = []
+        arangosyncs = []
+        for process in psutil.process_iter(['pid', 'name']):
+            if process.name == 'arangod':
+                arangods.push(process)
+            if process.name == 'arangodb':
+                arangodbs.push(process)
+            if process.name == 'arangosync':
+                arangosyncs.push(process)
+            
+        for process in arangosyncs:
+            log("cleanup killing " + str(process))
+            p = psutil.process(process.pid)
+            p.terminate()
+            p.wait()
+        for process in arangodbs:
+            log("cleanup killing " + str(process))
+            p = psutil.process(process.pid)
+            p.terminate()
+            p.wait()
+        for process in arangods:
+            log("cleanup killing " + str(process))
+            p = psutil.process(process.pid)
+            p.terminate()
+            p.wait()
     enterprise = enterprise == 'True'
     jsVersionCheck = (
         "if (db._version()!='%s') { throw 'fail'}" % (version),
         'check version')
-    
+    if mode not in ['all', 'install', 'tests', 'uninstall']:
+        raise Exception("unsupported mode!")
     myInstaller = installers.get(version, enterprise, Path(package_dir), publicip)
     
     myInstaller.calculatePackageNames()
@@ -36,7 +66,6 @@ def runTest(version, package_dir, enterprise, mode, publicip):
         myInstaller.checkEngineFile()
     else:
         myInstaller.loadConfig()
-    
     if mode == 'all' or mode == 'tests':
         myInstaller.stopService()
         myInstaller.startService()
@@ -47,7 +76,7 @@ def runTest(version, package_dir, enterprise, mode, publicip):
             log("Version Check failed!")
         input("Press Enter to continue")
         myInstaller.stopService()
-    
+        killallprocesses()
         for runner  in [runnertype.LEADER_FOLLOWER,
                         runnertype.ACTIVE_FAILOVER,
                         runnertype.CLUSTER,
@@ -59,6 +88,8 @@ def runTest(version, package_dir, enterprise, mode, publicip):
             stenv.jamAttempt()
             input("Press Enter to continue")
             stenv.shutdown()
+            stenv.cleanup()
+            killallprocesses()
     
     if mode == 'all' or mode == 'uninstall':
         myInstaller.unInstallPackage()

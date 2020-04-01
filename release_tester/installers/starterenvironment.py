@@ -10,6 +10,7 @@ from abc import abstractmethod
 from startermanager import starterManager
 from installers.arangosh import arangoshExecutor
 import psutil
+import shutil
 
 def timestamp():
     return datetime.datetime.utcnow().isoformat()
@@ -41,12 +42,19 @@ class runner(object):
     def shutdown(self):
         pass
 
+    def cleanup(self):
+        testdir = self.basecfg.baseTestDir / self.basedir
+        if testdir.exists():
+            shutil.rmtree(testdir)
+
 class LeaderFollower(runner):
     def __init__(self, cfg):
         log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
         log("xx           Leader Follower Test      ")
         log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
         self.basecfg = cfg
+        self.basedir = Path('lf')
+        self.cleanup()
         self.beforeReplJS = ("""
 db._create("testCollectionBefore");
 db.testCollectionBefore.save({"hello": "world"})
@@ -66,12 +74,12 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
 
     def setup(self):
         self.leader = starterManager(self.basecfg,
-                                     Path('lf')/ 'leader',
+                                     self.basedir / 'leader',
                                      mode='single',
                                      port=1234,
                                      moreopts=[])
         self.follower = starterManager(self.basecfg,
-                                       Path('lf') / 'follower',
+                                       self.basedir / 'follower',
                                        mode='single',
                                        port=2345,
                                        moreopts=[])
@@ -124,17 +132,19 @@ class activeFailover(runner):
         log("xx           Active Failover Test      ")
         log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
         self.basecfg = cfg
+        self.basedir = Path('AFO')
+        self.cleanup()
         self.starterInstances = []
         self.starterInstances.append(starterManager(self.basecfg,
-                                                    Path('AFO') / 'node1',
+                                                    self.basedir / 'node1',
                                                     mode='activefailover',
                                                     moreopts=[]))
         self.starterInstances.append(starterManager(self.basecfg,
-                                                    Path('AFO') / 'node2',
+                                                    self.basedir / 'node2',
                                                     mode='activefailover',
                                                     moreopts=['--starter.join', '127.0.0.1'] ))
         self.starterInstances.append(starterManager(self.basecfg,
-                                                    Path('AFO') / 'node3',
+                                                    self.basedir / 'node3',
                                                     mode='activefailover',
                                                     moreopts=['--starter.join','127.0.0.1']))
     def setup(self):
@@ -246,20 +256,22 @@ db._create("testCollection",  { numberOfShards: 6, replicationFactor: 2});
 db.testCollection.save({test: "document"})
 """, "create test collection")
         self.basecfg = cfg
+        self.basedir = Path('CLUSTER')
+        self.cleanup()
         self.starterInstances = []
         self.jwtdatastr = str(timestamp())
         self.starterInstances.append(starterManager(self.basecfg,
-                                                    Path('CLUSTER') / 'node1',
+                                                    self.basedir / 'node1',
                                                     mode='cluster',
                                                     jwtStr=self.jwtdatastr,
                                                     moreopts=[]))
         self.starterInstances.append(starterManager(self.basecfg,
-                                                    Path('CLUSTER') / 'node2',
+                                                    self.basedir / 'node2',
                                                     mode='cluster',
                                                     jwtStr=self.jwtdatastr,
                                                     moreopts=['--starter.join', '127.0.0.1'] ))
         self.starterInstances.append(starterManager(self.basecfg,
-                                                    Path('CLUSTER') / 'node3',
+                                                    self.basedir / 'node3',
                                                     mode='cluster',
                                                     jwtStr=self.jwtdatastr,
                                                     moreopts=['--starter.join','127.0.0.1']))
@@ -328,18 +340,19 @@ class dc2dc(runner):
         log("xx           dc 2 dc test      ")
         log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
         self.basecfg = cfg
-        self.testdir = Path("DC2DC")
+        self.basedir = Path('DC2DC')
+        self.cleanup()
         self.cluster1RelDir = Path('custer1')
         self.cluster2RelDir = Path('custer2')
         self.datadir = Path('data')
-        self.certDir = self.basecfg.baseTestDir / self.testdir / "certs"
+        self.certDir = self.basecfg.baseTestDir / self.basedir / "certs"
         print(self.certDir)
         self.certDir.mkdir(parents=True, exist_ok=True)
-        self.dataDir = self.basecfg.baseTestDir / self.testdir / self.datadir
+        self.dataDir = self.basecfg.baseTestDir / self.basedir / self.datadir
         self.certDir.mkdir(parents=True, exist_ok=True)
         self.clientCert = self.certDir / 'client-auth-ca.crt'
         def getdirs(subdir):
-            return {"dir": self.testdir / self.datadir / subdir
+            return {"dir": self.basedir / self.datadir / subdir
                    ,"SyncSecret": self.certDir / subdir / 'syncmaster.jwtsecret'
                    ,"JWTSecret": self.certDir / subdir / 'arangodb.jwtsecret'
                    ,"tlsKeyfile": self.certDir / subdir / 'tls.keyfile'
