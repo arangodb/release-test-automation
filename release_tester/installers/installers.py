@@ -31,6 +31,7 @@ class installConfig(object):
             self.installPrefix = ''
             self.jwt = ''
             self.port=8529
+            self.localhost = 'localhost'
             self.allInstances = {}
         else:
             self.publicip = publicip
@@ -43,6 +44,7 @@ class installConfig(object):
             self.installPrefix = Path('/')
             self.jwt = ''
             self.port=8529
+            self.localhost = 'localhost'
             self.allInstances = {}
 
     def generatePassword(self):
@@ -143,6 +145,7 @@ class installerDeb(installerBase):
     def __init__(self, installConfig):
         self.cfg = installConfig
         self.cfg.baseTestDir = Path('/tmp')
+        self.cfg.localhost = 'ip6-localhost'
 
     def calculatePackageNames(self):
         enterprise = 'e' if self.cfg.enterprise else ''
@@ -236,6 +239,7 @@ class installerRPM(installerBase):
     def __init__(self, installConfig):
         self.cfg = installConfig
         self.cfg.baseTestDir = Path('/tmp')
+        self.cfg.localhost = 'localhost6'
 
     def calculatePackageNames(self):
         enterprise = 'e' if self.cfg.enterprise else ''

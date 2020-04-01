@@ -169,19 +169,19 @@ class activeFailover(runner):
     def run(self):
         log("starting test")
         self.success = True
-        r = requests.get('http://ip6-localhost:' + self.leader.getFrontendPort())
+        r = requests.get('http://' + self.basecfg.localhost + ':' + self.leader.getFrontendPort())
         log(str(r))
         if r.status_code != 200:
             log(r.text)
             self.success = False
-        log('http://ip6-localhost:' + self.followerNodes[0].getFrontendPort())
-        r = requests.get('http://ip6-localhost:' + self.followerNodes[0].getFrontendPort())
+        log('http://' + self.basecfg.localhost + ':' + self.followerNodes[0].getFrontendPort())
+        r = requests.get('http://' + self.basecfg.localhost + ':' + self.followerNodes[0].getFrontendPort())
         log(str(r))
         log(r.text)
         if r.status_code != 503:
             self.success = False
         log('http://ip6-localhost:' + self.followerNodes[1].getFrontendPort())
-        r = requests.get('http://ip6-localhost:' + self.followerNodes[1].getFrontendPort())
+        r = requests.get('http://' + self.basecfg.localhost + ':' + self.followerNodes[1].getFrontendPort())
         log(str(r))
         log(r.text)
         if r.status_code != 503:
@@ -205,7 +205,7 @@ class activeFailover(runner):
                 log('.')
             time.sleep(1)
         log(str(self.newLeader))
-        r = requests.get('http://ip6-localhost:' + self.newLeader.getFrontendPort() + '/_db/_system/_admin/aardvark/index.html#replication')
+        r = requests.get('http://' + self.basecfg.localhost + ':' + self.newLeader.getFrontendPort() + '/_db/_system/_admin/aardvark/index.html#replication')
         log(str(r))
         if r.status_code != 200:
             log(r.text)
@@ -220,7 +220,7 @@ class activeFailover(runner):
             log('.')
             time.sleep(1)
         log("Now is follower")
-        r = requests.get('http://ip6-localhost:' + self.leader.getFrontendPort())
+        r = requests.get('http://' + self.basecfg.localhost + ':' + self.leader.getFrontendPort())
         log(str(r))
         log(r.text)
         if r.status_code != 503:
