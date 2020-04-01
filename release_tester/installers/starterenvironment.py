@@ -319,7 +319,7 @@ db.testCollection.save({test: "document"})
 class dc2dc(runner):
     def __init__(self, cfg):
         def certOp(args):
-            #print(args)
+            print(args)
             psutil.Popen([self.basecfg.installPrefix / 'usr' / 'bin' / 'arangodb',
                           'create'] +
                          args).wait()
@@ -328,23 +328,23 @@ class dc2dc(runner):
         log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
         self.basecfg = cfg
         self.testdir = Path("DC2DC")
-        self.cluster1RelDir = self.testdir / 'custer1'
-        self.cluster2RelDir = self.testdir / 'custer2'
+        self.cluster1RelDir = Path('custer1')
+        self.cluster2RelDir = Path('custer2')
+        self.datadir = Path('data')
         self.certDir = self.basecfg.baseTestDir / self.testdir / "certs"
+        print(self.certDir)
         self.certDir.mkdir(parents=True, exist_ok=True)
-        self.dataDir = self.basecfg.baseTestDir / self.testdir / "data"
+        self.dataDir = self.basecfg.baseTestDir / self.testdir / self.datadir
         self.certDir.mkdir(parents=True, exist_ok=True)
         self.clientCert = self.certDir / 'client-auth-ca.crt'
-        self.cluster1 = {"dir": self.certDir / self.cluster1RelDir
-                        ,"SyncSecret": self.certDir / self.cluster1RelDir / 'syncmaster.jwtsecret'
-                        ,"JWTSecret": self.certDir / self.cluster1RelDir / 'arangodb.jwtsecret'
-                        ,"tlsKeyfile": self.certDir / self.cluster1RelDir / 'tls.keyfile'
-                        }
-        self.cluster2 = {"dir": self.certDir / self.cluster2RelDir
-                        ,"SyncSecret": self.certDir / self.cluster2RelDir / 'syncmaster.jwtsecret'
-                        ,"JWTSecret": self.certDir / self.cluster2RelDir / 'arangodb.jwtsecret'
-                        ,"tlsKeyfile": self.certDir / self.cluster2RelDir / 'tls.keyfile'
-                        }
+        def getdirs(subdir):
+            return {"dir": self.testdir / self.datadir / subdir
+                   ,"SyncSecret": self.certDir / subdir / 'syncmaster.jwtsecret'
+                   ,"JWTSecret": self.certDir / subdir / 'arangodb.jwtsecret'
+                   ,"tlsKeyfile": self.certDir / subdir / 'tls.keyfile'
+            }
+        self.cluster1 = getdirs(self.cluster1RelDir)
+        self.cluster2 = getdirs(self.cluster2RelDir)
         self.cacert = self.certDir / 'tls-ca.crt'
         self.cakey = self.certDir / 'tls-ca.key'
         self.clientauthKey = self.certDir / 'client-auth-ca.key'
@@ -372,31 +372,26 @@ class dc2dc(runner):
                 '--cakey=' + str(self.clientauthKey),
                 '--keyfile=' + str(self.clientkeyfile)])
         log('Create JWT secrets')
-        certOp(['jwt-secret', '--secret=' + str(self.cluster1["SyncSecret"])])
-        certOp(['jwt-secret', '--secret=' + str(self.cluster1["JWTSecret"])])
-        certOp(['jwt-secret', '--secret=' + str(self.cluster2["SyncSecret"])])
-        certOp(['jwt-secret', '--secret=' + str(self.cluster2["JWTSecret"])])
+        for node in [self.cluster1, self.cluster2]:
+            certOp(['jwt-secret', '--secret=' + str(node["SyncSecret"])])
+            certOp(['jwt-secret', '--secret=' + str(node["JWTSecret"])])
 
-        def clusterArgs(val):
-            return [
-                '--starter.sync',
-                '--starter.local',
-                '--auth.jwt-secret=' + str(val["JWTSecret"]),
-                '--sync.server.keyfile=' + str(val["tlsKeyfile"]),
-                '--sync.server.client-cafile=' + str(self.clientCert),
-                '--sync.master.jwt-secret=' + str(val["SyncSecret"]),
-                '--starter.address=' + self.basecfg.publicip]
-        self.cluster1["instance"] = starterManager(
-            self.basecfg,
-            self.cluster1RelDir,    
-            mode='cluster',
-            moreopts=clusterArgs(self.cluster1))
-        self.cluster2["instance"] = starterManager(
-            self.basecfg,
-            self.cluster2RelDir,
-            mode='cluster',
-            port=9528, 
-            moreopts=clusterArgs(self.cluster2))
+        def addStarter(val, port):
+            val["instance"] = starterManager(
+                self.basecfg,
+                val["dir"],    
+                port=port, 
+                mode='cluster',
+                moreopts= ['--starter.sync'
+                          ,'--starter.local'
+                          ,'--auth.jwt-secret=' +           str(val["JWTSecret"])
+                          ,'--sync.server.keyfile=' +       str(val["tlsKeyfile"])
+                          ,'--sync.server.client-cafile=' + str(self.clientCert)
+                          ,'--sync.master.jwt-secret=' +    str(val["SyncSecret"])
+                          ,'--starter.address=' +           self.basecfg.publicip
+                ])
+        addStarter(self.cluster1, None)
+        addStarter(self.cluster2, port=9528)
 
     def setup(self):
         self.cluster1["instance"].runStarter()
@@ -404,22 +399,33 @@ class dc2dc(runner):
             log('.')
             time.sleep(1)
         self.cluster1["instance"].detectLogfiles()
-        print(requests.get('http://'+ self.basecfg.publicip +':8542'))
+        sm1port = self.cluster1["instance"].getSyncMasterPort()
+        
+        print(requests.get('http://'+ self.basecfg.publicip +':' + str(sm1port)))
 
         self.cluster2["instance"].runStarter()
         while not self.cluster2["instance"].isInstanceUp():
             log('.')
             time.sleep(1)
         self.cluster2["instance"].detectLogfiles()
-        print(requests.get('http://'+ self.basecfg.publicip +':8542'))
+        sm2port = self.cluster2["instance"].getSyncMasterPort()
+        print(requests.get('http://'+ self.basecfg.publicip +':' + str(sm2port)))
 
-        self.syncInstance = psutil.Popen(['arangosync', 'configure', 'sync',
-                                          '--master.endpoint=https://' + self.basecfg.publicip + ':9542',
-                                          '--master.keyfile=' + str(self.clientkeyfile),
-                                          '--source.endpoint=https://' + self.basecfg.publicip + ':8542',
-                                          '--master.cacert=' + str(self.cacert),
-                                          '--source.cacert=' + str(self.cacert),
-                                          '--auth.keyfile=' + str(self.clientkeyfile)])
+        cmd = ['arangosync', 'configure', 'sync',
+               '--master.endpoint=https://'
+               + self.basecfg.publicip
+               + ':'
+               + str(sm1port),
+               '--master.keyfile=' + str(self.clientkeyfile),
+               '--source.endpoint=https://'
+               + self.basecfg.publicip
+               + ':'
+               + str(sm2port),
+               '--master.cacert=' + str(self.cacert),
+               '--source.cacert=' + str(self.cacert),
+               '--auth.keyfile=' + str(self.clientkeyfile)]
+        log(str(cmd))
+        self.syncInstance = psutil.Popen(cmd)
 
     def run(self):
         log('Check status of cluster 1')
@@ -442,7 +448,7 @@ class dc2dc(runner):
         pass
     def shutdown(self):
         self.syncInstance.terminate()
-        self.syncInstance.wait(timeout=30)
+        self.syncInstance.wait(timeout=60)
         self.cluster1["instance"].killInstance()
         self.cluster2["instance"].killInstance()
 

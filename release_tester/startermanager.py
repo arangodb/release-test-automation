@@ -75,11 +75,35 @@ class starterManager(object):
         return self.frontendPort
 
     def getLogFile(self):
-        return open(self.logfileName).read()
+        return self.logfileName.read_text()
 
     def isInstanceRunning(self):
         return self.instance.is_running()
 
+    def getSyncMasterPort(self):
+        self.syncMasterPort = None
+        pos = None
+        smPortText = 'Starting syncmaster on port'
+        swText = 'syncworker up and running'            
+        workerCount = 0;
+        while workerCount < 3 and self.isInstanceRunning():
+            log('%')
+            lf = self.getLogFile()
+            npos = lf.find(swText, pos)
+            if npos >= 0:
+                workerCount += 1
+                pos = npos + len(swText)
+            else:
+                time.sleep(1)
+        lf = self.getLogFile()
+        pos = lf.find(smPortText)
+        pos = lf.find(smPortText, pos + len(smPortText))
+        pos = lf.find(smPortText, pos + len(smPortText))
+        if pos >= 0:
+            pos = pos + len(smPortText) + 1
+            self.syncMasterPort = int(lf[pos : pos+4])
+        return self.syncMasterPort
+    
     def isInstanceUp(self):
         if not self.instance.is_running():
             print(self.instance)
