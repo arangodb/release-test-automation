@@ -17,7 +17,7 @@ Installing
 - **debian** / **ubuntu**:
   `apt-get install python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect`
 - **centos**:
-   `yum update ; yum install python3 python3-pyyaml python3-requests python3-click gcc platform-python-devel python3-distro; pip3 install psutil `
+   `yum update ; yum install python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click ; pip3 install psutil `
 - **plain pip**:
   `pip3 install psutil pyyaml pexpect requests click`
 
