@@ -57,6 +57,7 @@ def runTest(version, package_dir, enterprise, mode, publicip):
     
     myInstaller.calculatePackageNames()
     if mode == 'all' or mode == 'install':
+        killallprocesses()
         myInstaller.installPackage()
         myInstaller.saveConfig()
         myInstaller.stopService()
