@@ -35,17 +35,17 @@ def runTest(version, package_dir, enterprise, mode, publicip):
             
         for process in arangosyncs:
             log("cleanup killing " + str(process))
-            p = psutil.process(process.pid)
+            p = psutil.Process(process.pid)
             p.terminate()
             p.wait()
         for process in arangodbs:
             log("cleanup killing " + str(process))
-            p = psutil.process(process.pid)
+            p = psutil.Process(process.pid)
             p.terminate()
             p.wait()
         for process in arangods:
             log("cleanup killing " + str(process))
-            p = psutil.process(process.pid)
+            p = psutil.Process(process.pid)
             p.terminate()
             p.wait()
     enterprise = enterprise == 'True'
