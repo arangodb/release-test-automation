@@ -24,12 +24,13 @@ def runTest(version, package_dir, enterprise, mode, publicip):
         arangods = []
         arangodbs = []
         arangosyncs = []
+        log("searching for leftover processes")
         for process in psutil.process_iter(['pid', 'name']):
-            if process.name == 'arangod':
+            if process.name() == 'arangod':
                 arangods.push(process)
-            if process.name == 'arangodb':
+            if process.name() == 'arangodb':
                 arangodbs.push(process)
-            if process.name == 'arangosync':
+            if process.name() == 'arangosync':
                 arangosyncs.push(process)
             
         for process in arangosyncs:
