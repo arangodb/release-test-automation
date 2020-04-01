@@ -1,6 +1,6 @@
 - [x] 5h DC2DC
 - [ ] ?? windows starter (starter needs to be fixed)
-- [.] 3h rpm install
+- [ ] 3h rpm install (.)
 - [ ] ?? testdata integration
 - [ ] 2x 4h conflict checking in packages
 - [ ] 2x 2h test debug packages
@@ -9,7 +9,7 @@
   - [ ] 8h cluster
   - [ ] 8h DC2DC
 - [ ] ?? better reporting (more than true/false)
-- [.] ?? improve error handling in installers for non-clean systems
+- [ ] ?? improve error handling in installers for non-clean systems (.)
 - [ ] ?? improve error handling (catch exceptions, make messages)
 - [ ] ?? frontend testing?
  
