@@ -27,11 +27,11 @@ def runTest(version, package_dir, enterprise, mode, publicip):
         log("searching for leftover processes")
         for process in psutil.process_iter(['pid', 'name']):
             if process.name() == 'arangod':
-                arangods.push(process)
+                arangods.append(process)
             if process.name() == 'arangodb':
-                arangodbs.push(process)
+                arangodbs.append(process)
             if process.name() == 'arangosync':
-                arangosyncs.push(process)
+                arangosyncs.append(process)
             
         for process in arangosyncs:
             log("cleanup killing " + str(process))
