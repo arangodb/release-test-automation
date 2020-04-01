@@ -399,28 +399,28 @@ class dc2dc(runner):
             log('.')
             time.sleep(1)
         self.cluster1["instance"].detectLogfiles()
-        sm1port = self.cluster1["instance"].getSyncMasterPort()
+        self.cluster1['smport'] = self.cluster1["instance"].getSyncMasterPort()
         
-        print(requests.get('http://'+ self.basecfg.publicip +':' + str(sm1port)))
+        print(requests.get('http://'+ self.basecfg.publicip +':' + str(self.cluster1['smport'])))
 
         self.cluster2["instance"].runStarter()
         while not self.cluster2["instance"].isInstanceUp():
             log('.')
             time.sleep(1)
         self.cluster2["instance"].detectLogfiles()
-        sm2port = self.cluster2["instance"].getSyncMasterPort()
-        print(requests.get('http://'+ self.basecfg.publicip +':' + str(sm2port)))
+        self.cluster2['smport'] = self.cluster2["instance"].getSyncMasterPort()
+        print(requests.get('http://'+ self.basecfg.publicip +':' + str(self.cluster2['smport'])))
 
         cmd = ['arangosync', 'configure', 'sync',
                '--master.endpoint=https://'
                + self.basecfg.publicip
                + ':'
-               + str(sm1port),
+               + str(self.cluster1['smport']),
                '--master.keyfile=' + str(self.clientkeyfile),
                '--source.endpoint=https://'
                + self.basecfg.publicip
                + ':'
-               + str(sm2port),
+               + str(self.cluster2['smport']),
                '--master.cacert=' + str(self.cacert),
                '--source.cacert=' + str(self.cacert),
                '--auth.keyfile=' + str(self.clientkeyfile)]
@@ -431,14 +431,14 @@ class dc2dc(runner):
         log('Check status of cluster 1')
         self.checkSync=psutil.Popen(['arangosync', 'get', 'status',
                                      '--master.cacert=' + str(self.cacert),
-                                     '--master.endpoint=https://' + self.basecfg.publicip + ':9542',
+                                     '--master.endpoint=https://' + self.basecfg.publicip + ':' + str(self.cluster1['smport']),
                                      '--auth.keyfile=' + str(self.clientkeyfile),
                                      '--verbose']).wait()
 
-        log('Check status of cluster 1')
+        log('Check status of cluster 2')
         self.checkSync=psutil.Popen(['arangosync', 'get', 'status',
                                      '--master.cacert=' + str(self.cacert),
-                                     '--master.endpoint=https://' + self.basecfg.publicip + ':9542',
+                                     '--master.endpoint=https://' + self.basecfg.publicip + ':' + str(self.cluster2['smport']),
                                      '--auth.keyfile=' + str(self.clientkeyfile),
                                      '--verbose']).wait()
 

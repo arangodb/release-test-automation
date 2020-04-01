@@ -1,4 +1,4 @@
-- [ ] 5h DC2DC
+- [x] 5h DC2DC
 - [ ] ?? windows starter (starter needs to be fixed)
 - [ ] 3h rpm install
 - [ ] ?? testdata integration
