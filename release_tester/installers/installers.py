@@ -275,7 +275,11 @@ class installerRPM(installerBase):
         self.cfg.cfgdir = Path('/etc/arangodb3')
         log("installing Arangodb RPM package")
         os.environ['ARANGODB_DEFAULT_ROOT_PASSWORD']= self.cfg.passvoid
-        serverInstall = psutil.Popen(['rpm', '-i', str(self.cfg.packageDir / self.serverPackage)])
+        package = self.cfg.packageDir / self.serverPackage
+        if not package.is_file():
+            log("package doesn't exist: " + str(package))
+            raise Exception("failed to find package")
+        serverInstall = psutil.Popen(['rpm', '-i', str()])
         log("waiting for the installation to finish")
         serverInstall.wait(timeout=60)
         #pwset = psutil.Popen(['/usr/sbin/arangod'
