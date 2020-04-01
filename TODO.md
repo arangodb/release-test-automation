@@ -5,9 +5,9 @@
 - [ ] conflict checking in packages
 - [ ] test debug packages
 - [ ] upgrade of cases
- - [ ] active failover
- - [ ] cluster
- - [ ] DC2DC
+  - [ ] active failover
+  - [ ] cluster
+  - [ ] DC2DC
 - [ ] better reporting (more than true/false)
 - [ ] improve error handling in installers for non-clean systems
 - [ ] improve error handling (catch exceptions, make messages)
