@@ -169,6 +169,7 @@ class activeFailover(runner):
     def run(self):
         log("starting test")
         self.success = True
+        log('http://' + self.basecfg.localhost + ':' + self.leader.getFrontendPort())
         r = requests.get('http://' + self.basecfg.localhost + ':' + self.leader.getFrontendPort())
         log(str(r))
         if r.status_code != 200:
