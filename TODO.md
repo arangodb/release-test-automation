@@ -1,6 +1,6 @@
 - [x] 5h DC2DC
 - [ ] ?? windows starter (starter needs to be fixed)
-- [ ] 3h rpm install (.)
+- [ ] 3h rpm install (..) [Found bug: default password doesn't work. Impl to check this done, commented out]
 - [ ] ?? testdata integration
 - [ ] 2x 4h conflict checking in packages
 - [ ] 2x 2h test debug packages

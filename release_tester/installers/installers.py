@@ -9,6 +9,7 @@ import shutil
 import psutil
 import os
 import platform
+from installers import arangosh
 import sys
 import re
 import installers.arangodlog as arangodLog
@@ -194,6 +195,11 @@ class installerDeb(installerBase):
         self.cfg.dbdir = Path('/var/lib/arangodb3')
         self.cfg.appdir = Path('/var/lib/arangodb3-apps')
         self.cfg.cfgdir = Path('/etc/arangodb3')
+        self.cfg.allInstances = {
+            'single': {
+                'logfile': self.cfg.installPrefix / self.cfg.logDir / 'arangod.log'
+            }
+        }
         log("installing Arangodb debian package")
         os.environ['DEBIAN_FRONTEND']= 'readline'
         serverInstall = pexpect.spawnu('dpkg -i ' +
@@ -218,11 +224,6 @@ class installerDeb(installerBase):
             if serverInstall.exitstatus != 0:
                 raise Exception("server installation didn't finish successfully!")
         log('Installation successfull')
-        self.cfg.allInstances = {
-            'single': {
-                'logfile': self.cfg.installPrefix / '/var/log/arangodb3/arangod.log'
-            }
-        }
         self.logExaminer = arangodLog.arangodLogExaminer(self.cfg);
         self.logExaminer.detectInstancePIDs()
 
@@ -272,33 +273,52 @@ class installerRPM(installerBase):
         stopServer.wait()
 
     def installPackage(self):
+        import pexpect
         self.cfg.installPrefix = Path("/")
         self.cfg.logDir = Path('/var/log/arangodb3')
         self.cfg.dbdir = Path('/var/lib/arangodb3')
         self.cfg.appdir = Path('/var/lib/arangodb3-apps')
         self.cfg.cfgdir = Path('/etc/arangodb3')
+        self.cfg.allInstances = {
+            'single': {
+                'logfile': self.cfg.installPrefix / self.cfg.logDir / 'arangod.log'
+            }
+        }
+        self.logExaminer = arangodLog.arangodLogExaminer(self.cfg);
         log("installing Arangodb RPM package")
-        os.environ['ARANGODB_DEFAULT_ROOT_PASSWORD']= self.cfg.passvoid
         package = self.cfg.packageDir / self.serverPackage
         if not package.is_file():
             log("package doesn't exist: " + str(package))
             raise Exception("failed to find package")
-        serverInstall = psutil.Popen(['rpm', '-i', str(package)])
-        log("waiting for the installation to finish")
-        serverInstall.wait(timeout=60)
-        #pwset = psutil.Popen(['/usr/sbin/arangod'
-        #                     ,'--database.init-database'
-        #                     ,'--server.rest-server', 'false'
-        #                     ,'--server.statistics', 'false'
-        #                     ,'--foxx.queues', 'false'])
 
-        self.cfg.allInstances = {
-            'single': {
-                'logfile': self.cfg.installPrefix / '/var/log/arangodb3/arangod.log'
-            }
-        }
-        self.logExaminer = arangodLog.arangodLogExaminer(self.cfg);
+        log("-"*80)
+        serverInstall = pexpect.spawnu('rpm '+ '-i '+ str(package))
+        serverInstall.expect('the current password is')
+        print(serverInstall.before)
+        serverInstall.expect(pexpect.EOF, timeout=30)
+        reply = serverInstall.before
+        print(reply)
+        log("-"*80)
+
+        #start = reply.find("'")
+        #end = reply.find("'", start + 1)
+        #self.cfg.passvoid = reply[start + 1 : end]
+        #self.startService()
+        #self.logExaminer.detectInstancePIDs()
+        #pwcheckArangosh = arangosh.arangoshExecutor(self.cfg)
+        #if not pwcheckArangosh.runCommand(arangosh.jsVersionCheck(self.cfg.version)):
+        #    log("Version Check failed - probably setting the default random password didn't work! "
+        #        + self.cfg.passvoid)
+        # self.stopService()
+        # TODO: default rpm passvoid broken?
+        etpw = pexpect.spawnu('/usr/sbin/arango-secure-installation')
+        etpw.expect('Please enter a new password for the ArangoDB root user:')
+        etpw.sendline(self.cfg.passvoid)
+        etpw.expect('Repeat password:')
+        etpw.sendline(self.cfg.passvoid)
+        self.startService()
         self.logExaminer.detectInstancePIDs()
+
 
     def unInstallPackage(self):
         uninstall = psutil.Popen(['rpm', '-e', 'arangodb3' + ('e' if self.cfg.enterprise else '')])

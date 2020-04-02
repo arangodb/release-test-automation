@@ -3,7 +3,7 @@ Dependencies
 ------------
 - python 3
 - python requests to talk to the instances https://requests.readthedocs.io/en/latest/
-- Python expect - https://github.com/pexpect/pexpect https://pexpect.readthedocs.io/en/stable/ (debian only)
+- Python expect - https://github.com/pexpect/pexpect https://pexpect.readthedocs.io/en/stable/ (linux only)
 - PS-util  https://psutil.readthedocs.io/en/latest/#windows-services on windows `_pswindows.py` needs to be copied 
  into the python installation after the pip run: 
    - python install root (i.e. Users/willi/AppData/Local/Programs/Python)
@@ -17,7 +17,7 @@ Installing
 - **debian** / **ubuntu**:
   `apt-get install python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect`
 - **centos**:
-   `yum update ; yum install python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click ; pip3 install psutil `
+   `yum update ; yum install python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect; pip3 install psutil `
 - **plain pip**:
   `pip3 install psutil pyyaml pexpect requests click`
 
