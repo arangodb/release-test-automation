@@ -4,6 +4,10 @@ from logging import info as log
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
+jsVersionCheck = (
+    "if (db._version()!='%s') { throw 'fail'}" % (version),
+    'check version')
+
 class arangoshExecutor(object):
     def __init__(self, config):
         self.cfg = config

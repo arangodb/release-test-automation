@@ -49,9 +49,6 @@ def runTest(version, package_dir, enterprise, mode, publicip):
                 process.terminate()
                 process.wait()
     enterprise = enterprise == 'True'
-    jsVersionCheck = (
-        "if (db._version()!='%s') { throw 'fail'}" % (version),
-        'check version')
     if mode not in ['all', 'install', 'tests', 'uninstall']:
         raise Exception("unsupported mode!")
     myInstaller = installers.get(version, enterprise, Path(package_dir), publicip)
@@ -74,7 +71,7 @@ def runTest(version, package_dir, enterprise, mode, publicip):
         
         systemInstallArangosh = arangoshExecutor(myInstaller.cfg)
         
-        if not systemInstallArangosh.runCommand(jsVersionCheck):
+        if not systemInstallArangosh.runCommand(arangosh.jsVersionCheck):
             log("Version Check failed!")
         input("Press Enter to continue")
         myInstaller.stopService()
