@@ -2,7 +2,7 @@
 import sys
 import click
 import installers.installers as installers
-from installers.arangosh import arangoshExecutor
+from installers import arangosh
 from logging import info as log
 import logging
 import psutil
