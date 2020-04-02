@@ -71,6 +71,10 @@ class installerBase(ABC):
     def stopService(self):
         pass
 
+    @abstractmethod
+    def cleanupSystem(self):
+        pass
+
     def getArangodConf(self):
         return self.cfg.cfgdir / 'arangod.conf'
 
@@ -234,6 +238,16 @@ class installerDeb(installerBase):
         uninstall.expect('Purging')
         uninstall.expect(pexpect.EOF)
 
+    def cleanupSystem(self):
+        # TODO: should this be cleaned by the deb uninstall in first place?
+        if self.cfg.logDir.exists():
+            shutil.rmtree(self.cfg.logDir)
+        if self.cfg.dbdir.exists():
+            shutil.rmtree(self.cfg.dbdir)
+        if self.cfg.appdir.exists():
+            shutil.rmtree(self.cfg.appdir)
+        if self.cfg.cfgdir.exists():
+            shutil.rmtree(self.cfg.cfgdir)
 
 
 class installerRPM(installerBase):
@@ -258,7 +272,15 @@ class installerRPM(installerBase):
         self.debugPackage = 'arangodb3{ep}-debuginfo-{cfg}-{ver}.{arch}.rpm'.format(**desc)
 
     def checkServiceUp(self):
+        if 'PID' in self.cfg.allInstances['single']:
+            try:
+                srv = psutil.Process(self.cfg.allInstances.single['PID'])
+            except:
+                return False
+        else:
+            return False
         time.sleep(1) # TODO
+        return True
 
     def startService(self):
         startServer = psutil.Popen(['service', 'arangodb3', 'start'])
@@ -271,6 +293,8 @@ class installerRPM(installerBase):
         stopServer = psutil.Popen(['service', 'arangodb3', 'stop'])
         log("waiting for eof")
         stopServer.wait()
+        while self.checkServiceUp():
+            time.sleep(1)
 
     def installPackage(self):
         import pexpect
@@ -293,36 +317,62 @@ class installerRPM(installerBase):
 
         log("-"*80)
         serverInstall = pexpect.spawnu('rpm '+ '-i '+ str(package))
-        serverInstall.expect('the current password is')
-        print(serverInstall.before)
-        serverInstall.expect(pexpect.EOF, timeout=30)
-        reply = serverInstall.before
-        print(reply)
-        log("-"*80)
-
-        #start = reply.find("'")
-        #end = reply.find("'", start + 1)
-        #self.cfg.passvoid = reply[start + 1 : end]
-        #self.startService()
-        #self.logExaminer.detectInstancePIDs()
-        #pwcheckArangosh = arangosh.arangoshExecutor(self.cfg)
-        #if not pwcheckArangosh.runCommand(arangosh.jsVersionCheck(self.cfg.version)):
-        #    log("Version Check failed - probably setting the default random password didn't work! "
-        #        + self.cfg.passvoid)
-        # self.stopService()
-        # TODO: default rpm passvoid broken?
-        etpw = pexpect.spawnu('/usr/sbin/arango-secure-installation')
-        etpw.expect('Please enter a new password for the ArangoDB root user:')
-        etpw.sendline(self.cfg.passvoid)
-        etpw.expect('Repeat password:')
-        etpw.sendline(self.cfg.passvoid)
+        reply = None
+        try:
+            serverInstall.expect('the current password is')
+            print(serverInstall.before)
+            serverInstall.expect(pexpect.EOF, timeout=30)
+            reply = serverInstall.before
+            print(reply)
+            log("-"*80)
+        except pexpect.exceptions.EOF as x:
+            log("X" * 80)
+            print(serverInstall.before)
+            log("X" * 80)
+            log("Installation failed!")
+            sys.exit(1)
+        start = reply.find("'")
+        end = reply.find("'", start + 1)
+        self.cfg.passvoid = reply[start + 1 : end]
         self.startService()
         self.logExaminer.detectInstancePIDs()
-
+        pwcheckArangosh = arangosh.arangoshExecutor(self.cfg)
+        if not pwcheckArangosh.runCommand(arangosh.jsVersionCheck(self.cfg.version)):
+            log("Version Check failed - probably setting the default random password didn't work! "
+                + self.cfg.passvoid)
+        self.stopService()
+        self.cfg.passvoid = "sanoetuh" # TODO
+        etpw = pexpect.spawnu('/usr/sbin/arango-secure-installation')
+        try:
+            etpw.expect('Please enter a new password for the ArangoDB root user:')
+            etpw.sendline(self.cfg.passvoid)
+            etpw.expect('Repeat password:')
+            etpw.sendline(self.cfg.passvoid)
+            etpw.expect(pexpect.EOF)
+        except:
+            log("setting our password failed!")
+            log("X" * 80)
+            print(etpw.before)
+            log("X" * 80)
+            sys.exit(1)
+        self.startService()
+        self.logExaminer.detectInstancePIDs()
 
     def unInstallPackage(self):
         uninstall = psutil.Popen(['rpm', '-e', 'arangodb3' + ('e' if self.cfg.enterprise else '')])
         uninstall.wait()
+
+    def cleanupSystem(self):
+        # TODO: should this be cleaned by the rpm uninstall in first place?
+        if self.cfg.logDir.exists():
+            shutil.rmtree(self.cfg.logDir)
+        if self.cfg.dbdir.exists():
+            shutil.rmtree(self.cfg.dbdir)
+        if self.cfg.appdir.exists():
+            shutil.rmtree(self.cfg.appdir)
+        if self.cfg.cfgdir.exists():
+            shutil.rmtree(self.cfg.cfgdir)
+
 
 class installerW(installerBase):
 
@@ -420,6 +470,17 @@ class installerW(installerBase):
         while self.service.status() != "stopped":
             log(self.service.status())
             time.sleep(1)
+
+    def cleanupSystem(self):
+        # TODO: should this be cleaned by the nsis uninstall in first place?
+        if self.cfg.logDir.exists():
+            shutil.rmtree(self.cfg.logDir)
+        if self.cfg.dbdir.exists():
+            shutil.rmtree(self.cfg.dbdir)
+        if self.cfg.appdir.exists():
+            shutil.rmtree(self.cfg.appdir)
+        if self.cfg.cfgdir.exists():
+            shutil.rmtree(self.cfg.cfgdir)
 
 
 def get(*args, **kwargs):

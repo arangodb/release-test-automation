@@ -93,6 +93,7 @@ def runTest(version, package_dir, enterprise, mode, publicip):
     if mode == 'all' or mode == 'uninstall':
         myInstaller.unInstallPackage()
         myInstaller.checkUninstallCleanup()
+        myInstaller.cleanupSystem()
 
 if __name__ == "__main__": 
     runTest()
