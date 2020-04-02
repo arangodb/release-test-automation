@@ -208,19 +208,32 @@ class installerDeb(installerBase):
         os.environ['DEBIAN_FRONTEND']= 'readline'
         serverInstall = pexpect.spawnu('dpkg -i ' +
                                        str(self.cfg.packageDir / self.serverPackage))
-        serverInstall.expect('user:')
-        serverInstall.sendline(self.cfg.passvoid)
-        serverInstall.expect('user:')
-        serverInstall.sendline(self.cfg.passvoid)
-        serverInstall.expect("Automatically upgrade database files")
-        serverInstall.sendline("yes")
-        serverInstall.expect("Database storage engine")
-        serverInstall.sendline("1")
-        serverInstall.expect("Backup database files before upgrading")
-        serverInstall.sendline("no")
+        try:
+            serverInstall.expect('user:')
+            print(serverInstall.before)
+            serverInstall.sendline(self.cfg.passvoid)
+            serverInstall.expect('user:')
+            print(serverInstall.before)
+            serverInstall.sendline(self.cfg.passvoid)
+            serverInstall.expect("Automatically upgrade database files")
+            print(serverInstall.before)
+            serverInstall.sendline("yes")
+            serverInstall.expect("Database storage engine")
+            print(serverInstall.before)
+            serverInstall.sendline("1")
+            serverInstall.expect("Backup database files before upgrading")
+            print(serverInstall.before)
+            serverInstall.sendline("no")
+        except:
+            log("X" * 80)
+            print(serverInstall.before)
+            log("X" * 80)
+            log("Installation failed!")
+            sys.exit(1)
         try:
             log("waiting for the installation to finish")
             serverInstall.expect(pexpect.EOF, timeout=30)
+            print(serverInstall.before)
         except serverInstall.logfile:
             log("TIMEOUT!")
         while serverInstall.isalive():
@@ -235,8 +248,14 @@ class installerDeb(installerBase):
         import pexpect
         uninstall = pexpect.spawnu('dpkg --purge ' + 'arangodb3' + ('e' if self.cfg.enterprise else ''))
 
-        uninstall.expect('Purging')
-        uninstall.expect(pexpect.EOF)
+        try:
+            uninstall.expect('Purging')
+            print(uninstall.before)
+            uninstall.expect(pexpect.EOF)
+            print(uninstall.before)
+        except:
+            print(uninstall.before)
+            sys.exit(1)
 
     def cleanupSystem(self):
         # TODO: should this be cleaned by the deb uninstall in first place?

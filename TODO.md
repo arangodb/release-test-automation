@@ -1,6 +1,6 @@
 - [x] 5h DC2DC
 - [ ] ?? windows starter (starter needs to be fixed)
-- [ ] 3h rpm install (..) [Found bug: default password doesn't work. Impl to check this done, commented out]
+- [x] 3h rpm install (..) [Found bug: default password doesn't work if system has a ready existing database. Impl to check this done, commented out] 
 - [ ] ?? testdata integration
 - [ ] 2x 4h conflict checking in packages
 - [ ] 2x 2h test debug packages
@@ -9,7 +9,7 @@
   - [ ] 8h cluster
   - [ ] 8h DC2DC
 - [ ] ?? better reporting (more than true/false)
-- [ ] ?? improve error handling in installers for non-clean systems (.)
-- [ ] ?? improve error handling (catch exceptions, make messages)
+- [x] ?? improve error handling in installers for non-clean systems (..)
+- [ ] ?? improve error handling (catch exceptions, make messages) (.)
 - [ ] ?? frontend testing?
  
