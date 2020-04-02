@@ -69,9 +69,9 @@ def runTest(version, package_dir, enterprise, mode, publicip):
         myInstaller.stopService()
         myInstaller.startService()
         
-        systemInstallArangosh = arangoshExecutor(myInstaller.cfg)
+        systemInstallArangosh = arangosh.arangoshExecutor(myInstaller.cfg)
         
-        if not systemInstallArangosh.runCommand(arangosh.jsVersionCheck):
+        if not systemInstallArangosh.runCommand(arangosh.jsVersionCheck(version)):
             log("Version Check failed!")
         input("Press Enter to continue")
         myInstaller.stopService()
