@@ -15,9 +15,11 @@ from startermanager import StarterManager
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
+
 def timestamp():
     """ get the formated "now" timestamp"""
     return datetime.datetime.utcnow().isoformat()
+
 
 class RunnerType(Enum):
     """ dial which runner instance you want"""
@@ -25,6 +27,7 @@ class RunnerType(Enum):
     ACTIVE_FAILOVER = 2
     CLUSTER = 3
     DC2DC = 4
+
 
 class Runner():
     """abstract starter environment runner"""
@@ -54,6 +57,7 @@ class Runner():
         testdir = self.basecfg.baseTestDir / self.basedir
         if testdir.exists():
             shutil.rmtree(testdir)
+
 
 class LeaderFollower(Runner):
     """ this runs a leader / Follower setup with synchronisation """
@@ -114,6 +118,7 @@ require("@arangodb/replication").setupReplicationGlobal({
 """ % (self.leader.get_frontend_port()), "launching replication")
         log(str(self.follower.execute_frontend(self.checks['startReplJS'])))
         log(str(self.leader.execute_frontend(self.checks['afterReplJS'])))
+
     def post_setup(self):
 
         log("checking for the replication")
@@ -167,6 +172,7 @@ class ActiveFailover(Runner):
                            self.basedir / 'node3',
                            mode='activefailover',
                            moreopts=['--starter.join', '127.0.0.1']))
+
     def setup(self):
         for node in self.starter_instances:
             log("Spawning instance")
@@ -229,6 +235,7 @@ class ActiveFailover(Runner):
 
     def post_setup(self):
         pass
+
     def jam_attempt(self):
         self.leader.kill_instance()
         log("waiting for new leader...")
@@ -271,7 +278,8 @@ class ActiveFailover(Runner):
         log(str(reply.text))
         if reply.status_code != 503:
             self.success = False
-        log("state of this test is: " + "Success" if self.success else "Failed")
+        log("state of this test is: " +
+            "Success" if self.success else "Failed")
 
     def shutdown(self):
         for node in self.starter_instances:
@@ -313,6 +321,7 @@ db.testCollection.save({test: "document"})
                            mode='cluster',
                            jwtStr=self.jwtdatastr,
                            moreopts=['--starter.join', '127.0.0.1']))
+
     def setup(self):
         for node in self.starter_instances:
             log("Spawning instance")
@@ -327,7 +336,7 @@ db.testCollection.save({test: "document"})
         for node in self.starter_instances:
             node.detect_logfiles()
             node.detect_instance_pids()
-            log('coordinator can be reached at: http://%s:%s' %(
+            log('coordinator can be reached at: http://%s:%s' % (
                 self.basecfg.publicip, str(node.get_frontend_port())))
         log("instances are ready")
 
@@ -342,13 +351,15 @@ db.testCollection.save({test: "document"})
 
     def post_setup(self):
         pass
+
     def jam_attempt(self):
         log('Starting instance without jwt')
-        dead_instance = StarterManager(self.basecfg,
-                                       Path('CLUSTER') / 'nodeX',
-                                       mode='cluster',
-                                       jwtStr=None,
-                                       moreopts=['--starter.join', '127.0.0.1'])
+        dead_instance = StarterManager(
+            self.basecfg,
+            Path('CLUSTER') / 'nodeX',
+            mode='cluster',
+            jwtStr=None,
+            moreopts=['--starter.join', '127.0.0.1'])
         dead_instance.run_starter()
         i = 0
         while True:
@@ -367,6 +378,7 @@ db.testCollection.save({test: "document"})
         for node in self.starter_instances:
             node.kill_instance()
         log('test ended')
+
 
 class Dc2Dc(Runner):
     """ this launches two clusters in dc2dc mode """
@@ -390,13 +402,17 @@ class Dc2Dc(Runner):
         print(cert_dir)
         cert_dir.mkdir(parents=True, exist_ok=True)
         cert_dir.mkdir(parents=True, exist_ok=True)
+
         def getdirs(subdir):
             return {
-                "dir": self.basedir / self.basecfg.baseTestDir / self.basedir / datadir / subdir,
+                "dir": self.basedir /
+                self.basecfg.baseTestDir /
+                self.basedir / datadir / subdir,
                 "SyncSecret": cert_dir / subdir / 'syncmaster.jwtsecret',
                 "JWTSecret": cert_dir / subdir / 'arangodb.jwtsecret',
                 "tlsKeyfile": cert_dir / subdir / 'tls.keyfile',
             }
+
         self.cluster1 = getdirs(Path('custer1'))
         self.cluster2 = getdirs(Path('custer2'))
         client_cert = cert_dir / 'client-auth-ca.crt'
@@ -439,14 +455,14 @@ class Dc2Dc(Runner):
                 val["dir"],
                 port=port,
                 mode='cluster',
-                moreopts=
-                ['--starter.sync'
-                 , '--starter.local'
-                 , '--auth.jwt-secret=' +           str(val["JWTSecret"])
-                 , '--sync.server.keyfile=' +       str(val["tlsKeyfile"])
-                 , '--sync.server.client-cafile=' + str(client_cert)
-                 , '--sync.master.jwt-secret=' +    str(val["SyncSecret"])
-                 , '--starter.address=' +           self.basecfg.publicip
+                moreopts=[
+                    '--starter.sync',
+                    '--starter.local,'
+                    '--auth.jwt-secret=' +           str(val["JWTSecret"]),
+                    '--sync.server.keyfile=' +       str(val["tlsKeyfile"]),
+                    '--sync.server.client-cafile=' + str(client_cert),
+                    '--sync.master.jwt-secret=' +    str(val["SyncSecret"]),
+                    '--starter.address=' +           self.basecfg.publicip
                 ])
         add_starter(self.cluster1, None)
         add_starter(self.cluster2, port=9528)
@@ -512,16 +528,20 @@ class Dc2Dc(Runner):
              '--auth.keyfile=' + str(self.ca["clientkeyfile"]),
              '--verbose']).wait()
         log('finished')
+
     def post_setup(self):
         pass
+
     def jam_attempt(self):
         pass
+
     def shutdown(self):
         print('shutting down')
         self.sync_instance.terminate()
         self.sync_instance.wait(timeout=60)
         self.cluster1["instance"].kill_instance()
         self.cluster2["instance"].kill_instance()
+
 
 def get(typeof, baseconfig):
     """ get an instance of the arangod runner - as you specify """

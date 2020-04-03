@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-""" Run a javascript command by spawning an arangosh to the configured connection """
+""" Run a javascript command by spawning an arangosh
+    to the configured connection """
 import os
 import logging
 import psutil
@@ -16,7 +17,8 @@ class ArangoshExecutor():
     def run_command(self, cmd):
         """ launch a command, print its name """
         run_cmd = [os.path.join(self.cfg.installPrefix, "usr/bin/arangosh"),
-                   "--server.endpoint", "tcp://127.0.0.1:%d" %(int(self.cfg.port)),
+                   "--server.endpoint",
+                   "tcp://127.0.0.1:%d" % (int(self.cfg.port)),
                    "--server.username", "%s" % (self.cfg.username),
                    "--server.password", "%s" % (self.cfg.passvoid),
                    "--javascript.execute-string", "%s" % (cmd[0])]

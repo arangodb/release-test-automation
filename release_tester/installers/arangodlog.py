@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-""" analyse the logfile of a running arangod instance for certain status messages """
+""" analyse the logfile of a running arangod instance
+    for certain status messages """
 import datetime
 import re
 import time
@@ -7,9 +8,11 @@ from logging import info as log
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
+
 def timestamp():
     """ get the formated "now" timestamp"""
     return datetime.datetime.utcnow().isoformat()
+
 
 class ArangodLogExaminer():
     """ examine the logfiles of all arangods attached to one starter"""

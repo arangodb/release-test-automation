@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-""" Manage one instance of the arangodb starter to crontroll multiple arangods"""
+""" Manage one instance of the arangodb starter
+    to crontroll multiple arangods
+"""
 import copy
 import datetime
 import os
@@ -13,9 +15,11 @@ from installers.arangosh import ArangoshExecutor
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
+
 def timestamp():
     """ get the formated "now" timestamp"""
     return datetime.datetime.utcnow().isoformat()
+
 
 class StarterManager():
     """ manage one starter instance"""

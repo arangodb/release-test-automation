@@ -1,4 +1,5 @@
-#/usr/bin/env python3
+#!/usr/bin/env python3
+
 """ Release testing script"""
 import logging
 from logging import info as log
@@ -14,14 +15,21 @@ from installers.starterenvironment import RunnerType
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
+
 @click.command()
 @click.option('--version', help='ArangoDB version number.')
-@click.option('--package-dir', default='/tmp/', help='directory to load the packages from.')
-@click.option('--enterprise', default='True', help='Enterprise or community?')
-@click.option('--mode', default='all', help='operation mode - [all|install|uninstall|tests].')
-@click.option('--publicip', default='127.0.0.1', help='IP for the click to browser hints.')
-
-
+@click.option('--package-dir',
+              default='/tmp/',
+              help='directory to load the packages from.')
+@click.option('--enterprise',
+              default='True',
+              help='Enterprise or community?')
+@click.option('--mode',
+              default='all',
+              help='operation mode - [all|install|uninstall|tests].')
+@click.option('--publicip',
+              default='127.0.0.1',
+              help='IP for the click to browser hints.')
 def run_test(version, package_dir, enterprise, mode, publicip):
     """ main """
     enterprise = enterprise == 'True'
@@ -55,10 +63,10 @@ def run_test(version, package_dir, enterprise, mode, publicip):
         input("Press Enter to continue")
         inst.stop_service()
         kill_all_processes()
-        for runner  in [RunnerType.LEADER_FOLLOWER,
-                        RunnerType.ACTIVE_FAILOVER,
-                        RunnerType.CLUSTER,
-                        RunnerType.DC2DC]:
+        for runner in [RunnerType.LEADER_FOLLOWER,
+                       RunnerType.ACTIVE_FAILOVER,
+                       RunnerType.CLUSTER,
+                       RunnerType.DC2DC]:
             stenv = getStarterenv(runner, inst.cfg)
             stenv.setup()
             stenv.run()
@@ -73,6 +81,7 @@ def run_test(version, package_dir, enterprise, mode, publicip):
         inst.un_install_package()
         inst.check_uninstall_cleanup()
         inst.cleanup_system()
+
 
 if __name__ == "__main__":
     run_test()

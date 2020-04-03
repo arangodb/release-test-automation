@@ -16,6 +16,7 @@ import installers.arangodlog as arangodlog
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
+
 class InstallConfig():
     """ stores the baseline of this environment """
     def __init__(self, version, enterprise, package_dir, publicip):
@@ -34,6 +35,7 @@ class InstallConfig():
     def generate_password(self):
         """ generate a new password """
         self.passvoid = 'cde'
+
 
 class InstallerBase(ABC):
     """ this is the prototype for the operation system agnostic installers """
@@ -89,8 +91,11 @@ class InstallerBase(ABC):
         self.log_examiner = arangodlog.ArangodLogExaminer(self.cfg)
 
     def broadcast_bind(self):
-        """ modify the arangod.conf so the system will broadcast bind
-            so you can access the SUT from the outside with your local browser """
+        """
+        modify the arangod.conf so the system will broadcast bind
+        so you can access the SUT from the outside
+        with your local browser
+        """
         arangodconf = self.get_arangod_conf().read_text()
         iprx = re.compile('127\\.0\\.0\\.1')
         new_arangod_conf = iprx.subn('0.0.0.0', arangodconf)
@@ -98,7 +103,8 @@ class InstallerBase(ABC):
         logging.info("arangod now configured for broadcast bind")
 
     def enable_logging(self):
-        """ if the packaging doesn't enable logging, do it using this function """
+        """ if the packaging doesn't enable logging,
+            do it using this function """
         arangodconf = self.get_arangod_conf().read_text()
         self.cfg.logDir.mkdir(parents=True)
         new_arangod_conf = arangodconf.replace('[log]',
@@ -119,6 +125,7 @@ class InstallerBase(ABC):
 
         if not self.get_arangod_conf().is_file():
             raise Exception("configuration files aren't there")
+
     def check_engine_file(self):
         """ check for the engine file to test whether the DB was created """
         if not Path(self.cfg.dbdir / 'ENGINE').is_file():
@@ -169,7 +176,7 @@ class InstallerDeb(InstallerBase):
         self.debug_package = 'arangodb3{ep}-dbg_{cfg}-{ver}_{arch}.deb'.format(**desc)
 
     def check_service_up(self):
-        time.sleep(1) # TODO
+        time.sleep(1)    # TODO
 
     def start_service(self):
         import pexpect
@@ -179,7 +186,8 @@ class InstallerDeb(InstallerBase):
         while startserver.isalive():
             logging.info('.')
             if startserver.exitstatus != 0:
-                raise Exception("server service start didn't finish successfully!")
+                raise Exception("server service start didn't"
+                                "finish successfully!")
         time.sleep(0.1)
         self.log_examiner.detect_instance_pids()
 
@@ -191,7 +199,8 @@ class InstallerDeb(InstallerBase):
         while stopserver.isalive():
             logging.info('.')
             if stopserver.exitstatus != 0:
-                raise Exception("server service stop didn't finish successfully!")
+                raise Exception("server service stop didn't"
+                                "finish successfully!")
 
     def install_package(self):
         import pexpect
@@ -208,7 +217,7 @@ class InstallerDeb(InstallerBase):
         logging.info("installing Arangodb debian package")
         os.environ['DEBIAN_FRONTEND'] = 'readline'
         server_install = pexpect.spawnu('dpkg -i ' +
-                                       str(self.cfg.package_dir / self.server_package))
+                                        str(self.cfg.package_dir / self.server_package))
         try:
             server_install.expect('user:')
             print(server_install.before)
@@ -225,7 +234,7 @@ class InstallerDeb(InstallerBase):
             server_install.expect("Backup database files before upgrading")
             print(server_install.before)
             server_install.sendline("no")
-        except pexpect.exceptions.EOF as ex:
+        except pexpect.exceptions.EOF:
             logging.info("X" * 80)
             print(server_install.before)
             logging.info("X" * 80)
@@ -235,7 +244,7 @@ class InstallerDeb(InstallerBase):
             logging.info("waiting for the installation to finish")
             server_install.expect(pexpect.EOF, timeout=30)
             print(server_install.before)
-        except pexpect.exceptions.EOF as ex:
+        except pexpect.exceptions.EOF:
             logging.info("TIMEOUT!")
         while server_install.isalive():
             logging.info('.')
@@ -307,7 +316,7 @@ class InstallerRPM(InstallerBase):
                 return False
         else:
             return False
-        time.sleep(1) # TODO
+        time.sleep(1)   # TODO
         return True
 
     def start_service(self):
@@ -333,7 +342,8 @@ class InstallerRPM(InstallerBase):
         self.cfg.cfgdir = Path('/etc/arangodb3')
         self.cfg.all_instances = {
             'single': {
-                'logfile': self.cfg.installPrefix / self.cfg.logDir / 'arangod.log'
+                'logfile': self.cfg.installPrefix /
+                self.cfg.logDir / 'arangod.log'
             }
         }
         self.log_examiner = arangodlog.ArangodLogExaminer(self.cfg)
@@ -344,7 +354,7 @@ class InstallerRPM(InstallerBase):
             raise Exception("failed to find package")
 
         logging.info("-"*80)
-        server_install = pexpect.spawnu('rpm '+ '-i '+ str(package))
+        server_install = pexpect.spawnu('rpm ' + '-i ' + str(package))
         reply = None
         try:
             server_install.expect('the current password is')
@@ -353,7 +363,7 @@ class InstallerRPM(InstallerBase):
             reply = server_install.before
             print(reply)
             logging.info("-"*80)
-        except pexpect.exceptions.EOF as ex:
+        except pexpect.exceptions.EOF:
             logging.info("X" * 80)
             print(server_install.before)
             logging.info("X" * 80)
@@ -361,7 +371,7 @@ class InstallerRPM(InstallerBase):
             sys.exit(1)
         start = reply.find("'")
         end = reply.find("'", start + 1)
-        self.cfg.passvoid = reply[start + 1 : end]
+        self.cfg.passvoid = reply[start + 1: end]
         self.start_service()
         self.log_examiner.detect_instance_pids()
         pwcheckarangosh = arangosh.ArangoshExecutor(self.cfg)
@@ -371,15 +381,16 @@ class InstallerRPM(InstallerBase):
                 "probably setting the default random password didn't work! %s",
                 self.cfg.passvoid)
         self.stop_service()
-        self.cfg.passvoid = "sanoetuh" # TODO
+        self.cfg.passvoid = "sanoetuh"   # TODO
         etpw = pexpect.spawnu('/usr/sbin/arango-secure-installation')
         try:
-            etpw.expect('Please enter a new password for the ArangoDB root user:')
+            etpw.expect('Please enter a new password'
+                        ' for the ArangoDB root user:')
             etpw.sendline(self.cfg.passvoid)
             etpw.expect('Repeat password:')
             etpw.sendline(self.cfg.passvoid)
             etpw.expect(pexpect.EOF)
-        except pexpect.exceptions.EOF as ex:
+        except pexpect.exceptions.EOF:
             logging.info("setting our password failed!")
             logging.info("X" * 80)
             print(etpw.before)
@@ -389,7 +400,8 @@ class InstallerRPM(InstallerBase):
         self.log_examiner.detect_instance_pids()
 
     def un_install_package(self):
-        uninstall = psutil.Popen(['rpm', '-e', 'arangodb3' + ('e' if self.cfg.enterprise else '')])
+        uninstall = psutil.Popen(['rpm', '-e', 'arangodb3' +
+                                  ('e' if self.cfg.enterprise else '')])
         uninstall.wait()
 
     def cleanup_system(self):
@@ -418,11 +430,11 @@ class InstallerW(InstallerBase):
     def calculate_package_names(self):
         enterprise = 'e' if self.cfg.enterprise else ''
         architecture = 'win64'
-        self.server_package = 'ArangoDB3%s-%s_%s.exe' %(
+        self.server_package = 'ArangoDB3%s-%s_%s.exe' % (
             enterprise,
             self.cfg.version,
             architecture)
-        self.client_package = 'ArangoDB3%s-client_%s_%s.exe'  %(
+        self.client_package = 'ArangoDB3%s-client_%s_%s.exe' % (
             enterprise,
             self.cfg.version,
             architecture)
@@ -464,7 +476,8 @@ class InstallerW(InstallerBase):
 
     def un_install_package(self):
         from pathlib import PureWindowsPath
-        self.get_arangod_conf().unlink() # once we modify it, the uninstaller will leave it there...
+        # once we modify it, the uninstaller will leave it there...
+        self.get_arangod_conf().unlink()
         uninstaller = "Uninstall.exe"
         tmp_uninstaller = Path("c:/tmp") / uninstaller
         # copy out the uninstaller as the windows facility would do:
