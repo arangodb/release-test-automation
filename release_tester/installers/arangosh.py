@@ -1,29 +1,35 @@
+#!/usr/bin/env python
+""" Run a javascript command by spawning an arangosh to the configured connection """
 import os
-import psutil
-from logging import info as log
 import logging
+import psutil
+
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 
-def jsVersionCheck(version):
-    return (
-        "if (db._version()!='%s') { throw 'fail'}" % (version),
-        'check version')
-
-class arangoshExecutor(object):
+class ArangoshExecutor():
+    """ configuration """
     def __init__(self, config):
         self.cfg = config
 
-    def runCommand(self, cmd):
-        runCmd = [os.path.join(self.cfg.installPrefix, "usr/bin/arangosh"),
-               "--server.endpoint", "tcp://127.0.0.1:%d" %(int(self.cfg.port)),
-               "--server.username", "%s" % (self.cfg.username),
-               "--server.password", "%s" % (self.cfg.passvoid),
-               "--javascript.execute-string", "%s" % (cmd[0])]
+    def run_command(self, cmd):
+        """ launch a command, print its name """
+        run_cmd = [os.path.join(self.cfg.installPrefix, "usr/bin/arangosh"),
+                   "--server.endpoint", "tcp://127.0.0.1:%d" %(int(self.cfg.port)),
+                   "--server.username", "%s" % (self.cfg.username),
+                   "--server.password", "%s" % (self.cfg.passvoid),
+                   "--javascript.execute-string", "%s" % (cmd[0])]
 
-        log("launching " + cmd[1])
+        logging.info("launching %s", cmd[1])
         # PIPE=subprocess.PIPE
         # print(str(runCmd))
-        p = psutil.Popen(runCmd)#, stdout=PIPE, stdin=PIPE, stderr=PIPE, universal_newlines=True)
-        x = p.wait(timeout=30)
-        return x == 0
+        arangosh_run = psutil.Popen(run_cmd)
+        exitcode = arangosh_run.wait(timeout=30)
+        return exitcode == 0
+
+    def js_version_check(self):
+        """ run a version check command; this can double as password check """
+        return self.run_command((
+            "if (db._version()!='%s') { throw 'fail'}" % (self.cfg.version),
+            'check version'))

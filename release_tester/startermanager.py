@@ -1,33 +1,49 @@
+#!/usr/bin/env python
+""" Manage one instance of the arangodb starter to crontroll multiple arangods"""
 import copy
+import datetime
 import os
-import psutil
-import signal
 import time
 import re
-from logging import info as log
 import logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
-from installers.arangosh import arangoshExecutor
+from logging import info as log
 from pathlib import Path
-from installers.installers import installConfig
+import psutil
+from installers.arangosh import ArangoshExecutor
 
-class starterManager(object):
-    def __init__(self, basecfg, installprefix, mode=None, port=None, jwtStr=None, moreopts=[]):
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
+
+def timestamp():
+    """ get the formated "now" timestamp"""
+    return datetime.datetime.utcnow().isoformat()
+
+class StarterManager():
+    """ manage one starter instance"""
+    def __init__(self,
+                 basecfg,
+                 install_prefix,
+                 mode=None, port=None, jwtStr=None, moreopts=None):
         self.cfg = copy.deepcopy(basecfg)
-        self.basedir = self.cfg.baseTestDir / installprefix
-        self.logfileName = self.basedir / "arangodb.log"
-        self.starterPort = port
+        self.basedir = self.cfg.baseTestDir / install_prefix
+        self.log_file = self.basedir / "arangodb.log"
+        self.starter_port = port
         self.startupwait = 1
         self.username = 'root'
         self.passvoid = ''
         self.mode = mode
-        self.isMaster = None
-        self.isLeader = False
-        self.arangoshExecutor = None
-        self.frontendPort = None
-        self.allInstances = []
+        self.is_master = None
+        self.is_leader = False
+        self.arangosh = None
+        self.frontend_port = None
+        self.all_instances = []
         self.executor = None
-        self.moreopts = [];
+        self.moreopts = []
+        self.instance = None
+        self.sync_master_port = None
+        self.agent_instance = None
+        self.coordinator = None
+        self.frontend_port = None
+        self.db_instance = None
         if self.mode:
             self.moreopts += ["--starter.mode", self.mode]
         self.moreopts += moreopts
@@ -36,167 +52,209 @@ class starterManager(object):
             self.basedir.mkdir(parents=True, exist_ok=True)
             self.jwtfile = self.basedir / 'jwt'
             self.jwtfile.write_text(jwtStr)
-            self.moreopts = ['--auth.jwt-secret', str(self.jwtfile)] + self.moreopts
-        if self.starterPort != None:
-            self.frontendPort = self.starterPort + 1
-            self.moreopts += ["--starter.port", "%d" % self.starterPort]
-        self.arguments = [self.cfg.installPrefix / 'usr' / 'bin' / 'arangodb',
+            self.moreopts = ['--auth.jwt-secret'
+                             , str(self.jwtfile)] + self.moreopts
+        if self.starter_port is not None:
+            self.frontend_port = self.starter_port + 1
+            self.moreopts += ["--starter.port", "%d" % self.starter_port]
+        self.arguments = [self.cfg.install_prefix / 'usr' / 'bin' / 'arangodb',
                           "--log.console=false",
                           "--log.file=true",
                           "--starter.data-dir=%s" % self.basedir
-        ] + self.moreopts
+                         ] + self.moreopts
 
-    def runStarter(self):
+    def run_starter(self):
+        """ launch the starter for this instance"""
         log("launching " + str(self.arguments))
         self.instance = psutil.Popen(self.arguments)
         time.sleep(self.startupwait)
 
-    def executeFrontend(self, cmd):
-        if self.arangoshExecutor == None:
-            self.cfg.port = self.getFrontendPort()
-            self.arangoshExecutor = arangoshExecutor(self.cfg)
-        return self.arangoshExecutor.runCommand(cmd)
-
-    def killInstance(self):
-        log("Killing: " + str(self.arguments))
-        #self.instance.send_signal(signal.CTRL_C_EVENT)
-        self.instance.terminate()
-        log(str(self.instance.wait(timeout=30)))
-        log("Instance now dead.")
-
-    def respawnInstance(self):
-        log("respawning instance " + str(self.arguments))
-        self.instance = psutil.Popen(self.arguments)
-        time.sleep(self.startupwait)
-
-    def getFrontendPort(self):
-        if self.frontendPort == None:
-            raise Exception(timestamp() + "no frontend port detected")
-        return self.frontendPort
-
-    def getLogFile(self):
-        return self.logfileName.read_text()
-
-    def isInstanceRunning(self):
+    def is_instance_running(self):
+        """ check whether this is still running"""
+        try:
+            self.instance.wait(timeout=1)
+        except:
+            pass
         return self.instance.is_running()
 
-    def getSyncMasterPort(self):
-        self.syncMasterPort = None
-        pos = None
-        smPortText = 'Starting syncmaster on port'
-        swText = 'syncworker up and running'            
-        workerCount = 0;
-        while workerCount < 3 and self.isInstanceRunning():
-            log('%')
-            lf = self.getLogFile()
-            npos = lf.find(swText, pos)
-            if npos >= 0:
-                workerCount += 1
-                pos = npos + len(swText)
-            else:
-                time.sleep(1)
-        lf = self.getLogFile()
-        pos = lf.find(smPortText)
-        pos = lf.find(smPortText, pos + len(smPortText))
-        pos = lf.find(smPortText, pos + len(smPortText))
-        if pos >= 0:
-            pos = pos + len(smPortText) + 1
-            self.syncMasterPort = int(lf[pos : pos+4])
-        return self.syncMasterPort
-    
-    def isInstanceUp(self):
+    def is_instance_up(self):
+        """ check whether all spawned arangods are fully bootet"""
         if not self.instance.is_running():
             print(self.instance)
             print(self.instance.status())
             print(dir(self.instance))
-            raise Exception(timestamp() + "my instance is gone! " + self.basedir)
-        lf = self.getLogFile()
-        rx = re.compile('(\w*) up and running ')
-        for line in lf.splitlines():
-            m = rx.search(line)
-            if m == None:
+            raise Exception(timestamp()
+                            + "my instance is gone! "
+                            + self.basedir)
+        lfs = self.get_log_file()
+        regx = re.compile(r'(\w*) up and running ')
+        for line in lfs.splitlines():
+            match = regx.search(line)
+            if match is None:
                 continue
-            g = m.groups()
-            if len(g) == 1 and g[0] == 'agent':
+            groups = match.groups()
+            if len(groups) == 1 and groups[0] == 'agent':
                 continue
             return True
         return False
 
-    def detectLogfiles(self):
+    def kill_instance(self):
+        """ kill the instance of this starter
+            (it should kill all its managed services)"""
+        log("Killing: " + str(self.arguments))
+        #self.instance.send_signal(signal.CTRL_C_EVENT)
+        self.instance.terminate()
+        try:
+            log(str(self.instance.wait(timeout=45)))
+        except:
+            log("timeout, doing hard kill.")
+            self.instance.kill()
+        log("Instance now dead.")
+
+    def respawn_instance(self):
+        """ restart the starter instance after we killed it eventually """
+        log("respawning instance " + str(self.arguments))
+        self.instance = psutil.Popen(self.arguments)
+        time.sleep(self.startupwait)
+
+    def execute_frontend(self, cmd):
+        """ use arangosh to run a command on the frontend arangod"""
+        if self.arangosh is None:
+            self.cfg.port = self.get_frontend_port()
+            self.arangosh = ArangoshExecutor(self.cfg)
+        return self.arangosh.run_command(cmd)
+
+    def get_frontend_port(self):
+        """ get the port of the arangod which is coordinator etc."""
+        if self.frontend_port is None:
+            raise Exception(timestamp() + "no frontend port detected")
+        return self.frontend_port
+
+    def get_sync_master_port(self):
+        """ get the port of a syncmaster arangosync"""
+        self.sync_master_port = None
+        pos = None
+        sm_port_text = 'Starting syncmaster on port'
+        sw_text = 'syncworker up and running'
+        worker_count = 0
+        while worker_count < 3 and self.is_instance_running():
+            log('%')
+            lfs = self.get_log_file()
+            npos = lfs.find(sw_text, pos)
+            if npos >= 0:
+                worker_count += 1
+                pos = npos + len(sw_text)
+            else:
+                time.sleep(1)
+        lfs = self.get_log_file()
+        pos = lfs.find(sm_port_text)
+        pos = lfs.find(sm_port_text, pos + len(sm_port_text))
+        pos = lfs.find(sm_port_text, pos + len(sm_port_text))
+        if pos >= 0:
+            pos = pos + len(sm_port_text) + 1
+            self.sync_master_port = int(lfs[pos : pos+4])
+        return self.sync_master_port
+
+    def get_log_file(self):
+        """ fetch the logfile of this starter"""
+        return self.log_file.read_text()
+
+    def read_instance_logfile(self):
+        """ get the logfile of the dbserver instance"""
+        return self.db_instance['logfile'].read_text()
+
+    def read_agent_logfile(self):
+        """ get the agent logfile of this instance"""
+        return self.agent_instance['logfile'].read_text()
+
+    def detect_logfiles(self):
+        """ see which arangods where spawned and inspect their logfiles"""
         for one in os.listdir(self.basedir):
             if os.path.isdir(os.path.join(self.basedir, one)):
-                m = re.match(r'([a-z]*)(\d*)', one)
+                match = re.match(r'([a-z]*)(\d*)', one)
                 instance = {
-                    'type': m.group(1),
-                    'port': m.group(2),
-                    'logfile': os.path.join(self.basedir, one, 'arangod.log')
+                    'type': match.group(1),
+                    'port': match.group(2),
+                    'logfile': self.basedir / one / 'arangod.log'
                     }
                 if instance['type'] == 'agent':
-                    self.agentInstance = instance
+                    self.agent_instance = instance
                 elif instance['type'] == 'coordinator':
                     self.coordinator = instance
-                    self.frontendPort = instance['port']
+                    self.frontend_port = instance['port']
                 elif instance['type'] == 'resilientsingle':
-                    self.dbInstance = instance
-                    self.frontendPort = instance['port']
+                    self.db_instance = instance
+                    self.frontend_port = instance['port']
                 else:
-                    self.dbInstance = instance
-                self.allInstances.append(instance)
-        log(str(self.allInstances))
+                    self.db_instance = instance
+                self.all_instances.append(instance)
+        log(str(self.all_instances))
 
-    def detectInstancePIDs(self):
-        for instance in self.allInstances:
+    def detect_instance_pids(self):
+        """ detect the arangod instance PIDs"""
+        for instance in self.all_instances:
             instance['PID'] = 0
             while instance['PID'] == 0:
-                lf = open(self.dbInstance['logfile']).read()
-                pos = lf.find('is ready for business.')
+                lfs = self.db_instance['logfile'].read_text()
+                pos = lfs.find('is ready for business.')
                 if pos < 0:
                     log('.')
                     time.sleep(1)
                     continue
-                pos = lf.rfind('\n', 0, pos)
-                epos = lf.find('\n', pos + 1, len(lf))
-                line = lf[pos: epos]
-                m = re.search(r'Z \[(\d*)\]', line)
-                if m == None:
-                    raise Exception(timestamp() + " Couldn't find a PID in hello line! - " + line)
-                instance['PID'] = int(m.groups()[0])
-        log(str(self.allInstances))
+                pos = lfs.rfind('\n', 0, pos)
+                epos = lfs.find('\n', pos + 1, len(lfs))
+                line = lfs[pos: epos]
+                match = re.search(r'Z \[(\d*)\]', line)
+                if match is None:
+                    raise Exception(timestamp()
+                                    + " Couldn't find a PID in hello line! - "
+                                    + line)
+                instance['PID'] = int(match.groups()[0])
+        log(str(self.all_instances))
 
-    def detectLeader(self):
-        lf = self.readInstanceLogfile()
-        self.isLeader = ((lf.find('Became leader in') >= 0) or
-                         (lf.find('Successful leadership takeover: All your base are belong to us') >= 0))
-        return self.isLeader
+    def detect_leader(self):
+        """ in active failover detect whether we run the leader"""
+        lfs = self.read_instance_logfile()
+        self.is_leader = (
+            (lfs.find('Became leader in') >= 0) or
+            (lfs.find('Successful leadership takeover:'
+                      ' All your base are belong to us')
+             >= 0))
+        return self.is_leader
 
-    def readInstanceLogfile(self):
-        return open(self.dbInstance['logfile']).read()
-
-    def readAgentLogfile(self):
-        return open(self.agent['logfile']).read()
-
-    def ActiveFailoverDetectHosts(self):
+    def active_failover_detect_hosts(self):
+        """ detect hosts for the active failover """
         if not self.instance.is_running():
             print(self.instance)
-            raise Exception(timestamp() + "my instance is gone! " + self.basedir)
+            raise Exception(timestamp()
+                            + "my instance is gone! "
+                            + self.basedir)
         # this is the way to detect the master starter...
-        lf = self.getLogFile()
-        if lf.find('Just became master') >= 0:
-            self.isMaster = True
+        lfs = self.get_log_file()
+        if lfs.find('Just became master') >= 0:
+            self.is_master = True
         else:
-            self.isMaster = False
-        rx = re.compile('Starting resilientsingle on port (\d*) .*')
-        m = rx.search(lf)
-        if m == None:
-            print(rx)
-            print(m)
-            raise Exception(timestamp() + "Unable to get my host state! " + self.basedir + " - " + lf)
-        self.frontendPort = m.groups()[0]
-    def ActiveFailoverDetectHostNowFollower(self):
+            self.is_master = False
+        regx = re.compile(r'Starting resilientsingle on port (\d*) .*')
+        match = regx.search(lfs)
+        if match is None:
+            print(regx)
+            print(match)
+            raise Exception(timestamp()
+                            + "Unable to get my host state! "
+                            + self.basedir
+                            + " - " + lfs)
+        self.frontend_port = match.groups()[0]
+
+    def active_failover_detect_host_now_follower(self):
+        """ detect whether we successfully respawned the instance,
+            and it became a follower"""
         if not self.instance.is_running():
-            raise Exception(timestamp() + "my instance is gone! " + self.basedir)
-        lf = self.getLogFile()
-        if lf.find('resilientsingle up and running as follower') >= 0:
-            self.isMaster = False
+            raise Exception(timestamp()
+                            + "my instance is gone! "
+                            + self.basedir)
+        lfs = self.get_log_file()
+        if lfs.find('resilientsingle up and running as follower') >= 0:
+            self.is_master = False
             return True
         return False

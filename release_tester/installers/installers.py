@@ -1,263 +1,266 @@
 #!/usr/bin/env python3
-
-import datetime
+""" run an installer for the detected operating system """
 import time
 import os
 import sys
 import re
 import shutil
-import psutil
-import os
 import platform
-from installers import arangosh
-import sys
-import re
-import installers.arangodlog as arangodLog
-from logging import info as log
 import logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 from pathlib import Path
 from abc import abstractmethod, ABC
+import yaml
+import psutil
+from installers import arangosh
+import installers.arangodlog as arangodlog
 
-class installConfig(object):
-    def __init__(self, version, enterprise, packageDir, publicip, yamlcfg=None):
-        if yamlcfg != None:
-            self.publicip = publicip
-            self.basePath = Path("/")
-            self.username = "root"
-            self.passvoid = "abc"
-            self.enterprise = enterprise
-            self.version = version
-            self.packageDir = packageDir
-            self.installPrefix = ''
-            self.jwt = ''
-            self.port=8529
-            self.localhost = 'localhost'
-            self.allInstances = {}
-        else:
-            self.publicip = publicip
-            self.basePath = Path("/")
-            self.username = "root"
-            self.passvoid = "abc"
-            self.enterprise = enterprise
-            self.version = version
-            self.packageDir = packageDir
-            self.installPrefix = Path('/')
-            self.jwt = ''
-            self.port=8529
-            self.localhost = 'localhost'
-            self.allInstances = {}
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
-    def generatePassword(self):
+class InstallConfig():
+    """ stores the baseline of this environment """
+    def __init__(self, version, enterprise, package_dir, publicip):
+        self.publicip = publicip
+        self.username = "root"
+        self.passvoid = "abc"
+        self.enterprise = enterprise
+        self.version = version
+        self.package_dir = package_dir
+        self.install_prefix = Path("/")
+        self.jwt = ''
+        self.port = 8529
+        self.localhost = 'localhost'
+        self.all_instances = {}
+
+    def generate_password(self):
+        """ generate a new password """
         self.passvoid = 'cde'
 
-class installerBase(ABC):
+class InstallerBase(ABC):
+    """ this is the prototype for the operation system agnostic installers """
     @abstractmethod
-    def calculatePackageNames(self):
-        pass
-    @abstractmethod
-    def installPackage(self):
-        pass
-    @abstractmethod
-    def unInstallPackage(self):
-        pass
-    @abstractmethod
-    def checkServiceUp(self):
-        pass
-    @abstractmethod
-    def startService(self):
-        pass
-    @abstractmethod
-    def stopService(self):
-        pass
+    def calculate_package_names(self):
+        """ which filenames will we be able to handle"""
 
     @abstractmethod
-    def cleanupSystem(self):
-        pass
+    def install_package(self):
+        """ install the packages to the system """
 
-    def getArangodConf(self):
+    @abstractmethod
+    def un_install_package(self):
+        """ remove the installed packages from the system """
+
+    @abstractmethod
+    def check_service_up(self):
+        """ check whether the system arangod service is running """
+
+    @abstractmethod
+    def start_service(self):
+        """ launch the arangod system service """
+
+    @abstractmethod
+    def stop_service(self):
+        """ stop the arangod system service """
+
+    @abstractmethod
+    def cleanup_system(self):
+        """ if the packages are known to not properly cleanup - do it here. """
+
+    def get_arangod_conf(self):
+        """ where on the disk is the arangod config installed? """
         return self.cfg.cfgdir / 'arangod.conf'
 
-    def calcConfigFileName(self):
-        cfgFile = Path()
-        if self.cfg.installPrefix == Path('/'):
-            cfgFile = Path('/') / 'tmp' / 'config.yml'
+    def calc_config_file_name(self):
+        """ store our config to disk - so we can be invoked partly """
+        cfg_file = Path()
+        if self.cfg.install_prefix == Path('/'):
+            cfg_file = Path('/') / 'tmp' / 'config.yml'
         else:
-            cfgFile = Path('c:') / 'tmp' / 'config.yml'
-        return cfgFile;
+            cfg_file = Path('c:') / 'tmp' / 'config.yml'
+        return cfg_file
 
-    def saveConfig(self):
-        import yaml
-        self.calcConfigFileName().write_text(yaml.dump(self.cfg))
+    def save_config(self):
+        """ dump the config to disk """
+        self.calc_config_file_name().write_text(yaml.dump(self.cfg))
 
-    def loadConfig(self):
-        import yaml
-        with open(self.calcConfigFileName()) as fh:
-            self.cfg = yaml.load(fh, Loader=yaml.Loader)
-        self.logExaminer = arangodLog.arangodLogExaminer(self.cfg);
+    def load_config(self):
+        """ deserialize the config from disk """
+        with open(self.calc_config_file_name()) as fileh:
+            self.cfg = yaml.load(fileh, Loader=yaml.Loader)
+        self.log_examiner = arangodlog.ArangodLogExaminer(self.cfg)
 
-    def broadcastBind(self):
-        arangodconf = None
-        with open(self.getArangodConf(), 'r') as fh:
-            arangodconf = fh.read()
-        ipMatch = re.compile('127\\.0\\.0\\.1')
-        newArangodConf = ipMatch.subn('0.0.0.0', arangodconf)
-        with open(self.getArangodConf(), 'w') as fh:
-            fh.write(newArangodConf[0])
-        log("arangod now configured for broadcast bind")
+    def broadcast_bind(self):
+        """ modify the arangod.conf so the system will broadcast bind
+            so you can access the SUT from the outside with your local browser """
+        arangodconf = self.get_arangod_conf().read_text()
+        iprx = re.compile('127\\.0\\.0\\.1')
+        new_arangod_conf = iprx.subn('0.0.0.0', arangodconf)
+        self.get_arangod_conf().write_text(new_arangod_conf[0])
+        logging.info("arangod now configured for broadcast bind")
 
-    def enableLogging(self):
-        arangodconf = None
-        with open(self.getArangodConf(), 'r') as fh:
-            arangodconf = fh.read()
-        print(arangodconf)
+    def enable_logging(self):
+        """ if the packaging doesn't enable logging, do it using this function """
+        arangodconf = self.get_arangod_conf().read_text()
         self.cfg.logDir.mkdir(parents=True)
-        newArangodConf = arangodconf.replace('[log]', '[log]\nfile = ' + str(self.cfg.logDir / 'arangod.log'))
-        print(newArangodConf)
-        with open(self.getArangodConf(), 'w') as fh:
-            fh.write(newArangodConf)
-        log("arangod now configured for logging")
+        new_arangod_conf = arangodconf.replace('[log]',
+                                               '[log]\nfile = ' +
+                                               str(self.cfg.logDir / 'arangod.log'))
+        print(new_arangod_conf)
+        self.get_arangod_conf().write_text(new_arangod_conf[0])
+        logging.info("arangod now configured for logging")
 
-    def checkInstalledPaths(self):
-        if (not self.cfg.dbdir.is_dir() or
-            not self.cfg.appdir.is_dir() or
-            not self.cfg.cfgdir.is_dir()):
+    def check_installed_paths(self):
+        """ check whether the requested directories and files were created """
+        if (
+                not self.cfg.dbdir.is_dir() or
+                not self.cfg.appdir.is_dir() or
+                not self.cfg.cfgdir.is_dir()
+        ):
             raise Exception("expected installation paths are not there")
 
-        if not self.getArangodConf().is_file():
+        if not self.get_arangod_conf().is_file():
             raise Exception("configuration files aren't there")
-    def checkEngineFile(self):
+    def check_engine_file(self):
+        """ check for the engine file to test whether the DB was created """
         if not Path(self.cfg.dbdir / 'ENGINE').is_file():
             raise Exception("database engine file not there!")
 
-    def checkUninstallCleanup(self):
+    def check_uninstall_cleanup(self):
+        """ check whether all is gone after the uninstallation """
         success = True
 
         if (self.cfg.installPrefix != Path("/") and
-            self.cfg.installPrefix.is_dir()):
-            log("Path not removed: " + str(self.cfg.installPrefix))
+                self.cfg.installPrefix.is_dir()):
+            logging.info("Path not removed: %s", str(self.cfg.installPrefix))
             success = False
         if os.path.exists(self.cfg.appdir):
-            log("Path not removed: " + str(self.cfg.appdir))
+            logging.info("Path not removed: %s", str(self.cfg.appdir))
             success = False
         if os.path.exists(self.cfg.dbdir):
-            log("Path not removed: " + str(self.cfg.dbdir))
+            logging.info("Path not removed: %s", str(self.cfg.dbdir))
             success = False
         return success
 
 
-class installerDeb(installerBase):
-    def __init__(self, installConfig):
-        self.cfg = installConfig
+class InstallerDeb(InstallerBase):
+    """ install .deb's on debian or ubuntu hosts """
+    def __init__(self, install_config):
+        self.cfg = install_config
         self.cfg.baseTestDir = Path('/tmp')
         self.cfg.localhost = 'ip6-localhost'
+        self.server_package = None
+        self.client_package = None
+        self.debug_package = None
+        self.log_examiner = None
 
-    def calculatePackageNames(self):
+    def calculate_package_names(self):
         enterprise = 'e' if self.cfg.enterprise else ''
-        packageVersion = '1'
+        package_version = '1'
         architecture = 'amd64'
 
-        desc = { "ep": enterprise
-               , "cfg" : self.cfg.version
-               , "ver" : packageVersion
-               , "arch" : architecture
-               }
+        desc = {
+            "ep"   : enterprise,
+            "cfg"  : self.cfg.version,
+            "ver"  : package_version,
+            "arch" : architecture
+        }
 
-        self.serverPackage = 'arangodb3{ep}_{cfg}-{ver}_{arch}.deb'.format(**desc)
-        self.clientPackage = 'arangodb3{ep}-client_{cfg}-{ver}_{arch}.deb'.format(**desc)
-        self.debugPackage = 'arangodb3{ep}-dbg_{cfg}-{ver}_{arch}.deb'.format(**desc)
+        self.server_package = 'arangodb3{ep}_{cfg}-{ver}_{arch}.deb'.format(**desc)
+        self.client_package = 'arangodb3{ep}-client_{cfg}-{ver}_{arch}.deb'.format(**desc)
+        self.debug_package = 'arangodb3{ep}-dbg_{cfg}-{ver}_{arch}.deb'.format(**desc)
 
-    def checkServiceUp(self):
+    def check_service_up(self):
         time.sleep(1) # TODO
 
-    def startService(self):
+    def start_service(self):
         import pexpect
-        startServer = pexpect.spawnu('service arangodb3 start')
-        log("waiting for eof")
-        startServer.expect(pexpect.EOF, timeout=30)
-        while startServer.isalive():
-            log('.')
-            if startServer.exitstatus != 0:
+        startserver = pexpect.spawnu('service arangodb3 start')
+        logging.info("waiting for eof")
+        startserver.expect(pexpect.EOF, timeout=30)
+        while startserver.isalive():
+            logging.info('.')
+            if startserver.exitstatus != 0:
                 raise Exception("server service start didn't finish successfully!")
         time.sleep(0.1)
-        self.logExaminer.detectInstancePIDs()
+        self.log_examiner.detect_instance_pids()
 
-    def stopService(self):
+    def stop_service(self):
         import pexpect
-        stopServer = pexpect.spawnu('service arangodb3 stop')
-        log("waiting for eof")
-        stopServer.expect(pexpect.EOF, timeout=30)
-        while stopServer.isalive():
-            log('.')
-            if stopServer.exitstatus != 0:
+        stopserver = pexpect.spawnu('service arangodb3 stop')
+        logging.info("waiting for eof")
+        stopserver.expect(pexpect.EOF, timeout=30)
+        while stopserver.isalive():
+            logging.info('.')
+            if stopserver.exitstatus != 0:
                 raise Exception("server service stop didn't finish successfully!")
 
-    def installPackage(self):
+    def install_package(self):
         import pexpect
         self.cfg.installPrefix = Path("/")
         self.cfg.logDir = Path('/var/log/arangodb3')
         self.cfg.dbdir = Path('/var/lib/arangodb3')
         self.cfg.appdir = Path('/var/lib/arangodb3-apps')
         self.cfg.cfgdir = Path('/etc/arangodb3')
-        self.cfg.allInstances = {
+        self.cfg.all_instances = {
             'single': {
                 'logfile': self.cfg.installPrefix / self.cfg.logDir / 'arangod.log'
             }
         }
-        log("installing Arangodb debian package")
-        os.environ['DEBIAN_FRONTEND']= 'readline'
-        serverInstall = pexpect.spawnu('dpkg -i ' +
-                                       str(self.cfg.packageDir / self.serverPackage))
+        logging.info("installing Arangodb debian package")
+        os.environ['DEBIAN_FRONTEND'] = 'readline'
+        server_install = pexpect.spawnu('dpkg -i ' +
+                                       str(self.cfg.package_dir / self.server_package))
         try:
-            serverInstall.expect('user:')
-            print(serverInstall.before)
-            serverInstall.sendline(self.cfg.passvoid)
-            serverInstall.expect('user:')
-            print(serverInstall.before)
-            serverInstall.sendline(self.cfg.passvoid)
-            serverInstall.expect("Automatically upgrade database files")
-            print(serverInstall.before)
-            serverInstall.sendline("yes")
-            serverInstall.expect("Database storage engine")
-            print(serverInstall.before)
-            serverInstall.sendline("1")
-            serverInstall.expect("Backup database files before upgrading")
-            print(serverInstall.before)
-            serverInstall.sendline("no")
-        except:
-            log("X" * 80)
-            print(serverInstall.before)
-            log("X" * 80)
-            log("Installation failed!")
+            server_install.expect('user:')
+            print(server_install.before)
+            server_install.sendline(self.cfg.passvoid)
+            server_install.expect('user:')
+            print(server_install.before)
+            server_install.sendline(self.cfg.passvoid)
+            server_install.expect("Automatically upgrade database files")
+            print(server_install.before)
+            server_install.sendline("yes")
+            server_install.expect("Database storage engine")
+            print(server_install.before)
+            server_install.sendline("1")
+            server_install.expect("Backup database files before upgrading")
+            print(server_install.before)
+            server_install.sendline("no")
+        except pexpect.exceptions.EOF as ex:
+            logging.info("X" * 80)
+            print(server_install.before)
+            logging.info("X" * 80)
+            logging.info("Installation failed!")
             sys.exit(1)
         try:
-            log("waiting for the installation to finish")
-            serverInstall.expect(pexpect.EOF, timeout=30)
-            print(serverInstall.before)
-        except serverInstall.logfile:
-            log("TIMEOUT!")
-        while serverInstall.isalive():
-            log('.')
-            if serverInstall.exitstatus != 0:
+            logging.info("waiting for the installation to finish")
+            server_install.expect(pexpect.EOF, timeout=30)
+            print(server_install.before)
+        except pexpect.exceptions.EOF as ex:
+            logging.info("TIMEOUT!")
+        while server_install.isalive():
+            logging.info('.')
+            if server_install.exitstatus != 0:
                 raise Exception("server installation didn't finish successfully!")
-        log('Installation successfull')
-        self.logExaminer = arangodLog.arangodLogExaminer(self.cfg);
-        self.logExaminer.detectInstancePIDs()
+        logging.info('Installation successfull')
+        self.log_examiner = arangodlog.ArangodLogExaminer(self.cfg)
+        self.log_examiner.detect_instance_pids()
 
-    def unInstallPackage(self):
+    def un_install_package(self):
         import pexpect
-        uninstall = pexpect.spawnu('dpkg --purge ' + 'arangodb3' + ('e' if self.cfg.enterprise else ''))
+        uninstall = pexpect.spawnu('dpkg --purge ' +
+                                   'arangodb3' +
+                                   ('e' if self.cfg.enterprise else ''))
 
         try:
             uninstall.expect('Purging')
             print(uninstall.before)
             uninstall.expect(pexpect.EOF)
             print(uninstall.before)
-        except:
+        except pexpect.exceptions.EOF:
             print(uninstall.before)
             sys.exit(1)
 
-    def cleanupSystem(self):
+    def cleanup_system(self):
         # TODO: should this be cleaned by the deb uninstall in first place?
         if self.cfg.logDir.exists():
             shutil.rmtree(self.cfg.logDir)
@@ -269,31 +272,37 @@ class installerDeb(installerBase):
             shutil.rmtree(self.cfg.cfgdir)
 
 
-class installerRPM(installerBase):
-    def __init__(self, installConfig):
-        self.cfg = installConfig
+class InstallerRPM(InstallerBase):
+    """ install .rpm's on RedHat, Centos or SuSe systems """
+    def __init__(self, install_config):
+        self.cfg = install_config
         self.cfg.baseTestDir = Path('/tmp')
         self.cfg.localhost = 'localhost6'
+        self.server_package = None
+        self.client_package = None
+        self.debug_package = None
+        self.log_examiner = None
 
-    def calculatePackageNames(self):
+    def calculate_package_names(self):
         enterprise = 'e' if self.cfg.enterprise else ''
-        packageVersion = '1.0'
+        package_version = '1.0'
         architecture = 'x86_64'
 
-        desc = { "ep": enterprise
-               , "cfg" : self.cfg.version
-               , "ver" : packageVersion
-               , "arch" : architecture
-               }
+        desc = {
+            "ep"   : enterprise,
+            "cfg"  : self.cfg.version,
+            "ver"  : package_version,
+            "arch" : architecture
+        }
 
-        self.serverPackage = 'arangodb3{ep}-{cfg}-{ver}.{arch}.rpm'.format(**desc)
-        self.clientPackage = 'arangodb3{ep}-client-{cfg}-{ver}.{arch}.rpm'.format(**desc)
-        self.debugPackage = 'arangodb3{ep}-debuginfo-{cfg}-{ver}.{arch}.rpm'.format(**desc)
+        self.server_package = 'arangodb3{ep}-{cfg}-{ver}.{arch}.rpm'.format(**desc)
+        self.client_package = 'arangodb3{ep}-client-{cfg}-{ver}.{arch}.rpm'.format(**desc)
+        self.debug_package = 'arangodb3{ep}-debuginfo-{cfg}-{ver}.{arch}.rpm'.format(**desc)
 
-    def checkServiceUp(self):
-        if 'PID' in self.cfg.allInstances['single']:
+    def check_service_up(self):
+        if 'PID' in self.cfg.all_instances['single']:
             try:
-                srv = psutil.Process(self.cfg.allInstances.single['PID'])
+                psutil.Process(self.cfg.all_instances.single['PID'])
             except:
                 return False
         else:
@@ -301,65 +310,67 @@ class installerRPM(installerBase):
         time.sleep(1) # TODO
         return True
 
-    def startService(self):
-        startServer = psutil.Popen(['service', 'arangodb3', 'start'])
-        log("waiting for eof")
-        startServer.wait()
+    def start_service(self):
+        startserver = psutil.Popen(['service', 'arangodb3', 'start'])
+        logging.info("waiting for eof")
+        startserver.wait()
         time.sleep(0.1)
-        self.logExaminer.detectInstancePIDs()
+        self.log_examiner.detect_instance_pids()
 
-    def stopService(self):
-        stopServer = psutil.Popen(['service', 'arangodb3', 'stop'])
-        log("waiting for eof")
-        stopServer.wait()
-        while self.checkServiceUp():
+    def stop_service(self):
+        stopserver = psutil.Popen(['service', 'arangodb3', 'stop'])
+        logging.info("waiting for eof")
+        stopserver.wait()
+        while self.check_service_up():
             time.sleep(1)
 
-    def installPackage(self):
+    def install_package(self):
         import pexpect
         self.cfg.installPrefix = Path("/")
         self.cfg.logDir = Path('/var/log/arangodb3')
         self.cfg.dbdir = Path('/var/lib/arangodb3')
         self.cfg.appdir = Path('/var/lib/arangodb3-apps')
         self.cfg.cfgdir = Path('/etc/arangodb3')
-        self.cfg.allInstances = {
+        self.cfg.all_instances = {
             'single': {
                 'logfile': self.cfg.installPrefix / self.cfg.logDir / 'arangod.log'
             }
         }
-        self.logExaminer = arangodLog.arangodLogExaminer(self.cfg);
-        log("installing Arangodb RPM package")
-        package = self.cfg.packageDir / self.serverPackage
+        self.log_examiner = arangodlog.ArangodLogExaminer(self.cfg)
+        logging.info("installing Arangodb RPM package")
+        package = self.cfg.package_dir / self.server_package
         if not package.is_file():
-            log("package doesn't exist: " + str(package))
+            logging.info("package doesn't exist: %s", str(package))
             raise Exception("failed to find package")
 
-        log("-"*80)
-        serverInstall = pexpect.spawnu('rpm '+ '-i '+ str(package))
+        logging.info("-"*80)
+        server_install = pexpect.spawnu('rpm '+ '-i '+ str(package))
         reply = None
         try:
-            serverInstall.expect('the current password is')
-            print(serverInstall.before)
-            serverInstall.expect(pexpect.EOF, timeout=30)
-            reply = serverInstall.before
+            server_install.expect('the current password is')
+            print(server_install.before)
+            server_install.expect(pexpect.EOF, timeout=30)
+            reply = server_install.before
             print(reply)
-            log("-"*80)
-        except pexpect.exceptions.EOF as x:
-            log("X" * 80)
-            print(serverInstall.before)
-            log("X" * 80)
-            log("Installation failed!")
+            logging.info("-"*80)
+        except pexpect.exceptions.EOF as ex:
+            logging.info("X" * 80)
+            print(server_install.before)
+            logging.info("X" * 80)
+            logging.info("Installation failed!")
             sys.exit(1)
         start = reply.find("'")
         end = reply.find("'", start + 1)
         self.cfg.passvoid = reply[start + 1 : end]
-        self.startService()
-        self.logExaminer.detectInstancePIDs()
-        pwcheckArangosh = arangosh.arangoshExecutor(self.cfg)
-        if not pwcheckArangosh.runCommand(arangosh.jsVersionCheck(self.cfg.version)):
-            log("Version Check failed - probably setting the default random password didn't work! "
-                + self.cfg.passvoid)
-        self.stopService()
+        self.start_service()
+        self.log_examiner.detect_instance_pids()
+        pwcheckarangosh = arangosh.ArangoshExecutor(self.cfg)
+        if not pwcheckarangosh.js_version_check():
+            logging.info(
+                "Version Check failed -"
+                "probably setting the default random password didn't work! %s",
+                self.cfg.passvoid)
+        self.stop_service()
         self.cfg.passvoid = "sanoetuh" # TODO
         etpw = pexpect.spawnu('/usr/sbin/arango-secure-installation')
         try:
@@ -368,20 +379,20 @@ class installerRPM(installerBase):
             etpw.expect('Repeat password:')
             etpw.sendline(self.cfg.passvoid)
             etpw.expect(pexpect.EOF)
-        except:
-            log("setting our password failed!")
-            log("X" * 80)
+        except pexpect.exceptions.EOF as ex:
+            logging.info("setting our password failed!")
+            logging.info("X" * 80)
             print(etpw.before)
-            log("X" * 80)
+            logging.info("X" * 80)
             sys.exit(1)
-        self.startService()
-        self.logExaminer.detectInstancePIDs()
+        self.start_service()
+        self.log_examiner.detect_instance_pids()
 
-    def unInstallPackage(self):
+    def un_install_package(self):
         uninstall = psutil.Popen(['rpm', '-e', 'arangodb3' + ('e' if self.cfg.enterprise else '')])
         uninstall.wait()
 
-    def cleanupSystem(self):
+    def cleanup_system(self):
         # TODO: should this be cleaned by the rpm uninstall in first place?
         if self.cfg.logDir.exists():
             shutil.rmtree(self.cfg.logDir)
@@ -393,33 +404,37 @@ class installerRPM(installerBase):
             shutil.rmtree(self.cfg.cfgdir)
 
 
-class installerW(installerBase):
-
-    def __init__(self, installConfig):
-        self.cfg = installConfig
+class InstallerW(InstallerBase):
+    """ install the windows NSIS package """
+    def __init__(self, install_config):
+        self.cfg = install_config
         self.cfg.installPrefix = Path("C:/tmp")
         self.cfg.baseTestDir = Path('/tmp')
+        self.server_package = None
+        self.client_package = None
+        self.log_examiner = None
+        self.service = None
 
-    def calculatePackageNames(self):
+    def calculate_package_names(self):
         enterprise = 'e' if self.cfg.enterprise else ''
         architecture = 'win64'
-        self.serverPackage = 'ArangoDB3%s-%s_%s.exe' %(
+        self.server_package = 'ArangoDB3%s-%s_%s.exe' %(
             enterprise,
             self.cfg.version,
             architecture)
-        self.clientPackage = 'ArangoDB3%s-client_%s_%s.exe'  %(
+        self.client_package = 'ArangoDB3%s-client_%s_%s.exe'  %(
             enterprise,
             self.cfg.version,
             architecture)
 
-    def installPackage(self):
+    def install_package(self):
         from pathlib import PureWindowsPath
         self.cfg.logDir = self.cfg.installPrefix / "LOG"
         self.cfg.dbdir = self.cfg.installPrefix / "DB"
         self.cfg.appdir = self.cfg.installPrefix / "APP"
         self.cfg.installPrefix = self.cfg.installPrefix / "PROG"
         self.cfg.cfgdir = self.cfg.installPrefix / 'etc/arangodb3'
-        cmd = [str(self.cfg.packageDir / self.serverPackage),
+        cmd = [str(self.cfg.package_dir / self.server_package),
                '/PASSWORD=' + self.cfg.passvoid,
                '/INSTDIR=' + str(PureWindowsPath(self.cfg.installPrefix)),
                '/DATABASEDIR=' + str(PureWindowsPath(self.cfg.dbdir)),
@@ -427,70 +442,73 @@ class installerW(installerBase):
                '/PATH=0',
                '/S',
                '/INSTALL_SCOPE_ALL=1']
-        log('running windows package installer:')
-        log(str(cmd))
+        logging.info('running windows package installer:')
+        logging.info(str(cmd))
         install = psutil.Popen(cmd)
         install.wait()
         self.service = psutil.win_service_get('ArangoDB')
-        while not self.checkServiceUp():
-            log('starting...')
+        while not self.check_service_up():
+            logging.info('starting...')
             time.sleep(1)
-        self.enableLogging()
-        self.stopService()
+        self.enable_logging()
+        self.stop_service()
         time.sleep(1)
-        self.cfg.allInstances = {
+        self.cfg.all_instances = {
             'single': {
                 'logfile': self.cfg.logDir / 'arangod.log'
             }
         }
-        self.logExaminer = arangodLog.arangodLogExaminer(self.cfg);
-        self.startService()
-        log('Installation successfull')
+        self.log_examiner = arangodlog.ArangodLogExaminer(self.cfg)
+        self.start_service()
+        logging.info('Installation successfull')
 
-    def unInstallPackage(self):
+    def un_install_package(self):
         from pathlib import PureWindowsPath
-        self.getArangodConf().unlink() # once we modify it, the uninstaller will leave it there...
-        uninstaller="Uninstall.exe"
-        tmp_uninstaller=Path("c:/tmp") / uninstaller
+        self.get_arangod_conf().unlink() # once we modify it, the uninstaller will leave it there...
+        uninstaller = "Uninstall.exe"
+        tmp_uninstaller = Path("c:/tmp") / uninstaller
         # copy out the uninstaller as the windows facility would do:
         shutil.copyfile(self.cfg.installPrefix / uninstaller, tmp_uninstaller)
 
-        cmd = [tmp_uninstaller, '/PURGE_DB=1', '/S', '_?=' + str(PureWindowsPath(self.cfg.installPrefix))]
-        log('running windows package uninstaller')
-        log(str(cmd))
+        cmd = [tmp_uninstaller,
+               '/PURGE_DB=1',
+               '/S',
+               '_?=' + str(PureWindowsPath(self.cfg.installPrefix))]
+        logging.info('running windows package uninstaller')
+        logging.info(str(cmd))
         uninstall = psutil.Popen(cmd)
         uninstall.wait()
         shutil.rmtree(self.cfg.logDir)
         tmp_uninstaller.unlink()
         time.sleep(2)
         try:
-            log(psutil.win_service_get('ArangoDB'))
+            logging.info(psutil.win_service_get('ArangoDB'))
             service = psutil.win_service_get('ArangoDB')
             if service.status() != 'stopped':
-                log("service shouldn't exist anymore!")
-                success = False
+                logging.info("service shouldn't exist anymore!")
         except:
             pass
 
-    def checkServiceUp(self):
+    def check_service_up(self):
         return self.service.status() == 'running'
 
-    def startService(self):
+    def start_service(self):
         self.service.start()
         while self.service.status() != "running":
-            log(self.service.status())
+            logging.info(self.service.status())
             time.sleep(1)
             if self.service.status() == "stopped":
-                raise Exception("arangod service stopped again on its own! Configuration / Port problem?")
-        self.logExaminer.detectInstancePIDs()
+                raise Exception("arangod service stopped again on its own!"
+                                "Configuration / Port problem?")
+        self.log_examiner.detect_instance_pids()
 
-    def stopService(self):
+    def stop_service(self):
         self.service.stop()
         while self.service.status() != "stopped":
-            log(self.service.status())
+            logging.info(self.service.status())
             time.sleep(1)
 
-    def cleanupSystem(self):
+    def cleanup_system(self):
         # TODO: should this be cleaned by the nsis uninstall in first place?
         if self.cfg.logDir.exists():
             shutil.rmtree(self.cfg.logDir)
@@ -503,20 +521,21 @@ class installerW(installerBase):
 
 
 def get(*args, **kwargs):
-    (winver, x, y, z) = platform.win32_ver()
-    if winver:
-        return installerW(installConfig(*args, **kwargs))
-    (macver, x, y) = platform.mac_ver()
-    if macver:
+    """ detect the OS and its distro, choose the proper installer and return it"""
+    winver = platform.win32_ver()
+    if winver[0]:
+        return InstallerW(InstallConfig(*args, **kwargs))
+    macver = platform.mac_ver()
+    if macver[0]:
         raise Exception("mac not yet implemented")
 
     if platform.system() == "linux" or platform.system() == "Linux":
         import distro
-        (distro, x, y) = distro.linux_distribution(full_distribution_name=False)
+        distro = distro.linux_distribution(full_distribution_name=False)
 
-        if distro == 'debian' or distro == 'ubuntu':
-            return installerDeb(installConfig(*args, **kwargs))
-        elif distro == 'centos' or distro == 'redhat' or 'suse':
-            return installerRPM(installConfig(*args, **kwargs))
+        if distro[0] in ['debian', 'ubuntu']:
+            return InstallerDeb(InstallConfig(*args, **kwargs))
+        if distro[0] in ['centos', 'redhat', 'suse']:
+            return InstallerRPM(InstallConfig(*args, **kwargs))
         raise Exception('unsupported linux distribution: ' + distro)
     raise Exception('unsupported os' + platform.system())
