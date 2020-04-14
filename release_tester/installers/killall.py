@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+""" tiny utility to kill all arangodb related processes """
 import logging
 import psutil
 
@@ -20,18 +20,9 @@ def kill_all_processes():
         if process.name() == 'arangosync':
             arangosyncs.append(psutil.Process(process.pid))
 
-    for process in arangosyncs:
-        if process.is_running():
-            logging.info("cleanup killing " + str(process))
-            process.terminate()
-            process.wait()
-    for process in arangodbs:
-        if process.is_running():
-            logging.info("cleanup killing " + str(process))
-            process.terminate()
-            process.wait()
-    for process in arangods:
-        if process.is_running():
-            logging.info("cleanup killing " + str(process))
-            process.terminate()
-            process.wait()
+    for processlist in [arangosyncs, arangodbs, arangods]:
+        for process in processlist:
+            if process.is_running():
+                logging.info("cleanup killing %s", str(process))
+                process.terminate()
+                process.wait()
