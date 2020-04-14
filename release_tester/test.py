@@ -2,16 +2,15 @@
 
 """ Release testing script"""
 import logging
-from logging import info as log
 from pathlib import Path
 
 import click
 
-from installers import arangosh
-import installers.installers as installers
-from installers.killall import kill_all_processes
-from installers.starterenvironment import get as getStarterenv
-from installers.starterenvironment import RunnerType
+from tools.killall import kill_all_processes
+from arangodb.sh import ArangoshExecutor
+import arangodb.installers as installers
+from arangodb.starter.environment import get as getStarterenv
+from arangodb.starter.environment import RunnerType
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
@@ -56,10 +55,10 @@ def run_test(version, package_dir, enterprise, mode, publicip):
         inst.stop_service()
         inst.start_service()
 
-        sys_arangosh = arangosh.ArangoshExecutor(inst.cfg)
+        sys_arangosh = ArangoshExecutor(inst.cfg)
 
         if not sys_arangosh.js_version_check():
-            log("Version Check failed!")
+            logging.info("Version Check failed!")
         input("Press Enter to continue")
         inst.stop_service()
         kill_all_processes()

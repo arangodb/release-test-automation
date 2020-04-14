@@ -11,8 +11,8 @@ from pathlib import Path
 from abc import abstractmethod, ABC
 import yaml
 import psutil
-from installers import arangosh
-import installers.arangodlog as arangodlog
+from arangodb.sh import ArangoshExecutor
+from arangodb.log import ArangodLogExaminer
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
@@ -88,7 +88,7 @@ class InstallerBase(ABC):
         """ deserialize the config from disk """
         with open(self.calc_config_file_name()) as fileh:
             self.cfg = yaml.load(fileh, Loader=yaml.Loader)
-        self.log_examiner = arangodlog.ArangodLogExaminer(self.cfg)
+        self.log_examiner = ArangodLogExaminer(self.cfg)
 
     def broadcast_bind(self):
         """
@@ -251,7 +251,7 @@ class InstallerDeb(InstallerBase):
             if server_install.exitstatus != 0:
                 raise Exception("server installation didn't finish successfully!")
         logging.info('Installation successfull')
-        self.log_examiner = arangodlog.ArangodLogExaminer(self.cfg)
+        self.log_examiner = ArangodLogExaminer(self.cfg)
         self.log_examiner.detect_instance_pids()
 
     def un_install_package(self):
@@ -346,7 +346,7 @@ class InstallerRPM(InstallerBase):
                 self.cfg.logDir / 'arangod.log'
             }
         }
-        self.log_examiner = arangodlog.ArangodLogExaminer(self.cfg)
+        self.log_examiner = ArangodLogExaminer(self.cfg)
         logging.info("installing Arangodb RPM package")
         package = self.cfg.package_dir / self.server_package
         if not package.is_file():
@@ -374,7 +374,7 @@ class InstallerRPM(InstallerBase):
         self.cfg.passvoid = reply[start + 1: end]
         self.start_service()
         self.log_examiner.detect_instance_pids()
-        pwcheckarangosh = arangosh.ArangoshExecutor(self.cfg)
+        pwcheckarangosh = ArangoshExecutor(self.cfg)
         if not pwcheckarangosh.js_version_check():
             logging.info(
                 "Version Check failed -"
@@ -470,7 +470,7 @@ class InstallerW(InstallerBase):
                 'logfile': self.cfg.logDir / 'arangod.log'
             }
         }
-        self.log_examiner = arangodlog.ArangodLogExaminer(self.cfg)
+        self.log_examiner = ArangodLogExaminer(self.cfg)
         self.start_service()
         logging.info('Installation successfull')
 

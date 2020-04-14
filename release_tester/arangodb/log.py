@@ -4,14 +4,13 @@
 import datetime
 import re
 import time
-from logging import info as log
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 
-def timestamp():
-    """ get the formated "now" timestamp"""
-    return datetime.datetime.utcnow().isoformat()
+#def timestamp():
+#    """ get the formated "now" timestamp"""
+#    return datetime.datetime.utcnow().isoformat()
 
 
 class ArangodLogExaminer():
@@ -41,17 +40,17 @@ class ArangodLogExaminer():
                 # print(last_line)
                 match = re.search(r'Z \[(\d*)\]', last_line)
                 if match is None:
-                    log("no PID in: " + last_line)
+                    logging.info("no PID in: " + last_line)
                     continue
                 pid = match.groups()[0]
                 start = lfc.find(pid)
                 pos = lfc.find('is ready for business.', start)
                 if pos < 0:
-                    log('.')
+                    logging.info('.')
                     time.sleep(1)
                     continue
                 instance['PID'] = int(pid)
-        log(str(self.cfg.all_instances))
+        logging.info(str(self.cfg.all_instances))
 
 #   def detect_leader(self):
 #       """ detect whether this instance is now an active failover leader"""

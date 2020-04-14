@@ -3,7 +3,6 @@
 import datetime
 import time
 import shutil
-from logging import info as log
 import logging
 from enum import Enum
 from pathlib import Path
@@ -11,7 +10,7 @@ from abc import abstractmethod
 
 import psutil
 import requests
-from startermanager import StarterManager
+from arangodb.starter.manager import StarterManager
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
@@ -62,9 +61,9 @@ class Runner():
 class LeaderFollower(Runner):
     """ this runs a leader / Follower setup with synchronisation """
     def __init__(self, cfg):
-        log("x"*80)
-        log("xx           Leader Follower Test      ")
-        log("x"*80)
+        logging.info("x"*80)
+        logging.info("xx           Leader Follower Test      ")
+        logging.info("x"*80)
         self.leader = None
         self.follower = None
         self.success = True
@@ -104,7 +103,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
     def run(self):
         self.leader.run_starter()
         self.follower.run_starter()
-        log(str(self.leader.execute_frontend(self.checks['beforeReplJS'])))
+        logging.info(str(self.leader.execute_frontend(self.checks['beforeReplJS'])))
         self.checks['startReplJS'] = ("""
 require("@arangodb/replication").setupReplicationGlobal({
     endpoint: "tcp://127.0.0.1:%d",
@@ -116,23 +115,23 @@ require("@arangodb/replication").setupReplicationGlobal({
     autoResync: true
     });
 """ % (self.leader.get_frontend_port()), "launching replication")
-        log(str(self.follower.execute_frontend(self.checks['startReplJS'])))
-        log(str(self.leader.execute_frontend(self.checks['afterReplJS'])))
+        logging.info(str(self.follower.execute_frontend(self.checks['startReplJS'])))
+        logging.info(str(self.leader.execute_frontend(self.checks['afterReplJS'])))
 
     def post_setup(self):
 
-        log("checking for the replication")
+        logging.info("checking for the replication")
 
         count = 0
         while count < 30:
             if self.follower.execute_frontend(self.checks['checkReplJS']):
                 break
-            log(".")
+            logging.info(".")
             time.sleep(1)
             count += 1
         if count > 29:
             raise Exception("replication didn't make it in 30s!")
-        log("all OK!")
+        logging.info("all OK!")
 
     def jam_attempt(self):
         pass
@@ -140,15 +139,15 @@ require("@arangodb/replication").setupReplicationGlobal({
     def shutdown(self):
         self.leader.kill_instance()
         self.follower.kill_instance()
-        log('test ended')
+        logging.info('test ended')
 
 
 class ActiveFailover(Runner):
     """ This launches an active failover setup """
     def __init__(self, cfg):
-        log("x"*80)
-        log("xx           Active Failover Test      ")
-        log("x"*80)
+        logging.info("x"*80)
+        logging.info("xx           Active Failover Test      ")
+        logging.info("x"*80)
         self.success = True
         self.basecfg = cfg
         self.basedir = Path('AFO')
@@ -175,19 +174,19 @@ class ActiveFailover(Runner):
 
     def setup(self):
         for node in self.starter_instances:
-            log("Spawning instance")
+            logging.info("Spawning instance")
             node.run_starter()
-        log("waiting for the starters to become alive")
+        logging.info("waiting for the starters to become alive")
         while (not self.starter_instances[0].is_instance_up()
                and not self.starter_instances[1].is_instance_up()
                and not self.starter_instances[1].is_instance_up()):
-            log('.')
+            logging.info('.')
             time.sleep(1)
-        log("waiting for the cluster instances to become alive")
+        logging.info("waiting for the cluster instances to become alive")
         for node in self.starter_instances:
             node.detect_logfiles()
             node.active_failover_detect_hosts()
-        log("instances are ready, detecting leader")
+        logging.info("instances are ready, detecting leader")
         self.follower_nodes = []
         while self.leader is None:
             for node in self.starter_instances:
@@ -198,38 +197,38 @@ class ActiveFailover(Runner):
             node.detect_instance_pids()
             if not node.is_leader:
                 self.follower_nodes.append(node)
-        log("system ready")
+        logging.info("system ready")
 
     def run(self):
-        log("starting test")
+        logging.info("starting test")
         self.success = True
         url = 'http://{host}:{port}'.format(
             host=self.basecfg.localhost,
             port=self.leader.get_frontend_port())
 
         reply = requests.get(url)
-        log(str(reply))
+        logging.info(str(reply))
         if reply.status_code != 200:
-            log(reply.text)
+            logging.info(reply.text)
             self.success = False
         url = 'http://{host}:{port}'.format(
             host=self.basecfg.localhost,
             port=self.follower_nodes[0].get_frontend_port())
         reply = requests.get(url)
-        log(str(reply))
-        log(reply.text)
+        logging.info(str(reply))
+        logging.info(reply.text)
         if reply.status_code != 503:
             self.success = False
         url = 'http://{host}:{port}'.format(
             host=self.basecfg.localhost,
             port=self.follower_nodes[1].get_frontend_port())
         reply = requests.get(url)
-        log(str(reply))
-        log(reply.text)
+        logging.info(str(reply))
+        logging.info(reply.text)
         if reply.status_code != 503:
             self.success = False
-        log("success" if self.success else "fail")
-        log('leader can be reached at: http://%s:%s' % (
+        logging.info("success" if self.success else "fail")
+        logging.info('leader can be reached at: http://%s:%s' % (
             self.basecfg.publicip,
             self.leader.get_frontend_port()))
 
@@ -238,61 +237,61 @@ class ActiveFailover(Runner):
 
     def jam_attempt(self):
         self.leader.kill_instance()
-        log("waiting for new leader...")
+        logging.info("waiting for new leader...")
         self.new_leader = None
         while self.new_leader is None:
             for node in self.follower_nodes:
                 node.detect_leader()
                 if node.is_leader:
-                    log('have a new leader: ' + str(node.arguments))
+                    logging.info('have a new leader: ' + str(node.arguments))
                     self.new_leader = node
                     break
-                log('.')
+                logging.info('.')
             time.sleep(1)
-        log(str(self.new_leader))
+        logging.info(str(self.new_leader))
         url = 'http://{host}:{port}{uri}'.format(
             host=self.basecfg.localhost,
             port=self.new_leader.get_frontend_port(),
             uri='/_db/_system/_admin/aardvark/index.html#replication')
         reply = requests.get(url)
-        log(str(reply))
+        logging.info(str(reply))
         if reply.status_code != 200:
-            log(reply.text)
+            logging.info(reply.text)
             self.success = False
-        log('new leader can be reached at: http://%s:%s' % (
+        logging.info('new leader can be reached at: http://%s:%s' % (
             self.basecfg.publicip, self.leader.get_frontend_port()))
         input("Press Enter to continue...")
 
         self.leader.respawn_instance()
 
-        log("waiting for old leader to show up as follower")
+        logging.info("waiting for old leader to show up as follower")
         while not self.leader.active_failover_detect_host_now_follower():
-            log('.')
+            logging.info('.')
             time.sleep(1)
-        log("Now is follower")
+        logging.info("Now is follower")
         url = 'http://{host}:{port}'.format(
             host=self.basecfg.localhost,
             port=self.leader.get_frontend_port())
         reply = requests.get(url)
-        log(str(reply))
-        log(str(reply.text))
+        logging.info(str(reply))
+        logging.info(str(reply.text))
         if reply.status_code != 503:
             self.success = False
-        log("state of this test is: " +
+        logging.info("state of this test is: " +
             "Success" if self.success else "Failed")
 
     def shutdown(self):
         for node in self.starter_instances:
             node.kill_instance()
-        log('test ended')
+        logging.info('test ended')
 
 
 class Cluster(Runner):
     """ this launches a cluster setup """
     def __init__(self, cfg):
-        log("x"*80)
-        log("xx           cluster test      ")
-        log("x"*80)
+        logging.info("x"*80)
+        logging.info("xx           cluster test      ")
+        logging.info("x"*80)
         self.success = True
         self.create_test_collection = ("""
 db._create("testCollection",  { numberOfShards: 6, replicationFactor: 2});
@@ -324,26 +323,26 @@ db.testCollection.save({test: "document"})
 
     def setup(self):
         for node in self.starter_instances:
-            log("Spawning instance")
+            logging.info("Spawning instance")
             node.run_starter()
-        log("waiting for the starters to become alive")
+        logging.info("waiting for the starters to become alive")
         while (not self.starter_instances[0].is_instance_up()
                and not self.starter_instances[1].is_instance_up()
                and not self.starter_instances[1].is_instance_up()):
-            log('.')
+            logging.info('.')
             time.sleep(1)
-        log("waiting for the cluster instances to become alive")
+        logging.info("waiting for the cluster instances to become alive")
         for node in self.starter_instances:
             node.detect_logfiles()
             node.detect_instance_pids()
-            log('coordinator can be reached at: http://%s:%s' % (
+            logging.info('coordinator can be reached at: http://%s:%s' % (
                 self.basecfg.publicip, str(node.get_frontend_port())))
-        log("instances are ready")
+        logging.info("instances are ready")
 
     def run(self):
         input("Press Enter to continue")
         #  TODO self.create_test_collection
-        log("stopping instance 2")
+        logging.info("stopping instance 2")
         self.starter_instances[2].kill_instance()
         input("Press Enter to continue")
         self.starter_instances[2].respawn_instance()
@@ -353,7 +352,7 @@ db.testCollection.save({test: "document"})
         pass
 
     def jam_attempt(self):
-        log('Starting instance without jwt')
+        logging.info('Starting instance without jwt')
         dead_instance = StarterManager(
             self.basecfg,
             Path('CLUSTER') / 'nodeX',
@@ -363,21 +362,21 @@ db.testCollection.save({test: "document"})
         dead_instance.run_starter()
         i = 0
         while True:
-            log("." + str(i))
+            logging.info("." + str(i))
             if not dead_instance.is_instance_running():
                 break
             if i > 40:
-                log('Giving up wating for the starter to exit')
+                logging.info('Giving up wating for the starter to exit')
                 raise Exception("non-jwt-ed starter won't exit")
             i += 1
             time.sleep(10)
-        log(str(dead_instance.instance.wait(timeout=320)))
-        log('dead instance is dead?')
+        logging.info(str(dead_instance.instance.wait(timeout=320)))
+        logging.info('dead instance is dead?')
 
     def shutdown(self):
         for node in self.starter_instances:
             node.kill_instance()
-        log('test ended')
+        logging.info('test ended')
 
 
 class Dc2Dc(Runner):
@@ -389,9 +388,9 @@ class Dc2Dc(Runner):
                           / 'usr' / 'bin' / 'arangodb',
                           'create'] +
                          args).wait()
-        log("x"*80)
-        log("xx           dc 2 dc test      ")
-        log("x"*80)
+        logging.info("x"*80)
+        logging.info("xx           dc 2 dc test      ")
+        logging.info("x"*80)
         self.success = True
         self.basecfg = cfg
         self.basedir = Path('DC2DC')
@@ -422,7 +421,7 @@ class Dc2Dc(Runner):
             "clientauth_key": cert_dir / 'client-auth-ca.key',
             "clientkeyfile": cert_dir / 'client-auth-ca.keyfile'
         }
-        log('Create TLS certificates')
+        logging.info('Create TLS certificates')
         cert_op(['tls', 'ca',
                  '--cert=' + str(self.ca["cert"]),
                  '--key=' + str(self.ca["key"])])
@@ -436,7 +435,7 @@ class Dc2Dc(Runner):
                  '--cakey=' + str(self.ca["key"]),
                  '--keyfile=' + str(self.cluster2["tlsKeyfile"]),
                  '--host=' + self.basecfg.publicip, '--host=localhost'])
-        log('Create client authentication certificates')
+        logging.info('Create client authentication certificates')
         cert_op(['client-auth', 'ca',
                  '--cert=' + str(client_cert),
                  '--key=' + str(self.ca["clientauth_key"])])
@@ -444,7 +443,7 @@ class Dc2Dc(Runner):
                  '--cacert=' + str(client_cert),
                  '--cakey=' + str(self.ca["clientauth_key"]),
                  '--keyfile=' + str(self.ca["clientkeyfile"])])
-        log('Create JWT secrets')
+        logging.info('Create JWT secrets')
         for node in [self.cluster1, self.cluster2]:
             cert_op(['jwt-secret', '--secret=' + str(node["SyncSecret"])])
             cert_op(['jwt-secret', '--secret=' + str(node["JWTSecret"])])
@@ -457,7 +456,7 @@ class Dc2Dc(Runner):
                 mode='cluster',
                 moreopts=[
                     '--starter.sync',
-                    '--starter.local,'
+                    '--starter.local',
                     '--auth.jwt-secret=' +           str(val["JWTSecret"]),
                     '--sync.server.keyfile=' +       str(val["tlsKeyfile"]),
                     '--sync.server.client-cafile=' + str(client_cert),
@@ -470,7 +469,7 @@ class Dc2Dc(Runner):
     def setup(self):
         self.cluster1["instance"].run_starter()
         while not self.cluster1["instance"].is_instance_up():
-            log('.')
+            logging.info('.')
             time.sleep(1)
         self.cluster1["instance"].detect_logfiles()
         self.cluster1['smport'] = self.cluster1["instance"].get_sync_master_port()
@@ -478,11 +477,11 @@ class Dc2Dc(Runner):
             host=self.basecfg.publicip,
             port=str(self.cluster1['smport']))
         reply = requests.get(url)
-        log(str(reply))
+        logging.info(str(reply))
 
         self.cluster2["instance"].run_starter()
         while not self.cluster2["instance"].is_instance_up():
-            log('.')
+            logging.info('.')
             time.sleep(1)
         self.cluster2["instance"].detect_logfiles()
         self.cluster2['smport'] = self.cluster2["instance"].get_sync_master_port()
@@ -490,7 +489,7 @@ class Dc2Dc(Runner):
             host=self.basecfg.publicip,
             port=str(self.cluster2['smport']))
         reply = requests.get(url)
-        log(str(reply))
+        logging.info(str(reply))
 
         cmd = ['arangosync', 'configure', 'sync',
                '--master.endpoint=https://'
@@ -505,11 +504,11 @@ class Dc2Dc(Runner):
                '--master.cacert=' + str(self.ca["cert"]),
                '--source.cacert=' + str(self.ca["cert"]),
                '--auth.keyfile=' + str(self.ca["clientkeyfile"])]
-        log(str(cmd))
+        logging.info(str(cmd))
         self.sync_instance = psutil.Popen(cmd)
 
     def run(self):
-        log('Check status of cluster 1')
+        logging.info('Check status of cluster 1')
         psutil.Popen(
             ['arangosync', 'get', 'status',
              '--master.cacert=' + str(self.ca["cert"]),
@@ -518,7 +517,7 @@ class Dc2Dc(Runner):
                  port=str(self.cluster1['smport'])),
              '--auth.keyfile=' + str(self.ca["clientkeyfile"]),
              '--verbose']).wait()
-        log('Check status of cluster 2')
+        logging.info('Check status of cluster 2')
         psutil.Popen(
             ['arangosync', 'get', 'status',
              '--master.cacert=' + str(self.ca["cert"]),
@@ -527,7 +526,7 @@ class Dc2Dc(Runner):
                  port=str(self.cluster2['smport'])),
              '--auth.keyfile=' + str(self.ca["clientkeyfile"]),
              '--verbose']).wait()
-        log('finished')
+        logging.info('finished')
 
     def post_setup(self):
         pass

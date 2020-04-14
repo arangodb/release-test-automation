@@ -8,10 +8,9 @@ import os
 import time
 import re
 import logging
-from logging import info as log
 from pathlib import Path
 import psutil
-from installers.arangosh import ArangoshExecutor
+from arangodb.sh import ArangoshExecutor
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
@@ -69,7 +68,7 @@ class StarterManager():
 
     def run_starter(self):
         """ launch the starter for this instance"""
-        log("launching " + str(self.arguments))
+        logging.info("launching " + str(self.arguments))
         self.instance = psutil.Popen(self.arguments)
         time.sleep(self.startupwait)
 
@@ -105,19 +104,19 @@ class StarterManager():
     def kill_instance(self):
         """ kill the instance of this starter
             (it should kill all its managed services)"""
-        log("Killing: " + str(self.arguments))
+        logging.info("Killing: " + str(self.arguments))
         #self.instance.send_signal(signal.CTRL_C_EVENT)
         self.instance.terminate()
         try:
-            log(str(self.instance.wait(timeout=45)))
+            logging.info(str(self.instance.wait(timeout=45)))
         except:
-            log("timeout, doing hard kill.")
+            logging.info("timeout, doing hard kill.")
             self.instance.kill()
-        log("Instance now dead.")
+        logging.info("Instance now dead.")
 
     def respawn_instance(self):
         """ restart the starter instance after we killed it eventually """
-        log("respawning instance " + str(self.arguments))
+        logging.info("respawning instance " + str(self.arguments))
         self.instance = psutil.Popen(self.arguments)
         time.sleep(self.startupwait)
 
@@ -142,7 +141,7 @@ class StarterManager():
         sw_text = 'syncworker up and running'
         worker_count = 0
         while worker_count < 3 and self.is_instance_running():
-            log('%')
+            logging.info('%')
             lfs = self.get_log_file()
             npos = lfs.find(sw_text, pos)
             if npos >= 0:
@@ -192,7 +191,7 @@ class StarterManager():
                 else:
                     self.db_instance = instance
                 self.all_instances.append(instance)
-        log(str(self.all_instances))
+        logging.info(str(self.all_instances))
 
     def detect_instance_pids(self):
         """ detect the arangod instance PIDs"""
@@ -202,7 +201,7 @@ class StarterManager():
                 lfs = self.db_instance['logfile'].read_text()
                 pos = lfs.find('is ready for business.')
                 if pos < 0:
-                    log('.')
+                    logging.info('.')
                     time.sleep(1)
                     continue
                 pos = lfs.rfind('\n', 0, pos)
@@ -214,7 +213,7 @@ class StarterManager():
                                     + " Couldn't find a PID in hello line! - "
                                     + line)
                 instance['PID'] = int(match.groups()[0])
-        log(str(self.all_instances))
+        logging.info(str(self.all_instances))
 
     def detect_leader(self):
         """ in active failover detect whether we run the leader"""
