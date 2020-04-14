@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 """ analyse the logfile of a running arangod instance
     for certain status messages """
-import datetime
+#
+#import datetime
 import re
 import time
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
-
+#
 #def timestamp():
 #    """ get the formated "now" timestamp"""
 #    return datetime.datetime.utcnow().isoformat()
