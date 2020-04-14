@@ -11,6 +11,7 @@ from arangodb.log import ArangodLogExaminer
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 
+#pylint: disable=attribute-defined-outside-init
 class InstallerBase(ABC):
     """ this is the prototype for the operation system agnostic installers """
     @abstractmethod

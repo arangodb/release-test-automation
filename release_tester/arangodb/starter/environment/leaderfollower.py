@@ -1,0 +1,97 @@
+#!/usr/bin/env python
+""" launch and manage an arango deployment using the starter"""
+import time
+import logging
+from pathlib import Path
+
+from arangodb.starter.manager import StarterManager
+from arangodb.starter.environment.runner import Runner
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
+
+
+class LeaderFollower(Runner):
+    """ this runs a leader / Follower setup with synchronisation """
+    def __init__(self, cfg):
+        logging.info("x"*80)
+        logging.info("xx           Leader Follower Test      ")
+        logging.info("x"*80)
+        self.leader = None
+        self.follower = None
+        self.success = True
+        self.basecfg = cfg
+        self.basedir = Path('lf')
+        self.cleanup()
+        self.checks = {
+            "beforeReplJS": ("""
+db._create("testCollectionBefore");
+db.testCollectionBefore.save({"hello": "world"})
+""", "saving document before"),
+            "afterReplJS": ("""
+db._create("testCollectionAfter");
+db.testCollectionAfter.save({"hello": "world"})
+""", "saving document after the replication"),
+            "checkReplJS": ("""
+if (!db.testCollectionBefore.toArray()[0]["hello"] === "world") {
+  throw new Error("before not yet there?");
+}
+if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
+  throw new Error("after not yet there?");
+}
+""", "checking documents")}
+
+    def setup(self):
+        self.leader = StarterManager(self.basecfg,
+                                     self.basedir / 'leader',
+                                     mode='single',
+                                     port=1234,
+                                     moreopts=[])
+        self.follower = StarterManager(self.basecfg,
+                                       self.basedir / 'follower',
+                                       mode='single',
+                                       port=2345,
+                                       moreopts=[])
+
+    def run(self):
+        self.leader.run_starter()
+        self.follower.run_starter()
+        logging.info(str(self.leader.execute_frontend(
+            self.checks['beforeReplJS'])))
+        self.checks['startReplJS'] = ("""
+require("@arangodb/replication").setupReplicationGlobal({
+    endpoint: "tcp://127.0.0.1:%d",
+    username: "root",
+    password: "",
+    verbose: false,
+    includeSystem: true,
+    incremental: true,
+    autoResync: true
+    });
+""" % (self.leader.get_frontend_port()), "launching replication")
+        logging.info(str(self.follower.execute_frontend(
+            self.checks['startReplJS'])))
+        logging.info(str(self.leader.execute_frontend(
+            self.checks['afterReplJS'])))
+
+    def post_setup(self):
+
+        logging.info("checking for the replication")
+
+        count = 0
+        while count < 30:
+            if self.follower.execute_frontend(self.checks['checkReplJS']):
+                break
+            logging.info(".")
+            time.sleep(1)
+            count += 1
+        if count > 29:
+            raise Exception("replication didn't make it in 30s!")
+        logging.info("all OK!")
+
+    def jam_attempt(self):
+        pass
+
+    def shutdown(self):
+        self.leader.kill_instance()
+        self.follower.kill_instance()
+        logging.info('test ended')

@@ -24,6 +24,7 @@ class InstallConfig():
         self.passvoid = 'cde'
 
 
+#pylint: disable=import-outside-toplevel
 def get(*args, **kwargs):
     """ detect the OS and its distro,
         choose the proper installer

@@ -1,17 +1,13 @@
 #!/usr/bin/env python
 """ analyse the logfile of a running arangod instance
     for certain status messages """
-#
-#import datetime
+
 import re
 import time
 import logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
-#
-#def timestamp():
-#    """ get the formated "now" timestamp"""
-#    return datetime.datetime.utcnow().isoformat()
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 
 class ArangodLogExaminer():
@@ -41,7 +37,7 @@ class ArangodLogExaminer():
                 # print(last_line)
                 match = re.search(r'Z \[(\d*)\]', last_line)
                 if match is None:
-                    logging.info("no PID in: " + last_line)
+                    logging.info("no PID in: %s", last_line)
                     continue
                 pid = match.groups()[0]
                 start = lfc.find(pid)

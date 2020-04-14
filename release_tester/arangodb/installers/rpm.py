@@ -73,8 +73,8 @@ class InstallerRPM(InstallerBase):
         self.cfg.cfgdir = Path('/etc/arangodb3')
         self.cfg.all_instances = {
             'single': {
-                'logfile': self.cfg.installPrefix /
-                self.cfg.logDir / 'arangod.log'
+                'logfile':
+                self.cfg.installPrefix / self.cfg.logDir / 'arangod.log'
             }
         }
         self.log_examiner = ArangodLogExaminer(self.cfg)

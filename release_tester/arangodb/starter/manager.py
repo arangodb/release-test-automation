@@ -3,21 +3,16 @@
     to crontroll multiple arangods
 """
 import copy
-import datetime
 import os
 import time
 import re
 import logging
 from pathlib import Path
 import psutil
+from tools.timestamp import timestamp
 from arangodb.sh import ArangoshExecutor
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
-
-
-def timestamp():
-    """ get the formated "now" timestamp"""
-    return datetime.datetime.utcnow().isoformat()
 
 
 class StarterManager():
@@ -60,15 +55,16 @@ class StarterManager():
         if self.starter_port is not None:
             self.frontend_port = self.starter_port + 1
             self.moreopts += ["--starter.port", "%d" % self.starter_port]
-        self.arguments = [self.cfg.install_prefix / 'usr' / 'bin' / 'arangodb',
-                          "--log.console=false",
-                          "--log.file=true",
-                          "--starter.data-dir=%s" % self.basedir
-                         ] + self.moreopts
+        self.arguments = [
+            self.cfg.install_prefix / 'usr' / 'bin' / 'arangodb',
+            "--log.console=false",
+            "--log.file=true",
+            "--starter.data-dir=%s" % self.basedir
+        ] + self.moreopts
 
     def run_starter(self):
         """ launch the starter for this instance"""
-        logging.info("launching " + str(self.arguments))
+        logging.info("launching %s", str(self.arguments))
         self.instance = psutil.Popen(self.arguments)
         time.sleep(self.startupwait)
 
@@ -104,7 +100,7 @@ class StarterManager():
     def kill_instance(self):
         """ kill the instance of this starter
             (it should kill all its managed services)"""
-        logging.info("Killing: " + str(self.arguments))
+        logging.info("Killing: %s", str(self.arguments))
         #self.instance.send_signal(signal.CTRL_C_EVENT)
         self.instance.terminate()
         try:
@@ -116,7 +112,7 @@ class StarterManager():
 
     def respawn_instance(self):
         """ restart the starter instance after we killed it eventually """
-        logging.info("respawning instance " + str(self.arguments))
+        logging.info("respawning instance %s", str(self.arguments))
         self.instance = psutil.Popen(self.arguments)
         time.sleep(self.startupwait)
 
@@ -191,7 +187,7 @@ class StarterManager():
                 else:
                     self.db_instance = instance
                 self.all_instances.append(instance)
-        logging.info(str(self.all_instances))
+        logging.info("%s", str(self.all_instances))
 
     def detect_instance_pids(self):
         """ detect the arangod instance PIDs"""
