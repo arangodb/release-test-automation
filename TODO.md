@@ -3,7 +3,8 @@
 - [x] 3h rpm install (..) [Found bug: default password doesn't work if system has a ready existing database. Impl to check this done, commented out] 
 - [ ] ?? macos support for dmgs
 - [x] 8h pylint/pylama
-- [ ] ?? testdata integration
+- [ ] 4h check package integrity and binaries
+- [ ] 8h testdata integration (.)
 - [ ] 2x 4h conflict checking in packages
 - [ ] 2x 2h test debug packages
 - [ ] upgrade of cases
