@@ -23,22 +23,28 @@ class LeaderFollower(Runner):
         self.basedir = Path('lf')
         self.cleanup()
         self.checks = {
-            "beforeReplJS": ("""
+            "beforeReplJS": (
+                "saving document before",
+                """
 db._create("testCollectionBefore");
 db.testCollectionBefore.save({"hello": "world"})
-""", "saving document before"),
-            "afterReplJS": ("""
+"""),
+            "afterReplJS": (
+                "saving document after the replication",
+                """
 db._create("testCollectionAfter");
 db.testCollectionAfter.save({"hello": "world"})
-""", "saving document after the replication"),
-            "checkReplJS": ("""
+"""),
+            "checkReplJS": (
+                "checking documents",
+                """
 if (!db.testCollectionBefore.toArray()[0]["hello"] === "world") {
   throw new Error("before not yet there?");
 }
 if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
   throw new Error("after not yet there?");
 }
-""", "checking documents")}
+""")}
 
     def setup(self):
         self.leader = StarterManager(self.basecfg,
@@ -57,7 +63,9 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
         self.follower.run_starter()
         logging.info(str(self.leader.execute_frontend(
             self.checks['beforeReplJS'])))
-        self.checks['startReplJS'] = ("""
+        self.checks['startReplJS'] = (
+             "launching replication",
+            """
 require("@arangodb/replication").setupReplicationGlobal({
     endpoint: "tcp://127.0.0.1:%d",
     username: "root",
@@ -67,12 +75,12 @@ require("@arangodb/replication").setupReplicationGlobal({
     incremental: true,
     autoResync: true
     });
-""" % (self.leader.get_frontend_port()), "launching replication")
+""" % (self.leader.get_frontend_port()))
         logging.info(str(self.follower.execute_frontend(
             self.checks['startReplJS'])))
+        self.leader.arangosh.create_test_data()
         logging.info(str(self.leader.execute_frontend(
             self.checks['afterReplJS'])))
-
     def post_setup(self):
 
         logging.info("checking for the replication")
@@ -86,6 +94,9 @@ require("@arangodb/replication").setupReplicationGlobal({
             count += 1
         if count > 29:
             raise Exception("replication didn't make it in 30s!")
+
+        self.follower.arangosh.check_test_data()
+
         logging.info("all OK!")
 
     def jam_attempt(self):

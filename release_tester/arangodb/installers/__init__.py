@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """ run an installer for the detected operating system """
 import platform
+import os
 from pathlib import Path
 
 
@@ -18,6 +19,8 @@ class InstallConfig():
         self.port = 8529
         self.localhost = 'localhost'
         self.all_instances = {}
+        self.pwd = Path(os.path.dirname(os.path.realpath(__file__)))
+        self.test_data_dir = self.pwd / '..' / '..' / '..' / 'test_data'
 
     def generate_password(self):
         """ generate a new password """
