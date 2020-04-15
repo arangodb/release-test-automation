@@ -3,12 +3,30 @@
 import logging
 import re
 import os
+import subprocess
 from pathlib import Path
 from abc import abstractmethod, ABC
 import yaml
 from arangodb.log import ArangodLogExaminer
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
+
+STRIPPED_BINARIES = []
+NON_STRIPPED_BINARIES = []
+INSTALLED_SYMLINKS = []
+ENTERPRISE_BINARIES = []
+
+def run_file_command(file_to_check):
+    """ run `file file_to_check` and return the output """
+    proc = subprocess.Popen(['file', file_to_check],
+                            stdout=subprocess.PIPE,
+                            stdin=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            universal_newlines=True)
+    line = proc.stdout.readline()
+    proc.wait()
+    # print(line)
+    return line
 
 
 #pylint: disable=attribute-defined-outside-init
@@ -106,6 +124,88 @@ class InstallerBase(ABC):
         """ check for the engine file to test whether the DB was created """
         if not Path(self.cfg.dbdir / 'ENGINE').is_file():
             raise Exception("database engine file not there!")
+
+
+    def caclulate_file_locations(self):
+        """ set the global location of files """
+        global STRIPPED_BINARIES
+        global NON_STRIPPED_BINARIES
+        global INSTALLED_SYMLINKS
+        global ENTERPRISE_BINARIES
+
+        STRIPPED_BINARIES = [
+            self.cfg.bin_dir / 'arangobackup',# enterprise
+            self.cfg.bin_dir / 'arangoexport',
+            self.cfg.bin_dir / 'arangoimport',
+            self.cfg.bin_dir / 'arangorestore',
+            self.cfg.bin_dir / 'arangobench',
+            self.cfg.bin_dir / 'arangodump',
+            self.cfg.bin_dir / 'arangosh',
+            self.cfg.bin_dir / 'arangovpack',
+            self.cfg.sbin_dir / 'arangod',
+            self.cfg.sbin_dir / 'rclone-arangodb'] # enterprise
+
+        NON_STRIPPED_BINARIES = [
+            self.cfg.sbin_dir / 'arangosync', # enterprise
+            self.cfg.bin_dir / 'arangodb']
+
+        INSTALLED_SYMLINKS = [
+            self.cfg.bin_dir / 'arangoimp',
+            self.cfg.bin_dir / 'arangoinspect',
+            self.cfg.bin_dir / 'arangosync', # enterprise
+            self.cfg.bin_dir / '/arango-dfdb',
+            self.cfg.sbin_dir / 'arango-init-database',
+            self.cfg.sbin_dir / 'arango-secure-installation']
+
+        ENTERPRISE_BINARIES = [
+            self.cfg.bin_dir / 'arangobackup',# enterprise
+            self.cfg.bin_dir / 'arangosync', # enterprise
+            self.cfg.sbin_dir / 'rclone-arangodb'] # enterprise
+
+    def check_is_stripped(self, file_to_check, expect_stripped):
+        """ check whether this file is stripped (or not) """
+        output = run_file_command(file_to_check)
+        if expect_stripped and output.find(', stripped') < 0:
+            raise Exception("expected " + file_to_check +
+                            " to be stripped, but its not: " + output)
+        if not expect_stripped and output.find(', not stripped') < 0:
+            raise Exception("expected " + file_to_check +
+                            " to be stripped, but its not: " + output)
+
+    def check_symlink(self, file_to_check):
+        """ check whether this file is a symlink """
+        return file_to_check.is_symlink()
+
+    def check_enterprise_file(self, file_to_check):
+        """ checks whether a file exists in non/enterprise installations """
+        exists = file_to_check.exists()
+        try:
+            ENTERPRISE_BINARIES.index(str(file_to_check))
+            if self.cfg.enterprise and not exists:
+                raise Exception("Binary missing from enterprise package!" +
+                                str(file_to_check))
+        except ValueError:
+            if not self.cfg.enterprise and exists:
+                raise Exception("Enterprise binary found in community package!"
+                                + str(file_to_check))
+        return exists
+
+    def check_installed_files(self):
+        """ check whether all files are installed and are non/stripped """
+        for symlink in INSTALLED_SYMLINKS:
+            if (self.check_enterprise_file(symlink)
+                and not self.check_symlink(symlink)):
+                raise Exception("should be a symlink: " +
+                                str(symlink))
+
+        for stripped_file in STRIPPED_BINARIES:
+            if self.check_enterprise_file(stripped_file):
+                self.check_is_stripped(stripped_file, True)
+
+        for non_stripped_file in NON_STRIPPED_BINARIES:
+            if self.check_enterprise_file(non_stripped_file):
+                self.check_is_stripped(non_stripped_file, False)
+        logging.info("files ok.")
 
     def check_uninstall_cleanup(self):
         """ check whether all is gone after the uninstallation """

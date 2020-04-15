@@ -17,6 +17,10 @@ class InstallerDeb(InstallerBase):
     def __init__(self, install_config):
         self.cfg = install_config
         self.cfg.baseTestDir = Path('/tmp')
+        self.cfg.installPrefix = Path("/")
+        self.cfg.bin_dir = self.cfg.installPrefix / "usr" / "bin"
+        self.cfg.sbin_dir = self.cfg.installPrefix / "usr" / "sbin"
+        self.caclulate_file_locations()
         self.cfg.localhost = 'ip6-localhost'
         self.server_package = None
         self.client_package = None
@@ -65,7 +69,6 @@ class InstallerDeb(InstallerBase):
                                 "finish successfully!")
 
     def install_package(self):
-        self.cfg.installPrefix = Path("/")
         self.cfg.logDir = Path('/var/log/arangodb3')
         self.cfg.dbdir = Path('/var/lib/arangodb3')
         self.cfg.appdir = Path('/var/lib/arangodb3-apps')

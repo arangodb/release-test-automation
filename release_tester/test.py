@@ -43,6 +43,7 @@ def run_test(version, package_dir, enterprise, mode, publicip):
     kill_all_processes()
     if mode in ['all', 'install']:
         inst.install_package()
+        inst.check_installed_files()
         inst.save_config()
         inst.stop_service()
         inst.broadcast_bind()

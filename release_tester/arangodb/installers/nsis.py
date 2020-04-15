@@ -15,12 +15,21 @@ class InstallerW(InstallerBase):
     """ install the windows NSIS package """
     def __init__(self, install_config):
         self.cfg = install_config
-        self.cfg.installPrefix = Path("C:/tmp")
         self.cfg.baseTestDir = Path('/tmp')
+        self.cfg.installPrefix = Path("C:/tmp")
+        self.cfg.bin_dir = self.cfg.installPrefix / "usr" / "bin"
+        self.cfg.sbin_dir = self.cfg.installPrefix / "usr" / "bin"
+        self.caclulate_file_locations()
         self.server_package = None
         self.client_package = None
         self.log_examiner = None
         self.service = None
+
+    def check_symlink(self, file_to_check):
+        return not file_to_check.is_symlink()
+
+    def check_is_stripped(self, file_to_check, expect_stripped):
+        pass # we don't do this on the wintendo.
 
     def calculate_package_names(self):
         enterprise = 'e' if self.cfg.enterprise else ''
