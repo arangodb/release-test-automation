@@ -7,6 +7,7 @@ from pathlib import Path
 import click
 
 from tools.killall import kill_all_processes
+from tools.quote_user import end_test
 from arangodb.sh import ArangoshExecutor
 import arangodb.installers as installers
 from arangodb.starter.environment import get as getStarterenv
@@ -23,21 +24,30 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 @click.option('--enterprise',
               default='True',
               help='Enterprise or community?')
+@click.option('--quote_user',
+              default='True',
+              help='wait for the user to hit Enter?')
 @click.option('--mode',
               default='all',
               help='operation mode - [all|install|uninstall|tests].')
+@click.option('--starter_mode',
+              default='all',
+              help='which starter environments to start - ' +
+              '[all|LF|AFO|CL|DC|none].')
 @click.option('--publicip',
               default='127.0.0.1',
               help='IP for the click to browser hints.')
-def run_test(version, package_dir, enterprise, mode, publicip):
+def run_test(version, package_dir, enterprise, quote_user, mode, starter_mode, publicip):
     """ main """
     enterprise = enterprise == 'True'
-    if mode not in ['all', 'install', 'tests', 'uninstall']:
-        raise Exception("unsupported mode!")
+    quote_user = quote_user == 'True'
+    if mode not in ['all', 'install', 'system', 'tests', 'uninstall']:
+        raise Exception("unsupported mode %s!" % mode)
     inst = installers.get(version,
                           enterprise,
                           Path(package_dir),
-                          publicip)
+                          publicip,
+                          quote_user)
 
     inst.calculate_package_names()
     kill_all_processes()
@@ -52,7 +62,8 @@ def run_test(version, package_dir, enterprise, mode, publicip):
         inst.check_engine_file()
     else:
         inst.load_config()
-    if mode in ['all', 'tests']:
+        inst.cfg.quote_user = quote_user
+    if mode in ['all', 'system']:
         inst.stop_service()
         inst.start_service()
 
@@ -60,19 +71,37 @@ def run_test(version, package_dir, enterprise, mode, publicip):
 
         if not sys_arangosh.js_version_check():
             logging.info("Version Check failed!")
-        input("Press Enter to continue")
+        end_test(inst.cfg, 'system package')
+
+    if mode in ['all', 'tests']:
         inst.stop_service()
         kill_all_processes()
-        for runner in [RunnerType.LEADER_FOLLOWER,
-                       RunnerType.ACTIVE_FAILOVER,
-                       RunnerType.CLUSTER,
-                       RunnerType.DC2DC]:
+        print(starter_mode)
+        if starter_mode == 'all':
+            starter_mode = [RunnerType.LEADER_FOLLOWER,
+                            RunnerType.ACTIVE_FAILOVER,
+                            RunnerType.CLUSTER]
+            if enterprise:
+                starter_mode.push(RunnerType.DC2DC)
+        elif starter_mode == 'LF':
+            starter_mode = [RunnerType.LEADER_FOLLOWER]
+        elif starter_mode == 'AFO':
+            starter_mode = [RunnerType.ACTIVE_FAILOVER]
+        elif starter_mode == 'CL':
+            starter_mode = [RunnerType.CLUSTER]
+        elif starter_mode == 'DC':
+            starter_mode = [RunnerType.DC2DC]
+        elif starter_mode == 'none':
+            starter_mode = []
+        else:
+            raise Exception("invalid starter mode: " + starter_mode)
+        for runner in starter_mode:
             stenv = getStarterenv(runner, inst.cfg)
             stenv.setup()
             stenv.run()
             stenv.post_setup()
             stenv.jam_attempt()
-            input("Press Enter to continue")
+            end_test(inst.cfg, runner)
             stenv.shutdown()
             stenv.cleanup()
             kill_all_processes()

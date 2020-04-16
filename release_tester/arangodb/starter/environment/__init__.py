@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
-import logging
 from enum import Enum
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
-
 
 class RunnerType(Enum):
     """ dial which runner instance you want"""

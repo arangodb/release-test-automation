@@ -64,7 +64,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
         logging.info(str(self.leader.execute_frontend(
             self.checks['beforeReplJS'])))
         self.checks['startReplJS'] = (
-             "launching replication",
+            "launching replication",
             """
 require("@arangodb/replication").setupReplicationGlobal({
     endpoint: "tcp://127.0.0.1:%d",

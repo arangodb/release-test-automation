@@ -94,6 +94,7 @@ class InstallerBase(ABC):
         new_arangod_conf = iprx.subn('0.0.0.0', arangodconf)
         self.get_arangod_conf().write_text(new_arangod_conf[0])
         logging.info("arangod now configured for broadcast bind")
+        self.cfg.add_frontend('http', self.cfg.publicip, '8529')
 
     def enable_logging(self):
         """ if the packaging doesn't enable logging,

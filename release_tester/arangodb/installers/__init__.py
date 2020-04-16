@@ -7,8 +7,9 @@ from pathlib import Path
 
 class InstallConfig():
     """ stores the baseline of this environment """
-    def __init__(self, version, enterprise, package_dir, publicip):
+    def __init__(self, version, enterprise, package_dir, publicip, quote_user):
         self.publicip = publicip
+        self.quote_user = quote_user
         self.username = "root"
         self.passvoid = "abc"
         self.enterprise = enterprise
@@ -21,7 +22,15 @@ class InstallConfig():
         self.all_instances = {}
         self.pwd = Path(os.path.dirname(os.path.realpath(__file__)))
         self.test_data_dir = self.pwd / '..' / '..' / '..' / 'test_data'
+        self.frontends = []
 
+    def add_frontend(self, proto, ip, port):
+        self.frontends.append({
+            'proto': proto,
+            'ip': ip,
+            'port': port
+            })
+            
     def generate_password(self):
         """ generate a new password """
         self.passvoid = 'cde'

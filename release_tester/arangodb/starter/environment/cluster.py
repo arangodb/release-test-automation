@@ -5,6 +5,7 @@ import logging
 from pathlib import Path
 
 from tools.timestamp import timestamp
+from tools.quote_user import quote_user, end_test
 from arangodb.starter.manager import StarterManager
 from arangodb.starter.environment.runner import Runner
 
@@ -23,6 +24,7 @@ db._create("testCollection",  { numberOfShards: 6, replicationFactor: 2});
 db.testCollection.save({test: "document"})
 """, "create test collection")
         self.basecfg = cfg
+        self.basecfg.frontends = []
         self.basedir = Path('CLUSTER')
         self.cleanup()
         self.starter_instances = []
@@ -60,19 +62,18 @@ db.testCollection.save({test: "document"})
         for node in self.starter_instances:
             node.detect_logfiles()
             node.detect_instance_pids()
-            logging.info('coordinator can be reached at: http://%s:%s',
-                         self.basecfg.publicip,
-                         str(node.get_frontend_port()))
-        logging.info("instances are ready")
+            self.basecfg.add_frontend('http',
+                                      self.basecfg.publicip,
+                                      str(node.get_frontend_port()))
 
     def run(self):
-        input("Press Enter to continue")
+        logging.info("instances are ready")
+        quote_user(self.basecfg)
         #  TODO self.create_test_collection
         logging.info("stopping instance 2")
         self.starter_instances[2].kill_instance()
-        input("Press Enter to continue")
+        end_test(self.basecfg, "instance stopped")
         self.starter_instances[2].respawn_instance()
-        input("Press Enter to finish this test")
 
     def post_setup(self):
         pass

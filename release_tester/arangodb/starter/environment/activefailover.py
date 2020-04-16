@@ -4,6 +4,7 @@ from pathlib import Path
 import time
 import logging
 import requests
+from tools.quote_user import quote_user
 from arangodb.starter.manager import StarterManager
 from arangodb.starter.environment.runner import Runner
 
@@ -126,11 +127,10 @@ class ActiveFailover(Runner):
         if reply.status_code != 200:
             logging.info(reply.text)
             self.success = False
-        logging.info('new leader can be reached at: http://%s:%s',
-                     self.basecfg.publicip,
-                     self.leader.get_frontend_port())
-        input("Press Enter to continue...")
-
+        self.basecfg.add_frontend('http',
+                                  self.basecfg.publicip,
+                                  str(self.leader.get_frontend_port()))
+        quote_user(self.basecfg)
         self.leader.respawn_instance()
 
         logging.info("waiting for old leader to show up as follower")
