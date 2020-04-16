@@ -173,5 +173,5 @@ class Dc2Dc(Runner):
         print('shutting down')
         self.sync_instance.terminate()
         self.sync_instance.wait(timeout=60)
-        self.cluster1["instance"].kill_instance()
-        self.cluster2["instance"].kill_instance()
+        self.cluster1["instance"].terminate_instance()
+        self.cluster2["instance"].terminate_instance()

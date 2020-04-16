@@ -19,6 +19,10 @@ class Runner(ABC):
         """ now launch the stuff"""
 
     @abstractmethod
+    def upgrade(self, newInstall):
+        """ upgrade this installation """
+
+    @abstractmethod
     def post_setup(self):
         """ setup steps after the basic instances were launched """
 

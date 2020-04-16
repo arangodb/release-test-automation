@@ -97,8 +97,8 @@ class StarterManager():
             return True
         return False
 
-    def kill_instance(self):
-        """ kill the instance of this starter
+    def terminate_instance(self):
+        """ terminate the instance of this starter
             (it should kill all its managed services)"""
         logging.info("Killing: %s", str(self.arguments))
         #self.instance.send_signal(signal.CTRL_C_EVENT)
@@ -110,6 +110,22 @@ class StarterManager():
             self.instance.kill()
         logging.info("Instance now dead.")
 
+    def kill_instance(self):
+        """ kill the instance of this starter
+            (it won't kill its managed services)"""
+        logging.info("Terminating: %s", str(self.arguments))
+        #self.instance.send_signal(signal.CTRL_C_EVENT)
+        self.instance.terminate()
+        try:
+            logging.info(str(self.instance.wait(timeout=45)))
+        except:
+            logging.info("timeout, doing hard kill.")
+            self.instance.kill()
+        logging.info("Instance now dead.")
+
+    def replace_binary_for_upgrade(self, newInstall):
+        
+    
     def respawn_instance(self):
         """ restart the starter instance after we killed it eventually """
         logging.info("respawning instance %s", str(self.arguments))

@@ -66,12 +66,18 @@ db.testCollection.save({test: "document"})
                                       self.basecfg.publicip,
                                       str(node.get_frontend_port()))
 
+    def upgrade(self, newInstall):
+        for node in self.starter_instances:
+            node.replace_binary_for_upgrade(newInstall)
+        self.starter_instances[1].command_upgrade()
+
+        
     def run(self):
         logging.info("instances are ready")
         quote_user(self.basecfg)
         #  TODO self.create_test_collection
         logging.info("stopping instance 2")
-        self.starter_instances[2].kill_instance()
+        self.starter_instances[2].terminate_instance()
         end_test(self.basecfg, "instance stopped")
         self.starter_instances[2].respawn_instance()
 
@@ -102,5 +108,5 @@ db.testCollection.save({test: "document"})
 
     def shutdown(self):
         for node in self.starter_instances:
-            node.kill_instance()
+            node.terminate_instance()
         logging.info('test ended')

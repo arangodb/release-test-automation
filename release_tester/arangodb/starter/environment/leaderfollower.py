@@ -103,6 +103,6 @@ require("@arangodb/replication").setupReplicationGlobal({
         pass
 
     def shutdown(self):
-        self.leader.kill_instance()
-        self.follower.kill_instance()
+        self.leader.terminate_instance()
+        self.follower.terminate_instance()
         logging.info('test ended')

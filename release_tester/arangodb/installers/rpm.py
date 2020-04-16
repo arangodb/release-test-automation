@@ -69,6 +69,9 @@ class InstallerRPM(InstallerBase):
         while self.check_service_up():
             time.sleep(1)
 
+    def upgrade_package(self):
+        raise Exception("TODO!")
+
     def install_package(self):
         self.cfg.logDir = Path('/var/log/arangodb3')
         self.cfg.dbdir = Path('/var/lib/arangodb3')
