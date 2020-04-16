@@ -2,11 +2,13 @@
 """ baseclass to manage a starter based installation """
 
 import shutil
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 
 
-class Runner():
+class Runner(ABC):
     """abstract starter environment runner"""
+    basecfg = None
+    basedir = NotImplemented
 
     @abstractmethod
     def setup(self):
