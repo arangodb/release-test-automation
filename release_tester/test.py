@@ -82,7 +82,7 @@ def run_test(version, package_dir, enterprise, quote_user, mode, starter_mode, p
                             RunnerType.ACTIVE_FAILOVER,
                             RunnerType.CLUSTER]
             if enterprise:
-                starter_mode.push(RunnerType.DC2DC)
+                starter_mode.append(RunnerType.DC2DC)
         elif starter_mode == 'LF':
             starter_mode = [RunnerType.LEADER_FOLLOWER]
         elif starter_mode == 'AFO':
