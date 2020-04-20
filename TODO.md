@@ -15,4 +15,4 @@
 - [x] ?? improve error handling in installers for non-clean systems (..)
 - [ ] ?? improve error handling (catch exceptions, make messages) (.)
 - [ ] ?? frontend testing?
- 
+- [ ] FTP Download from -   ftp://nas02.arangodb.biz/buildfiles - Explore directory structure in interactive clinet, Create attic-test-script. Copy package name calculation routines from the installers, use https://docs.python.org/3/library/ftplib.html to download. Check for windows compatibility. Use QA-Centos VM for this. 
