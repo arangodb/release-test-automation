@@ -13,12 +13,21 @@ def kill_all_processes():
     arangosyncs = []
     logging.info("searching for leftover processes")
     for process in psutil.process_iter(['pid', 'name']):
-        if process.name() == 'arangod':
-            arangods.append(psutil.Process(process.pid))
-        if process.name() == 'arangodb':
-            arangodbs.append(psutil.Process(process.pid))
-        if process.name() == 'arangosync':
-            arangosyncs.append(psutil.Process(process.pid))
+        try:
+            name = process.name()
+            if name.endswith('.exe'):
+                name = name[:-4]
+            if name == 'arangod':
+                arangods.append(psutil.Process(process.pid))
+            elif name == 'arangodb':
+                arangodbs.append(psutil.Process(process.pid))
+            elif name == 'arangosync':
+                arangosyncs.append(psutil.Process(process.pid))
+            else:
+                print(name)
+        except Exception as x:
+            print(x)
+            pass
 
     for processlist in [arangosyncs, arangodbs, arangods]:
         for process in processlist:

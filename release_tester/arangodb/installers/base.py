@@ -106,7 +106,7 @@ class InstallerBase(ABC):
             '[log]\nfile = ' +
             str(self.cfg.logDir / 'arangod.log'))
         print(new_arangod_conf)
-        self.get_arangod_conf().write_text(new_arangod_conf[0])
+        self.get_arangod_conf().write_text(new_arangod_conf)
         logging.info("arangod now configured for logging")
 
     def check_installed_paths(self):

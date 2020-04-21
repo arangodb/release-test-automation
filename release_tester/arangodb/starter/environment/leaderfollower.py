@@ -61,6 +61,9 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
     def run(self):
         self.leader.run_starter()
         self.follower.run_starter()
+        self.leader.detect_instance_pids()
+        self.follower.detect_instance_pids()
+
         logging.info(str(self.leader.execute_frontend(
             self.checks['beforeReplJS'])))
         self.checks['startReplJS'] = (
