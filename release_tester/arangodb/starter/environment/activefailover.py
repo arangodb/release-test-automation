@@ -104,6 +104,10 @@ class ActiveFailover(Runner):
     def post_setup(self):
         pass
 
+    def upgrade(self, newInstallCfg):
+        """ upgrade this installation """
+        raise Exception("TODO!")
+
     def jam_attempt(self):
         self.leader.terminate_instance()
         logging.info("waiting for new leader...")

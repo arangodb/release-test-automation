@@ -56,7 +56,6 @@ class StarterManager():
             self.frontend_port = self.starter_port + 1
             self.moreopts += ["--starter.port", "%d" % self.starter_port]
         self.arguments = [
-            self.cfg.installPrefix / 'usr' / 'bin' / 'arangodb',
             "--log.console=false",
             "--log.file=true",
             "--starter.data-dir=%s" % self.basedir
@@ -64,8 +63,12 @@ class StarterManager():
 
     def run_starter(self):
         """ launch the starter for this instance"""
-        logging.info("launching %s", str(self.arguments))
-        self.instance = psutil.Popen(self.arguments)
+        args = [
+            self.cfg.installPrefix / 'usr' / 'bin' / 'arangodb'
+        ] + self.arguments
+        
+        logging.info("launching %s", str(args))
+        self.instance = psutil.Popen(args)
         time.sleep(self.startupwait)
 
     def is_instance_running(self):
@@ -123,13 +126,35 @@ class StarterManager():
             self.instance.kill()
         logging.info("Instance now dead.")
 
-    def replace_binary_for_upgrade(self, newInstall):
+    def replace_binary_for_upgrade(self, newInstallCfg):
+        """ replace the parts of the installation with information after an upgrade"""
+
+        """ On windows the install prefix may change, since we can't overwrite open files: """
+        self.cfg.installPrefix = newInstallCfg.installPrefix
+        self.kill_instance()
+        self.respawn_instance()
+
+    def command_upgrade(self):
+        """ we will launch another starter, to tell the bunch to run the upgrade"""
+        args = [
+            self.cfg.installPrefix / 'usr' / 'bin' / 'arangodb',
+            'upgrade',
+            '--starter.endpoint',
+            '127.0.0.1'
+        ]
+        logging.info("Commanding upgrade %s", str(args))
+        rc = psutil.Popen(args).wait()
+        logging.info("Upgrade command exited!%s", str(rc))
         
     
     def respawn_instance(self):
         """ restart the starter instance after we killed it eventually """
-        logging.info("respawning instance %s", str(self.arguments))
-        self.instance = psutil.Popen(self.arguments)
+        args = [
+            self.cfg.installPrefix / 'usr' / 'bin' / 'arangodb'
+        ] + self.arguments
+        
+        logging.info("respawning instance %s", str(args))
+        self.instance = psutil.Popen(args)
         time.sleep(self.startupwait)
 
     def execute_frontend(self, cmd):

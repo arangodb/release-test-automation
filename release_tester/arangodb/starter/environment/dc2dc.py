@@ -166,6 +166,10 @@ class Dc2Dc(Runner):
     def post_setup(self):
         pass
 
+    def upgrade(self, newInstallCfg):
+        """ upgrade this installation """
+        raise Exception("TODO!")
+
     def jam_attempt(self):
         pass
 

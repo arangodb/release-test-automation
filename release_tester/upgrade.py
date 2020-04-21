@@ -78,13 +78,15 @@ def run_test(old_version, version, package_dir, enterprise, quote_user, starter_
     
         old_inst.install_package()
 
-
-        new_inst.upgrade_package()
-        old_inst.stop_service()
-        stenv = getStarterenv(runner, inst.cfg)
+        if old_inst.check_service_up():
+            old_inst.stop_service()
+        stenv = getStarterenv(runner, old_inst.cfg)
         stenv.setup()
         stenv.run()
         stenv.post_setup()
+
+        new_inst.upgrade_package()
+        stenv.upgrade(new_inst.cfg)
         # end_test(inst.cfg, runner)
         stenv.shutdown()
         stenv.cleanup()

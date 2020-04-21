@@ -84,8 +84,9 @@ require("@arangodb/replication").setupReplicationGlobal({
         self.leader.arangosh.create_test_data()
         logging.info(str(self.leader.execute_frontend(
             self.checks['afterReplJS'])))
-    def post_setup(self):
 
+
+    def post_setup(self):
         logging.info("checking for the replication")
 
         count = 0
@@ -101,6 +102,10 @@ require("@arangodb/replication").setupReplicationGlobal({
         self.follower.arangosh.check_test_data()
 
         logging.info("all OK!")
+
+    def upgrade(self, newInstallCfg):
+        """ upgrade this installation """
+        raise Exception("TODO!")
 
     def jam_attempt(self):
         pass

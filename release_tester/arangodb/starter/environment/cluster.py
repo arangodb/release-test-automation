@@ -66,9 +66,9 @@ db.testCollection.save({test: "document"})
                                       self.basecfg.publicip,
                                       str(node.get_frontend_port()))
 
-    def upgrade(self, newInstall):
+    def upgrade(self, newInstallCfg):
         for node in self.starter_instances:
-            node.replace_binary_for_upgrade(newInstall)
+            node.replace_binary_for_upgrade(newInstallCfg)
         self.starter_instances[1].command_upgrade()
 
         
