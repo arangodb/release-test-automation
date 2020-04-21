@@ -55,7 +55,8 @@ def run_test(version, package_dir, enterprise, quote_user, mode, starter_mode, p
         inst.install_package()
         inst.check_installed_files()
         inst.save_config()
-        inst.stop_service()
+        if inst.check_service_up():
+            inst.stop_service()
         inst.broadcast_bind()
         inst.start_service()
         inst.check_installed_paths()
@@ -64,7 +65,8 @@ def run_test(version, package_dir, enterprise, quote_user, mode, starter_mode, p
         inst.load_config()
         inst.cfg.quote_user = quote_user
     if mode in ['all', 'system']:
-        inst.stop_service()
+        if inst.check_service_up():
+            inst.stop_service()
         inst.start_service()
 
         sys_arangosh = ArangoshExecutor(inst.cfg)
@@ -74,7 +76,8 @@ def run_test(version, package_dir, enterprise, quote_user, mode, starter_mode, p
         end_test(inst.cfg, 'system package')
 
     if mode in ['all', 'tests']:
-        inst.stop_service()
+        if inst.check_service_up():
+            inst.stop_service()
         kill_all_processes()
         print(starter_mode)
         if starter_mode == 'all':

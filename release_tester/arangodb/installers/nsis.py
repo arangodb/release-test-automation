@@ -80,6 +80,15 @@ class InstallerW(InstallerBase):
         self.start_service()
         logging.info('Installation successfull')
 
+    def getService(self):
+        if self.service:
+            return
+        try:
+            self.service = psutil.win_service_get('ArangoDB')
+        except x as y:
+            logging.error("failed to get service! - %s", str(x))
+            raise x
+
     def un_install_package(self):
         # once we modify it, the uninstaller will leave it there...
         self.get_arangod_conf().unlink()
@@ -101,16 +110,18 @@ class InstallerW(InstallerBase):
         time.sleep(2)
         try:
             logging.info(psutil.win_service_get('ArangoDB'))
-            service = psutil.win_service_get('ArangoDB')
-            if service.status() != 'stopped':
+            self.getService()
+            if self.service.status() != 'stopped':
                 logging.info("service shouldn't exist anymore!")
         except:
             pass
 
     def check_service_up(self):
+        self.getService()
         return self.service.status() == 'running'
 
     def start_service(self):
+        self.getService()
         self.service.start()
         while self.service.status() != "running":
             logging.info(self.service.status())
@@ -121,6 +132,7 @@ class InstallerW(InstallerBase):
         self.log_examiner.detect_instance_pids()
 
     def stop_service(self):
+        self.getService()
         self.service.stop()
         while self.service.status() != "stopped":
             logging.info(self.service.status())

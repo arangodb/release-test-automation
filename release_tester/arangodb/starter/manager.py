@@ -56,7 +56,7 @@ class StarterManager():
             self.frontend_port = self.starter_port + 1
             self.moreopts += ["--starter.port", "%d" % self.starter_port]
         self.arguments = [
-            self.cfg.install_prefix / 'usr' / 'bin' / 'arangodb',
+            self.cfg.installPrefix / 'usr' / 'bin' / 'arangodb',
             "--log.console=false",
             "--log.file=true",
             "--starter.data-dir=%s" % self.basedir
