@@ -86,6 +86,8 @@ def run_test(old_version, version, package_dir, enterprise, quote_user, starter_
         stenv.post_setup()
 
         new_inst.upgrade_package()
+        if new_inst.check_service_up():
+            new_inst.stop_service()
         stenv.upgrade(new_inst.cfg)
         # end_test(inst.cfg, runner)
         stenv.shutdown()

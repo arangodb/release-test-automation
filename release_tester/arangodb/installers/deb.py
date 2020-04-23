@@ -49,6 +49,7 @@ class InstallerDeb(InstallerBase):
 
     def check_service_up(self):
         time.sleep(1)    # TODO
+        return True
 
     def start_service(self):
         startserver = pexpect.spawnu('service arangodb3 start')

@@ -117,8 +117,7 @@ class StarterManager():
         """ kill the instance of this starter
             (it won't kill its managed services)"""
         logging.info("Terminating: %s", str(self.arguments))
-        #self.instance.send_signal(signal.CTRL_C_EVENT)
-        self.instance.terminate()
+        self.instance.kill()
         try:
             logging.info(str(self.instance.wait(timeout=45)))
         except:
@@ -131,8 +130,10 @@ class StarterManager():
 
         """ On windows the install prefix may change, since we can't overwrite open files: """
         self.cfg.installPrefix = newInstallCfg.installPrefix
+        logging.info("Killing my instance [%s]", str(self.instance.pid))
         self.kill_instance()
         self.respawn_instance()
+        logging.info("respawned instance as [%s]", str(self.instance.pid))
 
     def command_upgrade(self):
         """ we will launch another starter, to tell the bunch to run the upgrade"""
@@ -145,8 +146,8 @@ class StarterManager():
         logging.info("Commanding upgrade %s", str(args))
         rc = psutil.Popen(args).wait()
         logging.info("Upgrade command exited: %s", str(rc))
-        input("press any key")
-        
+        if rc != 0:
+            raise Exception("Upgrade process exited with non-zero reply")
     
     def respawn_instance(self):
         """ restart the starter instance after we killed it eventually """
