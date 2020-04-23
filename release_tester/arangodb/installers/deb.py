@@ -74,7 +74,7 @@ class InstallerDeb(InstallerBase):
                                 "finish successfully!")
 
     def upgrade_package(self):
-        logging.info("installing Arangodb debian package")
+        logging.info("upgrading Arangodb debian package")
         os.environ['DEBIAN_FRONTEND'] = 'readline'
         server_upgrade = pexpect.spawnu('dpkg -i ' +
                                         str(self.cfg.package_dir / self.server_package))

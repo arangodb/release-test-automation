@@ -141,7 +141,7 @@ class StarterManager():
             self.cfg.installPrefix / 'usr' / 'bin' / 'arangodb',
             'upgrade',
             '--starter.endpoint',
-            'http://127.0.0.1:8528'
+            'http://127.0.0.1:' + self.get_my_port()
         ]
         logging.info("Commanding upgrade %s", str(args))
         rc = psutil.Popen(args).wait()
@@ -172,6 +172,22 @@ class StarterManager():
             raise Exception(timestamp() + "no frontend port detected")
         return self.frontend_port
 
+    def get_my_port(self):
+        if self.starter_port != None:
+            return starter_port
+        where = -1
+        while where == -1:
+            lf = self.get_log_file()
+            where = lf.find('ArangoDB Starter listening on')
+            if where != -1:
+                where = lf.find('(:', where)
+                if where != -1:
+                    end = lf.find(')', where)
+                    port = lf[where + 2: end]
+                    self.starter_port = port
+                    return port
+            logging.info('&')
+            time.sleep(1)
     def get_sync_master_port(self):
         """ get the port of a syncmaster arangosync"""
         self.sync_master_port = None
