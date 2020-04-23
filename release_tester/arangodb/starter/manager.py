@@ -140,11 +140,12 @@ class StarterManager():
             self.cfg.installPrefix / 'usr' / 'bin' / 'arangodb',
             'upgrade',
             '--starter.endpoint',
-            '127.0.0.1'
+            'http://127.0.0.1:8528'
         ]
         logging.info("Commanding upgrade %s", str(args))
         rc = psutil.Popen(args).wait()
-        logging.info("Upgrade command exited!%s", str(rc))
+        logging.info("Upgrade command exited: %s", str(rc))
+        input("press any key")
         
     
     def respawn_instance(self):
