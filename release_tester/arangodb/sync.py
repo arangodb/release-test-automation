@@ -47,8 +47,9 @@ class SyncManager():
         ] + self.arguments
         
         logging.info("SyncManager: launching %s", str(args))
-        self.instance = psutil.Popen(args)
-        logging.info("SyncManager: up %s", str(self.instance.pid))
+        rc = psutil.Popen(args).wait()
+        logging.info("SyncManager: up %s", str(rc))
+        return rc == 0
 
     def is_instance_running(self):
         """ check whether this is still running"""

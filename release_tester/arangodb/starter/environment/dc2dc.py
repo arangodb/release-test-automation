@@ -101,39 +101,33 @@ class Dc2Dc(Runner):
         add_starter(self.cluster2, port=9528)
 
     def setup(self):
-        self.cluster1["instance"].run_starter()
-        while not self.cluster1["instance"].is_instance_up():
-            logging.info('.')
-            time.sleep(1)
-        self.cluster1["instance"].detect_logfiles()
-        self.cluster1['smport'] = self.cluster1[
-            "instance"].get_sync_master_port()
-        url = 'http://{host}:{port}'.format(
-            host=self.basecfg.publicip,
-            port=str(self.cluster1['smport']))
-        reply = requests.get(url)
-        logging.info(str(reply))
+        def launch(cluster):
+            inst = cluster["instance"]
+            inst.run_starter()
+            while not inst.is_instance_up():
+                logging.info('.')
+                time.sleep(1)
+            inst.detect_logfiles()
+            inst.detect_instance_pids()
+            cluster['smport'] = inst.get_sync_master_port()
 
-        self.cluster2["instance"].run_starter()
-        while not self.cluster2["instance"].is_instance_up():
-            logging.info('.')
-            time.sleep(1)
-        self.cluster2["instance"].detect_logfiles()
-        self.cluster2['smport'] = self.cluster2[
-            "instance"].get_sync_master_port()
-        url = 'http://{host}:{port}'.format(
-            host=self.basecfg.publicip,
-            port=str(self.cluster2['smport']))
-        reply = requests.get(url)
-        logging.info(str(reply))
+            url = 'http://{host}:{port}'.format(
+                host=self.basecfg.publicip,
+                port=str(cluster['smport']))
+            reply = requests.get(url)
+            logging.info(str(reply))
+            logging.info(str(reply.raw))
+
+
+        launch(self.cluster1)
+        launch(self.cluster2)
+
         self.sync_manager = SyncManager(self.basecfg,
                                         self.ca,
                                         [self.cluster1['smport'],
                                          self.cluster2['smport'] ] )
-        self.sync_manager.run_syncer()
-        time.sleep(1)
-        if not self.sync_manager.is_instance_running():
-            raise Exception("arangosync has exited!")
+        if not self.sync_manager.run_syncer():
+            raise Exception("starting the synchronisation failed!")
 
     def run(self):
         logging.info('finished')
