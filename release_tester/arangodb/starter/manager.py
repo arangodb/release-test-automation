@@ -228,25 +228,38 @@ class StarterManager():
 
     def detect_logfiles(self):
         """ see which arangods where spawned and inspect their logfiles"""
-        for one in os.listdir(self.basedir):
-            if os.path.isdir(os.path.join(self.basedir, one)):
-                match = re.match(r'([a-z]*)(\d*)', one)
-                instance = {
-                    'type': match.group(1),
-                    'port': match.group(2),
-                    'logfile': self.basedir / one / 'arangod.log'
+        have_frontend = False
+        while not have_frontend:
+            self.all_instances = []
+            logging.info(".")
+            for one in os.listdir(self.basedir):
+                # print(one)
+                if os.path.isdir(os.path.join(self.basedir, one)):
+                    match = re.match(r'([a-z]*)(\d*)', one)
+                    instance = {
+                        'type': match.group(1),
+                        'port': match.group(2),
+                        'logfile': self.basedir / one / 'arangod.log'
                     }
-                if instance['type'] == 'agent':
-                    self.agent_instance = instance
-                elif instance['type'] == 'coordinator':
-                    self.coordinator = instance
-                    self.frontend_port = instance['port']
-                elif instance['type'] == 'resilientsingle':
-                    self.db_instance = instance
-                    self.frontend_port = instance['port']
-                else:
-                    self.db_instance = instance
-                self.all_instances.append(instance)
+                    if instance['type'] == 'agent':
+                        self.all_instances.append(instance)
+                        self.agent_instance = instance
+                    elif instance['type'] == 'coordinator':
+                        have_frontend = True
+                        self.all_instances.append(instance)
+                        self.coordinator = instance
+                        self.frontend_port = instance['port']
+                    elif instance['type'] == 'resilientsingle':
+                        have_frontend = True
+                        self.all_instances.append(instance)
+                        self.db_instance = instance
+                        self.frontend_port = instance['port']
+                    elif instance['type'] == 'dbserver':
+                        self.all_instances.append(instance)
+                        self.db_instance = instance
+            if not have_frontend:
+                time.sleep(1)
+
         logging.info("%s", str(self.all_instances))
 
     def detect_instance_pids(self):
@@ -269,7 +282,7 @@ class StarterManager():
                                     + " Couldn't find a PID in hello line! - "
                                     + line)
                 instance['PID'] = int(match.groups()[0])
-        logging.info(str(self.all_instances))
+        logging.info("StarterManager: detected instances: %s", str(self.all_instances))
 
     def detect_leader(self):
         """ in active failover detect whether we run the leader"""
