@@ -67,7 +67,7 @@ class StarterManager():
             self.cfg.installPrefix / 'usr' / 'bin' / 'arangodb'
         ] + self.arguments
         
-        logging.info("launching %s", str(args))
+        logging.info("StarterManager: launching %s", str(args))
         self.instance = psutil.Popen(args)
         time.sleep(self.startupwait)
 
@@ -103,37 +103,37 @@ class StarterManager():
     def terminate_instance(self):
         """ terminate the instance of this starter
             (it should kill all its managed services)"""
-        logging.info("Killing: %s", str(self.arguments))
+        logging.info("StarterManager: Terminating: %s", str(self.arguments))
         #self.instance.send_signal(signal.CTRL_C_EVENT)
         self.instance.terminate()
         try:
             logging.info(str(self.instance.wait(timeout=45)))
         except:
-            logging.info("timeout, doing hard kill.")
+            logging.info("StarterManager: timeout, doing hard kill.")
             self.instance.kill()
-        logging.info("Instance now dead.")
+        logging.info("StarterManager: Instance now dead.")
 
     def kill_instance(self):
         """ kill the instance of this starter
             (it won't kill its managed services)"""
-        logging.info("Terminating: %s", str(self.arguments))
+        logging.info("StarterManager: Killing: %s", str(self.arguments))
         self.instance.kill()
         try:
             logging.info(str(self.instance.wait(timeout=45)))
         except:
-            logging.info("timeout, doing hard kill.")
+            logging.info("StarterManager: timeout, doing hard kill.")
             self.instance.kill()
-        logging.info("Instance now dead.")
+        logging.info("StarterManager: Instance now dead.")
 
     def replace_binary_for_upgrade(self, newInstallCfg):
         """ replace the parts of the installation with information after an upgrade"""
 
         """ On windows the install prefix may change, since we can't overwrite open files: """
         self.cfg.installPrefix = newInstallCfg.installPrefix
-        logging.info("Killing my instance [%s]", str(self.instance.pid))
+        logging.info("StarterManager: Killing my instance [%s]", str(self.instance.pid))
         self.kill_instance()
         self.respawn_instance()
-        logging.info("respawned instance as [%s]", str(self.instance.pid))
+        logging.info("StarterManager: respawned instance as [%s]", str(self.instance.pid))
 
     def command_upgrade(self):
         """ we will launch another starter, to tell the bunch to run the upgrade"""
@@ -143,9 +143,9 @@ class StarterManager():
             '--starter.endpoint',
             'http://127.0.0.1:' + self.get_my_port()
         ]
-        logging.info("Commanding upgrade %s", str(args))
+        logging.info("StarterManager: Commanding upgrade %s", str(args))
         rc = psutil.Popen(args).wait()
-        logging.info("Upgrade command exited: %s", str(rc))
+        logging.info("StarterManager: Upgrade command exited: %s", str(rc))
         if rc != 0:
             raise Exception("Upgrade process exited with non-zero reply")
     
@@ -155,7 +155,7 @@ class StarterManager():
             self.cfg.installPrefix / 'usr' / 'bin' / 'arangodb'
         ] + self.arguments
         
-        logging.info("respawning instance %s", str(args))
+        logging.info("StarterManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)
         time.sleep(self.startupwait)
 

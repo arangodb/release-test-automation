@@ -7,6 +7,7 @@ from pathlib import Path
 import psutil
 import requests
 from arangodb.starter.manager import StarterManager
+from arangodb.sync import SyncManager
 from arangodb.starter.environment.runner import Runner
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
@@ -28,7 +29,7 @@ class Dc2Dc(Runner):
         self.basecfg = cfg
         self.basedir = Path('DC2DC')
         self.cleanup()
-        self.sync_instance = None
+        self.sync_manager = None
         datadir = Path('data')
         cert_dir = self.basecfg.baseTestDir / self.basedir / "certs"
         print(cert_dir)
@@ -125,60 +126,35 @@ class Dc2Dc(Runner):
             port=str(self.cluster2['smport']))
         reply = requests.get(url)
         logging.info(str(reply))
-
-        cmd = ['arangosync', 'configure', 'sync',
-               '--master.endpoint=https://'
-               + self.basecfg.publicip
-               + ':'
-               + str(self.cluster1['smport']),
-               '--master.keyfile=' + str(self.ca["clientkeyfile"]),
-               '--source.endpoint=https://'
-               + self.basecfg.publicip
-               + ':'
-               + str(self.cluster2['smport']),
-               '--master.cacert=' + str(self.ca["cert"]),
-               '--source.cacert=' + str(self.ca["cert"]),
-               '--auth.keyfile=' + str(self.ca["clientkeyfile"])]
-        logging.info(str(cmd))
-        self.sync_instance = psutil.Popen(cmd)
+        self.sync_manager = SyncManager(self.basecfg,
+                                        self.ca,
+                                        [self.cluster1['smport'],
+                                         self.cluster2['smport'] ] )
+        self.sync_manager.run_syncer()
 
     def run(self):
-        logging.info('Check status of cluster 1')
-        psutil.Popen(
-            ['arangosync', 'get', 'status',
-             '--master.cacert=' + str(self.ca["cert"]),
-             '--master.endpoint=https://{url}:{port}'.format(
-                 url=self.basecfg.publicip,
-                 port=str(self.cluster1['smport'])),
-             '--auth.keyfile=' + str(self.ca["clientkeyfile"]),
-             '--verbose']).wait()
-        logging.info('Check status of cluster 2')
-        psutil.Popen(
-            ['arangosync', 'get', 'status',
-             '--master.cacert=' + str(self.ca["cert"]),
-             '--master.endpoint=https://{url}:{port}'.format(
-                 url=self.basecfg.publicip,
-                 port=str(self.cluster2['smport'])),
-             '--auth.keyfile=' + str(self.ca["clientkeyfile"]),
-             '--verbose']).wait()
         logging.info('finished')
-
+        
     def post_setup(self):
+        self.sync_manager.check_sync_status(0)
+        self.sync_manager.check_sync_status(1)
         pass
 
     def upgrade(self, newInstallCfg):
         """ upgrade this installation """
+        self.sync_manager.replace_binary_for_upgrade(newInstallCfg)
+        self.sync_manager.stop_sync()
         self.cluster1["instance"].replace_binary_for_upgrade(newInstallCfg)
         self.cluster2["instance"].replace_binary_for_upgrade(newInstallCfg)
         self.cluster1["instance"].command_upgrade()
         self.cluster2["instance"].command_upgrade()
+        self.sync_manager.respawn_instance()
 
     def jam_attempt(self):
         pass
 
     def shutdown(self):
         print('shutting down')
-        self.sync_instance.terminate()
-        self.sync_instance.wait(timeout=60)
+        self.sync_manager.terminate_instance()
         self.cluster1["instance"].terminate_instance()
         self.cluster2["instance"].terminate_instance()
