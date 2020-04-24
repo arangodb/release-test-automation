@@ -3,7 +3,7 @@
 import time
 import logging
 from pathlib import Path
-
+from tools.killall import get_all_processes
 from arangodb.starter.manager import StarterManager
 from arangodb.starter.environment.runner import Runner
 
@@ -69,6 +69,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
         self.checks['startReplJS'] = (
             "launching replication",
             """
+print(
 require("@arangodb/replication").setupReplicationGlobal({
     endpoint: "tcp://127.0.0.1:%d",
     username: "root",
@@ -77,10 +78,15 @@ require("@arangodb/replication").setupReplicationGlobal({
     includeSystem: true,
     incremental: true,
     autoResync: true
-    });
+    }));
+process.exit(0)
 """ % (self.leader.get_frontend_port()))
-        logging.info(str(self.follower.execute_frontend(
-            self.checks['startReplJS'])))
+        retval = self.follower.execute_frontend(
+            self.checks['startReplJS'])
+        if not retval:
+            raise Exception("Failed to start the replication using: %s %s"%
+                            (retval, str(self.checks['startReplJS'])))
+        logging.info("Replication started successfully")
         self.leader.arangosh.create_test_data()
         logging.info(str(self.leader.execute_frontend(
             self.checks['afterReplJS'])))
@@ -108,4 +114,7 @@ require("@arangodb/replication").setupReplicationGlobal({
     def shutdown(self):
         self.leader.kill_instance()
         self.follower.kill_instance()
+        pslist = get_all_processes()
+        if len(pslist) > 0:
+            raise Exception("Not all processes terminated! [%s]" % str(pslist))
         logging.info('test ended')

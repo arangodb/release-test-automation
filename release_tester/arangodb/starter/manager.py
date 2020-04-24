@@ -2,6 +2,7 @@
 """ Manage one instance of the arangodb starter
     to crontroll multiple arangods
 """
+import signal
 import copy
 import os
 import time
@@ -101,8 +102,8 @@ class StarterManager():
         """ kill the instance of this starter
             (it should kill all its managed services)"""
         logging.info("Killing: %s", str(self.arguments))
-        #self.instance.send_signal(signal.CTRL_C_EVENT)
-        self.instance.terminate()
+        self.instance.send_signal(signal.CTRL_C_EVENT)
+        # self.instance.terminate()
         try:
             logging.info(str(self.instance.wait(timeout=45)))
         except:
