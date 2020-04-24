@@ -97,6 +97,19 @@ class SyncManager():
                 '--auth.keyfile=' + str(self.ca["clientkeyfile"]),
                 '--verbose']).wait()
 
+    def get_sync_tasks(self, which):
+        logging.info('SyncManager: Check status of cluster %s', str(which))
+        psutil.Popen(
+            [
+                self.cfg.installPrefix / 'usr' / 'bin' / 'arangosync',
+                'get', 'tasks',
+                '--master.cacert=' + str(self.ca["cert"]),
+                '--master.endpoint=https://{url}:{port}'.format(
+                    url=self.cfg.publicip,
+                    port=str(self.clusterports[which])),
+                '--auth.keyfile=' + str(self.ca["clientkeyfile"]),
+                '--verbose']).wait()
+
     def stop_sync(self):
         args = [
                 self.cfg.installPrefix / 'usr' / 'bin' / 'arangosync',

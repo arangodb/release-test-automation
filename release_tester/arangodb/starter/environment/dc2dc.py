@@ -128,6 +128,7 @@ class Dc2Dc(Runner):
                                          self.cluster2['smport'] ] )
         if not self.sync_manager.run_syncer():
             raise Exception("starting the synchronisation failed!")
+        time.sleep(60) # TODO: howto detect dc2dc is completely up and running?
 
     def run(self):
         logging.info('finished')
@@ -135,6 +136,15 @@ class Dc2Dc(Runner):
     def post_setup(self):
         self.sync_manager.check_sync_status(0)
         self.sync_manager.check_sync_status(1)
+        self.sync_manager.get_sync_tasks(0)
+        self.sync_manager.get_sync_tasks(1)
+        time.sleep(60) # TODO: howto detect dc2dc is completely up and running?
+        
+        self.sync_manager.check_sync_status(0)
+        self.sync_manager.check_sync_status(1)
+        self.sync_manager.get_sync_tasks(0)
+        self.sync_manager.get_sync_tasks(1)
+        
         pass
 
     def upgrade(self, newInstallCfg):
