@@ -5,9 +5,7 @@ import psutil
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
-
-def kill_all_processes():
-    """killall arangod arangodb arangosync """
+def get_all_processes():
     arangods = []
     arangodbs = []
     arangosyncs = []
@@ -23,15 +21,16 @@ def kill_all_processes():
                 arangodbs.append(psutil.Process(process.pid))
             elif name == 'arangosync':
                 arangosyncs.append(psutil.Process(process.pid))
-            #else:
-            #    print(name)
         except Exception as x:
             print(x)
             pass
+    return arangodbs + arangosyncs + arangods
 
-    for processlist in [arangosyncs, arangodbs, arangods]:
-        for process in processlist:
-            if process.is_running():
-                logging.info("cleanup killing %s", str(process))
-                process.terminate()
-                process.wait()
+def kill_all_processes():
+    """killall arangod arangodb arangosync """
+    processlist = get_all_processes()
+    for process in processlist:
+        if process.is_running():
+            logging.info("cleanup killing %s", str(process))
+            process.terminate()
+            process.wait()
