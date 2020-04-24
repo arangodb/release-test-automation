@@ -174,16 +174,16 @@ class StarterManager():
 
     def get_my_port(self):
         if self.starter_port != None:
-            return starter_port
+            return self.starter_port
         where = -1
         while where == -1:
             lf = self.get_log_file()
             where = lf.find('ArangoDB Starter listening on')
             if where != -1:
-                where = lf.find('(:', where)
+                where = lf.find(':', where)
                 if where != -1:
-                    end = lf.find(')', where)
-                    port = lf[where + 2: end]
+                    end = lf.find(' ', where)
+                    port = lf[where + 1: end]
                     self.starter_port = port
                     return port
             logging.info('&')

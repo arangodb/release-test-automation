@@ -168,7 +168,10 @@ class Dc2Dc(Runner):
 
     def upgrade(self, newInstallCfg):
         """ upgrade this installation """
-        raise Exception("TODO!")
+        self.cluster1["instance"].replace_binary_for_upgrade(newInstallCfg)
+        self.cluster2["instance"].replace_binary_for_upgrade(newInstallCfg)
+        self.cluster1["instance"].command_upgrade()
+        self.cluster2["instance"].command_upgrade()
 
     def jam_attempt(self):
         pass
