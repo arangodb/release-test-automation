@@ -131,6 +131,9 @@ class Dc2Dc(Runner):
                                         [self.cluster1['smport'],
                                          self.cluster2['smport'] ] )
         self.sync_manager.run_syncer()
+        time.sleep(1)
+        if not self.sync_manager.is_instance_running():
+            raise Exception("arangosync has exited!")
 
     def run(self):
         logging.info('finished')

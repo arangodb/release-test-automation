@@ -50,6 +50,14 @@ class SyncManager():
         self.instance = psutil.Popen(args)
         logging.info("SyncManager: up %s", str(self.instance.pid))
 
+    def is_instance_running(self):
+        """ check whether this is still running"""
+        try:
+            self.instance.wait(timeout=1)
+        except:
+            pass
+        return self.instance.is_running()
+
     def respawn_instance(self):
         """ restart the arangosync instance after we killed it eventually """
         args = [
