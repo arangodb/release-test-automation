@@ -12,6 +12,7 @@ from pathlib import Path
 import psutil
 from tools.timestamp import timestamp
 from arangodb.sh import ArangoshExecutor
+from tools.killall import sig_int_process
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
@@ -102,14 +103,29 @@ class StarterManager():
         """ kill the instance of this starter
             (it should kill all its managed services)"""
         logging.info("Killing: %s", str(self.arguments))
-        self.instance.send_signal(signal.CTRL_C_EVENT)
-        # self.instance.terminate()
-        try:
-            logging.info(str(self.instance.wait(timeout=45)))
-        except:
-            logging.info("timeout, doing hard kill.")
-            self.instance.kill()
-        logging.info("Instance now dead.")
+        sig_int_process(self.instance)
+        
+        #try: 
+        #    self.instance.send_signal(signal.CTRL_C_EVENT)
+        #except Exception as x:
+        #    print(x)
+        #    print(type(x))
+        #    raise x
+        #    # self.instance.terminate()
+        #
+        #print("xx"*80)
+        #try:
+        #    print("z"*80)
+        #    self.wait(pid, timeout=45)
+        #          
+        #    print("y"*80)
+        #except Exception as x:
+        #    print("xxxxx")
+        #    print(x)
+        #    print(type(x))
+        #    logging.info("timeout, doing hard kill.")
+        #    self.instance.kill()
+        #logging.info("Instance now dead.")
 
     def respawn_instance(self):
         """ restart the starter instance after we killed it eventually """
