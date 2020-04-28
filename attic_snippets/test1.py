@@ -5,9 +5,10 @@ import psutil
 import signal
 import os
 import time
+import subprocess
 
 def handler(signum, frame):
-    #print("Xsignal!")
+    print("Xsignal!")
     #if signum == signal.SIGINT:
     #    print('xSignal SIGINT received')
     #if signum == signal.SIGBREAK:
@@ -18,13 +19,16 @@ def handler(signum, frame):
 
 print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
 print(os.getpid())
-signal.signal(signal.SIGINT, handler)
-signal.signal(signal.SIGBREAK, handler)
+# signal.signal(signal.SIGINT, handler)
+#signal.signal(signal.SIGBREAK, handler)
+
+kwargs = {}
+kwargs['creationflags'] = subprocess.CREATE_NEW_PROCESS_GROUP
+kwargs['bufsize'] = 1024
 
 
-
-process = psutil.Popen(['python', 'test2.py', 'a'])
-process2 = psutil.Popen(['python', 'test2.py', 'b'])
+process = psutil.Popen(['python', 'test2.py', 'a'], shell=True, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+process2 = psutil.Popen(['python', 'test2.py', 'b'], shell=True, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
 
 pid = process.pid
 
@@ -55,3 +59,11 @@ for proc in psutil.process_iter(['pid', 'name']):
         proc.wait()
 
 time.sleep(10)
+
+os.kill(process2.pid, signal.CTRL_C_EVENT)
+print("2 snaotehu")
+
+time.sleep(10)
+print("1 snaotehu")
+os.kill(process.pid, signal.SIGTERM)
+os.kill(process2.pid, signal.SIGTERM)
