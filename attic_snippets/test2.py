@@ -18,10 +18,10 @@ def handler(signum, frame):
         print('Signal  signal.CTRL_C_EVENT received')
         exit(1)
 
-print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx " + sys.argv[1])
+print("x" * 80 + sys.argv[1])
 print("%s - %d" % (sys.argv[1], os.getpid()))
 signal.signal(signal.SIGINT, handler)
 signal.signal(signal.SIGBREAK, handler)
 while True:
     print(sys.argv[1])
-    time.sleep(0.1)
+    time.sleep(0.5)
