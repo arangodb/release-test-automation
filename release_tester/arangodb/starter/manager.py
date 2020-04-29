@@ -8,14 +8,17 @@ import os
 import time
 import re
 import logging
+import subprocess
+import sys
 from pathlib import Path
 import psutil
 from tools.timestamp import timestamp
 from arangodb.sh import ArangoshExecutor
-from tools.killall import sig_int_process
+# from tools.killall import sig_int_process
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
+ON_WINDOWS = (sys.platform == 'win32')
 
 class StarterManager():
     """ manage one starter instance"""
@@ -67,7 +70,12 @@ class StarterManager():
     def run_starter(self):
         """ launch the starter for this instance"""
         logging.info("launching %s", str(self.arguments))
-        self.instance = psutil.Popen(self.arguments)
+        kwargs = {}
+        if ON_WINDOWS:
+            kwargs['creationflags'] = subprocess.CREATE_NEW_PROCESS_GROUP
+        self.proc = subprocess.Popen(self.arguments, **kwargs)
+        print(dir(self.proc))
+        self.instance = psutil.Process(self.proc.pid)
         time.sleep(self.startupwait)
 
     def is_instance_running(self):
@@ -103,7 +111,9 @@ class StarterManager():
         """ kill the instance of this starter
             (it should kill all its managed services)"""
         logging.info("Killing: %s", str(self.arguments))
-        sig_int_process(self.instance)
+        self.proc.send_signal(signal.CTRL_BREAK_EVENT)
+        self.proc.wait()
+        #sig_int_process(self.instance)
         
         #try: 
         #    self.instance.send_signal(signal.CTRL_C_EVENT)
@@ -130,7 +140,11 @@ class StarterManager():
     def respawn_instance(self):
         """ restart the starter instance after we killed it eventually """
         logging.info("respawning instance %s", str(self.arguments))
-        self.instance = psutil.Popen(self.arguments)
+        kwargs = {}
+        if ON_WINDOWS:
+            kwargs['creationflags'] = subprocess.CREATE_NEW_PROCESS_GROUP
+        self.proc = subprocess.Popen(self.arguments, **kwargs)
+        self.instance = psutil.Process(self.proc.pid)
         time.sleep(self.startupwait)
 
     def execute_frontend(self, cmd):

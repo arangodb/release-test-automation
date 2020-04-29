@@ -32,6 +32,7 @@ def get_all_processes():
 def kill_all_processes():
     """killall arangod arangodb arangosync """
     processlist = get_all_processes()
+    print(processlist)
     for process in processlist:
         if process.is_running():
             logging.info("cleanup killing %s", str(process))
@@ -50,33 +51,33 @@ def handler(signum, frame):
     #if signum == signal.CTRL_C_EVENT:
     #    print('Signal  signal.CTRL_C_EVENT received')
         
-def sig_int_process(process):
-    """ send process CTRL+C and check whether it terminated """
-    global footgun
-    pid = process.pid
-    # process.send_signal(signal.CTRL_BREAK_EVENT)
-    print(pid)
-    print( os.getpid())
-    signal.signal(signal.SIGINT, handler)
-    # signal.signal(signal.SIGBREAK, handler)
-    # signal.signal(signal.CTRL_C_EVENT, handler)
-    #os.kill(pid, signal.SIGINT) # signal.CTRL_BREAK_EVENT)
-    #process.signal(pid, signal.SIGINT) # signal.CTRL_BREAK_EVENT)
-    # process.signal(pid, signal.CTRL_BREAK_EVENT)
-    #process.signal(pid, signal.CTRL_C_EVENT)
-    #os.kill(pid, signal.CTRL_C_EVENT)
-    #os.kill(pid, signal.SIGINT)
-    #os.kill(pid,signal.SIGBREAK)
-    footgun = True
-    os.kill(pid, signal.CTRL_C_EVENT)
-    print("snaotehu")
-    process.wait()
-    footgun = False
-    #time.sleep(10)
-    print("slept")
-    print("santoehu")
-    for proc in psutil.process_iter(['pid', 'name']):
-        # print("snatoehu %s" % str(proc))
-        if proc.pid == pid:
-            logging.info("found process after killing: %s", str(proc))
-            proc.wait()
+#def sig_int_process(process):
+#    """ send process CTRL+C and check whether it terminated """
+#    global footgun
+#    pid = process.pid
+#    # process.send_signal(signal.CTRL_BREAK_EVENT)
+#    print(pid)
+#    print( os.getpid())
+#    signal.signal(signal.SIGINT, handler)
+#    # signal.signal(signal.SIGBREAK, handler)
+#    # signal.signal(signal.CTRL_C_EVENT, handler)
+#    #os.kill(pid, signal.SIGINT) # signal.CTRL_BREAK_EVENT)
+#    #process.signal(pid, signal.SIGINT) # signal.CTRL_BREAK_EVENT)
+#    # process.signal(pid, signal.CTRL_BREAK_EVENT)
+#    #process.signal(pid, signal.CTRL_C_EVENT)
+#    #os.kill(pid, signal.CTRL_C_EVENT)
+#    #os.kill(pid, signal.SIGINT)
+#    #os.kill(pid,signal.SIGBREAK)
+#    footgun = True
+#    os.kill(pid, signal.CTRL_C_EVENT)
+#    print("snaotehu")
+#    process.wait()
+#    footgun = False
+#    #time.sleep(10)
+#    print("slept")
+#    print("santoehu")
+#    for proc in psutil.process_iter(['pid', 'name']):
+#        # print("snatoehu %s" % str(proc))
+#        if proc.pid == pid:
+#            logging.info("found process after killing: %s", str(proc))
+#            proc.wait()
