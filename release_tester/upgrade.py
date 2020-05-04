@@ -19,6 +19,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 @click.command()
 @click.option('--old_version', help='old ArangoDB version number.')
 @click.option('--version', help='ArangoDB version number.')
+@click.option('--verbose', help='switch starter to verbose logging mode.')
 @click.option('--package-dir',
               default='/tmp/',
               help='directory to load the packages from.')
@@ -35,10 +36,11 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 @click.option('--publicip',
               default='127.0.0.1',
               help='IP for the click to browser hints.')
-def run_test(old_version, version, package_dir, enterprise, quote_user, starter_mode, publicip):
+def run_test(old_version, version, verbose, package_dir, enterprise, quote_user, starter_mode, publicip):
     """ main """
     enterprise = enterprise == 'True'
     quote_user = quote_user == 'True'
+    verbose = verbose == 'True'
 
     if starter_mode == 'all':
         starter_mode = [RunnerType.LEADER_FOLLOWER,
@@ -63,6 +65,7 @@ def run_test(old_version, version, package_dir, enterprise, quote_user, starter_
         kill_all_processes()
     
         old_inst = installers.get(old_version,
+                                  verbose,
                                   enterprise,
                                   Path(package_dir),
                                   publicip,
@@ -70,6 +73,7 @@ def run_test(old_version, version, package_dir, enterprise, quote_user, starter_
         old_inst.calculate_package_names()
         
         new_inst = installers.get(version,
+                                  verbose,
                                   enterprise,
                                   Path(package_dir),
                                   publicip,
