@@ -164,9 +164,6 @@ class StarterManager():
 
     def execute_frontend(self, cmd):
         """ use arangosh to run a command on the frontend arangod"""
-        if self.arangosh is None:
-            self.cfg.port = self.get_frontend_port()
-            self.arangosh = ArangoshExecutor(self.cfg)
         return self.arangosh.run_command(cmd)
 
     def get_frontend_port(self):
@@ -285,6 +282,9 @@ class StarterManager():
                                     + line)
                 instance['PID'] = int(match.groups()[0])
         logging.info("StarterManager: detected instances: %s", str(self.all_instances))
+        if self.arangosh is None:
+            self.cfg.port = self.get_frontend_port()
+            self.arangosh = ArangoshExecutor(self.cfg)
 
     def detect_leader(self):
         """ in active failover detect whether we run the leader"""

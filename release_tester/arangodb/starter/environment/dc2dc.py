@@ -27,6 +27,7 @@ class Dc2Dc(Runner):
         logging.info("x"*80)
         self.success = True
         self.basecfg = cfg
+        self.basecfg.passvoid = '' # TODO
         self.basedir = Path('DC2DC')
         self.cleanup()
         self.sync_manager = None
@@ -124,8 +125,8 @@ class Dc2Dc(Runner):
 
         self.sync_manager = SyncManager(self.basecfg,
                                         self.ca,
-                                        [self.cluster1['smport'],
-                                         self.cluster2['smport'] ] )
+                                        [self.cluster2['smport'],
+                                         self.cluster1['smport'] ] )
         if not self.sync_manager.run_syncer():
             raise Exception("starting the synchronisation failed!")
         time.sleep(60) # TODO: howto detect dc2dc is completely up and running?
@@ -134,12 +135,13 @@ class Dc2Dc(Runner):
         logging.info('finished')
         
     def post_setup(self):
+        self.cluster1['instance'].arangosh.create_test_data()
         self.sync_manager.check_sync_status(0)
         self.sync_manager.check_sync_status(1)
         self.sync_manager.get_sync_tasks(0)
         self.sync_manager.get_sync_tasks(1)
-        time.sleep(60) # TODO: howto detect dc2dc is completely up and running?
-        
+        time.sleep(180) # TODO: howto detect dc2dc is completely up and running?
+        # exit(0)
         self.sync_manager.check_sync_status(0)
         self.sync_manager.check_sync_status(1)
         self.sync_manager.get_sync_tasks(0)
