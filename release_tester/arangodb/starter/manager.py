@@ -8,13 +8,17 @@ import os
 import time
 import re
 import logging
+import subprocess
+import sys
 from pathlib import Path
 import psutil
 from tools.timestamp import timestamp
 from arangodb.sh import ArangoshExecutor
+# from tools.killall import sig_int_process
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
+ON_WINDOWS = (sys.platform == 'win32')
 
 class StarterManager():
     """ manage one starter instance"""
@@ -56,6 +60,8 @@ class StarterManager():
         if self.starter_port is not None:
             self.frontend_port = self.starter_port + 1
             self.moreopts += ["--starter.port", "%d" % self.starter_port]
+        if self.cfg.verbose:
+            self.moreopts += ["--log.verbose=true"]
         self.arguments = [
             "--log.console=false",
             "--log.file=true",
@@ -105,14 +111,10 @@ class StarterManager():
         """ terminate the instance of this starter
             (it should kill all its managed services)"""
         logging.info("StarterManager: Terminating: %s", str(self.arguments))
-        self.instance.send_signal(signal.CTRL_C_EVENT)
-        # self.instance.terminate()
-        try:
-            logging.info(str(self.instance.wait(timeout=45)))
-        except:
-            logging.info("StarterManager: timeout, doing hard kill.")
-            self.instance.kill()
-        logging.info("StarterManager: Instance now dead.")
+        logging.info("Killing: %s", str(self.arguments))
+        self.instance.terminate()
+        self.instance.wait()
+
 
     def kill_instance(self):
         """ kill the instance of this starter

@@ -3,8 +3,10 @@
 """ Release testing script"""
 import logging
 from pathlib import Path
-
+import sys
+import signal
 import click
+import functools
 
 from tools.killall import kill_all_processes
 from tools.quote_user import end_test
@@ -14,10 +16,36 @@ from arangodb.starter.environment import get as getStarterenv
 from arangodb.starter.environment import RunnerType
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
+ON_WINDOWS = (sys.platform == 'win32')
+SIGNALS = {
+    signal.SIGINT: 'SIGINT',
+    signal.SIGTERM: 'SIGTERM',
+}
+if ON_WINDOWS:
+    SIGNALS[signal.SIGBREAK] = 'SIGBREAK'
 
+def term(proc):
+    """Send a SIGTERM/SIGBREAK to *proc* and wait for it to terminate."""
+    if ON_WINDOWS:
+        proc.send_signal(signal.CTRL_BREAK_EVENT)
+    else:
+        proc.terminate()
+    proc.wait()
+def cleanup(name, child, signum, frame):
+    """Stop the sub=process *child* if *signum* is SIGTERM. Then terminate."""
+    try:
+        print('%s got a %s' % (name, SIGNALS[signum]))
+        if child and (ON_WINDOWS or signum != signal.SIGINT):
+            # Forward SIGTERM on Linux or any signal on Windows
+            term(child)
+    except:
+        traceback.print_exc()
+    #finally:
+        # sys.exit()
 
 @click.command()
 @click.option('--version', help='ArangoDB version number.')
+@click.option('--verbose', help='switch starter to verbose logging mode.')
 @click.option('--package-dir',
               default='/tmp/',
               help='directory to load the packages from.')
@@ -37,17 +65,28 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 @click.option('--publicip',
               default='127.0.0.1',
               help='IP for the click to browser hints.')
-def run_test(version, package_dir, enterprise, quote_user, mode, starter_mode, publicip):
+def run_test(version, verbose, package_dir, enterprise, quote_user, mode, starter_mode, publicip):
     """ main """
     enterprise = enterprise == 'True'
     quote_user = quote_user == 'True'
+    verbose = verbose == 'True'
     if mode not in ['all', 'install', 'system', 'tests', 'uninstall']:
         raise Exception("unsupported mode %s!" % mode)
     inst = installers.get(version,
+                          verbose,
                           enterprise,
                           Path(package_dir),
                           publicip,
                           quote_user)
+
+    # Curry our cleanup func and register it as handler for SIGINT and SIGTERM
+    name = "blarg"
+    handler = functools.partial(cleanup, name, None)
+    signal.signal(signal.SIGINT, handler)
+    if ON_WINDOWS:
+        signal.signal(signal.SIGBREAK, handler)
+    else:
+        signal.signal(signal.SIGTERM, handler)
 
     inst.calculate_package_names()
     kill_all_processes()
