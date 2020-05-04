@@ -50,7 +50,13 @@ def handler(signum, frame):
     #    print('Signal  CTRL_BREAK_EVENT received')
     #if signum == signal.CTRL_C_EVENT:
     #    print('Signal  signal.CTRL_C_EVENT received')
-        
+
+
+#original_sigint_handler = signal.getsignal(signal.SIGINT)
+
+# Then, later...
+#signal.signal(signal.SIGINT, original_sigint_handler)
+
 #def sig_int_process(process):
 #    """ send process CTRL+C and check whether it terminated """
 #    global footgun

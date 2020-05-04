@@ -79,9 +79,11 @@ class InstallerBase(ABC):
 
     def load_config(self):
         """ deserialize the config from disk """
+        verbose = self.cfg.verbose
         with open(self.calc_config_file_name()) as fileh:
             self.cfg = yaml.load(fileh, Loader=yaml.Loader)
         self.log_examiner = ArangodLogExaminer(self.cfg)
+        self.cfg.verbose = verbose
 
     def broadcast_bind(self):
         """

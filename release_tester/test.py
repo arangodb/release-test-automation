@@ -45,6 +45,7 @@ def cleanup(name, child, signum, frame):
 
 @click.command()
 @click.option('--version', help='ArangoDB version number.')
+@click.option('--verbose', help='switch starter to verbose logging mode.')
 @click.option('--package-dir',
               default='/tmp/',
               help='directory to load the packages from.')
@@ -64,13 +65,15 @@ def cleanup(name, child, signum, frame):
 @click.option('--publicip',
               default='127.0.0.1',
               help='IP for the click to browser hints.')
-def run_test(version, package_dir, enterprise, quote_user, mode, starter_mode, publicip):
+def run_test(version, verbose, package_dir, enterprise, quote_user, mode, starter_mode, publicip):
     """ main """
     enterprise = enterprise == 'True'
     quote_user = quote_user == 'True'
+    verbose = verbose == 'True'
     if mode not in ['all', 'install', 'system', 'tests', 'uninstall']:
         raise Exception("unsupported mode %s!" % mode)
     inst = installers.get(version,
+                          verbose,
                           enterprise,
                           Path(package_dir),
                           publicip,

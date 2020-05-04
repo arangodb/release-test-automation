@@ -7,13 +7,14 @@ from pathlib import Path
 
 class InstallConfig():
     """ stores the baseline of this environment """
-    def __init__(self, version, enterprise, package_dir, publicip, quote_user):
+    def __init__(self, version, verbose, enterprise, package_dir, publicip, quote_user):
         self.publicip = publicip
         self.quote_user = quote_user
         self.username = "root"
         self.passvoid = "abc"
         self.enterprise = enterprise
         self.version = version
+        self.verbose = verbose
         self.package_dir = package_dir
         self.install_prefix = Path("/")
         self.jwt = ''

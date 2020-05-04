@@ -60,6 +60,8 @@ class StarterManager():
         if self.starter_port is not None:
             self.frontend_port = self.starter_port + 1
             self.moreopts += ["--starter.port", "%d" % self.starter_port]
+        if self.cfg.verbose:
+            self.moreopts += ["--log.verbose=true"]
         self.arguments = [
             self.cfg.installPrefix / 'usr' / 'bin' / 'arangodb',
             "--log.console=false",
@@ -70,12 +72,7 @@ class StarterManager():
     def run_starter(self):
         """ launch the starter for this instance"""
         logging.info("launching %s", str(self.arguments))
-        kwargs = {}
-        if ON_WINDOWS:
-            kwargs['creationflags'] = subprocess.CREATE_NEW_PROCESS_GROUP
-        self.proc = subprocess.Popen(self.arguments, **kwargs)
-        print(dir(self.proc))
-        self.instance = psutil.Process(self.proc.pid)
+        self.instance = psutil.Popen(self.arguments)
         time.sleep(self.startupwait)
 
     def is_instance_running(self):
@@ -111,40 +108,13 @@ class StarterManager():
         """ kill the instance of this starter
             (it should kill all its managed services)"""
         logging.info("Killing: %s", str(self.arguments))
-        self.proc.send_signal(signal.CTRL_BREAK_EVENT)
-        self.proc.wait()
-        #sig_int_process(self.instance)
-        
-        #try: 
-        #    self.instance.send_signal(signal.CTRL_C_EVENT)
-        #except Exception as x:
-        #    print(x)
-        #    print(type(x))
-        #    raise x
-        #    # self.instance.terminate()
-        #
-        #print("xx"*80)
-        #try:
-        #    print("z"*80)
-        #    self.wait(pid, timeout=45)
-        #          
-        #    print("y"*80)
-        #except Exception as x:
-        #    print("xxxxx")
-        #    print(x)
-        #    print(type(x))
-        #    logging.info("timeout, doing hard kill.")
-        #    self.instance.kill()
-        #logging.info("Instance now dead.")
+        self.instance.terminate()
+        self.instance.wait()
 
     def respawn_instance(self):
         """ restart the starter instance after we killed it eventually """
         logging.info("respawning instance %s", str(self.arguments))
-        kwargs = {}
-        if ON_WINDOWS:
-            kwargs['creationflags'] = subprocess.CREATE_NEW_PROCESS_GROUP
-        self.proc = subprocess.Popen(self.arguments, **kwargs)
-        self.instance = psutil.Process(self.proc.pid)
+        self.instance = psutil.Popen(self.arguments)
         time.sleep(self.startupwait)
 
     def execute_frontend(self, cmd):
