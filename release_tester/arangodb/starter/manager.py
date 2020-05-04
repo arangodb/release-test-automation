@@ -63,7 +63,6 @@ class StarterManager():
         if self.cfg.verbose:
             self.moreopts += ["--log.verbose=true"]
         self.arguments = [
-            self.cfg.installPrefix / 'usr' / 'bin' / 'arangodb',
             "--log.console=false",
             "--log.file=true",
             "--starter.data-dir=%s" % self.basedir
@@ -71,8 +70,12 @@ class StarterManager():
 
     def run_starter(self):
         """ launch the starter for this instance"""
-        logging.info("launching %s", str(self.arguments))
-        self.instance = psutil.Popen(self.arguments)
+        args = [
+            self.cfg.installPrefix / 'usr' / 'bin' / 'arangodb'
+        ] + self.arguments
+        
+        logging.info("StarterManager: launching %s", str(args))
+        self.instance = psutil.Popen(args)
         time.sleep(self.startupwait)
 
     def is_instance_running(self):
@@ -104,24 +107,63 @@ class StarterManager():
             return True
         return False
 
-    def kill_instance(self):
-        """ kill the instance of this starter
+    def terminate_instance(self):
+        """ terminate the instance of this starter
             (it should kill all its managed services)"""
+        logging.info("StarterManager: Terminating: %s", str(self.arguments))
         logging.info("Killing: %s", str(self.arguments))
         self.instance.terminate()
         self.instance.wait()
 
+
+    def kill_instance(self):
+        """ kill the instance of this starter
+            (it won't kill its managed services)"""
+        logging.info("StarterManager: Killing: %s", str(self.arguments))
+        self.instance.kill()
+        try:
+            logging.info(str(self.instance.wait(timeout=45)))
+        except:
+            logging.info("StarterManager: timeout, doing hard kill.")
+            self.instance.kill()
+        logging.info("StarterManager: Instance now dead.")
+
+    def replace_binary_for_upgrade(self, newInstallCfg):
+        """ replace the parts of the installation with information after an upgrade"""
+
+        """ On windows the install prefix may change, since we can't overwrite open files: """
+        self.cfg.installPrefix = newInstallCfg.installPrefix
+        logging.info("StarterManager: Killing my instance [%s]", str(self.instance.pid))
+        self.kill_instance()
+        self.respawn_instance()
+        logging.info("StarterManager: respawned instance as [%s]", str(self.instance.pid))
+
+    def command_upgrade(self):
+        """ we will launch another starter, to tell the bunch to run the upgrade"""
+        args = [
+            self.cfg.installPrefix / 'usr' / 'bin' / 'arangodb',
+            'upgrade',
+            '--starter.endpoint',
+            'http://127.0.0.1:' + self.get_my_port()
+        ]
+        logging.info("StarterManager: Commanding upgrade %s", str(args))
+        rc = psutil.Popen(args).wait()
+        logging.info("StarterManager: Upgrade command exited: %s", str(rc))
+        if rc != 0:
+            raise Exception("Upgrade process exited with non-zero reply")
+    
     def respawn_instance(self):
         """ restart the starter instance after we killed it eventually """
-        logging.info("respawning instance %s", str(self.arguments))
-        self.instance = psutil.Popen(self.arguments)
+        args = [
+            self.cfg.installPrefix / 'usr' / 'bin' / 'arangodb'
+        ] + self.arguments
+        
+        logging.info("StarterManager: respawning instance %s", str(args))
+        self.instance = psutil.Popen(args)
         time.sleep(self.startupwait)
 
     def execute_frontend(self, cmd):
         """ use arangosh to run a command on the frontend arangod"""
-        if self.arangosh is None:
-            self.cfg.port = self.get_frontend_port()
-            self.arangosh = ArangoshExecutor(self.cfg)
         return self.arangosh.run_command(cmd)
 
     def get_frontend_port(self):
@@ -130,6 +172,22 @@ class StarterManager():
             raise Exception(timestamp() + "no frontend port detected")
         return self.frontend_port
 
+    def get_my_port(self):
+        if self.starter_port != None:
+            return self.starter_port
+        where = -1
+        while where == -1:
+            lf = self.get_log_file()
+            where = lf.find('ArangoDB Starter listening on')
+            if where != -1:
+                where = lf.find(':', where)
+                if where != -1:
+                    end = lf.find(' ', where)
+                    port = lf[where + 1: end]
+                    self.starter_port = port
+                    return port
+            logging.info('&')
+            time.sleep(1)
     def get_sync_master_port(self):
         """ get the port of a syncmaster arangosync"""
         self.sync_master_port = None
@@ -169,25 +227,38 @@ class StarterManager():
 
     def detect_logfiles(self):
         """ see which arangods where spawned and inspect their logfiles"""
-        for one in os.listdir(self.basedir):
-            if os.path.isdir(os.path.join(self.basedir, one)):
-                match = re.match(r'([a-z]*)(\d*)', one)
-                instance = {
-                    'type': match.group(1),
-                    'port': match.group(2),
-                    'logfile': self.basedir / one / 'arangod.log'
+        have_frontend = False
+        while not have_frontend:
+            self.all_instances = []
+            logging.info(".")
+            for one in os.listdir(self.basedir):
+                # print(one)
+                if os.path.isdir(os.path.join(self.basedir, one)):
+                    match = re.match(r'([a-z]*)(\d*)', one)
+                    instance = {
+                        'type': match.group(1),
+                        'port': match.group(2),
+                        'logfile': self.basedir / one / 'arangod.log'
                     }
-                if instance['type'] == 'agent':
-                    self.agent_instance = instance
-                elif instance['type'] == 'coordinator':
-                    self.coordinator = instance
-                    self.frontend_port = instance['port']
-                elif instance['type'] == 'resilientsingle':
-                    self.db_instance = instance
-                    self.frontend_port = instance['port']
-                else:
-                    self.db_instance = instance
-                self.all_instances.append(instance)
+                    if instance['type'] == 'agent':
+                        self.all_instances.append(instance)
+                        self.agent_instance = instance
+                    elif instance['type'] == 'coordinator':
+                        have_frontend = True
+                        self.all_instances.append(instance)
+                        self.coordinator = instance
+                        self.frontend_port = instance['port']
+                    elif instance['type'] == 'resilientsingle':
+                        have_frontend = True
+                        self.all_instances.append(instance)
+                        self.db_instance = instance
+                        self.frontend_port = instance['port']
+                    elif instance['type'] == 'dbserver':
+                        self.all_instances.append(instance)
+                        self.db_instance = instance
+            if not have_frontend:
+                time.sleep(1)
+
         logging.info("%s", str(self.all_instances))
 
     def detect_instance_pids(self):
@@ -210,7 +281,10 @@ class StarterManager():
                                     + " Couldn't find a PID in hello line! - "
                                     + line)
                 instance['PID'] = int(match.groups()[0])
-        logging.info(str(self.all_instances))
+        logging.info("StarterManager: detected instances: %s", str(self.all_instances))
+        if self.arangosh is None:
+            self.cfg.port = self.get_frontend_port()
+            self.arangosh = ArangoshExecutor(self.cfg)
 
     def detect_leader(self):
         """ in active failover detect whether we run the leader"""

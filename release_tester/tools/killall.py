@@ -22,8 +22,6 @@ def get_all_processes():
                 arangodbs.append(psutil.Process(process.pid))
             elif name == 'arangosync':
                 arangosyncs.append(psutil.Process(process.pid))
-            #else:
-                # print(name)
         except Exception as x:
             print(x)
             pass

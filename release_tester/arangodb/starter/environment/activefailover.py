@@ -104,8 +104,12 @@ class ActiveFailover(Runner):
     def post_setup(self):
         pass
 
+    def upgrade(self, newInstallCfg):
+        """ upgrade this installation """
+        raise Exception("TODO!")
+
     def jam_attempt(self):
-        self.leader.kill_instance()
+        self.leader.terminate_instance()
         logging.info("waiting for new leader...")
         self.new_leader = None
         while self.new_leader is None:
@@ -151,6 +155,6 @@ class ActiveFailover(Runner):
 
     def shutdown(self):
         for node in self.starter_instances:
-            node.kill_instance()
+            node.terminate_instance()
 
         logging.info('test ended')

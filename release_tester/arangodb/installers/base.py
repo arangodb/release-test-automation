@@ -41,6 +41,10 @@ class InstallerBase(ABC):
         """ install the packages to the system """
 
     @abstractmethod
+    def upgrade_package(self):
+        """ install a new version of the packages to the system """
+
+    @abstractmethod
     def un_install_package(self):
         """ remove the installed packages from the system """
 

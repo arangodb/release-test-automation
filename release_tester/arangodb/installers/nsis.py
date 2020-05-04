@@ -43,6 +43,9 @@ class InstallerW(InstallerBase):
             self.cfg.version,
             architecture)
 
+    def upgrade_package(self):
+        raise Exception("TODO!")
+
     def install_package(self):
         self.cfg.logDir = self.cfg.installPrefix / "LOG"
         self.cfg.dbdir = self.cfg.installPrefix / "DB"

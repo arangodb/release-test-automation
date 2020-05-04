@@ -92,8 +92,9 @@ process.exit(0)
         self.leader.arangosh.create_test_data()
         logging.info(str(self.leader.execute_frontend(
             self.checks['afterReplJS'])))
-    def post_setup(self):
 
+
+    def post_setup(self):
         logging.info("checking for the replication")
 
         count = 0
@@ -110,12 +111,16 @@ process.exit(0)
 
         logging.info("all OK!")
 
+    def upgrade(self, newInstallCfg):
+        """ upgrade this installation """
+        raise Exception("TODO!")
+
     def jam_attempt(self):
         pass
 
     def shutdown(self):
-        self.leader.kill_instance()
-        self.follower.kill_instance()
+        self.leader.terminate_instance()
+        self.follower.terminate_instance()
         pslist = get_all_processes()
         if len(pslist) > 0:
             raise Exception("Not all processes terminated! [%s]" % str(pslist))

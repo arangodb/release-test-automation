@@ -26,6 +26,10 @@ class InstallerDeb(InstallerBase):
         self.client_package = None
         self.debug_package = None
         self.log_examiner = None
+        self.cfg.logDir = Path('/var/log/arangodb3')
+        self.cfg.dbdir = Path('/var/lib/arangodb3')
+        self.cfg.appdir = Path('/var/lib/arangodb3-apps')
+        self.cfg.cfgdir = Path('/etc/arangodb3')
 
     def calculate_package_names(self):
         enterprise = 'e' if self.cfg.enterprise else ''
@@ -45,6 +49,7 @@ class InstallerDeb(InstallerBase):
 
     def check_service_up(self):
         time.sleep(1)    # TODO
+        return True
 
     def start_service(self):
         startserver = pexpect.spawnu('service arangodb3 start')
@@ -68,11 +73,28 @@ class InstallerDeb(InstallerBase):
                 raise Exception("server service stop didn't"
                                 "finish successfully!")
 
+    def upgrade_package(self):
+        logging.info("upgrading Arangodb debian package")
+        os.environ['DEBIAN_FRONTEND'] = 'readline'
+        server_upgrade = pexpect.spawnu('dpkg -i ' +
+                                        str(self.cfg.package_dir / self.server_package))
+        try:
+            server_upgrade.expect('Upgrading database files')
+            print(server_upgrade.before)
+        except pexpect.exceptions.EOF:
+            logging.info("X" * 80)
+            print(server_upgrade.before)
+            logging.info("X" * 80)
+            logging.info("Upgrade failed!")
+            sys.exit(1)
+        try:
+            logging.info("waiting for the upgrade to finish")
+            server_upgrade.expect(pexpect.EOF, timeout=30)
+            print(server_upgrade.before)
+        except pexpect.exceptions.EOF:
+            logging.info("TIMEOUT!")
+
     def install_package(self):
-        self.cfg.logDir = Path('/var/log/arangodb3')
-        self.cfg.dbdir = Path('/var/lib/arangodb3')
-        self.cfg.appdir = Path('/var/lib/arangodb3-apps')
-        self.cfg.cfgdir = Path('/etc/arangodb3')
         self.cfg.all_instances = {
             'single': {
                 'logfile': self.cfg.installPrefix / self.cfg.logDir / 'arangod.log'
