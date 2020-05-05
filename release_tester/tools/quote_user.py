@@ -7,8 +7,12 @@ def quote_user(cfg):
     """ print all available frontends, and wait for the user to confirm (if) """
     for frontend in cfg.frontends:
         print(frontend)
-        logging.info('frontend can be reached at: {f.proto}://root:{c.passvoid}@{f.ip}:{f.port}{path}'.format(
-                        f=frontend, c=cfg, path='/_db/_system/_admin/aardvark/index.html#login')
+        logging.info('frontend can be reached at:' +
+                     '{f.proto}://root:{c.passvoid}@{f.ip}:{f.port}{path}'.format(
+                        f=frontend,
+                        c=cfg,
+                        path='/_db/_system/_admin/aardvark/index.html#login'
+                      )
                     )
     if cfg.quote_user:
         input("Press Enter to continue")
