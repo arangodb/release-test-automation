@@ -21,9 +21,8 @@ def get_all_processes():
             elif name.startswith('arangosync'):
                 arangosyncs.append(psutil.Process(process.pid))
         except Exception as x:
-            print(x)
-            pass # <-- Ist das die Behandlung die wir wollen?
-    return arangodbs + arangosyncs + arangods # <-- wie waere es mit einem Tuple?
+            logging.error(x)
+    return arangodbs + arangosyncs + arangods
 
 def kill_all_processes():
     """killall arangod arangodb arangosync """
@@ -31,6 +30,6 @@ def kill_all_processes():
     print(processlist)
     for process in processlist:
         if process.is_running():
-            logging.info("cleanup killing %s", str(process))
+            logging.info("cleanup killing ${proc}".format(proc=process))
             process.terminate()
             process.wait()
