@@ -115,7 +115,7 @@ class SyncManager():
     def stop_sync(self):
         args = [
                 self.cfg.installPrefix / 'usr' / 'bin' / 'arangosync',
-                'stop', 'sync',
+                'abort', 'sync',
                 '--master.cacert=' + str(self.ca["cert"]),
                 '--master.endpoint=https://{url}:{port}'.format(
                     url=self.cfg.publicip,

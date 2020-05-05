@@ -155,9 +155,19 @@ class Dc2Dc(Runner):
         self.sync_manager.stop_sync()
         self.cluster1["instance"].replace_binary_for_upgrade(newInstallCfg)
         self.cluster2["instance"].replace_binary_for_upgrade(newInstallCfg)
+        self.cluster1["instance"].detect_instance_pids_still_alive()
+        self.cluster2["instance"].detect_instance_pids_still_alive()
         self.cluster1["instance"].command_upgrade()
         self.cluster2["instance"].command_upgrade()
+        self.cluster1["instance"].wait_for_upgrade()
+        self.cluster2["instance"].wait_for_upgrade()
         self.sync_manager.respawn_instance()
+        time.sleep(180) # TODO: howto detect dc2dc is completely up and running?
+        self.sync_manager.check_sync_status(0)
+        self.sync_manager.check_sync_status(1)
+        self.sync_manager.get_sync_tasks(0)
+        self.sync_manager.get_sync_tasks(1)
+        # exit(0)
 
     def jam_attempt(self):
         pass

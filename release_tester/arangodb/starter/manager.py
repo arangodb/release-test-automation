@@ -111,10 +111,10 @@ class StarterManager():
         """ terminate the instance of this starter
             (it should kill all its managed services)"""
         logging.info("StarterManager: Terminating: %s", str(self.arguments))
-        logging.info("Killing: %s", str(self.arguments))
         self.instance.terminate()
+        logging.info("StarterManager: waiting for process to exit")
         self.instance.wait()
-
+        logging.info("StarterManager: done")
 
     def kill_instance(self):
         """ kill the instance of this starter
@@ -144,10 +144,13 @@ class StarterManager():
             self.cfg.installPrefix / 'usr' / 'bin' / 'arangodb',
             'upgrade',
             '--starter.endpoint',
-            'http://127.0.0.1:' + self.get_my_port()
+            'http://127.0.0.1:' + str(self.get_my_port())
         ]
         logging.info("StarterManager: Commanding upgrade %s", str(args))
-        rc = psutil.Popen(args).wait()
+        self.upgradeprocess = psutil.Popen(args)
+
+    def wait_for_upgrade(self):
+        rc = self.upgradeprocess.wait()
         logging.info("StarterManager: Upgrade command exited: %s", str(rc))
         if rc != 0:
             raise Exception("Upgrade process exited with non-zero reply")
@@ -188,6 +191,7 @@ class StarterManager():
                     return port
             logging.info('&')
             time.sleep(1)
+
     def get_sync_master_port(self):
         """ get the port of a syncmaster arangosync"""
         self.sync_master_port = None
@@ -285,6 +289,19 @@ class StarterManager():
         if self.arangosh is None:
             self.cfg.port = self.get_frontend_port()
             self.arangosh = ArangoshExecutor(self.cfg)
+
+    def detect_instance_pids_still_alive(self):
+        """ detecting whether the processes the starter spawned are still there """
+        missing_instances = []
+        running_pids = psutil.pids()
+        for instance in self.all_instances:
+            if instance['PID'] not in running_pids:
+                missing_instances += [instance]
+        if len(missing_instances) > 0:
+            logging.info("not all instances are alive: %s", str(missing_instances))
+            raise Exception("instances missing: " + str(missing_instances))
+        else:
+            logging.info("All arangod instances still found: %s", str(self.all_instances))
 
     def detect_leader(self):
         """ in active failover detect whether we run the leader"""
