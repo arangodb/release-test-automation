@@ -7,13 +7,14 @@ import sys
 import signal
 import click
 import functools
-
 from tools.killall import kill_all_processes
 from tools.quote_user import end_test
 from arangodb.sh import ArangoshExecutor
 import arangodb.installers as installers
 from arangodb.starter.environment import get as getStarterenv
 from arangodb.starter.environment import RunnerType
+
+import obi.util
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 ON_WINDOWS = (sys.platform == 'win32')
