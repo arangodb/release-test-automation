@@ -91,12 +91,18 @@ def run_test(version, verbose, package_dir, enterprise, quote_user, mode, starte
     inst.calculate_package_names()
     kill_all_processes()
     if mode in ['all', 'install']:
+        logging.info("INSTALLING PACKAGE")
         inst.install_package()
+        logging.info("CHECKING FILES")
         inst.check_installed_files()
+        logging.info("SAVING CONFIG")
         inst.save_config()
+        logging.info("CHECKING IF SERVICE IS UP")
         if inst.check_service_up():
+            logging.info("STOPPING SERVICE")
             inst.stop_service()
         inst.broadcast_bind()
+        logging.info("STARTING SERVICE")
         inst.start_service()
         inst.check_installed_paths()
         inst.check_engine_file()
