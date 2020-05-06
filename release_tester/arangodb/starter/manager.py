@@ -89,9 +89,6 @@ class StarterManager():
     def is_instance_up(self):
         """ check whether all spawned arangods are fully bootet"""
         if not self.instance.is_running():
-            print(self.instance)
-            print(self.instance.status())
-            print(dir(self.instance))
             raise Exception(timestamp()
                             + "my instance is gone! "
                             + self.basedir)
@@ -114,13 +111,22 @@ class StarterManager():
         self.instance.terminate()
         logging.info("StarterManager: waiting for process to exit")
         self.instance.wait()
-        logging.info("StarterManager: done")
+        logging.info("StarterManager: done - moving logfile from %s to %s",
+                     str(self.log_file),
+                     str(self.basedir / "arangodb.log.old"))
+        self.log_file.rename(self.basedir / "arangodb.log.old")
+        for instance in self.all_instances:
+            logging.info("renaming instance logfile: %s -> %s",
+                         instance['logfile'],
+                         str(instance['logfile']) + '.old')
+            instance['logfile'].rename(str(instance['logfile']) + '.old')
 
     def kill_instance(self):
         """ kill the instance of this starter
             (it won't kill its managed services)"""
         logging.info("StarterManager: Killing: %s", str(self.arguments))
-        self.instance.kill()
+        # self.instance.kill()
+        self.instance.send_signal(signal.SIGKILL)
         try:
             logging.info(str(self.instance.wait(timeout=45)))
         except:
@@ -135,6 +141,7 @@ class StarterManager():
         self.cfg.installPrefix = newInstallCfg.installPrefix
         logging.info("StarterManager: Killing my instance [%s]", str(self.instance.pid))
         self.kill_instance()
+        self.detect_instance_pids_still_alive()
         self.respawn_instance()
         logging.info("StarterManager: respawned instance as [%s]", str(self.instance.pid))
 
@@ -154,7 +161,7 @@ class StarterManager():
         logging.info("StarterManager: Upgrade command exited: %s", str(rc))
         if rc != 0:
             raise Exception("Upgrade process exited with non-zero reply")
-    
+
     def respawn_instance(self):
         """ restart the starter instance after we killed it eventually """
         args = [
@@ -164,7 +171,7 @@ class StarterManager():
         logging.info("StarterManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)
         time.sleep(self.startupwait)
-
+        
     def execute_frontend(self, cmd):
         """ use arangosh to run a command on the frontend arangod"""
         return self.arangosh.run_command(cmd)
@@ -232,6 +239,7 @@ class StarterManager():
     def detect_logfiles(self):
         """ see which arangods where spawned and inspect their logfiles"""
         have_frontend = False
+        frontend_instance = None
         while not have_frontend:
             self.all_instances = []
             logging.info(".")
@@ -251,18 +259,22 @@ class StarterManager():
                         have_frontend = True
                         self.all_instances.append(instance)
                         self.coordinator = instance
+                        frontend_instance = instance
                         self.frontend_port = instance['port']
                     elif instance['type'] == 'resilientsingle':
                         have_frontend = True
                         self.all_instances.append(instance)
                         self.db_instance = instance
+                        frontend_instance = instance
                         self.frontend_port = instance['port']
                     elif instance['type'] == 'dbserver':
                         self.all_instances.append(instance)
                         self.db_instance = instance
             if not have_frontend:
                 time.sleep(1)
-
+        while not frontend_instance['logfile'].exists():
+            logging.info(">")
+            time.sleep(1)
         logging.info("%s", str(self.all_instances))
 
     def detect_instance_pids(self):
@@ -270,7 +282,7 @@ class StarterManager():
         for instance in self.all_instances:
             instance['PID'] = 0
             while instance['PID'] == 0:
-                lfs = self.db_instance['logfile'].read_text()
+                lfs = instance['logfile'].read_text()
                 pos = lfs.find('is ready for business.')
                 if pos < 0:
                     logging.info('.')
@@ -316,7 +328,6 @@ class StarterManager():
     def active_failover_detect_hosts(self):
         """ detect hosts for the active failover """
         if not self.instance.is_running():
-            print(self.instance)
             raise Exception(timestamp()
                             + "my instance is gone! "
                             + self.basedir)
@@ -329,8 +340,6 @@ class StarterManager():
         regx = re.compile(r'Starting resilientsingle on port (\d*) .*')
         match = regx.search(lfs)
         if match is None:
-            print(regx)
-            print(match)
             raise Exception(timestamp()
                             + "Unable to get my host state! "
                             + self.basedir

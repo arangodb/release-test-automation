@@ -106,7 +106,12 @@ class ActiveFailover(Runner):
 
     def upgrade(self, newInstallCfg):
         """ upgrade this installation """
-        raise Exception("TODO!")
+        for node in self.starter_instances:
+            node.replace_binary_for_upgrade(newInstallCfg)
+        for node in self.starter_instances:
+            node.detect_instance_pids_still_alive()
+        self.starter_instances[1].command_upgrade()
+        self.starter_instances[1].wait_for_upgrade()
 
     def jam_attempt(self):
         self.leader.terminate_instance()
