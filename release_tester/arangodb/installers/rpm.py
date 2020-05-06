@@ -13,10 +13,12 @@ from arangodb.installers.base import InstallerBase
 from pprint import pprint as PP
 from pprint import pformat as PF
 
+import obi.util.logging_helper as lh
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 
-class InstallerRPM(InstallerBase):
+class InstallerRPM(InstallerBase, lh.LoggedBase):
     """ install .rpm's on RedHat, Centos or SuSe systems """
     def __init__(self, install_config):
         self.cfg = install_config
@@ -59,18 +61,22 @@ class InstallerRPM(InstallerBase):
         return True
 
     def start_service(self):
+        logging.info("STARTING SERVICE")
         startserver = psutil.Popen(['service', 'arangodb3', 'start'])
         logging.info("waiting for eof")
         startserver.wait()
         time.sleep(0.1)
         self.log_examiner.detect_instance_pids()
+        logging.info("STARTING SERVICE - DONE")
 
     def stop_service(self):
+        logging.info("STOPPING SERVICE")
         stopserver = psutil.Popen(['service', 'arangodb3', 'stop'])
         logging.info("waiting for eof")
         stopserver.wait()
         while self.check_service_up():
             time.sleep(1)
+        logging.info("STOPPING SERVICE - DONE")
 
     def upgrade_package(self):
         raise Exception("TODO!")
@@ -112,15 +118,20 @@ class InstallerRPM(InstallerBase):
         start = reply.find("'")
         end = reply.find("'", start + 1)
         self.cfg.passvoid = reply[start + 1: end]
+
         self.start_service()
+
         self.log_examiner.detect_instance_pids()
+
         pwcheckarangosh = ArangoshExecutor(self.cfg)
         if not pwcheckarangosh.js_version_check():
             logging.info(
                 "Version Check failed -"
                 "probably setting the default random password didn't work! %s",
                 self.cfg.passvoid)
+
         self.stop_service()
+
         self.cfg.passvoid = "sanoetuh"   # TODO
         with pexpect.spawnu('/usr/sbin/arango-secure-installation') as etpw:
             result = None
@@ -138,9 +149,11 @@ class InstallerRPM(InstallerBase):
                 result = etpw.expect('Repeat password:')
                 if reult == None:
                     raise RuntimeError("Not asked to repeat the password")
+                logging.info("@@@@@@@@@@@@@@@@@@@@ password should be set to: " + self.cfg.password)
                 etpw.sendline(self.cfg.passvoid)
 
                 logging.info("expecting eof")
+                logging.info("@@@@@@@@@@@@@@@@@@@@ password should be set to: " + self.cfg.password)
                 result = etpw.expect(pexpect.EOF)
 
                 logging.info("@@@@@@@@@@@@@@@@@@@@ password should be set to: " + self.cfg.password)
