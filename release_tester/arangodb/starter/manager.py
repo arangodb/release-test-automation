@@ -71,7 +71,7 @@ class StarterManager():
     def run_starter(self):
         """ launch the starter for this instance"""
         args = [
-            self.cfg.installPrefix / 'usr' / 'bin' / 'arangodb'
+            self.cfg.bin_dir / 'arangodb'
         ] + self.arguments
         
         logging.info("StarterManager: launching %s", str(args))
@@ -148,7 +148,7 @@ class StarterManager():
     def command_upgrade(self):
         """ we will launch another starter, to tell the bunch to run the upgrade"""
         args = [
-            self.cfg.installPrefix / 'usr' / 'bin' / 'arangodb',
+            self.cfg.bin_dir / 'arangodb',
             'upgrade',
             '--starter.endpoint',
             'http://127.0.0.1:' + str(self.get_my_port())
@@ -165,7 +165,7 @@ class StarterManager():
     def respawn_instance(self):
         """ restart the starter instance after we killed it eventually """
         args = [
-            self.cfg.installPrefix / 'usr' / 'bin' / 'arangodb'
+            self.cfg.bin_dir / 'arangodb'
         ] + self.arguments
         
         logging.info("StarterManager: respawning instance %s", str(args))
