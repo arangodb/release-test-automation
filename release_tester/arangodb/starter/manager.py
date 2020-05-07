@@ -267,6 +267,12 @@ class StarterManager():
                         self.db_instance = instance
                         frontend_instance = instance
                         self.frontend_port = instance['port']
+                    elif instance['type'] == 'single':
+                        have_frontend = True
+                        self.all_instances.append(instance)
+                        self.db_instance = instance
+                        frontend_instance = instance
+                        self.frontend_port = instance['port']
                     elif instance['type'] == 'dbserver':
                         self.all_instances.append(instance)
                         self.db_instance = instance
@@ -285,7 +291,7 @@ class StarterManager():
                 lfs = instance['logfile'].read_text()
                 pos = lfs.find('is ready for business.')
                 if pos < 0:
-                    logging.info('.')
+                    logging.info(',')
                     time.sleep(1)
                     continue
                 pos = lfs.rfind('\n', 0, pos)

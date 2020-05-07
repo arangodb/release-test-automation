@@ -73,7 +73,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
             """
 print(
 require("@arangodb/replication").setupReplicationGlobal({
-    endpoint: "tcp://127.0.0.1:%d",
+    endpoint: "tcp://127.0.0.1:%s",
     username: "root",
     password: "",
     verbose: false,
@@ -82,7 +82,7 @@ require("@arangodb/replication").setupReplicationGlobal({
     autoResync: true
     }));
 process.exit(0)
-""" % (self.leader.get_frontend_port()))
+""" % (str(self.leader.get_frontend_port())))
         retval = self.follower.execute_frontend(
             self.checks['startReplJS'])
         if not retval:

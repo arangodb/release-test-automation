@@ -80,15 +80,6 @@ def run_test(version, verbose, package_dir, enterprise, quote_user, mode, starte
                           publicip,
                           quote_user)
 
-    # Curry our cleanup func and register it as handler for SIGINT and SIGTERM
-    name = "blarg"
-    handler = functools.partial(cleanup, name, None)
-    signal.signal(signal.SIGINT, handler)
-    if ON_WINDOWS:
-        signal.signal(signal.SIGBREAK, handler)
-    else:
-        signal.signal(signal.SIGTERM, handler)
-
     inst.calculate_package_names()
     kill_all_processes()
     if mode in ['all', 'install']:
