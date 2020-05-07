@@ -43,7 +43,7 @@ class SyncManager():
     def run_syncer(self):
         """ launch the syncer for this instance """
         args = [
-            self.cfg.installPrefix / 'usr' / 'bin' / 'arangosync'
+            self.cfg.bin_dir / 'arangosync'
         ] + self.arguments
         
         logging.info("SyncManager: launching %s", str(args))
@@ -62,7 +62,7 @@ class SyncManager():
     def respawn_instance(self):
         """ restart the arangosync instance after we killed it eventually """
         args = [
-            self.cfg.installPrefix / 'usr' / 'bin' / 'arangosync'
+            self.cfg.bin_dir / 'arangosync'
         ] + self.arguments
         
         logging.info("SyncManager: respawning instance %s", str(args))
@@ -87,41 +87,41 @@ class SyncManager():
     def check_sync_status(self, which):
         logging.info('SyncManager: Check status of cluster %s', str(which))
         args = [
-                self.cfg.installPrefix / 'usr' / 'bin' / 'arangosync',
-                'get', 'status',
-                '--master.cacert=' + str(self.ca["cert"]),
-                '--master.endpoint=https://{url}:{port}'.format(
-                    url=self.cfg.publicip,
-                    port=str(self.clusterports[which])),
-                '--auth.keyfile=' + str(self.ca["clientkeyfile"]),
-                '--verbose']
+            self.cfg.bin_dir / 'arangosync'
+            'get', 'status',
+            '--master.cacert=' + str(self.ca["cert"]),
+            '--master.endpoint=https://{url}:{port}'.format(
+                url=self.cfg.publicip,
+                port=str(self.clusterports[which])),
+            '--auth.keyfile=' + str(self.ca["clientkeyfile"]),
+            '--verbose']
         logging.info(args)
         psutil.Popen(args).wait()
 
     def get_sync_tasks(self, which):
         logging.info('SyncManager: Check status of cluster %s', str(which))
         args = [
-                self.cfg.installPrefix / 'usr' / 'bin' / 'arangosync',
-                'get', 'tasks',
-                '--master.cacert=' + str(self.ca["cert"]),
-                '--master.endpoint=https://{url}:{port}'.format(
-                    url=self.cfg.publicip,
-                    port=str(self.clusterports[which])),
-                '--auth.keyfile=' + str(self.ca["clientkeyfile"]),
-                '--verbose']
+            self.cfg.bin_dir / 'arangosync'
+            'get', 'tasks',
+            '--master.cacert=' + str(self.ca["cert"]),
+            '--master.endpoint=https://{url}:{port}'.format(
+                url=self.cfg.publicip,
+                port=str(self.clusterports[which])),
+            '--auth.keyfile=' + str(self.ca["clientkeyfile"]),
+            '--verbose']
         logging.info(args)
         psutil.Popen(args).wait()
 
     def stop_sync(self):
         args = [
-                self.cfg.installPrefix / 'usr' / 'bin' / 'arangosync',
-                'abort', 'sync',
-                '--master.cacert=' + str(self.ca["cert"]),
-                '--master.endpoint=https://{url}:{port}'.format(
-                    url=self.cfg.publicip,
-                    port=str(self.clusterports[0])),
-                '--auth.keyfile=' + str(self.ca["clientkeyfile"])
-            ]
+            self.cfg.bin_dir / 'arangosync'
+            'abort', 'sync',
+            '--master.cacert=' + str(self.ca["cert"]),
+            '--master.endpoint=https://{url}:{port}'.format(
+                url=self.cfg.publicip,
+                port=str(self.clusterports[0])),
+            '--auth.keyfile=' + str(self.ca["clientkeyfile"])
+        ]
         logging.info('SyncManager: stopping sync : %s', str(args))
         psutil.Popen(args).wait()
         

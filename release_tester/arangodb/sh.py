@@ -16,12 +16,13 @@ class ArangoshExecutor():
 
     def run_command(self, cmd):
         """ launch a command, print its name """
-        run_cmd = [os.path.join(self.cfg.installPrefix, "usr/bin/arangosh"),
-                   "--server.endpoint",
-                   "tcp://127.0.0.1:%d" % (int(self.cfg.port)),
-                   "--server.username", "%s" % (self.cfg.username),
-                   "--server.password", "%s" % (self.cfg.passvoid),
-                   "--javascript.execute-string", "%s" % (cmd[1])]
+        run_cmd = [
+            self.cfg.bin_dir / "arangosh",
+            "--server.endpoint",
+            "tcp://127.0.0.1:%d" % (int(self.cfg.port)),
+            "--server.username", "%s" % (self.cfg.username),
+            "--server.password", "%s" % (self.cfg.passvoid),
+            "--javascript.execute-string", "%s" % (cmd[1])]
 
         if len(cmd) > 2:
             run_cmd += cmd[2:]
@@ -35,12 +36,13 @@ class ArangoshExecutor():
 
     def run_script(self, cmd):
         """ launch an external js-script, print its name """
-        run_cmd = [os.path.join(self.cfg.installPrefix, "usr/bin/arangosh"),
-                   "--server.endpoint",
-                   "tcp://127.0.0.1:%d" % (int(self.cfg.port)),
-                   "--server.username", "%s" % (self.cfg.username),
-                   "--server.password", "%s" % (self.cfg.passvoid),
-                   "--javascript.execute", "%s" % str(cmd[1])]
+        run_cmd = [
+            self.cfg.bin_dir / "arangosh",
+            "--server.endpoint",
+            "tcp://127.0.0.1:%d" % (int(self.cfg.port)),
+            "--server.username", "%s" % (self.cfg.username),
+            "--server.password", "%s" % (self.cfg.passvoid),
+            "--javascript.execute", "%s" % str(cmd[1])]
 
         if len(cmd) > 2:
             run_cmd += cmd[2:]

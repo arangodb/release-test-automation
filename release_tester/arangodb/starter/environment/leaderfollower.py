@@ -81,7 +81,7 @@ require("@arangodb/replication").setupReplicationGlobal({
     incremental: true,
     autoResync: true
     }));
-process.exit(0)
+process.exit(0);
 """ % (str(self.leader.get_frontend_port())))
         retval = self.follower.execute_frontend(
             self.checks['startReplJS'])
