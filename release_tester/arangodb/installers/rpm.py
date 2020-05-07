@@ -125,7 +125,7 @@ class InstallerRPM(InstallerBase, lh.LoggedBase):
 
         pwcheckarangosh = ArangoshExecutor(self.cfg)
         if not pwcheckarangosh.js_version_check():
-            logging.info(
+            logging.error(
                 "Version Check failed -"
                 "probably setting the default random password didn't work! %s",
                 self.cfg.passvoid)
@@ -147,16 +147,16 @@ class InstallerRPM(InstallerBase, lh.LoggedBase):
 
                 etpw.sendline(self.cfg.passvoid)
                 result = etpw.expect('Repeat password:')
-                if reult == None:
+                if result == None:
                     raise RuntimeError("Not asked to repeat the password")
-                logging.info("@@@@@@@@@@@@@@@@@@@@ password should be set to: " + self.cfg.password)
+                logging.info("@@@@@@@@@@@@@@@@@@@@ password should be set to: " + self.cfg.passvoid)
                 etpw.sendline(self.cfg.passvoid)
 
                 logging.info("expecting eof")
-                logging.info("@@@@@@@@@@@@@@@@@@@@ password should be set to: " + self.cfg.password)
+                logging.info("@@@@@@@@@@@@@@@@@@@@ password should be set to: " + self.cfg.passvoid)
                 result = etpw.expect(pexpect.EOF)
 
-                logging.info("@@@@@@@@@@@@@@@@@@@@ password should be set to: " + self.cfg.password)
+                logging.info("@@@@@@@@@@@@@@@@@@@@ password should be set to: " + self.cfg.passvoid)
 
             #except pexpect.exceptions.EOF:
             except Exception as e:
@@ -169,8 +169,8 @@ class InstallerRPM(InstallerBase, lh.LoggedBase):
                 logging.error("X" * 80)
                 print(etpw.before)
                 logging.error("X" * 80)
+                raise
 
-                sys.exit(1)
         self.start_service()
         self.log_examiner.detect_instance_pids()
 
