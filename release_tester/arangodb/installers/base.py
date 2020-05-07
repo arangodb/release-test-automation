@@ -103,7 +103,7 @@ class BinaryDescription():
     def check_symlink(self):
         for link in self.symlink:
             """ check whether this file is a symlink """
-            if not file_to_check.is_symlink():
+            if not link.is_symlink():
                 Exception("{0} is not a symlink".format(str(link)))
 
 
@@ -286,7 +286,7 @@ class InstallerBase(ABC):
             True, True, "1.0.0", "4.0.0", [] )
         )
 
-
+    def check_installed_files(self):
         for bin in ARANGO_BINARIES:
             bin.check_installed(self.cfg.version, self.cfg.enterprise)
 

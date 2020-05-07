@@ -18,7 +18,7 @@ import obi.util.logging_helper as lh
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 
-class InstallerRPM(InstallerBase, lh.LoggedBase):
+class InstallerRPM(InstallerBase):
     """ install .rpm's on RedHat, Centos or SuSe systems """
     def __init__(self, install_config):
         self.cfg = install_config
@@ -82,6 +82,7 @@ class InstallerRPM(InstallerBase, lh.LoggedBase):
         raise Exception("TODO!")
 
     def install_package(self):
+        logging.error("ENTER RPM install_package")
         self.cfg.logDir = Path('/var/log/arangodb3')
         self.cfg.dbdir = Path('/var/lib/arangodb3')
         self.cfg.appdir = Path('/var/lib/arangodb3-apps')
@@ -149,14 +150,15 @@ class InstallerRPM(InstallerBase, lh.LoggedBase):
                 result = etpw.expect('Repeat password:')
                 if result == None:
                     raise RuntimeError("Not asked to repeat the password")
-                logging.info("@@@@@@@@@@@@@@@@@@@@ password should be set to: " + self.cfg.passvoid)
+                logging.info("password should be set to: " + self.cfg.passvoid)
                 etpw.sendline(self.cfg.passvoid)
 
                 logging.info("expecting eof")
-                logging.info("@@@@@@@@@@@@@@@@@@@@ password should be set to: " + self.cfg.passvoid)
+                logging.info("password should be set to: " + self.cfg.passvoid)
                 result = etpw.expect(pexpect.EOF)
 
-                logging.info("@@@@@@@@@@@@@@@@@@@@ password should be set to: " + self.cfg.passvoid)
+                logging.info("password should be set to: " + self.cfg.passvoid)
+                print(etpw.before)
 
             #except pexpect.exceptions.EOF:
             except Exception as e:
