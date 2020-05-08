@@ -243,14 +243,17 @@ class StarterManager():
         logging.info("waiting for frontend")
 
         #this can not go on for ever
-        while not have_frontend:
+        tries = 120
+        while not have_frontend and tries:
             self.all_instances = []
             sys.stdout.write(".")
             sys.stdout.flush()
 
             for root, dirs, files in os.walk(self.basedir):
+                logging.debug(str(dirs) + str(files))
                 for name in dirs:
-                    match = re.match(r'([a-z]+)(\d*)', name)
+                    logging.debug(str(Path(root)/name))
+                    match = re.match(r'(agent|coordinator|dbserver|resilientsingle|single)(\d*)', name)
                     if match:
                         logfile =  self.basedir / name / 'arangod.log'
                         instance = {
@@ -293,58 +296,14 @@ class StarterManager():
                             logging.debug("dir not relevant:" + name)
 
             if not have_frontend:
+                tries -= 1
+                logging.debug("found instances " + str(self.all_instances))
                 time.sleep(1)
 
+        if not have_frontend:
+            logging.error("can not continue without frontend instance")
+            sys.exit(1)
 
-        sys.exit(0)
-        while not have_frontend:
-            self.all_instances = []
-            sys.stdout.write(".")
-            sys.stdout.flush()
-
-            for one in os.listdir(self.basedir):
-                logging.error("@@@@ONE@@@ " + one)
-                if os.path.isdir(os.path.join(self.basedir, one)):
-                    match = re.match(r'([a-z]*)(\d*)', one)
-                    instance = {
-                        'type': match.group(1),
-                        'port': match.group(2),
-                        'logfile': self.basedir / one / 'arangod.log'
-                    }
-
-                    logging.debug(instance)
-
-                    if instance['type'] == 'agent':
-                        self.all_instances.append(instance)
-                        self.agent_instance = instance
-                    elif instance['type'] == 'coordinator':
-                        have_frontend = True
-                        self.all_instances.append(instance)
-                        self.coordinator = instance
-                        frontend_instance = instance
-                        self.frontend_port = instance['port']
-                    elif instance['type'] == 'resilientsingle':
-                        have_frontend = True
-                        self.all_instances.append(instance)
-                        self.db_instance = instance
-                        frontend_instance = instance
-                        self.frontend_port = instance['port']
-                    elif instance['type'] == 'single':
-                        have_frontend = True
-                        self.all_instances.append(instance)
-                        self.db_instance = instance
-                        frontend_instance = instance
-                        self.frontend_port = instance['port']
-                    elif instance['type'] == 'dbserver':
-                        self.all_instances.append(instance)
-                        self.db_instance = instance
-
-                else:
-                    logging.debug("nodir")
-
-            if not have_frontend:
-                time.sleep(1)
-        print()
         logging.info("waiting for frontend")
         while not frontend_instance['logfile'].exists():
             logging.info(">")
