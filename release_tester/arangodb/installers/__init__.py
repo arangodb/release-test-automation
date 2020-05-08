@@ -48,7 +48,8 @@ def get(*args, **kwargs):
         return InstallerW(InstallConfig(*args, **kwargs))
     macver = platform.mac_ver()
     if macver[0]:
-        raise Exception("mac not yet implemented")
+        from arangodb.installers.mac import InstallerMac
+        return InstallerMac(InstallConfig(*args, **kwargs))
 
     if platform.system() == "linux" or platform.system() == "Linux":
         import distro

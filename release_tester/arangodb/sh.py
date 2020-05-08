@@ -16,14 +16,13 @@ class ArangoshExecutor():
 
     def run_command(self, cmd):
         """ launch a command, print its name """
-        run_cmd = [os.path.join(self.cfg.installPrefix, "usr/bin/arangosh"),
+        run_cmd = [self.cfg.bin_dir / "arangosh",
                    "--server.endpoint",
                    "tcp://127.0.0.1:{cgf.port}".format(cfg=self.cfg),
                    "--server.username {cfg.username}".format(cfg=self.cfg),
                    "--server.password {cfg.passvoid}".format(cfg=self.cfg),
                    "--javascript.execute-string", str(cmd[1])
                   ]
-
         if len(cmd) > 2:
             run_cmd += cmd[2:]
 
@@ -36,12 +35,13 @@ class ArangoshExecutor():
 
     def run_script(self, cmd):
         """ launch an external js-script, print its name """
-        run_cmd = [os.path.join(self.cfg.installPrefix, "usr/bin/arangosh"),
+        run_cmd = [self.cfg.bin_dir / "arangosh",
                    "--server.endpoint",
                    "tcp://127.0.0.1:{cgf.port}".format(cfg=self.cfg),
                    "--server.username {cfg.username}".format(cfg=self.cfg),
                    "--server.password {cfg.passvoid}".format(cfg=self.cfg),
-                   "--javascript.execute", str(cmd[1])]
+                   "--javascript.execute", str(cmd[1])
+                  ]
 
         if len(cmd) > 2:
             run_cmd += cmd[2:]

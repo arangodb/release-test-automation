@@ -1,0 +1,92 @@
+!!python/object:arangodb.installers.InstallConfig
+all_instances:
+  single:
+    PID: 24830
+    logfile: !!python/object/apply:pathlib.PosixPath
+    - /
+    - var
+    - log
+    - arangodb3
+    - arangod.log
+appdir: !!python/object/apply:pathlib.PosixPath
+- /
+- var
+- lib
+- arangodb3-apps
+baseTestDir: !!python/object/apply:pathlib.PosixPath
+- /
+- tmp
+bin_dir: !!python/object/apply:pathlib.PosixPath
+- /
+- Applications
+- ArangoDB3-CLI.app
+- Contents
+- Resources
+cfgdir: !!python/object/apply:pathlib.PosixPath
+- /
+- etc
+- arangodb3
+dbdir: !!python/object/apply:pathlib.PosixPath
+- /
+- var
+- lib
+- arangodb3
+enterprise: true
+frontends: []
+installPrefix: !!python/object/apply:pathlib.PosixPath
+- /
+- Applications
+- ArangoDB3-CLI.app
+- Contents
+- Resources
+install_prefix: !!python/object/apply:pathlib.PosixPath
+- /
+- Applications
+- ArangoDB3-CLI.app
+- Contents
+- Resources
+jwt: ''
+localhost: localhost
+logDir: !!python/object/apply:pathlib.PosixPath
+- /
+- var
+- log
+- arangodb3
+package_dir: !!python/object/apply:pathlib.PosixPath
+- /
+- Users
+- dothebart
+- Downloads
+passvoid: abc
+port: 8529
+publicip: 192.168.178.70
+pwd: !!python/object/apply:pathlib.PosixPath
+- /
+- Users
+- dothebart
+- release-test-automation
+- release_tester
+- arangodb
+- installers
+quote_user: true
+sbin_dir: !!python/object/apply:pathlib.PosixPath
+- /
+- Applications
+- ArangoDB3-CLI.app
+- Contents
+- Resources
+test_data_dir: !!python/object/apply:pathlib.PosixPath
+- /
+- Users
+- dothebart
+- release-test-automation
+- release_tester
+- arangodb
+- installers
+- ..
+- ..
+- ..
+- test_data
+username: root
+verbose: false
+version: 3.6.2
