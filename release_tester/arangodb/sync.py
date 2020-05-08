@@ -23,25 +23,19 @@ class SyncManager():
         self.ca = ca
         self.clusterports = clusterports
         self.arguments = ['configure', 'sync',
-               '--master.endpoint=https://'
-               + self.cfg.publicip
-               + ':'
-               + str(clusterports[0]),
-               '--master.keyfile=' + str(self.ca["clientkeyfile"]),
-               '--source.endpoint=https://'
-               + self.cfg.publicip
-               + ':'
-               + str(clusterports[1]),
-               '--master.cacert=' + str(self.ca["cert"]),
-               '--source.cacert=' + str(self.ca["cert"]),
-               '--auth.keyfile=' + str(self.ca["clientkeyfile"])]
+            '--master.endpoint=https://' + self.cfg.publicip + ':' + str(clusterports[0]),
+            '--master.keyfile=' + str(self.ca["clientkeyfile"]),
+            '--source.endpoint=https://' + self.cfg.publicip + ':' + str(clusterports[1]),
+            '--master.cacert=' + str(self.ca["cert"]),
+            '--source.cacert=' + str(self.ca["cert"]),
+            '--auth.keyfile=' + str(self.ca["clientkeyfile"])]
         self.instance = None
 
     def run_syncer(self):
         """ launch the syncer for this instance """
         args = [
             self.cfg.bin_dir / 'arangosync',
-        ] + self.arguments
+        ].extend(self.arguments)
 
         logging.info("SyncManager: launching %s", str(args))
         rc = psutil.Popen(args).wait()
@@ -60,7 +54,7 @@ class SyncManager():
         """ restart the arangosync instance after we killed it eventually """
         args = [
             self.cfg.bin_dir / 'arangosync',
-        ] + self.arguments
+        ].extend(self.arguments)
 
         logging.info("SyncManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)

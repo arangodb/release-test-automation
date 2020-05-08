@@ -6,13 +6,13 @@ def quote_user(cfg):
     """ print all available frontends, and wait for the user to confirm (if) """
     for frontend in cfg.frontends:
         print(frontend)
-        logging.info('frontend can be reached at: '
-                     '%s://root:%s@%s:%s%s',
-                     frontend['proto'],
-                     cfg.passvoid,
-                     frontend['ip'],
-                     frontend['port'],
-                     '/_db/_system/_admin/aardvark/index.html#login')
+        logging.info('frontend can be reached at:' +
+                     '{f.proto}://root:{c.passvoid}@{f.ip}:{f.port}{path}'.format(
+                        f=frontend,
+                        c=cfg,
+                        path='/_db/_system/_admin/aardvark/index.html#login'
+                      )
+                    )
     if cfg.quote_user:
         input("Press Enter to continue")
     else:
@@ -20,7 +20,8 @@ def quote_user(cfg):
 
 def end_test(cfg, which):
     """ print that the test is done, and quote the user to contirue (if) """
+    str_which = str(which)
     if cfg.quote_user:
-        input(str(which) + " finished - Press Enter to continue")
+        input("{0} finished - Press Enter to continue.".format(str_which))
     else:
-        logging.info("%s finished. continuing.", str(which))
+        logging.info("{0} finished - Continuing.".format(str_which))

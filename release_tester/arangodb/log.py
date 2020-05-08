@@ -15,35 +15,55 @@ class ArangodLogExaminer():
         self.frontend_port = 8529
 
     def detect_instance_pids(self):
+        #TODO I am not sure if this is the most robust way to detect
+        #if a server is running. I guess I might be a solution that
+        #is better portable than others.
+        #if all OSs would provide a `netstat -nlp` like functionality
+        #you could try to go with a api version once you expect the
+        #server to be up. On the otherhand maybe we want to test
+        #for collection loss in the future.
         """ try to detect the PID of the current instances
             and check that they ready for business"""
         for i in self.cfg.all_instances:
             instance = self.cfg.all_instances[i]
-            print(instance)
             instance['PID'] = 0
+
+            ## TODO what is the pid is never found - should we loop forever?
             while instance['PID'] == 0:
-                lfh = open(instance['logfile'])
+
+                log_file_content = ''
                 last_line = ''
-                lfc = ''
-                for line in lfh:
-                    if line == "":
-                        continue
-                    last_line = line
-                    lfc += '\n' + line
-                # print(last_line)
+
+                with open(instance['logfile']) as log_fh:
+                    for line in log_fh:
+                        # skip empty lines
+                        if line == "":
+                            continue
+                        # save last line and append to string (why not slurp the whole file?)
+                        last_line = line
+                        log_file_content += '\n' + line
+
+                #check last line or continue
                 match = re.search(r'Z \[(\d*)\]', last_line)
                 if match is None:
                     logging.info("no PID in: %s", last_line)
                     continue
+
+                # pid found now find the position of the pid in
+                # the logfile and check it is followed by a
+                # ready for business.
                 pid = match.groups()[0]
-                start = lfc.find(pid)
-                pos = lfc.find('is ready for business.', start)
+                start = log_file_content.find(pid)
+                pos = log_file_content.find('is ready for business.', start)
                 if pos < 0:
                     logging.info('.')
                     time.sleep(1)
                     continue
                 instance['PID'] = int(pid)
+
         logging.info(str(self.cfg.all_instances))
+
+## Delete Art below or move it to snippets
 
 #   def detect_leader(self):
 #       """ detect whether this instance is now an active failover leader"""
