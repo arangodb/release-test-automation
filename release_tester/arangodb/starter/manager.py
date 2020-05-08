@@ -248,6 +248,60 @@ class StarterManager():
             sys.stdout.write(".")
             sys.stdout.flush()
 
+            for root, dirs, files in os.walk(self.basedir):
+                for name in dirs:
+                    match = re.match(r'([a-z]+)(\d*)', name)
+                    if match:
+                        logfile =  self.basedir / name / 'arangod.log'
+                        instance = {
+                            'type': match.group(1),
+                            'port': match.group(2),
+                            'logfile': logfile
+                        }
+
+                        logging.info("found instance: " + instance["type"] + instance["port"])
+
+                        if not logfile.exists():
+                            logging.error("missing logfile: " + str(logfile))
+                            raise RuntimeError("missing logfile")
+
+                        if instance['type'] == 'agent':
+                            self.all_instances.append(instance)
+                            self.agent_instance = instance
+                        elif instance['type'] == 'coordinator':
+                            have_frontend = True
+                            self.all_instances.append(instance)
+                            self.coordinator = instance
+                            frontend_instance = instance
+                            self.frontend_port = instance['port']
+                        elif instance['type'] == 'resilientsingle':
+                            have_frontend = True
+                            self.all_instances.append(instance)
+                            self.db_instance = instance
+                            frontend_instance = instance
+                            self.frontend_port = instance['port']
+                        elif instance['type'] == 'single':
+                            have_frontend = True
+                            self.all_instances.append(instance)
+                            self.db_instance = instance
+                            frontend_instance = instance
+                            self.frontend_port = instance['port']
+                        elif instance['type'] == 'dbserver':
+                            self.all_instances.append(instance)
+                            self.db_instance = instance
+                        else:
+                            logging.debug("dir not relevant:" + name)
+
+            if not have_frontend:
+                time.sleep(1)
+
+
+        sys.exit(0)
+        while not have_frontend:
+            self.all_instances = []
+            sys.stdout.write(".")
+            sys.stdout.flush()
+
             for one in os.listdir(self.basedir):
                 logging.error("@@@@ONE@@@ " + one)
                 if os.path.isdir(os.path.join(self.basedir, one)):
