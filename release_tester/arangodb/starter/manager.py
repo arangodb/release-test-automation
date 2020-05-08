@@ -16,8 +16,6 @@ from tools.timestamp import timestamp
 from arangodb.sh import ArangoshExecutor
 # from tools.killall import sig_int_process
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
-
 ON_WINDOWS = (sys.platform == 'win32')
 
 class StarterManager():
@@ -73,7 +71,7 @@ class StarterManager():
         args = [
             self.cfg.bin_dir / 'arangodb'
         ] + self.arguments
-        
+
         logging.info("StarterManager: launching %s", str(args))
         self.instance = psutil.Popen(args)
         time.sleep(self.startupwait)
@@ -167,11 +165,11 @@ class StarterManager():
         args = [
             self.cfg.bin_dir / 'arangodb'
         ] + self.arguments
-        
+
         logging.info("StarterManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)
         time.sleep(self.startupwait)
-        
+
     def execute_frontend(self, cmd):
         """ use arangosh to run a command on the frontend arangod"""
         return self.arangosh.run_command(cmd)
@@ -238,13 +236,20 @@ class StarterManager():
 
     def detect_logfiles(self):
         """ see which arangods where spawned and inspect their logfiles"""
+
         have_frontend = False
         frontend_instance = None
+
+        logging.info("waiting for frontend")
+
+        #this can not go on for ever
         while not have_frontend:
             self.all_instances = []
-            logging.info(".")
+            sys.stdout.write(".")
+            sys.stdout.flush()
+
             for one in os.listdir(self.basedir):
-                # print(one)
+                logging.error("@@@@ONE@@@ " + one)
                 if os.path.isdir(os.path.join(self.basedir, one)):
                     match = re.match(r'([a-z]*)(\d*)', one)
                     instance = {
@@ -252,6 +257,9 @@ class StarterManager():
                         'port': match.group(2),
                         'logfile': self.basedir / one / 'arangod.log'
                     }
+
+                    logging.debug(instance)
+
                     if instance['type'] == 'agent':
                         self.all_instances.append(instance)
                         self.agent_instance = instance
@@ -276,8 +284,14 @@ class StarterManager():
                     elif instance['type'] == 'dbserver':
                         self.all_instances.append(instance)
                         self.db_instance = instance
+
+                else:
+                    logging.debug("nodir")
+
             if not have_frontend:
                 time.sleep(1)
+        print()
+        logging.info("waiting for frontend")
         while not frontend_instance['logfile'].exists():
             logging.info(">")
             time.sleep(1)

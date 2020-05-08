@@ -8,7 +8,6 @@ from pathlib import PureWindowsPath
 import psutil
 from arangodb.log import ArangodLogExaminer
 from arangodb.installers.base import InstallerBase
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 
 class InstallerW(InstallerBase):

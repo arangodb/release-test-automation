@@ -4,7 +4,6 @@ import logging
 import psutil
 import signal
 import os
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 def get_all_processes():
     arangods = []

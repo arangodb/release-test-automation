@@ -5,10 +5,6 @@ import os
 import logging
 import psutil
 
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
-
-
 class ArangoshExecutor():
     """ configuration """
     def __init__(self, config):

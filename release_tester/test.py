@@ -16,7 +16,12 @@ from arangodb.starter.environment import RunnerType
 
 import obi.util
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
+logging.basicConfig(
+    level=logging.DEBUG,
+    datefmt='%H:%M:%S',
+    format='%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s'
+)
+
 ON_WINDOWS = (sys.platform == 'win32')
 SIGNALS = {
     signal.SIGINT: 'SIGINT',

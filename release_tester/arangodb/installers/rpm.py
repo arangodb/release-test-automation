@@ -15,8 +15,6 @@ from pprint import pformat as PF
 
 import obi.util.logging_helper as lh
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
-
 
 class InstallerRPM(InstallerBase):
     """ install .rpm's on RedHat, Centos or SuSe systems """

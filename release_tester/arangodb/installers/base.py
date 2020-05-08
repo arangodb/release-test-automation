@@ -10,8 +10,6 @@ import yaml
 from arangodb.log import ArangodLogExaminer
 from pprint import pprint as PP
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
-
 ARANGO_BINARIES = []
 
 ## helper functions

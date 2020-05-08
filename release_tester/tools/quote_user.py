@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """ quote the user (if enabled) with information about the running frontends """
 import logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 def quote_user(cfg):
     """ print all available frontends, and wait for the user to confirm (if) """
