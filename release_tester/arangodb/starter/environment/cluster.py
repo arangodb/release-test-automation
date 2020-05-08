@@ -27,6 +27,7 @@ db.testCollection.save({test: "document"})
         self.cleanup()
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
+
         self.starter_instances.append(
             StarterManager(self.basecfg,
                            self.basedir / 'node1',
@@ -50,12 +51,17 @@ db.testCollection.save({test: "document"})
         for node in self.starter_instances:
             logging.info("Spawning instance")
             node.run_starter()
+
         logging.info("waiting for the starters to become alive")
-        while (not self.starter_instances[0].is_instance_up()
-               and not self.starter_instances[1].is_instance_up()
-               and not self.starter_instances[1].is_instance_up()):
-            logging.info('.')
+        not_started = [ : ] #This is a explicit copy
+        while not_started:
+            if not_started[-1].is_instance_up():
+                not_started.pop()
+                logging.debug("waiting for mananger with logfile:" + not_started[1].log_file)
+            print('.', end='')
+            sys.stdout.flush()
             time.sleep(1)
+
         logging.info("waiting for the cluster instances to become alive")
         for node in self.starter_instances:
             node.detect_logfiles()

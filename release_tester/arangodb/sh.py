@@ -14,15 +14,15 @@ class ArangoshExecutor():
         """ launch a command, print its name """
         run_cmd = [self.cfg.bin_dir / "arangosh",
                    "--server.endpoint",
-                   "tcp://127.0.0.1:{cgf.port}".format(cfg=self.cfg),
-                   "--server.username {cfg.username}".format(cfg=self.cfg),
-                   "--server.password {cfg.passvoid}".format(cfg=self.cfg),
+                   "tcp://127.0.0.1:{cfg.port}".format(cfg=self.cfg),
+                   "--server.username", str(self.cfg.username),
+                   "--server.password", str(self.cfg.passvoid),
                    "--javascript.execute-string", str(cmd[1])
                   ]
         if len(cmd) > 2:
             run_cmd += cmd[2:]
 
-        logging.info("launching %s", cmd[0])
+        logging.info("launching %s", " ".join(cmd))
         # PIPE=subprocess.PIPE
         print(str(run_cmd))
         arangosh_run = psutil.Popen(run_cmd)
@@ -33,18 +33,16 @@ class ArangoshExecutor():
         """ launch an external js-script, print its name """
         run_cmd = [self.cfg.bin_dir / "arangosh",
                    "--server.endpoint",
-                   "tcp://127.0.0.1:{cgf.port}".format(cfg=self.cfg),
-                   "--server.username {cfg.username}".format(cfg=self.cfg),
-                   "--server.password {cfg.passvoid}".format(cfg=self.cfg),
+                   "tcp://127.0.0.1:{cfg.port}".format(cfg=self.cfg),
+                   "--server.username", str(self.cfg.username),
+                   "--server.password", str(self.cfg.passvoid),
                    "--javascript.execute", str(cmd[1])
                   ]
 
         if len(cmd) > 2:
             run_cmd += cmd[2:]
 
-        logging.info("launching %s", cmd[0])
-        # PIPE=subprocess.PIPE
-        print(str(run_cmd))
+        logging.info("launching %s", " ".join(cmd))
         arangosh_run = psutil.Popen(run_cmd)
         exitcode = arangosh_run.wait(timeout=30)
         return exitcode == 0
