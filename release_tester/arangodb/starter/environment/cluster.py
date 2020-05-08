@@ -9,8 +9,6 @@ from tools.quote_user import quote_user, end_test
 from arangodb.starter.manager import StarterManager
 from arangodb.starter.environment.runner import Runner
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
-
 
 class Cluster(Runner):
     """ this launches a cluster setup """

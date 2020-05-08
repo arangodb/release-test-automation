@@ -10,7 +10,10 @@ import psutil
 from arangodb.sh import ArangoshExecutor
 from arangodb.log import ArangodLogExaminer
 from arangodb.installers.base import InstallerBase
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
+from pprint import pprint as PP
+from pprint import pformat as PF
+
+import obi.util.logging_helper as lh
 
 
 class InstallerRPM(InstallerBase):
@@ -56,23 +59,28 @@ class InstallerRPM(InstallerBase):
         return True
 
     def start_service(self):
+        logging.info("STARTING SERVICE")
         startserver = psutil.Popen(['service', 'arangodb3', 'start'])
         logging.info("waiting for eof")
         startserver.wait()
         time.sleep(0.1)
         self.log_examiner.detect_instance_pids()
+        logging.info("STARTING SERVICE - DONE")
 
     def stop_service(self):
+        logging.info("STOPPING SERVICE")
         stopserver = psutil.Popen(['service', 'arangodb3', 'stop'])
         logging.info("waiting for eof")
         stopserver.wait()
         while self.check_service_up():
             time.sleep(1)
+        logging.info("STOPPING SERVICE - DONE")
 
     def upgrade_package(self):
         raise Exception("TODO!")
 
     def install_package(self):
+        logging.error("ENTER RPM install_package")
         self.cfg.logDir = Path('/var/log/arangodb3')
         self.cfg.dbdir = Path('/var/lib/arangodb3')
         self.cfg.appdir = Path('/var/lib/arangodb3-apps')
@@ -109,30 +117,60 @@ class InstallerRPM(InstallerBase):
         start = reply.find("'")
         end = reply.find("'", start + 1)
         self.cfg.passvoid = reply[start + 1: end]
+
         self.start_service()
+
         self.log_examiner.detect_instance_pids()
+
         pwcheckarangosh = ArangoshExecutor(self.cfg)
         if not pwcheckarangosh.js_version_check():
-            logging.info(
+            logging.error(
                 "Version Check failed -"
                 "probably setting the default random password didn't work! %s",
                 self.cfg.passvoid)
+
         self.stop_service()
+
         self.cfg.passvoid = "sanoetuh"   # TODO
-        etpw = pexpect.spawnu('/usr/sbin/arango-secure-installation')
-        try:
-            etpw.expect('Please enter a new password'
-                        ' for the ArangoDB root user:')
-            etpw.sendline(self.cfg.passvoid)
-            etpw.expect('Repeat password:')
-            etpw.sendline(self.cfg.passvoid)
-            etpw.expect(pexpect.EOF)
-        except pexpect.exceptions.EOF:
-            logging.info("setting our password failed!")
-            logging.info("X" * 80)
-            print(etpw.before)
-            logging.info("X" * 80)
-            sys.exit(1)
+        with pexpect.spawnu('/usr/sbin/arango-secure-installation') as etpw:
+            result = None
+            try:
+                ask_for_pass=[
+                    'Please enter a new password for the ArangoDB root user:',
+                    'Please enter password for root user:',
+                ]
+
+                result = etpw.expect(ask_for_pass)
+                if result == None:
+                    raise RuntimeError("Not asked for password")
+
+                etpw.sendline(self.cfg.passvoid)
+                result = etpw.expect('Repeat password:')
+                if result == None:
+                    raise RuntimeError("Not asked to repeat the password")
+                logging.info("password should be set to: " + self.cfg.passvoid)
+                etpw.sendline(self.cfg.passvoid)
+
+                logging.info("expecting eof")
+                logging.info("password should be set to: " + self.cfg.passvoid)
+                result = etpw.expect(pexpect.EOF)
+
+                logging.info("password should be set to: " + self.cfg.passvoid)
+                print(etpw.before)
+
+            #except pexpect.exceptions.EOF:
+            except Exception as e:
+                logging.error("setting our password failed!")
+                logging.error("X" * 80)
+                print("XO" * 80)
+                logging.error(repr(self.cfg))
+                logging.error("X" * 80)
+                logging.error("result: " + str(result))
+                logging.error("X" * 80)
+                print(etpw.before)
+                logging.error("X" * 80)
+                raise
+
         self.start_service()
         self.log_examiner.detect_instance_pids()
 

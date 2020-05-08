@@ -16,8 +16,6 @@ from tools.timestamp import timestamp
 from arangodb.sh import ArangoshExecutor
 # from tools.killall import sig_int_process
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
-
 ON_WINDOWS = (sys.platform == 'win32')
 
 class StarterManager():
@@ -73,7 +71,7 @@ class StarterManager():
         args = [
             self.cfg.bin_dir / 'arangodb'
         ] + self.arguments
-        
+
         logging.info("StarterManager: launching %s", str(args))
         self.instance = psutil.Popen(args)
         time.sleep(self.startupwait)
@@ -167,11 +165,11 @@ class StarterManager():
         args = [
             self.cfg.bin_dir / 'arangodb'
         ] + self.arguments
-        
+
         logging.info("StarterManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)
         time.sleep(self.startupwait)
-        
+
     def execute_frontend(self, cmd):
         """ use arangosh to run a command on the frontend arangod"""
         return self.arangosh.run_command(cmd)
@@ -238,46 +236,75 @@ class StarterManager():
 
     def detect_logfiles(self):
         """ see which arangods where spawned and inspect their logfiles"""
+
         have_frontend = False
         frontend_instance = None
-        while not have_frontend:
+
+        logging.info("waiting for frontend")
+
+        #this can not go on for ever
+        tries = 120
+        while not have_frontend and tries:
             self.all_instances = []
-            logging.info(".")
-            for one in os.listdir(self.basedir):
-                # print(one)
-                if os.path.isdir(os.path.join(self.basedir, one)):
-                    match = re.match(r'([a-z]*)(\d*)', one)
-                    instance = {
-                        'type': match.group(1),
-                        'port': match.group(2),
-                        'logfile': self.basedir / one / 'arangod.log'
-                    }
-                    if instance['type'] == 'agent':
-                        self.all_instances.append(instance)
-                        self.agent_instance = instance
-                    elif instance['type'] == 'coordinator':
-                        have_frontend = True
-                        self.all_instances.append(instance)
-                        self.coordinator = instance
-                        frontend_instance = instance
-                        self.frontend_port = instance['port']
-                    elif instance['type'] == 'resilientsingle':
-                        have_frontend = True
-                        self.all_instances.append(instance)
-                        self.db_instance = instance
-                        frontend_instance = instance
-                        self.frontend_port = instance['port']
-                    elif instance['type'] == 'single':
-                        have_frontend = True
-                        self.all_instances.append(instance)
-                        self.db_instance = instance
-                        frontend_instance = instance
-                        self.frontend_port = instance['port']
-                    elif instance['type'] == 'dbserver':
-                        self.all_instances.append(instance)
-                        self.db_instance = instance
+            sys.stdout.write(".")
+            sys.stdout.flush()
+
+            for root, dirs, files in os.walk(self.basedir):
+                logging.debug(str(dirs) + str(files))
+                for name in dirs:
+                    logging.debug(str(Path(root)/name))
+                    match = re.match(r'(agent|coordinator|dbserver|resilientsingle|single)(\d*)', name)
+                    if match:
+                        logfile =  self.basedir / name / 'arangod.log'
+                        instance = {
+                            'type': match.group(1),
+                            'port': match.group(2),
+                            'logfile': logfile
+                        }
+
+                        logging.info("found instance: " + instance["type"] + instance["port"])
+
+                        if not logfile.exists():
+                            logging.error("missing logfile: " + str(logfile))
+                            raise RuntimeError("missing logfile")
+
+                        if instance['type'] == 'agent':
+                            self.all_instances.append(instance)
+                            self.agent_instance = instance
+                        elif instance['type'] == 'coordinator':
+                            have_frontend = True
+                            self.all_instances.append(instance)
+                            self.coordinator = instance
+                            frontend_instance = instance
+                            self.frontend_port = instance['port']
+                        elif instance['type'] == 'resilientsingle':
+                            have_frontend = True
+                            self.all_instances.append(instance)
+                            self.db_instance = instance
+                            frontend_instance = instance
+                            self.frontend_port = instance['port']
+                        elif instance['type'] == 'single':
+                            have_frontend = True
+                            self.all_instances.append(instance)
+                            self.db_instance = instance
+                            frontend_instance = instance
+                            self.frontend_port = instance['port']
+                        elif instance['type'] == 'dbserver':
+                            self.all_instances.append(instance)
+                            self.db_instance = instance
+                        else:
+                            logging.debug("dir not relevant:" + name)
+
             if not have_frontend:
+                tries -= 1
+                logging.debug("found instances " + str(self.all_instances))
                 time.sleep(1)
+
+        if not have_frontend:
+            logging.error("can not continue without frontend instance")
+            sys.exit(1)
+
+        logging.info("waiting for frontend")
         while not frontend_instance['logfile'].exists():
             logging.info(">")
             time.sleep(1)

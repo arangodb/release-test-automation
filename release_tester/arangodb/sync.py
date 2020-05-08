@@ -13,9 +13,6 @@ import psutil
 from tools.timestamp import timestamp
 from arangodb.sh import ArangoshExecutor
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
-
-
 class SyncManager():
     """ manager arangosync instance """
     def __init__(self,
@@ -58,6 +55,7 @@ class SyncManager():
         args = [
             self.cfg.bin_dir / 'arangosync',
         ].extend(self.arguments)
+
         logging.info("SyncManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)
         logging.info("SyncManager: up %s", str(self.instance.pid))

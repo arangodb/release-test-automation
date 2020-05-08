@@ -9,7 +9,6 @@ from pathlib import Path
 import pexpect
 from arangodb.log import ArangodLogExaminer
 from arangodb.installers.base import InstallerBase
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 
 class InstallerMac(InstallerBase):

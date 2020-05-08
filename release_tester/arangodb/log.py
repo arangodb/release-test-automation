@@ -6,10 +6,6 @@ import re
 import time
 import logging
 
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
-
-
 class ArangodLogExaminer():
     """ examine the logfiles of all arangods attached to one starter"""
     def __init__(self, config):

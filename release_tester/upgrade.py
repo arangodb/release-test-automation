@@ -13,7 +13,11 @@ import arangodb.installers as installers
 from arangodb.starter.environment import get as getStarterenv
 from arangodb.starter.environment import RunnerType
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
+logging.basicConfig(
+    level=logging.DEBUG,
+    datefmt='%H:%M:%S',
+    format='%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s'
+)
 
 
 @click.command()
@@ -63,7 +67,7 @@ def run_test(old_version, version, verbose, package_dir, enterprise, quote_user,
 
     for runner in starter_mode:
         kill_all_processes()
-    
+
         old_inst = installers.get(old_version,
                                   verbose,
                                   enterprise,
@@ -71,7 +75,7 @@ def run_test(old_version, version, verbose, package_dir, enterprise, quote_user,
                                   publicip,
                                   quote_user)
         old_inst.calculate_package_names()
-        
+
         new_inst = installers.get(version,
                                   verbose,
                                   enterprise,
@@ -79,7 +83,7 @@ def run_test(old_version, version, verbose, package_dir, enterprise, quote_user,
                                   publicip,
                                   quote_user)
         new_inst.calculate_package_names()
-    
+
         old_inst.install_package()
 
         if old_inst.check_service_up():
@@ -97,7 +101,7 @@ def run_test(old_version, version, verbose, package_dir, enterprise, quote_user,
         stenv.shutdown()
         stenv.cleanup()
         kill_all_processes()
-         
+
         new_inst.un_install_package()
         new_inst.check_uninstall_cleanup()
         new_inst.cleanup_system()

@@ -10,8 +10,6 @@ from arangodb.starter.manager import StarterManager
 from arangodb.sync import SyncManager
 from arangodb.starter.environment.runner import Runner
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
-
 
 class Dc2Dc(Runner):
     """ this launches two clusters in dc2dc mode """
@@ -133,7 +131,7 @@ class Dc2Dc(Runner):
 
     def run(self):
         logging.info('finished')
-        
+
     def post_setup(self):
         self.cluster1['instance'].arangosh.create_test_data()
         self.sync_manager.check_sync_status(0)
@@ -146,7 +144,7 @@ class Dc2Dc(Runner):
         self.sync_manager.check_sync_status(1)
         self.sync_manager.get_sync_tasks(0)
         self.sync_manager.get_sync_tasks(1)
-        
+
         pass
 
     def upgrade(self, newInstallCfg):

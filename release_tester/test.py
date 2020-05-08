@@ -7,7 +7,6 @@ import sys
 import signal
 import click
 import functools
-
 from tools.killall import kill_all_processes
 from tools.quote_user import end_test
 from arangodb.sh import ArangoshExecutor
@@ -15,7 +14,14 @@ import arangodb.installers as installers
 from arangodb.starter.environment import get as getStarterenv
 from arangodb.starter.environment import RunnerType
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
+import obi.util
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    datefmt='%H:%M:%S',
+    format='%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s'
+)
+
 ON_WINDOWS = (sys.platform == 'win32')
 SIGNALS = {
     signal.SIGINT: 'SIGINT',
@@ -82,12 +88,18 @@ def run_test(version, verbose, package_dir, enterprise, quote_user, mode, starte
     inst.calculate_package_names()
     kill_all_processes()
     if mode in ['all', 'install']:
+        logging.info("INSTALLING PACKAGE")
         inst.install_package()
+        logging.info("CHECKING FILES")
         inst.check_installed_files()
+        logging.info("SAVING CONFIG")
         inst.save_config()
+        logging.info("CHECKING IF SERVICE IS UP")
         if inst.check_service_up():
+            logging.info("STOPPING SERVICE")
             inst.stop_service()
         inst.broadcast_bind()
+        logging.info("STARTING SERVICE")
         inst.start_service()
         inst.check_installed_paths()
         inst.check_engine_file()
