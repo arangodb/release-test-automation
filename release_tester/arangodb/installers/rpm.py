@@ -10,6 +10,7 @@ import psutil
 from arangodb.sh import ArangoshExecutor
 from arangodb.log import ArangodLogExaminer
 from arangodb.installers.base import InstallerBase
+from tools.asciiprint import ascii_print
 from pprint import pprint as PP
 from pprint import pformat as PF
 
@@ -106,12 +107,12 @@ class InstallerRPM(InstallerBase):
 
         try:
             server_install.expect('the current password is')
-            logging.debug(server_install.before)
+            ascii_print(server_install.before)
             server_install.expect(pexpect.EOF, timeout=30)
             reply = server_install.before
-            print(reply)
+            ascii_print(reply)
         except pexpect.exceptions.EOF:
-            print(server_install.before)
+            ascii_print(server_install.before)
             logging.info("Installation failed!")
             sys.exit(1)
 
@@ -151,6 +152,7 @@ class InstallerRPM(InstallerBase):
                 result = etpw.expect('Repeat password: ')
                 if result == None:
                     raise RuntimeError("Not asked to repeat the password")
+                ascii_print(etpw.before)
                 logging.info("password should be set to: " + self.cfg.passvoid)
                 etpw.sendline(self.cfg.passvoid)
 
@@ -159,7 +161,7 @@ class InstallerRPM(InstallerBase):
                 result = etpw.expect(pexpect.EOF)
 
                 logging.info("password should be set to: " + self.cfg.passvoid)
-                print(etpw.before)
+                ascii_print(etpw.before)
 
             #except pexpect.exceptions.EOF:
             except Exception as e:
@@ -170,7 +172,7 @@ class InstallerRPM(InstallerBase):
                 logging.error("X" * 80)
                 logging.error("result: " + str(result))
                 logging.error("X" * 80)
-                print(etpw.before)
+                ascii_print(etpw.before)
                 logging.error("X" * 80)
                 raise
 
