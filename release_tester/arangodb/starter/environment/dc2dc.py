@@ -156,8 +156,8 @@ class Dc2Dc(Runner):
         self.cluster1["instance"].detect_instance_pids_still_alive()
         self.cluster2["instance"].detect_instance_pids_still_alive()
         self.cluster1["instance"].command_upgrade()
-        self.cluster2["instance"].command_upgrade()
         self.cluster1["instance"].wait_for_upgrade()
+        self.cluster2["instance"].command_upgrade()
         self.cluster2["instance"].wait_for_upgrade()
         self.sync_manager.respawn_instance()
         time.sleep(180) # TODO: howto detect dc2dc is completely up and running?

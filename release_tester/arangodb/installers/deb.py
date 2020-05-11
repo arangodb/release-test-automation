@@ -9,6 +9,8 @@ from pathlib import Path
 import pexpect
 from arangodb.log import ArangodLogExaminer
 from arangodb.installers.base import InstallerBase
+from tools.asciiprint import ascii_print
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 
 class InstallerDeb(InstallerBase):
@@ -79,17 +81,17 @@ class InstallerDeb(InstallerBase):
                                         str(self.cfg.package_dir / self.server_package))
         try:
             server_upgrade.expect('Upgrading database files')
-            print(server_upgrade.before)
+            ascii_print(server_upgrade.before)
         except pexpect.exceptions.EOF:
             logging.info("X" * 80)
-            print(server_upgrade.before)
+            ascii_print(server_upgrade.before)
             logging.info("X" * 80)
             logging.info("Upgrade failed!")
             sys.exit(1)
         try:
             logging.info("waiting for the upgrade to finish")
             server_upgrade.expect(pexpect.EOF, timeout=30)
-            print(server_upgrade.before)
+            ascii_print(server_upgrade.before)
         except pexpect.exceptions.EOF:
             logging.info("TIMEOUT!")
 
@@ -105,30 +107,30 @@ class InstallerDeb(InstallerBase):
                                         str(self.cfg.package_dir / self.server_package))
         try:
             server_install.expect('user:')
-            print(server_install.before)
+            ascii_print(server_install.before)
             server_install.sendline(self.cfg.passvoid)
             server_install.expect('user:')
-            print(server_install.before)
+            ascii_print(server_install.before)
             server_install.sendline(self.cfg.passvoid)
             server_install.expect("Automatically upgrade database files")
-            print(server_install.before)
+            ascii_print(server_install.before)
             server_install.sendline("yes")
             server_install.expect("Database storage engine")
-            print(server_install.before)
+            ascii_print(server_install.before)
             server_install.sendline("1")
             server_install.expect("Backup database files before upgrading")
-            print(server_install.before)
+            ascii_print(server_install.before)
             server_install.sendline("no")
         except pexpect.exceptions.EOF:
             logging.info("X" * 80)
-            print(server_install.before)
+            ascii_print(server_install.before)
             logging.info("X" * 80)
             logging.info("Installation failed!")
             sys.exit(1)
         try:
             logging.info("waiting for the installation to finish")
             server_install.expect(pexpect.EOF, timeout=30)
-            print(server_install.before)
+            ascii_print(server_install.before)
         except pexpect.exceptions.EOF:
             logging.info("TIMEOUT!")
         while server_install.isalive():
@@ -146,11 +148,11 @@ class InstallerDeb(InstallerBase):
 
         try:
             uninstall.expect('Purging')
-            print(uninstall.before)
+            ascii_print(uninstall.before)
             uninstall.expect(pexpect.EOF)
-            print(uninstall.before)
+            ascii_print(uninstall.before)
         except pexpect.exceptions.EOF:
-            print(uninstall.before)
+            ascii_print(uninstall.before)
             sys.exit(1)
 
     def cleanup_system(self):

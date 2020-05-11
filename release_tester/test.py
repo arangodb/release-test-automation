@@ -122,7 +122,7 @@ def run_test(version, verbose, package_dir, enterprise, no_quote_user, mode, sta
         inst.check_engine_file()
     else:
         inst.load_config()
-        inst.cfg.quote_user = quote_user
+        inst.cfg.quote_user = no_quote_user
     if mode in ['all', 'system']:
         if inst.check_service_up():
             inst.stop_service()
