@@ -55,9 +55,9 @@ class StarterManager():
                 self.expect_instance_count = 2 # agent + server
             elif self.mode == 'cluster':
                 self.expect_instance_count = 3 # agent + dbserver + coordinator
-                if moreopts.find('--starter.local'):
+                if '--starter.local' in moreopts:
                     self.expect_instance_count *= 3 # full cluster on this starter
-                if moreopts.find('--starter.sync'):
+                if '--starter.sync' in moreopts:
                     self.expect_instance_count += 2 # syncmaster + syncworker
                     
         self.moreopts += moreopts

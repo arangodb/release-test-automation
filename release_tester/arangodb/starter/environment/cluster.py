@@ -53,7 +53,7 @@ db.testCollection.save({test: "document"})
             node.run_starter()
 
         logging.info("waiting for the starters to become alive")
-        not_started = [ : ] #This is a explicit copy
+        not_started = [] # broken syntax in some pythons? [ : ] #This is a explicit copy
         while not_started:
             if not_started[-1].is_instance_up():
                 not_started.pop()
