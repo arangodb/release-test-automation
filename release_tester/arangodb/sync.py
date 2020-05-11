@@ -23,9 +23,9 @@ class SyncManager():
         self.ca = ca
         self.clusterports = clusterports
         self.arguments = ['configure', 'sync',
-            '--master.endpoint=https://' + self.cfg.publicip + ':' + str(clusterports[0]),
+            '--master.endpoint=https://${ip}:${port}'.format(ip=self.cfg.publicip, port=str(clusterports[0]),
             '--master.keyfile=' + str(self.ca["clientkeyfile"]),
-            '--source.endpoint=https://' + self.cfg.publicip + ':' + str(clusterports[1]),
+            '--source.endpoint=https://${ip}:${port}'.format(ip=self.cfg.publicip, port=str(clusterports[1]),
             '--master.cacert=' + str(self.ca["cert"]),
             '--source.cacert=' + str(self.ca["cert"]),
             '--auth.keyfile=' + str(self.ca["clientkeyfile"])]

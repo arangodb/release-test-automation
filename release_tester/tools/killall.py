@@ -13,10 +13,10 @@ def get_all_processes():
     for process in psutil.process_iter(['pid', 'name']):
         try:
             name = process.name()
-            if name.startswith('arangod'):
-                arangods.append(psutil.Process(process.pid))
-            elif name.startswith('arangodb'):
+            if name.startswith('arangodb'):
                 arangodbs.append(psutil.Process(process.pid))
+            elif name.startswith('arangod'):
+                arangods.append(psutil.Process(process.pid))
             elif name.startswith('arangosync'):
                 arangosyncs.append(psutil.Process(process.pid))
         except Exception as x:
