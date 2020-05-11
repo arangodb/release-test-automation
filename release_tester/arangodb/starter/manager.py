@@ -46,8 +46,20 @@ class StarterManager():
         self.coordinator = None
         self.frontend_port = None
         self.db_instance = None
+        self.expect_instance_count = 1
         if self.mode:
             self.moreopts += ["--starter.mode", self.mode]
+            if self.mode == 'single':
+                self.expect_instance_count = 1 # Only single server
+            elif self.mode == 'activefailover':
+                self.expect_instance_count = 2 # agent + server
+            elif self.mode == 'cluster':
+                self.expect_instance_count = 3 # agent + dbserver + coordinator
+                if moreopts.find('--starter.local'):
+                    self.expect_instance_count *= 3 # full cluster on this starter
+                if moreopts.find('--starter.sync'):
+                    self.expect_instance_count += 2 # syncmaster + syncworker
+                    
         self.moreopts += moreopts
         self.jwtfile = Path()
         if jwtStr:
@@ -242,22 +254,18 @@ class StarterManager():
 
         logging.info("waiting for frontend")
 
-        logging.error("sleeping 30 seconds because of probably broken logic")
-        time.sleep(30) # TODO this is fix for probably broken logic below
-
         frontend_instance = None
         logfiles=set()
-        tries = 10
-
-        # I am not sure if the original author just wants to detect the
-        # frontend or if he wants to populate all_instances as well
-
+        tries = 10 * self.expect_instance_count # the more instances we expect to spawn the more patient.
+        print('z'*80 + str(self.expect_instance_count))
+        # wait for all instances to become alive. The last instance spawned is a frontend instance.
+        
         while not frontend_instance and tries:
             self.all_instances = []
             sys.stdout.write(".")
             sys.stdout.flush()
             for root, dirs, files in os.walk(self.basedir):
-                logging.debug("iterating over:" + root)
+                # logging.debug("iterating over:" + root)
 
                 for f in files:
                     if f.endswith("log"):
@@ -279,10 +287,7 @@ class StarterManager():
                             logging.error("missing logfile: " + str(logfile))
                             raise RuntimeError("missing logfile")
 
-                        if instance['type'] == 'agent':
-                            self.all_instances.append(instance)
-                            self.agent_instance = instance
-                        elif instance['type'] == 'coordinator':
+                        if instance['type'] == 'coordinator':
                             self.all_instances.append(instance)
                             self.coordinator = instance
                             frontend_instance = instance
@@ -297,11 +302,16 @@ class StarterManager():
                             self.db_instance = instance
                             frontend_instance = instance
                             self.frontend_port = instance['port']
+                        # these are not frontend instances:
+                        elif instance['type'] == 'agent':
+                            self.all_instances.append(instance)
+                            self.agent_instance = instance
                         elif instance['type'] == 'dbserver':
                             self.all_instances.append(instance)
                             self.db_instance = instance
                         else:
-                            logging.debug("directory not relevant:" + name)
+                            # logging.debug("directory not relevant:" + name)
+                            pass
 
 
             else:
