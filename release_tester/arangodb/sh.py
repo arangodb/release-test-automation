@@ -4,6 +4,7 @@
 import os
 import logging
 import psutil
+import tools.loghelper as lh
 
 class ArangoshExecutor():
     """ configuration """
@@ -22,9 +23,8 @@ class ArangoshExecutor():
         if len(cmd) > 2:
             run_cmd += cmd[2:]
 
-        logging.info("launching %s", " ".join(cmd))
+        lh.log_cmd(run_cmd)
         # PIPE=subprocess.PIPE
-        print(str(run_cmd))
         arangosh_run = psutil.Popen(run_cmd)
         exitcode = arangosh_run.wait(timeout=30)
         return exitcode == 0
@@ -42,7 +42,7 @@ class ArangoshExecutor():
         if len(cmd) > 2:
             run_cmd += cmd[2:]
 
-        logging.info("launching %s", " ".join(cmd))
+        lh.log_cmd(run_cmd)
         arangosh_run = psutil.Popen(run_cmd)
         exitcode = arangosh_run.wait(timeout=30)
         return exitcode == 0

@@ -15,6 +15,7 @@ import psutil
 from tools.timestamp import timestamp
 from arangodb.sh import ArangoshExecutor
 # from tools.killall import sig_int_process
+import tools.loghelper as lh
 
 ON_WINDOWS = (sys.platform == 'win32')
 
@@ -72,9 +73,7 @@ class StarterManager():
             self.cfg.bin_dir / 'arangodb'
         ] + self.arguments
 
-        logging.info("StarterManager: launching %s", str(args))
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        print("run: " + str(args))
+        lh.log_cmd(args)
         self.instance = psutil.Popen(args)
 
         time.sleep(self.startupwait)
@@ -90,6 +89,7 @@ class StarterManager():
 
     def is_instance_up(self):
         """ check whether all spawned arangods are fully bootet"""
+        logging.info("checking if arangodb booted")
         if not self.instance.is_running():
             raise Exception(timestamp()
                             + "my instance is gone! "
@@ -127,7 +127,6 @@ class StarterManager():
         """ kill the instance of this starter
             (it won't kill its managed services)"""
         logging.info("StarterManager: Killing: %s", str(self.arguments))
-        # self.instance.kill()
         self.instance.send_signal(signal.SIGKILL)
         try:
             logging.info(str(self.instance.wait(timeout=45)))

@@ -13,7 +13,7 @@ from arangodb.sh import ArangoshExecutor
 import arangodb.installers as installers
 from arangodb.starter.environment import get as getStarterenv
 from arangodb.starter.environment import RunnerType
-
+import tools.loghelper as lh
 import obi.util
 
 logging.basicConfig(
@@ -27,6 +27,7 @@ SIGNALS = {
     signal.SIGINT: 'SIGINT',
     signal.SIGTERM: 'SIGTERM',
 }
+
 if ON_WINDOWS:
     SIGNALS[signal.SIGBREAK] = 'SIGBREAK'
 
@@ -37,6 +38,7 @@ def term(proc):
     else:
         proc.terminate()
     proc.wait()
+
 def cleanup(name, child, signum, frame):
     """Stop the sub=process *child* if *signum* is SIGTERM. Then terminate."""
     try:
@@ -46,21 +48,23 @@ def cleanup(name, child, signum, frame):
             term(child)
     except:
         traceback.print_exc()
-    #finally:
-        # sys.exit()
 
 @click.command()
 @click.option('--version', help='ArangoDB version number.')
-@click.option('--verbose', help='switch starter to verbose logging mode.')
+@click.option('--verbose',
+              is_flag = True,
+              help='switch starter to verbose logging mode.')
+@click.option('--enterprise',
+              is_flag = True,
+              default=False,
+              help='Enterprise or community?')
+@click.option('--no-quote-user',
+              is_flag = True,
+              default=False,
+              help='wait for the user to hit Enter?')
 @click.option('--package-dir',
               default='/tmp/',
               help='directory to load the packages from.')
-@click.option('--enterprise',
-              default='True',
-              help='Enterprise or community?')
-@click.option('--quote_user',
-              default='True',
-              help='wait for the user to hit Enter?')
 @click.option('--mode',
               default='all',
               help='operation mode - [all|install|uninstall|tests].')
@@ -71,35 +75,48 @@ def cleanup(name, child, signum, frame):
 @click.option('--publicip',
               default='127.0.0.1',
               help='IP for the click to browser hints.')
-def run_test(version, verbose, package_dir, enterprise, quote_user, mode, starter_mode, publicip):
+def run_test(version, verbose, package_dir, enterprise, no_quote_user, mode, starter_mode, publicip):
     """ main """
-    enterprise = enterprise == 'True'
-    quote_user = quote_user == 'True'
-    verbose = verbose == 'True'
+    lh.section("configuration")
+    print("version: " + str(version))
+    print("using enterpise: " + str(enterprise))
+    print("package directory: " + str(package_dir))
+    print("mode: " + str(mode))
+    print("starter mode: " + str(starter_mode))
+    print("public ip: " + str(publicip))
+    print("quote_user: " + str(no_quote_user))
+    print("verbose: " + str(verbose))
+
     if mode not in ['all', 'install', 'system', 'tests', 'uninstall']:
         raise Exception("unsupported mode %s!" % mode)
+
+    lh.section("startup")
+    if verbose:
+        logging.info("setting debug level to debug (verbose)")
+        logging.getLogger().setLevel(logging.DEBUG)
+
     inst = installers.get(version,
                           verbose,
                           enterprise,
                           Path(package_dir),
                           publicip,
-                          quote_user)
+                          not no_quote_user)
 
     inst.calculate_package_names()
     kill_all_processes()
     if mode in ['all', 'install']:
-        logging.info("INSTALLING PACKAGE")
+        lh.section("INSTALLING PACKAGE")
         inst.install_package()
-        logging.info("CHECKING FILES")
+        lh.section("CHECKING FILES")
         inst.check_installed_files()
-        logging.info("SAVING CONFIG")
+        lh.section("SAVING CONFIG")
         inst.save_config()
-        logging.info("CHECKING IF SERVICE IS UP")
+        lh.section("CHECKING IF SERVICE IS UP")
         if inst.check_service_up():
-            logging.info("STOPPING SERVICE")
+            lh.section("STOPPING SERVICE")
             inst.stop_service()
         inst.broadcast_bind()
-        logging.info("STARTING SERVICE")
+        lh.section("STARTING SERVICE")
         inst.start_service()
         inst.check_installed_paths()
         inst.check_engine_file()

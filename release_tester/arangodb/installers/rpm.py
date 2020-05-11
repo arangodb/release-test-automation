@@ -13,7 +13,8 @@ from arangodb.installers.base import InstallerBase
 from pprint import pprint as PP
 from pprint import pformat as PF
 
-import obi.util.logging_helper as lh
+import obi.util.logging_helper as olh
+import tools.loghelper as lh
 
 
 class InstallerRPM(InstallerBase):
@@ -59,30 +60,29 @@ class InstallerRPM(InstallerBase):
         return True
 
     def start_service(self):
-        logging.info("STARTING SERVICE")
-        startserver = psutil.Popen(['service', 'arangodb3', 'start'])
-        logging.info("waiting for eof")
+        cmd = ['service', 'arangodb3', 'start']
+        lh.log_cmd(cmd)
+        startserver = psutil.Popen(cmd)
+        logging.info("waiting for eof of start service")
         startserver.wait()
         time.sleep(0.1)
         self.log_examiner.detect_instance_pids()
-        logging.info("STARTING SERVICE - DONE")
 
     def stop_service(self):
-        logging.info("STOPPING SERVICE")
-        stopserver = psutil.Popen(['service', 'arangodb3', 'stop'])
+        cmd = ['service', 'arangodb3', 'stop']
+        lh.log_cmd(cmd)
+        stopserver = psutil.Popen(cmd)
         logging.info("waiting for eof")
         stopserver.wait()
         while self.check_service_up():
             time.sleep(1)
-        logging.info("STOPPING SERVICE - DONE")
 
     def upgrade_package(self):
         raise Exception("TODO!")
 
     def install_package(self):
-        logging.error("ENTER RPM install_package")
         self.cfg.logDir = Path('/var/log/arangodb3')
-        self.cfg.dbdir = Path('/var/lib/arangodb3')
+        self.cfg.dbdir  = Path('/var/lib/arangodb3')
         self.cfg.appdir = Path('/var/lib/arangodb3-apps')
         self.cfg.cfgdir = Path('/etc/arangodb3')
         self.cfg.all_instances = {
@@ -91,6 +91,7 @@ class InstallerRPM(InstallerBase):
                 self.cfg.installPrefix / self.cfg.logDir / 'arangod.log'
             }
         }
+
         self.log_examiner = ArangodLogExaminer(self.cfg)
         logging.info("installing Arangodb RPM package")
         package = self.cfg.package_dir / self.server_package
@@ -98,28 +99,27 @@ class InstallerRPM(InstallerBase):
             logging.info("package doesn't exist: %s", str(package))
             raise Exception("failed to find package")
 
-        logging.info("-"*80)
-        server_install = pexpect.spawnu('rpm ' + '-i ' + str(package))
+        cmd = 'rpm ' + '-i ' + str(package)
+        lh.log_cmd(cmd)
+        server_install = pexpect.spawnu(cmd)
         reply = None
+
         try:
             server_install.expect('the current password is')
-            print(server_install.before)
+            logging.debug(server_install.before)
             server_install.expect(pexpect.EOF, timeout=30)
             reply = server_install.before
             print(reply)
-            logging.info("-"*80)
         except pexpect.exceptions.EOF:
-            logging.info("X" * 80)
             print(server_install.before)
-            logging.info("X" * 80)
             logging.info("Installation failed!")
             sys.exit(1)
+
         start = reply.find("'")
         end = reply.find("'", start + 1)
         self.cfg.passvoid = reply[start + 1: end]
 
         self.start_service()
-
         self.log_examiner.detect_instance_pids()
 
         pwcheckarangosh = ArangoshExecutor(self.cfg)
@@ -129,9 +129,12 @@ class InstallerRPM(InstallerBase):
                 "probably setting the default random password didn't work! %s",
                 self.cfg.passvoid)
 
+        #should we wait for user here? or mark the error in a special way
+
         self.stop_service()
 
         self.cfg.passvoid = "sanoetuh"   # TODO
+        lh.log_cmd('/usr/sbin/arango-secure-installation')
         with pexpect.spawnu('/usr/sbin/arango-secure-installation') as etpw:
             result = None
             try:
@@ -145,7 +148,7 @@ class InstallerRPM(InstallerBase):
                     raise RuntimeError("Not asked for password")
 
                 etpw.sendline(self.cfg.passvoid)
-                result = etpw.expect('Repeat password:')
+                result = etpw.expect('Repeat password: ')
                 if result == None:
                     raise RuntimeError("Not asked to repeat the password")
                 logging.info("password should be set to: " + self.cfg.passvoid)
@@ -162,7 +165,7 @@ class InstallerRPM(InstallerBase):
             except Exception as e:
                 logging.error("setting our password failed!")
                 logging.error("X" * 80)
-                print("XO" * 80)
+                logging.error("XO" * 80)
                 logging.error(repr(self.cfg))
                 logging.error("X" * 80)
                 logging.error("result: " + str(result))
@@ -175,8 +178,9 @@ class InstallerRPM(InstallerBase):
         self.log_examiner.detect_instance_pids()
 
     def un_install_package(self):
-        uninstall = psutil.Popen(['rpm', '-e', 'arangodb3' +
-                                  ('e' if self.cfg.enterprise else '')])
+        cmd = ['rpm', '-e', 'arangodb3' + ('e' if self.cfg.enterprise else '')]
+        lh.log_cmd(cmd)
+        uninstall = psutil.Popen(cmd)
         uninstall.wait()
 
     def cleanup_system(self):
