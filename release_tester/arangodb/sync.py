@@ -13,9 +13,6 @@ import psutil
 from tools.timestamp import timestamp
 from arangodb.sh import ArangoshExecutor
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
-
-
 class SyncManager():
     """ manager arangosync instance """
     def __init__(self,
@@ -26,26 +23,20 @@ class SyncManager():
         self.ca = ca
         self.clusterports = clusterports
         self.arguments = ['configure', 'sync',
-               '--master.endpoint=https://'
-               + self.cfg.publicip
-               + ':'
-               + str(clusterports[0]),
-               '--master.keyfile=' + str(self.ca["clientkeyfile"]),
-               '--source.endpoint=https://'
-               + self.cfg.publicip
-               + ':'
-               + str(clusterports[1]),
-               '--master.cacert=' + str(self.ca["cert"]),
-               '--source.cacert=' + str(self.ca["cert"]),
-               '--auth.keyfile=' + str(self.ca["clientkeyfile"])]
+            '--master.endpoint=https://${ip}:${port}'.format(ip=self.cfg.publicip, port=str(clusterports[0]),
+            '--master.keyfile=' + str(self.ca["clientkeyfile"]),
+            '--source.endpoint=https://${ip}:${port}'.format(ip=self.cfg.publicip, port=str(clusterports[1]),
+            '--master.cacert=' + str(self.ca["cert"]),
+            '--source.cacert=' + str(self.ca["cert"]),
+            '--auth.keyfile=' + str(self.ca["clientkeyfile"])]
         self.instance = None
 
     def run_syncer(self):
         """ launch the syncer for this instance """
         args = [
             self.cfg.bin_dir / 'arangosync',
-        ] + self.arguments
-        
+        ].extend(self.arguments)
+
         logging.info("SyncManager: launching %s", str(args))
         rc = psutil.Popen(args).wait()
         logging.info("SyncManager: up %s", str(rc))
@@ -63,8 +54,8 @@ class SyncManager():
         """ restart the arangosync instance after we killed it eventually """
         args = [
             self.cfg.bin_dir / 'arangosync',
-        ] + self.arguments
-        
+        ].extend(self.arguments)
+
         logging.info("SyncManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)
         logging.info("SyncManager: up %s", str(self.instance.pid))
@@ -124,4 +115,4 @@ class SyncManager():
         ]
         logging.info('SyncManager: stopping sync : %s', str(args))
         psutil.Popen(args).wait()
-        
+

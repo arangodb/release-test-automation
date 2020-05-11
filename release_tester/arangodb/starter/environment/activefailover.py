@@ -4,11 +4,10 @@ from pathlib import Path
 import time
 import logging
 import requests
+import sys
 from tools.quote_user import quote_user
 from arangodb.starter.manager import StarterManager
 from arangodb.starter.environment.runner import Runner
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 
 class ActiveFailover(Runner):
@@ -49,7 +48,7 @@ class ActiveFailover(Runner):
         while (not self.starter_instances[0].is_instance_up()
                and not self.starter_instances[1].is_instance_up()
                and not self.starter_instances[1].is_instance_up()):
-            logging.info('.')
+            sys.stdout.write(".")
             time.sleep(1)
         logging.info("waiting for the cluster instances to become alive")
         for node in self.starter_instances:

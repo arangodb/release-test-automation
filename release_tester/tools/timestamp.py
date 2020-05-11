@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 """ return formated timestamp"""
 import datetime
 
