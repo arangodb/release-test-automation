@@ -172,6 +172,6 @@ class Dc2Dc(Runner):
 
     def shutdown(self):
         print('shutting down')
-        self.sync_manager.terminate_instance()
+        # self.sync_manager.terminate_instance()
         self.cluster1["instance"].terminate_instance()
         self.cluster2["instance"].terminate_instance()
