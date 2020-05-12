@@ -23,9 +23,9 @@ class SyncManager():
         self.ca = ca
         self.clusterports = clusterports
         self.arguments = ['configure', 'sync',
-            '--master.endpoint=https://${ip}:${port}'.format(ip=self.cfg.publicip, port=str(clusterports[0])),
+            '--master.endpoint=https://{ip}:{port}'.format(ip=self.cfg.publicip, port=str(clusterports[0])),
             '--master.keyfile=' + str(self.ca["clientkeyfile"]),
-            '--source.endpoint=https://${ip}:${port}'.format(ip=self.cfg.publicip, port=str(clusterports[1])),
+            '--source.endpoint=https://{ip}:{port}'.format(ip=self.cfg.publicip, port=str(clusterports[1])),
             '--master.cacert=' + str(self.ca["cert"]),
             '--source.cacert=' + str(self.ca["cert"]),
             '--auth.keyfile=' + str(self.ca["clientkeyfile"])
@@ -37,7 +37,7 @@ class SyncManager():
         """ launch the syncer for this instance """
         args = [
             self.cfg.bin_dir / 'arangosync',
-        ].extend(self.arguments)
+        ] + self.arguments
 
         logging.info("SyncManager: launching %s", str(args))
         rc = psutil.Popen(args).wait()
@@ -64,14 +64,14 @@ class SyncManager():
 
     def terminate_instance(self):
         """ terminate the instance of this syncer"""
-        logging.info("SyncManager: Terminating: %s", str(self.arguments))
-        #self.instance.send_signal(signal.CTRL_C_EVENT)
-        self.instance.terminate()
-        try:
-            logging.info(str(self.instance.wait(timeout=45)))
-        except:
-            logging.info("SyncManager: timeout, doing hard kill.")
-            self.instance.kill()
+        #logging.info("SyncManager: Terminating: %s", str(self.arguments))
+        ##self.instance.send_signal(signal.CTRL_C_EVENT)
+        #self.instance.terminate()
+        #try:
+        #    logging.info(str(self.instance.wait(timeout=45)))
+        #except:
+        #    logging.info("SyncManager: timeout, doing hard kill.")
+        #    self.instance.kill()
         logging.info("SyncManager: Instance now dead.")
 
     def replace_binary_for_upgrade(self, newInstallCfg):
