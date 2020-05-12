@@ -256,8 +256,10 @@ class StarterManager():
 
         frontend_instance = None
         logfiles=set()
-        tries = 10 * self.expect_instance_count # the more instances we expect to spawn the more patient.
-        print('z'*80 + str(self.expect_instance_count))
+
+         # the more instances we expect to spawn the more patient:
+        tries = 10 * self.expect_instance_count
+
         # wait for all instances to become alive. The last instance spawned is a frontend instance.
         
         while not frontend_instance and tries:
@@ -284,8 +286,8 @@ class StarterManager():
                         logging.info("found instance: " + instance["type"] + instance["port"])
 
                         if not logfile.exists():
-                            logging.error("missing logfile: " + str(logfile))
-                            raise RuntimeError("missing logfile")
+                            # directory there, but instance not yet started.
+                            continue
 
                         if instance['type'] == 'coordinator':
                             self.all_instances.append(instance)
@@ -314,7 +316,7 @@ class StarterManager():
                             pass
 
 
-            else:
+            if not frontend_instance:
                 tries -= 1
                 if self.all_instances:
                     logging.debug("found instances: ")
