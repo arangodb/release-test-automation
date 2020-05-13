@@ -26,8 +26,12 @@ class InstallerRPM(InstallerBase):
         self.cfg.installPrefix = Path("/")
         self.cfg.bin_dir = self.cfg.installPrefix / "usr" / "bin"
         self.cfg.sbin_dir = self.cfg.installPrefix / "usr" / "sbin"
+        self.cfg.real_bin_dir = self.cfg.bin_dir
+        self.cfg.real_sbin_dir = self.cfg.sbin_dir
         self.caclulate_file_locations()
         self.cfg.localhost = 'localhost6'
+        self.check_stripped = True
+        self.check_symlink = True
         self.server_package = None
         self.client_package = None
         self.debug_package = None

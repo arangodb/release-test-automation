@@ -64,7 +64,7 @@ class BinaryDescription():
         #ensure file and symlinks do not exist
         pass
 
-    def check_installed(self,version, enterprise):
+    def check_installed(self,version, enterprise, check_stripped, check_symlink):
         #TODO consider only certain verions
         #use semver package
 
@@ -73,9 +73,10 @@ class BinaryDescription():
         if not enterprise and self.enterprise:
             #checks do not need to continue in this case
             return
-
-        self.check_stripped()
-        self.check_symlink()
+        if check_stripped:
+            self.check_stripped()
+        if check_symlink:
+            self.check_symlink()
 
 
     def check_path(self, enterprise):
@@ -217,76 +218,76 @@ class InstallerBase(ABC):
         ARANGO_BINARIES = []
 
         ARANGO_BINARIES.append(BinaryDescription(
-            self.cfg.sbin_dir / 'arangod',
-            False, True, "1.0.0", "4.0.0", [self.cfg.sbin_dir / 'arango-init-database', self.cfg.sbin_dir / 'arango-secure-installation'] )
+            self.cfg.real_sbin_dir / 'arangod',
+            False, True, "1.0.0", "4.0.0", [self.cfg.real_sbin_dir / 'arango-init-database', self.cfg.real_sbin_dir / 'arango-secure-installation'] )
         )
 
         # symlink only for MMFILES
         ARANGO_BINARIES.append(BinaryDescription(
-            self.cfg.sbin_dir / 'arangod',
-            False, True, "1.0.0", "3.6.0", [self.cfg.bin_dir / 'arango-dfdb' ] )
+            self.cfg.real_sbin_dir / 'arangod',
+            False, True, "1.0.0", "3.6.0", [self.cfg.real_bin_dir / 'arango-dfdb' ] )
         )
 
         ARANGO_BINARIES.append(BinaryDescription(
-            self.cfg.bin_dir / 'arangosh',
-            False, True, "1.0.0", "4.0.0", [self.cfg.bin_dir / 'arangoinspect'] )
+            self.cfg.real_bin_dir / 'arangosh',
+            False, True, "1.0.0", "4.0.0", [self.cfg.real_bin_dir / 'arangoinspect'] )
         )
 
         ARANGO_BINARIES.append(BinaryDescription(
-            self.cfg.bin_dir / 'arangoexport',
+            self.cfg.real_bin_dir / 'arangoexport',
             False, True, "1.0.0", "4.0.0", [] )
         )
 
         ARANGO_BINARIES.append(BinaryDescription(
-            self.cfg.bin_dir / 'arangoimport',
-            False, True, "1.0.0", "4.0.0", [self.cfg.bin_dir / 'arangoimp'] )
+            self.cfg.real_bin_dir / 'arangoimport',
+            False, True, "1.0.0", "4.0.0", [self.cfg.real_bin_dir / 'arangoimp'] )
         )
 
         ARANGO_BINARIES.append(BinaryDescription(
-            self.cfg.bin_dir / 'arangodump',
+            self.cfg.real_bin_dir / 'arangodump',
             False, True, "1.0.0", "4.0.0", [] )
         )
 
         ARANGO_BINARIES.append(BinaryDescription(
-            self.cfg.bin_dir / 'arangorestore',
+            self.cfg.real_bin_dir / 'arangorestore',
             False, True, "1.0.0", "4.0.0", [] )
         )
 
         ARANGO_BINARIES.append(BinaryDescription(
-            self.cfg.bin_dir / 'arangobench',
+            self.cfg.real_bin_dir / 'arangobench',
             False, True, "1.0.0", "4.0.0", [] )
         )
 
         ARANGO_BINARIES.append(BinaryDescription(
-            self.cfg.bin_dir / 'arangovpack',
+            self.cfg.real_bin_dir / 'arangovpack',
             False, True, "1.0.0", "4.0.0", [] )
         )
 
         #starter
         ARANGO_BINARIES.append(BinaryDescription(
-            self.cfg.bin_dir / 'arangodb',
+            self.cfg.real_bin_dir / 'arangodb',
             False, False, "1.0.0", "4.0.0", [] )
         )
 
         ## enterprise
         ARANGO_BINARIES.append(BinaryDescription(
-            self.cfg.bin_dir / 'arangobackup',
+            self.cfg.real_bin_dir / 'arangobackup',
             True, True, "1.0.0", "4.0.0", [] )
         )
 
         ARANGO_BINARIES.append(BinaryDescription(
-            self.cfg.sbin_dir / 'arangosync',
-            True, False, "1.0.0", "4.0.0", [self.cfg.bin_dir / 'arangosync'] )
+            self.cfg.real_sbin_dir / 'arangosync',
+            True, False, "1.0.0", "4.0.0", [self.cfg.real_bin_dir / 'arangosync'] )
         )
 
         ARANGO_BINARIES.append(BinaryDescription(
-            self.cfg.sbin_dir / 'rclone-arangodb',
+            self.cfg.real_sbin_dir / 'rclone-arangodb',
             True, True, "1.0.0", "4.0.0", [] )
         )
 
     def check_installed_files(self):
         for bin in ARANGO_BINARIES:
-            bin.check_installed(self.cfg.version, self.cfg.enterprise)
+            bin.check_installed(self.cfg.version, self.cfg.enterprise, self.check_stripped, self.check_symlink)
 
         logging.info("all files ok")
 
