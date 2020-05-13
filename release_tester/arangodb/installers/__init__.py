@@ -47,6 +47,11 @@ def get(*args, **kwargs):
     if winver[0]:
         from arangodb.installers.nsis import InstallerW
         return InstallerW(InstallConfig(*args, **kwargs))
+
+    import resource
+    nofd = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
+    if nofd < 10000:
+        raise Exception("please use ulimit -n to adjust the number of allowed filedescriptors - currently have: " + str(nofd))
     macver = platform.mac_ver()
     if macver[0]:
         from arangodb.installers.mac import InstallerMac
