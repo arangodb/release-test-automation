@@ -23,6 +23,7 @@ class InstallerW(InstallerBase):
         self.client_package = None
         self.log_examiner = None
         self.service = None
+        super().__init__()
 
     def check_symlink(self, file_to_check):
         return not file_to_check.is_symlink()

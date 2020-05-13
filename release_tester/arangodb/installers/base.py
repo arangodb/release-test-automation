@@ -108,6 +108,9 @@ class BinaryDescription():
 ### main class
 #pylint: disable=attribute-defined-outside-init
 class InstallerBase(ABC):
+    def __init__(self):
+        self.calculate_package_names()
+
     """ this is the prototype for the operation system agnostic installers """
     @abstractmethod
     def calculate_package_names(self):

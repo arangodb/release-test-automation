@@ -31,6 +31,7 @@ class InstallerDeb(InstallerBase):
         self.cfg.dbdir = Path('/var/lib/arangodb3')
         self.cfg.appdir = Path('/var/lib/arangodb3-apps')
         self.cfg.cfgdir = Path('/etc/arangodb3')
+        super().__init__()
 
     def calculate_package_names(self):
         enterprise = 'e' if self.cfg.enterprise else ''
