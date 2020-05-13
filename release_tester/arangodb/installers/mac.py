@@ -5,47 +5,95 @@ import os
 import sys
 import shutil
 import logging
+import subprocess
 from pathlib import Path
 import pexpect
+import plistlib
 from arangodb.log import ArangodLogExaminer
 from arangodb.installers.base import InstallerBase
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 
 class InstallerMac(InstallerBase):
-    """ install .deb's on debian or ubuntu hosts """
+    """ install .dmg's on a mac """
     def __init__(self, install_config):
         self.cfg = install_config
         self.cfg.baseTestDir = Path('/tmp')
-        self.cfg.installPrefix = Path("/")
-        self.cfg.bin_dir = self.cfg.installPrefix / "bin"
-        self.cfg.sbin_dir = self.cfg.installPrefix / "sbin"
-        self.caclulate_file_locations()
+        self.cfg.installPrefix = None
+        self.cfg.bin_dir = None
+        self.cfg.sbin_dir = None
         self.cfg.localhost = 'localhost'
         self.server_package = None
         self.client_package = None
         self.debug_package = None
         self.log_examiner = None
-        self.cfg.logDir = Path('/var/log/arangodb3')
-        self.cfg.dbdir = Path('/var/lib/arangodb3')
-        self.cfg.appdir = Path('/var/lib/arangodb3-apps')
-        self.cfg.cfgdir = Path('/etc/arangodb3')
+        self.mountpoint = None
+        self.check_stripped = False
+        self.check_symlink = True
+        self.cfg.logDir = Path.home() / 'Library' / 'ArangoDB' / 'opt' / 'arangodb' / 'var' / 'log' / 'arangodb3'
+        self.cfg.dbdir = Path.home() / 'Library' / 'ArangoDB' / 'opt' / 'arangodb' / 'var' / 'lib' / 'arangodb3'
+        self.cfg.appdir = Path.home() / 'Library' / 'ArangoDB' / 'opt' / 'arangodb' / 'var' / 'lib' / 'arangodb3-apps'
+        self.cfg.cfgdir = Path.home() / 'Library' / 'ArangoDB-etc' / 'arangodb3'
         super().__init__()
+
+    def mountdmg(self, dmgpath):
+        """
+        Attempts to mount the dmg at dmgpath and returns first mountpoint
+        """
+        mountpoints = []
+        dmgname = os.path.basename(dmgpath)
+        cmd = ['/usr/bin/hdiutil', 'attach', str(dmgpath),
+               '-mountRandom', '/tmp', '-nobrowse', '-plist',
+               '-owners', 'on']
+        print(cmd)
+        proc = subprocess.Popen(cmd, bufsize=-1,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        (pliststr, err) = proc.communicate()
+        if proc.returncode:
+            print('Error: "%s" while mounting %s.' % (err, dmgname),
+                  file=sys.stderr)
+            return None
+        if pliststr:
+            plist = plistlib.loads(pliststr)
+            print(plist)
+            for entity in plist['system-entities']:
+                if 'mount-point' in entity:
+                    mountpoints.append(entity['mount-point'])
+        else:
+            raise Exception("plist empty")
+        return mountpoints[0]
+
+
+    def unmountdmg(self, mountpoint):
+        """
+        Unmounts the dmg at mountpoint
+        """
+        proc = subprocess.Popen(['/usr/bin/hdiutil', 'detach', mountpoint],
+                                bufsize=-1, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
+        (dummy_output, err) = proc.communicate()
+        if proc.returncode:
+            print('Polite unmount failed: %s' % err, file=sys.stderr)
+            print('Attempting to force unmount %s' % mountpoint, file=sys.stderr)
+            # try forcing the unmount
+            retcode = subprocess.call(['/usr/bin/hdiutil', 'detach', mountpoint,
+                                       '-force'])
+            if retcode:
+                print('Failed to unmount %s' % mountpoint, file=sys.stderr)
 
     def calculate_package_names(self):
         enterprise = 'e' if self.cfg.enterprise else ''
-        package_version = '1'
-        architecture = 'amd64'
+        architecture = 'x86_64'
 
         desc = {
             "ep"   : enterprise,
             "cfg"  : self.cfg.version,
-            "ver"  : package_version,
             "arch" : architecture
         }
 
-        self.server_package = 'arangodb3{ep}_{cfg}-{ver}_{arch}.deb'.format(**desc)
-        self.client_package = 'arangodb3{ep}-client_{cfg}-{ver}_{arch}.deb'.format(**desc)
-        self.debug_package = 'arangodb3{ep}-dbg_{cfg}-{ver}_{arch}.deb'.format(**desc)
+        self.server_package = 'arangodb3{ep}-{cfg}.{arch}.dmg'.format(**desc)
+        self.client_package = None
+        self.debug_package = None
 
     def check_service_up(self):
         time.sleep(1)    # TODO
@@ -79,48 +127,21 @@ class InstallerMac(InstallerBase):
             logging.info("TIMEOUT!")
 
     def install_package(self):
+        logging.info("Mounting DMG")
+        self.mountpoint = self.mountdmg(self.cfg.package_dir / self.server_package)
+        print(self.mountpoint)
+        self.cfg.installPrefix = Path(self.mountpoint) / 'ArangoDB3-CLI.app' / 'Contents' / 'Resources'
+        self.cfg.bin_dir = self.cfg.installPrefix
+        self.cfg.sbin_dir = self.cfg.installPrefix
+        self.cfg.real_bin_dir = self.cfg.installPrefix / 'opt' / 'arangodb' / 'bin'
+        self.cfg.real_sbin_dir = self.cfg.installPrefix / 'opt' / 'arangodb' / 'sbin'
         self.cfg.all_instances = {
             'single': {
-                'logfile': self.cfg.installPrefix / self.cfg.logDir / 'arangod.log'
+                'logfile': self.cfg.logDir / 'arangod.log'
             }
         }
-        logging.info("installing Arangodb debian package")
-        os.environ['DEBIAN_FRONTEND'] = 'readline'
-        server_install = pexpect.spawnu('dpkg -i ' +
-                                        str(self.cfg.package_dir / self.server_package))
-        try:
-            server_install.expect('user:')
-            print(server_install.before)
-            server_install.sendline(self.cfg.passvoid)
-            server_install.expect('user:')
-            print(server_install.before)
-            server_install.sendline(self.cfg.passvoid)
-            server_install.expect("Automatically upgrade database files")
-            print(server_install.before)
-            server_install.sendline("yes")
-            server_install.expect("Database storage engine")
-            print(server_install.before)
-            server_install.sendline("1")
-            server_install.expect("Backup database files before upgrading")
-            print(server_install.before)
-            server_install.sendline("no")
-        except pexpect.exceptions.EOF:
-            logging.info("X" * 80)
-            print(server_install.before)
-            logging.info("X" * 80)
-            logging.info("Installation failed!")
-            sys.exit(1)
-        try:
-            logging.info("waiting for the installation to finish")
-            server_install.expect(pexpect.EOF, timeout=30)
-            print(server_install.before)
-        except pexpect.exceptions.EOF:
-            logging.info("TIMEOUT!")
-        while server_install.isalive():
-            logging.info('.')
-            if server_install.exitstatus != 0:
-                raise Exception("server installation didn't finish successfully!")
         logging.info('Installation successfull')
+        self.caclulate_file_locations()
         self.log_examiner = ArangodLogExaminer(self.cfg)
         self.log_examiner.detect_instance_pids()
 

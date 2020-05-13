@@ -9,10 +9,10 @@ for process in psutil.process_iter(['pid', 'name']):
     except: # access denied...
         x = ""
         continue
-    if x == "arangodb.exe":
+    if x.startswith("arangodb"):
         print('killing ' + str(process))
         process.kill()
-    elif x == "arangod.exe":
+    elif x.startswith("arangod"):
         arangods += [process]
 time.sleep(5)
 for arangod in arangods:

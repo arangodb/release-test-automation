@@ -18,7 +18,11 @@ class InstallerW(InstallerBase):
         self.cfg.installPrefix = Path("C:/tmp")
         self.cfg.bin_dir = self.cfg.installPrefix / "usr" / "bin"
         self.cfg.sbin_dir = self.cfg.installPrefix / "usr" / "bin"
+        self.cfg.real_bin_dir = self.cfg.bin_dir
+        self.cfg.real_sbin_dir = self.cfg.sbin_dir
         self.caclulate_file_locations()
+        self.check_stripped = False
+        self.check_symlink = False
         self.server_package = None
         self.client_package = None
         self.log_examiner = None
