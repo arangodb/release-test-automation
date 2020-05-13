@@ -1,18 +1,22 @@
 - [x] 5h DC2DC
-- [ ] ?? windows starter (starter needs to be fixed)
+- [x] ?? windows starter (starter needs to be fixed)
 - [x] 3h rpm install (..) [Found bug: default password doesn't work if system has a ready existing database. Impl to check this done, commented out] 
-- [ ] ?? macos support for dmgs
+- [ ] ?? macos support for dmgs (.)
 - [x] 8h pylint/pylama
 - [x] 4h check package integrity and binaries
 - [ ] 8h testdata integration (.)
 - [ ] 2x 4h conflict checking in packages
 - [ ] 2x 2h test debug packages
 - [ ] upgrade of cases
-  - [ ] 8h active failover
-  - [ ] 8h cluster
-  - [ ] 8h DC2DC
+  - [x] debian
+  - [x] rpm
+  - [ ] mac
+  - [ ] nsis
+  - [x] 8h active failover
+  - [x] 8h cluster
+  - [ ] 8h DC2DC (....)
 - [ ] ?? better reporting (more than true/false)
-- [x] ?? improve error handling in installers for non-clean systems (..)
-- [ ] ?? improve error handling (catch exceptions, make messages) (.)
+- [x] ?? improve error handling in installers for non-clean systems (....)
+- [ ] ?? improve error handling (catch exceptions, make messages) (..)
 - [ ] ?? frontend testing?
 - [ ] FTP Download from -   ftp://nas02.arangodb.biz/buildfiles - Explore directory structure in interactive client, Create attic-test-script. Copy package name calculation routines from the installers, use https://docs.python.org/3/library/ftplib.html to download. Check for windows compatibility. Use QA-Centos VM for this. 
