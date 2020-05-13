@@ -71,5 +71,5 @@ class ArangodLogExaminer():
                 logging.error("inspect: " + str(instance['logfile']))
                 sys.exit(1)
             else:
-                logging.info("found {0} for instance with logifle {1}.".format(instance['PID'], instance['logfile']))
+                logging.info("found pid {0} for instance with logifle {1}.".format(instance['PID'], instance['logfile']))
         print()

@@ -34,6 +34,7 @@ class InstallerMac(InstallerBase):
         self.cfg.dbdir = Path.home() / 'Library' / 'ArangoDB' / 'opt' / 'arangodb' / 'var' / 'lib' / 'arangodb3'
         self.cfg.appdir = Path.home() / 'Library' / 'ArangoDB' / 'opt' / 'arangodb' / 'var' / 'lib' / 'arangodb3-apps'
         self.cfg.cfgdir = Path.home() / 'Library' / 'ArangoDB-etc' / 'arangodb3'
+        super().__init__()
 
     def mountdmg(self, dmgpath):
         """
@@ -61,8 +62,8 @@ class InstallerMac(InstallerBase):
         else:
             raise Exception("plist empty")
         return mountpoints[0]
-    
-    
+
+
     def unmountdmg(self, mountpoint):
         """
         Unmounts the dmg at mountpoint
@@ -79,7 +80,6 @@ class InstallerMac(InstallerBase):
                                        '-force'])
             if retcode:
                 print('Failed to unmount %s' % mountpoint, file=sys.stderr)
-    
 
     def calculate_package_names(self):
         enterprise = 'e' if self.cfg.enterprise else ''
