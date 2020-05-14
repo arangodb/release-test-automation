@@ -2,6 +2,7 @@
 """ launch and manage an arango deployment using the starter"""
 import time
 import logging
+import sys
 from pathlib import Path
 
 from tools.timestamp import timestamp

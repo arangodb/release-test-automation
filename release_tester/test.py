@@ -68,7 +68,7 @@ def cleanup(name, child, signum, frame):
 @click.option('--mode',
               default='all',
               help='operation mode - [all|install|uninstall|tests].')
-@click.option('--starter_mode',
+@click.option('--starter-mode',
               default='all',
               help='which starter environments to start - ' +
               '[all|LF|AFO|CL|DC|none].')

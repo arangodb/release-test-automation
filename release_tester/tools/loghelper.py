@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import subprocess
 
 def get_term_width():
     # eventually we should ask the term for the size
@@ -12,6 +13,15 @@ def log_cmd(cmd):
     if not isinstance(cmd,str):
         cmd = " ".join([str(x) for x in cmd])
     print("executing: " + str(cmd))
+
+def LoggedCommandWait():
+    def __init__(self, cmd_arr ,*args, **kwargs):
+        log.cmd(cmd_arr)
+        self.child = subprocess.Popen(cmd_arr ,*args, **kwargs)
+
+    def __exit__(self):
+        self.child.wait()
+        line("<")
 
 
 def section(name):
