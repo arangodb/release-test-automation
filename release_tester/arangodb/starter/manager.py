@@ -40,10 +40,10 @@ class ArangodInstance():
 
     def __repr__(self):
         return """
-arngod
-    name: {0.name}
-    pid:  {0.pid}
-    logfile: {logfile}
+arangod
+    name:    {0.name}
+    pid:     {0.pid}
+    logfile: {0.logfile}
 """.format(self)
 
     def is_frontend(self):
@@ -81,9 +81,7 @@ class StarterManager():
 
         #arg port - can be set - otherwise it is read from the log later
         self.starter_port = port
-        self.frontend_port = None
         if self.starter_port is not None:
-            self.frontend_port = self.starter_port + 1
             self.moreopts += ["--starter.port", "%d" % self.starter_port]
 
         # arg - jwtstr
@@ -113,14 +111,12 @@ class StarterManager():
         self.passvoid = ''
 
         self.instance = None #starter instance - PsUtil Popen child
-        self.db_instance = None # points to a dbserver child
-        self.agent_instance = None # points to a agent chilf
-        self.frontend_instance = None
+        self.frontend_port = None #required for swith in active failover setup
+        self.all_instances = [] # list of starters arangod child instances
 
         self.is_master = None
         self.is_leader = False
         self.arangosh = None
-        self.all_instances = []
         self.executor = None # meaning?
         self.sync_master_port = None
         self.coordinator = None # meaning - port
@@ -136,17 +132,52 @@ class StarterManager():
     def name(self):
         return str(self.name)
 
+    def get_frontends(self):
+        rv = [ ]
+        for i in self.all_instances:
+            if i.is_frontend():
+                rv.append(i)
+        return rv
+
+    def get_dbservers(self):
+        rv = [ ]
+        for i in self.all_instances:
+            if i.is_dbserver():
+                rv.append(i)
+        return rv
+
+    def get_agents(self):
+        rv = [ ]
+        for i in self.all_instances:
+            if i.type == InstanceType.agent:
+                rv.append(i)
+        return rv
+
+    def get_frontend(self):
+        servers = self.get_frontends()
+        assert servers
+        return servers[0]
+
+    def get_dbserver(self):
+        servers = self.get_dbservers()
+        assert servers
+        return servers[0]
+
+    def get_agent(self):
+        servers = self.get_agents()
+        assert servers
+        return servers[0]
+
     def show_all_instances(self):
         logging.info("arangod instances for starter: " + self.name)
         if not self.all_instances:
             logging.info("no instances detected")
             return
 
-        logging.info("detected instances")
-        print("----")
+        logging.info("detected instances: ----")
         for instance in self.all_instances:
-            print(instance.name)
-        print("----")
+            print(" - " + instance.name)
+        logging.info("------------------------")
 
 
     def run_starter(self):
@@ -206,6 +237,9 @@ class StarterManager():
             l = str(instance.logfile)
             logging.info("renaming instance logfile: %s -> %s", l, l + '.old')
             instance.logfile.rename(l + '.old')
+        #FIXME DEAD instances must be removed from `self.all_instances`
+        #      or at least the pid needs to be deleted. Ask dothebart for his
+        #      resoning.
 
     def kill_instance(self):
         """ kill the instance of this starter
@@ -256,6 +290,9 @@ class StarterManager():
         logging.info("StarterManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)
         time.sleep(self.startupwait)
+        #FIXME check / update pids and logfiles after respawn?
+        #      Not required when restarting the starter only.
+        #      When arangods are upgraded it becomes necessary
 
     def execute_frontend(self, cmd):
         """ use arangosh to run a command on the frontend arangod"""
@@ -263,9 +300,11 @@ class StarterManager():
 
     def get_frontend_port(self):
         """ get the port of the arangod which is coordinator etc."""
-        if self.frontend_port is None:
-            raise Exception(timestamp() + "no frontend port detected")
-        return self.frontend_port
+        #FIXME This looks unreliable to me, especially when terminating
+        #      instances. How will the variable get updated?
+        if self.frontend_port:
+            return self.frontend_port
+        return self.get_frontend().port
 
     def get_my_port(self):
         if self.starter_port != None:
@@ -283,7 +322,7 @@ class StarterManager():
                     end = lf.find(' ', where)
                     port = lf[where + 1: end]
                     self.starter_port = port
-                    assert int(port) #check that we can convert to int
+                    assert int(port) #assert that we can convert to int
                     return port
             logging.info('retrying logfile')
             time.sleep(1)
@@ -321,26 +360,27 @@ class StarterManager():
 
     def read_db_logfile(self):
         """ get the logfile of the dbserver instance"""
-        assert self.db_instance.logfile.exists()
-        return self.db_instance.logfile.read_text()
+        server = self.get_dbserver()
+        assert server.logfile.exists()
+        return server.logfile.read_text()
 
     def read_agent_logfile(self):
         """ get the agent logfile of this instance"""
-        assert self.agent_instance.logfile.exists()
-        return self.agent_instance.logile.read_text()
+        server = self.get_agent()
+        assert server.logfile.exists()
+        return server.logfile.read_text()
 
     def detect_logfiles(self):
         """ see which arangods where spawned and inspect their logfiles"""
-
+        lh.subsection("Instance Detection")
         logging.debug("waiting for frontend")
-
         logfiles=set() #logfiles that can be used for debugging
 
          # the more instances we expect to spawn the more patient:
         tries = 10 * self.expect_instance_count
 
         # Wait for forntend to become alive.
-        while not self.frontend_instance and tries:
+        while not self.get_frontends() and tries:
             self.all_instances = []
             sys.stdout.write(".")
             sys.stdout.flush()
@@ -361,19 +401,13 @@ class StarterManager():
 
                         instance = ArangodInstance(match.group(1), match.group(2))
                         instance.logfile = logfile
-
                         self.all_instances.append(instance)
-                        if instance.is_frontend():
-                            self.frontend_instance = instance
-                            self.frontend_port = instance.port
-                        if instance.is_dbserver():
-                            self.db_instance = instance
 
-            if not self.frontend_instance:
+            if not self.get_frontends():
                 tries -= 1
                 time.sleep(5)
 
-        if not self.frontend_instance:
+        if not self.get_frontends():
             logging.error("STARTER FAILED TO SPAWN ARANGOD")
             self.show_all_instances()
             logging.error("can not continue without frontend instance")
@@ -415,21 +449,24 @@ class StarterManager():
         running_pids = psutil.pids()
         for instance in self.all_instances:
             if instance.pid not in running_pids:
-                missing_instances += [instance]
+                missing_instances.append(instance)
+
         if len(missing_instances) > 0:
-            logging.info("not all instances are alive: %s", str(missing_instances))
-            raise Exception("instances missing: " + str(missing_instances))
+            logging.error("Not all instances are alive. The following are not running: %s", str(missing_instances))
+            logging.error("exiting")
+            sys.exit(1)
+            #raise Exception("instances missing: " + str(missing_instances))
         else:
-            logging.info("All arangod instances still found: %s", str(self.all_instances))
+            logging.info("All arangod instances still running: %s", str(self.all_instances))
 
     def detect_leader(self):
         """ in active failover detect whether we run the leader"""
+        # Should this be moved to the AF script?
         lfs = self.read_db_logfile()
-        self.is_leader = (
-            (lfs.find('Became leader in') >= 0) or
-            (lfs.find('Successful leadership takeover:'
-                      ' All your base are belong to us')
-             >= 0))
+
+        became_leader = lfs.find('Became leader in') >= 0
+        took_over = lfs.find('Successful leadership takeover: All your base are belong to us') >= 0
+        self.is_leader = ( became_leader or took_over )
         return self.is_leader
 
     def active_failover_detect_hosts(self):
@@ -451,6 +488,8 @@ class StarterManager():
                             + "Unable to get my host state! "
                             + self.basedir
                             + " - " + lfs)
+
+        #TODO FIX - fragile logic  - readd member for now
         self.frontend_port = match.groups()[0]
 
     def active_failover_detect_host_now_follower(self):

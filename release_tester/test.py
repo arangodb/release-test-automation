@@ -49,6 +49,7 @@ def cleanup(name, child, signum, frame):
     except:
         traceback.print_exc()
 
+
 @click.command()
 @click.option('--version', help='ArangoDB version number.')
 @click.option('--verbose',
@@ -75,6 +76,8 @@ def cleanup(name, child, signum, frame):
 @click.option('--publicip',
               default='127.0.0.1',
               help='IP for the click to browser hints.')
+
+
 def run_test(version, verbose, package_dir, enterprise, no_quote_user, mode, starter_mode, publicip):
     """ main """
     lh.section("configuration")
@@ -139,6 +142,7 @@ def run_test(version, verbose, package_dir, enterprise, no_quote_user, mode, sta
             inst.stop_service()
         kill_all_processes()
         print(starter_mode)
+
         if starter_mode == 'all':
             starter_mode = [RunnerType.LEADER_FOLLOWER,
                             RunnerType.ACTIVE_FAILOVER,

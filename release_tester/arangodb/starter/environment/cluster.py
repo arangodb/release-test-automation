@@ -9,14 +9,13 @@ from tools.timestamp import timestamp
 from tools.quote_user import quote_user, end_test
 from arangodb.starter.manager import StarterManager
 from arangodb.starter.environment.runner import Runner
+import tools.loghelper as lh
 
 
 class Cluster(Runner):
     """ this launches a cluster setup """
     def __init__(self, cfg):
-        logging.info("x"*80)
-        logging.info("xx           cluster test      ")
-        logging.info("x"*80)
+        lh.section("cluster test")
         self.success = True
         self.create_test_collection = ("""
 db._create("testCollection",  { numberOfShards: 6, replicationFactor: 2});
@@ -49,6 +48,7 @@ db.testCollection.save({test: "document"})
                            moreopts=['--starter.join', '127.0.0.1']))
 
     def setup(self):
+        lh.subsection("instance setup")
         for node in self.starter_instances:
             logging.info("Spawning instance")
             node.run_starter()
@@ -56,9 +56,9 @@ db.testCollection.save({test: "document"})
         logging.info("waiting for the starters to become alive")
         not_started = self.starter_instances[:] #This is a explicit copy
         while not_started:
+            logging.debug("waiting for mananger with logfile:" + str(not_started[-1].log_file))
             if not_started[-1].is_instance_up():
                 not_started.pop()
-                logging.debug("waiting for mananger with logfile:" + not_started[1].log_file)
             print('.', end='')
             sys.stdout.flush()
             time.sleep(1)
@@ -70,9 +70,10 @@ db.testCollection.save({test: "document"})
             self.basecfg.add_frontend('http',
                                       self.basecfg.publicip,
                                       str(node.get_frontend_port()))
+        logging.info("instances are ready")
 
     def run(self):
-        logging.info("instances are ready")
+        lh.subsection("run cluster tests")
         quote_user(self.basecfg)
         #  TODO self.create_test_collection
         logging.info("stopping instance 2")
@@ -99,7 +100,7 @@ db.testCollection.save({test: "document"})
         pass
 
     def jam_attempt(self):
-        logging.info('Starting instance without jwt')
+        logging.info('jamming: Starting instance without jwt')
         dead_instance = StarterManager(
             self.basecfg,
             Path('CLUSTER') / 'nodeX',
@@ -107,6 +108,7 @@ db.testCollection.save({test: "document"})
             jwtStr=None,
             moreopts=['--starter.join', '127.0.0.1'])
         dead_instance.run_starter()
+
         i = 0
         while True:
             logging.info(". %d", i)
