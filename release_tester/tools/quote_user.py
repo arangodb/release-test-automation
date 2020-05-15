@@ -11,7 +11,7 @@ def quote_user(cfg):
                          c=cfg,
                          path='/_db/_system/_admin/aardvark/index.html#login'
                      )
-        )
+                    )
     if cfg.quote_user:
         input("Press Enter to continue")
     else:

@@ -159,7 +159,6 @@ class Dc2Dc(Runner):
         self.cluster1["instance"].wait_for_upgrade()
         self.cluster2["instance"].command_upgrade()
         self.cluster2["instance"].wait_for_upgrade()
-        self.sync_manager.respawn_instance()
         time.sleep(180) # TODO: howto detect dc2dc is completely up and running?
         self.sync_manager.check_sync_status(0)
         self.sync_manager.check_sync_status(1)
@@ -172,6 +171,5 @@ class Dc2Dc(Runner):
 
     def shutdown(self):
         print('shutting down')
-        # self.sync_manager.terminate_instance()
         self.cluster1["instance"].terminate_instance()
         self.cluster2["instance"].terminate_instance()

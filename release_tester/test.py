@@ -3,8 +3,6 @@
 """ Release testing script"""
 import logging
 from pathlib import Path
-import sys
-import signal
 import click
 from tools.killall import kill_all_processes
 from tools.quote_user import end_test
@@ -13,41 +11,12 @@ import arangodb.installers as installers
 from arangodb.starter.environment import get as getStarterenv
 from arangodb.starter.environment import RunnerType
 import tools.loghelper as lh
-import obi.util
 
 logging.basicConfig(
     level=logging.DEBUG,
     datefmt='%H:%M:%S',
     format='%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s'
 )
-
-ON_WINDOWS = (sys.platform == 'win32')
-SIGNALS = {
-    signal.SIGINT: 'SIGINT',
-    signal.SIGTERM: 'SIGTERM',
-}
-
-if ON_WINDOWS:
-    SIGNALS[signal.SIGBREAK] = 'SIGBREAK'
-
-def term(proc):
-    """Send a SIGTERM/SIGBREAK to *proc* and wait for it to terminate."""
-    if ON_WINDOWS:
-        proc.send_signal(signal.CTRL_BREAK_EVENT)
-    else:
-        proc.terminate()
-    proc.wait()
-
-def cleanup(name, child, signum, frame):
-    """Stop the sub=process *child* if *signum* is SIGTERM. Then terminate."""
-    try:
-        print('%s got a %s' % (name, SIGNALS[signum]))
-        if child and (ON_WINDOWS or signum != signal.SIGINT):
-            # Forward SIGTERM on Linux or any signal on Windows
-            term(child)
-    except:
-        traceback.print_exc()
-
 
 @click.command()
 @click.option('--version', help='ArangoDB version number.')

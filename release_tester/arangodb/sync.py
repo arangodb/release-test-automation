@@ -2,19 +2,12 @@
 """ Manage one instance of the arangodb starter
     to crontroll multiple arangods
 """
-import signal
 import copy
-import os
-import time
-import re
 import logging
-from pathlib import Path
 import psutil
-from tools.timestamp import timestamp
-from arangodb.sh import ArangoshExecutor
 
 class SyncManager():
-    """ manager arangosync instance """
+    """ manage arangosync """
     def __init__(self,
                  basecfg,
                  ca,
@@ -22,7 +15,8 @@ class SyncManager():
         self.cfg = copy.deepcopy(basecfg)
         self.ca = ca
         self.clusterports = clusterports
-        self.arguments = ['configure', 'sync',
+        self.arguments = [
+            'configure', 'sync',
             '--master.endpoint=https://{ip}:{port}'.format(ip=self.cfg.publicip, port=str(clusterports[0])),
             '--master.keyfile=' + str(self.ca["clientkeyfile"]),
             '--source.endpoint=https://{ip}:{port}'.format(ip=self.cfg.publicip, port=str(clusterports[1])),
@@ -30,7 +24,7 @@ class SyncManager():
             '--source.cacert=' + str(self.ca["cert"]),
             '--auth.keyfile=' + str(self.ca["clientkeyfile"])
         ]
-            
+
         self.instance = None
 
     def run_syncer(self):
@@ -40,44 +34,16 @@ class SyncManager():
         ] + self.arguments
 
         logging.info("SyncManager: launching %s", str(args))
-        rc = psutil.Popen(args).wait()
-        logging.info("SyncManager: up %s", str(rc))
-        return rc == 0
+        exitcode = psutil.Popen(args).wait()
+        logging.info("SyncManager: up %s", str(exitcode))
+        return exitcode == 0
 
-    def is_instance_running(self):
-        """ check whether this is still running"""
-        try:
-            self.instance.wait(timeout=1)
-        except:
-            pass
-        return self.instance.is_running()
-
-    def respawn_instance(self):
-        """ restart the arangosync instance after we killed it eventually """
-        args = [
-            self.cfg.bin_dir / 'arangosync',
-        ].extend(self.arguments)
-
-        logging.info("SyncManager: respawning instance %s", str(args))
-        self.instance = psutil.Popen(args)
-        logging.info("SyncManager: up %s", str(self.instance.pid))
-
-    def terminate_instance(self):
-        """ terminate the instance of this syncer"""
-        #logging.info("SyncManager: Terminating: %s", str(self.arguments))
-        ##self.instance.send_signal(signal.CTRL_C_EVENT)
-        #self.instance.terminate()
-        #try:
-        #    logging.info(str(self.instance.wait(timeout=45)))
-        #except:
-        #    logging.info("SyncManager: timeout, doing hard kill.")
-        #    self.instance.kill()
-        logging.info("SyncManager: Instance now dead.")
-
-    def replace_binary_for_upgrade(self, newInstallCfg):
-        self.cfg.installPrefix = newInstallCfg.installPrefix
+    def replace_binary_for_upgrade(self, new_install_cfg):
+        """ set the new config properties """
+        self.cfg.installPrefix = new_install_cfg.installPrefix
 
     def check_sync_status(self, which):
+        """ run the syncer status command """
         logging.info('SyncManager: Check status of cluster %s', str(which))
         args = [
             self.cfg.bin_dir / 'arangosync',
@@ -92,6 +58,7 @@ class SyncManager():
         psutil.Popen(args).wait()
 
     def get_sync_tasks(self, which):
+        """ run the get tasks command """
         logging.info('SyncManager: Check status of cluster %s', str(which))
         args = [
             self.cfg.bin_dir / 'arangosync',
@@ -106,6 +73,7 @@ class SyncManager():
         psutil.Popen(args).wait()
 
     def stop_sync(self):
+        """ run the stop sync command """
         args = [
             self.cfg.bin_dir / 'arangosync',
             'abort', 'sync',
@@ -117,4 +85,3 @@ class SyncManager():
         ]
         logging.info('SyncManager: stopping sync : %s', str(args))
         psutil.Popen(args).wait()
-
