@@ -1,3 +1,5 @@
+#!env python
+""" removes terminal control sequences and other non ascii characters """
 import unicodedata
 import re
 
@@ -14,6 +16,7 @@ ANSI_ESCAPE = re.compile(r'''
     )
 ''', re.VERBOSE)
 
-def ascii_print(s):
-    s = ANSI_ESCAPE.sub('', s)
-    print("".join(ch for ch in s if ch == '\n' or unicodedata.category(ch)[0]!="C"))
+def ascii_print(string):
+    """ convert string to only be ascii without control sequences """
+    string = ANSI_ESCAPE.sub('', string)
+    print("".join(ch for ch in string if ch == '\n' or unicodedata.category(ch)[0] != "C"))

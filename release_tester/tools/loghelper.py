@@ -5,7 +5,7 @@ def get_term_width():
     # eventually we should ask the term for the size
     return 60
 
-def line(sym = "-", length = get_term_width()):
+def line(sym="-", length=get_term_width()):
     print(sym * length)
 
 def log_cmd(cmd):
@@ -17,9 +17,9 @@ def log_cmd(cmd):
     line(">")
 
 def LoggedCommandWait():
-    def __init__(self,  cmd_arr ,*args, tool = subprocess.Popen, **kwargs):
+    def __init__(self, cmd_arr, *args, tool=subprocess.Popen, **kwargs):
         log.cmd(cmd_arr)
-        self.child = tool(cmd_arr ,*args, **kwargs)
+        self.child = tool(cmd_arr, *args, **kwargs)
 
     def __exit__(self):
         self.child.wait()

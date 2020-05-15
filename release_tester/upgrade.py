@@ -4,11 +4,10 @@
 import logging
 from pathlib import Path
 
-import click
 import sys
+import click
 
 from tools.killall import kill_all_processes
-from tools.quote_user import end_test
 from arangodb.sh import ArangoshExecutor
 import arangodb.installers as installers
 from arangodb.starter.environment import get as getStarterenv
@@ -26,14 +25,14 @@ logging.basicConfig(
 @click.option('--old-version', help='old ArangoDB version number.')
 @click.option('--version', help='ArangoDB version number.')
 @click.option('--verbose',
-              is_flag = True,
+              is_flag=True,
               default=False,
               help='switch starter to verbose logging mode.')
 @click.option('--package-dir',
               default='/tmp/',
               help='directory to load the packages from.')
 @click.option('--enterprise',
-              is_flag = True,
+              is_flag=True,
               default=False,
               help='Enterprise or community?')
 @click.option('--quote_user',
@@ -46,7 +45,8 @@ logging.basicConfig(
 @click.option('--publicip',
               default='127.0.0.1',
               help='IP for the click to browser hints.')
-def run_test(old_version, version, verbose, package_dir, enterprise, quote_user, starter_mode, publicip):
+def run_test(old_version, version, verbose, package_dir,
+             enterprise, quote_user, starter_mode, publicip):
     """ main """
     lh.section("configuration")
     print("version: " + str(version))
@@ -78,7 +78,7 @@ def run_test(old_version, version, verbose, package_dir, enterprise, quote_user,
     elif starter_mode == 'DC':
         starter_mode = [RunnerType.DC2DC]
     elif starter_mode == 'none':
-        starter_mode = [ None ]
+        starter_mode = [None]
     else:
         raise Exception("invalid starter mode: " + starter_mode)
 

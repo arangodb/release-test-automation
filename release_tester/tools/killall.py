@@ -2,10 +2,9 @@
 """ tiny utility to kill all arangodb related processes """
 import logging
 import psutil
-import signal
-import os
 
 def get_all_processes():
+    """ fetch all possible running processes that we may have spawned """
     arangods = []
     arangodbs = []
     arangosyncs = []
@@ -19,8 +18,8 @@ def get_all_processes():
                 arangods.append(psutil.Process(process.pid))
             elif name.startswith('arangosync'):
                 arangosyncs.append(psutil.Process(process.pid))
-        except Exception as x:
-            logging.error(x)
+        except Exception as ex:
+            logging.error(ex)
     return arangodbs + arangosyncs + arangods
 
 def kill_all_processes():

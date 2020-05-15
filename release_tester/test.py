@@ -6,7 +6,6 @@ from pathlib import Path
 import sys
 import signal
 import click
-import functools
 from tools.killall import kill_all_processes
 from tools.quote_user import end_test
 from arangodb.sh import ArangoshExecutor
@@ -53,14 +52,14 @@ def cleanup(name, child, signum, frame):
 @click.command()
 @click.option('--version', help='ArangoDB version number.')
 @click.option('--verbose',
-              is_flag = True,
+              is_flag=True,
               help='switch starter to verbose logging mode.')
 @click.option('--enterprise',
-              is_flag = True,
+              is_flag=True,
               default=False,
               help='Enterprise or community?')
 @click.option('--no-quote-user',
-              is_flag = True,
+              is_flag=True,
               default=False,
               help='wait for the user to hit Enter?')
 @click.option('--package-dir',
@@ -78,7 +77,8 @@ def cleanup(name, child, signum, frame):
               help='IP for the click to browser hints.')
 
 
-def run_test(version, verbose, package_dir, enterprise, no_quote_user, mode, starter_mode, publicip):
+def run_test(version, verbose, package_dir, enterprise,
+             no_quote_user, mode, starter_mode, publicip):
     """ main """
     lh.section("configuration")
     print("version: " + str(version))
