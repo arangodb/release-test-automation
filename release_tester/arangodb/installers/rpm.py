@@ -11,8 +11,6 @@ from arangodb.sh import ArangoshExecutor
 from arangodb.log import ArangodLogExaminer
 from arangodb.installers.base import InstallerBase
 from tools.asciiprint import ascii_print
-from pprint import pprint as PP
-from pprint import pformat as PF
 
 import obi.util.logging_helper as olh
 import tools.loghelper as lh
@@ -112,11 +110,11 @@ class InstallerRPM(InstallerBase):
         try:
             server_upgrade.expect('First Steps with ArangoDB:|server will now shut down due to upgrade, database initialization or admin restoration.')
             print(server_upgrade.before)
-        except pexpect.exceptions.EOF as e:
+        except pexpect.exceptions.EOF as exc:
             lh.line("X")
             ascii_print(server_upgrade.before)
             lh.line("X")
-            print("exception : " + str(e))
+            print("exception : " + str(exc))
             lh.line("X")
             logging.error("Upgrade failed!")
             sys.exit(1)
@@ -191,18 +189,18 @@ class InstallerRPM(InstallerBase):
         with pexpect.spawnu('/usr/sbin/arango-secure-installation') as etpw:
             result = None
             try:
-                ask_for_pass=[
+                ask_for_pass = [
                     'Please enter a new password for the ArangoDB root user:',
                     'Please enter password for root user:',
                 ]
 
                 result = etpw.expect(ask_for_pass)
-                if result == None:
+                if result is None:
                     raise RuntimeError("Not asked for password")
 
                 etpw.sendline(self.cfg.passvoid)
                 result = etpw.expect('Repeat password: ')
-                if result == None:
+                if result is None:
                     raise RuntimeError("Not asked to repeat the password")
                 ascii_print(etpw.before)
                 logging.info("password should be set to: " + self.cfg.passvoid)
@@ -216,7 +214,7 @@ class InstallerRPM(InstallerBase):
                 ascii_print(etpw.before)
 
             #except pexpect.exceptions.EOF:
-            except Exception as e:
+            except Exception as exc:
                 logging.error("setting our password failed!")
                 logging.error("X" * 80)
                 logging.error("XO" * 80)
@@ -226,7 +224,7 @@ class InstallerRPM(InstallerBase):
                 logging.error("X" * 80)
                 ascii_print(etpw.before)
                 logging.error("X" * 80)
-                raise
+                raise exc
 
         self.start_service()
         self.log_examiner.detect_instance_pids()

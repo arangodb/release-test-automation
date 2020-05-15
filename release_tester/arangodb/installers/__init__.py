@@ -27,6 +27,7 @@ class InstallConfig():
         super().__init__()
 
     def add_frontend(self, proto, ip, port):
+        """ add a frontend URL in components """
         self.frontends.append({
             'proto': proto,
             'ip': ip,
@@ -51,7 +52,9 @@ def get(*args, **kwargs):
     import resource
     nofd = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
     if nofd < 10000:
-        raise Exception("please use ulimit -n to adjust the number of allowed filedescriptors - currently have: " + str(nofd))
+        raise Exception("please use ulimit -n "
+                        "to adjust the number of allowed filedescriptors"
+                        " - currently have: " + str(nofd))
     macver = platform.mac_ver()
     if macver[0]:
         from arangodb.installers.mac import InstallerMac

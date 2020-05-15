@@ -8,7 +8,6 @@ from pathlib import Path
 from abc import abstractmethod, ABC
 import yaml
 from arangodb.log import ArangodLogExaminer
-from pprint import pprint as PP
 
 ARANGO_BINARIES = []
 
@@ -28,7 +27,8 @@ def run_file_command(file_to_check):
 
 ## helper classes
 class BinaryDescription():
-    def __init__(self,path,enter,strip,vmin,vmax,sym):
+    """ describe the availability of an arangodb binary and its properties """
+    def __init__(self, path, enter, strip, vmin, vmax, sym):
         self.path = path
         self.enterprise = enter
         self.stripped = strip
@@ -36,15 +36,15 @@ class BinaryDescription():
         self.version_max = vmax
         self.symlink = sym
 
-        for x in (
-            self.path,
-            self.enterprise,
-            self.stripped,
-            self.version_min,
-            self.version_max,
-            self.symlink
+        for attribute in (
+                self.path,
+                self.enterprise,
+                self.stripped,
+                self.version_min,
+                self.version_max,
+                self.symlink
         ):
-            if x == None:
+            if attribute is None:
                 logging.error("one of the given args is null")
                 logging.error(str(self))
                 raise ValueError
@@ -60,11 +60,8 @@ class BinaryDescription():
         """.format(self)
 
 
-    def check_removed():
-        #ensure file and symlinks do not exist
-        pass
-
-    def check_installed(self,version, enterprise, check_stripped, check_symlink):
+    def check_installed(self, version, enterprise, check_stripped, check_symlink):
+        """ check all attributes of this file in reality """
         #TODO consider only certain verions
         #use semver package
 
@@ -80,6 +77,7 @@ class BinaryDescription():
 
 
     def check_path(self, enterprise):
+        """ check whether the file rightfully exists or not """
         if enterprise and self.enterprise:
             if not self.path.is_file():
                 raise Exception("Binary missing from enterprise package!" + str(self.path))
@@ -94,14 +92,16 @@ class BinaryDescription():
         """ check whether this file is stripped (or not) """
         output = run_file_command(self.path)
         if self.stripped and output.find(', stripped') < 0:
-            raise Exception("expected " + str(self.path) + " to be stripped, but its not: " + output)
+            raise Exception("expected " + str(self.path) +
+                            " to be stripped, but its not: " + output)
 
         if not self.stripped and output.find(', not stripped') < 0:
-            raise Exception("expected " + str(self.path) + " to be stripped, but its not: " + output)
+            raise Exception("expected " + str(self.path) +
+                            " to be stripped, but its not: " + output)
 
     def check_symlink(self):
+        """ check whether the file exists and is a symlink (if) """
         for link in self.symlink:
-            """ check whether this file is a symlink """
             if not link.is_symlink():
                 Exception("{0} is not a symlink".format(str(link)))
 
@@ -109,10 +109,10 @@ class BinaryDescription():
 ### main class
 #pylint: disable=attribute-defined-outside-init
 class InstallerBase(ABC):
+    """ this is the prototype for the operation system agnostic installers """
     def __init__(self):
         self.calculate_package_names()
 
-    """ this is the prototype for the operation system agnostic installers """
     @abstractmethod
     def calculate_package_names(self):
         """ which filenames will we be able to handle"""
@@ -222,75 +222,77 @@ class InstallerBase(ABC):
 
         ARANGO_BINARIES.append(BinaryDescription(
             self.cfg.real_sbin_dir / 'arangod',
-            False, True, "1.0.0", "4.0.0", [self.cfg.real_sbin_dir / 'arango-init-database', self.cfg.real_sbin_dir / 'arango-secure-installation'] )
-        )
+            False, True, "1.0.0", "4.0.0", [
+                self.cfg.real_sbin_dir / 'arango-init-database',
+                self.cfg.real_sbin_dir / 'arango-secure-installation'
+            ]))
 
         # symlink only for MMFILES
         ARANGO_BINARIES.append(BinaryDescription(
             self.cfg.real_sbin_dir / 'arangod',
-            False, True, "1.0.0", "3.6.0", [self.cfg.real_bin_dir / 'arango-dfdb' ] )
-        )
+            False, True, "1.0.0", "3.6.0", [
+                self.cfg.real_bin_dir / 'arango-dfdb'
+            ]))
 
         ARANGO_BINARIES.append(BinaryDescription(
             self.cfg.real_bin_dir / 'arangosh',
-            False, True, "1.0.0", "4.0.0", [self.cfg.real_bin_dir / 'arangoinspect'] )
-        )
+            False, True, "1.0.0", "4.0.0", [
+                self.cfg.real_bin_dir / 'arangoinspect'
+            ]))
 
         ARANGO_BINARIES.append(BinaryDescription(
             self.cfg.real_bin_dir / 'arangoexport',
-            False, True, "1.0.0", "4.0.0", [] )
-        )
+            False, True, "1.0.0", "4.0.0", []))
 
         ARANGO_BINARIES.append(BinaryDescription(
             self.cfg.real_bin_dir / 'arangoimport',
-            False, True, "1.0.0", "4.0.0", [self.cfg.real_bin_dir / 'arangoimp'] )
-        )
+            False, True, "1.0.0", "4.0.0", [
+                self.cfg.real_bin_dir / 'arangoimp'
+            ]))
 
         ARANGO_BINARIES.append(BinaryDescription(
             self.cfg.real_bin_dir / 'arangodump',
-            False, True, "1.0.0", "4.0.0", [] )
-        )
+            False, True, "1.0.0", "4.0.0", []))
 
         ARANGO_BINARIES.append(BinaryDescription(
             self.cfg.real_bin_dir / 'arangorestore',
-            False, True, "1.0.0", "4.0.0", [] )
-        )
+            False, True, "1.0.0", "4.0.0", []))
 
         ARANGO_BINARIES.append(BinaryDescription(
             self.cfg.real_bin_dir / 'arangobench',
-            False, True, "1.0.0", "4.0.0", [] )
-        )
+            False, True, "1.0.0", "4.0.0", []))
 
         ARANGO_BINARIES.append(BinaryDescription(
             self.cfg.real_bin_dir / 'arangovpack',
-            False, True, "1.0.0", "4.0.0", [] )
-        )
+            False, True, "1.0.0", "4.0.0", []))
 
         #starter
         ARANGO_BINARIES.append(BinaryDescription(
             self.cfg.real_bin_dir / 'arangodb',
-            False, False, "1.0.0", "4.0.0", [] )
-        )
+            False, False, "1.0.0", "4.0.0", []))
 
         ## enterprise
         ARANGO_BINARIES.append(BinaryDescription(
             self.cfg.real_bin_dir / 'arangobackup',
-            True, True, "1.0.0", "4.0.0", [] )
-        )
+            True, True, "1.0.0", "4.0.0", []))
 
         ARANGO_BINARIES.append(BinaryDescription(
             self.cfg.real_sbin_dir / 'arangosync',
-            True, False, "1.0.0", "4.0.0", [self.cfg.real_bin_dir / 'arangosync'] )
-        )
+            True, False, "1.0.0", "4.0.0", [
+                self.cfg.real_bin_dir / 'arangosync'
+            ]))
 
         ARANGO_BINARIES.append(BinaryDescription(
             self.cfg.real_sbin_dir / 'rclone-arangodb',
-            True, True, "1.0.0", "4.0.0", [] )
-        )
+            True, True, "1.0.0", "4.0.0", []))
 
     def check_installed_files(self):
-        for bin in ARANGO_BINARIES:
-            bin.check_installed(self.cfg.version, self.cfg.enterprise, self.check_stripped, self.check_symlink)
+        """ check for the files whether they're installed """
+        for binary in ARANGO_BINARIES:
+            binary.check_installed(self.cfg.version,
+                                   self.cfg.enterprise,
+                                   self.check_stripped,
+                                   self.check_symlink)
 
         logging.info("all files ok")
 

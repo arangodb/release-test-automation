@@ -12,6 +12,7 @@ import logging
 import subprocess
 import sys
 from pathlib import Path
+from enum import Enum
 import psutil
 from tools.timestamp import timestamp
 from arangodb.sh import ArangoshExecutor
@@ -20,9 +21,9 @@ import tools.loghelper as lh
 
 ON_WINDOWS = (sys.platform == 'win32')
 
-from enum import Enum
 
 class InstanceType(Enum):
+    """ type of arangod instance """
     coordinator = 1
     resilientsingle = 2
     single = 3
@@ -30,6 +31,7 @@ class InstanceType(Enum):
     dbserver = 5
 
 class ArangodInstance():
+    """ represent one arangodb instance """
     def __init__(self, typ, port):
         self.type = InstanceType[typ] # convert to enum
         self.port = port
@@ -47,17 +49,19 @@ arangod
 """.format(self)
 
     def is_frontend(self):
-        if self.type in [ InstanceType.coordinator
-                        , InstanceType.resilientsingle
-                        , InstanceType.single ]:
+        """ is this instance a frontend """
+        if self.type in [InstanceType.coordinator,
+                         InstanceType.resilientsingle,
+                         InstanceType.single]:
             return True
         else:
             return False
 
     def is_dbserver(self):
-        if self.type in [ InstanceType.dbserver
-                        , InstanceType.resilientsingle
-                        , InstanceType.single ]:
+        """ is this instance a dbserver? """
+        if self.type in [InstanceType.dbserver,
+                         InstanceType.resilientsingle,
+                         InstanceType.single]:
             return True
         else:
             return False
@@ -90,7 +94,7 @@ class StarterManager():
             self.basedir.mkdir(parents=True, exist_ok=True)
             self.jwtfile = self.basedir / 'jwt'
             self.jwtfile.write_text(jwtStr)
-            self.moreopts += ['--auth.jwt-secret' , str(self.jwtfile)]
+            self.moreopts += ['--auth.jwt-secret', str(self.jwtfile)]
 
         # arg mode
         self.mode = mode
@@ -130,24 +134,26 @@ class StarterManager():
         ] + self.moreopts
 
     def name(self):
+        """ name of this starter """
         return str(self.name)
 
     def get_frontends(self):
-        rv = [ ]
+        """ get the frontend URLs of this starter instance """
+        rv = []
         for i in self.all_instances:
             if i.is_frontend():
                 rv.append(i)
         return rv
 
     def get_dbservers(self):
-        rv = [ ]
+        rv = []
         for i in self.all_instances:
             if i.is_dbserver():
                 rv.append(i)
         return rv
 
     def get_agents(self):
-        rv = [ ]
+        rv = []
         for i in self.all_instances:
             if i.type == InstanceType.agent:
                 rv.append(i)
@@ -183,7 +189,7 @@ class StarterManager():
     def run_starter(self):
         """ launch the starter for this instance"""
         logging.info("running starter " + self.name)
-        args = [ self.cfg.bin_dir / 'arangodb' ] + self.arguments
+        args = [self.cfg.bin_dir / 'arangodb'] + self.arguments
 
         lh.log_cmd(args)
         self.instance = psutil.Popen(args)
@@ -380,9 +386,9 @@ class StarterManager():
     def detect_instances(self):
         """ see which arangods where spawned and inspect their logfiles"""
         lh.subsection("Instance Detection")
-        self.all_instances=[]
+        self.all_instances = []
         logging.debug("waiting for frontend")
-        logfiles=set() #logfiles that can be used for debugging
+        logfiles = set() #logfiles that can be used for debugging
 
          # the more instances we expect to spawn the more patient:
         tries = 10 * self.expect_instance_count
@@ -399,7 +405,8 @@ class StarterManager():
                         logfiles.add(str(Path(root) / f))
 
                 for name in dirs:
-                    match = re.match(r'(agent|coordinator|dbserver|resilientsingle|single)(\d*)', name)
+                    match = re.match(r'(agent|coordinator|dbserver|resilientsingle|single)(\d*)',
+                                     name)
                     if match:
                         logfile = self.basedir / name / 'arangod.log'
 
@@ -460,7 +467,8 @@ class StarterManager():
                 missing_instances.append(instance)
 
         if len(missing_instances) > 0:
-            logging.error("Not all instances are alive. The following are not running: %s", str(missing_instances))
+            logging.error("Not all instances are alive. The following are not running: %s",
+                          str(missing_instances))
             logging.error("exiting")
             sys.exit(1)
             #raise Exception("instances missing: " + str(missing_instances))
@@ -474,7 +482,7 @@ class StarterManager():
 
         became_leader = lfs.find('Became leader in') >= 0
         took_over = lfs.find('Successful leadership takeover: All your base are belong to us') >= 0
-        self.is_leader = ( became_leader or took_over )
+        self.is_leader = (became_leader or took_over)
         return self.is_leader
 
     def active_failover_detect_hosts(self):

@@ -30,9 +30,11 @@ class InstallerW(InstallerBase):
         super().__init__()
 
     def check_symlink(self, file_to_check):
+        """ check for installed symlinks """
         return not file_to_check.is_symlink()
 
     def check_is_stripped(self, file_to_check, expect_stripped):
+        """ check for strippend """
         pass # we don't do this on the wintendo.
 
     def calculate_package_names(self):
@@ -84,14 +86,15 @@ class InstallerW(InstallerBase):
         self.start_service()
         logging.info('Installation successfull')
 
-    def getService(self):
+    def get_service(self):
+        """ get a service handle """
         if self.service:
             return
         try:
             self.service = psutil.win_service_get('ArangoDB')
-        except x as y:
-            logging.error("failed to get service! - %s", str(x))
-            raise x
+        except Exception as exc:
+            logging.error("failed to get service! - %s", str(exc))
+            raise exc
 
     def un_install_package(self):
         # once we modify it, the uninstaller will leave it there...
@@ -114,18 +117,18 @@ class InstallerW(InstallerBase):
         time.sleep(2)
         try:
             logging.info(psutil.win_service_get('ArangoDB'))
-            self.getService()
+            self.get_service()
             if self.service.status() != 'stopped':
                 logging.info("service shouldn't exist anymore!")
         except:
             pass
 
     def check_service_up(self):
-        self.getService()
+        self.get_service()
         return self.service.status() == 'running'
 
     def start_service(self):
-        self.getService()
+        self.get_service()
         self.service.start()
         while self.service.status() != "running":
             logging.info(self.service.status())
@@ -136,7 +139,7 @@ class InstallerW(InstallerBase):
         self.log_examiner.detect_instance_pids()
 
     def stop_service(self):
-        self.getService()
+        self.get_service()
         self.service.stop()
         while self.service.status() != "stopped":
             logging.info(self.service.status())

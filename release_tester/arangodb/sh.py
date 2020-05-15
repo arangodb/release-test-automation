@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """ Run a javascript command by spawning an arangosh
     to the configured connection """
-import os
 import logging
 import psutil
 import tools.loghelper as lh
@@ -53,7 +52,7 @@ class ArangoshExecutor():
         res = self.run_command((
             'check version',
             "if (db._version()!='%s') { throw 'fail'}" % (self.cfg.version)))
-        logging.debug("version check result: " + str(res));
+        logging.debug("version check result: " + str(res))
         return res
 
 

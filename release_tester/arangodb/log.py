@@ -2,7 +2,7 @@
 """ analyse the logfile of a running arangod instance
     for certain status messages """
 
-import sys, os
+import sys
 import re
 import time
 import logging
@@ -71,5 +71,7 @@ class ArangodLogExaminer():
                 logging.error("inspect: " + str(instance['logfile']))
                 sys.exit(1)
             else:
-                logging.info("found pid {0} for instance with logifle {1}.".format(instance['PID'], instance['logfile']))
+                logging.info("found pid {0} for instance with logifle {1}.".format(
+                    instance['PID'],
+                    instance['logfile']))
         print()
