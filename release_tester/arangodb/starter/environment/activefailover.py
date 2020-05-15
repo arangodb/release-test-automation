@@ -55,7 +55,7 @@ class ActiveFailover(Runner):
 
         logging.info("waiting for the cluster instances to become alive")
         for node in self.starter_instances:
-            node.detect_logfiles()
+            node.detect_instances()
             node.active_failover_detect_hosts()
 
         logging.info("instances are ready, detecting leader")

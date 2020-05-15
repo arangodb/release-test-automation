@@ -65,7 +65,7 @@ db.testCollection.save({test: "document"})
 
         logging.info("waiting for the cluster instances to become alive")
         for node in self.starter_instances:
-            node.detect_logfiles()
+            node.detect_instances()
             node.detect_instance_pids()
             self.basecfg.add_frontend('http',
                                       self.basecfg.publicip,
@@ -75,16 +75,18 @@ db.testCollection.save({test: "document"})
     def run(self):
         lh.subsection("run cluster tests")
         quote_user(self.basecfg)
+
         #  TODO self.create_test_collection
         logging.info("stopping instance 2")
         self.starter_instances[2].terminate_instance()
+
         end_test(self.basecfg, "instance stopped")
         # respawn instance, and get its state fixed
         self.starter_instances[2].respawn_instance()
         while not self.starter_instances[2].is_instance_up():
             logging.info('.')
             time.sleep(1)
-        self.starter_instances[2].detect_logfiles()
+        self.starter_instances[2].detect_instances()
         self.starter_instances[2].detect_instance_pids()
         self.starter_instances[2].detect_instance_pids_still_alive()
 

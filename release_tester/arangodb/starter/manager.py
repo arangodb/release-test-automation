@@ -201,7 +201,7 @@ class StarterManager():
 
     def is_instance_up(self):
         """ check whether all spawned arangods are fully bootet"""
-        logging.info("checking if starter instance booted: " + str(self.basedir))
+        logging.debug("checking if starter instance booted: " + str(self.basedir))
         if not self.instance.is_running():
             logging.error("Starter Instance {0.name} is gone!".format(self))
             sys.exit(0)
@@ -222,24 +222,31 @@ class StarterManager():
     def terminate_instance(self):
         """ terminate the instance of this starter
             (it should kill all its managed services)"""
-        lh.section("terminating instances")
-        logging.info("StarterManager: Terminating starter instance: %s", str(self.arguments))
-        self.instance.terminate()
 
+        lh.subsection("terminating instances for: " + str(self.name))
+        logging.info("StarterManager: Terminating starter instance: %s", str(self.arguments))
+
+
+        logging.info("This should kill all child processes")
+        self.instance.terminate()
         logging.info("StarterManager: waiting for process to exit")
         self.instance.wait()
+
+        #maybe check that all arangods are dead
 
         logging.info("StarterManager: done - moving logfile from %s to %s",
                      str(self.log_file),
                      str(self.basedir / "arangodb.log.old"))
         self.log_file.rename(self.basedir / "arangodb.log.old")
+
         for instance in self.all_instances:
             l = str(instance.logfile)
             logging.info("renaming instance logfile: %s -> %s", l, l + '.old')
             instance.logfile.rename(l + '.old')
-        #FIXME DEAD instances must be removed from `self.all_instances`
-        #      or at least the pid needs to be deleted. Ask dothebart for his
-        #      resoning.
+
+        # Clear instances as they have been stopped and the logfiles
+        # have been moved.
+        self.all_instances = []
 
     def kill_instance(self):
         """ kill the instance of this starter
@@ -370,9 +377,10 @@ class StarterManager():
         assert server.logfile.exists()
         return server.logfile.read_text()
 
-    def detect_logfiles(self):
+    def detect_instances(self):
         """ see which arangods where spawned and inspect their logfiles"""
         lh.subsection("Instance Detection")
+        self.all_instances=[]
         logging.debug("waiting for frontend")
         logfiles=set() #logfiles that can be used for debugging
 

@@ -57,8 +57,8 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
     def run(self):
         self.leader.run_starter()
         self.follower.run_starter()
-        self.leader.detect_logfiles()
-        self.follower.detect_logfiles()
+        self.leader.detect_instances()
+        self.follower.detect_instances()
         self.leader.detect_instance_pids()
         self.follower.detect_instance_pids()
 

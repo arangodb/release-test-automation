@@ -106,7 +106,7 @@ class Dc2Dc(Runner):
             while not inst.is_instance_up():
                 logging.info('.')
                 time.sleep(1)
-            inst.detect_logfiles()
+            inst.detect_instances()
             inst.detect_instance_pids()
             cluster['smport'] = inst.get_sync_master_port()
 
