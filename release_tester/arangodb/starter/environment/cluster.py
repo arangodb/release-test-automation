@@ -90,9 +90,9 @@ db.testCollection.save({test: "document"})
         self.starter_instances[2].detect_instance_pids()
         self.starter_instances[2].detect_instance_pids_still_alive()
 
-    def upgrade(self, newInstallCfg):
+    def upgrade(self, new_install_cfg):
         for node in self.starter_instances:
-            node.replace_binary_for_upgrade(newInstallCfg)
+            node.replace_binary_for_upgrade(new_install_cfg)
         for node in self.starter_instances:
             node.detect_instance_pids_still_alive()
         self.starter_instances[1].command_upgrade()

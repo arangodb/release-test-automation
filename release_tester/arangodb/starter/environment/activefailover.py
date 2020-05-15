@@ -3,8 +3,8 @@
 from pathlib import Path
 import time
 import logging
-import requests
 import sys
+import requests
 from tools.quote_user import quote_user
 from arangodb.starter.manager import StarterManager
 from arangodb.starter.environment.runner import Runner
@@ -110,10 +110,10 @@ class ActiveFailover(Runner):
     def post_setup(self):
         pass
 
-    def upgrade(self, newInstallCfg):
+    def upgrade(self, new_install_cfg):
         """ upgrade this installation """
         for node in self.starter_instances:
-            node.replace_binary_for_upgrade(newInstallCfg)
+            node.replace_binary_for_upgrade(new_install_cfg)
         for node in self.starter_instances:
             node.detect_instance_pids_still_alive()
         self.starter_instances[1].command_upgrade()

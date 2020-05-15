@@ -5,7 +5,7 @@ from .logging_helper import obi_logging_logger as logger
 import sys, os
 from pathlib import Path
 
-def remove_from_front(path:Path, *args):
+def remove_from_front(path: Path, *args):
     parts = list(path.parts)
     for arg in args:
         if parts[0] == arg:
@@ -14,17 +14,17 @@ def remove_from_front(path:Path, *args):
             return path
     return Path().joinpath(*parts)
 
-def change_ext(path:Path, ext):
+def change_ext(path: Path, ext):
     return Path(path.parent).joinpath(path.stem + ext)
 
 def apply_action_to_files(path, action, *filters):
     for root, dirs, files in os.walk(path.resolve()):
         for filename in files:
-            file_path=Path(root, filename)
+            file_path = Path(root, filename)
 
             allow = True
             for filter in filters:
-                if not (filter(file_path)):
+                if not filter(file_path):
                     allow = False
                     break
 
@@ -43,7 +43,7 @@ def create_filter_path(*paths):
     return filter_path
 
 def filter_cpp(path):
-    if path.suffix in [ ".cpp", ".cc", ".c", ".hpp", ".h" ]:
+    if path.suffix in [".cpp", ".cc", ".c", ".hpp", ".h"]:
         return True
     else:
         return False

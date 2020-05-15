@@ -107,7 +107,7 @@ process.exit(0);
 
         logging.info("all OK!")
 
-    def upgrade(self, newInstallCfg):
+    def upgrade(self, new_install_cfg):
         """ upgrade this installation """
         raise Exception("TODO!")
 

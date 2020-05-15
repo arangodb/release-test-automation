@@ -9,7 +9,6 @@ import os
 import time
 import re
 import logging
-import subprocess
 import sys
 from pathlib import Path
 from enum import Enum
@@ -127,6 +126,8 @@ class StarterManager():
         self.expect_instance_count = 1
         self.startupwait = 2
 
+        self.upgradeprocess = None
+
         self.arguments = [
             "--log.console=false",
             "--log.file=true",
@@ -139,42 +140,48 @@ class StarterManager():
 
     def get_frontends(self):
         """ get the frontend URLs of this starter instance """
-        rv = []
+        ret = []
         for i in self.all_instances:
             if i.is_frontend():
-                rv.append(i)
-        return rv
+                ret.append(i)
+        return ret
 
     def get_dbservers(self):
-        rv = []
+        """ get the list of dbservers managed by this starter """
+        ret = []
         for i in self.all_instances:
             if i.is_dbserver():
-                rv.append(i)
-        return rv
+                ret.append(i)
+        return ret
 
     def get_agents(self):
-        rv = []
+        """ get the list of agents managed by this starter """
+        ret = []
         for i in self.all_instances:
             if i.type == InstanceType.agent:
-                rv.append(i)
-        return rv
+                ret.append(i)
+        return ret
 
     def get_frontend(self):
+        """ get the first frontendhost of this starter """
         servers = self.get_frontends()
         assert servers
         return servers[0]
 
     def get_dbserver(self):
+        """ get the first dbserver of this starter """
         servers = self.get_dbservers()
         assert servers
         return servers[0]
 
     def get_agent(self):
+        """ get the first agent of this starter """
         servers = self.get_agents()
         assert servers
         return servers[0]
 
     def show_all_instances(self):
+        """ print all instances of this starter to the user """
         logging.info("arangod instances for starter: " + self.name)
         if not self.all_instances:
             logging.info("no instances detected")
@@ -246,9 +253,9 @@ class StarterManager():
         self.log_file.rename(self.basedir / "arangodb.log.old")
 
         for instance in self.all_instances:
-            l = str(instance.logfile)
-            logging.info("renaming instance logfile: %s -> %s", l, l + '.old')
-            instance.logfile.rename(l + '.old')
+            logfile = str(instance.logfile)
+            logging.info("renaming instance logfile: %s -> %s", logfile, logfile + '.old')
+            instance.logfile.rename(logfile + '.old')
 
         # Clear instances as they have been stopped and the logfiles
         # have been moved.
@@ -266,11 +273,10 @@ class StarterManager():
             self.instance.kill()
         logging.info("StarterManager: Instance now dead.")
 
-    def replace_binary_for_upgrade(self, newInstallCfg):
+    def replace_binary_for_upgrade(self, new_install_cfg):
         """ replace the parts of the installation with information after an upgrade"""
-
-        """ On windows the install prefix may change, since we can't overwrite open files: """
-        self.cfg.installPrefix = newInstallCfg.installPrefix
+        # On windows the install prefix may change, since we can't overwrite open files:
+        self.cfg.installPrefix = new_install_cfg.installPrefix
         logging.info("StarterManager: Killing my instance [%s]", str(self.instance.pid))
         self.kill_instance()
         self.detect_instance_pids_still_alive()
@@ -289,9 +295,10 @@ class StarterManager():
         self.upgradeprocess = psutil.Popen(args)
 
     def wait_for_upgrade(self):
-        rc = self.upgradeprocess.wait()
-        logging.info("StarterManager: Upgrade command exited: %s", str(rc))
-        if rc != 0:
+        """ wait for the starter to finish performing the upgrade """
+        ret = self.upgradeprocess.wait()
+        logging.info("StarterManager: Upgrade command exited: %s", str(ret))
+        if ret != 0:
             raise Exception("Upgrade process exited with non-zero reply")
 
     def respawn_instance(self):
@@ -320,20 +327,21 @@ class StarterManager():
         return self.get_frontend().port
 
     def get_my_port(self):
-        if self.starter_port != None:
+        """ find out my frontend port """
+        if self.starter_port is not None:
             return self.starter_port
 
         where = -1
         tries = 10
         while where == -1 and tries:
             tries -= 1
-            lf = self.get_log_file()
-            where = lf.find('ArangoDB Starter listening on')
+            lfcontent = self.get_log_file()
+            where = lfcontent.find('ArangoDB Starter listening on')
             if where != -1:
-                where = lf.find(':', where)
+                where = lfcontent.find(':', where)
                 if where != -1:
-                    end = lf.find(' ', where)
-                    port = lf[where + 1: end]
+                    end = lfcontent.find(' ', where)
+                    port = lfcontent[where + 1: end]
                     self.starter_port = port
                     assert int(port) #assert that we can convert to int
                     return port
@@ -400,9 +408,9 @@ class StarterManager():
             sys.stdout.flush()
 
             for root, dirs, files in os.walk(self.basedir):
-                for f in files:
-                    if f.endswith("log"):
-                        logfiles.add(str(Path(root) / f))
+                for onefile in files:
+                    if onefile.endswith("log"):
+                        logfiles.add(str(Path(root) / onefile))
 
                 for name in dirs:
                     match = re.match(r'(agent|coordinator|dbserver|resilientsingle|single)(\d*)',
@@ -427,8 +435,8 @@ class StarterManager():
             self.show_all_instances()
             logging.error("can not continue without frontend instance")
             logging.error("please check logs in" + str(self.basedir))
-            for x in logfiles:
-                logging.debug(x)
+            for logf in logfiles:
+                logging.debug(logf)
             sys.exit(1)
 
         self.show_all_instances()

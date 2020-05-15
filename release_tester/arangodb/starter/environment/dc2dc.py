@@ -124,7 +124,7 @@ class Dc2Dc(Runner):
         self.sync_manager = SyncManager(self.basecfg,
                                         self.ca,
                                         [self.cluster2['smport'],
-                                         self.cluster1['smport'] ] )
+                                         self.cluster1['smport']])
         if not self.sync_manager.run_syncer():
             raise Exception("starting the synchronisation failed!")
         time.sleep(60) # TODO: howto detect dc2dc is completely up and running?
@@ -147,12 +147,12 @@ class Dc2Dc(Runner):
 
         pass
 
-    def upgrade(self, newInstallCfg):
+    def upgrade(self, new_install_cfg):
         """ upgrade this installation """
-        self.sync_manager.replace_binary_for_upgrade(newInstallCfg)
+        self.sync_manager.replace_binary_for_upgrade(new_install_cfg)
         self.sync_manager.stop_sync()
-        self.cluster1["instance"].replace_binary_for_upgrade(newInstallCfg)
-        self.cluster2["instance"].replace_binary_for_upgrade(newInstallCfg)
+        self.cluster1["instance"].replace_binary_for_upgrade(new_install_cfg)
+        self.cluster2["instance"].replace_binary_for_upgrade(new_install_cfg)
         self.cluster1["instance"].detect_instance_pids_still_alive()
         self.cluster2["instance"].detect_instance_pids_still_alive()
         self.cluster1["instance"].command_upgrade()

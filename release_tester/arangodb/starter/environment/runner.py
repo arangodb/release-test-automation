@@ -19,7 +19,7 @@ class Runner(ABC):
         """ now launch the stuff"""
 
     @abstractmethod
-    def upgrade(self, newInstallCfg):
+    def upgrade(self, new_install_cfg):
         """ upgrade this installation """
 
     @abstractmethod
