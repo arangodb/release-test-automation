@@ -14,10 +14,10 @@ def log_cmd(cmd):
     """ log string """
     if not isinstance(cmd, str):
         cmd = " ".join([str(x) for x in cmd])
-    print()
-    line("#")
+
+    line("<")
     print("executing: " + str(cmd))
-    line(">")
+    line("^")
 
 def LoggedCommandWait():
     """ run a command, redirect its output through our log facility, wait for its exit """
@@ -31,7 +31,7 @@ def LoggedCommandWait():
         print()
 
 
-def subsection(name, sym="#", in_section=False):
+def subsection(name, sym="=", in_section=False):
     """ print a subsection """
     target_length = get_term_width()
 
@@ -45,7 +45,11 @@ def subsection(name, sym="#", in_section=False):
     print(sym + " " * spaces_front + name + " " * spaces_back + sym)
     line(sym, target_length)
 
-def section(name, sym="="):
+def subsubsection(name, sym="-"):
+    """ print a subsubsection """
+    subsection(name, sym, False)
+
+def section(name, sym="#"):
     """ print a section """
     target_length = get_term_width()
 

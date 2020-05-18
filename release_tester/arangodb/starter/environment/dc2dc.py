@@ -133,7 +133,8 @@ class Dc2Dc(Runner):
         logging.info('finished')
 
     def post_setup(self):
-        self.cluster1['instance'].arangosh.create_test_data()
+        self.cluster1['instance'].arangosh.create_test_data("dc2dc (post setup - dc1)")
+        self.cluster1['instance'].arangosh.check_test_data("dc2dc (post setup - dc1)")
         self.sync_manager.check_sync_status(0)
         self.sync_manager.check_sync_status(1)
         self.sync_manager.get_sync_tasks(0)

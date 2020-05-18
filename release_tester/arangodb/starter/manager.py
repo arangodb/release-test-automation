@@ -189,7 +189,7 @@ class StarterManager():
 
         logging.info("detected instances: ----")
         for instance in self.all_instances:
-            print(" - " + instance.name)
+            print(" - {0.name} (pid: {0.pid})".format(instance))
         logging.info("------------------------")
 
 
@@ -236,7 +236,7 @@ class StarterManager():
         """ terminate the instance of this starter
             (it should kill all its managed services)"""
 
-        lh.subsection("terminating instances for: " + str(self.name))
+        lh.subsubsection("terminating instances for: " + str(self.name))
         logging.info("StarterManager: Terminating starter instance: %s", str(self.arguments))
 
 
@@ -245,7 +245,7 @@ class StarterManager():
         logging.info("StarterManager: waiting for process to exit")
         self.instance.wait()
 
-        #maybe check that all arangods are dead
+        # How do we know that all arangod instaces are gone without checking?
 
         logging.info("StarterManager: done - moving logfile from %s to %s",
                      str(self.log_file),
@@ -271,6 +271,9 @@ class StarterManager():
         except:
             logging.info("StarterManager: timeout, doing hard kill.")
             self.instance.kill()
+
+        # How do we know that all arangod instaces are gone without checking?
+
         logging.info("StarterManager: Instance now dead.")
 
     def replace_binary_for_upgrade(self, new_install_cfg):
@@ -310,9 +313,9 @@ class StarterManager():
         logging.info("StarterManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)
         time.sleep(self.startupwait)
-        #FIXME check / update pids and logfiles after respawn?
-        #      Not required when restarting the starter only.
-        #      When arangods are upgraded it becomes necessary
+        #FIXME/REVIEW check / update pids and logfiles after respawn?
+        #             Not required when restarting the starter only.
+        #             When arangods are upgraded it becomes necessary
 
     def execute_frontend(self, cmd):
         """ use arangosh to run a command on the frontend arangod"""
@@ -442,6 +445,7 @@ class StarterManager():
         self.show_all_instances()
 
     def detect_instance_pids(self):
+        # TODO: Do we stil need the log.py or should it be removed
         """ detect the arangod instance PIDs"""
         for instance in self.all_instances:
             while not instance.pid:

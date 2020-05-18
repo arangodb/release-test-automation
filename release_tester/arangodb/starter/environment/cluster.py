@@ -84,8 +84,9 @@ db.testCollection.save({test: "document"})
         # respawn instance, and get its state fixed
         self.starter_instances[2].respawn_instance()
         while not self.starter_instances[2].is_instance_up():
-            logging.info('.')
+            print('.', end='')
             time.sleep(1)
+        print()
         self.starter_instances[2].detect_instances()
         self.starter_instances[2].detect_instance_pids()
         self.starter_instances[2].detect_instance_pids_still_alive()

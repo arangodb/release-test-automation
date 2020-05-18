@@ -55,21 +55,35 @@ class ArangoshExecutor():
         logging.debug("version check result: " + str(res))
         return res
 
-
-    def create_test_data(self):
+    def create_test_data(self, testname):
         """ deploy testdata into the instance """
+        if testname:
+            logging.info("adding test data for {0}".format(testname))
+        else:
+            logging.info("adding test data")
+
         return self.run_script([
             'setting up test data',
             self.cfg.test_data_dir / 'makedata.js'])
 
-    def check_test_data(self):
+    def check_test_data(self, testname):
         """ check back the testdata in the instance """
+        if testname:
+            logging.info("checking test data for {0}".format(testname))
+        else:
+            logging.info("checking test data")
+
         self.run_script([
             'checking test data integrity',
             self.cfg.test_data_dir / 'checkdata.js'])
 
-    def clear_test_data(self):
+    def clear_test_data(self, testname):
         """ flush the testdata from the instance again """
+        if testname:
+            logging.info("removing test data for {0}".format(testname))
+        else:
+            logging.info("removing test data")
+
         self.run_script([
             'cleaning up test data',
             self.cfg.test_data_dir / 'cleardata.js'])

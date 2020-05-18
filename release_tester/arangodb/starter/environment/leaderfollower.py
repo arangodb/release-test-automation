@@ -62,8 +62,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
         self.leader.detect_instance_pids()
         self.follower.detect_instance_pids()
 
-        logging.info(str(self.leader.execute_frontend(
-            self.checks['beforeReplJS'])))
+        #add new check
         self.checks['startReplJS'] = (
             "launching replication",
             """
@@ -79,15 +78,26 @@ require("@arangodb/replication").setupReplicationGlobal({
     }));
 process.exit(0);
 """ % (str(self.leader.get_frontend_port())))
-        retval = self.follower.execute_frontend(
-            self.checks['startReplJS'])
+
+        lh.subsubsection("prepare replication")
+        arangosh_script = self.checks['beforeReplJS']
+        logging.info(str(self.leader.execute_frontend(arangosh_script)))
+
+        lh.subsubsection("start replication")
+        arangosh_script = self.checks['startReplJS']
+        retval = self.follower.execute_frontend(arangosh_script)
         if not retval:
             raise Exception("Failed to start the replication using: %s %s"%
                             (retval, str(self.checks['startReplJS'])))
+
+        lh.subsubsection("add data (makedata) for replication")
         logging.info("Replication started successfully")
-        self.leader.arangosh.create_test_data()
-        logging.info(str(self.leader.execute_frontend(
-            self.checks['afterReplJS'])))
+        self.leader.arangosh.create_test_data("lf (after starting replication)")
+
+
+        logging.info("save document")
+        arangosh_script = self.checks['afterReplJS']
+        logging.info(str(self.leader.execute_frontend(arangosh_script)))
 
 
     def post_setup(self):
@@ -103,15 +113,18 @@ process.exit(0);
         if count > 29:
             raise Exception("replication didn't make it in 30s!")
 
-        self.follower.arangosh.check_test_data()
+        lh.subsection("leader/follower - check test data", "-")
+        self.follower.arangosh.check_test_data("lf (after finishing setup)")
 
-        logging.info("all OK!")
+        logging.info("Leader follower setup successfully finished!")
 
     def upgrade(self, new_install_cfg):
         """ upgrade this installation """
+        lh.subsection("upgrade test", "-")
         raise Exception("TODO!")
 
     def jam_attempt(self):
+        lh.subsection("jam test", "-")
         pass
 
     def shutdown(self):

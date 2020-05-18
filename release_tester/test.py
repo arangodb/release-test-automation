@@ -11,6 +11,8 @@ import arangodb.installers as installers
 from arangodb.starter.environment import get as getStarterenv
 from arangodb.starter.environment import RunnerType
 import tools.loghelper as lh
+import tools.errorhelper as eh
+import obi.util
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -104,7 +106,9 @@ def run_test(version, verbose, package_dir, enterprise,
 
         if not sys_arangosh.js_version_check():
             logging.info("Version Check failed!")
-        end_test(inst.cfg, 'system package')
+            eh.prompt_to_continue(inst.cfg.quote_user)
+
+        end_test(inst.cfg, 'Installation of system package')
 
     if mode in ['all', 'tests']:
         if inst.check_service_up():
