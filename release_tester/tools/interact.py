@@ -11,13 +11,13 @@ def prompt_user(cfg, message="Provide instructions to the user what do. Why must
         print(message)
 
     for frontend in cfg.frontends:
-        logging.info('\nfrontend can be reached at: ' +
-                     '''{f[proto]}://root:{c.passvoid}@{f[ip]}:{f[port]}{path}'''.format(
-                         f=frontend,
-                         c=cfg,
-                         path='/_db/_system/_admin/aardvark/index.html#login'
-                     )
-                    )
+        print('\nfrontend can be reached at: ' +
+              '''{f[proto]}://root:{c.passvoid}@{f[ip]}:{f[port]}{path}'''.format(
+                  f=frontend,
+                  c=cfg,
+                  path='/_db/_system/_admin/aardvark/index.html#login'
+              )
+             )
     if cfg.interactive:
         input("\nPress Enter to continue")
     else:
