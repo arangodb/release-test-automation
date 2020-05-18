@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from tools.timestamp import timestamp
-from tools.quote_user import quote_user, end_test
+from tools.interact import prompt_user, end_test
 from arangodb.starter.manager import StarterManager
 from arangodb.starter.environment.runner import Runner
 import tools.loghelper as lh
@@ -74,7 +74,7 @@ db.testCollection.save({test: "document"})
 
     def run(self):
         lh.subsection("run cluster tests")
-        quote_user(self.basecfg)
+        prompt_user(self.basecfg)
 
         #  TODO self.create_test_collection
         logging.info("stopping instance 2")

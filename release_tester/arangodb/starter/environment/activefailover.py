@@ -5,7 +5,7 @@ import time
 import logging
 import sys
 import requests
-from tools.quote_user import quote_user
+from tools.interact import prompt_user
 from arangodb.starter.manager import StarterManager
 from arangodb.starter.environment.runner import Runner
 import tools.loghelper as lh
@@ -148,7 +148,7 @@ class ActiveFailover(Runner):
         self.basecfg.add_frontend('http',
                                   self.basecfg.publicip,
                                   str(self.leader.get_frontend_port()))
-        quote_user(self.basecfg)
+        prompt_user(self.basecfg)
         self.leader.respawn_instance()
 
         logging.info("waiting for old leader to show up as follower")

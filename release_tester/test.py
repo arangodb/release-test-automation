@@ -3,9 +3,10 @@
 """ Release testing script"""
 import logging
 from pathlib import Path
+import sys
 import click
 from tools.killall import kill_all_processes
-from tools.quote_user import end_test
+from tools.interact import end_test
 from arangodb.sh import ArangoshExecutor
 import arangodb.installers as installers
 from arangodb.starter.environment import get as getStarterenv
@@ -29,9 +30,9 @@ logging.basicConfig(
               is_flag=True,
               default=False,
               help='Enterprise or community?')
-@click.option('--no-quote-user',
+@click.option('--interactive/--no-interactive',
               is_flag=True,
-              default=False,
+              default=sys.stdout.isatty(),
               help='wait for the user to hit Enter?')
 @click.option('--package-dir',
               default='/tmp/',
@@ -49,7 +50,7 @@ logging.basicConfig(
 
 
 def run_test(version, verbose, package_dir, enterprise,
-             no_quote_user, mode, starter_mode, publicip):
+             interactive, mode, starter_mode, publicip):
     """ main """
     lh.section("configuration")
     print("version: " + str(version))
@@ -58,7 +59,7 @@ def run_test(version, verbose, package_dir, enterprise,
     print("mode: " + str(mode))
     print("starter mode: " + str(starter_mode))
     print("public ip: " + str(publicip))
-    print("quote_user: " + str(no_quote_user))
+    print("interactive: " + str(interactive))
     print("verbose: " + str(verbose))
 
     if mode not in ['all', 'install', 'system', 'tests', 'uninstall']:
@@ -74,7 +75,7 @@ def run_test(version, verbose, package_dir, enterprise,
                           enterprise,
                           Path(package_dir),
                           publicip,
-                          not no_quote_user)
+                          interactive)
 
     inst.calculate_package_names()
     kill_all_processes()
@@ -96,7 +97,7 @@ def run_test(version, verbose, package_dir, enterprise,
         inst.check_engine_file()
     else:
         inst.load_config()
-        inst.cfg.quote_user = no_quote_user
+        inst.cfg.interactive = interactive
     if mode in ['all', 'system']:
         if inst.check_service_up():
             inst.stop_service()
@@ -106,7 +107,7 @@ def run_test(version, verbose, package_dir, enterprise,
 
         if not sys_arangosh.js_version_check():
             logging.info("Version Check failed!")
-            eh.prompt_to_continue(inst.cfg.quote_user)
+            eh.prompt_to_continue(inst.cfg.interactive)
 
         end_test(inst.cfg, 'Installation of system package')
 

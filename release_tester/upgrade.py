@@ -35,8 +35,9 @@ logging.basicConfig(
               is_flag=True,
               default=False,
               help='Enterprise or community?')
-@click.option('--quote_user',
-              default=True,
+@click.option('--interactive/--no-interactive',
+              is_flag=True,
+              default=sys.stdout.isatty(),
               help='wait for the user to hit Enter?')
 @click.option('--starter-mode',
               default='all',
@@ -46,16 +47,16 @@ logging.basicConfig(
               default='127.0.0.1',
               help='IP for the click to browser hints.')
 def run_test(old_version, version, verbose, package_dir,
-             enterprise, quote_user, starter_mode, publicip):
+             enterprise, interactive, starter_mode, publicip):
     """ main """
     lh.section("configuration")
-    print("version: " + str(version))
     print("old version: " + str(old_version))
+    print("version: " + str(version))
     print("using enterpise: " + str(enterprise))
     print("package directory: " + str(package_dir))
     print("starter mode: " + str(starter_mode))
     print("public ip: " + str(publicip))
-    #print("quote_user: " + str(no_quote_user))
+    print("interactive: " + str(interactive))
     print("verbose: " + str(verbose))
 
     lh.section("startup")
@@ -91,14 +92,14 @@ def run_test(old_version, version, verbose, package_dir,
                                   enterprise,
                                   Path(package_dir),
                                   publicip,
-                                  quote_user)
+                                  interactive)
 
         new_inst = installers.get(version,
                                   verbose,
                                   enterprise,
                                   Path(package_dir),
                                   publicip,
-                                  quote_user)
+                                  interactive)
 
         lh.section("install old: " + old_version)
         old_inst.install_package()

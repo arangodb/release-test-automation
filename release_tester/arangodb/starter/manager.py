@@ -240,7 +240,7 @@ class StarterManager():
         logging.info("StarterManager: Terminating starter instance: %s", str(self.arguments))
 
 
-        logging.info("This should kill all child processes")
+        logging.info("This should terminate all child processes")
         self.instance.terminate()
         logging.info("StarterManager: waiting for process to exit")
         self.instance.wait()
