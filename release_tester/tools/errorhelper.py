@@ -2,11 +2,11 @@
 import sys
 
 def prompt_to_continue(interactive=True):
-    if interative:
+    if interactive:
         input("Press Enter to continue.")
 
 def ask_continue(interactive=True, defualt=True):
-    if interative:
+    if interactive:
         x = input("Continue y/n:")
         if x in ['y', 'Y']:
             return True
