@@ -396,7 +396,7 @@ class StarterManager():
 
     def detect_instances(self):
         """ see which arangods where spawned and inspect their logfiles"""
-        lh.subsection("Instance Detection")
+        lh.subsection("Instance Detection for {0.name}".format(self))
         self.all_instances = []
         logging.debug("waiting for frontend")
         logfiles = set() #logfiles that can be used for debugging
@@ -412,10 +412,12 @@ class StarterManager():
 
             for root, dirs, files in os.walk(self.basedir):
                 for onefile in files:
+                    #logging.debug("f: " + root + os.path.sep + onefile)
                     if onefile.endswith("log"):
                         logfiles.add(str(Path(root) / onefile))
 
                 for name in dirs:
+                    #logging.debug("d: " + root + os.path.sep + name)
                     match = re.match(r'(agent|coordinator|dbserver|resilientsingle|single)(\d*)',
                                      name)
                     if match:
@@ -434,12 +436,14 @@ class StarterManager():
                 time.sleep(5)
 
         if not self.get_frontends():
+            print()
             logging.error("STARTER FAILED TO SPAWN ARANGOD")
             self.show_all_instances()
             logging.error("can not continue without frontend instance")
             logging.error("please check logs in" + str(self.basedir))
             for logf in logfiles:
                 logging.debug(logf)
+            logging.error("if that does not help try to delete: " + str(self.basedir))
             sys.exit(1)
 
         self.show_all_instances()
