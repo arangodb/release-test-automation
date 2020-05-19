@@ -85,6 +85,9 @@ Example usage:
  - Linux (ubuntu|debian) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --version 3.6.2 --enterprise True --package-dir /home/willi/Downloads`
  - Linux (centos|fedora|sles) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --version 3.6.2 --enterprise True --package-dir /home/willi/Downloads`
 
+Using cleanup.py to clean out the system
+----------------------------------------
+`cleanup.py` will try to invoke all known cleanup mechanisms, to bring your system as much as possible into a 'pure' state.
 
 Source distribution
 -------------------

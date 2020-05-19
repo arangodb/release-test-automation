@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-""" run an installer for the debian based operating system """
+"""
+ run an installer for the MacOS - heavily inspired by 
+     https://github.com/munki/macadmin-scripts
+"""
+
 import time
 import os
 import sys
@@ -34,6 +38,7 @@ class InstallerMac(InstallerBase):
         self.cfg.dbdir = Path.home() / 'Library' / 'ArangoDB' / 'opt' / 'arangodb' / 'var' / 'lib' / 'arangodb3'
         self.cfg.appdir = Path.home() / 'Library' / 'ArangoDB' / 'opt' / 'arangodb' / 'var' / 'lib' / 'arangodb3-apps'
         self.cfg.cfgdir = Path.home() / 'Library' / 'ArangoDB-etc' / 'arangodb3'
+        self.cfg.pidfile = Path("/var/tmp/arangod.pid")
         super().__init__()
 
     def mountdmg(self, dmgpath):
@@ -63,7 +68,6 @@ class InstallerMac(InstallerBase):
             raise Exception("plist empty")
         return mountpoints[0]
 
-
     def unmountdmg(self, mountpoint):
         """
         Unmounts the dmg at mountpoint
@@ -81,6 +85,12 @@ class InstallerMac(InstallerBase):
             if retcode:
                 print('Failed to unmount %s' % mountpoint, file=sys.stderr)
 
+    def run_installer_script(self):
+        script = Path(self.mountpoint) / 'ArangoDB3-CLI.app' / 'Contents' / 'MacOS' / 'ArangoDB3-CLI'
+        print(script)
+        subprocess.Popen([script]).wait()
+
+        
     def calculate_package_names(self):
         enterprise = 'e' if self.cfg.enterprise else ''
         architecture = 'x86_64'
@@ -106,6 +116,7 @@ class InstallerMac(InstallerBase):
         pass
 
     def upgrade_package(self):
+        raise Exception("TODO")
         logging.info("upgrading Arangodb debian package")
         os.environ['DEBIAN_FRONTEND'] = 'readline'
         server_upgrade = pexpect.spawnu('dpkg -i ' +
@@ -127,6 +138,8 @@ class InstallerMac(InstallerBase):
             logging.info("TIMEOUT!")
 
     def install_package(self):
+        #if self.cfg.pidfile.exists():
+        #    pid = 
         logging.info("Mounting DMG")
         self.mountpoint = self.mountdmg(self.cfg.package_dir / self.server_package)
         print(self.mountpoint)
@@ -142,23 +155,13 @@ class InstallerMac(InstallerBase):
         }
         logging.info('Installation successfull')
         self.caclulate_file_locations()
+        self.run_installer_script()
         self.log_examiner = ArangodLogExaminer(self.cfg)
         self.log_examiner.detect_instance_pids()
 
     def un_install_package(self):
-        uninstall = pexpect.spawnu('dpkg --purge ' +
-                                   'arangodb3' +
-                                   ('e' if self.cfg.enterprise else ''))
-
-        try:
-            uninstall.expect('Purging')
-            print(uninstall.before)
-            uninstall.expect(pexpect.EOF)
-            print(uninstall.before)
-        except pexpect.exceptions.EOF:
-            print(uninstall.before)
-            sys.exit(1)
-
+        self.unmountdmg(self.cfg.package_dir / self.server_package)
+        
     def cleanup_system(self):
         # TODO: should this be cleaned by the deb uninstall in first place?
         if self.cfg.logDir.exists():
