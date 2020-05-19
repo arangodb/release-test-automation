@@ -33,3 +33,6 @@
      Alternative: 4 starters, so the agency may remain in size 3? 
 - [ ] terminate starter - check that it also terminated all arangods / sync'ers
 - [ ] click recepie integration - when prompting the user, tell him what to check in the webui
+- [ ] refactoring
+  - [ ] instance - this is to widely used, should be more dependent on whats done.
+  - [ ] startermanager.py - ArangodInstance() own file + add release_tester/arangodb/log.py there
