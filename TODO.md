@@ -14,9 +14,21 @@
   - [ ] nsis
   - [x] 8h active failover
   - [x] 8h cluster
-  - [ ] 8h DC2DC (....)
+  - [ ] 8h DC2DC (....) (starter doesn't kill syncer that it didn't spawn)
 - [ ] ?? better reporting (more than true/false)
 - [x] ?? improve error handling in installers for non-clean systems (....)
 - [ ] ?? improve error handling (catch exceptions, make messages) (..)
 - [ ] ?? frontend testing?
 - [ ] FTP Download from -   ftp://nas02.arangodb.biz/buildfiles - Explore directory structure in interactive client, Create attic-test-script. Copy package name calculation routines from the installers, use https://docs.python.org/3/library/ftplib.html to download. Check for windows compatibility. Use QA-Centos VM for this. 
+- [ ] validate makedata 
+  - [ ] system install
+  - [ ] leader follower
+  - [ ] active failover
+  - [ ] cluster
+  - [ ] dc2dc (pending to fix dc2dc)
+- [ ] cluster case: kill all but agency to keep the UI and RAFT still responsive, kill agent after test, and respawn full instance afterwards
+        #  TODO self.create_test_collection
+        logging.info("stopping instance 2")
+        self.starter_instances[2].terminate_instance()
+     Alternative: 4 starters, so the agency may remain in size 3? 
+- [ ] click recepie integration - when prompting the user, tell him what to check in the webui
