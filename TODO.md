@@ -31,4 +31,5 @@
         logging.info("stopping instance 2")
         self.starter_instances[2].terminate_instance()
      Alternative: 4 starters, so the agency may remain in size 3? 
+- [ ] terminate starter - check that it also terminated all arangods / sync'ers
 - [ ] click recepie integration - when prompting the user, tell him what to check in the webui
