@@ -41,7 +41,7 @@ class InstallerMac(InstallerBase):
         self.cfg.logDir = self.basehomedir / 'opt' / 'arangodb' / 'var' / 'log' / 'arangodb3'
         self.cfg.dbdir = self.basehomedir / 'opt' / 'arangodb' / 'var' / 'lib' / 'arangodb3'
         self.cfg.appdir = self.basehomedir / 'opt' / 'arangodb' / 'var' / 'lib' / 'arangodb3-apps'
-        self.cfg.cfgdir = self.baseetcdir / 'arangodb3'
+        self.cfg.cfgdir = self.baseetcdir
         self.cfg.pidfile = Path("/var/tmp/arangod.pid")
         super().__init__()
 

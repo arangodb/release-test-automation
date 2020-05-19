@@ -28,6 +28,16 @@ class ArangoshExecutor():
         exitcode = arangosh_run.wait(timeout=30)
         return exitcode == 0
 
+    def self_test(self):
+        """ run a command that throws to check exit code handling """
+        logging.info("running version check")
+        res = self.run_command((
+            'check throw exit codes',
+            "throw 'yipiahea motherfucker'"))
+        logging.debug("sanity result: " + str(res))
+        if res:
+            raise Exception("arangosh doesn't exit with non-0 to indicate errors")
+        
     def run_script(self, cmd):
         """ launch an external js-script, print its name """
         run_cmd = [self.cfg.bin_dir / "arangosh",

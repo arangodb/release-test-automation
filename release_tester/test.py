@@ -105,6 +105,8 @@ def run_test(version, verbose, package_dir, enterprise,
 
         sys_arangosh = ArangoshExecutor(inst.cfg)
 
+        sys_arangosh.self_test()
+
         if not sys_arangosh.js_version_check():
             logging.info("Version Check failed!")
             eh.prompt_to_continue(inst.cfg.interactive)
