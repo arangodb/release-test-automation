@@ -36,3 +36,5 @@
 - [ ] refactoring
   - [ ] instance - this is to widely used, should be more dependent on whats done.
   - [ ] startermanager.py - ArangodInstance() own file + add release_tester/arangodb/log.py there
+- [ ] timeout in afo: `11:56:25 INFO activefailover.py:124 - waiting for new leader...`
+- [ ] validate arangosh exits non-zero on error

@@ -51,7 +51,7 @@ class ArangoshExecutor():
         logging.info("running version check")
         res = self.run_command((
             'check version',
-            "if (db._version()!='%s') { throw 'fail'}" % (self.cfg.version)))
+            "if (db._version()!='%s') { throw 'version check failed - ' + db._version() + '!= %s'}" % (self.cfg.version, self.cfg.version)))
         logging.debug("version check result: " + str(res))
         return res
 

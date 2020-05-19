@@ -15,6 +15,7 @@ import pexpect
 import plistlib
 from arangodb.log import ArangodLogExaminer
 from arangodb.installers.base import InstallerBase
+from tools.asciiprint import ascii_print
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 
@@ -27,6 +28,7 @@ class InstallerMac(InstallerBase):
         self.cfg.bin_dir = None
         self.cfg.sbin_dir = None
         self.cfg.localhost = 'localhost'
+        self.cfg.passvoid = '' # default mac install doesn't set passvoid
         self.server_package = None
         self.client_package = None
         self.debug_package = None
@@ -34,10 +36,12 @@ class InstallerMac(InstallerBase):
         self.mountpoint = None
         self.check_stripped = False
         self.check_symlink = True
-        self.cfg.logDir = Path.home() / 'Library' / 'ArangoDB' / 'opt' / 'arangodb' / 'var' / 'log' / 'arangodb3'
-        self.cfg.dbdir = Path.home() / 'Library' / 'ArangoDB' / 'opt' / 'arangodb' / 'var' / 'lib' / 'arangodb3'
-        self.cfg.appdir = Path.home() / 'Library' / 'ArangoDB' / 'opt' / 'arangodb' / 'var' / 'lib' / 'arangodb3-apps'
-        self.cfg.cfgdir = Path.home() / 'Library' / 'ArangoDB-etc' / 'arangodb3'
+        self.basehomedir = Path.home() / 'Library' / 'ArangoDB'
+        self.baseetcdir = Path.home() / 'Library' / 'ArangoDB-etc'
+        self.cfg.logDir = self.basehomedir / 'opt' / 'arangodb' / 'var' / 'log' / 'arangodb3'
+        self.cfg.dbdir = self.basehomedir / 'opt' / 'arangodb' / 'var' / 'lib' / 'arangodb3'
+        self.cfg.appdir = self.basehomedir / 'opt' / 'arangodb' / 'var' / 'lib' / 'arangodb3-apps'
+        self.cfg.cfgdir = self.baseetcdir / 'arangodb3'
         self.cfg.pidfile = Path("/var/tmp/arangod.pid")
         super().__init__()
 
@@ -52,13 +56,27 @@ class InstallerMac(InstallerBase):
                '-owners', 'on']
         print(cmd)
         proc = subprocess.Popen(cmd, bufsize=-1,
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                stdin=subprocess.PIPE)
+        proc.stdin.write(b"y\n") # answer 'Agree Y/N?' the dumb way...
         (pliststr, err) = proc.communicate()
+        # print(str(pliststr))
+
+        offset = pliststr.find(b'<?xml version="1.0" encoding="UTF-8"?>')
+        if offset > 0:
+            print('got string')
+            print(offset)
+            ascii_print(str(pliststr[0:offset]))
+            pliststr = pliststr[offset:]
+        
         if proc.returncode:
             print('Error: "%s" while mounting %s.' % (err, dmgname),
                   file=sys.stderr)
             return None
         if pliststr:
+            # pliststr = bytearray(pliststr, 'ascii')
+            # print(pliststr)
             plist = plistlib.loads(pliststr)
             print(plist)
             for entity in plist['system-entities']:
@@ -68,28 +86,62 @@ class InstallerMac(InstallerBase):
             raise Exception("plist empty")
         return mountpoints[0]
 
+    def detect_dmg_mountpoints(self, dmgpath):
+        """
+        Unmounts the dmg at mountpoint
+        """
+        mountpoints = []
+        dmgname = os.path.basename(dmgpath)
+        cmd = ['/usr/bin/hdiutil', 'info', '-plist']
+        proc = subprocess.Popen(cmd, bufsize=-1,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
+        (pliststr, err) = proc.communicate()
+        if proc.returncode:
+            print('Error: "%s" while listing mountpoints %s.' % (err, dmgpath),
+                  file=sys.stderr)
+            return mountpoints
+        if pliststr:
+            plist = plistlib.loads(pliststr)
+            for entity in plist['images']:
+                if ('image-path' not in entity or
+                    entity['image-path'].find(str(dmgpath)) < 0):
+                    continue
+                if 'system-entities' in entity:
+                    for item in entity['system-entities']:
+                        if 'mount-point' in item:
+                            mountpoints.append(item['mount-point'])
+        else:
+            raise Exception("plist empty")
+        return mountpoints
+        
     def unmountdmg(self, mountpoint):
         """
         Unmounts the dmg at mountpoint
         """
+        logging.info("unmounting %s", mountpoint)
         proc = subprocess.Popen(['/usr/bin/hdiutil', 'detach', mountpoint],
-                                bufsize=-1, stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
+                                 bufsize=-1, stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
         (dummy_output, err) = proc.communicate()
         if proc.returncode:
-            print('Polite unmount failed: %s' % err, file=sys.stderr)
-            print('Attempting to force unmount %s' % mountpoint, file=sys.stderr)
+            logging.error('Polite unmount failed: %s' % err, file=sys.stderr)
+            logging.error('Attempting to force unmount %s' % mountpoint, file=sys.stderr)
             # try forcing the unmount
-            retcode = subprocess.call(['/usr/bin/hdiutil', 'detach', mountpoint,
-                                       '-force'])
+            retcode = subprocess.call(['/usr/bin/hdiutil', 'detach', mountpoint, '-force'])
             if retcode:
                 print('Failed to unmount %s' % mountpoint, file=sys.stderr)
 
     def run_installer_script(self):
         script = Path(self.mountpoint) / 'ArangoDB3-CLI.app' / 'Contents' / 'MacOS' / 'ArangoDB3-CLI'
         print(script)
-        subprocess.Popen([script]).wait()
-
+        installscript = pexpect.spawnu(str(script))
+        try:
+            installscript.expect("is ready for business. Have fun!", timeout=60)
+            ascii_print(installscript.before)
+        except pexpect.exceptions.EOF:
+            ascii_print(installscript.before)
+        installscript.kill(0)
         
     def calculate_package_names(self):
         enterprise = 'e' if self.cfg.enterprise else ''
@@ -117,29 +169,10 @@ class InstallerMac(InstallerBase):
 
     def upgrade_package(self):
         raise Exception("TODO")
-        logging.info("upgrading Arangodb debian package")
-        os.environ['DEBIAN_FRONTEND'] = 'readline'
-        server_upgrade = pexpect.spawnu('dpkg -i ' +
-                                        str(self.cfg.package_dir / self.server_package))
-        try:
-            server_upgrade.expect('Upgrading database files')
-            print(server_upgrade.before)
-        except pexpect.exceptions.EOF:
-            logging.info("X" * 80)
-            print(server_upgrade.before)
-            logging.info("X" * 80)
-            logging.info("Upgrade failed!")
-            sys.exit(1)
-        try:
-            logging.info("waiting for the upgrade to finish")
-            server_upgrade.expect(pexpect.EOF, timeout=30)
-            print(server_upgrade.before)
-        except pexpect.exceptions.EOF:
-            logging.info("TIMEOUT!")
 
     def install_package(self):
-        #if self.cfg.pidfile.exists():
-        #    pid = 
+        if self.cfg.pidfile.exists():
+            self.cfg.pidfile.unlink()
         logging.info("Mounting DMG")
         self.mountpoint = self.mountdmg(self.cfg.package_dir / self.server_package)
         print(self.mountpoint)
@@ -160,10 +193,14 @@ class InstallerMac(InstallerBase):
         self.log_examiner.detect_instance_pids()
 
     def un_install_package(self):
-        self.unmountdmg(self.cfg.package_dir / self.server_package)
+        if not self.mountpoint:
+            mpts = self.detect_dmg_mountpoints(self.cfg.package_dir / self.server_package)
+            for mountpoint in mpts:
+                self.unmountdmg(mountpoint)
+        else:
+            self.unmountdmg(self.mountpoint)
         
     def cleanup_system(self):
-        # TODO: should this be cleaned by the deb uninstall in first place?
         if self.cfg.logDir.exists():
             shutil.rmtree(self.cfg.logDir)
         if self.cfg.dbdir.exists():
@@ -172,3 +209,9 @@ class InstallerMac(InstallerBase):
             shutil.rmtree(self.cfg.appdir)
         if self.cfg.cfgdir.exists():
             shutil.rmtree(self.cfg.cfgdir)
+        if self.cfg.cfgdir.exists():
+            shutil.rmtree(self.cfg.cfgdir)
+        if self.baseetcdir.exists():
+            shutil.rmtree(self.baseetcdir)
+        if self.basehomedir.exists():
+            shutil.rmtree(self.basehomedir)
