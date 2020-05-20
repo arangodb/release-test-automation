@@ -9,8 +9,7 @@ from tools.killall import kill_all_processes
 from tools.interact import end_test
 from arangodb.sh import ArangoshExecutor
 import arangodb.installers as installers
-from arangodb.starter.environment import get as getStarterenv
-from arangodb.starter.environment import RunnerType
+from arangodb.starter.environment import RunnerType, make_runner
 import tools.loghelper as lh
 import tools.errorhelper as eh
 import obi.util
@@ -80,18 +79,18 @@ def run_test(version, verbose, package_dir, enterprise,
     inst.calculate_package_names()
     kill_all_processes()
     if mode in ['all', 'install']:
-        lh.section("INSTALLING PACKAGE")
+        lh.subsection("INSTALLING PACKAGE")
         inst.install_package()
-        lh.section("CHECKING FILES")
+        lh.subsection("CHECKING FILES")
         inst.check_installed_files()
-        lh.section("SAVING CONFIG")
+        lh.subsection("SAVING CONFIG")
         inst.save_config()
         lh.section("CHECKING IF SERVICE IS UP")
         if inst.check_service_up():
-            lh.section("STOPPING SERVICE")
+            lh.subsection("STOPPING SERVICE")
             inst.stop_service()
         inst.broadcast_bind()
-        lh.section("STARTING SERVICE")
+        lh.subsection("STARTING SERVICE")
         inst.start_service()
         inst.check_installed_paths()
         inst.check_engine_file()
@@ -132,18 +131,18 @@ def run_test(version, verbose, package_dir, enterprise,
         elif starter_mode == 'DC':
             starter_mode = [RunnerType.DC2DC]
         elif starter_mode == 'none':
-            starter_mode = []
+            starter_mode = [RunnerType.NONE]
         else:
             raise Exception("invalid starter mode: " + starter_mode)
-        for runner in starter_mode:
-            stenv = getStarterenv(runner, inst.cfg)
-            stenv.setup()
-            stenv.run()
-            stenv.post_setup()
-            stenv.jam_attempt()
-            end_test(inst.cfg, runner)
-            stenv.shutdown()
-            stenv.cleanup()
+
+        for runner_type in starter_mode:
+            assert(runner_type)
+
+            runner = make_runner(runner_type, inst.cfg, inst, None)
+
+            if runner:
+                runner.run()
+
             kill_all_processes()
 
     if mode in ['all', 'uninstall']:

@@ -4,13 +4,14 @@
 import logging
 import psutil
 import tools.loghelper as lh
+import subprocess
 
 class ArangoshExecutor():
     """ configuration """
     def __init__(self, config):
         self.cfg = config
 
-    def run_command(self, cmd):
+    def run_command(self, cmd, verbose = True):
         """ launch a command, print its name """
         run_cmd = [self.cfg.bin_dir / "arangosh",
                    "--server.endpoint",
@@ -22,13 +23,18 @@ class ArangoshExecutor():
         if len(cmd) > 2:
             run_cmd += cmd[2:]
 
-        lh.log_cmd(run_cmd)
-        # PIPE=subprocess.PIPE
-        arangosh_run = psutil.Popen(run_cmd)
+        arangosh_run = None
+        if verbose:
+            lh.log_cmd(run_cmd)
+            arangosh_run = psutil.Popen(run_cmd)
+        else:
+            arangosh_run = psutil.Popen(run_cmd, stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
+
         exitcode = arangosh_run.wait(timeout=30)
+        logging.debug("exitcode {0}".format(exitcode))
         return exitcode == 0
 
-    def run_script(self, cmd):
+    def run_script(self, cmd, verbose = True):
         """ launch an external js-script, print its name """
         run_cmd = [self.cfg.bin_dir / "arangosh",
                    "--server.endpoint",
@@ -41,9 +47,15 @@ class ArangoshExecutor():
         if len(cmd) > 2:
             run_cmd += cmd[2:]
 
-        lh.log_cmd(run_cmd)
-        arangosh_run = psutil.Popen(run_cmd)
+        arangosh_run = None
+        if verbose:
+            lh.log_cmd(run_cmd)
+            arangosh_run = psutil.Popen(run_cmd)
+        else:
+            arangosh_run = psutil.Popen(run_cmd, stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
+
         exitcode = arangosh_run.wait(timeout=30)
+        logging.debug("exitcode {0}".format(exitcode))
         return exitcode == 0
 
     def js_version_check(self):

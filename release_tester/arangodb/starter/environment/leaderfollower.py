@@ -10,14 +10,13 @@ import tools.loghelper as lh
 
 class LeaderFollower(Runner):
     """ this runs a leader / Follower setup with synchronisation """
-    def __init__(self, cfg):
-        lh.section("Leader Follower Test")
-        self.leader = None
-        self.follower = None
-        self.success = True
-        self.basecfg = cfg
-        self.basedir = Path('lf')
-        self.cleanup()
+    def __init__(self, runner_type, cfg, new_inst, old_inst):
+        super().__init__(runner_type, cfg, new_inst, old_inst, 'lf')
+
+        self.leader_starter_instance = None
+        self.follower_starter_instance = None
+
+        self.success = False
         self.checks = {
             "beforeReplJS": (
                 "saving document before",
@@ -34,6 +33,12 @@ db.testCollectionAfter.save({"hello": "world"})
             "checkReplJS": (
                 "checking documents",
                 """
+if (!db.testCollectionBefore) {
+  throw new Error("before collection does not exist");
+}
+if (!db.testCollectionAfter) {
+  throw new Error("after collection does not exist - replication failed");
+}
 if (!db.testCollectionBefore.toArray()[0]["hello"] === "world") {
   throw new Error("before not yet there?");
 }
@@ -42,27 +47,28 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
 }
 """)}
 
-    def setup(self):
-        self.leader = StarterManager(self.basecfg,
-                                     self.basedir / 'leader',
-                                     mode='single',
-                                     port=1234,
-                                     moreopts=[])
-        self.follower = StarterManager(self.basecfg,
-                                       self.basedir / 'follower',
-                                       mode='single',
-                                       port=2345,
-                                       moreopts=[])
+    def starter_prepare_env_impl(self):
+        self.leader_starter_instance = StarterManager(
+            self.basecfg, self.basedir / 'leader',
+            mode='single', port=1234, moreopts=[])
 
-    def run(self):
-        self.leader.run_starter()
-        self.follower.run_starter()
-        self.leader.detect_instances()
-        self.follower.detect_instances()
-        self.leader.detect_instance_pids()
-        self.follower.detect_instance_pids()
+        self.follower_starter_instance = StarterManager(
+            self.basecfg, self.basedir / 'follower',
+            mode='single', port=2345, moreopts=[])
 
-        #add new check
+    def starter_run_impl(self):
+        self.leader_starter_instance.run_starter()
+        self.follower_starter_instance.run_starter()
+
+        self.leader_starter_instance.detect_instances()
+        self.follower_starter_instance.detect_instances()
+
+        self.leader_starter_instance.detect_instance_pids()
+        self.follower_starter_instance.detect_instance_pids()
+
+    def finish_setup_impl(self):
+        # finish setup by starting the replications
+
         self.checks['startReplJS'] = (
             "launching replication",
             """
@@ -76,60 +82,60 @@ require("@arangodb/replication").setupReplicationGlobal({
     incremental: true,
     autoResync: true
     }));
+print("replication started")
 process.exit(0);
-""" % (str(self.leader.get_frontend_port())))
+""" % (str(self.leader_starter_instance.get_frontend_port())))
 
-        lh.subsubsection("prepare replication")
+        lh.subsubsection("prepare leader follower replication")
         arangosh_script = self.checks['beforeReplJS']
-        logging.info(str(self.leader.execute_frontend(arangosh_script)))
+        logging.info(str(self.leader_starter_instance.execute_frontend(arangosh_script)))
 
-        lh.subsubsection("start replication")
+        lh.subsubsection("start leader follwer replication")
         arangosh_script = self.checks['startReplJS']
-        retval = self.follower.execute_frontend(arangosh_script)
+        retval = self.follower_starter_instance.execute_frontend(arangosh_script)
         if not retval:
             raise Exception("Failed to start the replication using: %s %s"%
                             (retval, str(self.checks['startReplJS'])))
 
         lh.subsubsection("add data (makedata) for replication")
         logging.info("Replication started successfully")
-        self.leader.arangosh.create_test_data("lf (after starting replication)")
-
+        self.leader_starter_instance.arangosh.create_test_data("lf (after starting replication)")
 
         logging.info("save document")
         arangosh_script = self.checks['afterReplJS']
-        logging.info(str(self.leader.execute_frontend(arangosh_script)))
+        logging.info(str(self.leader_starter_instance.execute_frontend(arangosh_script)))
 
 
-    def post_setup(self):
-        logging.info("checking for the replication")
+    def test_setup_impl(self):
+        logging.info("testing the leader/follower setup")
+        tries = 30
+        if not self.follower_starter_instance.execute_frontend(self.checks['checkReplJS']):
+            while tries:
+                if self.follower_starter_instance.execute_frontend(self.checks['checkReplJS'], False):
+                    break
+                print(".", end='')
+                time.sleep(1)
+                tries -= 1
 
-        count = 0
-        while count < 30:
-            if self.follower.execute_frontend(self.checks['checkReplJS']):
-                break
-            logging.info(".")
-            time.sleep(1)
-            count += 1
-        if count > 29:
-            raise Exception("replication didn't make it in 30s!")
+        if not tries:
+            if not self.follower_starter_instance.execute_frontend(self.checks['checkReplJS']):
+                raise Exception("replication didn't make it in 30s!")
 
         lh.subsection("leader/follower - check test data", "-")
-        self.follower.arangosh.check_test_data("lf (after finishing setup)")
+        self.follower_starter_instance.arangosh.check_test_data("lf (after finishing setup)")
 
         logging.info("Leader follower setup successfully finished!")
 
-    def upgrade(self, new_install_cfg):
+    def upgrade_arangod_version_impl(self):
         """ upgrade this installation """
-        lh.subsection("upgrade test", "-")
-        raise Exception("TODO!")
+        logging.info("not implemented skipping")
 
-    def jam_attempt(self):
-        lh.subsection("jam test", "-")
-        pass
+    def jam_attempt_impl(self):
+        logging.info("not implemented skipping")
 
-    def shutdown(self):
-        self.leader.terminate_instance()
-        self.follower.terminate_instance()
+    def shutdown_impl(self):
+        self.leader_starter_instance.terminate_instance()
+        self.follower_starter_instance.terminate_instance()
         pslist = get_all_processes()
         if len(pslist) > 0:
             raise Exception("Not all processes terminated! [%s]" % str(pslist))

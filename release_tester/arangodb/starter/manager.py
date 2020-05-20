@@ -10,16 +10,18 @@ import time
 import re
 import logging
 import sys
-from pathlib import Path
+
 from enum import Enum
+from pathlib import Path
+from typing import List, Dict, NamedTuple
+
 import psutil
+
 from tools.timestamp import timestamp
 from arangodb.sh import ArangoshExecutor
-# from tools.killall import sig_int_process
 import tools.loghelper as lh
 
 ON_WINDOWS = (sys.platform == 'win32')
-
 
 class InstanceType(Enum):
     """ type of arangod instance """
@@ -317,9 +319,9 @@ class StarterManager():
         #             Not required when restarting the starter only.
         #             When arangods are upgraded it becomes necessary
 
-    def execute_frontend(self, cmd):
+    def execute_frontend(self, cmd, verbose = True):
         """ use arangosh to run a command on the frontend arangod"""
-        return self.arangosh.run_command(cmd)
+        return self.arangosh.run_command(cmd, verbose)
 
     def get_frontend_port(self):
         """ get the port of the arangod which is coordinator etc."""
