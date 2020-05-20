@@ -34,6 +34,16 @@ class ArangoshExecutor():
         logging.debug("exitcode {0}".format(exitcode))
         return exitcode == 0
 
+    def self_test(self):
+        """ run a command that throws to check exit code handling """
+        logging.info("running version check")
+        res = self.run_command((
+            'check throw exit codes',
+            "throw 'yipiahea motherfucker'"))
+        logging.debug("sanity result: " + str(res))
+        if res:
+            raise Exception("arangosh doesn't exit with non-0 to indicate errors")
+
     def run_script(self, cmd, verbose = True):
         """ launch an external js-script, print its name """
         run_cmd = [self.cfg.bin_dir / "arangosh",
@@ -63,7 +73,7 @@ class ArangoshExecutor():
         logging.info("running version check")
         res = self.run_command((
             'check version',
-            "if (db._version()!='%s') { throw 'fail'}" % (self.cfg.version)))
+            "if (db._version()!='%s') { throw 'version check failed - ' + db._version() + '!= %s'}" % (self.cfg.version, self.cfg.version)))
         logging.debug("version check result: " + str(res))
         return res
 

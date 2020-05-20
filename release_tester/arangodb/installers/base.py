@@ -167,7 +167,9 @@ class InstallerBase(ABC):
         verbose = self.cfg.verbose
         with open(self.calc_config_file_name()) as fileh:
             self.cfg = yaml.load(fileh, Loader=yaml.Loader)
+        print(self.cfg)
         self.log_examiner = ArangodLogExaminer(self.cfg)
+        self.calculate_package_names()
         self.cfg.verbose = verbose
 
     def broadcast_bind(self):
