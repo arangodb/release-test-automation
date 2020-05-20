@@ -9,13 +9,13 @@ import tools.loghelper as lh
 
 from typing import Optional
 from arangodb.installers.base import InstallerBase
-from arangodb.installers import InstallConfig
+from arangodb.installers import InstallerConfig
 from pprint import pprint as PP
 
 class Runner(ABC):
     """abstract starter environment runner"""
 
-    def __init__(self, runner_type, cfg: InstallConfig, old_inst: InstallerBase, new_inst: Optional[InstallerBase], short_name: str):
+    def __init__(self, runner_type, cfg: InstallerConfig, old_inst: InstallerBase, new_inst: Optional[InstallerBase], short_name: str):
 
         assert(runner_type)
         logging.debug(runner_type)

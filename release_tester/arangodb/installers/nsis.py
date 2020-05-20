@@ -12,22 +12,22 @@ from arangodb.installers.base import InstallerBase
 
 class InstallerW(InstallerBase):
     """ install the windows NSIS package """
-    def __init__(self, install_config):
-        self.cfg = install_config
-        self.cfg.baseTestDir = Path('/tmp')
-        self.cfg.installPrefix = Path("C:/tmp")
-        self.cfg.bin_dir = self.cfg.installPrefix / "usr" / "bin"
-        self.cfg.sbin_dir = self.cfg.installPrefix / "usr" / "bin"
-        self.cfg.real_bin_dir = self.cfg.bin_dir
-        self.cfg.real_sbin_dir = self.cfg.sbin_dir
-        self.caclulate_file_locations()
+    def __init__(self, cfg):
         self.check_stripped = False
         self.check_symlink = False
         self.server_package = None
         self.client_package = None
         self.log_examiner = None
         self.service = None
-        super().__init__()
+
+        cfg.baseTestDir = Path('/tmp')
+        cfg.installPrefix = Path("C:/tmp")
+        cfg.bin_dir = cfg.installPrefix / "usr" / "bin"
+        cfg.sbin_dir = cfg.installPrefix / "usr" / "bin"
+        cfg.real_bin_dir = cfg.bin_dir
+        cfg.real_sbin_dir = cfg.sbin_dir
+
+        super().__init__(cfg)
 
     def check_symlink(self, file_to_check):
         """ check for installed symlinks """

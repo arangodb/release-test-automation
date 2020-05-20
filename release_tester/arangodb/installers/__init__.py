@@ -5,34 +5,40 @@ import os
 from pathlib import Path
 
 
-class InstallConfig():
+class InstallerFrontend():
+    def __init__(self, proto: str, ip: str, port: int):
+        self.proto = proto
+        self.ip = ip
+        self.port = port
+
+
+class InstallerConfig():
     """ stores the baseline of this environment """
-    def __init__(self, version, verbose, enterprise, package_dir, publicip, interactive):
+    def __init__(self, version: str, verbose: bool, enterprise: bool, package_dir: Path, publicip: str, interactive: bool):
         self.publicip = publicip
         self.interactive = interactive
-        self.username = "root"
-        self.passvoid = "abc"
         self.enterprise = enterprise
         self.version = version
         self.verbose = verbose
         self.package_dir = package_dir
+
         self.install_prefix = Path("/")
-        self.jwt = ''
-        self.port = 8529
-        self.localhost = 'localhost'
-        self.all_instances = {}
         self.pwd = Path(os.path.dirname(os.path.realpath(__file__)))
         self.test_data_dir = self.pwd / '..' / '..' / '..' / 'test_data'
+
+        self.username = "root"
+        self.passvoid = "abc"
+        self.jwt = ''
+
+        self.port = 8529
+        self.localhost = 'localhost'
+
+        self.all_instances = {}
         self.frontends = []
-        super().__init__()
 
     def add_frontend(self, proto, ip, port):
         """ add a frontend URL in components """
-        self.frontends.append({
-            'proto': proto,
-            'ip': ip,
-            'port': port
-            })
+        self.frontends.append(InstallerFrontend(proto, ip, port))
 
     def generate_password(self):
         """ generate a new password """
@@ -40,35 +46,37 @@ class InstallConfig():
 
 
 #pylint: disable=import-outside-toplevel
-def get(*args, **kwargs):
+def make_installer(install_config: InstallerConfig):
     """ detect the OS and its distro,
         choose the proper installer
         and return it"""
     winver = platform.win32_ver()
     if winver[0]:
         from arangodb.installers.nsis import InstallerW
-        return InstallerW(InstallConfig(*args, **kwargs))
+        return InstallerW(install_config)
 
     import resource
     nofd = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
     if nofd < 10000:
-        raise Exception("please use ulimit -n "
+        raise Exception("please use ulimit -n <count>"
                         "to adjust the number of allowed filedescriptors"
-                        " - currently have: " + str(nofd))
+                        "to a value greater or eqaul 10000."
+                        "Currently you have set the limit to: " + str(nofd))
+
     macver = platform.mac_ver()
     if macver[0]:
         from arangodb.installers.mac import InstallerMac
-        return InstallerMac(InstallConfig(*args, **kwargs))
+        return InstallerMac(install_config)
 
-    if platform.system() == "linux" or platform.system() == "Linux":
+    if platform.system() in [ "linux", "Linux" ]:
         import distro
         distro = distro.linux_distribution(full_distribution_name=False)
 
         if distro[0] in ['debian', 'ubuntu']:
             from arangodb.installers.deb import InstallerDeb
-            return InstallerDeb(InstallConfig(*args, **kwargs))
+            return InstallerDeb(install_config)
         if distro[0] in ['centos', 'redhat', 'suse']:
             from arangodb.installers.rpm import InstallerRPM
-            return InstallerRPM(InstallConfig(*args, **kwargs))
+            return InstallerRPM(install_config)
         raise Exception('unsupported linux distribution: ' + distro)
     raise Exception('unsupported os' + platform.system())

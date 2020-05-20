@@ -8,7 +8,7 @@ import click
 from tools.killall import kill_all_processes
 from tools.interact import end_test
 from arangodb.sh import ArangoshExecutor
-import arangodb.installers as installers
+from arangodb.installers import make_installer, InstallerConfig
 from arangodb.starter.environment import RunnerType, make_runner
 import tools.loghelper as lh
 import tools.errorhelper as eh
@@ -69,14 +69,19 @@ def run_test(version, verbose, package_dir, enterprise,
         logging.info("setting debug level to debug (verbose)")
         logging.getLogger().setLevel(logging.DEBUG)
 
-    inst = installers.get(version,
-                          verbose,
-                          enterprise,
-                          Path(package_dir),
-                          publicip,
-                          interactive)
+    install_config = InstallerConfig(
+        version, verbose, enterprise,
+        Path(package_dir), publicip, interactive
+    )
+    inst = make_installer(install_config)
 
-    inst.calculate_package_names()
+    # Installer must get function for each mode to make it
+    # reusable. Especially to make upgrades simpler.
+    # Starter environment must know whether they need to
+    # perform and installation or not. The code below
+    # is almost an exact copy of what can be found in
+    # upgrade.py
+
     kill_all_processes()
     if mode in ['all', 'install']:
         lh.subsection("INSTALLING PACKAGE")

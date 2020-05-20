@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
- run an installer for the MacOS - heavily inspired by 
+ run an installer for the MacOS - heavily inspired by
      https://github.com/munki/macadmin-scripts
 """
 
@@ -21,14 +21,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 class InstallerMac(InstallerBase):
     """ install .dmg's on a mac """
-    def __init__(self, install_config):
-        self.cfg = install_config
-        self.cfg.baseTestDir = Path('/tmp')
-        self.cfg.installPrefix = None
-        self.cfg.bin_dir = None
-        self.cfg.sbin_dir = None
-        self.cfg.localhost = 'localhost'
-        self.cfg.passvoid = '' # default mac install doesn't set passvoid
+    def __init__(self, cfg):
         self.server_package = None
         self.client_package = None
         self.debug_package = None
@@ -38,12 +31,22 @@ class InstallerMac(InstallerBase):
         self.check_symlink = True
         self.basehomedir = Path.home() / 'Library' / 'ArangoDB'
         self.baseetcdir = Path.home() / 'Library' / 'ArangoDB-etc'
-        self.cfg.logDir = self.basehomedir / 'opt' / 'arangodb' / 'var' / 'log' / 'arangodb3'
-        self.cfg.dbdir = self.basehomedir / 'opt' / 'arangodb' / 'var' / 'lib' / 'arangodb3'
-        self.cfg.appdir = self.basehomedir / 'opt' / 'arangodb' / 'var' / 'lib' / 'arangodb3-apps'
-        self.cfg.cfgdir = self.baseetcdir
-        self.cfg.pidfile = Path("/var/tmp/arangod.pid")
-        super().__init__()
+
+        cfg.baseTestDir = Path('/tmp')
+        cfg.installPrefix = None
+        cfg.bin_dir = None
+        cfg.sbin_dir = None
+        cfg.localhost = 'localhost'
+        cfg.passvoid = '' # default mac install doesn't set passvoid
+
+        cfg.logDir = self.basehomedir / 'opt' / 'arangodb' / 'var' / 'log' / 'arangodb3'
+        cfg.dbdir = self.basehomedir / 'opt' / 'arangodb' / 'var' / 'lib' / 'arangodb3'
+        cfg.appdir = self.basehomedir / 'opt' / 'arangodb' / 'var' / 'lib' / 'arangodb3-apps'
+        cfg.cfgdir = self.baseetcdir
+        cfg.pidfile = Path("/var/tmp/arangod.pid")
+
+        super().__init__(cfg)
+
 
     def mountdmg(self, dmgpath):
         """
@@ -69,7 +72,7 @@ class InstallerMac(InstallerBase):
             print(offset)
             ascii_print(str(pliststr[0:offset]))
             pliststr = pliststr[offset:]
-        
+
         if proc.returncode:
             print('Error: "%s" while mounting %s.' % (err, dmgname),
                   file=sys.stderr)
@@ -114,7 +117,7 @@ class InstallerMac(InstallerBase):
         else:
             raise Exception("plist empty")
         return mountpoints
-        
+
     def unmountdmg(self, mountpoint):
         """
         Unmounts the dmg at mountpoint
@@ -142,7 +145,7 @@ class InstallerMac(InstallerBase):
         except pexpect.exceptions.EOF:
             ascii_print(installscript.before)
         installscript.kill(0)
-        
+
     def calculate_package_names(self):
         enterprise = 'e' if self.cfg.enterprise else ''
         architecture = 'x86_64'
@@ -199,7 +202,7 @@ class InstallerMac(InstallerBase):
                 self.unmountdmg(mountpoint)
         else:
             self.unmountdmg(self.mountpoint)
-        
+
     def cleanup_system(self):
         if self.cfg.logDir.exists():
             shutil.rmtree(self.cfg.logDir)

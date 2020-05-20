@@ -6,7 +6,7 @@ import logging
 from typing import Optional
 from arangodb.starter.environment.runner import Runner
 from arangodb.installers.base import InstallerBase
-from arangodb.installers import InstallConfig
+from arangodb.installers import InstallerConfig
 
 class RunnerType(Enum):
     """ dial which runner instance you want"""
@@ -18,7 +18,7 @@ class RunnerType(Enum):
 
 
 #pylint: disable=import-outside-toplevel
-def make_runner(runner_type:RunnerType, baseconfig: InstallConfig, old_inst: InstallerBase , new_inst: Optional[InstallerBase]= None) -> Runner:
+def make_runner(runner_type:RunnerType, baseconfig: InstallerConfig, old_inst: InstallerBase , new_inst: Optional[InstallerBase]= None) -> Runner:
     """ get an instance of the arangod runner - as you specify """
     print("get!")
 
