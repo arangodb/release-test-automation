@@ -61,10 +61,10 @@ class InstallerDeb(InstallerBase):
 
     def start_service(self):
         startserver = pexpect.spawnu('service arangodb3 start')
-        logging.info("waiting for eof")
+        logging.debug("waiting for eof")
         startserver.expect(pexpect.EOF, timeout=30)
         while startserver.isalive():
-            logging.info('.')
+            print('.', end='')
             if startserver.exitstatus != 0:
                 raise Exception("server service start didn't"
                                 "finish successfully!")
@@ -73,10 +73,10 @@ class InstallerDeb(InstallerBase):
 
     def stop_service(self):
         stopserver = pexpect.spawnu('service arangodb3 stop')
-        logging.info("waiting for eof")
+        logging.debug("waiting for eof")
         stopserver.expect(pexpect.EOF, timeout=30)
         while stopserver.isalive():
-            logging.info('.')
+            print('.', end='')
             if stopserver.exitstatus != 0:
                 raise Exception("server service stop didn't"
                                 "finish successfully!")
@@ -142,9 +142,10 @@ class InstallerDeb(InstallerBase):
         except pexpect.exceptions.EOF:
             logging.info("TIMEOUT!")
         while server_install.isalive():
-            logging.info('.')
+            print('.', end='')
             if server_install.exitstatus != 0:
                 raise Exception("server installation didn't finish successfully!")
+        print()
         logging.info('Installation successfull')
         self.log_examiner = ArangodLogExaminer(self.cfg)
         self.log_examiner.detect_instance_pids()

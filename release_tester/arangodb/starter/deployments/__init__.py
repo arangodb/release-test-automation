@@ -4,7 +4,7 @@ from enum import Enum
 import logging
 
 from typing import Optional
-from arangodb.starter.environment.runner import Runner
+from arangodb.starter.deployments.runner import Runner
 from arangodb.installers.base import InstallerBase
 from arangodb.installers import InstallerConfig
 
@@ -30,23 +30,23 @@ def make_runner(runner_type:RunnerType, baseconfig: InstallerConfig, old_inst: I
     args = (runner_type, baseconfig, old_inst, new_inst)
 
     if runner_type == RunnerType.LEADER_FOLLOWER:
-        from arangodb.starter.environment.leaderfollower import LeaderFollower
+        from arangodb.starter.deployments.leaderfollower import LeaderFollower
         return LeaderFollower(*args)
 
     if runner_type == RunnerType.ACTIVE_FAILOVER:
-        from arangodb.starter.environment.activefailover import ActiveFailover
+        from arangodb.starter.deployments.activefailover import ActiveFailover
         return ActiveFailover(*args)
 
     if runner_type == RunnerType.CLUSTER:
-        from arangodb.starter.environment.cluster import Cluster
+        from arangodb.starter.deployments.cluster import Cluster
         return Cluster(*args)
 
     if runner_type == RunnerType.DC2DC:
-        from arangodb.starter.environment.dc2dc import Dc2Dc
+        from arangodb.starter.deployments.dc2dc import Dc2Dc
         return Dc2Dc(*args)
 
     if runner_type == RunnerType.NONE:
-        from arangodb.starter.environment.none import NoStarter
+        from arangodb.starter.deployments.none import NoStarter
         return NoStarter(*args)
 
     raise Exception("unknown starter type")

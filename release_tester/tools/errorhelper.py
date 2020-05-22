@@ -1,19 +1,23 @@
 #!/usr/bin/env python3
 import sys
 
-def prompt_to_continue(interactive=True):
+def prompt_to_continue(msg, interactive=True):
+    print(msg)
     if interactive:
         input("Press Enter to continue.")
 
-def ask_continue(interactive=True, defualt=True):
+def ask_continue(msg, interactive=True, default=False):
+    print(msg)
     if interactive:
-        x = input("Continue y/n:")
+        x = input("Continue y/n: ")
         if x in ['y', 'Y']:
             return True
         return False
     else:
         return default
 
-def ask_continue_or_exit(interactive=True, default=True, status=1):
-    if not ask_continue(interactive, default):
+def ask_continue_or_exit(msg, interactive=True, default=True, status=1):
+    if not ask_continue(msg, interactive, default):
+        print()
+        print("Abort requested (default action)")
         sys.exit(status)

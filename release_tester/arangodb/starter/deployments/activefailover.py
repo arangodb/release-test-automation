@@ -7,7 +7,7 @@ import sys
 import requests
 from tools.interact import prompt_user
 from arangodb.starter.manager import StarterManager
-from arangodb.starter.environment.runner import Runner
+from arangodb.starter.deployments.runner import Runner
 import tools.loghelper as lh
 
 
@@ -69,21 +69,25 @@ class ActiveFailover(Runner):
             if not node.is_leader:
                 self.follower_nodes.append(node)
 
+        #add data to leader
+        self.makedata_instances.append(self.leader)
+
         logging.info("active failover setup finished successfully")
 
     def test_setup_impl(self):
         logging.info("starting test")
         lh.section("running tests")
         self.success = True
+
         url = 'http://{host}:{port}'.format(
             host=self.basecfg.localhost,
             port=self.leader.get_frontend_port())
-
         reply = requests.get(url)
         logging.info(str(reply))
         if reply.status_code != 200:
             logging.info(reply.text)
             self.success = False
+
         url = 'http://{host}:{port}'.format(
             host=self.basecfg.localhost,
             port=self.follower_nodes[0].get_frontend_port())
@@ -92,6 +96,7 @@ class ActiveFailover(Runner):
         logging.info(reply.text)
         if reply.status_code != 503:
             self.success = False
+
         url = 'http://{host}:{port}'.format(
             host=self.basecfg.localhost,
             port=self.follower_nodes[1].get_frontend_port())

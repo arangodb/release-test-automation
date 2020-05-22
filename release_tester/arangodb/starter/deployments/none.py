@@ -7,7 +7,7 @@ import logging
 from pathlib import Path
 from tools.killall import get_all_processes
 from arangodb.starter.manager import StarterManager
-from arangodb.starter.environment.runner import Runner
+from arangodb.starter.deployments.runner import Runner
 import tools.loghelper as lh
 
 class NoStarter(Runner):

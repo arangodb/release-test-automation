@@ -9,20 +9,21 @@ from tools.killall import kill_all_processes
 from tools.interact import end_test
 from arangodb.sh import ArangoshExecutor
 from arangodb.installers import make_installer, InstallerConfig
-from arangodb.starter.environment import RunnerType, make_runner
+from arangodb.starter.deployments import RunnerType, make_runner
 import tools.loghelper as lh
 import tools.errorhelper as eh
 import obi.util
 
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     datefmt='%H:%M:%S',
     format='%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s'
 )
 
 @click.command()
 @click.option('--version', help='ArangoDB version number.')
-@click.option('--verbose',
+@click.option('--verbose/--no-verbose',
+              default=False,
               is_flag=True,
               help='switch starter to verbose logging mode.')
 @click.option('--enterprise',
@@ -41,7 +42,7 @@ logging.basicConfig(
               help='operation mode - [all|install|uninstall|tests].')
 @click.option('--starter-mode',
               default='all',
-              help='which starter environments to start - ' +
+              help='which starter deployments modes to use - ' +
               '[all|LF|AFO|CL|DC|none].')
 @click.option('--publicip',
               default='127.0.0.1',
@@ -77,7 +78,7 @@ def run_test(version, verbose, package_dir, enterprise,
 
     # Installer must get function for each mode to make it
     # reusable. Especially to make upgrades simpler.
-    # Starter environment must know whether they need to
+    # Starter deployments must know whether they need to
     # perform and installation or not. The code below
     # is almost an exact copy of what can be found in
     # upgrade.py
@@ -110,10 +111,7 @@ def run_test(version, verbose, package_dir, enterprise,
         sys_arangosh = ArangoshExecutor(inst.cfg)
 
         sys_arangosh.self_test()
-
-        if not sys_arangosh.js_version_check():
-            logging.info("Version Check failed!")
-            eh.prompt_to_continue(inst.cfg.interactive)
+        sys_arangosh.js_version_check()
 
         end_test(inst.cfg, 'Installation of system package')
 

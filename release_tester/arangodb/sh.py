@@ -4,12 +4,14 @@
 import logging
 import psutil
 import tools.loghelper as lh
+import tools.errorhelper as eh
 import subprocess
 
 class ArangoshExecutor():
     """ configuration """
     def __init__(self, config):
         self.cfg = config
+        self.read_only = False
 
     def run_command(self, cmd, verbose = True):
         """ launch a command, print its name """
@@ -36,13 +38,23 @@ class ArangoshExecutor():
 
     def self_test(self):
         """ run a command that throws to check exit code handling """
-        logging.info("running version check")
-        res = self.run_command((
+        logging.info("running arangosh check")
+        success = self.run_command((
             'check throw exit codes',
-            "throw 'yipiahea motherfucker'"))
-        logging.debug("sanity result: " + str(res))
-        if res:
+            "throw 'yipiahea motherfucker'"), False)
+        logging.debug("sanity result: " + str(success))
+
+        if success :
             raise Exception("arangosh doesn't exit with non-0 to indicate errors")
+
+        sucess = self.run_command((
+            'check normal exit',
+            'let foo = "bar"'), False)
+
+        logging.debug("sanity result: " + str(sucess))
+
+        if not sucess:
+            raise Exception("arangosh doesn't exit with 0 to indicate no errors")
 
     def run_script(self, cmd, verbose = True):
         """ launch an external js-script, print its name """
@@ -75,6 +87,9 @@ class ArangoshExecutor():
             'check version',
             "if (db._version()!='%s') { throw 'version check failed - ' + db._version() + '!= %s'}" % (self.cfg.version, self.cfg.version)))
         logging.debug("version check result: " + str(res))
+
+        if not res:
+            eh.ask_continue_or_exit("version check failed", self.cfg.interactive)
         return res
 
     def create_test_data(self, testname):
@@ -84,9 +99,11 @@ class ArangoshExecutor():
         else:
             logging.info("adding test data")
 
-        return self.run_script([
+        success = self.run_script([
             'setting up test data',
             self.cfg.test_data_dir / 'makedata.js'])
+
+        return success
 
     def check_test_data(self, testname):
         """ check back the testdata in the instance """
@@ -95,9 +112,11 @@ class ArangoshExecutor():
         else:
             logging.info("checking test data")
 
-        self.run_script([
+        success = self.run_script([
             'checking test data integrity',
             self.cfg.test_data_dir / 'checkdata.js'])
+
+        return success
 
     def clear_test_data(self, testname):
         """ flush the testdata from the instance again """
@@ -106,6 +125,8 @@ class ArangoshExecutor():
         else:
             logging.info("removing test data")
 
-        self.run_script([
+        success = self.run_script([
             'cleaning up test data',
             self.cfg.test_data_dir / 'cleardata.js'])
+
+        return success

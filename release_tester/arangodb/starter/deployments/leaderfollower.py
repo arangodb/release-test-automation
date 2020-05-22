@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 from tools.killall import get_all_processes
 from arangodb.starter.manager import StarterManager
-from arangodb.starter.environment.runner import Runner
+from arangodb.starter.deployments.runner import Runner
 import tools.loghelper as lh
 
 class LeaderFollower(Runner):
@@ -97,13 +97,14 @@ process.exit(0);
             raise Exception("Failed to start the replication using: %s %s"%
                             (retval, str(self.checks['startReplJS'])))
 
-        lh.subsubsection("add data (makedata) for replication")
         logging.info("Replication started successfully")
-        self.leader_starter_instance.arangosh.create_test_data("lf (after starting replication)")
 
         logging.info("save document")
         arangosh_script = self.checks['afterReplJS']
         logging.info(str(self.leader_starter_instance.execute_frontend(arangosh_script)))
+
+        # add instace where makedata will be run on
+        self.makedata_instances.append(self.leader_starter_instance)
 
 
     def test_setup_impl(self):
@@ -122,7 +123,11 @@ process.exit(0);
                 raise Exception("replication didn't make it in 30s!")
 
         lh.subsection("leader/follower - check test data", "-")
-        self.follower_starter_instance.arangosh.check_test_data("lf (after finishing setup)")
+
+        #assert that data has been replicated
+        self.follower_starter_instance.arangosh.read_only = True
+        self.makedata_instances.append(self.follower_starter_instance)
+        self.make_data()
 
         logging.info("Leader follower setup successfully finished!")
 

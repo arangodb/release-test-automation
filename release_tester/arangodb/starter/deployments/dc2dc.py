@@ -8,7 +8,7 @@ import psutil
 import requests
 from arangodb.starter.manager import StarterManager
 from arangodb.sync import SyncManager
-from arangodb.starter.environment.runner import Runner
+from arangodb.starter.deployments.runner import Runner
 
 
 class Dc2Dc(Runner):
@@ -127,6 +127,7 @@ class Dc2Dc(Runner):
                                          self.cluster1['smport']])
         if not self.sync_manager.run_syncer():
             raise Exception("starting the synchronisation failed!")
+        self.makedata_instances = [ self.cluster1 ]
         time.sleep(60) # TODO: howto detect dc2dc is completely up and running?
 
     def test_setup_impl(self):

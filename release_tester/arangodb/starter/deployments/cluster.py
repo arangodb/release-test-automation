@@ -8,7 +8,7 @@ from pathlib import Path
 from tools.timestamp import timestamp
 from tools.interact import prompt_user, end_test
 from arangodb.starter.manager import StarterManager
-from arangodb.starter.environment.runner import Runner
+from arangodb.starter.deployments.runner import Runner
 import tools.loghelper as lh
 
 
@@ -71,8 +71,7 @@ db.testCollection.save({test: "document"})
         logging.info("instances are ready")
 
     def finish_setup_impl(self):
-        #  TODO self.create_test_collection
-        pass
+        self.makedata_instances = self.starter_instances[:]
 
     def test_setup_impl(self):
         lh.subsection("run cluster tests")
