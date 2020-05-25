@@ -8,9 +8,8 @@ import click
 from tools.killall import kill_all_processes
 from tools.interact import end_test
 from arangodb.sh import ArangoshExecutor
-import arangodb.installers as installers
-from arangodb.starter.environment import get as getStarterenv
-from arangodb.starter.environment import RunnerType
+from arangodb.installers import make_installer, InstallerConfig
+from arangodb.starter.deployments import RunnerType, make_runner
 import tools.loghelper as lh
 import tools.errorhelper as eh
 import obi.util
@@ -25,12 +24,13 @@ def run_test():
     """ main """
     logging.getLogger().setLevel(logging.DEBUG)
 
-    inst = installers.get('0.0',
-                          True,
-                          False,
-                          Path("/tmp/"),
-                          "",
-                          False)
+    install_config = InstallerConfig('0.0',
+                                     True,
+                                     False,
+                                     Path("/tmp/"),
+                                     "",
+                                     False)
+    inst = make_installer(install_config)
 
     kill_all_processes()
     inst.load_config()
@@ -40,9 +40,11 @@ def run_test():
                     RunnerType.ACTIVE_FAILOVER,
                     RunnerType.CLUSTER]#,
                     #RunnerType.DC2DC] here __init__ will create stuff, TODO.
-    for runner in starter_mode:
-        stenv = getStarterenv(runner, inst.cfg)
-        stenv.cleanup()
+    for runner_type in starter_mode:
+        assert(runner_type)
+
+        runner = make_runner(runner_type, inst.cfg, inst, None)
+        runner.cleanup()
 
     inst.un_install_package()
     inst.cleanup_system()
