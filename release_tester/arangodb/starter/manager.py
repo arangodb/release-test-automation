@@ -136,6 +136,19 @@ class StarterManager():
             "--starter.data-dir={0.basedir}".format(self)
         ] + self.moreopts
 
+    def __repr__(self):
+        return """
+===================================================
+Starter {0.name}
+    user            {0.username}
+    password        {0.passvoid}
+    -----------------------------------------------
+    all_instances   {0.all_instances}
+    -----------------------------------------------
+    frontends       {1}
+===================================================
+""".format(self, self.get_frontends())
+
     def name(self):
         """ name of this starter """
         return str(self.name)

@@ -2,7 +2,9 @@
 import sys
 
 def prompt_to_continue(msg, interactive=True):
+    print("\n\n\n")
     print(msg)
+    print("\n")
     if interactive:
         input("Press Enter to continue.")
 

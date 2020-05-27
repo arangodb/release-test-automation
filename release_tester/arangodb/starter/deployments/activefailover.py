@@ -75,8 +75,6 @@ class ActiveFailover(Runner):
         logging.info("active failover setup finished successfully")
 
     def test_setup_impl(self):
-        logging.info("starting test")
-        lh.section("running tests")
         self.success = True
 
         url = 'http://{host}:{port}'.format(

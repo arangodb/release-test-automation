@@ -33,7 +33,7 @@ class ArangoshExecutor():
             arangosh_run = psutil.Popen(run_cmd, stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
 
         exitcode = arangosh_run.wait(timeout=30)
-        logging.debug("exitcode {0}".format(exitcode))
+        #logging.debug("exitcode {0}".format(exitcode))
         return exitcode == 0
 
     def self_test(self):
@@ -42,18 +42,18 @@ class ArangoshExecutor():
         success = self.run_command((
             'check throw exit codes',
             "throw 'yipiahea motherfucker'"), False)
-        logging.debug("sanity result: " + str(success))
+        logging.debug("sanity result: " + str(success) + " - expected: False")
 
         if success :
             raise Exception("arangosh doesn't exit with non-0 to indicate errors")
 
-        sucess = self.run_command((
+        success = self.run_command((
             'check normal exit',
             'let foo = "bar"'), False)
 
-        logging.debug("sanity result: " + str(sucess))
+        logging.debug("sanity result: " + str(success) + " - expected: True")
 
-        if not sucess:
+        if not success:
             raise Exception("arangosh doesn't exit with 0 to indicate no errors")
 
     def run_script(self, cmd, verbose = True):
@@ -83,9 +83,14 @@ class ArangoshExecutor():
     def js_version_check(self):
         """ run a version check command; this can double as password check """
         logging.info("running version check")
-        res = self.run_command((
-            'check version',
-            "if (db._version()!='%s') { throw 'version check failed - ' + db._version() + '!= %s'}" % (self.cfg.version, self.cfg.version)))
+        js_script_string = """
+            const version = db._version().substring(0,5);
+            if (version != "{0}") {{
+                throw `version check failed: ${{version}} (current) !- {0} (requested)`
+            }}
+        """.format(str(self.cfg.version)[:5])
+        logging.debug("script to be executed: " + str(js_script_string))
+        res = self.run_command(['check version', js_script_string])
         logging.debug("version check result: " + str(res))
 
         if not res:

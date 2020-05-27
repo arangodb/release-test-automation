@@ -11,6 +11,7 @@ from arangodb.log import ArangodLogExaminer
 from arangodb.installers.base import InstallerBase
 from tools.asciiprint import ascii_print
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
+import tools.loghelper as lh
 
 
 class InstallerDeb(InstallerBase):
@@ -111,29 +112,37 @@ class InstallerDeb(InstallerBase):
         logging.info("installing Arangodb debian package")
         os.environ['DEBIAN_FRONTEND'] = 'readline'
         logging.debug("package dir: {0.cfg.package_dir}- server_package: {0.server_package}".format(self))
-        server_install = pexpect.spawnu('dpkg -i ' +
-                                        str(self.cfg.package_dir / self.server_package))
+        cmd = 'dpkg -i ' + str(self.cfg.package_dir / self.server_package)
+        lh.log_cmd(cmd)
+        server_install = pexpect.spawnu(cmd)
         try:
+            logging.debug("expect: user1")
             server_install.expect('user:')
             ascii_print(server_install.before)
+            logging.debug("expect: setting password: {0.cfg.passvoid}".format(self))
             server_install.sendline(self.cfg.passvoid)
+            logging.debug("expect: user2")
             server_install.expect('user:')
             ascii_print(server_install.before)
+            logging.debug("expect: setting password: {0.cfg.passvoid}".format(self))
             server_install.sendline(self.cfg.passvoid)
+            logging.debug("expect: upgrade behaviour selection")
             server_install.expect("Automatically upgrade database files")
             ascii_print(server_install.before)
             server_install.sendline("yes")
+            logging.debug("expect: storage engine selection")
             server_install.expect("Database storage engine")
             ascii_print(server_install.before)
             server_install.sendline("1")
+            logging.debug("expect: backup selection")
             server_install.expect("Backup database files before upgrading")
             ascii_print(server_install.before)
             server_install.sendline("no")
         except pexpect.exceptions.EOF:
-            logging.info("X" * 80)
+            lh.line("X")
             ascii_print(server_install.before)
-            logging.info("X" * 80)
-            logging.info("Installation failed!")
+            lh.line("X")
+            logging.error("Installation failed!")
             sys.exit(1)
         try:
             logging.info("waiting for the installation to finish")

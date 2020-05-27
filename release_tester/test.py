@@ -23,8 +23,8 @@ logging.basicConfig(
 @click.command()
 @click.option('--version', help='ArangoDB version number.')
 @click.option('--verbose/--no-verbose',
-              default=False,
               is_flag=True,
+              default=False,
               help='switch starter to verbose logging mode.')
 @click.option('--enterprise',
               is_flag=True,
@@ -76,85 +76,40 @@ def run_test(version, verbose, package_dir, enterprise,
     )
     inst = make_installer(install_config)
 
-    # Installer must get function for each mode to make it
-    # reusable. Especially to make upgrades simpler.
-    # Starter deployments must know whether they need to
-    # perform and installation or not. The code below
-    # is almost an exact copy of what can be found in
-    # upgrade.py
 
-    kill_all_processes()
-    if mode in ['all', 'install']:
-        lh.subsection("INSTALLING PACKAGE")
-        inst.install_package()
-        lh.subsection("CHECKING FILES")
-        inst.check_installed_files()
-        lh.subsection("SAVING CONFIG")
-        inst.save_config()
-        lh.section("CHECKING IF SERVICE IS UP")
-        if inst.check_service_up():
-            lh.subsection("STOPPING SERVICE")
-            inst.stop_service()
-        inst.broadcast_bind()
-        lh.subsection("STARTING SERVICE")
-        inst.start_service()
-        inst.check_installed_paths()
-        inst.check_engine_file()
+
+    if starter_mode == 'all':
+        starter_mode = [RunnerType.LEADER_FOLLOWER,
+                        RunnerType.ACTIVE_FAILOVER,
+                        RunnerType.CLUSTER]
+        if enterprise:
+            starter_mode.append(RunnerType.DC2DC)
+    elif starter_mode == 'LF':
+        starter_mode = [RunnerType.LEADER_FOLLOWER]
+    elif starter_mode == 'AFO':
+        starter_mode = [RunnerType.ACTIVE_FAILOVER]
+    elif starter_mode == 'CL':
+        starter_mode = [RunnerType.CLUSTER]
+    elif starter_mode == 'DC':
+        starter_mode = [RunnerType.DC2DC]
+    elif starter_mode == 'none':
+        starter_mode = [RunnerType.NONE]
     else:
-        inst.load_config()
-        inst.cfg.interactive = interactive
-    if mode in ['all', 'system']:
-        if inst.check_service_up():
-            inst.stop_service()
-        inst.start_service()
+        raise Exception("invalid starter mode: " + starter_mode)
 
-        sys_arangosh = ArangoshExecutor(inst.cfg)
+    for runner_type in starter_mode:
+        assert(runner_type)
 
-        sys_arangosh.self_test()
-        sys_arangosh.js_version_check()
+        runner = make_runner(runner_type, inst.cfg, inst, None)
 
-        end_test(inst.cfg, 'Installation of system package')
 
-    if mode in ['all', 'tests']:
-        if inst.check_service_up():
-            inst.stop_service()
+        failed = False
+        if not runner.run():
+            failed = True
+
         kill_all_processes()
-        print(starter_mode)
 
-        if starter_mode == 'all':
-            starter_mode = [RunnerType.LEADER_FOLLOWER,
-                            RunnerType.ACTIVE_FAILOVER,
-                            RunnerType.CLUSTER]
-            if enterprise:
-                starter_mode.append(RunnerType.DC2DC)
-        elif starter_mode == 'LF':
-            starter_mode = [RunnerType.LEADER_FOLLOWER]
-        elif starter_mode == 'AFO':
-            starter_mode = [RunnerType.ACTIVE_FAILOVER]
-        elif starter_mode == 'CL':
-            starter_mode = [RunnerType.CLUSTER]
-        elif starter_mode == 'DC':
-            starter_mode = [RunnerType.DC2DC]
-        elif starter_mode == 'none':
-            starter_mode = [RunnerType.NONE]
-        else:
-            raise Exception("invalid starter mode: " + starter_mode)
-
-        for runner_type in starter_mode:
-            assert(runner_type)
-
-            runner = make_runner(runner_type, inst.cfg, inst, None)
-
-            if runner:
-                runner.run()
-
-            kill_all_processes()
-
-    if mode in ['all', 'uninstall']:
-        inst.un_install_package()
-        inst.check_uninstall_cleanup()
-        inst.cleanup_system()
-
+    return ( 0 if not failed else 1 )
 
 if __name__ == "__main__":
-    run_test()
+    sys.exit(run_test())
