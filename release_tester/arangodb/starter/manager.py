@@ -43,7 +43,7 @@ class ArangodInstance():
 
     def __repr__(self):
         return """
-arangod
+arangod instance of starter
     name:    {0.name}
     pid:     {0.pid}
     logfile: {0.logfile}

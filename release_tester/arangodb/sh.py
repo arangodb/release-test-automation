@@ -17,11 +17,20 @@ class ArangoshExecutor():
         """ launch a command, print its name """
         run_cmd = [self.cfg.bin_dir / "arangosh",
                    "--server.endpoint",
-                   "tcp://127.0.0.1:{cfg.port}".format(cfg=self.cfg),
-                   "--server.username", str(self.cfg.username),
-                   "--server.password", str(self.cfg.passvoid),
-                   "--javascript.execute-string", str(cmd[1])
+                   "tcp://127.0.0.1:{cfg.port}".format(cfg=self.cfg)
                   ]
+
+        run_cmd += [ "--server.username", str(self.cfg.username) ]
+        run_cmd += [ "--server.password", str(self.cfg.passvoid) ]
+
+        #if self.cfg.username:
+        #    run_cmd += [ "--server.username", str(self.cfg.username) ]
+
+        #if self.cfg.passvoid:
+        #    run_cmd += [ "--server.password", str(self.cfg.passvoid) ]
+
+        run_cmd += [ "--javascript.execute-string", str(cmd[1]) ]
+
         if len(cmd) > 2:
             run_cmd += cmd[2:]
 
@@ -61,10 +70,18 @@ class ArangoshExecutor():
         run_cmd = [self.cfg.bin_dir / "arangosh",
                    "--server.endpoint",
                    "tcp://127.0.0.1:{cfg.port}".format(cfg=self.cfg),
-                   "--server.username", str(self.cfg.username),
-                   "--server.password", str(self.cfg.passvoid),
-                   "--javascript.execute", str(cmd[1])
                   ]
+
+        run_cmd += [ "--server.username", str(self.cfg.username) ]
+        run_cmd += [ "--server.password", str(self.cfg.passvoid) ]
+
+        #if self.cfg.username:
+        #    run_cmd += [ "--server.username", str(self.cfg.username) ]
+
+        #if self.cfg.passvoid:
+        #    run_cmd += [ "--server.password", str(self.cfg.passvoid) ]
+
+        run_cmd += [ "--javascript.execute", str(cmd[1]) ]
 
         if len(cmd) > 2:
             run_cmd += cmd[2:]

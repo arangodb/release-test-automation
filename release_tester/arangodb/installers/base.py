@@ -3,6 +3,7 @@
 import logging
 import re
 import os
+import copy
 import subprocess
 from pathlib import Path
 from abc import abstractmethod, ABC
@@ -111,7 +112,7 @@ class BinaryDescription():
 class InstallerBase(ABC):
     """ this is the prototype for the operation system agnostic installers """
     def __init__(self, cfg):
-        self.cfg = cfg
+        self.cfg = copy.deepcopy(cfg)
         self.calculate_package_names()
         self.caclulate_file_locations()
 

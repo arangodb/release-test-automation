@@ -16,7 +16,7 @@ class Cluster(Runner):
     """ this launches a cluster setup """
     def __init__(self, runner_type, cfg, new_inst, old_inst):
         super().__init__(runner_type, cfg, new_inst, old_inst, 'CLUSTER')
-        self.basecfg.frontends = []
+        #self.basecfg.frontends = []
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
 
@@ -47,9 +47,9 @@ db.testCollection.save({test: "document"})
 
     def starter_run_impl(self):
         lh.subsection("instance setup")
-        for node in self.starter_instances:
+        for manager in self.starter_instances:
             logging.info("Spawning instance")
-            node.run_starter()
+            manager.run_starter()
 
         logging.info("waiting for the starters to become alive")
         not_started = self.starter_instances[:] #This is a explicit copy
@@ -65,23 +65,22 @@ db.testCollection.save({test: "document"})
         for node in self.starter_instances:
             node.detect_instances()
             node.detect_instance_pids()
-            self.basecfg.add_frontend('http',
-                                      self.basecfg.publicip,
-                                      str(node.get_frontend_port()))
+            #self.basecfg.add_frontend('http', self.basecfg.publicip, str(node.get_frontend_port()))
         logging.info("instances are ready")
 
     def finish_setup_impl(self):
         self.makedata_instances = self.starter_instances[:]
 
     def test_setup_impl(self):
-        lh.subsection("run cluster tests")
-        prompt_user(self.basecfg)
+        pass
 
     def upgrade_arangod_version_impl(self):
         for node in self.starter_instances:
             node.replace_binary_for_upgrade(new_install_cfg)
+
         for node in self.starter_instances:
             node.detect_instance_pids_still_alive()
+
         self.starter_instances[1].command_upgrade()
         self.starter_instances[1].wait_for_upgrade()
 

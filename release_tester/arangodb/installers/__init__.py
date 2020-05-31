@@ -27,7 +27,7 @@ class InstallerConfig():
         self.test_data_dir = self.pwd / '..' / '..' / '..' / 'test_data'
 
         self.username = "root"
-        self.passvoid = "abc"
+        self.passvoid = ''
         self.jwt = ''
 
         self.port = 8529
@@ -42,7 +42,8 @@ class InstallerConfig():
 
     def generate_password(self):
         """ generate a new password """
-        self.passvoid = 'cde'
+        raise NotImplementedError()
+        #self.passvoid = 'cde'
 
 
 #pylint: disable=import-outside-toplevel
