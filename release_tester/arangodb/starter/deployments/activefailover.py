@@ -7,23 +7,20 @@ import sys
 import requests
 from tools.interact import prompt_user
 from arangodb.starter.manager import StarterManager
-from arangodb.starter.environment.runner import Runner
+from arangodb.starter.deployments.runner import Runner
 import tools.loghelper as lh
 
 
 class ActiveFailover(Runner):
     """ This launches an active failover setup """
-    def __init__(self, cfg):
-        lh.section("Active Failover Test")
-
-        self.success = True
-        self.basecfg = cfg
-        self.basedir = Path('AFO')
-        self.cleanup()
+    def __init__(self, runner_type, cfg, new_inst, old_inst):
+        super().__init__(runner_type, cfg, new_inst, old_inst, 'AFO')
         self.starter_instances = []
         self.follower_nodes = None
         self.leader = None
         self.new_leader = None
+
+    def starter_prepare_env_impl(self):
         self.starter_instances.append(
             StarterManager(self.basecfg,
                            self.basedir / 'node1',
@@ -40,7 +37,7 @@ class ActiveFailover(Runner):
                            mode='activefailover',
                            moreopts=['--starter.join', '127.0.0.1']))
 
-    def setup(self):
+    def starter_run_impl(self):
         logging.info("Spawning starter instances")
         for node in self.starter_instances:
             logging.info("Spawning starter instance in: " + str(node.basedir))
@@ -58,6 +55,7 @@ class ActiveFailover(Runner):
             node.detect_instances()
             node.active_failover_detect_hosts()
 
+    def finish_setup_impl(self):
         logging.info("instances are ready, detecting leader")
         self.follower_nodes = []
         while self.leader is None:
@@ -71,21 +69,23 @@ class ActiveFailover(Runner):
             if not node.is_leader:
                 self.follower_nodes.append(node)
 
+        #add data to leader
+        self.makedata_instances.append(self.leader)
+
         logging.info("active failover setup finished successfully")
 
-    def run(self):
-        logging.info("starting test")
-        lh.section("running tests")
+    def test_setup_impl(self):
         self.success = True
+
         url = 'http://{host}:{port}'.format(
             host=self.basecfg.localhost,
             port=self.leader.get_frontend_port())
-
         reply = requests.get(url)
         logging.info(str(reply))
         if reply.status_code != 200:
             logging.info(reply.text)
             self.success = False
+
         url = 'http://{host}:{port}'.format(
             host=self.basecfg.localhost,
             port=self.follower_nodes[0].get_frontend_port())
@@ -94,6 +94,7 @@ class ActiveFailover(Runner):
         logging.info(reply.text)
         if reply.status_code != 503:
             self.success = False
+
         url = 'http://{host}:{port}'.format(
             host=self.basecfg.localhost,
             port=self.follower_nodes[1].get_frontend_port())
@@ -107,10 +108,8 @@ class ActiveFailover(Runner):
                      self.basecfg.publicip,
                      self.leader.get_frontend_port())
 
-    def post_setup(self):
-        pass
 
-    def upgrade(self, new_install_cfg):
+    def upgrade_arangod_version_impl(self):
         """ upgrade this installation """
         for node in self.starter_instances:
             node.replace_binary_for_upgrade(new_install_cfg)
@@ -119,7 +118,7 @@ class ActiveFailover(Runner):
         self.starter_instances[1].command_upgrade()
         self.starter_instances[1].wait_for_upgrade()
 
-    def jam_attempt(self):
+    def jam_attempt_impl(self):
         self.leader.terminate_instance()
         logging.info("waiting for new leader...")
         self.new_leader = None
@@ -172,7 +171,7 @@ class ActiveFailover(Runner):
         logging.info("state of this test is: %s",
                      "Success" if self.success else "Failed")
 
-    def shutdown(self):
+    def shutdown_impl(self):
         for node in self.starter_instances:
             node.terminate_instance()
 

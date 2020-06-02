@@ -11,31 +11,34 @@ from arangodb.log import ArangodLogExaminer
 from arangodb.installers.base import InstallerBase
 from tools.asciiprint import ascii_print
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
+import tools.loghelper as lh
 
 
 class InstallerDeb(InstallerBase):
     """ install .deb's on debian or ubuntu hosts """
-    def __init__(self, install_config):
-        self.cfg = install_config
-        self.cfg.baseTestDir = Path('/tmp')
-        self.cfg.installPrefix = Path("/")
-        self.cfg.bin_dir = self.cfg.installPrefix / "usr" / "bin"
-        self.cfg.sbin_dir = self.cfg.installPrefix / "usr" / "sbin"
-        self.cfg.real_bin_dir = self.cfg.bin_dir
-        self.cfg.real_sbin_dir = self.cfg.sbin_dir
-        self.caclulate_file_locations()
-        self.cfg.localhost = 'ip6-localhost'
+    def __init__(self, cfg):
         self.check_stripped = True
         self.check_symlink = True
         self.server_package = None
         self.client_package = None
         self.debug_package = None
         self.log_examiner = None
-        self.cfg.logDir = Path('/var/log/arangodb3')
-        self.cfg.dbdir = Path('/var/lib/arangodb3')
-        self.cfg.appdir = Path('/var/lib/arangodb3-apps')
-        self.cfg.cfgdir = Path('/etc/arangodb3')
-        super().__init__()
+
+        # Are those required to be stored in the cfg?
+        cfg.baseTestDir = Path('/tmp')
+        cfg.installPrefix = Path("/")
+        cfg.bin_dir = cfg.installPrefix / "usr" / "bin"
+        cfg.sbin_dir = cfg.installPrefix / "usr" / "sbin"
+        cfg.real_bin_dir = cfg.bin_dir
+        cfg.real_sbin_dir = cfg.sbin_dir
+        cfg.localhost = 'ip6-localhost'
+
+        cfg.logDir = Path('/var/log/arangodb3')
+        cfg.dbdir = Path('/var/lib/arangodb3')
+        cfg.appdir = Path('/var/lib/arangodb3-apps')
+        cfg.cfgdir = Path('/etc/arangodb3')
+
+        super().__init__(cfg)
 
     def calculate_package_names(self):
         enterprise = 'e' if self.cfg.enterprise else ''
@@ -59,10 +62,10 @@ class InstallerDeb(InstallerBase):
 
     def start_service(self):
         startserver = pexpect.spawnu('service arangodb3 start')
-        logging.info("waiting for eof")
+        logging.debug("waiting for eof")
         startserver.expect(pexpect.EOF, timeout=30)
         while startserver.isalive():
-            logging.info('.')
+            print('.', end='')
             if startserver.exitstatus != 0:
                 raise Exception("server service start didn't"
                                 "finish successfully!")
@@ -71,10 +74,10 @@ class InstallerDeb(InstallerBase):
 
     def stop_service(self):
         stopserver = pexpect.spawnu('service arangodb3 stop')
-        logging.info("waiting for eof")
+        logging.debug("waiting for eof")
         stopserver.expect(pexpect.EOF, timeout=30)
         while stopserver.isalive():
-            logging.info('.')
+            print('.', end='')
             if stopserver.exitstatus != 0:
                 raise Exception("server service stop didn't"
                                 "finish successfully!")
@@ -108,29 +111,38 @@ class InstallerDeb(InstallerBase):
         }
         logging.info("installing Arangodb debian package")
         os.environ['DEBIAN_FRONTEND'] = 'readline'
-        server_install = pexpect.spawnu('dpkg -i ' +
-                                        str(self.cfg.package_dir / self.server_package))
+        logging.debug("package dir: {0.cfg.package_dir}- server_package: {0.server_package}".format(self))
+        cmd = 'dpkg -i ' + str(self.cfg.package_dir / self.server_package)
+        lh.log_cmd(cmd)
+        server_install = pexpect.spawnu(cmd)
         try:
+            logging.debug("expect: user1")
             server_install.expect('user:')
             ascii_print(server_install.before)
+            logging.debug("expect: setting password: {0.cfg.passvoid}".format(self))
             server_install.sendline(self.cfg.passvoid)
+            logging.debug("expect: user2")
             server_install.expect('user:')
             ascii_print(server_install.before)
+            logging.debug("expect: setting password: {0.cfg.passvoid}".format(self))
             server_install.sendline(self.cfg.passvoid)
+            logging.debug("expect: upgrade behaviour selection")
             server_install.expect("Automatically upgrade database files")
             ascii_print(server_install.before)
             server_install.sendline("yes")
+            logging.debug("expect: storage engine selection")
             server_install.expect("Database storage engine")
             ascii_print(server_install.before)
             server_install.sendline("1")
+            logging.debug("expect: backup selection")
             server_install.expect("Backup database files before upgrading")
             ascii_print(server_install.before)
             server_install.sendline("no")
         except pexpect.exceptions.EOF:
-            logging.info("X" * 80)
+            lh.line("X")
             ascii_print(server_install.before)
-            logging.info("X" * 80)
-            logging.info("Installation failed!")
+            lh.line("X")
+            logging.error("Installation failed!")
             sys.exit(1)
         try:
             logging.info("waiting for the installation to finish")
@@ -139,9 +151,10 @@ class InstallerDeb(InstallerBase):
         except pexpect.exceptions.EOF:
             logging.info("TIMEOUT!")
         while server_install.isalive():
-            logging.info('.')
+            print('.', end='')
             if server_install.exitstatus != 0:
                 raise Exception("server installation didn't finish successfully!")
+        print()
         logging.info('Installation successfull')
         self.log_examiner = ArangodLogExaminer(self.cfg)
         self.log_examiner.detect_instance_pids()

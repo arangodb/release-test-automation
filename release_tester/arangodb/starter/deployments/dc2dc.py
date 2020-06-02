@@ -8,33 +8,32 @@ import psutil
 import requests
 from arangodb.starter.manager import StarterManager
 from arangodb.sync import SyncManager
-from arangodb.starter.environment.runner import Runner
+from arangodb.starter.deployments.runner import Runner
 
 
 class Dc2Dc(Runner):
     """ this launches two clusters in dc2dc mode """
-    def __init__(self, cfg):
+    def __init__(self, runner_type, cfg, new_inst, old_inst):
+        super().__init__(runner_type, cfg, new_inst, old_inst, 'DC2DC')
+        self.success = True
+        self.basecfg.passvoid = '' # TODO
+        self.sync_manager = None
+
+
+    def starter_prepare_env_impl(self):
         def cert_op(args):
             print(args)
             psutil.Popen([self.basecfg.installPrefix
                           / 'usr' / 'bin' / 'arangodb',
                           'create'] +
                          args).wait()
-        logging.info("x"*80)
-        logging.info("xx           dc 2 dc test      ")
-        logging.info("x"*80)
-        self.success = True
-        self.basecfg = cfg
-        self.basecfg.passvoid = '' # TODO
-        self.basedir = Path('DC2DC')
-        self.cleanup()
-        self.sync_manager = None
+
+
         datadir = Path('data')
         cert_dir = self.basecfg.baseTestDir / self.basedir / "certs"
         print(cert_dir)
         cert_dir.mkdir(parents=True, exist_ok=True)
         cert_dir.mkdir(parents=True, exist_ok=True)
-
         def getdirs(subdir):
             return {
                 "dir": self.basedir /
@@ -99,7 +98,7 @@ class Dc2Dc(Runner):
         add_starter(self.cluster1, None)
         add_starter(self.cluster2, port=9528)
 
-    def setup(self):
+    def starter_run_impl(self):
         def launch(cluster):
             inst = cluster["instance"]
             inst.run_starter()
@@ -121,18 +120,17 @@ class Dc2Dc(Runner):
         launch(self.cluster1)
         launch(self.cluster2)
 
+    def finish_setup_impl(self):
         self.sync_manager = SyncManager(self.basecfg,
                                         self.ca,
                                         [self.cluster2['smport'],
                                          self.cluster1['smport']])
         if not self.sync_manager.run_syncer():
             raise Exception("starting the synchronisation failed!")
+        self.makedata_instances = [ self.cluster1['instance'] ]
         time.sleep(60) # TODO: howto detect dc2dc is completely up and running?
 
-    def run(self):
-        logging.info('finished')
-
-    def post_setup(self):
+    def test_setup_impl(self):
         self.cluster1['instance'].arangosh.create_test_data("dc2dc (post setup - dc1)")
         self.cluster1['instance'].arangosh.check_test_data("dc2dc (post setup - dc1)")
         self.sync_manager.check_sync_status(0)
@@ -146,9 +144,7 @@ class Dc2Dc(Runner):
         self.sync_manager.get_sync_tasks(0)
         self.sync_manager.get_sync_tasks(1)
 
-        pass
-
-    def upgrade(self, new_install_cfg):
+    def upgrade_arangod_version_impl(self):
         """ upgrade this installation """
         self.sync_manager.replace_binary_for_upgrade(new_install_cfg)
         self.sync_manager.stop_sync()
@@ -165,12 +161,10 @@ class Dc2Dc(Runner):
         self.sync_manager.check_sync_status(1)
         self.sync_manager.get_sync_tasks(0)
         self.sync_manager.get_sync_tasks(1)
-        # exit(0)
 
-    def jam_attempt(self):
+    def jam_attempt_impl(self):
         pass
 
-    def shutdown(self):
-        print('shutting down')
+    def shutdown_impl(self):
         self.cluster1["instance"].terminate_instance()
         self.cluster2["instance"].terminate_instance()

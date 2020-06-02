@@ -8,25 +8,23 @@ from pathlib import Path
 from tools.timestamp import timestamp
 from tools.interact import prompt_user, end_test
 from arangodb.starter.manager import StarterManager
-from arangodb.starter.environment.runner import Runner
+from arangodb.starter.deployments.runner import Runner
 import tools.loghelper as lh
 
 
 class Cluster(Runner):
     """ this launches a cluster setup """
-    def __init__(self, cfg):
-        lh.section("cluster test")
-        self.success = True
+    def __init__(self, runner_type, cfg, new_inst, old_inst):
+        super().__init__(runner_type, cfg, new_inst, old_inst, 'CLUSTER')
+        #self.basecfg.frontends = []
+        self.starter_instances = []
+        self.jwtdatastr = str(timestamp())
+
+    def starter_prepare_env_impl(self):
         self.create_test_collection = ("""
 db._create("testCollection",  { numberOfShards: 6, replicationFactor: 2});
 db.testCollection.save({test: "document"})
 """, "create test collection")
-        self.basecfg = cfg
-        self.basecfg.frontends = []
-        self.basedir = Path('CLUSTER')
-        self.cleanup()
-        self.starter_instances = []
-        self.jwtdatastr = str(timestamp())
 
         self.starter_instances.append(
             StarterManager(self.basecfg,
@@ -47,11 +45,11 @@ db.testCollection.save({test: "document"})
                            jwtStr=self.jwtdatastr,
                            moreopts=['--starter.join', '127.0.0.1']))
 
-    def setup(self):
+    def starter_run_impl(self):
         lh.subsection("instance setup")
-        for node in self.starter_instances:
+        for manager in self.starter_instances:
             logging.info("Spawning instance")
-            node.run_starter()
+            manager.run_starter()
 
         logging.info("waiting for the starters to become alive")
         not_started = self.starter_instances[:] #This is a explicit copy
@@ -67,16 +65,26 @@ db.testCollection.save({test: "document"})
         for node in self.starter_instances:
             node.detect_instances()
             node.detect_instance_pids()
-            self.basecfg.add_frontend('http',
-                                      self.basecfg.publicip,
-                                      str(node.get_frontend_port()))
+            #self.basecfg.add_frontend('http', self.basecfg.publicip, str(node.get_frontend_port()))
         logging.info("instances are ready")
 
-    def run(self):
-        lh.subsection("run cluster tests")
-        prompt_user(self.basecfg)
+    def finish_setup_impl(self):
+        self.makedata_instances = self.starter_instances[:]
 
-        #  TODO self.create_test_collection
+    def test_setup_impl(self):
+        pass
+
+    def upgrade_arangod_version_impl(self):
+        for node in self.starter_instances:
+            node.replace_binary_for_upgrade(new_install_cfg)
+
+        for node in self.starter_instances:
+            node.detect_instance_pids_still_alive()
+
+        self.starter_instances[1].command_upgrade()
+        self.starter_instances[1].wait_for_upgrade()
+
+    def jam_attempt_impl(self):
         logging.info("stopping instance 2")
         self.starter_instances[2].terminate_instance()
 
@@ -91,18 +99,6 @@ db.testCollection.save({test: "document"})
         self.starter_instances[2].detect_instance_pids()
         self.starter_instances[2].detect_instance_pids_still_alive()
 
-    def upgrade(self, new_install_cfg):
-        for node in self.starter_instances:
-            node.replace_binary_for_upgrade(new_install_cfg)
-        for node in self.starter_instances:
-            node.detect_instance_pids_still_alive()
-        self.starter_instances[1].command_upgrade()
-        self.starter_instances[1].wait_for_upgrade()
-
-    def post_setup(self):
-        pass
-
-    def jam_attempt(self):
         logging.info('jamming: Starting instance without jwt')
         dead_instance = StarterManager(
             self.basecfg,
@@ -125,7 +121,8 @@ db.testCollection.save({test: "document"})
         logging.info(str(dead_instance.instance.wait(timeout=320)))
         logging.info('dead instance is dead?')
 
-    def shutdown(self):
+    def shutdown_impl(self):
         for node in self.starter_instances:
             node.terminate_instance()
         logging.info('test ended')
+

@@ -18,23 +18,23 @@ import tools.loghelper as lh
 
 class InstallerRPM(InstallerBase):
     """ install .rpm's on RedHat, Centos or SuSe systems """
-    def __init__(self, install_config):
-        self.cfg = install_config
-        self.cfg.baseTestDir = Path('/tmp')
-        self.cfg.installPrefix = Path("/")
-        self.cfg.bin_dir = self.cfg.installPrefix / "usr" / "bin"
-        self.cfg.sbin_dir = self.cfg.installPrefix / "usr" / "sbin"
-        self.cfg.real_bin_dir = self.cfg.bin_dir
-        self.cfg.real_sbin_dir = self.cfg.sbin_dir
-        self.caclulate_file_locations()
-        self.cfg.localhost = 'localhost6'
+    def __init__(self, cfg):
         self.check_stripped = True
         self.check_symlink = True
         self.server_package = None
         self.client_package = None
         self.debug_package = None
         self.log_examiner = None
-        super().__init__()
+
+        cfg.baseTestDir = Path('/tmp')
+        cfg.installPrefix = Path("/")
+        cfg.bin_dir = cfg.installPrefix / "usr" / "bin"
+        cfg.sbin_dir = cfg.installPrefix / "usr" / "sbin"
+        cfg.real_bin_dir = cfg.bin_dir
+        cfg.real_sbin_dir = cfg.sbin_dir
+        cfg.localhost = 'localhost6'
+
+        super().__init__(cfg)
 
     def calculate_package_names(self):
         enterprise = 'e' if self.cfg.enterprise else ''
