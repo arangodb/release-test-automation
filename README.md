@@ -15,7 +15,7 @@ Dependencies
 Installing
 ----------
 - **debian** / **ubuntu**:
-  `apt-get install python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect`
+  `apt-get install python3-click, python3 -m pip install psutil, python3 -m pip install distro, python3 -m pip install pexpect, sudo python3 -m pip install pyyaml, sudo python3 -m pip install lib`
 - **centos**:
    `yum update ; yum install python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect; pip3 install psutil `
 - **plain pip**:
@@ -51,7 +51,7 @@ Supported Parameters:
  
 Example usage:
  - Windows: `python ./release_tester/test.py --version 3.6.2 --enterprise True --package-dir c:/Users/willi/Downloads `
- - Linux (ubuntu|debian) `python3 ./release_tester/test.py --version 3.6.2 --enterprise True --package-dir /home/willi/Downloads`
+ - Linux (ubuntu|debian) `python3 ./release_tester/test.py --version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
  - Linux (centos|fedora|sles) `python3 ./release_tester/test.py --version 3.6.2 --enterprise True --package-dir /home/willi/Downloads`
 
 Using upgrade.py for upgrade testing
