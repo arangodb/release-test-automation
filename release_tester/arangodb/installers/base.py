@@ -17,8 +17,8 @@ def run_file_command(file_to_check):
     """ run `file file_to_check` and return the output """
     proc = subprocess.Popen(['file', file_to_check],
                             stdout=subprocess.PIPE,
-                            stdin=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
+                            #stdin=subprocess.PIPE,
+                            #stderr=subprocess.PIPE,
                             universal_newlines=True)
     line = proc.stdout.readline()
     proc.wait()

@@ -3,19 +3,21 @@
     to crontroll multiple arangods
 """
 
-import signal
 import copy
-import os
-import time
-import re
 import logging
+import os
+import re
+import signal
+import subprocess
 import sys
+import time
 
 from pathlib import Path
 # from typing import List, Dict, NamedTuple
 
 import psutil
 
+from tools.asciiprint import ascii_print
 from tools.timestamp import timestamp
 from arangodb.instance import ArangodInstance, SyncInstance, InstanceType
 from arangodb.sh import ArangoshExecutor
@@ -260,10 +262,16 @@ Starter {0.name}
             'http://127.0.0.1:' + str(self.get_my_port())
         ]
         logging.info("StarterManager: Commanding upgrade %s", str(args))
-        self.upgradeprocess = psutil.Popen(args)
-
+        self.upgradeprocess = psutil.Popen(args,
+                                           #stdout=subprocess.PIPE,
+                                           #stdin=subprocess.PIPE,
+                                           stderr=subprocess.PIPE,
+                                           universal_newlines=True)
+        
     def wait_for_upgrade(self):
         """ wait for the starter to finish performing the upgrade """
+        for line in self.upgradeprocess.stderr:
+            ascii_print(line)
         ret = self.upgradeprocess.wait()
         logging.info("StarterManager: Upgrade command exited: %s", str(ret))
         if ret != 0:
