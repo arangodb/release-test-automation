@@ -8,7 +8,7 @@ from pathlib import Path
 import pexpect
 import psutil
 from arangodb.sh import ArangoshExecutor
-from arangodb.log import ArangodLogExaminer
+from arangodb.instance import ArangodInstance
 from arangodb.installers.base import InstallerBase
 from tools.asciiprint import ascii_print
 
@@ -24,7 +24,7 @@ class InstallerRPM(InstallerBase):
         self.server_package = None
         self.client_package = None
         self.debug_package = None
-        self.log_examiner = None
+        self.instance = None
 
         cfg.baseTestDir = Path('/tmp')
         cfg.installPrefix = Path("/")
@@ -53,9 +53,9 @@ class InstallerRPM(InstallerBase):
         self.debug_package = 'arangodb3{ep}-debuginfo-{cfg}-{ver}.{arch}.rpm'.format(**desc)
 
     def check_service_up(self):
-        if 'PID' in self.cfg.all_instances['single']:
+        if self.instance.pid:
             try:
-                psutil.Process(self.cfg.all_instances.single['PID'])
+                psutil.Process(self.instance.pid)
             except:
                 return False
         else:
@@ -64,7 +64,7 @@ class InstallerRPM(InstallerBase):
         return True
 
     def start_service(self):
-        assert self.log_examiner
+        assert self.instance
 
         logging.info("starting service")
         cmd = ['service', 'arangodb3', 'start']
@@ -73,7 +73,7 @@ class InstallerRPM(InstallerBase):
         logging.info("waiting for eof of start service")
         startserver.wait()
         time.sleep(0.1)
-        self.log_examiner.detect_instance_pids()
+        self.instance.detect_pid()
 
     def stop_service(self):
         logging.info("stopping service")
@@ -93,13 +93,8 @@ class InstallerRPM(InstallerBase):
         self.cfg.dbdir  = Path('/var/lib/arangodb3')
         self.cfg.appdir = Path('/var/lib/arangodb3-apps')
         self.cfg.cfgdir = Path('/etc/arangodb3')
-        self.cfg.all_instances = {
-            'single': {
-                'logfile':
-                self.cfg.installPrefix / self.cfg.logDir / 'arangod.log'
-            }
-        }
-        self.log_examiner = ArangodLogExaminer(self.cfg)
+
+        self.instance = ArangodInstance("single", "8529", self.cfg.installPrefix / self.cfg.logDir)
 
 
         #https://access.redhat.com/solutions/1189
@@ -136,14 +131,7 @@ class InstallerRPM(InstallerBase):
         self.cfg.dbdir  = Path('/var/lib/arangodb3')
         self.cfg.appdir = Path('/var/lib/arangodb3-apps')
         self.cfg.cfgdir = Path('/etc/arangodb3')
-        self.cfg.all_instances = {
-            'single': {
-                'logfile':
-                self.cfg.installPrefix / self.cfg.logDir / 'arangod.log'
-            }
-        }
-
-        self.log_examiner = ArangodLogExaminer(self.cfg)
+        self.instance = ArangodInstance("single", "8529", self.cfg.installPrefix / cfg.logDir)
         logging.info("installing Arangodb RPM package")
         package = self.cfg.package_dir / self.server_package
         if not package.is_file():
@@ -171,7 +159,7 @@ class InstallerRPM(InstallerBase):
         self.cfg.passvoid = reply[start + 1: end]
 
         self.start_service()
-        self.log_examiner.detect_instance_pids()
+        self.instance.detect_pid()
 
         pwcheckarangosh = ArangoshExecutor(self.cfg)
         if not pwcheckarangosh.js_version_check():
@@ -227,7 +215,7 @@ class InstallerRPM(InstallerBase):
                 raise exc
 
         self.start_service()
-        self.log_examiner.detect_instance_pids()
+        self.instance.detect_pid()
 
     def un_install_package(self):
         cmd = ['rpm', '-e', 'arangodb3' + ('e' if self.cfg.enterprise else '')]

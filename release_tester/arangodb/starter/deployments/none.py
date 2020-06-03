@@ -2,13 +2,7 @@
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
 
-import time
-import logging
-from pathlib import Path
-from tools.killall import get_all_processes
-from arangodb.starter.manager import StarterManager
 from arangodb.starter.deployments.runner import Runner
-import tools.loghelper as lh
 
 class NoStarter(Runner):
     """ This runner does not use the starter """

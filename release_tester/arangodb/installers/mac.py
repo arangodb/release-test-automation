@@ -13,7 +13,7 @@ import subprocess
 from pathlib import Path
 import pexpect
 import plistlib
-from arangodb.log import ArangodLogExaminer
+from arangodb.instance import ArangodInstance
 from arangodb.installers.base import InstallerBase
 from tools.asciiprint import ascii_print
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
@@ -25,7 +25,7 @@ class InstallerMac(InstallerBase):
         self.server_package = None
         self.client_package = None
         self.debug_package = None
-        self.log_examiner = None
+        self.instance = None
         self.mountpoint = None
         self.check_stripped = False
         self.check_symlink = True
@@ -192,8 +192,8 @@ class InstallerMac(InstallerBase):
         logging.info('Installation successfull')
         self.caclulate_file_locations()
         self.run_installer_script()
-        self.log_examiner = ArangodLogExaminer(self.cfg)
-        self.log_examiner.detect_instance_pids()
+        self.instance = ArangodInstance("single", "8529", cfg.logDir)
+        self.instance.detect_pid()
 
     def un_install_package(self):
         if not self.mountpoint:
