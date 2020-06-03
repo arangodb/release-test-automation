@@ -27,6 +27,7 @@ class Runner(ABC):
             runner_type,
             cfg: InstallerConfig,
             old_inst: InstallerBase,
+            new_cfg: InstallerConfig,
             new_inst: Optional[InstallerBase],
             short_name: str
         ):
@@ -41,10 +42,12 @@ class Runner(ABC):
         self.do_upgrade = False
 
         self.basecfg = cfg
+        self.new_cfg = new_cfg
         self.basedir = Path(short_name)
 
         self.old_installer = old_inst
         self.new_installer = new_inst
+        print(self.new_installer)
 
         # starter instances that make_data wil run on
         # maybe it would be better to work directly on
@@ -77,7 +80,7 @@ class Runner(ABC):
         self.starter_run()
         self.finish_setup()
         self.make_data()
-
+        print(self.new_installer)
         if self.new_installer:
             lh.section("UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),)
             self.upgrade_arangod_version() #make sure to pass new version
