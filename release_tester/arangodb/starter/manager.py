@@ -385,12 +385,12 @@ Starter {0.name}
 
             for root, dirs, files in os.walk(self.basedir):
                 for onefile in files:
-                    logging.debug("f: " + root + os.path.sep + onefile)
+                    #logging.debug("f: " + root + os.path.sep + onefile)
                     if onefile.endswith("log"):
                         logfiles.add(str(Path(root) / onefile))
 
                 for name in dirs:
-                    logging.debug("d: " + root + os.path.sep + name)
+                    #logging.debug("d: " + root + os.path.sep + name)
                     match = None
                     instance_class = None
                     if name.startswith('sync'):
