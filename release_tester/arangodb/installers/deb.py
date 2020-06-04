@@ -70,7 +70,7 @@ class InstallerDeb(InstallerBase):
                 raise Exception("server service start didn't"
                                 "finish successfully!")
         time.sleep(0.1)
-        self.instance.detect_pid()
+        self.instance.detect_pid(1) # should be owned by init
 
     def stop_service(self):
         stopserver = pexpect.spawnu('service arangodb3 stop')
@@ -152,7 +152,7 @@ class InstallerDeb(InstallerBase):
         print()
         logging.info('Installation successfull')
         self.instance = ArangodInstance("single", "8529", self.cfg.installPrefix / self.cfg.logDir)
-        self.instance.detect_pid()
+        self.instance.detect_pid(1) # should be owned by init
 
     def un_install_package(self):
         uninstall = pexpect.spawnu('dpkg --purge ' +

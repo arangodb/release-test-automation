@@ -44,8 +44,8 @@ class Dc2Dc(Runner):
                 "tlsKeyfile": cert_dir / subdir / 'tls.keyfile',
             }
 
-        self.cluster1 = getdirs(Path('custer1'))
-        self.cluster2 = getdirs(Path('custer2'))
+        self.cluster1 = getdirs(Path('cluster1'))
+        self.cluster2 = getdirs(Path('cluster2'))
         client_cert = cert_dir / 'client-auth-ca.crt'
         self.ca = {
             "cert": cert_dir / 'tls-ca.crt',

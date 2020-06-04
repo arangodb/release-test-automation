@@ -193,7 +193,7 @@ class InstallerMac(InstallerBase):
         self.caclulate_file_locations()
         self.run_installer_script()
         self.instance = ArangodInstance("single", "8529", cfg.logDir)
-        self.instance.detect_pid()
+        self.instance.detect_pid(1) # should be owned by init - TODO
 
     def un_install_package(self):
         if not self.mountpoint:

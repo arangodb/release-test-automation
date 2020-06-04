@@ -73,7 +73,7 @@ class InstallerRPM(InstallerBase):
         logging.info("waiting for eof of start service")
         startserver.wait()
         time.sleep(0.1)
-        self.instance.detect_pid()
+        self.instance.detect_pid(1) # should be owned by init
 
     def stop_service(self):
         logging.info("stopping service")
@@ -159,7 +159,7 @@ class InstallerRPM(InstallerBase):
         self.cfg.passvoid = reply[start + 1: end]
 
         self.start_service()
-        self.instance.detect_pid()
+        self.instance.detect_pid(1) # should be owned by init
 
         pwcheckarangosh = ArangoshExecutor(self.cfg)
         if not pwcheckarangosh.js_version_check():
@@ -215,7 +215,7 @@ class InstallerRPM(InstallerBase):
                 raise exc
 
         self.start_service()
-        self.instance.detect_pid()
+        self.instance.detect_pid(1) # should be owned by init
 
     def un_install_package(self):
         cmd = ['rpm', '-e', 'arangodb3' + ('e' if self.cfg.enterprise else '')]

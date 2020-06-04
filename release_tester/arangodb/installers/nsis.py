@@ -131,7 +131,7 @@ class InstallerW(InstallerBase):
             if self.service.status() == "stopped":
                 raise Exception("arangod service stopped again on its own!"
                                 "Configuration / Port problem?")
-        self.instance.detect_pid()
+        self.instance.detect_pid(1) # should be owned by init TODO wintendo what do you do here?
 
     def stop_service(self):
         self.get_service()

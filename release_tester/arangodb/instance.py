@@ -42,7 +42,7 @@ class Instance(ABC):
         logging.info("creating {0.type_str} instance: {0.name}".format(self))
 
     @abstractmethod
-    def detect_pid(self):
+    def detect_pid(self, ppid):
         """ gets the PID from the running process of this instance """
 
     def detect_gone(self):
@@ -94,11 +94,11 @@ arangod instance of starter
     def wait_for_logfile(self, tries):
         """ wait for logfile to appear """
         while not self.logfile.exists() and tries:
-            print('.')
+            print(':')
             time.sleep(1)
             tries -= 1
 
-    def detect_pid(self):
+    def detect_pid(self, ppid):
         """ detect the instance """
         self.pid = 0
         tries = 20
@@ -160,5 +160,35 @@ arangosync instance of starter
     logfile: {0.logfile}
 """.format(self)
 
-    def detect_pid(self):
+    def detect_pid(self, ppid):
+        # first get the starter provided commandline:
+        command = self.basedir / 'arangosync_command.txt'
+        cmd = []
+        with open(command) as f:
+            for line in f.readlines():
+                cmd.append(line.rstrip().rstrip(' \\'))
+        # wait till the process has startet writing its logfile:
+        while not self.logfile.exists():
+            print('v')
+            time.sleep(1)
+        possible_me_pid = []
+        for p in psutil.process_iter():
+            if p.ppid() == ppid:
+                proccmd = p.cmdline()
+                if len(set(proccmd) & set(cmd)) == len(cmd):
+                    possible_me_pid.append({
+                        'p': p.pid,
+                        'cmdline': proccmd
+                    })
+        if len(possible_me_pid) != 1:
+            raise("wasn't able to identify my arangosync process! " + str(possible_me_pid))
+        self.pid = possible_me_pid[0]['p']
+
+    def wait_for_logfile(self, tries):
         pass
+
+    def is_frontend(self):
+        return False
+
+    def is_dbserver(self):
+        return False

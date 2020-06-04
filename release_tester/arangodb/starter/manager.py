@@ -385,12 +385,12 @@ Starter {0.name}
 
             for root, dirs, files in os.walk(self.basedir):
                 for onefile in files:
-                    #logging.debug("f: " + root + os.path.sep + onefile)
+                    logging.debug("f: " + root + os.path.sep + onefile)
                     if onefile.endswith("log"):
                         logfiles.add(str(Path(root) / onefile))
 
                 for name in dirs:
-                    #logging.debug("d: " + root + os.path.sep + name)
+                    logging.debug("d: " + root + os.path.sep + name)
                     match = None
                     instance_class = None
                     if name.startswith('sync'):
@@ -403,8 +403,10 @@ Starter {0.name}
                         instance_class = ArangodInstance
                     directory = self.basedir / name
                     if match:
-                        instance = instance_class(match.group(1), match.group(2), directory)
-                        instance.wait_for_logfile(self.expect_instance_count * 3)
+                        # we may see a `local-slave-*` directory inbetween, hence we need to
+                        # choose the current directory not the starter toplevel dir for this:
+                        instance = instance_class(match.group(1), match.group(2), Path(root) / name)
+                        instance.wait_for_logfile(tries)
                         self.all_instances.append(instance)
 
             if not self.get_frontends():
@@ -428,7 +430,7 @@ Starter {0.name}
         # TODO: Do we stil need the log.py or should it be removed
         """ detect the arangod instance PIDs"""
         for instance in self.all_instances:
-            instance.detect_pid()
+            instance.detect_pid(self.instance.pid)
 
         self.show_all_instances()
         if self.arangosh is None:
