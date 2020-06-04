@@ -134,6 +134,9 @@ arangod instance of starter
                 time.sleep(1)
                 continue
             self.pid = int(pid)
+            logging.info("found pid {0} for instance with logifle {1}.".format(
+                self.pid,
+                str(self.logfile)))
 
         if self.pid == 0:
             print()

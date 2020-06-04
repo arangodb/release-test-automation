@@ -131,7 +131,7 @@ class InstallerRPM(InstallerBase):
         self.cfg.dbdir  = Path('/var/lib/arangodb3')
         self.cfg.appdir = Path('/var/lib/arangodb3-apps')
         self.cfg.cfgdir = Path('/etc/arangodb3')
-        self.instance = ArangodInstance("single", "8529", self.cfg.installPrefix / cfg.logDir)
+        self.instance = ArangodInstance("single", "8529", self.cfg.installPrefix / self.cfg.logDir)
         logging.info("installing Arangodb RPM package")
         package = self.cfg.package_dir / self.server_package
         if not package.is_file():

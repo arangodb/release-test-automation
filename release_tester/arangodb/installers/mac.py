@@ -192,7 +192,7 @@ class InstallerMac(InstallerBase):
         logging.info('Installation successfull')
         self.caclulate_file_locations()
         self.run_installer_script()
-        self.instance = ArangodInstance("single", "8529", cfg.logDir)
+        self.instance = ArangodInstance("single", "8529", self.cfg.logDir)
         self.instance.detect_pid(1) # should be owned by init - TODO
 
     def un_install_package(self):
