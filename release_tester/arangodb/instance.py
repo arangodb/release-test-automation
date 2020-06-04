@@ -137,7 +137,12 @@ arangod instance of starter
             logging.info("found pid {0} for instance with logifle {1}.".format(
                 self.pid,
                 str(self.logfile)))
-
+            try:
+                self.instance = psutil.Process(self.pid)
+            except psutil.NoSuchProcess:
+                log.info("process already gone? retrying.")
+                time.sleep(1)
+                self.pid = 0 # a previous log run? retry. 
         if self.pid == 0:
             print()
             logging.error("could not get pid for instance: " + repr(self))
@@ -147,7 +152,6 @@ arangod instance of starter
             logging.info("found pid {0} for instance with logifle {1}.".format(
                 self.pid,
                 str(self.logfile)))
-        self.instance = psutil.Process(self.pid)
 
 class SyncInstance(Instance):
     """ represent one arangosync instance """
