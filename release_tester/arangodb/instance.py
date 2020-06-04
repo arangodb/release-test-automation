@@ -140,9 +140,9 @@ arangod instance of starter
             try:
                 self.instance = psutil.Process(self.pid)
             except psutil.NoSuchProcess:
-                log.info("process already gone? retrying.")
+                logging.info("process already gone? retrying.")
                 time.sleep(1)
-                self.pid = 0 # a previous log run? retry. 
+                self.pid = 0 # a previous log run? retry.
         if self.pid == 0:
             print()
             logging.error("could not get pid for instance: " + repr(self))
