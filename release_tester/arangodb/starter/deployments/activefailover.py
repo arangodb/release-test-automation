@@ -13,8 +13,8 @@ import tools.loghelper as lh
 
 class ActiveFailover(Runner):
     """ This launches an active failover setup """
-    def __init__(self, runner_type, cfg, new_inst, old_inst):
-        super().__init__(runner_type, cfg, new_inst, old_inst, 'AFO')
+    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
+        super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'AFO')
         self.starter_instances = []
         self.follower_nodes = None
         self.leader = None
@@ -112,7 +112,7 @@ class ActiveFailover(Runner):
     def upgrade_arangod_version_impl(self):
         """ upgrade this installation """
         for node in self.starter_instances:
-            node.replace_binary_for_upgrade(new_install_cfg)
+            node.replace_binary_for_upgrade(self.new_cfg)
         for node in self.starter_instances:
             node.detect_instance_pids_still_alive()
         self.starter_instances[1].command_upgrade()

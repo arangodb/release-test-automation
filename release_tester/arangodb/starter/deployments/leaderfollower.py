@@ -10,8 +10,8 @@ import tools.loghelper as lh
 
 class LeaderFollower(Runner):
     """ this runs a leader / Follower setup with synchronisation """
-    def __init__(self, runner_type, cfg, new_inst, old_inst):
-        super().__init__(runner_type, cfg, new_inst, old_inst, 'lf')
+    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
+        super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'lf')
 
         self.leader_starter_instance = None
         self.follower_starter_instance = None

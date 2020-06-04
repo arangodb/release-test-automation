@@ -13,8 +13,8 @@ from arangodb.starter.deployments.runner import Runner
 
 class Dc2Dc(Runner):
     """ this launches two clusters in dc2dc mode """
-    def __init__(self, runner_type, cfg, new_inst, old_inst):
-        super().__init__(runner_type, cfg, new_inst, old_inst, 'DC2DC')
+    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
+        super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'DC2DC')
         self.success = True
         self.basecfg.passvoid = '' # TODO
         self.sync_manager = None
@@ -44,8 +44,8 @@ class Dc2Dc(Runner):
                 "tlsKeyfile": cert_dir / subdir / 'tls.keyfile',
             }
 
-        self.cluster1 = getdirs(Path('custer1'))
-        self.cluster2 = getdirs(Path('custer2'))
+        self.cluster1 = getdirs(Path('cluster1'))
+        self.cluster2 = getdirs(Path('cluster2'))
         client_cert = cert_dir / 'client-auth-ca.crt'
         self.ca = {
             "cert": cert_dir / 'tls-ca.crt',
@@ -146,10 +146,10 @@ class Dc2Dc(Runner):
 
     def upgrade_arangod_version_impl(self):
         """ upgrade this installation """
-        self.sync_manager.replace_binary_for_upgrade(new_install_cfg)
+        self.sync_manager.replace_binary_for_upgrade(self.new_cfg)
         self.sync_manager.stop_sync()
-        self.cluster1["instance"].replace_binary_for_upgrade(new_install_cfg)
-        self.cluster2["instance"].replace_binary_for_upgrade(new_install_cfg)
+        self.cluster1["instance"].replace_binary_for_upgrade(self.new_cfg)
+        self.cluster2["instance"].replace_binary_for_upgrade(self.new_cfg)
         self.cluster1["instance"].detect_instance_pids_still_alive()
         self.cluster2["instance"].detect_instance_pids_still_alive()
         self.cluster1["instance"].command_upgrade()

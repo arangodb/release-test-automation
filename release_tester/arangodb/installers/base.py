@@ -8,7 +8,7 @@ import subprocess
 from pathlib import Path
 from abc import abstractmethod, ABC
 import yaml
-from arangodb.log import ArangodLogExaminer
+from arangodb.instance import ArangodInstance
 
 ARANGO_BINARIES = []
 
@@ -171,7 +171,7 @@ class InstallerBase(ABC):
         with open(self.calc_config_file_name()) as fileh:
             self.cfg = yaml.load(fileh, Loader=yaml.Loader)
         print(self.cfg)
-        self.log_examiner = ArangodLogExaminer(self.cfg)
+        self.instance = ArangodInstance("single", "8529", self.cfg.logDir)
         self.calculate_package_names()
         self.cfg.verbose = verbose
 

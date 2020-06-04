@@ -4,15 +4,10 @@
 import logging
 from pathlib import Path
 import sys
-import click
 from tools.killall import kill_all_processes
-from tools.interact import end_test
-from arangodb.sh import ArangoshExecutor
 from arangodb.installers import make_installer, InstallerConfig
 from arangodb.starter.deployments import RunnerType, make_runner
 import tools.loghelper as lh
-import tools.errorhelper as eh
-import obi.util
 
 logging.basicConfig(
     level=logging.DEBUG,

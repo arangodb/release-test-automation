@@ -9,8 +9,8 @@ import click
 
 from tools.killall import kill_all_processes
 from arangodb.sh import ArangoshExecutor
-import arangodb.installers as installers
-from arangodb.starter.environment import RunnerType, make_runner
+from arangodb.installers import make_installer, InstallerConfig
+from arangodb.starter.deployments import RunnerType, make_runner
 import tools.loghelper as lh
 
 logging.basicConfig(
@@ -85,59 +85,31 @@ def run_test(old_version, version, verbose, package_dir,
     for runner_type in starter_mode:
 
         kill_all_processes()
-
-        old_inst = installers.get(old_version,
-                                  verbose,
-                                  enterprise,
-                                  Path(package_dir),
-                                  publicip,
-                                  interactive)
-
-        new_inst = installers.get(version,
-                                  verbose,
-                                  enterprise,
-                                  Path(package_dir),
-                                  publicip,
-                                  interactive)
-
-        lh.section("install old: " + old_version)
-        old_inst.install_package()
-
-        if old_inst.check_service_up():
-            old_inst.stop_service()
+        install_config_old = InstallerConfig(old_version,
+                                             verbose,
+                                             enterprise,
+                                             Path(package_dir),
+                                             publicip,
+                                             interactive)
+        old_inst = make_installer(install_config_old)
+        install_config_new = InstallerConfig(version,
+                                             verbose,
+                                             enterprise,
+                                             Path(package_dir),
+                                             publicip,
+                                             interactive)
+        new_inst = make_installer(install_config_new)
 
         runner = None
         if runner_type:
-            runner = make_runner(runner_type, old_inst, new_inst)
+            runner = make_runner(runner_type,
+                                 install_config_old,
+                                 old_inst,
+                                 install_config_new,
+                                 new_inst)
 
             if runner:
                 runner.run()
-
-        # lh.section("install new: " + version)
-        # new_inst.upgrade_package()
-
-        # #check new version
-
-        # if new_inst.check_service_up():
-        #     new_inst.stop_service()
-
-        # if runner:
-        #     runner.upgrade(new_inst.cfg)
-        #     # end_test(inst.cfg, runner_type)
-        #     runner.shutdown()
-        #     runner.cleanup()
-        #     kill_all_processes()
-        # else:
-        #     new_inst.start_service()
-        #     new_inst.check_service_up()
-
-        #     pwcheckarangosh = ArangoshExecutor(new_inst.cfg)
-        #     if not pwcheckarangosh.js_version_check():
-        #         logging.error(
-        #             "Version Check failed -"
-        #             "probably setting the default random password didn't work! %s",
-        #             new_inst.cfg.passvoid)
-        #         sys.exit(1)
 
         lh.section("uninstall")
         new_inst.un_install_package()

@@ -6,7 +6,7 @@ import logging
 from pathlib import Path
 from pathlib import PureWindowsPath
 import psutil
-from arangodb.log import ArangodLogExaminer
+from arangodb.instance import ArangodInstance
 from arangodb.installers.base import InstallerBase
 
 
@@ -17,7 +17,7 @@ class InstallerW(InstallerBase):
         self.check_symlink = False
         self.server_package = None
         self.client_package = None
-        self.log_examiner = None
+        self.instance = None
         self.service = None
 
         cfg.baseTestDir = Path('/tmp')
@@ -77,12 +77,7 @@ class InstallerW(InstallerBase):
         self.enable_logging()
         self.stop_service()
         time.sleep(1)
-        self.cfg.all_instances = {
-            'single': {
-                'logfile': self.cfg.logDir / 'arangod.log'
-            }
-        }
-        self.log_examiner = ArangodLogExaminer(self.cfg)
+        self.instance = ArangodInstance("single", "8529", self.cfg.logDir)
         self.start_service()
         logging.info('Installation successfull')
 
@@ -136,7 +131,7 @@ class InstallerW(InstallerBase):
             if self.service.status() == "stopped":
                 raise Exception("arangod service stopped again on its own!"
                                 "Configuration / Port problem?")
-        self.log_examiner.detect_instance_pids()
+        self.instance.detect_pid(1) # should be owned by init TODO wintendo what do you do here?
 
     def stop_service(self):
         self.get_service()

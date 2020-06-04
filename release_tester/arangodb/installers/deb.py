@@ -7,7 +7,7 @@ import shutil
 import logging
 from pathlib import Path
 import pexpect
-from arangodb.log import ArangodLogExaminer
+from arangodb.instance import ArangodInstance
 from arangodb.installers.base import InstallerBase
 from tools.asciiprint import ascii_print
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
@@ -70,7 +70,7 @@ class InstallerDeb(InstallerBase):
                 raise Exception("server service start didn't"
                                 "finish successfully!")
         time.sleep(0.1)
-        self.log_examiner.detect_instance_pids()
+        self.instance.detect_pid(1) # should be owned by init
 
     def stop_service(self):
         stopserver = pexpect.spawnu('service arangodb3 stop')
@@ -104,11 +104,6 @@ class InstallerDeb(InstallerBase):
             logging.info("TIMEOUT!")
 
     def install_package(self):
-        self.cfg.all_instances = {
-            'single': {
-                'logfile': self.cfg.installPrefix / self.cfg.logDir / 'arangod.log'
-            }
-        }
         logging.info("installing Arangodb debian package")
         os.environ['DEBIAN_FRONTEND'] = 'readline'
         logging.debug("package dir: {0.cfg.package_dir}- server_package: {0.server_package}".format(self))
@@ -156,8 +151,8 @@ class InstallerDeb(InstallerBase):
                 raise Exception("server installation didn't finish successfully!")
         print()
         logging.info('Installation successfull')
-        self.log_examiner = ArangodLogExaminer(self.cfg)
-        self.log_examiner.detect_instance_pids()
+        self.instance = ArangodInstance("single", "8529", self.cfg.installPrefix / self.cfg.logDir)
+        self.instance.detect_pid(1) # should be owned by init
 
     def un_install_package(self):
         uninstall = pexpect.spawnu('dpkg --purge ' +

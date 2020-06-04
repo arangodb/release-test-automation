@@ -14,8 +14,8 @@ import tools.loghelper as lh
 
 class Cluster(Runner):
     """ this launches a cluster setup """
-    def __init__(self, runner_type, cfg, new_inst, old_inst):
-        super().__init__(runner_type, cfg, new_inst, old_inst, 'CLUSTER')
+    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
+        super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'CLUSTER')
         #self.basecfg.frontends = []
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
@@ -76,7 +76,7 @@ db.testCollection.save({test: "document"})
 
     def upgrade_arangod_version_impl(self):
         for node in self.starter_instances:
-            node.replace_binary_for_upgrade(new_install_cfg)
+            node.replace_binary_for_upgrade(self.new_cfg)
 
         for node in self.starter_instances:
             node.detect_instance_pids_still_alive()

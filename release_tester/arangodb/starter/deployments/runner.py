@@ -16,8 +16,6 @@ from arangodb.installers import InstallerConfig
 from arangodb.sh import ArangoshExecutor
 from tools.killall import kill_all_processes
 
-from pprint import pprint as PP
-
 
 class Runner(ABC):
     """abstract starter deployment runner"""
@@ -27,11 +25,12 @@ class Runner(ABC):
             runner_type,
             cfg: InstallerConfig,
             old_inst: InstallerBase,
+            new_cfg: InstallerConfig,
             new_inst: Optional[InstallerBase],
             short_name: str
         ):
 
-        assert(runner_type)
+        assert runner_type
         logging.debug(runner_type)
         self.runner_type = runner_type
         self.name = str(self.runner_type).split('.')[1]
@@ -41,10 +40,12 @@ class Runner(ABC):
         self.do_upgrade = False
 
         self.basecfg = cfg
+        self.new_cfg = new_cfg
         self.basedir = Path(short_name)
 
         self.old_installer = old_inst
         self.new_installer = new_inst
+        print(self.new_installer)
 
         # starter instances that make_data wil run on
         # maybe it would be better to work directly on
@@ -61,7 +62,8 @@ class Runner(ABC):
         self.cleanup()
 
     def run(self):
-        lh.section("Runner of type {0}".format(str(self.name)),"❤")
+        """ run the full lifecycle flow of this deployment """
+        lh.section("Runner of type {0}".format(str(self.name)), "❤")
 
         if self.runner_run_replacement:
             """ use this to change the control flow for this runner"""
@@ -77,7 +79,7 @@ class Runner(ABC):
         self.starter_run()
         self.finish_setup()
         self.make_data()
-
+        print(self.new_installer)
         if self.new_installer:
             lh.section("UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),)
             self.upgrade_arangod_version() #make sure to pass new version
@@ -94,7 +96,8 @@ class Runner(ABC):
 
         lh.section("Runner of type {0} - Finished!".format(str(self.name)))
 
-    def install(self,inst):
+    def install(self, inst):
+        """ install the package to the system """
         lh.subsection("{0} - install package".format(str(self.name)))
 
         kill_all_processes()
@@ -130,7 +133,8 @@ class Runner(ABC):
         logging.debug("stop system service to make ports available for starter")
         inst.stop_service()
 
-    def uninstall(self,inst):
+    def uninstall(self, inst):
+        """ uninstall the package from the system """
         lh.subsection("{0} - uninstall package".format(str(self.name)))
 
         inst.un_install_package()
@@ -192,68 +196,73 @@ class Runner(ABC):
         self.jam_attempt_impl()
 
     def starter_shutdown(self):
-        lh.subsection("{0} - shutdown".format(str(self.name)))
         """ stop everything """
+        lh.subsection("{0} - shutdown".format(str(self.name)))
 
     @abstractmethod
     def shutdown_impl(self):
-        pass
+        """ the implementation shutting down this deployment """
 
     @abstractmethod
     def starter_prepare_env_impl(self):
-        pass
-
-    @abstractmethod
-    def starter_run_impl(self):
-        pass
+        """ the implementation that prepares this deployment
+            as creating directories etc."""
 
     @abstractmethod
     def finish_setup_impl(self):
-        pass
+        """ finalize the setup phase """
+
+    @abstractmethod
+    def starter_run_impl(self):
+        """ the implementation that runs this actual deployment """
 
     @abstractmethod
     def test_setup_impl(self):
-        pass
+        """ run the tests on this deployment """
 
     @abstractmethod
     def upgrade_arangod_version_impl(self):
-        pass
+        """ upgrade this deployment """
 
     @abstractmethod
     def jam_attempt_impl(self):
-        pass
-
-    @abstractmethod
-    def shutdown_impl(self):
-        pass
+        """ if known, try to break this deployment """
 
     #@abstractmethod
     def make_data_impl(self):
-        assert(self.makedata_instances)
+        """ upload testdata into the deployment, and check it """
+        assert self.makedata_instances
         logging.debug("makedata instances")
         for i in self.makedata_instances:
             logging.debug(str(i))
 
-        interactive =  self.basecfg.interactive
+        interactive = self.basecfg.interactive
 
         for starter in self.makedata_instances:
-            assert(starter.arangosh)
+            assert starter.arangosh
             arangosh = starter.arangosh
 
             #must be writabe that the setup may not have already data
             if not arangosh.read_only and not self.has_makedata_data:
                 success = arangosh.create_test_data(self.name)
                 if not success:
-                    eh.ask_continue_or_exit("make data failed for {0.name}".format(self), interactive, False)
+                    eh.ask_continue_or_exit(
+                        "make data failed for {0.name}".format(self),
+                        interactive,
+                        False)
                 self.has_makedata_data = True
 
             if self.has_makedata_data:
                 success = arangosh.check_test_data(self.name)
                 if not success:
-                    eh.ask_continue_or_exit("has data failed for {0.name}".format(self), interactive, False)
+                    eh.ask_continue_or_exit(
+                        "has data failed for {0.name}".format(self),
+                        interactive,
+                        False)
 
-    #@abstractmethod
+    #TODO test make data after upgrade@abstractmethod
     def make_data_after_upgrade_impl(self):
+        """ check the data after the upgrade """
         pass
 
     def cleanup(self):
@@ -261,4 +270,3 @@ class Runner(ABC):
         testdir = self.basecfg.baseTestDir / self.basedir
         if testdir.exists():
             shutil.rmtree(testdir)
-

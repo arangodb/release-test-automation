@@ -3,69 +3,28 @@
     to crontroll multiple arangods
 """
 
-import signal
 import copy
-import os
-import time
-import re
 import logging
+import os
+import re
+import signal
+import subprocess
 import sys
+import time
 
-from enum import Enum
 from pathlib import Path
-from typing import List, Dict, NamedTuple
+# from typing import List, Dict, NamedTuple
 
 import psutil
 
+from tools.asciiprint import ascii_print
 from tools.timestamp import timestamp
+from arangodb.instance import ArangodInstance, SyncInstance, InstanceType
 from arangodb.sh import ArangoshExecutor
 import tools.loghelper as lh
 
 ON_WINDOWS = (sys.platform == 'win32')
 
-class InstanceType(Enum):
-    """ type of arangod instance """
-    coordinator = 1
-    resilientsingle = 2
-    single = 3
-    agent = 4
-    dbserver = 5
-
-class ArangodInstance():
-    """ represent one arangodb instance """
-    def __init__(self, typ, port):
-        self.type = InstanceType[typ] # convert to enum
-        self.port = port
-        self.pid = None
-        self.logfile = None
-        self.name = self.type.name + str(self.port)
-        logging.info("creating arango instance: {0.name}".format(self))
-
-    def __repr__(self):
-        return """
-arangod instance of starter
-    name:    {0.name}
-    pid:     {0.pid}
-    logfile: {0.logfile}
-""".format(self)
-
-    def is_frontend(self):
-        """ is this instance a frontend """
-        if self.type in [InstanceType.coordinator,
-                         InstanceType.resilientsingle,
-                         InstanceType.single]:
-            return True
-        else:
-            return False
-
-    def is_dbserver(self):
-        """ is this instance a dbserver? """
-        if self.type in [InstanceType.dbserver,
-                         InstanceType.resilientsingle,
-                         InstanceType.single]:
-            return True
-        else:
-            return False
 
 class StarterManager():
     """ manages one starter instance"""
@@ -260,18 +219,14 @@ Starter {0.name}
         logging.info("StarterManager: waiting for process to exit")
         self.instance.wait()
 
-        # How do we know that all arangod instaces are gone without checking?
-
         logging.info("StarterManager: done - moving logfile from %s to %s",
                      str(self.log_file),
                      str(self.basedir / "arangodb.log.old"))
         self.log_file.rename(self.basedir / "arangodb.log.old")
 
         for instance in self.all_instances:
-            logfile = str(instance.logfile)
-            logging.info("renaming instance logfile: %s -> %s", logfile, logfile + '.old')
-            instance.logfile.rename(logfile + '.old')
-
+            instance.rename_logfile()
+            instance.detect_gone()
         # Clear instances as they have been stopped and the logfiles
         # have been moved.
         self.all_instances = []
@@ -284,10 +239,7 @@ Starter {0.name}
         try:
             logging.info(str(self.instance.wait(timeout=45)))
         except:
-            logging.info("StarterManager: timeout, doing hard kill.")
-            self.instance.kill()
-
-        # How do we know that all arangod instaces are gone without checking?
+            raise Exception("Failed to KILL the starter instance? " + repr(self))
 
         logging.info("StarterManager: Instance now dead.")
 
@@ -310,10 +262,16 @@ Starter {0.name}
             'http://127.0.0.1:' + str(self.get_my_port())
         ]
         logging.info("StarterManager: Commanding upgrade %s", str(args))
-        self.upgradeprocess = psutil.Popen(args)
-
+        self.upgradeprocess = psutil.Popen(args,
+                                           #stdout=subprocess.PIPE,
+                                           #stdin=subprocess.PIPE,
+                                           stderr=subprocess.PIPE,
+                                           universal_newlines=True)
+        
     def wait_for_upgrade(self):
         """ wait for the starter to finish performing the upgrade """
+        for line in self.upgradeprocess.stderr:
+            ascii_print(line)
         ret = self.upgradeprocess.wait()
         logging.info("StarterManager: Upgrade command exited: %s", str(ret))
         if ret != 0:
@@ -332,7 +290,7 @@ Starter {0.name}
         #             Not required when restarting the starter only.
         #             When arangods are upgraded it becomes necessary
 
-    def execute_frontend(self, cmd, verbose = True):
+    def execute_frontend(self, cmd, verbose=True):
         """ use arangosh to run a command on the frontend arangod"""
         return self.arangosh.run_command(cmd, verbose)
 
@@ -433,17 +391,22 @@ Starter {0.name}
 
                 for name in dirs:
                     #logging.debug("d: " + root + os.path.sep + name)
-                    match = re.match(r'(agent|coordinator|dbserver|resilientsingle|single)(\d*)',
-                                     name)
+                    match = None
+                    instance_class = None
+                    if name.startswith('sync'):
+                        match = re.match(r'(syncmaster|syncworker)(\d*)', name)
+                        instance_class = SyncInstance
+                    else:
+                        match = re.match(
+                            r'(agent|coordinator|dbserver|resilientsingle|single)(\d*)',
+                            name)
+                        instance_class = ArangodInstance
+                    directory = self.basedir / name
                     if match:
-                        logfile = self.basedir / name / 'arangod.log'
-
-                        if not logfile.exists():
-                            #wait for logfile
-                            continue
-
-                        instance = ArangodInstance(match.group(1), match.group(2))
-                        instance.logfile = logfile
+                        # we may see a `local-slave-*` directory inbetween, hence we need to
+                        # choose the current directory not the starter toplevel dir for this:
+                        instance = instance_class(match.group(1), match.group(2), Path(root) / name)
+                        instance.wait_for_logfile(tries)
                         self.all_instances.append(instance)
 
             if not self.get_frontends():
@@ -467,22 +430,7 @@ Starter {0.name}
         # TODO: Do we stil need the log.py or should it be removed
         """ detect the arangod instance PIDs"""
         for instance in self.all_instances:
-            while not instance.pid:
-                lfs = instance.logfile.read_text()
-                pos = lfs.find('is ready for business.')
-                if pos < 0:
-                    print('.')
-                    time.sleep(1)
-                    continue
-                pos = lfs.rfind('\n', 0, pos)
-                epos = lfs.find('\n', pos + 1, len(lfs))
-                line = lfs[pos: epos]
-                match = re.search(r'Z \[(\d*)\]', line)
-                if match is None:
-                    raise Exception(timestamp()
-                                    + " Couldn't find a PID in hello line! - "
-                                    + line)
-                instance.pid = int(match.groups()[0])
+            instance.detect_pid(self.instance.pid)
 
         self.show_all_instances()
         if self.arangosh is None:
