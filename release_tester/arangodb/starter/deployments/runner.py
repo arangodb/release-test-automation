@@ -41,6 +41,10 @@ class Runner(ABC):
 
         self.basecfg = cfg
         self.new_cfg = new_cfg
+        self.basecfg.passvoid = ""   # TODO: no passwd support in starter install yet.
+        if self.new_cfg:
+            self.new_cfg.passvoid = ""   # TODO
+
         self.basedir = Path(short_name)
 
         self.old_installer = old_inst
