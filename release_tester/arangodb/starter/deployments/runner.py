@@ -41,6 +41,7 @@ class Runner(ABC):
 
         self.basecfg = cfg
         self.new_cfg = new_cfg
+        self.cfg = self.basecfg
         self.basecfg.passvoid = ""   # TODO: no passwd support in starter install yet.
         if self.new_cfg:
             self.new_cfg.passvoid = ""   # TODO
@@ -127,7 +128,7 @@ class Runner(ABC):
         if inst.check_service_up():
             inst.stop_service()
         inst.start_service()
-
+        
         sys_arangosh = ArangoshExecutor(inst.cfg)
 
         logging.debug("self test after installation")
