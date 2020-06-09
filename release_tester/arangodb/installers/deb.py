@@ -12,6 +12,7 @@ from arangodb.installers.base import InstallerBase
 from tools.asciiprint import ascii_print
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 import tools.loghelper as lh
+import semver
 
 
 class InstallerDeb(InstallerBase):
@@ -23,6 +24,7 @@ class InstallerDeb(InstallerBase):
         self.client_package = None
         self.debug_package = None
         self.log_examiner = None
+        self.semver = semver.VersionInfo.parse((cfg.version).split("~")[0])
 
         # Are those required to be stored in the cfg?
         cfg.baseTestDir = Path('/tmp')
@@ -37,6 +39,7 @@ class InstallerDeb(InstallerBase):
         cfg.dbdir = Path('/var/lib/arangodb3')
         cfg.appdir = Path('/var/lib/arangodb3-apps')
         cfg.cfgdir = Path('/etc/arangodb3')
+
 
         super().__init__(cfg)
 
@@ -117,19 +120,26 @@ class InstallerDeb(InstallerBase):
             ascii_print(server_install.before)
             logging.debug("expect: setting password: {0.cfg.passvoid}".format(self))
             server_install.sendline(self.cfg.passvoid)
+
             logging.debug("expect: user2")
             server_install.expect('user:')
             ascii_print(server_install.before)
             logging.debug("expect: setting password: {0.cfg.passvoid}".format(self))
             server_install.sendline(self.cfg.passvoid)
+
             logging.debug("expect: upgrade behaviour selection")
-            server_install.expect("Automatically upgrade database files")
+            server_install.expect(["Automatically upgrade database files", "automatically upgraded"])
             ascii_print(server_install.before)
             server_install.sendline("yes")
-            logging.debug("expect: storage engine selection")
-            server_install.expect("Database storage engine")
-            ascii_print(server_install.before)
-            server_install.sendline("1")
+
+
+            if self.semver <= semver.VersionInfo.parse("3.6.4"):
+                logging.debug("expect: storage engine selection")
+                server_install.expect("Database storage engine")
+                ascii_print(server_install.before)
+                server_install.sendline("1")
+
+
             logging.debug("expect: backup selection")
             server_install.expect("Backup database files before upgrading")
             ascii_print(server_install.before)
