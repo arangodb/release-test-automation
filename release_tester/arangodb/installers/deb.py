@@ -152,7 +152,7 @@ class InstallerDeb(InstallerBase):
                 raise Exception("server installation didn't finish successfully!")
         print()
         logging.info('Installation successfull')
-        self.instance = ArangodInstance("single", "8529", self.cfg.installPrefix / self.cfg.logDir)
+        self.instance = ArangodInstance("single", "8529", self.cfg.localhost, self.cfg.publicip, self.cfg.installPrefix / self.cfg.logDir)
         self.instance.detect_pid(1) # should be owned by init
 
     def un_install_package(self):

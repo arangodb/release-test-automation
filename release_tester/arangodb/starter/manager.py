@@ -405,7 +405,11 @@ Starter {0.name}
                     if match:
                         # we may see a `local-slave-*` directory inbetween, hence we need to
                         # choose the current directory not the starter toplevel dir for this:
-                        instance = instance_class(match.group(1), match.group(2), Path(root) / name)
+                        instance = instance_class(match.group(1),
+                                                  match.group(2),
+                                                  self.cfg.localhost,
+                                                  self.cfg.publicip,
+                                                  Path(root) / name)
                         instance.wait_for_logfile(tries)
                         self.all_instances.append(instance)
 
@@ -484,6 +488,7 @@ Starter {0.name}
                             + self.basedir
                             + " - " + lfs)
 
+        self.detect_instances()
         #TODO FIX - fragile logic  - readd member for now
         self.frontend_port = match.groups()[0]
 

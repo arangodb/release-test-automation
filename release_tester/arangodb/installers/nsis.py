@@ -77,7 +77,7 @@ class InstallerW(InstallerBase):
         self.enable_logging()
         self.stop_service()
         time.sleep(1)
-        self.instance = ArangodInstance("single", "8529", self.cfg.logDir)
+        self.instance = ArangodInstance("single", "8529", self.cfg.localhost, self.cfg.publicip, self.cfg.logDir)
         self.start_service()
         logging.info('Installation successfull')
 

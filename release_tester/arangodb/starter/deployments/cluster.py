@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from tools.timestamp import timestamp
-from tools.interact import prompt_user, end_test
+from tools.interact import end_test
 from arangodb.starter.manager import StarterManager
 from arangodb.starter.deployments.runner import Runner
 import tools.loghelper as lh
