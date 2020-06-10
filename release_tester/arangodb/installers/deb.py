@@ -24,7 +24,9 @@ class InstallerDeb(InstallerBase):
         self.client_package = None
         self.debug_package = None
         self.log_examiner = None
-        self.semver = semver.VersionInfo.parse((cfg.version).split("~")[0])
+        version = cfg.version.split("~")[0]
+        version = ".".join(version.split(".")[:3])
+        self.semver = semver.VersionInfo.parse(version)
 
         # Are those required to be stored in the cfg?
         cfg.baseTestDir = Path('/tmp')
