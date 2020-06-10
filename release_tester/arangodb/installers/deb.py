@@ -133,7 +133,7 @@ class InstallerDeb(InstallerBase):
             server_install.sendline("yes")
 
 
-            if self.semver <= semver.VersionInfo.parse("3.6.4"):
+            if self.semver <= semver.VersionInfo.parse("3.6.99"):
                 logging.debug("expect: storage engine selection")
                 server_install.expect("Database storage engine")
                 ascii_print(server_install.before)
