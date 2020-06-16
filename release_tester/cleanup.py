@@ -25,7 +25,7 @@ def run_test():
     """ main """
     logging.getLogger().setLevel(logging.DEBUG)
 
-    inst = installers.get('0.0',
+    inst = installers.get('3.3.3',
                           True,
                           False,
                           Path("/tmp/"),
