@@ -101,6 +101,17 @@ class InstallerDeb(InstallerBase):
             logging.info("X" * 80)
             logging.info("Upgrade failed!")
             sys.exit(1)
+
+        try:
+            server_upgrade.expect('Database files are up-to-date')
+            ascii_print(server_upgrade.before)
+        except pexpect.exceptions.EOF:
+            logging.info("X" * 80)
+            ascii_print(server_upgrade.before)
+            logging.info("X" * 80)
+            logging.info("Already up-to-date.")
+            sys.exit(1)
+
         try:
             logging.info("waiting for the upgrade to finish")
             server_upgrade.expect(pexpect.EOF, timeout=30)
