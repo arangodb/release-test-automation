@@ -72,41 +72,36 @@ class ActiveFailover(Runner):
         #add data to leader
         self.makedata_instances.append(self.leader)
 
+        logging.info('leader can be reached at: %s',
+                     self.leader.get_frontend().get_public_url(''))
         logging.info("active failover setup finished successfully")
 
     def test_setup_impl(self):
         self.success = True
 
-        url = 'http://{host}:{port}'.format(
-            host=self.basecfg.localhost,
-            port=self.leader.get_frontend_port())
+        url = self.leader.get_frontend().get_local_url('')
         reply = requests.get(url)
         logging.info(str(reply))
         if reply.status_code != 200:
             logging.info(reply.text)
             self.success = False
 
-        url = 'http://{host}:{port}'.format(
-            host=self.basecfg.localhost,
-            port=self.follower_nodes[0].get_frontend_port())
+        url = self.follower_nodes[0].get_frontend().get_local_url('')
         reply = requests.get(url)
         logging.info(str(reply))
         logging.info(reply.text)
         if reply.status_code != 503:
             self.success = False
 
-        url = 'http://{host}:{port}'.format(
-            host=self.basecfg.localhost,
-            port=self.follower_nodes[1].get_frontend_port())
+        url = self.follower_nodes[1].get_frontend().get_local_url('')
         reply = requests.get(url)
         logging.info(str(reply))
         logging.info(reply.text)
         if reply.status_code != 503:
             self.success = False
         logging.info("success" if self.success else "fail")
-        logging.info('leader can be reached at: http://%s:%s',
-                     self.basecfg.publicip,
-                     self.leader.get_frontend_port())
+        logging.info('leader can be reached at: %s',
+                     self.leader.get_frontend().get_public_url(''))
 
 
     def upgrade_arangod_version_impl(self):
@@ -135,10 +130,8 @@ class ActiveFailover(Runner):
         print()
 
         logging.info(str(self.new_leader))
-        url = 'http://{host}:{port}{uri}'.format(
-            host=self.basecfg.localhost,
-            port=self.new_leader.get_frontend_port(),
-            uri='/_db/_system/_admin/aardvark/index.html#replication')
+        url = '{host}/_db/_system/_admin/aardvark/index.html#replication'.format(
+            host=self.new_leader.get_frontend().get_local_url(''))
         reply = requests.get(url)
         logging.info(str(reply))
         if reply.status_code != 200:
@@ -146,10 +139,11 @@ class ActiveFailover(Runner):
             self.success = False
         self.basecfg.add_frontend('http',
                                   self.basecfg.publicip,
-                                  str(self.leader.get_frontend_port()))
+                                  self.new_leader.get_frontend().port)
+
         prompt_user(self.basecfg)
         self.leader.respawn_instance()
-
+        self.leader.detect_instances()
         logging.info("waiting for old leader to show up as follower")
         while not self.leader.active_failover_detect_host_now_follower():
             print('.', end='')
@@ -158,9 +152,7 @@ class ActiveFailover(Runner):
 
         logging.info("FIXME -- ???? Now is follower") ##FIXME - Who is follower?
 
-        url = 'http://{host}:{port}'.format(
-            host=self.basecfg.localhost,
-            port=self.leader.get_frontend_port())
+        url = self.leader.get_frontend().get_local_url('')
 
         reply = requests.get(url)
         logging.info(str(reply))

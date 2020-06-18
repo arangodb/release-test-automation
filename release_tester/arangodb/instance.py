@@ -30,13 +30,15 @@ TYP_STRINGS = ["none", "none",
 
 class Instance(ABC):
     """abstract instance manager"""
-    def __init__(self, typ, port, basedir, logfile):
+    def __init__(self, typ, port, basedir, localhost, publicip, logfile):
         self.type = InstanceType[typ] # convert to enum
         self.type_str = TYP_STRINGS[int(self.type.value)]
         self.port = port
         self.pid = None
         self.basedir = basedir
         self.logfile = logfile
+        self.localhost = localhost
+        self.publicip = publicip
         self.name = self.type.name + str(self.port)
         self.instance = None
         logging.info("creating {0.type_str} instance: {0.name}".format(self))
@@ -59,10 +61,14 @@ class Instance(ABC):
         logging.info("renaming instance logfile: %s -> %s", logfile, logfile + '.old')
         self.logfile.rename(logfile + '.old')
 
+    def terminate_instance(self):
+        self.instance.terminate()
+        self.instance.wait()
+
 class ArangodInstance(Instance):
     """ represent one arangodb instance """
-    def __init__(self, typ, port, basedir):
-        super().__init__(typ, port, basedir, basedir / 'arangod.log')
+    def __init__(self, typ, port, localhost, publicip, basedir):
+        super().__init__(typ, port, basedir, localhost, publicip, basedir / 'arangod.log')
 
     def __repr__(self):
         return """
@@ -73,7 +79,25 @@ arangod instance of starter
     logfile: {0.logfile}
 """.format(self)
 
+    def get_local_url(self, login):
+        return 'http://{login}{host}:{port}'.format(
+            login=login,
+            host=self.localhost,
+            port=self.port)
+    
+    def get_public_url(self, login):
+        return 'http://{login}{host}:{port}'.format(
+            login=login,
+            host=self.publicip,
+            port=self.port)
+    
+    def get_public_plain_url(self):
+        return '{host}:{port}'.format(
+            host=self.publicip,
+            port=self.port)
+    
     def is_frontend(self):
+        print(repr(self))
         """ is this instance a frontend """
         if self.type in [InstanceType.coordinator,
                          InstanceType.resilientsingle,
@@ -90,6 +114,9 @@ arangod instance of starter
             return True
         else:
             return False
+
+    def is_sync_instance(self):
+        return False
 
     def wait_for_logfile(self, tries):
         """ wait for logfile to appear """
@@ -155,8 +182,8 @@ arangod instance of starter
 
 class SyncInstance(Instance):
     """ represent one arangosync instance """
-    def __init__(self, typ, port, basedir):
-        super().__init__(typ, port, basedir, basedir / 'arangosync.log')
+    def __init__(self, typ, port, localhost, publicip, basedir):
+        super().__init__(typ, port, basedir, localhost, publicip, basedir / 'arangosync.log')
 
     def __repr__(self):
         return """
@@ -190,6 +217,7 @@ arangosync instance of starter
         if len(possible_me_pid) != 1:
             raise("wasn't able to identify my arangosync process! " + str(possible_me_pid))
         self.pid = possible_me_pid[0]['p']
+        self.instance = psutil.Process(self.pid)
 
     def wait_for_logfile(self, tries):
         pass
@@ -199,3 +227,6 @@ arangosync instance of starter
 
     def is_dbserver(self):
         return False
+
+    def is_sync_instance(self):
+        return True

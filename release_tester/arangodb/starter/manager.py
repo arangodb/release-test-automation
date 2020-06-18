@@ -253,6 +253,13 @@ Starter {0.name}
         self.respawn_instance()
         logging.info("StarterManager: respawned instance as [%s]", str(self.instance.pid))
 
+    def kill_sync_processes(self):
+        """ kill all arangosync instances we posses """
+        for i in self.all_instances:
+            if i.is_sync_instance():
+                logging.info("manually killing syncer: ")
+                i.terminate_instance();
+
     def command_upgrade(self):
         """ we will launch another starter, to tell the bunch to run the upgrade"""
         args = [
@@ -405,7 +412,11 @@ Starter {0.name}
                     if match:
                         # we may see a `local-slave-*` directory inbetween, hence we need to
                         # choose the current directory not the starter toplevel dir for this:
-                        instance = instance_class(match.group(1), match.group(2), Path(root) / name)
+                        instance = instance_class(match.group(1),
+                                                  match.group(2),
+                                                  self.cfg.localhost,
+                                                  self.cfg.publicip,
+                                                  Path(root) / name)
                         instance.wait_for_logfile(tries)
                         self.all_instances.append(instance)
 
@@ -484,6 +495,7 @@ Starter {0.name}
                             + self.basedir
                             + " - " + lfs)
 
+        self.detect_instances()
         #TODO FIX - fragile logic  - readd member for now
         self.frontend_port = match.groups()[0]
 

@@ -94,7 +94,7 @@ class InstallerRPM(InstallerBase):
         self.cfg.appdir = Path('/var/lib/arangodb3-apps')
         self.cfg.cfgdir = Path('/etc/arangodb3')
 
-        self.instance = ArangodInstance("single", "8529", self.cfg.installPrefix / self.cfg.logDir)
+        self.instance = ArangodInstance("single", "8529", self.cfg.localhost, self.cfg.publicip, self.cfg.installPrefix / self.cfg.logDir)
 
 
         #https://access.redhat.com/solutions/1189
