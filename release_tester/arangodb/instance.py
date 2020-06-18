@@ -61,6 +61,10 @@ class Instance(ABC):
         logging.info("renaming instance logfile: %s -> %s", logfile, logfile + '.old')
         self.logfile.rename(logfile + '.old')
 
+    def terminate_instance(self):
+        self.instance.terminate()
+        self.instance.wait()
+
 class ArangodInstance(Instance):
     """ represent one arangodb instance """
     def __init__(self, typ, port, localhost, publicip, basedir):
@@ -110,6 +114,9 @@ arangod instance of starter
             return True
         else:
             return False
+
+    def is_sync_instance(self):
+        return False
 
     def wait_for_logfile(self, tries):
         """ wait for logfile to appear """
@@ -210,6 +217,7 @@ arangosync instance of starter
         if len(possible_me_pid) != 1:
             raise("wasn't able to identify my arangosync process! " + str(possible_me_pid))
         self.pid = possible_me_pid[0]['p']
+        self.instance = psutil.Process(self.pid)
 
     def wait_for_logfile(self, tries):
         pass
@@ -219,3 +227,6 @@ arangosync instance of starter
 
     def is_dbserver(self):
         return False
+
+    def is_sync_instance(self):
+        return True

@@ -253,6 +253,13 @@ Starter {0.name}
         self.respawn_instance()
         logging.info("StarterManager: respawned instance as [%s]", str(self.instance.pid))
 
+    def kill_sync_processes(self):
+        """ kill all arangosync instances we posses """
+        for i in self.all_instances:
+            if i.is_sync_instance():
+                logging.info("manually killing syncer: ")
+                i.terminate_instance();
+
     def command_upgrade(self):
         """ we will launch another starter, to tell the bunch to run the upgrade"""
         args = [
