@@ -95,15 +95,20 @@ class InstallerDeb(InstallerBase):
         try:
             i == server_upgrade.expect(['Upgrading database files', 'Database files are up-to-date'])
             if i == 0:
-                logging.info("Upgrading database files...")
+                logging.info("X" * 80)
+                ascii_print(server_upgrade.before)
+                logging.info("X" * 80)
+                logging.info("[ ] Upgrading database files")
             elif i == 1:
-                 logging.info("Database already up-to-date!")
-            ascii_print(server_upgrade.before)
+                logging.info("X" * 80)
+                ascii_print(server_upgrade.before)
+                logging.info("X" * 80)
+                logging.info("[X] Update not needed.")
         except pexpect.exceptions.EOF:
             logging.info("X" * 80)
             ascii_print(server_upgrade.before)
             logging.info("X" * 80)
-            logging.info("Upgrade failed!")
+            logging.info("[E] Upgrade failed!")
             sys.exit(1)
         try:
             logging.info("waiting for the upgrade to finish")
