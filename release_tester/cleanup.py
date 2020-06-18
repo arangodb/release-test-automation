@@ -19,7 +19,7 @@ def run_test():
     """ main """
     logging.getLogger().setLevel(logging.DEBUG)
 
-    install_config = InstallerConfig('0.0',
+    install_config = InstallerConfig('3.3.3',
                                      True,
                                      False,
                                      Path("/tmp/"),

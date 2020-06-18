@@ -11,15 +11,17 @@ Dependencies
  the upstream distribution doesn't enable the wrappers to start/stop service 
 - pyyaml - for parsing saved data.
 - click - for commandline parsing https://click.palletsprojects.com/en/7.x/
+- semver - semantic versioning.
 
 Installing
 ----------
 - **debian** / **ubuntu**:
-  `apt-get install python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect`
+  `apt-get install python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect `
+  the `python3-semver` on debian is to old - need to use the pip version instead: `pip3 install semver`
 - **centos**:
-   `yum update ; yum install python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect; pip3 install psutil `
+   `yum update ; yum install python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect; pip3 install psutil python3-semver`
 - **plain pip**:
-  `pip3 install psutil pyyaml pexpect requests click`
+  `pip3 install psutil pyyaml pexpect requests click semver`
 
 Using test.py for release testing
 ---------------------------------
@@ -99,7 +101,6 @@ Source distribution
  - `release_tester/arangodb/sync.py` manage arangosync invocations
  - `release_tester/arangodb/starter/manager.py` manage one starter instance and get information about its launched processes
  - `release_tester/arangodb/starter/environment/[runner|leaderfolower|cluster|activefailover|dc2dc].py` set up one of [Leader/Follower | Active Failover | Cluster | DC2DC]
- - `release_tester/obi/` logging library
  - `release_tester/tools` several utility functions
  - `test_data` - the famous makedata suite
  - `attic_snippets` - trial and error scripts of start phase, utility functions like killall for mac/windows for manual invocation
