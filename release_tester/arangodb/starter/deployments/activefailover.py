@@ -143,7 +143,7 @@ class ActiveFailover(Runner):
 
         prompt_user(self.basecfg)
         self.leader.respawn_instance()
-
+        self.leader.detect_instances()
         logging.info("waiting for old leader to show up as follower")
         while not self.leader.active_failover_detect_host_now_follower():
             print('.', end='')
