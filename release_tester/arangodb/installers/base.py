@@ -170,8 +170,7 @@ class InstallerBase(ABC):
         verbose = self.cfg.verbose
         with open(self.calc_config_file_name()) as fileh:
             self.cfg = yaml.load(fileh, Loader=yaml.Loader)
-        print(self.cfg)
-        self.instance = ArangodInstance("single", "8529", self.cfg.logDir)
+        self.instance = ArangodInstance("single", self.cfg.port, self.cfg.localhost, self.cfg.publicip, self.cfg.logDir)
         self.calculate_package_names()
         self.cfg.verbose = verbose
 
