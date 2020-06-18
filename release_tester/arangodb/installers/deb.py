@@ -93,13 +93,22 @@ class InstallerDeb(InstallerBase):
         server_upgrade = pexpect.spawnu('dpkg -i ' +
                                         str(self.cfg.package_dir / self.server_package))
         try:
-            server_upgrade.expect('Upgrading database files')
-            ascii_print(server_upgrade.before)
+            i == server_upgrade.expect(['Upgrading database files', 'Database files are up-to-date'])
+            if i == 0:
+                logging.info("X" * 80)
+                ascii_print(server_upgrade.before)
+                logging.info("X" * 80)
+                logging.info("[X] Upgrading database files")
+            elif i == 1:
+                logging.info("X" * 80)
+                ascii_print(server_upgrade.before)
+                logging.info("X" * 80)
+                logging.info("[ ] Update not needed.")
         except pexpect.exceptions.EOF:
             logging.info("X" * 80)
             ascii_print(server_upgrade.before)
             logging.info("X" * 80)
-            logging.info("Upgrade failed!")
+            logging.info("[E] Upgrade failed!")
             sys.exit(1)
         try:
             logging.info("waiting for the upgrade to finish")
