@@ -98,12 +98,12 @@ class InstallerDeb(InstallerBase):
                 logging.info("X" * 80)
                 ascii_print(server_upgrade.before)
                 logging.info("X" * 80)
-                logging.info("[ ] Upgrading database files")
+                logging.info("[X] Upgrading database files")
             elif i == 1:
                 logging.info("X" * 80)
                 ascii_print(server_upgrade.before)
                 logging.info("X" * 80)
-                logging.info("[X] Update not needed.")
+                logging.info("[ ] Update not needed.")
         except pexpect.exceptions.EOF:
             logging.info("X" * 80)
             ascii_print(server_upgrade.before)
