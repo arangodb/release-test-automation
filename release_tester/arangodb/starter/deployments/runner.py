@@ -87,6 +87,7 @@ class Runner(ABC):
         print(self.new_installer)
         if self.new_installer:
             lh.section("UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),)
+            self.new_installer.upgrade_package()
             self.upgrade_arangod_version() #make sure to pass new version
             self.make_data_after_upgrade()
         else:

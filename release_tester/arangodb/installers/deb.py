@@ -93,7 +93,7 @@ class InstallerDeb(InstallerBase):
         server_upgrade = pexpect.spawnu('dpkg -i ' +
                                         str(self.cfg.package_dir / self.server_package))
         try:
-            i == server_upgrade.expect(['Upgrading database files', 'Database files are up-to-date'])
+            i = server_upgrade.expect(['Upgrading database files', 'Database files are up-to-date'])
             if i == 0:
                 logging.info("X" * 80)
                 ascii_print(server_upgrade.before)
