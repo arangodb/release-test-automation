@@ -9,6 +9,7 @@ import time
 
 import psutil
 
+
 class InstanceType(Enum):
     """ type of arangod instance """
     coordinator = 1
@@ -19,6 +20,7 @@ class InstanceType(Enum):
     syncmaster = 6
     syncworker = 7
 
+
 TYP_STRINGS = ["none", "none",
                "coordinator"
                "resilientsingle",
@@ -28,10 +30,11 @@ TYP_STRINGS = ["none", "none",
                "syncmaster",
                "syncworker"]
 
+
 class Instance(ABC):
     """abstract instance manager"""
     def __init__(self, typ, port, basedir, localhost, publicip, logfile):
-        self.type = InstanceType[typ] # convert to enum
+        self.type = InstanceType[typ]  # convert to enum
         self.type_str = TYP_STRINGS[int(self.type.value)]
         self.port = port
         self.pid = None
@@ -50,7 +53,7 @@ class Instance(ABC):
     def detect_gone(self):
         """ revalidate that the managed process is actualy dead """
         try:
-            return self.instance.wait(3) is None # we expect it to be dead anyways!
+            return self.instance.wait(3) is None  # we expect it to be dead anyways!
         except:
             logging.error("was supposed to be dead, but I'm still alive? " + repr(self))
             return True
@@ -64,6 +67,7 @@ class Instance(ABC):
     def terminate_instance(self):
         self.instance.terminate()
         self.instance.wait()
+
 
 class ArangodInstance(Instance):
     """ represent one arangodb instance """
@@ -84,18 +88,18 @@ arangod instance of starter
             login=login,
             host=self.localhost,
             port=self.port)
-    
+
     def get_public_url(self, login):
         return 'http://{login}{host}:{port}'.format(
             login=login,
             host=self.publicip,
             port=self.port)
-    
+
     def get_public_plain_url(self):
         return '{host}:{port}'.format(
             host=self.publicip,
             port=self.port)
-    
+
     def is_frontend(self):
         print(repr(self))
         """ is this instance a frontend """
@@ -143,7 +147,7 @@ arangod instance of starter
                     last_line = line
                     log_file_content += '\n' + line
 
-            #check last line or continue
+            # check last line or continue
             match = re.search(r'Z \[(\d*)\]', last_line)
             if match is None:
                 logging.info("no PID in: %s", last_line)
@@ -169,7 +173,7 @@ arangod instance of starter
             except psutil.NoSuchProcess:
                 logging.info("process already gone? retrying.")
                 time.sleep(1)
-                self.pid = 0 # a previous log run? retry.
+                self.pid = 0  # a previous log run? retry.
         if self.pid == 0:
             print()
             logging.error("could not get pid for instance: " + repr(self))
@@ -179,6 +183,7 @@ arangod instance of starter
             logging.info("found pid {0} for instance with logifle {1}.".format(
                 self.pid,
                 str(self.logfile)))
+
 
 class SyncInstance(Instance):
     """ represent one arangosync instance """
