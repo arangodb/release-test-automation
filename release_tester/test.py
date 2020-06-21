@@ -6,13 +6,9 @@ from pathlib import Path
 import sys
 import click
 from tools.killall import kill_all_processes
-# from tools.interact import end_test
-# from arangodb.sh import ArangoshExecutor
 from arangodb.installers import make_installer, InstallerConfig
 from arangodb.starter.deployments import RunnerType, make_runner
 import tools.loghelper as lh
-# import tools.errorhelper as eh
-# import obi.util
 
 logging.basicConfig(
     level=logging.INFO,
@@ -107,7 +103,7 @@ def run_test(version, verbose, package_dir, enterprise,
 
         kill_all_processes()
 
-    return (0 if not failed else 1)
+    return ( 0 if not failed else 1 )
 
 
 if __name__ == "__main__":
