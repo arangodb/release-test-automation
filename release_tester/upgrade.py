@@ -8,7 +8,6 @@ import sys
 import click
 
 from tools.killall import kill_all_processes
-# from arangodb.sh import ArangoshExecutor
 from arangodb.installers import make_installer, InstallerConfig
 from arangodb.starter.deployments import RunnerType, make_runner
 import tools.loghelper as lh

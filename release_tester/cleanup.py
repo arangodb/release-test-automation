@@ -3,11 +3,9 @@
 """ Release testing script"""
 import logging
 from pathlib import Path
-# import sys
 from tools.killall import kill_all_processes
 from arangodb.installers import make_installer, InstallerConfig
 from arangodb.starter.deployments import RunnerType, make_runner
-# import tools.loghelper as lh
 
 logging.basicConfig(
     level=logging.DEBUG,
