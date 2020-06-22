@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """ run an installer for the debian based operating system """
+import sys
 import time
 import os
-import sys
 import shutil
 import logging
 from pathlib import Path

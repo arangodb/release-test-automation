@@ -7,13 +7,14 @@ import tools.loghelper as lh
 import tools.errorhelper as eh
 import subprocess
 
+
 class ArangoshExecutor():
     """ configuration """
     def __init__(self, config):
         self.cfg = config
         self.read_only = False
 
-    def run_command(self, cmd, verbose = True):
+    def run_command(self, cmd, verbose=True):
         """ launch a command, print its name """
         run_cmd = [self.cfg.bin_dir / "arangosh",
                    "--server.endpoint",
@@ -23,10 +24,10 @@ class ArangoshExecutor():
         run_cmd += [ "--server.username", str(self.cfg.username) ]
         run_cmd += [ "--server.password", str(self.cfg.passvoid) ]
 
-        #if self.cfg.username:
+        # if self.cfg.username:
         #    run_cmd += [ "--server.username", str(self.cfg.username) ]
 
-        #if self.cfg.passvoid:
+        # if self.cfg.passvoid:
         #    run_cmd += [ "--server.password", str(self.cfg.passvoid) ]
 
         run_cmd += [ "--javascript.execute-string", str(cmd[1]) ]
@@ -42,7 +43,7 @@ class ArangoshExecutor():
             arangosh_run = psutil.Popen(run_cmd, stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
 
         exitcode = arangosh_run.wait(timeout=30)
-        #logging.debug("exitcode {0}".format(exitcode))
+        # logging.debug("exitcode {0}".format(exitcode))
         return exitcode == 0
 
     def self_test(self):
@@ -53,7 +54,7 @@ class ArangoshExecutor():
             "throw 'yipiahea motherfucker'"), False)
         logging.debug("sanity result: " + str(success) + " - expected: False")
 
-        if success :
+        if success:
             raise Exception("arangosh doesn't exit with non-0 to indicate errors")
 
         success = self.run_command((
@@ -75,10 +76,10 @@ class ArangoshExecutor():
         run_cmd += [ "--server.username", str(self.cfg.username) ]
         run_cmd += [ "--server.password", str(self.cfg.passvoid) ]
 
-        #if self.cfg.username:
+        # if self.cfg.username:
         #    run_cmd += [ "--server.username", str(self.cfg.username) ]
 
-        #if self.cfg.passvoid:
+        # if self.cfg.passvoid:
         #    run_cmd += [ "--server.password", str(self.cfg.passvoid) ]
 
         run_cmd += [ "--javascript.execute", str(cmd[1]) ]

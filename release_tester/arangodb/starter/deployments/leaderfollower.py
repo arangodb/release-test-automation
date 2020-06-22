@@ -2,7 +2,6 @@
 """ launch and manage an arango deployment using the starter"""
 import time
 import logging
-from pathlib import Path
 from tools.killall import get_all_processes
 from arangodb.starter.manager import StarterManager
 from arangodb.starter.deployments.runner import Runner

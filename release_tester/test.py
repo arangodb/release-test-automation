@@ -6,19 +6,16 @@ from pathlib import Path
 import sys
 import click
 from tools.killall import kill_all_processes
-from tools.interact import end_test
-from arangodb.sh import ArangoshExecutor
 from arangodb.installers import make_installer, InstallerConfig
 from arangodb.starter.deployments import RunnerType, make_runner
 import tools.loghelper as lh
-import tools.errorhelper as eh
-import obi.util
 
 logging.basicConfig(
     level=logging.INFO,
     datefmt='%H:%M:%S',
     format='%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s'
 )
+
 
 @click.command()
 @click.option('--version', help='ArangoDB version number.')
@@ -76,8 +73,6 @@ def run_test(version, verbose, package_dir, enterprise,
     )
     inst = make_installer(install_config)
 
-
-
     if starter_mode == 'all':
         starter_mode = [RunnerType.LEADER_FOLLOWER,
                         RunnerType.ACTIVE_FAILOVER,
@@ -102,7 +97,6 @@ def run_test(version, verbose, package_dir, enterprise,
 
         runner = make_runner(runner_type, inst.cfg, inst, None)
 
-
         failed = False
         if not runner.run():
             failed = True
@@ -110,6 +104,7 @@ def run_test(version, verbose, package_dir, enterprise,
         kill_all_processes()
 
     return ( 0 if not failed else 1 )
+
 
 if __name__ == "__main__":
     sys.exit(run_test())

@@ -3,17 +3,16 @@
 """ Release testing script"""
 import logging
 from pathlib import Path
-import sys
 from tools.killall import kill_all_processes
 from arangodb.installers import make_installer, InstallerConfig
 from arangodb.starter.deployments import RunnerType, make_runner
-import tools.loghelper as lh
 
 logging.basicConfig(
     level=logging.DEBUG,
     datefmt='%H:%M:%S',
     format='%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s'
 )
+
 
 def run_test():
     """ main """
@@ -33,8 +32,8 @@ def run_test():
     inst.stop_service()
     starter_mode = [RunnerType.LEADER_FOLLOWER,
                     RunnerType.ACTIVE_FAILOVER,
-                    RunnerType.CLUSTER]#,
-                    #RunnerType.DC2DC] here __init__ will create stuff, TODO.
+                    RunnerType.CLUSTER]  # ,
+    #  RunnerType.DC2DC] here __init__ will create stuff, TODO.
     for runner_type in starter_mode:
         assert(runner_type)
 
