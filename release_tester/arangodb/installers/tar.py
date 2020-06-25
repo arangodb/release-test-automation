@@ -97,7 +97,7 @@ class InstallerRPM(InstallerBase):
         self.instance = ArangodInstance("single", "8529", self.cfg.localhost, self.cfg.publicip, self.cfg.installPrefix / self.cfg.logDir)
 
 
-        #https://access.redhat.com/solutions/1189
+        # https://access.redhat.com/solutions/1189
         cmd = 'rpm --upgrade ' + str(self.cfg.package_dir / self.server_package)
         lh.log_cmd(cmd)
         server_upgrade = pexpect.spawnu(cmd)
@@ -201,7 +201,7 @@ class InstallerRPM(InstallerBase):
                 logging.info("password should be set to: " + self.cfg.passvoid)
                 ascii_print(etpw.before)
 
-            #except pexpect.exceptions.EOF:
+            # except pexpect.exceptions.EOF:
             except Exception as exc:
                 logging.error("setting our password failed!")
                 logging.error("X" * 80)
