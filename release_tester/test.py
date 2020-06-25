@@ -50,12 +50,13 @@ logging.basicConfig(
               help='IP for the click to browser hints.')
 
 
-def run_test(version, verbose, package_dir, enterprise,
+def run_test(version, verbose, package_dir, enterprise, zip,
              interactive, mode, starter_mode, publicip):
     """ main """
     lh.section("configuration")
     print("version: " + str(version))
     print("using enterpise: " + str(enterprise))
+    print("using zip: " + str(zip))
     print("package directory: " + str(package_dir))
     print("mode: " + str(mode))
     print("starter mode: " + str(starter_mode))

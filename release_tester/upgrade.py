@@ -55,6 +55,7 @@ def run_test(old_version, version, verbose, package_dir,
     print("old version: " + str(old_version))
     print("version: " + str(version))
     print("using enterpise: " + str(enterprise))
+    print("using zip: " + str(zip))
     print("package directory: " + str(package_dir))
     print("starter mode: " + str(starter_mode))
     print("public ip: " + str(publicip))
