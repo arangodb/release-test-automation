@@ -33,6 +33,10 @@ logging.basicConfig(
               is_flag=True,
               default=False,
               help='Enterprise or community?')
+@click.option('--zip',
+              is_flag=True,
+              default=False,
+              help='switch to zip or tar.gz package instead of default OS package')
 @click.option('--interactive/--no-interactive',
               is_flag=True,
               default=sys.stdout.isatty(),
