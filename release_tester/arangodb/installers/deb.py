@@ -122,7 +122,7 @@ class InstallerDeb(InstallerBase):
         os.environ['DEBIAN_FRONTEND'] = 'readline'
         self.cfg.passvoid = "sanoetuh"   # TODO
         logging.debug("package dir: {0.cfg.package_dir}- server_package: {0.server_package}".format(self))
-        cmd = 'dpkg -i ' + str(self.cfg.package_dir / self.server_package)
+        cmd = 'tar xvzf ' + str(self.cfg.package_dir / self.server_package)              # tar xvzf PACKAGENAME.tar.gz
         lh.log_cmd(cmd)
         server_install = pexpect.spawnu(cmd)
         try:

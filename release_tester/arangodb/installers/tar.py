@@ -16,8 +16,8 @@ import obi.util.logging_helper as olh
 import tools.loghelper as lh
 
 
-class InstallerRPM(InstallerBase):
-    """ install .rpm's on RedHat, Centos or SuSe systems """
+class InstallerTAR(InstallerBase):
+    """ install tar.gz's on linux systems """
     def __init__(self, cfg):
         self.check_stripped = True
         self.check_symlink = True
@@ -48,9 +48,9 @@ class InstallerRPM(InstallerBase):
             "arch" : architecture
         }
 
-        self.server_package = 'arangodb3{ep}-{cfg}-{ver}.{arch}.rpm'.format(**desc)
-        self.client_package = 'arangodb3{ep}-client-{cfg}-{ver}.{arch}.rpm'.format(**desc)
-        self.debug_package = 'arangodb3{ep}-debuginfo-{cfg}-{ver}.{arch}.rpm'.format(**desc)
+        self.server_package = 'arangodb3{ep}-{cfg}-{ver}.{arch}.tar.gz'.format(**desc)
+        self.client_package = 'arangodb3{ep}-client-{cfg}-{ver}.{arch}.tar.gz'.format(**desc)
+        self.debug_package = 'arangodb3{ep}-debuginfo-{cfg}-{ver}.{arch}.tar.gz'.format(**desc)
 
     def check_service_up(self):
         if self.instance.pid:
@@ -141,7 +141,7 @@ class InstallerRPM(InstallerBase):
             logging.info("package doesn't exist: %s", str(package))
             raise Exception("failed to find package")
 
-        cmd = 'rpm ' + '-i ' + str(package)
+        cmd = 'tar xvzf ' + str(package)
         lh.log_cmd(cmd)
         server_install = pexpect.spawnu(cmd)
         reply = None
