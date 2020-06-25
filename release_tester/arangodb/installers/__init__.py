@@ -18,6 +18,7 @@ class InstallerConfig():
         self.publicip = publicip
         self.interactive = interactive
         self.enterprise = enterprise
+        self.zip = zip
         self.version = version
         self.verbose = verbose
         self.package_dir = package_dir
