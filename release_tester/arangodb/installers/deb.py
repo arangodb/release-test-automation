@@ -93,6 +93,7 @@ class InstallerDeb(InstallerBase):
         server_upgrade = pexpect.spawnu('dpkg -i ' +
                                         str(self.cfg.package_dir / self.server_package))
         try:
+<<<<<<< Updated upstream
             i = server_upgrade.expect(['Upgrading database files', 'Database files are up-to-date'])
             if i == 0:
                 logging.info("X" * 80)
@@ -104,6 +105,14 @@ class InstallerDeb(InstallerBase):
                 ascii_print(server_upgrade.before)
                 logging.info("X" * 80)
                 logging.info("[ ] Update not needed.")
+=======
+            i == server_upgrade.expect(['Upgrading database files', 'Database files are up-to-date'])
+            ascii_print(server_upgrade.before)
+            if i == 0:
+                logging.info("Upgrading database files...")
+            elif i == 1:
+                 logging.info("Database already up-to-date!")
+>>>>>>> Stashed changes
         except pexpect.exceptions.EOF:
             logging.info("X" * 80)
             ascii_print(server_upgrade.before)
