@@ -64,67 +64,70 @@ class InstallerRPM(InstallerBase):
         return True
 
     def start_service(self):
-        assert self.instance
+        pass
+        # assert self.instance
 
-        logging.info("starting service")
-        cmd = ['service', 'arangodb3', 'start']
-        lh.log_cmd(cmd)
-        startserver = psutil.Popen(cmd)
-        logging.info("waiting for eof of start service")
-        startserver.wait()
-        time.sleep(0.1)
-        self.instance.detect_pid(1) # should be owned by init
+        # logging.info("starting service")
+        # cmd = ['service', 'arangodb3', 'start']
+        # lh.log_cmd(cmd)
+        # startserver = psutil.Popen(cmd)
+        # logging.info("waiting for eof of start service")
+        # startserver.wait()
+        # time.sleep(0.1)
+        # self.instance.detect_pid(1) # should be owned by init
 
     def stop_service(self):
-        logging.info("stopping service")
-        cmd = ['service', 'arangodb3', 'stop']
-        lh.log_cmd(cmd)
-        stopserver = psutil.Popen(cmd)
-        logging.info("waiting for eof")
-        stopserver.wait()
-        while self.check_service_up():
-            time.sleep(1)
+        pass
+        # logging.info("stopping service")
+        # cmd = ['service', 'arangodb3', 'stop']
+        # lh.log_cmd(cmd)
+        # stopserver = psutil.Popen(cmd)
+        # logging.info("waiting for eof")
+        # stopserver.wait()
+        # while self.check_service_up():
+        #     time.sleep(1)
 
     def upgrade_package(self):
-        logging.info("upgrading Arangodb rpm package")
+        pass
+        # logging.info("upgrading Arangodb rpm package")
 
-        self.cfg.passvoid = "sanoetuh"   # TODO
-        self.cfg.logDir = Path('/var/log/arangodb3')
-        self.cfg.dbdir  = Path('/var/lib/arangodb3')
-        self.cfg.appdir = Path('/var/lib/arangodb3-apps')
-        self.cfg.cfgdir = Path('/etc/arangodb3')
+        # self.cfg.passvoid = "sanoetuh"   # TODO
+        # self.cfg.logDir = Path('/var/log/arangodb3')
+        # self.cfg.dbdir  = Path('/var/lib/arangodb3')
+        # self.cfg.appdir = Path('/var/lib/arangodb3-apps')
+        # self.cfg.cfgdir = Path('/etc/arangodb3')
 
-        self.instance = ArangodInstance("single", "8529", self.cfg.localhost, self.cfg.publicip, self.cfg.installPrefix / self.cfg.logDir)
+        # self.instance = ArangodInstance("single", "8529", self.cfg.localhost, self.cfg.publicip, self.cfg.installPrefix / self.cfg.logDir)
 
 
-        # https://access.redhat.com/solutions/1189
-        cmd = 'rpm --upgrade ' + str(self.cfg.package_dir / self.server_package)
-        lh.log_cmd(cmd)
-        server_upgrade = pexpect.spawnu(cmd)
+        # # https://access.redhat.com/solutions/1189
+        # cmd = 'rpm --upgrade ' + str(self.cfg.package_dir / self.server_package)
+        # lh.log_cmd(cmd)
+        # server_upgrade = pexpect.spawnu(cmd)
 
-        try:
-            server_upgrade.expect('First Steps with ArangoDB:|server will now shut down due to upgrade, database initialization or admin restoration.')
-            print(server_upgrade.before)
-        except pexpect.exceptions.EOF as exc:
-            lh.line("X")
-            ascii_print(server_upgrade.before)
-            lh.line("X")
-            print("exception : " + str(exc))
-            lh.line("X")
-            logging.error("Upgrade failed!")
-            sys.exit(1)
+        # try:
+        #     server_upgrade.expect('First Steps with ArangoDB:|server will now shut down due to upgrade, database initialization or admin restoration.')
+        #     print(server_upgrade.before)
+        # except pexpect.exceptions.EOF as exc:
+        #     lh.line("X")
+        #     ascii_print(server_upgrade.before)
+        #     lh.line("X")
+        #     print("exception : " + str(exc))
+        #     lh.line("X")
+        #     logging.error("Upgrade failed!")
+        #     sys.exit(1)
 
-        logging.debug("found: upgrade message")
+        # logging.debug("found: upgrade message")
 
-        logging.info("waiting for the upgrade to finish")
-        try:
-            server_upgrade.expect(pexpect.EOF, timeout=30)
-            ascii_print(server_upgrade.before)
-        except pexpect.exceptions.EOF:
-            logging.error("TIMEOUT! while upgrading package")
-            sys.exit(1)
+        # logging.info("waiting for the upgrade to finish")
+        # try:
+        #     server_upgrade.expect(pexpect.EOF, timeout=30)
+        #     ascii_print(server_upgrade.before)
+        # except pexpect.exceptions.EOF:
+        #     logging.error("TIMEOUT! while upgrading package")
+        #     sys.exit(1)
 
-        logging.debug("upgrade successfully finished")
+        # logging.debug("upgrade successfully finished")
 
     def install_package(self):
         self.cfg.logDir = Path('/var/log/arangodb3')
