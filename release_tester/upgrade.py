@@ -91,7 +91,8 @@ def run_test(old_version, version, verbose, package_dir,
         kill_all_processes()
         install_config_old = InstallerConfig(old_version,
                                              verbose,
-                                             enterprise,
+                                             enterprise, 
+                                             zip, 
                                              Path(package_dir),
                                              publicip,
                                              interactive)
@@ -99,6 +100,7 @@ def run_test(old_version, version, verbose, package_dir,
         install_config_new = InstallerConfig(version,
                                              verbose,
                                              enterprise,
+                                             zip,
                                              Path(package_dir),
                                              publicip,
                                              interactive)
