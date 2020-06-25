@@ -49,7 +49,6 @@ class InstallerTAR(InstallerBase):
         }
 
         self.server_package = 'arangodb3{ep}-{cfg}-{ver}.{arch}.tar.gz'.format(**desc)
-        self.client_package = 'arangodb3{ep}-client-{cfg}-{ver}.{arch}.tar.gz'.format(**desc)
         self.debug_package = 'arangodb3{ep}-debuginfo-{cfg}-{ver}.{arch}.tar.gz'.format(**desc)
 
     def check_service_up(self):
