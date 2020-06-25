@@ -49,7 +49,7 @@ logging.basicConfig(
               default='127.0.0.1',
               help='IP for the click to browser hints.')
 def run_test(old_version, version, verbose, package_dir,
-             enterprise, interactive, starter_mode, publicip):
+             enterprise, zip, interactive, starter_mode, publicip):
     """ main """
     lh.section("configuration")
     print("old version: " + str(old_version))
