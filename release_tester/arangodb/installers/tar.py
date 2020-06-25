@@ -135,7 +135,7 @@ class InstallerTAR(InstallerBase):
         self.cfg.appdir = Path('/var/lib/arangodb3-apps')
         self.cfg.cfgdir = Path('/etc/arangodb3')
         self.instance = ArangodInstance("single", "8529", self.cfg.installPrefix / self.cfg.logDir)
-        logging.info("installing Arangodb RPM package")
+        logging.info("installing Arangodb TAR package")
         package = self.cfg.package_dir / self.server_package
         if not package.is_file():
             logging.info("package doesn't exist: %s", str(package))
