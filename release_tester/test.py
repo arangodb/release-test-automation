@@ -73,7 +73,7 @@ def run_test(version, verbose, package_dir, enterprise, zip,
         logging.getLogger().setLevel(logging.DEBUG)
 
     install_config = InstallerConfig(
-        version, verbose, enterprise,zip, 
+        version, verbose, enterprise, zip, 
         Path(package_dir), publicip, interactive
     )
     inst = make_installer(install_config)
