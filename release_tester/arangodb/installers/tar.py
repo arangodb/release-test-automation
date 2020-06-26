@@ -22,16 +22,16 @@ class InstallerTAR(InstallerBase):
         self.check_stripped = True
         self.check_symlink = True
         self.server_package = None
-        self.client_package = None
+        # self.client_package = None
         self.debug_package = None
         self.instance = None
 
         cfg.baseTestDir = Path('/tmp')
         cfg.installPrefix = Path("/")
-        cfg.bin_dir = cfg.installPrefix / "usr" / "bin"
-        cfg.sbin_dir = cfg.installPrefix / "usr" / "sbin"
-        cfg.real_bin_dir = cfg.bin_dir
-        cfg.real_sbin_dir = cfg.sbin_dir
+        cfg.bin_dir = cfg.installPrefix / "usr" / "bin"         # /usr/bin
+        cfg.sbin_dir = cfg.installPrefix / "usr" / "sbin"       # /usr/sbin
+        cfg.real_bin_dir = cfg.bin_dir                          # /usr/bin
+        cfg.real_sbin_dir = cfg.sbin_dir                        # /usr/sbin
         cfg.localhost = 'localhost6'
 
         super().__init__(cfg)
@@ -45,7 +45,7 @@ class InstallerTAR(InstallerBase):
             "ep"   : enterprise,
             "cfg"  : self.cfg.version,
             "ver"  : package_version,
-            "arch" : architecture
+            "arch" : amd64
         }
 
         self.server_package = 'arangodb3{ep}-{cfg}-{ver}.{arch}.tar.gz'.format(**desc)
@@ -134,13 +134,13 @@ class InstallerTAR(InstallerBase):
         self.cfg.appdir = Path('/var/lib/arangodb3-apps')
         self.cfg.cfgdir = Path('/etc/arangodb3')
         self.instance = ArangodInstance("single", "8529", self.cfg.installPrefix / self.cfg.logDir)
-        logging.info("installing Arangodb TAR package")
+        logging.info("Extracting Arangodb TAR package")
         package = self.cfg.package_dir / self.server_package
         if not package.is_file():
             logging.info("package doesn't exist: %s", str(package))
             raise Exception("failed to find package")
 
-        cmd = 'tar xvzf ' + str(package)
+        cmd = 'tar -xvzf ' + str(package) + '-C /tmp/'
         lh.log_cmd(cmd)
         server_install = pexpect.spawnu(cmd)
         reply = None
