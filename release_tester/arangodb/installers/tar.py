@@ -20,7 +20,7 @@ import semver
 
 class InstallerTAR(InstallerBase):
 
-    """ install .deb's on debian or ubuntu hosts """
+    """ install .tar.gz's on debian or ubuntu hosts """
     def __init__(self, cfg):
         self.check_stripped = True
         self.check_symlink = True
@@ -46,7 +46,7 @@ class InstallerTAR(InstallerBase):
         cfg.localhost = 'ip6-localhost'
 
 
-        print("I am here in: deb.py line: 40")
+        print("I am here in: tar.py line: 40")
 
 
 
@@ -67,8 +67,7 @@ class InstallerTAR(InstallerBase):
         enterprise = 'e' if self.cfg.enterprise else ''
         # package_version = '1'
         architecture = 'linux'
-        print("I am here in: deb.py line: 54")
-
+        print("I am here in: tar.py line: 70")
 
 
         desc = {
@@ -76,7 +75,6 @@ class InstallerTAR(InstallerBase):
             "cfg"  : self.cfg.version,
             # "ver"  : package_version,
             "arch" : architecture
-
         }
 
 
@@ -168,7 +166,7 @@ class InstallerTAR(InstallerBase):
 
     def install_package(self):
 
-        print("I am here in: deb.py line: 134")
+        print("I am here in: tar.py line: 169")
 
 
         logging.info("installing Arangodb debian Tar package")
@@ -201,13 +199,12 @@ class InstallerTAR(InstallerBase):
 
 
             if self.semver <= semver.VersionInfo.parse("3.6.99"):
-                print("I am here in: deb.py line: 164")
+                print("I am here in: tar.py line: 204")
 
                 logging.debug("expect: storage engine selection")
                 server_install.expect("Database storage engine")
                 ascii_print(server_install.before)
                 server_install.sendline("1")
-
 
 
             logging.debug("expect: backup selection")
@@ -248,8 +245,6 @@ class InstallerTAR(InstallerBase):
         # uninstall = pexpect.spawnu('dpkg --purge ' +
         #                            'arangodb3' +
         #                            ('e' if self.cfg.enterprise else ''))
-
-
 
         # try:
         #     uninstall.expect('Purging')
