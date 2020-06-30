@@ -80,8 +80,8 @@ def make_installer(install_config: InstallerConfig):
         if distro[0] in ['centos', 'redhat', 'suse']:
             from arangodb.installers.rpm import InstallerRPM
             return InstallerRPM(install_config)
-        if platform.system() in [ "linux", "Linux" ]:
+        if distro[0] in ['debian', 'ubuntu']:
             from arangodb.installers.tar import InstallerTAR
-            return InstallerRPM(install_config)
+            return InstallerTAR(install_config)
         raise Exception('unsupported linux distribution: ' + distro)
     raise Exception('unsupported os' + platform.system())
