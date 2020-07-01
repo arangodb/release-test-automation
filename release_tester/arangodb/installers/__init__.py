@@ -68,21 +68,24 @@ def make_installer(install_config: InstallerConfig):
 
     macver = platform.mac_ver()
     if macver[0]:
-        from arangodb.installers.mac import InstallerMac
-        return InstallerMac(install_config)
-
-    if platform.system() in [ "linux", "Linux" ]:
-        import distro
-        distro = distro.linux_distribution(full_distribution_name=False)
-
-        if distro[0] in ['debian', 'ubuntu']:
-            from arangodb.installers.deb import InstallerDeb
-            return InstallerDeb(install_config)
-        if distro[0] in ['centos', 'redhat', 'suse']:
-            from arangodb.installers.rpm import InstallerRPM
-            return InstallerRPM(install_config)
-        if distro[0] in ['debian', 'ubuntu']:
+        if install_config.zip:
             from arangodb.installers.tar import InstallerTAR
             return InstallerTAR(install_config)
+        else:
+            from arangodb.installers.mac import InstallerMac
+            return InstallerMac(install_config)
+
+    elif platform.system() in [ "linux", "Linux" ]:
+        import distro
+        distro = distro.linux_distribution(full_distribution_name=False)
+        if install_config.zip:
+            from arangodb.installers.tar import InstallerTAR
+            return InstallerTAR(install_config)
+        elif distro[0] in ['debian', 'ubuntu']:
+            from arangodb.installers.deb import InstallerDeb
+            return InstallerDeb(install_config)
+        elif distro[0] in ['centos', 'redhat', 'suse']:
+            from arangodb.installers.rpm import InstallerRPM
+            return InstallerRPM(install_config)
         raise Exception('unsupported linux distribution: ' + distro)
     raise Exception('unsupported os' + platform.system())

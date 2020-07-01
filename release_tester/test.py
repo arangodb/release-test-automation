@@ -72,10 +72,14 @@ def run_test(version, verbose, package_dir, enterprise, zip,
         logging.info("setting debug level to debug (verbose)")
         logging.getLogger().setLevel(logging.DEBUG)
 
-    install_config = InstallerConfig(
-        version, verbose, enterprise, zip, 
-        Path(package_dir), publicip, interactive
-    )
+    install_config = InstallerConfig(version,
+                                     verbose,
+                                     enterprise,
+                                     zip, 
+                                     Path(package_dir),
+                                     publicip,
+                                     interactive)
+                                     
     inst = make_installer(install_config)
 
     if starter_mode == 'all':
