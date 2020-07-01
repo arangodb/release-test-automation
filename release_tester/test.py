@@ -75,11 +75,11 @@ def run_test(version, verbose, package_dir, enterprise, zip,
     install_config = InstallerConfig(version,
                                      verbose,
                                      enterprise,
-                                     zip, 
+                                     zip,
                                      Path(package_dir),
                                      publicip,
                                      interactive)
-                                     
+                             
     inst = make_installer(install_config)
 
     if starter_mode == 'all':

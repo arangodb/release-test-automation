@@ -39,7 +39,6 @@ class InstallerTAR(InstallerBase):
         cfg.sbin_dir = None
         cfg.real_bin_dir = None
         cfg.real_sbin_dir = None
-        cfg.localhost = 'ip6-localhost'
 
         cfg.logDir = Path()
         cfg.dbdir = None
@@ -62,7 +61,7 @@ class InstallerTAR(InstallerBase):
         }
 
         self.server_package = 'arangodb3{ep}-{arch}-{ver}.tar.gz'.format(**self.desc)
-        self.cfg.installPrefix = Path("/tmp")/'arangodb3{ep}-{ver}'.format(**self.desc)
+        self.cfg.installPrefix = Path("/tmp") / 'arangodb3{ep}-{ver}'.format(**self.desc)
         self.cfg.bin_dir = self.cfg.installPrefix / "usr" / "bin"     # /usr/bin
         self.cfg.sbin_dir = self.cfg.installPrefix / "usr" / "sbin"   # /usr/sbin
         self.cfg.real_bin_dir = self.cfg.bin_dir
@@ -85,7 +84,11 @@ class InstallerTAR(InstallerBase):
         logging.info("installing Arangodb debian Tar package")
         logging.debug("package dir: {0.cfg.package_dir}- server_package: {0.server_package}".format(self))
 
-        cmd = [self.tar, '-xzf', str(self.cfg.package_dir / self.server_package), '-C', '/tmp/']
+        cmd = [self.tar,
+                   '-xzf',
+                   str(self.cfg.package_dir / self.server_package),
+                   '-C',
+                   '/tmp/']
         lh.log_cmd(cmd)
         install = psutil.Popen(cmd)
         install.wait()
