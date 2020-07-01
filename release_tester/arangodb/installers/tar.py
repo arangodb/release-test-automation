@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-""" run an installer for the debian based operating system """
+""" run an Tar installer for the debian based operating system """
 import sys
 import time
 import os
@@ -16,7 +16,7 @@ import semver
 
 
 class InstallerTAR(InstallerBase):
-    """ install .deb's on debian or ubuntu hosts """
+    """ install tar.gz on debian or ubuntu hosts """
     def __init__(self, cfg):
 
         self.tar = 'tar'
@@ -56,13 +56,9 @@ class InstallerTAR(InstallerBase):
         self.desc = {
             "ep"   : enterprise,
             "ver"  : self.cfg.version,
-            # "ver"  : package_version,
             "arch" : architecture
         }
         self.server_package = 'arangodb3{ep}-{arch}-{ver}.tar.gz'.format(**self.desc)
-        # self.server_package = 'arangodb3{ep}_{cfg}-{ver}_{arch}.deb'.format(**desc)
-        # self.client_package = 'arangodb3{ep}-client_{cfg}-{ver}_{arch}.deb'.format(**desc)
-        # self.debug_package = 'arangodb3{ep}-dbg_{cfg}-{ver}_{arch}.deb'.format(**desc)
 
         self.cfg.installPrefix = Path("/tmp")/'arangodb3{ep}-{ver}'.format(**self.desc)
         self.cfg.bin_dir = self.cfg.installPrefix / "usr" / "bin"     # /usr/bin
@@ -94,7 +90,7 @@ class InstallerTAR(InstallerBase):
     def stop_service(self):
         pass
 
-        # print("I am here in: deb.py line: 88")
+        # print("I am here in: tar.py line: 88")
 
         # stopserver = pexpect.spawnu('service arangodb3 stop')
         # logging.debug("waiting for eof")
@@ -107,7 +103,7 @@ class InstallerTAR(InstallerBase):
 
     def upgrade_package(self):
        
-        # Tar installer is the same way we did for installing.
+        # Tar upgrade installer is the same way we did for installing.
         self.install_package()
         
 
@@ -125,7 +121,7 @@ class InstallerTAR(InstallerBase):
         
     def un_install_package(self):
         pass
-        # print("I am here in: deb.py line: 199")
+        # print("I am here in: tar.py line: 199")
 
         # uninstall = pexpect.spawnu('dpkg --purge ' +
         #                            'arangodb3' +
@@ -151,7 +147,7 @@ class InstallerTAR(InstallerBase):
 
     def cleanup_system(self):
         pass
-        # print("I am here in: deb.py line: 215")
+        # print("I am here in: tar.py line: 215")
         # # TODO: should this be cleaned by the deb uninstall in first place?
         # if self.cfg.logDir.exists():
         #     shutil.rmtree(self.cfg.logDir)

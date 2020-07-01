@@ -22,6 +22,7 @@ class InstallerConfig():
         self.version = version
         self.verbose = verbose
         self.package_dir = package_dir
+        self.have_system_service = True
 
         self.install_prefix = Path("/")
         self.pwd = Path(os.path.dirname(os.path.realpath(__file__)))
