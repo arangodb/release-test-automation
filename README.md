@@ -36,6 +36,7 @@ For this, a setting file `/tmp/config.yml` is kept. This way parts of this flow 
 Supported Parameters:
  - `--version` which Arangodb Version you want to run the test on
  - `--enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
+ - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
  - `--mode [_all_|install|uninstall|tests]` 
@@ -69,6 +70,7 @@ upgrade.py is intended to test the flow
 Supported Parameters:
  - `--old-version` which Arangodb Version you want to install to setup the old system
  - `--version` which Arangodb Version you want to upgrade the environment to
+ - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
@@ -90,6 +92,8 @@ Example usage:
 Using cleanup.py to clean out the system
 ----------------------------------------
 `cleanup.py` will try to invoke all known cleanup mechanisms, to bring your system as much as possible into a 'pure' state.
+
+ - `--zip` switches from system packages to the tar.gz/zip package for the cleanup.
 
 Source distribution
 -------------------
