@@ -33,6 +33,10 @@ logging.basicConfig(
               is_flag=True,
               default=False,
               help='Enterprise or community?')
+@click.option('--zip',
+              is_flag=True,
+              default=False,
+              help='switch to zip or tar.gz package instead of default OS package')
 @click.option('--interactive/--no-interactive',
               is_flag=True,
               default=sys.stdout.isatty(),
@@ -45,12 +49,13 @@ logging.basicConfig(
               default='127.0.0.1',
               help='IP for the click to browser hints.')
 def run_test(old_version, version, verbose, package_dir,
-             enterprise, interactive, starter_mode, publicip):
+             enterprise, zip, interactive, starter_mode, publicip):
     """ main """
     lh.section("configuration")
     print("old version: " + str(old_version))
     print("version: " + str(version))
     print("using enterpise: " + str(enterprise))
+    print("using zip: " + str(zip))
     print("package directory: " + str(package_dir))
     print("starter mode: " + str(starter_mode))
     print("public ip: " + str(publicip))
@@ -86,7 +91,8 @@ def run_test(old_version, version, verbose, package_dir,
         kill_all_processes()
         install_config_old = InstallerConfig(old_version,
                                              verbose,
-                                             enterprise,
+                                             enterprise, 
+                                             zip, 
                                              Path(package_dir),
                                              publicip,
                                              interactive)
@@ -94,6 +100,7 @@ def run_test(old_version, version, verbose, package_dir,
         install_config_new = InstallerConfig(version,
                                              verbose,
                                              enterprise,
+                                             zip,
                                              Path(package_dir),
                                              publicip,
                                              interactive)

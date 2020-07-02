@@ -14,13 +14,15 @@ class InstallerFrontend():
 
 class InstallerConfig():
     """ stores the baseline of this environment """
-    def __init__(self, version: str, verbose: bool, enterprise: bool, package_dir: Path, publicip: str, interactive: bool):
+    def __init__(self, version: str, verbose: bool, enterprise: bool, zip: bool, package_dir: Path, publicip: str, interactive: bool):
         self.publicip = publicip
         self.interactive = interactive
         self.enterprise = enterprise
+        self.zip = zip
         self.version = version
         self.verbose = verbose
         self.package_dir = package_dir
+        self.have_system_service = True
 
         self.install_prefix = Path("/")
         self.pwd = Path(os.path.dirname(os.path.realpath(__file__)))
@@ -66,17 +68,23 @@ def make_installer(install_config: InstallerConfig):
 
     macver = platform.mac_ver()
     if macver[0]:
-        from arangodb.installers.mac import InstallerMac
-        return InstallerMac(install_config)
+        if install_config.zip:
+            from arangodb.installers.tar import InstallerTAR
+            return InstallerTAR(install_config)
+        else:
+            from arangodb.installers.mac import InstallerMac
+            return InstallerMac(install_config)
 
-    if platform.system() in [ "linux", "Linux" ]:
+    elif platform.system() in [ "linux", "Linux" ]:
         import distro
         distro = distro.linux_distribution(full_distribution_name=False)
-
-        if distro[0] in ['debian', 'ubuntu']:
+        if install_config.zip:
+            from arangodb.installers.tar import InstallerTAR
+            return InstallerTAR(install_config)
+        elif distro[0] in ['debian', 'ubuntu']:
             from arangodb.installers.deb import InstallerDeb
             return InstallerDeb(install_config)
-        if distro[0] in ['centos', 'redhat', 'suse']:
+        elif distro[0] in ['centos', 'redhat', 'suse']:
             from arangodb.installers.rpm import InstallerRPM
             return InstallerRPM(install_config)
         raise Exception('unsupported linux distribution: ' + distro)
