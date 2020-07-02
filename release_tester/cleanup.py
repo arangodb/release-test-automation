@@ -3,6 +3,7 @@
 """ Release testing script"""
 import logging
 from pathlib import Path
+import click
 from tools.killall import kill_all_processes
 from arangodb.installers import make_installer, InstallerConfig
 from arangodb.starter.deployments import RunnerType, make_runner
@@ -13,14 +14,20 @@ logging.basicConfig(
     format='%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s'
 )
 
+@click.command()
+@click.option('--zip',
+              is_flag=True,
+              default=False,
+              help='switch to zip or tar.gz package instead of default OS package')
 
-def run_test():
+def run_test(zip):
     """ main """
     logging.getLogger().setLevel(logging.DEBUG)
 
     install_config = InstallerConfig('3.3.3',
                                      True,
                                      False,
+                                     zip,
                                      Path("/tmp/"),
                                      "",
                                      False)

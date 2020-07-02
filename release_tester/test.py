@@ -27,6 +27,10 @@ logging.basicConfig(
               is_flag=True,
               default=False,
               help='Enterprise or community?')
+@click.option('--zip',
+              is_flag=True,
+              default=False,
+              help='switch to zip or tar.gz package instead of default OS package')
 @click.option('--interactive/--no-interactive',
               is_flag=True,
               default=sys.stdout.isatty(),
@@ -46,12 +50,13 @@ logging.basicConfig(
               help='IP for the click to browser hints.')
 
 
-def run_test(version, verbose, package_dir, enterprise,
+def run_test(version, verbose, package_dir, enterprise, zip,
              interactive, mode, starter_mode, publicip):
     """ main """
     lh.section("configuration")
     print("version: " + str(version))
     print("using enterpise: " + str(enterprise))
+    print("using zip: " + str(zip))
     print("package directory: " + str(package_dir))
     print("mode: " + str(mode))
     print("starter mode: " + str(starter_mode))
@@ -67,10 +72,14 @@ def run_test(version, verbose, package_dir, enterprise,
         logging.info("setting debug level to debug (verbose)")
         logging.getLogger().setLevel(logging.DEBUG)
 
-    install_config = InstallerConfig(
-        version, verbose, enterprise,
-        Path(package_dir), publicip, interactive
-    )
+    install_config = InstallerConfig(version,
+                                     verbose,
+                                     enterprise,
+                                     zip,
+                                     Path(package_dir),
+                                     publicip,
+                                     interactive)
+                             
     inst = make_installer(install_config)
 
     if starter_mode == 'all':
