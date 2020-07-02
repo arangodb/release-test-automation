@@ -134,7 +134,8 @@ class Runner(ABC):
 
         logging.debug("self test after installation")
         sys_arangosh.self_test()
-        sys_arangosh.js_version_check()
+        if self.cfg.have_system_service:
+            sys_arangosh.js_version_check()
 
         logging.debug("stop system service to make ports available for starter")
         inst.stop_service()
