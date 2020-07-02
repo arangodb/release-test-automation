@@ -16,10 +16,11 @@ class ArangoshExecutor():
 
     def run_command(self, cmd, verbose=True):
         """ launch a command, print its name """
-        run_cmd = [self.cfg.bin_dir / "arangosh",
-                   "--server.endpoint",
-                   "tcp://127.0.0.1:{cfg.port}".format(cfg=self.cfg)
-                  ]
+        run_cmd = [
+            self.cfg.bin_dir / "arangosh",
+            "--server.endpoint",
+            "tcp://127.0.0.1:{cfg.port}".format(cfg=self.cfg)
+        ]
 
         run_cmd += [ "--server.username", str(self.cfg.username) ]
         run_cmd += [ "--server.password", str(self.cfg.passvoid) ]
@@ -51,7 +52,8 @@ class ArangoshExecutor():
         logging.info("running arangosh check")
         success = self.run_command((
             'check throw exit codes',
-            "throw 'yipiahea motherfucker'"), False)
+            "throw 'yipiahea motherfucker'"),
+                                   self.cfg.verbose)
         logging.debug("sanity result: " + str(success) + " - expected: False")
 
         if success:
@@ -59,7 +61,8 @@ class ArangoshExecutor():
 
         success = self.run_command((
             'check normal exit',
-            'let foo = "bar"'), False)
+            'let foo = "bar"'),
+                                   self.cfg.verbose)
 
         logging.debug("sanity result: " + str(success) + " - expected: True")
 
@@ -68,10 +71,11 @@ class ArangoshExecutor():
 
     def run_script(self, cmd, verbose = True):
         """ launch an external js-script, print its name """
-        run_cmd = [self.cfg.bin_dir / "arangosh",
-                   "--server.endpoint",
-                   "tcp://127.0.0.1:{cfg.port}".format(cfg=self.cfg),
-                  ]
+        run_cmd = [
+            self.cfg.bin_dir / "arangosh",
+            "--server.endpoint",
+            "tcp://127.0.0.1:{cfg.port}".format(cfg=self.cfg)
+        ]
 
         run_cmd += [ "--server.username", str(self.cfg.username) ]
         run_cmd += [ "--server.password", str(self.cfg.passvoid) ]
@@ -108,7 +112,7 @@ class ArangoshExecutor():
             }}
         """.format(str(self.cfg.version)[:5])
         logging.debug("script to be executed: " + str(js_script_string))
-        res = self.run_command(['check version', js_script_string])
+        res = self.run_command(['check version', js_script_string], self.cfg.verbose)
         logging.debug("version check result: " + str(res))
 
         if not res:
