@@ -304,14 +304,15 @@ class InstallerBase(ABC):
         """ check whether all is gone after the uninstallation """
         success = True
 
-        if (self.cfg.installPrefix != Path("/") and
-                self.cfg.installPrefix.is_dir()):
-            logging.info("Path not removed: %s", str(self.cfg.installPrefix))
-            success = False
-        if os.path.exists(self.cfg.appdir):
-            logging.info("Path not removed: %s", str(self.cfg.appdir))
-            success = False
-        if os.path.exists(self.cfg.dbdir):
-            logging.info("Path not removed: %s", str(self.cfg.dbdir))
-            success = False
+        if self.cfg.have_system_service:
+            if (self.cfg.installPrefix != Path("/") and
+                    self.cfg.installPrefix.is_dir()):
+                logging.info("Path not removed: %s", str(self.cfg.installPrefix))
+                success = False
+            if os.path.exists(self.cfg.appdir):
+                logging.info("Path not removed: %s", str(self.cfg.appdir))
+                success = False
+            if os.path.exists(self.cfg.dbdir):
+                logging.info("Path not removed: %s", str(self.cfg.dbdir))
+                success = False
         return success

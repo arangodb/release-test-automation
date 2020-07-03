@@ -62,9 +62,9 @@ class InstallerTAR(InstallerBase):
 
         self.server_package = 'arangodb3{ep}-{arch}-{ver}.tar.gz'.format(**self.desc)
         self.cfg.installPrefix = Path("/tmp") / 'arangodb3{ep}-{ver}'.format(**self.desc)
-        self.cfg.bin_dir = self.cfg.installPrefix / "usr" / "bin"     # /usr/bin
-        self.cfg.sbin_dir = self.cfg.installPrefix / "usr" / "sbin"   # /usr/sbin
-        self.cfg.real_bin_dir = self.cfg.bin_dir
+        self.cfg.bin_dir = self.cfg.installPrefix / "bin"
+        self.cfg.sbin_dir = self.cfg.installPrefix / "usr" / "sbin"  
+        self.cfg.real_bin_dir = self.cfg.installPrefix / "usr" / "bin"
         self.cfg.real_sbin_dir = self.cfg.sbin_dir
 
     def check_service_up(self):
