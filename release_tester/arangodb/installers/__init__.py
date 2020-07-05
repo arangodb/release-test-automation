@@ -14,11 +14,21 @@ class InstallerFrontend():
 
 class InstallerConfig():
     """ stores the baseline of this environment """
-    def __init__(self, version: str, verbose: bool, enterprise: bool, zip: bool, package_dir: Path, publicip: str, interactive: bool):
+    def __init__(self,
+                 version: str,
+                 verbose: bool,
+                 enterprise: bool,
+                 zip: bool,
+                 package_dir: Path,
+                 mode: str,
+                 publicip: str,
+                 interactive: bool):
         self.publicip = publicip
         self.interactive = interactive
         self.enterprise = enterprise
         self.zip = zip
+
+        self.mode = mode
         self.version = version
         self.verbose = verbose
         self.package_dir = package_dir

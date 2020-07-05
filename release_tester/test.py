@@ -77,6 +77,7 @@ def run_test(version, verbose, package_dir, enterprise, zip,
                                      enterprise,
                                      zip,
                                      Path(package_dir),
+                                     mode,
                                      publicip,
                                      interactive)
                              

@@ -94,6 +94,7 @@ def run_test(old_version, version, verbose, package_dir,
                                              enterprise, 
                                              zip, 
                                              Path(package_dir),
+                                             'all',
                                              publicip,
                                              interactive)
         old_inst = make_installer(install_config_old)
@@ -102,6 +103,7 @@ def run_test(old_version, version, verbose, package_dir,
                                              enterprise,
                                              zip,
                                              Path(package_dir),
+                                             'all',
                                              publicip,
                                              interactive)
         new_inst = make_installer(install_config_new)
