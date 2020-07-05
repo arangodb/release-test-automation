@@ -142,7 +142,6 @@ class Runner(ABC):
         sys_arangosh.self_test()
 
         if self.do_system_test:
-
             sys_arangosh.js_version_check()
 
             # TODO: here we should invoke Makedata for the system installation.
