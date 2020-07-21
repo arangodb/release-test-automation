@@ -35,8 +35,10 @@ class Runner(ABC):
         self.runner_type = runner_type
         self.name = str(self.runner_type).split('.')[1]
 
-        self.do_install = True
-        self.do_uninstall = True
+        self.do_install = cfg.mode == "all" or cfg.mode == "install"
+        self.do_uninstall = cfg.mode == "all" or cfg.mode == "uninstall"
+        self.do_system_test = (cfg.mode == "all" or cfg.mode == "system") and cfg.have_system_service
+        self.do_starter_test = cfg.mode == "all" or cfg.mode == "tests"
         self.do_upgrade = False
 
         self.basecfg = cfg
@@ -75,16 +77,17 @@ class Runner(ABC):
             self.runner_run_replacement()
             return
 
-        if self.do_install:
+        if self.do_install or self.do_system_test:
             lh.section("INSTALLATION for {0}".format(str(self.name)),)
             self.install(self.old_installer)
 
-        lh.section("PREPARING DEPLOYMENT of {0}".format(str(self.name)),)
-        self.starter_prepare_env()
-        self.starter_run()
-        self.finish_setup()
-        self.make_data()
-        print(self.new_installer)
+        if self.do_starter_test:
+            lh.section("PREPARING DEPLOYMENT of {0}".format(str(self.name)),)
+            self.starter_prepare_env()
+            self.starter_run()
+            self.finish_setup()
+            self.make_data()
+
         if self.new_installer:
             lh.section("UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),)
             self.new_installer.upgrade_package()
@@ -93,10 +96,11 @@ class Runner(ABC):
         else:
             logging.info("skipping upgrade step no new version given")
 
-        lh.section("TESTS FOR {0}".format(str(self.name)),)
-        self.test_setup()
-        self.jam_attempt()
-        self.starter_shutdown()
+        if self.do_starter_test:
+            lh.section("TESTS FOR {0}".format(str(self.name)),)
+            self.test_setup()
+            self.jam_attempt()
+            self.starter_shutdown()
         if self.do_uninstall:
             self.uninstall(self.old_installer if not self.new_installer else self.new_installer)
 
@@ -107,23 +111,25 @@ class Runner(ABC):
         lh.subsection("{0} - install package".format(str(self.name)))
 
         kill_all_processes()
-        lh.subsubsection("installing package")
-        inst.install_package()
-        lh.subsubsection("checking files")
-        inst.check_installed_files()
-        lh.subsubsection("saving config")
-        inst.save_config()
-        lh.subsubsection("checking if service is up")
-        if inst.check_service_up():
-            lh.subsubsection("stopping service")
-            inst.stop_service()
-        inst.broadcast_bind()
-        lh.subsubsection("starting service")
+        if self.do_install:
+            lh.subsubsection("installing package")
+            inst.install_package()
+            lh.subsubsection("checking files")
+            inst.check_installed_files()
+            lh.subsubsection("saving config")
+            inst.save_config()
 
-        inst.start_service()
+            lh.subsubsection("checking if service is up")
+            if inst.check_service_up():
+                lh.subsubsection("stopping service")
+                inst.stop_service()
+            inst.broadcast_bind()
+            lh.subsubsection("starting service")
 
-        inst.check_installed_paths()
-        inst.check_engine_file()
+            inst.start_service()
+
+            inst.check_installed_paths()
+            inst.check_engine_file()
 
         # start / stop
         if inst.check_service_up():
@@ -134,11 +140,14 @@ class Runner(ABC):
 
         logging.debug("self test after installation")
         sys_arangosh.self_test()
-        if self.cfg.have_system_service:
+
+        if self.do_system_test:
             sys_arangosh.js_version_check()
 
-        logging.debug("stop system service to make ports available for starter")
-        inst.stop_service()
+            # TODO: here we should invoke Makedata for the system installation.
+
+            logging.debug("stop system service to make ports available for starter")
+            inst.stop_service()
 
     def uninstall(self, inst):
         """ uninstall the package from the system """
