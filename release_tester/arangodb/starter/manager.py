@@ -175,13 +175,11 @@ Starter {0.name}
         lh.log_cmd(args)
         self.instance = psutil.Popen(args)
         self.wait_for_logfile()
-        time.sleep(self.startupwait)
         logging.info("waited for: " + str(self.startupwait))
 
     def is_instance_running(self):
         """ check whether this is still running"""
         try:
-            self.wait_for_logfile()
             self.instance.wait(timeout=1)
         except:
             pass
@@ -309,10 +307,8 @@ Starter {0.name}
 
         logging.info("StarterManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)
-        time.sleep(self.startupwait)
-        #FIXME/REVIEW check / update pids and logfiles after respawn?
-        #             Not required when restarting the starter only.
-        #             When arangods are upgraded it becomes necessary
+        self.wait_for_logfile()
+        
 
     def execute_frontend(self, cmd, verbose=True):
         """ use arangosh to run a command on the frontend arangod"""
