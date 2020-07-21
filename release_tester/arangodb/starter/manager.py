@@ -174,17 +174,34 @@ Starter {0.name}
 
         lh.log_cmd(args)
         self.instance = psutil.Popen(args)
-
+        self.wait_for_logfile()
         time.sleep(self.startupwait)
         logging.info("waited for: " + str(self.startupwait))
 
     def is_instance_running(self):
         """ check whether this is still running"""
         try:
+            self.wait_for_logfile()
             self.instance.wait(timeout=1)
         except:
             pass
         return self.instance.is_running()
+    
+    def wait_for_logfile(self):
+        counter = 0
+        keepGoing = True
+        while keepGoing:
+            if not self.instance.is_running():
+                raise Exception(timestamp() + "my instance is gone!" + self.basedir)
+            if self.log_file.exists():
+                print('Logfile exist \n')
+                keepGoing = False
+            elif (counter == 20):
+                raise Exception("logfile did not appear: " + str(self.log_file))
+            counter += 1
+            print('counter = ' + str(counter))
+            time.sleep(1)
+
 
     def is_instance_up(self):
         """ check whether all spawned arangods are fully bootet"""
