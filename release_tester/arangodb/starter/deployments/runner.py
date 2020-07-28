@@ -29,7 +29,6 @@ class Runner(ABC):
             new_inst: Optional[InstallerBase],
             short_name: str
         ):
-
         assert runner_type
         logging.debug(runner_type)
         self.runner_type = runner_type
@@ -52,7 +51,6 @@ class Runner(ABC):
 
         self.old_installer = old_inst
         self.new_installer = new_inst
-        print(self.new_installer)
 
         # starter instances that make_data wil run on
         # maybe it would be better to work directly on
@@ -70,7 +68,7 @@ class Runner(ABC):
 
     def run(self):
         """ run the full lifecycle flow of this deployment """
-        lh.section("Runner of type {0}".format(str(self.name)), "❤")
+        lh.section("Runner of type {0}".format(str(self.name)), "<3")
 
         if self.runner_run_replacement:
             """ use this to change the control flow for this runner"""
