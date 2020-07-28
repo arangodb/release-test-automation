@@ -116,6 +116,8 @@ class InstallerBase(ABC):
         self.calculate_package_names()
         self.caclulate_file_locations()
 
+        self.cfg.have_debug_package = False
+
     @abstractmethod
     def calculate_package_names(self):
         """ which filenames will we be able to handle"""

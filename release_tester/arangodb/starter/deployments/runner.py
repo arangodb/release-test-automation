@@ -11,7 +11,8 @@ import tools.loghelper as lh
 import tools.errorhelper as eh
 import tools.interact as ti
 
-from arangodb.installers.base import InstallerBase
+# from arangodb.installers.base import InstallerBase
+from arangodb.installers.linux import InstallerLinux
 from arangodb.installers import InstallerConfig
 from arangodb.sh import ArangoshExecutor
 from tools.killall import kill_all_processes
@@ -24,9 +25,9 @@ class Runner(ABC):
             self,
             runner_type,
             cfg: InstallerConfig,
-            old_inst: InstallerBase,
+            old_inst: InstallerLinux,
             new_cfg: InstallerConfig,
-            new_inst: Optional[InstallerBase],
+            new_inst: Optional[InstallerLinux],
             short_name: str
         ):
 
@@ -131,6 +132,11 @@ class Runner(ABC):
             inst.check_installed_paths()
             inst.check_engine_file()
 
+            print('Initiating GDB test: \n')
+            self.cfg.have_debug_package = inst.install_debug_package()
+            if self.cfg.have_debug_package:
+                inst.gdb_test()
+
         # start / stop
         if inst.check_service_up():
             inst.stop_service()
@@ -143,12 +149,13 @@ class Runner(ABC):
 
         if self.do_system_test:
             sys_arangosh.js_version_check()
-
+            
             # TODO: here we should invoke Makedata for the system installation.
 
             logging.debug("stop system service to make ports available for starter")
             inst.stop_service()
 
+      
     def uninstall(self, inst):
         """ uninstall the package from the system """
         lh.subsection("{0} - uninstall package".format(str(self.name)))
