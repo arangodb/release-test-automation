@@ -19,7 +19,7 @@ Installing
   `apt-get install python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect `
   the `python3-semver` on debian is to old - need to use the pip version instead: `pip3 install semver`
 - **centos**:
-   `yum update ; yum install python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect; pip3 install psutil python3-semver`
+   `yum update ; yum install python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect; pip3 install psutil semver`
 - **plain pip**:
   `pip3 install psutil pyyaml pexpect requests click semver`
 
@@ -35,10 +35,10 @@ For this, a setting file `/tmp/config.yml` is kept. This way parts of this flow 
 
 Supported Parameters:
  - `--version` which Arangodb Version you want to run the test on
- - `--enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
+ - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
- - `--interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
+ - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
  - `--mode [_all_|install|uninstall|tests]` 
    - `all` (default) is intended to run the full flow. This is the production flow.
    - `install` to only install the package onto the system and store its setting to the temp folder (development) 
@@ -53,9 +53,9 @@ Supported Parameters:
  - `--verbose` if specified more logging is done
  
 Example usage:
- - Windows: `python ./release_tester/test.py --version 3.6.2 --enterprise True --package-dir c:/Users/willi/Downloads `
- - Linux (ubuntu|debian) `python3 ./release_tester/test.py --version 3.6.2 --enterprise True --package-dir /home/willi/Downloads`
- - Linux (centos|fedora|sles) `python3 ./release_tester/test.py --version 3.6.2 --enterprise True --package-dir /home/willi/Downloads`
+ - Windows: `python ./release_tester/test.py --version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
+ - Linux (ubuntu|debian) `python3 ./release_tester/test.py --version 3.6.2 --no-enterprise --package-dir /home/willi/Downloads`
+ - Linux (centos|fedora|sles) `python3 ./release_tester/test.py --version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
 
 Using upgrade.py for upgrade testing
 ------------------------------------
@@ -71,9 +71,9 @@ Supported Parameters:
  - `--old-version` which Arangodb Version you want to install to setup the old system
  - `--version` which Arangodb Version you want to upgrade the environment to
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
- - `--enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
+ - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
- - `--interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
+ - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
  - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
  - `--verbose` if specified more logging is done
  - `--starter-mode [all|LF|AFO|CL|DC|none]` which starter test to exute, `all` of them or `none` at all or: 
@@ -85,9 +85,9 @@ Supported Parameters:
  
  
 Example usage:
- - Windows: `python ./release_tester/upgrade.py --old-version 3.5.4 --version 3.6.2 --enterprise True --package-dir c:/Users/willi/Downloads `
- - Linux (ubuntu|debian) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --version 3.6.2 --enterprise True --package-dir /home/willi/Downloads`
- - Linux (centos|fedora|sles) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --version 3.6.2 --enterprise True --package-dir /home/willi/Downloads`
+ - Windows: `python ./release_tester/upgrade.py --old-version 3.5.4 --version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
+ - Linux (ubuntu|debian) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
+ - Linux (centos|fedora|sles) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
 
 Using cleanup.py to clean out the system
 ----------------------------------------

@@ -8,7 +8,7 @@ def get_term_width():
 
 def line(sym="-", length=get_term_width()):
     """ adjust line to terminal width """
-    print(sym * length)
+    print(sym * int (length / len(sym)))
 
 def log_cmd(cmd):
     """ log string """
@@ -35,7 +35,7 @@ def subsection(name, sym="=", in_section=False):
     """ print a subsection """
     target_length = get_term_width()
 
-    spaces = (target_length - len(name) - 2)
+    spaces = (target_length - len(name) - 2 * len(sym))
     spaces_front = int(spaces / 2)
     spaces_back = spaces - spaces_front
 
