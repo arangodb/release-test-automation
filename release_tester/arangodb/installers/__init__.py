@@ -72,9 +72,9 @@ def make_installer(install_config: InstallerConfig):
     nofd = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
     if nofd < 10000:
         raise Exception("please use ulimit -n <count>"
-                        "to adjust the number of allowed filedescriptors"
-                        "to a value greater or eqaul 10000."
-                        "Currently you have set the limit to: " + str(nofd))
+                        " to adjust the number of allowed filedescriptors"
+                        " to a value greater or eqaul 10000."
+                        " Currently you have set the limit to: " + str(nofd))
 
     macver = platform.mac_ver()
     if macver[0]:
