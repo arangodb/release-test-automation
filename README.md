@@ -23,9 +23,9 @@ Installing
 - **plain pip**:
   `pip3 install psutil pyyaml pexpect requests click semver`
   
-Mac OS
-======
-  `pip3 install click psutil requests pyyaml semver`
+## Mac OS
+
+    pip3 install click psutil requests pyyaml semver
 
 Using test.py for release testing
 ---------------------------------
