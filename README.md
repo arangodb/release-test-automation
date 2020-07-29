@@ -26,7 +26,7 @@
   
 ## Mac OS
 
-    pip3 install click psutil requests pyyaml semver
+    pip3 install click psutil requests pyyaml semver pexpect
 
 ## Windows
 
