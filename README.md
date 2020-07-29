@@ -1,6 +1,5 @@
+# Dependencies
 
-Dependencies
-------------
 - python 3
 - python requests to talk to the instances https://requests.readthedocs.io/en/latest/
 - Python expect - https://github.com/pexpect/pexpect https://pexpect.readthedocs.io/en/stable/ (linux only)
@@ -13,8 +12,8 @@ Dependencies
 - click - for commandline parsing https://click.palletsprojects.com/en/7.x/
 - semver - semantic versioning.
 
-Installing
-----------
+# Installing
+
 - **debian** / **ubuntu**:
   `apt-get install python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect `
   the `python3-semver` on debian is to old - need to use the pip version instead: `pip3 install semver`
@@ -27,8 +26,8 @@ Installing
 
     pip3 install click psutil requests pyyaml semver
 
-Using test.py for release testing
----------------------------------
+# Using test.py for release testing
+
 test.py is intended to test the flow 
  - install package
  - run starter tests
@@ -61,8 +60,8 @@ Example usage:
  - Linux (ubuntu|debian) `python3 ./release_tester/test.py --version 3.6.2 --no-enterprise --package-dir /home/willi/Downloads`
  - Linux (centos|fedora|sles) `python3 ./release_tester/test.py --version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
 
-Using upgrade.py for upgrade testing
-------------------------------------
+# Using upgrade.py for upgrade testing
+
 upgrade.py is intended to test the flow 
  - install old package
  - setup one starter test
@@ -93,15 +92,15 @@ Example usage:
  - Linux (ubuntu|debian) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
  - Linux (centos|fedora|sles) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
 
-Using cleanup.py to clean out the system
-----------------------------------------
+# Using cleanup.py to clean out the system
+
 `cleanup.py` will try to invoke all known cleanup mechanisms, to bring your system as much as possible into a 'pure' state.
 
  - `--zip` switches from system packages to the tar.gz/zip package for the cleanup.
 
-Source distribution
--------------------
- - `release_tester/test.py` - main process flow, install, run test, uninstall
+# Source distribution
+
+- `release_tester/test.py` - main process flow, install, run test, uninstall
  - `release_tester/upgrade.py` - main upgrade process flow, install, run test, upgrade, test again, uninstall
  - `release_tester/installers/[base|nsis|deb|rpm|mac].py` distribuiton / OS specific [un]installation automation
  - `release_tester/arangodb/log.py` arangod log examining to detect PID, `ready for business`-helo, leadership takeover. 
@@ -114,9 +113,6 @@ Source distribution
  - `attic_snippets` - trial and error scripts of start phase, utility functions like killall for mac/windows for manual invocation
 
 
-GOAL
-====
+# GOAL
+
 create most of the flow of i.e. https://github.com/arangodb/release-qa/issues/264 in a portable way. 
-
-
-
