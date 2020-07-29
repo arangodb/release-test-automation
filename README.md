@@ -26,6 +26,7 @@
   
 ## Mac OS
 
+    brew install gnu-tar
     pip3 install click psutil requests pyyaml semver pexpect
 
 ## Windows
