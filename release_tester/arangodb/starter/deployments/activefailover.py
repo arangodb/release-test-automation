@@ -23,17 +23,17 @@ class ActiveFailover(Runner):
     def starter_prepare_env_impl(self):
         self.starter_instances.append(
             StarterManager(self.basecfg,
-                           self.basedir / 'node1',
+                           self.basedir, 'node1',
                            mode='activefailover',
                            moreopts=[]))
         self.starter_instances.append(
             StarterManager(self.basecfg,
-                           self.basedir / 'node2',
+                           self.basedir, 'node2',
                            mode='activefailover',
                            moreopts=['--starter.join', '127.0.0.1']))
         self.starter_instances.append(
             StarterManager(self.basecfg,
-                           self.basedir / 'node3',
+                           self.basedir, 'node3',
                            mode='activefailover',
                            moreopts=['--starter.join', '127.0.0.1']))
 

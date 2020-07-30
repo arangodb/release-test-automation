@@ -20,6 +20,7 @@ import psutil
 from tools.asciiprint import ascii_print
 from tools.timestamp import timestamp
 from arangodb.instance import ArangodInstance, SyncInstance, InstanceType
+from arangodb.backup import HotBackupConfig, HotBackupManager
 from arangodb.sh import ArangoshExecutor
 import tools.loghelper as lh
 
@@ -30,7 +31,7 @@ class StarterManager():
     """ manages one starter instance"""
     def __init__(self,
                  basecfg,
-                 install_prefix,
+                 install_prefix, instance_prefix,
                  mode=None, port=None, jwtStr=None, moreopts=[]):
 
         self.moreopts = moreopts
@@ -39,8 +40,9 @@ class StarterManager():
             self.moreopts += ["--log.verbose=true"]
 
         #directories
-        self.name = str(install_prefix)
-        self.basedir = self.cfg.baseTestDir / install_prefix
+        self.raw_basedir = install_prefix
+        self.name = str(install_prefix / instance_prefix)
+        self.basedir = self.cfg.baseTestDir / install_prefix / instance_prefix
         self.log_file = self.basedir / "arangodb.log"
 
         #arg port - can be set - otherwise it is read from the log later
@@ -299,6 +301,11 @@ Starter {0.name}
         if ret != 0:
             raise Exception("Upgrade process exited with non-zero reply")
 
+    def wait_for_restore(self):
+        """ tries to wait for the server to restart after the 'restore' command """
+        frontends = self.get_frontends()
+        frontends[0].detect_restore_restart()
+
     def respawn_instance(self):
         """ restart the starter instance after we killed it eventually """
         args = [
@@ -461,6 +468,9 @@ Starter {0.name}
         if self.arangosh is None:
             self.cfg.port = self.get_frontend_port()
             self.arangosh = ArangoshExecutor(self.cfg)
+            if self.cfg.enterprise:
+                self.hb_instance = HotBackupManager(self.cfg, self.raw_basedir, self.cfg.baseTestDir / self.raw_basedir )
+                self.hb_config = HotBackupConfig(self.cfg, self.raw_basedir, self.cfg.baseTestDir / self.raw_basedir )
 
     def detect_instance_pids_still_alive(self):
         """ detecting whether the processes the starter spawned are still there """

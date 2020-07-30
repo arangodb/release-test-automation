@@ -129,6 +129,24 @@ arangod instance of starter
             time.sleep(1)
             tries -= 1
 
+    def detect_restore_restart(self):
+        while True:
+            log_file_content = ""
+            with open(self.logfile) as log_fh:
+                for line in log_fh:
+                    # skip empty lines
+                    if line == "":
+                        continue
+                    # save last line and append to string (why not slurp the whole file?)
+                    last_line = line
+                    log_file_content += '\n' + line
+            if log_file_content.find('RocksDBHotBackupRestore:  restarting server with restored data') >= 0:
+                print("server restarting with restored backup.")
+                time.sleep(1)
+                return
+            print(',', end="")
+            time.sleep(1)
+
     def detect_pid(self, ppid):
         """ detect the instance """
         self.pid = 0
