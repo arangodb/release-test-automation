@@ -14,15 +14,16 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 class InstallerTAR(InstallerBase):
     """ install Tar.gz's on Linux/Mac hosts """
     def __init__(self, cfg):
+        self.tar = 'tar'
         macver = platform.mac_ver()
         if macver[0]:
-            self.tar = 'gtar'
             cfg.localhost = 'localhost'
+            self.check_stripped = False
         else:
-            self.tar = 'tar'
             cfg.localhost = 'ip6-localhost'
+            self.check_stripped = True
 
-        self.check_stripped = True
+        
         self.check_symlink = True
         self.server_package = None
         self.client_package = None
