@@ -377,7 +377,6 @@ class Runner(ABC):
             assert starter.hb_instance
             starter.hb_instance.restore(name)
             starter.wait_for_restore()
-            time.sleep(10) # TODO!
             return
         raise Exception("no frontend found.")
 
