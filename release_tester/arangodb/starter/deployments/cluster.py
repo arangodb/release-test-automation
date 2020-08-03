@@ -28,22 +28,24 @@ db.testCollection.save({test: "document"})
 
         self.starter_instances.append(
             StarterManager(self.basecfg,
-                           self.basedir / 'node1',
+                           self.basedir, 'node1',
                            mode='cluster',
                            jwtStr=self.jwtdatastr,
                            moreopts=[]))
         self.starter_instances.append(
             StarterManager(self.basecfg,
-                           self.basedir / 'node2',
+                           self.basedir, 'node2',
                            mode='cluster',
                            jwtStr=self.jwtdatastr,
                            moreopts=['--starter.join', '127.0.0.1']))
         self.starter_instances.append(
             StarterManager(self.basecfg,
-                           self.basedir / 'node3',
+                           self.basedir, 'node3',
                            mode='cluster',
                            jwtStr=self.jwtdatastr,
                            moreopts=['--starter.join', '127.0.0.1']))
+        for instance in self.starter_instances:
+            instance.is_leader = True
 
     def starter_run_impl(self):
         lh.subsection("instance setup")
@@ -74,6 +76,11 @@ db.testCollection.save({test: "document"})
     def test_setup_impl(self):
         pass
 
+    def wait_for_restore_impl(self, backup_starter):
+        for starter in self.starter_instances:
+            for dbserver in starter.get_dbservers():
+                dbserver.detect_restore_restart()
+
     def upgrade_arangod_version_impl(self):
         for node in self.starter_instances:
             node.replace_binary_for_upgrade(self.new_cfg)
@@ -102,7 +109,7 @@ db.testCollection.save({test: "document"})
         logging.info('jamming: Starting instance without jwt')
         dead_instance = StarterManager(
             self.basecfg,
-            Path('CLUSTER') / 'nodeX',
+            Path('CLUSTER'), 'nodeX',
             mode='cluster',
             jwtStr=None,
             moreopts=['--starter.join', '127.0.0.1'])

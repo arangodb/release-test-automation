@@ -38,7 +38,8 @@ class Dc2Dc(Runner):
             return {
                 "dir": self.basedir /
                        self.basecfg.baseTestDir /
-                       self.basedir / datadir / subdir,
+                       self.basedir / datadir,
+                "instance_dir": subdir,
                 "SyncSecret": cert_dir / subdir / 'syncmaster.jwtsecret',
                 "JWTSecret": cert_dir / subdir / 'arangodb.jwtsecret',
                 "tlsKeyfile": cert_dir / subdir / 'tls.keyfile',
@@ -83,7 +84,7 @@ class Dc2Dc(Runner):
         def add_starter(val, port):
             val["instance"] = StarterManager(
                 self.basecfg,
-                val["dir"],
+                val["dir"], val["instance_dir"]
                 port=port,
                 mode='cluster',
                 moreopts=[
@@ -95,6 +96,9 @@ class Dc2Dc(Runner):
                     '--sync.master.jwt-secret=' +    str(val["SyncSecret"]),
                     '--starter.address=' +           self.basecfg.publicip
                 ])
+            if port is None:
+                val["instance"].is_leader = True
+
         add_starter(self.cluster1, None)
         add_starter(self.cluster2, port=9528)
 
