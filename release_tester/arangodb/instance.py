@@ -44,7 +44,7 @@ class Instance(ABC):
         self.publicip = publicip
         self.name = self.type.name + str(self.port)
         self.instance = None
-        logging.info("creating {0.type_str} instance: {0.name}".format(self))
+        logging.debug("creating {0.type_str} instance: {0.name}".format(self))
 
     @abstractmethod
     def detect_pid(self, ppid):
@@ -76,7 +76,7 @@ class ArangodInstance(Instance):
 
     def __repr__(self):
         return """
-arangod instance of starter
+arangod instance
     name:    {0.name}
     type:    {0.type_str}
     pid:     {0.pid}
@@ -101,8 +101,8 @@ arangod instance of starter
             port=self.port)
 
     def is_frontend(self):
-        print(repr(self))
         """ is this instance a frontend """
+        # print(repr(self))
         if self.type in [InstanceType.coordinator,
                          InstanceType.resilientsingle,
                          InstanceType.single]:
@@ -129,10 +129,47 @@ arangod instance of starter
             time.sleep(1)
             tries -= 1
 
-    def detect_pid(self, ppid):
+    def detect_restore_restart(self):
+        while True:
+            log_file_content = ""
+            last_line = ''
+            with open(self.logfile) as log_fh:
+                for line in log_fh:
+                    # skip empty lines
+                    if line == "":
+                        continue
+                    # save last line and append to string (why not slurp the whole file?)
+                    last_line = line
+                    log_file_content += '\n' + line
+
+            # check last line or continue
+            match = re.search(r'Z \[(\d*)\]', last_line)
+            if match is None:
+                logging.info("no PID in: %s", last_line)
+                continue
+
+            # pid found now find the position of the pid in
+            # the logfile and check it is followed by a
+            # ready for business.
+            pid = match.groups()[0]
+            start = log_file_content.find(pid)
+
+            offset = log_file_content.find(
+                'RocksDBHotBackupRestore:  restarting server with restored data',
+                start)
+            if offset >= 0:
+                print("server restarting with restored backup.")
+                self.detect_pid(0, offset)
+                time.sleep(1) #TODO: this is also no stable criteria for restart after upgrade :/
+                return
+            print(',', end="")
+            time.sleep(0.1)
+
+    def detect_pid(self, ppid, offset=0):
         """ detect the instance """
         self.pid = 0
         tries = 20
+        tStart = ''
         while self.pid == 0 and tries:
 
             log_file_content = ''
@@ -157,21 +194,28 @@ arangod instance of starter
             # the logfile and check it is followed by a
             # ready for business.
             pid = match.groups()[0]
-            start = log_file_content.find(pid)
-            pos = log_file_content.find('is ready for business.', start)
+            start = log_file_content.find(pid, offset)
+            ready_for_business = 'is ready for business.'
+            pos = log_file_content.find(ready_for_business, start)
             if pos < 0:
                 print('.', end='')
                 sys.stdout.flush()
                 time.sleep(1)
                 continue
             self.pid = int(pid)
-            logging.info("found pid {0} for instance with logifle {1}.".format(
+            # locate the timestamp of our 'ready for business' line:
+            match = re.search(r'(.*)Z \['+pid+'].*' + ready_for_business,
+                              log_file_content[pos - 90:])
+            tStart = match.group(1)
+            logging.debug("found pid {0} for instance with logfile {1} at {2}.".format(
                 self.pid,
-                str(self.logfile)))
+                str(self.logfile),
+                tStart
+            ))
             try:
                 self.instance = psutil.Process(self.pid)
             except psutil.NoSuchProcess:
-                logging.info("process already gone? retrying.")
+                logging.info("process for PID %d already gone? retrying.", self.pid)
                 time.sleep(1)
                 self.pid = 0  # a previous log run? retry.
         if self.pid == 0:
@@ -180,9 +224,11 @@ arangod instance of starter
             logging.error("inspect: " + str(self.logfile))
             sys.exit(1)
         else:
-            logging.info("found pid {0} for instance with logifle {1}.".format(
+            logging.info("found process for pid {0} for instance with logfile {1} at {2}.".format(
                 self.pid,
-                str(self.logfile)))
+                str(self.logfile),
+                tStart
+            ))
 
 
 class SyncInstance(Instance):
