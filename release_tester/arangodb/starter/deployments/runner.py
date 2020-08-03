@@ -29,6 +29,7 @@ class Runner(ABC):
             new_inst: Optional[InstallerBase],
             short_name: str
         ):
+
         assert runner_type
         logging.debug(runner_type)
         self.runner_type = runner_type
@@ -51,6 +52,7 @@ class Runner(ABC):
 
         self.old_installer = old_inst
         self.new_installer = new_inst
+        print(self.new_installer)
 
         # starter instances that make_data wil run on
         # maybe it would be better to work directly on
@@ -129,6 +131,11 @@ class Runner(ABC):
             inst.check_installed_paths()
             inst.check_engine_file()
 
+            print('installing debug package: \n')
+            inst.install_debug_package()
+            if self.cfg.have_debug_package == True:
+                inst.gdb_test()
+
         # start / stop
         if inst.check_service_up():
             inst.stop_service()
@@ -141,14 +148,20 @@ class Runner(ABC):
 
         if self.do_system_test:
             sys_arangosh.js_version_check()
-
+            
             # TODO: here we should invoke Makedata for the system installation.
 
             logging.debug("stop system service to make ports available for starter")
             inst.stop_service()
 
+      
     def uninstall(self, inst):
         """ uninstall the package from the system """
+        print('checking for debug package installation status')
+        if self.cfg.have_debug_package == True:
+            print('Debug package installation found: ' + str(self.cfg.have_debug_package))
+            inst.un_install_debug_package()
+
         lh.subsection("{0} - uninstall package".format(str(self.name)))
 
         inst.un_install_package()

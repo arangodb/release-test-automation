@@ -115,6 +115,8 @@ class InstallerBase(ABC):
         self.cfg = copy.deepcopy(cfg)
         self.calculate_package_names()
         self.caclulate_file_locations()
+        
+        self.cfg.have_debug_package = False
 
     @abstractmethod
     def calculate_package_names(self):
@@ -147,6 +149,16 @@ class InstallerBase(ABC):
     @abstractmethod
     def cleanup_system(self):
         """ if the packages are known to not properly cleanup - do it here. """
+    
+
+    def un_install_debug_package(self):
+        """ Uninstalling debug package if it exit in the system """
+        pass
+
+    def install_debug_package(self):
+        """ installing debug package """
+        pass
+
 
     def get_arangod_conf(self):
         """ where on the disk is the arangod config installed? """
