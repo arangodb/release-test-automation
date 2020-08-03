@@ -186,7 +186,7 @@ class InstallerDeb(InstallerLinux):
                                    'arangodb3' +
                                    ('e' if self.cfg.enterprise else ''))
         try:
-            uninstall.expect('Removing')
+            uninstall.expect('Purging')
             ascii_print(uninstall.before)
             uninstall.expect(pexpect.EOF)
             ascii_print(uninstall.before)
