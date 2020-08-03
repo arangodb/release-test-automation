@@ -85,6 +85,9 @@ class Runner(ABC):
             self.starter_run()
             self.finish_setup()
             self.make_data()
+            self.print_frontend_instances()
+            ti.prompt_user(self.basecfg, "Deployment started. Please test the UI!")
+
             if self.cfg.enterprise:
                 lh.section("TESTING HOTBACKUP")
                 self.backup_name = self.create_backup("thy_name_is") # TODO generate name?
@@ -206,9 +209,6 @@ class Runner(ABC):
         lh.subsection("{0} - finish setup".format(str(self.name)))
         self.finish_setup_impl()
 
-        # print front-end instances
-        ti.prompt_user(self.basecfg, "Deployment started. Please test the UI!")
-
     def make_data(self):
         """ check if setup is functional """
         lh.subsection("{0} - make data".format(str(self.name)))
@@ -277,6 +277,20 @@ class Runner(ABC):
     @abstractmethod
     def jam_attempt_impl(self):
         """ if known, try to break this deployment """
+
+    def get_frontend_instances(self):
+        frontends = []
+        for starter in self.starter_instances:
+            if not starter.is_leader:
+                continue
+            for frontend in starter.get_frontends():
+                frontends.append(frontend)
+        return frontends
+
+    def print_frontend_instances(self):
+        frontends = self.get_frontend_instances()
+        for frontend in frontends:
+            print(frontend.get_public_url('root@'))
 
     #@abstractmethod
     def make_data_impl(self):
@@ -369,6 +383,9 @@ class Runner(ABC):
             return starter.hb_instance.delete(name)
         raise Exception("no frontend found.")
 
+    def wait_for_restore_impl(self, backup_starter):
+        starter.wait_for_restore()
+
     def restore_backup(self, name):
         import time
         for starter in self.makedata_instances:
@@ -376,7 +393,7 @@ class Runner(ABC):
                 continue
             assert starter.hb_instance
             starter.hb_instance.restore(name)
-            starter.wait_for_restore()
+            self.wait_for_restore_impl(starter)
             return
         raise Exception("no frontend found.")
 

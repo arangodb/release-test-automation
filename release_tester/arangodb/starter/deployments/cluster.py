@@ -76,6 +76,11 @@ db.testCollection.save({test: "document"})
     def test_setup_impl(self):
         pass
 
+    def wait_for_restore_impl(self, backup_starter):
+        for starter in self.starter_instances:
+            for dbserver in starter.get_dbservers():
+                dbserver.detect_restore_restart()
+
     def upgrade_arangod_version_impl(self):
         for node in self.starter_instances:
             node.replace_binary_for_upgrade(self.new_cfg)
