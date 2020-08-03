@@ -44,7 +44,7 @@ class Instance(ABC):
         self.publicip = publicip
         self.name = self.type.name + str(self.port)
         self.instance = None
-        logging.info("creating {0.type_str} instance: {0.name}".format(self))
+        logging.debug("creating {0.type_str} instance: {0.name}".format(self))
 
     @abstractmethod
     def detect_pid(self, ppid):
@@ -76,7 +76,7 @@ class ArangodInstance(Instance):
 
     def __repr__(self):
         return """
-arangod instance of starter
+arangod instance
     name:    {0.name}
     type:    {0.type_str}
     pid:     {0.pid}
@@ -101,8 +101,8 @@ arangod instance of starter
             port=self.port)
 
     def is_frontend(self):
-        print(repr(self))
         """ is this instance a frontend """
+        # print(repr(self))
         if self.type in [InstanceType.coordinator,
                          InstanceType.resilientsingle,
                          InstanceType.single]:
@@ -207,7 +207,7 @@ arangod instance of starter
             match = re.search(r'(.*)Z \['+pid+'].*' + ready_for_business,
                               log_file_content[pos - 90:])
             tStart = match.group(1)
-            logging.info("found pid {0} for instance with logfile {1} at {2}.".format(
+            logging.debug("found pid {0} for instance with logfile {1} at {2}.".format(
                 self.pid,
                 str(self.logfile),
                 tStart

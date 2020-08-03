@@ -108,7 +108,7 @@ class Runner(ABC):
                 if not self.check_non_backup_data():
                     raise Exception("data created after backup is still there??")
                 self.create_non_backup_data()
-           
+
         if self.new_installer:
             lh.section("UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),)
             self.new_installer.upgrade_package()
