@@ -86,7 +86,7 @@ class Runner(ABC):
             self.finish_setup()
             self.make_data()
             self.print_frontend_instances()
-	    ti.prompt_user(self.basecfg, "Deployment started. Please test the UI!")
+            ti.prompt_user(self.basecfg, "Deployment started. Please test the UI!")
 
         if self.new_installer:
             lh.section("UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),)
