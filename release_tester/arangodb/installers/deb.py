@@ -128,7 +128,11 @@ class InstallerDeb(InstallerLinux):
         server_install = pexpect.spawnu(cmd)
         try:
             logging.debug("expect: user1")
-            server_install.expect('user:')
+            i = server_install.expect(['user:', 'arangod.conf'])
+            if i == 1: # there are remaints of previous installations. We overwrite existing config files.
+                server_install.sendline('Y')
+                ascii_print(server_install.before)
+                server_install.expect('user:')
             ascii_print(server_install.before)
             logging.debug("expect: setting password: {0.cfg.passvoid}".format(self))
             server_install.sendline(self.cfg.passvoid)
