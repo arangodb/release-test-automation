@@ -152,7 +152,7 @@ class InstallerBase(ABC):
     
 
     def un_install_debug_package(self):
-        """ Uninstalling debug package if it exit in the system """
+        """ Uninstalling debug package if it exist in the system """
         pass
 
     def install_debug_package(self):
