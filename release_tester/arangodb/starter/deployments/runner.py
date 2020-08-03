@@ -52,7 +52,6 @@ class Runner(ABC):
 
         self.old_installer = old_inst
         self.new_installer = new_inst
-        print(self.new_installer)
 
         # starter instances that make_data wil run on
         # maybe it would be better to work directly on
