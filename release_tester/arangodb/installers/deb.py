@@ -8,14 +8,14 @@ import logging
 from pathlib import Path
 import pexpect
 from arangodb.instance import ArangodInstance
-from arangodb.installers.base import InstallerBase
+from arangodb.installers.linux import InstallerLinux
 from tools.asciiprint import ascii_print
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 import tools.loghelper as lh
 import semver
 
 
-class InstallerDeb(InstallerBase):
+class InstallerDeb(InstallerLinux):
     """ install .deb's on debian or ubuntu hosts """
     def __init__(self, cfg):
         self.check_stripped = True
@@ -24,6 +24,7 @@ class InstallerDeb(InstallerBase):
         self.client_package = None
         self.debug_package = None
         self.log_examiner = None
+
         version = cfg.version.split("~")[0]
         version = ".".join(version.split(".")[:3])
         self.semver = semver.VersionInfo.parse(version)
@@ -184,7 +185,6 @@ class InstallerDeb(InstallerBase):
         uninstall = pexpect.spawnu('dpkg --purge ' +
                                    'arangodb3' +
                                    ('e' if self.cfg.enterprise else ''))
-
         try:
             uninstall.expect('Purging')
             ascii_print(uninstall.before)
@@ -193,6 +193,53 @@ class InstallerDeb(InstallerBase):
         except pexpect.exceptions.EOF:
             ascii_print(uninstall.before)
             sys.exit(1)
+
+
+    def install_debug_package(self):
+        """ installing debug package """
+        cmd = 'dpkg -i ' + str(self.cfg.package_dir / self.debug_package)
+        lh.log_cmd(cmd)
+        debug_install = pexpect.spawnu(cmd)
+        try:
+            logging.info("waiting for the installation to finish")
+            debug_install.expect(pexpect.EOF, timeout=60)
+        except pexpect.exceptions.EOF:
+            logging.info("TIMEOUT!")
+            debug_install.close(force=True)
+            ascii_print(debug_install.before)
+        print()
+        logging.info(str(self.debug_package) + ' Installation successfull')
+        self.cfg.have_debug_package = True
+        
+        while debug_install.isalive():
+            print('.', end='')
+            if debug_install.exitstatus != 0:
+                debug_install.close(force=True)
+                ascii_print(debug_install.before)
+                raise Exception(str(self.debug_package) + " debug installation didn't finish successfully!")
+        return self.cfg.have_debug_package
+        
+    
+    def un_install_debug_package(self):
+        uninstall = pexpect.spawnu('dpkg --purge ' +
+                                   'arangodb3' +
+                                   ('e-dbg' if self.cfg.enterprise else '-dbg'))
+        try:
+            uninstall.expect('Removing')
+            ascii_print(uninstall.before)
+            uninstall.expect(pexpect.EOF, timeout=30)
+            ascii_print(uninstall.before)
+        except pexpect.exceptions.EOF:
+            ascii_print(uninstall.before)
+            sys.exit(1)
+
+        while uninstall.isalive():
+            print('.', end='')
+            if uninstall.exitstatus != 0:
+                uninstall.close(force=True)
+                ascii_print(uninstall.before)
+                raise Exception("Debug package uninstallation didn't finish successfully!")
+
 
     def cleanup_system(self):
         # TODO: should this be cleaned by the deb uninstall in first place?
