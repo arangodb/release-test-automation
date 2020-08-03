@@ -87,6 +87,8 @@ class Runner(ABC):
             self.starter_run()
             self.finish_setup()
             self.make_data()
+            self.print_frontend_instances()
+            ti.prompt_user(self.basecfg, "Deployment started. Please test the UI!")
 
         if self.new_installer:
             lh.section("UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),)
@@ -183,9 +185,6 @@ class Runner(ABC):
         lh.subsection("{0} - finish setup".format(str(self.name)))
         self.finish_setup_impl()
 
-        # print front-end instances
-        ti.prompt_user(self.basecfg, "Deployment started. Please test the UI!")
-
     def make_data(self):
         """ check if setup is functional """
         lh.subsection("{0} - make data".format(str(self.name)))
@@ -254,6 +253,20 @@ class Runner(ABC):
     @abstractmethod
     def jam_attempt_impl(self):
         """ if known, try to break this deployment """
+
+    def get_frontend_instances(self):
+        frontends = []
+        for starter in self.starter_instances:
+            if not starter.is_leader:
+                continue
+            for frontend in starter.get_frontends():
+                frontends.append(frontend)
+        return frontends
+
+    def print_frontend_instances(self):
+        frontends = self.get_frontend_instances()
+        for frontend in frontends:
+            print(frontend.get_public_url('root@'))
 
     #@abstractmethod
     def make_data_impl(self):
