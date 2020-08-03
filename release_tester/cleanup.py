@@ -30,6 +30,8 @@ def run_test(zip):
                                      zip,
                                      Path("/tmp/"),
                                      "",
+
+                                     "",
                                      False)
     inst = make_installer(install_config)
 

@@ -353,6 +353,7 @@ Starter {0.name}
         sm_port_text = 'Starting syncmaster on port'
         sw_text = 'syncworker up and running'
         worker_count = 0
+        logging.info('detecting sync master port')
         while worker_count < 3 and self.is_instance_running():
             logging.info('%')
             lfs = self.get_log_file()

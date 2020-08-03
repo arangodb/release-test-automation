@@ -12,7 +12,6 @@ from arangodb.instance import ArangodInstance
 from arangodb.installers.base import InstallerBase
 from tools.asciiprint import ascii_print
 
-import obi.util.logging_helper as olh
 import tools.loghelper as lh
 
 
@@ -131,7 +130,7 @@ class InstallerRPM(InstallerBase):
         self.cfg.dbdir  = Path('/var/lib/arangodb3')
         self.cfg.appdir = Path('/var/lib/arangodb3-apps')
         self.cfg.cfgdir = Path('/etc/arangodb3')
-        self.instance = ArangodInstance("single", "8529", self.cfg.installPrefix / self.cfg.logDir)
+        self.instance = ArangodInstance("single", "8529", self.cfg.localhost, self.cfg.publicip, self.cfg.installPrefix / self.cfg.logDir)
         logging.info("installing Arangodb RPM package")
         package = self.cfg.package_dir / self.server_package
         if not package.is_file():
@@ -153,6 +152,11 @@ class InstallerRPM(InstallerBase):
             ascii_print(server_install.before)
             logging.info("Installation failed!")
             sys.exit(1)
+
+        while server_install.isalive():
+            print('.', end='')
+            if server_install.exitstatus != 0:
+                raise Exception("server installation didn't finish successfully!")
 
         start = reply.find("'")
         end = reply.find("'", start + 1)
