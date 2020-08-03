@@ -519,8 +519,6 @@ Starter {0.name}
                             + self.basedir
                             + " - " + lfs)
 
-        self.detect_instances()
-        #TODO FIX - fragile logic  - readd member for now
         self.frontend_port = match.groups()[0]
 
     def active_failover_detect_host_now_follower(self):
