@@ -74,6 +74,7 @@ class ActiveFailover(Runner):
 
         logging.info('leader can be reached at: %s',
                      self.leader.get_frontend().get_public_url(''))
+        self.set_frontend_instances()
         logging.info("active failover setup finished successfully")
 
     def test_setup_impl(self):
@@ -137,13 +138,11 @@ class ActiveFailover(Runner):
         if reply.status_code != 200:
             logging.info(reply.text)
             self.success = False
-        self.basecfg.add_frontend('http',
-                                  self.basecfg.publicip,
-                                  self.new_leader.get_frontend().port)
+        self.set_frontend_instances()
 
         prompt_user(self.basecfg,
                     '''The leader failover has happened.
-please revalidate the UI states on the new leader; you should see one follower.''')
+please revalidate the UI states on the new leader; you should see *one* follower.''')
         self.leader.respawn_instance()
         self.leader.detect_instances()
         logging.info("waiting for old leader to show up as follower")
@@ -161,9 +160,7 @@ please revalidate the UI states on the new leader; you should see one follower.'
         if reply.status_code != 503:
             self.success = False
 
-
-        self.print_frontend_instances()
-        prompt_user(self.basecfg, 'The old leader has been respawned as follower, so there should be two followers again: %s'
+        prompt_user(self.basecfg, 'The old leader has been respawned as follower (%s), so there should be two followers again.'
                     % self.leader.get_frontend().get_public_url('root@') )
 
         logging.info("state of this test is: %s",
