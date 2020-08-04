@@ -49,6 +49,7 @@ def run_test(zip):
         runner = make_runner(runner_type, inst.cfg, inst, None)
         runner.cleanup()
 
+    inst.un_install_debug_package()
     inst.un_install_package()
     inst.cleanup_system()
 
