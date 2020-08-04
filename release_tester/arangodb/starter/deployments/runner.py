@@ -112,7 +112,17 @@ class Runner(ABC):
 
         if self.new_installer:
             lh.section("UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),)
+            if self.cfg.have_debug_package == True:
+                print('removing *old* debug package in advance')
+                inst.un_install_debug_package()
+
             self.new_installer.upgrade_package()
+            # only install debug package for new package.
+            print('installing debug package: \n')
+            self.cfg.have_debug_package = self.new_installer.install_debug_package()
+            if self.cfg.have_debug_package == True:
+                self.new_installer.gdb_test()
+            self.new_installer.stop_service()
             self.upgrade_arangod_version() #make sure to pass new version
             self.make_data_after_upgrade()
             lh.section("TESTING HOTBACKUP AFTER UPGRADE")
@@ -169,10 +179,12 @@ class Runner(ABC):
             inst.check_installed_paths()
             inst.check_engine_file()
 
-            print('installing debug package: \n')
-            inst.install_debug_package()
-            if self.cfg.have_debug_package == True:
-                inst.gdb_test()
+            if self.new_installer:
+                # only install debug package for new package.
+                print('installing debug package: \n')
+                inst.install_debug_package()
+                if self.cfg.have_debug_package == True:
+                    inst.gdb_test()
 
         # start / stop
         if inst.check_service_up():
@@ -396,7 +408,7 @@ class Runner(ABC):
         raise Exception("no frontend found.")
 
     def wait_for_restore_impl(self, backup_starter):
-        starter.wait_for_restore()
+        backup_starter.wait_for_restore()
 
     def restore_backup(self, name):
         import time
