@@ -246,6 +246,7 @@ Starter {0.name}
             instance.detect_gone()
         # Clear instances as they have been stopped and the logfiles
         # have been moved.
+        self.is_leader = False
         self.all_instances = []
 
     def kill_instance(self):
