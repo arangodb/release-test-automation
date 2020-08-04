@@ -141,7 +141,9 @@ class ActiveFailover(Runner):
                                   self.basecfg.publicip,
                                   self.new_leader.get_frontend().port)
 
-        prompt_user(self.basecfg)
+        prompt_user(self.basecfg,
+                    '''The leader failover has happened.
+please revalidate the UI states on the new leader; you should see one follower.''')
         self.leader.respawn_instance()
         self.leader.detect_instances()
         logging.info("waiting for old leader to show up as follower")
@@ -149,8 +151,6 @@ class ActiveFailover(Runner):
             print('.', end='')
             time.sleep(1)
         print()
-
-        logging.info("FIXME -- ???? Now is follower") ##FIXME - Who is follower?
 
         url = self.leader.get_frontend().get_local_url('')
 
@@ -160,6 +160,12 @@ class ActiveFailover(Runner):
 
         if reply.status_code != 503:
             self.success = False
+
+
+        self.print_frontend_instances()
+        prompt_user(self.basecfg, 'The old leader has been respawned as follower, so there should be two followers again: %s'
+                    % self.leader.get_frontend().get_public_url('root@') )
+
         logging.info("state of this test is: %s",
                      "Success" if self.success else "Failed")
 
