@@ -93,24 +93,34 @@ class InstallerDeb(InstallerLinux):
         os.environ['DEBIAN_FRONTEND'] = 'readline'
         server_upgrade = pexpect.spawnu('dpkg -i ' +
                                         str(self.cfg.package_dir / self.server_package))
-        try:
-            i = server_upgrade.expect(['Upgrading database files', 'Database files are up-to-date'])
-            if i == 0:
+        while True:
+            try:
+                i = server_upgrade.expect([
+                    'Upgrading database files',
+                    'Database files are up-to-date',
+                    'arangod.conf'])
+                if i == 0:
+                    logging.info("X" * 80)
+                    ascii_print(server_upgrade.before)
+                    logging.info("X" * 80)
+                    logging.info("[X] Upgrading database files")
+                    break
+                elif i == 1:
+                    logging.info("X" * 80)
+                    ascii_print(server_upgrade.before)
+                    logging.info("X" * 80)
+                    logging.info("[ ] Update not needed.")
+                    break
+                elif i == 2: # modified arangod.conf... 
+                    ascii_print(server_upgrade.before)
+                    server_upgrade.sendline('Y')
+                    # fallthrough - repeat.
+            except pexpect.exceptions.EOF:
                 logging.info("X" * 80)
                 ascii_print(server_upgrade.before)
                 logging.info("X" * 80)
-                logging.info("[X] Upgrading database files")
-            elif i == 1:
-                logging.info("X" * 80)
-                ascii_print(server_upgrade.before)
-                logging.info("X" * 80)
-                logging.info("[ ] Update not needed.")
-        except pexpect.exceptions.EOF:
-            logging.info("X" * 80)
-            ascii_print(server_upgrade.before)
-            logging.info("X" * 80)
-            logging.info("[E] Upgrade failed!")
-            sys.exit(1)
+                logging.info("[E] Upgrade failed!")
+                sys.exit(1)
         try:
             logging.info("waiting for the upgrade to finish")
             server_upgrade.expect(pexpect.EOF, timeout=30)

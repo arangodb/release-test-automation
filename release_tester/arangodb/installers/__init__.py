@@ -53,6 +53,10 @@ class InstallerConfig():
         """ add a frontend URL in components """
         self.frontends.append(InstallerFrontend(proto, ip, port))
 
+    def set_frontend(self, proto, ip, port):
+        """ add a frontend URL in components """
+        self.frontends = [InstallerFrontend(proto, ip, port)]
+
     def generate_password(self):
         """ generate a new password """
         raise NotImplementedError()

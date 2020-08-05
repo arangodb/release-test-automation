@@ -246,6 +246,7 @@ Starter {0.name}
             instance.detect_gone()
         # Clear instances as they have been stopped and the logfiles
         # have been moved.
+        self.is_leader = False
         self.all_instances = []
 
     def kill_instance(self):
@@ -519,8 +520,6 @@ Starter {0.name}
                             + self.basedir
                             + " - " + lfs)
 
-        self.detect_instances()
-        #TODO FIX - fragile logic  - readd member for now
         self.frontend_port = match.groups()[0]
 
     def active_failover_detect_host_now_follower(self):

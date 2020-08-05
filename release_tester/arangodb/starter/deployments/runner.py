@@ -86,7 +86,6 @@ class Runner(ABC):
             self.starter_run()
             self.finish_setup()
             self.make_data()
-            self.print_frontend_instances()
             ti.prompt_user(self.basecfg, "Deployment started. Please test the UI!")
 
             if self.cfg.enterprise:
@@ -112,7 +111,17 @@ class Runner(ABC):
 
         if self.new_installer:
             lh.section("UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),)
+            if self.cfg.have_debug_package == True:
+                print('removing *old* debug package in advance')
+                inst.un_install_debug_package()
+
             self.new_installer.upgrade_package()
+            # only install debug package for new package.
+            lh.subsection('installing debug package:')
+            self.cfg.have_debug_package = self.new_installer.install_debug_package()
+            if self.cfg.have_debug_package == True:
+                self.new_installer.gdb_test()
+            self.new_installer.stop_service()
             self.upgrade_arangod_version() #make sure to pass new version
             self.make_data_after_upgrade()
             lh.section("TESTING HOTBACKUP AFTER UPGRADE")
@@ -169,10 +178,13 @@ class Runner(ABC):
             inst.check_installed_paths()
             inst.check_engine_file()
 
-            print('installing debug package: \n')
-            inst.install_debug_package()
-            if self.cfg.have_debug_package == True:
-                inst.gdb_test()
+            if not self.new_installer:
+                # only install debug package for new package.
+                lh.subsection('installing debug package:')
+                inst.install_debug_package()
+                if self.cfg.have_debug_package == True:
+                    lh.subsection('testing debug symbols')
+                    inst.gdb_test()
 
         # start / stop
         if inst.check_service_up():
@@ -195,13 +207,11 @@ class Runner(ABC):
       
     def uninstall(self, inst):
         """ uninstall the package from the system """
-        print('checking for debug package installation status')
-        if self.cfg.have_debug_package == True:
-            print('Debug package installation found: ' + str(self.cfg.have_debug_package))
-            inst.un_install_debug_package()
-
         lh.subsection("{0} - uninstall package".format(str(self.name)))
-
+        if self.cfg.have_debug_package == True:
+            print('uninstalling debug package')
+            inst.un_install_debug_package()
+        print('uninstalling server package')
         inst.un_install_package()
         inst.check_uninstall_cleanup()
         inst.cleanup_system()
@@ -289,6 +299,14 @@ class Runner(ABC):
     @abstractmethod
     def jam_attempt_impl(self):
         """ if known, try to break this deployment """
+
+    def set_frontend_instances(self):
+        """ actualises the list of available frontends """
+        self.basecfg.frontends = [] # reset the array...
+        for frontend in self.get_frontend_instances():
+            self.basecfg.add_frontend('http',
+                                      self.basecfg.publicip,
+                                      frontend.port)
 
     def get_frontend_instances(self):
         frontends = []
@@ -396,7 +414,7 @@ class Runner(ABC):
         raise Exception("no frontend found.")
 
     def wait_for_restore_impl(self, backup_starter):
-        starter.wait_for_restore()
+        backup_starter.wait_for_restore()
 
     def restore_backup(self, name):
         import time
