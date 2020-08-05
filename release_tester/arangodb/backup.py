@@ -99,11 +99,17 @@ class HotBackupManager():
         (output, err) = instance.communicate()
         if len(err) > 0:
             ascii_print(str(err))
+        success = True
         if not silent:
             for line in output.splitlines():
-                ascii_print(str(line))
+                strline = str(line)
+                ascii_print(strline)
+                if strline.find('ERROR') >= 0:
+                    success = False
         if instance.returncode != 0:
             raise Exception("arangobackup exited " + str(instance.returncode))
+        if not success:
+            raise Exception("arangobackup indicated 'ERROR' in its output!")
         return output.splitlines()
 
     def create(self, backup_name):
