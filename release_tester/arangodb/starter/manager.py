@@ -38,6 +38,7 @@ class StarterManager():
         self.cfg = copy.deepcopy(basecfg)
         if self.cfg.verbose:
             self.moreopts += ["--log.verbose=true"]
+            # self.moreopts += ['--all.log', 'startup=debug']
 
         #directories
         self.raw_basedir = install_prefix

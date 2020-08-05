@@ -6,6 +6,7 @@ from abc import abstractmethod, ABC
 from enum import Enum
 import sys
 import time
+import requests
 
 import psutil
 
@@ -160,7 +161,14 @@ arangod instance
             if offset >= 0:
                 print("server restarting with restored backup.")
                 self.detect_pid(0, offset)
-                time.sleep(1) #TODO: this is also no stable criteria for restart after upgrade :/
+                status = 500
+                while status != 200:
+                    # TODO: why does this emmit `log.debug` ?
+                    reply = requests.get(self.get_local_url('')+'/_api/version')
+                    status = reply.status_code
+                    print('.', end='')
+                    time.sleep(0.1)
+                print()
                 return
             print(',', end="")
             time.sleep(0.1)
