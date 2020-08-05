@@ -4,6 +4,7 @@
 from typing import Optional
 from pathlib import Path
 import logging
+import copy
 
 from abc import abstractmethod, ABC
 import shutil
@@ -41,7 +42,7 @@ class Runner(ABC):
         self.do_starter_test = cfg.mode == "all" or cfg.mode == "tests"
         self.do_upgrade = False
 
-        self.basecfg = cfg
+        self.basecfg = copy.deepcopy(cfg)
         self.new_cfg = new_cfg
         self.cfg = self.basecfg
         self.basecfg.passvoid = ""   # TODO: no passwd support in starter install yet.
@@ -181,7 +182,7 @@ class Runner(ABC):
             if not self.new_installer:
                 # only install debug package for new package.
                 lh.subsection('installing debug package:')
-                inst.install_debug_package()
+                self.cfg.have_debug_package = inst.install_debug_package()
                 if self.cfg.have_debug_package == True:
                     lh.subsection('testing debug symbols')
                     inst.gdb_test()
