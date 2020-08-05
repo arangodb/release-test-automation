@@ -50,7 +50,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
         self.leader_starter_instance = StarterManager(
             self.cfg, self.basedir, 'leader',
             mode='single', port=1234, moreopts=[])
-        self.leader.is_leader = True
+        self.leader_starter_instance.is_leader = True
 
         self.follower_starter_instance = StarterManager(
             self.cfg, self.basedir, 'follower',
