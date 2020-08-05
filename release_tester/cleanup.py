@@ -48,8 +48,10 @@ def run_test(zip):
 
         runner = make_runner(runner_type, inst.cfg, inst, None)
         runner.cleanup()
-
-    inst.un_install_debug_package()
+    try:
+        inst.un_install_debug_package()
+    except:
+        print('nothing to uninstall')
     inst.un_install_package()
     inst.cleanup_system()
 
