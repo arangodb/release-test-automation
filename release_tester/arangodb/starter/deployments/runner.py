@@ -4,6 +4,7 @@
 from typing import Optional
 from pathlib import Path
 import logging
+import copy
 
 from abc import abstractmethod, ABC
 import shutil
@@ -29,6 +30,7 @@ class Runner(ABC):
             new_inst: Optional[InstallerBase],
             short_name: str
         ):
+
         assert runner_type
         logging.debug(runner_type)
         self.runner_type = runner_type
@@ -40,7 +42,7 @@ class Runner(ABC):
         self.do_starter_test = cfg.mode == "all" or cfg.mode == "tests"
         self.do_upgrade = False
 
-        self.basecfg = cfg
+        self.basecfg = copy.deepcopy(cfg)
         self.new_cfg = new_cfg
         self.cfg = self.basecfg
         self.basecfg.passvoid = ""   # TODO: no passwd support in starter install yet.
@@ -85,12 +87,60 @@ class Runner(ABC):
             self.starter_run()
             self.finish_setup()
             self.make_data()
+            ti.prompt_user(self.basecfg, "Deployment started. Please test the UI!")
+
+            if self.cfg.enterprise:
+                lh.section("TESTING HOTBACKUP")
+                self.backup_name = self.create_backup("thy_name_is") # TODO generate name?
+                self.create_non_backup_data()
+                backups = self.list_backup()
+                print(backups)
+                self.upload_backup(backups[0])
+                self.delete_backup(backups[0])
+                backups = self.list_backup()
+                if len(backups) != 0:
+                    raise Exception("expected backup to be gone, but its still there: " + str(backups))
+                self.download_backup(self.backup_name)
+                backups = self.list_backup()
+                if backups[0] != self.backup_name:
+                    raise Exception("downloaded backup has different name? " + str(backups))
+                self.restore_backup(backups[0])
+                self.check_data_impl()
+                if not self.check_non_backup_data():
+                    raise Exception("data created after backup is still there??")
+                self.create_non_backup_data()
 
         if self.new_installer:
             lh.section("UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),)
+            if self.cfg.have_debug_package == True:
+                print('removing *old* debug package in advance')
+                inst.un_install_debug_package()
+
             self.new_installer.upgrade_package()
+            # only install debug package for new package.
+            lh.subsection('installing debug package:')
+            self.cfg.have_debug_package = self.new_installer.install_debug_package()
+            if self.cfg.have_debug_package == True:
+                self.new_installer.gdb_test()
+            self.new_installer.stop_service()
             self.upgrade_arangod_version() #make sure to pass new version
             self.make_data_after_upgrade()
+            lh.section("TESTING HOTBACKUP AFTER UPGRADE")
+            backups = self.list_backup()
+            print(backups)
+            self.upload_backup(backups[0])
+            self.delete_backup(backups[0])
+            backups = self.list_backup()
+            if len(backups) != 0:
+                raise Exception("expected backup to be gone, but its still there: " + str(backups))
+            self.download_backup(self.backup_name)
+            backups = self.list_backup()
+            if backups[0] != self.backup_name:
+                raise Exception("downloaded backup has different name? " + str(backups))
+            self.restore_backup(backups[0])
+            self.check_data_impl()
+            if not self.check_non_backup_data():
+                raise Exception("data created after backup is still there??")
         else:
             logging.info("skipping upgrade step no new version given")
 
@@ -129,6 +179,14 @@ class Runner(ABC):
             inst.check_installed_paths()
             inst.check_engine_file()
 
+            if not self.new_installer:
+                # only install debug package for new package.
+                lh.subsection('installing debug package:')
+                self.cfg.have_debug_package = inst.install_debug_package()
+                if self.cfg.have_debug_package == True:
+                    lh.subsection('testing debug symbols')
+                    inst.gdb_test()
+
         # start / stop
         if inst.check_service_up():
             inst.stop_service()
@@ -141,16 +199,20 @@ class Runner(ABC):
 
         if self.do_system_test:
             sys_arangosh.js_version_check()
-
+            
             # TODO: here we should invoke Makedata for the system installation.
 
             logging.debug("stop system service to make ports available for starter")
             inst.stop_service()
 
+      
     def uninstall(self, inst):
         """ uninstall the package from the system """
         lh.subsection("{0} - uninstall package".format(str(self.name)))
-
+        if self.cfg.have_debug_package == True:
+            print('uninstalling debug package')
+            inst.un_install_debug_package()
+        print('uninstalling server package')
         inst.un_install_package()
         inst.check_uninstall_cleanup()
         inst.cleanup_system()
@@ -169,9 +231,6 @@ class Runner(ABC):
         """ not finish the setup"""
         lh.subsection("{0} - finish setup".format(str(self.name)))
         self.finish_setup_impl()
-
-        # print front-end instances
-        ti.prompt_user(self.basecfg, "Deployment started. Please test the UI!")
 
     def make_data(self):
         """ check if setup is functional """
@@ -242,6 +301,28 @@ class Runner(ABC):
     def jam_attempt_impl(self):
         """ if known, try to break this deployment """
 
+    def set_frontend_instances(self):
+        """ actualises the list of available frontends """
+        self.basecfg.frontends = [] # reset the array...
+        for frontend in self.get_frontend_instances():
+            self.basecfg.add_frontend('http',
+                                      self.basecfg.publicip,
+                                      frontend.port)
+
+    def get_frontend_instances(self):
+        frontends = []
+        for starter in self.starter_instances:
+            if not starter.is_leader:
+                continue
+            for frontend in starter.get_frontends():
+                frontends.append(frontend)
+        return frontends
+
+    def print_frontend_instances(self):
+        frontends = self.get_frontend_instances()
+        for frontend in frontends:
+            print(frontend.get_public_url('root@'))
+
     #@abstractmethod
     def make_data_impl(self):
         """ upload testdata into the deployment, and check it """
@@ -265,19 +346,105 @@ class Runner(ABC):
                         interactive,
                         False)
                 self.has_makedata_data = True
+            self.check_data_impl_sh(arangosh)
 
-            if self.has_makedata_data:
-                success = arangosh.check_test_data(self.name)
-                if not success:
-                    eh.ask_continue_or_exit(
-                        "has data failed for {0.name}".format(self),
-                        interactive,
-                        False)
 
+    def check_data_impl_sh(self, arangosh):
+        if self.has_makedata_data:
+            success = arangosh.check_test_data(self.name)
+            if not success:
+                eh.ask_continue_or_exit(
+                    "has data failed for {0.name}".format(self),
+                    self.basecfg.interactive,
+                    False)
+
+    def check_data_impl(self):
+        for starter in self.makedata_instances:
+            if not starter.is_leader:
+                continue
+            assert starter.arangosh
+            arangosh = starter.arangosh
+            return self.check_data_impl_sh(arangosh)
+        raise Exception("no frontend found.")
+        
+
+    def create_non_backup_data(self):
+        for starter in self.makedata_instances:
+            assert starter.arangosh
+            arangosh = starter.arangosh
+            return arangosh.hotbackup_create_nonbackup_data()
+        raise Exception("no frontend found.")
+
+            
+    def check_non_backup_data(self):
+        for starter in self.makedata_instances:
+            if not starter.is_leader:
+                continue
+            assert starter.arangosh
+            arangosh = starter.arangosh
+            return arangosh.hotbackup_check_for_nonbackup_data()
+        raise Exception("no frontend found.")
+                    
     #TODO test make data after upgrade@abstractmethod
     def make_data_after_upgrade_impl(self):
         """ check the data after the upgrade """
         pass
+
+    def create_backup(self, name):
+        for starter in self.makedata_instances:
+            if not starter.is_leader:
+                continue
+            assert starter.hb_instance
+            return starter.hb_instance.create(name)
+        raise Exception("no frontend found.")
+
+    def list_backup(self):
+        for starter in self.makedata_instances:
+            if not starter.is_leader:
+                continue
+            assert starter.hb_instance
+            return starter.hb_instance.list()
+        raise Exception("no frontend found.")
+
+    def delete_backup(self, name):
+        for starter in self.makedata_instances:
+            if not starter.is_leader:
+                continue
+            assert starter.hb_instance
+            return starter.hb_instance.delete(name)
+        raise Exception("no frontend found.")
+
+    def wait_for_restore_impl(self, backup_starter):
+        backup_starter.wait_for_restore()
+
+    def restore_backup(self, name):
+        import time
+        for starter in self.makedata_instances:
+            if not starter.is_leader:
+                continue
+            assert starter.hb_instance
+            starter.hb_instance.restore(name)
+            self.wait_for_restore_impl(starter)
+            return
+        raise Exception("no frontend found.")
+
+    def upload_backup(self, name):
+        for starter in self.makedata_instances:
+            if not starter.is_leader:
+                continue
+            assert starter.hb_instance
+            id = starter.hb_instance.upload(name, starter.hb_config, "12345")
+            return starter.hb_instance.upload_status(name, starter.hb_config, id)
+        raise Exception("no frontend found.")
+
+    def download_backup(self, name):
+        for starter in self.makedata_instances:
+            if not starter.is_leader:
+                continue
+            assert starter.hb_instance
+            id = starter.hb_instance.download(name, starter.hb_config, "12345")
+            return starter.hb_instance.upload_status(name, starter.hb_config, id)
+        raise Exception("no frontend found.")
 
     def cleanup(self):
         """ remove all directories created by this test """

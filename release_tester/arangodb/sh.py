@@ -43,7 +43,7 @@ class ArangoshExecutor():
         else:
             arangosh_run = psutil.Popen(run_cmd, stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
 
-        exitcode = arangosh_run.wait(timeout=30)
+        exitcode = arangosh_run.wait(timeout=60)
         # logging.debug("exitcode {0}".format(exitcode))
         return exitcode == 0
 
@@ -117,6 +117,36 @@ class ArangoshExecutor():
 
         if not res:
             eh.ask_continue_or_exit("version check failed", self.cfg.interactive)
+        return res
+
+    def hotbackup_create_nonbackup_data(self):
+        """ create a collection with documents after taking a backup to verify its not in the backup """
+        logging.info("creating volatile testdata")
+        js_script_string = """
+            db._create("this_collection_will_not_be_backed_up");
+            db.this_collection_will_not_be_backed_up.save({"this": "document will be gone"});
+        """
+        logging.debug("script to be executed: " + str(js_script_string))
+        res = self.run_command(['create volatile data', js_script_string], True) # self.cfg.verbose)
+        logging.debug("data create result: " + str(res))
+
+        if not res:
+            eh.ask_continue_or_exit("creating volatile testdata failed", self.cfg.interactive)
+        return res
+
+    def hotbackup_check_for_nonbackup_data(self):
+        """ check whether the data is in there or not. """
+        logging.info("running version check")
+        #  || db.this_collection_will_not_be_backed_up._length() != 0 // do we care?
+        js_script_string = """
+            if (db._collection("this_collection_will_not_be_backed_up") != null) {
+              throw `data is there!`;
+            }
+        """
+        logging.debug("script to be executed: " + str(js_script_string))
+        res = self.run_command(['check whether non backup data exists', js_script_string], True) # self.cfg.verbose)
+        logging.debug("data check result: " + str(res))
+        
         return res
 
     def create_test_data(self, testname):

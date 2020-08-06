@@ -33,6 +33,7 @@ class InstallerConfig():
         self.verbose = verbose
         self.package_dir = package_dir
         self.have_system_service = True
+        self.have_debug_package = False
 
         self.install_prefix = Path("/")
         self.pwd = Path(os.path.dirname(os.path.realpath(__file__)))
@@ -51,6 +52,10 @@ class InstallerConfig():
     def add_frontend(self, proto, ip, port):
         """ add a frontend URL in components """
         self.frontends.append(InstallerFrontend(proto, ip, port))
+
+    def set_frontend(self, proto, ip, port):
+        """ add a frontend URL in components """
+        self.frontends = [InstallerFrontend(proto, ip, port)]
 
     def generate_password(self):
         """ generate a new password """
