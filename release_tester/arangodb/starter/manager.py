@@ -501,6 +501,15 @@ Starter {0.name}
         self.is_leader = (became_leader or took_over)
         return self.is_leader
 
+    def probe_leader(self):
+        """ talk to the frontends to find out whether its a leader or not. """
+        # Should this be moved to the AF script?
+        self.is_leader = False
+        for instance in self.get_frontends():
+            if instance.probe_if_is_leader():
+                self.is_leader = True
+        return self.is_leader
+
     def active_failover_detect_hosts(self):
         """ detect hosts for the active failover """
         if not self.instance.is_running():

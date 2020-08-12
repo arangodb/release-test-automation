@@ -7,6 +7,7 @@ from enum import Enum
 import sys
 import time
 import requests
+import json
 
 import psutil
 
@@ -31,6 +32,10 @@ TYP_STRINGS = ["none", "none",
                "syncmaster",
                "syncworker"]
 
+class AfoServerState(Enum):
+    leader = 1
+    not_leader = 2
+    challenge_ongoing = 3
 
 class Instance(ABC):
     """abstract instance manager"""
@@ -130,6 +135,24 @@ arangod instance
             time.sleep(1)
             tries -= 1
 
+    def probe_if_is_leader(self):
+        return self.get_afo_state() == AfoServerState.leader
+
+    def get_afo_state(self):
+        reply = requests.get(self.get_local_url('')+'/_api/version')
+        if reply.status_code == 200:
+            return AfoServerState.leader
+        elif reply.status_code == 503:
+            body_json = json.loads(reply.content)
+            if body_json['errorNum'] == 1495: # leadership challenge is ongoing...
+                return AfoServerState.challenge_ongoing
+            elif body_json['errorNum'] == 1496: # leadership challenge is ongoing...
+                return AfoServerState.not_leader
+            else:
+                raise Exception("afo_state: unsupported error code in " + str(reply.content))
+        else:
+            raise Exception("afo_state: unsupportet HTTP-Status code " + str(reply.status_code))
+
     def detect_restore_restart(self):
         while True:
             log_file_content = ""
@@ -161,14 +184,14 @@ arangod instance
             if offset >= 0:
                 print("server restarting with restored backup.")
                 self.detect_pid(0, offset)
-                status = 500
-                while status != 200:
-                    # TODO: why does this emmit `log.debug` ?
-                    reply = requests.get(self.get_local_url('')+'/_api/version')
-                    status = reply.status_code
-                    print('.', end='')
-                    time.sleep(0.1)
-                print()
+                if self.type == InstanceType.resilientsingle:
+                    print("waiting for leader election: ", end="")
+                    status = AfoServerState.challenge_ongoing
+                    while status is AfoServerState.challenge_ongoing:
+                        status = self.get_afo_state()
+                        print('%', end='')
+                        time.sleep(0.1)
+                    print()
                 return
             print(',', end="")
             time.sleep(0.1)
