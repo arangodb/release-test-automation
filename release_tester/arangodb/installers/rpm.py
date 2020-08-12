@@ -9,13 +9,13 @@ import pexpect
 import psutil
 from arangodb.sh import ArangoshExecutor
 from arangodb.instance import ArangodInstance
-from arangodb.installers.base import InstallerBase
+from arangodb.installers.linux import InstallerLinux
 from tools.asciiprint import ascii_print
 
 import tools.loghelper as lh
 
 
-class InstallerRPM(InstallerBase):
+class InstallerRPM(InstallerLinux):
     """ install .rpm's on RedHat, Centos or SuSe systems """
     def __init__(self, cfg):
         self.check_stripped = True
@@ -145,7 +145,7 @@ class InstallerRPM(InstallerBase):
         try:
             server_install.expect('the current password is')
             ascii_print(server_install.before)
-            server_install.expect(pexpect.EOF, timeout=30)
+            server_install.expect(pexpect.EOF, timeout=60)
             reply = server_install.before
             ascii_print(reply)
         except pexpect.exceptions.EOF:
@@ -226,6 +226,50 @@ class InstallerRPM(InstallerBase):
         lh.log_cmd(cmd)
         uninstall = psutil.Popen(cmd)
         uninstall.wait()
+
+
+    def install_debug_package(self):
+        """ installing debug package """
+        cmd = 'rpm -i ' + str(self.cfg.package_dir / self.debug_package)
+        lh.log_cmd(cmd)
+        debug_install = pexpect.spawnu(cmd)
+        try:
+            logging.info("waiting for the installation to finish")
+            debug_install.expect(pexpect.EOF, timeout=90)
+        except pexpect.exceptions.EOF:
+            logging.info("TIMEOUT!")
+            debug_install.close(force=True)
+            ascii_print(debug_install.before)
+        print()
+        logging.info(str(self.debug_package) + ' Installation successfull')
+        self.cfg.have_debug_package = True
+        
+        while debug_install.isalive():
+            print('.', end='')
+            if debug_install.exitstatus != 0:
+                debug_install.close(force=True)
+                ascii_print(debug_install.before)
+                raise Exception(str(self.debug_package) + " debug installation didn't finish successfully!")
+        return self.cfg.have_debug_package
+        
+    
+    def un_install_debug_package(self):
+        uninstall = pexpect.spawnu('rpm -e ' +
+                                   'arangodb3' +
+                                   ('e-debuginfo.x86_64' if self.cfg.enterprise else '-debuginfo.x86_64'))
+        try:
+            uninstall.expect(pexpect.EOF, timeout=30)
+            ascii_print(uninstall.before)
+        except pexpect.exceptions.EOF:
+            ascii_print(uninstall.before)
+            sys.exit(1)
+
+        while uninstall.isalive():
+            print('.', end='')
+            if uninstall.exitstatus != 0:
+                uninstall.close(force=True)
+                ascii_print(uninstall.before)
+                raise Exception("Debug package uninstallation didn't finish successfully!")
 
     def cleanup_system(self):
         # TODO: should this be cleaned by the rpm uninstall in first place?
