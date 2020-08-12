@@ -38,6 +38,7 @@ class StarterManager():
         self.cfg = copy.deepcopy(basecfg)
         if self.cfg.verbose:
             self.moreopts += ["--log.verbose=true"]
+            # self.moreopts += ['--all.log', 'startup=debug']
 
         #directories
         self.raw_basedir = install_prefix
@@ -498,6 +499,15 @@ Starter {0.name}
         became_leader = lfs.find('Became leader in') >= 0
         took_over = lfs.find('Successful leadership takeover: All your base are belong to us') >= 0
         self.is_leader = (became_leader or took_over)
+        return self.is_leader
+
+    def probe_leader(self):
+        """ talk to the frontends to find out whether its a leader or not. """
+        # Should this be moved to the AF script?
+        self.is_leader = False
+        for instance in self.get_frontends():
+            if instance.probe_if_is_leader():
+                self.is_leader = True
         return self.is_leader
 
     def active_failover_detect_hosts(self):
