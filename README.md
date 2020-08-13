@@ -99,6 +99,21 @@ Example usage:
  - Linux (ubuntu|debian) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
  - Linux (centos|fedora|sles) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
 
+# using acquire_packages.py to download packages from stage1/stage2/live
+Supported Parameters:
+ - `--version` which Arangodb Version you want to run the test on
+ - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
+ - `--enterprise-magic` specify your secret enterprise download key here.
+ - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
+ - `--package-dir` The directory where we will download the nsis .exe / deb / rpm [/ dmg WIP] to
+ - `--source [public|stage1|stage2]` 
+   - `public` (default) will download the packages from downloads.arangodb.com
+   - `stage1` will download the files from the staging fileserver - level 1
+   - `stage2` will download the files from the staging fileserver - level 2
+ - `--verbose` if specified more logging is done
+ - `--force` overwrite readily existing downloaded packages
+
+
 # Using cleanup.py to clean out the system
 
 `cleanup.py` will try to invoke all known cleanup mechanisms, to bring your system as much as possible into a 'pure' state.

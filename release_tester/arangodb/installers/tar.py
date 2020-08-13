@@ -19,7 +19,9 @@ class InstallerTAR(InstallerBase):
         if macver[0]:
             cfg.localhost = 'localhost'
             self.check_stripped = False
+            self.remote_package_dir  = 'MacOSX'
         else:
+            self.remote_package_dir  = 'Linux'
             cfg.localhost = 'ip6-localhost'
             self.check_stripped = True
 

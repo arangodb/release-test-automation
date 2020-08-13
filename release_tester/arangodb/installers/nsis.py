@@ -19,6 +19,7 @@ class InstallerW(InstallerBase):
         self.client_package = None
         self.instance = None
         self.service = None
+        self.remote_package_dir  = 'Windows'
 
         cfg.baseTestDir = Path('/tmp')
         cfg.installPrefix = Path("C:/tmp")

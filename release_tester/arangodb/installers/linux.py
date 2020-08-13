@@ -14,7 +14,7 @@ import semver
 
 class InstallerLinux(InstallerBase):
     def __init__(self, cfg):
-
+        self.remote_package_dir  = 'Linux'
         super().__init__(cfg)
     
 
@@ -35,4 +35,3 @@ class InstallerLinux(InstallerBase):
         else:
             logging.info('Something wrong')
             sys.exit(1)
-            

@@ -22,6 +22,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 class InstallerMac(InstallerBase):
     """ install .dmg's on a mac """
     def __init__(self, cfg):
+        self.remote_package_dir  = 'MacOSX'
         self.server_package = None
         self.client_package = None
         self.debug_package = None
@@ -34,8 +35,6 @@ class InstallerMac(InstallerBase):
 
         cfg.baseTestDir = Path('/tmp')
         cfg.installPrefix = None
-        cfg.bin_dir = None
-        cfg.sbin_dir = None
         cfg.localhost = 'localhost'
         cfg.passvoid = '' # default mac install doesn't set passvoid
 
@@ -44,6 +43,12 @@ class InstallerMac(InstallerBase):
         cfg.appdir = self.basehomedir / 'opt' / 'arangodb' / 'var' / 'lib' / 'arangodb3-apps'
         cfg.cfgdir = self.baseetcdir
         cfg.pidfile = Path("/var/tmp/arangod.pid")
+
+        # we gonna override them to their real locations later on.
+        cfg.bin_dir = Path('/')
+        cfg.sbin_dir = Path('/')
+        cfg.real_bin_dir = Path('/')
+        cfg.real_sbin_dir = Path('/')
 
         super().__init__(cfg)
 
