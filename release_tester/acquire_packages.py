@@ -23,9 +23,6 @@ passvoid = ''
 user = ''
 
 def acquire_stage_ftp(directory, package, local_dir, force, stage):
-    print('stage')
-    print('directory: ' + directory)
-    print('package: '+ package)
     out = local_dir / package
     if out.exists() and not force:
         print(stage + ": not overwriting {file} since not forced to overwrite!".format(**{
@@ -33,31 +30,29 @@ def acquire_stage_ftp(directory, package, local_dir, force, stage):
         }))
         return
     ftp = FTP('Nas02.arangodb.biz')
-    print(ftp.login(user='', passwd='', acct = ''))
-    print(ftp.cwd(directory))
-    print(ftp.set_pasv(True))
-    with out.open() as fd:
-        print(str(fd))
-        print(package)
-        print(ftp.retrbinary('STOR ' + package, fd))
+    print(stage + ": " + ftp.login(user='anonymous', passwd='anonymous', acct = 'anonymous'))
+    print(stage + ": " + ftp.cwd(directory))
+    ftp.set_pasv(True)
+    with out.open(mode='wb') as fd:
+        print(stage + ": downloading to " + str(out))
+        print(stage + ": " + ftp.retrbinary('RETR ' + package, fd.write))
 
-def acquire_stage(directory, package, local_dir, force, stage):
+def acquire_stage_http(directory, package, local_dir, force, stage):
     global passvoid, user
-    url = 'https://{user}:{passvoid}@Nas02.arangodb.biz/{dir}{pkg}'.format(**{
-        'passvoid': passvoid,
-        'user': user,
-        'dir': directory,
-        'pkg': package
-        })
-
-    #url = 'https://{user}:{passvoid}@fileserver.arangodb.com:8529/{dir}{pkg}'.format(**{
+    #url = 'https://{user}:{passvoid}@Nas02.arangodb.biz/{dir}{pkg}'.format(**{
     #    'passvoid': passvoid,
     #    'user': user,
     #    'dir': directory,
     #    'pkg': package
     #    })
 
-    # https://fileserver.arangodb.com:8529
+    url = 'https://{user}:{passvoid}@fileserver.arangodb.com:8529/{dir}{pkg}'.format(**{
+        'passvoid': passvoid,
+        'user': user,
+        'dir': directory,
+        'pkg': package
+        })
+
     out = local_dir / package
     if out.exists() and not force:
         print(stage + ": not overwriting {file} since not forced to overwrite!".format(**{
@@ -79,11 +74,17 @@ def acquire_stage(directory, package, local_dir, force, stage):
             "msg": res.text
             }))
 
-def acquire_stage1(directory, package, local_dir, force):
-    acquire_stage(directory, package, local_dir, force, "STAGE_1")
+def acquire_stage1_http(directory, package, local_dir, force):
+    acquire_stage_http(directory, package, local_dir, force, "STAGE_1_HTTP")
 
-def acquire_stage2(directory, package, local_dir, force):
-    acquire_stage(directory, package, local_dir, force, "STAGE_2")
+def acquire_stage2_http(directory, package, local_dir, force):
+    acquire_stage_http(directory, package, local_dir, force, "STAGE_2_HTTP")
+
+def acquire_stage1_ftp(directory, package, local_dir, force):
+    acquire_stage_ftp(directory, package, local_dir, force, "STAGE_1_FTP")
+
+def acquire_stage2_ftp(directory, package, local_dir, force):
+    acquire_stage_ftp(directory, package, local_dir, force, "STAGE_2_FTP")
 
 def acquire_live(directory, package, local_dir, force):    
     print('live')
@@ -139,9 +140,16 @@ def acquire_live(directory, package, local_dir, force):
               help='whether to overwrite existing target files or not.')
 @click.option('--source',
               default='public',
-              help='where to download the package from [stage1|stage2|public]')
+              help='where to download the package from [[ftp|http]:stage1|[ftp|http]:stage2|public]')
+@click.option('--httpuser',
+              default="",
+              help='user for external http download')
+@click.option('--httppassvoid',
+              default="",
+              help='passvoid for external http download')
 
-def acquire_package(version, verbose, package_dir, enterprise, enterprise_magic, zip, force, source):
+def acquire_package(version, verbose, package_dir, enterprise, enterprise_magic, zip, force, source, httpuser, httppassvoid):
+    global passvoid, user
     """ main """
     lh.section("configuration")
     print("version: " + str(version))
@@ -149,27 +157,29 @@ def acquire_package(version, verbose, package_dir, enterprise, enterprise_magic,
     print("using zip: " + str(zip))
     print("package directory: " + str(package_dir))
     print("verbose: " + str(verbose))
+    user = httpuser
+    passvoid = httppassvoid
 
     lh.section("startup")
     if verbose:
         logging.info("setting debug level to debug (verbose)")
         logging.getLogger().setLevel(logging.DEBUG)
 
-    install_config = InstallerConfig(version,
-                                     verbose,
-                                     enterprise,
-                                     zip,
-                                     Path(package_dir),
-                                     "",
-                                     "127.0.0.1",
-                                     False)
+    cfg = InstallerConfig(version,
+                          verbose,
+                          enterprise,
+                          zip,
+                          Path(package_dir),
+                          "",
+                          "127.0.0.1",
+                          False)
                              
-    inst = make_installer(install_config)
+    inst = make_installer(cfg)
 
     params = {
-        "full_version": 'v3.7.1',
-        "bare_major_version": '3.7',
-        "major_version": 'arangodb37',
+        "full_version": 'v{major}.{minor}.{patch}'.format(**cfg.semver.to_dict()),
+        "major_version": 'arangodb{major}{minor}'.format(**cfg.semver.to_dict()),
+        "bare_major_version": '{major}.{minor}'.format(**cfg.semver.to_dict()),
         "remote_package_dir": inst.remote_package_dir,
         "enterprise": "Enterprise" if enterprise else "Community",
         "enterprise_magic": enterprise_magic,
@@ -177,28 +187,30 @@ def acquire_package(version, verbose, package_dir, enterprise, enterprise_magic,
 
     print(params)
     directories = {
-        # ftp: "stage1": '/buildfiles/stage1/{full_version}/release/packages/{enterprise}/{remote_package_dir}/'.format(**params),
-        # ftp: "stage2": '/buildfiles/stage2/{bare_major_version}/packages/{enterprise}/{remote_package_dir}/'.format(**params),
-        "stage1": 'stage1/{full_version}/release/packages/{enterprise}/{remote_package_dir}/'.format(**params),
-        "stage2": 'stage2/{bare_major_version}/packages/{enterprise}/{remote_package_dir}/'.format(**params),
+        "ftp:stage1": '/buildfiles/stage1/{full_version}/release/packages/{enterprise}/{remote_package_dir}/'.format(**params),
+        "ftp:stage2": '/buildfiles/stage2/{bare_major_version}/packages/{enterprise}/{remote_package_dir}/'.format(**params),
+        "http:stage1": 'stage1/{full_version}/release/packages/{enterprise}/{remote_package_dir}/'.format(**params),
+        "http:stage2": 'stage2/{bare_major_version}/packages/{enterprise}/{remote_package_dir}/'.format(**params),
         "public": '{enterprise_magic}/{major_version}/{enterprise}/{remote_package_dir}/'.format(**params)
     }
 
     funcs = {
-        "stage1": acquire_stage1,
-        "stage2": acquire_stage2,
+        "http:stage1": acquire_stage1_http,
+        "http:stage2": acquire_stage2_http,
+        "ftp:stage1": acquire_stage1_ftp,
+        "ftp:stage2": acquire_stage2_ftp,
         "public": acquire_live
     }
     
     
     print(directories)
     packages = [
-      #   inst.server_package
+        inst.server_package
     ]
-    if hasattr(inst, 'client_package'):
+    if inst.client_package:
         packages.append(inst.client_package)
-#    if hasattr(inst, 'debug_package'):
-#        packages.append(inst.debug_package)
+    if inst.debug_package:
+        packages.append(inst.debug_package)
 
     for package in packages:
         funcs[source](directories[source], package, Path(package_dir), force)

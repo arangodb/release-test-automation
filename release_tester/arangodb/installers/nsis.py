@@ -41,14 +41,21 @@ class InstallerW(InstallerBase):
     def calculate_package_names(self):
         enterprise = 'e' if self.cfg.enterprise else ''
         architecture = 'win64'
+        semdict = dict(self.cfg.semver.to_dict())
+        if semdict['prerelease']:
+            semdict['prerelease'] = '-{prerelease}'.format(**semdict)
+        else:
+            semdict['prerelease'] = ''
+        version = '{major}.{minor}.{patch}{prerelease}'.format(**semdict)
         self.server_package = 'ArangoDB3%s-%s_%s.exe' % (
             enterprise,
-            self.cfg.version,
+            version,
             architecture)
-        self.client_package = 'ArangoDB3%s-client_%s_%s.exe' % (
+        self.client_package = 'ArangoDB3%s-client-%s_%s.exe' % (
             enterprise,
-            self.cfg.version,
+            version,
             architecture)
+        self.debug_package = None # TODO
 
     def upgrade_package(self):
         raise Exception("TODO!")

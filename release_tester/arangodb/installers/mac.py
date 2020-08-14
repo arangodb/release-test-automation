@@ -155,9 +155,16 @@ class InstallerMac(InstallerBase):
         enterprise = 'e' if self.cfg.enterprise else ''
         architecture = 'x86_64'
 
+        semdict = dict(self.cfg.semver.to_dict())
+        if semdict['prerelease']:
+            semdict['prerelease'] = '-{prerelease}'.format(**semdict)
+        else:
+            semdict['prerelease'] = ''
+        version = '{major}.{minor}.{patch}{prerelease}'.format(**semdict)
+
         desc = {
             "ep"   : enterprise,
-            "cfg"  : self.cfg.version,
+            "cfg"  : version,
             "arch" : architecture
         }
 

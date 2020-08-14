@@ -37,12 +37,26 @@ class InstallerRPM(InstallerLinux):
 
     def calculate_package_names(self):
         enterprise = 'e' if self.cfg.enterprise else ''
-        package_version = '1.0'
         architecture = 'x86_64'
+
+        semdict = dict(self.cfg.semver.to_dict())
+
+        if semdict['prerelease']:
+            # remove dots, but prepend one:
+            semdict['prerelease'] = '.' + semdict['prerelease'].replace('.', '')
+        else:
+            semdict['prerelease'] = ''
+
+        if not semdict['build']:
+            semdict['build'] = '1.0'
+
+        package_version = '{build}{prerelease}'.format(**semdict)
+
+        version = '{major}.{minor}.{patch}'.format(**semdict)
 
         desc = {
             "ep"   : enterprise,
-            "cfg"  : self.cfg.version,
+            "cfg"  : version,
             "ver"  : package_version,
             "arch" : architecture
         }
