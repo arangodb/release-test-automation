@@ -214,6 +214,7 @@ class InstallerDeb(InstallerLinux):
         """ installing debug package """
         cmd = 'dpkg -i ' + str(self.cfg.package_dir / self.debug_package)
         lh.log_cmd(cmd)
+        os.environ['DEBIAN_FRONTEND'] = 'readline'
         debug_install = pexpect.spawnu(cmd)
         try:
             logging.info("waiting for the installation to finish")
@@ -236,6 +237,7 @@ class InstallerDeb(InstallerLinux):
         
     
     def un_install_debug_package(self):
+        os.environ['DEBIAN_FRONTEND'] = 'readline'
         uninstall = pexpect.spawnu('dpkg --purge ' +
                                    'arangodb3' +
                                    ('e-dbg' if self.cfg.enterprise else '-dbg'))
