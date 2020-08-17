@@ -39,6 +39,27 @@ if (params['ZIP']) {
 }
 
 node(TARGET_HOST)  {
+
+    checkout([$class: 'GitSCM',
+              branches: [[name: "${GITTAG}"]],
+              /*
+         doGenerateSubmoduleConfigurations: false,
+         extensions: [[$class: 'SubmoduleOption',
+         disableSubmodules: false,
+         parentCredentials: false,
+         recursiveSubmodules: true,
+         reference: '',
+         trackingSubmodules: false]],
+         submoduleCfg: [],
+         */
+              extensions: [
+            [$class: 'CheckoutOption', timeout: 20],
+            [$class: 'CloneOption', timeout: 20]
+        ],
+              userRemoteConfigs:
+              [[url: 'https://github.com/arangodb/release-test-automation.git']]])
+
+    
     if (params['VERSION_OLD'] != "") {
         ACQUIRE_COMMAND = """
 ${PYTHON} ../release_tester/acquire_packages.py ${ENTERPRISE_PARAM} --enterprise-magic ${params['ENTERPRISE_KEY']} --package-dir {PACKAGE_DIR} ${FORCE_PARAM_OLD} --source ${params['PACKAGE_SOURCE_OLD']} --version '${params['VERSION_OLD']}' --httpuser dothebart --httppassvoid '${params['HTTP_PASSVOID']}' ${ZIP}
