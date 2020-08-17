@@ -45,14 +45,14 @@ ${PYTHON} ../release_tester/acquire_packages.py ${ENTERPRISE_PARAM} --enterprise
 """
         print("downloading old package(s) using:")
         print(ACQUIRE_COMMAND)
-        sh AQCUIRE_COMMAND
+        sh ACQUIRE_COMMAND
     }
     ACQUIRE_COMMAND = """
 ${PYTHON} ../release_tester/acquire_packages.py ${ENTERPRISE_PARAM} --enterprise-magic ${params['ENTERPRISE_KEY']} --package-dir {PACKAGE_DIR} ${FORCE_PARAM_NEW} --source ${params['PACKAGE_SOURCE_NEW']} --version '${params['VERSION_OLD']}' --httpuser dothebart --httppassvoid '${params['HTTP_PASSVOID']} ${ZIP}
 """
     print("downloading new package(s) using:")
     print(ACQUIRE_COMMAND)
-    sh AQCUIRE_COMMAND
+    sh ACQUIRE_COMMAND
 
     print("cleaning up the system (if):")
     CLEANUP_COMMAND = """
