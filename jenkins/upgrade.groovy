@@ -52,6 +52,7 @@ ${PYTHON} ../release_tester/acquire_packages.py ${ENTERPRISE_PARAM} --enterprise
 """
     print("downloading new package(s) using:")
     print(ACQUIRE_COMMAND)
+    sh 'pwd'
     sh ACQUIRE_COMMAND
 
     print("cleaning up the system (if):")
