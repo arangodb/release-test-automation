@@ -148,7 +148,6 @@ process.exit(0);
             node.detect_instances()
             node.wait_for_version_reply()
 
-
     def jam_attempt_impl(self):
         logging.info("not implemented skipping")
 
