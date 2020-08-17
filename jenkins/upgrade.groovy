@@ -59,26 +59,26 @@ node(TARGET_HOST)  {
               userRemoteConfigs:
               [[url: 'https://github.com/arangodb/release-test-automation.git']]])
 
+    sh 'pwd'
     
     if (params['VERSION_OLD'] != "") {
         ACQUIRE_COMMAND = """
-${PYTHON} ../release_tester/acquire_packages.py ${ENTERPRISE_PARAM} --enterprise-magic ${params['ENTERPRISE_KEY']} --package-dir {PACKAGE_DIR} ${FORCE_PARAM_OLD} --source ${params['PACKAGE_SOURCE_OLD']} --version '${params['VERSION_OLD']}' --httpuser dothebart --httppassvoid '${params['HTTP_PASSVOID']}' ${ZIP}
+${PYTHON} release_tester/acquire_packages.py ${ENTERPRISE_PARAM} --enterprise-magic ${params['ENTERPRISE_KEY']} --package-dir {PACKAGE_DIR} ${FORCE_PARAM_OLD} --source ${params['PACKAGE_SOURCE_OLD']} --version '${params['VERSION_OLD']}' --httpuser dothebart --httppassvoid '${params['HTTP_PASSVOID']}' ${ZIP}
 """
         print("downloading old package(s) using:")
         print(ACQUIRE_COMMAND)
         sh ACQUIRE_COMMAND
     }
     ACQUIRE_COMMAND = """
-${PYTHON} ../release_tester/acquire_packages.py ${ENTERPRISE_PARAM} --enterprise-magic ${params['ENTERPRISE_KEY']} --package-dir {PACKAGE_DIR} ${FORCE_PARAM_NEW} --source ${params['PACKAGE_SOURCE_NEW']} --version '${params['VERSION_OLD']}' --httpuser dothebart --httppassvoid '${params['HTTP_PASSVOID']}' ${ZIP}
+${PYTHON} release_tester/acquire_packages.py ${ENTERPRISE_PARAM} --enterprise-magic ${params['ENTERPRISE_KEY']} --package-dir {PACKAGE_DIR} ${FORCE_PARAM_NEW} --source ${params['PACKAGE_SOURCE_NEW']} --version '${params['VERSION_OLD']}' --httpuser dothebart --httppassvoid '${params['HTTP_PASSVOID']}' ${ZIP}
 """
     print("downloading new package(s) using:")
     print(ACQUIRE_COMMAND)
-    sh 'pwd'
     sh ACQUIRE_COMMAND
 
     print("cleaning up the system (if):")
     CLEANUP_COMMAND = """
-${PYTHON} ../release_tester/cleanup.py ${ZIP}
+${PYTHON} release_tester/cleanup.py ${ZIP}
 """
     print(CLEANUP_COMMAND)
     sh CLEANUP_COMMAND
@@ -86,7 +86,7 @@ ${PYTHON} ../release_tester/cleanup.py ${ZIP}
     if (params['VERSION_OLD'] != "") {
         print("Running upgrade test")
         UPGRADE_COMMAND = """
-${PYTHON} ../release_tester/upgrade.py ${ENTERPRISE_PARAM} --old-version ${params['VERSION_OLD']} --version ${params['VERSION_NEW']} --package-dir ${PACKAGE_DIR} --publicip 192.168.173.88 ${ZIP} --no-interactive
+${PYTHON} release_tester/upgrade.py ${ENTERPRISE_PARAM} --old-version ${params['VERSION_OLD']} --version ${params['VERSION_NEW']} --package-dir ${PACKAGE_DIR} --publicip 192.168.173.88 ${ZIP} --no-interactive
 """
         print(UPGRADE_COMMAND)
         sh UPGRADE_COMMAND
@@ -94,7 +94,7 @@ ${PYTHON} ../release_tester/upgrade.py ${ENTERPRISE_PARAM} --old-version ${param
     } else {
         print("Running plain install test")
         TEST_COMMAND = """
-${PYTHON} ../release_tester/test.py ${ENTERPRISE_PARAM} --version ${params['VERSION_NEW']} --package-dir ${PACKAGE_DIR} --publicip 192.168.173.88 ${ZIP} --no-interactive
+${PYTHON} release_tester/test.py ${ENTERPRISE_PARAM} --version ${params['VERSION_NEW']} --package-dir ${PACKAGE_DIR} --publicip 192.168.173.88 ${ZIP} --no-interactive
 """
         print(TEST_COMMAND)
         sh TEST_COMMAND
