@@ -22,18 +22,18 @@ logging.basicConfig(
 @click.command()
 @click.option('--old-version', help='old ArangoDB version number.')
 @click.option('--version', help='ArangoDB version number.')
-@click.option('--verbose',
+@click.option('--verbose/--no-verbose',
               is_flag=True,
               default=False,
               help='switch starter to verbose logging mode.')
 @click.option('--package-dir',
               default='/tmp/',
               help='directory to load the packages from.')
-@click.option('--enterprise',
+@click.option('--enterprise/--no-enterprise',
               is_flag=True,
               default=False,
               help='Enterprise or community?')
-@click.option('--zip',
+@click.option('--zip/--no-zip',
               is_flag=True,
               default=False,
               help='switch to zip or tar.gz package instead of default OS package')

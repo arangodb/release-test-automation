@@ -120,21 +120,21 @@ def acquire_live(directory, package, local_dir, force):
               is_flag=True,
               default=False,
               help='switch starter to verbose logging mode.')
-@click.option('--enterprise',
+@click.option('--enterprise/--no-enterprise',
               is_flag=True,
               default=False,
               help='Enterprise or community?')
 @click.option('--enterprise-magic',
               default='',
               help='Enterprise or community?')
-@click.option('--zip',
+@click.option('--zip/--no-zip',
               is_flag=True,
               default=False,
               help='switch to zip or tar.gz package instead of default OS package')
 @click.option('--package-dir',
               default='/tmp/',
               help='directory to store the packages to.')
-@click.option('--force',
+@click.option('--force/--no-force',
               is_flag=True,
               default=False,
               help='whether to overwrite existing target files or not.')

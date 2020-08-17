@@ -23,11 +23,11 @@ logging.basicConfig(
               is_flag=True,
               default=False,
               help='switch starter to verbose logging mode.')
-@click.option('--enterprise',
+@click.option('--enterprise/--no-enterprise',
               is_flag=True,
               default=False,
               help='Enterprise or community?')
-@click.option('--zip',
+@click.option('--zip/--no-zip',
               is_flag=True,
               default=False,
               help='switch to zip or tar.gz package instead of default OS package')
