@@ -182,7 +182,7 @@ def acquire_package(version, verbose, package_dir, enterprise, enterprise_magic,
         "bare_major_version": '{major}.{minor}'.format(**cfg.semver.to_dict()),
         "remote_package_dir": inst.remote_package_dir,
         "enterprise": "Enterprise" if enterprise else "Community",
-        "enterprise_magic": enterprise_magic if enterprise else ""
+        "enterprise_magic": enterprise_magic + "/" if enterprise else ""
     }
 
     print(params)
@@ -191,7 +191,7 @@ def acquire_package(version, verbose, package_dir, enterprise, enterprise_magic,
         "ftp:stage2": '/buildfiles/stage2/{bare_major_version}/packages/{enterprise}/{remote_package_dir}/'.format(**params),
         "http:stage1": 'stage1/{full_version}/release/packages/{enterprise}/{remote_package_dir}/'.format(**params),
         "http:stage2": 'stage2/{bare_major_version}/packages/{enterprise}/{remote_package_dir}/'.format(**params),
-        "public": '{enterprise_magic}/{major_version}/{enterprise}/{remote_package_dir}/'.format(**params)
+        "public": '{enterprise_magic}{major_version}/{enterprise}/{remote_package_dir}/'.format(**params)
     }
 
     funcs = {
