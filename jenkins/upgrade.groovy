@@ -36,14 +36,14 @@ if (params['ZIP']) {
 node(TARGET_HOST)  {
     if (params['VERSION_OLD'] != "") {
         ACQUIRE_COMMAND = """
-${PYTHON} ../release_tester/acquire_packages.py ${ENTERPRISE_PARAM} --enterprise-magic ${PARAMS['ENTERPRISE_KEY']} --package-dir {PACKAGE_DIR} ${FORCE_PARAM_OLD} --source ${params['PACKAGE_SOURCE_OLD']} --version '${params['VERSION_OLD']}' --httpuser dothebart --httppassvoid '${params['HTTP_PASSVOID']} ${ZIP}
+${PYTHON} ../release_tester/acquire_packages.py ${ENTERPRISE_PARAM} --enterprise-magic ${params['ENTERPRISE_KEY']} --package-dir {PACKAGE_DIR} ${FORCE_PARAM_OLD} --source ${params['PACKAGE_SOURCE_OLD']} --version '${params['VERSION_OLD']}' --httpuser dothebart --httppassvoid '${params['HTTP_PASSVOID']} ${ZIP}
 """
         print("downloading old package(s) using:")
         print(ACQUIRE_COMMAND)
         sh AQCUIRE_COMMAND
     }
     ACQUIRE_COMMAND = """
-${PYTHON} ../release_tester/acquire_packages.py ${ENTERPRISE_PARAM} --enterprise-magic ${PARAMS['ENTERPRISE_KEY']} --package-dir {PACKAGE_DIR} ${FORCE_PARAM_NEW} --source ${params['PACKAGE_SOURCE_NEW']} --version '${params['VERSION_OLD']}' --httpuser dothebart --httppassvoid '${params['HTTP_PASSVOID']} ${ZIP}
+${PYTHON} ../release_tester/acquire_packages.py ${ENTERPRISE_PARAM} --enterprise-magic ${params['ENTERPRISE_KEY']} --package-dir {PACKAGE_DIR} ${FORCE_PARAM_NEW} --source ${params['PACKAGE_SOURCE_NEW']} --version '${params['VERSION_OLD']}' --httpuser dothebart --httppassvoid '${params['HTTP_PASSVOID']} ${ZIP}
 """
     print("downloading new package(s) using:")
     print(ACQUIRE_COMMAND)
