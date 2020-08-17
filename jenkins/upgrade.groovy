@@ -41,7 +41,7 @@ if (params['ZIP']) {
 node(TARGET_HOST)  {
 
     checkout([$class: 'GitSCM',
-              branches: [[name: "${GITTAG}"]],
+              branches: [[name: "master"]],
               /*
          doGenerateSubmoduleConfigurations: false,
          extensions: [[$class: 'SubmoduleOption',
