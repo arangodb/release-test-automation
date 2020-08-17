@@ -10,6 +10,7 @@ switch (TARGET) {
     case 'linux_deb':
         TARGET_HOST='willi-test-release'
         SUDO='sudo'
+        PYTHON='' // Lean on shebang!
         break
     case 'linux_rpm': // TODO
         SUDO='sudo'
