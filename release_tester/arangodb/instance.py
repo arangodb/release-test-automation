@@ -36,6 +36,7 @@ class AfoServerState(Enum):
     leader = 1
     not_leader = 2
     challenge_ongoing = 3
+    not_connected = 4
 
 class Instance(ABC):
     """abstract instance manager"""
@@ -139,7 +140,12 @@ arangod instance
         return self.get_afo_state() == AfoServerState.leader
 
     def get_afo_state(self):
-        reply = requests.get(self.get_local_url('')+'/_api/version')
+        reply = None
+        try:
+            reply = requests.get(self.get_local_url('')+'/_api/version')
+        except requests.exceptions.ConnectionError as x:
+            return AfoServerState.not_connected
+
         if reply.status_code == 200:
             return AfoServerState.leader
         elif reply.status_code == 503:
@@ -187,7 +193,7 @@ arangod instance
                 if self.type == InstanceType.resilientsingle:
                     print("waiting for leader election: ", end="")
                     status = AfoServerState.challenge_ongoing
-                    while status is AfoServerState.challenge_ongoing:
+                    while status is AfoServerState.challenge_ongoing or status is AfoServerState.not_connected:
                         status = self.get_afo_state()
                         print('%', end='')
                         time.sleep(0.1)

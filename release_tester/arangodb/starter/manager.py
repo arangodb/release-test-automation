@@ -19,7 +19,7 @@ import psutil
 
 from tools.asciiprint import ascii_print
 from tools.timestamp import timestamp
-from arangodb.instance import ArangodInstance, SyncInstance, InstanceType
+from arangodb.instance import ArangodInstance, SyncInstance, InstanceType, AfoServerState
 from arangodb.backup import HotBackupConfig, HotBackupManager
 from arangodb.sh import ArangoshExecutor
 import tools.loghelper as lh
@@ -318,6 +318,13 @@ Starter {0.name}
         self.instance = psutil.Popen(args)
         self.wait_for_logfile()
         
+    def wait_for_version_reply(self):
+        frontends = self.get_frontends()
+        for frontend in frontends:
+            # we abuse this function:
+            while frontend.get_afo_state() != AfoServerState.leader:
+                print(".", end="")
+                time.sleep(0.1)
 
     def execute_frontend(self, cmd, verbose=True):
         """ use arangosh to run a command on the frontend arangod"""

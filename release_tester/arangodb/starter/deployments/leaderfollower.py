@@ -131,9 +131,23 @@ process.exit(0);
 
         logging.info("Leader follower setup successfully finished!")
 
+    def supports_backup_impl(self):
+        return False
+
     def upgrade_arangod_version_impl(self):
         """ upgrade this installation """
-        logging.info("not implemented skipping")
+        for node in [self.leader_starter_instance, self.follower_starter_instance]:
+            node.replace_binary_for_upgrade(self.new_cfg)
+        for node in [self.leader_starter_instance, self.follower_starter_instance]:
+            node.detect_instance_pids_still_alive()
+        for node in [self.leader_starter_instance, self.follower_starter_instance]:
+            node.command_upgrade()
+            node.wait_for_upgrade()
+
+        for node in [self.leader_starter_instance, self.follower_starter_instance]:
+            node.detect_instances()
+            node.wait_for_version_reply()
+
 
     def jam_attempt_impl(self):
         logging.info("not implemented skipping")
