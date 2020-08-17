@@ -78,12 +78,16 @@ ${PYTHON} release_tester/acquire_packages.py ${ENTERPRISE_PARAM} --enterprise-ma
     print(ACQUIRE_COMMAND)
     sh ACQUIRE_COMMAND
 
-    print("cleaning up the system (if):")
-    CLEANUP_COMMAND = """
+    if File('/tpm/config.yml').exists() {
+        print("cleaning up the system (if):")
+        CLEANUP_COMMAND = """
 ${SUDO} ${PYTHON} release_tester/cleanup.py ${ZIP}
 """
-    print(CLEANUP_COMMAND)
-    sh CLEANUP_COMMAND
+        print(CLEANUP_COMMAND)
+        sh CLEANUP_COMMAND
+    } else {
+        print("no old install detected; not cleaning up")
+    }
 
     if (params['VERSION_OLD'] != "") {
         print("Running upgrade test")
