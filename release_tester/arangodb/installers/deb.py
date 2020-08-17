@@ -201,7 +201,7 @@ class InstallerDeb(InstallerLinux):
                                    'arangodb3' +
                                    ('e' if self.cfg.enterprise else ''))
         try:
-            uninstall.expect('Purging')
+            uninstall.expect(['Purging'|'which isn\'t installed'])
             ascii_print(uninstall.before)
             uninstall.expect(pexpect.EOF)
             ascii_print(uninstall.before)
@@ -242,7 +242,7 @@ class InstallerDeb(InstallerLinux):
                                    'arangodb3' +
                                    ('e-dbg' if self.cfg.enterprise else '-dbg'))
         try:
-            uninstall.expect('Removing')
+            uninstall.expect(['Removing'|'which isn\'t installed'])
             ascii_print(uninstall.before)
             uninstall.expect(pexpect.EOF, timeout=30)
             ascii_print(uninstall.before)
