@@ -87,7 +87,7 @@ ${PYTHON} ${WORKSPACE}/release_tester/acquire_packages.py ${ENTERPRISE_PARAM} --
     if (fileExists('/tmp/config.yml')) {
         print("cleaning up the system (if):")
         CLEANUP_COMMAND = """
-${SUDO} ${PYTHON} ${WORKSPACE}/release_tester/cleanup.py ${ZIP} ${VERBOSE}
+${SUDO} ${PYTHON} ${WORKSPACE}/release_tester/cleanup.py ${ZIP}
 """
         print(CLEANUP_COMMAND)
         sh CLEANUP_COMMAND
