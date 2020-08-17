@@ -28,6 +28,11 @@ if (params['FORCE_OLD']) {
     FORCE_PARAM_OLD = '--force'
 }
 
+FORCE_PARAM_NEW = ''
+if (params['FORCE_NEW']) {
+    FORCE_PARAM_NEW = '--force'
+}
+
 ZIP = ''
 if (params['ZIP']) {
     ZIP = '--zip'
