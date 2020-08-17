@@ -25,10 +25,6 @@ class InstallerDeb(InstallerLinux):
         self.debug_package = None
         self.log_examiner = None
 
-        version = cfg.version.split("~")[0]
-        version = ".".join(version.split(".")[:3])
-        self.semver = semver.VersionInfo.parse(version)
-
         # Are those required to be stored in the cfg?
         cfg.baseTestDir = Path('/tmp')
         cfg.installPrefix = Path("/")
@@ -51,9 +47,18 @@ class InstallerDeb(InstallerLinux):
         package_version = '1'
         architecture = 'amd64'
 
+        semdict = dict(self.cfg.semver.to_dict())
+
+        if semdict['prerelease']:
+            semdict['prerelease'] = '~{prerelease}'.format(**semdict)
+        else:
+            semdict['prerelease'] = ''
+
+        version = '{major}.{minor}.{patch}{prerelease}'.format(**semdict)
+
         desc = {
             "ep"   : enterprise,
-            "cfg"  : self.cfg.version,
+            "cfg"  : version,
             "ver"  : package_version,
             "arch" : architecture
         }
@@ -159,7 +164,7 @@ class InstallerDeb(InstallerLinux):
             server_install.sendline("yes")
 
 
-            if self.semver <= semver.VersionInfo.parse("3.6.99"):
+            if self.cfg.semver <= semver.VersionInfo.parse("3.6.99"):
                 logging.debug("expect: storage engine selection")
                 server_install.expect("Database storage engine")
                 ascii_print(server_install.before)
