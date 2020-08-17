@@ -145,6 +145,7 @@ process.exit(0);
             node.wait_for_upgrade()
 
         for node in [self.leader_starter_instance, self.follower_starter_instance]:
+            node.wait_for_upgrade_done_in_log()
             node.detect_instances()
             node.wait_for_version_reply()
 

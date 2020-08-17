@@ -203,6 +203,14 @@ Starter {0.name}
                 keepGoing = False
             time.sleep(1)
 
+    def wait_for_upgrade_done_in_log(self):
+        counter = 0
+        keepGoing = True
+        logging.info('Looking for "Upgrading done" in the log file.\n')
+        while keepGoing:
+            text = self.get_log_file()
+            keepGoing = text.find('Upgrading done.') >= 0
+            print('.')
 
     def is_instance_up(self):
         """ check whether all spawned arangods are fully bootet"""
