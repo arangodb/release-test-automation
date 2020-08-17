@@ -182,7 +182,7 @@ def acquire_package(version, verbose, package_dir, enterprise, enterprise_magic,
         "bare_major_version": '{major}.{minor}'.format(**cfg.semver.to_dict()),
         "remote_package_dir": inst.remote_package_dir,
         "enterprise": "Enterprise" if enterprise else "Community",
-        "enterprise_magic": enterprise_magic,
+        "enterprise_magic": enterprise_magic if enterprise else ""
     }
 
     print(params)
