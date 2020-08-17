@@ -125,22 +125,23 @@ class Runner(ABC):
             self.new_installer.stop_service()
             self.upgrade_arangod_version() #make sure to pass new version
             self.make_data_after_upgrade()
-            lh.section("TESTING HOTBACKUP AFTER UPGRADE")
-            backups = self.list_backup()
-            print(backups)
-            self.upload_backup(backups[0])
-            self.delete_backup(backups[0])
-            backups = self.list_backup()
-            if len(backups) != 0:
-                raise Exception("expected backup to be gone, but its still there: " + str(backups))
-            self.download_backup(self.backup_name)
-            backups = self.list_backup()
-            if backups[0] != self.backup_name:
-                raise Exception("downloaded backup has different name? " + str(backups))
-            self.restore_backup(backups[0])
+            if self.cfg.enterprise:
+                lh.section("TESTING HOTBACKUP AFTER UPGRADE")
+                backups = self.list_backup()
+                print(backups)
+                self.upload_backup(backups[0])
+                self.delete_backup(backups[0])
+                backups = self.list_backup()
+                if len(backups) != 0:
+                    raise Exception("expected backup to be gone, but its still there: " + str(backups))
+                self.download_backup(self.backup_name)
+                backups = self.list_backup()
+                if backups[0] != self.backup_name:
+                    raise Exception("downloaded backup has different name? " + str(backups))
+                self.restore_backup(backups[0])
+                if not self.check_non_backup_data():
+                    raise Exception("data created after backup is still there??")
             self.check_data_impl()
-            if not self.check_non_backup_data():
-                raise Exception("data created after backup is still there??")
         else:
             logging.info("skipping upgrade step no new version given")
 
