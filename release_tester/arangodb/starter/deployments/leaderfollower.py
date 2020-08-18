@@ -6,6 +6,7 @@ from tools.killall import get_all_processes
 from arangodb.starter.manager import StarterManager
 from arangodb.starter.deployments.runner import Runner
 import tools.loghelper as lh
+from tools.asciiprint import print_progress as progress
 
 class LeaderFollower(Runner):
     """ this runs a leader / Follower setup with synchronisation """
@@ -114,7 +115,7 @@ process.exit(0);
             while tries:
                 if self.follower_starter_instance.execute_frontend(self.checks['checkReplJS'], False):
                     break
-                print(".", end='')
+                progress(".")
                 time.sleep(1)
                 tries -= 1
 
@@ -131,9 +132,21 @@ process.exit(0);
 
         logging.info("Leader follower setup successfully finished!")
 
+    def supports_backup_impl(self):
+        return False
+
     def upgrade_arangod_version_impl(self):
         """ upgrade this installation """
-        logging.info("not implemented skipping")
+        for node in [self.leader_starter_instance, self.follower_starter_instance]:
+            node.replace_binary_for_upgrade(self.new_cfg)
+        for node in [self.leader_starter_instance, self.follower_starter_instance]:
+            node.command_upgrade()
+            node.wait_for_upgrade()
+            node.wait_for_upgrade_done_in_log()
+
+        for node in [self.leader_starter_instance, self.follower_starter_instance]:
+            node.detect_instances()
+            node.wait_for_version_reply()
 
     def jam_attempt_impl(self):
         logging.info("not implemented skipping")

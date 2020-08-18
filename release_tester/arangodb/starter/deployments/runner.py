@@ -89,7 +89,7 @@ class Runner(ABC):
             self.make_data()
             ti.prompt_user(self.basecfg, "Deployment started. Please test the UI!")
 
-            if self.cfg.enterprise:
+            if self.cfg.enterprise and self.supports_backup_impl():
                 lh.section("TESTING HOTBACKUP")
                 self.backup_name = self.create_backup("thy_name_is") # TODO generate name?
                 self.create_non_backup_data()
@@ -125,7 +125,7 @@ class Runner(ABC):
             self.new_installer.stop_service()
             self.upgrade_arangod_version() #make sure to pass new version
             self.make_data_after_upgrade()
-            if self.cfg.enterprise:
+            if self.cfg.enterprise and self.supports_backup_impl():
                 lh.section("TESTING HOTBACKUP AFTER UPGRADE")
                 backups = self.list_backup()
                 print(backups)
@@ -368,6 +368,8 @@ class Runner(ABC):
             return self.check_data_impl_sh(arangosh)
         raise Exception("no frontend found.")
         
+    def supports_backup_impl(self):
+        return True
 
     def create_non_backup_data(self):
         for starter in self.makedata_instances:

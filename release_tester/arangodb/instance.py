@@ -10,6 +10,7 @@ import requests
 import json
 
 import psutil
+from tools.asciiprint import print_progress as progress
 
 
 class InstanceType(Enum):
@@ -36,6 +37,7 @@ class AfoServerState(Enum):
     leader = 1
     not_leader = 2
     challenge_ongoing = 3
+    not_connected = 4
 
 class Instance(ABC):
     """abstract instance manager"""
@@ -131,7 +133,7 @@ arangod instance
     def wait_for_logfile(self, tries):
         """ wait for logfile to appear """
         while not self.logfile.exists() and tries:
-            print(':')
+            progress(':')
             time.sleep(1)
             tries -= 1
 
@@ -139,7 +141,12 @@ arangod instance
         return self.get_afo_state() == AfoServerState.leader
 
     def get_afo_state(self):
-        reply = requests.get(self.get_local_url('')+'/_api/version')
+        reply = None
+        try:
+            reply = requests.get(self.get_local_url('')+'/_api/version')
+        except requests.exceptions.ConnectionError as x:
+            return AfoServerState.not_connected
+
         if reply.status_code == 200:
             return AfoServerState.leader
         elif reply.status_code == 503:
@@ -154,6 +161,7 @@ arangod instance
             raise Exception("afo_state: unsupportet HTTP-Status code " + str(reply.status_code))
 
     def detect_restore_restart(self):
+        logging.debug("scanning " + str(self.logfile))
         while True:
             log_file_content = ""
             last_line = ''
@@ -187,13 +195,13 @@ arangod instance
                 if self.type == InstanceType.resilientsingle:
                     print("waiting for leader election: ", end="")
                     status = AfoServerState.challenge_ongoing
-                    while status is AfoServerState.challenge_ongoing:
+                    while status is AfoServerState.challenge_ongoing or status is AfoServerState.not_connected:
                         status = self.get_afo_state()
-                        print('%', end='')
+                        progress('%')
                         time.sleep(0.1)
                     print()
                 return
-            print(',', end="")
+            progress(',')
             time.sleep(0.1)
 
     def detect_pid(self, ppid, offset=0):
@@ -229,8 +237,7 @@ arangod instance
             ready_for_business = 'is ready for business.'
             pos = log_file_content.find(ready_for_business, start)
             if pos < 0:
-                print('.', end='')
-                sys.stdout.flush()
+                progress('.')
                 time.sleep(1)
                 continue
             self.pid = int(pid)
@@ -285,7 +292,7 @@ arangosync instance of starter
                 cmd.append(line.rstrip().rstrip(' \\'))
         # wait till the process has startet writing its logfile:
         while not self.logfile.exists():
-            print('v')
+            progress('v')
             time.sleep(1)
         possible_me_pid = []
         for p in psutil.process_iter():

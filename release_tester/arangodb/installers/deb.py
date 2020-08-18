@@ -9,7 +9,7 @@ from pathlib import Path
 import pexpect
 from arangodb.instance import ArangodInstance
 from arangodb.installers.linux import InstallerLinux
-from tools.asciiprint import ascii_print
+from tools.asciiprint import ascii_print, print_progress as progress
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 import tools.loghelper as lh
 import semver
@@ -76,7 +76,7 @@ class InstallerDeb(InstallerLinux):
         logging.debug("waiting for eof")
         startserver.expect(pexpect.EOF, timeout=30)
         while startserver.isalive():
-            print('.', end='')
+            progress('.')
             if startserver.exitstatus != 0:
                 raise Exception("server service start didn't"
                                 "finish successfully!")
@@ -88,7 +88,7 @@ class InstallerDeb(InstallerLinux):
         logging.debug("waiting for eof")
         stopserver.expect(pexpect.EOF, timeout=30)
         while stopserver.isalive():
-            print('.', end='')
+            progress('.')
             if stopserver.exitstatus != 0:
                 raise Exception("server service stop didn't"
                                 "finish successfully!")
@@ -188,7 +188,7 @@ class InstallerDeb(InstallerLinux):
         except pexpect.exceptions.EOF:
             logging.info("TIMEOUT!")
         while server_install.isalive():
-            print('.', end='')
+            progress('.')
             if server_install.exitstatus != 0:
                 raise Exception("server installation didn't finish successfully!")
         print()
@@ -228,7 +228,7 @@ class InstallerDeb(InstallerLinux):
         self.cfg.have_debug_package = True
         
         while debug_install.isalive():
-            print('.', end='')
+            progress('.')
             if debug_install.exitstatus != 0:
                 debug_install.close(force=True)
                 ascii_print(debug_install.before)
@@ -251,7 +251,7 @@ class InstallerDeb(InstallerLinux):
             sys.exit(1)
 
         while uninstall.isalive():
-            print('.', end='')
+            progress('.')
             if uninstall.exitstatus != 0:
                 uninstall.close(force=True)
                 ascii_print(uninstall.before)
