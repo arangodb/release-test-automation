@@ -140,8 +140,6 @@ process.exit(0);
         for node in [self.leader_starter_instance, self.follower_starter_instance]:
             node.replace_binary_for_upgrade(self.new_cfg)
         for node in [self.leader_starter_instance, self.follower_starter_instance]:
-            node.detect_instance_pids_still_alive()
-        for node in [self.leader_starter_instance, self.follower_starter_instance]:
             node.command_upgrade()
             node.wait_for_upgrade()
             node.wait_for_upgrade_done_in_log()

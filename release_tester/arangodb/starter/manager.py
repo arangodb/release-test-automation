@@ -186,7 +186,7 @@ Starter {0.name}
         except:
             pass
         return self.instance.is_running()
-    
+
     def wait_for_logfile(self):
         counter = 0
         keepGoing = True
@@ -204,6 +204,10 @@ Starter {0.name}
             time.sleep(1)
 
     def wait_for_upgrade_done_in_log(self):
+        """ in single server mode the 'upgrade' commander exits before
+            the actual upgrade is finished. Hence we need to look into
+            the logfile of the managing starter if it thinks its finished.
+        """
         counter = 0
         keepGoing = True
         logging.info('Looking for "Upgrading done" in the log file.\n')
@@ -271,7 +275,12 @@ Starter {0.name}
         logging.info("StarterManager: Instance now dead.")
 
     def replace_binary_for_upgrade(self, new_install_cfg):
-        """ replace the parts of the installation with information after an upgrade"""
+        """
+          - replace the parts of the installation with information after an upgrade
+          - kill the starter processes of the old version
+          - revalidate that the old arangods are still running and alive
+          - replace the starter binary with a new one. this has not yet spawned any children
+        """
         # On windows the install prefix may change, since we can't overwrite open files:
         self.cfg.installPrefix = new_install_cfg.installPrefix
         logging.info("StarterManager: Killing my instance [%s]", str(self.instance.pid))
@@ -288,7 +297,7 @@ Starter {0.name}
                 i.terminate_instance()
 
     def command_upgrade(self):
-        """ we will launch another starter, to tell the bunch to run the upgrade"""
+        """ we use a starter, to tell daemon starters to perform the rolling upgrade """
         args = [
             self.cfg.bin_dir / 'arangodb',
             'upgrade',
@@ -301,9 +310,9 @@ Starter {0.name}
                                            #stdin=subprocess.PIPE,
                                            stderr=subprocess.PIPE,
                                            universal_newlines=True)
-        
+
     def wait_for_upgrade(self):
-        """ wait for the starter to finish performing the upgrade """
+        """ wait for the upgrade commanding starter to finish """
         for line in self.upgradeprocess.stderr:
             ascii_print(line)
         ret = self.upgradeprocess.wait()
@@ -328,8 +337,9 @@ Starter {0.name}
         logging.info("StarterManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)
         self.wait_for_logfile()
-        
+
     def wait_for_version_reply(self):
+        """ wait for the SUT reply with a 200 to /_api/version """
         frontends = self.get_frontends()
         for frontend in frontends:
             # we abuse this function:
