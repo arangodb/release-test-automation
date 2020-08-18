@@ -6,8 +6,11 @@ from abc import abstractmethod, ABC
 from enum import Enum
 import sys
 import time
+import requests
+import json
 
 import psutil
+from tools.asciiprint import print_progress as progress
 
 
 class InstanceType(Enum):
@@ -30,6 +33,11 @@ TYP_STRINGS = ["none", "none",
                "syncmaster",
                "syncworker"]
 
+class AfoServerState(Enum):
+    leader = 1
+    not_leader = 2
+    challenge_ongoing = 3
+    not_connected = 4
 
 class Instance(ABC):
     """abstract instance manager"""
@@ -125,11 +133,35 @@ arangod instance
     def wait_for_logfile(self, tries):
         """ wait for logfile to appear """
         while not self.logfile.exists() and tries:
-            print(':')
+            progress(':')
             time.sleep(1)
             tries -= 1
 
+    def probe_if_is_leader(self):
+        return self.get_afo_state() == AfoServerState.leader
+
+    def get_afo_state(self):
+        reply = None
+        try:
+            reply = requests.get(self.get_local_url('')+'/_api/version')
+        except requests.exceptions.ConnectionError as x:
+            return AfoServerState.not_connected
+
+        if reply.status_code == 200:
+            return AfoServerState.leader
+        elif reply.status_code == 503:
+            body_json = json.loads(reply.content)
+            if body_json['errorNum'] == 1495: # leadership challenge is ongoing...
+                return AfoServerState.challenge_ongoing
+            elif body_json['errorNum'] == 1496: # leadership challenge is ongoing...
+                return AfoServerState.not_leader
+            else:
+                raise Exception("afo_state: unsupported error code in " + str(reply.content))
+        else:
+            raise Exception("afo_state: unsupportet HTTP-Status code " + str(reply.status_code))
+
     def detect_restore_restart(self):
+        logging.debug("scanning " + str(self.logfile))
         while True:
             log_file_content = ""
             last_line = ''
@@ -160,9 +192,16 @@ arangod instance
             if offset >= 0:
                 print("server restarting with restored backup.")
                 self.detect_pid(0, offset)
-                time.sleep(1) #TODO: this is also no stable criteria for restart after upgrade :/
+                if self.type == InstanceType.resilientsingle:
+                    print("waiting for leader election: ", end="")
+                    status = AfoServerState.challenge_ongoing
+                    while status is AfoServerState.challenge_ongoing or status is AfoServerState.not_connected:
+                        status = self.get_afo_state()
+                        progress('%')
+                        time.sleep(0.1)
+                    print()
                 return
-            print(',', end="")
+            progress(',')
             time.sleep(0.1)
 
     def detect_pid(self, ppid, offset=0):
@@ -198,8 +237,7 @@ arangod instance
             ready_for_business = 'is ready for business.'
             pos = log_file_content.find(ready_for_business, start)
             if pos < 0:
-                print('.', end='')
-                sys.stdout.flush()
+                progress('.')
                 time.sleep(1)
                 continue
             self.pid = int(pid)
@@ -254,7 +292,7 @@ arangosync instance of starter
                 cmd.append(line.rstrip().rstrip(' \\'))
         # wait till the process has startet writing its logfile:
         while not self.logfile.exists():
-            print('v')
+            progress('v')
             time.sleep(1)
         possible_me_pid = []
         for p in psutil.process_iter():

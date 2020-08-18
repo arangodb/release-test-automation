@@ -89,7 +89,7 @@ class Runner(ABC):
             self.make_data()
             ti.prompt_user(self.basecfg, "Deployment started. Please test the UI!")
 
-            if self.cfg.enterprise:
+            if self.cfg.enterprise and self.supports_backup_impl():
                 lh.section("TESTING HOTBACKUP")
                 self.backup_name = self.create_backup("thy_name_is") # TODO generate name?
                 self.create_non_backup_data()
@@ -125,22 +125,23 @@ class Runner(ABC):
             self.new_installer.stop_service()
             self.upgrade_arangod_version() #make sure to pass new version
             self.make_data_after_upgrade()
-            lh.section("TESTING HOTBACKUP AFTER UPGRADE")
-            backups = self.list_backup()
-            print(backups)
-            self.upload_backup(backups[0])
-            self.delete_backup(backups[0])
-            backups = self.list_backup()
-            if len(backups) != 0:
-                raise Exception("expected backup to be gone, but its still there: " + str(backups))
-            self.download_backup(self.backup_name)
-            backups = self.list_backup()
-            if backups[0] != self.backup_name:
-                raise Exception("downloaded backup has different name? " + str(backups))
-            self.restore_backup(backups[0])
+            if self.cfg.enterprise and self.supports_backup_impl():
+                lh.section("TESTING HOTBACKUP AFTER UPGRADE")
+                backups = self.list_backup()
+                print(backups)
+                self.upload_backup(backups[0])
+                self.delete_backup(backups[0])
+                backups = self.list_backup()
+                if len(backups) != 0:
+                    raise Exception("expected backup to be gone, but its still there: " + str(backups))
+                self.download_backup(self.backup_name)
+                backups = self.list_backup()
+                if backups[0] != self.backup_name:
+                    raise Exception("downloaded backup has different name? " + str(backups))
+                self.restore_backup(backups[0])
+                if not self.check_non_backup_data():
+                    raise Exception("data created after backup is still there??")
             self.check_data_impl()
-            if not self.check_non_backup_data():
-                raise Exception("data created after backup is still there??")
         else:
             logging.info("skipping upgrade step no new version given")
 
@@ -367,6 +368,8 @@ class Runner(ABC):
             return self.check_data_impl_sh(arangosh)
         raise Exception("no frontend found.")
         
+    def supports_backup_impl(self):
+        return True
 
     def create_non_backup_data(self):
         for starter in self.makedata_instances:

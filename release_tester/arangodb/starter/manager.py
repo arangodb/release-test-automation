@@ -17,9 +17,9 @@ from pathlib import Path
 
 import psutil
 
-from tools.asciiprint import ascii_print
+from tools.asciiprint import ascii_print, print_progress as progress
 from tools.timestamp import timestamp
-from arangodb.instance import ArangodInstance, SyncInstance, InstanceType
+from arangodb.instance import ArangodInstance, SyncInstance, InstanceType, AfoServerState
 from arangodb.backup import HotBackupConfig, HotBackupManager
 from arangodb.sh import ArangoshExecutor
 import tools.loghelper as lh
@@ -38,6 +38,7 @@ class StarterManager():
         self.cfg = copy.deepcopy(basecfg)
         if self.cfg.verbose:
             self.moreopts += ["--log.verbose=true"]
+            # self.moreopts += ['--all.log', 'startup=debug']
 
         #directories
         self.raw_basedir = install_prefix
@@ -185,7 +186,7 @@ Starter {0.name}
         except:
             pass
         return self.instance.is_running()
-    
+
     def wait_for_logfile(self):
         counter = 0
         keepGoing = True
@@ -202,6 +203,18 @@ Starter {0.name}
                 keepGoing = False
             time.sleep(1)
 
+    def wait_for_upgrade_done_in_log(self):
+        """ in single server mode the 'upgrade' commander exits before
+            the actual upgrade is finished. Hence we need to look into
+            the logfile of the managing starter if it thinks its finished.
+        """
+        counter = 0
+        keepGoing = True
+        logging.info('Looking for "Upgrading done" in the log file.\n')
+        while keepGoing:
+            text = self.get_log_file()
+            keepGoing = text.find('Upgrading done.') >= 0
+            progress('.')
 
     def is_instance_up(self):
         """ check whether all spawned arangods are fully bootet"""
@@ -262,7 +275,12 @@ Starter {0.name}
         logging.info("StarterManager: Instance now dead.")
 
     def replace_binary_for_upgrade(self, new_install_cfg):
-        """ replace the parts of the installation with information after an upgrade"""
+        """
+          - replace the parts of the installation with information after an upgrade
+          - kill the starter processes of the old version
+          - revalidate that the old arangods are still running and alive
+          - replace the starter binary with a new one. this has not yet spawned any children
+        """
         # On windows the install prefix may change, since we can't overwrite open files:
         self.cfg.installPrefix = new_install_cfg.installPrefix
         logging.info("StarterManager: Killing my instance [%s]", str(self.instance.pid))
@@ -276,10 +294,10 @@ Starter {0.name}
         for i in self.all_instances:
             if i.is_sync_instance():
                 logging.info("manually killing syncer: ")
-                i.terminate_instance();
+                i.terminate_instance()
 
     def command_upgrade(self):
-        """ we will launch another starter, to tell the bunch to run the upgrade"""
+        """ we use a starter, to tell daemon starters to perform the rolling upgrade """
         args = [
             self.cfg.bin_dir / 'arangodb',
             'upgrade',
@@ -292,9 +310,9 @@ Starter {0.name}
                                            #stdin=subprocess.PIPE,
                                            stderr=subprocess.PIPE,
                                            universal_newlines=True)
-        
+
     def wait_for_upgrade(self):
-        """ wait for the starter to finish performing the upgrade """
+        """ wait for the upgrade commanding starter to finish """
         for line in self.upgradeprocess.stderr:
             ascii_print(line)
         ret = self.upgradeprocess.wait()
@@ -304,8 +322,11 @@ Starter {0.name}
 
     def wait_for_restore(self):
         """ tries to wait for the server to restart after the 'restore' command """
-        frontends = self.get_frontends()
-        frontends[0].detect_restore_restart()
+        for node in  self.all_instances:
+            if node.type in [InstanceType.resilientsingle,
+                             InstanceType.single,
+                             InstanceType.dbserver]:
+                node.detect_restore_restart()
 
     def respawn_instance(self):
         """ restart the starter instance after we killed it eventually """
@@ -316,7 +337,15 @@ Starter {0.name}
         logging.info("StarterManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)
         self.wait_for_logfile()
-        
+
+    def wait_for_version_reply(self):
+        """ wait for the SUT reply with a 200 to /_api/version """
+        frontends = self.get_frontends()
+        for frontend in frontends:
+            # we abuse this function:
+            while frontend.get_afo_state() != AfoServerState.leader:
+                progress(".")
+                time.sleep(0.1)
 
     def execute_frontend(self, cmd, verbose=True):
         """ use arangosh to run a command on the frontend arangod"""
@@ -363,7 +392,7 @@ Starter {0.name}
         worker_count = 0
         logging.info('detecting sync master port')
         while worker_count < 3 and self.is_instance_running():
-            logging.info('%')
+            progress('%')
             lfs = self.get_log_file()
             npos = lfs.find(sw_text, pos)
             if npos >= 0:
@@ -470,8 +499,8 @@ Starter {0.name}
             self.cfg.port = self.get_frontend_port()
             self.arangosh = ArangoshExecutor(self.cfg)
             if self.cfg.enterprise:
-                self.hb_instance = HotBackupManager(self.cfg, self.raw_basedir, self.cfg.baseTestDir / self.raw_basedir )
-                self.hb_config = HotBackupConfig(self.cfg, self.raw_basedir, self.cfg.baseTestDir / self.raw_basedir )
+                self.hb_instance = HotBackupManager(self.cfg, self.raw_basedir, self.cfg.baseTestDir / self.raw_basedir)
+                self.hb_config = HotBackupConfig(self.cfg, self.raw_basedir, self.cfg.baseTestDir / self.raw_basedir)
 
     def detect_instance_pids_still_alive(self):
         """ detecting whether the processes the starter spawned are still there """
@@ -498,6 +527,15 @@ Starter {0.name}
         became_leader = lfs.find('Became leader in') >= 0
         took_over = lfs.find('Successful leadership takeover: All your base are belong to us') >= 0
         self.is_leader = (became_leader or took_over)
+        return self.is_leader
+
+    def probe_leader(self):
+        """ talk to the frontends to find out whether its a leader or not. """
+        # Should this be moved to the AF script?
+        self.is_leader = False
+        for instance in self.get_frontends():
+            if instance.probe_if_is_leader():
+                self.is_leader = True
         return self.is_leader
 
     def active_failover_detect_hosts(self):

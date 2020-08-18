@@ -1,0 +1,3 @@
+# Jenkins needs root permission in order to install and test packages
+# if the workspace directory isn't the same on your machine, pls adjust.
+jenkins ALL=(ALL) NOPASSWD: /home/jenkins/workspace/automatic-release-test/release_tester/cleanup.py,/home/jenkins/workspace/automatic-release-test/release_tester/test.py,/home/jenkins/workspace/automatic-release-test/release_tester/upgrade.py

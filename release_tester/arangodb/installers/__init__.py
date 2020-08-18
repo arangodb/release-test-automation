@@ -3,7 +3,7 @@
 import platform
 import os
 from pathlib import Path
-
+import semver
 
 class InstallerFrontend():
     def __init__(self, proto: str, ip: str, port: int):
@@ -30,6 +30,7 @@ class InstallerConfig():
 
         self.mode = mode
         self.version = version
+        self.semver = semver.VersionInfo.parse(version)
         self.verbose = verbose
         self.package_dir = package_dir
         self.have_system_service = True

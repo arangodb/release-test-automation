@@ -9,7 +9,7 @@ from pathlib import Path
 import pexpect
 from arangodb.instance import ArangodInstance
 from arangodb.installers.linux import InstallerLinux
-from tools.asciiprint import ascii_print
+from tools.asciiprint import ascii_print, print_progress as progress
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 import tools.loghelper as lh
 import semver
@@ -24,10 +24,6 @@ class InstallerDeb(InstallerLinux):
         self.client_package = None
         self.debug_package = None
         self.log_examiner = None
-
-        version = cfg.version.split("~")[0]
-        version = ".".join(version.split(".")[:3])
-        self.semver = semver.VersionInfo.parse(version)
 
         # Are those required to be stored in the cfg?
         cfg.baseTestDir = Path('/tmp')
@@ -51,9 +47,18 @@ class InstallerDeb(InstallerLinux):
         package_version = '1'
         architecture = 'amd64'
 
+        semdict = dict(self.cfg.semver.to_dict())
+
+        if semdict['prerelease']:
+            semdict['prerelease'] = '~{prerelease}'.format(**semdict)
+        else:
+            semdict['prerelease'] = ''
+
+        version = '{major}.{minor}.{patch}{prerelease}'.format(**semdict)
+
         desc = {
             "ep"   : enterprise,
-            "cfg"  : self.cfg.version,
+            "cfg"  : version,
             "ver"  : package_version,
             "arch" : architecture
         }
@@ -71,7 +76,7 @@ class InstallerDeb(InstallerLinux):
         logging.debug("waiting for eof")
         startserver.expect(pexpect.EOF, timeout=30)
         while startserver.isalive():
-            print('.', end='')
+            progress('.')
             if startserver.exitstatus != 0:
                 raise Exception("server service start didn't"
                                 "finish successfully!")
@@ -83,7 +88,7 @@ class InstallerDeb(InstallerLinux):
         logging.debug("waiting for eof")
         stopserver.expect(pexpect.EOF, timeout=30)
         while stopserver.isalive():
-            print('.', end='')
+            progress('.')
             if stopserver.exitstatus != 0:
                 raise Exception("server service stop didn't"
                                 "finish successfully!")
@@ -175,7 +180,7 @@ class InstallerDeb(InstallerLinux):
             server_install.sendline("yes")
 
 
-            if self.semver <= semver.VersionInfo.parse("3.6.99"):
+            if self.cfg.semver <= semver.VersionInfo.parse("3.6.99"):
                 logging.debug("expect: storage engine selection")
                 server_install.expect("Database storage engine")
                 ascii_print(server_install.before)
@@ -199,7 +204,7 @@ class InstallerDeb(InstallerLinux):
         except pexpect.exceptions.EOF:
             logging.info("TIMEOUT!")
         while server_install.isalive():
-            print('.', end='')
+            progress('.')
             if server_install.exitstatus != 0:
                 raise Exception("server installation didn't finish successfully!")
         print()
@@ -212,7 +217,7 @@ class InstallerDeb(InstallerLinux):
                                    'arangodb3' +
                                    ('e' if self.cfg.enterprise else ''))
         try:
-            uninstall.expect('Purging')
+            uninstall.expect(['Purging','which isn\'t installed'])
             ascii_print(uninstall.before)
             uninstall.expect(pexpect.EOF)
             ascii_print(uninstall.before)
@@ -225,6 +230,7 @@ class InstallerDeb(InstallerLinux):
         """ installing debug package """
         cmd = 'dpkg -i ' + str(self.cfg.package_dir / self.debug_package)
         lh.log_cmd(cmd)
+        os.environ['DEBIAN_FRONTEND'] = 'readline'
         debug_install = pexpect.spawnu(cmd)
         try:
             logging.info("waiting for the installation to finish")
@@ -238,7 +244,7 @@ class InstallerDeb(InstallerLinux):
         self.cfg.have_debug_package = True
         
         while debug_install.isalive():
-            print('.', end='')
+            progress('.')
             if debug_install.exitstatus != 0:
                 debug_install.close(force=True)
                 ascii_print(debug_install.before)
@@ -247,11 +253,12 @@ class InstallerDeb(InstallerLinux):
         
     
     def un_install_debug_package(self):
+        os.environ['DEBIAN_FRONTEND'] = 'readline'
         uninstall = pexpect.spawnu('dpkg --purge ' +
                                    'arangodb3' +
                                    ('e-dbg' if self.cfg.enterprise else '-dbg'))
         try:
-            uninstall.expect('Removing')
+            uninstall.expect(['Removing','which isn\'t installed'])
             ascii_print(uninstall.before)
             uninstall.expect(pexpect.EOF, timeout=30)
             ascii_print(uninstall.before)
@@ -260,7 +267,7 @@ class InstallerDeb(InstallerLinux):
             sys.exit(1)
 
         while uninstall.isalive():
-            print('.', end='')
+            progress('.')
             if uninstall.exitstatus != 0:
                 uninstall.close(force=True)
                 ascii_print(uninstall.before)

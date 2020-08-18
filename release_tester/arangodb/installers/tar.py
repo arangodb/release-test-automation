@@ -19,7 +19,9 @@ class InstallerTAR(InstallerBase):
         if macver[0]:
             cfg.localhost = 'localhost'
             self.check_stripped = False
+            self.remote_package_dir  = 'MacOSX'
         else:
+            self.remote_package_dir  = 'Linux'
             cfg.localhost = 'ip6-localhost'
             self.check_stripped = True
 
@@ -55,13 +57,22 @@ class InstallerTAR(InstallerBase):
         if macver[0]:
             architecture = 'macos'
 
+        semdict = dict(self.cfg.semver.to_dict())
+        if semdict['prerelease']:
+            semdict['prerelease'] = '-{prerelease}'.format(**semdict)
+        else:
+            semdict['prerelease'] = ''
+        version = '{major}.{minor}.{patch}{prerelease}'.format(**semdict)
+
         self.desc = {
             "ep"   : enterprise,
-            "ver"  : self.cfg.version,
+            "ver"  : version,
             "arch" : architecture
         }
 
         self.server_package = 'arangodb3{ep}-{arch}-{ver}.tar.gz'.format(**self.desc)
+        self.debug_package = None
+        self.client_package = None
         self.cfg.installPrefix = Path("/tmp") / 'arangodb3{ep}-{ver}'.format(**self.desc)
         self.cfg.bin_dir = self.cfg.installPrefix / "bin"
         self.cfg.sbin_dir = self.cfg.installPrefix / "usr" / "sbin"  

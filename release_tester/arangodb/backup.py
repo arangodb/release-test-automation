@@ -11,7 +11,7 @@ import time
 
 import psutil
 
-from tools.asciiprint import ascii_print
+from tools.asciiprint import ascii_print, print_progress as progress
 import tools.loghelper as lh
 
 #            json.dumps({
@@ -171,7 +171,7 @@ class HotBackupManager():
         while True:
             time.sleep(1)
             out = self.run_backup(args, backup_name, True)
-            print('.', end='')
+            progress('.')
             for line in out:
                 match = re.match(r".*Status: (.*)'", str(line))
                 if match:

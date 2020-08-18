@@ -9,6 +9,7 @@ from tools.interact import prompt_user
 from arangodb.starter.manager import StarterManager
 from arangodb.starter.deployments.runner import Runner
 import tools.loghelper as lh
+from tools.asciiprint import print_progress as progress
 
 
 class ActiveFailover(Runner):
@@ -18,6 +19,7 @@ class ActiveFailover(Runner):
         self.starter_instances = []
         self.follower_nodes = None
         self.leader = None
+        self.first_leader = None
         self.new_leader = None
 
     def starter_prepare_env_impl(self):
@@ -62,7 +64,7 @@ class ActiveFailover(Runner):
             for node in self.starter_instances:
                 if node.detect_leader():
                     self.leader = node
-                    break
+                    self.first_leader = node
 
         for node in self.starter_instances:
             node.detect_instance_pids()
@@ -104,6 +106,14 @@ class ActiveFailover(Runner):
         logging.info('leader can be reached at: %s',
                      self.leader.get_frontend().get_public_url(''))
 
+    def wait_for_restore_impl(self, backup_starter):
+        backup_starter.wait_for_restore()
+        self.leader = None
+        for node in self.starter_instances:
+            if node.probe_leader():
+                self.leader = node
+        if self.leader is None:
+            raise Exception("wasn't able to detect the leader after restoring the backup!")
 
     def upgrade_arangod_version_impl(self):
         """ upgrade this installation """
@@ -115,7 +125,7 @@ class ActiveFailover(Runner):
         self.starter_instances[1].wait_for_upgrade()
 
     def jam_attempt_impl(self):
-        self.leader.terminate_instance()
+        self.first_leader.terminate_instance()
         logging.info("waiting for new leader...")
         self.new_leader = None
 
@@ -125,8 +135,9 @@ class ActiveFailover(Runner):
                 if node.is_leader:
                     logging.info('have a new leader: %s', str(node.arguments))
                     self.new_leader = node
+                    self.leader = node
                     break
-                print('.', end='')
+                progress('.')
             time.sleep(1)
         print()
 
@@ -143,15 +154,15 @@ class ActiveFailover(Runner):
         prompt_user(self.basecfg,
                     '''The leader failover has happened.
 please revalidate the UI states on the new leader; you should see *one* follower.''')
-        self.leader.respawn_instance()
-        self.leader.detect_instances()
+        self.first_leader.respawn_instance()
+        self.first_leader.detect_instances()
         logging.info("waiting for old leader to show up as follower")
-        while not self.leader.active_failover_detect_host_now_follower():
-            print('.', end='')
+        while not self.first_leader.active_failover_detect_host_now_follower():
+            progress('.')
             time.sleep(1)
         print()
 
-        url = self.leader.get_frontend().get_local_url('')
+        url = self.first_leader.get_frontend().get_local_url('')
 
         reply = requests.get(url)
         logging.info(str(reply))
@@ -161,7 +172,7 @@ please revalidate the UI states on the new leader; you should see *one* follower
             self.success = False
 
         prompt_user(self.basecfg, 'The old leader has been respawned as follower (%s), so there should be two followers again.'
-                    % self.leader.get_frontend().get_public_url('root@') )
+                    % self.first_leader.get_frontend().get_public_url('root@') )
 
         logging.info("state of this test is: %s",
                      "Success" if self.success else "Failed")

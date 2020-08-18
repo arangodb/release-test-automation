@@ -84,7 +84,7 @@ class Dc2Dc(Runner):
         def add_starter(val, port):
             val["instance"] = StarterManager(
                 self.basecfg,
-                val["dir"], val["instance_dir"]
+                val["dir"], val["instance_dir"],
                 port=port,
                 mode='cluster',
                 moreopts=[
