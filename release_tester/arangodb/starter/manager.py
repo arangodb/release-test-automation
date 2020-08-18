@@ -17,7 +17,7 @@ from pathlib import Path
 
 import psutil
 
-from tools.asciiprint import ascii_print
+from tools.asciiprint import ascii_print, print_progress as progress
 from tools.timestamp import timestamp
 from arangodb.instance import ArangodInstance, SyncInstance, InstanceType, AfoServerState
 from arangodb.backup import HotBackupConfig, HotBackupManager
@@ -210,7 +210,7 @@ Starter {0.name}
         while keepGoing:
             text = self.get_log_file()
             keepGoing = text.find('Upgrading done.') >= 0
-            print('.')
+            progress('.')
 
     def is_instance_up(self):
         """ check whether all spawned arangods are fully bootet"""
@@ -285,7 +285,7 @@ Starter {0.name}
         for i in self.all_instances:
             if i.is_sync_instance():
                 logging.info("manually killing syncer: ")
-                i.terminate_instance();
+                i.terminate_instance()
 
     def command_upgrade(self):
         """ we will launch another starter, to tell the bunch to run the upgrade"""
@@ -313,8 +313,11 @@ Starter {0.name}
 
     def wait_for_restore(self):
         """ tries to wait for the server to restart after the 'restore' command """
-        frontends = self.get_frontends()
-        frontends[0].detect_restore_restart()
+        for node in  self.all_instances:
+            if node.type in [InstanceType.resilientsingle,
+                             InstanceType.single,
+                             InstanceType.dbserver]:
+                node.detect_restore_restart()
 
     def respawn_instance(self):
         """ restart the starter instance after we killed it eventually """
@@ -331,7 +334,7 @@ Starter {0.name}
         for frontend in frontends:
             # we abuse this function:
             while frontend.get_afo_state() != AfoServerState.leader:
-                print(".", end="")
+                progress(".")
                 time.sleep(0.1)
 
     def execute_frontend(self, cmd, verbose=True):
@@ -379,7 +382,7 @@ Starter {0.name}
         worker_count = 0
         logging.info('detecting sync master port')
         while worker_count < 3 and self.is_instance_running():
-            logging.info('%')
+            progress('%')
             lfs = self.get_log_file()
             npos = lfs.find(sw_text, pos)
             if npos >= 0:
@@ -486,8 +489,8 @@ Starter {0.name}
             self.cfg.port = self.get_frontend_port()
             self.arangosh = ArangoshExecutor(self.cfg)
             if self.cfg.enterprise:
-                self.hb_instance = HotBackupManager(self.cfg, self.raw_basedir, self.cfg.baseTestDir / self.raw_basedir )
-                self.hb_config = HotBackupConfig(self.cfg, self.raw_basedir, self.cfg.baseTestDir / self.raw_basedir )
+                self.hb_instance = HotBackupManager(self.cfg, self.raw_basedir, self.cfg.baseTestDir / self.raw_basedir)
+                self.hb_config = HotBackupConfig(self.cfg, self.raw_basedir, self.cfg.baseTestDir / self.raw_basedir)
 
     def detect_instance_pids_still_alive(self):
         """ detecting whether the processes the starter spawned are still there """
