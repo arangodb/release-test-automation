@@ -9,6 +9,7 @@ from tools.interact import prompt_user
 from arangodb.starter.manager import StarterManager
 from arangodb.starter.deployments.runner import Runner
 import tools.loghelper as lh
+from tools.asciiprint import print_progress as progress
 
 
 class ActiveFailover(Runner):
@@ -136,7 +137,7 @@ class ActiveFailover(Runner):
                     self.new_leader = node
                     self.leader = node
                     break
-                print('.', end='')
+                progress('.')
             time.sleep(1)
         print()
 
@@ -157,7 +158,7 @@ please revalidate the UI states on the new leader; you should see *one* follower
         self.first_leader.detect_instances()
         logging.info("waiting for old leader to show up as follower")
         while not self.first_leader.active_failover_detect_host_now_follower():
-            print('.', end='')
+            progress('.')
             time.sleep(1)
         print()
 

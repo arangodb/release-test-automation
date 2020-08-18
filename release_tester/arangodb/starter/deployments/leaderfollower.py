@@ -6,6 +6,7 @@ from tools.killall import get_all_processes
 from arangodb.starter.manager import StarterManager
 from arangodb.starter.deployments.runner import Runner
 import tools.loghelper as lh
+from tools.asciiprint import print_progress as progress
 
 class LeaderFollower(Runner):
     """ this runs a leader / Follower setup with synchronisation """
@@ -114,7 +115,7 @@ process.exit(0);
             while tries:
                 if self.follower_starter_instance.execute_frontend(self.checks['checkReplJS'], False):
                     break
-                print(".", end='')
+                progress(".")
                 time.sleep(1)
                 tries -= 1
 

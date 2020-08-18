@@ -10,7 +10,7 @@ import psutil
 from arangodb.sh import ArangoshExecutor
 from arangodb.instance import ArangodInstance
 from arangodb.installers.linux import InstallerLinux
-from tools.asciiprint import ascii_print
+from tools.asciiprint import ascii_print, print_progress as progress
 
 import tools.loghelper as lh
 
@@ -168,7 +168,7 @@ class InstallerRPM(InstallerLinux):
             sys.exit(1)
 
         while server_install.isalive():
-            print('.', end='')
+            progress('.')
             if server_install.exitstatus != 0:
                 raise Exception("server installation didn't finish successfully!")
 
@@ -257,16 +257,15 @@ class InstallerRPM(InstallerLinux):
         print()
         logging.info(str(self.debug_package) + ' Installation successfull')
         self.cfg.have_debug_package = True
-        
+
         while debug_install.isalive():
-            print('.', end='')
+            progress('.')
             if debug_install.exitstatus != 0:
                 debug_install.close(force=True)
                 ascii_print(debug_install.before)
                 raise Exception(str(self.debug_package) + " debug installation didn't finish successfully!")
         return self.cfg.have_debug_package
-        
-    
+
     def un_install_debug_package(self):
         uninstall = pexpect.spawnu('rpm -e ' +
                                    'arangodb3' +
@@ -279,7 +278,7 @@ class InstallerRPM(InstallerLinux):
             sys.exit(1)
 
         while uninstall.isalive():
-            print('.', end='')
+            progress('.')
             if uninstall.exitstatus != 0:
                 uninstall.close(force=True)
                 ascii_print(uninstall.before)

@@ -10,6 +10,7 @@ from tools.interact import end_test
 from arangodb.starter.manager import StarterManager
 from arangodb.starter.deployments.runner import Runner
 import tools.loghelper as lh
+from tools.asciiprint import print_progress as progress
 
 
 class Cluster(Runner):
@@ -59,8 +60,7 @@ db.testCollection.save({test: "document"})
             logging.debug("waiting for mananger with logfile:" + str(not_started[-1].log_file))
             if not_started[-1].is_instance_up():
                 not_started.pop()
-            print('.', end='')
-            sys.stdout.flush()
+            progress('.')
             time.sleep(1)
 
         logging.info("waiting for the cluster instances to become alive")
@@ -99,7 +99,7 @@ db.testCollection.save({test: "document"})
         # respawn instance, and get its state fixed
         self.starter_instances[2].respawn_instance()
         while not self.starter_instances[2].is_instance_up():
-            print('.', end='')
+            progress('.')
             time.sleep(1)
         print()
         self.starter_instances[2].detect_instances()
