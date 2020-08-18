@@ -141,11 +141,8 @@ class InstallerMac(InstallerBase):
                 print('Failed to unmount %s' % mountpoint, file=sys.stderr)
 
     def run_installer_script(self):
-        if self.cfg.enterprise:
-            script = Path(self.mountpoint) / 'ArangoDB3e-CLI.app' / 'Contents' / 'MacOS' / 'ArangoDB3-CLI'
-        else:
-            script = Path(self.mountpoint) / 'ArangoDB3-CLI.app' / 'Contents' / 'MacOS' / 'ArangoDB3-CLI'
-
+        enterprise = 'e' if self.cfg.enterprise else ''
+        script = Path(self.mountpoint) / 'ArangoDB3{}-CLI.app'.format(enterprise) / 'Contents' / 'MacOS' / 'ArangoDB3-CLI'
         print(script)
         installscript = pexpect.spawnu(str(script))
         try:
@@ -195,10 +192,8 @@ class InstallerMac(InstallerBase):
         logging.info("Mounting DMG")
         self.mountpoint = self.mountdmg(self.cfg.package_dir / self.server_package)
         print(self.mountpoint)
-        if self.cfg.enterprise:
-            self.cfg.installPrefix = Path(self.mountpoint) / 'ArangoDB3e-CLI.app'/ 'Contents' / 'Resources'
-        else:
-            self.cfg.installPrefix = Path(self.mountpoint) / 'ArangoDB3-CLI.app'/ 'Contents' / 'Resources'
+        enterprise = 'e' if self.cfg.enterprise else ''
+        self.cfg.installPrefix = Path(self.mountpoint) / 'ArangoDB3{}-CLI.app'.format(enterprise) / 'Contents' / 'Resources'
         self.cfg.bin_dir = self.cfg.installPrefix
         self.cfg.sbin_dir = self.cfg.installPrefix
         self.cfg.real_bin_dir = self.cfg.installPrefix / 'opt' / 'arangodb' / 'bin'
