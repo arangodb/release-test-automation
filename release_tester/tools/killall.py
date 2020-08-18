@@ -31,5 +31,5 @@ def kill_all_processes():
             logging.info("cleanup killing ${proc}".format(proc=process))
             process.terminate()
             process.wait(timeout=2)
-            process.kill()
-            process.wait(timeout=1)
+            if process.is_running():
+                process.kill()
