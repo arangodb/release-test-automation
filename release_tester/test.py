@@ -67,6 +67,9 @@ def run_test(version, verbose, package_dir, enterprise, zip,
     if mode not in ['all', 'install', 'system', 'tests', 'uninstall']:
         raise Exception("unsupported mode %s!" % mode)
 
+    do_install = mode == "all" or mode == "install"
+    do_uninstall = mode == "all" or mode == "uninstall"
+
     lh.section("startup")
     if verbose:
         logging.info("setting debug level to debug (verbose)")
@@ -102,16 +105,21 @@ def run_test(version, verbose, package_dir, enterprise, zip,
     else:
         raise Exception("invalid starter mode: " + starter_mode)
 
+    count = 1
     for runner_type in starter_mode:
         assert(runner_type)
 
         runner = make_runner(runner_type, inst.cfg, inst, None)
-
+        # install on first run:
+        runner.do_install = (count == 1) and do_install
+        # only uninstall after the last test:
+        runner.do_uninstall = (count == len(starter_mode)) and do_uninstall
         failed = False
         if not runner.run():
             failed = True
 
         kill_all_processes()
+        count += 1
 
     return ( 0 if not failed else 1 )
 
