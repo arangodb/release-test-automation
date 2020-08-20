@@ -1,10 +1,13 @@
 PYTHON='python3'
+PACKAGE_DIR = '/home/jenkins/Downloads/'
 
 switch (TARGET) {
     case 'windows': 
         PYTHON='python'
         TARGET_HOST='bruecktendo'
         SUDO=''
+        TARGET_HOST = 'packagestest-windows'
+        PACKAGE_DIR = 'c:/jenkins/downloads'
         break
 
     case 'linux_deb':
@@ -19,7 +22,6 @@ switch (TARGET) {
         break
 }
 
-PACKAGE_DIR = '/home/jenkins/Downloads/'
 
 ENTERPRISE_PARAM = '--no-enterprise'
 if (params['ENTERPRISE']) {
@@ -70,7 +72,7 @@ node(TARGET_HOST)  {
     stage('fetch old') {
         if (params['VERSION_OLD'] != "") {
             ACQUIRE_COMMAND = """
-${PYTHON} ${WORKSPACE}/release_tester/acquire_packages.py ${ENTERPRISE_PARAM} --enterprise-magic ${params['ENTERPRISE_KEY']} --package-dir ${PACKAGE_DIR} ${FORCE_PARAM_OLD} --source ${params['PACKAGE_SOURCE_OLD']} --version '${params['VERSION_OLD']}' --httpuser dothebart --httppassvoid '${params['HTTP_PASSVOID']}' ${ZIP} ${VERBOSE}
+${PYTHON} ${WORKSPACE}/release_tester/acquire_packages.py ${ENTERPRISE_PARAM} --enterprise-magic ${params['ENTERPRISE_KEY']} --package-dir ${PACKAGE_DIR} ${FORCE_PARAM_OLD} --source ${params['PACKAGE_SOURCE_OLD']} --version "${params['VERSION_OLD']}" --httpuser dothebart --httppassvoid "${params['HTTP_PASSVOID']}" ${ZIP} ${VERBOSE}
 """
             print("downloading old package(s) using:")
             print(ACQUIRE_COMMAND)
