@@ -5,6 +5,7 @@ switch (TARGET) {
         PYTHON='python'
         TARGET_HOST='bruecktendo'
         SUDO=''
+        TARGET_HOST = 'packagestest-windows'
         break
 
     case 'linux_deb':
