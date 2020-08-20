@@ -70,7 +70,9 @@ class HotBackupManager():
         self.moreopts = [
             '--server.endpoint', "tcp://127.0.0.1:{cfg.port}".format(cfg=self.cfg),
             '--server.username', str(self.cfg.username),
-            '--server.password', str(self.cfg.passvoid)
+            '--server.password', str(self.cfg.passvoid),
+            # else the wintendo may stay mute:
+            '--log.force-direct', 'true', '--log.foreground-tty', 'true'
         ]
         if self.cfg.verbose:
             self.moreopts += ["--log.level=debug"]

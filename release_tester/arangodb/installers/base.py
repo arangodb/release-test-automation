@@ -5,6 +5,7 @@ import re
 import os
 import copy
 import subprocess
+import platform
 from pathlib import Path
 from abc import abstractmethod, ABC
 import yaml
@@ -25,12 +26,13 @@ def run_file_command(file_to_check):
     # print(line)
     return line
 
-
+winver = platform.win32_ver()
 ## helper classes
 class BinaryDescription():
     """ describe the availability of an arangodb binary and its properties """
     def __init__(self, path, enter, strip, vmin, vmax, sym):
-        self.path = path
+        global winver
+        self.path = Path(str(path) + '.exe' if winver[0] else '')
         self.enterprise = enter
         self.stripped = strip
         self.version_min = vmin
