@@ -80,6 +80,7 @@ class Runner(ABC):
         if self.do_install or self.do_system_test:
             lh.section("INSTALLATION for {0}".format(str(self.name)),)
             self.install(self.old_installer)
+            self.refresh_directories()
 
         if self.do_starter_test:
             lh.section("PREPARING DEPLOYMENT of {0}".format(str(self.name)),)
@@ -117,6 +118,7 @@ class Runner(ABC):
                 inst.un_install_debug_package()
 
             self.new_installer.upgrade_package()
+            self.refresh_directories()
             # only install debug package for new package.
             lh.subsection('installing debug package:')
             self.cfg.have_debug_package = self.new_installer.install_debug_package()
@@ -154,6 +156,14 @@ class Runner(ABC):
             self.uninstall(self.old_installer if not self.new_installer else self.new_installer)
 
         lh.section("Runner of type {0} - Finished!".format(str(self.name)))
+
+    def refresh_directories(self):
+         if self.new_installer:
+            lh.section("UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),)
+            if self.cfg.have_debug_package == True:
+                print('removing *old* debug package in advance')
+                inst.un_install_debug_package()
+            self.new_installer.upgrade_package()
 
     def install(self, inst):
         """ install the package to the system """
