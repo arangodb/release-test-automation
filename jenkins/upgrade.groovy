@@ -1,6 +1,6 @@
 PYTHON='python3'
 PACKAGE_DIR = '/home/jenkins/Downloads/'
-
+WINDOWS = false
 switch (TARGET) {
     case 'windows': 
         PYTHON='python'
@@ -8,6 +8,7 @@ switch (TARGET) {
         SUDO=''
         TARGET_HOST = 'packagestest-windows'
         PACKAGE_DIR = 'c:/jenkins/downloads'
+        WINDOWS = true
         break
 
     case 'linux_deb':
@@ -76,7 +77,11 @@ ${PYTHON} ${WORKSPACE}/release_tester/acquire_packages.py ${ENTERPRISE_PARAM} --
 """
             print("downloading old package(s) using:")
             print(ACQUIRE_COMMAND)
-            sh ACQUIRE_COMMAND
+            if (WINDOWS) {
+                powershell ACQUIRE_COMMAND
+            } else {
+                sh ACQUIRE_COMMAND
+            }
         }
     }
 
@@ -86,7 +91,11 @@ ${PYTHON} ${WORKSPACE}/release_tester/acquire_packages.py ${ENTERPRISE_PARAM} --
 """
         print("downloading new package(s) using:")
         print(ACQUIRE_COMMAND)
-        sh ACQUIRE_COMMAND
+        if (WINDOWS) {
+            powershell ACQUIRE_COMMAND
+        } else {
+            sh ACQUIRE_COMMAND
+        }
     }
 
     stage('cleanup') {
@@ -96,7 +105,11 @@ ${PYTHON} ${WORKSPACE}/release_tester/acquire_packages.py ${ENTERPRISE_PARAM} --
 ${SUDO} ${PYTHON} ${WORKSPACE}/release_tester/cleanup.py ${ZIP}
 """
             print(CLEANUP_COMMAND)
-            sh CLEANUP_COMMAND
+            if (WINDOWS) {
+                powershell CLEANUP_COMMAND
+            } else {
+                sh CLEANUP_COMMAND
+            }
         } else {
             print("no old install detected; not cleaning up")
         }
@@ -109,7 +122,11 @@ ${SUDO} ${PYTHON} ${WORKSPACE}/release_tester/cleanup.py ${ZIP}
 ${SUDO} ${PYTHON} ${WORKSPACE}/release_tester/upgrade.py ${ENTERPRISE_PARAM} --old-version ${params['VERSION_OLD']} --version ${params['VERSION_NEW']} --package-dir ${PACKAGE_DIR} --publicip 192.168.173.88 ${ZIP} --no-interactive ${VERBOSE}
 """
             print(UPGRADE_COMMAND)
-            sh UPGRADE_COMMAND
+            if (WINDOWS) {
+                powershell UPGRADE_COMMAND
+            } else {
+                sh UPGRADE_COMMAND
+            }
         }
         stage('plain test'){}
     } else {
@@ -120,7 +137,11 @@ ${SUDO} ${PYTHON} ${WORKSPACE}/release_tester/upgrade.py ${ENTERPRISE_PARAM} --o
 ${SUDO} ${PYTHON} ${WORKSPACE}/release_tester/test.py ${ENTERPRISE_PARAM} --version ${params['VERSION_NEW']} --package-dir ${PACKAGE_DIR} --publicip 192.168.173.88 ${ZIP} --no-interactive ${VERBOSE}
 """
             print(TEST_COMMAND)
-            sh TEST_COMMAND
+            if (WINDOWS) {
+                powershell TEST_COMMAND
+            } else {
+                sh TEST_COMMAND
+            }
         }
     }
 }
