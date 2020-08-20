@@ -78,7 +78,7 @@ ${PYTHON} ${WORKSPACE}/release_tester/acquire_packages.py ${ENTERPRISE_PARAM} --
             print("downloading old package(s) using:")
             print(ACQUIRE_COMMAND)
             if (WINDOWS) {
-                pwsh ACQUIRE_COMMAND
+                powershell ACQUIRE_COMMAND
             } else {
                 sh ACQUIRE_COMMAND
             }
@@ -92,7 +92,7 @@ ${PYTHON} ${WORKSPACE}/release_tester/acquire_packages.py ${ENTERPRISE_PARAM} --
         print("downloading new package(s) using:")
         print(ACQUIRE_COMMAND)
         if (WINDOWS) {
-            pwsh ACQUIRE_COMMAND
+            powershell ACQUIRE_COMMAND
         } else {
             sh ACQUIRE_COMMAND
         }
@@ -106,7 +106,7 @@ ${SUDO} ${PYTHON} ${WORKSPACE}/release_tester/cleanup.py ${ZIP}
 """
             print(CLEANUP_COMMAND)
             if (WINDOWS) {
-                pwsh CLEANUP_COMMAND
+                powershell CLEANUP_COMMAND
             } else {
                 sh CLEANUP_COMMAND
             }
@@ -123,7 +123,7 @@ ${SUDO} ${PYTHON} ${WORKSPACE}/release_tester/upgrade.py ${ENTERPRISE_PARAM} --o
 """
             print(UPGRADE_COMMAND)
             if (WINDOWS) {
-                pwsh UPGRADE_COMMAND
+                powershell UPGRADE_COMMAND
             } else {
                 sh UPGRADE_COMMAND
             }
@@ -138,7 +138,7 @@ ${SUDO} ${PYTHON} ${WORKSPACE}/release_tester/test.py ${ENTERPRISE_PARAM} --vers
 """
             print(TEST_COMMAND)
             if (WINDOWS) {
-                pwsh TEST_COMMAND
+                powershell TEST_COMMAND
             } else {
                 sh TEST_COMMAND
             }
