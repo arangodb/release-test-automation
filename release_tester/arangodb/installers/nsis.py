@@ -23,6 +23,12 @@ class InstallerW(InstallerBase):
 
         cfg.baseTestDir = Path('/tmp')
         cfg.installPrefix = Path("C:/tmp")
+        cfg.logDir = cfg.installPrefix / "LOG"
+        cfg.dbdir = cfg.installPrefix / "DB"
+        cfg.appdir = cfg.installPrefix / "APP"
+        cfg.installPrefix = cfg.installPrefix / "PROG"
+        cfg.cfgdir = cfg.installPrefix / 'etc/arangodb3'
+
         cfg.bin_dir = cfg.installPrefix / "usr" / "bin"
         cfg.sbin_dir = cfg.installPrefix / "usr" / "bin"
         cfg.real_bin_dir = cfg.bin_dir
@@ -61,11 +67,6 @@ class InstallerW(InstallerBase):
         raise Exception("TODO!")
 
     def install_package(self):
-        self.cfg.logDir = self.cfg.installPrefix / "LOG"
-        self.cfg.dbdir = self.cfg.installPrefix / "DB"
-        self.cfg.appdir = self.cfg.installPrefix / "APP"
-        self.cfg.installPrefix = self.cfg.installPrefix / "PROG"
-        self.cfg.cfgdir = self.cfg.installPrefix / 'etc/arangodb3'
         cmd = [str(self.cfg.package_dir / self.server_package),
                '/PASSWORD=' + self.cfg.passvoid,
                '/INSTDIR=' + str(PureWindowsPath(self.cfg.installPrefix)),
@@ -97,41 +98,50 @@ class InstallerW(InstallerBase):
             self.service = psutil.win_service_get('ArangoDB')
         except Exception as exc:
             logging.error("failed to get service! - %s", str(exc))
-            raise exc
+            return None
 
     def un_install_package(self):
         # once we modify it, the uninstaller will leave it there...
-        self.get_arangod_conf().unlink()
+        if self.get_arangod_conf().exists():
+            self.get_arangod_conf().unlink()
         uninstaller = "Uninstall.exe"
         tmp_uninstaller = Path("c:/tmp") / uninstaller
-        # copy out the uninstaller as the windows facility would do:
-        shutil.copyfile(self.cfg.installPrefix / uninstaller, tmp_uninstaller)
+        uninstaller = self.cfg.installPrefix / uninstaller
 
-        cmd = [tmp_uninstaller,
-               '/PURGE_DB=1',
-               '/S',
-               '_?=' + str(PureWindowsPath(self.cfg.installPrefix))]
-        logging.info('running windows package uninstaller')
-        logging.info(str(cmd))
-        uninstall = psutil.Popen(cmd)
-        uninstall.wait()
-        shutil.rmtree(self.cfg.logDir)
-        tmp_uninstaller.unlink()
+        if uninstaller.exists():
+            # copy out the uninstaller as the windows facility would do:
+            shutil.copyfile(uninstaller, tmp_uninstaller)
+
+            cmd = [tmp_uninstaller,
+                   '/PURGE_DB=1',
+                   '/S',
+                   '_?=' + str(PureWindowsPath(self.cfg.installPrefix))]
+            logging.info('running windows package uninstaller')
+            logging.info(str(cmd))
+            uninstall = psutil.Popen(cmd)
+            uninstall.wait()
+        if self.cfg.logDir.exists():
+            shutil.rmtree(self.cfg.logDir)
+        if tmp_uninstaller.exists():
+            tmp_uninstaller.unlink()
         time.sleep(2)
         try:
             logging.info(psutil.win_service_get('ArangoDB'))
             self.get_service()
-            if self.service.status() != 'stopped':
+            if self.service and self.service.status() != 'stopped':
                 logging.info("service shouldn't exist anymore!")
         except:
             pass
 
     def check_service_up(self):
         self.get_service()
-        return self.service.status() == 'running'
+        return self.service and self.service.status() == 'running'
 
     def start_service(self):
         self.get_service()
+        if not self.service:
+            logging.error("no service registered, not starting")
+            return
         self.service.start()
         while self.service.status() != "running":
             logging.info(self.service.status())
@@ -143,7 +153,11 @@ class InstallerW(InstallerBase):
 
     def stop_service(self):
         self.get_service()
-        self.service.stop()
+        if not self.service:
+            logging.error("no service registered, not stopping")
+            return
+        if self.service.status() != "stopped":
+            self.service.stop()
         while self.service.status() != "stopped":
             logging.info(self.service.status())
             time.sleep(1)
