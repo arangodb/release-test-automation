@@ -26,6 +26,7 @@ class InstallerConfig():
         self.publicip = publicip
         self.interactive = interactive
         self.enterprise = enterprise
+        self.supports_hotbackup = enterprise
         self.zip = zip
 
         self.mode = mode
@@ -71,6 +72,8 @@ def make_installer(install_config: InstallerConfig):
         and return it"""
     winver = platform.win32_ver()
     if winver[0]:
+        # windows currently doesn't support hot backup.
+        installer_config.supports_hotbackup = False
         from arangodb.installers.nsis import InstallerW
         return InstallerW(install_config)
 
