@@ -70,7 +70,6 @@ class InstallerW(InstallerBase):
     def upgrade_package(self):
         self.stop_service()
         cmd = [str(self.cfg.package_dir / self.server_package),
-               '/PASSWORD=' + self.cfg.passvoid,
                '/INSTDIR=' + str(PureWindowsPath(self.cfg.installPrefix)),
                '/DATABASEDIR=' + str(PureWindowsPath(self.cfg.dbdir)),
                '/APPDIR=' + str(PureWindowsPath(self.cfg.appdir)),
