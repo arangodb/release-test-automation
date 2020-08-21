@@ -3,12 +3,12 @@
 import time
 import shutil
 import logging
+import multiprocessing
 from pathlib import Path
 from pathlib import PureWindowsPath
 import psutil
 from arangodb.instance import ArangodInstance
 from arangodb.installers.base import InstallerBase
-
 
 class InstallerW(InstallerBase):
     """ install the windows NSIS package """
@@ -85,7 +85,9 @@ class InstallerW(InstallerBase):
             time.sleep(1)
         self.enable_logging()
         self.stop_service()
-        time.sleep(1)
+        # the smaller the wintendo, the longer we shal let it rest, since it needs to look at all these files we
+        # just unloaded into it to make sure no harm originates from them.
+        time.sleep(60 / multiprocessing.cpu_count())
         self.instance = ArangodInstance("single", "8529", self.cfg.localhost, self.cfg.publicip, self.cfg.logDir)
         self.start_service()
         logging.info('Installation successfull')
