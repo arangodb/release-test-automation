@@ -26,7 +26,7 @@ class InstallerW(InstallerBase):
         cfg.logDir = cfg.installPrefix / "LOG"
         cfg.dbdir = cfg.installPrefix / "DB"
         cfg.appdir = cfg.installPrefix / "APP"
-        cfg.installPrefix = cfg.installPrefix / "PROG" + cfg.version
+        cfg.installPrefix = cfg.installPrefix / ("PROG" + cfg.version)
         cfg.cfgdir = cfg.installPrefix / 'etc/arangodb3'
 
         cfg.bin_dir = cfg.installPrefix / "usr" / "bin"
