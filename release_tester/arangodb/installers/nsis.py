@@ -44,6 +44,10 @@ class InstallerW(InstallerBase):
         """ check for strippend """
         pass # we don't do this on the wintendo.
 
+    def supports_hot_backup():
+        """ no hot backup support on the wintendo. """
+        return True
+
     def calculate_package_names(self):
         enterprise = 'e' if self.cfg.enterprise else ''
         architecture = 'win64'
