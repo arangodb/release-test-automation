@@ -53,7 +53,7 @@ class Runner(ABC):
 
         self.old_installer = old_inst
         self.new_installer = new_inst
-
+        self.hot_backup = cfg.enterprise and self.supports_backup_impl() and self.old_installer.supports_hot_backup()
         # starter instances that make_data wil run on
         # maybe it would be better to work directly on
         # frontends
@@ -89,7 +89,7 @@ class Runner(ABC):
             self.make_data()
             ti.prompt_user(self.basecfg, "Deployment started. Please test the UI!")
 
-            if self.cfg.enterprise and self.supports_backup_impl():
+            if self.hot_backup:
                 lh.section("TESTING HOTBACKUP")
                 self.backup_name = self.create_backup("thy_name_is") # TODO generate name?
                 self.create_non_backup_data()
@@ -125,7 +125,7 @@ class Runner(ABC):
             self.new_installer.stop_service()
             self.upgrade_arangod_version() #make sure to pass new version
             self.make_data_after_upgrade()
-            if self.cfg.enterprise and self.supports_backup_impl():
+            if self.hot_backup:
                 lh.section("TESTING HOTBACKUP AFTER UPGRADE")
                 backups = self.list_backup()
                 print(backups)
