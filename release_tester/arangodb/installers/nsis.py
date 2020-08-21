@@ -68,7 +68,32 @@ class InstallerW(InstallerBase):
         self.debug_package = None # TODO
 
     def upgrade_package(self):
-        raise Exception("TODO!")
+        self.stop_service()
+        cmd = [str(self.cfg.package_dir / self.server_package),
+               '/PASSWORD=' + self.cfg.passvoid,
+               '/INSTDIR=' + str(PureWindowsPath(self.cfg.installPrefix)),
+               '/DATABASEDIR=' + str(PureWindowsPath(self.cfg.dbdir)),
+               '/APPDIR=' + str(PureWindowsPath(self.cfg.appdir)),
+               '/PATH=0',
+               '/S',
+               '/INSTALL_SCOPE_ALL=1']
+        logging.info('running windows package installer:')
+        logging.info(str(cmd))
+        install = psutil.Popen(cmd)
+        install.wait()
+        self.service = psutil.win_service_get('ArangoDB')
+        while not self.check_service_up():
+            logging.info('starting...')
+            time.sleep(1)
+        self.enable_logging()
+        self.stop_service()
+        # the smaller the wintendo, the longer we shal let it rest, since it needs to look at all these files we
+        # just unloaded into it to make sure no harm originates from them.
+        time.sleep(60 / multiprocessing.cpu_count())
+        self.instance = ArangodInstance("single", "8529", self.cfg.localhost, self.cfg.publicip, self.cfg.logDir)
+        self.start_service()
+        logging.info('Installation successfull')
+
 
     def install_package(self):
         cmd = [str(self.cfg.package_dir / self.server_package),
