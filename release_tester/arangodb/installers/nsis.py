@@ -46,7 +46,7 @@ class InstallerW(InstallerBase):
 
     def supports_hot_backup(self):
         """ no hot backup support on the wintendo. """
-        return True
+        return False
 
     def calculate_package_names(self):
         enterprise = 'e' if self.cfg.enterprise else ''
