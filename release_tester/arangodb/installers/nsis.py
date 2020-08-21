@@ -44,7 +44,7 @@ class InstallerW(InstallerBase):
         """ check for strippend """
         pass # we don't do this on the wintendo.
 
-    def supports_hot_backup():
+    def supports_hot_backup(self):
         """ no hot backup support on the wintendo. """
         return True
 

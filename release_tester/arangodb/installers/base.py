@@ -169,7 +169,7 @@ class InstallerBase(ABC):
         """ where on the disk is the arangod config installed? """
         return self.cfg.cfgdir / 'arangod.conf'
 
-    def supports_hot_backup():
+    def supports_hot_backup(self):
         """ by default hot backup is supported by the targets, there may be execptions."""
         return True
 
