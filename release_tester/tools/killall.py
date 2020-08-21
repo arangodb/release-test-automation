@@ -32,8 +32,8 @@ def kill_all_processes():
             if process.is_running():
                 try:
                     process.terminate()
-                except:
-                    logging.info("seems as if process %s is already dead?", str(process))
+                except Exception as x:
+                    logging.info("seems as if process %s is already dead?", str(process) + " - " + str(x))
                     continue
             if process.is_running():
                 try:
