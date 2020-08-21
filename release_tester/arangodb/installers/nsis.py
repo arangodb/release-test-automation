@@ -154,7 +154,9 @@ class InstallerW(InstallerBase):
             shutil.rmtree(self.cfg.logDir)
         if tmp_uninstaller.exists():
             tmp_uninstaller.unlink()
-        time.sleep(2)
+        # the smaller the wintendo, the longer we shal let it rest, since it needs to look at all these files we
+        # just unloaded into it to make sure no harm originates from them.
+        time.sleep(30 / multiprocessing.cpu_count())
         try:
             logging.info(psutil.win_service_get('ArangoDB'))
             self.get_service()
