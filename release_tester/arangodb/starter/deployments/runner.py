@@ -53,7 +53,7 @@ class Runner(ABC):
 
         self.old_installer = old_inst
         self.new_installer = new_inst
-        self.hot_backup = cfg.enterprise and self.supports_backup_impl() and old_installer.supports_hot_backup()
+        self.hot_backup = cfg.enterprise and self.supports_backup_impl() and self.old_installer.supports_hot_backup()
         # starter instances that make_data wil run on
         # maybe it would be better to work directly on
         # frontends
