@@ -150,10 +150,10 @@ class Dc2Dc(Runner):
 
     def upgrade_arangod_version_impl(self):
         """ upgrade this installation """
-        self.sync_manager.replace_binary_for_upgrade(self.new_cfg)
+        self.sync_manager.replace_binary_for_upgrade(self.new_installer.cfg)
         self.sync_manager.stop_sync()
-        self.cluster1["instance"].replace_binary_for_upgrade(self.new_cfg)
-        self.cluster2["instance"].replace_binary_for_upgrade(self.new_cfg)
+        self.cluster1["instance"].replace_binary_for_upgrade(self.new_installer.cfg)
+        self.cluster2["instance"].replace_binary_for_upgrade(self.new_installer.cfg)
         self.cluster1["instance"].detect_instance_pids_still_alive()
         self.cluster2["instance"].detect_instance_pids_still_alive()
         self.cluster1["instance"].command_upgrade()

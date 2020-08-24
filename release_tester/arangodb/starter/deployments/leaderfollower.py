@@ -138,7 +138,7 @@ process.exit(0);
     def upgrade_arangod_version_impl(self):
         """ upgrade this installation """
         for node in [self.leader_starter_instance, self.follower_starter_instance]:
-            node.replace_binary_for_upgrade(self.new_cfg)
+            node.replace_binary_for_upgrade(self.new_installer.cfg)
         for node in [self.leader_starter_instance, self.follower_starter_instance]:
             node.command_upgrade()
             node.wait_for_upgrade()

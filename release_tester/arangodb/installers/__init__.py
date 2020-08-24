@@ -74,6 +74,8 @@ class InstallerConfig():
         self.appdir = other.appdir
         self.cfgdir = other.cfgdir
         self.install_prefix = other.install_prefix
+        if self.bin_dir is None:
+            raise Exception('must not copy in None!')
 
 #pylint: disable=import-outside-toplevel
 def make_installer(install_config: InstallerConfig):
