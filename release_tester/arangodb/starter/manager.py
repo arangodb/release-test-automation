@@ -282,7 +282,7 @@ Starter {0.name}
           - replace the starter binary with a new one. this has not yet spawned any children
         """
         # On windows the install prefix may change, since we can't overwrite open files:
-        self.cfg.installPrefix = new_install_cfg.installPrefix
+        self.cfg.set_directories(new_install_cfg)
         logging.info("StarterManager: Killing my instance [%s]", str(self.instance.pid))
         self.kill_instance()
         self.detect_instance_pids_still_alive()
