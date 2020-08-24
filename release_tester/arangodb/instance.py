@@ -37,7 +37,8 @@ class AfoServerState(Enum):
     leader = 1
     not_leader = 2
     challenge_ongoing = 3
-    not_connected = 4
+    startup_maintainance = 4
+    not_connected = 5
 
 class Instance(ABC):
     """abstract instance manager"""
@@ -155,6 +156,8 @@ arangod instance
                 return AfoServerState.challenge_ongoing
             elif body_json['errorNum'] == 1496: # leadership challenge is ongoing...
                 return AfoServerState.not_leader
+            elif body_json['errorNum'] == 503:
+                return AfoServerState.startup_maintainance
             else:
                 raise Exception("afo_state: unsupported error code in " + str(reply.content))
         else:
@@ -195,7 +198,9 @@ arangod instance
                 if self.type == InstanceType.resilientsingle:
                     print("waiting for leader election: ", end="")
                     status = AfoServerState.challenge_ongoing
-                    while status is AfoServerState.challenge_ongoing or status is AfoServerState.not_connected:
+                    while status in [AfoServerState.challenge_ongoing,
+                                     AfoServerState.not_connected,
+                                     AfoServerState.startup_maintainance]:
                         status = self.get_afo_state()
                         progress('%')
                         time.sleep(0.1)

@@ -35,10 +35,11 @@ def run_test(zip):
                                      False)
     inst = make_installer(install_config)
 
-    kill_all_processes()
     inst.load_config()
     inst.cfg.interactive = False
     inst.stop_service()
+    kill_all_processes()
+    kill_all_processes()
     starter_mode = [RunnerType.LEADER_FOLLOWER,
                     RunnerType.ACTIVE_FAILOVER,
                     RunnerType.CLUSTER]  # ,

@@ -98,6 +98,21 @@ class InstallerDeb(InstallerLinux):
         os.environ['DEBIAN_FRONTEND'] = 'readline'
         server_upgrade = pexpect.spawnu('dpkg -i ' +
                                         str(self.cfg.package_dir / self.server_package))
+
+        try:
+            i == server_upgrade.expect(['Upgrading database files', 'Database files are up-to-date'])
+            ascii_print(server_upgrade.before)
+            if i == 0:
+                logging.info("Upgrading database files...")
+            elif i == 1:
+                 logging.info("Database already up-to-date!")
+        except pexpect.exceptions.EOF:
+            logging.info("X" * 80)
+            ascii_print(server_upgrade.before)
+            logging.info("X" * 80)
+            logging.info("[E] Upgrade failed!")
+            sys.exit(1)
+
         while True:
             try:
                 i = server_upgrade.expect([
@@ -126,6 +141,7 @@ class InstallerDeb(InstallerLinux):
                 logging.info("X" * 80)
                 logging.info("[E] Upgrade failed!")
                 sys.exit(1)
+
         try:
             logging.info("waiting for the upgrade to finish")
             server_upgrade.expect(pexpect.EOF, timeout=30)

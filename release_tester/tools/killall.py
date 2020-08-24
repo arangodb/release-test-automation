@@ -29,7 +29,12 @@ def kill_all_processes():
     for process in processlist:
         if process.is_running():
             logging.info("cleanup killing ${proc}".format(proc=process))
-            process.terminate()
+            if process.is_running():
+                try:
+                    process.terminate()
+                except Exception as x:
+                    logging.info("seems as if process %s is already dead?", str(process) + " - " + str(x))
+                    continue
             if process.is_running():
                 try:
                     process.wait(timeout=2)
