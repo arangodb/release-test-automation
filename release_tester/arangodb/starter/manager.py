@@ -266,7 +266,7 @@ Starter {0.name}
         """ kill the instance of this starter
             (it won't kill its managed services)"""
         logging.info("StarterManager: Killing: %s", str(self.arguments))
-        self.instance.send_signal(signal.SIGKILL)
+        self.instance.kill()
         try:
             logging.info(str(self.instance.wait(timeout=45)))
         except:
