@@ -86,7 +86,7 @@ db.testCollection.save({test: "document"})
 
     def upgrade_arangod_version_impl(self):
         for node in self.starter_instances:
-            node.replace_binary_for_upgrade(self.new_installer.cfg)
+            node.replace_binary_for_upgrade(self.new_cfg)
 
         for node in self.starter_instances:
             node.detect_instance_pids_still_alive()
