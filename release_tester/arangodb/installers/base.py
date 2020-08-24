@@ -11,8 +11,6 @@ from abc import abstractmethod, ABC
 import yaml
 from arangodb.instance import ArangodInstance
 
-ARANGO_BINARIES = []
-
 ## helper functions
 def run_file_command(file_to_check):
     """ run `file file_to_check` and return the output """
@@ -121,6 +119,7 @@ class InstallerBase(ABC):
         self.calculate_package_names()
         self.caclulate_file_locations()
         
+        self.arango_binaries = []
         self.cfg.have_debug_package = False
 
     @abstractmethod
@@ -241,11 +240,10 @@ class InstallerBase(ABC):
 
     def caclulate_file_locations(self):
         """ set the global location of files """
-        global ARANGO_BINARIES
 
-        ARANGO_BINARIES = []
+        self.arango_binaries = []
 
-        ARANGO_BINARIES.append(BinaryDescription(
+        self.arango_binaries.append(BinaryDescription(
             self.cfg.real_sbin_dir, 'arangod',
             False, True, "1.0.0", "4.0.0", [
                 self.cfg.real_sbin_dir / 'arango-init-database',
@@ -253,67 +251,67 @@ class InstallerBase(ABC):
             ]))
 
         # symlink only for MMFILES
-        ARANGO_BINARIES.append(BinaryDescription(
+        self.arango_binaries.append(BinaryDescription(
             self.cfg.real_sbin_dir, 'arangod',
             False, True, "1.0.0", "3.6.0", [
                 self.cfg.real_bin_dir / ('arango-dfdb' + extension)
             ]))
 
-        ARANGO_BINARIES.append(BinaryDescription(
+        self.arango_binaries.append(BinaryDescription(
             self.cfg.real_bin_dir, 'arangosh',
             False, True, "1.0.0", "4.0.0", [
                 self.cfg.real_bin_dir / ('arangoinspect' + extension)
             ]))
 
-        ARANGO_BINARIES.append(BinaryDescription(
+        self.arango_binaries.append(BinaryDescription(
             self.cfg.real_bin_dir, 'arangoexport',
             False, True, "1.0.0", "4.0.0", []))
 
-        ARANGO_BINARIES.append(BinaryDescription(
+        self.arango_binaries.append(BinaryDescription(
             self.cfg.real_bin_dir, 'arangoimport',
             False, True, "1.0.0", "4.0.0", [
                 self.cfg.real_bin_dir / ('arangoimp' + extension)
             ]))
 
-        ARANGO_BINARIES.append(BinaryDescription(
+        self.arango_binaries.append(BinaryDescription(
             self.cfg.real_bin_dir, 'arangodump',
             False, True, "1.0.0", "4.0.0", []))
 
-        ARANGO_BINARIES.append(BinaryDescription(
+        self.arango_binaries.append(BinaryDescription(
             self.cfg.real_bin_dir, 'arangorestore',
             False, True, "1.0.0", "4.0.0", []))
 
-        ARANGO_BINARIES.append(BinaryDescription(
+        self.arango_binaries.append(BinaryDescription(
             self.cfg.real_bin_dir, 'arangobench',
             False, True, "1.0.0", "4.0.0", []))
 
-        ARANGO_BINARIES.append(BinaryDescription(
+        self.arango_binaries.append(BinaryDescription(
             self.cfg.real_bin_dir, 'arangovpack',
             False, True, "1.0.0", "4.0.0", []))
 
         #starter
-        ARANGO_BINARIES.append(BinaryDescription(
+        self.arango_binaries.append(BinaryDescription(
             self.cfg.real_bin_dir, 'arangodb',
             False, False, "1.0.0", "4.0.0", []))
 
         ## enterprise
-        ARANGO_BINARIES.append(BinaryDescription(
+        self.arango_binaries.append(BinaryDescription(
             self.cfg.real_bin_dir, 'arangobackup',
             True, True, "1.0.0", "4.0.0", []))
 
-        ARANGO_BINARIES.append(BinaryDescription(
+        self.arango_binaries.append(BinaryDescription(
             self.cfg.real_sbin_dir, 'arangosync',
             True, False, "1.0.0", "4.0.0", [
                 self.cfg.real_bin_dir / ('arangosync' + extension)
             ]))
 
-        ARANGO_BINARIES.append(BinaryDescription(
+        self.arango_binaries.append(BinaryDescription(
             self.cfg.real_sbin_dir, 'rclone-arangodb',
             True, True, "1.0.0", "4.0.0", []))
 
     def check_installed_files(self):
         """ check for the files whether they're installed """
-        for binary in ARANGO_BINARIES:
+        for binary in self.arango_binaries:
             binary.check_installed(self.cfg.version,
                                    self.cfg.enterprise,
                                    self.check_stripped,

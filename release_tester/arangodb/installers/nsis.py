@@ -21,21 +21,20 @@ class InstallerW(InstallerBase):
         self.service = None
         self.remote_package_dir  = 'Windows'
 
+        cfg.baseTestDir = Path('/tmp')
+        cfg.installPrefix = Path("C:/tmp")
+        cfg.logDir = cfg.installPrefix / "LOG"
+        cfg.dbdir = cfg.installPrefix / "DB"
+        cfg.appdir = cfg.installPrefix / "APP"
+        cfg.installPrefix = cfg.installPrefix / ("PROG" + cfg.version)
+        cfg.cfgdir = cfg.installPrefix / 'etc/arangodb3'
+
+        cfg.bin_dir = cfg.installPrefix / "usr" / "bin"
+        cfg.sbin_dir = cfg.installPrefix / "usr" / "bin"
+        cfg.real_bin_dir = cfg.bin_dir
+        cfg.real_sbin_dir = cfg.sbin_dir
+
         super().__init__(cfg)
-
-        self.cfg.baseTestDir = Path('/tmp')
-        self.cfg.installPrefix = Path("C:/tmp")
-        self.cfg.logDir = cfg.installPrefix / "LOG"
-        self.cfg.dbdir = cfg.installPrefix / "DB"
-        self.cfg.appdir = cfg.installPrefix / "APP"
-        self.cfg.installPrefix = cfg.installPrefix / ("PROG" + cfg.version)
-        self.cfg.cfgdir = cfg.installPrefix / 'etc/arangodb3'
-
-        self.cfg.bin_dir = cfg.installPrefix / "usr" / "bin"
-        self.cfg.sbin_dir = cfg.installPrefix / "usr" / "bin"
-        self.cfg.real_bin_dir = cfg.bin_dir
-        self.cfg.real_sbin_dir = cfg.sbin_dir
-
 
     def supports_hot_backup(self):
         """ no hot backup support on the wintendo. """
