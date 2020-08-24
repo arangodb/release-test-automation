@@ -39,6 +39,7 @@ def run_test(zip):
     inst.cfg.interactive = False
     inst.stop_service()
     kill_all_processes()
+    kill_all_processes()
     starter_mode = [RunnerType.LEADER_FOLLOWER,
                     RunnerType.ACTIVE_FAILOVER,
                     RunnerType.CLUSTER]  # ,
