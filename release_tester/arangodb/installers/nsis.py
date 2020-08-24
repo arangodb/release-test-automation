@@ -3,12 +3,12 @@
 import time
 import shutil
 import logging
+import multiprocessing
 from pathlib import Path
 from pathlib import PureWindowsPath
 import psutil
 from arangodb.instance import ArangodInstance
 from arangodb.installers.base import InstallerBase
-
 
 class InstallerW(InstallerBase):
     """ install the windows NSIS package """
@@ -26,7 +26,7 @@ class InstallerW(InstallerBase):
         cfg.logDir = cfg.installPrefix / "LOG"
         cfg.dbdir = cfg.installPrefix / "DB"
         cfg.appdir = cfg.installPrefix / "APP"
-        cfg.installPrefix = cfg.installPrefix / "PROG"
+        cfg.installPrefix = cfg.installPrefix / ("PROG" + cfg.version)
         cfg.cfgdir = cfg.installPrefix / 'etc/arangodb3'
 
         cfg.bin_dir = cfg.installPrefix / "usr" / "bin"
@@ -36,13 +36,9 @@ class InstallerW(InstallerBase):
 
         super().__init__(cfg)
 
-    def check_symlink(self, file_to_check):
-        """ check for installed symlinks """
-        return not file_to_check.is_symlink()
-
-    def check_is_stripped(self, file_to_check, expect_stripped):
-        """ check for strippend """
-        pass # we don't do this on the wintendo.
+    def supports_hot_backup(self):
+        """ no hot backup support on the wintendo. """
+        return False
 
     def calculate_package_names(self):
         enterprise = 'e' if self.cfg.enterprise else ''
@@ -64,7 +60,31 @@ class InstallerW(InstallerBase):
         self.debug_package = None # TODO
 
     def upgrade_package(self):
-        raise Exception("TODO!")
+        self.stop_service()
+        cmd = [str(self.cfg.package_dir / self.server_package),
+               '/INSTDIR=' + str(PureWindowsPath(self.cfg.installPrefix)),
+               '/DATABASEDIR=' + str(PureWindowsPath(self.cfg.dbdir)),
+               '/APPDIR=' + str(PureWindowsPath(self.cfg.appdir)),
+               '/PATH=0',
+               '/S',
+               '/INSTALL_SCOPE_ALL=1']
+        logging.info('running windows package installer:')
+        logging.info(str(cmd))
+        install = psutil.Popen(cmd)
+        install.wait()
+        self.service = psutil.win_service_get('ArangoDB')
+        while not self.check_service_up():
+            logging.info('starting...')
+            time.sleep(1)
+        self.enable_logging()
+        self.stop_service()
+        # the smaller the wintendo, the longer we shal let it rest, since it needs to look at all these files we
+        # just unloaded into it to make sure no harm originates from them.
+        time.sleep(60 / multiprocessing.cpu_count())
+        self.instance = ArangodInstance("single", "8529", self.cfg.localhost, self.cfg.publicip, self.cfg.logDir)
+        self.start_service()
+        logging.info('Installation successfull')
+
 
     def install_package(self):
         cmd = [str(self.cfg.package_dir / self.server_package),
@@ -85,7 +105,9 @@ class InstallerW(InstallerBase):
             time.sleep(1)
         self.enable_logging()
         self.stop_service()
-        time.sleep(1)
+        # the smaller the wintendo, the longer we shal let it rest, since it needs to look at all these files we
+        # just unloaded into it to make sure no harm originates from them.
+        time.sleep(60 / multiprocessing.cpu_count())
         self.instance = ArangodInstance("single", "8529", self.cfg.localhost, self.cfg.publicip, self.cfg.logDir)
         self.start_service()
         logging.info('Installation successfull')
@@ -124,7 +146,9 @@ class InstallerW(InstallerBase):
             shutil.rmtree(self.cfg.logDir)
         if tmp_uninstaller.exists():
             tmp_uninstaller.unlink()
-        time.sleep(2)
+        # the smaller the wintendo, the longer we shal let it rest, since it needs to look at all these files we
+        # just unloaded into it to make sure no harm originates from them.
+        time.sleep(30 / multiprocessing.cpu_count())
         try:
             logging.info(psutil.win_service_get('ArangoDB'))
             self.get_service()
