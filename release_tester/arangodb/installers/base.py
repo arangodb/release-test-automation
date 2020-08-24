@@ -211,7 +211,8 @@ class InstallerBase(ABC):
         """ if the packaging doesn't enable logging,
             do it using this function """
         arangodconf = self.get_arangod_conf().read_text()
-        self.cfg.logDir.mkdir(parents=True)
+        if not self.cfg.logDir.exists():
+            self.cfg.logDir.mkdir(parents=True)
         new_arangod_conf = arangodconf.replace(
             '[log]',
             '[log]\nfile = ' +
