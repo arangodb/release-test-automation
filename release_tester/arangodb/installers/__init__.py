@@ -63,7 +63,7 @@ class InstallerConfig():
         raise NotImplementedError()
         #self.passvoid = 'cde'
 
-    def set_directories(self, other: InstallerConfig):
+    def set_directories(self, other):
         """ set all directories from the other object """
         self.bin_dir = other.bin_dir
         self.sbin_dir = other.sbin_dir
