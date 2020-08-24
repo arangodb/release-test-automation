@@ -63,6 +63,17 @@ class InstallerConfig():
         raise NotImplementedError()
         #self.passvoid = 'cde'
 
+    def set_directories(self, other: InstallerConfig):
+        """ set all directories from the other object """
+        self.bin_dir = other.bin_dir
+        self.sbin_dir = other.sbin_dir
+        self.real_bin_dir = other.real_bin_dir
+        self.real_sbin_dir = other.real_sbin_dir
+        self.logDir = other.logDir
+        self.dbdir = other.dbdir
+        self.appdir = other.appdir
+        self.cfgdir = other.cfgdir
+        self.install_prefix = other.install_prefix
 
 #pylint: disable=import-outside-toplevel
 def make_installer(install_config: InstallerConfig):

@@ -123,6 +123,8 @@ class Runner(ABC):
             if self.cfg.have_debug_package == True:
                 self.new_installer.gdb_test()
             self.new_installer.stop_service()
+            self.cfg.set_directories(self.new_installer.cfg)
+
             self.upgrade_arangod_version() #make sure to pass new version
             self.make_data_after_upgrade()
             if self.hot_backup:
