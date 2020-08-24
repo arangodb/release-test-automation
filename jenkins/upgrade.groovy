@@ -119,7 +119,7 @@ ${SUDO} ${PYTHON} ${WORKSPACE}/release_tester/cleanup.py ${ZIP}
         stage('upgrade') {
             print("Running upgrade test")
             UPGRADE_COMMAND = """
-${SUDO} ${PYTHON} ${WORKSPACE}/release_tester/upgrade.py ${ENTERPRISE_PARAM} --old-version ${params['VERSION_OLD']} --version ${params['VERSION_NEW']} --package-dir ${PACKAGE_DIR} --publicip 192.168.173.88 ${ZIP} --no-interactive ${VERBOSE}
+${SUDO} ${PYTHON} ${WORKSPACE}/release_tester/upgrade.py ${ENTERPRISE_PARAM} --old-version ${params['VERSION_OLD']} --version ${params['VERSION_NEW']} --package-dir ${PACKAGE_DIR} --publicip 192.168.173.88 ${ZIP} --no-interactive ${VERBOSE} --starter-mode ${params['STARTER_MODE']}
 """
             print(UPGRADE_COMMAND)
             if (WINDOWS) {
@@ -134,7 +134,7 @@ ${SUDO} ${PYTHON} ${WORKSPACE}/release_tester/upgrade.py ${ENTERPRISE_PARAM} --o
         stage('plain test') {
             print("Running plain install test")
             TEST_COMMAND = """
-${SUDO} ${PYTHON} ${WORKSPACE}/release_tester/test.py ${ENTERPRISE_PARAM} --version ${params['VERSION_NEW']} --package-dir ${PACKAGE_DIR} --publicip 192.168.173.88 ${ZIP} --no-interactive ${VERBOSE}
+${SUDO} ${PYTHON} ${WORKSPACE}/release_tester/test.py ${ENTERPRISE_PARAM} --version ${params['VERSION_NEW']} --package-dir ${PACKAGE_DIR} --publicip 192.168.173.88 ${ZIP} --no-interactive ${VERBOSE} --starter-mode ${params['STARTER_MODE']}
 """
             print(TEST_COMMAND)
             if (WINDOWS) {
