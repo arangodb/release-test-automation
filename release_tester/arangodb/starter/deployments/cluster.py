@@ -39,13 +39,13 @@ db.testCollection.save({test: "document"})
                            self.basedir, 'node2',
                            mode='cluster',
                            jwtStr=self.jwtdatastr,
-                           moreopts=['--starter.join', '127.0.0.1']))
+                           moreopts=['--starter.join', '127.0.0.1:9528']))
         self.starter_instances.append(
             StarterManager(self.basecfg,
                            self.basedir, 'node3',
                            mode='cluster',
                            jwtStr=self.jwtdatastr,
-                           moreopts=['--starter.join', '127.0.0.1']))
+                           moreopts=['--starter.join', '127.0.0.1:9528']))
         for instance in self.starter_instances:
             instance.is_leader = True
 

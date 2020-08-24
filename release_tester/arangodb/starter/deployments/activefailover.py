@@ -34,12 +34,12 @@ class ActiveFailover(Runner):
             StarterManager(self.basecfg,
                            self.basedir, 'node2',
                            mode='activefailover',
-                           moreopts=['--starter.join', '127.0.0.1']))
+                           moreopts=['--starter.join', '127.0.0.1:9528']))
         self.starter_instances.append(
             StarterManager(self.basecfg,
                            self.basedir, 'node3',
                            mode='activefailover',
-                           moreopts=['--starter.join', '127.0.0.1']))
+                           moreopts=['--starter.join', '127.0.0.1:9528']))
 
     def starter_run_impl(self):
         logging.info("Spawning starter instances")
