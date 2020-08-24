@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
 from pathlib import Path
@@ -27,6 +28,7 @@ class ActiveFailover(Runner):
             StarterManager(self.basecfg,
                            self.basedir, 'node1',
                            mode='activefailover',
+                           port=9528,
                            moreopts=[]))
         self.starter_instances.append(
             StarterManager(self.basecfg,

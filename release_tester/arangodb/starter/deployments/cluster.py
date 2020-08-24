@@ -32,6 +32,7 @@ db.testCollection.save({test: "document"})
                            self.basedir, 'node1',
                            mode='cluster',
                            jwtStr=self.jwtdatastr,
+                           port=9528,
                            moreopts=[]))
         self.starter_instances.append(
             StarterManager(self.basecfg,
