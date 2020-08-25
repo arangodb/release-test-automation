@@ -11,6 +11,7 @@
 - pyyaml - for parsing saved data.
 - click - for commandline parsing https://click.palletsprojects.com/en/7.x/
 - semver - semantic versioning.
+- gdb - for checking debug symbol. `sudo apt-get install gdb` macos:`brew install gdb` 
 
 # Installing
 
@@ -18,16 +19,18 @@
 
 - **debian** / **ubuntu**:
   `apt-get install python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect python3-pyftpdlib`
-  the `python3-semver` on debian is to old - need to use the pip version instead: `pip3 install semver`
+  the `python3-semver` on debian is to old - need to use the pip version instead: `pip3 install semver` `apt-get install gdb`
 - **centos**:
-   `yum update ; yum install python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect python3-pyftpdlib; pip3 install psutil semver`
+   `yum update ; yum install python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect python3-pyftpdlib; pip3 install psutil semver` 
+   `sudo yum install gdb`
 - **plain pip**:
-  `pip3 install psutil pyyaml pexpect requests click semver ftplib`
+  `pip3 install psutil pyyaml pexpect requests click semver ftplib` 
 
 ## Mac OS
-
-    brew install gnu-tar
-    pip3 install click psutil requests pyyaml semver pexpect ftplib
+:
+    `brew install gnu-tar`
+    `pip3 install click psutil requests pyyaml semver pexpect ftplib`
+    `brew install gdb`
 
 ## Windows
 
