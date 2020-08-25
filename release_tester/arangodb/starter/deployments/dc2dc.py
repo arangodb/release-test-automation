@@ -16,28 +16,27 @@ class Dc2Dc(Runner):
     def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
         super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'DC2DC')
         self.success = True
-        self.basecfg.passvoid = '' # TODO
+        self.cfg.passvoid = '' # TODO
         self.sync_manager = None
 
 
     def starter_prepare_env_impl(self):
         def cert_op(args):
             print(args)
-            psutil.Popen([self.basecfg.installPrefix
-                          / 'usr' / 'bin' / 'arangodb',
+            psutil.Popen([self.cfg.bin_dir / 'arangodb',
                           'create'] +
                          args).wait()
 
 
         datadir = Path('data')
-        cert_dir = self.basecfg.baseTestDir / self.basedir / "certs"
+        cert_dir = self.cfg.baseTestDir / self.basedir / "certs"
         print(cert_dir)
         cert_dir.mkdir(parents=True, exist_ok=True)
         cert_dir.mkdir(parents=True, exist_ok=True)
         def getdirs(subdir):
             return {
                 "dir": self.basedir /
-                       self.basecfg.baseTestDir /
+                       self.cfg.baseTestDir /
                        self.basedir / datadir,
                 "instance_dir": subdir,
                 "SyncSecret": cert_dir / subdir / 'syncmaster.jwtsecret',
@@ -62,12 +61,12 @@ class Dc2Dc(Runner):
                  '--cacert=' + str(self.ca["cert"]),
                  '--cakey=' + str(self.ca["key"]),
                  '--keyfile=' + str(self.cluster1["tlsKeyfile"]),
-                 '--host=' + self.basecfg.publicip, '--host=localhost'])
+                 '--host=' + self.cfg.publicip, '--host=localhost'])
         cert_op(['tls', 'keyfile',
                  '--cacert=' + str(self.ca["cert"]),
                  '--cakey=' + str(self.ca["key"]),
                  '--keyfile=' + str(self.cluster2["tlsKeyfile"]),
-                 '--host=' + self.basecfg.publicip, '--host=localhost'])
+                 '--host=' + self.cfg.publicip, '--host=localhost'])
         logging.info('Create client authentication certificates')
         cert_op(['client-auth', 'ca',
                  '--cert=' + str(client_cert),
@@ -83,7 +82,7 @@ class Dc2Dc(Runner):
 
         def add_starter(val, port):
             val["instance"] = StarterManager(
-                self.basecfg,
+                self.cfg,
                 val["dir"], val["instance_dir"],
                 port=port,
                 mode='cluster',
@@ -94,7 +93,7 @@ class Dc2Dc(Runner):
                     '--sync.server.keyfile=' +       str(val["tlsKeyfile"]),
                     '--sync.server.client-cafile=' + str(client_cert),
                     '--sync.master.jwt-secret=' +    str(val["SyncSecret"]),
-                    '--starter.address=' +           self.basecfg.publicip
+                    '--starter.address=' +           self.cfg.publicip
                 ])
             if port is None:
                 val["instance"].is_leader = True
@@ -114,7 +113,7 @@ class Dc2Dc(Runner):
             cluster['smport'] = inst.get_sync_master_port()
 
             url = 'http://{host}:{port}'.format(
-                host=self.basecfg.publicip,
+                host=self.cfg.publicip,
                 port=str(cluster['smport']))
             reply = requests.get(url)
             logging.info(str(reply))
@@ -125,7 +124,7 @@ class Dc2Dc(Runner):
         launch(self.cluster2)
 
     def finish_setup_impl(self):
-        self.sync_manager = SyncManager(self.basecfg,
+        self.sync_manager = SyncManager(self.cfg,
                                         self.ca,
                                         [self.cluster2['smport'],
                                          self.cluster1['smport']])

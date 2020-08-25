@@ -124,6 +124,7 @@ class Runner(ABC):
                 self.new_installer.gdb_test()
             self.new_installer.stop_service()
             self.cfg.set_directories(self.new_installer.cfg)
+            self.new_cfg.set_directories(self.new_installer.cfg)
 
             self.upgrade_arangod_version() #make sure to pass new version
             self.make_data_after_upgrade()
@@ -165,6 +166,7 @@ class Runner(ABC):
         if self.do_install:
             lh.subsubsection("installing package")
             inst.install_package()
+            self.cfg.set_directories(inst.cfg)
             lh.subsubsection("checking files")
             inst.check_installed_files()
             lh.subsubsection("saving config")

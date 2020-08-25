@@ -108,7 +108,8 @@ class InstallerTAR(InstallerBase):
         logging.info('Installation successfull')
 
     def un_install_package(self):
-        shutil.rmtree(self.cfg.installPrefix)
+        if self.cfg.installPrefix.exists():
+            shutil.rmtree(self.cfg.installPrefix)
 
     def broadcast_bind(self):
         pass

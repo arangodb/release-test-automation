@@ -115,7 +115,7 @@ db.testCollection.save({test: "document"})
             Path('CLUSTER'), 'nodeX',
             mode='cluster',
             jwtStr=None,
-            moreopts=['--starter.join', '127.0.0.1'])
+            moreopts=['--starter.join', '127.0.0.1:9528'])
         dead_instance.run_starter()
 
         i = 0

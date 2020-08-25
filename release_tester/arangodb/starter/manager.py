@@ -51,6 +51,10 @@ class StarterManager():
         if self.starter_port is not None:
             self.moreopts += ["--starter.port", "%d" % self.starter_port]
 
+        self.hotbackup = []
+        if self.cfg.enterprise:
+            self.hotbackup = ['--all.rclone.executable', self.cfg.sbin_dir / 'rclone-arangodb']
+
         # arg - jwtstr
         self.jwtfile = None
         if jwtStr:
@@ -173,7 +177,7 @@ Starter {0.name}
     def run_starter(self):
         """ launch the starter for this instance"""
         logging.info("running starter " + self.name)
-        args = [self.cfg.bin_dir / 'arangodb'] + self.arguments
+        args = [self.cfg.bin_dir / 'arangodb'] + self.hotbackup + self.arguments
         lh.log_cmd(args)
         self.instance = psutil.Popen(args)
         self.wait_for_logfile()
@@ -283,6 +287,8 @@ Starter {0.name}
         """
         # On windows the install prefix may change, since we can't overwrite open files:
         self.cfg.set_directories(new_install_cfg)
+        if self.cfg.enterprise:
+            self.hotbackup = ['--all.rclone.executable', self.cfg.sbin_dir / 'rclone-arangodb']
         logging.info("StarterManager: Killing my instance [%s]", str(self.instance.pid))
         self.kill_instance()
         self.detect_instance_pids_still_alive()
@@ -332,7 +338,7 @@ Starter {0.name}
         """ restart the starter instance after we killed it eventually """
         args = [
             self.cfg.bin_dir / 'arangodb'
-        ] + self.arguments
+        ] + self.hotbackup + self.arguments
 
         logging.info("StarterManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)
