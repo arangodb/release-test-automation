@@ -219,6 +219,8 @@ Starter {0.name}
             text = self.get_log_file()
             keepGoing = text.find('Upgrading done.') >= 0
             progress('.')
+        for instance in self.all_instances:
+            instance.wait_for_shutdown()
 
     def is_instance_up(self):
         """ check whether all spawned arangods are fully bootet"""
@@ -475,6 +477,7 @@ Starter {0.name}
                                                   self.cfg.publicip,
                                                   Path(root) / name)
                         instance.wait_for_logfile(tries)
+                        instance.detect_pid(self.instance.pid)
                         self.all_instances.append(instance)
 
             if not self.get_frontends():

@@ -77,6 +77,10 @@ class Instance(ABC):
         self.instance.terminate()
         self.instance.wait()
 
+    def wait_for_shutdown(self):
+        """ wait for the instance to anounce its dead! """
+        pass
+
 
 class ArangodInstance(Instance):
     """ represent one arangodb instance """
@@ -162,6 +166,14 @@ arangod instance
                 raise Exception("afo_state: unsupported error code in " + str(reply.content))
         else:
             raise Exception("afo_state: unsupportet HTTP-Status code " + str(reply.status_code))
+
+    def wait_for_shutdown(self):
+        while True:
+            try:
+                psutil.Process(self.pid)
+                time.sleep(0.1)
+            except Exception:
+                break
 
     def detect_restore_restart(self):
         logging.debug("scanning " + str(self.logfile))
