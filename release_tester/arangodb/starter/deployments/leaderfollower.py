@@ -50,12 +50,20 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
     def starter_prepare_env_impl(self):
         self.leader_starter_instance = StarterManager(
             self.cfg, self.basedir, 'leader',
-            mode='single', port=1234, moreopts=[])
+            mode='single', port=1234,
+            expect_instances=[
+                InstanceType.single
+            ],
+            moreopts=[])
         self.leader_starter_instance.is_leader = True
 
         self.follower_starter_instance = StarterManager(
             self.cfg, self.basedir, 'follower',
-            mode='single', port=2345, moreopts=[])
+            mode='single', port=2345,
+            expect_instances=[
+                InstanceType.single
+            ],
+            moreopts=[])
 
     def starter_run_impl(self):
         self.leader_starter_instance.run_starter()

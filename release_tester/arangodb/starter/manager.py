@@ -32,8 +32,11 @@ class StarterManager():
     def __init__(self,
                  basecfg,
                  install_prefix, instance_prefix,
+                 expect_instances,
                  mode=None, port=None, jwtStr=None, moreopts=[]):
 
+        self.expect_instances = expect_instances
+        self.expect_instances.sort()
         self.moreopts = moreopts
         self.cfg = copy.deepcopy(basecfg)
         if self.cfg.verbose:
@@ -301,7 +304,7 @@ Starter {0.name}
         """ kill all arangosync instances we posses """
         for i in self.all_instances:
             if i.is_sync_instance():
-                logging.info("manually killing syncer: ")
+                logging.info("manually killing syncer: " + str(i.pid))
                 i.terminate_instance()
 
     def command_upgrade(self):
@@ -444,8 +447,10 @@ Starter {0.name}
         tries = 10 * self.expect_instance_count
 
         # Wait for forntend to become alive.
-        while not self.get_frontends() and tries:
+        allInstancesUp = False
+        while not allInstancesUp and tries:
             self.all_instances = []
+            detected_instances = []
             sys.stdout.write(".")
             sys.stdout.flush()
 
@@ -477,12 +482,19 @@ Starter {0.name}
                                                   self.cfg.publicip,
                                                   Path(root) / name)
                         instance.wait_for_logfile(tries)
-                        instance.detect_pid(self.instance.pid)
+                        instance.detect_pid(ppid=self.instance.pid, full_binary_path = self.cfg.real_sbin_dir)
+                        detected_instances.append(instance.type)
                         self.all_instances.append(instance)
 
-            if not self.get_frontends():
+            print(self.expect_instances)
+            detected_instances.sort()
+            print(detected_instances)
+            if ((self.expect_instances != detected_instances) or
+                (not self.get_frontends())):
                 tries -= 1
                 time.sleep(5)
+            else:
+                allInstancesUp = True
 
         if not self.get_frontends():
             print()
