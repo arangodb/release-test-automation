@@ -115,7 +115,10 @@ class BinaryDescription():
 class InstallerBase(ABC):
     """ this is the prototype for the operation system agnostic installers """
     def __init__(self, cfg):
+        print('super')
+        print(cfg.cfgdir)
         self.cfg = copy.deepcopy(cfg)
+        print(self.cfg.cfgdir)
         self.calculate_package_names()
         self.caclulate_file_locations()
         

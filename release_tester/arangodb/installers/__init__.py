@@ -39,7 +39,7 @@ class InstallerConfig():
         self.install_prefix = Path("/")
         self.pwd = Path(os.path.dirname(os.path.realpath(__file__)))
         self.test_data_dir = self.pwd / '..' / '..' / '..' / 'test_data'
-
+        self.cfgdir = Path('.')
         self.username = "root"
         self.passvoid = ''
         self.jwt = ''
@@ -118,3 +118,7 @@ def make_installer(install_config: InstallerConfig):
             return InstallerRPM(install_config)
         raise Exception('unsupported linux distribution: ' + distro)
     raise Exception('unsupported os' + platform.system())
+
+def make_source_installer(install_config: InstallerConfig):
+    from arangodb.installers.source import InstallerSRC
+    return InstallerSRC(install_config)

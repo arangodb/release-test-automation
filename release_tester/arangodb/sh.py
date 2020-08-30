@@ -3,10 +3,38 @@
     to the configured connection """
 import logging
 import psutil
+import os
 import tools.loghelper as lh
 import tools.errorhelper as eh
-import subprocess
+import time
+from pathlib import Path
 
+from subprocess import DEVNULL, PIPE, Popen
+from threading  import Thread
+from queue import Queue, Empty
+import sys
+from tools.asciiprint import ascii_print, print_progress as progress
+
+ON_POSIX = 'posix' in sys.builtin_module_names
+
+def enqueue_output(std_out, queue):
+    for line in iter(std_out.readline, b''):
+        queue.put(line)
+    queue.put(-1)
+    std_out.close()
+def enqueue_output1(std_out, queue):
+    for line in iter(std_out.readline, b''):
+        print(line)
+        queue.put(line)
+    queue.put(-1)
+    std_out.close()
+    #print(dir(std_out))
+    #while True:
+    #    line = std_out.readline()
+    #    print(line)
+    #    queue.put(line)
+    #queue.put(-1)
+    #out.close()
 
 class ArangoshExecutor():
     """ configuration """
@@ -41,7 +69,7 @@ class ArangoshExecutor():
             lh.log_cmd(run_cmd)
             arangosh_run = psutil.Popen(run_cmd)
         else:
-            arangosh_run = psutil.Popen(run_cmd, stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
+            arangosh_run = psutil.Popen(run_cmd, stdout = DEVNULL, stderr = DEVNULL)
 
         exitcode = arangosh_run.wait(timeout=60)
         # logging.debug("exitcode {0}".format(exitcode))
@@ -96,11 +124,54 @@ class ArangoshExecutor():
             lh.log_cmd(run_cmd)
             arangosh_run = psutil.Popen(run_cmd)
         else:
-            arangosh_run = psutil.Popen(run_cmd, stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
+            arangosh_run = psutil.Popen(run_cmd, stdout = DEVNULL, stderr = DEVNULL)
 
         exitcode = arangosh_run.wait(timeout=30)
         logging.debug("exitcode {0}".format(exitcode))
         return exitcode == 0
+
+    def run_testing(self, testcase, args, timeout, logfile):
+        args = [
+            self.cfg.bin_dir / "arangosh",
+            '-c', str(self.cfg.cfgdir / 'arangosh.conf'),
+            '--log.level', 'warning',
+            '--server.endpoint', 'none',
+            '--javascript.allow-external-process-control', 'true',
+            '--javascript.execute', str(Path('UnitTests') / 'unittest.js'),
+            '--',
+            testcase, '--testBuckets'] + args
+        print(args)
+        os.chdir(self.cfg.package_dir)
+        p = Popen(args, stdout=PIPE, stderr=PIPE, close_fds=ON_POSIX)
+        q = Queue()
+        t1 = Thread(target=enqueue_output, args=(p.stdout, q))
+        t2 = Thread(target=enqueue_output1, args=(p.stderr, q))
+        t1.start()
+        t2.start()
+
+        # ... do other things here
+        out = logfile.open('wb')
+        # read line without blocking
+        count = 0
+        while True:
+            print(".", end="")
+            line = ''
+            try:
+                line = q.get(timeout=1)
+            except Empty:
+                progress('-')
+            else:
+                #print(line)
+                if line == -1:
+                    count += 1
+                    if count == 2:
+                        print('done!')
+                        break
+                else:
+                    out.write(line)
+                    #print(line)
+        t1.join()
+        t2.join()
 
     def js_version_check(self):
         """ run a version check command; this can double as password check """
