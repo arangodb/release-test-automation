@@ -153,3 +153,8 @@ example usage:
 # GOAL
 
 create most of the flow of i.e. https://github.com/arangodb/release-qa/issues/264 in a portable way. 
+
+### CI mode
+- invoke testing.js
+- run several threads with tests
+python3 release_tester/ci.py --source-dir /home/willi/src/devel/ --build-dir build  --version 3.8.0-devel
