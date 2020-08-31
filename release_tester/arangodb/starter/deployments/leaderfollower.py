@@ -4,6 +4,7 @@ import time
 import logging
 from tools.killall import get_all_processes
 from arangodb.starter.manager import StarterManager
+from arangodb.instance import InstanceType
 from arangodb.starter.deployments.runner import Runner
 import tools.loghelper as lh
 from tools.asciiprint import print_progress as progress

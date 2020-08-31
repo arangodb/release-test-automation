@@ -8,6 +8,7 @@ import sys
 import requests
 from tools.interact import prompt_user
 from arangodb.starter.manager import StarterManager
+from arangodb.instance import InstanceType
 from arangodb.starter.deployments.runner import Runner
 import tools.loghelper as lh
 from tools.asciiprint import print_progress as progress
