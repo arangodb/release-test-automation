@@ -131,6 +131,11 @@ db.testCollection.save({test: "document"})
             Path('CLUSTER'), 'nodeX',
             mode='cluster',
             jwtStr=None,
+            expect_instances=[
+                InstanceType.agent,
+                InstanceType.coordinator,
+                InstanceType.dbserver,
+            ],
             moreopts=['--starter.join', '127.0.0.1:9528'])
         dead_instance.run_starter()
 
