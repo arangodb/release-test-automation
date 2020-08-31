@@ -308,14 +308,15 @@ arangosync instance of starter
         # first get the starter provided commandline:
         command = self.basedir / 'arangosync_command.txt'
         cmd = []
+        # we search for the logfile parameter, since its unique to our instance.
+        logfile_parameter = ''
         with open(command) as f:
             for line in f.readlines():
-                cmd.append(line.rstrip().rstrip(' \\'))
+                line = line.rstrip().rstrip(' \\')
+                if line.find('--log.file') >=0:
+                    logfile_parameter = line
+                cmd.append(line)
         # wait till the process has startet writing its logfile:
-        print(cmd)
-        cmd[0] = str(full_binary_path / 'arangosync') # todo: wintendo
-        print(cmd)
-        print('--'*40)
         while not self.logfile.exists():
             progress('v')
             time.sleep(1)
@@ -323,22 +324,23 @@ arangosync instance of starter
         count = 0
         while count < 300 and len(possible_me_pid) == 0:
             for p in psutil.process_iter():
-                if p.ppid() == ppid:
-                    proccmd = p.cmdline()
-                    print(proccmd)
-                    print(cmd)
-                    print(len(set(proccmd)))
-                    print(set(cmd))
-                    print(len(cmd))
-                    if len(set(proccmd) & set(cmd)) == len(cmd):
+                if p.ppid() == ppid and p.name() == 'arangosync':
+                    proccmd = p.cmdline()[1:]
+                    try:
+                        # this will throw if its not in there:
+                        proccmd.index(logfile_parameter)
                         possible_me_pid.append({
                             'p': p.pid,
                             'cmdline': proccmd
                         })
-            if count > 0:
+                    except ValueError as x:
+                        pass
+
+            if len(possible_me_pid) is 0 and count > 0:
                 progress('s')
                 time.sleep(1)
             count += 1
+
         if len(possible_me_pid) != 1:
             raise Exception("wasn't able to identify my arangosync process! " + str(possible_me_pid))
         self.pid = possible_me_pid[0]['p']

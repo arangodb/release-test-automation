@@ -513,7 +513,7 @@ Starter {0.name}
         # TODO: Do we stil need the log.py or should it be removed
         """ detect the arangod instance PIDs"""
         for instance in self.all_instances:
-            instance.detect_pid(self.instance.pid)
+            instance.detect_pid(ppid=self.instance.pid, full_binary_path=self.cfg.real_sbin_dir)
 
         self.show_all_instances()
         if self.arangosh is None:
