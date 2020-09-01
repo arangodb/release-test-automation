@@ -9,7 +9,7 @@ import requests
 from arangodb.starter.manager import StarterManager
 from arangodb.sync import SyncManager
 from arangodb.starter.deployments.runner import Runner
-
+from arangodb.instance import InstanceType
 
 class Dc2Dc(Runner):
     """ this launches two clusters in dc2dc mode """
@@ -86,6 +86,23 @@ class Dc2Dc(Runner):
                 val["dir"], val["instance_dir"],
                 port=port,
                 mode='cluster',
+                expect_instances=[
+                    InstanceType.agent,
+                    InstanceType.agent,
+                    InstanceType.agent,
+                    InstanceType.coordinator,
+                    InstanceType.coordinator,
+                    InstanceType.coordinator,
+                    InstanceType.dbserver,
+                    InstanceType.dbserver,
+                    InstanceType.dbserver,
+                    InstanceType.syncmaster,
+                    InstanceType.syncmaster,
+                    InstanceType.syncmaster,
+                    InstanceType.syncworker,
+                    InstanceType.syncworker,
+                    InstanceType.syncworker
+                ],
                 moreopts=[
                     '--starter.sync',
                     '--starter.local',
@@ -150,7 +167,6 @@ class Dc2Dc(Runner):
     def upgrade_arangod_version_impl(self):
         """ upgrade this installation """
         self.sync_manager.replace_binary_for_upgrade(self.new_cfg)
-        self.sync_manager.stop_sync()
         self.cluster1["instance"].replace_binary_for_upgrade(self.new_cfg)
         self.cluster2["instance"].replace_binary_for_upgrade(self.new_cfg)
         self.cluster1["instance"].detect_instance_pids_still_alive()
@@ -159,11 +175,16 @@ class Dc2Dc(Runner):
         self.cluster2["instance"].command_upgrade()
 
         # workaround: kill the sync'ers by hand, the starter doesn't
+        # self.sync_manager.stop_sync()
         self.cluster1["instance"].kill_sync_processes()
         self.cluster2["instance"].kill_sync_processes()
 
         self.cluster1["instance"].wait_for_upgrade()
         self.cluster2["instance"].wait_for_upgrade()
+
+        self.cluster1["instance"].wait_for_upgrade_done_in_log()
+        self.cluster2["instance"].wait_for_upgrade_done_in_log()
+        # self.sync_manager.start_sync()
 
         self.cluster1["instance"].detect_instances()
         self.cluster2["instance"].detect_instances()
