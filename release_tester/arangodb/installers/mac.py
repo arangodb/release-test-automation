@@ -203,6 +203,50 @@ class InstallerMac(InstallerBase):
         else:
             self.unmountdmg(self.mountpoint)
 
+
+    def get_file_size_in_bytes(self, file_path):
+        """ Get size of file at given path in bytes """
+        # get file object
+        file_obj = Path(file_path)
+        # Get file size from stat object of file
+        size = file_obj.stat().st_size
+        return size
+
+    
+    def strip_state_check(self):
+        """ Checking stripped status of the arangod """
+        if self.check_stripped == True:
+            # finding out the file size before stripped cmd invoked
+            file_path = '/tmp/arangodb3e-3.7.1/usr/sbin/arangod'
+            beforStripped = self.get_file_size_in_bytes(file_path)
+            print('File size in bytes : ', beforStripped)
+
+            # my_file = Path('/tmp/'+ self.server_package + '/usr/sbin/arangod')
+            my_file = Path('/tmp/arangodb3e-3.7.1/usr/sbin/arangod')
+            to_file = Path('/tmp/')
+            shutil.copy(str(my_file), str(to_file))
+            
+            # invoke the strip command on file_path
+            cmd = ['strip', '/tmp/arangod']
+            # print(cmd)
+            proc = subprocess.Popen(cmd, bufsize=-1,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                stdin=subprocess.PIPE)
+
+            print('stripped command invoked on /tmp/arangod')
+            # check the size of copied file after stripped
+            file_path = '/tmp/arangod'
+            afterStripped = self.get_file_size_in_bytes(file_path)
+            print('File size in bytes : ', afterStripped)
+            
+            # checking both output size 
+            if beforStripped == afterStripped:
+                print('binary is stripped')
+            else:
+                print('binary is not stripped')
+
+
     def cleanup_system(self):
         if self.cfg.logDir.exists():
             shutil.rmtree(self.cfg.logDir)
