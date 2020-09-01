@@ -3,7 +3,7 @@
 import logging
 import re
 from abc import abstractmethod, ABC
-from enum import Enum
+from enum import IntEnum
 import sys
 import time
 import requests
@@ -13,7 +13,7 @@ import psutil
 from tools.asciiprint import print_progress as progress
 
 
-class InstanceType(Enum):
+class InstanceType(IntEnum):
     """ type of arangod instance """
     coordinator = 1
     resilientsingle = 2
@@ -33,7 +33,7 @@ TYP_STRINGS = ["none", "none",
                "syncmaster",
                "syncworker"]
 
-class AfoServerState(Enum):
+class AfoServerState(IntEnum):
     leader = 1
     not_leader = 2
     challenge_ongoing = 3
@@ -56,7 +56,7 @@ class Instance(ABC):
         logging.debug("creating {0.type_str} instance: {0.name}".format(self))
 
     @abstractmethod
-    def detect_pid(self, ppid):
+    def detect_pid(self, ppid, full_binary_path):
         """ gets the PID from the running process of this instance """
 
     def detect_gone(self):
@@ -74,8 +74,24 @@ class Instance(ABC):
         self.logfile.rename(logfile + '.old')
 
     def terminate_instance(self):
-        self.instance.terminate()
-        self.instance.wait()
+        if self.instance:
+            try:
+                self.instance.terminate()
+                self.instance.wait()
+            except psutil.NosuchProcess:
+                log.info("instance already dead: " + str(self.instance))
+            self.instance = None
+        else:
+            log.info("I'm already dead, jim!" + str(repr(self)))
+
+    def wait_for_shutdown(self):
+        """ wait for the instance to anounce its dead! """
+        while True:
+            try:
+                psutil.Process(self.pid)
+                time.sleep(0.1)
+            except Exception:
+                break
 
 
 class ArangodInstance(Instance):
@@ -209,7 +225,7 @@ arangod instance
             progress(',')
             time.sleep(0.1)
 
-    def detect_pid(self, ppid, offset=0):
+    def detect_pid(self, ppid, offset=0, full_binary_path=""):
         """ detect the instance """
         self.pid = 0
         tries = 20
@@ -288,28 +304,45 @@ arangosync instance of starter
     logfile: {0.logfile}
 """.format(self)
 
-    def detect_pid(self, ppid):
+    def detect_pid(self, ppid, full_binary_path):
         # first get the starter provided commandline:
         command = self.basedir / 'arangosync_command.txt'
         cmd = []
+        # we search for the logfile parameter, since its unique to our instance.
+        logfile_parameter = ''
         with open(command) as f:
             for line in f.readlines():
-                cmd.append(line.rstrip().rstrip(' \\'))
+                line = line.rstrip().rstrip(' \\')
+                if line.find('--log.file') >=0:
+                    logfile_parameter = line
+                cmd.append(line)
         # wait till the process has startet writing its logfile:
         while not self.logfile.exists():
             progress('v')
             time.sleep(1)
         possible_me_pid = []
-        for p in psutil.process_iter():
-            if p.ppid() == ppid:
-                proccmd = p.cmdline()
-                if len(set(proccmd) & set(cmd)) == len(cmd):
-                    possible_me_pid.append({
-                        'p': p.pid,
-                        'cmdline': proccmd
-                    })
+        count = 0
+        while count < 300 and len(possible_me_pid) == 0:
+            for p in psutil.process_iter():
+                if p.ppid() == ppid and p.name() == 'arangosync':
+                    proccmd = p.cmdline()[1:]
+                    try:
+                        # this will throw if its not in there:
+                        proccmd.index(logfile_parameter)
+                        possible_me_pid.append({
+                            'p': p.pid,
+                            'cmdline': proccmd
+                        })
+                    except ValueError as x:
+                        pass
+
+            if len(possible_me_pid) is 0 and count > 0:
+                progress('s')
+                time.sleep(1)
+            count += 1
+
         if len(possible_me_pid) != 1:
-            raise("wasn't able to identify my arangosync process! " + str(possible_me_pid))
+            raise Exception("wasn't able to identify my arangosync process! " + str(possible_me_pid))
         self.pid = possible_me_pid[0]['p']
         self.instance = psutil.Process(self.pid)
 

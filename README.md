@@ -11,6 +11,7 @@
 - pyyaml - for parsing saved data.
 - click - for commandline parsing https://click.palletsprojects.com/en/7.x/
 - semver - semantic versioning.
+- gdb - for checking debug symbol. `sudo apt-get install gdb` macos:`brew install gdb` 
 
 # Installing
 
@@ -18,16 +19,18 @@
 
 - **debian** / **ubuntu**:
   `apt-get install python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect python3-pyftpdlib`
-  the `python3-semver` on debian is to old - need to use the pip version instead: `pip3 install semver`
+  the `python3-semver` on debian is to old - need to use the pip version instead: `pip3 install semver` `apt-get install gdb`
 - **centos**:
-   `yum update ; yum install python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect python3-pyftpdlib; pip3 install psutil semver`
+   `yum update ; yum install python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect python3-pyftpdlib; pip3 install psutil semver` 
+   `sudo yum install gdb`
 - **plain pip**:
-  `pip3 install psutil pyyaml pexpect requests click semver ftplib`
+  `pip3 install psutil pyyaml pexpect requests click semver ftplib` 
 
 ## Mac OS
-
-    brew install gnu-tar
-    pip3 install click psutil requests pyyaml semver pexpect ftplib
+:
+    `brew install gnu-tar`
+    `pip3 install click psutil requests pyyaml semver pexpect ftplib`
+    `brew install gdb`
 
 ## Windows
 
@@ -134,19 +137,61 @@ example usage:
 
 # Source distribution
 
-- `release_tester/test.py` - main process flow, install, run test, uninstall
+ - `release_tester/test.py` - main process flow, install, run test, uninstall
  - `release_tester/upgrade.py` - main upgrade process flow, install, run test, upgrade, test again, uninstall
- - `release_tester/installers/[base|nsis|deb|rpm|mac].py` distribuiton / OS specific [un]installation automation
- - `release_tester/arangodb/log.py` arangod log examining to detect PID, `ready for business`-helo, leadership takeover. 
+ - `release_tester/acquire_packages.py` - download packages via our various distribution routes
+ - `release_tester/cleanup.py` - remove files and installed packages etc.
+ - `release_tester/installers/[base|nsis|tar|linux|deb|rpm|mac].py` distribution / OS specific [un]installation/upgrade automation
+ - `release_tester/arangodb/instance.py` wraps one process of arangod / arangosync; detects its operation mode
  - `release_tester/arangodb/sh.py` launch an arangosh with javascript snippets against the starter installation
  - `release_tester/arangodb/sync.py` manage arangosync invocations
+ - `release_tester/arangodb/backup.py` manage arangobackup invocations
  - `release_tester/arangodb/starter/manager.py` manage one starter instance and get information about its launched processes
- - `release_tester/arangodb/starter/environment/[runner|leaderfolower|cluster|activefailover|dc2dc].py` set up one of [Leader/Follower | Active Failover | Cluster | DC2DC]
+ - `release_tester/arangodb/starter/deployments/[runner|leaderfolower|cluster|activefailover|dc2dc].py` set up one of [Leader/Follower | Active Failover | Cluster | DC2DC]
  - `release_tester/tools` several utility functions
  - `test_data` - the famous makedata suite
  - `attic_snippets` - trial and error scripts of start phase, utility functions like killall for mac/windows for manual invocation
 
 
+# Code Structure
+The base flow lives in `runner.py`; special deployment specific implementations in the respective derivates. 
+The Flow is as follows:
+
+```
+install
+prepare and setup abstractions, starter managers, create certificates, ec. [starter_prepare_env[_impl]]
+launch all the actual starter instances, wait for them to become alive [starter_run[_impl]]
+finalize the setup like start sync'ing [finish_setup[_impl]]
+invoke make data
+=> ask user to inspect the installation
+if HotBackup capable:
+  create backup
+  create data, that will be gone after restoring
+  list backups
+  upload backup
+  delete backup
+  list backup to revalidate there is none
+  restore backup
+  check data
+  create non-backup data again
+if Update:
+  manage packages (uninstall debug, install new, install new debug, test debug)
+  upgrade the starter environment [upgrade_arangod_version[_impl]]
+  makedata validate after upgrade 
+  if Hotbackup capable:
+    list backups
+    upload backup once more
+    delete backup
+    list & check its empty
+    restore the backup
+    validate post-backup data is gone again
+  check make data
+test the setup [test_setup[_impl]]
+try to jam the setup [jam_setup[_impl]]
+shutdown the setup
+uninstall packages
+```
 # GOAL
 
 create most of the flow of i.e. https://github.com/arangodb/release-qa/issues/264 in a portable way. 
+arangosync

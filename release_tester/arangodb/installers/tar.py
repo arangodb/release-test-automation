@@ -78,6 +78,10 @@ class InstallerTAR(InstallerBase):
         self.cfg.sbin_dir = self.cfg.installPrefix / "usr" / "sbin"  
         self.cfg.real_bin_dir = self.cfg.installPrefix / "usr" / "bin"
         self.cfg.real_sbin_dir = self.cfg.sbin_dir
+        self.cfg.cfgdir = self.cfg.installPrefix # n/A
+        self.cfg.appdir = self.cfg.installPrefix # n/A
+        self.cfg.dbdir = self.cfg.installPrefix # n/A
+        self.cfg.logDir = self.cfg.installPrefix # n/A
 
     def check_service_up(self):
         pass
@@ -103,7 +107,8 @@ class InstallerTAR(InstallerBase):
                    '/tmp/']
         lh.log_cmd(cmd)
         install = psutil.Popen(cmd)
-        install.wait()
+        if install.wait() is not 0:
+            raise Exception("extracting the Archive failed!")
         print()
         logging.info('Installation successfull')
 
