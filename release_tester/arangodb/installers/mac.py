@@ -28,7 +28,7 @@ class InstallerMac(InstallerBase):
         self.debug_package = None
         self.instance = None
         self.mountpoint = None
-        self.check_stripped = False
+        self.check_stripped = True
         self.check_symlink = True
         self.basehomedir = Path.home() / 'Library' / 'ArangoDB'
         self.baseetcdir = Path.home() / 'Library' / 'ArangoDB-etc'

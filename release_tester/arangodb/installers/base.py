@@ -92,22 +92,72 @@ class BinaryDescription():
                 raise Exception("Enterprise binary found in community package!" + str(self.path))
 
 
+    def get_file_size_in_bytes(self, file_path):
+        """ Get size of file at given path in bytes """
+        # get file object
+        file_obj = Path(file_path)
+        # Get file size from stat object of file
+        size = file_obj.stat().st_size
+        return size
+
+
     def check_stripped(self):
-        """ check whether this file is stripped (or not) """
-        output = run_file_command(self.path)
-        if self.stripped and output.find(', stripped') < 0:
-            raise Exception("expected " + str(self.path) +
-                            " to be stripped, but its not: " + output)
+        """ Checking stripped status of the arangod """
+        # finding out the file size before stripped cmd invoked
+        file_path = '/tmp/arangodb3e-3.7.1/usr/sbin/arangod'
+        beforStripped = self.get_file_size_in_bytes(file_path)
+        print('File size in bytes : ', beforStripped)
 
-        if not self.stripped and output.find(', not stripped') < 0:
-            raise Exception("expected " + str(self.path) +
-                            " to be stripped, but its not: " + output)
+        # my_file = Path('/tmp/'+ self.server_package + '/usr/sbin/arangod')
+        my_file = Path('/tmp/arangodb3e-3.7.1/usr/sbin/arangod')
+        to_file = Path('/tmp/')
+        shutil.copy(str(my_file), str(to_file))
+        
+        # invoke the strip command on file_path
+        cmd = ['strip', '/tmp/arangod']
+        # print(cmd)
+        proc = subprocess.Popen(cmd, bufsize=-1,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            stdin=subprocess.PIPE)
 
-    def check_symlink(self):
-        """ check whether the file exists and is a symlink (if) """
-        for link in self.symlink:
-            if not link.is_symlink():
-                Exception("{0} is not a symlink".format(str(link)))
+        print('stripped command invoked on /tmp/arangod')
+        # check the size of copied file after stripped
+        file_path = '/tmp/arangod'
+        afterStripped = self.get_file_size_in_bytes(file_path)
+        print('File size in bytes : ', afterStripped)
+        
+        # checking both output size 
+        if beforStripped == afterStripped:
+            print('Stripped status: binary is stripped')
+        else:
+            print('Stripped status: binary is not stripped')
+        
+        stripped_file = Path("/tmp/arangod")
+        if stripped_file.is_file():
+            # invoke the delete command on file_path
+            stripped_file.unlink('/tmp/arangod')
+            print('/tmp/arangod file deleted after stripped check')
+        else:
+            print('stripped file not found')
+        
+    
+    # def check_stripped(self):
+    #     """ check whether this file is stripped (or not) """
+    #     output = run_file_command(self.path)
+    #     if self.stripped and output.find(', stripped') < 0:
+    #         raise Exception("expected " + str(self.path) +
+    #                         " to be stripped, but its not: " + output)
+
+    #     if not self.stripped and output.find(', not stripped') < 0:
+    #         raise Exception("expected " + str(self.path) +
+    #                         " to be stripped, but its not: " + output)
+
+    # def check_symlink(self):
+    #     """ check whether the file exists and is a symlink (if) """
+    #     for link in self.symlink:
+    #         if not link.is_symlink():
+    #             Exception("{0} is not a symlink".format(str(link)))
 
 
 ### main class
