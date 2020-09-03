@@ -10,6 +10,7 @@ from pathlib import Path
 from abc import abstractmethod, ABC
 import yaml
 from arangodb.instance import ArangodInstance
+from tools.asciiprint import ascii_print, print_progress as progress
 
 ## helper functions
 def run_file_command(file_to_check):
@@ -92,39 +93,25 @@ class BinaryDescription():
                 raise Exception("Enterprise binary found in community package!" + str(self.path))
 
 
-    def get_file_size_in_bytes(self, file_path):
-        """ Get size of file at given path in bytes """
-        # get file object
-        file_obj = Path(file_path)
-        # Get file size from stat object of file
-        size = file_obj.stat().st_size
-        return size
-
-
-    def check_stripped(self):
+    def check_stripped_mac(self):
         """ Checking stripped status of the arangod """
         # finding out the file size before stripped cmd invoked
-        file_path = '/tmp/arangodb3e-3.7.1/usr/sbin/arangod'
-        beforStripped = self.get_file_size_in_bytes(file_path)
+        beforStripped = self.path.stat().st_size
         print('File size in bytes : ', beforStripped)
 
-        # my_file = Path('/tmp/'+ self.server_package + '/usr/sbin/arangod')
-        my_file = Path('/tmp/arangodb3e-3.7.1/usr/sbin/arangod')
-        to_file = Path('/tmp/')
-        shutil.copy(str(my_file), str(to_file))
+        to_file = Path('/tmp/test_whether_stripped')
+        shutil.copy(str(self.path), str(to_file))
         
         # invoke the strip command on file_path
-        cmd = ['strip', '/tmp/arangod']
+        cmd = ['strip', str(to_file)]
         # print(cmd)
         proc = subprocess.Popen(cmd, bufsize=-1,
-                            stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE,
                             stdin=subprocess.PIPE)
 
-        print('stripped command invoked on /tmp/arangod')
+        print('stripped command invoked on' + str(to_file))
         # check the size of copied file after stripped
-        file_path = '/tmp/arangod'
-        afterStripped = self.get_file_size_in_bytes(file_path)
+        afterStripped = to_file.stat().st_size
         print('File size in bytes : ', afterStripped)
         
         # checking both output size 
@@ -133,31 +120,41 @@ class BinaryDescription():
         else:
             print('Stripped status: binary is not stripped')
         
-        stripped_file = Path("/tmp/arangod")
-        if stripped_file.is_file():
+        
+        if to_file.is_file():
             # invoke the delete command on file_path
-            stripped_file.unlink('/tmp/arangod')
-            print('/tmp/arangod file deleted after stripped check')
+            to_file.unlink(str(to_file))
+            print(str(to_file) + 'file deleted after stripped check')
         else:
             print('stripped file not found')
         
     
-    # def check_stripped(self):
-    #     """ check whether this file is stripped (or not) """
-    #     output = run_file_command(self.path)
-    #     if self.stripped and output.find(', stripped') < 0:
-    #         raise Exception("expected " + str(self.path) +
-    #                         " to be stripped, but its not: " + output)
+    def check_stripped(self):
+        """ check whether this file is stripped (or not) """
+        output = run_file_command(self.path)
+        if self.stripped and output.find(', stripped') < 0:
+            raise Exception("expected " + str(self.path) +
+                            " to be stripped, but its not: " + output)
 
-    #     if not self.stripped and output.find(', not stripped') < 0:
-    #         raise Exception("expected " + str(self.path) +
-    #                         " to be stripped, but its not: " + output)
+        if not self.stripped and output.find(', not stripped') < 0:
+            raise Exception("expected " + str(self.path) +
+                            " to be stripped, but its not: " + output)
+        
+        # checking stripped state for macos
+        macver = platform.mac_ver()
+        if macver[0]:
+            if self.check_stripped_mac() != self.stripped:
+                 raise Exception("expected " + str(self.path) +
+                            " to be stripped, but its not: " + output)
+        else:
+             print('Stripped checked successfully')
 
-    # def check_symlink(self):
-    #     """ check whether the file exists and is a symlink (if) """
-    #     for link in self.symlink:
-    #         if not link.is_symlink():
-    #             Exception("{0} is not a symlink".format(str(link)))
+
+    def check_symlink(self):
+        """ check whether the file exists and is a symlink (if) """
+        for link in self.symlink:
+            if not link.is_symlink():
+                Exception("{0} is not a symlink".format(str(link)))
 
 
 ### main class
@@ -165,11 +162,11 @@ class BinaryDescription():
 class InstallerBase(ABC):
     """ this is the prototype for the operation system agnostic installers """
     def __init__(self, cfg):
+        self.arango_binaries = []
         self.cfg = copy.deepcopy(cfg)
         self.calculate_package_names()
         self.caclulate_file_locations()
-        
-        self.arango_binaries = []
+
         self.cfg.have_debug_package = False
 
     @abstractmethod
@@ -363,6 +360,7 @@ class InstallerBase(ABC):
     def check_installed_files(self):
         """ check for the files whether they're installed """
         for binary in self.arango_binaries:
+            progress("S" if binary.stripped else "s")
             binary.check_installed(self.cfg.version,
                                    self.cfg.enterprise,
                                    self.check_stripped,

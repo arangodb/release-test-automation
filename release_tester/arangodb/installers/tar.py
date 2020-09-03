@@ -18,12 +18,12 @@ class InstallerTAR(InstallerBase):
         macver = platform.mac_ver()
         if macver[0]:
             cfg.localhost = 'localhost'
-            self.hot_backup = True
             self.remote_package_dir  = 'MacOSX'
         else:
             self.remote_package_dir  = 'Linux'
             cfg.localhost = 'ip6-localhost'
 
+        self.hot_backup = True
         self.check_stripped = True
         self.check_symlink = True
         self.server_package = None
