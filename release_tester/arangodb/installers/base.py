@@ -99,7 +99,7 @@ class BinaryDescription():
         print('stripped command invoked on: ' + str(self.path))
         # finding out the file size before stripped cmd invoked
         beforStripped = self.path.stat().st_size
-        print('Before stripped File size in bytes: ', beforStripped)
+        # print('Before stripped File size in bytes: ', beforStripped)
 
         to_file = Path('/tmp/test_whether_stripped')
         shutil.copy(str(self.path), str(to_file))
@@ -113,7 +113,7 @@ class BinaryDescription():
 
         # check the size of copied file after stripped
         afterStripped = to_file.stat().st_size
-        print('After stripped file size in bytes: ', afterStripped)
+        # print('After stripped file size in bytes: ', afterStripped)
         
         # checking both output size 
         if beforStripped == afterStripped:
@@ -125,7 +125,7 @@ class BinaryDescription():
         if to_file.is_file():
             # invoke the delete command on file_path
             to_file.unlink(str(to_file))
-            print(str(self.path) + '\'s copy file deleted after stripped check \n')
+            # print(str(self.path) + '\'s copy file deleted after stripped check \n')
         else:
             print('stripped file not found')
         
