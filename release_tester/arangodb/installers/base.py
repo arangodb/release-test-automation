@@ -107,13 +107,11 @@ class BinaryDescription():
 
             to_file = Path('/tmp/test_whether_stripped')
             shutil.copy(str(self.path), str(to_file))
-            
             # invoke the strip command on file_path
             cmd = ['strip', str(to_file)]
             proc = subprocess.Popen(cmd, bufsize=-1,
                                 stderr=subprocess.PIPE,
                                 stdin=subprocess.PIPE)
-
             # check the size of copied file after stripped
             afterStripped = to_file.stat().st_size
             
@@ -124,19 +122,18 @@ class BinaryDescription():
                     to_file.unlink(str(to_file))
                 else:
                     print('stripped file not found')
-                    return True
+                return True
             else:
                 return False
     
     def check_stripped_linux(self):
-        output = run_file_command(self.path)
         """ check whether this file is stripped (or not) """
         output = run_file_command(self.path)
         if output.find(', stripped') >= 0:
             return True
         if output.find(', not stripped') >= 0:
             return False
-        raise Exception("parse error!...")
+        raise Exception("parse error! " + str(self.path)) + output 
     
     def check_stripped(self):
         """ check whether this file is stripped (or not) """
@@ -145,17 +142,16 @@ class BinaryDescription():
         macver = platform.mac_ver()
         if macver[0]:
             is_stripped = self.check_stripped_mac()
-
-            if is_stripped == False and self.stripped:
-                raise Exception("expected " + str(self.path) +
-                            " to be stripped, but it is not stripped: " + output)
-            
-            if is_stripped == True and not self.stripped:
-                raise Exception("expected " + str(self.path) +
-                            " not to be stripped, but it is stripped: " + output)
-
         else:
             is_stripped = self.check_stripped_linux()
+
+        if is_stripped == False and self.stripped:
+            raise Exception("expected " + str(self.path) +
+                        " to be stripped, but it is not stripped")
+        
+        if is_stripped == True and not self.stripped:
+            raise Exception("expected " + str(self.path) +
+                        " not to be stripped, but it is stripped")
 
 
     def check_symlink(self):

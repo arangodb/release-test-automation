@@ -134,6 +134,7 @@ example usage:
 `cleanup.py` will try to invoke all known cleanup mechanisms, to bring your system as much as possible into a 'pure' state.
 
  - `--zip` switches from system packages to the tar.gz/zip package for the cleanup.
+ - `strip cheking` this feature is available for Linux (ubuntu|debian) and Linux (centos|fedora|sles) however for debian GO binaries such as `arangodb` and `arangosync` and for Windows OS this feature is not supported yet.
 
 # Source distribution
 
