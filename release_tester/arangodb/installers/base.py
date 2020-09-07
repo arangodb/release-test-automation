@@ -100,72 +100,62 @@ class BinaryDescription():
 
     def check_stripped_mac(self):
         """ Checking stripped status of the arangod """
-        if self.binary_type == 'c++':  
-            # print('stripped command invoked on: ' + str(self.path))
+        time.sleep(1)
+        if self.binary_type == 'c++':
             # finding out the file size before stripped cmd invoked
             beforStripped = self.path.stat().st_size
-            # print('before ' + str(beforStripped))
 
             to_file = Path('/tmp/test_whether_stripped')
             shutil.copy(str(self.path), str(to_file))
             
             # invoke the strip command on file_path
             cmd = ['strip', str(to_file)]
-            # print(cmd)
             proc = subprocess.Popen(cmd, bufsize=-1,
                                 stderr=subprocess.PIPE,
                                 stdin=subprocess.PIPE)
 
             # check the size of copied file after stripped
             afterStripped = to_file.stat().st_size
-            # print('after ' + str(afterStripped))
             
             # checking both output size 
             if beforStripped == afterStripped:
-                # print('Stripped status: binary is stripped')
-                return True
-            else:
-                # print('Stripped status: binary is not stripped')
-                return False
-            
-            
-            if to_file.is_file():
                 # invoke the delete command on file_path
-                to_file.unlink(str(to_file))
-      
+                if to_file.is_file():
+                    to_file.unlink(str(to_file))
+                else:
+                    print('stripped file not found')
+                    return True
             else:
-                print('stripped file not found')
-        else:
-            # print('Strip check skipped for GO binary')
+                return False
+    
+    def check_stripped_linux(self):
+        output = run_file_command(self.path)
+        """ check whether this file is stripped (or not) """
+        output = run_file_command(self.path)
+        if output.find(', stripped') >= 0:
             return True
-            
+        if output.find(', not stripped') >= 0:
+            return False
+        raise Exception("parse error!...")
     
     def check_stripped(self):
         """ check whether this file is stripped (or not) """
         # checking stripped state for macos
-        time.sleep(1)
-        output = run_file_command(self.path)
+        is_stripped = True
         macver = platform.mac_ver()
         if macver[0]:
-            # print('binary_type: ' + str(self.binary_type))
             is_stripped = self.check_stripped_mac()
-            # print(is_stripped)
-            if not is_stripped and self.stripped:
-                 raise Exception("expected " + str(self.path) +
-                            " to be stripped, but it is not: " + output)
+
+            if is_stripped == False and self.stripped:
+                raise Exception("expected " + str(self.path) +
+                            " to be stripped, but it is not stripped: " + output)
             
-            # if is_stripped and not self.stripped:
-            #     raise Exception("expected " + str(self.path) +
-            #                 " not to be stripped, but it is stripped: " + output)
+            if is_stripped == True and not self.stripped:
+                raise Exception("expected " + str(self.path) +
+                            " not to be stripped, but it is stripped: " + output)
 
         else:
-            if self.stripped and output.find(', stripped') < 0:
-                raise Exception("expected " + str(self.path) +
-                                " to be stripped, but it is not: " + output)
-
-            if not self.stripped and output.find(', not stripped') < 0:
-                raise Exception("expected " + str(self.path) +
-                                " not to be stripped, but it is stripped: " + output)
+            is_stripped = self.check_stripped_linux()
 
 
     def check_symlink(self):
@@ -384,8 +374,9 @@ class InstallerBase(ABC):
                                    self.cfg.enterprise,
                                    self.check_stripped,
                                    self.check_symlink)
-
+        print('\n')
         logging.info("all files ok")
+        
 
     def check_uninstall_cleanup(self):
         """ check whether all is gone after the uninstallation """
