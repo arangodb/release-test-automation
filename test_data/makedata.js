@@ -3,6 +3,13 @@
 //   arangosh USUAL_OPTIONS_INCLUDING_AUTHENTICATION --javascript.execute makedata.js [DATABASENAME]
 // where DATABASENAME is optional and defaults to "_system". The database
 // in question is created (if it is not "_system").
+// `--minReplicationFactor [1] don't create collections with smaller replication factor than this.
+// `--maxReplicationFactor [2] don't create collections with a bigger replication factor than this.
+// `--numberOfDBs [1]          count of databases to create and fill
+// `--countOffset [0]          number offset at which to start the database count
+// `--collectionMultiplier [1] how many times to create the collections / index / view / graph set?
+// `--singleShard [false]      whether this should only be a single shard instance
+// `--progress [false]         whether to output a keepalive indicator to signal the invoker that work is ongoing
 
 const _ = require('lodash');
 const internal = require('internal')
@@ -245,7 +252,8 @@ while (count < options.numberOfDBs) {
       g._relation(`citations_naive_${ccount}`,
                   [`patents_naive_${ccount}`],
                   [`patents_naive_${ccount}`])],
-                      [], {numberOfShards:3});
+                      [], {
+                        numberOfShards:getShardCount(3)});
     progress();
     writeGraphData(db._collection(`patents_naive_${ccount}`),
                    db._collection(`citations_naive_${ccount}`),
@@ -259,7 +267,7 @@ while (count < options.numberOfDBs) {
         gsm._relation(`citations_smart_${ccount}`,
                       [`patents_smart_${ccount}`],
                       [`patents_smart_${ccount}`])],
-                            [], {numberOfShards:3, smartGraphAttribute:"COUNTRY"});
+                            [], {numberOfShards: getShardCount(3), smartGraphAttribute:"COUNTRY"});
       progress();
       writeGraphData(db._collection(`patents_smart_${ccount}`),
                      db._collection(`citations_smart_${ccount}`),
