@@ -9,7 +9,10 @@ import platform
 from pathlib import Path
 from abc import abstractmethod, ABC
 import yaml
+import shutil
+import time
 from arangodb.instance import ArangodInstance
+from tools.asciiprint import ascii_print, print_progress as progress
 
 ## helper functions
 def run_file_command(file_to_check):
@@ -31,7 +34,7 @@ if is_windows:
 ## helper classes
 class BinaryDescription():
     """ describe the availability of an arangodb binary and its properties """
-    def __init__(self, path, name, enter, strip, vmin, vmax, sym):
+    def __init__(self, path, name, enter, strip, vmin, vmax, sym, binary_type):
         global winver
         self.path = path / (name + extension)
         self.enterprise = enter
@@ -39,6 +42,7 @@ class BinaryDescription():
         self.version_min = vmin
         self.version_max = vmax
         self.symlink = sym
+        self.binary_type = binary_type
 
         for attribute in (
                 self.path,
@@ -46,7 +50,8 @@ class BinaryDescription():
                 self.stripped,
                 self.version_min,
                 self.version_max,
-                self.symlink
+                self.symlink,
+                self.binary_type
         ):
             if attribute is None:
                 logging.error("one of the given args is null")
@@ -61,6 +66,7 @@ class BinaryDescription():
         version_min: {0.version_min}
         version_max: {0.version_max}
         symlink:     {0.symlink}
+        binary_type: {0.binary_type}
         """.format(self)
 
 
@@ -92,16 +98,61 @@ class BinaryDescription():
                 raise Exception("Enterprise binary found in community package!" + str(self.path))
 
 
-    def check_stripped(self):
+    def check_stripped_mac(self):
+        """ Checking stripped status of the arangod """
+        time.sleep(1)
+        if self.binary_type == 'c++':
+            # finding out the file size before stripped cmd invoked
+            beforStripped = self.path.stat().st_size
+
+            to_file = Path('/tmp/test_whether_stripped')
+            shutil.copy(str(self.path), str(to_file))
+            # invoke the strip command on file_path
+            cmd = ['strip', str(to_file)]
+            proc = subprocess.Popen(cmd, bufsize=-1,
+                                stderr=subprocess.PIPE,
+                                stdin=subprocess.PIPE)
+            # check the size of copied file after stripped
+            afterStripped = to_file.stat().st_size
+            
+            # checking both output size 
+            if beforStripped == afterStripped:
+                # invoke the delete command on file_path
+                if to_file.is_file():
+                    to_file.unlink(str(to_file))
+                else:
+                    print('stripped file not found')
+                return True
+            else:
+                return False
+    
+    def check_stripped_linux(self):
         """ check whether this file is stripped (or not) """
         output = run_file_command(self.path)
-        if self.stripped and output.find(', stripped') < 0:
-            raise Exception("expected " + str(self.path) +
-                            " to be stripped, but its not: " + output)
+        if output.find(', stripped') >= 0:
+            return True
+        if output.find(', not stripped') >= 0:
+            return False
+        raise Exception("parse error! " + str(self.path)) + output 
+    
+    def check_stripped(self):
+        """ check whether this file is stripped (or not) """
+        # checking stripped state for macos
+        is_stripped = True
+        macver = platform.mac_ver()
+        if macver[0]:
+            is_stripped = self.check_stripped_mac()
+        else:
+            is_stripped = self.check_stripped_linux()
 
-        if not self.stripped and output.find(', not stripped') < 0:
+        if is_stripped == False and self.stripped:
             raise Exception("expected " + str(self.path) +
-                            " to be stripped, but its not: " + output)
+                        " to be stripped, but it is not stripped")
+        
+        if is_stripped == True and not self.stripped:
+            raise Exception("expected " + str(self.path) +
+                        " not to be stripped, but it is stripped")
+
 
     def check_symlink(self):
         """ check whether the file exists and is a symlink (if) """
@@ -115,11 +166,11 @@ class BinaryDescription():
 class InstallerBase(ABC):
     """ this is the prototype for the operation system agnostic installers """
     def __init__(self, cfg):
+        self.arango_binaries = []
         self.cfg = copy.deepcopy(cfg)
         self.calculate_package_names()
         self.caclulate_file_locations()
-        
-        self.arango_binaries = []
+
         self.cfg.have_debug_package = False
 
     @abstractmethod
@@ -249,76 +300,79 @@ class InstallerBase(ABC):
             False, True, "1.0.0", "4.0.0", [
                 self.cfg.real_sbin_dir / 'arango-init-database',
                 self.cfg.real_sbin_dir / 'arango-secure-installation'
-            ]))
+            ], 'c++'))
 
         # symlink only for MMFILES
         self.arango_binaries.append(BinaryDescription(
             self.cfg.real_sbin_dir, 'arangod',
             False, True, "1.0.0", "3.6.0", [
                 self.cfg.real_bin_dir / ('arango-dfdb' + extension)
-            ]))
+            ], 'c++'))
 
         self.arango_binaries.append(BinaryDescription(
             self.cfg.real_bin_dir, 'arangosh',
             False, True, "1.0.0", "4.0.0", [
                 self.cfg.real_bin_dir / ('arangoinspect' + extension)
-            ]))
+            ], 'c++'))
 
         self.arango_binaries.append(BinaryDescription(
             self.cfg.real_bin_dir, 'arangoexport',
-            False, True, "1.0.0", "4.0.0", []))
+            False, True, "1.0.0", "4.0.0", [], 'c++'))
 
         self.arango_binaries.append(BinaryDescription(
             self.cfg.real_bin_dir, 'arangoimport',
             False, True, "1.0.0", "4.0.0", [
                 self.cfg.real_bin_dir / ('arangoimp' + extension)
-            ]))
+            ], 'c++'))
 
         self.arango_binaries.append(BinaryDescription(
             self.cfg.real_bin_dir, 'arangodump',
-            False, True, "1.0.0", "4.0.0", []))
+            False, True, "1.0.0", "4.0.0", [], 'c++'))
 
         self.arango_binaries.append(BinaryDescription(
             self.cfg.real_bin_dir, 'arangorestore',
-            False, True, "1.0.0", "4.0.0", []))
+            False, True, "1.0.0", "4.0.0", [], 'c++'))
 
         self.arango_binaries.append(BinaryDescription(
             self.cfg.real_bin_dir, 'arangobench',
-            False, True, "1.0.0", "4.0.0", []))
+            False, True, "1.0.0", "4.0.0", [], 'c++'))
 
         self.arango_binaries.append(BinaryDescription(
             self.cfg.real_bin_dir, 'arangovpack',
-            False, True, "1.0.0", "4.0.0", []))
+            False, True, "1.0.0", "4.0.0", [], 'c++'))
 
         #starter
         self.arango_binaries.append(BinaryDescription(
             self.cfg.real_bin_dir, 'arangodb',
-            False, False, "1.0.0", "4.0.0", []))
+            False, False, "1.0.0", "4.0.0", [], 'go'))
 
-        ## enterprise
+        # enterprise
         self.arango_binaries.append(BinaryDescription(
             self.cfg.real_bin_dir, 'arangobackup',
-            True, True, "1.0.0", "4.0.0", []))
+            True, True, "1.0.0", "4.0.0", [], 'c++'))
 
         self.arango_binaries.append(BinaryDescription(
             self.cfg.real_sbin_dir, 'arangosync',
             True, False, "1.0.0", "4.0.0", [
                 self.cfg.real_bin_dir / ('arangosync' + extension)
-            ]))
+            ], 'go'))
 
         self.arango_binaries.append(BinaryDescription(
             self.cfg.real_sbin_dir, 'rclone-arangodb',
-            True, True, "1.0.0", "4.0.0", []))
+            True, True, "1.0.0", "4.0.0", [], 'c++'))
 
     def check_installed_files(self):
         """ check for the files whether they're installed """
+        print('Invoking strip checking')
         for binary in self.arango_binaries:
+            progress("S" if binary.stripped else "s")
             binary.check_installed(self.cfg.version,
                                    self.cfg.enterprise,
                                    self.check_stripped,
                                    self.check_symlink)
-
+        print('\n')
         logging.info("all files ok")
+        
 
     def check_uninstall_cleanup(self):
         """ check whether all is gone after the uninstallation """
