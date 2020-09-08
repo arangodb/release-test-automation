@@ -93,8 +93,8 @@ while (count < options.numberOfDBs) {
 
   ccount = 0;
   while (ccount < options.collectionMultiplier) {
+    timeLine = [time()];
     // Create a few collections:
-
     let c = db._create(`c_${ccount}`, {numberOfShards: getShardCount(3), replicationFactor: getReplicationFactor(2)});
     progress();
     let chash = db._create(`chash_${ccount}`, {numberOfShards: getShardCount(3), replicationFactor: getReplicationFactor(2)});
@@ -277,6 +277,5 @@ while (count < options.numberOfDBs) {
     ccount ++;
   }
   print(timeLine.join());
-  timeLine = [];
   count ++;
 }
