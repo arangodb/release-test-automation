@@ -134,7 +134,12 @@ example usage:
 `cleanup.py` will try to invoke all known cleanup mechanisms, to bring your system as much as possible into a 'pure' state.
 
  - `--zip` switches from system packages to the tar.gz/zip package for the cleanup.
- - `strip cheking` this feature is available for Linux (ubuntu|debian) and Linux (centos|fedora|sles) however for debian GO binaries such as `arangodb` and `arangosync` and for Windows OS this feature is not supported yet.
+
+# binaries strip cheking
+
+ - Linux (ubuntu|debian|centos|fedora|sles)[deb|rpm|tar.gz] full support.
+ - Mac [dmg|tar.gz] support through resource intense copy & compare; GO binaries such as `arangodb` and `arangosync` are assumed not to be stripped, since the mac strip command will fail for them.
+ - Windows no supported yet.
 
 # Source distribution
 
