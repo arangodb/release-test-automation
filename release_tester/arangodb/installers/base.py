@@ -129,7 +129,7 @@ class BinaryDescription():
 
             # checking both output size
             return befor_stripped_size == after_stripped_size
-        return False
+        return self.stripped # some go binaries are stripped, some not. We can't test it.
 
     def check_stripped_linux(self):
         """ check whether this file is stripped (or not) """
@@ -360,7 +360,7 @@ class InstallerBase(ABC):
 
         self.arango_binaries.append(BinaryDescription(
             self.cfg.real_sbin_dir, 'rclone-arangodb',
-            True, True, "1.0.0", "4.0.0", [], 'c++'))
+            True, True, "1.0.0", "4.0.0", [], 'go'))
 
     def check_installed_files(self):
         """ check for the files whether they're installed """
