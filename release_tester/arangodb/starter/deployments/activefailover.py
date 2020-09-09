@@ -8,6 +8,7 @@ import sys
 import requests
 from tools.interact import prompt_user
 from arangodb.starter.manager import StarterManager
+from arangodb.instance import InstanceType
 from arangodb.starter.deployments.runner import Runner
 import tools.loghelper as lh
 from tools.asciiprint import print_progress as progress
@@ -29,18 +30,30 @@ class ActiveFailover(Runner):
                            self.basedir, 'node1',
                            mode='activefailover',
                            port=9528,
+                           expect_instances=[
+                               InstanceType.agent,
+                               InstanceType.resilientsingle
+                           ],
                            moreopts=[]))
         self.starter_instances.append(
             StarterManager(self.basecfg,
                            self.basedir, 'node2',
                            mode='activefailover',
                            port=9628,
+                           expect_instances=[
+                               InstanceType.agent,
+                               InstanceType.resilientsingle
+                           ],
                            moreopts=['--starter.join', '127.0.0.1:9528']))
         self.starter_instances.append(
             StarterManager(self.basecfg,
                            self.basedir, 'node3',
                            mode='activefailover',
                            port=9728,
+                           expect_instances=[
+                               InstanceType.agent,
+                               InstanceType.resilientsingle
+                           ],
                            moreopts=['--starter.join', '127.0.0.1:9528']))
 
     def starter_run_impl(self):

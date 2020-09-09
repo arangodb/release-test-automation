@@ -65,17 +65,33 @@ class InstallerConfig():
 
     def set_directories(self, other):
         """ set all directories from the other object """
+        if other.bin_dir is None:
+            raise Exception('bin_dir: must not copy in None!')
         self.bin_dir = other.bin_dir
+        if other.sbin_dir is None:
+            raise Exception('sbin_dir: must not copy in None!')
         self.sbin_dir = other.sbin_dir
+        if other.real_bin_dir is None:
+            raise Exception('real_bin_dir: must not copy in None!')
         self.real_bin_dir = other.real_bin_dir
+        if other.real_sbin_dir is None:
+            raise Exception('real_sbin_dir: must not copy in None!')
         self.real_sbin_dir = other.real_sbin_dir
+        if other.logDir is None:
+            raise Exception('logDir: must not copy in None!')
         self.logDir = other.logDir
+        if other.dbdir is None:
+            raise Exception('dbdir: must not copy in None!')
         self.dbdir = other.dbdir
+        if other.appdir is None:
+            raise Exception('appdir: must not copy in None!')
         self.appdir = other.appdir
+        if other.cfgdir is None:
+            raise Exception('cfgdir: must not copy in None!')
         self.cfgdir = other.cfgdir
+        if other.install_prefix is None:
+            raise Exception('install_prefix: must not copy in None!')
         self.install_prefix = other.install_prefix
-        if self.bin_dir is None:
-            raise Exception('must not copy in None!')
 
 #pylint: disable=import-outside-toplevel
 def make_installer(install_config: InstallerConfig):

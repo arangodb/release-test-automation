@@ -18,14 +18,13 @@ class InstallerTAR(InstallerBase):
         macver = platform.mac_ver()
         if macver[0]:
             cfg.localhost = 'localhost'
-            self.check_stripped = False
             self.remote_package_dir  = 'MacOSX'
         else:
             self.remote_package_dir  = 'Linux'
             cfg.localhost = 'ip6-localhost'
-            self.check_stripped = True
 
-        
+        self.hot_backup = True
+        self.check_stripped = True
         self.check_symlink = True
         self.server_package = None
         self.client_package = None
@@ -78,6 +77,10 @@ class InstallerTAR(InstallerBase):
         self.cfg.sbin_dir = self.cfg.installPrefix / "usr" / "sbin"  
         self.cfg.real_bin_dir = self.cfg.installPrefix / "usr" / "bin"
         self.cfg.real_sbin_dir = self.cfg.sbin_dir
+        self.cfg.cfgdir = self.cfg.installPrefix # n/A
+        self.cfg.appdir = self.cfg.installPrefix # n/A
+        self.cfg.dbdir = self.cfg.installPrefix # n/A
+        self.cfg.logDir = self.cfg.installPrefix # n/A
 
     def check_service_up(self):
         pass
@@ -103,7 +106,8 @@ class InstallerTAR(InstallerBase):
                    '/tmp/']
         lh.log_cmd(cmd)
         install = psutil.Popen(cmd)
-        install.wait()
+        if install.wait() is not 0:
+            raise Exception("extracting the Archive failed!")
         print()
         logging.info('Installation successfull')
 
