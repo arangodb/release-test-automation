@@ -3,10 +3,34 @@
     to the configured connection """
 import logging
 import psutil
+import os
 import tools.loghelper as lh
 import tools.errorhelper as eh
-import subprocess
+import time
+from pathlib import Path
 
+from subprocess import DEVNULL, PIPE, Popen
+from threading  import Thread
+from queue import Queue, Empty
+import sys
+from tools.asciiprint import ascii_print, print_progress as progress
+
+ON_POSIX = 'posix' in sys.builtin_module_names
+
+def enqueue_stdout(std_out, queue):
+    for line in iter(std_out.readline, b''):
+        #print("O: " + str(line))
+        queue.put(line)
+    #print('0 done!')
+    queue.put(-1)
+    std_out.close()
+def enqueue_stderr(std_err, queue):
+    for line in iter(std_err.readline, b''):
+        #print("E: " + str(line))
+        queue.put(line)
+    #print('1 done!')
+    queue.put(-1)
+    std_err.close()
 
 class ArangoshExecutor():
     """ configuration """
@@ -41,7 +65,7 @@ class ArangoshExecutor():
             lh.log_cmd(run_cmd)
             arangosh_run = psutil.Popen(run_cmd)
         else:
-            arangosh_run = psutil.Popen(run_cmd, stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
+            arangosh_run = psutil.Popen(run_cmd, stdout = DEVNULL, stderr = DEVNULL)
 
         exitcode = arangosh_run.wait(timeout=60)
         # logging.debug("exitcode {0}".format(exitcode))
@@ -96,11 +120,119 @@ class ArangoshExecutor():
             lh.log_cmd(run_cmd)
             arangosh_run = psutil.Popen(run_cmd)
         else:
-            arangosh_run = psutil.Popen(run_cmd, stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
+            arangosh_run = psutil.Popen(run_cmd, stdout = DEVNULL, stderr = DEVNULL)
 
         exitcode = arangosh_run.wait(timeout=30)
         logging.debug("exitcode {0}".format(exitcode))
         return exitcode == 0
+
+    def run_script_monitored(self, cmd, args, timeout, verbose=True):
+        run_cmd = [
+            self.cfg.bin_dir / "arangosh",
+            "--server.endpoint",
+            "tcp://127.0.0.1:{cfg.port}".format(cfg=self.cfg),
+            "--log.foreground-tty", "true"
+        ]
+
+        run_cmd += [ "--server.username", str(self.cfg.username) ]
+        run_cmd += [ "--server.password", str(self.cfg.passvoid) ]
+
+        run_cmd += [ "--javascript.execute", str(cmd[1]) ]
+
+        if len(cmd) > 2:
+            run_cmd += cmd[2:]
+
+        if len(args) > 0:
+            run_cmd += ['--'] + args
+
+        arangosh_run = None
+        if verbose:
+            lh.log_cmd(run_cmd)
+        p = Popen(run_cmd, stdout=PIPE, stderr=PIPE, close_fds=ON_POSIX)
+        q = Queue()
+        t1 = Thread(target=enqueue_output, args=(p.stdout, q))
+        t2 = Thread(target=enqueue_output1, args=(p.stderr, q))
+        t1.start()
+        t2.start()
+
+        # ... do other things here
+        # out = logfile.open('wb')
+        # read line without blocking
+        have_timeout = False
+        count = 0
+        tcount = 0
+        close_count = 0
+        while not have_timeout:
+            if not verbose:
+                progress("sj" + str(tcount))
+            line = ''
+            try:
+                line = q.get(timeout=1)
+            except Empty:
+                tcount += 1
+                if verbose:
+                    progress('T ' + str(tcount))
+                have_timeout = tcount >= timeout
+            else:
+                tcount = 0
+                if isinstance(line, bytes):
+                    if verbose:
+                       print("e: " + str(line))
+                else:
+                    close_count += 1
+                    if close_count == 2:
+                        print(' done!')
+                        break
+        if have_timeout:
+            print(" TIMEOUT OCCURED!")
+            p.kill()
+        rc = p.wait()
+        t1.join()
+        t2.join()
+        return not have_timeout and rc == 0
+
+    def run_testing(self, testcase, args, timeout, logfile, verbose):
+        args = [
+            self.cfg.bin_dir / "arangosh",
+            '-c', str(self.cfg.cfgdir / 'arangosh.conf'),
+            '--log.level', 'warning',
+            '--server.endpoint', 'none',
+            '--javascript.allow-external-process-control', 'true',
+            '--javascript.execute', str(Path('UnitTests') / 'unittest.js'),
+            '--',
+            testcase, '--testBuckets'] + args
+        print(args)
+        os.chdir(self.cfg.package_dir)
+        p = Popen(args, stdout=PIPE, stderr=PIPE, close_fds=ON_POSIX)
+        q = Queue()
+        t1 = Thread(target=enqueue_output, args=(p.stdout, q))
+        t2 = Thread(target=enqueue_output1, args=(p.stderr, q))
+        t1.start()
+        t2.start()
+
+        # ... do other things here
+        out = logfile.open('wb')
+        # read line without blocking
+        count = 0
+        while True:
+            print(".", end="")
+            line = ''
+            try:
+                line = q.get(timeout=1)
+            except Empty:
+                progress('-')
+            else:
+                #print(line)
+                if line == -1:
+                    count += 1
+                    if count == 2:
+                        print('done!')
+                        break
+                else:
+                    out.write(line)
+                    #print(line)
+        t1.join()
+        t2.join()
 
     def js_version_check(self):
         """ run a version check command; this can double as password check """
@@ -156,9 +288,14 @@ class ArangoshExecutor():
         else:
             logging.info("adding test data")
 
-        success = self.run_script([
+        success = self.run_script_monitored(cmd=[
             'setting up test data',
-            self.cfg.test_data_dir / 'makedata.js'])
+            self.cfg.test_data_dir / 'makedata.js'],
+                                            args = [
+                                                '--progress', 'true'
+                                            ],
+                                            timeout=10,
+                                            verbose=self.cfg.verbose)
 
         return success
 
@@ -169,9 +306,14 @@ class ArangoshExecutor():
         else:
             logging.info("checking test data")
 
-        success = self.run_script([
+        success = self.run_script_monitored(cmd=[
             'checking test data integrity',
-            self.cfg.test_data_dir / 'checkdata.js'])
+            self.cfg.test_data_dir / 'checkdata.js'],
+                                            args = [
+                                                '--progress', 'true'
+                                            ],
+                                            timeout=5,
+                                            verbose=self.cfg.verbose)
 
         return success
 
@@ -182,8 +324,13 @@ class ArangoshExecutor():
         else:
             logging.info("removing test data")
 
-        success = self.run_script([
+        success = self.run_script_monitored(cmd=[
             'cleaning up test data',
-            self.cfg.test_data_dir / 'cleardata.js'])
+            self.cfg.test_data_dir / 'cleardata.js'],
+                                            args = [
+                                                '--progress', 'true'
+                                            ],
+                                            timeout=5,
+                                            verbose=self.cfg.verbose)
 
         return success

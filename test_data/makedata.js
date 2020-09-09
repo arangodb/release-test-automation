@@ -15,7 +15,6 @@ const _ = require('lodash');
 const internal = require('internal')
 const fs = require("fs");
 const time = internal.time;
-
 let database = "_system";
 
 let PWDRE = /.*at (.*)makedata.js.*/
@@ -71,16 +70,25 @@ function getReplicationFactor(defaultReplicationFactor) {
   return defaultReplicationFactor;
 }
 
+let g = require("@arangodb/general-graph");
 let v = db._connection.GET("/_api/version");
 const enterprise = v.license === "enterprise"
+let gsm;
+if (enterprise) {
+  gsm = require("@arangodb/smart-graph");
+}
+
+let vertices = JSON.parse(fs.readFileSync(`${PWD}/vertices.json`));
+let edges = JSON.parse(fs.readFileSync(`${PWD}/edges_naive.json`));
+let smart_edges = JSON.parse(fs.readFileSync(`${PWD}/edges.json`));
 
 let count = 0;
 while (count < options.numberOfDBs) {
   tStart = time();
+  timeLine = [tStart];
   db._useDatabase("_system");
-  print(database)
   if (database !== "_system") {
-    print('ix')
+    print('#ix')
     c = zeroPad(count+options.countOffset);
     databaseName = `${database}_${c}`;
     db._createDatabase(databaseName);
@@ -91,9 +99,8 @@ while (count < options.numberOfDBs) {
   }
   progress();
 
-  ccount = 0;
+  let ccount = 0;
   while (ccount < options.collectionMultiplier) {
-    timeLine = [time()];
     // Create a few collections:
     let c = db._create(`c_${ccount}`, {numberOfShards: getShardCount(3), replicationFactor: getReplicationFactor(2)});
     progress();
@@ -238,16 +245,15 @@ while (count < options.numberOfDBs) {
 
     // Now create a graph:
 
-    let writeGraphData = function(V, E, vertnames, edgenames) {
-      let vfile = fs.readFileSync(vertnames);
-      let efile = fs.readFileSync(edgenames);
-      let v = JSON.parse(vfile);
-      let e = JSON.parse(efile);
-      V.insert(v);
-      E.insert(e);
+    let writeGraphData = function(V, E, vertices, edges) {
+      edges.forEach(function(edg){
+        edg._from = V.name() + '/' + edg._from.split('/')[1]
+        edg._to = V.name() + '/' + edg._to.split('/')[1]
+      })
+      V.insert(vertices);
+      E.insert(edges);
     }
 
-    let g = require("@arangodb/general-graph");
     let G = g._create(`G_naive_${ccount}`,[
       g._relation(`citations_naive_${ccount}`,
                   [`patents_naive_${ccount}`],
@@ -257,12 +263,11 @@ while (count < options.numberOfDBs) {
     progress();
     writeGraphData(db._collection(`patents_naive_${ccount}`),
                    db._collection(`citations_naive_${ccount}`),
-                   `${PWD}/vertices.json`, `${PWD}/edges_naive.json`);
+                   _.clone(vertices), _.clone(edges));
     progress();
 
     // And now a smart graph (if enterprise):
     if (enterprise) {
-      let gsm = require("@arangodb/smart-graph");
       let Gsm = gsm._create(`G_smart_${ccount}`, [
         gsm._relation(`citations_smart_${ccount}`,
                       [`patents_smart_${ccount}`],
@@ -271,7 +276,7 @@ while (count < options.numberOfDBs) {
       progress();
       writeGraphData(db._collection(`patents_smart_${ccount}`),
                      db._collection(`citations_smart_${ccount}`),
-                     `${PWD}/vertices.json`, `${PWD}/edges.json`);
+                     _.clone(vertices), _.clone(smart_edges));
       progress();
     }
     ccount ++;
