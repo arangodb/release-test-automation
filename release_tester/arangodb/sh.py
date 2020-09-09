@@ -150,8 +150,8 @@ class ArangoshExecutor():
             lh.log_cmd(run_cmd)
         p = Popen(run_cmd, stdout=PIPE, stderr=PIPE, close_fds=ON_POSIX)
         q = Queue()
-        t1 = Thread(target=enqueue_output, args=(p.stdout, q))
-        t2 = Thread(target=enqueue_output1, args=(p.stderr, q))
+        t1 = Thread(target=enqueue_stdout, args=(p.stdout, q))
+        t2 = Thread(target=enqueue_stderr, args=(p.stderr, q))
         t1.start()
         t2.start()
 
