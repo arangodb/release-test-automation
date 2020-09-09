@@ -135,6 +135,12 @@ example usage:
 
  - `--zip` switches from system packages to the tar.gz/zip package for the cleanup.
 
+# binaries strip cheking
+
+ - Linux (ubuntu|debian|centos|fedora|sles)[deb|rpm|tar.gz] full support.
+ - Mac [dmg|tar.gz] support through resource intense copy & compare; GO binaries such as `arangodb` and `arangosync` are assumed not to be stripped, since the mac strip command will fail for them.
+ - Windows no supported yet.
+
 # Source distribution
 
  - `release_tester/test.py` - main process flow, install, run test, uninstall
