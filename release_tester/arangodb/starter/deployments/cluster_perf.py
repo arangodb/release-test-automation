@@ -4,6 +4,8 @@ import time
 import logging
 import sys
 from pathlib import Path
+from queue import Queue, Empty
+from threading  import Thread
 
 from tools.timestamp import timestamp
 from tools.interact import end_test
@@ -14,7 +16,24 @@ import tools.loghelper as lh
 from tools.asciiprint import print_progress as progress
 
 
-class Cluster(Runner):
+def makedata_runner(q, resq, arangosh):
+    while True:
+        try:
+            # all tasks are already there. if done:
+            job = q.get(timeout=0.1)
+            print("starting my task! " + str(job['args']))
+            res = arangosh.create_test_data("xx", job['args'])
+            if not res:
+                print("error executing test - giving up.")
+                resq.put(1)
+                break
+            resq.put(res)
+        except Empty:
+            print("No more work!")
+            resq.put(-1)
+            break
+
+class ClusterPerf(Runner):
     """ this launches a cluster setup """
     def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
         super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'CLUSTER')
@@ -67,6 +86,15 @@ db.testCollection.save({test: "document"})
         for instance in self.starter_instances:
             instance.is_leader = True
 
+    def make_data_impl(self):
+        pass # we do this later.
+    def check_data_impl_sh(self, arangosh):
+        pass # we don't care
+    def check_data_impl(self):
+        pass
+    def supports_backup_impl(self):
+        return False # we want to do this on our own.
+
     def starter_run_impl(self):
         lh.subsection("instance setup")
         for manager in self.starter_instances:
@@ -90,67 +118,69 @@ db.testCollection.save({test: "document"})
         logging.info("instances are ready")
 
     def finish_setup_impl(self):
-        self.makedata_instances = self.starter_instances[:]
+        pass
 
     def test_setup_impl(self):
         pass
 
     def wait_for_restore_impl(self, backup_starter):
-        for starter in self.starter_instances:
-            for dbserver in starter.get_dbservers():
-                dbserver.detect_restore_restart()
+        pass
 
     def upgrade_arangod_version_impl(self):
-        for node in self.starter_instances:
-            node.replace_binary_for_upgrade(self.new_cfg)
-
-        for node in self.starter_instances:
-            node.detect_instance_pids_still_alive()
-
-        self.starter_instances[1].command_upgrade()
-        self.starter_instances[1].wait_for_upgrade()
+        pass
 
     def jam_attempt_impl(self):
-        logging.info("stopping instance 2")
-        self.starter_instances[2].terminate_instance()
+        self.makedata_instances = self.starter_instances[:]
+        logging.info('jamming: starting data stress')
+        assert self.makedata_instances
+        logging.debug("makedata instances")
+        for i in self.makedata_instances:
+            logging.debug(str(i))
 
-        end_test(self.basecfg, "instance stopped")
-        # respawn instance, and get its state fixed
-        self.starter_instances[2].respawn_instance()
-        while not self.starter_instances[2].is_instance_up():
-            progress('.')
-            time.sleep(1)
-        print()
-        self.starter_instances[2].detect_instances()
-        self.starter_instances[2].detect_instance_pids()
-        self.starter_instances[2].detect_instance_pids_still_alive()
+        interactive = self.basecfg.interactive
+        tcount = 0
+        offset = 0
+        jobs = Queue()
+        resultq = Queue()
+        results = []
+        workers = []
+        for i in range(5):
+            jobs.put({
+                'args': [
+                    'TESTDB',
+                    '--minReplicationFactor', '1',
+                    '--maxReplicationFactor', '2',
+                    '--numberOfDBs', '5',
+                    '--countOffset', str(offset),
+                    '--collectionMultiplier', '1',
+                    '--singleShard', 'false'
+                    ]
+                })
+            offset += 5
 
-        logging.info('jamming: Starting instance without jwt')
-        dead_instance = StarterManager(
-            self.basecfg,
-            Path('CLUSTER'), 'nodeX',
-            mode='cluster',
-            jwtStr=None,
-            expect_instances=[
-                InstanceType.agent,
-                InstanceType.coordinator,
-                InstanceType.dbserver,
-            ],
-            moreopts=['--starter.join', '127.0.0.1:9528'])
-        dead_instance.run_starter()
+        for starter in self.makedata_instances:
+            assert starter.arangosh
+            arangosh = starter.arangosh
 
-        i = 0
-        while True:
-            logging.info(". %d", i)
-            if not dead_instance.is_instance_running():
-                break
-            if i > 40:
-                logging.info('Giving up wating for the starter to exit')
-                raise Exception("non-jwt-ed starter won't exit")
-            i += 1
-            time.sleep(10)
-        logging.info(str(dead_instance.instance.wait(timeout=320)))
-        logging.info('dead instance is dead?')
+            #must be writabe that the setup may not have already data
+            if not arangosh.read_only and not self.has_makedata_data:
+                workers.append(Thread(target=makedata_runner, args=(jobs, resultq, arangosh)))
+
+        thread_count = len(workers)
+        for worker in workers:
+            worker.start()
+            time.sleep(1.3)
+
+        while tcount < thread_count:
+            res_line = resultq.get()
+            if isinstance(res_line, bytes):
+                results.append(str(res_line).split(','))
+            else:
+                tcount += 1
+
+        for worker in workers:
+            worker.join()
+        print("DONE!")
 
     def shutdown_impl(self):
         for node in self.starter_instances:

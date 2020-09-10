@@ -33,7 +33,7 @@ logging.basicConfig(
               help='switch to zip or tar.gz package instead of default OS package')
 @click.option('--interactive/--no-interactive',
               is_flag=True,
-              default=sys.stdout.isatty(),
+              default=False,
               help='wait for the user to hit Enter?')
 @click.option('--package-dir',
               default='/tmp/',
@@ -83,43 +83,20 @@ def run_test(version, verbose, package_dir, enterprise, zip,
                                      mode,
                                      publicip,
                                      interactive)
-                             
+
     inst = make_installer(install_config)
 
-    if starter_mode == 'all':
-        starter_mode = [RunnerType.LEADER_FOLLOWER,
-                        RunnerType.ACTIVE_FAILOVER,
-                        RunnerType.CLUSTER]
-        if enterprise:
-            starter_mode.append(RunnerType.DC2DC)
-    elif starter_mode == 'LF':
-        starter_mode = [RunnerType.LEADER_FOLLOWER]
-    elif starter_mode == 'AFO':
-        starter_mode = [RunnerType.ACTIVE_FAILOVER]
-    elif starter_mode == 'CL':
-        starter_mode = [RunnerType.CLUSTER]
-    elif starter_mode == 'DC':
-        starter_mode = [RunnerType.DC2DC]
-    elif starter_mode == 'none':
-        starter_mode = [RunnerType.NONE]
-    else:
-        raise Exception("invalid starter mode: " + starter_mode)
+    from arangodb.starter.deployments.cluster_perf import ClusterPerf
+    from arangodb.starter.deployments import RunnerType
 
-    count = 1
-    for runner_type in starter_mode:
-        assert(runner_type)
+    runner = ClusterPerf(RunnerType.CLUSTER, inst.cfg, inst, None, None)
+    runner.do_install = do_install
+    runner.do_uninstall = do_uninstall
+    failed = False
+    if not runner.run():
+        failed = True
 
-        runner = make_runner(runner_type, inst.cfg, inst, None)
-        # install on first run:
-        runner.do_install = (count == 1) and do_install
-        # only uninstall after the last test:
-        runner.do_uninstall = (count == len(starter_mode)) and do_uninstall
-        failed = False
-        if not runner.run():
-            failed = True
-
-        kill_all_processes()
-        count += 1
+    kill_all_processes()
 
     return ( 0 if not failed else 1 )
 

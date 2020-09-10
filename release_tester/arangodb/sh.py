@@ -162,6 +162,7 @@ class ArangoshExecutor():
         count = 0
         tcount = 0
         close_count = 0
+        result = []
         while not have_timeout:
             if not verbose:
                 progress("sj" + str(tcount))
@@ -178,6 +179,8 @@ class ArangoshExecutor():
                 if isinstance(line, bytes):
                     if verbose:
                        print("e: " + str(line))
+                    if not str(line).startswith('#'):
+                        result.append(line)
                 else:
                     close_count += 1
                     if close_count == 2:
@@ -189,7 +192,11 @@ class ArangoshExecutor():
         rc = p.wait()
         t1.join()
         t2.join()
-        return not have_timeout and rc == 0
+        if have_timeout or rc != 0:
+            return False
+        if len(result) == 0:
+            return True
+        return result
 
     def run_testing(self, testcase, args, timeout, logfile, verbose):
         args = [
@@ -205,8 +212,8 @@ class ArangoshExecutor():
         os.chdir(self.cfg.package_dir)
         p = Popen(args, stdout=PIPE, stderr=PIPE, close_fds=ON_POSIX)
         q = Queue()
-        t1 = Thread(target=enqueue_output, args=(p.stdout, q))
-        t2 = Thread(target=enqueue_output1, args=(p.stderr, q))
+        t1 = Thread(target=enqueue_stdout, args=(p.stdout, q))
+        t2 = Thread(target=enqueue_stderr, args=(p.stderr, q))
         t1.start()
         t2.start()
 
@@ -281,56 +288,56 @@ class ArangoshExecutor():
         
         return res
 
-    def create_test_data(self, testname):
+    def create_test_data(self, testname, args=[]):
         """ deploy testdata into the instance """
         if testname:
             logging.info("adding test data for {0}".format(testname))
         else:
             logging.info("adding test data")
 
-        success = self.run_script_monitored(cmd=[
+        ret = self.run_script_monitored(cmd=[
             'setting up test data',
             self.cfg.test_data_dir / 'makedata.js'],
-                                            args = [
+                                            args =args +[
                                                 '--progress', 'true'
                                             ],
-                                            timeout=10,
+                                            timeout=100,
                                             verbose=self.cfg.verbose)
 
-        return success
+        return ret
 
-    def check_test_data(self, testname):
+    def check_test_data(self, testname, args=[]):
         """ check back the testdata in the instance """
         if testname:
             logging.info("checking test data for {0}".format(testname))
         else:
             logging.info("checking test data")
 
-        success = self.run_script_monitored(cmd=[
+        ret = self.run_script_monitored(cmd=[
             'checking test data integrity',
             self.cfg.test_data_dir / 'checkdata.js'],
-                                            args = [
+                                            args=args + [
                                                 '--progress', 'true'
                                             ],
                                             timeout=5,
                                             verbose=self.cfg.verbose)
 
-        return success
+        return ret
 
-    def clear_test_data(self, testname):
+    def clear_test_data(self, testname, args=[]):
         """ flush the testdata from the instance again """
         if testname:
             logging.info("removing test data for {0}".format(testname))
         else:
             logging.info("removing test data")
 
-        success = self.run_script_monitored(cmd=[
+        ret = self.run_script_monitored(cmd=[
             'cleaning up test data',
             self.cfg.test_data_dir / 'cleardata.js'],
-                                            args = [
+                                            args=args + [
                                                 '--progress', 'true'
                                             ],
                                             timeout=5,
                                             verbose=self.cfg.verbose)
 
-        return success
+        return ret
