@@ -7,7 +7,10 @@ from pathlib import Path
 from queue import Queue, Empty
 from threading  import Thread
 
+import psutil
+
 from tools.timestamp import timestamp
+import tools.interact as ti
 from tools.interact import end_test
 from arangodb.instance import InstanceType
 from arangodb.starter.manager import StarterManager
@@ -85,7 +88,7 @@ db.testCollection.save({test: "document"})
                            moreopts=['--starter.join', '127.0.0.1:9528']))
         for instance in self.starter_instances:
             instance.is_leader = True
-
+        
     def make_data_impl(self):
         pass # we do this later.
     def check_data_impl_sh(self, arangosh):
@@ -118,7 +121,11 @@ db.testCollection.save({test: "document"})
         logging.info("instances are ready")
 
     def finish_setup_impl(self):
-        pass
+        jwtstr = self.starter_instances[0].get_jwt_header()
+        cf_file = Path('/etc/prometheus/prometheus.token')
+        cf_file.write_text(jwtstr)
+        r = psutil.Popen(['/etc/init.d/prometheus-node-exporter', 'restart'])
+        r.wait()
 
     def test_setup_impl(self):
         pass
@@ -144,19 +151,19 @@ db.testCollection.save({test: "document"})
         resultq = Queue()
         results = []
         workers = []
+        no_dbs = 100
         for i in range(5):
             jobs.put({
                 'args': [
                     'TESTDB',
                     '--minReplicationFactor', '1',
                     '--maxReplicationFactor', '2',
-                    '--numberOfDBs', '5',
-                    '--countOffset', str(offset),
+                    '--numberOfDBs', str(no_dbs),
+                    '--countOffset', str(i * no_dbs +1),
                     '--collectionMultiplier', '1',
                     '--singleShard', 'false'
                     ]
                 })
-            offset += 5
 
         for starter in self.makedata_instances:
             assert starter.arangosh
@@ -180,7 +187,7 @@ db.testCollection.save({test: "document"})
 
         for worker in workers:
             worker.join()
-        print("DONE!")
+        ti.prompt_user(self.basecfg, "DONE! press any key to shut down the SUT.")
 
     def shutdown_impl(self):
         for node in self.starter_instances:

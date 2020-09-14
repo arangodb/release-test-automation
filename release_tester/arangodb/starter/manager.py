@@ -60,11 +60,13 @@ class StarterManager():
 
         # arg - jwtstr
         self.jwtfile = None
+        self.jwt_header = None
         if jwtStr:
             self.basedir.mkdir(parents=True, exist_ok=True)
             self.jwtfile = self.basedir / 'jwt'
             self.jwtfile.write_text(jwtStr)
             self.moreopts += ['--auth.jwt-secret', str(self.jwtfile)]
+            self.get_jwt_header()
 
         # arg mode
         self.mode = mode
@@ -185,6 +187,24 @@ Starter {0.name}
         self.instance = psutil.Popen(args)
         self.wait_for_logfile()
 
+    def get_jwt_header(self):
+        if self.jwt_header:
+            return self.jwt_header
+        cmd = [self.cfg.bin_dir / 'arangodb',
+               'auth', 'header',
+               '--auth.jwt-secret', str(self.jwtfile)]
+        print(cmd)
+        r = psutil.Popen(cmd,
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        (header, err) = r.communicate()
+        r.wait()
+        print(err)
+        print(len(str(err)))
+        if len(str(err)) > 3:# TODO Y?
+            raise Exception("error invoking the starter to generate the jwt header token! " + str(err))
+        if len(str(header).split(' ')) != 3:
+            raise Exception("failed to parse the output of the header command: " + str(header))
+        self.jwt_header = str(header).split(' ')[2]
 
     def is_instance_running(self):
         """ check whether this is still running"""
