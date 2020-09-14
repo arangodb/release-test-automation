@@ -364,13 +364,15 @@ class InstallerBase(ABC):
 
     def check_installed_files(self):
         """ check for the files whether they're installed """
-        print('Strip checking is disabled on DMG packages.')
-        for binary in self.arango_binaries:
-            progress("S" if binary.stripped else "s")
-            binary.check_installed(self.cfg.version,
-                                   self.cfg.enterprise,
-                                   self.check_stripped,
-                                   self.check_symlink)
+        if IS_MAC:
+            print('Strip checking is disabled on DMG packages.')
+        else:
+            for binary in self.arango_binaries:
+                progress("S" if binary.stripped else "s")
+                binary.check_installed(self.cfg.version,
+                                    self.cfg.enterprise,
+                                    self.check_stripped,
+                                    self.check_symlink)
         print('\n')
         logging.info("all files ok")
 
