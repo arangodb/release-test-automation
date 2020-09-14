@@ -140,9 +140,12 @@ class InstallerMac(InstallerBase):
             if retcode:
                 print('Failed to unmount %s' % mountpoint, file=sys.stderr)
 
+    
     def run_installer_script(self):
-        script = Path(self.mountpoint) / 'ArangoDB3-CLI.app' / 'Contents' / 'MacOS' / 'ArangoDB3-CLI'
+        enterprise = 'e' if self.cfg.enterprise else ''
+        script = Path(self.mountpoint) / 'ArangoDB3{}-CLI.app'.format(enterprise) / 'Contents' / 'MacOS' / 'ArangoDB3-CLI'
         print(script)
+        os.environ["STORAGE_ENGINE"] = "auto"
         installscript = pexpect.spawnu(str(script))
         try:
             installscript.expect("is ready for business. Have fun!", timeout=60)
@@ -183,7 +186,15 @@ class InstallerMac(InstallerBase):
         pass
 
     def upgrade_package(self):
-        raise Exception("TODO")
+        cmd = ['python3', '/Users/tester/automation/release-test-automation-master/release_tester/cleanup.py']
+        print(cmd)
+        proc = subprocess.Popen(cmd, bufsize=-1,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                stdin=subprocess.PIPE)
+        (pliststr, err) = proc.communicate()
+
+        self.install_package()
 
     def install_package(self):
         if self.cfg.pidfile.exists():
@@ -191,7 +202,8 @@ class InstallerMac(InstallerBase):
         logging.info("Mounting DMG")
         self.mountpoint = self.mountdmg(self.cfg.package_dir / self.server_package)
         print(self.mountpoint)
-        self.cfg.installPrefix = Path(self.mountpoint) / 'ArangoDB3-CLI.app' / 'Contents' / 'Resources'
+        enterprise = 'e' if self.cfg.enterprise else ''
+        self.cfg.installPrefix = Path(self.mountpoint) / 'ArangoDB3{}-CLI.app'.format(enterprise) / 'Contents' / 'Resources'
         self.cfg.bin_dir = self.cfg.installPrefix
         self.cfg.sbin_dir = self.cfg.installPrefix
         self.cfg.real_bin_dir = self.cfg.installPrefix / 'opt' / 'arangodb' / 'bin'
@@ -215,7 +227,7 @@ class InstallerMac(InstallerBase):
         else:
             self.unmountdmg(self.mountpoint)
 
-    def cleanup_system(self):
+    def cleanup_system(self): 
         if self.cfg.logDir.exists():
             shutil.rmtree(self.cfg.logDir)
         if self.cfg.dbdir.exists():
