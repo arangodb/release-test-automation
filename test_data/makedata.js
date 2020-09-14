@@ -45,13 +45,14 @@ const zeroPad = (num) => String(num).padStart(numberLength, '0')
 
 let tStart = 0;
 let timeLine = [];
-function progress() {
+function progress(gaugeName) {
   now = time();
-  timeLine.push(now - tStart);
-  tStart = now;
+  delta = now - tStart
+  timeLine.push(delta);
   if (options.progress) {
-    print("#");
+    print(`# - ${gaugeName},${tstart},${delta}`);
   }
+  tStart = now;
 }
 
 function getShardCount(defaultShardCount) {
@@ -97,47 +98,47 @@ while (count < options.numberOfDBs) {
   else if (options.numberOfDBs > 1) {
     throw ("must specify a database prefix if want to work with multiple DBs.")
   }
-  progress();
+  progress('createDB');
 
   let ccount = 0;
   while (ccount < options.collectionMultiplier) {
     // Create a few collections:
     let c = db._create(`c_${ccount}`, {numberOfShards: getShardCount(3), replicationFactor: getReplicationFactor(2)});
-    progress();
+    progress('createCollection1');
     let chash = db._create(`chash_${ccount}`, {numberOfShards: getShardCount(3), replicationFactor: getReplicationFactor(2)});
-    progress();
+    progress('createCollection2');
     let cskip = db._create(`cskip_${ccount}`, {numberOfShards: getShardCount(1), replicationFactor: getReplicationFactor(1)});
-    progress();
+    progress('createCollection3');
     let cfull = db._create(`cfull_${ccount}`, {numberOfShards: getShardCount(3), replicationFactor: getReplicationFactor(1)});
-    progress();
+    progress('createCollection4');
     let cgeo = db._create(`cgeo_${ccount}`, {numberOfShards: getShardCount(3), replicationFactor: getReplicationFactor(2)});
-    progress();
+    progress('createCollectionGeo5');
     let cunique = db._create(`cunique_${ccount}`, {numberOfShards: getShardCount(1), replicationFactor: getReplicationFactor(1)});
-    progress();
+    progress('createCollection6');
     let cmulti = db._create(`cmulti_${ccount}`, {numberOfShards: getShardCount(3), replicationFactor: getReplicationFactor(2)});
-    progress();
+    progress('createCollection7');
     let cempty = db._create(`cempty_${ccount}`, {numberOfShards: getShardCount(3), replicationFactor: getReplicationFactor(1)});
 
     // Create some indexes:
-    progress();
+    progress('createCollection8');
     chash.ensureIndex({type: "hash", fields: ["a"], unique: false});
-    progress();
+    progress('createIndexHash1');
     cskip.ensureIndex({type: "skiplist", fields: ["a"], unique: false});
-    progress();
+    progress('createIndexSkiplist2');
     cfull.ensureIndex({type: "fulltext", fields: ["text"], minLength: 4});
-    progress();
+    progress('createIndexFulltext3');
     cgeo.ensureIndex({type: "geo", fields: ["position"], geoJson: true});
-    progress();
+    progress('createIndexGeo4');
     cunique.ensureIndex({type: "hash", fields: ["a"], unique: true});
-    progress();
+    progress('createIndex5');
     cmulti.ensureIndex({type: "hash", fields: ["a"], unique: false});
-    progress();
+    progress('createIndex6');
     cmulti.ensureIndex({type: "skiplist", fields: ["b", "c"]});
-    progress();
+    progress('createIndex7');
     cmulti.ensureIndex({type: "geo", fields: ["position"], geoJson: true});
-    progress();
+    progress('createIndexGeo8');
     cmulti.ensureIndex({type: "fulltext", fields: ["text"], minLength: 6});
-    progress();
+    progress('createIndexFulltext9');
 
     // Put some data in:
 
@@ -215,24 +216,24 @@ while (count < options.numberOfDBs) {
     // Now the actual data writing:
 
     writeData(c, 1000);
-    progress();
+    progress('writeData1');
     writeData(chash, 12345);
-    progress();
+    progress('writeData2');
     writeData(cskip, 2176);
-    progress();
+    progress('writeData3');
     writeData(cgeo, 5245);
-    progress();
+    progress('writeData4');
     writeData(cfull, 6253);
-    progress();
+    progress('writeData5');
     writeData(cunique, 5362);
-    progress();
+    progress('writeData6');
     writeData(cmulti, 12346);
-    progress();
+    progress('writeData7');
 
     let cview1 = db._create(`cview1_${ccount}`)
-    progress();
+    progress('createView1');
     let view1 =  db._createView(`view1_${ccount}`, "arangosearch", {});
-    progress();
+    progress('createView2');
     let meta = {links: {}};
     meta.links[`cview1_${ccount}`] = { includeAllFields: true}
     view1.properties(meta)
@@ -241,7 +242,7 @@ while (count < options.numberOfDBs) {
                   ,{"animal": "mouse", "name": "jerry"}
                   ,{"animal": "dog", "name": "harry"}
                  )
-    progress();
+    progress('createView3');
 
     // Now create a graph:
 
@@ -260,11 +261,11 @@ while (count < options.numberOfDBs) {
                   [`patents_naive_${ccount}`])],
                       [], {
                         numberOfShards:getShardCount(3)});
-    progress();
+    progress('createGraph1');
     writeGraphData(db._collection(`patents_naive_${ccount}`),
                    db._collection(`citations_naive_${ccount}`),
                    _.clone(vertices), _.clone(edges));
-    progress();
+    progress('loadGraph1');
 
     // And now a smart graph (if enterprise):
     if (enterprise) {
@@ -273,11 +274,11 @@ while (count < options.numberOfDBs) {
                       [`patents_smart_${ccount}`],
                       [`patents_smart_${ccount}`])],
                             [], {numberOfShards: getShardCount(3), smartGraphAttribute:"COUNTRY"});
-      progress();
+      progress('createEGraph2');
       writeGraphData(db._collection(`patents_smart_${ccount}`),
                      db._collection(`citations_smart_${ccount}`),
                      _.clone(vertices), _.clone(smart_edges));
-      progress();
+      progress('writeEGraph2');
     }
     ccount ++;
   }
