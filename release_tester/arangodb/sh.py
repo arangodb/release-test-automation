@@ -17,6 +17,9 @@ from tools.asciiprint import ascii_print, print_progress as progress
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
+def dummy_line_result(line):
+    pass
+
 def enqueue_stdout(std_out, queue):
     for line in iter(std_out.readline, b''):
         #print("O: " + str(line))
@@ -126,7 +129,7 @@ class ArangoshExecutor():
         logging.debug("exitcode {0}".format(exitcode))
         return exitcode == 0
 
-    def run_script_monitored(self, cmd, args, timeout, verbose=True):
+    def run_script_monitored(self, cmd, args, timeout, result_line, verbose=True):
         run_cmd = [
             self.cfg.bin_dir / "arangosh",
             "--server.endpoint",
@@ -169,6 +172,7 @@ class ArangoshExecutor():
             line = ''
             try:
                 line = q.get(timeout=1)
+                result_line(line)
             except Empty:
                 tcount += 1
                 if verbose:
@@ -288,7 +292,7 @@ class ArangoshExecutor():
         
         return res
 
-    def create_test_data(self, testname, args=[]):
+    def create_test_data(self, testname, args=[], result_line=dummy_line_result):
         """ deploy testdata into the instance """
         if testname:
             logging.info("adding test data for {0}".format(testname))
@@ -302,11 +306,12 @@ class ArangoshExecutor():
                                                 '--progress', 'true'
                                             ],
                                             timeout=100,
-                                            verbose=self.cfg.verbose)
+                                        result_line=result_line,
+                                        verbose=self.cfg.verbose)
 
         return ret
 
-    def check_test_data(self, testname, args=[]):
+    def check_test_data(self, testname, args=[], result_line=dummy_line_result):
         """ check back the testdata in the instance """
         if testname:
             logging.info("checking test data for {0}".format(testname))
@@ -319,12 +324,13 @@ class ArangoshExecutor():
                                             args=args + [
                                                 '--progress', 'true'
                                             ],
-                                            timeout=5,
-                                            verbose=self.cfg.verbose)
+                                        timeout=5,
+                                        result_line=result_line,
+                                        verbose=self.cfg.verbose)
 
         return ret
 
-    def clear_test_data(self, testname, args=[]):
+    def clear_test_data(self, testname, args=[], result_line=dummy_line_result):
         """ flush the testdata from the instance again """
         if testname:
             logging.info("removing test data for {0}".format(testname))
@@ -337,7 +343,8 @@ class ArangoshExecutor():
                                             args=args + [
                                                 '--progress', 'true'
                                             ],
-                                            timeout=5,
-                                            verbose=self.cfg.verbose)
+                                        timeout=5,
+                                        result_line=result_line,
+                                        verbose=self.cfg.verbose)
 
         return ret

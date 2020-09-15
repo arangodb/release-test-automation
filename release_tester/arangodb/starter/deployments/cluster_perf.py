@@ -8,6 +8,7 @@ from queue import Queue, Empty
 from threading  import Thread
 
 import psutil
+import statsd
 
 from tools.timestamp import timestamp
 import tools.interact as ti
@@ -18,6 +19,17 @@ from arangodb.starter.deployments.runner import Runner
 import tools.loghelper as lh
 from tools.asciiprint import print_progress as progress
 
+statsdc = statsd.StatsClient('localhost', 8125)
+def result_line(line):
+    if line.startswith(b'#'):
+        line = str(line)[6:-3]
+        segments = line.split(',')
+        if len(segments) < 3:
+            print('n/a')
+        else:
+            statsdc.timing(segments[0], float(segments[2]))
+    else:
+        statsdc.incr('completed')
 
 def makedata_runner(q, resq, arangosh):
     while True:
@@ -25,7 +37,7 @@ def makedata_runner(q, resq, arangosh):
             # all tasks are already there. if done:
             job = q.get(timeout=0.1)
             print("starting my task! " + str(job['args']))
-            res = arangosh.create_test_data("xx", job['args'])
+            res = arangosh.create_test_data("xx", job['args'], result_line=result_line)
             if not res:
                 print("error executing test - giving up.")
                 resq.put(1)
