@@ -206,4 +206,5 @@ arangosync
 
 
 # Perf
-python3-prometheus-client 
+makedata values are pushed via statsd client via https://github.com/prometheus/statsd_exporter to prometheus.
+adds the `python3-statsd` dependency.
