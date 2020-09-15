@@ -50,7 +50,7 @@ function progress(gaugeName) {
   delta = now - tStart
   timeLine.push(delta);
   if (options.progress) {
-    print(`# - ${gaugeName},${tstart},${delta}`);
+    print(`# - ${gaugeName},${tStart},${delta}`);
   }
   tStart = now;
 }
