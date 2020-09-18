@@ -3,6 +3,7 @@
 import time
 import logging
 import sys
+import os
 from pathlib import Path
 from queue import Queue, Empty
 from threading  import Thread
@@ -20,16 +21,21 @@ import tools.loghelper as lh
 from tools.asciiprint import print_progress as progress
 
 statsdc = statsd.StatsClient('localhost', 8125)
+resultstxt = Path('/tmp/results.txt').open('w')
 def result_line(line):
-    if line.startswith(b'#'):
-        line = str(line)[6:-3]
-        segments = line.split(',')
-        if len(segments) < 3:
-            print('n/a')
+    if isinstance(line, bytes):
+        if line.startswith(b'#'):
+            line = str(line)[6:-3]
+            segments = line.split(',')
+            if len(segments) < 3:
+                print('n/a')
+            else:
+                line = ','.join(segments) + '\n'
+                print(line)
+                resultstxt.write(line)
+                statsdc.timing(segments[0], float(segments[2]))
         else:
-            statsdc.timing(segments[0], float(segments[2]))
-    else:
-        statsdc.incr('completed')
+            statsdc.incr('completed')
 
 def makedata_runner(q, resq, arangosh):
     while True:
@@ -57,6 +63,9 @@ class ClusterPerf(Runner):
         self.jwtdatastr = str(timestamp())
 
     def starter_prepare_env_impl(self):
+        mem = psutil.virtual_memory()
+        os.environ['ARANGODB_OVERRIDE_DETECTED_TOTAL_MEMORY'] = str(int((mem.total * 0.8) / 9))
+        
         self.create_test_collection = ("""
 db._create("testCollection",  { numberOfShards: 6, replicationFactor: 2});
 db.testCollection.save({test: "document"})
@@ -170,6 +179,7 @@ db.testCollection.save({test: "document"})
                     'TESTDB',
                     '--minReplicationFactor', '1',
                     '--maxReplicationFactor', '2',
+                    '--dataMultiplier', '4',
                     '--numberOfDBs', str(no_dbs),
                     '--countOffset', str(i * no_dbs +1),
                     '--collectionMultiplier', '1',
