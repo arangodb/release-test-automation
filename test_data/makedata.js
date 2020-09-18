@@ -5,6 +5,7 @@
 // in question is created (if it is not "_system").
 // `--minReplicationFactor [1] don't create collections with smaller replication factor than this.
 // `--maxReplicationFactor [2] don't create collections with a bigger replication factor than this.
+// `--dataMultiplier [1]       0 - no data; else n-times the data
 // `--numberOfDBs [1]          count of databases to create and fill
 // `--countOffset [0]          number offset at which to start the database count
 // `--collectionMultiplier [1] how many times to create the collections / index / view / graph set?
@@ -25,6 +26,7 @@ const optionsDefaults = {
   maxReplicationFactor: 2,
   numberOfDBs: 1,
   countOffset: 0,
+  dataMultiplier: 1,
   collectionMultiplier: 1,
   singleShard: false,
   progress: false
@@ -190,27 +192,31 @@ while (count < options.numberOfDBs) {
     }
 
     let writeData = function(coll, n) {
-      let l = [];
-      let times = [];
+      let count = 0;
+      while (count < options.dataMultiplier) {
+        let l = [];
+        let times = [];
 
-      for (let i = 0; i < n; ++i) {
-        l.push(makeRandomDoc());
-        if (l.length % 1000 === 0 || i === n-1) {
-          let t = time();
-          coll.insert(l);
-          let t2 = time();
-          l = [];
-          //print(i+1, t2-t);
-          times.push(t2-t);
+        for (let i = 0; i < n; ++i) {
+          l.push(makeRandomDoc());
+          if (l.length % 1000 === 0 || i === n-1) {
+            let t = time();
+            coll.insert(l);
+            let t2 = time();
+            l = [];
+            //print(i+1, t2-t);
+            times.push(t2-t);
+          }
         }
+        // Timings, if ever needed:
+        //times = times.sort(function(a, b) { return a-b; });
+        //print(" Median:", times[Math.floor(times.length / 2)], "\n",
+        //      "90%ile:", times[Math.floor(times.length * 0.90)], "\n",
+        //      "99%ile:", times[Math.floor(times.length * 0.99)], "\n",
+        //      "min   :", times[0], "\n",
+        //      "max   :", times[times.length-1]);
+        count += 1
       }
-      // Timings, if ever needed:
-      //times = times.sort(function(a, b) { return a-b; });
-      //print(" Median:", times[Math.floor(times.length / 2)], "\n",
-      //      "90%ile:", times[Math.floor(times.length * 0.90)], "\n",
-      //      "99%ile:", times[Math.floor(times.length * 0.99)], "\n",
-      //      "min   :", times[0], "\n",
-      //      "max   :", times[times.length-1]);
     }
 
     // Now the actual data writing:
@@ -247,12 +253,20 @@ while (count < options.numberOfDBs) {
     // Now create a graph:
 
     let writeGraphData = function(V, E, vertices, edges) {
-      edges.forEach(function(edg){
-        edg._from = V.name() + '/' + edg._from.split('/')[1]
-        edg._to = V.name() + '/' + edg._to.split('/')[1]
-      })
-      V.insert(vertices);
-      E.insert(edges);
+      let count = 0;
+      while (count < options.dataMultiplier) {
+        edges.forEach(function(edg){
+          edg._from = V.name() + count + '/' + edg._from.split('/')[1]
+          edg._to = V.name() + count + '/' + edg._to.split('/')[1]
+        })
+        let cVertices = _.clone(vertices)
+        cVertices.forEach(vertex => {
+          vertex['_key'] = vertex['_key'] + count;
+        })
+        V.insert(vertices);
+        E.insert(edges);
+        count += 1;
+      }
     }
 
     let G = g._create(`G_naive_${ccount}`,[
