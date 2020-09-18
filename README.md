@@ -208,3 +208,19 @@ arangosync
 # Perf
 makedata values are pushed via statsd client via https://github.com/prometheus/statsd_exporter to prometheus.
 adds the `python3-statsd` dependency.
+
+
+connect statsd to prometheus:
+```
+  - job_name: statsd
+    scrape_interval: 1s
+    metrics_path: /metrics
+    # bearer_token_file: /etc/prometheus/prometheus.token
+    static_configs:
+    - targets: ['localhost:9102']
+```
+
+Run the statsd exporter:
+```
+statsd_exporter --statsd.listen-udp=8125 --statsd.listen-tcp=8125
+```
