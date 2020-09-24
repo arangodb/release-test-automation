@@ -5,6 +5,7 @@ import logging
 from pathlib import Path
 import sys
 import click
+import re
 from tools.killall import kill_all_processes
 from arangodb.installers import make_installer, InstallerConfig
 from arangodb.starter.deployments import RunnerType, make_runner
@@ -49,9 +50,13 @@ logging.basicConfig(
               default='127.0.0.1',
               help='IP for the click to browser hints.')
 
+@click.option('--frontends',
+              multiple=True,
+              help='Connection strings of remote clusters')
+
 
 def run_test(version, verbose, package_dir, enterprise, zip,
-             interactive, mode, starter_mode, publicip):
+             interactive, mode, starter_mode, publicip, frontends):
     """ main """
     lh.section("configuration")
     print("version: " + str(version))
@@ -84,11 +89,19 @@ def run_test(version, verbose, package_dir, enterprise, zip,
                                      publicip,
                                      interactive)
 
+    split_host = re.compile(r'([a-z]*)://([0-9.:]*):(\d*)')
+
     inst = make_installer(install_config)
+
 
     from arangodb.starter.deployments.cluster_perf import ClusterPerf
     from arangodb.starter.deployments import RunnerType
-
+    if len(frontends) > 0:
+        for frontend in frontends:
+            print('remote')
+            h = re.split(split_host, frontend)
+            inst.cfg.add_frontend(h[1], h[2], h[3])
+    print(len(inst.cfg.frontends))
     runner = ClusterPerf(RunnerType.CLUSTER, inst.cfg, inst, None, None)
     runner.do_install = do_install
     runner.do_uninstall = do_uninstall
@@ -96,7 +109,8 @@ def run_test(version, verbose, package_dir, enterprise, zip,
     if not runner.run():
         failed = True
 
-    kill_all_processes()
+    if len(frontends) == 0:
+        kill_all_processes()
 
     return ( 0 if not failed else 1 )
 

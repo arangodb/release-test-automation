@@ -30,6 +30,7 @@ class InstallerTAR(InstallerBase):
         self.client_package = None
         self.debug_package = None
         self.log_examiner = None
+        self.instance = None
         version = cfg.version.split("~")[0]
         version = ".".join(version.split(".")[:3])
         self.semver = semver.VersionInfo.parse(version)

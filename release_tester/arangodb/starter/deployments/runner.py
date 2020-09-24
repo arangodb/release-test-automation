@@ -168,7 +168,7 @@ class Runner(ABC):
             inst.install_package()
             self.cfg.set_directories(inst.cfg)
             lh.subsubsection("checking files")
-            inst.check_installed_files()
+            # TODO inst.check_installed_files()
             lh.subsubsection("saving config")
             inst.save_config()
 
@@ -197,10 +197,11 @@ class Runner(ABC):
             inst.stop_service()
         inst.start_service()
         
-        sys_arangosh = ArangoshExecutor(inst.cfg)
+        sys_arangosh = ArangoshExecutor(inst.cfg, inst.instance)
 
         logging.debug("self test after installation")
-        sys_arangosh.self_test()
+        if inst.cfg.have_system_service:
+            sys_arangosh.self_test()
 
         if self.do_system_test:
             sys_arangosh.js_version_check()

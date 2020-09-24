@@ -93,6 +93,8 @@ class Instance(ABC):
             except Exception:
                 break
 
+    def get_endpoint(self):
+        raise Exception("this instance doesn't support endpoints.")
 
 class ArangodInstance(Instance):
     """ represent one arangodb instance """
@@ -124,6 +126,12 @@ arangod instance
         return '{host}:{port}'.format(
             host=self.publicip,
             port=self.port)
+
+    def get_endpoint(self):
+        return 'tcp://{host}:{port}'.format(
+            host=self.localhost,
+            port=self.port)
+        
 
     def is_frontend(self):
         """ is this instance a frontend """
@@ -289,6 +297,11 @@ arangod instance
                 tStart
             ))
 
+class ArangodRemoteInstance(ArangodInstance):
+    
+    """ represent one arangodb instance """
+    def __init__(self, typ, port, localhost, publicip, basedir):
+        super().__init__(typ, port, localhost, publicip, basedir)
 
 class SyncInstance(Instance):
     """ represent one arangosync instance """

@@ -222,5 +222,5 @@ connect statsd to prometheus:
 
 Run the statsd exporter:
 ```
-statsd_exporter --statsd.listen-udp=8125 --statsd.listen-tcp=8125
+./statsd_exporter --statsd.listen-udp=:8125 --statsd.listen-tcp=:8125
 ```

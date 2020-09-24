@@ -19,7 +19,7 @@ import psutil
 
 from tools.asciiprint import ascii_print, print_progress as progress
 from tools.timestamp import timestamp
-from arangodb.instance import ArangodInstance, SyncInstance, InstanceType, AfoServerState
+from arangodb.instance import ArangodInstance, ArangodRemoteInstance, SyncInstance, InstanceType, AfoServerState
 from arangodb.backup import HotBackupConfig, HotBackupManager
 from arangodb.sh import ArangoshExecutor
 import tools.loghelper as lh
@@ -536,9 +536,13 @@ Starter {0.name}
             instance.detect_pid(ppid=self.instance.pid, full_binary_path=self.cfg.real_sbin_dir)
 
         self.show_all_instances()
+        self.detect_arangosh_instances()
+
+    def detect_arangosh_instances(self):
         if self.arangosh is None:
             self.cfg.port = self.get_frontend_port()
-            self.arangosh = ArangoshExecutor(self.cfg)
+            
+            self.arangosh = ArangoshExecutor(self.cfg, self.get_frontend())
             if self.cfg.enterprise:
                 self.hb_instance = HotBackupManager(self.cfg, self.raw_basedir, self.cfg.baseTestDir / self.raw_basedir)
                 self.hb_config = HotBackupConfig(self.cfg, self.raw_basedir, self.cfg.baseTestDir / self.raw_basedir)
@@ -613,3 +617,44 @@ Starter {0.name}
             self.is_master = False
             return True
         return False
+
+class StarterNonManager(StarterManager):
+    def __init__(self,
+                 basecfg,
+                 install_prefix, instance_prefix,
+                 expect_instances,
+                 mode=None, port=None, jwtStr=None, moreopts=[]):
+
+        super().__init__(
+            basecfg,
+            install_prefix, instance_prefix,
+            expect_instances,
+            mode, port, jwtStr, moreopts)
+
+        if basecfg.index >= len(basecfg.frontends):
+            basecfg.index = 0;
+        inst = ArangodRemoteInstance('coordinator',
+                                     basecfg.frontends[basecfg.index].port,
+                                     # self.cfg.localhost,
+                                     basecfg.frontends[basecfg.index].ip,
+                                     basecfg.frontends[basecfg.index].ip,
+                                     Path('/'))
+        self.all_instances.append(inst)
+        basecfg.index += 1
+
+    def run_starter(self):
+        pass
+
+    def detect_instances(self):
+        self.detect_arangosh_instances()
+
+    def detect_instance_pids(self):
+        if not self.get_frontends():
+            print("no frontends?")
+            raise Exception("foobar")
+
+    def is_instance_up(self):
+        return True
+
+    def detect_instance_pids(self):
+        pass

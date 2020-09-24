@@ -15,7 +15,7 @@ from tools.timestamp import timestamp
 import tools.interact as ti
 from tools.interact import end_test
 from arangodb.instance import InstanceType
-from arangodb.starter.manager import StarterManager
+from arangodb.starter.manager import StarterManager, StarterNonManager
 from arangodb.starter.deployments.runner import Runner
 import tools.loghelper as lh
 from tools.asciiprint import print_progress as progress
@@ -59,8 +59,14 @@ class ClusterPerf(Runner):
     def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
         super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'CLUSTER')
         #self.basecfg.frontends = []
+        self.remote = len(self.basecfg.frontends) > 0
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
+        print('aoeuaoeuaou')
+        if self.remote:
+            print('remote')
+        else:
+            print('local')
 
     def starter_prepare_env_impl(self):
         mem = psutil.virtual_memory()
@@ -71,45 +77,54 @@ db._create("testCollection",  { numberOfShards: 6, replicationFactor: 2});
 db.testCollection.save({test: "document"})
 """, "create test collection")
 
+        self.basecfg.index = 0
+        sm = None
+        
+        if self.remote:
+            print('remote')
+            sm = StarterNonManager
+        else:
+            print('local')
+            sm = StarterManager
         self.starter_instances.append(
-            StarterManager(self.basecfg,
-                           self.basedir, 'node1',
-                           mode='cluster',
-                           jwtStr=self.jwtdatastr,
-                           port=9528,
-                           expect_instances=[
-                               InstanceType.agent,
-                               InstanceType.coordinator,
-                               InstanceType.dbserver,
-                           ],
-                           moreopts=[]))
+            sm(self.basecfg,
+               self.basedir, 'node1',
+               mode='cluster',
+               jwtStr=self.jwtdatastr,
+               port=9528,
+               expect_instances=[
+                   InstanceType.agent,
+                   InstanceType.coordinator,
+                   InstanceType.dbserver,
+               ],
+               moreopts=[]))
         self.starter_instances.append(
-            StarterManager(self.basecfg,
-                           self.basedir, 'node2',
-                           mode='cluster',
-                           jwtStr=self.jwtdatastr,
-                           port=9628,
-                           expect_instances=[
-                               InstanceType.agent,
-                               InstanceType.coordinator,
-                               InstanceType.dbserver,
-                           ],
-                           moreopts=['--starter.join', '127.0.0.1:9528']))
+            sm(self.basecfg,
+               self.basedir, 'node2',
+               mode='cluster',
+               jwtStr=self.jwtdatastr,
+               port=9628,
+               expect_instances=[
+                   InstanceType.agent,
+                   InstanceType.coordinator,
+                   InstanceType.dbserver,
+               ],
+               moreopts=['--starter.join', '127.0.0.1:9528']))
         self.starter_instances.append(
-            StarterManager(self.basecfg,
-                           self.basedir, 'node3',
-                           mode='cluster',
-                           jwtStr=self.jwtdatastr,
-                           port=9728,
-                           expect_instances=[
-                               InstanceType.agent,
-                               InstanceType.coordinator,
-                               InstanceType.dbserver,
-                           ],
-                           moreopts=['--starter.join', '127.0.0.1:9528']))
+            sm(self.basecfg,
+               self.basedir, 'node3',
+               mode='cluster',
+               jwtStr=self.jwtdatastr,
+               port=9728,
+               expect_instances=[
+                   InstanceType.agent,
+                   InstanceType.coordinator,
+                   InstanceType.dbserver,
+               ],
+               moreopts=['--starter.join', '127.0.0.1:9528']))
         for instance in self.starter_instances:
             instance.is_leader = True
-        
+            
     def make_data_impl(self):
         pass # we do this later.
     def check_data_impl_sh(self, arangosh):
@@ -121,6 +136,9 @@ db.testCollection.save({test: "document"})
 
     def starter_run_impl(self):
         lh.subsection("instance setup")
+        #if self.remote:
+        #    logging.info("running remote, skipping")
+        #    return
         for manager in self.starter_instances:
             logging.info("Spawning instance")
             manager.run_starter()
@@ -142,6 +160,9 @@ db.testCollection.save({test: "document"})
         logging.info("instances are ready")
 
     def finish_setup_impl(self):
+        if self.remote:
+            logging.info("running remote, skipping")
+            return
         jwtstr = self.starter_instances[0].get_jwt_header()
         cf_file = Path('/etc/prometheus/prometheus.token')
         cf_file.write_text(jwtstr)

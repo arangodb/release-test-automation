@@ -37,7 +37,8 @@ def enqueue_stderr(std_err, queue):
 
 class ArangoshExecutor():
     """ configuration """
-    def __init__(self, config):
+    def __init__(self, config, connect_instance):
+        self.connect_instance = connect_instance
         self.cfg = config
         self.read_only = False
 
@@ -45,8 +46,8 @@ class ArangoshExecutor():
         """ launch a command, print its name """
         run_cmd = [
             self.cfg.bin_dir / "arangosh",
-            "--server.endpoint",
-            "tcp://127.0.0.1:{cfg.port}".format(cfg=self.cfg)
+            "--log.level", "v8=debug",
+            "--server.endpoint", self.connect_instance.get_endpoint()
         ]
 
         run_cmd += [ "--server.username", str(self.cfg.username) ]
@@ -100,8 +101,8 @@ class ArangoshExecutor():
         """ launch an external js-script, print its name """
         run_cmd = [
             self.cfg.bin_dir / "arangosh",
-            "--server.endpoint",
-            "tcp://127.0.0.1:{cfg.port}".format(cfg=self.cfg)
+            "--log.level", "v8=debug",
+            "--server.endpoint", self.connect_instance.get_endpoint()
         ]
 
         run_cmd += [ "--server.username", str(self.cfg.username) ]
@@ -132,8 +133,8 @@ class ArangoshExecutor():
     def run_script_monitored(self, cmd, args, timeout, result_line, verbose=True):
         run_cmd = [
             self.cfg.bin_dir / "arangosh",
-            "--server.endpoint",
-            "tcp://127.0.0.1:{cfg.port}".format(cfg=self.cfg),
+            "--server.endpoint", self.connect_instance.get_endpoint(),
+            "--log.level", "v8=debug",
             "--log.foreground-tty", "true"
         ]
 
@@ -207,6 +208,7 @@ class ArangoshExecutor():
             self.cfg.bin_dir / "arangosh",
             '-c', str(self.cfg.cfgdir / 'arangosh.conf'),
             '--log.level', 'warning',
+            "--log.level", "v8=debug",
             '--server.endpoint', 'none',
             '--javascript.allow-external-process-control', 'true',
             '--javascript.execute', str(Path('UnitTests') / 'unittest.js'),
