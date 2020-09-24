@@ -22,6 +22,7 @@ from tools.asciiprint import print_progress as progress
 
 statsdc = statsd.StatsClient('localhost', 8125)
 resultstxt = Path('/tmp/results.txt').open('w')
+otherShOutput = Path('/tmp/errors.txt').open('w')
 def result_line(line):
     if isinstance(line, bytes):
         if line.startswith(b'#'):
@@ -35,6 +36,7 @@ def result_line(line):
                 resultstxt.write(line)
                 statsdc.timing(segments[0], float(segments[2]))
         else:
+            otherShOutput.write(str(line) + '\n')
             statsdc.incr('completed')
 
 def makedata_runner(q, resq, arangosh):

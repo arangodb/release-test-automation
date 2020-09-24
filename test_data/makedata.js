@@ -16,6 +16,7 @@ const _ = require('lodash');
 const internal = require('internal')
 const fs = require("fs");
 const time = internal.time;
+const sleep = internal.sleep;
 let database = "_system";
 
 let PWDRE = /.*at (.*)makedata.js.*/
@@ -87,15 +88,26 @@ let smart_edges = JSON.parse(fs.readFileSync(`${PWD}/edges.json`));
 
 let count = 0;
 while (count < options.numberOfDBs) {
+  let countDbRetry;
   tStart = time();
   timeLine = [tStart];
   db._useDatabase("_system");
   if (database !== "_system") {
     print('#ix')
     c = zeroPad(count+options.countOffset);
-    databaseName = `${database}_${c}`;
-    db._createDatabase(databaseName);
-    db._useDatabase(databaseName);
+    countDbRetry = 0;
+    while (countDbRetry < 50) {
+      try {
+        databaseName = `${database}_${c}`;
+        db._createDatabase(databaseName);
+        db._useDatabase(databaseName);
+        countDbRetry = 100; // done.
+      } catch (x) {
+        sleep(countDbRetry * 0.1);
+        countDbRetry += 1;
+        print(`database: ${x.message} - ${x.stack}`);
+      }
+    }
   }
   else if (options.numberOfDBs > 1) {
     throw ("must specify a database prefix if want to work with multiple DBs.")
@@ -236,9 +248,32 @@ while (count < options.numberOfDBs) {
     writeData(cmulti, 12346);
     progress('writeData7');
 
-    let cview1 = db._create(`cview1_${ccount}`)
+    
+    let cview1;
+    countDbRetry = 0;
+    while (countDbRetry < 50) {
+      try {
+        cview1 = db._create(`cview1_${ccount}`)
+        countDbRetry = 100; // done.
+      } catch (x) {
+        sleep(countDbRetry * 0.1);
+        countDbRetry += 1;
+        print(`cview1: ${x.message} - ${x.stack}`);
+      }
+    }
     progress('createView1');
-    let view1 =  db._createView(`view1_${ccount}`, "arangosearch", {});
+    countDbRetry = 0;
+    let view1;
+    while (countDbRetry < 50) {
+      try {
+        view1 =  db._createView(`view1_${ccount}`, "arangosearch", {});
+        countDbRetry = 100; // done.
+      } catch (x) {
+        sleep(countDbRetry * 0.1);
+        countDbRetry += 1;
+        print(`view1: ${x.message} - ${x.stack}`);
+      }
+    }
     progress('createView2');
     let meta = {links: {}};
     meta.links[`cview1_${ccount}`] = { includeAllFields: true}
