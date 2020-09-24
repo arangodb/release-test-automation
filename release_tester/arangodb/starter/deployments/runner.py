@@ -66,7 +66,9 @@ class Runner(ABC):
         #replacement for run function
         self.runner_run_replacement = None
 
-        # TODO: thats bad? self.cleanup()
+        self.remote = len(self.basecfg.frontends) > 0
+        if not self.remote:
+            self.cleanup()
 
     def run(self):
         """ run the full lifecycle flow of this deployment """
