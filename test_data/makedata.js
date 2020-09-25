@@ -278,19 +278,19 @@ while (count < options.numberOfDBs) {
     writeData(cmulti, 12346);
     progress('writeData7');
 
-    let cviewName1 = `cview1_${ccount}`;
-    let cview1 = createSafe(cviewName1,
-                            viewname => {
-                              return db._create(viewname);
+    let viewCollectionName = `cview1_${ccount}`;
+    let cview1 = createSafe(viewCollectionName,
+                            viewCollection => {
+                              return db._create(viewCollection);
                             }, viewname => {
-                              return db._view(viewname);
+                              return db._collection(viewCollection);
                             }
                            );
     progress('createView1');
     let viewName1 = `view1_${ccount}`;
     let view1 = createSafe(viewName1,
                            viewname => {
-                             return db._create(viewname);
+                             return db._createView(viewname, "arangosearch", {});
                            }, viewname => {
                              return db._view(viewname);
                            }
