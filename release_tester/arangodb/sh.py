@@ -20,17 +20,17 @@ ON_POSIX = 'posix' in sys.builtin_module_names
 def dummy_line_result(line):
     pass
 
-def enqueue_stdout(std_out, queue):
+def enqueue_stdout(std_out, queue, instance):
     for line in iter(std_out.readline, b''):
         #print("O: " + str(line))
-        queue.put(line)
+        queue.put((line, instance))
     #print('0 done!')
     queue.put(-1)
     std_out.close()
-def enqueue_stderr(std_err, queue):
+def enqueue_stderr(std_err, queue, instance):
     for line in iter(std_err.readline, b''):
         #print("E: " + str(line))
-        queue.put(line)
+        queue.put((line, instance))
     #print('1 done!')
     queue.put(-1)
     std_err.close()
@@ -154,8 +154,8 @@ class ArangoshExecutor():
             lh.log_cmd(run_cmd)
         p = Popen(run_cmd, stdout=PIPE, stderr=PIPE, close_fds=ON_POSIX)
         q = Queue()
-        t1 = Thread(target=enqueue_stdout, args=(p.stdout, q))
-        t2 = Thread(target=enqueue_stderr, args=(p.stderr, q))
+        t1 = Thread(target=enqueue_stdout, args=(p.stdout, q, self.connect_instance))
+        t2 = Thread(target=enqueue_stderr, args=(p.stderr, q, self.connect_instance))
         t1.start()
         t2.start()
 
@@ -181,10 +181,10 @@ class ArangoshExecutor():
                 have_timeout = tcount >= timeout
             else:
                 tcount = 0
-                if isinstance(line, bytes):
+                if isinstance(line, tuple):
                     if verbose:
-                       print("e: " + str(line))
-                    if not str(line).startswith('#'):
+                       print("e: " + str(line[0]))
+                    if not str(line[0]).startswith('#'):
                         result.append(line)
                 else:
                     close_count += 1
@@ -218,8 +218,8 @@ class ArangoshExecutor():
         os.chdir(self.cfg.package_dir)
         p = Popen(args, stdout=PIPE, stderr=PIPE, close_fds=ON_POSIX)
         q = Queue()
-        t1 = Thread(target=enqueue_stdout, args=(p.stdout, q))
-        t2 = Thread(target=enqueue_stderr, args=(p.stderr, q))
+        t1 = Thread(target=enqueue_stdout, args=(p.stdout, q, self.connect_instance))
+        t2 = Thread(target=enqueue_stderr, args=(p.stderr, q, self.connect_instance))
         t1.start()
         t2.start()
 
