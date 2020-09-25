@@ -10,6 +10,7 @@ from threading  import Thread
 
 import psutil
 import statsd
+import requests
 
 from tools.timestamp import timestamp
 import tools.interact as ti
@@ -23,20 +24,20 @@ from tools.asciiprint import print_progress as progress
 statsdc = statsd.StatsClient('localhost', 8125)
 resultstxt = Path('/tmp/results.txt').open('w')
 otherShOutput = Path('/tmp/errors.txt').open('w')
-def result_line(line):
-    if isinstance(line, bytes):
-        if line.startswith(b'#'):
-            line = str(line)[6:-3]
-            segments = line.split(',')
+def result_line(line_tp):
+    if isinstance(line_tp, tuple):
+        if line_tp[0].startswith(b'#'):
+            str_line = str(line_tp[0])[6:-3]
+            segments = str_line.split(',')
             if len(segments) < 3:
                 print('n/a')
             else:
-                line = ','.join(segments) + '\n'
-                print(line)
-                resultstxt.write(line)
+                str_line = ','.join(segments) + '\n'
+                print(str_line)
+                resultstxt.write(str_line)
                 statsdc.timing(segments[0], float(segments[2]))
         else:
-            otherShOutput.write(str(line) + '\n')
+            otherShOutput.write(line_tp[1].get_endpoint() + " - " + str(line_tp[0]) + '\n')
             statsdc.incr('completed')
 
 def makedata_runner(q, resq, arangosh):
@@ -60,20 +61,13 @@ class ClusterPerf(Runner):
     """ this launches a cluster setup """
     def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
         super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'CLUSTER')
-        #self.basecfg.frontends = []
-        self.remote = len(self.basecfg.frontends) > 0
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
-        print('aoeuaoeuaou')
-        if self.remote:
-            print('remote')
-        else:
-            print('local')
 
     def starter_prepare_env_impl(self):
         mem = psutil.virtual_memory()
         os.environ['ARANGODB_OVERRIDE_DETECTED_TOTAL_MEMORY'] = str(int((mem.total * 0.8) / 9))
-        
+
         self.create_test_collection = ("""
 db._create("testCollection",  { numberOfShards: 6, replicationFactor: 2});
 db.testCollection.save({test: "document"})
@@ -81,12 +75,10 @@ db.testCollection.save({test: "document"})
 
         self.basecfg.index = 0
         sm = None
-        
+
         if self.remote:
-            print('remote')
             sm = StarterNonManager
         else:
-            print('local')
             sm = StarterManager
         self.starter_instances.append(
             sm(self.basecfg,
@@ -126,7 +118,7 @@ db.testCollection.save({test: "document"})
                moreopts=['--starter.join', '127.0.0.1:9528']))
         for instance in self.starter_instances:
             instance.is_leader = True
-            
+
     def make_data_impl(self):
         pass # we do this later.
     def check_data_impl_sh(self, arangosh):
@@ -165,6 +157,13 @@ db.testCollection.save({test: "document"})
         if self.remote:
             logging.info("running remote, skipping")
             return
+
+        for starter_mgr in self.starter_instances:
+            starter_mgr.send_request(InstanceType.agent,
+                                     requests.put,
+                                     '/_admin/log/level',
+                                     '{"agency":"debug"}');
+
         jwtstr = self.starter_instances[0].get_jwt_header()
         cf_file = Path('/etc/prometheus/prometheus.token')
         cf_file.write_text(jwtstr)
