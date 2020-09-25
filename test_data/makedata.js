@@ -25,6 +25,7 @@ const ERRORS = arangodb.errors;
 
 
 let database = "_system";
+let databaseName;
 
 let PWDRE = /.*at (.*)makedata.js.*/;
 let stack = new Error().stack;
@@ -89,19 +90,21 @@ function createSafe(name, fn1, fnErrorExists) {
       return fn1(name);
     } catch (x) {
       if (x.errorNum === ERRORS.ERROR_ARANGO_DUPLICATE_NAME.code) {
-        console.error(`${name}: its already there? ${x.message} `);
+        console.error(`${databaseName}: ${name}: its already there? ${x.message} `);
         try {
+          // make sure no local caches are there:
+          arango.reconnect(arango.getEndpoint(), arango.getDatabaseName(), arango.connectedUser(), ''); // TODO passvoid?
           return fnErrorExists(name);
         }
         catch(x) {
           sleep(countDbRetry * 0.1);
           countDbRetry += 1;
-          console.error(`${name}: isn't there anyways??? ${x.message} - ${x.stack}`);
+          console.error(`${databaseName}: ${name}: isn't there anyways??? ${x.message} - ${x.stack}`);
         }
       } else {
         sleep(countDbRetry * 0.1);
         countDbRetry += 1;
-        console.error(`${name}: ${x.message} - ${x.stack}`);
+        console.error(`${databaseName}: ${name}: ${x.message} - ${x.stack}`);
       }
     }
   }
@@ -109,6 +112,28 @@ function createSafe(name, fn1, fnErrorExists) {
   throw new Error(`${name} creation failed!`);
 }
 
+function createCollectionSafe(name, DefaultNoSharts, DefaultReplFactor) {
+  let options = {
+    numberOfShards: getShardCount(DefaultNoSharts),
+    replicationFactor: getReplicationFactor(DefaultReplFactor)
+  };
+  
+  return createSafe(name, colName => {
+    return db._create(colName, options);
+  }, colName => {
+    return db._collection(colName);
+  });
+}
+
+function createIndexSafe(options) {
+  opts = _.clone(options);
+  delete opts.col
+  return createSafe(options.col.name(), colname => {
+    options.col.ensureIndex(opts);
+  }, colName => {
+    return false; // well, its there?
+  });
+}
 let g = require("@arangodb/general-graph");
 let v = db._connection.GET("/_api/version");
 const enterprise = v.license === "enterprise";
@@ -120,7 +145,6 @@ if (enterprise) {
 let vertices = JSON.parse(fs.readFileSync(`${PWD}/vertices.json`));
 let edges = JSON.parse(fs.readFileSync(`${PWD}/edges_naive.json`));
 let smart_edges = JSON.parse(fs.readFileSync(`${PWD}/edges.json`));
-let databaseName;
 let count = 0;
 while (count < options.numberOfDBs) {
   tStart = time();
@@ -147,41 +171,41 @@ while (count < options.numberOfDBs) {
   let ccount = 0;
   while (ccount < options.collectionMultiplier) {
     // Create a few collections:
-    let c = db._create(`c_${ccount}`, {numberOfShards: getShardCount(3), replicationFactor: getReplicationFactor(2)});
+    let c = createCollectionSafe(`c_${ccount}`, 3, 2);
     progress('createCollection1');
-    let chash = db._create(`chash_${ccount}`, {numberOfShards: getShardCount(3), replicationFactor: getReplicationFactor(2)});
+    let chash = createCollectionSafe(`chash_${ccount}`, 3, 2);
     progress('createCollection2');
-    let cskip = db._create(`cskip_${ccount}`, {numberOfShards: getShardCount(1), replicationFactor: getReplicationFactor(1)});
+    let cskip = createCollectionSafe(`cskip_${ccount}`, 1, 1);
     progress('createCollection3');
-    let cfull = db._create(`cfull_${ccount}`, {numberOfShards: getShardCount(3), replicationFactor: getReplicationFactor(1)});
+    let cfull = createCollectionSafe(`cfull_${ccount}`, 3, 1);
     progress('createCollection4');
-    let cgeo = db._create(`cgeo_${ccount}`, {numberOfShards: getShardCount(3), replicationFactor: getReplicationFactor(2)});
+    let cgeo = createCollectionSafe(`cgeo_${ccount}`, 3, 2);
     progress('createCollectionGeo5');
-    let cunique = db._create(`cunique_${ccount}`, {numberOfShards: getShardCount(1), replicationFactor: getReplicationFactor(1)});
+    let cunique = createCollectionSafe(`cunique_${ccount}`, 1, 1);
     progress('createCollection6');
-    let cmulti = db._create(`cmulti_${ccount}`, {numberOfShards: getShardCount(3), replicationFactor: getReplicationFactor(2)});
+    let cmulti = createCollectionSafe(`cmulti_${ccount}`, 3, 2);
     progress('createCollection7');
-    let cempty = db._create(`cempty_${ccount}`, {numberOfShards: getShardCount(3), replicationFactor: getReplicationFactor(1)});
+    let cempty = createCollectionSafe(`cempty_${ccount}`, 3, 1);
 
     // Create some indexes:
     progress('createCollection8');
-    chash.ensureIndex({type: "hash", fields: ["a"], unique: false});
+    createIndexSafe({col: chash, type: "hash", fields: ["a"], unique: false});
     progress('createIndexHash1');
-    cskip.ensureIndex({type: "skiplist", fields: ["a"], unique: false});
+    createIndexSafe({col: cskip, type: "skiplist", fields: ["a"], unique: false});
     progress('createIndexSkiplist2');
-    cfull.ensureIndex({type: "fulltext", fields: ["text"], minLength: 4});
+    createIndexSafe({col: cfull, type: "fulltext", fields: ["text"], minLength: 4});
     progress('createIndexFulltext3');
-    cgeo.ensureIndex({type: "geo", fields: ["position"], geoJson: true});
+    createIndexSafe({col: cgeo, type: "geo", fields: ["position"], geoJson: true});
     progress('createIndexGeo4');
-    cunique.ensureIndex({type: "hash", fields: ["a"], unique: true});
+    createIndexSafe({col: cunique, type: "hash", fields: ["a"], unique: true});
     progress('createIndex5');
-    cmulti.ensureIndex({type: "hash", fields: ["a"], unique: false});
+    createIndexSafe({col: cmulti, type: "hash", fields: ["a"], unique: false});
     progress('createIndex6');
-    cmulti.ensureIndex({type: "skiplist", fields: ["b", "c"]});
+    createIndexSafe({col: cmulti, type: "skiplist", fields: ["b", "c"]});
     progress('createIndex7');
-    cmulti.ensureIndex({type: "geo", fields: ["position"], geoJson: true});
+    createIndexSafe({col: cmulti, type: "geo", fields: ["position"], geoJson: true});
     progress('createIndexGeo8');
-    cmulti.ensureIndex({type: "fulltext", fields: ["text"], minLength: 6});
+    createIndexSafe({col: cmulti, type: "fulltext", fields: ["text"], minLength: 6});
     progress('createIndexFulltext9');
 
     // Put some data in:
@@ -297,7 +321,7 @@ while (count < options.numberOfDBs) {
                           );
     progress('createView2');
     let meta = {links: {}};
-    meta.links[`cview1_${ccount}`] = { includeAllFields: true};
+    meta.links[viewCollectionName] = { includeAllFields: true};
     view1.properties(meta);
 
     cview1.insert({"animal": "cat", "name": "tom"}
