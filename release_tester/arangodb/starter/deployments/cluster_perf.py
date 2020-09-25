@@ -91,7 +91,10 @@ db.testCollection.save({test: "document"})
                    InstanceType.coordinator,
                    InstanceType.dbserver,
                ],
-               moreopts=[]))
+               moreopts=[
+                   '--agents.agency.election-timeout-min=5',
+                   '--agents.agency.election-timeout-max=10',
+               ]))
         self.starter_instances.append(
             sm(self.basecfg,
                self.basedir, 'node2',
@@ -103,7 +106,11 @@ db.testCollection.save({test: "document"})
                    InstanceType.coordinator,
                    InstanceType.dbserver,
                ],
-               moreopts=['--starter.join', '127.0.0.1:9528']))
+               moreopts=[
+                   '--starter.join', '127.0.0.1:9528',
+                   '--agents.agency.election-timeout-min=5',
+                   '--agents.agency.election-timeout-max=10',
+               ]))
         self.starter_instances.append(
             sm(self.basecfg,
                self.basedir, 'node3',
@@ -115,7 +122,11 @@ db.testCollection.save({test: "document"})
                    InstanceType.coordinator,
                    InstanceType.dbserver,
                ],
-               moreopts=['--starter.join', '127.0.0.1:9528']))
+               moreopts=[
+                   '--starter.join', '127.0.0.1:9528',
+                   '--agents.agency.election-timeout-min=5',
+                   '--agents.agency.election-timeout-max=10',
+               ]))
         for instance in self.starter_instances:
             instance.is_leader = True
 
