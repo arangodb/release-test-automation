@@ -1,4 +1,5 @@
-
+/* global print, start_pretty_print, ARGUMENTS */
+//
 // Use like this:
 //   arangosh USUAL_OPTIONS_INCLUDING_AUTHENTICATION --javascript.execute makedata.js [DATABASENAME]
 // where DATABASENAME is optional and defaults to "_system". The database
@@ -13,13 +14,19 @@
 // `--progress [false]         whether to output a keepalive indicator to signal the invoker that work is ongoing
 
 const _ = require('lodash');
-const internal = require('internal')
+const internal = require('internal');
+const arangodb = require("@arangodb");
+const console = require("console");
 const fs = require("fs");
+const db = internal.db;
 const time = internal.time;
 const sleep = internal.sleep;
+const ERRORS = arangodb.errors;
+
+
 let database = "_system";
 
-let PWDRE = /.*at (.*)makedata.js.*/
+let PWDRE = /.*at (.*)makedata.js.*/;
 let stack = new Error().stack;
 let PWD=fs.makeAbsolute(PWDRE.exec(stack)[1]);
 const optionsDefaults = {
@@ -31,26 +38,27 @@ const optionsDefaults = {
   collectionMultiplier: 1,
   singleShard: false,
   progress: false
+};
+
+let args = ARGUMENTS;
+if ((0 < args.length) &&
+    (args[0].slice(0, 1) !== '-')) {
+  database = args[0];
+  args = args.slice(1);
 }
 
-if ((0 < ARGUMENTS.length) &&
-    (ARGUMENTS[0].slice(0, 1) !== '-')) {
-  database = ARGUMENTS[0];
-  ARGUMENTS=ARGUMENTS.slice(1);
-}
-
-let options = internal.parseArgv(ARGUMENTS, 0);
+let options = internal.parseArgv(args, 0);
 _.defaults(options, optionsDefaults);
 
 var numberLength = Math.log(options.numberOfDBs + options.countOffset) * Math.LOG10E + 1 | 0;
 
-const zeroPad = (num) => String(num).padStart(numberLength, '0')
+const zeroPad = (num) => String(num).padStart(numberLength, '0');
 
 let tStart = 0;
 let timeLine = [];
 function progress(gaugeName) {
-  now = time();
-  delta = now - tStart
+  let now = time();
+  let delta = now - tStart;
   timeLine.push(delta);
   if (options.progress) {
     print(`# - ${gaugeName},${tStart},${delta}`);
@@ -74,9 +82,36 @@ function getReplicationFactor(defaultReplicationFactor) {
   return defaultReplicationFactor;
 }
 
+function createSafe(name, fn1, fnErrorExists) {
+  let countDbRetry = 0;
+  while (countDbRetry < 50) {
+    try {
+      return fn1(name);
+    } catch (x) {
+      if (x.errorNum === ERRORS.ERROR_ARANGO_DUPLICATE_NAME.code) {
+        console.error(`${name}: its already there? ${x.message} `);
+        try {
+          return fnErrorExists(name);
+        }
+        catch(x) {
+          sleep(countDbRetry * 0.1);
+          countDbRetry += 1;
+          console.error(`${name}: isn't there anyways??? ${x.message} - ${x.stack}`);
+        }
+      } else {
+        sleep(countDbRetry * 0.1);
+        countDbRetry += 1;
+        console.error(`${name}: ${x.message} - ${x.stack}`);
+      }
+    }
+  }
+  console.error(`${name}: finally giving up anyways.`);
+  throw new Error(`${name} creation failed!`);
+}
+
 let g = require("@arangodb/general-graph");
 let v = db._connection.GET("/_api/version");
-const enterprise = v.license === "enterprise"
+const enterprise = v.license === "enterprise";
 let gsm;
 if (enterprise) {
   gsm = require("@arangodb/smart-graph");
@@ -85,32 +120,27 @@ if (enterprise) {
 let vertices = JSON.parse(fs.readFileSync(`${PWD}/vertices.json`));
 let edges = JSON.parse(fs.readFileSync(`${PWD}/edges_naive.json`));
 let smart_edges = JSON.parse(fs.readFileSync(`${PWD}/edges.json`));
-
+let databaseName;
 let count = 0;
 while (count < options.numberOfDBs) {
-  let countDbRetry;
   tStart = time();
   timeLine = [tStart];
   db._useDatabase("_system");
   if (database !== "_system") {
-    print('#ix')
-    c = zeroPad(count+options.countOffset);
-    countDbRetry = 0;
-    while (countDbRetry < 50) {
-      try {
-        databaseName = `${database}_${c}`;
-        db._createDatabase(databaseName);
-        db._useDatabase(databaseName);
-        countDbRetry = 100; // done.
-      } catch (x) {
-        sleep(countDbRetry * 0.1);
-        countDbRetry += 1;
-        print(`database: ${x.message} - ${x.stack}`);
-      }
-    }
+    print('#ix');
+    let c = zeroPad(count+options.countOffset);
+    databaseName = `${database}_${c}`;
+    createSafe(databaseName,
+               dbname => {
+                 db._createDatabase(dbname);
+                 return db._useDatabase(dbname);
+               }, dbname => {
+                 return db._useDatabase(databaseName);
+               }
+              );
   }
   else if (options.numberOfDBs > 1) {
-    throw ("must specify a database prefix if want to work with multiple DBs.")
+    throw ("must specify a database prefix if want to work with multiple DBs.");
   }
   progress('createDB');
 
@@ -170,15 +200,15 @@ while (count < options.numberOfDBs) {
         r += d;
       }
       return s.slice(0, l);
-    }
+    };
 
     let makeRandomNumber = function(low, high) {
       return (Math.abs(rand()) % (high - low)) + low;
-    }
+    };
 
     let makeRandomTimeStamp = function() {
       return new Date(rand() * 1000).toISOString();
-    }
+    };
 
     let count = 1;   // for uniqueness
 
@@ -201,7 +231,7 @@ while (count < options.numberOfDBs) {
                           coordinates: [makeRandomNumber(0, 3600) / 10.0,
                                         makeRandomNumber(-899, 899) / 10.0]
                          }};
-    }
+    };
 
     let writeData = function(coll, n) {
       let count = 0;
@@ -227,9 +257,9 @@ while (count < options.numberOfDBs) {
         //      "99%ile:", times[Math.floor(times.length * 0.99)], "\n",
         //      "min   :", times[0], "\n",
         //      "max   :", times[times.length-1]);
-        count += 1
+        count += 1;
       }
-    }
+    };
 
     // Now the actual data writing:
 
@@ -248,41 +278,32 @@ while (count < options.numberOfDBs) {
     writeData(cmulti, 12346);
     progress('writeData7');
 
-    
-    let cview1;
-    countDbRetry = 0;
-    while (countDbRetry < 50) {
-      try {
-        cview1 = db._create(`cview1_${ccount}`)
-        countDbRetry = 100; // done.
-      } catch (x) {
-        sleep(countDbRetry * 0.1);
-        countDbRetry += 1;
-        print(`cview1: ${x.message} - ${x.stack}`);
-      }
-    }
+    let cviewName1 = `cview1_${ccount}`;
+    let cview1 = createSafe(cviewName1,
+                            viewname => {
+                              return db._create(viewname);
+                            }, viewname => {
+                              return db._view(viewname);
+                            }
+                           );
     progress('createView1');
-    countDbRetry = 0;
-    let view1;
-    while (countDbRetry < 50) {
-      try {
-        view1 =  db._createView(`view1_${ccount}`, "arangosearch", {});
-        countDbRetry = 100; // done.
-      } catch (x) {
-        sleep(countDbRetry * 0.1);
-        countDbRetry += 1;
-        print(`view1: ${x.message} - ${x.stack}`);
-      }
-    }
+    let viewName1 = `view1_${ccount}`;
+    let view1 = createSafe(viewName1,
+                           viewname => {
+                             return db._create(viewname);
+                           }, viewname => {
+                             return db._view(viewname);
+                           }
+                          );
     progress('createView2');
     let meta = {links: {}};
-    meta.links[`cview1_${ccount}`] = { includeAllFields: true}
-    view1.properties(meta)
+    meta.links[`cview1_${ccount}`] = { includeAllFields: true};
+    view1.properties(meta);
 
     cview1.insert({"animal": "cat", "name": "tom"}
                   ,{"animal": "mouse", "name": "jerry"}
                   ,{"animal": "dog", "name": "harry"}
-                 )
+                 );
     progress('createView3');
 
     // Now create a graph:
@@ -290,19 +311,21 @@ while (count < options.numberOfDBs) {
     let writeGraphData = function(V, E, vertices, edges) {
       let count = 0;
       while (count < options.dataMultiplier) {
-        edges.forEach(function(edg){
-          edg._from = V.name() + count + '/' + edg._from.split('/')[1]
-          edg._to = V.name() + count + '/' + edg._to.split('/')[1]
-        })
-        let cVertices = _.clone(vertices)
+        edges.forEach(edg => {
+          edg._from = V.name() + count + '/' + edg._from.split('/')[1];
+          edg._to = V.name() + count + '/' + edg._to.split('/')[1];
+        });
+
+        let cVertices = _.clone(vertices);
         cVertices.forEach(vertex => {
           vertex['_key'] = vertex['_key'] + count;
-        })
+        });
+
         V.insert(vertices);
         E.insert(edges);
         count += 1;
       }
-    }
+    };
 
     let G = g._create(`G_naive_${ccount}`,[
       g._relation(`citations_naive_${ccount}`,
@@ -331,6 +354,6 @@ while (count < options.numberOfDBs) {
     }
     ccount ++;
   }
-  print(timeLine.join());
+  console.error(timeLine.join());
   count ++;
 }
