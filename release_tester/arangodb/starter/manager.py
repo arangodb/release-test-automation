@@ -17,6 +17,8 @@ from pathlib import Path
 
 import psutil
 
+import http.client as http_client
+import requests
 from tools.asciiprint import ascii_print, print_progress as progress
 from tools.timestamp import timestamp
 from arangodb.instance import ArangodInstance, ArangodRemoteInstance, SyncInstance, InstanceType, AfoServerState
@@ -204,7 +206,20 @@ Starter {0.name}
             raise Exception("error invoking the starter to generate the jwt header token! " + str(err))
         if len(str(header).split(' ')) != 3:
             raise Exception("failed to parse the output of the header command: " + str(header))
-        self.jwt_header = str(header).split(' ')[2]
+        self.jwt_header = str(header).split(' ')[2].split('\\')[0]
+
+    def send_request(self, instance_type, verb_method, url, data=None, headers={}):
+        http_client.HTTPConnection.debuglevel = 1
+
+        headers ['Authorization'] = 'Bearer '+ self.jwt_header
+        results = []
+        for instance in self.all_instances:
+            if instance.type == instance_type:
+                base_url = instance.get_public_plain_url()
+                reply = verb_method('http://' + base_url + url, data=data, headers=headers)
+                print(reply.text)
+                results.append(reply)
+        return results
 
     def is_instance_running(self):
         """ check whether this is still running"""
