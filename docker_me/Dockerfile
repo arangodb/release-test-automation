@@ -27,7 +27,7 @@ RUN mkdir -p /home/test/release-test-automation
 ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" skipcache
 
 ENTRYPOINT ["/home/test/release-test-automation/entrypoint.sh"]
-COPY release_tester/ /home/test/release-test-automation
-COPY test_data/ /home/test/release-test-automation
+COPY release_tester/ /home/test/release-test-automation/release_tester
+COPY test_data/ /home/test/release-test-automation/test_data
 COPY docker_me/entrypoint.sh /home/test/release-test-automation
 
