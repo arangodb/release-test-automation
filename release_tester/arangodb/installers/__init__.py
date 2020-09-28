@@ -132,5 +132,8 @@ def make_installer(install_config: InstallerConfig):
         elif distro[0] in ['centos', 'redhat', 'suse']:
             from arangodb.installers.rpm import InstallerRPM
             return InstallerRPM(install_config)
-        raise Exception('unsupported linux distribution: ' + distro)
+        elif distro[0] in ['alpine']:
+            from arangodb.installers.docker import InstallerDocker
+            return InstallerDocker(install_config)
+        raise Exception('unsupported linux distribution: ' + str(distro))
     raise Exception('unsupported os' + platform.system())
