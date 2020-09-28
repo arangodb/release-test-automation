@@ -169,17 +169,17 @@ db.testCollection.save({test: "document"})
             logging.info("running remote, skipping")
             return
 
-        for starter_mgr in self.starter_instances:
-            starter_mgr.send_request(InstanceType.agent,
-                                     requests.put,
-                                     '/_admin/log/level',
-                                     '{"agency":"debug"}');
+        #for starter_mgr in self.starter_instances:
+        #    starter_mgr.send_request(InstanceType.agent,
+        #                             requests.put,
+        #                             '/_admin/log/level',
+        #                             '{"agency":"debug"}');
 
-        jwtstr = self.starter_instances[0].get_jwt_header()
-        cf_file = Path('/etc/prometheus/prometheus.token')
-        cf_file.write_text(jwtstr)
-        r = psutil.Popen(['/etc/init.d/prometheus-node-exporter', 'restart'])
-        r.wait()
+        #jwtstr = self.starter_instances[0].get_jwt_header()
+        #cf_file = Path('/etc/prometheus/prometheus.token')
+        #cf_file.write_text(jwtstr)
+        #r = psutil.Popen(['/etc/init.d/prometheus-node-exporter', 'restart'])
+        #r.wait()
 
     def test_setup_impl(self):
         pass
