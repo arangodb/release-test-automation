@@ -224,3 +224,13 @@ Run the statsd exporter:
 ```
 ./statsd_exporter --statsd.listen-udp=:8125 --statsd.listen-tcp=:8125
 ```
+
+building the docker container:
+```
+docker build . -t test
+```
+
+Running the docker container, parametrizing the connection endpoints of the cluster:
+```
+docker run test:latest -E COORDINATOR_1=tcp://192.168.173.88:9629 COORDINATOR_2=tcp://192.168.173.88:9729 COORDINATOR_3=tcp://192.168.173.88:9529
+```
