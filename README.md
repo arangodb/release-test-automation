@@ -232,5 +232,5 @@ docker build . -t test
 
 Running the docker container, parametrizing the connection endpoints of the cluster:
 ```
-docker run test:latest -E COORDINATOR_1=tcp://192.168.173.88:9629 COORDINATOR_2=tcp://192.168.173.88:9729 COORDINATOR_3=tcp://192.168.173.88:9529
+docker run test:latest --frontends tcp://192.168.173.88:9629 --frontends tcp://192.168.173.88:9729 --frontends tcp://192.168.173.88:9529
 ```
