@@ -169,11 +169,7 @@ db.testCollection.save({test: "document"})
             logging.info("running remote, skipping")
             return
 
-        #for starter_mgr in self.starter_instances:
-        #    starter_mgr.send_request(InstanceType.agent,
-        #                             requests.put,
-        #                             '/_admin/log/level',
-        #                             '{"agency":"debug"}');
+        # self.agency_set_debug_logging()
 
         #jwtstr = self.starter_instances[0].get_jwt_header()
         #cf_file = Path('/etc/prometheus/prometheus.token')

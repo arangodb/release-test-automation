@@ -11,11 +11,13 @@ import shutil
 import tools.loghelper as lh
 import tools.errorhelper as eh
 import tools.interact as ti
+import requests
 
 from arangodb.installers.base import InstallerBase
 from arangodb.installers import InstallerConfig
 from arangodb.sh import ArangoshExecutor
 from tools.killall import kill_all_processes
+from arangodb.instance import InstanceType
 
 
 class Runner(ABC):
@@ -461,3 +463,10 @@ class Runner(ABC):
         testdir = self.basecfg.baseTestDir / self.basedir
         if testdir.exists():
             shutil.rmtree(testdir)
+
+    def agency_set_debug_logging(self):
+        for starter_mgr in self.starter_instances:
+            starter_mgr.send_request(InstanceType.agent,
+                                     requests.put,
+                                     '/_admin/log/level',
+                                     '{"agency":"debug"}');
