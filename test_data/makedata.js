@@ -306,7 +306,7 @@ while (count < options.numberOfDBs) {
     let cview1 = createSafe(viewCollectionName,
                             viewCollection => {
                               return db._create(viewCollection);
-                            }, viewname => {
+                            }, viewCollection => {
                               return db._collection(viewCollection);
                             }
                            );
