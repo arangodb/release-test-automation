@@ -351,12 +351,17 @@ while (count < options.numberOfDBs) {
       }
     };
 
-    let G = g._create(`G_naive_${ccount}`,[
+    let G = createSafe(`G_naive_${ccount}`, graphName => {
+    return g._create(graphName,[
       g._relation(`citations_naive_${ccount}`,
                   [`patents_naive_${ccount}`],
                   [`patents_naive_${ccount}`])],
-                      [], {
-                        numberOfShards:getShardCount(3)});
+                     [], {
+                       numberOfShards:getShardCount(3)});
+
+    }, graphName => {
+      return g._graph(graphName);
+    });
     progress('createGraph1');
     writeGraphData(db._collection(`patents_naive_${ccount}`),
                    db._collection(`citations_naive_${ccount}`),
@@ -365,11 +370,15 @@ while (count < options.numberOfDBs) {
 
     // And now a smart graph (if enterprise):
     if (enterprise) {
-      let Gsm = gsm._create(`G_smart_${ccount}`, [
-        gsm._relation(`citations_smart_${ccount}`,
-                      [`patents_smart_${ccount}`],
-                      [`patents_smart_${ccount}`])],
-                            [], {numberOfShards: getShardCount(3), smartGraphAttribute:"COUNTRY"});
+      let Gsm = createSafe(`G_smart_${ccount}`, graphName => {
+        return gsm._create(graphName, [
+          gsm._relation(`citations_smart_${ccount}`,
+                        [`patents_smart_${ccount}`],
+                        [`patents_smart_${ccount}`])],
+                           [], {numberOfShards: getShardCount(3), smartGraphAttribute:"COUNTRY"});
+      }, graphName => {
+        return gsm._graph(graphName);
+      });
       progress('createEGraph2');
       writeGraphData(db._collection(`patents_smart_${ccount}`),
                      db._collection(`citations_smart_${ccount}`),
