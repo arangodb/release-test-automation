@@ -26,7 +26,6 @@ class InstallerDeb(InstallerLinux):
         self.log_examiner = None
 
         # Are those required to be stored in the cfg?
-        cfg.baseTestDir = Path('/tmp')
         cfg.installPrefix = Path("/")
         cfg.bin_dir = cfg.installPrefix / "usr" / "bin"
         cfg.sbin_dir = cfg.installPrefix / "usr" / "sbin"

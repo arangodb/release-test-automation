@@ -21,7 +21,6 @@ class InstallerW(InstallerBase):
         self.service = None
         self.remote_package_dir  = 'Windows'
 
-        cfg.baseTestDir = Path('/tmp')
         cfg.installPrefix = Path("C:/tmp")
         cfg.logDir = cfg.installPrefix / "LOG"
         cfg.dbdir = cfg.installPrefix / "DB"

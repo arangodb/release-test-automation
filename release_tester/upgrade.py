@@ -29,6 +29,9 @@ logging.basicConfig(
 @click.option('--package-dir',
               default='/tmp/',
               help='directory to load the packages from.')
+@click.option('--test-data-dir',
+              default='/tmp/',
+              help='directory create databases etc. in.')
 @click.option('--enterprise/--no-enterprise',
               is_flag=True,
               default=False,
@@ -48,8 +51,10 @@ logging.basicConfig(
 @click.option('--publicip',
               default='127.0.0.1',
               help='IP for the click to browser hints.')
-def run_test(old_version, version, verbose, package_dir,
-             enterprise, zip, interactive, starter_mode, publicip):
+def run_test(old_version, version, verbose,
+             package_dir, test_data_dir,
+             enterprise, zip, interactive,
+             starter_mode, publicip):
     """ main """
     lh.section("configuration")
     print("old version: " + str(old_version))
@@ -94,6 +99,7 @@ def run_test(old_version, version, verbose, package_dir,
                                              enterprise, 
                                              zip, 
                                              Path(package_dir),
+                                             Path(test_data_dir),
                                              'all',
                                              publicip,
                                              interactive)
@@ -103,6 +109,7 @@ def run_test(old_version, version, verbose, package_dir,
                                              enterprise,
                                              zip,
                                              Path(package_dir),
+                                             Path(test_data_dir),
                                              'all',
                                              publicip,
                                              interactive)

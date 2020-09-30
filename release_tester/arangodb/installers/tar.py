@@ -36,7 +36,7 @@ class InstallerTAR(InstallerBase):
         self.semver = semver.VersionInfo.parse(version)
 
         cfg.have_system_service = False
-        cfg.baseTestDir = Path('/tmp')
+
         cfg.installPrefix = None
         cfg.bin_dir = None
         cfg.sbin_dir = None
@@ -107,7 +107,7 @@ class InstallerTAR(InstallerBase):
                    '/tmp/']
         lh.log_cmd(cmd)
         install = psutil.Popen(cmd)
-        if install.wait() is not 0:
+        if install.wait() != 0:
             raise Exception("extracting the Archive failed!")
         print()
         logging.info('Installation successfull')

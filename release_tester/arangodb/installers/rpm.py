@@ -25,7 +25,6 @@ class InstallerRPM(InstallerLinux):
         self.debug_package = None
         self.instance = None
 
-        cfg.baseTestDir = Path('/tmp')
         cfg.installPrefix = Path("/")
         cfg.bin_dir = cfg.installPrefix / "usr" / "bin"
         cfg.sbin_dir = cfg.installPrefix / "usr" / "sbin"

@@ -20,6 +20,7 @@ class InstallerConfig():
                  enterprise: bool,
                  zip: bool,
                  package_dir: Path,
+                 test_dir: Path,
                  mode: str,
                  publicip: str,
                  interactive: bool):
@@ -37,6 +38,8 @@ class InstallerConfig():
         self.have_debug_package = False
 
         self.install_prefix = Path("/")
+
+        self.baseTestDir = test_dir
         self.pwd = Path(os.path.dirname(os.path.realpath(__file__)))
         self.test_data_dir = self.pwd / '..' / '..' / '..' / 'test_data'
 
@@ -65,6 +68,9 @@ class InstallerConfig():
 
     def set_directories(self, other):
         """ set all directories from the other object """
+        if other.baseTestDir is None:
+            raise Exception('baseTestDir: must not copy in None!')
+        self.baseTestDir = other.baseTestDir
         if other.bin_dir is None:
             raise Exception('bin_dir: must not copy in None!')
         self.bin_dir = other.bin_dir

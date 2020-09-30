@@ -39,6 +39,9 @@ logging.basicConfig(
 @click.option('--package-dir',
               default='/tmp/',
               help='directory to load the packages from.')
+@click.option('--test-data-dir',
+              default='/tmp/',
+              help='directory create databases etc. in.')
 @click.option('--mode',
               default='all',
               help='operation mode - [all|install|uninstall|tests].')
@@ -55,7 +58,8 @@ logging.basicConfig(
               help='Connection strings of remote clusters')
 
 
-def run_test(version, verbose, package_dir, enterprise, zip,
+def run_test(version, verbose, package_dir, test_data_dir,
+             enterprise, zip,
              interactive, mode, starter_mode, publicip, frontends):
     """ main """
     lh.section("configuration")
@@ -85,6 +89,7 @@ def run_test(version, verbose, package_dir, enterprise, zip,
                                      enterprise,
                                      zip,
                                      Path(package_dir),
+                                     Path(test_data_dir),
                                      mode,
                                      publicip,
                                      interactive)
