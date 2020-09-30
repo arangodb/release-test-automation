@@ -92,8 +92,8 @@ db.testCollection.save({test: "document"})
                    InstanceType.dbserver,
                ],
                moreopts=[
-                   '--agents.agency.election-timeout-min=5',
-                   '--agents.agency.election-timeout-max=10',
+               #    '--agents.agency.election-timeout-min=5',
+               #    '--agents.agency.election-timeout-max=10',
                ]))
         self.starter_instances.append(
             sm(self.basecfg,
@@ -108,8 +108,8 @@ db.testCollection.save({test: "document"})
                ],
                moreopts=[
                    '--starter.join', '127.0.0.1:9528',
-                   '--agents.agency.election-timeout-min=5',
-                   '--agents.agency.election-timeout-max=10',
+               #    '--agents.agency.election-timeout-min=5',
+               #    '--agents.agency.election-timeout-max=10',
                ]))
         self.starter_instances.append(
             sm(self.basecfg,
@@ -124,8 +124,8 @@ db.testCollection.save({test: "document"})
                ],
                moreopts=[
                    '--starter.join', '127.0.0.1:9528',
-                   '--agents.agency.election-timeout-min=5',
-                   '--agents.agency.election-timeout-max=10',
+               #    '--agents.agency.election-timeout-min=5',
+               #    '--agents.agency.election-timeout-max=10',
                ]))
         for instance in self.starter_instances:
             instance.is_leader = True
@@ -169,13 +169,13 @@ db.testCollection.save({test: "document"})
             logging.info("running remote, skipping")
             return
 
-        # self.agency_set_debug_logging()
+        #self.agency_set_debug_logging()
 
-        #jwtstr = self.starter_instances[0].get_jwt_header()
-        #cf_file = Path('/etc/prometheus/prometheus.token')
-        #cf_file.write_text(jwtstr)
-        #r = psutil.Popen(['/etc/init.d/prometheus-node-exporter', 'restart'])
-        #r.wait()
+        jwtstr = self.starter_instances[0].get_jwt_header()
+        cf_file = Path('/etc/prometheus/prometheus.token')
+        cf_file.write_text(jwtstr)
+        r = psutil.Popen(['/etc/init.d/prometheus-node-exporter', 'restart'])
+        r.wait()
 
     def test_setup_impl(self):
         pass
