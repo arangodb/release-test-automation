@@ -20,6 +20,7 @@ from arangodb.starter.manager import StarterManager, StarterNonManager
 from arangodb.starter.deployments.runner import Runner
 import tools.loghelper as lh
 from tools.asciiprint import print_progress as progress
+from tools.prometheus import set_prometheus_jwt
 
 statsdc = statsd.StatsClient('localhost', 8125)
 resultstxt = Path('/tmp/results.txt').open('w')
@@ -169,13 +170,9 @@ db.testCollection.save({test: "document"})
             logging.info("running remote, skipping")
             return
 
-        #self.agency_set_debug_logging()
+        self.agency_set_debug_logging()
 
-        jwtstr = self.starter_instances[0].get_jwt_header()
-        cf_file = Path('/etc/prometheus/prometheus.token')
-        cf_file.write_text(jwtstr)
-        r = psutil.Popen(['/etc/init.d/prometheus-node-exporter', 'restart'])
-        r.wait()
+        set_prometheus_jwt(self.starter_instances[0].get_jwt_header())
 
     def test_setup_impl(self):
         pass
