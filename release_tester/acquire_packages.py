@@ -2,16 +2,14 @@
 
 """ Release testing script"""
 import logging
+from ftplib import FTP
 from pathlib import Path
 import sys
 import click
-from tools.killall import kill_all_processes
 from arangodb.installers import make_installer, InstallerConfig
-from arangodb.starter.deployments import RunnerType, make_runner
 import tools.loghelper as lh
 
 import requests
-from ftplib import FTP
 
 logging.basicConfig(
     level=logging.INFO,
@@ -30,7 +28,7 @@ def acquire_stage_ftp(directory, package, local_dir, force, stage):
         }))
         return
     ftp = FTP('Nas02.arangodb.biz')
-    print(stage + ": " + ftp.login(user='anonymous', passwd='anonymous', acct = 'anonymous'))
+    print(stage + ": " + ftp.login(user='anonymous', passwd='anonymous', acct='anonymous'))
     print(stage + ": " + ftp.cwd(directory))
     ftp.set_pasv(True)
     with out.open(mode='wb') as fd:
@@ -86,13 +84,13 @@ def acquire_stage1_ftp(directory, package, local_dir, force):
 def acquire_stage2_ftp(directory, package, local_dir, force):
     acquire_stage_ftp(directory, package, local_dir, force, "STAGE_2_FTP")
 
-def acquire_live(directory, package, local_dir, force):    
+def acquire_live(directory, package, local_dir, force):
     print('live')
     url = 'https://download.arangodb.com/{dir}{pkg}'.format(**{
         'dir': directory,
         'pkg': package
         })
-    
+
     out = local_dir / package
     if out.exists() and not force:
         print("LIVE: not overwriting {file} since not forced to overwrite!".format(**{
@@ -113,7 +111,7 @@ def acquire_live(directory, package, local_dir, force):
             "error": res.status_code,
             "msg": res.text
             }))
-    
+
 @click.command()
 @click.option('--version', help='ArangoDB version number.')
 @click.option('--verbose/--no-verbose',
@@ -173,7 +171,7 @@ def acquire_package(version, verbose, package_dir, enterprise, enterprise_magic,
                           "",
                           "127.0.0.1",
                           False)
-                             
+
     inst = make_installer(cfg)
 
     params = {
@@ -201,8 +199,7 @@ def acquire_package(version, verbose, package_dir, enterprise, enterprise_magic,
         "ftp:stage2": acquire_stage2_ftp,
         "public": acquire_live
     }
-    
-    
+
     print(directories)
     packages = [
         inst.server_package
@@ -214,6 +211,6 @@ def acquire_package(version, verbose, package_dir, enterprise, enterprise_magic,
 
     for package in packages:
         funcs[source](directories[source], package, Path(package_dir), force)
-    
+
 if __name__ == "__main__":
     sys.exit(acquire_package())
