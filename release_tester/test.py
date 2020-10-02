@@ -88,7 +88,7 @@ def run_test(version, verbose, package_dir, test_data_dir,
                                      mode,
                                      publicip,
                                      interactive)
-                             
+
     inst = make_installer(install_config)
 
     if starter_mode == 'all':
