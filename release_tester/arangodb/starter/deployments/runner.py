@@ -469,4 +469,4 @@ class Runner(ABC):
             starter_mgr.send_request(InstanceType.agent,
                                      requests.put,
                                      '/_admin/log/level',
-                                     '{"agency":"debug", "request":"trace"}');
+                                     '{"agency":"debug", "requests":"trace"}');
