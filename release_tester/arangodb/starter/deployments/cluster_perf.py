@@ -11,6 +11,7 @@ from threading  import Thread
 import psutil
 import statsd
 import requests
+import yaml
 
 from tools.timestamp import timestamp
 import tools.interact as ti
@@ -22,9 +23,20 @@ import tools.loghelper as lh
 from tools.asciiprint import print_progress as progress
 from tools.prometheus import set_prometheus_jwt
 
+class testConfig():
+    def __init__(self):
+        self.parallelity = 3
+        self.db_count = 100
+        self.db_count_chunks = 5
+        self.min_replication_factor = 2
+        self.max_replication_factor = 3
+        self.data_multiplier = 4
+        self.collection_multiplier = 1
+        self.single_shard = False
+
 statsdc = statsd.StatsClient('localhost', 8125)
-resultstxt = Path('/tmp/results.txt').open('w')
-otherShOutput = Path('/tmp/errors.txt').open('w')
+RESULTS_TXT = None
+OTHER_SH_OUTPUT = None
 def result_line(line_tp):
     if isinstance(line_tp, tuple):
         if line_tp[0].startswith(b'#'):
@@ -35,10 +47,10 @@ def result_line(line_tp):
             else:
                 str_line = ','.join(segments) + '\n'
                 print(str_line)
-                resultstxt.write(str_line)
+                RESULTS_TXT.write(str_line)
                 statsdc.timing(segments[0], float(segments[2]))
         else:
-            otherShOutput.write(line_tp[1].get_endpoint() + " - " + str(line_tp[0]) + '\n')
+            OTHER_SH_OUTPUT.write(line_tp[1].get_endpoint() + " - " + str(line_tp[0]) + '\n')
             statsdc.incr('completed')
 
 def makedata_runner(q, resq, arangosh):
@@ -61,9 +73,19 @@ def makedata_runner(q, resq, arangosh):
 class ClusterPerf(Runner):
     """ this launches a cluster setup """
     def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
+        if not cfg.scenario.exists():
+            cfg.scenario.write_text(yaml.dump(testConfig()))
+            raise Exception("have written %s with default config" % str(cfg.scenario))
+
+        with open(cfg.scenario) as fileh:
+            self.scenario = yaml.load(fileh, Loader=yaml.Loader)
+
         super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'CLUSTER')
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
+
+        RESULTS_TXT = Path('/tmp/results.txt').open('w')
+        OTHER_SH_OUTPUT = Path('/tmp/errors.txt').open('w')
 
     def starter_prepare_env_impl(self):
         mem = psutil.virtual_memory()
@@ -170,7 +192,7 @@ db.testCollection.save({test: "document"})
             logging.info("running remote, skipping")
             return
 
-        self.agency_set_debug_logging()
+        #self.agency_set_debug_logging()
 
         set_prometheus_jwt(self.starter_instances[0].get_jwt_header())
 
@@ -191,29 +213,29 @@ db.testCollection.save({test: "document"})
         for i in self.makedata_instances:
             logging.debug(str(i))
 
-        interactive = self.basecfg.interactive
         tcount = 0
         offset = 0
         jobs = Queue()
         resultq = Queue()
         results = []
         workers = []
-        no_dbs = 100
-        for i in range(5):
+        no_dbs = self.scenario.db_count
+        for i in range(self.scenario.db_count_chunks):
             jobs.put({
                 'args': [
                     'TESTDB',
-                    '--minReplicationFactor', '1',
-                    '--maxReplicationFactor', '2',
-                    '--dataMultiplier', '4',
+                    '--minReplicationFactor', str(self.scenario.min_replication_factor),
+                    '--maxReplicationFactor', str(self.scenario.max_replication_factor),
+                    '--dataMultiplier', str(self.scenario.data_multiplier),
                     '--numberOfDBs', str(no_dbs),
-                    '--countOffset', str(i * no_dbs +1),
-                    '--collectionMultiplier', '1',
-                    '--singleShard', 'false'
+                    '--countOffset', str(i * no_dbs + 1),
+                    '--collectionMultiplier', str(self.scenario.collection_multiplier),
+                    '--singleShard', 'true' if self.scenario.single_shard else 'false',
                     ]
                 })
 
-        for starter in self.makedata_instances:
+        while len(workers) < str(self.scenario.parallelity):
+            starter = self.makedata_instances[len(workers) % len(self.makedata_instances)]
             assert starter.arangosh
             arangosh = starter.arangosh
 
@@ -241,4 +263,3 @@ db.testCollection.save({test: "document"})
         for node in self.starter_instances:
             node.terminate_instance()
         logging.info('test ended')
-

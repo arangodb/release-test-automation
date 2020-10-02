@@ -53,6 +53,9 @@ logging.basicConfig(
               default='127.0.0.1',
               help='IP for the click to browser hints.')
 
+@click.option('--scenario',
+              default='scenarios/cluster_replicated.yml',
+              help='test configuration yaml file, default written & exit if not there.')
 @click.option('--frontends',
               multiple=True,
               help='Connection strings of remote clusters')
@@ -60,7 +63,7 @@ logging.basicConfig(
 
 def run_test(version, verbose, package_dir, test_data_dir,
              enterprise, zip,
-             interactive, mode, starter_mode, publicip, frontends):
+             interactive, mode, starter_mode, publicip, scenario, frontends):
     """ main """
     lh.section("configuration")
     print("version: " + str(version))
@@ -71,6 +74,7 @@ def run_test(version, verbose, package_dir, test_data_dir,
     print("starter mode: " + str(starter_mode))
     print("public ip: " + str(publicip))
     print("interactive: " + str(interactive))
+    print("scenario: " + str(scenario))
     print("verbose: " + str(verbose))
 
     if mode not in ['all', 'install', 'system', 'tests', 'uninstall']:
@@ -106,7 +110,7 @@ def run_test(version, verbose, package_dir, test_data_dir,
             print('remote')
             h = re.split(split_host, frontend)
             inst.cfg.add_frontend(h[1], h[2], h[3])
-    print(len(inst.cfg.frontends))
+    inst.cfg.scenario = Path(scenario)
     runner = ClusterPerf(RunnerType.CLUSTER, inst.cfg, inst, None, None)
     runner.do_install = do_install
     runner.do_uninstall = do_uninstall

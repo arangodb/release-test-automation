@@ -1,0 +1,9 @@
+!!python/object:arangodb.starter.deployments.cluster_perf.testConfig
+collection_multiplier: 1
+data_multiplier: 4
+db_count: 100
+db_count_chunks: 5
+max_replication_factor: 3
+min_replication_factor: 2
+parallelity: 3
+single_shard: false
