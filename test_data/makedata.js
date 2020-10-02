@@ -17,19 +17,31 @@ const _ = require('lodash');
 const internal = require('internal');
 const arangodb = require("@arangodb");
 const console = require("console");
+const g = require('@arangodb/general-graph');
 const fs = require("fs");
 const db = internal.db;
 const time = internal.time;
 const sleep = internal.sleep;
 const ERRORS = arangodb.errors;
+let v = db._connection.GET("/_api/version");
+const enterprise = v.license === "enterprise";
+let gsm;
+if (enterprise) {
+  gsm = require('@arangodb/smart-graph');
+}
+
+let PWDRE = /.*at (.*)makedata.js.*/;
+let stack = new Error().stack;
+let PWD=fs.makeAbsolute(PWDRE.exec(stack)[1]);
+
+let vertices = JSON.parse(fs.readFileSync(`${PWD}/vertices.json`));
+let edges = JSON.parse(fs.readFileSync(`${PWD}/edges_naive.json`));
+let smart_edges = JSON.parse(fs.readFileSync(`${PWD}/edges.json`));
 
 
 let database = "_system";
 let databaseName;
 
-let PWDRE = /.*at (.*)makedata.js.*/;
-let stack = new Error().stack;
-let PWD=fs.makeAbsolute(PWDRE.exec(stack)[1]);
 const optionsDefaults = {
   minReplicationFactor: 1,
   maxReplicationFactor: 2,
@@ -134,17 +146,6 @@ function createIndexSafe(options) {
     return false; // well, its there?
   });
 }
-let g = require("@arangodb/general-graph");
-let v = db._connection.GET("/_api/version");
-const enterprise = v.license === "enterprise";
-let gsm;
-if (enterprise) {
-  gsm = require("@arangodb/smart-graph");
-}
-
-let vertices = JSON.parse(fs.readFileSync(`${PWD}/vertices.json`));
-let edges = JSON.parse(fs.readFileSync(`${PWD}/edges_naive.json`));
-let smart_edges = JSON.parse(fs.readFileSync(`${PWD}/edges.json`));
 let count = 0;
 while (count < options.numberOfDBs) {
   tStart = time();
@@ -352,12 +353,17 @@ while (count < options.numberOfDBs) {
     };
 
     let G = createSafe(`G_naive_${ccount}`, graphName => {
-    return g._create(graphName,[
-      g._relation(`citations_naive_${ccount}`,
-                  [`patents_naive_${ccount}`],
-                  [`patents_naive_${ccount}`])],
-                     [], {
-                       numberOfShards:getShardCount(3)});
+      return g._create(graphName,
+                       [
+                         g._relation(`citations_naive_${ccount}`,
+                                     [`patents_naive_${ccount}`],
+                                     [`patents_naive_${ccount}`])
+                       ],
+                       [],
+                       {
+                         replicationFactor: getReplicationFactor(2),
+                         numberOfShards:getShardCount(3)
+                       });
 
     }, graphName => {
       return g._graph(graphName);
@@ -371,11 +377,17 @@ while (count < options.numberOfDBs) {
     // And now a smart graph (if enterprise):
     if (enterprise) {
       let Gsm = createSafe(`G_smart_${ccount}`, graphName => {
-        return gsm._create(graphName, [
-          gsm._relation(`citations_smart_${ccount}`,
-                        [`patents_smart_${ccount}`],
-                        [`patents_smart_${ccount}`])],
-                           [], {numberOfShards: getShardCount(3), smartGraphAttribute:"COUNTRY"});
+        return gsm._create(graphName,
+                           [
+                             gsm._relation(`citations_smart_${ccount}`,
+                                           [`patents_smart_${ccount}`],
+                                           [`patents_smart_${ccount}`])],
+                           [],
+                           {
+                             numberOfShards: getShardCount(3),
+                             replicationFactor: getReplicationFactor(2),
+                             smartGraphAttribute:"COUNTRY"
+                           });
       }, graphName => {
         return gsm._graph(graphName);
       });
