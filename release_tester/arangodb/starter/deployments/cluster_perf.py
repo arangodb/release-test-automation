@@ -38,6 +38,7 @@ statsdc = statsd.StatsClient('localhost', 8125)
 RESULTS_TXT = None
 OTHER_SH_OUTPUT = None
 def result_line(line_tp):
+    global OTHER_SH_OUTPUT, RESULTS_TXT
     if isinstance(line_tp, tuple):
         if line_tp[0].startswith(b'#'):
             str_line = str(line_tp[0])[6:-3]
@@ -73,6 +74,7 @@ def makedata_runner(q, resq, arangosh):
 class ClusterPerf(Runner):
     """ this launches a cluster setup """
     def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
+        global OTHER_SH_OUTPUT, RESULTS_TXT
         if not cfg.scenario.exists():
             cfg.scenario.write_text(yaml.dump(testConfig()))
             raise Exception("have written %s with default config" % str(cfg.scenario))
@@ -192,7 +194,9 @@ db.testCollection.save({test: "document"})
             logging.info("running remote, skipping")
             return
 
-        #self.agency_set_debug_logging()
+        self.agency_set_debug_logging()
+        self.dbserver_set_debug_logging()
+        self.coordinator_set_debug_logging()
 
         set_prometheus_jwt(self.starter_instances[0].get_jwt_header())
 
@@ -234,7 +238,7 @@ db.testCollection.save({test: "document"})
                     ]
                 })
 
-        while len(workers) < str(self.scenario.parallelity):
+        while len(workers) < self.scenario.parallelity:
             starter = self.makedata_instances[len(workers) % len(self.makedata_instances)]
             assert starter.arangosh
             arangosh = starter.arangosh
