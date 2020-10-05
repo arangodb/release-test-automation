@@ -234,7 +234,7 @@ python3 release_tester/perf.py --version 3.7.3 --enterprise --package-dir /home/
 Running perf with a remote test system:
 
 ```
-python3 release_tester/perf.py  --version 3.7.3  --enterprise --package-dir /home/willi/Downloads  --zip --frontends tcp://192.168.173.88:9729 --frontends tcp://192.168.173.88:9529 --frontends tcp://192.168.173.88:9629 --mode tests --verbose
+python3 release_tester/perf.py  --version 3.7.3  --enterprise --package-dir /home/willi/Downloads  --zip --frontends tcp://192.168.173.88:9729 --frontends tcp://192.168.173.88:9529 --frontends tcp://192.168.173.88:9629 --mode tests --verbose --scenario scenarios/cluster_replicated.yml
 ```
 
 building the docker container:
@@ -244,5 +244,5 @@ docker build . -t test
 
 Running the docker container, parametrizing the connection endpoints of the cluster:
 ```
-docker run test:latest --frontends tcp://192.168.173.88:9629 --frontends tcp://192.168.173.88:9729 --frontends tcp://192.168.173.88:9529
+docker run test:latest --frontends tcp://192.168.173.88:9629 --frontends tcp://192.168.173.88:9729 --frontends tcp://192.168.173.88:9529 --scenario scenarios/cluster_replicated.yml
 ```
