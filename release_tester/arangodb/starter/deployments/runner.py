@@ -469,4 +469,16 @@ class Runner(ABC):
             starter_mgr.send_request(InstanceType.agent,
                                      requests.put,
                                      '/_admin/log/level',
-                                     '{"agency":"debug", "requests":"trace"}');
+                                     '{"agency":"debug", "requests":"trace", "cluster":"debug", "maintainance":"debug"}');
+    def dbserver_set_debug_logging(self):
+        for starter_mgr in self.starter_instances:
+            starter_mgr.send_request(InstanceType.dbserver,
+                                     requests.put,
+                                     '/_admin/log/level',
+                                     '{"agency":"debug", "requests":"trace", "cluster":"debug", "maintainance":"debug"}');
+    def coordinator_set_debug_logging(self):
+        for starter_mgr in self.starter_instances:
+            starter_mgr.send_request(InstanceType.coordinator,
+                                     requests.put,
+                                     '/_admin/log/level',
+                                     '{"agency":"debug", "requests":"trace", "cluster":"debug", "maintainance":"debug"}');
