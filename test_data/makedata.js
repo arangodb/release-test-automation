@@ -105,7 +105,7 @@ function createSafe(name, fn1, fnErrorExists) {
         console.error(`${databaseName}: ${name}: its already there? ${x.message} `);
         try {
           // make sure no local caches are there:
-          arango.reconnect(arango.getEndpoint(), arango.getDatabaseName(), arango.connectedUser(), ''); // TODO passvoid?
+          db._flushCache();
           return fnErrorExists(name);
         }
         catch(x) {
@@ -157,6 +157,7 @@ while (count < options.numberOfDBs) {
     databaseName = `${database}_${c}`;
     createSafe(databaseName,
                dbname => {
+                 db._flushCache();
                  db._createDatabase(dbname);
                  return db._useDatabase(dbname);
                }, dbname => {
