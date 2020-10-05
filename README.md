@@ -225,6 +225,18 @@ Run the statsd exporter:
 ./statsd_exporter --statsd.listen-udp=:8125 --statsd.listen-tcp=:8125
 ```
 
+Running a full test with launching the system, waiting before the loadtest starts:
+
+```
+python3 release_tester/perf.py --version 3.7.3 --enterprise --package-dir /home/willi/Downloads --zip --test-data-dir /tmp/ --verbose --interactive
+```
+
+Running perf with a remote test system:
+
+```
+python3 release_tester/perf.py  --version 3.7.3  --enterprise --package-dir /home/willi/Downloads  --zip --frontends tcp://192.168.173.88:9729 --frontends tcp://192.168.173.88:9529 --frontends tcp://192.168.173.88:9629 --mode tests --verbose
+```
+
 building the docker container:
 ```
 docker build . -t test
