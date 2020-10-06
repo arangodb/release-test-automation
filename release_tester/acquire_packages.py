@@ -168,6 +168,7 @@ def acquire_package(version, verbose, package_dir, enterprise, enterprise_magic,
                           enterprise,
                           zip,
                           Path(package_dir),
+                          Path("/"),
                           "",
                           "127.0.0.1",
                           False)
