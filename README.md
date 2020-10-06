@@ -18,7 +18,7 @@
 ## Linux
 
 - **debian** / **ubuntu**:
-  `apt-get install python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect python3-pyftpdlib`
+  `apt-get install python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect python3-pyftpdlib python3-statsd`
   the `python3-semver` on debian is to old - need to use the pip version instead: `pip3 install semver` `apt-get install gdb`
 - **centos**:
    `yum update ; yum install python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect python3-pyftpdlib; pip3 install psutil semver` 
