@@ -23,7 +23,7 @@ const db = internal.db;
 const time = internal.time;
 const sleep = internal.sleep;
 const ERRORS = arangodb.errors;
-let v = db._connection.GET("/_api/version");
+let v = db._version(true);
 const enterprise = v.license === "enterprise";
 let gsm;
 if (enterprise) {
