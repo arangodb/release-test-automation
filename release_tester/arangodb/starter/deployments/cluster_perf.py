@@ -34,6 +34,7 @@ class testConfig():
         self.collection_multiplier = 1
         self.launch_delay = 1.3
         self.single_shard = False
+        self.db_offset = 0
 
 statsdc = statsd.StatsClient('localhost', 8125)
 RESULTS_TXT = None
@@ -219,7 +220,6 @@ db.testCollection.save({test: "document"})
             logging.debug(str(i))
 
         tcount = 0
-        offset = 0
         jobs = Queue()
         resultq = Queue()
         results = []
@@ -233,7 +233,7 @@ db.testCollection.save({test: "document"})
                     '--maxReplicationFactor', str(self.scenario.max_replication_factor),
                     '--dataMultiplier', str(self.scenario.data_multiplier),
                     '--numberOfDBs', str(no_dbs),
-                    '--countOffset', str(i * no_dbs + 1),
+                    '--countOffset', str((i + self.scenario.db_offset) * no_dbs + 1),
                     '--collectionMultiplier', str(self.scenario.collection_multiplier),
                     '--singleShard', 'true' if self.scenario.single_shard else 'false',
                     ]

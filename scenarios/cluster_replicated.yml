@@ -7,4 +7,5 @@ max_replication_factor: 3
 min_replication_factor: 2
 launch_delay: 1.3
 parallelity: 3
+db_offset: 0
 single_shard: false
