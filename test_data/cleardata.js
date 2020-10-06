@@ -6,10 +6,12 @@
 
 const _ = require('lodash');
 const internal = require('internal')
+const arangodb = require("@arangodb");
 const time = internal.time;
 let db = internal.db;
 let print = internal.print;
 let database = "_system";
+const ERRORS = arangodb.errors;
 
 const optionsDefaults = {
   minReplicationFactor: 1,
