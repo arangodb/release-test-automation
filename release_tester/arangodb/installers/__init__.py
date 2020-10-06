@@ -109,13 +109,13 @@ def make_installer(install_config: InstallerConfig):
         from arangodb.installers.nsis import InstallerW
         return InstallerW(install_config)
 
-    import resource
-    nofd = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
-    if nofd < 10000:
-        raise Exception("please use ulimit -n <count>"
-                        " to adjust the number of allowed filedescriptors"
-                        " to a value greater or eqaul 10000."
-                        " Currently you have set the limit to: " + str(nofd))
+    #import resource TODO - find out clever way where to put this!
+    #nofd = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
+    #if nofd < 10000:
+    #    raise Exception("please use ulimit -n <count>"
+    #                    " to adjust the number of allowed filedescriptors"
+    #                    " to a value greater or eqaul 10000."
+    #                    " Currently you have set the limit to: " + str(nofd))
 
     macver = platform.mac_ver()
     if macver[0]:
