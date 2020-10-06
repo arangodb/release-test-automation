@@ -32,6 +32,7 @@ class testConfig():
         self.max_replication_factor = 3
         self.data_multiplier = 4
         self.collection_multiplier = 1
+        self.launch_delay = 1.3
         self.single_shard = False
 
 statsdc = statsd.StatsClient('localhost', 8125)
@@ -250,7 +251,7 @@ db.testCollection.save({test: "document"})
         thread_count = len(workers)
         for worker in workers:
             worker.start()
-            time.sleep(1.3)
+            time.sleep(self.scenario.launch_delay)
 
         while tcount < thread_count:
             res_line = resultq.get()
