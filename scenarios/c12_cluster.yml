@@ -5,7 +5,8 @@ db_count: 111
 db_count_chunks: 3
 max_replication_factor: 3
 min_replication_factor: 2
-parallelity: 2
+parallelity: 1
 launch_delay: 9.7
 db_offset: 3
+progressive_timeout: 300
 single_shard: false

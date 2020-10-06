@@ -8,4 +8,5 @@ min_replication_factor: 2
 launch_delay: 1.3
 parallelity: 3
 db_offset: 0
+progressive_timeout: 100
 single_shard: false

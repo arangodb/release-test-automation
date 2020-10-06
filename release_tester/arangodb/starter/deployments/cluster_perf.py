@@ -35,6 +35,7 @@ class testConfig():
         self.launch_delay = 1.3
         self.single_shard = False
         self.db_offset = 0
+        self.progressive_timeout = 100
 
 statsdc = statsd.StatsClient('localhost', 8125)
 RESULTS_TXT = None
@@ -56,13 +57,13 @@ def result_line(line_tp):
             OTHER_SH_OUTPUT.write(line_tp[1].get_endpoint() + " - " + str(line_tp[0]) + '\n')
             statsdc.incr('completed')
 
-def makedata_runner(q, resq, arangosh):
+def makedata_runner(q, resq, arangosh, progressive_timeout):
     while True:
         try:
             # all tasks are already there. if done:
             job = q.get(timeout=0.1)
             print("starting my task! " + str(job['args']))
-            res = arangosh.create_test_data("xx", job['args'], result_line=result_line)
+            res = arangosh.create_test_data("xx", job['args'], result_line=result_line, timeout=progressive_timeout)
             if not res:
                 print("error executing test - giving up.")
                 resq.put(1)
@@ -246,7 +247,7 @@ db.testCollection.save({test: "document"})
 
             #must be writabe that the setup may not have already data
             if not arangosh.read_only and not self.has_makedata_data:
-                workers.append(Thread(target=makedata_runner, args=(jobs, resultq, arangosh)))
+                workers.append(Thread(target=makedata_runner, args=(jobs, resultq, arangosh, self.scenario.progressive_timeout)))
 
         thread_count = len(workers)
         for worker in workers:

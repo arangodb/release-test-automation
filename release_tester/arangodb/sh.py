@@ -294,7 +294,7 @@ class ArangoshExecutor():
         
         return res
 
-    def create_test_data(self, testname, args=[], result_line=dummy_line_result):
+    def create_test_data(self, testname, args=[], result_line=dummy_line_result, timeout=100):
         """ deploy testdata into the instance """
         if testname:
             logging.info("adding test data for {0}".format(testname))
@@ -307,7 +307,7 @@ class ArangoshExecutor():
                                             args =args +[
                                                 '--progress', 'true'
                                             ],
-                                            timeout=100,
+                                            timeout=timeout,
                                         result_line=result_line,
                                         verbose=self.cfg.verbose)
 
