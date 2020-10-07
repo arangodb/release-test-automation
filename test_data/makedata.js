@@ -153,8 +153,14 @@ while (count < options.numberOfDBs) {
   db._useDatabase("_system");
   if (database !== "_system") {
     print('#ix');
-    let c = zeroPad(count+options.countOffset);
+    let c = zeroPad(count + options.countOffset);
     databaseName = `${database}_${c}`;
+    if (db._databases().includes(databaseName)) {
+      // its already there - skip this one.
+      print(`skipping ${databaseName} - its already there.`);
+      count ++;
+      continue;
+    }
     createSafe(databaseName,
                dbname => {
                  db._flushCache();
