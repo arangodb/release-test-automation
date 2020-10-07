@@ -12,6 +12,7 @@ import tools.loghelper as lh
 import tools.errorhelper as eh
 import tools.interact as ti
 import requests
+import platform
 
 from arangodb.installers.base import InstallerBase
 from arangodb.installers import InstallerConfig
@@ -469,14 +470,14 @@ class Runner(ABC):
 
     def detect_file_ulimit(self):
         winver = platform.win32_ver()
-        if winver[0]:
-        import resource
-        nofd = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
-        if nofd < 10000:
-            raise Exception("please use ulimit -n <count>"
-                            " to adjust the number of allowed filedescriptors"
-                            " to a value greater or eqaul 10000."
-                            " Currently you have set the limit to: " + str(nofd))
+        if not winver[0]:
+            import resource
+            nofd = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
+            if nofd < 10000:
+                raise Exception("please use ulimit -n <count>"
+                                " to adjust the number of allowed filedescriptors"
+                                " to a value greater or eqaul 10000."
+                                " Currently you have set the limit to: " + str(nofd))
 
     def agency_set_debug_logging(self):
         for starter_mgr in self.starter_instances:
