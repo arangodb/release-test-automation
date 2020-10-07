@@ -75,7 +75,7 @@ class Runner(ABC):
 
     def run(self):
         """ run the full lifecycle flow of this deployment """
-        if self.do_starter_test:
+        if self.do_starter_test and not self.remote:
             self.detect_file_ulimit()
 
         lh.section("Runner of type {0}".format(str(self.name)), "<3")
