@@ -24,6 +24,7 @@ from tools.timestamp import timestamp
 from arangodb.instance import ArangodInstance, ArangodRemoteInstance, SyncInstance, InstanceType, AfoServerState
 from arangodb.backup import HotBackupConfig, HotBackupManager
 from arangodb.sh import ArangoshExecutor
+from arangodb.bench import ArangoBenchManager
 import tools.loghelper as lh
 
 ON_WINDOWS = (sys.platform == 'win32')
@@ -95,6 +96,7 @@ class StarterManager():
         self.is_master = None
         self.is_leader = False
         self.arangosh = None
+        self.arangobench = None
         self.executor = None # meaning?
         self.sync_master_port = None
         self.coordinator = None # meaning - port
@@ -561,6 +563,14 @@ Starter {0.name}
             if self.cfg.enterprise:
                 self.hb_instance = HotBackupManager(self.cfg, self.raw_basedir, self.cfg.baseTestDir / self.raw_basedir)
                 self.hb_config = HotBackupConfig(self.cfg, self.raw_basedir, self.cfg.baseTestDir / self.raw_basedir)
+
+    def launch_arangobench(self, testacse_no):
+        if self.arangobench is None:
+            self.arangobench = ArangoBenchManager(self.cfg, self.get_frontend())
+        self.arangobench.launch(testacse_no)
+
+    def wait_arangobench(self):
+        self.arangobench.wait()
 
     def detect_instance_pids_still_alive(self):
         """ detecting whether the processes the starter spawned are still there """
