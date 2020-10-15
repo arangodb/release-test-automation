@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-""" Manage one instance of the arangodb starter
-    to crontroll multiple arangods
-"""
+""" Manage one instance of the arangodb hotbackup CLI tool """
 
 import logging
 import json

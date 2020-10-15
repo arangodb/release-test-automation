@@ -17,24 +17,28 @@ from tools.asciiprint import ascii_print, print_progress as progress
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
-def enqueue_stdout(std_out, queue):
+def dummy_line_result(line):
+    pass
+
+def enqueue_stdout(std_out, queue, instance):
     for line in iter(std_out.readline, b''):
         #print("O: " + str(line))
-        queue.put(line)
+        queue.put((line, instance))
     #print('0 done!')
     queue.put(-1)
     std_out.close()
-def enqueue_stderr(std_err, queue):
+def enqueue_stderr(std_err, queue, instance):
     for line in iter(std_err.readline, b''):
         #print("E: " + str(line))
-        queue.put(line)
+        queue.put((line, instance))
     #print('1 done!')
     queue.put(-1)
     std_err.close()
 
 class ArangoshExecutor():
     """ configuration """
-    def __init__(self, config):
+    def __init__(self, config, connect_instance):
+        self.connect_instance = connect_instance
         self.cfg = config
         self.read_only = False
 
@@ -42,8 +46,8 @@ class ArangoshExecutor():
         """ launch a command, print its name """
         run_cmd = [
             self.cfg.bin_dir / "arangosh",
-            "--server.endpoint",
-            "tcp://127.0.0.1:{cfg.port}".format(cfg=self.cfg)
+            "--log.level", "v8=debug",
+            "--server.endpoint", self.connect_instance.get_endpoint()
         ]
 
         run_cmd += [ "--server.username", str(self.cfg.username) ]
@@ -97,8 +101,8 @@ class ArangoshExecutor():
         """ launch an external js-script, print its name """
         run_cmd = [
             self.cfg.bin_dir / "arangosh",
-            "--server.endpoint",
-            "tcp://127.0.0.1:{cfg.port}".format(cfg=self.cfg)
+            "--log.level", "v8=debug",
+            "--server.endpoint", self.connect_instance.get_endpoint()
         ]
 
         run_cmd += [ "--server.username", str(self.cfg.username) ]
@@ -126,11 +130,11 @@ class ArangoshExecutor():
         logging.debug("exitcode {0}".format(exitcode))
         return exitcode == 0
 
-    def run_script_monitored(self, cmd, args, timeout, verbose=True):
+    def run_script_monitored(self, cmd, args, timeout, result_line, verbose=True):
         run_cmd = [
             self.cfg.bin_dir / "arangosh",
-            "--server.endpoint",
-            "tcp://127.0.0.1:{cfg.port}".format(cfg=self.cfg),
+            "--server.endpoint", self.connect_instance.get_endpoint(),
+            "--log.level", "v8=debug",
             "--log.foreground-tty", "true"
         ]
 
@@ -150,8 +154,8 @@ class ArangoshExecutor():
             lh.log_cmd(run_cmd)
         p = Popen(run_cmd, stdout=PIPE, stderr=PIPE, close_fds=ON_POSIX)
         q = Queue()
-        t1 = Thread(target=enqueue_stdout, args=(p.stdout, q))
-        t2 = Thread(target=enqueue_stderr, args=(p.stderr, q))
+        t1 = Thread(target=enqueue_stdout, args=(p.stdout, q, self.connect_instance))
+        t2 = Thread(target=enqueue_stderr, args=(p.stderr, q, self.connect_instance))
         t1.start()
         t2.start()
 
@@ -162,12 +166,14 @@ class ArangoshExecutor():
         count = 0
         tcount = 0
         close_count = 0
+        result = []
         while not have_timeout:
             if not verbose:
                 progress("sj" + str(tcount))
             line = ''
             try:
                 line = q.get(timeout=1)
+                result_line(line)
             except Empty:
                 tcount += 1
                 if verbose:
@@ -175,9 +181,11 @@ class ArangoshExecutor():
                 have_timeout = tcount >= timeout
             else:
                 tcount = 0
-                if isinstance(line, bytes):
+                if isinstance(line, tuple):
                     if verbose:
-                       print("e: " + str(line))
+                       print("e: " + str(line[0]))
+                    if not str(line[0]).startswith('#'):
+                        result.append(line)
                 else:
                     close_count += 1
                     if close_count == 2:
@@ -189,13 +197,18 @@ class ArangoshExecutor():
         rc = p.wait()
         t1.join()
         t2.join()
-        return not have_timeout and rc == 0
+        if have_timeout or rc != 0:
+            return False
+        if len(result) == 0:
+            return True
+        return result
 
     def run_testing(self, testcase, args, timeout, logfile, verbose):
         args = [
             self.cfg.bin_dir / "arangosh",
             '-c', str(self.cfg.cfgdir / 'arangosh.conf'),
             '--log.level', 'warning',
+            "--log.level", "v8=debug",
             '--server.endpoint', 'none',
             '--javascript.allow-external-process-control', 'true',
             '--javascript.execute', str(Path('UnitTests') / 'unittest.js'),
@@ -205,8 +218,8 @@ class ArangoshExecutor():
         os.chdir(self.cfg.package_dir)
         p = Popen(args, stdout=PIPE, stderr=PIPE, close_fds=ON_POSIX)
         q = Queue()
-        t1 = Thread(target=enqueue_output, args=(p.stdout, q))
-        t2 = Thread(target=enqueue_output1, args=(p.stderr, q))
+        t1 = Thread(target=enqueue_stdout, args=(p.stdout, q, self.connect_instance))
+        t2 = Thread(target=enqueue_stderr, args=(p.stderr, q, self.connect_instance))
         t1.start()
         t2.start()
 
@@ -281,56 +294,59 @@ class ArangoshExecutor():
         
         return res
 
-    def create_test_data(self, testname):
+    def create_test_data(self, testname, args=[], result_line=dummy_line_result, timeout=100):
         """ deploy testdata into the instance """
         if testname:
             logging.info("adding test data for {0}".format(testname))
         else:
             logging.info("adding test data")
 
-        success = self.run_script_monitored(cmd=[
+        ret = self.run_script_monitored(cmd=[
             'setting up test data',
             self.cfg.test_data_dir / 'makedata.js'],
-                                            args = [
+                                            args =args +[
                                                 '--progress', 'true'
                                             ],
-                                            timeout=10,
-                                            verbose=self.cfg.verbose)
+                                            timeout=timeout,
+                                        result_line=result_line,
+                                        verbose=self.cfg.verbose)
 
-        return success
+        return ret
 
-    def check_test_data(self, testname):
+    def check_test_data(self, testname, args=[], result_line=dummy_line_result):
         """ check back the testdata in the instance """
         if testname:
             logging.info("checking test data for {0}".format(testname))
         else:
             logging.info("checking test data")
 
-        success = self.run_script_monitored(cmd=[
+        ret = self.run_script_monitored(cmd=[
             'checking test data integrity',
             self.cfg.test_data_dir / 'checkdata.js'],
-                                            args = [
+                                            args=args + [
                                                 '--progress', 'true'
                                             ],
-                                            timeout=5,
-                                            verbose=self.cfg.verbose)
+                                        timeout=5,
+                                        result_line=result_line,
+                                        verbose=self.cfg.verbose)
 
-        return success
+        return ret
 
-    def clear_test_data(self, testname):
+    def clear_test_data(self, testname, args=[], result_line=dummy_line_result):
         """ flush the testdata from the instance again """
         if testname:
             logging.info("removing test data for {0}".format(testname))
         else:
             logging.info("removing test data")
 
-        success = self.run_script_monitored(cmd=[
+        ret = self.run_script_monitored(cmd=[
             'cleaning up test data',
             self.cfg.test_data_dir / 'cleardata.js'],
-                                            args = [
+                                            args=args + [
                                                 '--progress', 'true'
                                             ],
-                                            timeout=5,
-                                            verbose=self.cfg.verbose)
+                                        timeout=5,
+                                        result_line=result_line,
+                                        verbose=self.cfg.verbose)
 
-        return success
+        return ret

@@ -11,11 +11,14 @@ import shutil
 import tools.loghelper as lh
 import tools.errorhelper as eh
 import tools.interact as ti
+import requests
+import platform
 
 from arangodb.installers.base import InstallerBase
 from arangodb.installers import InstallerConfig
 from arangodb.sh import ArangoshExecutor
 from tools.killall import kill_all_processes
+from arangodb.instance import InstanceType
 
 
 class Runner(ABC):
@@ -66,10 +69,15 @@ class Runner(ABC):
         #replacement for run function
         self.runner_run_replacement = None
 
-        self.cleanup()
+        self.remote = len(self.basecfg.frontends) > 0
+        if not self.remote:
+            self.cleanup()
 
     def run(self):
         """ run the full lifecycle flow of this deployment """
+        if self.do_starter_test and not self.remote:
+            self.detect_file_ulimit()
+
         lh.section("Runner of type {0}".format(str(self.name)), "<3")
 
         if self.runner_run_replacement:
@@ -197,10 +205,11 @@ class Runner(ABC):
             inst.stop_service()
         inst.start_service()
         
-        sys_arangosh = ArangoshExecutor(inst.cfg)
+        sys_arangosh = ArangoshExecutor(inst.cfg, inst.instance)
 
         logging.debug("self test after installation")
-        sys_arangosh.self_test()
+        if inst.cfg.have_system_service:
+            sys_arangosh.self_test()
 
         if self.do_system_test:
             sys_arangosh.js_version_check()
@@ -458,3 +467,33 @@ class Runner(ABC):
         testdir = self.basecfg.baseTestDir / self.basedir
         if testdir.exists():
             shutil.rmtree(testdir)
+
+    def detect_file_ulimit(self):
+        winver = platform.win32_ver()
+        if not winver[0]:
+            import resource
+            nofd = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
+            if nofd < 10000:
+                raise Exception("please use ulimit -n <count>"
+                                " to adjust the number of allowed filedescriptors"
+                                " to a value greater or eqaul 10000."
+                                " Currently you have set the limit to: " + str(nofd))
+
+    def agency_set_debug_logging(self):
+        for starter_mgr in self.starter_instances:
+            starter_mgr.send_request(InstanceType.agent,
+                                     requests.put,
+                                     '/_admin/log/level',
+                                     '{"agency":"debug", "requests":"trace", "cluster":"debug", "maintainance":"debug"}');
+    def dbserver_set_debug_logging(self):
+        for starter_mgr in self.starter_instances:
+            starter_mgr.send_request(InstanceType.dbserver,
+                                     requests.put,
+                                     '/_admin/log/level',
+                                     '{"agency":"debug", "requests":"trace", "cluster":"debug", "maintainance":"debug"}');
+    def coordinator_set_debug_logging(self):
+        for starter_mgr in self.starter_instances:
+            starter_mgr.send_request(InstanceType.coordinator,
+                                     requests.put,
+                                     '/_admin/log/level',
+                                     '{"agency":"debug", "requests":"trace", "cluster":"debug", "maintainance":"debug"}');

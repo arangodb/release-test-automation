@@ -18,7 +18,7 @@
 ## Linux
 
 - **debian** / **ubuntu**:
-  `apt-get install python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect python3-pyftpdlib`
+  `apt-get install python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect python3-pyftpdlib python3-statsd`
   the `python3-semver` on debian is to old - need to use the pip version instead: `pip3 install semver` `apt-get install gdb`
 - **centos**:
    `yum update ; yum install python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect python3-pyftpdlib; pip3 install psutil semver` 
@@ -59,6 +59,7 @@ Supported Parameters:
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
+ - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
  - `--mode [_all_|install|uninstall|tests]`
    - `all` (default) is intended to run the full flow. This is the production flow.
    - `install` to only install the package onto the system and store its setting to the temp folder (development) 
@@ -94,6 +95,7 @@ Supported Parameters:
  - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
+ - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
  - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
  - `--verbose` if specified more logging is done
  - `--starter-mode [all|LF|AFO|CL|DC|none]` which starter test to exute, `all` of them or `none` at all or: 
@@ -201,3 +203,118 @@ uninstall packages
 
 create most of the flow of i.e. https://github.com/arangodb/release-qa/issues/264 in a portable way. 
 arangosync
+
+
+
+
+# Perf
+
+# Using perf.py for performance testing
+
+perf.py is intended to test the flow
+ - install package (optional)
+ - run starter cluster (optional)
+ - nur cluster_perf.py
+ - uninstall package (optional)
+
+This sequence can be broken up by invoking perf.py with `--mode install` and subsequently multiple invokactions with `--mode tests`. The system can afterwards be cleaned with `--mode uninstall`.
+For this, a setting file `/tmp/config.yml` is kept. This way parts of this flow can be better tuned without the resource intense un/install process.
+
+Supported Parameters:
+ - `--version` which Arangodb Version you want to run the test on
+ - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
+ - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
+ - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
+ - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
+ - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
+ - `--mode [_all_|install|uninstall|tests]`
+   - `all` (default) is intended to run the full flow. This is the production flow.
+   - `install` to only install the package onto the system and store its setting to the temp folder (development) 
+   - `tests`  to read the config file from the temp folder and run the tetss.
+   - `uninstall` to clean up your system.
+ - `--starter-mode [none]` not used atm. only cluster_perf is used.
+ - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
+ - `--verbose` if specified more logging is done
+
+ - `--scenario` a Yaml file containing the setup of the makedata injector
+ - `--frontends` may be specified several times, disables launchin own cluster instance. Configures remote instances instead.
+
+Example usage:
+ - run against self started instance: `python3 release_tester/perf.py  --version 3.7.3  --enterprise --package-dir /home/willi/Downloads  --zip --verbose --interactive --mode tests --scenario scenarios/c_cluster_x3.yml`
+ - run against remote instance: `python3 release_tester/perf.py  --version 3.7.3  --enterprise --package-dir /home/willi/Downloads  --zip --verbose --interactive --mode tests --scenario scenarios/c_cluster_x3.yml --frontends tcp://192.168.10.11:8529 --frontends tcp://192.168.10.12:8529 --frontends tcp://192.168.10.13:8529`
+
+
+# scenario yml file
+They are kept in `scenarios/`. 
+
+```
+!!python/object:arangodb.starter.deployments.cluster_perf.testConfig
+collection_multiplier: 1
+data_multiplier: 4
+db_count: 100
+db_count_chunks: 10
+max_replication_factor: 3
+min_replication_factor: 2
+parallelity: 9
+launch_delay: 9.7
+db_offset: 0
+single_shard: false
+```
+ - `collection_multiplier`: how many more times should we create collections?
+ - `data_multiplier`: how many more times should we create data inside the database?
+ - `db_count`: how many databases should this instance of the test create
+ - `db_count_chunks`: how many chunks of `db_count` do we want to create?
+ - `db_offset`: should we start counting the database name at an offset?
+ - `single_shard`: whether this is going to be a single shard or multi shard test
+ - `max_replication_factor`: collections will have no more than this many shards
+ - `min_replication_factor`: collections will have no less than this many shards
+ - `parallelity`: how many parallel arangosh instances creating data should be spawned
+ - `launch_delay`: wait this many seconds between launching two arangoshs to create an offset
+
+
+# statsd integration
+makedata values are pushed via statsd client via https://github.com/prometheus/statsd_exporter to prometheus.
+adds the `python3-statsd` dependency.
+
+
+connect statsd to prometheus:
+```
+  - job_name: statsd
+    scrape_interval: 1s
+    metrics_path: /metrics
+    # bearer_token_file: /etc/prometheus/prometheus.token
+    static_configs:
+    - targets: ['localhost:9102']
+```
+
+Run the statsd exporter:
+```
+./statsd_exporter --statsd.listen-udp=:8125 --statsd.listen-tcp=:8125
+```
+
+# launching the tests
+
+Running a full test with launching the system, waiting before the loadtest starts:
+
+```
+python3 release_tester/perf.py --version 3.7.3 --enterprise --package-dir /home/willi/Downloads --zip --test-data-dir /tmp/ --verbose --interactive
+```
+
+Running perf with a remote test system:
+
+```
+python3 release_tester/perf.py  --version 3.7.3  --enterprise --package-dir /home/willi/Downloads  --zip --frontends tcp://192.168.173.88:9729 --frontends tcp://192.168.173.88:9529 --frontends tcp://192.168.173.88:9629 --mode tests --verbose --scenario scenarios/cluster_replicated.yml
+```
+
+# docker container
+We will build a the docker container based on the latest public enterprise docker container:
+```
+docker build . -t test
+```
+
+The purpose of the derived container is to ship the arangosh to run the tests in.
+
+Running the docker container, parametrizing the connection endpoints of the cluster:
+```
+docker run test:latest --frontends tcp://192.168.173.88:9629 --frontends tcp://192.168.173.88:9729 --frontends tcp://192.168.173.88:9529 --scenario scenarios/cluster_replicated.yml
+```

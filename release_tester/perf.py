@@ -5,6 +5,7 @@ import logging
 from pathlib import Path
 import sys
 import click
+import re
 from tools.killall import kill_all_processes
 from arangodb.installers import make_installer, InstallerConfig
 from arangodb.starter.deployments import RunnerType, make_runner
@@ -33,7 +34,7 @@ logging.basicConfig(
               help='switch to zip or tar.gz package instead of default OS package')
 @click.option('--interactive/--no-interactive',
               is_flag=True,
-              default=sys.stdout.isatty(),
+              default=False,
               help='wait for the user to hit Enter?')
 @click.option('--package-dir',
               default='/tmp/',
@@ -52,10 +53,17 @@ logging.basicConfig(
               default='127.0.0.1',
               help='IP for the click to browser hints.')
 
+@click.option('--scenario',
+              default='scenarios/cluster_replicated.yml',
+              help='test configuration yaml file, default written & exit if not there.')
+@click.option('--frontends',
+              multiple=True,
+              help='Connection strings of remote clusters')
+
 
 def run_test(version, verbose, package_dir, test_data_dir,
              enterprise, zip,
-             interactive, mode, starter_mode, publicip):
+             interactive, mode, starter_mode, publicip, scenario, frontends):
     """ main """
     lh.section("configuration")
     print("version: " + str(version))
@@ -66,6 +74,7 @@ def run_test(version, verbose, package_dir, test_data_dir,
     print("starter mode: " + str(starter_mode))
     print("public ip: " + str(publicip))
     print("interactive: " + str(interactive))
+    print("scenario: " + str(scenario))
     print("verbose: " + str(verbose))
 
     if mode not in ['all', 'install', 'system', 'tests', 'uninstall']:
@@ -89,42 +98,28 @@ def run_test(version, verbose, package_dir, test_data_dir,
                                      publicip,
                                      interactive)
 
+    split_host = re.compile(r'([a-z]*)://([0-9.:]*):(\d*)')
+
     inst = make_installer(install_config)
 
-    if starter_mode == 'all':
-        starter_mode = [RunnerType.LEADER_FOLLOWER,
-                        RunnerType.ACTIVE_FAILOVER,
-                        RunnerType.CLUSTER]
-        if enterprise:
-            starter_mode.append(RunnerType.DC2DC)
-    elif starter_mode == 'LF':
-        starter_mode = [RunnerType.LEADER_FOLLOWER]
-    elif starter_mode == 'AFO':
-        starter_mode = [RunnerType.ACTIVE_FAILOVER]
-    elif starter_mode == 'CL':
-        starter_mode = [RunnerType.CLUSTER]
-    elif starter_mode == 'DC':
-        starter_mode = [RunnerType.DC2DC]
-    elif starter_mode == 'none':
-        starter_mode = [RunnerType.NONE]
-    else:
-        raise Exception("invalid starter mode: " + starter_mode)
 
-    count = 1
-    for runner_type in starter_mode:
-        assert(runner_type)
+    from arangodb.starter.deployments.cluster_perf import ClusterPerf
+    from arangodb.starter.deployments import RunnerType
+    if len(frontends) > 0:
+        for frontend in frontends:
+            print('remote')
+            h = re.split(split_host, frontend)
+            inst.cfg.add_frontend(h[1], h[2], h[3])
+    inst.cfg.scenario = Path(scenario)
+    runner = ClusterPerf(RunnerType.CLUSTER, inst.cfg, inst, None, None)
+    runner.do_install = do_install
+    runner.do_uninstall = do_uninstall
+    failed = False
+    if not runner.run():
+        failed = True
 
-        runner = make_runner(runner_type, inst.cfg, inst, None)
-        # install on first run:
-        runner.do_install = (count == 1) and do_install
-        # only uninstall after the last test:
-        runner.do_uninstall = (count == len(starter_mode)) and do_uninstall
-        failed = False
-        if not runner.run():
-            failed = True
-
+    if len(frontends) == 0:
         kill_all_processes()
-        count += 1
 
     return ( 0 if not failed else 1 )
 

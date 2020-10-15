@@ -6,10 +6,12 @@
 
 const _ = require('lodash');
 const internal = require('internal')
+const arangodb = require("@arangodb");
 const time = internal.time;
 let db = internal.db;
 let print = internal.print;
 let database = "_system";
+const ERRORS = arangodb.errors;
 
 const optionsDefaults = {
   minReplicationFactor: 1,
@@ -73,7 +75,17 @@ while (count < options.numberOfDBs) {
     print('#ix')
     c = zeroPad(count+options.countOffset);
     databaseName = `${database}_${c}`;
-    db._useDatabase(databaseName);
+    try {
+      db._useDatabase(databaseName);
+    } catch (x) {
+      if (x.errorNum === ERRORS.ERROR_ARANGO_DATABASE_NOT_FOUND.code) {
+        count ++;
+        continue;
+      }
+      else {
+        print(x)
+      }
+    }
   }
   else if (options.numberOfDBs > 1) {
     throw ("must specify a database prefix if want to work with multiple DBs.")

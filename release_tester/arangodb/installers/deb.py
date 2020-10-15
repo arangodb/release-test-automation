@@ -26,13 +26,12 @@ class InstallerDeb(InstallerLinux):
         self.log_examiner = None
 
         # Are those required to be stored in the cfg?
-        cfg.baseTestDir = Path('/tmp')
         cfg.installPrefix = Path("/")
         cfg.bin_dir = cfg.installPrefix / "usr" / "bin"
         cfg.sbin_dir = cfg.installPrefix / "usr" / "sbin"
         cfg.real_bin_dir = cfg.bin_dir
         cfg.real_sbin_dir = cfg.sbin_dir
-        cfg.localhost = 'ip6-localhost'
+        cfg.localhost = 'localhost'
 
         cfg.logDir = Path('/var/log/arangodb3')
         cfg.dbdir = Path('/var/lib/arangodb3')

@@ -33,7 +33,6 @@ class InstallerMac(InstallerBase):
         self.basehomedir = Path.home() / 'Library' / 'ArangoDB'
         self.baseetcdir = Path.home() / 'Library' / 'ArangoDB-etc'
 
-        cfg.baseTestDir = Path('/tmp')
         cfg.installPrefix = None
         cfg.localhost = 'localhost'
         cfg.passvoid = '' # default mac install doesn't set passvoid
