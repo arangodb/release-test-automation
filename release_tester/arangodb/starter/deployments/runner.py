@@ -176,7 +176,7 @@ class Runner(ABC):
             inst.install_package()
             self.cfg.set_directories(inst.cfg)
             lh.subsubsection("checking files")
-            # TODO inst.check_installed_files()
+            inst.check_installed_files()
             lh.subsubsection("saving config")
             inst.save_config()
 
