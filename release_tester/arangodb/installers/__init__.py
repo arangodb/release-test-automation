@@ -23,7 +23,8 @@ class InstallerConfig():
                  test_dir: Path,
                  mode: str,
                  publicip: str,
-                 interactive: bool):
+                 interactive: bool,
+                 stress_upgrade: bool):
         self.publicip = publicip
         self.interactive = interactive
         self.enterprise = enterprise
@@ -36,6 +37,7 @@ class InstallerConfig():
         self.package_dir = package_dir
         self.have_system_service = True
         self.have_debug_package = False
+        self.stress_upgrade = stress_upgrade
 
         self.install_prefix = Path("/")
 

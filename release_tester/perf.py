@@ -96,7 +96,8 @@ def run_test(version, verbose, package_dir, test_data_dir,
                                      Path(test_data_dir),
                                      mode,
                                      publicip,
-                                     interactive)
+                                     interactive,
+                                     False)
 
     split_host = re.compile(r'([a-z]*)://([0-9.:]*):(\d*)')
 

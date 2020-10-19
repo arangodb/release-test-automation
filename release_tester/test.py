@@ -87,7 +87,8 @@ def run_test(version, verbose, package_dir, test_data_dir,
                                      Path(test_data_dir),
                                      mode,
                                      publicip,
-                                     interactive)
+                                     interactive,
+                                     False)
 
     inst = make_installer(install_config)
 

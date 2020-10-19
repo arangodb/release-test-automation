@@ -32,6 +32,7 @@ def run_test(zip):
                                      Path("/"),
                                      "127.0.0.1",
                                      "",
+                                     False,
                                      False)
     inst = make_installer(install_config)
 
