@@ -49,8 +49,10 @@ class Runner(ABC):
         self.new_cfg = new_cfg
         self.cfg = self.basecfg
         self.basecfg.passvoid = ""   # TODO: no passwd support in starter install yet.
+        self.versionstr = ''
         if self.new_cfg:
             self.new_cfg.passvoid = ""   # TODO
+            self.versionstr = "OLD[" + self.cfg.version + "] "
 
         self.basedir = Path(short_name)
 
@@ -95,7 +97,7 @@ class Runner(ABC):
             self.starter_run()
             self.finish_setup()
             self.make_data()
-            ti.prompt_user(self.basecfg, "Deployment started. Please test the UI!")
+            ti.prompt_user(self.basecfg, "{0}{1} Deployment started. Please test the UI!".format((self.versionstr),str(self.name)))
 
             if self.hot_backup:
                 lh.section("TESTING HOTBACKUP")
@@ -119,6 +121,8 @@ class Runner(ABC):
                 self.create_non_backup_data()
 
         if self.new_installer:
+            self.versionstr = "NEW[" + self.new_cfg.version + "] "
+
             lh.section("UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),)
             if self.cfg.have_debug_package == True:
                 print('removing *old* debug package in advance')
@@ -176,7 +180,7 @@ class Runner(ABC):
             inst.install_package()
             self.cfg.set_directories(inst.cfg)
             lh.subsubsection("checking files")
-            # TODO inst.check_installed_files()
+            inst.check_installed_files()
             lh.subsubsection("saving config")
             inst.save_config()
 
@@ -279,12 +283,12 @@ class Runner(ABC):
 
     def jam_attempt(self):
         """ check resilience of setup by obstructing its instances """
-        lh.subsection("{0} - try to jam setup".format(str(self.name)))
+        lh.subsection("{0}{1} - try to jam setup".format(self.versionstr,str(self.name)))
         self.jam_attempt_impl()
 
     def starter_shutdown(self):
         """ stop everything """
-        lh.subsection("{0} - shutdown".format(str(self.name)))
+        lh.subsection("{0}{1} - shutdown".format(self.versionstr,str(self.name)))
 
     @abstractmethod
     def shutdown_impl(self):
