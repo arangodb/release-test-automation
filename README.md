@@ -135,6 +135,7 @@ Supported Parameters:
  - `--httppassvoid` secret for stage http access
  - `--verbose` if specified more logging is done
  - `--force` overwrite readily existing downloaded packages
+ - `--stress-upgrade` run stresstest while attempting the upgrade of [cluster]
 
 example usage:
 `python3 release_tester/acquire_packages.py --enterprise --version '3.7.1-rc.1+0.501' --enterprise-magic <enterprisekey> --package-dir /home/willi/Downloads/ --force --source ftp:stage2`
