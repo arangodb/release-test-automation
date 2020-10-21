@@ -136,7 +136,7 @@ function ReplicationSuite() {
       connectToMaster();
 
       connectToSlave();
-      replication.globalApplier.forget();
+      // replication.globalApplier.forget();
     },
     
     testFuzzGlobal: function() {
