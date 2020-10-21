@@ -83,7 +83,7 @@ while (count < options.numberOfDBs) {
 
     // Check collections:
     progress();
-
+    print(db._collections())
     let c = db._collection(`c_${ccount}`);
     let chash = db._collection(`chash_${ccount}`);
     let cskip = db._collection(`cskip_${ccount}`);
