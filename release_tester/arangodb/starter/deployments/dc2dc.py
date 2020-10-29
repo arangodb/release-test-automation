@@ -151,7 +151,7 @@ class Dc2Dc(Runner):
         time.sleep(60) # TODO: howto detect dc2dc is completely up and running?
 
     def test_setup_impl(self):
-        self.cluster1['instance'].arangosh.create_test_data("dc2dc (post setup - dc1)")
+        # self.cluster1['instance'].arangosh.create_test_data("dc2dc (post setup - dc1)")
         self.cluster1['instance'].arangosh.check_test_data("dc2dc (post setup - dc1)")
         self.sync_manager.check_sync_status(0)
         self.sync_manager.check_sync_status(1)
@@ -163,6 +163,13 @@ class Dc2Dc(Runner):
         self.sync_manager.check_sync_status(1)
         self.sync_manager.get_sync_tasks(0)
         self.sync_manager.get_sync_tasks(1)
+        self.cluster2['instance'].arangosh.check_test_data("dc2dc (post setup - dc2)")
+        if not self.cluster1['instance'].arangosh.run_in_arangosh(
+            Path('test_data/tests/js/server/replication/fuzz/replication-fuzz-global.js'),
+            [],
+            [self.cluster2['instance'].get_frontend().get_public_url('')]
+            ):
+            raise Exception("replication fuzzing test failed")
 
     def upgrade_arangod_version_impl(self):
         """ upgrade this installation """
