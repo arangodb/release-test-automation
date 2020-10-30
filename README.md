@@ -146,6 +146,11 @@ example usage:
 
  - `--zip` switches from system packages to the tar.gz/zip package for the cleanup.
 
+
+# Using [centos6] || [ubuntu16].py to install all the necessary dependency package
+
+`[centos6] || [ubuntu16].py` will try to install all the necessary pacakges to your system in order to run release-test-automation test while deploy into new/fresh machine.
+
 # binaries strip cheking
 
  - Linux (ubuntu|debian|centos|fedora|sles)[deb|rpm|tar.gz] full support.
