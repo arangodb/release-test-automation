@@ -29,6 +29,9 @@ logging.basicConfig(
 @click.option('--package-dir',
               default='/tmp/',
               help='directory to load the packages from.')
+@click.option('--test-data-dir',
+              default='/tmp/',
+              help='directory create databases etc. in.')
 @click.option('--enterprise/--no-enterprise',
               is_flag=True,
               default=False,
@@ -45,11 +48,17 @@ logging.basicConfig(
               default='all',
               help='which starter environments to start - ' +
               '[all|LF|AFO|CL|DC|none].')
+@click.option('--stress-upgrade',
+              is_flag=True,
+              default=False,
+              help='launch arangobench before starting the upgrade')
 @click.option('--publicip',
               default='127.0.0.1',
               help='IP for the click to browser hints.')
-def run_test(old_version, version, verbose, package_dir,
-             enterprise, zip, interactive, starter_mode, publicip):
+def run_test(old_version, version, verbose,
+             package_dir, test_data_dir,
+             enterprise, zip, interactive,
+             starter_mode, stress_upgrade, publicip):
     """ main """
     lh.section("configuration")
     print("old version: " + str(old_version))
@@ -94,18 +103,22 @@ def run_test(old_version, version, verbose, package_dir,
                                              enterprise, 
                                              zip, 
                                              Path(package_dir),
+                                             Path(test_data_dir),
                                              'all',
                                              publicip,
-                                             interactive)
+                                             interactive,
+                                             stress_upgrade)
         old_inst = make_installer(install_config_old)
         install_config_new = InstallerConfig(version,
                                              verbose,
                                              enterprise,
                                              zip,
                                              Path(package_dir),
+                                             Path(test_data_dir),
                                              'all',
                                              publicip,
-                                             interactive)
+                                             interactive,
+                                             stress_upgrade)
         new_inst = make_installer(install_config_new)
 
         runner = None

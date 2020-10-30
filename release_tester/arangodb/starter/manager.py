@@ -17,11 +17,14 @@ from pathlib import Path
 
 import psutil
 
+import http.client as http_client
+import requests
 from tools.asciiprint import ascii_print, print_progress as progress
 from tools.timestamp import timestamp
-from arangodb.instance import ArangodInstance, SyncInstance, InstanceType, AfoServerState
+from arangodb.instance import ArangodInstance, ArangodRemoteInstance, SyncInstance, InstanceType, AfoServerState
 from arangodb.backup import HotBackupConfig, HotBackupManager
 from arangodb.sh import ArangoshExecutor
+from arangodb.bench import ArangoBenchManager
 import tools.loghelper as lh
 
 ON_WINDOWS = (sys.platform == 'win32')
@@ -60,11 +63,13 @@ class StarterManager():
 
         # arg - jwtstr
         self.jwtfile = None
+        self.jwt_header = None
         if jwtStr:
             self.basedir.mkdir(parents=True, exist_ok=True)
             self.jwtfile = self.basedir / 'jwt'
             self.jwtfile.write_text(jwtStr)
             self.moreopts += ['--auth.jwt-secret', str(self.jwtfile)]
+            self.get_jwt_header()
 
         # arg mode
         self.mode = mode
@@ -91,6 +96,7 @@ class StarterManager():
         self.is_master = None
         self.is_leader = False
         self.arangosh = None
+        self.arangobench = None
         self.executor = None # meaning?
         self.sync_master_port = None
         self.coordinator = None # meaning - port
@@ -185,6 +191,37 @@ Starter {0.name}
         self.instance = psutil.Popen(args)
         self.wait_for_logfile()
 
+    def get_jwt_header(self):
+        if self.jwt_header:
+            return self.jwt_header
+        cmd = [self.cfg.bin_dir / 'arangodb',
+               'auth', 'header',
+               '--auth.jwt-secret', str(self.jwtfile)]
+        print(cmd)
+        r = psutil.Popen(cmd,
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        (header, err) = r.communicate()
+        r.wait()
+        print(err)
+        print(len(str(err)))
+        if len(str(err)) > 3:# TODO Y?
+            raise Exception("error invoking the starter to generate the jwt header token! " + str(err))
+        if len(str(header).split(' ')) != 3:
+            raise Exception("failed to parse the output of the header command: " + str(header))
+        self.jwt_header = str(header).split(' ')[2].split('\\')[0]
+
+    def send_request(self, instance_type, verb_method, url, data=None, headers={}):
+        http_client.HTTPConnection.debuglevel = 1
+
+        headers ['Authorization'] = 'Bearer '+ self.jwt_header
+        results = []
+        for instance in self.all_instances:
+            if instance.type == instance_type:
+                base_url = instance.get_public_plain_url()
+                reply = verb_method('http://' + base_url + url, data=data, headers=headers)
+                print(reply.text)
+                results.append(reply)
+        return results
 
     def is_instance_running(self):
         """ check whether this is still running"""
@@ -516,12 +553,24 @@ Starter {0.name}
             instance.detect_pid(ppid=self.instance.pid, full_binary_path=self.cfg.real_sbin_dir)
 
         self.show_all_instances()
+        self.detect_arangosh_instances()
+
+    def detect_arangosh_instances(self):
         if self.arangosh is None:
             self.cfg.port = self.get_frontend_port()
-            self.arangosh = ArangoshExecutor(self.cfg)
+            
+            self.arangosh = ArangoshExecutor(self.cfg, self.get_frontend())
             if self.cfg.enterprise:
                 self.hb_instance = HotBackupManager(self.cfg, self.raw_basedir, self.cfg.baseTestDir / self.raw_basedir)
                 self.hb_config = HotBackupConfig(self.cfg, self.raw_basedir, self.cfg.baseTestDir / self.raw_basedir)
+
+    def launch_arangobench(self, testacse_no):
+        if self.arangobench is None:
+            self.arangobench = ArangoBenchManager(self.cfg, self.get_frontend())
+        self.arangobench.launch(testacse_no)
+
+    def wait_arangobench(self):
+        self.arangobench.wait()
 
     def detect_instance_pids_still_alive(self):
         """ detecting whether the processes the starter spawned are still there """
@@ -593,3 +642,44 @@ Starter {0.name}
             self.is_master = False
             return True
         return False
+
+class StarterNonManager(StarterManager):
+    def __init__(self,
+                 basecfg,
+                 install_prefix, instance_prefix,
+                 expect_instances,
+                 mode=None, port=None, jwtStr=None, moreopts=[]):
+
+        super().__init__(
+            basecfg,
+            install_prefix, instance_prefix,
+            expect_instances,
+            mode, port, jwtStr, moreopts)
+
+        if basecfg.index >= len(basecfg.frontends):
+            basecfg.index = 0;
+        inst = ArangodRemoteInstance('coordinator',
+                                     basecfg.frontends[basecfg.index].port,
+                                     # self.cfg.localhost,
+                                     basecfg.frontends[basecfg.index].ip,
+                                     basecfg.frontends[basecfg.index].ip,
+                                     Path('/'))
+        self.all_instances.append(inst)
+        basecfg.index += 1
+
+    def run_starter(self):
+        pass
+
+    def detect_instances(self):
+        self.detect_arangosh_instances()
+
+    def detect_instance_pids(self):
+        if not self.get_frontends():
+            print("no frontends?")
+            raise Exception("foobar")
+
+    def is_instance_up(self):
+        return True
+
+    def detect_instance_pids(self):
+        pass

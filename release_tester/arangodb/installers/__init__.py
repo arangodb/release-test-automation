@@ -20,9 +20,11 @@ class InstallerConfig():
                  enterprise: bool,
                  zip: bool,
                  package_dir: Path,
+                 test_dir: Path,
                  mode: str,
                  publicip: str,
-                 interactive: bool):
+                 interactive: bool,
+                 stress_upgrade: bool):
         self.publicip = publicip
         self.interactive = interactive
         self.enterprise = enterprise
@@ -35,8 +37,11 @@ class InstallerConfig():
         self.package_dir = package_dir
         self.have_system_service = True
         self.have_debug_package = False
+        self.stress_upgrade = stress_upgrade
 
         self.install_prefix = Path("/")
+
+        self.baseTestDir = test_dir
         self.pwd = Path(os.path.dirname(os.path.realpath(__file__)))
         self.test_data_dir = self.pwd / '..' / '..' / '..' / 'test_data'
 
@@ -65,6 +70,9 @@ class InstallerConfig():
 
     def set_directories(self, other):
         """ set all directories from the other object """
+        if other.baseTestDir is None:
+            raise Exception('baseTestDir: must not copy in None!')
+        self.baseTestDir = other.baseTestDir
         if other.bin_dir is None:
             raise Exception('bin_dir: must not copy in None!')
         self.bin_dir = other.bin_dir
@@ -103,14 +111,6 @@ def make_installer(install_config: InstallerConfig):
         from arangodb.installers.nsis import InstallerW
         return InstallerW(install_config)
 
-    import resource
-    nofd = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
-    if nofd < 10000:
-        raise Exception("please use ulimit -n <count>"
-                        " to adjust the number of allowed filedescriptors"
-                        " to a value greater or eqaul 10000."
-                        " Currently you have set the limit to: " + str(nofd))
-
     macver = platform.mac_ver()
     if macver[0]:
         if install_config.zip:
@@ -132,5 +132,8 @@ def make_installer(install_config: InstallerConfig):
         elif distro[0] in ['centos', 'redhat', 'suse']:
             from arangodb.installers.rpm import InstallerRPM
             return InstallerRPM(install_config)
-        raise Exception('unsupported linux distribution: ' + distro)
+        elif distro[0] in ['alpine']:
+            from arangodb.installers.docker import InstallerDocker
+            return InstallerDocker(install_config)
+        raise Exception('unsupported linux distribution: ' + str(distro))
     raise Exception('unsupported os' + platform.system())

@@ -101,6 +101,9 @@ db.testCollection.save({test: "document"})
                 dbserver.detect_restore_restart()
 
     def upgrade_arangod_version_impl(self):
+        if self.cfg.stress_upgrade:
+            self.starter_instances[0].launch_arangobench(10)
+            self.starter_instances[1].launch_arangobench(15)
         for node in self.starter_instances:
             node.replace_binary_for_upgrade(self.new_cfg)
 
@@ -109,6 +112,9 @@ db.testCollection.save({test: "document"})
 
         self.starter_instances[1].command_upgrade()
         self.starter_instances[1].wait_for_upgrade()
+        if self.cfg.stress_upgrade:
+            self.starter_instances[0].wait_arangobench()
+            self.starter_instances[1].wait_arangobench()
 
     def jam_attempt_impl(self):
         logging.info("stopping instance 2")

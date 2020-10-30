@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-""" run an Tar installer for the Linux/Mac based operating system """
+""" this installer expects to be running inside the arango docker container via derived containers etc. """
 import platform
 import shutil
 import logging
@@ -11,17 +11,10 @@ from arangodb.installers.base import InstallerBase
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 
-class InstallerTAR(InstallerBase):
-    """ install Tar.gz's on Linux/Mac hosts """
+class InstallerDocker(InstallerBase):
+    """ run inside docker """
     def __init__(self, cfg):
-        self.tar = 'tar'
-        macver = platform.mac_ver()
-        if macver[0]:
-            cfg.localhost = 'localhost'
-            self.remote_package_dir  = 'MacOSX'
-        else:
-            self.remote_package_dir  = 'Linux'
-            cfg.localhost = 'ip6-localhost'
+        cfg.localhost = 'ip6-localhost'
 
         self.hot_backup = True
         self.check_stripped = True
@@ -36,12 +29,12 @@ class InstallerTAR(InstallerBase):
         self.semver = semver.VersionInfo.parse(version)
 
         cfg.have_system_service = False
-
+        cfg.baseTestDir = Path('/home/testdata')
         cfg.installPrefix = None
-        cfg.bin_dir = None
-        cfg.sbin_dir = None
-        cfg.real_bin_dir = None
-        cfg.real_sbin_dir = None
+        cfg.bin_dir = Path('/usr/bin')
+        cfg.sbin_dir = Path('/usr/sbin')
+        cfg.real_bin_dir = Path('/usr/bin')
+        cfg.real_sbin_dir = Path('/usr/sbin')
 
         cfg.logDir = Path()
         cfg.dbdir = None
@@ -53,10 +46,6 @@ class InstallerTAR(InstallerBase):
     def calculate_package_names(self):
         enterprise = 'e' if self.cfg.enterprise else ''
         architecture = 'linux'
-        macver = platform.mac_ver()
-        if macver[0]:
-            architecture = 'macos'
-
         semdict = dict(self.cfg.semver.to_dict())
         if semdict['prerelease']:
             semdict['prerelease'] = '-{prerelease}'.format(**semdict)
@@ -70,14 +59,9 @@ class InstallerTAR(InstallerBase):
             "arch" : architecture
         }
 
-        self.server_package = 'arangodb3{ep}-{arch}-{ver}.tar.gz'.format(**self.desc)
+        self.server_package = None
         self.debug_package = None
         self.client_package = None
-        self.cfg.installPrefix = Path("/tmp") / 'arangodb3{ep}-{ver}'.format(**self.desc)
-        self.cfg.bin_dir = self.cfg.installPrefix / "bin"
-        self.cfg.sbin_dir = self.cfg.installPrefix / "usr" / "sbin"  
-        self.cfg.real_bin_dir = self.cfg.installPrefix / "usr" / "bin"
-        self.cfg.real_sbin_dir = self.cfg.sbin_dir
         self.cfg.cfgdir = self.cfg.installPrefix # n/A
         self.cfg.appdir = self.cfg.installPrefix # n/A
         self.cfg.dbdir = self.cfg.installPrefix # n/A
@@ -93,28 +77,13 @@ class InstallerTAR(InstallerBase):
         pass
 
     def upgrade_package(self):
-        """ Tar installer is the same way we did for installing."""
-        self.install_package()
+        pass
 
     def install_package(self):
-        logging.info("installing Arangodb debian Tar package")
-        logging.debug("package dir: {0.cfg.package_dir}- server_package: {0.server_package}".format(self))
-
-        cmd = [self.tar,
-                   '-xzf',
-                   str(self.cfg.package_dir / self.server_package),
-                   '-C',
-                   '/tmp/']
-        lh.log_cmd(cmd)
-        install = psutil.Popen(cmd)
-        if install.wait() != 0:
-            raise Exception("extracting the Archive failed!")
-        print()
-        logging.info('Installation successfull')
+        logging.info("not installing anything.")
 
     def un_install_package(self):
-        if self.cfg.installPrefix.exists():
-            shutil.rmtree(self.cfg.installPrefix)
+        pass
 
     def broadcast_bind(self):
         pass

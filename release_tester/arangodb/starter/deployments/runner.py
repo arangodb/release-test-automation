@@ -11,11 +11,14 @@ import shutil
 import tools.loghelper as lh
 import tools.errorhelper as eh
 import tools.interact as ti
+import requests
+import platform
 
 from arangodb.installers.base import InstallerBase
 from arangodb.installers import InstallerConfig
 from arangodb.sh import ArangoshExecutor
 from tools.killall import kill_all_processes
+from arangodb.instance import InstanceType
 
 
 class Runner(ABC):
@@ -46,8 +49,10 @@ class Runner(ABC):
         self.new_cfg = new_cfg
         self.cfg = self.basecfg
         self.basecfg.passvoid = ""   # TODO: no passwd support in starter install yet.
+        self.versionstr = ''
         if self.new_cfg:
             self.new_cfg.passvoid = ""   # TODO
+            self.versionstr = "OLD[" + self.cfg.version + "] "
 
         self.basedir = Path(short_name)
 
@@ -66,10 +71,15 @@ class Runner(ABC):
         #replacement for run function
         self.runner_run_replacement = None
 
-        self.cleanup()
+        self.remote = len(self.basecfg.frontends) > 0
+        if not self.remote:
+            self.cleanup()
 
     def run(self):
         """ run the full lifecycle flow of this deployment """
+        if self.do_starter_test and not self.remote:
+            self.detect_file_ulimit()
+
         lh.section("Runner of type {0}".format(str(self.name)), "<3")
 
         if self.runner_run_replacement:
@@ -87,7 +97,7 @@ class Runner(ABC):
             self.starter_run()
             self.finish_setup()
             self.make_data()
-            ti.prompt_user(self.basecfg, "Deployment started. Please test the UI!")
+            ti.prompt_user(self.basecfg, "{0}{1} Deployment started. Please test the UI!".format((self.versionstr),str(self.name)))
 
             if self.hot_backup:
                 lh.section("TESTING HOTBACKUP")
@@ -111,6 +121,8 @@ class Runner(ABC):
                 self.create_non_backup_data()
 
         if self.new_installer:
+            self.versionstr = "NEW[" + self.new_cfg.version + "] "
+
             lh.section("UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),)
             if self.cfg.have_debug_package == True:
                 print('removing *old* debug package in advance')
@@ -197,10 +209,11 @@ class Runner(ABC):
             inst.stop_service()
         inst.start_service()
         
-        sys_arangosh = ArangoshExecutor(inst.cfg)
+        sys_arangosh = ArangoshExecutor(inst.cfg, inst.instance)
 
         logging.debug("self test after installation")
-        sys_arangosh.self_test()
+        if inst.cfg.have_system_service:
+            sys_arangosh.self_test()
 
         if self.do_system_test:
             sys_arangosh.js_version_check()
@@ -270,12 +283,12 @@ class Runner(ABC):
 
     def jam_attempt(self):
         """ check resilience of setup by obstructing its instances """
-        lh.subsection("{0} - try to jam setup".format(str(self.name)))
+        lh.subsection("{0}{1} - try to jam setup".format(self.versionstr,str(self.name)))
         self.jam_attempt_impl()
 
     def starter_shutdown(self):
         """ stop everything """
-        lh.subsection("{0} - shutdown".format(str(self.name)))
+        lh.subsection("{0}{1} - shutdown".format(self.versionstr,str(self.name)))
 
     @abstractmethod
     def shutdown_impl(self):
@@ -458,3 +471,33 @@ class Runner(ABC):
         testdir = self.basecfg.baseTestDir / self.basedir
         if testdir.exists():
             shutil.rmtree(testdir)
+
+    def detect_file_ulimit(self):
+        winver = platform.win32_ver()
+        if not winver[0]:
+            import resource
+            nofd = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
+            if nofd < 10000:
+                raise Exception("please use ulimit -n <count>"
+                                " to adjust the number of allowed filedescriptors"
+                                " to a value greater or eqaul 10000."
+                                " Currently you have set the limit to: " + str(nofd))
+
+    def agency_set_debug_logging(self):
+        for starter_mgr in self.starter_instances:
+            starter_mgr.send_request(InstanceType.agent,
+                                     requests.put,
+                                     '/_admin/log/level',
+                                     '{"agency":"debug", "requests":"trace", "cluster":"debug", "maintainance":"debug"}');
+    def dbserver_set_debug_logging(self):
+        for starter_mgr in self.starter_instances:
+            starter_mgr.send_request(InstanceType.dbserver,
+                                     requests.put,
+                                     '/_admin/log/level',
+                                     '{"agency":"debug", "requests":"trace", "cluster":"debug", "maintainance":"debug"}');
+    def coordinator_set_debug_logging(self):
+        for starter_mgr in self.starter_instances:
+            starter_mgr.send_request(InstanceType.coordinator,
+                                     requests.put,
+                                     '/_admin/log/level',
+                                     '{"agency":"debug", "requests":"trace", "cluster":"debug", "maintainance":"debug"}');
