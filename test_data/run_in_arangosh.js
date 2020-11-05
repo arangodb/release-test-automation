@@ -7,9 +7,17 @@ const internal = require('internal');
 const platform = internal.platform;
 
 const makeDirectoryRecursive = require('fs').makeDirectoryRecursive;
-const killRemainingProcesses = require('@arangodb/process-utils').killRemainingProcesses;
-const SetGlobalExecutionDeadlineTo = require('internal').SetGlobalExecutionDeadlineTo;
+let killRemainingProcesses = require('@arangodb/process-utils').killRemainingProcesses;
+let SetGlobalExecutionDeadlineTo = require('internal').SetGlobalExecutionDeadlineTo;
 const inspect = internal.inspect;
+
+// backwartscompadummity:
+if (SetGlobalExecutionDeadlineTo === undefined) {
+  SetGlobalExecutionDeadlineTo = function(){};
+}
+if (killRemainingProcesses === undefined) {
+  killRemainingProcesses = function(){};
+}
 
 const optionsDefaults = {
   'dumpAgencyOnError': false,
@@ -227,7 +235,6 @@ function main (argv) {
   });
   print(result)
   killRemainingProcesses(result);
-
 
   return result.status;
 }
