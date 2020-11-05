@@ -138,7 +138,7 @@ class BinaryDescription():
             return True
         if output.find(', not stripped') >= 0:
             return False
-        raise Exception("parse error for '" + str(self.path) + "' - [" + output + "]")
+        raise Exception("Strip checking: parse error for 'file " + str(self.path) + "', unparseable output:  [" + output + "]")
 
     def check_stripped(self):
         """ check whether this file is stripped (or not) """
