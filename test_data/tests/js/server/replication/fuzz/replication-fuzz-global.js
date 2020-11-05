@@ -149,6 +149,7 @@ function ReplicationSuite() {
           printed = true;
         }
         internal.wait(0.5, false);
+        db._flushCache();
       }
     }
     db._flushCache();
