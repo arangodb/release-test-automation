@@ -36,9 +36,10 @@ def run_test(zip):
                                      False)
     inst = make_installer(install_config)
 
-    inst.load_config()
-    inst.cfg.interactive = False
-    inst.stop_service()
+    if inst.calc_config_file_name().is_file():
+        inst.load_config()
+        inst.cfg.interactive = False
+        inst.stop_service()
     kill_all_processes()
     kill_all_processes()
     starter_mode = [RunnerType.LEADER_FOLLOWER,
@@ -50,11 +51,14 @@ def run_test(zip):
 
         runner = make_runner(runner_type, inst.cfg, inst, None)
         runner.cleanup()
-    try:
-        inst.un_install_debug_package()
-    except:
-        print('nothing to uninstall')
-    inst.un_install_package()
+    if inst.calc_config_file_name().is_file():
+        try:
+            inst.un_install_debug_package()
+        except:
+            print('nothing to uninstall')
+        inst.un_install_package()
+    else:
+        print('Cannot uninstall package without config.yml!')
     inst.cleanup_system()
 
 
