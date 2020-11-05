@@ -518,7 +518,7 @@ function ReplicationSuite() {
           print(JSON.stringify(state.state))
 
           const diff = (diffMe, diffBy) => diffMe.split(diffBy).join('');
-          assertEqual(total, state.state, diff(B, A));
+          assertEqual(total, state.state, diff(total, state.state));
         }
       );
     }
