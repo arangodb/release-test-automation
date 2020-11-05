@@ -103,7 +103,11 @@ function ReplicationSuite() {
       state.lastLogTick = replication.logger.state().state.lastUncommittedLogTick;
     } else {
       state.lastLogTick = 0;
-      db._collections().forEach(col => state.lastLogTick += col.count());
+      db._collections().forEach(col => {
+        if (col.name()[0] !== '_') {
+          state.lastLogTick += col.count();
+        }
+      });
     }
 
     db._useDatabase("_system");
@@ -115,10 +119,16 @@ function ReplicationSuite() {
       while ((lastLogTick != state.lastLogTick) && (count < 500)) {
         lastLogTick = 0;
         count += 1;
-        db._collections().forEach(col => lastLogTick += col.count());
+        db._collections().forEach(col => {
+          if (col.name()[0] !== '_') {
+            lastLogTick += col.count();
+          }
+        });
+
         if (lastLogTick != state.lastLogTick) {
           print('.');
           internal.wait(1);
+          db._flushCache();
         }
       }
     } else {
@@ -149,7 +159,6 @@ function ReplicationSuite() {
           printed = true;
         }
         internal.wait(0.5, false);
-        db._flushCache();
       }
     }
     db._flushCache();
