@@ -170,6 +170,8 @@ class Dc2Dc(Runner):
             [self.cluster2['instance'].get_frontend().get_public_url('')]
             ):
             raise Exception("replication fuzzing test failed")
+        if not self.sync_manager.check_sync():
+            raise Exception("failed to get the sync status")
 
     def upgrade_arangod_version_impl(self):
         """ upgrade this installation """
