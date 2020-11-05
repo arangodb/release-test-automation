@@ -105,7 +105,7 @@ function ReplicationSuite() {
       state.lastLogTick = 0;
       db._collections().forEach(col => {
         if (col.name()[0] !== '_') {
-          state.lastLogTick += col.count();
+          state.lastLogTick += col.count() + 1;
         }
       });
     }
@@ -121,7 +121,7 @@ function ReplicationSuite() {
         count += 1;
         db._collections().forEach(col => {
           if (col.name()[0] !== '_') {
-            lastLogTick += col.count();
+            lastLogTick += col.count() + 1;
           }
         });
 
@@ -486,10 +486,10 @@ function ReplicationSuite() {
             db._useDatabase(d);
 
             db._collections().filter(function(c) { return c.name()[0] !== '_'; }).forEach(function(c) {
-              total += c.name() + "-" + c.count() + "-" + collectionChecksum(c.name());
+              total += " " + c.name() + "-" + c.count() + "-" + collectionChecksum(c.name());
               c.indexes().forEach(function(index) {
                 delete index.selectivityEstimate;
-                total += index.type + "-" + JSON.stringify(index.fields);
+                total += " " + index.type + "-" + JSON.stringify(index.fields);
               });
             });
           });
@@ -506,17 +506,19 @@ function ReplicationSuite() {
             db._useDatabase(d);
 
             db._collections().filter(function(c) { return c.name()[0] !== '_'; }).forEach(function(c) {
-              total += c.name() + "-" + c.count() + "-" + collectionChecksum(c.name());
+              total += " " + c.name() + "-" + c.count() + "-" + collectionChecksum(c.name());
               c.indexes().forEach(function(index) {
                 delete index.selectivityEstimate;
-                total += index.type + "-" + JSON.stringify(index.fields);
+                total += " " + index.type + "-" + JSON.stringify(index.fields);
               });
             });
           });
 
           print(JSON.stringify(total))
           print(JSON.stringify(state.state))
-          assertEqual(total, state.state);
+
+          const diff = (diffMe, diffBy) => diffMe.split(diffBy).join('');
+          assertEqual(total, state.state, diff(B, A));
         }
       );
     }
