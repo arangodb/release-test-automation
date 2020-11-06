@@ -1,0 +1,3 @@
+requests: 500
+concurrency: 3
+test-case: multitrx

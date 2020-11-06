@@ -102,8 +102,8 @@ db.testCollection.save({test: "document"})
 
     def upgrade_arangod_version_impl(self):
         if self.cfg.stress_upgrade:
-            self.starter_instances[0].launch_arangobench(10)
-            self.starter_instances[1].launch_arangobench(15)
+            self.starter_instances[0].launch_arangobench('cluster_upgrade_scenario_1')
+            self.starter_instances[1].launch_arangobench('cluster_upgrade_scenario_2')
         for node in self.starter_instances:
             node.replace_binary_for_upgrade(self.new_cfg)
 
