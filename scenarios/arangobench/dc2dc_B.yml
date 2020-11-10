@@ -7,3 +7,4 @@ replication-factor: 2
 requests: 1000 
 test-case: aqlv8 
 server.database: B3
+create-database: true

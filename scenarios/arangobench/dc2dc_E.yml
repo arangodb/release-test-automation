@@ -7,3 +7,4 @@ replication-factor: 3
 requests: 10000 
 test-case: multitrx 
 server.database: E3
+create-database: true

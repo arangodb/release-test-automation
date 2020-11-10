@@ -7,3 +7,4 @@ replication-factor: 2
 requests: 1000 
 test-case: crud-write-read 
 server.database: F3
+create-database: true

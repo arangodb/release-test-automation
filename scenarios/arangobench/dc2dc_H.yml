@@ -7,3 +7,4 @@ replication-factor: 1
 requests: 1000 
 test-case: document 
 server.database: H3
+create-database: true

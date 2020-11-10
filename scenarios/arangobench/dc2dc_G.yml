@@ -7,3 +7,4 @@ replication-factor: 2
 requests: 100000 
 test-case: multi-collection 
 server.database: G3
+create-database: true
