@@ -564,9 +564,9 @@ Starter {0.name}
                 self.hb_instance = HotBackupManager(self.cfg, self.raw_basedir, self.cfg.baseTestDir / self.raw_basedir)
                 self.hb_config = HotBackupConfig(self.cfg, self.raw_basedir, self.cfg.baseTestDir / self.raw_basedir)
 
-    def launch_arangobench(self, testacse_no):
+    def launch_arangobench(self, testacse_no, moreopts = []):
         arangobench = ArangoBenchManager(self.cfg, self.get_frontend())
-        arangobench.launch(testacse_no)
+        arangobench.launch(testacse_no, moreopts)
         return arangobench
 
     def detect_instance_pids_still_alive(self):

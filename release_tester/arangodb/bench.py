@@ -16,7 +16,12 @@ def load_scenarios():
     for one_yaml in yamldir.iterdir():
         if one_yaml.is_file():
             with open(one_yaml) as fileh:
-                BENCH_TODOS[one_yaml.name[:-4]] = yaml.load(fileh, Loader=yaml.Loader)
+                obj = yaml.load(fileh, Loader=yaml.Loader)
+                for key in obj.keys():
+                    if type(obj[key])==bool:
+                        print("boooooooooooooooooooool!")
+                        obj[key] = "true" if obj[key] else "false"
+                BENCH_TODOS[one_yaml.name[:-4]] = obj
 
 class ArangoBenchManager():
     """ manages one arangobackup instance"""
@@ -25,6 +30,7 @@ class ArangoBenchManager():
 
         self.cfg = basecfg
         self.moreopts = [
+            '-configuration', 'none',
             '--server.endpoint', self.connect_instance.get_endpoint(),
             '--server.username', str(self.cfg.username),
             '--server.password', str(self.cfg.passvoid),
@@ -33,26 +39,26 @@ class ArangoBenchManager():
             '--log.force-direct', 'true', '--log.foreground-tty', 'true'
         ]
         if self.cfg.verbose:
-            self.moreopts += ["--log.level=debug"]
+            self.moreopts += ['--log.level', 'debug']
 
         self.username = 'testuser'
         self.passvoid = 'testpassvoid'
         self.instance = None
 
-    def launch(self, testcase_no):
+    def launch(self, testcase_no, moreopts = []):
         """ run arangobench """
         testcase = BENCH_TODOS[testcase_no]
-        arguments = [self.cfg.bin_dir / 'arangobench'] + self.moreopts
+        arguments = [self.cfg.real_bin_dir / 'arangobench'] + self.moreopts + moreopts
         for key in testcase.keys():
             arguments.append('--' + key)
             arguments.append(str(testcase[key]))
 
         if self.cfg.verbose:
             lh.log_cmd(arguments)
-
+        self.arguments = arguments
         self.instance = psutil.Popen(arguments)
         print("az"*40)
 
     def wait(self):
         """ wait for our instance to finish """
-        self.instance.wait()
+        return self.instance.wait() == 0
