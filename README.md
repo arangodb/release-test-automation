@@ -78,6 +78,7 @@ Supported Parameters:
    - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
    - `DC` - setup 2 clusters, connect them with arangosync (enterprise only)
+   - `DCendurance` - use DC setup to launch long running arangobenches
  - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
  - `--verbose` if specified more logging is done
 
@@ -164,7 +165,7 @@ example usage:
  - `release_tester/arangodb/sync.py` manage arangosync invocations
  - `release_tester/arangodb/backup.py` manage arangobackup invocations
  - `release_tester/arangodb/starter/manager.py` manage one starter instance and get information about its launched processes
- - `release_tester/arangodb/starter/deployments/[runner|leaderfolower|cluster|activefailover|dc2dc].py` set up one of [Leader/Follower | Active Failover | Cluster | DC2DC]
+ - `release_tester/arangodb/starter/deployments/[runner|leaderfolower|activefailover|cluster|cluster_perf|dc2dc|dc2dcendurance].py` set up one of [Leader/Follower | Active Failover | Cluster Cluster_Perf | DC2DC | DCendurance]
  - `release_tester/tools` several utility functions
  - `test_data` - the famous makedata suite
  - `attic_snippets` - trial and error scripts of start phase, utility functions like killall for mac/windows for manual invocation
@@ -327,3 +328,10 @@ Running the docker container, parametrizing the connection endpoints of the clus
 ```
 docker run test:latest --frontends tcp://192.168.173.88:9629 --frontends tcp://192.168.173.88:9729 --frontends tcp://192.168.173.88:9529 --scenario scenarios/cluster_replicated.yml
 ```
+
+
+
+## Wikipedia dump tests
+These tests use the CSV data from the wikip
+ http://home.apache.org/~mikemccand/enwiki-20120502-lines-1k.txt.lzma
+

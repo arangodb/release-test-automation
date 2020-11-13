@@ -21,7 +21,7 @@ class InstallerTAR(InstallerBase):
             self.remote_package_dir  = 'MacOSX'
         else:
             self.remote_package_dir  = 'Linux'
-            cfg.localhost = 'ip6-localhost'
+            cfg.localhost = 'localhost'
 
         self.hot_backup = True
         self.check_stripped = True

@@ -15,7 +15,7 @@ class RunnerType(Enum):
     ACTIVE_FAILOVER = 2
     CLUSTER = 3
     DC2DC = 4
-
+    DC2DCENDURANCE = 5
 
 #pylint: disable=import-outside-toplevel
 def make_runner(runner_type:RunnerType,
@@ -47,6 +47,10 @@ def make_runner(runner_type:RunnerType,
     if runner_type == RunnerType.DC2DC:
         from arangodb.starter.deployments.dc2dc import Dc2Dc
         return Dc2Dc(*args)
+    
+    if runner_type == RunnerType.DC2DCENDURANCE:
+        from arangodb.starter.deployments.dc2dc_endurance import Dc2DcEndurance
+        return Dc2DcEndurance(*args)
 
     if runner_type == RunnerType.NONE:
         from arangodb.starter.deployments.none import NoStarter

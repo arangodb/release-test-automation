@@ -47,7 +47,7 @@ logging.basicConfig(
 @click.option('--starter-mode',
               default='all',
               help='which starter deployments modes to use - ' +
-              '[all|LF|AFO|CL|DC|none].')
+              '[all|LF|AFO|CL|DC|DCEndurance|none].')
 @click.option('--publicip',
               default='127.0.0.1',
               help='IP for the click to browser hints.')
@@ -106,6 +106,8 @@ def run_test(version, verbose, package_dir, test_data_dir,
         starter_mode = [RunnerType.CLUSTER]
     elif starter_mode == 'DC':
         starter_mode = [RunnerType.DC2DC]
+    elif starter_mode == 'DCendurance':
+        starter_mode = [RunnerType.DC2DCENDURANCE]
     elif starter_mode == 'none':
         starter_mode = [RunnerType.NONE]
     else:

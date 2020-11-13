@@ -1,0 +1,4 @@
+requests: 20000
+concurrency: 1
+test-case: version
+async: true

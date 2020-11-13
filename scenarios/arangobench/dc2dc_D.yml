@@ -1,0 +1,10 @@
+async: false 
+batch-size: 0 
+complexity: 1 
+concurrency: 8 
+number-of-shards: 1 
+replication-factor: 1 
+requests: 1000 
+test-case: edge 
+server.database: D3
+create-database: true

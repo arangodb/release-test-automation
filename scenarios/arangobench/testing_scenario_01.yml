@@ -1,0 +1,4 @@
+requests: 10000
+concurrency: 2
+test-case: version
+keep-alive: false

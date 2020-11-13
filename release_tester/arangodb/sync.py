@@ -85,3 +85,18 @@ class SyncManager():
         ]
         logging.info('SyncManager: stopping sync : %s', str(args))
         psutil.Popen(args).wait()
+
+    def check_sync(self):
+        """ run the stop sync command """
+        args = [
+            self.cfg.bin_dir / 'arangosync',
+            'check', 'sync',
+            '--master.cacert=' + str(self.ca["cert"]),
+            '--master.endpoint=https://{url}:{port}'.format(
+                url=self.cfg.publicip,
+                port=str(self.clusterports[0])),
+            '--auth.keyfile=' + str(self.ca["clientkeyfile"])
+        ]
+        logging.info('SyncManager: checking sync status : %s', str(args))
+        return psutil.Popen(args).wait() == 0
+        
