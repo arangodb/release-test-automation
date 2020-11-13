@@ -19,7 +19,6 @@ def load_scenarios():
                 obj = yaml.load(fileh, Loader=yaml.Loader)
                 for key in obj.keys():
                     if type(obj[key])==bool:
-                        print("boooooooooooooooooooool!")
                         obj[key] = "true" if obj[key] else "false"
                 BENCH_TODOS[one_yaml.name[:-4]] = obj
 
