@@ -1,5 +1,5 @@
 /*jshint globalstrict:false, strict:false, unused: false */
-/*global assertEqual, assertTrue, arango, ARGUMENTS */
+/*global assertEqual, assertTrue, arango, print, ARGUMENTS */
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief test the replication
@@ -39,8 +39,8 @@ var console = require("console");
 var internal = require("internal");
 var masterEndpoint = arango.getEndpoint();
 const slaveEndpoint = ARGUMENTS[ARGUMENTS.length - 1];
-var isCluster = arango.getRole() == 'COORDINATOR';
-var isSingle = arango.getRole() == 'SINGLE';
+var isCluster = arango.getRole() === 'COORDINATOR';
+var isSingle = arango.getRole() === 'SINGLE';
 const havePreconfiguredReplication = isSingle && replication.globalApplier.stateAll()["_system"].state.running === false;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -115,7 +115,7 @@ function ReplicationSuite() {
     if (isCluster) {
       let count = 0;
       let lastLogTick = 0;
-      while ((lastLogTick != state.lastLogTick) && (count < 500)) {
+      while ((lastLogTick !== state.lastLogTick) && (count < 500)) {
         lastLogTick = 0;
         count += 1;
         db._collections().forEach(col => {
@@ -124,7 +124,7 @@ function ReplicationSuite() {
           }
         });
 
-        if (lastLogTick != state.lastLogTick) {
+        if (lastLogTick !== state.lastLogTick) {
           print('.');
           internal.wait(1);
           db._flushCache();
