@@ -41,6 +41,7 @@ var masterEndpoint = arango.getEndpoint();
 const slaveEndpoint = ARGUMENTS[ARGUMENTS.length - 1];
 var isCluster = arango.getRole() == 'COORDINATOR';
 var isSingle = arango.getRole() == 'SINGLE';
+const havePreconfiguredReplication = isSingle && replication.globalApplier.stateAll()["_system"].state.running === false;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief test suite
@@ -51,13 +52,11 @@ function ReplicationSuite() {
   var cn = "UnitTestsReplication";
 
   var connectToMaster = function() {
-    print('=> master')
     reconnectRetry(masterEndpoint, db._name(), "root", "");
     db._flushCache();
   };
 
   var connectToSlave = function() {
-    print('=> slave')
     reconnectRetry(slaveEndpoint, db._name(), "root", "");
     db._flushCache();
   };
@@ -65,7 +64,6 @@ function ReplicationSuite() {
   var collectionChecksum = function(name) {
     if (isCluster) {
       let csa = db._query('RETURN md5(FOR doc IN @@col SORT doc._key RETURN [doc._key, doc._rev])', {'@col':name}).toArray();
-      print(csa)
       return csa[0];
     } else {
       return db._collection(name).checksum(false, true).checksum;
@@ -81,18 +79,19 @@ function ReplicationSuite() {
     db._flushCache();
     if (isSingle) {
       connectToSlave();
-
-      let syncResult = replication.setupReplicationGlobal({
-        endpoint: masterEndpoint,
-        username: "root",
-        password: "",
-        verbose: true,
-        includeSystem: false,
-        requireFromPresent: true,
-        incremental: true,
-        autoResync: true,
-        autoResyncRetries: 5
-      });
+      if (!havePreconfiguredReplication) {
+        let syncResult = replication.setupReplicationGlobal({
+          endpoint: masterEndpoint,
+          username: "root",
+          password: "",
+          verbose: true,
+          includeSystem: false,
+          requireFromPresent: true,
+          incremental: true,
+          autoResync: true,
+          autoResyncRetries: 5
+        });
+      }
     }
     let state = {};
     connectToMaster();
@@ -173,10 +172,11 @@ function ReplicationSuite() {
 
     tearDown: function() {
       db._useDatabase("_system");
-      if (isSingle) {
-        connectToMaster();
+      connectToMaster();
 
-        connectToSlave();
+      connectToSlave();
+      if (isSingle && !havePreconfiguredReplication) {
+        print("deleting replication");
         replication.globalApplier.forget();
       }
     },
@@ -381,7 +381,6 @@ function ReplicationSuite() {
           
           let createCollection = function() {
             let name = "test" + internal.genRandomAlphaNumbers(16) + Date.now();
-            print("creating: " + name)
             return db._create(name);
           };
           
@@ -513,9 +512,6 @@ function ReplicationSuite() {
               });
             });
           });
-
-          print(JSON.stringify(total))
-          print(JSON.stringify(state.state))
 
           const diff = (diffMe, diffBy) => diffMe.split(diffBy).join('');
           assertEqual(total, state.state, diff(total, state.state));
