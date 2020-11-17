@@ -7,6 +7,7 @@ def get_all_processes():
     """ fetch all possible running processes that we may have spawned """
     arangods = []
     arangodbs = []
+    arangobenchs = []
     arangosyncs = []
     logging.info("searching for leftover processes")
     for process in psutil.process_iter(['pid', 'name']):
@@ -18,9 +19,12 @@ def get_all_processes():
                 arangods.append(psutil.Process(process.pid))
             elif name.startswith('arangosync'):
                 arangosyncs.append(psutil.Process(process.pid))
+            elif name.startswith('arangobench'):
+                arangobenchs.append(psutil.Process(process.pid))
+
         except Exception as ex:
             logging.error(ex)
-    return arangodbs + arangosyncs + arangods
+    return arangodbs + arangosyncs + arangods + arangobenchs
 
 def kill_all_processes():
     """killall arangod arangodb arangosync """

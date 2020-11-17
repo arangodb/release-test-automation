@@ -130,14 +130,15 @@ class ArangoshExecutor():
         logging.debug("exitcode {0}".format(exitcode))
         return exitcode == 0
 
-    def run_script_monitored(self, cmd, args, timeout, result_line, verbose=True):
+    def run_script_monitored(self, cmd, args, timeout, result_line, process_control=False, verbose=True):
         run_cmd = [
             self.cfg.bin_dir / "arangosh",
             "--server.endpoint", self.connect_instance.get_endpoint(),
             "--log.level", "v8=debug",
             "--log.foreground-tty", "true"
         ]
-
+        if process_control:
+            run_cmd += ['--javascript.allow-external-process-control', 'true']
         run_cmd += [ "--server.username", str(self.cfg.username) ]
         run_cmd += [ "--server.password", str(self.cfg.passvoid) ]
 
@@ -195,6 +196,7 @@ class ArangoshExecutor():
             print(" TIMEOUT OCCURED!")
             p.kill()
         rc = p.wait()
+        print(rc)
         t1.join()
         t2.join()
         if have_timeout or rc != 0:
@@ -293,6 +295,35 @@ class ArangoshExecutor():
         logging.debug("data check result: " + str(res))
         
         return res
+
+    def run_in_arangosh(self, testname, args=[], moreargs=[], result_line=dummy_line_result, timeout=100):
+        """ deploy testdata into the instance """
+        if testname:
+            logging.info("adding test data for {0}".format(testname))
+        else:
+            logging.info("adding test data")
+
+        ret = None
+
+        try:
+            cwd = Path.cwd()
+            (cwd / '3rdParty').mkdir()
+            (cwd / 'arangosh').mkdir()
+            (cwd / 'arangod').mkdir()
+            (cwd / 'tests').mkdir()
+        except:
+            pass
+        ret = self.run_script_monitored(cmd=[
+            'setting up test data',
+            self.cfg.test_data_dir / 'run_in_arangosh.js'],
+                                        args = [testname] + args + [
+                                            '--args'
+                                        ] + moreargs,
+                                        timeout=timeout,
+                                        result_line=result_line,
+                                        process_control=True,
+                                        verbose=self.cfg.verbose)
+        return ret
 
     def create_test_data(self, testname, args=[], result_line=dummy_line_result, timeout=100):
         """ deploy testdata into the instance """

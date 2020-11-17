@@ -1,0 +1,10 @@
+async: false 
+batch-size: 1000 
+complexity: 5 
+concurrency: 4 
+number-of-shards: 9 
+replication-factor: 3 
+requests: 1000 
+test-case: aqlinsert 
+server.database: A3
+create-database: true

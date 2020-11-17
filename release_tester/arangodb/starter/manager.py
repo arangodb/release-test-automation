@@ -564,13 +564,10 @@ Starter {0.name}
                 self.hb_instance = HotBackupManager(self.cfg, self.raw_basedir, self.cfg.baseTestDir / self.raw_basedir)
                 self.hb_config = HotBackupConfig(self.cfg, self.raw_basedir, self.cfg.baseTestDir / self.raw_basedir)
 
-    def launch_arangobench(self, testacse_no):
-        if self.arangobench is None:
-            self.arangobench = ArangoBenchManager(self.cfg, self.get_frontend())
-        self.arangobench.launch(testacse_no)
-
-    def wait_arangobench(self):
-        self.arangobench.wait()
+    def launch_arangobench(self, testacse_no, moreopts = []):
+        arangobench = ArangoBenchManager(self.cfg, self.get_frontend())
+        arangobench.launch(testacse_no, moreopts)
+        return arangobench
 
     def detect_instance_pids_still_alive(self):
         """ detecting whether the processes the starter spawned are still there """

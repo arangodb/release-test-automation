@@ -171,6 +171,7 @@ def acquire_package(version, verbose, package_dir, enterprise, enterprise_magic,
                           Path("/"),
                           "",
                           "127.0.0.1",
+                          False,
                           False)
 
     inst = make_installer(cfg)

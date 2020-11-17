@@ -2,6 +2,7 @@
 """ launch and manage an arango deployment using the starter"""
 import time
 import logging
+from pathlib import Path
 from tools.killall import get_all_processes
 from arangodb.starter.manager import StarterManager
 from arangodb.instance import InstanceType
@@ -115,7 +116,12 @@ process.exit(0);
 
         # add instace where makedata will be run on
         self.makedata_instances.append(self.leader_starter_instance)
-
+        if not self.leader_starter_instance.arangosh.run_in_arangosh(
+            Path('test_data/tests/js/server/replication/fuzz/replication-fuzz-global.js'),
+            [],
+            [self.follower_starter_instance.get_frontend().get_public_url('')]
+            ):
+            raise Exception("replication fuzzing test failed")
 
     def test_setup_impl(self):
         logging.info("testing the leader/follower setup")
@@ -159,6 +165,7 @@ process.exit(0);
 
     def jam_attempt_impl(self):
         logging.info("not implemented skipping")
+        
 
     def shutdown_impl(self):
         self.leader_starter_instance.terminate_instance()

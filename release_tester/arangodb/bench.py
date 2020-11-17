@@ -2,126 +2,34 @@
 """ Manage one instance of the arangobench
 """
 
-import logging
-import json
-import re
-import subprocess
-import time
+import pathlib
 
 import psutil
+import yaml
 
-from tools.asciiprint import ascii_print, print_progress as progress
 import tools.loghelper as lh
 
-benchTodos = [{
-  'requests': '10000',
-  'concurrency': '2',
-  'test-case': 'version',
-  'keep-alive': 'false'
-}, {
-  'requests': '10000',
-  'concurrency': '2',
-  'test-case': 'version',
-  'async': 'true'
-}, {
-  'requests': '20000',
-  'concurrency': '1',
-  'test-case': 'version',
-  'async': 'true'
-}, {
-  'requests': '10000',
-  'concurrency': '3',
-  'test-case': 'stream-cursor',
-  'complexity': '4'
-}, {
-  'requests': '100000',
-  'concurrency': '2',
-  'test-case': 'shapes',
-  'batch-size': '16',
-  'complexity': '2'
-}, {
-  'requests': '100000',
-  'concurrency': '2',
-  'test-case': 'shapes-append',
-  'batch-size': '16',
-  'complexity': '4'
-}, {
-  'requests': '100000',
-  'concurrency': '2',
-  'test-case': 'random-shapes',
-  'batch-size': '16',
-  'complexity': '2'
-}, {
-  'requests': '1000',
-  'concurrency': '2',
-  'test-case': 'version',
-  'batch-size': '16'
-}, {
-  'requests': '100',
-  'concurrency': '1',
-  'test-case': 'version',
-  'batch-size': '0'
-}, {
-  'requests': '100',
-  'concurrency': '2',
-  'test-case': 'document',
-  'batch-size': '10',
-  'complexity': '1'
-}, { # this one
-  'requests': '4000000',
-  'concurrency': '2',
-  'test-case': 'crud',
-  'complexity': '1'
-}, {
-  'requests': '4000',
-  'concurrency': '2',
-  'test-case': 'crud-append',
-  'complexity': '4'
-}, {
-  'requests': '4000',
-  'concurrency': '2',
-  'test-case': 'edge',
-  'complexity': '4'
-}, {
-  'requests': '5000',
-  'concurrency': '2',
-  'test-case': 'hash',
-  'complexity': '1'
-}, {
-  'requests': '5000',
-  'concurrency': '2',
-  'test-case': 'skiplist',
-  'complexity': '1'
-}, { # this one
-  'requests': '500000',
-  'concurrency': '3',
-  'test-case': 'aqltrx',
-  'complexity': '1',
-}, {
-  'requests': '1000',
-  'concurrency': '4',
-  'test-case': 'aqltrx',
-  'complexity': '1',
-}, {
-  'requests': '100',
-  'concurrency': '3',
-  'test-case': 'counttrx',
-}, {
-  'requests': '500',
-  'concurrency': '3',
-  'test-case': 'multitrx',
-}];
-
-
+BENCH_TODOS = {}
+def load_scenarios():
+    """ load the yaml testcases """
+    yamldir = pathlib.Path(__file__).parent.absolute() / '..' / '..' / 'scenarios' / 'arangobench'
+    for one_yaml in yamldir.iterdir():
+        if one_yaml.is_file():
+            with open(one_yaml) as fileh:
+                obj = yaml.load(fileh, Loader=yaml.Loader)
+                for key in obj.keys():
+                    if type(obj[key])==bool:
+                        obj[key] = "true" if obj[key] else "false"
+                BENCH_TODOS[one_yaml.name[:-4]] = obj
 
 class ArangoBenchManager():
     """ manages one arangobackup instance"""
-    def __init__(self,
-                 basecfg,connect_instance):
+    def __init__(self, basecfg, connect_instance):
         self.connect_instance = connect_instance
 
         self.cfg = basecfg
         self.moreopts = [
+            '-configuration', 'none',
             '--server.endpoint', self.connect_instance.get_endpoint(),
             '--server.username', str(self.cfg.username),
             '--server.password', str(self.cfg.passvoid),
@@ -130,25 +38,26 @@ class ArangoBenchManager():
             '--log.force-direct', 'true', '--log.foreground-tty', 'true'
         ]
         if self.cfg.verbose:
-            self.moreopts += ["--log.level=debug"]
+            self.moreopts += ['--log.level', 'debug']
 
         self.username = 'testuser'
         self.passvoid = 'testpassvoid'
         self.instance = None
 
-    def launch(self, testcase_no):
-        testcase = benchTodos[testcase_no]
-        
-        arguments = [self.cfg.bin_dir / 'arangobench'] + self.moreopts
+    def launch(self, testcase_no, moreopts = []):
+        """ run arangobench """
+        testcase = BENCH_TODOS[testcase_no]
+        arguments = [self.cfg.real_bin_dir / 'arangobench'] + self.moreopts + moreopts
         for key in testcase.keys():
             arguments.append('--' + key)
-            arguments.append(testcase[key])
+            arguments.append(str(testcase[key]))
 
         if self.cfg.verbose:
             lh.log_cmd(arguments)
-
+        self.arguments = arguments
         self.instance = psutil.Popen(arguments)
         print("az"*40)
-                             
+
     def wait(self):
-        self.instance.wait()
+        """ wait for our instance to finish """
+        return self.instance.wait() == 0

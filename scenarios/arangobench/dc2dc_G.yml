@@ -1,0 +1,10 @@
+async: false 
+batch-size: 0 
+complexity: 9 
+concurrency: 4 
+number-of-shards: 3 
+replication-factor: 2 
+requests: 100000 
+test-case: multi-collection 
+server.database: G3
+create-database: true

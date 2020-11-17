@@ -19,7 +19,7 @@ from arangodb.installers import InstallerConfig
 from arangodb.sh import ArangoshExecutor
 from tools.killall import kill_all_processes
 from arangodb.instance import InstanceType
-
+from arangodb.bench import load_scenarios
 
 class Runner(ABC):
     """abstract starter deployment runner"""
@@ -33,7 +33,7 @@ class Runner(ABC):
             new_inst: Optional[InstallerBase],
             short_name: str
         ):
-
+        load_scenarios()
         assert runner_type
         logging.debug(runner_type)
         self.runner_type = runner_type

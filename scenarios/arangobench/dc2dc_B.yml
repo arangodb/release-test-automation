@@ -1,0 +1,10 @@
+async: false 
+batch-size: 1000 
+complexity: 7 
+concurrency: 8 
+number-of-shards: 6 
+replication-factor: 2 
+requests: 1000 
+test-case: aqlv8 
+server.database: B3
+create-database: true
