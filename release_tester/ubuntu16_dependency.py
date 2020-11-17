@@ -114,7 +114,6 @@ proc.communicate()
 proc.wait()
 
 
-
 # Installing pyftpdlib package 
 print('\nInstalling pyftpdlib package.\n')
 cmd9 = ['sudo', '-H', 'python3.6', '-m', 'pip', 'install', 'pyftpdlib']
@@ -132,7 +131,6 @@ proc = subprocess.Popen(cmd0, bufsize=-1,
                         stdin=subprocess.PIPE)
 proc.communicate()
 proc.wait()
-
 
 
 print('\nCurrent GDB Version ')
