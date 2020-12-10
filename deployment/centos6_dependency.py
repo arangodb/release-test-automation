@@ -83,3 +83,7 @@ proc = subprocess.Popen(cmd3, bufsize=-1,
                         stdin=subprocess.PIPE)
 proc.communicate()
 proc.wait()
+
+pwd = os.path.dirname(os.path.realpath(__file__))
+
+shutil.copyfile(pwd + "/../jenkins/jenkins-release-test-automation-sudoers", "/etc/sudoers.d/jenkins-release-test-automation")

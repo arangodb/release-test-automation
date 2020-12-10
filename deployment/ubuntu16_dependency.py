@@ -141,4 +141,8 @@ proc = subprocess.Popen(cmd01, bufsize=-1,
 proc.communicate()
 proc.wait()
 
+pwd = os.path.dirname(os.path.realpath(__file__))
+
+shutil.copyfile(pwd + "/../jenkins/jenkins-release-test-automation-sudoers", "/etc/sudoers.d/jenkins-release-test-automation")
+
 print('\nAll dependency has been configured & and ready to run release-test-automation.')

@@ -148,9 +148,10 @@ example usage:
  - `--zip` switches from system packages to the tar.gz/zip package for the cleanup.
 
 
-# Using [centos6] || [ubuntu16].py to install all the necessary dependency package
+# Using `deployment` scripts to install all the necessary dependency packages for testsystems
+The scripts in the `deployment` directory will try to install all the required pacakges to a new/fresh machine in order to run release-test-automation tests.
 
-`[centos6] || [ubuntu16].py` will try to install all the necessary pacakges to your system in order to run release-test-automation test while deploy into new/fresh machine.
+`[centos6] || [ubuntu16].py`
 
 # binaries strip cheking
 
