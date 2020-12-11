@@ -91,6 +91,7 @@ db.testCollection.save({test: "document"})
 
     def finish_setup_impl(self):
         self.makedata_instances = self.starter_instances[:]
+        self.set_frontend_instances()
 
     def test_setup_impl(self):
         pass
