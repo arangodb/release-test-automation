@@ -59,7 +59,7 @@ class StarterManager():
 
         self.hotbackup = []
         if self.cfg.enterprise:
-            self.hotbackup = ['--all.rclone.executable', self.cfg.sbin_dir / 'rclone-arangodb']
+            self.hotbackup = ['--all.rclone.executable', self.cfg.real_sbin_dir / 'rclone-arangodb']
 
         # arg - jwtstr
         self.jwtfile = None

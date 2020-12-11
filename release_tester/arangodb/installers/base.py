@@ -144,18 +144,18 @@ class BinaryDescription():
         """ check whether this file is stripped (or not) """
         is_stripped = True
         if IS_MAC:
-            is_stripped = self.check_stripped_mac()
+            print('')
+            # is_stripped = self.check_stripped_mac()
         else:
             is_stripped = self.check_stripped_linux()
+            if not is_stripped and self.stripped:
 
-        if not is_stripped and self.stripped:
-            raise Exception("expected " + str(self.path) +
+                raise Exception("expected " + str(self.path) +
                             " to be stripped, but it is not stripped")
 
-        if is_stripped and not self.stripped:
-            raise Exception("expected " + str(self.path) +
-                            " not to be stripped, but it is stripped")
-
+            if is_stripped and not self.stripped:
+                raise Exception("expected " + str(self.path) +
+                                " not to be stripped, but it is stripped")
 
     def check_symlink(self):
         """ check whether the file exists and is a symlink (if) """
@@ -364,13 +364,15 @@ class InstallerBase(ABC):
 
     def check_installed_files(self):
         """ check for the files whether they're installed """
-        print('Invoking strip checking')
-        for binary in self.arango_binaries:
-            progress("S" if binary.stripped else "s")
-            binary.check_installed(self.cfg.version,
-                                   self.cfg.enterprise,
-                                   self.check_stripped,
-                                   self.check_symlink)
+        if IS_MAC:
+            print('Strip checking is disabled on DMG packages.')
+        else:
+            for binary in self.arango_binaries:
+                progress("S" if binary.stripped else "s")
+                binary.check_installed(self.cfg.version,
+                                    self.cfg.enterprise,
+                                    self.check_stripped,
+                                    self.check_symlink)
         print('\n')
         logging.info("all files ok")
 
