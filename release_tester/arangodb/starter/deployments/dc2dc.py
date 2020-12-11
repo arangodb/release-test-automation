@@ -117,6 +117,10 @@ class Dc2Dc(Runner):
 
         add_starter(self.cluster1, None)
         add_starter(self.cluster2, port=9528)
+        self.starter_instances = [self.cluster1['instance'],
+                                  self.cluster2['instance']]
+
+
 
     def starter_run_impl(self):
         def launch(cluster):
@@ -148,6 +152,8 @@ class Dc2Dc(Runner):
         if not self.sync_manager.run_syncer():
             raise Exception("starting the synchronisation failed!")
         self.makedata_instances = [ self.cluster1['instance'] ]
+        self.set_frontend_instances()
+
         time.sleep(60) # TODO: howto detect dc2dc is completely up and running?
 
     def test_setup_impl(self):

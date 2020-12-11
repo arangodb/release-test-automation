@@ -3,6 +3,7 @@
 import time
 import logging
 from pathlib import Path
+from tools.interact import prompt_user
 from tools.killall import get_all_processes
 from arangodb.starter.manager import StarterManager
 from arangodb.instance import InstanceType
@@ -76,9 +77,12 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
 
         self.leader_starter_instance.detect_instance_pids()
         self.follower_starter_instance.detect_instance_pids()
+        self.starter_instances = [self.leader_starter_instance,
+                                  self.follower_starter_instance]
 
     def finish_setup_impl(self):
         # finish setup by starting the replications
+        self.set_frontend_instances()
 
         self.checks['startReplJS'] = (
             "launching replication",
@@ -165,7 +169,8 @@ process.exit(0);
 
     def jam_attempt_impl(self):
         logging.info("not implemented skipping")
-        
+        prompt_user(self.basecfg, "please test the installation.")
+
 
     def shutdown_impl(self):
         self.leader_starter_instance.terminate_instance()
