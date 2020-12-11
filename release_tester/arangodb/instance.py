@@ -349,7 +349,7 @@ arangosync instance of starter
                     except ValueError as x:
                         pass
 
-            if len(possible_me_pid) is 0 and count > 0:
+            if len(possible_me_pid) == 0 and count > 0:
                 progress('s')
                 time.sleep(1)
             count += 1

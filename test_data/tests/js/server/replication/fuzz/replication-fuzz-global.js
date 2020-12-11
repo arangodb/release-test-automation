@@ -469,7 +469,8 @@ function ReplicationSuite() {
             ops.push({ name: "renameCollection", func: renameCollection });
           }
 
-          for (let i = 0; i < 3000; ++i) { 
+          for (let i = 0; i < 3000; ++i) {
+            print(".");
             pickDatabase();
             let op = ops[Math.floor(Math.random() * ops.length)];
             op.func();
