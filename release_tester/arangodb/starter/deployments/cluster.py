@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from tools.timestamp import timestamp
-from tools.interact import end_test
+from tools.interact import prompt_user
 from arangodb.instance import InstanceType
 from arangodb.starter.manager import StarterManager
 from arangodb.starter.deployments.runner import Runner
@@ -121,10 +121,12 @@ db.testCollection.save({test: "document"})
     def jam_attempt_impl(self):
         logging.info("stopping instance 2")
         self.starter_instances[2].terminate_instance()
+        self.set_frontend_instances()
 
-        end_test(self.basecfg, "instance stopped")
+        prompt_user(self.basecfg, "instance stopped")
         # respawn instance, and get its state fixed
         self.starter_instances[2].respawn_instance()
+        self.set_frontend_instances()
         while not self.starter_instances[2].is_instance_up():
             progress('.')
             time.sleep(1)
@@ -132,6 +134,7 @@ db.testCollection.save({test: "document"})
         self.starter_instances[2].detect_instances()
         self.starter_instances[2].detect_instance_pids()
         self.starter_instances[2].detect_instance_pids_still_alive()
+        self.set_frontend_instances()
 
         logging.info('jamming: Starting instance without jwt')
         dead_instance = StarterManager(
@@ -159,6 +162,8 @@ db.testCollection.save({test: "document"})
             time.sleep(10)
         logging.info(str(dead_instance.instance.wait(timeout=320)))
         logging.info('dead instance is dead?')
+
+        prompt_user(self.basecfg, "cluster should be up")
 
     def shutdown_impl(self):
         for node in self.starter_instances:
