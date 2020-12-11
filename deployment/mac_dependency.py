@@ -3,6 +3,7 @@ import os
 import subprocess
 import shutil
 import time
+from pathlib import Path
 
 
 """
@@ -119,10 +120,10 @@ proc.wait()
 time.sleep(2)
 
 
-path = raw_input("\nEnter the path of release-test-automation directory: ")
+pwd = os.path.dirname(os.path.realpath(__file__))
 # run pepreqs on project folder & it will create the requirement.txt file
 print('\nRunning pepreqs on project folder.\n')
-cmd9 = ['pipreqs', path]
+cmd9 = ['pipreqs', Path(pwd, '..')]
 proc = subprocess.Popen(cmd9, bufsize=-1,
                         stderr=subprocess.PIPE,
                         stdin=subprocess.PIPE)
@@ -133,7 +134,7 @@ time.sleep(2)
 
 
 # run pip3 on requirement.txt file
-path = path + '/requirements.txt'
+path = pwd + '/../requirements.txt'
 print('\nInstalling all dependency packages for release-test-automation.\n')
 cmd01 = ['sudo', '-H', 'python3', '-m', 'pip', 'install', '-r', path]
 proc = subprocess.Popen(cmd01, bufsize=-1,
