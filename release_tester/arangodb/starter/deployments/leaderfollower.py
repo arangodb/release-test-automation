@@ -119,6 +119,7 @@ process.exit(0);
         logging.info(str(self.leader_starter_instance.execute_frontend(arangosh_script)))
 
         # add instace where makedata will be run on
+        self.tcp_ping_all_nodes()
         self.makedata_instances.append(self.leader_starter_instance)
         if not self.leader_starter_instance.arangosh.run_in_arangosh(
             Path('test_data/tests/js/server/replication/fuzz/replication-fuzz-global.js'),
