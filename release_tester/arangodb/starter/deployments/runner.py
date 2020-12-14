@@ -12,6 +12,7 @@ import tools.loghelper as lh
 import tools.errorhelper as eh
 import tools.interact as ti
 import requests
+import time
 import platform
 
 from arangodb.installers.base import InstallerBase
@@ -118,6 +119,7 @@ class Runner(ABC):
                 backups = self.list_backup()
                 if backups[0] != self.backup_name:
                     raise Exception("downloaded backup has different name? " + str(backups))
+                time.sleep(20)# TODO fix
                 self.restore_backup(backups[0])
                 self.tcp_ping_all_nodes()
                 self.check_data_impl()
@@ -161,6 +163,7 @@ class Runner(ABC):
                 backups = self.list_backup()
                 if backups[0] != self.backup_name:
                     raise Exception("downloaded backup has different name? " + str(backups))
+                time.sleep(20)# TODO fix
                 self.restore_backup(backups[0])
                 self.tcp_ping_all_nodes()
                 if not self.check_non_backup_data():

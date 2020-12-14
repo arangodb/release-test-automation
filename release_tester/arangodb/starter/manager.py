@@ -381,7 +381,7 @@ Starter {0.name}
             if node.type in [InstanceType.resilientsingle,
                              InstanceType.single,
                              InstanceType.dbserver]:
-                node.check_version_request(20)
+                node.check_version_request(20.0)
 
     def respawn_instance(self):
         """ restart the starter instance after we killed it eventually """

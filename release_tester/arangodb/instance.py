@@ -167,8 +167,8 @@ arangod instance
 
     def check_version_request(self, timeout):
         """ wait for the instance to reply with 200 to api/version """
-        until = time.now() + timeout
-        while until < time.now():
+        until = time.time() + timeout
+        while until < time.time():
             reply = None
             try:
                 reply = requests.get(self.get_local_url('')+'/_api/version')
