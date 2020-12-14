@@ -102,19 +102,24 @@ class Runner(ABC):
             if self.hot_backup:
                 lh.section("TESTING HOTBACKUP")
                 self.backup_name = self.create_backup("thy_name_is") # TODO generate name?
+                self.tcp_ping_all_nodes()
                 self.create_non_backup_data()
                 backups = self.list_backup()
                 print(backups)
                 self.upload_backup(backups[0])
+                self.tcp_ping_all_nodes()
                 self.delete_backup(backups[0])
+                self.tcp_ping_all_nodes()
                 backups = self.list_backup()
                 if len(backups) != 0:
                     raise Exception("expected backup to be gone, but its still there: " + str(backups))
                 self.download_backup(self.backup_name)
+                self.tcp_ping_all_nodes()
                 backups = self.list_backup()
                 if backups[0] != self.backup_name:
                     raise Exception("downloaded backup has different name? " + str(backups))
                 self.restore_backup(backups[0])
+                self.tcp_ping_all_nodes()
                 self.check_data_impl()
                 if not self.check_non_backup_data():
                     raise Exception("data created after backup is still there??")
@@ -145,15 +150,19 @@ class Runner(ABC):
                 backups = self.list_backup()
                 print(backups)
                 self.upload_backup(backups[0])
+                self.tcp_ping_all_nodes()
                 self.delete_backup(backups[0])
+                self.tcp_ping_all_nodes()
                 backups = self.list_backup()
                 if len(backups) != 0:
                     raise Exception("expected backup to be gone, but its still there: " + str(backups))
                 self.download_backup(self.backup_name)
+                self.tcp_ping_all_nodes()
                 backups = self.list_backup()
                 if backups[0] != self.backup_name:
                     raise Exception("downloaded backup has different name? " + str(backups))
                 self.restore_backup(backups[0])
+                self.tcp_ping_all_nodes()
                 if not self.check_non_backup_data():
                     raise Exception("data created after backup is still there??")
             self.check_data_impl()
@@ -335,6 +344,10 @@ class Runner(ABC):
             for frontend in starter.get_frontends():
                 frontends.append(frontend)
         return frontends
+
+    def tcp_ping_all_nodes(self):
+        for starter in self.starter_instances:
+            starter.tcp_ping_nodes()
 
     def print_frontend_instances(self):
         frontends = self.get_frontend_instances()
