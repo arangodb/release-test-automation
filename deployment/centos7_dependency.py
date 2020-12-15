@@ -54,13 +54,12 @@ proc.wait()
 
 # installing ftplib 
 print('installing ftplib\n')
-cmd1 = ['yum', 'install', '-y', 'ftplib']
+cmd1 = ['yum', 'install', '-y', 'ftplib', 'python36-psutil.x86_64', 'python36-PyYAML.x86_64']
 proc = subprocess.Popen(cmd1, bufsize=-1,
                         stderr=subprocess.PIPE,
                         stdin=subprocess.PIPE)
 proc.communicate()
 proc.wait()
-
 
 # pip3 install -U --user pipreqs for upgrade
 print('Installing pipreqs.\n')
