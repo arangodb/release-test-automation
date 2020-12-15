@@ -384,3 +384,8 @@ arangosync instance of starter
 
     def is_sync_instance(self):
         return True
+
+    def get_public_plain_url(self):
+        return '{host}:{port}'.format(
+            host=self.publicip,
+            port=self.port)
