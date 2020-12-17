@@ -178,7 +178,7 @@ class InstallerRPM(InstallerLinux):
         self.start_service()
         self.instance.detect_pid(1) # should be owned by init
 
-        pwcheckarangosh = ArangoshExecutor(self.cfg)
+        pwcheckarangosh = ArangoshExecutor(self.cfg, self.instance)
         if not pwcheckarangosh.js_version_check():
             logging.error(
                 "Version Check failed -"
