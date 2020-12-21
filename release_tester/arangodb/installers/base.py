@@ -10,6 +10,7 @@ import shutil
 import time
 from pathlib import Path
 from abc import abstractmethod, ABC
+import semver
 import yaml
 from arangodb.instance import ArangodInstance
 from tools.asciiprint import print_progress as progress
@@ -236,13 +237,16 @@ class InstallerBase(ABC):
 
     def save_config(self):
         """ dump the config to disk """
+        self.cfg.semver = None
         self.calc_config_file_name().write_text(yaml.dump(self.cfg))
+        self.cfg.semver = semver.VersionInfo.parse(self.cfg.version)
 
     def load_config(self):
         """ deserialize the config from disk """
         verbose = self.cfg.verbose
         with open(self.calc_config_file_name()) as fileh:
             self.cfg = yaml.load(fileh, Loader=yaml.Loader)
+        self.cfg.semver = semver.VersionInfo.parse(self.cfg.version)
         self.instance = ArangodInstance("single", self.cfg.port, self.cfg.localhost, self.cfg.publicip, self.cfg.logDir)
         self.calculate_package_names()
         self.cfg.verbose = verbose
