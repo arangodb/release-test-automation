@@ -525,6 +525,7 @@ function ReplicationSuite() {
           let total = "";
           let databases = {};
           let dbNames = [];
+          db._useDatabase('_system');
           db._databases().forEach(function(d) {
             if (d === '_system') {
               return;
