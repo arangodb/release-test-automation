@@ -14,6 +14,7 @@ import tools.interact as ti
 import requests
 import time
 import platform
+import semver
 
 from arangodb.installers.base import InstallerBase
 from arangodb.installers import InstallerConfig
@@ -402,7 +403,7 @@ class Runner(ABC):
         raise Exception("no frontend found.")
         
     def supports_backup_impl(self):
-        return True
+        return semver.compare(self.cfg.version, "3.5.1") >= 0
 
     def create_non_backup_data(self):
         for starter in self.makedata_instances:

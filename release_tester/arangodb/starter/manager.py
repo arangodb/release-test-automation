@@ -16,6 +16,7 @@ from pathlib import Path
 # from typing import List, Dict, NamedTuple
 
 import psutil
+import semver
 
 import http.client as http_client
 from tools.asciiprint import ascii_print, print_progress as progress
@@ -57,7 +58,7 @@ class StarterManager():
             self.moreopts += ["--starter.port", "%d" % self.starter_port]
 
         self.hotbackup = []
-        if self.cfg.enterprise:
+        if self.cfg.enterprise and semver.compare(self.cfg.version, "3.5.1") >=0:
             self.hotbackup = ['--all.rclone.executable', self.cfg.real_sbin_dir / 'rclone-arangodb']
 
         # arg - jwtstr
@@ -328,7 +329,7 @@ Starter {0.name}
         """
         # On windows the install prefix may change, since we can't overwrite open files:
         self.cfg.set_directories(new_install_cfg)
-        if self.cfg.enterprise:
+        if self.cfg.enterprise and semver.compare(self.cfg.version, "3.5.1") >= 0:
             self.hotbackup = ['--all.rclone.executable', self.cfg.sbin_dir / 'rclone-arangodb']
         logging.info("StarterManager: Killing my instance [%s]", str(self.instance.pid))
         self.kill_instance()

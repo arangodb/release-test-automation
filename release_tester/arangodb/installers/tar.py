@@ -101,7 +101,7 @@ class InstallerTAR(InstallerBase):
         logging.debug("package dir: {0.cfg.package_dir}- server_package: {0.server_package}".format(self))
 
         cmd = [self.tar,
-                   '-xzf',
+                   '-xf',
                    str(self.cfg.package_dir / self.server_package),
                    '-C',
                    '/tmp/']
