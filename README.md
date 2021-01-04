@@ -73,12 +73,12 @@ Supported Parameters:
    - `install` to only install the package onto the system and store its setting to the temp folder (development) 
    - `tests`  to read the config file from the temp folder and run the tetss.
    - `uninstall` to clean up your system.
- - `--starter-mode [all|LF|AFO|CL|DC|none]` which starter test to exute, `all` of them or `none` at all or: 
+ - `--starter-mode [all|LF|AFO|CL|DC|DCendurance|none]` which starter test to exute, `all` of them or `none` at all or:
    - `LF` - Leader / Follower - setup two single instances, start replication between them
    - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
    - `DC` - setup 2 clusters, connect them with arangosync (enterprise only)
-   - `DCendurance` - use DC setup to launch long running arangobenches
+   - `DCendurance` - use DC setup to launch long running arangobenches (not part of `all`)
  - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
  - `--verbose` if specified more logging is done
 
@@ -146,6 +146,12 @@ example usage:
 `cleanup.py` will try to invoke all known cleanup mechanisms, to bring your system as much as possible into a 'pure' state.
 
  - `--zip` switches from system packages to the tar.gz/zip package for the cleanup.
+
+
+# Using `deployment` scripts to install all the necessary dependency packages for testsystems
+The scripts in the `deployment` directory will try to install all the required pacakges to a new/fresh machine in order to run release-test-automation tests.
+
+`[centos6] || [ubuntu16].py`
 
 # binaries strip cheking
 

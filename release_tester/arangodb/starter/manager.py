@@ -18,7 +18,6 @@ from pathlib import Path
 import psutil
 
 import http.client as http_client
-import requests
 from tools.asciiprint import ascii_print, print_progress as progress
 from tools.timestamp import timestamp
 from arangodb.instance import ArangodInstance, ArangodRemoteInstance, SyncInstance, InstanceType, AfoServerState
@@ -59,7 +58,7 @@ class StarterManager():
 
         self.hotbackup = []
         if self.cfg.enterprise:
-            self.hotbackup = ['--all.rclone.executable', self.cfg.sbin_dir / 'rclone-arangodb']
+            self.hotbackup = ['--all.rclone.executable', self.cfg.real_sbin_dir / 'rclone-arangodb']
 
         # arg - jwtstr
         self.jwtfile = None
@@ -375,6 +374,14 @@ Starter {0.name}
                              InstanceType.single,
                              InstanceType.dbserver]:
                 node.detect_restore_restart()
+
+    def tcp_ping_nodes(self):
+        """ tries to wait for the server to restart after the 'restore' command """
+        for node in  self.all_instances:
+            if node.type in [InstanceType.resilientsingle,
+                             InstanceType.single,
+                             InstanceType.dbserver]:
+                node.check_version_request(20.0)
 
     def respawn_instance(self):
         """ restart the starter instance after we killed it eventually """

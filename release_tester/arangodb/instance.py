@@ -165,6 +165,20 @@ arangod instance
     def probe_if_is_leader(self):
         return self.get_afo_state() == AfoServerState.leader
 
+    def check_version_request(self, timeout):
+        """ wait for the instance to reply with 200 to api/version """
+        until = time.time() + timeout
+        while until < time.time():
+            reply = None
+            try:
+                reply = requests.get(self.get_local_url('')+'/_api/version')
+                if reply.status_code == 200:
+                    return
+                print('*')
+            except requests.exceptions.ConnectionError as x:
+                print('&')
+            time.sleep(0.5)
+
     def get_afo_state(self):
         reply = None
         try:
@@ -349,7 +363,7 @@ arangosync instance of starter
                     except ValueError as x:
                         pass
 
-            if len(possible_me_pid) is 0 and count > 0:
+            if len(possible_me_pid) == 0 and count > 0:
                 progress('s')
                 time.sleep(1)
             count += 1

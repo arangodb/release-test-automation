@@ -10,6 +10,7 @@ import shutil
 import time
 from pathlib import Path
 from abc import abstractmethod, ABC
+import semver
 import yaml
 from arangodb.instance import ArangodInstance
 from tools.asciiprint import print_progress as progress
@@ -144,18 +145,18 @@ class BinaryDescription():
         """ check whether this file is stripped (or not) """
         is_stripped = True
         if IS_MAC:
-            is_stripped = self.check_stripped_mac()
+            print('')
+            # is_stripped = self.check_stripped_mac()
         else:
             is_stripped = self.check_stripped_linux()
+            if not is_stripped and self.stripped:
 
-        if not is_stripped and self.stripped:
-            raise Exception("expected " + str(self.path) +
+                raise Exception("expected " + str(self.path) +
                             " to be stripped, but it is not stripped")
 
-        if is_stripped and not self.stripped:
-            raise Exception("expected " + str(self.path) +
-                            " not to be stripped, but it is stripped")
-
+            if is_stripped and not self.stripped:
+                raise Exception("expected " + str(self.path) +
+                                " not to be stripped, but it is stripped")
 
     def check_symlink(self):
         """ check whether the file exists and is a symlink (if) """
@@ -236,13 +237,16 @@ class InstallerBase(ABC):
 
     def save_config(self):
         """ dump the config to disk """
+        self.cfg.semver = None
         self.calc_config_file_name().write_text(yaml.dump(self.cfg))
+        self.cfg.semver = semver.VersionInfo.parse(self.cfg.version)
 
     def load_config(self):
         """ deserialize the config from disk """
         verbose = self.cfg.verbose
         with open(self.calc_config_file_name()) as fileh:
             self.cfg = yaml.load(fileh, Loader=yaml.Loader)
+        self.cfg.semver = semver.VersionInfo.parse(self.cfg.version)
         self.instance = ArangodInstance("single", self.cfg.port, self.cfg.localhost, self.cfg.publicip, self.cfg.logDir)
         self.calculate_package_names()
         self.cfg.verbose = verbose
@@ -364,13 +368,15 @@ class InstallerBase(ABC):
 
     def check_installed_files(self):
         """ check for the files whether they're installed """
-        print('Invoking strip checking')
-        for binary in self.arango_binaries:
-            progress("S" if binary.stripped else "s")
-            binary.check_installed(self.cfg.version,
-                                   self.cfg.enterprise,
-                                   self.check_stripped,
-                                   self.check_symlink)
+        if IS_MAC:
+            print('Strip checking is disabled on DMG packages.')
+        else:
+            for binary in self.arango_binaries:
+                progress("S" if binary.stripped else "s")
+                binary.check_installed(self.cfg.version,
+                                    self.cfg.enterprise,
+                                    self.check_stripped,
+                                    self.check_symlink)
         print('\n')
         logging.info("all files ok")
 

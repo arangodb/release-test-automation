@@ -3,6 +3,7 @@
 import time
 import logging
 from pathlib import Path
+from tools.interact import prompt_user
 from tools.killall import get_all_processes
 from arangodb.starter.manager import StarterManager
 from arangodb.instance import InstanceType
@@ -76,9 +77,12 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
 
         self.leader_starter_instance.detect_instance_pids()
         self.follower_starter_instance.detect_instance_pids()
+        self.starter_instances = [self.leader_starter_instance,
+                                  self.follower_starter_instance]
 
     def finish_setup_impl(self):
         # finish setup by starting the replications
+        self.set_frontend_instances()
 
         self.checks['startReplJS'] = (
             "launching replication",
@@ -113,15 +117,7 @@ process.exit(0);
         logging.info("save document")
         arangosh_script = self.checks['afterReplJS']
         logging.info(str(self.leader_starter_instance.execute_frontend(arangosh_script)))
-
-        # add instace where makedata will be run on
         self.makedata_instances.append(self.leader_starter_instance)
-        if not self.leader_starter_instance.arangosh.run_in_arangosh(
-            Path('test_data/tests/js/server/replication/fuzz/replication-fuzz-global.js'),
-            [],
-            [self.follower_starter_instance.get_frontend().get_public_url('')]
-            ):
-            raise Exception("replication fuzzing test failed")
 
     def test_setup_impl(self):
         logging.info("testing the leader/follower setup")
@@ -164,8 +160,19 @@ process.exit(0);
             node.wait_for_version_reply()
 
     def jam_attempt_impl(self):
-        logging.info("not implemented skipping")
-        
+        """ run the replication fuzzing test """
+        logging.info("running the replication fuzzing test")
+        # add instace where makedata will be run on
+        self.tcp_ping_all_nodes()
+        if not self.leader_starter_instance.arangosh.run_in_arangosh(
+            Path('test_data/tests/js/server/replication/fuzz/replication-fuzz-global.js'),
+            [],
+            [self.follower_starter_instance.get_frontend().get_public_url('')]
+            ):
+            raise Exception("replication fuzzing test failed")
+
+        prompt_user(self.basecfg, "please test the installation.")
+
 
     def shutdown_impl(self):
         self.leader_starter_instance.terminate_instance()
