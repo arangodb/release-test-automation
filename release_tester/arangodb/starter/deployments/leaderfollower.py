@@ -164,12 +164,12 @@ process.exit(0);
         logging.info("running the replication fuzzing test")
         # add instace where makedata will be run on
         self.tcp_ping_all_nodes()
-#        if not self.leader_starter_instance.arangosh.run_in_arangosh(
-#            Path('test_data/tests/js/server/replication/fuzz/replication-fuzz-global.js'),
-#            [],
-#            [self.follower_starter_instance.get_frontend().get_public_url('')]
-#            ):
-#            raise Exception("replication fuzzing test failed")
+        if not self.leader_starter_instance.arangosh.run_in_arangosh(
+            Path('test_data/tests/js/server/replication/fuzz/replication-fuzz-global.js'),
+            [],
+            [self.follower_starter_instance.get_frontend().get_public_url('')]
+            ):
+            raise Exception("replication fuzzing test failed")
 
         prompt_user(self.basecfg, "please test the installation.")
 
