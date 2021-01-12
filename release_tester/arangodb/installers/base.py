@@ -77,10 +77,11 @@ class BinaryDescription():
 
     def check_installed(self, version, enterprise, check_stripped, check_symlink):
         """ check all attributes of this file in reality """
-        #TODO consider only certain versions
-        #use semver package
-
-        self.check_path(enterprise)
+        if semver.compare(self.version_min, version) == 1:
+            self.check_path(enterprise, False)
+            return
+        else:
+            self.check_path(enterprise)
 
         if not enterprise and self.enterprise:
             #checks do not need to continue in this case
@@ -91,10 +92,10 @@ class BinaryDescription():
             self.check_symlink()
 
 
-    def check_path(self, enterprise):
+    def check_path(self, enterprise, in_version = True):
         """ check whether the file rightfully exists or not """
         if enterprise and self.enterprise:
-            if not self.path.is_file():
+            if not self.path.is_file() and in_version:
                 raise Exception("Binary missing from enterprise package!" + str(self.path))
 
         #file must not exist
@@ -224,7 +225,7 @@ class InstallerBase(ABC):
 
     def supports_hot_backup(self):
         """ by default hot backup is supported by the targets, there may be execptions."""
-        return True
+        return semver.compare(self.cfg.version, "3.5.1") >=0
 
     def calc_config_file_name(self):
         """ store our config to disk - so we can be invoked partly """
@@ -354,7 +355,7 @@ class InstallerBase(ABC):
         # enterprise
         self.arango_binaries.append(BinaryDescription(
             self.cfg.real_bin_dir, 'arangobackup',
-            True, True, "1.0.0", "4.0.0", [], 'c++'))
+            True, True, "3.5.1", "4.0.0", [], 'c++'))
 
         self.arango_binaries.append(BinaryDescription(
             self.cfg.real_sbin_dir, 'arangosync',
@@ -364,7 +365,7 @@ class InstallerBase(ABC):
 
         self.arango_binaries.append(BinaryDescription(
             self.cfg.real_sbin_dir, 'rclone-arangodb',
-            True, True, "1.0.0", "4.0.0", [], 'go'))
+            True, True, "3.5.1", "4.0.0", [], 'go'))
 
     def check_installed_files(self):
         """ check for the files whether they're installed """
