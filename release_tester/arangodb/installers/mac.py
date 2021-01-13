@@ -78,8 +78,7 @@ class InstallerMac(InstallerBase):
             pliststr = pliststr[offset:]
 
         if proc.returncode:
-            print('Error: "%s" while mounting %s.' % (err, dmgname),
-                  file=sys.stderr)
+            logging.error('while mounting')
             return None
         if pliststr:
             # pliststr = bytearray(pliststr, 'ascii')
@@ -105,8 +104,7 @@ class InstallerMac(InstallerBase):
                                 stderr=subprocess.PIPE)
         (pliststr, err) = proc.communicate()
         if proc.returncode:
-            print('Error: "%s" while listing mountpoints %s.' % (err, dmgpath),
-                  file=sys.stderr)
+            print('Error: "%s" while listing mountpoints %s.' % (err, dmgpath))
             return mountpoints
         if pliststr:
             plist = plistlib.loads(pliststr)
@@ -132,12 +130,12 @@ class InstallerMac(InstallerBase):
                                  stderr=subprocess.PIPE)
         (dummy_output, err) = proc.communicate()
         if proc.returncode:
-            logging.error('Polite unmount failed: %s' % err, file=sys.stderr)
-            logging.error('Attempting to force unmount %s' % mountpoint, file=sys.stderr)
+            logging.error('Polite unmount failed: %s' % err)
+            logging.error('Attempting to force unmount %s' % mountpoint)
             # try forcing the unmount
             retcode = subprocess.call(['/usr/bin/hdiutil', 'detach', mountpoint, '-force'])
             if retcode:
-                print('Failed to unmount %s' % mountpoint, file=sys.stderr)
+                logging.error('while mounting')
 
     
     def run_installer_script(self):
@@ -185,14 +183,11 @@ class InstallerMac(InstallerBase):
         pass
 
     def upgrade_package(self):
-        cmd = ['python3', '/Users/tester/automation/release-test-automation-master/release_tester/cleanup.py']
-        print(cmd)
-        proc = subprocess.Popen(cmd, bufsize=-1,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE,
-                                stdin=subprocess.PIPE)
-        (pliststr, err) = proc.communicate()
-
+        self.instance = ArangodInstance("single", "8529", self.cfg.localhost, self.cfg.publicip, self.cfg.logDir)
+        self.instance.detect_pid(1)
+        self.instance.terminate_instance()
+        self.un_install_package()
+        os.environ["UPGRADE_DB"] = "No"
         self.install_package()
 
     def install_package(self):
