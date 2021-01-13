@@ -64,7 +64,10 @@ def makedata_runner(q, resq, arangosh, progressive_timeout):
             job = q.get(timeout=0.1)
             print("starting my task! " + str(job['args']))
             res = arangosh.create_test_data("xx", job['args'], result_line=result_line, timeout=progressive_timeout)
-            if not res:
+            if not res[0]:
+                if not self.cfg.verbose:
+                    print("Script output: ")
+                    print(res[1])
                 print("error executing test - giving up.")
                 resq.put(1)
                 break

@@ -200,10 +200,10 @@ class ArangoshExecutor():
         t1.join()
         t2.join()
         if have_timeout or rc != 0:
-            return False
+            return (False, result)
         if len(result) == 0:
-            return True
-        return result
+            return (True, "")
+        return (True, result)
 
     def run_testing(self, testcase, args, timeout, logfile, verbose):
         args = [

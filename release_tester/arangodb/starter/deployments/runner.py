@@ -105,7 +105,12 @@ class Runner(ABC):
                 lh.section("TESTING HOTBACKUP")
                 self.backup_name = self.create_backup("thy_name_is") # TODO generate name?
                 self.tcp_ping_all_nodes()
-                self.create_non_backup_data()
+                rc = self.create_non_backup_data()
+                if not rc[0]:
+                    if not self.cfg.verbose:
+                        print("Script output: ")
+                        print(rc[1])
+                    raise Exception("failed to create non-backed up data")
                 backups = self.list_backup()
                 print(backups)
                 self.upload_backup(backups[0])
@@ -126,7 +131,12 @@ class Runner(ABC):
                 self.check_data_impl()
                 if not self.check_non_backup_data():
                     raise Exception("data created after backup is still there??")
-                self.create_non_backup_data()
+                rc = self.create_non_backup_data()
+                if not rc[0]:
+                    if not self.cfg.verbose:
+                        print("Script output: ")
+                        print(rc[1])
+                    raise Exception("failed to create non-backed up data")
 
         if self.new_installer:
             self.versionstr = "NEW[" + self.new_cfg.version + "] "
@@ -167,7 +177,11 @@ class Runner(ABC):
                 time.sleep(20)# TODO fix
                 self.restore_backup(backups[0])
                 self.tcp_ping_all_nodes()
-                if not self.check_non_backup_data():
+                rc = self.check_non_backup_data()
+                if not rc[0]:
+                    if not self.cfg.verbose:
+                        print("Script output:")
+                        print(rc[1])
                     raise Exception("data created after backup is still there??")
             self.check_data_impl()
         else:
@@ -375,7 +389,10 @@ class Runner(ABC):
             #must be writabe that the setup may not have already data
             if not arangosh.read_only and not self.has_makedata_data:
                 success = arangosh.create_test_data(self.name)
-                if not success:
+                if not success[0]:
+                    if not self.cfg.verbose:
+                        print("Script output: ")
+                        print(success[1])
                     eh.ask_continue_or_exit(
                         "make data failed for {0.name}".format(self),
                         interactive,
@@ -387,7 +404,10 @@ class Runner(ABC):
     def check_data_impl_sh(self, arangosh):
         if self.has_makedata_data:
             success = arangosh.check_test_data(self.name)
-            if not success:
+            if not success[0]:
+                if not self.cfg.verbose:
+                    print("Script output: ")
+                    print(success[1])
                 eh.ask_continue_or_exit(
                     "has data failed for {0.name}".format(self),
                     self.basecfg.interactive,
