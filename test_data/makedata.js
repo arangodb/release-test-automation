@@ -173,7 +173,7 @@ function createOneShardVariant(db, baseName, count) {
             );
   if (!created) {
     // its already wrongly there - skip this one.
-    print(`skipping ${databaseName} - it failed to created, but it is no one-shard.`);
+    print(`skipping ${databaseName} - it failed to be created, but it is no one-shard.`);
     return;
   }
   progress('created OneShard DB');
