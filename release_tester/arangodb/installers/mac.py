@@ -104,7 +104,7 @@ class InstallerMac(InstallerBase):
                                 stderr=subprocess.PIPE)
         (pliststr, err) = proc.communicate()
         if proc.returncode:
-            print('Error: "%s" while listing mountpoints %s.' % (err, dmgpath))
+            logging.error('Error: "%s" while listing mountpoints %s.' % (err, dmgpath))
             return mountpoints
         if pliststr:
             plist = plistlib.loads(pliststr)
@@ -180,13 +180,9 @@ class InstallerMac(InstallerBase):
         pass
 
     def stop_service(self):
-        pass
-
-    def upgrade_package(self):
-        self.instance = ArangodInstance("single", "8529", self.cfg.localhost, self.cfg.publicip, self.cfg.logDir)
-        self.instance.detect_pid(1)
         self.instance.terminate_instance()
-        self.un_install_package()
+
+    def upgrade_package(self, old_installer):
         os.environ["UPGRADE_DB"] = "No"
         self.install_package()
 
@@ -214,6 +210,7 @@ class InstallerMac(InstallerBase):
         self.instance.detect_pid(1) # should be owned by init - TODO
 
     def un_install_package(self):
+        self.stop_service()
         if not self.mountpoint:
             mpts = self.detect_dmg_mountpoints(self.cfg.package_dir / self.server_package)
             for mountpoint in mpts:

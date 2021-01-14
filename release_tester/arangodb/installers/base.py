@@ -187,7 +187,7 @@ class InstallerBase(ABC):
         """ install the packages to the system """
 
     @abstractmethod
-    def upgrade_package(self):
+    def upgrade_package(self, old_installer):
         """ install a new version of the packages to the system """
 
     @abstractmethod

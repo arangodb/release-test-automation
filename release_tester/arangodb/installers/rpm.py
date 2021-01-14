@@ -97,7 +97,7 @@ class InstallerRPM(InstallerLinux):
         while self.check_service_up():
             time.sleep(1)
 
-    def upgrade_package(self):
+    def upgrade_package(self, old_installer):
         logging.info("upgrading Arangodb rpm package")
 
         self.cfg.passvoid = "sanoetuh"   # TODO

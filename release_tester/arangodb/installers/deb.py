@@ -92,7 +92,7 @@ class InstallerDeb(InstallerLinux):
                 raise Exception("server service stop didn't"
                                 "finish successfully!")
 
-    def upgrade_package(self):
+    def upgrade_package(self, old_installer):
         logging.info("upgrading Arangodb debian package")
         os.environ['DEBIAN_FRONTEND'] = 'readline'
         server_upgrade = pexpect.spawnu('dpkg -i ' +

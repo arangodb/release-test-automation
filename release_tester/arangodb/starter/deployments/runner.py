@@ -136,7 +136,7 @@ class Runner(ABC):
                 print('removing *old* debug package in advance')
                 inst.un_install_debug_package()
 
-            self.new_installer.upgrade_package()
+            self.new_installer.upgrade_package(self.old_installer)
             # only install debug package for new package.
             lh.subsection('installing debug package:')
             self.cfg.have_debug_package = self.new_installer.install_debug_package()
@@ -145,7 +145,8 @@ class Runner(ABC):
             self.new_installer.stop_service()
             self.cfg.set_directories(self.new_installer.cfg)
             self.new_cfg.set_directories(self.new_installer.cfg)
-
+            self.new_installer.un_install_package()
+            
             self.upgrade_arangod_version() #make sure to pass new version
             self.make_data_after_upgrade()
             if self.hot_backup:
