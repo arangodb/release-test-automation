@@ -79,10 +79,10 @@ class Instance(ABC):
                 self.instance.terminate()
                 self.instance.wait()
             except psutil.NosuchProcess:
-                log.info("instance already dead: " + str(self.instance))
+                logging.info("instance already dead: " + str(self.instance))
             self.instance = None
         else:
-            log.info("I'm already dead, jim!" + str(repr(self)))
+            logging.info("I'm already dead, jim!" + str(repr(self)))
 
     def wait_for_shutdown(self):
         """ wait for the instance to anounce its dead! """
