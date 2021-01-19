@@ -165,6 +165,9 @@ class BinaryDescription():
             if not link.is_symlink():
                 Exception("{0} is not a symlink".format(str(link)))
 
+    def un_install_package_for_upgrade(self):
+        """ hook to uninstall old package for upgrade """
+        pass
 
 ### main class
 #pylint: disable=attribute-defined-outside-init
