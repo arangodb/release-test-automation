@@ -76,7 +76,7 @@ class InstallerDocker(InstallerBase):
     def stop_service(self):
         pass
 
-    def upgrade_package(self):
+    def upgrade_package(self, old_installer):
         pass
 
     def install_package(self):

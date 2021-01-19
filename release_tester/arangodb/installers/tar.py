@@ -92,7 +92,7 @@ class InstallerTAR(InstallerBase):
     def stop_service(self):
         pass
 
-    def upgrade_package(self):
+    def upgrade_package(self, old_installer):
         """ Tar installer is the same way we did for installing."""
         self.install_package()
 

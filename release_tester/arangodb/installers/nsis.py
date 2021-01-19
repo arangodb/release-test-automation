@@ -58,7 +58,7 @@ class InstallerW(InstallerBase):
             architecture)
         self.debug_package = None # TODO
 
-    def upgrade_package(self):
+    def upgrade_package(self, old_installer):
         self.stop_service()
         cmd = [str(self.cfg.package_dir / self.server_package),
                '/INSTDIR=' + str(PureWindowsPath(self.cfg.installPrefix)),
