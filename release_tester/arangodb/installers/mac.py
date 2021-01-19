@@ -186,6 +186,10 @@ class InstallerMac(InstallerBase):
         os.environ["UPGRADE_DB"] = "No"
         self.install_package()
 
+    def un_install_package_for_upgrade(self):
+        """ hook to uninstall old package for upgrade """
+        self.un_install_package()
+
     def install_package(self):
         if self.cfg.pidfile.exists():
             self.cfg.pidfile.unlink()

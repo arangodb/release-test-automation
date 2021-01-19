@@ -218,6 +218,9 @@ class InstallerBase(ABC):
         """ installing debug package """
         pass
 
+    def un_install_package_for_upgrade(self):
+        """ hook to uninstall old package for upgrade """
+        pass
 
     def get_arangod_conf(self):
         """ where on the disk is the arangod config installed? """
