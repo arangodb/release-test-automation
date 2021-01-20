@@ -209,7 +209,7 @@ class ArangoshExecutor():
             return (False, convert_result(result))
         if len(result) == 0:
             return (True, "")
-        return (False, convert_result(result))
+        return (True, convert_result(result))
 
     def run_testing(self, testcase, args, timeout, logfile, verbose):
         args = [
