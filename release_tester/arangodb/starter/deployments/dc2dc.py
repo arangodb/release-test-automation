@@ -157,11 +157,6 @@ class Dc2Dc(Runner):
         time.sleep(60) # TODO: howto detect dc2dc is completely up and running?
 
     def test_setup_impl(self):
-        res = self.cluster1['instance'].arangosh.create_test_data("dc2dc (post setup - dc1)")
-        if not res[0]:
-            if not self.cfg.verbose:
-                print(res[1])
-            raise Exception("error during creating of test data")
         res = self.cluster1['instance'].arangosh.check_test_data("dc2dc (post setup - dc1)")
         if not res[0]:
             if not self.cfg.verbose:
