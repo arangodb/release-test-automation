@@ -165,6 +165,9 @@ class BinaryDescription():
             if not link.is_symlink():
                 Exception("{0} is not a symlink".format(str(link)))
 
+    def un_install_package_for_upgrade(self):
+        """ hook to uninstall old package for upgrade """
+        pass
 
 ### main class
 #pylint: disable=attribute-defined-outside-init
@@ -218,6 +221,9 @@ class InstallerBase(ABC):
         """ installing debug package """
         pass
 
+    def un_install_package_for_upgrade(self):
+        """ hook to uninstall old package for upgrade """
+        pass
 
     def get_arangod_conf(self):
         """ where on the disk is the arangod config installed? """

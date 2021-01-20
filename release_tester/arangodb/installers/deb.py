@@ -95,8 +95,9 @@ class InstallerDeb(InstallerLinux):
     def upgrade_package(self, old_installer):
         logging.info("upgrading Arangodb debian package")
         os.environ['DEBIAN_FRONTEND'] = 'readline'
-        server_upgrade = pexpect.spawnu('dpkg -i ' +
-                                        str(self.cfg.package_dir / self.server_package))
+        cmd = 'dpkg -i ' + str(self.cfg.package_dir / self.server_package)
+        lh.log_cmd(cmd)
+        server_upgrade = pexpect.spawnu(cmd)
         while True:
             try:
                 i = server_upgrade.expect([
@@ -196,9 +197,9 @@ class InstallerDeb(InstallerLinux):
         self.instance.detect_pid(1) # should be owned by init
 
     def un_install_package(self):
-        uninstall = pexpect.spawnu('dpkg --purge ' +
-                                   'arangodb3' +
-                                   ('e' if self.cfg.enterprise else ''))
+        cmd = 'dpkg --purge ' + 'arangodb3' + ('e' if self.cfg.enterprise else '')
+        lh.log_cmd(cmd)
+        uninstall = pexpect.spawnu(cmd)
         try:
             uninstall.expect(['Purging','which isn\'t installed'])
             ascii_print(uninstall.before)
@@ -237,9 +238,9 @@ class InstallerDeb(InstallerLinux):
     
     def un_install_debug_package(self):
         os.environ['DEBIAN_FRONTEND'] = 'readline'
-        uninstall = pexpect.spawnu('dpkg --purge ' +
-                                   'arangodb3' +
-                                   ('e-dbg' if self.cfg.enterprise else '-dbg'))
+        cmd = 'dpkg --purge ' + 'arangodb3' + ('e-dbg' if self.cfg.enterprise else '-dbg')
+        lh.log_cmd(cmd)
+        uninstall = pexpect.spawnu(cmd)
         try:
             uninstall.expect(['Removing','which isn\'t installed'])
             ascii_print(uninstall.before)
