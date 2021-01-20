@@ -269,7 +269,7 @@ arangod instance
             # check last line or continue
             match = re.search(r'Z \[(\d*)\]', last_line)
             if match is None:
-                logging.info("no PID in: %s", last_line)
+                logging.info("no PID in [%s]: %s", self.logfile, last_line)
                 continue
 
             # pid found now find the position of the pid in
