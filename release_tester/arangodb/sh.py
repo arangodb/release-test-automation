@@ -38,7 +38,7 @@ def enqueue_stderr(std_err, queue, instance):
 def convert_result(result_array):
     result = ""
     for oneLine in result_array:
-        result += oneLine[0].decode("utf-8") 
+        result += "\n" + oneLine[0].decode("utf-8").rstrip()
     return result
 
 class ArangoshExecutor():
