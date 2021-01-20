@@ -14,7 +14,7 @@ from arangodb.instance import InstanceType
 class Dc2Dc(Runner):
     """ this launches two clusters in dc2dc mode """
     def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
-        super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'DC2DC')
+        super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'DC2DC', 0, 3500)
         self.success = True
         self.cfg.passvoid = '' # TODO
         self.sync_manager = None

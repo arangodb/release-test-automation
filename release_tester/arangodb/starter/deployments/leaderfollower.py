@@ -14,7 +14,7 @@ from tools.asciiprint import print_progress as progress
 class LeaderFollower(Runner):
     """ this runs a leader / Follower setup with synchronisation """
     def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
-        super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'lf')
+        super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'lf', 400, 500)
 
         self.leader_starter_instance = None
         self.follower_starter_instance = None

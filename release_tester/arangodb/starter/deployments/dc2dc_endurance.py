@@ -14,7 +14,7 @@ from arangodb.starter.deployments.dc2dc import Dc2Dc
 class Dc2DcEndurance(Dc2Dc):
     """ this launches two clusters in dc2dc mode """
     def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
-        super(Dc2Dc, self).__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'DCendurance')
+        super(Dc2Dc, self).__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'DCendurance', 0, 4000)
         self.hot_backup = False
 
     def test_setup_impl(self):
