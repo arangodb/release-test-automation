@@ -169,8 +169,9 @@ process.exit(0);
             [],
             [self.follower_starter_instance.get_frontend().get_public_url('')]
             )
-        if (not rc):
-            print(rc)
+        if not rc[0]:
+            if not self.cfg.verbose:
+                print(rc[1])
             raise Exception("replication fuzzing test failed")
 
         prompt_user(self.basecfg, "please test the installation.")

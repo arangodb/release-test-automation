@@ -170,11 +170,14 @@ class Dc2Dc(Runner):
         self.sync_manager.get_sync_tasks(0)
         self.sync_manager.get_sync_tasks(1)
         self.cluster2['instance'].arangosh.check_test_data("dc2dc (post setup - dc2)")
-        if not self.cluster1['instance'].arangosh.run_in_arangosh(
+        rc = self.cluster1['instance'].arangosh.run_in_arangosh(
             Path('test_data/tests/js/server/replication/fuzz/replication-fuzz-global.js'),
             [],
             [self.cluster2['instance'].get_frontend().get_public_url('')]
-            ):
+            )
+        if not rc[0]:
+            if not self.cfg.verbose:
+                print(rc[1])
             raise Exception("replication fuzzing test failed")
         if not self.sync_manager.check_sync():
             raise Exception("failed to get the sync status")
