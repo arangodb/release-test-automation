@@ -17,7 +17,7 @@ from tools.asciiprint import print_progress as progress
 class Cluster(Runner):
     """ this launches a cluster setup """
     def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
-        super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'CLUSTER')
+        super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'CLUSTER', 400, 600)
         #self.basecfg.frontends = []
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())

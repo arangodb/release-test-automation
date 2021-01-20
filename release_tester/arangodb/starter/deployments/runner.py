@@ -33,7 +33,9 @@ class Runner(ABC):
             old_inst: InstallerBase,
             new_cfg: InstallerConfig,
             new_inst: Optional[InstallerBase],
-            short_name: str
+            short_name: str,
+            disk_usage_community: int,
+            disk_usage_enterprise: int
         ):
         load_scenarios()
         assert runner_type
@@ -57,6 +59,12 @@ class Runner(ABC):
             self.versionstr = "OLD[" + self.cfg.version + "] "
 
         self.basedir = Path(short_name)
+
+        df = shutil.disk_usage(self.basecfg.baseTestDir)
+        du = disk_usage_community if not cfg.enterprise else disk_usage_enterprise
+        if du * 1024 * 1024 > df.free:
+            logging.error("Scenario demanded %d MB but only %d MB are available in %s", du, df.free / (1024*1024), str(self.basecfg.baseTestDir))
+            raise Exception("not enough free disk space to execute test!")
 
         self.old_installer = old_inst
         self.new_installer = new_inst

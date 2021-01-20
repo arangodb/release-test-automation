@@ -76,7 +76,7 @@ def makedata_runner(q, resq, arangosh, progressive_timeout):
 
 class ClusterPerf(Runner):
     """ this launches a cluster setup """
-    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
+    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst, 400, 600):
         global OTHER_SH_OUTPUT, RESULTS_TXT
         if not cfg.scenario.exists():
             cfg.scenario.write_text(yaml.dump(testConfig()))
