@@ -14,7 +14,7 @@ from tools.asciiprint import print_progress as progress
 class LeaderFollower(Runner):
     """ this runs a leader / Follower setup with synchronisation """
     def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
-        super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'lf')
+        super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'lf', 400, 500)
 
         self.leader_starter_instance = None
         self.follower_starter_instance = None
@@ -164,11 +164,14 @@ process.exit(0);
         logging.info("running the replication fuzzing test")
         # add instace where makedata will be run on
         self.tcp_ping_all_nodes()
-        if not self.leader_starter_instance.arangosh.run_in_arangosh(
+        rc = self.leader_starter_instance.arangosh.run_in_arangosh(
             Path('test_data/tests/js/server/replication/fuzz/replication-fuzz-global.js'),
             [],
             [self.follower_starter_instance.get_frontend().get_public_url('')]
-            ):
+            )
+        if not rc[0]:
+            if not self.cfg.verbose:
+                print(rc[1])
             raise Exception("replication fuzzing test failed")
 
         prompt_user(self.basecfg, "please test the installation.")

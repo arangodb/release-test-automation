@@ -35,6 +35,12 @@ def enqueue_stderr(std_err, queue, instance):
     queue.put(-1)
     std_err.close()
 
+def convert_result(result_array):
+    result = ""
+    for oneLine in result_array:
+        result += "\n" + oneLine[0].decode("utf-8").rstrip()
+    return result
+
 class ArangoshExecutor():
     """ configuration """
     def __init__(self, config, connect_instance):
@@ -200,10 +206,10 @@ class ArangoshExecutor():
         t1.join()
         t2.join()
         if have_timeout or rc != 0:
-            return False
+            return (False, convert_result(result))
         if len(result) == 0:
-            return True
-        return result
+            return (True, "")
+        return (True, convert_result(result))
 
     def run_testing(self, testcase, args, timeout, logfile, verbose):
         args = [

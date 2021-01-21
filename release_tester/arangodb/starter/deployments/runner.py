@@ -33,7 +33,9 @@ class Runner(ABC):
             old_inst: InstallerBase,
             new_cfg: InstallerConfig,
             new_inst: Optional[InstallerBase],
-            short_name: str
+            short_name: str,
+            disk_usage_community: int,
+            disk_usage_enterprise: int
         ):
         load_scenarios()
         assert runner_type
@@ -57,6 +59,12 @@ class Runner(ABC):
             self.versionstr = "OLD[" + self.cfg.version + "] "
 
         self.basedir = Path(short_name)
+
+        df = shutil.disk_usage(self.basecfg.baseTestDir)
+        du = disk_usage_community if not cfg.enterprise else disk_usage_enterprise
+        if du * 1024 * 1024 > df.free:
+            logging.error("Scenario demanded %d MB but only %d MB are available in %s", du, df.free / (1024*1024), str(self.basecfg.baseTestDir))
+            raise Exception("not enough free disk space to execute test!")
 
         self.old_installer = old_inst
         self.new_installer = new_inst
@@ -145,7 +153,7 @@ class Runner(ABC):
             self.new_installer.stop_service()
             self.cfg.set_directories(self.new_installer.cfg)
             self.new_cfg.set_directories(self.new_installer.cfg)
-            self.new_installer.un_install_package()
+            self.old_installer.un_install_package_for_upgrade()
             
             self.upgrade_arangod_version() #make sure to pass new version
             self.make_data_after_upgrade()
@@ -376,7 +384,9 @@ class Runner(ABC):
             #must be writabe that the setup may not have already data
             if not arangosh.read_only and not self.has_makedata_data:
                 success = arangosh.create_test_data(self.name)
-                if not success:
+                if not success[0]:
+                    if not self.cfg.verbose:
+                        print(success[1])
                     eh.ask_continue_or_exit(
                         "make data failed for {0.name}".format(self),
                         interactive,
@@ -388,7 +398,9 @@ class Runner(ABC):
     def check_data_impl_sh(self, arangosh):
         if self.has_makedata_data:
             success = arangosh.check_test_data(self.name)
-            if not success:
+            if not success[0]:
+                if not self.cfg.verbose:
+                    print(success[1])
                 eh.ask_continue_or_exit(
                     "has data failed for {0.name}".format(self),
                     self.basecfg.interactive,

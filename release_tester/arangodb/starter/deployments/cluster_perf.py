@@ -64,8 +64,9 @@ def makedata_runner(q, resq, arangosh, progressive_timeout):
             job = q.get(timeout=0.1)
             print("starting my task! " + str(job['args']))
             res = arangosh.create_test_data("xx", job['args'], result_line=result_line, timeout=progressive_timeout)
-            if not res:
+            if not res[0]:
                 print("error executing test - giving up.")
+                print(res[1])
                 resq.put(1)
                 break
             resq.put(res)
@@ -76,7 +77,7 @@ def makedata_runner(q, resq, arangosh, progressive_timeout):
 
 class ClusterPerf(Runner):
     """ this launches a cluster setup """
-    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
+    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst, 400, 600):
         global OTHER_SH_OUTPUT, RESULTS_TXT
         if not cfg.scenario.exists():
             cfg.scenario.write_text(yaml.dump(testConfig()))

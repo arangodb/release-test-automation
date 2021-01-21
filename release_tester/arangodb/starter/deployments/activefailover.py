@@ -17,7 +17,7 @@ from tools.asciiprint import print_progress as progress
 class ActiveFailover(Runner):
     """ This launches an active failover setup """
     def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
-        super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'AFO')
+        super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'AFO', 500, 600)
         self.starter_instances = []
         self.follower_nodes = None
         self.leader = None
