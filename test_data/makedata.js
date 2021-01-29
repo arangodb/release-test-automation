@@ -351,13 +351,7 @@ while (count < options.numberOfDBs) {
     progress('writeData7');
 
     let viewCollectionName = `cview1_${ccount}`;
-    let cview1 = createSafe(viewCollectionName,
-                            viewCollection => {
-                              return db._create(viewCollection);
-                            }, viewCollection => {
-                              return db._collection(viewCollection);
-                            }
-                           );
+    let cview1 = createCollectionSafe(viewCollectionName, 3, 1);
     progress('createView1');
     let viewName1 = `view1_${ccount}`;
     let view1 = createSafe(viewName1,
