@@ -190,6 +190,7 @@ while (count < options.numberOfDBs) {
     ccount ++;
   }
   print(timeLine.join());
-  // TODO validateDocumentWorksInOneShard(db, database, count);
+  // TODO
+  validateDocumentWorksInOneShard(db, database, count);
   count ++;
 }
