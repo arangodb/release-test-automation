@@ -15,8 +15,9 @@ dlstage = "ftp:stage2"
 username = ""
 passvoid = ""
 if len(sys.argv) > 3:
-    username = sys.argv[3]
-    passvoid = sys.argv[4]
+    dlstage = sys.argv[3]
+    username = sys.argv[4]
+    passvoid = sys.argv[5]
 
 zip = True
 
