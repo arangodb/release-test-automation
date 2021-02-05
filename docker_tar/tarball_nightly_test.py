@@ -48,9 +48,6 @@ for enterprise in [True, False]:
               
     dl_old.get_packages(True, dlstage)
     dl_new.get_packages(True, dlstage)
-    
-    print("santeuh")
-    
     run_upgrade(dl_old.cfg.version,
                 dl_new.cfg.version,
                 verbose,
