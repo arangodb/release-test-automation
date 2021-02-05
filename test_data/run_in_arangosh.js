@@ -7,7 +7,23 @@ const internal = require('internal');
 const platform = internal.platform;
 
 const makeDirectoryRecursive = require('fs').makeDirectoryRecursive;
-let killRemainingProcesses = require('@arangodb/process-utils').killRemainingProcesses;
+
+function killRemainingProcesses(results) {
+  let running = internal.getExternalSpawned();
+  results.status = results.status && (running.length === 0);
+  let i = 0;
+  for (i = 0; i < running.length; i++) {
+    let status = require("internal").statusExternal(running[i].pid, false);
+    if (status.status === "TERMINATED") {
+      print("process exited without us joining it (marking crashy): " + JSON.stringify(running[i]) + JSON.stringify(status));
+    }
+    else {
+      print("Killing remaining process & marking crashy: " + JSON.stringify(running[i]));
+      print(killExternal(running[i].pid, abortSignal));
+    }
+    results.crashed = true;
+  };
+}
 let SetGlobalExecutionDeadlineTo = require('internal').SetGlobalExecutionDeadlineTo;
 const inspect = internal.inspect;
 

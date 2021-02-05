@@ -179,7 +179,7 @@ class Dc2Dc(Runner):
                 print(res[1])
             raise Exception("error during verifying of the test data on the target cluster")
         rc = self.cluster1['instance'].arangosh.run_in_arangosh(
-            Path('test_data/tests/js/server/replication/fuzz/replication-fuzz-global.js'),
+            self.cfg.test_data_dir / Path('tests/js/server/replication/fuzz/replication-fuzz-global.js'),
             [],
             [self.cluster2['instance'].get_frontend().get_public_url('')]
             )
