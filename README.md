@@ -358,7 +358,7 @@ docker run --env PYTHONPATH=/home/release-test-automation/release_tester \
   -v `pwd`:/home/release-test-automation \
   -v /home/willi/Downloads/:/home/package_cache \
   -v /tmp/versions:/home/versions \
-  docker_tar 3.7.7-nightly 3.8.0-nightly http:stage2 user passvoid
+  docker_tar --old-version 3.7.7-nightly --new-version 3.8.0-nightly --source http:stage2 --httpuser user --httppassvoid passvoid
 ```
 
 ## Wikipedia dump tests
