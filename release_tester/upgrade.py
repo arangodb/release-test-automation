@@ -18,47 +18,10 @@ logging.basicConfig(
     format='%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s'
 )
 
-
-@click.command()
-@click.option('--old-version', help='old ArangoDB version number.')
-@click.option('--version', help='ArangoDB version number.')
-@click.option('--verbose/--no-verbose',
-              is_flag=True,
-              default=False,
-              help='switch starter to verbose logging mode.')
-@click.option('--package-dir',
-              default='/tmp/',
-              help='directory to load the packages from.')
-@click.option('--test-data-dir',
-              default='/tmp/',
-              help='directory create databases etc. in.')
-@click.option('--enterprise/--no-enterprise',
-              is_flag=True,
-              default=False,
-              help='Enterprise or community?')
-@click.option('--zip/--no-zip',
-              is_flag=True,
-              default=False,
-              help='switch to zip or tar.gz package instead of default OS package')
-@click.option('--interactive/--no-interactive',
-              is_flag=True,
-              default=sys.stdout.isatty(),
-              help='wait for the user to hit Enter?')
-@click.option('--starter-mode',
-              default='all',
-              help='which starter environments to start - ' +
-              '[all|LF|AFO|CL|DC|none].')
-@click.option('--stress-upgrade',
-              is_flag=True,
-              default=False,
-              help='launch arangobench before starting the upgrade')
-@click.option('--publicip',
-              default='127.0.0.1',
-              help='IP for the click to browser hints.')
-def run_test(old_version, version, verbose,
-             package_dir, test_data_dir,
-             enterprise, zip, interactive,
-             starter_mode, stress_upgrade, publicip):
+def run_upgrade(old_version, version, verbose,
+                package_dir, test_data_dir,
+                enterprise, zip, interactive,
+                starter_mode, stress_upgrade, publicip):
     """ main """
     lh.section("configuration")
     print("old version: " + str(old_version))
@@ -139,6 +102,51 @@ def run_test(old_version, version, verbose,
         lh.section("remove residuals")
         new_inst.cleanup_system()
 
+@click.command()
+@click.option('--old-version', help='old ArangoDB version number.')
+@click.option('--version', help='ArangoDB version number.')
+@click.option('--verbose/--no-verbose',
+              is_flag=True,
+              default=False,
+              help='switch starter to verbose logging mode.')
+@click.option('--package-dir',
+              default='/tmp/',
+              help='directory to load the packages from.')
+@click.option('--test-data-dir',
+              default='/tmp/',
+              help='directory create databases etc. in.')
+@click.option('--enterprise/--no-enterprise',
+              is_flag=True,
+              default=False,
+              help='Enterprise or community?')
+@click.option('--zip/--no-zip',
+              is_flag=True,
+              default=False,
+              help='switch to zip or tar.gz package instead of default OS package')
+@click.option('--interactive/--no-interactive',
+              is_flag=True,
+              default=sys.stdout.isatty(),
+              help='wait for the user to hit Enter?')
+@click.option('--starter-mode',
+              default='all',
+              help='which starter environments to start - ' +
+              '[all|LF|AFO|CL|DC|none].')
+@click.option('--stress-upgrade',
+              is_flag=True,
+              default=False,
+              help='launch arangobench before starting the upgrade')
+@click.option('--publicip',
+              default='127.0.0.1',
+              help='IP for the click to browser hints.')
+
+def main(old_version, version, verbose,
+         package_dir, test_data_dir,
+         enterprise, zip, interactive,
+         starter_mode, stress_upgrade, publicip):
+    return run_upgrade(old_version, version, verbose,
+                       package_dir, test_data_dir,
+                       enterprise, zip, interactive,
+                       starter_mode, stress_upgrade, publicip)
 
 if __name__ == "__main__":
-    run_test()
+    main()

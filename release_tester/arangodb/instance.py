@@ -286,7 +286,7 @@ arangod instance
             self.pid = int(pid)
             # locate the timestamp of our 'ready for business' line:
             match = re.search(r'(.*)Z \['+pid+'].*' + ready_for_business,
-                              log_file_content[pos - 90:])
+                              log_file_content[pos - 140:])
             tStart = match.group(1)
             logging.debug("found pid {0} for instance with logfile {1} at {2}.".format(
                 self.pid,

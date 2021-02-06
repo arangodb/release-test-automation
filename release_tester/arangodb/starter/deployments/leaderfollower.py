@@ -165,7 +165,7 @@ process.exit(0);
         # add instace where makedata will be run on
         self.tcp_ping_all_nodes()
         rc = self.leader_starter_instance.arangosh.run_in_arangosh(
-            Path('test_data/tests/js/server/replication/fuzz/replication-fuzz-global.js'),
+            self.cfg.test_data_dir / Path('tests/js/server/replication/fuzz/replication-fuzz-global.js'),
             [],
             [self.follower_starter_instance.get_frontend().get_public_url('')]
             )
