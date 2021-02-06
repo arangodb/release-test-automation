@@ -332,7 +332,10 @@ The purpose of the derived container is to ship the arangosh to run the tests in
 
 Running the docker container, parametrizing the connection endpoints of the cluster:
 ```
-docker run test:latest --frontends tcp://192.168.173.88:9629 --frontends tcp://192.168.173.88:9729 --frontends tcp://192.168.173.88:9529 --scenario scenarios/cluster_replicated.yml
+docker run test:latest --frontends tcp://192.168.173.88:9629 \
+                       --frontends tcp://192.168.173.88:9729 \
+                       --frontends tcp://192.168.173.88:9529 \
+                       --scenario scenarios/cluster_replicated.yml
 ```
 
 # nightly tar docker container
@@ -349,7 +352,7 @@ docker run --env PYTHONPATH=/home/release-test-automation/release_tester \
   -v `pwd`:/home/release-test-automation \
   -v /home/willi/Downloads/:/home/package_cache \
   -v /tmp/versions:/home/versions \
-  docker_tar 3.7.7-nightly 3.8.0-nightly ftp:stage2
+  docker_tar --old-version 3.7.7-nightly --new-version 3.8.0-nightly
 ```
 
 Run the container from abroad:
@@ -358,7 +361,8 @@ docker run --env PYTHONPATH=/home/release-test-automation/release_tester \
   -v `pwd`:/home/release-test-automation \
   -v /home/willi/Downloads/:/home/package_cache \
   -v /tmp/versions:/home/versions \
-  docker_tar --old-version 3.7.7-nightly --new-version 3.8.0-nightly --source http:stage2 --httpuser user --httppassvoid passvoid
+  docker_tar --old-version 3.7.7-nightly --new-version 3.8.0-nightly \
+             --source http:stage2 --httpuser user --httppassvoid passvoid
 ```
 
 ## Wikipedia dump tests
