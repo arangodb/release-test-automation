@@ -139,7 +139,12 @@ Supported Parameters:
  - `--stress-upgrade` run stresstest while attempting the upgrade of [cluster]
 
 example usage:
-`python3 release_tester/acquire_packages.py --enterprise --version '3.7.1-rc.1+0.501' --enterprise-magic <enterprisekey> --package-dir /home/willi/Downloads/ --force --source ftp:stage2`
+`python3 release_tester/acquire_packages.py --enterprise \
+                                            --version '3.7.1-rc.1+0.501' \
+                                            --enterprise-magic <enterprisekey> \
+                                            --package-dir /home/willi/Downloads/ \
+                                            --force \
+                                            --source ftp:stage2`
 
 # Using cleanup.py to clean out the system
 
@@ -219,9 +224,6 @@ uninstall packages
 
 create most of the flow of i.e. https://github.com/arangodb/release-qa/issues/264 in a portable way. 
 arangosync
-
-
-
 
 # Perf
 
@@ -313,13 +315,28 @@ Run the statsd exporter:
 Running a full test with launching the system, waiting before the loadtest starts:
 
 ```
-python3 release_tester/perf.py --version 3.7.3 --enterprise --package-dir /home/willi/Downloads --zip --test-data-dir /tmp/ --verbose --interactive
+python3 release_tester/perf.py --version 3.7.3 \
+                               --enterprise \
+                               --package-dir /home/willi/Downloads \
+                               --zip \
+                               --test-data-dir /tmp/ \
+                               --verbose \
+                               --interactive
 ```
 
 Running perf with a remote test system:
 
 ```
-python3 release_tester/perf.py  --version 3.7.3  --enterprise --package-dir /home/willi/Downloads  --zip --frontends tcp://192.168.173.88:9729 --frontends tcp://192.168.173.88:9529 --frontends tcp://192.168.173.88:9629 --mode tests --verbose --scenario scenarios/cluster_replicated.yml
+python3 release_tester/perf.py --version 3.7.3
+                               --enterprise \
+                               --package-dir /home/willi/Downloads \
+                               --zip \
+                               --frontends tcp://192.168.173.88:9729 \
+                               --frontends tcp://192.168.173.88:9529 \
+                               --frontends tcp://192.168.173.88:9629 \
+                               --mode tests \
+                               --verbose \
+                               --scenario scenarios/cluster_replicated.yml
 ```
 
 # docker container
