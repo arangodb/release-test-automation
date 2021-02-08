@@ -182,7 +182,7 @@ class acquire_package():
                 "msg": res.text
                 }))
     def get_packages(self, force, source):
-        packages = [
+        self.packages = [
             self.inst.server_package
         ]
         if self.inst.client_package:
@@ -190,7 +190,7 @@ class acquire_package():
         if self.inst.debug_package:
             self.packages.append(inst.debug_package)
     
-        for package in packages:
+        for package in self.packages:
             self.funcs[source](self.directories[source], package, Path(self.package_dir), force)
 
     def get_version_info(self, source):
