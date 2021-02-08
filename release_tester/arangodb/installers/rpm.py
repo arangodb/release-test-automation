@@ -24,6 +24,7 @@ class InstallerRPM(InstallerLinux):
         self.client_package = None
         self.debug_package = None
         self.instance = None
+        self.semver = semver.VersionInfo.parse(version)
 
         cfg.installPrefix = Path("/")
         cfg.bin_dir = cfg.installPrefix / "usr" / "bin"

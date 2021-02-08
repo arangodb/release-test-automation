@@ -20,6 +20,7 @@ class InstallerW(InstallerBase):
         self.instance = None
         self.service = None
         self.remote_package_dir  = 'Windows'
+        self.semver = semver.VersionInfo.parse(version)
 
         cfg.installPrefix = Path("C:/tmp")
         cfg.logDir = cfg.installPrefix / "LOG"

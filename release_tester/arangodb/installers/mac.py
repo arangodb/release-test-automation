@@ -32,6 +32,7 @@ class InstallerMac(InstallerBase):
         self.check_symlink = True
         self.basehomedir = Path.home() / 'Library' / 'ArangoDB'
         self.baseetcdir = Path.home() / 'Library' / 'ArangoDB-etc'
+        self.semver = semver.VersionInfo.parse(version)
 
         cfg.installPrefix = None
         cfg.localhost = 'localhost'
