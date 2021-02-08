@@ -135,6 +135,7 @@ class HotBackupManager():
 
     def restore(self, backup_name):
         """ restore an existing hot backup """
+        time.sleep(6) #TODO: remove this workaround
         args = ['restore', '--identifier', backup_name]
         out = self.run_backup(args, backup_name)
 
