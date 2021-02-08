@@ -95,7 +95,8 @@ class acquire_package():
                 "file": str(out)
             }))
             return
-        ftp = FTP('Nas02.arangodb.biz')
+        # ftp = FTP('Nas02.arangodb.biz') # no DNS no cry...
+        ftp = FTP('172.16.1.22')
         print(stage + ": " + ftp.login(user='anonymous', passwd='anonymous', acct='anonymous'))
         print(directory)
         print(stage + ": " + ftp.cwd(directory))
