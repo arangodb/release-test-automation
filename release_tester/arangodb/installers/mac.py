@@ -13,6 +13,7 @@ import subprocess
 from pathlib import Path
 import pexpect
 import plistlib
+import semver
 from arangodb.instance import ArangodInstance
 from arangodb.installers.base import InstallerBase
 from tools.asciiprint import ascii_print

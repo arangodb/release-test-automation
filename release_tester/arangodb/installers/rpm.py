@@ -7,6 +7,7 @@ import logging
 from pathlib import Path
 import pexpect
 import psutil
+import semver
 from arangodb.sh import ArangoshExecutor
 from arangodb.instance import ArangodInstance
 from arangodb.installers.linux import InstallerLinux
