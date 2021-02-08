@@ -30,7 +30,6 @@ class acquire_package():
                  zip,
                  httpuser,
                  httppassvoid):
-        global passvoid, user
         """ main """
         lh.section("configuration")
         print("version: " + str(version))
@@ -106,7 +105,6 @@ class acquire_package():
             print(stage + ": " + ftp.retrbinary('RETR ' + package, fd.write))
     
     def acquire_stage_http(self, directory, package, local_dir, force, stage):
-        global passvoid, user
         #url = 'https://{user}:{passvoid}@Nas02.arangodb.biz/{dir}{pkg}'.format(**{
         #    'passvoid': passvoid,
         #    'user': user,
@@ -115,8 +113,8 @@ class acquire_package():
         #    })
     
         url = 'https://{self.user}:{self.passvoid}@fileserver.arangodb.com:8529/{dir}{pkg}'.format(**{
-            'passvoid': passvoid,
-            'user': user,
+            'passvoid': self.passvoid,
+            'user': self.user,
             'dir': directory,
             'pkg': package
             })
