@@ -114,7 +114,7 @@ class HotBackupManager():
 
     def create(self, backup_name):
         """ create a hot backup """
-        args = ['create', '--label', backup_name]
+        args = ['create', '--label', backup_name, '--max-wait-for-lock', '180']
         out = self.run_backup(args, backup_name)
         for line in out:
             match = re.match(r".*identifier '(.*)'", str(line))
