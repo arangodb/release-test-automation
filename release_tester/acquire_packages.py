@@ -186,7 +186,7 @@ class acquire_package():
             self.inst.server_package
         ]
         if self.inst.client_package:
-            packages.append(inst.client_package)
+            self.packages.append(inst.client_package)
         if self.inst.debug_package:
             self.packages.append(inst.debug_package)
     
