@@ -144,7 +144,7 @@ function runInLocalArangosh (options, instanceInfo, file, addArgs) {
   eval('testFunc = function () { \nglobal.instanceInfo = ' + JSON.stringify(instanceInfo) + ';\n' + testCode + "}");
   
   try {
-    SetGlobalExecutionDeadlineTo(options.oneTestTimeout * 1000);
+    SetGlobalExecutionDeadlineTo(options.oneTestTimeout * 10000);
     let result = testFunc();
     let timeout = SetGlobalExecutionDeadlineTo(0.0);
     if (timeout) {
