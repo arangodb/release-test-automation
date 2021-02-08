@@ -186,9 +186,9 @@ class acquire_package():
             self.inst.server_package
         ]
         if self.inst.client_package:
-            self.packages.append(inst.client_package)
+            self.packages.append(self.inst.client_package)
         if self.inst.debug_package:
-            self.packages.append(inst.debug_package)
+            self.packages.append(self.inst.debug_package)
     
         for package in self.packages:
             self.funcs[source](self.directories[source], package, Path(self.package_dir), force)
