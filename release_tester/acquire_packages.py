@@ -28,8 +28,10 @@ class acquire_package():
                  enterprise,
                  enterprise_magic,
                  zip,
+                 source,
                  httpuser,
-                 httppassvoid):
+                 httppassvoid,
+                 remote_host):
         """ main """
         lh.section("configuration")
         print("version: " + str(version))
@@ -39,7 +41,15 @@ class acquire_package():
         print("verbose: " + str(verbose))
         self.user = httpuser
         self.passvoid = httppassvoid
-    
+        if remote_host != "":
+            self.remote_host = remote_host
+        else:
+            # dns split horizon...
+            if source == "ftp:stage1" or source == "ftp:stage2":
+                self.remote_host = "Nas02.arangodb.biz"
+            else:
+                self.remote_host = "fileserver.arangodb.com"
+
         lh.section("startup")
         if verbose:
             logging.info("setting debug level to debug (verbose)")
@@ -95,8 +105,7 @@ class acquire_package():
                 "file": str(out)
             }))
             return
-        # ftp = FTP('Nas02.arangodb.biz') # no DNS no cry...
-        ftp = FTP('172.16.1.22')
+        ftp = FTP(self.remote_host)
         print(stage + ": " + ftp.login(user='anonymous', passwd='anonymous', acct='anonymous'))
         print(directory)
         print(stage + ": " + ftp.cwd(directory))
@@ -106,14 +115,8 @@ class acquire_package():
             print(stage + ": " + ftp.retrbinary('RETR ' + package, fd.write))
     
     def acquire_stage_http(self, directory, package, local_dir, force, stage):
-        #url = 'https://{user}:{passvoid}@Nas02.arangodb.biz/{dir}{pkg}'.format(**{
-        #    'passvoid': passvoid,
-        #    'user': user,
-        #    'dir': directory,
-        #    'pkg': package
-        #    })
-    
-        url = 'https://{user}:{passvoid}@fileserver.arangodb.com:8529/{dir}{pkg}'.format(**{
+        url = 'https://{user}:{passvoid}@{remote_host}:8529/{dir}{pkg}'.format(**{
+            'remote_host': self.remote_host,
             'passvoid': self.passvoid,
             'user': self.user,
             'dir': directory,
@@ -230,10 +233,12 @@ class acquire_package():
 @click.option('--httppassvoid',
               default="",
               help='passvoid for external http download')
+@click.option('--remote-host',
+              default="",
+              help='remote host to acquire packages from')
 
-def main(version, verbose, package_dir, enterprise, enterprise_magic, zip, force, source, httpuser, httppassvoid):
-    
-    dl = acquire_package(version, verbose, package_dir, enterprise, enterprise_magic, zip, httpuser, httppassvoid)
+def main(version, verbose, package_dir, enterprise, enterprise_magic, zip, force, source, httpuser, httppassvoid, remote_host):
+    dl = acquire_package(version, verbose, package_dir, enterprise, enterprise_magic, zip, source, httpuser, httppassvoid, remote_host)
     return dl.get_packages(force, source)
 
 if __name__ == "__main__":
