@@ -112,7 +112,7 @@ class acquire_package():
         #    'pkg': package
         #    })
     
-        url = 'https://{self.user}:{self.passvoid}@fileserver.arangodb.com:8529/{dir}{pkg}'.format(**{
+        url = 'https://{user}:{passvoid}@fileserver.arangodb.com:8529/{dir}{pkg}'.format(**{
             'passvoid': self.passvoid,
             'user': self.user,
             'dir': directory,
