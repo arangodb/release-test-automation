@@ -483,7 +483,7 @@ function ReplicationSuite() {
             print(op.name);
             op.func();
           }
-
+          internal.sleep(30);
           let total = "";
           let databases = {};
           let dbNames = [];
