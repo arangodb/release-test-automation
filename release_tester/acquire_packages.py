@@ -4,6 +4,7 @@
 import logging
 from ftplib import FTP
 from pathlib import Path
+import json
 import sys
 import click
 from arangodb.installers import make_installer, InstallerConfig
@@ -41,6 +42,7 @@ class acquire_package():
         print("verbose: " + str(verbose))
         self.user = httpuser
         self.passvoid = httppassvoid
+        self.enterprise_magic = enterprise_magic
         if remote_host != "":
             self.remote_host = remote_host
         else:
@@ -68,19 +70,22 @@ class acquire_package():
                                    False,
                                    False)
         self.inst = make_installer(self.cfg)
+        self.is_nightly = self.inst.semver.prerelease == "nightly"
+        self.calculate_package_names()
 
-        is_nightly = self.inst.semver.prerelease == "nightly"
+    def calculate_package_names(self):
+        self.inst.calculate_package_names()
         self.params = {
             "full_version": 'v{major}.{minor}.{patch}'.format(**self.cfg.semver.to_dict()),
             "major_version": 'arangodb{major}{minor}'.format(**self.cfg.semver.to_dict()),
             "bare_major_version": '{major}.{minor}'.format(**self.cfg.semver.to_dict()),
             "remote_package_dir": self.inst.remote_package_dir,
-            "enterprise": "Enterprise" if enterprise else "Community",
-            "enterprise_magic": enterprise_magic + "/" if enterprise else "",
-            "packages": "" if is_nightly else "packages",
-            "nightly": "nightly" if is_nightly else ""
+            "enterprise": "Enterprise" if self.cfg.enterprise else "Community",
+            "enterprise_magic": self.enterprise_magic + "/" if self.cfg.enterprise else "",
+            "packages": "" if self.is_nightly else "packages",
+            "nightly": "nightly" if self.is_nightly else ""
         }
-        if is_nightly:
+        if self.is_nightly:
             self.params['enterprise'] = ""
 
         self.directories = {
@@ -196,9 +201,15 @@ class acquire_package():
             self.funcs[source](self.directories[source], package, Path(self.package_dir), force)
 
     def get_version_info(self, source):
-        sl = 'sourceInfo.log'
+        sl = 'sourceInfo.json'
         self.funcs[source](self.directories[source], sl, Path(self.package_dir), True)
-        return (self.package_dir / sl).read_text()
+        text = (self.package_dir / sl).read_text()
+        val = json.loads(text)
+        version = val['VERSION'].replace('-devel', '')
+        self.inst.reset_version(version + '-nightly' if self.is_nightly else "")
+        self.cfg.reset_version(self.inst.cfg.version)
+        self.calculate_package_names()
+        return text
 
 @click.command()
 @click.option('--version', help='ArangoDB version number.')

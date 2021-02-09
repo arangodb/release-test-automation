@@ -24,7 +24,6 @@ class InstallerDeb(InstallerLinux):
         self.client_package = None
         self.debug_package = None
         self.log_examiner = None
-        self.semver = semver.VersionInfo.parse(cfg.version)
 
         # Are those required to be stored in the cfg?
         cfg.installPrefix = Path("/")

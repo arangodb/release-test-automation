@@ -363,13 +363,17 @@ Build the container for later use with:
 docker build docker_tar/ -t docker_tar
 ```
 
-Run the container from within the office network:
+Run the container from within the office network; DNS lookup outside of the docker container:
 ```
 docker run --env PYTHONPATH=/home/release-test-automation/release_tester \
   -v `pwd`:/home/release-test-automation \
   -v /home/willi/Downloads/:/home/package_cache \
   -v /tmp/versions:/home/versions \
-  docker_tar --old-version 3.7.7-nightly --new-version 3.8.0-nightly
+  --init \
+  arangodb/release-test-automation \
+   --old-version 3.7.7-nightly \
+   --new-version 3.8.0-nightly \
+   --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;")
 ```
 
 Run the container from abroad:
@@ -378,8 +382,10 @@ docker run --env PYTHONPATH=/home/release-test-automation/release_tester \
   -v `pwd`:/home/release-test-automation \
   -v /home/willi/Downloads/:/home/package_cache \
   -v /tmp/versions:/home/versions \
-  docker_tar --old-version 3.7.7-nightly --new-version 3.8.0-nightly \
-             --source http:stage2 --httpuser user --httppassvoid passvoid
+  --init \
+  arangodb/release-test-automation \
+    --old-version 3.7.7-nightly --new-version 3.8.0-nightly \
+    --source http:stage2 --httpuser user --httppassvoid passvoid
 ```
 
 ## Wikipedia dump tests

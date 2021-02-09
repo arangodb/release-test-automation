@@ -7,7 +7,6 @@ import logging
 from pathlib import Path
 import pexpect
 import psutil
-import semver
 from arangodb.sh import ArangoshExecutor
 from arangodb.instance import ArangodInstance
 from arangodb.installers.linux import InstallerLinux
@@ -25,7 +24,6 @@ class InstallerRPM(InstallerLinux):
         self.client_package = None
         self.debug_package = None
         self.instance = None
-        self.semver = semver.VersionInfo.parse(cfg.version)
 
         cfg.installPrefix = Path("/")
         cfg.bin_dir = cfg.installPrefix / "usr" / "bin"

@@ -13,7 +13,6 @@ import subprocess
 from pathlib import Path
 import pexpect
 import plistlib
-import semver
 from arangodb.instance import ArangodInstance
 from arangodb.installers.base import InstallerBase
 from tools.asciiprint import ascii_print
@@ -33,7 +32,6 @@ class InstallerMac(InstallerBase):
         self.check_symlink = True
         self.basehomedir = Path.home() / 'Library' / 'ArangoDB'
         self.baseetcdir = Path.home() / 'Library' / 'ArangoDB-etc'
-        self.semver = semver.VersionInfo.parse(cfg.version)
 
         cfg.installPrefix = None
         cfg.localhost = 'localhost'
