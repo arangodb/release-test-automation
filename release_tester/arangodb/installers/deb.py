@@ -49,7 +49,7 @@ class InstallerDeb(InstallerLinux):
         semdict = dict(self.cfg.semver.to_dict())
 
         if semdict['prerelease']:
-            semdict['prerelease'] = '~{prerelease}'.format(**semdict)
+            semdict['prerelease'] = '~~{prerelease}'.format(**semdict)
         else:
             semdict['prerelease'] = ''
 
@@ -135,6 +135,7 @@ class InstallerDeb(InstallerLinux):
 
     def install_package(self):
         logging.info("installing Arangodb debian package")
+        server_not_started = False
         os.environ['DEBIAN_FRONTEND'] = 'readline'
         self.cfg.passvoid = "sanoetuh"   # TODO
         logging.debug("package dir: {0.cfg.package_dir}- server_package: {0.server_package}".format(self))
@@ -185,6 +186,7 @@ class InstallerDeb(InstallerLinux):
             logging.info("waiting for the installation to finish")
             server_install.expect(pexpect.EOF, timeout=30)
             ascii_print(server_install.before)
+            server_not_started = server_install.before.find("not running 'is-active arangodb3.service'") >= 0
         except pexpect.exceptions.EOF:
             logging.info("TIMEOUT!")
         while server_install.isalive():
@@ -194,6 +196,9 @@ class InstallerDeb(InstallerLinux):
         print()
         logging.info('Installation successfull')
         self.instance = ArangodInstance("single", "8529", self.cfg.localhost, self.cfg.publicip, self.cfg.installPrefix / self.cfg.logDir)
+        if server_not_started:
+            logging.info('Environment did not start arango service, doing this now!')
+            self.start_service()
         self.instance.detect_pid(1) # should be owned by init
 
     def un_install_package(self):
