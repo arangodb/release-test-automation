@@ -1,12 +1,5 @@
 #!/bin/bash
 
-if test -z "$OLDVERSION"; then
-    OLDVERSION=3.7.0-nightly
-fi
-if test -z "$NEWVERSION"; then
-    NEWVERSION=3.8.0-nightly
-fi
-
 mkdir -p /tmp/rpm_versions /tmp/deb_versions
 docker kill docker_deb docker_rpm
 docker rm docker_deb; docker_rpm; 
@@ -36,9 +29,7 @@ docker run -itd \
 
 if docker exec docker_deb \
           python3 /home/release-test-automation/docker_tar/tarball_nightly_test.py \
-          --old-version $OLDVERSION \
-          --new-version $NEWVERSION \
-          --no-zip; then
+          --no-zip $@; then
     echo "OK"
 else
     echo "FAILED!"
@@ -64,9 +55,7 @@ docker run \
 
 if docker exec docker_rpm \
           /home/release-test-automation/docker_tar/tarball_nightly_test.py \
-          --old-version $OLDVERSION \
-          --new-version $NEWVERSION \
-          --no-zip; then
+          --no-zip $@; then
     echo "OK"
 else
     echo "FAILED!"
