@@ -30,7 +30,7 @@ class InstallerRPM(InstallerLinux):
         cfg.sbin_dir = cfg.installPrefix / "usr" / "sbin"
         cfg.real_bin_dir = cfg.bin_dir
         cfg.real_sbin_dir = cfg.sbin_dir
-        cfg.localhost = 'localhost6'
+        cfg.localhost = 'localhost'
 
         super().__init__(cfg)
 
@@ -38,6 +38,9 @@ class InstallerRPM(InstallerLinux):
         enterprise = 'e' if self.cfg.enterprise else ''
         architecture = 'x86_64'
 
+        if self.cfg.semver.prerelease == "nightly":
+            self.cfg.semver._prerelease = ''
+            self.cfg.semver._build = "0.2"
         semdict = dict(self.cfg.semver.to_dict())
 
         if semdict['prerelease']:
