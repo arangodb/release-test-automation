@@ -311,6 +311,7 @@ class Runner(ABC):
     def starter_shutdown(self):
         """ stop everything """
         lh.subsection("{0}{1} - shutdown".format(self.versionstr,str(self.name)))
+        self.shutdown_impl()
 
     @abstractmethod
     def shutdown_impl(self):
