@@ -262,6 +262,9 @@ arangod instance
                     # skip empty lines
                     if line == "":
                         continue
+                    if "] FATAL [" in line:
+                        print('Error: ', line)
+                        raise Exception("FATAL error found in arangod.log.")
                     # save last line and append to string (why not slurp the whole file?)
                     last_line = line
                     log_file_content += '\n' + line
