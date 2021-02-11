@@ -15,14 +15,12 @@ RUN apt-get update ; \
     sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
     locale-gen && \
     update-locale LANG=en_US.UTF-8 
-
-
 RUN pip3 install semver
 
-VOLUME /home/release-test-automation
-VOLUME /home/package_cache
-VOLUME /home/versions
-RUN mkdir -p /home/entrypoint
+run mkdir -p /home/release-test-automation \
+ /home/package_cache \
+ /home/versions \
+ /home/entrypoint
 
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in ; do [ $i == systemd-tmpfiles-setup.service ] || rm -f $i; done); \
   rm -rf /lib/systemd/system/multi-user.target.wants/;\
