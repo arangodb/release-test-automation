@@ -31,8 +31,6 @@ class InstallerConfig():
         self.zip = zip
 
         self.mode = mode
-        self.version = version
-        self.semver = semver.VersionInfo.parse(version)
         self.verbose = verbose
         self.package_dir = package_dir
         self.have_system_service = True
@@ -54,6 +52,11 @@ class InstallerConfig():
 
         self.all_instances = {}
         self.frontends = []
+        self.reset_version(version)
+
+    def reset_version(self, version):
+        self.version = version
+        self.semver = semver.VersionInfo.parse(version)
 
     def add_frontend(self, proto, ip, port):
         """ add a frontend URL in components """

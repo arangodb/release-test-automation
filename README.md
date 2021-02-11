@@ -139,7 +139,12 @@ Supported Parameters:
  - `--stress-upgrade` run stresstest while attempting the upgrade of [cluster]
 
 example usage:
-`python3 release_tester/acquire_packages.py --enterprise --version '3.7.1-rc.1+0.501' --enterprise-magic <enterprisekey> --package-dir /home/willi/Downloads/ --force --source ftp:stage2`
+`python3 release_tester/acquire_packages.py --enterprise \
+                                            --version '3.7.1-rc.1+0.501' \
+                                            --enterprise-magic <enterprisekey> \
+                                            --package-dir /home/willi/Downloads/ \
+                                            --force \
+                                            --source ftp:stage2`
 
 # Using cleanup.py to clean out the system
 
@@ -219,9 +224,6 @@ uninstall packages
 
 create most of the flow of i.e. https://github.com/arangodb/release-qa/issues/264 in a portable way. 
 arangosync
-
-
-
 
 # Perf
 
@@ -313,13 +315,28 @@ Run the statsd exporter:
 Running a full test with launching the system, waiting before the loadtest starts:
 
 ```
-python3 release_tester/perf.py --version 3.7.3 --enterprise --package-dir /home/willi/Downloads --zip --test-data-dir /tmp/ --verbose --interactive
+python3 release_tester/perf.py --version 3.7.3 \
+                               --enterprise \
+                               --package-dir /home/willi/Downloads \
+                               --zip \
+                               --test-data-dir /tmp/ \
+                               --verbose \
+                               --interactive
 ```
 
 Running perf with a remote test system:
 
 ```
-python3 release_tester/perf.py  --version 3.7.3  --enterprise --package-dir /home/willi/Downloads  --zip --frontends tcp://192.168.173.88:9729 --frontends tcp://192.168.173.88:9529 --frontends tcp://192.168.173.88:9629 --mode tests --verbose --scenario scenarios/cluster_replicated.yml
+python3 release_tester/perf.py --version 3.7.3
+                               --enterprise \
+                               --package-dir /home/willi/Downloads \
+                               --zip \
+                               --frontends tcp://192.168.173.88:9729 \
+                               --frontends tcp://192.168.173.88:9529 \
+                               --frontends tcp://192.168.173.88:9629 \
+                               --mode tests \
+                               --verbose \
+                               --scenario scenarios/cluster_replicated.yml
 ```
 
 # docker container
@@ -332,12 +349,48 @@ The purpose of the derived container is to ship the arangosh to run the tests in
 
 Running the docker container, parametrizing the connection endpoints of the cluster:
 ```
-docker run test:latest --frontends tcp://192.168.173.88:9629 --frontends tcp://192.168.173.88:9729 --frontends tcp://192.168.173.88:9529 --scenario scenarios/cluster_replicated.yml
+docker run test:latest --frontends tcp://192.168.173.88:9629 \
+                       --frontends tcp://192.168.173.88:9729 \
+                       --frontends tcp://192.168.173.88:9529 \
+                       --scenario scenarios/cluster_replicated.yml
 ```
 
+# nightly tar docker container
+This container is intended to test the nightly tar packages whether starter deployment upgrades are working properly.
 
+Build the container for later use with:
+```
+docker build docker_tar/ -t docker_tar
+```
+
+Run the container from within the office network; DNS lookup outside of the docker container:
+```
+docker run --env PYTHONPATH=/home/release-test-automation/release_tester \
+  -v `pwd`:/home/release-test-automation \
+  -v /home/willi/Downloads/:/home/package_cache \
+  -v /tmp/versions:/home/versions \
+  --init \
+  arangodb/release-test-automation \
+   --old-version 3.7.7-nightly \
+   --new-version 3.8.0-nightly \
+   --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;")
+```
+
+Run the container from abroad:
+```
+docker run --env PYTHONPATH=/home/release-test-automation/release_tester \
+  -v `pwd`:/home/release-test-automation \
+  -v /home/willi/Downloads/:/home/package_cache \
+  -v /tmp/versions:/home/versions \
+  --init \
+  arangodb/release-test-automation \
+    --old-version 3.7.7-nightly --new-version 3.8.0-nightly \
+    --source http:stage2 --httpuser user --httppassvoid passvoid
+```
 
 ## Wikipedia dump tests
 These tests use the CSV data from the wikip
  http://home.apache.org/~mikemccand/enwiki-20120502-lines-1k.txt.lzma
+
+
 

@@ -180,6 +180,13 @@ class InstallerBase(ABC):
         self.caclulate_file_locations()
 
         self.cfg.have_debug_package = False
+        self.reset_version(cfg.version)
+
+    def reset_version(self, version):
+        version = version.split("~")[0]
+        version = ".".join(version.split(".")[:3])
+        self.semver = semver.VersionInfo.parse(version)
+        self.cfg.reset_version(version)
 
     @abstractmethod
     def calculate_package_names(self):

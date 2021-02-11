@@ -45,6 +45,9 @@ class StarterManager():
         if self.cfg.verbose:
             self.moreopts += ["--log.verbose=true"]
             # self.moreopts += ['--all.log', 'startup=debug']
+        #self.moreopts += ["--all.log.level=arangosearch=trace"]
+        #self.moreopts += ["--all.log.level=startup=trace"]
+        #self.moreopts += ["--all.log.level=engines=trace"]
 
         #directories
         self.raw_basedir = install_prefix

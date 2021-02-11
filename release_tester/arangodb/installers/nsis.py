@@ -7,6 +7,7 @@ import multiprocessing
 from pathlib import Path
 from pathlib import PureWindowsPath
 import psutil
+import semver
 from arangodb.instance import ArangodInstance
 from arangodb.installers.base import InstallerBase
 

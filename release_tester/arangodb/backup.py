@@ -114,7 +114,7 @@ class HotBackupManager():
 
     def create(self, backup_name):
         """ create a hot backup """
-        args = ['create', '--label', backup_name]
+        args = ['create', '--label', backup_name, '--max-wait-for-lock', '180']
         out = self.run_backup(args, backup_name)
         for line in out:
             match = re.match(r".*identifier '(.*)'", str(line))
@@ -135,6 +135,7 @@ class HotBackupManager():
 
     def restore(self, backup_name):
         """ restore an existing hot backup """
+        time.sleep(6) #TODO: remove this workaround
         args = ['restore', '--identifier', backup_name]
         out = self.run_backup(args, backup_name)
 
