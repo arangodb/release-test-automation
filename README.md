@@ -62,7 +62,7 @@ This sequence can be broken up by invoking test.py with `--mode install` and sub
 For this, a setting file `/tmp/config.yml` is kept. This way parts of this flow can be better tuned without the resource intense un/install process.
 
 Supported Parameters:
- - `--version` which Arangodb Version you want to run the test on
+ - `--new-version` which Arangodb Version you want to run the test on
  - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
@@ -83,9 +83,9 @@ Supported Parameters:
  - `--verbose` if specified more logging is done
 
 Example usage:
- - Windows: `python ./release_tester/test.py --version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
- - Linux (ubuntu|debian) `python3 ./release_tester/test.py --version 3.6.2 --no-enterprise --package-dir /home/willi/Downloads`
- - Linux (centos|fedora|sles) `python3 ./release_tester/test.py --version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
+ - Windows: `python ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
+ - Linux (ubuntu|debian) `python3 ./release_tester/test.py --new-version 3.6.2 --no-enterprise --package-dir /home/willi/Downloads`
+ - Linux (centos|fedora|sles) `python3 ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
 
 # Using upgrade.py for upgrade testing
 
@@ -99,7 +99,7 @@ upgrade.py is intended to test the flow
 
 Supported Parameters:
  - `--old-version` which Arangodb Version you want to install to setup the old system
- - `--version` which Arangodb Version you want to upgrade the environment to
+ - `--new-version` which Arangodb Version you want to upgrade the environment to
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
@@ -114,16 +114,16 @@ Supported Parameters:
    - `DC` - setup 2 clusters, connect them with arangosync (enterprise only)
 
 Example usage:
- - Windows: `python ./release_tester/upgrade.py --old-version 3.5.4 --version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
- - Linux (ubuntu|debian) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
- - Linux (centos|fedora|sles) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
+ - Windows: `python ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
+ - Linux (ubuntu|debian) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
+ - Linux (centos|fedora|sles) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
 
 # using acquire_packages.py to download packages from stage1/stage2/live
 
 acquire_packages.py can fetch a set of packages for later use with upgrade.py/test.py. It will detect the platform its working on.
 
 Supported Parameters:
- - `--version` which Arangodb Version you want to run the test on
+ - `--new-version` which Arangodb Version you want to run the test on
  - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
  - `--enterprise-magic` specify your secret enterprise download key here.
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
@@ -140,7 +140,7 @@ Supported Parameters:
 
 example usage:
 `python3 release_tester/acquire_packages.py --enterprise \
-                                            --version '3.7.1-rc.1+0.501' \
+                                            --new-version '3.7.1-rc.1+0.501' \
                                             --enterprise-magic <enterprisekey> \
                                             --package-dir /home/willi/Downloads/ \
                                             --force \
@@ -239,7 +239,7 @@ This sequence can be broken up by invoking perf.py with `--mode install` and sub
 For this, a setting file `/tmp/config.yml` is kept. This way parts of this flow can be better tuned without the resource intense un/install process.
 
 Supported Parameters:
- - `--version` which Arangodb Version you want to run the test on
+ - `--new-version` which Arangodb Version you want to run the test on
  - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
@@ -258,8 +258,8 @@ Supported Parameters:
  - `--frontends` may be specified several times, disables launchin own cluster instance. Configures remote instances instead.
 
 Example usage:
- - run against self started instance: `python3 release_tester/perf.py  --version 3.7.3  --enterprise --package-dir /home/willi/Downloads  --zip --verbose --interactive --mode tests --scenario scenarios/c_cluster_x3.yml`
- - run against remote instance: `python3 release_tester/perf.py  --version 3.7.3  --enterprise --package-dir /home/willi/Downloads  --zip --verbose --interactive --mode tests --scenario scenarios/c_cluster_x3.yml --frontends tcp://192.168.10.11:8529 --frontends tcp://192.168.10.12:8529 --frontends tcp://192.168.10.13:8529`
+ - run against self started instance: `python3 release_tester/perf.py  --new-version 3.7.3  --enterprise --package-dir /home/willi/Downloads  --zip --verbose --interactive --mode tests --scenario scenarios/c_cluster_x3.yml`
+ - run against remote instance: `python3 release_tester/perf.py  --new-version 3.7.3  --enterprise --package-dir /home/willi/Downloads  --zip --verbose --interactive --mode tests --scenario scenarios/c_cluster_x3.yml --frontends tcp://192.168.10.11:8529 --frontends tcp://192.168.10.12:8529 --frontends tcp://192.168.10.13:8529`
 
 
 # scenario yml file
@@ -315,7 +315,7 @@ Run the statsd exporter:
 Running a full test with launching the system, waiting before the loadtest starts:
 
 ```
-python3 release_tester/perf.py --version 3.7.3 \
+python3 release_tester/perf.py --new-version 3.7.3 \
                                --enterprise \
                                --package-dir /home/willi/Downloads \
                                --zip \
@@ -327,7 +327,7 @@ python3 release_tester/perf.py --version 3.7.3 \
 Running perf with a remote test system:
 
 ```
-python3 release_tester/perf.py --version 3.7.3
+python3 release_tester/perf.py --new-version 3.7.3
                                --enterprise \
                                --package-dir /home/willi/Downloads \
                                --zip \

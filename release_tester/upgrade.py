@@ -103,8 +103,8 @@ def run_upgrade(old_version, version, verbose,
         new_inst.cleanup_system()
 
 @click.command()
-@click.option('--old-version', help='old ArangoDB version number.')
-@click.option('--version', help='ArangoDB version number.')
+@click.option('--old-version', help='old ArangoDB version number.', default="3.7.0-nightly")
+@click.option('--new-version', help='ArangoDB version number.', default="3.8.0-nightly")
 @click.option('--verbose/--no-verbose',
               is_flag=True,
               default=False,
@@ -143,7 +143,7 @@ def main(old_version, version, verbose,
          package_dir, test_data_dir,
          enterprise, zip, interactive,
          starter_mode, stress_upgrade, publicip):
-    return run_upgrade(old_version, version, verbose,
+    return run_upgrade(old_version, new_version, verbose,
                        package_dir, test_data_dir,
                        enterprise, zip, interactive,
                        starter_mode, stress_upgrade, publicip)

@@ -18,7 +18,8 @@ logging.basicConfig(
 
 
 @click.command()
-@click.option('--version', help='ArangoDB version number.')
+@click.option('--old-version', help='unused')
+@click.option('--new-version', help='ArangoDB version number.', default="3.8.0-nightly")
 @click.option('--verbose/--no-verbose',
               is_flag=True,
               default=False,
@@ -53,12 +54,13 @@ logging.basicConfig(
               help='IP for the click to browser hints.')
 
 
-def run_test(version, verbose, package_dir, test_data_dir,
+def run_test(old_version, new_version, verbose,
+             package_dir, test_data_dir,
              enterprise, zip,
              interactive, mode, starter_mode, publicip):
     """ main """
     lh.section("configuration")
-    print("version: " + str(version))
+    print("version: " + str(new_version))
     print("using enterpise: " + str(enterprise))
     print("using zip: " + str(zip))
     print("package directory: " + str(package_dir))
@@ -79,7 +81,7 @@ def run_test(version, verbose, package_dir, test_data_dir,
         logging.info("setting debug level to debug (verbose)")
         logging.getLogger().setLevel(logging.DEBUG)
 
-    install_config = InstallerConfig(version,
+    install_config = InstallerConfig(new_version,
                                      verbose,
                                      enterprise,
                                      zip,

@@ -212,7 +212,7 @@ class acquire_package():
         return text
 
 @click.command()
-@click.option('--version', help='ArangoDB version number.')
+@click.option('--new-version', help='ArangoDB version number.')
 @click.option('--verbose/--no-verbose',
               is_flag=True,
               default=False,
@@ -248,8 +248,8 @@ class acquire_package():
               default="",
               help='remote host to acquire packages from')
 
-def main(version, verbose, package_dir, enterprise, enterprise_magic, zip, force, source, httpuser, httppassvoid, remote_host):
-    dl = acquire_package(version, verbose, package_dir, enterprise, enterprise_magic, zip, source, httpuser, httppassvoid, remote_host)
+def main(new_version, verbose, package_dir, enterprise, enterprise_magic, zip, force, source, httpuser, httppassvoid, remote_host):
+    dl = acquire_package(new_version, verbose, package_dir, enterprise, enterprise_magic, zip, source, httpuser, httppassvoid, remote_host)
     return dl.get_packages(force, source)
 
 if __name__ == "__main__":
