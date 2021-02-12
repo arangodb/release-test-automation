@@ -13,7 +13,7 @@ def prompt_user(cfg,
 
     for frontend in cfg.frontends:
         print('\nfrontend can be reached at: ' +
-              '''{f.proto}://root:{c.passvoid}@{f.ip}:{f.port}{path}'''.format(
+              '''{f.proto}://root:{c.passvoid}@{f.ip_address}:{f.port}{path}'''.format(
                   f=frontend,
                   c=cfg,
                   path='/_db/_system/_admin/aardvark/index.html#login'
