@@ -10,19 +10,23 @@ class SyncManager():
     """ manage arangosync """
     def __init__(self,
                  basecfg,
-                 ca,
+                 certificate_auth,
                  clusterports):
         self.cfg = copy.deepcopy(basecfg)
-        self.ca = ca
+        self.certificate_auth = certificate_auth
         self.clusterports = clusterports
         self.arguments = [
             'configure', 'sync',
-            '--master.endpoint=https://{ip}:{port}'.format(ip=self.cfg.publicip, port=str(clusterports[0])),
-            '--master.keyfile=' + str(self.ca["clientkeyfile"]),
-            '--source.endpoint=https://{ip}:{port}'.format(ip=self.cfg.publicip, port=str(clusterports[1])),
-            '--master.cacert=' + str(self.ca["cert"]),
-            '--source.cacert=' + str(self.ca["cert"]),
-            '--auth.keyfile=' + str(self.ca["clientkeyfile"])
+            '--master.endpoint=https://{ip}:{port}'.format(
+                ip=self.cfg.publicip,
+                port=str(clusterports[0])),
+            '--master.keyfile=' + str(self.certificate_auth["clientkeyfile"]),
+            '--source.endpoint=https://{ip}:{port}'.format(
+                ip=self.cfg.publicip,
+                port=str(clusterports[1])),
+            '--master.cacert=' + str(self.certificate_auth["cert"]),
+            '--source.cacert=' + str(self.certificate_auth["cert"]),
+            '--auth.keyfile=' + str(self.certificate_auth["clientkeyfile"])
         ]
 
         self.instance = None
@@ -48,11 +52,11 @@ class SyncManager():
         args = [
             self.cfg.bin_dir / 'arangosync',
             'get', 'status',
-            '--master.cacert=' + str(self.ca["cert"]),
+            '--master.cacert=' + str(self.certificate_auth["cert"]),
             '--master.endpoint=https://{url}:{port}'.format(
                 url=self.cfg.publicip,
                 port=str(self.clusterports[which])),
-            '--auth.keyfile=' + str(self.ca["clientkeyfile"]),
+            '--auth.keyfile=' + str(self.certificate_auth["clientkeyfile"]),
             '--verbose']
         logging.info(args)
         psutil.Popen(args).wait()
@@ -63,11 +67,11 @@ class SyncManager():
         args = [
             self.cfg.bin_dir / 'arangosync',
             'get', 'tasks',
-            '--master.cacert=' + str(self.ca["cert"]),
+            '--master.cacert=' + str(self.certificate_auth["cert"]),
             '--master.endpoint=https://{url}:{port}'.format(
                 url=self.cfg.publicip,
                 port=str(self.clusterports[which])),
-            '--auth.keyfile=' + str(self.ca["clientkeyfile"]),
+            '--auth.keyfile=' + str(self.certificate_auth["clientkeyfile"]),
             '--verbose']
         logging.info(args)
         psutil.Popen(args).wait()
@@ -77,11 +81,11 @@ class SyncManager():
         args = [
             self.cfg.bin_dir / 'arangosync',
             'abort', 'sync',
-            '--master.cacert=' + str(self.ca["cert"]),
+            '--master.cacert=' + str(self.certificate_auth["cert"]),
             '--master.endpoint=https://{url}:{port}'.format(
                 url=self.cfg.publicip,
                 port=str(self.clusterports[0])),
-            '--auth.keyfile=' + str(self.ca["clientkeyfile"])
+            '--auth.keyfile=' + str(self.certificate_auth["clientkeyfile"])
         ]
         logging.info('SyncManager: stopping sync : %s', str(args))
         psutil.Popen(args).wait()
@@ -91,12 +95,11 @@ class SyncManager():
         args = [
             self.cfg.bin_dir / 'arangosync',
             'check', 'sync',
-            '--master.cacert=' + str(self.ca["cert"]),
+            '--master.cacert=' + str(self.certificate_auth["cert"]),
             '--master.endpoint=https://{url}:{port}'.format(
                 url=self.cfg.publicip,
                 port=str(self.clusterports[0])),
-            '--auth.keyfile=' + str(self.ca["clientkeyfile"])
+            '--auth.keyfile=' + str(self.certificate_auth["clientkeyfile"])
         ]
         logging.info('SyncManager: checking sync status : %s', str(args))
         return psutil.Popen(args).wait() == 0
-        

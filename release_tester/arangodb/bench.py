@@ -18,7 +18,7 @@ def load_scenarios():
             with open(one_yaml) as fileh:
                 obj = yaml.load(fileh, Loader=yaml.Loader)
                 for key in obj.keys():
-                    if type(obj[key])==bool:
+                    if isinstance(obj[key]) == bool:
                         obj[key] = "true" if obj[key] else "false"
                 BENCH_TODOS[one_yaml.name[:-4]] = obj
 
@@ -26,7 +26,7 @@ class ArangoBenchManager():
     """ manages one arangobackup instance"""
     def __init__(self, basecfg, connect_instance):
         self.connect_instance = connect_instance
-
+        self.arguments = None
         self.cfg = basecfg
         self.moreopts = [
             '-configuration', 'none',
@@ -43,7 +43,7 @@ class ArangoBenchManager():
         self.username = 'testuser'
         self.passvoid = 'testpassvoid'
         self.instance = None
-
+    # pylint: disable=W0102
     def launch(self, testcase_no, moreopts = []):
         """ run arangobench """
         testcase = BENCH_TODOS[testcase_no]

@@ -3,7 +3,7 @@ from pathlib import Path
 
 import sys
 import click
-from acquire_packages import acquire_package
+from acquire_packages import AcquirePackages
 from upgrade import run_upgrade
 
 def upgrade_package_test(verbose, new_version, old_version, package_dir, enterprise_magic, zip, dlstage, httpusername, httppassvoid, test_data_dir, version_state_dir, remote_host):
@@ -13,8 +13,8 @@ def upgrade_package_test(verbose, new_version, old_version, package_dir, enterpr
     new_version_content = None
 
     for enterprise in [True, False]:
-        dl_old = acquire_package(old_version, verbose, package_dir, enterprise, enterprise_magic, zip, dlstage, httpusername, httppassvoid, remote_host);
-        dl_new = acquire_package(new_version, verbose, package_dir, enterprise, enterprise_magic, zip, dlstage, httpusername, httppassvoid, remote_host);
+        dl_old = AcquirePackages(old_version, verbose, package_dir, enterprise, enterprise_magic, zip, dlstage, httpusername, httppassvoid, remote_host);
+        dl_new = AcquirePackages(new_version, verbose, package_dir, enterprise, enterprise_magic, zip, dlstage, httpusername, httppassvoid, remote_host);
         old_version_state = version_state_dir / Path(dl_old.cfg.version + "_sourceInfo.log")
         new_version_state = version_state_dir / Path(dl_new.cfg.version + "_sourceInfo.log")
         if old_version_state.exists():
