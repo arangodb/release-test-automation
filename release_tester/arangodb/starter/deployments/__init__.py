@@ -25,9 +25,9 @@ def make_runner(runner_type:RunnerType,
                 new_inst: Optional[InstallerBase] = None) -> Runner:
     """ get an instance of the arangod runner - as you specify """
 
-    assert(runner_type)
-    assert(baseconfig)
-    assert(old_inst)
+    assert runner_type
+    assert baseconfig
+    assert old_inst
 
     logging.debug("Factory for Runner of type: {0}".format(str(runner_type)))
     args = (runner_type, baseconfig, old_inst, new_cfg, new_inst)
@@ -47,7 +47,7 @@ def make_runner(runner_type:RunnerType,
     if runner_type == RunnerType.DC2DC:
         from arangodb.starter.deployments.dc2dc import Dc2Dc
         return Dc2Dc(*args)
-    
+
     if runner_type == RunnerType.DC2DCENDURANCE:
         from arangodb.starter.deployments.dc2dc_endurance import Dc2DcEndurance
         return Dc2DcEndurance(*args)

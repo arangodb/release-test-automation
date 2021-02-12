@@ -1,21 +1,22 @@
 
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
-from pathlib import Path
 import time
 import logging
 import sys
 import requests
-from tools.interact import prompt_user
-from arangodb.starter.manager import StarterManager
+
 from arangodb.instance import InstanceType
+from arangodb.starter.manager import StarterManager
 from arangodb.starter.deployments.runner import Runner
-import tools.loghelper as lh
+
 from tools.asciiprint import print_progress as progress
+from tools.interact import prompt_user
 
 
 class ActiveFailover(Runner):
     """ This launches an active failover setup """
+    # pylint: disable=R0913 disable=R0902
     def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
         super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'AFO', 500, 600)
         self.starter_instances = []
@@ -23,6 +24,7 @@ class ActiveFailover(Runner):
         self.leader = None
         self.first_leader = None
         self.new_leader = None
+        self.success = True
 
     def starter_prepare_env_impl(self):
         self.starter_instances.append(
@@ -188,7 +190,9 @@ please revalidate the UI states on the new leader; you should see *one* follower
         if reply.status_code != 503:
             self.success = False
 
-        prompt_user(self.basecfg, 'The old leader has been respawned as follower (%s), so there should be two followers again.'
+        prompt_user(self.basecfg,
+                    'The old leader has been respawned as follower (%s),'
+                    ' so there should be two followers again.'
                     % self.first_leader.get_frontend().get_public_url('root@') )
 
         logging.info("state of this test is: %s",

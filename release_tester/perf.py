@@ -107,8 +107,10 @@ def run_test(old_version, new_version, verbose, package_dir, test_data_dir,
     if len(frontends) > 0:
         for frontend in frontends:
             print('remote')
-            h = re.split(split_host, frontend)
-            inst.cfg.add_frontend(h[1], h[2], h[3])
+            host_parts = re.split(split_host, frontend)
+            inst.cfg.add_frontend(host_parts[1],
+                                  host_parts[2],
+                                  host_parts[3])
     inst.cfg.scenario = Path(scenario)
     runner = ClusterPerf(RunnerType.CLUSTER, inst.cfg, inst, None, None)
     runner.do_install = do_install

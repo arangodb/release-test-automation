@@ -6,8 +6,11 @@ from arangodb.starter.deployments.runner import Runner
 
 class NoStarter(Runner):
     """ This runner does not use the starter """
-    def __init__(self, runner_type, cfg, new_inst, old_inst):
-        super().__init__(runner_type, cfg, new_inst, old_inst, 'none')
+# pylint: disable=R0913 disable=R0902
+    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
+        super().__init__(runner_type, cfg,
+                         old_inst, new_cfg, new_inst,
+                         'none', 0, 0)
 
     def starter_prepare_env_impl(self):
         pass

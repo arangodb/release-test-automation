@@ -15,7 +15,7 @@ class InstallerFrontend():
 
 class InstallerConfig():
     """ stores the baseline of this environment """
-# pylint: disable=R0913 disable=R0902
+    # pylint: disable=R0913 disable=R0902
     def __init__(self,
                  version: str,
                  verbose: bool,

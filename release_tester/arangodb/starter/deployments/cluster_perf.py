@@ -2,7 +2,6 @@
 """ launch and manage an arango deployment using the starter"""
 import time
 import logging
-import sys
 import os
 from pathlib import Path
 from queue import Queue, Empty
@@ -10,20 +9,20 @@ from threading  import Thread
 
 import psutil
 import statsd
-import requests
 import yaml
 
-from tools.timestamp import timestamp
-import tools.interact as ti
-from tools.interact import end_test
 from arangodb.instance import InstanceType
-from arangodb.starter.manager import StarterManager, StarterNonManager
 from arangodb.starter.deployments.runner import Runner
-import tools.loghelper as lh
-from tools.asciiprint import print_progress as progress
-from tools.prometheus import set_prometheus_jwt
 
-class testConfig():
+from tools.asciiprint import print_progress as progress
+import tools.interact as ti
+import tools.loghelper as lh
+from tools.prometheus import set_prometheus_jwt
+from tools.timestamp import timestamp
+# pylint: disable=W0603
+class TestConfig():
+    """ this represents one tests configuration """
+    # pylint: disable=R0902 disable=R0903
     def __init__(self):
         self.parallelity = 3
         self.db_count = 100
@@ -41,6 +40,7 @@ statsdc = statsd.StatsClient('localhost', 8125)
 RESULTS_TXT = None
 OTHER_SH_OUTPUT = None
 def result_line(line_tp):
+    """ get one result line """
     global OTHER_SH_OUTPUT, RESULTS_TXT
     if isinstance(line_tp, tuple):
         if line_tp[0].startswith(b'#'):
@@ -54,16 +54,20 @@ def result_line(line_tp):
                 RESULTS_TXT.write(str_line)
                 statsdc.timing(segments[0], float(segments[2]))
         else:
-            OTHER_SH_OUTPUT.write(line_tp[1].get_endpoint() + " - " + str(line_tp[0]) + '\n')
+            OTHER_SH_OUTPUT.write(line_tp[1].get_endpoint() +
+                                  " - " + str(line_tp[0]) + '\n')
             statsdc.incr('completed')
 
-def makedata_runner(q, resq, arangosh, progressive_timeout):
+def makedata_runner(queue, resq, arangosh, progressive_timeout):
+    """ operate one makedata instance """
     while True:
         try:
             # all tasks are already there. if done:
-            job = q.get(timeout=0.1)
+            job = queue.get(timeout=0.1)
             print("starting my task! " + str(job['args']))
-            res = arangosh.create_test_data("xx", job['args'], result_line=result_line, timeout=progressive_timeout)
+            res = arangosh.create_test_data("xx", job['args'],
+                                            result_line=result_line,
+                                            timeout=progressive_timeout)
             if not res[0]:
                 print("error executing test - giving up.")
                 print(res[1])
@@ -77,19 +81,21 @@ def makedata_runner(q, resq, arangosh, progressive_timeout):
 
 class ClusterPerf(Runner):
     """ this launches a cluster setup """
+    # pylint: disable=R0913 disable=R0902
     def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
         global OTHER_SH_OUTPUT, RESULTS_TXT
         if not cfg.scenario.exists():
-            cfg.scenario.write_text(yaml.dump(testConfig()))
+            cfg.scenario.write_text(yaml.dump(TestConfig()))
             raise Exception("have written %s with default config" % str(cfg.scenario))
 
         with open(cfg.scenario) as fileh:
             self.scenario = yaml.load(fileh, Loader=yaml.Loader)
 
-        super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'CLUSTER')
+        super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst,
+                         'CLUSTER', 9999999, 99999999)
+        self.success = False
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
-
         RESULTS_TXT = Path('/tmp/results.txt').open('w')
         OTHER_SH_OUTPUT = Path('/tmp/errors.txt').open('w')
 
@@ -97,65 +103,61 @@ class ClusterPerf(Runner):
         mem = psutil.virtual_memory()
         os.environ['ARANGODB_OVERRIDE_DETECTED_TOTAL_MEMORY'] = str(int((mem.total * 0.8) / 9))
 
-        self.create_test_collection = ("""
-db._create("testCollection",  { numberOfShards: 6, replicationFactor: 2});
-db.testCollection.save({test: "document"})
-""", "create test collection")
-
         self.basecfg.index = 0
-        sm = None
 
+        # pylint: disable=C0415
         if self.remote:
-            sm = StarterNonManager
+            from arangodb.starter.manager import (
+                StarterNonManager as StarterManager)
         else:
-            sm = StarterManager
+            from arangodb.starter.manager import StarterManager
         self.starter_instances.append(
-            sm(self.basecfg,
-               self.basedir, 'node1',
-               mode='cluster',
-               jwtStr=self.jwtdatastr,
-               port=9528,
-               expect_instances=[
-                   InstanceType.agent,
-                   InstanceType.coordinator,
-                   InstanceType.dbserver,
-               ],
-               moreopts=[
-               #    '--agents.agency.election-timeout-min=5',
-               #    '--agents.agency.election-timeout-max=10',
-               ]))
+            StarterManager(self.basecfg,
+                           self.basedir, 'node1',
+                           mode='cluster',
+                           jwtStr=self.jwtdatastr,
+                           port=9528,
+                           expect_instances=[
+                               InstanceType.agent,
+                               InstanceType.coordinator,
+                               InstanceType.dbserver,
+                           ],
+                           moreopts=[
+                               #    '--agents.agency.election-timeout-min=5',
+                               #    '--agents.agency.election-timeout-max=10',
+                           ]))
         self.starter_instances.append(
-            sm(self.basecfg,
-               self.basedir, 'node2',
-               mode='cluster',
-               jwtStr=self.jwtdatastr,
-               port=9628,
-               expect_instances=[
-                   InstanceType.agent,
-                   InstanceType.coordinator,
-                   InstanceType.dbserver,
-               ],
-               moreopts=[
-                   '--starter.join', '127.0.0.1:9528',
-               #    '--agents.agency.election-timeout-min=5',
-               #    '--agents.agency.election-timeout-max=10',
-               ]))
+            StarterManager(self.basecfg,
+                           self.basedir, 'node2',
+                           mode='cluster',
+                           jwtStr=self.jwtdatastr,
+                           port=9628,
+                           expect_instances=[
+                               InstanceType.agent,
+                               InstanceType.coordinator,
+                               InstanceType.dbserver,
+                           ],
+                           moreopts=[
+                               '--starter.join', '127.0.0.1:9528',
+                               #    '--agents.agency.election-timeout-min=5',
+                               #    '--agents.agency.election-timeout-max=10',
+                        ]))
         self.starter_instances.append(
-            sm(self.basecfg,
-               self.basedir, 'node3',
-               mode='cluster',
-               jwtStr=self.jwtdatastr,
-               port=9728,
-               expect_instances=[
-                   InstanceType.agent,
-                   InstanceType.coordinator,
-                   InstanceType.dbserver,
-               ],
-               moreopts=[
-                   '--starter.join', '127.0.0.1:9528',
-               #    '--agents.agency.election-timeout-min=5',
-               #    '--agents.agency.election-timeout-max=10',
-               ]))
+            StarterManager(self.basecfg,
+                           self.basedir, 'node3',
+                           mode='cluster',
+                           jwtStr=self.jwtdatastr,
+                           port=9728,
+                           expect_instances=[
+                               InstanceType.agent,
+                               InstanceType.coordinator,
+                               InstanceType.dbserver,
+                           ],
+                           moreopts=[
+                               '--starter.join', '127.0.0.1:9528',
+                               #    '--agents.agency.election-timeout-min=5',
+                               #    '--agents.agency.election-timeout-max=10',
+                        ]))
         for instance in self.starter_instances:
             instance.is_leader = True
 
@@ -242,13 +244,18 @@ db.testCollection.save({test: "document"})
                 })
 
         while len(workers) < self.scenario.parallelity:
-            starter = self.makedata_instances[len(workers) % len(self.makedata_instances)]
+            starter = self.makedata_instances[len(workers) % len(
+                self.makedata_instances)]
             assert starter.arangosh
             arangosh = starter.arangosh
 
             #must be writabe that the setup may not have already data
             if not arangosh.read_only and not self.has_makedata_data:
-                workers.append(Thread(target=makedata_runner, args=(jobs, resultq, arangosh, self.scenario.progressive_timeout)))
+                workers.append(Thread(target=makedata_runner,
+                                      args=(jobs,
+                                            resultq,
+                                            arangosh,
+                                            self.scenario.progressive_timeout)))
 
         thread_count = len(workers)
         for worker in workers:
