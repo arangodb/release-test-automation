@@ -4,11 +4,12 @@
 import logging
 from pathlib import Path
 import sys
-import click
 import re
+import click
 from tools.killall import kill_all_processes
 from arangodb.installers import make_installer, InstallerConfig
-from arangodb.starter.deployments import RunnerType, make_runner
+from arangodb.starter.deployments.cluster_perf import ClusterPerf
+from arangodb.starter.deployments import RunnerType
 import tools.loghelper as lh
 
 logging.basicConfig(
@@ -19,6 +20,7 @@ logging.basicConfig(
 
 
 @click.command()
+@click.option('--old-version', help='unused')
 @click.option('--new-version', help='ArangoDB version number.')
 @click.option('--verbose/--no-verbose',
               is_flag=True,
@@ -28,7 +30,7 @@ logging.basicConfig(
               is_flag=True,
               default=False,
               help='Enterprise or community?')
-@click.option('--zip/--no-zip',
+@click.option('--zip/--no-zip', 'zip_package',
               is_flag=True,
               default=False,
               help='switch to zip or tar.gz package instead of default OS package')
@@ -59,16 +61,15 @@ logging.basicConfig(
 @click.option('--frontends',
               multiple=True,
               help='Connection strings of remote clusters')
-
-
-def run_test(new_version, verbose, package_dir, test_data_dir,
-             enterprise, zip,
+# pylint: disable=R0913
+def run_test(old_version, new_version, verbose, package_dir, test_data_dir,
+             enterprise, zip_package,
              interactive, mode, starter_mode, publicip, scenario, frontends):
     """ main """
     lh.section("configuration")
     print("version: " + str(new_version))
     print("using enterpise: " + str(enterprise))
-    print("using zip: " + str(zip))
+    print("using zip: " + str(zip_package))
     print("package directory: " + str(package_dir))
     print("mode: " + str(mode))
     print("starter mode: " + str(starter_mode))
@@ -80,8 +81,8 @@ def run_test(new_version, verbose, package_dir, test_data_dir,
     if mode not in ['all', 'install', 'system', 'tests', 'uninstall']:
         raise Exception("unsupported mode %s!" % mode)
 
-    do_install = mode == "all" or mode == "install"
-    do_uninstall = mode == "all" or mode == "uninstall"
+    do_install = mode in ["all", "install"]
+    do_uninstall = mode in ["all", "uninstall"]
 
     lh.section("startup")
     if verbose:
@@ -91,7 +92,7 @@ def run_test(new_version, verbose, package_dir, test_data_dir,
     install_config = InstallerConfig(new_version,
                                      verbose,
                                      enterprise,
-                                     zip,
+                                     zip_package,
                                      Path(package_dir),
                                      Path(test_data_dir),
                                      mode,
@@ -103,9 +104,6 @@ def run_test(new_version, verbose, package_dir, test_data_dir,
 
     inst = make_installer(install_config)
 
-
-    from arangodb.starter.deployments.cluster_perf import ClusterPerf
-    from arangodb.starter.deployments import RunnerType
     if len(frontends) > 0:
         for frontend in frontends:
             print('remote')
@@ -122,8 +120,9 @@ def run_test(new_version, verbose, package_dir, test_data_dir,
     if len(frontends) == 0:
         kill_all_processes()
 
-    return ( 0 if not failed else 1 )
+    return 0 if not failed else 1
 
 
 if __name__ == "__main__":
+# pylint: disable=E1120 # fix clickiness.
     sys.exit(run_test())

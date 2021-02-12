@@ -18,16 +18,17 @@ logging.basicConfig(
     format='%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s'
 )
 
-def run_upgrade(old_version, version, verbose,
+# pylint: disable=R0913 disable=R0914
+def run_upgrade(old_version, new_version, verbose,
                 package_dir, test_data_dir,
-                enterprise, zip, interactive,
+                enterprise, zip_package, interactive,
                 starter_mode, stress_upgrade, publicip):
-    """ main """
+    """ execute upgrade tests """
     lh.section("configuration")
     print("old version: " + str(old_version))
-    print("version: " + str(version))
+    print("version: " + str(new_version))
     print("using enterpise: " + str(enterprise))
-    print("using zip: " + str(zip))
+    print("using zip: " + str(zip_package))
     print("package directory: " + str(package_dir))
     print("starter mode: " + str(starter_mode))
     print("public ip: " + str(publicip))
@@ -63,8 +64,8 @@ def run_upgrade(old_version, version, verbose,
         kill_all_processes()
         install_config_old = InstallerConfig(old_version,
                                              verbose,
-                                             enterprise, 
-                                             zip, 
+                                             enterprise,
+                                             zip_package,
                                              Path(package_dir),
                                              Path(test_data_dir),
                                              'all',
@@ -72,10 +73,10 @@ def run_upgrade(old_version, version, verbose,
                                              interactive,
                                              stress_upgrade)
         old_inst = make_installer(install_config_old)
-        install_config_new = InstallerConfig(version,
+        install_config_new = InstallerConfig(new_version,
                                              verbose,
                                              enterprise,
-                                             zip,
+                                             zip_package,
                                              Path(package_dir),
                                              Path(test_data_dir),
                                              'all',
@@ -119,7 +120,7 @@ def run_upgrade(old_version, version, verbose,
               is_flag=True,
               default=False,
               help='Enterprise or community?')
-@click.option('--zip/--no-zip',
+@click.option('--zip/--no-zip', "zip_package",
               is_flag=True,
               default=False,
               help='switch to zip or tar.gz package instead of default OS package')
@@ -138,15 +139,17 @@ def run_upgrade(old_version, version, verbose,
 @click.option('--publicip',
               default='127.0.0.1',
               help='IP for the click to browser hints.')
-
-def main(old_version, version, verbose,
+# pylint: disable=R0913
+def main(old_version, new_version, verbose,
          package_dir, test_data_dir,
-         enterprise, zip, interactive,
+         enterprise, zip_package, interactive,
          starter_mode, stress_upgrade, publicip):
+    """ main trampoline """
     return run_upgrade(old_version, new_version, verbose,
                        package_dir, test_data_dir,
-                       enterprise, zip, interactive,
+                       enterprise, zip_package, interactive,
                        starter_mode, stress_upgrade, publicip)
 
 if __name__ == "__main__":
+# pylint: disable=E1120 # fix clickiness.
     main()

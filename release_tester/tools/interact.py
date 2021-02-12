@@ -2,7 +2,8 @@
 """ interact with the user (if enabled) with information about the running frontends """
 import logging
 
-def prompt_user(cfg, message="Provide instructions to the user what do. Why must the user wait here?"):
+def prompt_user(cfg,
+                message="Provide instructions to the user what do. Why must the user wait here?"):
     """ print all available frontends, and wait for the user to confirm (if) """
 
     #message to give some instruction what to do or test
