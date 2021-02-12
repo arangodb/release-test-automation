@@ -16,7 +16,7 @@ def upgrade_package_test(verbose,
                          dlstage,
                          httpusername, httppassvoid,
                          test_data_dir, version_state_dir,
-                         remote_host):
+                         remote_host, force):
     """ process fetch & tests """
     old_version_state = None
     new_version_state = None
@@ -44,8 +44,8 @@ def upgrade_package_test(verbose,
             print("we already tested this version. bye.")
             return 0
 
-        dl_old.get_packages(True, dlstage)
-        dl_new.get_packages(True, dlstage)
+        dl_old.get_packages(force, dlstage)
+        dl_new.get_packages(force, dlstage)
         run_upgrade(dl_old.cfg.version,
                     dl_new.cfg.version,
                     verbose,
@@ -94,6 +94,10 @@ def upgrade_package_test(verbose,
 @click.option('--remote-host',
               default="",
               help='remote host to acquire packages from')
+@click.option('--force/--no-force',
+              is_flag=True,
+              default=False,
+              help='whether to overwrite existing target files or not.')
 # pylint: disable=R0913
 def main(verbose,
          new_version, old_version,
@@ -101,7 +105,8 @@ def main(verbose,
          zip_package, source,
          httpuser, httppassvoid,
          test_data_dir,
-         version_state_dir, remote_host):
+         version_state_dir, remote_host,
+         force):
     """ main """
     return upgrade_package_test(verbose,
                                 new_version, old_version,
@@ -110,7 +115,7 @@ def main(verbose,
                                 httpuser, httppassvoid,
                                 test_data_dir,
                                 version_state_dir,
-                                remote_host)
+                                remote_host, force)
 
 if __name__ == "__main__":
 # pylint: disable=E1120 # fix clickiness.
