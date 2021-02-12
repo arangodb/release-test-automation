@@ -57,7 +57,7 @@ class StarterManager():
 
         #directories
         self.raw_basedir = install_prefix
-        self.instance_name = str(install_prefix / instance_prefix)
+        self.name = str(install_prefix / instance_prefix)
         self.basedir = self.cfg.base_test_dir / install_prefix / instance_prefix
         self.log_file = self.basedir / "arangodb.log"
 
@@ -140,13 +140,12 @@ Starter {0.name}
 
     def name(self):
         """ name of this starter """
-        return str(self.instance_name)
+        return str(self.name)
 
     def get_frontends(self):
         """ get the frontend URLs of this starter instance """
         ret = []
         for i in self.all_instances:
-            print(i)
             if i.is_frontend():
                 ret.append(i)
         return ret
@@ -187,7 +186,7 @@ Starter {0.name}
 
     def show_all_instances(self):
         """ print all instances of this starter to the user """
-        logging.info("arangod instances for starter: " + self.instance_name)
+        logging.info("arangod instances for starter: " + self.name)
         if not self.all_instances:
             logging.info("no instances detected")
             return
@@ -200,7 +199,7 @@ Starter {0.name}
 
     def run_starter(self):
         """ launch the starter for this instance"""
-        logging.info("running starter " + self.instance_name)
+        logging.info("running starter " + self.name)
         args = [self.cfg.bin_dir / 'arangodb'] + self.hotbackup + self.arguments
         lh.log_cmd(args)
         self.instance = psutil.Popen(args)
@@ -311,7 +310,7 @@ Starter {0.name}
         """ terminate the instance of this starter
             (it should kill all its managed services)"""
 
-        lh.subsubsection("terminating instances for: " + str(self.instance_name))
+        lh.subsubsection("terminating instances for: " + str(self.name))
         logging.info("StarterManager: Terminating starter instance: %s",
                      str(self.arguments))
 
@@ -557,7 +556,7 @@ Starter {0.name}
                             r'(agent|coordinator|dbserver|resilientsingle|single)(\d*)',
                             name)
                         instance_class = ArangodInstance
-                    # directory = self.basedir / instance_name
+                    # directory = self.basedir / name
                     if match:
                         # we may see a `local-slave-*` directory inbetween,
                         # hence we need to choose the current directory not
