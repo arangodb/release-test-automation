@@ -50,7 +50,7 @@ def upgrade_package_test(verbose,
                     dl_new.cfg.version,
                     verbose,
                     package_dir, test_data_dir,
-                    enterprise, zip, False,
+                    enterprise, zip_package, False,
                     "all", False, "127.0.0.1")
 
 
