@@ -18,8 +18,6 @@ import tools.loghelper as lh
 class InstallerRPM(InstallerLinux):
     """ install .rpm's on RedHat, Centos or SuSe systems """
     def __init__(self, cfg):
-        self.check_stripped = True
-        self.check_symlink = True
         self.server_package = None
         self.client_package = None
         self.debug_package = None

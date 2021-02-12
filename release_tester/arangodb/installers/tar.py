@@ -24,8 +24,6 @@ class InstallerTAR(InstallerBase):
             cfg.localhost = 'localhost'
 
         self.hot_backup = True
-        self.check_stripped = True
-        self.check_symlink = True
         self.server_package = None
         self.client_package = None
         self.debug_package = None

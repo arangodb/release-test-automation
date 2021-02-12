@@ -14,8 +14,6 @@ from arangodb.installers.base import InstallerBase
 class InstallerW(InstallerBase):
     """ install the windows NSIS package """
     def __init__(self, cfg):
-        self.check_stripped = False
-        self.check_symlink = False
         self.server_package = None
         self.client_package = None
         self.instance = None
@@ -35,6 +33,8 @@ class InstallerW(InstallerBase):
         cfg.real_sbin_dir = cfg.sbin_dir
 
         super().__init__(cfg)
+        self.check_stripped = False
+        self.check_symlink = False
 
     def supports_hot_backup(self):
         """ no hot backup support on the wintendo. """

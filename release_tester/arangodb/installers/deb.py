@@ -18,8 +18,6 @@ import semver
 class InstallerDeb(InstallerLinux):
     """ install .deb's on debian or ubuntu hosts """
     def __init__(self, cfg):
-        self.check_stripped = True
-        self.check_symlink = True
         self.server_package = None
         self.client_package = None
         self.debug_package = None
