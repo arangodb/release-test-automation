@@ -603,7 +603,8 @@ Starter {0.name}
         """ detect the arangod instance PIDs"""
         for instance in self.all_instances:
             instance.detect_pid(ppid=self.instance.pid,
-                                full_binary_path=self.cfg.real_sbin_dir)
+                                full_binary_path=self.cfg.real_sbin_dir,
+                                offset=0)
 
         self.show_all_instances()
         self.detect_arangosh_instances()

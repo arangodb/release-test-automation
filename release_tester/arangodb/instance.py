@@ -309,6 +309,14 @@ arangod instance
             # locate the timestamp of our 'ready for business' line:
             match = re.search(r'(.*)Z \['+pid+'].*' + ready_for_business,
                               log_file_content[pos - 140:])
+            if match == None:
+                tries -=1
+                print(log_file_content[pos - 140:])
+                print(log_file_content)
+                print(pos)
+                time.sleep(1)
+                continue
+
             t_start = match.group(1)
             logging.debug(
                 "found pid {0} for instance with logfile {1} at {2}.".format(
