@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-""" this installer expects to be running inside the arango docker container via derived containers etc. """
-import platform
-import shutil
+"""
+ this installer expects to be running inside the arango
+ docker container via derived containers etc.
+"""
 import logging
 from pathlib import Path
-import psutil
 import semver
-import tools.loghelper as lh
 from arangodb.installers.base import InstallerBase
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 
 class InstallerDocker(InstallerBase):
     """ run inside docker """
+    # pylint: disable=R0913 disable=R0902
     def __init__(self, cfg):
         cfg.localhost = 'ip6-localhost'
 
@@ -29,14 +29,14 @@ class InstallerDocker(InstallerBase):
         self.semver = semver.VersionInfo.parse(version)
 
         cfg.have_system_service = False
-        cfg.baseTestDir = Path('/home/testdata')
+        cfg.base_test_dir = Path('/home/testdata')
         cfg.installPrefix = None
         cfg.bin_dir = Path('/usr/bin')
         cfg.sbin_dir = Path('/usr/sbin')
         cfg.real_bin_dir = Path('/usr/bin')
         cfg.real_sbin_dir = Path('/usr/sbin')
 
-        cfg.logDir = Path()
+        cfg.log_dir = Path()
         cfg.dbdir = None
         cfg.appdir = None
         cfg.cfgdir = None
@@ -65,7 +65,7 @@ class InstallerDocker(InstallerBase):
         self.cfg.cfgdir = self.cfg.installPrefix # n/A
         self.cfg.appdir = self.cfg.installPrefix # n/A
         self.cfg.dbdir = self.cfg.installPrefix # n/A
-        self.cfg.logDir = self.cfg.installPrefix # n/A
+        self.cfg.log_dir = self.cfg.installPrefix # n/A
 
     def check_service_up(self):
         pass

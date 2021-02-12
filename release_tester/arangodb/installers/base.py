@@ -189,6 +189,7 @@ class InstallerBase(ABC):
         self.reset_version(cfg.version)
         self.check_stripped = True
         self.check_symlink = True
+        self.instance = None
 
     def reset_version(self, version):
         """ re-configure the version we work with """
@@ -272,7 +273,7 @@ class InstallerBase(ABC):
                                         self.cfg.port,
                                         self.cfg.localhost,
                                         self.cfg.publicip,
-                                        self.cfg.logDir)
+                                        self.cfg.log_dir)
         self.calculate_package_names()
         self.cfg.verbose = verbose
 
@@ -293,12 +294,12 @@ class InstallerBase(ABC):
         """ if the packaging doesn't enable logging,
             do it using this function """
         arangodconf = self.get_arangod_conf().read_text()
-        if not self.cfg.logDir.exists():
-            self.cfg.logDir.mkdir(parents=True)
+        if not self.cfg.log_dir.exists():
+            self.cfg.log_dir.mkdir(parents=True)
         new_arangod_conf = arangodconf.replace(
             '[log]',
             '[log]\nfile = ' +
-            str(self.cfg.logDir / 'arangod.log'))
+            str(self.cfg.log_dir / 'arangod.log'))
         print(new_arangod_conf)
         self.get_arangod_conf().write_text(new_arangod_conf)
         logging.info("arangod now configured for logging")
@@ -422,3 +423,11 @@ class InstallerBase(ABC):
                 logging.info("Path not removed: %s", str(self.cfg.dbdir))
                 success = False
         return success
+
+    def set_system_instance(self):
+        self.instance = ArangodInstance("single",
+                                        "8529",
+                                        self.cfg.localhost,
+                                        self.cfg.publicip,
+                                        (self.cfg.installPrefix /
+                                         self.cfg.log_dir))

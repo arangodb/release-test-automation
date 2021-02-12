@@ -29,14 +29,14 @@ class Dc2Dc(Runner):
 
 
         datadir = Path('data')
-        cert_dir = self.cfg.baseTestDir / self.basedir / "certs"
+        cert_dir = self.cfg.base_test_dir / self.basedir / "certs"
         print(cert_dir)
         cert_dir.mkdir(parents=True, exist_ok=True)
         cert_dir.mkdir(parents=True, exist_ok=True)
         def getdirs(subdir):
             return {
                 "dir": self.basedir /
-                       self.cfg.baseTestDir /
+                       self.cfg.base_test_dir /
                        self.basedir / datadir,
                 "instance_dir": subdir,
                 "SyncSecret": cert_dir / subdir / 'syncmaster.jwtsecret',

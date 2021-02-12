@@ -8,7 +8,6 @@ from pathlib import Path
 import pexpect
 import psutil
 from arangodb.sh import ArangoshExecutor
-from arangodb.instance import ArangodInstance
 from arangodb.installers.linux import InstallerLinux
 from tools.asciiprint import ascii_print, print_progress as progress
 
@@ -21,7 +20,6 @@ class InstallerRPM(InstallerLinux):
         self.server_package = None
         self.client_package = None
         self.debug_package = None
-        self.instance = None
 
         cfg.installPrefix = Path("/")
         cfg.bin_dir = cfg.installPrefix / "usr" / "bin"
@@ -61,9 +59,12 @@ class InstallerRPM(InstallerLinux):
             "arch" : architecture
         }
 
-        self.server_package = 'arangodb3{ep}-{cfg}-{ver}.{arch}.rpm'.format(**desc)
-        self.client_package = 'arangodb3{ep}-client-{cfg}-{ver}.{arch}.rpm'.format(**desc)
-        self.debug_package = 'arangodb3{ep}-debuginfo-{cfg}-{ver}.{arch}.rpm'.format(**desc)
+        self.server_package = (
+            'arangodb3{ep}-{cfg}-{ver}.{arch}.rpm'.format(**desc))
+        self.client_package = (
+            'arangodb3{ep}-client-{cfg}-{ver}.{arch}.rpm'.format(**desc))
+        self.debug_package = (
+            'arangodb3{ep}-debuginfo-{cfg}-{ver}.{arch}.rpm'.format(**desc))
 
     def check_service_up(self):
         if self.instance.pid:
@@ -102,13 +103,12 @@ class InstallerRPM(InstallerLinux):
         logging.info("upgrading Arangodb rpm package")
 
         self.cfg.passvoid = "sanoetuh"   # TODO
-        self.cfg.logDir = Path('/var/log/arangodb3')
+        self.cfg.log_dir = Path('/var/log/arangodb3')
         self.cfg.dbdir  = Path('/var/lib/arangodb3')
         self.cfg.appdir = Path('/var/lib/arangodb3-apps')
         self.cfg.cfgdir = Path('/etc/arangodb3')
 
-        self.instance = ArangodInstance("single", "8529", self.cfg.localhost, self.cfg.publicip, self.cfg.installPrefix / self.cfg.logDir)
-
+        self.set_system_instance()
 
         #https://access.redhat.com/solutions/1189
         cmd = 'rpm --upgrade ' + str(self.cfg.package_dir / self.server_package)
@@ -116,7 +116,10 @@ class InstallerRPM(InstallerLinux):
         server_upgrade = pexpect.spawnu(cmd)
 
         try:
-            server_upgrade.expect('First Steps with ArangoDB:|server will now shut down due to upgrade, database initialization or admin restoration.')
+            server_upgrade.expect(
+                'First Steps with ArangoDB:|server '
+                'will now shut down due to upgrade,'
+                'database initialization or admin restoration.')
             print(server_upgrade.before)
         except pexpect.exceptions.EOF as exc:
             lh.line("X")
@@ -140,11 +143,12 @@ class InstallerRPM(InstallerLinux):
         logging.debug("upgrade successfully finished")
 
     def install_package(self):
-        self.cfg.logDir = Path('/var/log/arangodb3')
+        # pylint: disable=too-many-statements
+        self.cfg.log_dir = Path('/var/log/arangodb3')
         self.cfg.dbdir  = Path('/var/lib/arangodb3')
         self.cfg.appdir = Path('/var/lib/arangodb3-apps')
         self.cfg.cfgdir = Path('/etc/arangodb3')
-        self.instance = ArangodInstance("single", "8529", self.cfg.localhost, self.cfg.publicip, self.cfg.installPrefix / self.cfg.logDir)
+        self.set_system_instance()
         logging.info("installing Arangodb RPM package")
         package = self.cfg.package_dir / self.server_package
         if not package.is_file():
@@ -170,7 +174,8 @@ class InstallerRPM(InstallerLinux):
         while server_install.isalive():
             progress('.')
             if server_install.exitstatus != 0:
-                raise Exception("server installation didn't finish successfully!")
+                raise Exception("server installation "
+                                "didn't finish successfully!")
 
         start = reply.find("'")
         end = reply.find("'", start + 1)
@@ -263,13 +268,17 @@ class InstallerRPM(InstallerLinux):
             if debug_install.exitstatus != 0:
                 debug_install.close(force=True)
                 ascii_print(debug_install.before)
-                raise Exception(str(self.debug_package) + " debug installation didn't finish successfully!")
+                raise Exception(
+                    str(self.debug_package) +
+                    " debug installation didn't finish successfully!")
         return self.cfg.have_debug_package
 
     def un_install_debug_package(self):
         uninstall = pexpect.spawnu('rpm -e ' +
                                    'arangodb3' +
-                                   ('e-debuginfo.x86_64' if self.cfg.enterprise else '-debuginfo.x86_64'))
+                                   ('e-debuginfo.x86_64'
+                                    if self.cfg.enterprise else
+                                    '-debuginfo.x86_64'))
         try:
             uninstall.expect(pexpect.EOF, timeout=30)
             ascii_print(uninstall.before)
@@ -282,12 +291,13 @@ class InstallerRPM(InstallerLinux):
             if uninstall.exitstatus != 0:
                 uninstall.close(force=True)
                 ascii_print(uninstall.before)
-                raise Exception("Debug package uninstallation didn't finish successfully!")
+                raise Exception("Debug package uninstallation"
+                                " didn't finish successfully!")
 
     def cleanup_system(self):
         # TODO: should this be cleaned by the rpm uninstall in first place?
-        if self.cfg.logDir.exists():
-            shutil.rmtree(self.cfg.logDir)
+        if self.cfg.log_dir.exists():
+            shutil.rmtree(self.cfg.log_dir)
         if self.cfg.dbdir.exists():
             shutil.rmtree(self.cfg.dbdir)
         if self.cfg.appdir.exists():
