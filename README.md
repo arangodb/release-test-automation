@@ -360,7 +360,7 @@ This container is intended to test the nightly tar packages whether starter depl
 
 Build the container for later use with:
 ```
-docker build docker_tar/ -t docker_tar
+docker build docker_tar/ -t arangodb/release-test-automation
 ```
 
 Run the container from within the office network; DNS lookup outside of the docker container:
