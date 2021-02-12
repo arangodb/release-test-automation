@@ -146,6 +146,7 @@ Starter {0.name}
         """ get the frontend URLs of this starter instance """
         ret = []
         for i in self.all_instances:
+            print(i)
             if i.is_frontend():
                 ret.append(i)
         return ret

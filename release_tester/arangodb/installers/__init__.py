@@ -65,10 +65,10 @@ class InstallerConfig():
         self.cfgdir = Path()
         winver = platform.win32_ver()
 
-        self.cfg.hot_backup = (
+        self.hot_backup = (
             self.enterprise and
             (semver.compare(self.version, "3.5.1") >= 0) and
-            winver[0]
+            isinstance(winver, list)
         )
 
     def reset_version(self, version):
