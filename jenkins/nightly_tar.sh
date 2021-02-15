@@ -28,6 +28,7 @@ fi
 
 trap "docker kill /$DOCKER_NAME; docker rm /$DOCKER_NAME;" EXIT
 docker build docker_tar -t $DOCKER_TAG
+# we need --init since our upgrade leans on zombies not happening:
 docker \
     run \
   --name=$DOCKER_NAME \
@@ -35,6 +36,7 @@ docker \
   -v `pwd`/test_dir:/home/test_dir \
   -v `pwd`/package_cache:/home/package_cache \
   -v `pwd`/versions:/home/versions \
+  --init \
   $DOCKER_TAG \
     /home/release-test-automation/release_tester/full_download_upgrade_test.py \
       --old-version $OLD_VERSION \
