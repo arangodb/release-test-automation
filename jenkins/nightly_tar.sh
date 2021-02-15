@@ -14,8 +14,10 @@ GIT_VERSION=$(git rev-parse --verify HEAD)
 if test -z "$GIT_VERSION"; then
     GIT_VERSION=$VERSION
 fi
+DOCKER_TAG=arangodb/release-test-automation-tar
+docker pull $DOCKER_TAG
 DOCKER_NAME=release-test-automation-tar-${VERSION}
-DOCKER_TAG=release-test-automation-tar:${VERSION}
+DOCKER_TAG=${DOCKER_TAG}:${VERSION}
 
 tar -xvf versions.tar || true
 
