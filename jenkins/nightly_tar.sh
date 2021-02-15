@@ -10,7 +10,7 @@ mkdir -p package_cache
 mkdir -p versions
 mkdir -p test_dir
 VERSION=$(cat VERSION.json)
-GIT_VERSION=$(git rev-parse --verify HEAD)
+GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
 if test -z "$GIT_VERSION"; then
     GIT_VERSION=$VERSION
 fi
