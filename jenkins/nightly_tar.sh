@@ -20,7 +20,7 @@ DOCKER_TAG=release-test-automation-tar:${VERSION}
 tar -xvf versions.tar || true
 
 if test -n "$FORCE" -o "$TEST_BRANCH" != 'master'; then
-  force_arg'--force'
+  force_arg='--force'
 fi
 
 
