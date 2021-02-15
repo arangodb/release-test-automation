@@ -58,9 +58,9 @@ def upgrade_package_test(verbose,
                     zip_package, False,
                     "all", False, "127.0.0.1")
 
-
-    old_version_state.write_text(fresh_old_content)
-    new_version_state.write_text(fresh_new_content)
+    if not force:
+        old_version_state.write_text(fresh_old_content)
+        new_version_state.write_text(fresh_new_content)
     return 0
 
 @click.command()
