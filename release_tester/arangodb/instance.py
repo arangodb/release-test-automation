@@ -309,7 +309,7 @@ arangod instance
             # locate the timestamp of our 'ready for business' line:
             match = re.search(r'(.*)Z \['+pid+'].*' + ready_for_business,
                               log_file_content[pos - 140:])
-            if match == None:
+            if match is None:
                 tries -=1
                 print(log_file_content[pos - 140:])
                 print(log_file_content)
