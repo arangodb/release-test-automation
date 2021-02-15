@@ -12,7 +12,6 @@ def upgrade_package_test(verbose,
                          new_version, old_version,
                          package_dir,
                          enterprise_magic,
-                         encryption_at_rest,
                          zip_package,
                          dlstage,
                          httpusername, httppassvoid,
@@ -24,7 +23,9 @@ def upgrade_package_test(verbose,
     old_version_content = None
     new_version_content = None
 
-    for enterprise in [True, False]:
+    for enterprise, encryption_at_rest in [(True, True),
+                                           (True, False),
+                                           (False, False)]:
         dl_old = AcquirePackages(old_version, verbose, package_dir, enterprise,
                                  enterprise_magic, zip_package, dlstage,
                                  httpusername, httppassvoid, remote_host)
@@ -41,12 +42,14 @@ def upgrade_package_test(verbose,
         fresh_old_content = dl_old.get_version_info(dlstage)
         fresh_new_content = dl_new.get_version_info(dlstage)
 
-        if old_version_content == fresh_old_content and new_version_content == fresh_new_content:
+        old_changed = old_version_content == fresh_old_content
+        new_changed = new_version_content == fresh_new_content
+        if new_changed and old_changed and not force:
             print("we already tested this version. bye.")
             return 0
 
-        dl_old.get_packages(force, dlstage)
-        dl_new.get_packages(force, dlstage)
+        dl_old.get_packages(old_changed, dlstage)
+        dl_new.get_packages(new_changed, dlstage)
         run_upgrade(dl_old.cfg.version,
                     dl_new.cfg.version,
                     verbose,
@@ -70,10 +73,6 @@ def upgrade_package_test(verbose,
 @click.option('--enterprise-magic',
               default='',
               help='Enterprise or community?')
-@click.option('--encryption-at-rest/--no-encryption-at-rest',
-              is_flag=True,
-              default=True,
-              help='turn on encryption at rest for Enterprise packages')
 @click.option('--zip/--no-zip', 'zip_package',
               is_flag=True,
               default=True,
@@ -108,7 +107,6 @@ def upgrade_package_test(verbose,
 def main(verbose,
          new_version, old_version,
          package_dir, enterprise_magic,
-         encryption_at_rest,
          zip_package, source,
          httpuser, httppassvoid,
          test_data_dir,
@@ -118,7 +116,6 @@ def main(verbose,
     return upgrade_package_test(verbose,
                                 new_version, old_version,
                                 package_dir, enterprise_magic,
-                                encryption_at_rest,
                                 zip_package, source,
                                 httpuser, httppassvoid,
                                 test_data_dir,
