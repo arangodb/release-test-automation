@@ -16,7 +16,6 @@ if test -z "$GIT_VERSION"; then
 fi
 DOCKER_NAME=release-test-automation-tar-${VERSION}
 DOCKER_TAG=release-test-automation-tar:${VERSION}
-set
 
 tar -xvf versions.tar || true
 
