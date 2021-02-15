@@ -63,6 +63,7 @@ class AcquirePackages():
         self.cfg = InstallerConfig(version,
                                    verbose,
                                    enterprise,
+                                   False, # don't care for enc at rest
                                    zip_package,
                                    self.package_dir,
                                    Path("/"),
