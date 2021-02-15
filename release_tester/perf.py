@@ -30,6 +30,10 @@ logging.basicConfig(
               is_flag=True,
               default=False,
               help='Enterprise or community?')
+@click.option('--encryption-at-rest/--no-encryption-at-rest',
+              is_flag=True,
+              default=False,
+              help='turn on encryption at rest for Enterprise packages')
 @click.option('--zip/--no-zip', 'zip_package',
               is_flag=True,
               default=False,
@@ -63,7 +67,7 @@ logging.basicConfig(
               help='Connection strings of remote clusters')
 # pylint: disable=R0913
 def run_test(old_version, new_version, verbose, package_dir, test_data_dir,
-             enterprise, zip_package,
+             enterprise, encryption_at_rest, zip_package,
              interactive, mode, starter_mode, publicip, scenario, frontends):
     """ main """
     lh.section("configuration")
@@ -92,6 +96,7 @@ def run_test(old_version, new_version, verbose, package_dir, test_data_dir,
     install_config = InstallerConfig(new_version,
                                      verbose,
                                      enterprise,
+                                     encryption_at_rest,
                                      zip_package,
                                      Path(package_dir),
                                      Path(test_data_dir),
