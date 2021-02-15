@@ -27,6 +27,7 @@ def run_test(zip_package):
     install_config = InstallerConfig('3.3.3',
                                      True,
                                      False,
+                                     False,
                                      zip_package,
                                      Path("/tmp/"),
                                      Path("/"),
