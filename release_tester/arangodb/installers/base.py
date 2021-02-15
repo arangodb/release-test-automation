@@ -425,6 +425,9 @@ class InstallerBase(ABC):
         return success
 
     def set_system_instance(self):
+        """
+         set an instance representing the system service launched by packages
+        """
         self.instance = ArangodInstance("single",
                                         "8529",
                                         self.cfg.localhost,

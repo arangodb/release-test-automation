@@ -291,6 +291,7 @@ arangod instance
             # check last line or continue
             match = re.search(r'Z \[(\d*)\]', last_line)
             if match is None:
+                tries -=1
                 logging.info("no PID in [%s]: %s", self.logfile, last_line)
                 continue
 
@@ -302,6 +303,7 @@ arangod instance
             ready_for_business = 'is ready for business.'
             pos = log_file_content.find(ready_for_business, start)
             if pos < 0:
+                tries -=1
                 progress('.')
                 time.sleep(1)
                 continue
@@ -309,8 +311,10 @@ arangod instance
             # locate the timestamp of our 'ready for business' line:
             match = re.search(r'(.*)Z \['+pid+'].*' + ready_for_business,
                               log_file_content[pos - 140:])
-            if match == None:
+            if match is None:
                 tries -=1
+                self.pid = 0
+                print('ny' * 40)
                 print(log_file_content[pos - 140:])
                 print(log_file_content)
                 print(pos)

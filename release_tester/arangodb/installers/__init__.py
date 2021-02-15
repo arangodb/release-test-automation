@@ -20,6 +20,7 @@ class InstallerConfig():
                  version: str,
                  verbose: bool,
                  enterprise: bool,
+                 encryption_at_rest: bool,
                  zip_package: bool,
                  package_dir: Path,
                  test_dir: Path,
@@ -30,6 +31,7 @@ class InstallerConfig():
         self.publicip = publicip
         self.interactive = interactive
         self.enterprise = enterprise
+        self.encryption_at_rest = encryption_at_rest and enterprise
         self.zip_package = zip_package
 
         self.mode = mode

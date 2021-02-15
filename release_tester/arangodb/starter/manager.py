@@ -4,6 +4,7 @@
 """
 
 import copy
+import datetime
 import http.client as http_client
 import logging
 import os
@@ -59,6 +60,7 @@ class StarterManager():
         self.raw_basedir = install_prefix
         self.name = str(install_prefix / instance_prefix)
         self.basedir = self.cfg.base_test_dir / install_prefix / instance_prefix
+        self.basedir.mkdir(parents=True, exist_ok=True)
         self.log_file = self.basedir / "arangodb.log"
 
         #arg port - can be set - otherwise it is read from the log later
@@ -72,13 +74,18 @@ class StarterManager():
             self.hotbackup = ['--all.rclone.executable',
                               self.cfg.real_sbin_dir / 'rclone-arangodb']
 
+        if self.cfg.encryption_at_rest:
+            self.keyfile = self.basedir / 'key.txt'
+            # generate pseudo random key of length 32:
+            self.keyfile.write_text((str(datetime.datetime.now()) * 5)[0:32])
+            self.moreopts += ['--rocksdb.encryption-keyfile',
+                             str(self.keyfile)]
         self.hb_instance = None
         self.hb_config = None
         # arg - jwtstr
         self.jwtfile = None
         self.jwt_header = None
         if jwtStr:
-            self.basedir.mkdir(parents=True, exist_ok=True)
             self.jwtfile = self.basedir / 'jwt'
             self.jwtfile.write_text(jwtStr)
             self.moreopts += ['--auth.jwt-secret', str(self.jwtfile)]

@@ -64,6 +64,7 @@ For this, a setting file `/tmp/config.yml` is kept. This way parts of this flow 
 Supported Parameters:
  - `--new-version` which Arangodb Version you want to run the test on
  - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
+ - `--[no-]encryption-at-rest` turn on encryption at rest for Enterprise packages
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
@@ -102,6 +103,7 @@ Supported Parameters:
  - `--new-version` which Arangodb Version you want to upgrade the environment to
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
+ - `--[no-]encryption-at-rest` turn on encryption at rest for Enterprise packages
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
@@ -241,6 +243,7 @@ For this, a setting file `/tmp/config.yml` is kept. This way parts of this flow 
 Supported Parameters:
  - `--new-version` which Arangodb Version you want to run the test on
  - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
+ - `--[no-]encryption-at-rest` turn on encryption at rest for Enterprise packages
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT

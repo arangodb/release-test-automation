@@ -63,6 +63,7 @@ class AcquirePackages():
         self.cfg = InstallerConfig(version,
                                    verbose,
                                    enterprise,
+                                   False, # don't care for enc at rest
                                    zip_package,
                                    self.package_dir,
                                    Path("/"),
@@ -212,7 +213,7 @@ class AcquirePackages():
         for package in self.packages:
             self.funcs[source](self.directories[source], package, Path(self.package_dir), force)
 
-    def get_version_info(self, source):
+    def get_version_info(self, source, git_version):
         """ download the nightly sourceInfo.json file, calculate more precise version of the packages """
         source_info_fn = 'sourceInfo.json'
         self.funcs[source](self.directories[source],
@@ -221,11 +222,12 @@ class AcquirePackages():
                            True)
         text = (self.package_dir / source_info_fn).read_text()
         val = json.loads(text)
+        val['GIT_VERSION'] = git_version
         version = val['VERSION'].replace('-devel', '')
         self.inst.reset_version(version + '-nightly' if self.is_nightly else "")
         self.cfg.reset_version(self.inst.cfg.version)
         self.calculate_package_names()
-        return text
+        return json.dumps(val)
 
 @click.command()
 @click.option('--new-version', help='ArangoDB version number.')
