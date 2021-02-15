@@ -43,6 +43,6 @@ docker \
       --new-version $NEW_VERSION \
       --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;") \
       $force_arg --git-version $GIT_VERSION $@
-result=$!
+result=$?
 tar -cvf versions.tar versions
 exit $result
