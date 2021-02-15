@@ -1,25 +1,35 @@
 #!/bin/bash
 
 mkdir -p /tmp/rpm_versions /tmp/deb_versions
-docker_deb_name=arangodb/release-test-automation-deb:$(cat VERSION.json)
-docker_rpm_name=arangodb/release-test-automation-rpm:$(cat VERSION.json)
+VERSION=$(cat VERSION.json)
+GIT_VERSION=$(git rev-parse --verify HEAD)
+if test -z "$GIT_VERSION"; then
+    GIT_VERSION=$VERSION
+fi
+DOCKER_DEB_NAME=arangodb/release-test-automation-deb-$(cat VERSION.json)
+DOCKER_RPM_NAME=arangodb/release-test-automation-rpm-$(cat VERSION.json)
+
+DOCKER_DEB_TAG=arangodb/release-test-automation-deb:$(cat VERSION.json)
+DOCKER_RPM_TAG=arangodb/release-test-automation-rpm:$(cat VERSION.json)
+
+if test -n "$FORCE" -o "$TEST_BRANCH" != 'master'; then
+  force_arg'--force'
+fi
 
 
-trap "docker kill $docker_deb_name; docker rm $docker_deb_name; docker kill $docker_rpm_name; docker rm $docker_rpm_name;" EXIT
+trap "docker kill $DOCKER_DEB_NAME; \
+     docker rm $DOCKER_DEB_NAME; \
+     docker kill $DOCKER_RPM_NAME; \
+     docker rm $DOCKER_RPM_NAME;" EXIT
+
 version=$(git rev-parse --verify HEAD)
 
-docker build docker_deb -t docker_deb
-docker build docker_rpm -t docker_rpm
-
-trap "docker kill docker_deb; \
-    docker rm docker_deb; \
-    docker kill docker_rpm; \
-    docker rm docker_rpm" EXIT
-
+docker build docker_deb -t $DOCKER_DEB_NAME
+docker build docker_rpm -t $DOCKER_RPM_NAME
 
 docker run -itd \
        --privileged \
-       --name=docker_deb \
+       --name=$DOCKER_DEB_NAME \
        -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
        -v `pwd`:/home/release-test-automation \
        -v `pwd`/package_cache/:/home/package_cache \
@@ -27,13 +37,13 @@ docker run -itd \
        -v /tmp/tmp:/tmp/ \
        -v /tmp/deb_versions:/home/versions \
        \
-       docker_deb \
+       $DOCKER_DEB_TAG \
        \
        /lib/systemd/systemd --system --unit=multiuser.target 
 
 if docker exec docker_deb \
           /home/release-test-automation/release_tester/tarball_nightly_test.py \
-          --no-zip $@; then
+          --no-zip $force_arg $@; then
     echo "OK"
 else
     echo "FAILED!"
@@ -50,16 +60,16 @@ docker run \
        -v /tmp/rpm_versions:/home/versions \
        \
        --privileged \
-       --name=docker_rpm \
+       --name=$DOCKER_RPM_NAME \
        -itd \
        \
-       docker_rpm \
+       $DOCKER_RPM_TAG \
        \
        /lib/systemd/systemd --system --unit=multiuser.target 
 
-if docker exec docker_rpm \
+if docker exec $DOCKER_RPM_NAME \
           /home/release-test-automation/release_tester/tarball_nightly_test.py \
-          --no-zip $@; then
+          --no-zip $force_arg $@; then
     echo "OK"
 else
     echo "FAILED!"

@@ -15,6 +15,7 @@ if test -z "$GIT_VERSION"; then
     GIT_VERSION=$VERSION
 fi
 DOCKER_NAME=release-test-automation-tar-${VERSION}
+DOCKER_TAG=release-test-automation-tar:${VERSION}
 set
 
 tar -xvf versions.tar || true
@@ -25,7 +26,7 @@ fi
 
 
 trap "docker kill /$DOCKER_NAME; docker rm /$DOCKER_NAME;" EXIT
-docker build docker_tar -t arangodb/release-test-automation-tar:$VERSION
+docker build docker_tar -t $DOCKER_TAG
 docker \
     run \
   --name=$DOCKER_NAME \
@@ -33,7 +34,7 @@ docker \
   -v `pwd`/test_dir:/home/test_dir \
   -v `pwd`/package_cache:/home/package_cache \
   -v `pwd`/versions:/home/versions \
-  arangodb/release-test-automation-tar:$VERSION \
+  $DOCKER_TAG \
     /home/release-test-automation/release_tester/full_download_upgrade_test.py \
       --old-version $OLD_VERSION \
       --new-version $NEW_VERSION \
