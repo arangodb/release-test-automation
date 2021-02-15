@@ -311,6 +311,7 @@ arangod instance
                               log_file_content[pos - 140:])
             if match is None:
                 tries -=1
+                self.pid = 0
                 print(log_file_content[pos - 140:])
                 print(log_file_content)
                 print(pos)
