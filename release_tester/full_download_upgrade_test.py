@@ -13,7 +13,7 @@ def upgrade_package_test(verbose,
                          package_dir,
                          enterprise_magic,
                          zip_package,
-                         dlstage,
+                         dlstage, git_version,
                          httpusername, httppassvoid,
                          test_data_dir, version_state_dir,
                          remote_host, force):
@@ -39,9 +39,9 @@ def upgrade_package_test(verbose,
         if new_version_state.exists():
             new_version_content = new_version_state.read_text()
 
-        fresh_old_content = dl_old.get_version_info(dlstage)
-        fresh_new_content = dl_new.get_version_info(dlstage)
-
+        fresh_old_content = dl_old.get_version_info(dlstage, git_version)
+        fresh_new_content = dl_new.get_version_info(dlstage, git_version)
+        print(fresh_new_content)
         old_changed = old_version_content == fresh_old_content
         new_changed = new_version_content == fresh_new_content
         if new_changed and old_changed and not force:
@@ -96,6 +96,9 @@ def upgrade_package_test(verbose,
 @click.option('--version-state-dir',
               default='/home/versions',
               help='directory to remember the tested version combination in.')
+@click.option('--git-version',
+              default='',
+              help='specify the output of: git rev-parse --verify HEAD')
 @click.option('--remote-host',
               default="",
               help='remote host to acquire packages from')
@@ -109,14 +112,14 @@ def main(verbose,
          package_dir, enterprise_magic,
          zip_package, source,
          httpuser, httppassvoid,
-         test_data_dir,
+         test_data_dir, git_version,
          version_state_dir, remote_host,
          force):
     """ main """
     return upgrade_package_test(verbose,
                                 new_version, old_version,
                                 package_dir, enterprise_magic,
-                                zip_package, source,
+                                zip_package, source, git_version,
                                 httpuser, httppassvoid,
                                 test_data_dir,
                                 version_state_dir,
