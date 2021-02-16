@@ -36,15 +36,16 @@ def kill_all_processes():
             if process.is_running():
                 try:
                     process.terminate()
-                except Exception as x:
-                    logging.info("seems as if process %s is already dead?", str(process) + " - " + str(x))
+                except Exception as ex:
+                    logging.info("seems as if process %s is already dead?",
+                                 str(process) + " - " + str(ex))
                     continue
             if process.is_running():
                 try:
                     process.wait(timeout=2)
-                except:
+                except psutil.NoSuchProcess:
                     pass
                 try:
                     process.kill()
-                except:
+                except psutil.NoSuchProcess:
                     pass

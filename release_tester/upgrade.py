@@ -18,16 +18,18 @@ logging.basicConfig(
     format='%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s'
 )
 
-def run_upgrade(old_version, version, verbose,
+# pylint: disable=R0913 disable=R0914
+def run_upgrade(old_version, new_version, verbose,
                 package_dir, test_data_dir,
-                enterprise, zip, interactive,
+                enterprise, encryption_at_rest,
+                zip_package, interactive,
                 starter_mode, stress_upgrade, publicip):
-    """ main """
+    """ execute upgrade tests """
     lh.section("configuration")
     print("old version: " + str(old_version))
-    print("version: " + str(version))
+    print("version: " + str(new_version))
     print("using enterpise: " + str(enterprise))
-    print("using zip: " + str(zip))
+    print("using zip: " + str(zip_package))
     print("package directory: " + str(package_dir))
     print("starter mode: " + str(starter_mode))
     print("public ip: " + str(publicip))
@@ -63,8 +65,9 @@ def run_upgrade(old_version, version, verbose,
         kill_all_processes()
         install_config_old = InstallerConfig(old_version,
                                              verbose,
-                                             enterprise, 
-                                             zip, 
+                                             enterprise,
+                                             encryption_at_rest,
+                                             zip_package,
                                              Path(package_dir),
                                              Path(test_data_dir),
                                              'all',
@@ -72,10 +75,11 @@ def run_upgrade(old_version, version, verbose,
                                              interactive,
                                              stress_upgrade)
         old_inst = make_installer(install_config_old)
-        install_config_new = InstallerConfig(version,
+        install_config_new = InstallerConfig(new_version,
                                              verbose,
                                              enterprise,
-                                             zip,
+                                             encryption_at_rest,
+                                             zip_package,
                                              Path(package_dir),
                                              Path(test_data_dir),
                                              'all',
@@ -103,8 +107,8 @@ def run_upgrade(old_version, version, verbose,
         new_inst.cleanup_system()
 
 @click.command()
-@click.option('--old-version', help='old ArangoDB version number.')
-@click.option('--version', help='ArangoDB version number.')
+@click.option('--old-version', help='old ArangoDB version number.', default="3.7.0-nightly")
+@click.option('--new-version', help='ArangoDB version number.', default="3.8.0-nightly")
 @click.option('--verbose/--no-verbose',
               is_flag=True,
               default=False,
@@ -119,7 +123,11 @@ def run_upgrade(old_version, version, verbose,
               is_flag=True,
               default=False,
               help='Enterprise or community?')
-@click.option('--zip/--no-zip',
+@click.option('--encryption-at-rest/--no-encryption-at-rest',
+              is_flag=True,
+              default=False,
+              help='turn on encryption at rest for Enterprise packages')
+@click.option('--zip/--no-zip', "zip_package",
               is_flag=True,
               default=False,
               help='switch to zip or tar.gz package instead of default OS package')
@@ -138,15 +146,19 @@ def run_upgrade(old_version, version, verbose,
 @click.option('--publicip',
               default='127.0.0.1',
               help='IP for the click to browser hints.')
-
-def main(old_version, version, verbose,
+# pylint: disable=R0913
+def main(old_version, new_version, verbose,
          package_dir, test_data_dir,
-         enterprise, zip, interactive,
+         enterprise, encryption_at_rest,
+         zip_package, interactive,
          starter_mode, stress_upgrade, publicip):
-    return run_upgrade(old_version, version, verbose,
+    """ main trampoline """
+    return run_upgrade(old_version, new_version, verbose,
                        package_dir, test_data_dir,
-                       enterprise, zip, interactive,
+                       enterprise, encryption_at_rest,
+                       zip_package, interactive,
                        starter_mode, stress_upgrade, publicip)
 
 if __name__ == "__main__":
+# pylint: disable=E1120 # fix clickiness.
     main()

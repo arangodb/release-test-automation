@@ -15,19 +15,20 @@ logging.basicConfig(
 )
 
 @click.command()
-@click.option('--zip',
+@click.option('--zip', 'zip_package',
               is_flag=True,
               default=False,
               help='switch to zip or tar.gz package instead of default OS package')
 
-def run_test(zip):
+def run_test(zip_package):
     """ main """
     logging.getLogger().setLevel(logging.DEBUG)
 
     install_config = InstallerConfig('3.3.3',
                                      True,
                                      False,
-                                     zip,
+                                     False,
+                                     zip_package,
                                      Path("/tmp/"),
                                      Path("/"),
                                      "127.0.0.1",
@@ -47,7 +48,7 @@ def run_test(zip):
                     RunnerType.CLUSTER]  # ,
     #  RunnerType.DC2DC] here __init__ will create stuff, TODO.
     for runner_type in starter_mode:
-        assert(runner_type)
+        assert runner_type
 
         runner = make_runner(runner_type, inst.cfg, inst, None)
         runner.cleanup()
@@ -63,4 +64,5 @@ def run_test(zip):
 
 
 if __name__ == "__main__":
+# pylint: disable=E1120 # fix clickiness.
     run_test()

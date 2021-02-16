@@ -8,6 +8,6 @@ RUN apt-get update ; \
     rm -rf /var/lib/apt/lists/*
     
 RUN pip3 install semver
-RUN mkdir -p /home/entrypoint /home/release-test-automation /home/package_cache /home/versions
-ADD tarball_nightly_test.py /home/entrypoint/tarball_nightly_test.py
-ENTRYPOINT ["/home/entrypoint/tarball_nightly_test.py"]
+RUN mkdir -p /home/entrypoint /home/release-test-automation /home/package_cache /home/versions /home/test_dir
+# ADD tarball_nightly_test.py /home/entrypoint/tarball_nightly_test.py
+# ENTRYPOINT ["/home/entrypoint/tarball_nightly_test.py"]

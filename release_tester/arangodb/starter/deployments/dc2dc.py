@@ -13,12 +13,15 @@ from arangodb.instance import InstanceType
 
 class Dc2Dc(Runner):
     """ this launches two clusters in dc2dc mode """
+    # pylint: disable=R0913 disable=R0902
     def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
         super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'DC2DC', 0, 3500)
         self.success = True
         self.cfg.passvoid = '' # TODO
         self.sync_manager = None
-
+        self.cluster1 = {}
+        self.cluster2 = {}
+        self.certificate_auth = {}
 
     def starter_prepare_env_impl(self):
         def cert_op(args):
@@ -29,14 +32,14 @@ class Dc2Dc(Runner):
 
 
         datadir = Path('data')
-        cert_dir = self.cfg.baseTestDir / self.basedir / "certs"
+        cert_dir = self.cfg.base_test_dir / self.basedir / "certs"
         print(cert_dir)
         cert_dir.mkdir(parents=True, exist_ok=True)
         cert_dir.mkdir(parents=True, exist_ok=True)
         def getdirs(subdir):
             return {
                 "dir": self.basedir /
-                       self.cfg.baseTestDir /
+                       self.cfg.base_test_dir /
                        self.basedir / datadir,
                 "instance_dir": subdir,
                 "SyncSecret": cert_dir / subdir / 'syncmaster.jwtsecret',
@@ -47,7 +50,7 @@ class Dc2Dc(Runner):
         self.cluster1 = getdirs(Path('cluster1'))
         self.cluster2 = getdirs(Path('cluster2'))
         client_cert = cert_dir / 'client-auth-ca.crt'
-        self.ca = {
+        self.certificate_auth = {
             "cert": cert_dir / 'tls-ca.crt',
             "key": cert_dir / 'tls-ca.key',
             "clientauth_key": cert_dir / 'client-auth-ca.key',
@@ -55,26 +58,26 @@ class Dc2Dc(Runner):
         }
         logging.info('Create TLS certificates')
         cert_op(['tls', 'ca',
-                 '--cert=' + str(self.ca["cert"]),
-                 '--key=' + str(self.ca["key"])])
+                 '--cert=' + str(self.certificate_auth["cert"]),
+                 '--key=' + str(self.certificate_auth["key"])])
         cert_op(['tls', 'keyfile',
-                 '--cacert=' + str(self.ca["cert"]),
-                 '--cakey=' + str(self.ca["key"]),
+                 '--cacert=' + str(self.certificate_auth["cert"]),
+                 '--cakey=' + str(self.certificate_auth["key"]),
                  '--keyfile=' + str(self.cluster1["tlsKeyfile"]),
                  '--host=' + self.cfg.publicip, '--host=localhost'])
         cert_op(['tls', 'keyfile',
-                 '--cacert=' + str(self.ca["cert"]),
-                 '--cakey=' + str(self.ca["key"]),
+                 '--cacert=' + str(self.certificate_auth["cert"]),
+                 '--cakey=' + str(self.certificate_auth["key"]),
                  '--keyfile=' + str(self.cluster2["tlsKeyfile"]),
                  '--host=' + self.cfg.publicip, '--host=localhost'])
         logging.info('Create client authentication certificates')
         cert_op(['client-auth', 'ca',
                  '--cert=' + str(client_cert),
-                 '--key=' + str(self.ca["clientauth_key"])])
+                 '--key=' + str(self.certificate_auth["clientauth_key"])])
         cert_op(['client-auth', 'keyfile',
                  '--cacert=' + str(client_cert),
-                 '--cakey=' + str(self.ca["clientauth_key"]),
-                 '--keyfile=' + str(self.ca["clientkeyfile"])])
+                 '--cakey=' + str(self.certificate_auth["clientauth_key"]),
+                 '--keyfile=' + str(self.certificate_auth["clientkeyfile"])])
         logging.info('Create JWT secrets')
         for node in [self.cluster1, self.cluster2]:
             cert_op(['jwt-secret', '--secret=' + str(node["SyncSecret"])])
@@ -146,7 +149,7 @@ class Dc2Dc(Runner):
 
     def finish_setup_impl(self):
         self.sync_manager = SyncManager(self.cfg,
-                                        self.ca,
+                                        self.certificate_auth,
                                         [self.cluster2['smport'],
                                          self.cluster1['smport']])
         if not self.sync_manager.run_syncer():
@@ -177,15 +180,19 @@ class Dc2Dc(Runner):
         if not res[0]:
             if not self.cfg.verbose:
                 print(res[1])
-            raise Exception("error during verifying of the test data on the target cluster")
-        rc = self.cluster1['instance'].arangosh.run_in_arangosh(
-            self.cfg.test_data_dir / Path('tests/js/server/replication/fuzz/replication-fuzz-global.js'),
+            raise Exception("error during verifying of "
+                            "the test data on the target cluster")
+        res = self.cluster1['instance'].arangosh.run_in_arangosh(
+            (
+                self.cfg.test_data_dir /
+                Path('tests/js/server/replication/fuzz/replication-fuzz-global.js')
+            ),
             [],
             [self.cluster2['instance'].get_frontend().get_public_url('')]
             )
-        if not rc[0]:
+        if not res[0]:
             if not self.cfg.verbose:
-                print(rc[1])
+                print(res[1])
             raise Exception("replication fuzzing test failed")
         if not self.sync_manager.check_sync():
             raise Exception("failed to get the sync status")

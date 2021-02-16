@@ -137,12 +137,12 @@ class HotBackupManager():
         """ restore an existing hot backup """
         time.sleep(6) #TODO: remove this workaround
         args = ['restore', '--identifier', backup_name]
-        out = self.run_backup(args, backup_name)
+        self.run_backup(args, backup_name)
 
     def delete(self, backup_name):
         """ delete an existing hot backup """
         args = ['delete', '--identifier', backup_name]
-        out = self.run_backup(args, backup_name)
+        self.run_backup(args, backup_name)
 
     def upload(self, backup_name, backup_config: HotBackupConfig, identifier):
         """ upload a backup using rclone on the server """

@@ -20,8 +20,10 @@ ANSI_ESCAPE = re.compile(r'''
 def ascii_print(string):
     """ convert string to only be ascii without control sequences """
     string = ANSI_ESCAPE.sub('', string)
-    print("".join(ch for ch in string if ch == '\n' or unicodedata.category(ch)[0] != "C"))
+    print("".join(ch for ch in string
+                  if ch == '\n' or unicodedata.category(ch)[0] != "C"))
 
 def print_progress(char):
+    """ print a throbber alike that immediately is sent to the console """
     print(char, end="")
     sys.stdout.flush()
