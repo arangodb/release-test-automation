@@ -25,7 +25,7 @@ def upgrade_package_test(verbose,
     old_version_content = None
     new_version_content = None
 
-    for enterprise, encryption_at_rest in [# (True, True),
+    for enterprise, encryption_at_rest in [(True, True),
                                            (True, False),
                                            (False, False)]:
         dl_old = AcquirePackages(old_version, verbose, package_dir, enterprise,
@@ -43,9 +43,8 @@ def upgrade_package_test(verbose,
 
         fresh_old_content = dl_old.get_version_info(dlstage, git_version)
         fresh_new_content = dl_new.get_version_info(dlstage, git_version)
-        print(fresh_new_content)
-        old_changed = old_version_content == fresh_old_content
-        new_changed = new_version_content == fresh_new_content
+        old_changed = old_version_content != fresh_old_content
+        new_changed = new_version_content != fresh_new_content
         if new_changed and old_changed and not force:
             print("we already tested this version. bye.")
             return 0
