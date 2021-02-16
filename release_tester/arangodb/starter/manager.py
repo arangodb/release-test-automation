@@ -287,7 +287,10 @@ Starter {0.name}
         logging.info('Looking for "Upgrading done" in the log file.\n')
         while keep_going:
             text = self.get_log_file()
-            keep_going = text.find('Upgrading done.') >= 0
+            pos = text.find('Upgrading done.')
+            keep_going = pos == -1
+            if keep_going:
+                time.sleep(1)
             progress('.')
         for instance in self.all_instances:
             instance.wait_for_shutdown()
