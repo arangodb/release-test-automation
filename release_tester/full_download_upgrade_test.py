@@ -16,14 +16,16 @@ def upgrade_package_test(verbose,
                          dlstage, git_version,
                          httpusername, httppassvoid,
                          test_data_dir, version_state_dir,
-                         remote_host, force):
+                         remote_host, force,
+                         starter_mode, stress_upgrade,
+                         publicip):
     """ process fetch & tests """
     old_version_state = None
     new_version_state = None
     old_version_content = None
     new_version_content = None
 
-    for enterprise, encryption_at_rest in [(True, True),
+    for enterprise, encryption_at_rest in [# (True, True),
                                            (True, False),
                                            (False, False)]:
         dl_old = AcquirePackages(old_version, verbose, package_dir, enterprise,
@@ -56,7 +58,7 @@ def upgrade_package_test(verbose,
                     package_dir, test_data_dir,
                     enterprise, encryption_at_rest,
                     zip_package, False,
-                    "all", False, "127.0.0.1")
+                    starter_mode, stress_upgrade, publicip)
 
     if not force:
         old_version_state.write_text(fresh_old_content)
@@ -106,6 +108,17 @@ def upgrade_package_test(verbose,
               is_flag=True,
               default=False,
               help='whether to overwrite existing target files or not.')
+@click.option('--starter-mode',
+              default='all',
+              help='which starter environments to start - ' +
+              '[all|LF|AFO|CL|DC|none].')
+@click.option('--stress-upgrade',
+              is_flag=True,
+              default=False,
+              help='launch arangobench before starting the upgrade')
+@click.option('--publicip',
+              default='127.0.0.1',
+              help='IP for the click to browser hints.')
 # pylint: disable=R0913
 def main(verbose,
          new_version, old_version,
@@ -114,7 +127,8 @@ def main(verbose,
          httpuser, httppassvoid,
          test_data_dir, git_version,
          version_state_dir, remote_host,
-         force):
+         force, starter_mode, stress_upgrade,
+         publicip):
     """ main """
     return upgrade_package_test(verbose,
                                 new_version, old_version,
@@ -123,7 +137,9 @@ def main(verbose,
                                 httpuser, httppassvoid,
                                 test_data_dir,
                                 version_state_dir,
-                                remote_host, force)
+                                remote_host, force,
+                                starter_mode, stress_upgrade,
+                                publicip)
 
 if __name__ == "__main__":
 # pylint: disable=E1120 # fix clickiness.
