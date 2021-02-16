@@ -550,7 +550,7 @@ class Runner(ABC):
             # pylint: disable=C0415
             import resource
             nofd = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
-            if nofd < 10000:
+            if nofd < 65536:
                 raise Exception("please use ulimit -n <count>"
                                 " to adjust the number of allowed"
                                 " filedescriptors to a value greater"
