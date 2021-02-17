@@ -16,7 +16,9 @@ def upgrade_package_test(verbose,
                          dlstage, git_version,
                          httpusername, httppassvoid,
                          test_data_dir, version_state_dir,
-                         remote_host, force):
+                         remote_host, force,
+                         starter_mode, stress_upgrade,
+                         publicip):
     """ process fetch & tests """
     old_version_state = None
     new_version_state = None
@@ -41,9 +43,8 @@ def upgrade_package_test(verbose,
 
         fresh_old_content = dl_old.get_version_info(dlstage, git_version)
         fresh_new_content = dl_new.get_version_info(dlstage, git_version)
-        print(fresh_new_content)
-        old_changed = old_version_content == fresh_old_content
-        new_changed = new_version_content == fresh_new_content
+        old_changed = old_version_content != fresh_old_content
+        new_changed = new_version_content != fresh_new_content
         if new_changed and old_changed and not force:
             print("we already tested this version. bye.")
             return 0
@@ -56,7 +57,7 @@ def upgrade_package_test(verbose,
                     package_dir, test_data_dir,
                     enterprise, encryption_at_rest,
                     zip_package, False,
-                    "all", False, "127.0.0.1")
+                    starter_mode, stress_upgrade, publicip)
 
     if not force:
         old_version_state.write_text(fresh_old_content)
@@ -106,6 +107,17 @@ def upgrade_package_test(verbose,
               is_flag=True,
               default=False,
               help='whether to overwrite existing target files or not.')
+@click.option('--starter-mode',
+              default='all',
+              help='which starter environments to start - ' +
+              '[all|LF|AFO|CL|DC|none].')
+@click.option('--stress-upgrade',
+              is_flag=True,
+              default=False,
+              help='launch arangobench before starting the upgrade')
+@click.option('--publicip',
+              default='127.0.0.1',
+              help='IP for the click to browser hints.')
 # pylint: disable=R0913
 def main(verbose,
          new_version, old_version,
@@ -114,7 +126,8 @@ def main(verbose,
          httpuser, httppassvoid,
          test_data_dir, git_version,
          version_state_dir, remote_host,
-         force):
+         force, starter_mode, stress_upgrade,
+         publicip):
     """ main """
     return upgrade_package_test(verbose,
                                 new_version, old_version,
@@ -123,7 +136,9 @@ def main(verbose,
                                 httpuser, httppassvoid,
                                 test_data_dir,
                                 version_state_dir,
-                                remote_host, force)
+                                remote_host, force,
+                                starter_mode, stress_upgrade,
+                                publicip)
 
 if __name__ == "__main__":
 # pylint: disable=E1120 # fix clickiness.

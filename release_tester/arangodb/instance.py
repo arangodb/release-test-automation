@@ -293,6 +293,7 @@ arangod instance
             if match is None:
                 tries -=1
                 logging.info("no PID in [%s]: %s", self.logfile, last_line)
+                progress('.')
                 continue
 
             # pid found now find the position of the pid in
@@ -319,6 +320,7 @@ arangod instance
                 print(log_file_content)
                 print(pos)
                 time.sleep(1)
+                progress('.')
                 continue
 
             t_start = match.group(1)
@@ -436,3 +438,8 @@ arangosync instance of starter
         """ yes. """
         # pylint: disable=R0201
         return True
+
+    def get_public_plain_url(self):
+        return '{host}:{port}'.format(
+            host=self.publicip,
+            port=self.port)
