@@ -215,9 +215,6 @@ class Dc2Dc(Runner):
         self.cluster1["instance"].wait_for_upgrade()
         self.cluster2["instance"].wait_for_upgrade()
 
-        # this doesn't work here: ?
-        # self.cluster1["instance"].wait_for_upgrade_done_in_log()
-        # self.cluster2["instance"].wait_for_upgrade_done_in_log()
         # self.sync_manager.start_sync()
 
         self.cluster1["instance"].detect_instances()
