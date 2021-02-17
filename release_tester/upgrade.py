@@ -54,7 +54,10 @@ def run_upgrade(old_version, new_version, verbose,
     elif starter_mode == 'CL':
         starter_mode = [RunnerType.CLUSTER]
     elif starter_mode == 'DC':
-        starter_mode = [RunnerType.DC2DC]
+        if enterprise:
+            starter_mode = [RunnerType.DC2DC]
+        else:
+            starter_mode = [None]
     elif starter_mode == 'none':
         starter_mode = [None]
     else:
