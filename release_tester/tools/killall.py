@@ -45,6 +45,9 @@ def kill_all_processes():
                     process.wait(timeout=2)
                 except psutil.NoSuchProcess:
                     pass
+                except psutil.TimeoutExpired:
+                    logging.info("timeout while waiting for %s to exit, try once more",
+                                 str(process))
                 try:
                     process.kill()
                 except psutil.NoSuchProcess:
