@@ -182,9 +182,8 @@ class Dc2Dc(Runner):
         return semver.VersionInfo.parse(version)
 
     def test_setup_impl(self):
-        self.cluster1['instance'].arangosh.create_test_data("dc2dc (post setup - dc1)")
         self.cluster1['instance'].arangosh.check_test_data("dc2dc (post setup - dc1)")
-        time.sleep(180) # TODO: howto detect dc2dc is completely up and running?
+        # time.sleep(180) # TODO: howto detect dc2dc is completely up and running?
         # exit(0)
         res = self.cluster2['instance'].arangosh.check_test_data("dc2dc (post setup - dc2)")
         if not res[0]:
