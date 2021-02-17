@@ -6,8 +6,8 @@ GIT_VERSION=$(git rev-parse --verify HEAD)
 if test -z "$GIT_VERSION"; then
     GIT_VERSION=$VERSION
 fi
-DOCKER_DEB_NAME=arangodb/release-test-automation-deb-$(cat VERSION.json)
-DOCKER_RPM_NAME=arangodb/release-test-automation-rpm-$(cat VERSION.json)
+DOCKER_DEB_NAME=release-test-automation-deb-$(cat VERSION.json)
+DOCKER_RPM_NAME=release-test-automation-rpm-$(cat VERSION.json)
 
 DOCKER_DEB_TAG=arangodb/release-test-automation-deb:$(cat VERSION.json)
 DOCKER_RPM_TAG=arangodb/release-test-automation-rpm:$(cat VERSION.json)
@@ -24,8 +24,8 @@ trap "docker kill $DOCKER_DEB_NAME; \
 
 version=$(git rev-parse --verify HEAD)
 
-docker build docker_deb -t $DOCKER_DEB_NAME
-docker build docker_rpm -t $DOCKER_RPM_NAME
+docker build docker_deb -t $DOCKER_DEB_TAG
+docker build docker_rpm -t $DOCKER_RPM_TAG
 
 docker run -itd \
        --privileged \
@@ -41,8 +41,8 @@ docker run -itd \
        \
        /lib/systemd/systemd --system --unit=multiuser.target 
 
-if docker exec docker_deb \
-          /home/release-test-automation/release_tester/tarball_nightly_test.py \
+if docker exec $DOCKER_DEB_NAME \
+          /home/release-test-automation/release_tester/full_download_upgrade_test.py \
           --no-zip $force_arg $@; then
     echo "OK"
 else
@@ -68,7 +68,7 @@ docker run \
        /lib/systemd/systemd --system --unit=multiuser.target 
 
 if docker exec $DOCKER_RPM_NAME \
-          /home/release-test-automation/release_tester/tarball_nightly_test.py \
+          /home/release-test-automation/release_tester/full_download_upgrade_test.py \
           --no-zip $force_arg $@; then
     echo "OK"
 else
