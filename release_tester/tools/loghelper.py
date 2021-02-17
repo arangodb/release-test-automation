@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """ invoke subprocesses and timestamped print their output """
-import subprocess
+# import subprocess
 
 def get_term_width():
     """ eventually we should ask the term for the size """
@@ -19,16 +19,17 @@ def log_cmd(cmd):
     print("executing: " + str(cmd))
     line("^")
 
-def LoggedCommandWait():
-    """ run a command, redirect its output through our log facility, wait for its exit """
-    def __init__(self, cmd_arr, *args, tool=subprocess.Popen, **kwargs):
-        log_cmd(cmd_arr)
-        self.child = tool(cmd_arr, *args, **kwargs)
-
-    def __exit__(self):
-        self.child.wait()
-        line("<")
-        print()
+# def logged_command_wait():
+#     """ run a command, redirect its output
+#         through our log facility, wait for its exit """
+#     def __init__(self, cmd_arr, *args, tool=subprocess.Popen, **kwargs):
+#         log_cmd(cmd_arr)
+#         self.child = tool(cmd_arr, *args, **kwargs)
+#
+#     def __exit__(self):
+#         self.child.wait()
+#         line("<")
+#         print()
 
 
 def subsection(name, sym="=", in_section=False):

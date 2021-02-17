@@ -5,7 +5,6 @@ import shutil
 import logging
 from pathlib import Path
 import psutil
-import semver
 import tools.loghelper as lh
 from arangodb.installers.base import InstallerBase
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
@@ -13,6 +12,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 class InstallerTAR(InstallerBase):
     """ install Tar.gz's on Linux/Mac hosts """
+# pylint: disable=R0913 disable=R0902
     def __init__(self, cfg):
         self.tar = 'tar'
         macver = platform.mac_ver()
@@ -24,16 +24,11 @@ class InstallerTAR(InstallerBase):
             cfg.localhost = 'localhost'
 
         self.hot_backup = True
-        self.check_stripped = True
-        self.check_symlink = True
         self.server_package = None
         self.client_package = None
         self.debug_package = None
         self.log_examiner = None
         self.instance = None
-        version = cfg.version.split("~")[0]
-        version = ".".join(version.split(".")[:3])
-        self.semver = semver.VersionInfo.parse(version)
 
         cfg.have_system_service = False
 
@@ -43,7 +38,7 @@ class InstallerTAR(InstallerBase):
         cfg.real_bin_dir = None
         cfg.real_sbin_dir = None
 
-        cfg.logDir = Path()
+        cfg.log_dir = Path()
         cfg.dbdir = None
         cfg.appdir = None
         cfg.cfgdir = None
@@ -75,13 +70,13 @@ class InstallerTAR(InstallerBase):
         self.client_package = None
         self.cfg.installPrefix = Path("/tmp") / 'arangodb3{ep}-{ver}'.format(**self.desc)
         self.cfg.bin_dir = self.cfg.installPrefix / "bin"
-        self.cfg.sbin_dir = self.cfg.installPrefix / "usr" / "sbin"  
+        self.cfg.sbin_dir = self.cfg.installPrefix / "usr" / "sbin"
         self.cfg.real_bin_dir = self.cfg.installPrefix / "usr" / "bin"
         self.cfg.real_sbin_dir = self.cfg.sbin_dir
         self.cfg.cfgdir = self.cfg.installPrefix # n/A
         self.cfg.appdir = self.cfg.installPrefix # n/A
         self.cfg.dbdir = self.cfg.installPrefix # n/A
-        self.cfg.logDir = self.cfg.installPrefix # n/A
+        self.cfg.log_dir = self.cfg.installPrefix # n/A
 
     def check_service_up(self):
         pass
@@ -92,16 +87,18 @@ class InstallerTAR(InstallerBase):
     def stop_service(self):
         pass
 
-    def upgrade_package(self):
+    def upgrade_package(self, old_installer):
         """ Tar installer is the same way we did for installing."""
         self.install_package()
 
     def install_package(self):
         logging.info("installing Arangodb debian Tar package")
-        logging.debug("package dir: {0.cfg.package_dir}- server_package: {0.server_package}".format(self))
+        logging.debug(
+            "package dir: {0.cfg.package_dir}- "
+            "server_package: {0.server_package}".format(self))
 
         cmd = [self.tar,
-                   '-xzf',
+                   '-xf',
                    str(self.cfg.package_dir / self.server_package),
                    '-C',
                    '/tmp/']

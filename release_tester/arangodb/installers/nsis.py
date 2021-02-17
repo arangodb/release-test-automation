@@ -7,22 +7,19 @@ import multiprocessing
 from pathlib import Path
 from pathlib import PureWindowsPath
 import psutil
-from arangodb.instance import ArangodInstance
 from arangodb.installers.base import InstallerBase
 
 class InstallerW(InstallerBase):
     """ install the windows NSIS package """
+    # pylint: disable=R0913 disable=R0902
     def __init__(self, cfg):
-        self.check_stripped = False
-        self.check_symlink = False
         self.server_package = None
         self.client_package = None
-        self.instance = None
         self.service = None
         self.remote_package_dir  = 'Windows'
 
         cfg.installPrefix = Path("C:/tmp")
-        cfg.logDir = cfg.installPrefix / "LOG"
+        cfg.log_dir = cfg.installPrefix / "LOG"
         cfg.dbdir = cfg.installPrefix / "DB"
         cfg.appdir = cfg.installPrefix / "APP"
         cfg.installPrefix = cfg.installPrefix / ("PROG" + cfg.version)
@@ -34,6 +31,8 @@ class InstallerW(InstallerBase):
         cfg.real_sbin_dir = cfg.sbin_dir
 
         super().__init__(cfg)
+        self.check_stripped = False
+        self.check_symlink = False
 
     def supports_hot_backup(self):
         """ no hot backup support on the wintendo. """
@@ -58,7 +57,7 @@ class InstallerW(InstallerBase):
             architecture)
         self.debug_package = None # TODO
 
-    def upgrade_package(self):
+    def upgrade_package(self, old_installer):
         self.stop_service()
         cmd = [str(self.cfg.package_dir / self.server_package),
                '/INSTDIR=' + str(PureWindowsPath(self.cfg.installPrefix)),
@@ -77,10 +76,11 @@ class InstallerW(InstallerBase):
             time.sleep(1)
         self.enable_logging()
         self.stop_service()
-        # the smaller the wintendo, the longer we shal let it rest, since it needs to look at all these files we
+        # the smaller the wintendo, the longer we shal let it rest,
+        # since it needs to look at all these files we
         # just unloaded into it to make sure no harm originates from them.
         time.sleep(60 / multiprocessing.cpu_count())
-        self.instance = ArangodInstance("single", "8529", self.cfg.localhost, self.cfg.publicip, self.cfg.logDir)
+        self.set_system_instance()
         self.start_service()
         logging.info('Installation successfull')
 
@@ -104,10 +104,11 @@ class InstallerW(InstallerBase):
             time.sleep(1)
         self.enable_logging()
         self.stop_service()
-        # the smaller the wintendo, the longer we shal let it rest, since it needs to look at all these files we
+        # the smaller the wintendo, the longer we shal let it rest,
+        # since it needs to look at all these files we
         # just unloaded into it to make sure no harm originates from them.
         time.sleep(60 / multiprocessing.cpu_count())
-        self.instance = ArangodInstance("single", "8529", self.cfg.localhost, self.cfg.publicip, self.cfg.logDir)
+        self.set_system_instance()
         self.start_service()
         logging.info('Installation successfull')
 
@@ -119,7 +120,7 @@ class InstallerW(InstallerBase):
             self.service = psutil.win_service_get('ArangoDB')
         except Exception as exc:
             logging.error("failed to get service! - %s", str(exc))
-            return None
+            return
 
     def un_install_package(self):
         # once we modify it, the uninstaller will leave it there...
@@ -141,11 +142,12 @@ class InstallerW(InstallerBase):
             logging.info(str(cmd))
             uninstall = psutil.Popen(cmd)
             uninstall.wait()
-        if self.cfg.logDir.exists():
-            shutil.rmtree(self.cfg.logDir)
+        if self.cfg.log_dir.exists():
+            shutil.rmtree(self.cfg.log_dir)
         if tmp_uninstaller.exists():
             tmp_uninstaller.unlink()
-        # the smaller the wintendo, the longer we shal let it rest, since it needs to look at all these files we
+        # the smaller the wintendo, the longer we shal let it rest,
+        # since it needs to look at all these files we
         # just unloaded into it to make sure no harm originates from them.
         time.sleep(30 / multiprocessing.cpu_count())
         try:
@@ -172,7 +174,8 @@ class InstallerW(InstallerBase):
             if self.service.status() == "stopped":
                 raise Exception("arangod service stopped again on its own!"
                                 "Configuration / Port problem?")
-        self.instance.detect_pid(1) # should be owned by init TODO wintendo what do you do here?
+        # should be owned by init TODO wintendo what do you do here?
+        self.instance.detect_pid(1)
 
     def stop_service(self):
         self.get_service()
@@ -187,8 +190,8 @@ class InstallerW(InstallerBase):
 
     def cleanup_system(self):
         # TODO: should this be cleaned by the nsis uninstall in first place?
-        if self.cfg.logDir.exists():
-            shutil.rmtree(self.cfg.logDir)
+        if self.cfg.log_dir.exists():
+            shutil.rmtree(self.cfg.log_dir)
         if self.cfg.dbdir.exists():
             shutil.rmtree(self.cfg.dbdir)
         if self.cfg.appdir.exists():

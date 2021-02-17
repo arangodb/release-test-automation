@@ -59,6 +59,27 @@ function getReplicationFactor(defaultReplicationFactor) {
   return defaultReplicationFactor;
 }
 
+function validateDocumentWorksInOneShard(db, baseName, count) {
+  if (baseName === "_system") {
+    baseName = "system";
+  }
+  progress("Test OneShard setup")
+  const databaseName = `${baseName}_${count}_oneShard`;
+  db._useDatabase(databaseName);
+  for (let ccount = 0; ccount < options.collectionMultiplier; ++ccount) {
+    const query = `
+      LET testee = DOCUMENT("c_${ccount}_0/knownKey")
+      FOR x IN c_${ccount}_1
+        RETURN {v1: testee.value, v2: x.value}
+      `;
+    const result = db._query(query).toArray();
+    if (result.length !== 1 || result[0].v1 !== "success" || result[0].v2 !== "success") {
+      throw "DOCUMENT call in OneShard database does not return data";
+    }
+
+  }
+}
+
 let v = db._connection.GET("/_api/version");
 const enterprise = v.license === "enterprise"
 
@@ -169,5 +190,7 @@ while (count < options.numberOfDBs) {
     ccount ++;
   }
   print(timeLine.join());
+  // TODO
+  validateDocumentWorksInOneShard(db, database, count);
   count ++;
 }

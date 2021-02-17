@@ -2,38 +2,48 @@
 """ Run a javascript command by spawning an arangosh
     to the configured connection """
 import logging
-import psutil
 import os
-import tools.loghelper as lh
-import tools.errorhelper as eh
-import time
 from pathlib import Path
 
-from subprocess import DEVNULL, PIPE, Popen
-from threading  import Thread
 from queue import Queue, Empty
+from subprocess import DEVNULL, PIPE, Popen
 import sys
-from tools.asciiprint import ascii_print, print_progress as progress
+from threading  import Thread
+import psutil
+from tools.asciiprint import print_progress as progress
+import tools.errorhelper as eh
+import tools.loghelper as lh
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
 def dummy_line_result(line):
-    pass
+    """ do nothing with the line... """
+    line
 
 def enqueue_stdout(std_out, queue, instance):
+    """ add stdout to the specified queue """
     for line in iter(std_out.readline, b''):
         #print("O: " + str(line))
         queue.put((line, instance))
     #print('0 done!')
     queue.put(-1)
     std_out.close()
+
 def enqueue_stderr(std_err, queue, instance):
+    """ add stderr to the specified queue """
     for line in iter(std_err.readline, b''):
         #print("E: " + str(line))
         queue.put((line, instance))
     #print('1 done!')
     queue.put(-1)
     std_err.close()
+
+def convert_result(result_array):
+    """ binary -> string """
+    result = ""
+    for one_line in result_array:
+        result += "\n" + one_line[0].decode("utf-8").rstrip()
+    return result
 
 class ArangoshExecutor():
     """ configuration """
@@ -69,7 +79,9 @@ class ArangoshExecutor():
             lh.log_cmd(run_cmd)
             arangosh_run = psutil.Popen(run_cmd)
         else:
-            arangosh_run = psutil.Popen(run_cmd, stdout = DEVNULL, stderr = DEVNULL)
+            arangosh_run = psutil.Popen(run_cmd,
+                                        stdout = DEVNULL,
+                                        stderr = DEVNULL)
 
         exitcode = arangosh_run.wait(timeout=60)
         # logging.debug("exitcode {0}".format(exitcode))
@@ -85,7 +97,8 @@ class ArangoshExecutor():
         logging.debug("sanity result: " + str(success) + " - expected: False")
 
         if success:
-            raise Exception("arangosh doesn't exit with non-0 to indicate errors")
+            raise Exception(
+                "arangosh doesn't exit with non-0 to indicate errors")
 
         success = self.run_command((
             'check normal exit',
@@ -95,7 +108,8 @@ class ArangoshExecutor():
         logging.debug("sanity result: " + str(success) + " - expected: True")
 
         if not success:
-            raise Exception("arangosh doesn't exit with 0 to indicate no errors")
+            raise Exception(
+                "arangosh doesn't exit with 0 to indicate no errors")
 
     def run_script(self, cmd, verbose = True):
         """ launch an external js-script, print its name """
@@ -124,13 +138,22 @@ class ArangoshExecutor():
             lh.log_cmd(run_cmd)
             arangosh_run = psutil.Popen(run_cmd)
         else:
-            arangosh_run = psutil.Popen(run_cmd, stdout = DEVNULL, stderr = DEVNULL)
+            arangosh_run = psutil.Popen(run_cmd,
+                                        stdout = DEVNULL,
+                                        stderr = DEVNULL)
 
         exitcode = arangosh_run.wait(timeout=30)
         logging.debug("exitcode {0}".format(exitcode))
         return exitcode == 0
 
-    def run_script_monitored(self, cmd, args, timeout, result_line, process_control=False, verbose=True):
+    def run_script_monitored(self, cmd, args, timeout, result_line,
+                             process_control=False, verbose=True):
+       # pylint: disable=R0913 disable=R0902 disable=R0915 disable=R0912
+        """
+        runs a script in background tracing with
+        a dynamic timeout that its got output
+        (is still alive...)
+        """
         run_cmd = [
             self.cfg.bin_dir / "arangosh",
             "--server.endpoint", self.connect_instance.get_endpoint(),
@@ -150,21 +173,23 @@ class ArangoshExecutor():
         if len(args) > 0:
             run_cmd += ['--'] + args
 
-        arangosh_run = None
         if verbose:
             lh.log_cmd(run_cmd)
-        p = Popen(run_cmd, stdout=PIPE, stderr=PIPE, close_fds=ON_POSIX)
-        q = Queue()
-        t1 = Thread(target=enqueue_stdout, args=(p.stdout, q, self.connect_instance))
-        t2 = Thread(target=enqueue_stderr, args=(p.stderr, q, self.connect_instance))
-        t1.start()
-        t2.start()
+        process = Popen(run_cmd, stdout=PIPE, stderr=PIPE, close_fds=ON_POSIX)
+        queue = Queue()
+        thread1 = Thread(target=enqueue_stdout, args=(process.stdout,
+                                                      queue,
+                                                      self.connect_instance))
+        thread2 = Thread(target=enqueue_stderr, args=(process.stderr,
+                                                      queue,
+                                                      self.connect_instance))
+        thread1.start()
+        thread2.start()
 
         # ... do other things here
         # out = logfile.open('wb')
         # read line without blocking
         have_timeout = False
-        count = 0
         tcount = 0
         close_count = 0
         result = []
@@ -173,7 +198,7 @@ class ArangoshExecutor():
                 progress("sj" + str(tcount))
             line = ''
             try:
-                line = q.get(timeout=1)
+                line = queue.get(timeout=1)
                 result_line(line)
             except Empty:
                 tcount += 1
@@ -184,7 +209,7 @@ class ArangoshExecutor():
                 tcount = 0
                 if isinstance(line, tuple):
                     if verbose:
-                       print("e: " + str(line[0]))
+                        print("e: " + str(line[0]))
                     if not str(line[0]).startswith('#'):
                         result.append(line)
                 else:
@@ -194,18 +219,20 @@ class ArangoshExecutor():
                         break
         if have_timeout:
             print(" TIMEOUT OCCURED!")
-            p.kill()
-        rc = p.wait()
-        print(rc)
-        t1.join()
-        t2.join()
-        if have_timeout or rc != 0:
-            return False
+            process.kill()
+        rc_exit = process.wait()
+        print(rc_exit)
+        thread1.join()
+        thread2.join()
+        if have_timeout or rc_exit != 0:
+            return (False, convert_result(result))
         if len(result) == 0:
-            return True
-        return result
+            return (True, "")
+        return (True, convert_result(result))
 
     def run_testing(self, testcase, args, timeout, logfile, verbose):
+       # pylint: disable=R0913 disable=R0902
+        """ testing.js wrapper """
         args = [
             self.cfg.bin_dir / "arangosh",
             '-c', str(self.cfg.cfgdir / 'arangosh.conf'),
@@ -218,12 +245,16 @@ class ArangoshExecutor():
             testcase, '--testBuckets'] + args
         print(args)
         os.chdir(self.cfg.package_dir)
-        p = Popen(args, stdout=PIPE, stderr=PIPE, close_fds=ON_POSIX)
-        q = Queue()
-        t1 = Thread(target=enqueue_stdout, args=(p.stdout, q, self.connect_instance))
-        t2 = Thread(target=enqueue_stderr, args=(p.stderr, q, self.connect_instance))
-        t1.start()
-        t2.start()
+        process = Popen(args, stdout=PIPE, stderr=PIPE, close_fds=ON_POSIX)
+        queue = Queue()
+        thread1 = Thread(target=enqueue_stdout, args=(process.stdout,
+                                                      queue,
+                                                      self.connect_instance))
+        thread2 = Thread(target=enqueue_stderr, args=(process.stderr,
+                                                      queue,
+                                                      self.connect_instance))
+        thread1.start()
+        thread2.start()
 
         # ... do other things here
         out = logfile.open('wb')
@@ -233,7 +264,7 @@ class ArangoshExecutor():
             print(".", end="")
             line = ''
             try:
-                line = q.get(timeout=1)
+                line = queue.get(timeout=1)
             except Empty:
                 progress('-')
             else:
@@ -246,8 +277,8 @@ class ArangoshExecutor():
                 else:
                     out.write(line)
                     #print(line)
-        t1.join()
-        t2.join()
+        thread1.join()
+        thread2.join()
 
     def js_version_check(self):
         """ run a version check command; this can double as password check """
@@ -259,44 +290,62 @@ class ArangoshExecutor():
             }}
         """.format(str(self.cfg.version)[:5])
         logging.debug("script to be executed: " + str(js_script_string))
-        res = self.run_command(['check version', js_script_string], self.cfg.verbose)
+        res = self.run_command(['check version',
+                                js_script_string],
+                               self.cfg.verbose)
         logging.debug("version check result: " + str(res))
 
         if not res:
-            eh.ask_continue_or_exit("version check failed", self.cfg.interactive)
+            eh.ask_continue_or_exit("version check failed",
+                                    self.cfg.interactive)
         return res
 
     def hotbackup_create_nonbackup_data(self):
-        """ create a collection with documents after taking a backup to verify its not in the backup """
+        """
+        create a collection with documents after taking a backup
+        to verify its not in the backup
+        """
         logging.info("creating volatile testdata")
         js_script_string = """
             db._create("this_collection_will_not_be_backed_up");
-            db.this_collection_will_not_be_backed_up.save({"this": "document will be gone"});
+            db.this_collection_will_not_be_backed_up.save(
+               {"this": "document will be gone"});
         """
         logging.debug("script to be executed: " + str(js_script_string))
-        res = self.run_command(['create volatile data', js_script_string], True) # self.cfg.verbose)
+        res = self.run_command(['create volatile data',
+                                js_script_string],
+                               True) # self.cfg.verbose)
         logging.debug("data create result: " + str(res))
 
         if not res:
-            eh.ask_continue_or_exit("creating volatile testdata failed", self.cfg.interactive)
+            eh.ask_continue_or_exit("creating volatile testdata failed",
+                                    self.cfg.interactive)
         return res
 
     def hotbackup_check_for_nonbackup_data(self):
         """ check whether the data is in there or not. """
         logging.info("running version check")
-        #  || db.this_collection_will_not_be_backed_up._length() != 0 // do we care?
+        #  || db.this_collection_will_not_be_backed_up._length() != 0
+        # // do we care?
         js_script_string = """
-            if (db._collection("this_collection_will_not_be_backed_up") != null) {
+            if (db._collection("this_collection_will_not_be_backed_up")
+                 != null) {
               throw `data is there!`;
             }
         """
         logging.debug("script to be executed: " + str(js_script_string))
-        res = self.run_command(['check whether non backup data exists', js_script_string], True) # self.cfg.verbose)
+        res = self.run_command(['check whether non backup data exists',
+                                js_script_string],
+                               True) # self.cfg.verbose)
         logging.debug("data check result: " + str(res))
-        
+
         return res
 
-    def run_in_arangosh(self, testname, args=[], moreargs=[], result_line=dummy_line_result, timeout=100):
+    def run_in_arangosh(self, testname,
+                        args=[], moreargs=[],
+                        result_line=dummy_line_result,
+                        timeout=100):
+       # pylint: disable=R0913 disable=R0902 disable=W0102
         """ deploy testdata into the instance """
         if testname:
             logging.info("adding test data for {0}".format(testname))
@@ -325,7 +374,10 @@ class ArangoshExecutor():
                                         verbose=self.cfg.verbose)
         return ret
 
-    def create_test_data(self, testname, args=[], result_line=dummy_line_result, timeout=100):
+    def create_test_data(self, testname, args=[],
+                         result_line=dummy_line_result,
+                         timeout=100):
+        # pylint: disable=W0102
         """ deploy testdata into the instance """
         if testname:
             logging.info("adding test data for {0}".format(testname))
@@ -345,6 +397,7 @@ class ArangoshExecutor():
         return ret
 
     def check_test_data(self, testname, args=[], result_line=dummy_line_result):
+        # pylint: disable=W0102
         """ check back the testdata in the instance """
         if testname:
             logging.info("checking test data for {0}".format(testname))
@@ -364,6 +417,7 @@ class ArangoshExecutor():
         return ret
 
     def clear_test_data(self, testname, args=[], result_line=dummy_line_result):
+        # pylint: disable=W0102
         """ flush the testdata from the instance again """
         if testname:
             logging.info("removing test data for {0}".format(testname))

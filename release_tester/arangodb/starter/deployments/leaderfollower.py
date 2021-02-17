@@ -13,8 +13,10 @@ from tools.asciiprint import print_progress as progress
 
 class LeaderFollower(Runner):
     """ this runs a leader / Follower setup with synchronisation """
+    # pylint: disable=R0913 disable=R0902
     def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
-        super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'lf')
+        super().__init__(runner_type, cfg, old_inst, new_cfg,
+                         new_inst, 'lf', 400, 500)
 
         self.leader_starter_instance = None
         self.follower_starter_instance = None
@@ -122,16 +124,19 @@ process.exit(0);
     def test_setup_impl(self):
         logging.info("testing the leader/follower setup")
         tries = 30
-        if not self.follower_starter_instance.execute_frontend(self.checks['checkReplJS']):
+        if not self.follower_starter_instance.execute_frontend(
+                self.checks['checkReplJS']):
             while tries:
-                if self.follower_starter_instance.execute_frontend(self.checks['checkReplJS'], False):
+                if self.follower_starter_instance.execute_frontend(
+                        self.checks['checkReplJS'], False):
                     break
                 progress(".")
                 time.sleep(1)
                 tries -= 1
 
         if not tries:
-            if not self.follower_starter_instance.execute_frontend(self.checks['checkReplJS']):
+            if not self.follower_starter_instance.execute_frontend(
+                    self.checks['checkReplJS']):
                 raise Exception("replication didn't make it in 30s!")
 
         lh.subsection("leader/follower - check test data", "-")
@@ -164,11 +169,17 @@ process.exit(0);
         logging.info("running the replication fuzzing test")
         # add instace where makedata will be run on
         self.tcp_ping_all_nodes()
-        if not self.leader_starter_instance.arangosh.run_in_arangosh(
-            Path('test_data/tests/js/server/replication/fuzz/replication-fuzz-global.js'),
+        ret = self.leader_starter_instance.arangosh.run_in_arangosh(
+            ( self.cfg.test_data_dir /
+              Path(
+                  'tests/js/server/replication/fuzz/replication-fuzz-global.js')
+             ),
             [],
             [self.follower_starter_instance.get_frontend().get_public_url('')]
-            ):
+            )
+        if not ret[0]:
+            if not self.cfg.verbose:
+                print(ret[1])
             raise Exception("replication fuzzing test failed")
 
         prompt_user(self.basecfg, "please test the installation.")

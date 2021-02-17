@@ -18,7 +18,8 @@ logging.basicConfig(
 
 
 @click.command()
-@click.option('--version', help='ArangoDB version number.')
+@click.option('--old-version', help='unused')
+@click.option('--new-version', help='ArangoDB version number.', default="3.8.0-nightly")
 @click.option('--verbose/--no-verbose',
               is_flag=True,
               default=False,
@@ -27,7 +28,11 @@ logging.basicConfig(
               is_flag=True,
               default=False,
               help='Enterprise or community?')
-@click.option('--zip/--no-zip',
+@click.option('--encryption-at-rest/--no-encryption-at-rest',
+              is_flag=True,
+              default=False,
+              help='turn on encryption at rest for Enterprise packages')
+@click.option('--zip/--no-zip', "zip_package",
               is_flag=True,
               default=False,
               help='switch to zip or tar.gz package instead of default OS package')
@@ -51,16 +56,16 @@ logging.basicConfig(
 @click.option('--publicip',
               default='127.0.0.1',
               help='IP for the click to browser hints.')
-
-
-def run_test(version, verbose, package_dir, test_data_dir,
-             enterprise, zip,
+# pylint: disable=R0913 disable=R0914
+def run_test(old_version, new_version, verbose,
+             package_dir, test_data_dir,
+             enterprise, encryption_at_rest, zip_package,
              interactive, mode, starter_mode, publicip):
     """ main """
     lh.section("configuration")
-    print("version: " + str(version))
+    print("version: " + str(new_version))
     print("using enterpise: " + str(enterprise))
-    print("using zip: " + str(zip))
+    print("using zip: " + str(zip_package))
     print("package directory: " + str(package_dir))
     print("mode: " + str(mode))
     print("starter mode: " + str(starter_mode))
@@ -71,18 +76,19 @@ def run_test(version, verbose, package_dir, test_data_dir,
     if mode not in ['all', 'install', 'system', 'tests', 'uninstall']:
         raise Exception("unsupported mode %s!" % mode)
 
-    do_install = mode == "all" or mode == "install"
-    do_uninstall = mode == "all" or mode == "uninstall"
+    do_install = mode in ["all", "install"]
+    do_uninstall = mode in ["all", "uninstall"]
 
     lh.section("startup")
     if verbose:
         logging.info("setting debug level to debug (verbose)")
         logging.getLogger().setLevel(logging.DEBUG)
 
-    install_config = InstallerConfig(version,
+    install_config = InstallerConfig(new_version,
                                      verbose,
                                      enterprise,
-                                     zip,
+                                     encryption_at_rest,
+                                     zip_package,
                                      Path(package_dir),
                                      Path(test_data_dir),
                                      mode,
@@ -115,8 +121,7 @@ def run_test(version, verbose, package_dir, test_data_dir,
 
     count = 1
     for runner_type in starter_mode:
-        assert(runner_type)
-
+        assert runner_type
         runner = make_runner(runner_type, inst.cfg, inst, None)
         # install on first run:
         runner.do_install = (count == 1) and do_install
@@ -129,8 +134,9 @@ def run_test(version, verbose, package_dir, test_data_dir,
         kill_all_processes()
         count += 1
 
-    return ( 0 if not failed else 1 )
+    return 0 if not failed else 1
 
 
 if __name__ == "__main__":
+# pylint: disable=E1120 # fix clickiness.
     sys.exit(run_test())

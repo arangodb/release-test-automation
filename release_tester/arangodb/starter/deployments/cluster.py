@@ -2,7 +2,6 @@
 """ launch and manage an arango deployment using the starter"""
 import time
 import logging
-import sys
 from pathlib import Path
 
 from tools.timestamp import timestamp
@@ -16,11 +15,15 @@ from tools.asciiprint import print_progress as progress
 
 class Cluster(Runner):
     """ this launches a cluster setup """
+    # pylint: disable=R0913 disable=R0902
     def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
-        super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'CLUSTER')
+        super().__init__(runner_type,
+                         cfg, old_inst, new_cfg, new_inst,
+                         'CLUSTER', 400, 600)
         #self.basecfg.frontends = []
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
+        self.create_test_collection = ""
 
     def starter_prepare_env_impl(self):
         self.create_test_collection = ("""
@@ -104,8 +107,10 @@ db.testCollection.save({test: "document"})
     def upgrade_arangod_version_impl(self):
         bench_instances = []
         if self.cfg.stress_upgrade:
-            bench_instances.append(self.starter_instances[0].launch_arangobench('cluster_upgrade_scenario_1'))
-            bench_instances.append(self.starter_instances[1].launch_arangobench('cluster_upgrade_scenario_2'))
+            bench_instances.append(self.starter_instances[0].launch_arangobench(
+                'cluster_upgrade_scenario_1'))
+            bench_instances.append(self.starter_instances[1].launch_arangobench(
+                'cluster_upgrade_scenario_2'))
         for node in self.starter_instances:
             node.replace_binary_for_upgrade(self.new_cfg)
 
@@ -169,4 +174,3 @@ db.testCollection.save({test: "document"})
         for node in self.starter_instances:
             node.terminate_instance()
         logging.info('test ended')
-

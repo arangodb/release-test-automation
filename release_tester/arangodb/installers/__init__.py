@@ -6,19 +6,22 @@ from pathlib import Path
 import semver
 
 class InstallerFrontend():
-    def __init__(self, proto: str, ip: str, port: int):
+    """ class describing frontend instances """
+    def __init__(self, proto: str, ip_address: str, port: int):
         self.proto = proto
-        self.ip = ip
+        self.ip_address = ip_address
         self.port = port
 
 
 class InstallerConfig():
     """ stores the baseline of this environment """
+    # pylint: disable=R0913 disable=R0902
     def __init__(self,
                  version: str,
                  verbose: bool,
                  enterprise: bool,
-                 zip: bool,
+                 encryption_at_rest: bool,
+                 zip_package: bool,
                  package_dir: Path,
                  test_dir: Path,
                  mode: str,
@@ -28,11 +31,10 @@ class InstallerConfig():
         self.publicip = publicip
         self.interactive = interactive
         self.enterprise = enterprise
-        self.zip = zip
+        self.encryption_at_rest = encryption_at_rest and enterprise
+        self.zip_package = zip_package
 
         self.mode = mode
-        self.version = version
-        self.semver = semver.VersionInfo.parse(version)
         self.verbose = verbose
         self.package_dir = package_dir
         self.have_system_service = True
@@ -41,7 +43,7 @@ class InstallerConfig():
 
         self.install_prefix = Path("/")
 
-        self.baseTestDir = test_dir
+        self.base_test_dir = test_dir
         self.pwd = Path(os.path.dirname(os.path.realpath(__file__)))
         self.test_data_dir = self.pwd / '..' / '..' / '..' / 'test_data'
 
@@ -54,14 +56,35 @@ class InstallerConfig():
 
         self.all_instances = {}
         self.frontends = []
+        self.reset_version(version)
+        self.log_dir = Path()
+        self.bin_dir = Path()
+        self.real_bin_dir = Path()
+        self.sbin_dir = Path()
+        self.real_sbin_dir = Path()
+        self.dbdir = Path()
+        self.appdir = Path()
+        self.cfgdir = Path()
+        winver = platform.win32_ver()
 
-    def add_frontend(self, proto, ip, port):
-        """ add a frontend URL in components """
-        self.frontends.append(InstallerFrontend(proto, ip, port))
+        self.hot_backup = (
+            self.enterprise and
+            (semver.compare(self.version, "3.5.1") >= 0) and
+            isinstance(winver, list)
+        )
 
-    def set_frontend(self, proto, ip, port):
+    def reset_version(self, version):
+        """ establish a new version to manage """
+        self.version = version
+        self.semver = semver.VersionInfo.parse(version)
+
+    def add_frontend(self, proto, ip_address, port):
         """ add a frontend URL in components """
-        self.frontends = [InstallerFrontend(proto, ip, port)]
+        self.frontends.append(InstallerFrontend(proto, ip_address, port))
+
+    def set_frontend(self, proto, ip_address, port):
+        """ add a frontend URL in components """
+        self.frontends = [InstallerFrontend(proto, ip_address, port)]
 
     def generate_password(self):
         """ generate a new password """
@@ -70,9 +93,9 @@ class InstallerConfig():
 
     def set_directories(self, other):
         """ set all directories from the other object """
-        if other.baseTestDir is None:
-            raise Exception('baseTestDir: must not copy in None!')
-        self.baseTestDir = other.baseTestDir
+        if other.base_test_dir is None:
+            raise Exception('base_test_dir: must not copy in None!')
+        self.base_test_dir = other.base_test_dir
         if other.bin_dir is None:
             raise Exception('bin_dir: must not copy in None!')
         self.bin_dir = other.bin_dir
@@ -85,9 +108,9 @@ class InstallerConfig():
         if other.real_sbin_dir is None:
             raise Exception('real_sbin_dir: must not copy in None!')
         self.real_sbin_dir = other.real_sbin_dir
-        if other.logDir is None:
-            raise Exception('logDir: must not copy in None!')
-        self.logDir = other.logDir
+        if other.log_dir is None:
+            raise Exception('log_dir: must not copy in None!')
+        self.log_dir = other.log_dir
         if other.dbdir is None:
             raise Exception('dbdir: must not copy in None!')
         self.dbdir = other.dbdir
@@ -103,6 +126,7 @@ class InstallerConfig():
 
 #pylint: disable=import-outside-toplevel
 def make_installer(install_config: InstallerConfig):
+    # pylint: disable=too-many-return-statements
     """ detect the OS and its distro,
         choose the proper installer
         and return it"""
@@ -113,26 +137,25 @@ def make_installer(install_config: InstallerConfig):
 
     macver = platform.mac_ver()
     if macver[0]:
-        if install_config.zip:
+        if install_config.zip_package:
             from arangodb.installers.tar import InstallerTAR
             return InstallerTAR(install_config)
-        else:
-            from arangodb.installers.mac import InstallerMac
-            return InstallerMac(install_config)
+        from arangodb.installers.mac import InstallerMac
+        return InstallerMac(install_config)
 
-    elif platform.system() in [ "linux", "Linux" ]:
+    if platform.system() in [ "linux", "Linux" ]:
         import distro
         distro = distro.linux_distribution(full_distribution_name=False)
-        if install_config.zip:
+        if install_config.zip_package:
             from arangodb.installers.tar import InstallerTAR
             return InstallerTAR(install_config)
-        elif distro[0] in ['debian', 'ubuntu']:
+        if distro[0] in ['debian', 'ubuntu']:
             from arangodb.installers.deb import InstallerDeb
             return InstallerDeb(install_config)
-        elif distro[0] in ['centos', 'redhat', 'suse']:
+        if distro[0] in ['centos', 'redhat', 'suse']:
             from arangodb.installers.rpm import InstallerRPM
             return InstallerRPM(install_config)
-        elif distro[0] in ['alpine']:
+        if distro[0] in ['alpine']:
             from arangodb.installers.docker import InstallerDocker
             return InstallerDocker(install_config)
         raise Exception('unsupported linux distribution: ' + str(distro))

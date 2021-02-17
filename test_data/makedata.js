@@ -146,6 +146,46 @@ function createIndexSafe(options) {
     return false; // well, its there?
   });
 }
+
+function createOneShardVariant(db, baseName, count) {
+  if (baseName === "_system") {
+    baseName = "system";
+  }
+  progress('Start create OneShard DB');
+  db._useDatabase("_system");
+  print('#ix');
+  const databaseName = `${baseName}_${count}_oneShard`;
+  if (db._databases().includes(databaseName)) {
+    // its already there - skip this one.
+    print(`skipping ${databaseName} - its already there.`);
+    return;
+  }
+  const created = createSafe(databaseName,
+             dbname => {
+               db._flushCache();
+               db._createDatabase(dbname, {sharding: "single"});
+               db._useDatabase(dbname);
+               return true;
+             }, dbname => {
+               db._useDatabase(dbname);
+               return db._properties().sharding === "single";
+             }
+            );
+  if (!created) {
+    // its already wrongly there - skip this one.
+    print(`skipping ${databaseName} - it failed to be created, but it is no one-shard.`);
+    return;
+  }
+  progress('created OneShard DB');
+  for (let ccount = 0; ccount < options.collectionMultiplier; ++ccount) {
+    const c0 = createCollectionSafe(`c_${ccount}_0`, 1, 1);
+    const c1 = createCollectionSafe(`c_${ccount}_1`, 1, 1);
+    c0.save({_key: "knownKey", value: "success"});
+    c1.save({_key: "knownKey", value: "success"});
+  }
+  progress('stored OneShard Data');
+}
+
 let count = 0;
 while (count < options.numberOfDBs) {
   tStart = time();
@@ -311,13 +351,7 @@ while (count < options.numberOfDBs) {
     progress('writeData7');
 
     let viewCollectionName = `cview1_${ccount}`;
-    let cview1 = createSafe(viewCollectionName,
-                            viewCollection => {
-                              return db._create(viewCollection);
-                            }, viewCollection => {
-                              return db._collection(viewCollection);
-                            }
-                           );
+    let cview1 = createCollectionSafe(viewCollectionName, 3, 1);
     progress('createView1');
     let viewName1 = `view1_${ccount}`;
     let view1 = createSafe(viewName1,
@@ -406,6 +440,10 @@ while (count < options.numberOfDBs) {
     }
     ccount ++;
   }
+
+  createOneShardVariant(db, database, count);
+
   console.error(timeLine.join());
-  count ++;
+
+  count++;
 }

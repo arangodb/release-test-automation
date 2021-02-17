@@ -10,6 +10,7 @@ import shutil
 import time
 from pathlib import Path
 from abc import abstractmethod, ABC
+import semver
 import yaml
 from arangodb.instance import ArangodInstance
 from tools.asciiprint import print_progress as progress
@@ -40,6 +41,7 @@ if platform.mac_ver()[0]:
 class BinaryDescription():
     """ describe the availability of an arangodb binary and its properties """
     def __init__(self, path, name, enter, strip, vmin, vmax, sym, binary_type):
+        # pylint: disable=R0913 disable=R0902
         self.path = path / (name + FILE_EXTENSION)
         self.enterprise = enter
         self.stripped = strip
@@ -73,12 +75,15 @@ class BinaryDescription():
         binary_type: {0.binary_type}
         """.format(self)
 
-
-    def check_installed(self, version, enterprise, check_stripped, check_symlink):
+    def check_installed(self,
+                        version,
+                        enterprise,
+                        check_stripped,
+                        check_symlink):
         """ check all attributes of this file in reality """
-        #TODO consider only certain versions
-        #use semver package
-
+        if semver.compare(self.version_min, version) == 1:
+            self.check_path(enterprise, False)
+            return
         self.check_path(enterprise)
 
         if not enterprise and self.enterprise:
@@ -89,18 +94,18 @@ class BinaryDescription():
         if check_symlink:
             self.check_symlink()
 
-
-    def check_path(self, enterprise):
+    def check_path(self, enterprise, in_version = True):
         """ check whether the file rightfully exists or not """
         if enterprise and self.enterprise:
-            if not self.path.is_file():
-                raise Exception("Binary missing from enterprise package!" + str(self.path))
-
+            if not self.path.is_file() and in_version:
+                raise Exception("Binary missing from enterprise package!" +
+                                str(self.path))
         #file must not exist
         if not enterprise and self.enterprise:
             if self.path.is_file():
-                raise Exception("Enterprise binary found in community package!" + str(self.path))
-
+                raise Exception(
+                    "Enterprise binary found in community package!" +
+                    str(self.path))
 
     def check_stripped_mac(self):
         """ Checking stripped status of the arangod """
@@ -129,7 +134,8 @@ class BinaryDescription():
 
             # checking both output size
             return befor_stripped_size == after_stripped_size
-        return self.stripped # some go binaries are stripped, some not. We can't test it.
+        # some go binaries are stripped, some not. We can't test it.
+        return self.stripped
 
     def check_stripped_linux(self):
         """ check whether this file is stripped (or not) """
@@ -138,7 +144,10 @@ class BinaryDescription():
             return True
         if output.find(', not stripped') >= 0:
             return False
-        raise Exception("Strip checking: parse error for 'file " + str(self.path) + "', unparseable output:  [" + output + "]")
+        raise Exception("Strip checking: parse error for 'file " +
+                        str(self.path) +
+                        "', unparseable output:  [" +
+                        output + "]")
 
     def check_stripped(self):
         """ check whether this file is stripped (or not) """
@@ -163,9 +172,11 @@ class BinaryDescription():
             if not link.is_symlink():
                 Exception("{0} is not a symlink".format(str(link)))
 
+    def un_install_package_for_upgrade(self):
+        """ hook to uninstall old package for upgrade """
 
 ### main class
-#pylint: disable=attribute-defined-outside-init
+#pylint: disable=attribute-defined-outside-init disable=too-many-public-methods
 class InstallerBase(ABC):
     """ this is the prototype for the operation system agnostic installers """
     def __init__(self, cfg):
@@ -175,6 +186,17 @@ class InstallerBase(ABC):
         self.caclulate_file_locations()
 
         self.cfg.have_debug_package = False
+        self.reset_version(cfg.version)
+        self.check_stripped = True
+        self.check_symlink = True
+        self.instance = None
+
+    def reset_version(self, version):
+        """ re-configure the version we work with """
+        version = version.split("~")[0]
+        version = ".".join(version.split(".")[:3])
+        self.semver = semver.VersionInfo.parse(version)
+        self.cfg.reset_version(version)
 
     @abstractmethod
     def calculate_package_names(self):
@@ -185,7 +207,7 @@ class InstallerBase(ABC):
         """ install the packages to the system """
 
     @abstractmethod
-    def upgrade_package(self):
+    def upgrade_package(self, old_installer):
         """ install a new version of the packages to the system """
 
     @abstractmethod
@@ -210,20 +232,21 @@ class InstallerBase(ABC):
 
     def un_install_debug_package(self):
         """ Uninstalling debug package if it exist in the system """
-        pass
 
     def install_debug_package(self):
         """ installing debug package """
-        pass
 
+    def un_install_package_for_upgrade(self):
+        """ hook to uninstall old package for upgrade """
 
     def get_arangod_conf(self):
         """ where on the disk is the arangod config installed? """
         return self.cfg.cfgdir / 'arangod.conf'
 
     def supports_hot_backup(self):
-        """ by default hot backup is supported by the targets, there may be execptions."""
-        return True
+        """ by default hot backup is supported by the targets,
+        there may be execptions."""
+        return semver.compare(self.cfg.version, "3.5.1") >=0
 
     def calc_config_file_name(self):
         """ store our config to disk - so we can be invoked partly """
@@ -236,14 +259,21 @@ class InstallerBase(ABC):
 
     def save_config(self):
         """ dump the config to disk """
+        self.cfg.semver = None
         self.calc_config_file_name().write_text(yaml.dump(self.cfg))
+        self.cfg.semver = semver.VersionInfo.parse(self.cfg.version)
 
     def load_config(self):
         """ deserialize the config from disk """
         verbose = self.cfg.verbose
         with open(self.calc_config_file_name()) as fileh:
             self.cfg = yaml.load(fileh, Loader=yaml.Loader)
-        self.instance = ArangodInstance("single", self.cfg.port, self.cfg.localhost, self.cfg.publicip, self.cfg.logDir)
+        self.cfg.semver = semver.VersionInfo.parse(self.cfg.version)
+        self.instance = ArangodInstance("single",
+                                        self.cfg.port,
+                                        self.cfg.localhost,
+                                        self.cfg.publicip,
+                                        self.cfg.log_dir)
         self.calculate_package_names()
         self.cfg.verbose = verbose
 
@@ -264,12 +294,12 @@ class InstallerBase(ABC):
         """ if the packaging doesn't enable logging,
             do it using this function """
         arangodconf = self.get_arangod_conf().read_text()
-        if not self.cfg.logDir.exists():
-            self.cfg.logDir.mkdir(parents=True)
+        if not self.cfg.log_dir.exists():
+            self.cfg.log_dir.mkdir(parents=True)
         new_arangod_conf = arangodconf.replace(
             '[log]',
             '[log]\nfile = ' +
-            str(self.cfg.logDir / 'arangod.log'))
+            str(self.cfg.log_dir / 'arangod.log'))
         print(new_arangod_conf)
         self.get_arangod_conf().write_text(new_arangod_conf)
         logging.info("arangod now configured for logging")
@@ -350,7 +380,7 @@ class InstallerBase(ABC):
         # enterprise
         self.arango_binaries.append(BinaryDescription(
             self.cfg.real_bin_dir, 'arangobackup',
-            True, True, "1.0.0", "4.0.0", [], 'c++'))
+            True, True, "3.5.1", "4.0.0", [], 'c++'))
 
         self.arango_binaries.append(BinaryDescription(
             self.cfg.real_sbin_dir, 'arangosync',
@@ -360,7 +390,7 @@ class InstallerBase(ABC):
 
         self.arango_binaries.append(BinaryDescription(
             self.cfg.real_sbin_dir, 'rclone-arangodb',
-            True, True, "1.0.0", "4.0.0", [], 'go'))
+            True, True, "3.5.1", "4.0.0", [], 'go'))
 
     def check_installed_files(self):
         """ check for the files whether they're installed """
@@ -383,7 +413,8 @@ class InstallerBase(ABC):
         if self.cfg.have_system_service:
             if (self.cfg.installPrefix != Path("/") and
                     self.cfg.installPrefix.is_dir()):
-                logging.info("Path not removed: %s", str(self.cfg.installPrefix))
+                logging.info("Path not removed: %s",
+                             str(self.cfg.installPrefix))
                 success = False
             if os.path.exists(self.cfg.appdir):
                 logging.info("Path not removed: %s", str(self.cfg.appdir))
@@ -392,3 +423,14 @@ class InstallerBase(ABC):
                 logging.info("Path not removed: %s", str(self.cfg.dbdir))
                 success = False
         return success
+
+    def set_system_instance(self):
+        """
+         set an instance representing the system service launched by packages
+        """
+        self.instance = ArangodInstance("single",
+                                        "8529",
+                                        self.cfg.localhost,
+                                        self.cfg.publicip,
+                                        (self.cfg.installPrefix /
+                                         self.cfg.log_dir))
