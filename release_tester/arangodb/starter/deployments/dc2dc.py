@@ -6,6 +6,7 @@ from pathlib import Path
 
 import psutil
 import requests
+import semver
 from arangodb.starter.manager import StarterManager
 from arangodb.sync import SyncManager
 from arangodb.starter.deployments.runner import Runner
@@ -148,34 +149,42 @@ class Dc2Dc(Runner):
         launch(self.cluster2)
 
     def finish_setup_impl(self):
+        version = self.get_sync_version()
         self.sync_manager = SyncManager(self.cfg,
                                         self.certificate_auth,
                                         [self.cluster2['smport'],
-                                         self.cluster1['smport']])
+                                         self.cluster1['smport']],
+                                        version)
+
         if not self.sync_manager.run_syncer():
             raise Exception("starting the synchronisation failed!")
+
         self.makedata_instances = [ self.cluster1['instance'] ]
         self.set_frontend_instances()
 
-        time.sleep(60) # TODO: howto detect dc2dc is completely up and running?
+    def get_sync_version(self):
+        """
+        Check version of the arangosync master on the first cluster
+        """
+        cluster_instance = self.cluster1['instance']
+
+        token = cluster_instance.get_jwt_token_from_secret_file(self.cluster1["SyncSecret"])
+        url = 'https://' + cluster_instance.get_sync_master().get_public_plain_url() + '/_api/version'
+        response = requests.get(url, headers={'Authorization': 'Bearer ' + token}, verify=False)
+
+        if response.status_code != 200:
+            raise Exception("could not fetch arangosync version from {0}".format(url))
+
+        version = response.json().get('version')
+        if not version:
+            raise Exception("missing version in reponse from {0}".format(url))
+
+        return semver.VersionInfo.parse(version)
 
     def test_setup_impl(self):
-        res = self.cluster1['instance'].arangosh.check_test_data("dc2dc (post setup - dc1)")
-        if not res[0]:
-            if not self.cfg.verbose:
-                print(res[1])
-            raise Exception("error during verifying of the test data on the source cluster")
-
-        self.sync_manager.check_sync_status(0)
-        self.sync_manager.check_sync_status(1)
-        self.sync_manager.get_sync_tasks(0)
-        self.sync_manager.get_sync_tasks(1)
-        time.sleep(180) # TODO: howto detect dc2dc is completely up and running?
+        self.cluster1['instance'].arangosh.check_test_data("dc2dc (post setup - dc1)")
+        # time.sleep(180) # TODO: howto detect dc2dc is completely up and running?
         # exit(0)
-        self.sync_manager.check_sync_status(0)
-        self.sync_manager.check_sync_status(1)
-        self.sync_manager.get_sync_tasks(0)
-        self.sync_manager.get_sync_tasks(1)
         res = self.cluster2['instance'].arangosh.check_test_data("dc2dc (post setup - dc2)")
         if not res[0]:
             if not self.cfg.verbose:

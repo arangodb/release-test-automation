@@ -438,3 +438,8 @@ arangosync instance of starter
         """ yes. """
         # pylint: disable=R0201
         return True
+
+    def get_public_plain_url(self):
+        return '{host}:{port}'.format(
+            host=self.publicip,
+            port=self.port)

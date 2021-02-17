@@ -5,13 +5,15 @@
 import copy
 import logging
 import psutil
+import semver
 
 class SyncManager():
     """ manage arangosync """
     def __init__(self,
                  basecfg,
                  certificate_auth,
-                 clusterports):
+                 clusterports,
+                 version):
         self.cfg = copy.deepcopy(basecfg)
         self.certificate_auth = certificate_auth
         self.clusterports = clusterports
@@ -28,7 +30,7 @@ class SyncManager():
             '--source.cacert=' + str(self.certificate_auth["cert"]),
             '--auth.keyfile=' + str(self.certificate_auth["clientkeyfile"])
         ]
-
+        self.version = version
         self.instance = None
 
     def run_syncer(self):
@@ -63,7 +65,7 @@ class SyncManager():
 
     def get_sync_tasks(self, which):
         """ run the get tasks command """
-        logging.info('SyncManager: Check status of cluster %s', str(which))
+        logging.info('SyncManager: Check tasks of cluster %s', str(which))
         args = [
             self.cfg.bin_dir / 'arangosync',
             'get', 'tasks',
@@ -91,7 +93,12 @@ class SyncManager():
         psutil.Popen(args).wait()
 
     def check_sync(self):
-        """ run the stop sync command """
+        """ run the check sync command """
+        if self.version < semver.VersionInfo.parse('1.0.0'):
+            logging.warning('SyncManager: checking sync consistency :'
+                            ' available since 1.0.0 of arangosync')
+            return True
+
         args = [
             self.cfg.bin_dir / 'arangosync',
             'check', 'sync',
@@ -101,5 +108,5 @@ class SyncManager():
                 port=str(self.clusterports[0])),
             '--auth.keyfile=' + str(self.certificate_auth["clientkeyfile"])
         ]
-        logging.info('SyncManager: checking sync status : %s', str(args))
+        logging.info('SyncManager: checking sync consistency : %s', str(args))
         return psutil.Popen(args).wait() == 0

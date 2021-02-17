@@ -85,6 +85,7 @@ class StarterManager():
         # arg - jwtstr
         self.jwtfile = None
         self.jwt_header = None
+        self.jwt_tokens = dict()
         if jwtStr:
             self.jwtfile = self.basedir / 'jwt'
             self.jwtfile.write_text(jwtStr)
@@ -173,6 +174,14 @@ Starter {0.name}
                 ret.append(i)
         return ret
 
+    def get_sync_masters(self):
+        """ get the list of arangosync masters managed by this starter """
+        ret = []
+        for i in self.all_instances:
+            if i.type == InstanceType.syncmaster:
+                ret.append(i)
+        return ret
+
     def get_frontend(self):
         """ get the first frontendhost of this starter """
         servers = self.get_frontends()
@@ -188,6 +197,12 @@ Starter {0.name}
     def get_agent(self):
         """ get the first agent of this starter """
         servers = self.get_agents()
+        assert servers
+        return servers[0]
+
+    def get_sync_master(self):
+        """ get the first arangosync master of this starter """
+        servers = self.get_sync_masters()
         assert servers
         return servers[0]
 
@@ -212,17 +227,17 @@ Starter {0.name}
         self.instance = psutil.Popen(args)
         self.wait_for_logfile()
 
-    def get_jwt_header(self):
-        """ executes the starter to get the JWT for this instance """
-        if self.jwt_header:
-            return self.jwt_header
+    def get_jwt_token_from_secret_file(self, filename):
+        """ retrieve token from the JWT secret file which is cached for the future use """
+        if self.jwt_tokens and self.jwt_tokens[filename]:
+            # token for that file was checked already.
+            return self.jwt_tokens[filename]
+
         cmd = [self.cfg.bin_dir / 'arangodb',
                'auth', 'header',
-               '--auth.jwt-secret', str(self.jwtfile)]
+               '--auth.jwt-secret', str(filename)]
         print(cmd)
-        jwt_proc = psutil.Popen(cmd,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
+        jwt_proc = psutil.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (header, err) = jwt_proc.communicate()
         jwt_proc.wait()
         print(err)
@@ -233,12 +248,20 @@ Starter {0.name}
         if len(str(header).split(' ')) != 3:
             raise Exception("failed to parse the output"
                             " of the header command: " + str(header))
-        self.jwt_header = str(header).split(' ')[2].split('\\')[0]
+
+        self.jwt_tokens[filename] = str(header).split(' ')[2].split('\\')[0]
+        return self.jwt_tokens[filename]
+
+    def get_jwt_header(self):
+        """ return jwt header from current installation """
+        if self.jwt_header:
+            return self.jwt_header
+        self.jwt_header = self.get_jwt_token_from_secret_file(self.jwtfile)
         return self.jwt_header
 
     def send_request(self, instance_type, verb_method,
                      url, data=None, headers={}):
-        """ send an http request to the frontend """
+        """ send an http request to the instance """
         http_client.HTTPConnection.debuglevel = 1
 
         headers ['Authorization'] = 'Bearer '+ self.jwt_header
