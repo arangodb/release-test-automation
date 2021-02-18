@@ -371,7 +371,7 @@ Starter {0.name}
         if self.cfg.hot_backup:
             self.hotbackup = [
                 '--all.rclone.executable',
-                self.cfg.sbin_dir / 'rclone-arangodb']
+                self.cfg.real_sbin_dir / 'rclone-arangodb']
         logging.info("StarterManager: Killing my instance [%s]",
                      str(self.instance.pid))
         self.kill_instance()
