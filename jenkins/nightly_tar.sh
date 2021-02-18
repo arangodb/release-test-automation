@@ -19,6 +19,7 @@ docker pull $DOCKER_TAG
 DOCKER_NAME=release-test-automation-tar-${VERSION}
 DOCKER_TAG=${DOCKER_TAG}:${VERSION}
 
+docker rm -f $DOCKER_NAME
 tar -xvf versions.tar || true
 
 if test -n "$FORCE" -o "$TEST_BRANCH" != 'master'; then

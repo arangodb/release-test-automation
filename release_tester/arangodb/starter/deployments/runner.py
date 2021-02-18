@@ -550,11 +550,11 @@ class Runner(ABC):
             # pylint: disable=C0415
             import resource
             nofd = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
-            if nofd < 65536:
+            if nofd < 65535:
                 raise Exception("please use ulimit -n <count>"
                                 " to adjust the number of allowed"
                                 " filedescriptors to a value greater"
-                                " or eqaul 10000. Currently you have"
+                                " or eqaul 65535. Currently you have"
                                 " set the limit to: " + str(nofd))
 
     def agency_set_debug_logging(self):

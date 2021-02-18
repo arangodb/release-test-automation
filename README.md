@@ -368,7 +368,7 @@ docker build docker_tar/ -t arangodb/release-test-automation
 
 Run the container from within the office network; DNS lookup outside of the docker container:
 ```
-docker run --env PYTHONPATH=/home/release-test-automation/release_tester \
+docker run \
   -v `pwd`:/home/release-test-automation \
   -v /home/willi/Downloads/:/home/package_cache \
   -v /tmp/versions:/home/versions \
@@ -381,7 +381,7 @@ docker run --env PYTHONPATH=/home/release-test-automation/release_tester \
 
 Run the container from abroad:
 ```
-docker run --env PYTHONPATH=/home/release-test-automation/release_tester \
+docker run  \
   -v `pwd`:/home/release-test-automation \
   -v /home/willi/Downloads/:/home/package_cache \
   -v /tmp/versions:/home/versions \
