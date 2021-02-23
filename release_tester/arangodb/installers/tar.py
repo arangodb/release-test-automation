@@ -97,7 +97,8 @@ class InstallerTAR(InstallerBase):
             "package dir: {0.cfg.package_dir}- "
             "server_package: {0.server_package}".format(self))
 
-        self.cfg.installPrefix.mkdir()
+        if not self.cfg.installPrefix.exists():
+            self.cfg.installPrefix.mkdir()
         cmd = [self.tar,
                    '-xf', str(self.cfg.package_dir / self.server_package),
                    '-C',  str(self.cfg.installPrefix),
