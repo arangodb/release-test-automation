@@ -41,7 +41,7 @@ var masterEndpoint = arango.getEndpoint();
 const slaveEndpoint = ARGUMENTS[ARGUMENTS.length - 1];
 var isCluster = arango.getRole() === 'COORDINATOR';
 var isSingle = arango.getRole() === 'SINGLE';
-const havePreconfiguredReplication = isSingle && replication.globalApplier.stateAll()["_system"].state.running === false;
+const havePreconfiguredReplication = isSingle && replication.globalApplier.stateAll()["_system"].state.running === true;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief test suite
