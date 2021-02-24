@@ -70,7 +70,7 @@ class InstallerConfig():
         self.hot_backup = (
             self.enterprise and
             (semver.compare(self.version, "3.5.1") >= 0) and
-            isinstance(winver, list)
+            not isinstance(winver, list)
         )
 
     def reset_version(self, version):
