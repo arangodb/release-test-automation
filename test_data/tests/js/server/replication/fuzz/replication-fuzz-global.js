@@ -41,7 +41,7 @@ var masterEndpoint = arango.getEndpoint();
 const slaveEndpoint = ARGUMENTS[ARGUMENTS.length - 1];
 var isCluster = arango.getRole() === 'COORDINATOR';
 var isSingle = arango.getRole() === 'SINGLE';
-const havePreconfiguredReplication = isSingle && replication.globalApplier.stateAll()["_system"].state.running === false;
+const havePreconfiguredReplication = isSingle && replication.globalApplier.stateAll()["_system"].state.running === true;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief test suite
@@ -138,6 +138,7 @@ function ReplicationSuite() {
           db._flushCache();
         }
       }
+      db._useDatabase('_system');
     } else {
 
       var printed = false;
@@ -483,9 +484,11 @@ function ReplicationSuite() {
             print(op.name);
             op.func();
           }
-          for (let i = 0; i < 300; i++) {
-            internal.sleep(1);
-            print(".");
+          if (isCluster) {
+            for (let i = 0; i < 300; i++) {
+              internal.sleep(1);
+              print(".");
+            }
           }
           let total = "";
           let databases = {};
