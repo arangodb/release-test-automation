@@ -6,6 +6,7 @@ import sys
 import click
 from acquire_packages import AcquirePackages
 from upgrade import run_upgrade
+import resource
 
 # pylint: disable=R0913 disable=R0914
 def upgrade_package_test(verbose,
@@ -24,6 +25,10 @@ def upgrade_package_test(verbose,
     new_version_state = None
     old_version_content = None
     new_version_content = None
+
+    resource.setrlimit(
+        resource.RLIMIT_CORE,
+        (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
 
     for enterprise, encryption_at_rest in [(True, True),
                                            (True, False),
