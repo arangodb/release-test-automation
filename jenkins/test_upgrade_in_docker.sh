@@ -13,7 +13,7 @@ DOCKER_DEB_TAG=arangodb/release-test-automation-deb:$(cat VERSION.json)
 DOCKER_RPM_TAG=arangodb/release-test-automation-rpm:$(cat VERSION.json)
 
 if test -n "$FORCE" -o "$TEST_BRANCH" != 'master'; then
-  force_arg'--force'
+  force_arg='--force'
 fi
 
 
@@ -28,6 +28,7 @@ docker build docker_deb -t $DOCKER_DEB_TAG
 docker build docker_rpm -t $DOCKER_RPM_TAG
 
 docker run -itd \
+       --ulimit core=-1 \
        --privileged \
        --name=$DOCKER_DEB_NAME \
        -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
@@ -52,6 +53,7 @@ fi
 
 
 docker run \
+       --ulimit core=-1 \
        -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
        -v `pwd`:/home/release-test-automation \
        -v `pwd`/package_cache/:/home/package_cache \
