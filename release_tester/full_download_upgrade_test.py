@@ -2,6 +2,7 @@
 """ fetch nightly packages, process upgrade """
 from pathlib import Path
 
+import os
 import sys
 import click
 from acquire_packages import AcquirePackages
@@ -26,6 +27,7 @@ def upgrade_package_test(verbose,
     old_version_content = None
     new_version_content = None
 
+    os.chdir(test_data_dir)
     resource.setrlimit(
         resource.RLIMIT_CORE,
         (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
