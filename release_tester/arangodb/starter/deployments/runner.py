@@ -540,6 +540,7 @@ class Runner(ABC):
     def cleanup(self):
         """ remove all directories created by this test """
         testdir = self.basecfg.base_test_dir / self.basedir
+        print(testdir)
         if testdir.exists():
             shutil.rmtree(testdir)
 

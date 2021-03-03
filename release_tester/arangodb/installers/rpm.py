@@ -297,10 +297,14 @@ class InstallerRPM(InstallerLinux):
     def cleanup_system(self):
         # TODO: should this be cleaned by the rpm uninstall in first place?
         if self.cfg.log_dir.exists():
+            print(self.cfg.log_dir)
             shutil.rmtree(self.cfg.log_dir)
         if self.cfg.dbdir.exists():
+            print(self.cfg.dbdir)
             shutil.rmtree(self.cfg.dbdir)
         if self.cfg.appdir.exists():
+            print(self.cfg.appdir)
             shutil.rmtree(self.cfg.appdir)
         if self.cfg.cfgdir.exists():
+            print(self.cfg.cfgdir)
             shutil.rmtree(self.cfg.cfgdir)
