@@ -26,9 +26,12 @@ class InstallerRPM(InstallerLinux):
         cfg.sbin_dir = cfg.installPrefix / "usr" / "sbin"
         cfg.real_bin_dir = cfg.bin_dir
         cfg.real_sbin_dir = cfg.sbin_dir
-        cfg.log_dir = Path('/var/log/arangodb3')
         cfg.localhost = 'localhost'
 
+        cfg.log_dir = Path('/var/log/arangodb3')
+        cfg.dbdir = Path('/var/lib/arangodb3')
+        cfg.appdir = Path('/var/lib/arangodb3-apps')
+        cfg.cfgdir = Path('/etc/arangodb3')
         super().__init__(cfg)
 
     def calculate_package_names(self):
