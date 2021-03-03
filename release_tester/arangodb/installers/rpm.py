@@ -26,6 +26,7 @@ class InstallerRPM(InstallerLinux):
         cfg.sbin_dir = cfg.installPrefix / "usr" / "sbin"
         cfg.real_bin_dir = cfg.bin_dir
         cfg.real_sbin_dir = cfg.sbin_dir
+        cfg.log_dir = Path('/var/log/arangodb3')
         cfg.localhost = 'localhost'
 
         super().__init__(cfg)
