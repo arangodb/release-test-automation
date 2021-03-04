@@ -18,7 +18,7 @@ class RunnerType(Enum):
     DC2DCENDURANCE = 5
 
 #pylint: disable=import-outside-toplevel
-def make_runner(runner_type:RunnerType,
+def make_runner(runner_type: RunnerType,
                 baseconfig: InstallerConfig,
                 old_inst: InstallerBase,
                 new_cfg: Optional[InstallerConfig] = None,

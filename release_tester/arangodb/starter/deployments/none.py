@@ -7,10 +7,10 @@ from arangodb.starter.deployments.runner import Runner
 class NoStarter(Runner):
     """ This runner does not use the starter """
 # pylint: disable=R0913 disable=R0902
-    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
+    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst, selenium):
         super().__init__(runner_type, cfg,
                          old_inst, new_cfg, new_inst,
-                         'none', 0, 0)
+                         'none', 0, 0, selenium)
 
     def starter_prepare_env_impl(self):
         pass

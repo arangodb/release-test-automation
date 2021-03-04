@@ -82,7 +82,7 @@ def makedata_runner(queue, resq, arangosh, progressive_timeout):
 class ClusterPerf(Runner):
     """ this launches a cluster setup """
     # pylint: disable=R0913 disable=R0902
-    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
+    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst, selenium):
         global OTHER_SH_OUTPUT, RESULTS_TXT
         if not cfg.scenario.exists():
             cfg.scenario.write_text(yaml.dump(TestConfig()))
@@ -92,7 +92,7 @@ class ClusterPerf(Runner):
             self.scenario = yaml.load(fileh, Loader=yaml.Loader)
 
         super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst,
-                         'CLUSTER', 9999999, 99999999)
+                         'CLUSTER', 9999999, 99999999, selenium)
         self.success = False
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())

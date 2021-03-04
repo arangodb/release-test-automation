@@ -17,8 +17,9 @@ from tools.interact import prompt_user
 class ActiveFailover(Runner):
     """ This launches an active failover setup """
     # pylint: disable=R0913 disable=R0902
-    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
-        super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'AFO', 500, 600)
+    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst, selenium):
+        super().__init__(runner_type, cfg, old_inst, new_cfg,
+                         new_inst, 'AFO', 500, 600, selenium)
         self.starter_instances = []
         self.follower_nodes = None
         self.leader = None

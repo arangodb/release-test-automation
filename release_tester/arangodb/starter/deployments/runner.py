@@ -35,7 +35,8 @@ class Runner(ABC):
             new_inst: Optional[InstallerBase],
             short_name: str,
             disk_usage_community: int,
-            disk_usage_enterprise: int
+            disk_usage_enterprise: int,
+            selenium_worker: str
         ):
         load_scenarios()
         assert runner_type
@@ -91,6 +92,12 @@ class Runner(ABC):
         self.remote = len(self.basecfg.frontends) > 0
         if not self.remote:
             self.cleanup()
+        if selenium_worker == "none":
+            self.selenium = None
+        else:
+            #pylint: disable=C0415 disable=import-outside-toplevel
+            from arangodb.starter.deployments.selenium_deployments import init as init_selenium
+            self.selenium = init_selenium(runner_type, selenium_worker)
 
     def run(self):
         """ run the full lifecycle flow of this deployment """

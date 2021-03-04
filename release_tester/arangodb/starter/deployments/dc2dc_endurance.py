@@ -7,10 +7,10 @@ from arangodb.starter.deployments.dc2dc import Dc2Dc
 class Dc2DcEndurance(Dc2Dc):
     """ this launches two clusters in dc2dc mode """
     # pylint: disable=R0913 disable=R0902
-    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
+    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst, selenium):
         super(Dc2Dc, self).__init__(runner_type, cfg, old_inst, new_cfg,
                                     new_inst,
-                                    'DCendurance', 0, 4000)
+                                    'DCendurance', 0, 4000, selenium)
         self.hot_backup = False
 
     def test_setup_impl(self):
