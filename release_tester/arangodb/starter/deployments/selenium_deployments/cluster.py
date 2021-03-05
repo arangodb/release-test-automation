@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """ test the UI of a leader follower setup """
+import time
 from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunner
 
 class Cluster(SeleniumRunner):
@@ -8,3 +9,9 @@ class Cluster(SeleniumRunner):
         super().__init__(webdriver)
     def check_old(self, cfg):
         self.detect_version(cfg)
+        self.navbar_goto('nodes')
+        time.sleep(3)
+        self.navbar_goto('cluster')
+        time.sleep(3)
+        print(self.cluster_dashboard_get_count())
+        self.check_health_state('NODES OK')

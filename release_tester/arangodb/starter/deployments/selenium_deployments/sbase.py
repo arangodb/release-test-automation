@@ -35,3 +35,25 @@ class SeleniumRunner(ABC):
         print(str(cfg.semver))
         print(dir(cfg.semver))
         assert elem.text.lower().startswith(str(cfg.semver))
+
+    def navbar_goto(self, tag):
+        """ click on any of the items in the 'navbar' """
+        elem = self.web.find_element_by_id(tag)
+        assert elem
+        elem.click()
+
+    def check_health_state(self, expect_state):
+        elem = self.web.find_element_by_xpath('/html/body/div[2]/div/div[1]/div/ul[1]/li[2]/a[2]')
+        # self.web.find_element_by_class_name("state health-state") WTF? Y not?
+        print("Health state:" + elem.text)
+        assert elem.text == expect_state
+
+    def cluster_dashboard_get_count(self):
+        rc = {}
+
+        elm = self.web.find_element_by_xpath('//*[@id="clusterCoordinators"]')
+        rc['coordinators'] = elm.text
+        elm = self.web.find_element_by_xpath('//*[@id="clusterDBServers"]')
+        rc['dbservers'] = elm.text
+
+        return rc
