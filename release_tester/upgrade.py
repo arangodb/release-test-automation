@@ -95,10 +95,11 @@ def run_upgrade(old_version, new_version, verbose,
         runner = None
         if runner_type:
             runner = make_runner(runner_type,
+                                 selenium,
                                  install_config_old,
                                  old_inst,
                                  install_config_new,
-                                 new_inst, selenium)
+                                 new_inst)
 
             if runner:
                 runner.run()

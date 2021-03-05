@@ -17,7 +17,7 @@ class SeleniumRunner(ABC):
 
     def connect_server(self, frontend_instance, database, cfg):
         """ login... """
-        self.web.get("http://" + frontend_instance.get_public_plain_url() + "/_db/_system/_admin/aardvark/index.html")
+        self.web.get("http://root@" + frontend_instance[0].get_public_plain_url() + "/_db/_system/_admin/aardvark/index.html")
         assert "ArangoDB Web Interface" in self.web.title
         elem = self.web.find_element_by_id("loginUsername")
         elem.clear()
@@ -27,3 +27,4 @@ class SeleniumRunner(ABC):
         elem = self.web.find_element_by_id("goToDatabase").click()
 
         assert "No results found." not in self.web.page_source
+

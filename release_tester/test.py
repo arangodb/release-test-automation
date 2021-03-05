@@ -126,7 +126,7 @@ def run_test(old_version, new_version, verbose,
     count = 1
     for runner_type in starter_mode:
         assert runner_type
-        runner = make_runner(runner_type, inst.cfg, inst, None, selenium)
+        runner = make_runner(runner_type, selenium, inst.cfg, inst, None)
         # install on first run:
         runner.do_install = (count == 1) and do_install
         # only uninstall after the last test:

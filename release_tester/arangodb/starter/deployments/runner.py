@@ -122,7 +122,8 @@ class Runner(ABC):
                 "{0}{1} Deployment started. Please test the UI!".format(
                     (self.versionstr),
                     str(self.name)))
-
+            if self.selenium:
+                self.selenium.connect_server(self.get_frontend_instances(), '_system', self.cfg)
             if self.hot_backup:
                 lh.section("TESTING HOTBACKUP")
                  # TODO generate name?
