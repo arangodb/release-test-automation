@@ -219,21 +219,17 @@ class Runner(ABC):
         """ fake to run the full lifecycle flow of this deployment """
 
         lh.section("Runner of type {0}".format(str(self.name)), "<3")
-        print(repr(self.basecfg.bin_dir))
         self.old_installer.load_config()
-        print(repr(self.basecfg.bin_dir))
-        # self.old_installer.calculate_package_names()
         self.old_installer.caclulate_file_locations()
         self.basecfg.set_directories(self.old_installer.cfg)
-        print(repr(self.basecfg.bin_dir))
         if self.do_starter_test:
             lh.section("PREPARING DEPLOYMENT of {0}".format(str(self.name)),)
             self.starter_prepare_env()
-
             self.finish_setup() # create the instances...
-            print(self.starter_instances)
             for starter in self.starter_instances:
+                # attach the PID of the starter instance:
                 starter.attach_running_starter()
+                # find out about its processes:
                 starter.detect_instances()
             print(self.starter_instances)
             self.selenium.connect_server(self.get_frontend_instances(), '_system', self.cfg)
@@ -250,7 +246,7 @@ class Runner(ABC):
             #self.test_setup()
             #self.jam_attempt()
             #self.starter_shutdown()
-
+        self.selenium.disconnect()
         lh.section("Runner of type {0} - Finished!".format(str(self.name)))
 
     def install(self, inst):
