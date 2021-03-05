@@ -124,6 +124,7 @@ class Runner(ABC):
                     str(self.name)))
             if self.selenium:
                 self.selenium.connect_server(self.get_frontend_instances(), '_system', self.cfg)
+                self.selenium.check_old()
             if self.hot_backup:
                 lh.section("TESTING HOTBACKUP")
                  # TODO generate name?
@@ -233,7 +234,7 @@ class Runner(ABC):
                 starter.detect_instances()
             print(self.starter_instances)
             self.selenium.connect_server(self.get_frontend_instances(), '_system', self.cfg)
-
+            self.selenium.check_old(self.old_installer.cfg)
         if self.new_installer:
             self.versionstr = "NEW[" + self.new_cfg.version + "] "
 

@@ -23,8 +23,15 @@ class SeleniumRunner(ABC):
         elem.clear()
         elem.send_keys("root")
         elem.send_keys(Keys.RETURN)
-        time.sleep(13)
+        time.sleep(3)
         elem = self.web.find_element_by_id("goToDatabase").click()
 
         assert "No results found." not in self.web.page_source
 
+    def detect_version(self, cfg):
+        elem = self.web.find_element_by_id("currentVersion")
+        print(dir(elem))
+        print(elem.text)
+        print(str(cfg.semver))
+        print(dir(cfg.semver))
+        assert elem.text.lower().startswith(str(cfg.semver))

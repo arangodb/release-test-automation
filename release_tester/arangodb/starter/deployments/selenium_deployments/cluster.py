@@ -6,3 +6,5 @@ class Cluster(SeleniumRunner):
     """ check the leader follower setup and its properties """
     def __init__(self, webdriver):
         super().__init__(webdriver)
+    def check_old(self, cfg):
+        self.detect_version(cfg)
