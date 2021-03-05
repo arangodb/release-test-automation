@@ -215,6 +215,44 @@ class Runner(ABC):
 
         lh.section("Runner of type {0} - Finished!".format(str(self.name)))
 
+    def run_selenium(self):
+        """ fake to run the full lifecycle flow of this deployment """
+
+        lh.section("Runner of type {0}".format(str(self.name)), "<3")
+        print(repr(self.basecfg.bin_dir))
+        self.old_installer.load_config()
+        print(repr(self.basecfg.bin_dir))
+        # self.old_installer.calculate_package_names()
+        self.old_installer.caclulate_file_locations()
+        self.basecfg.set_directories(self.old_installer.cfg)
+        print(repr(self.basecfg.bin_dir))
+        if self.do_starter_test:
+            lh.section("PREPARING DEPLOYMENT of {0}".format(str(self.name)),)
+            self.starter_prepare_env()
+
+            self.finish_setup() # create the instances...
+            print(self.starter_instances)
+            for starter in self.starter_instances:
+                starter.attach_running_starter()
+                starter.detect_instances()
+            print(self.starter_instances)
+            self.selenium.connect_server(self.get_frontend_instances(), '_system', self.cfg)
+
+        if self.new_installer:
+            self.versionstr = "NEW[" + self.new_cfg.version + "] "
+
+            lh.section("UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),)
+            self.cfg.set_directories(self.new_installer.cfg)
+            self.new_cfg.set_directories(self.new_installer.cfg)
+
+        if self.do_starter_test:
+            lh.section("TESTS FOR {0}".format(str(self.name)),)
+            #self.test_setup()
+            #self.jam_attempt()
+            #self.starter_shutdown()
+
+        lh.section("Runner of type {0} - Finished!".format(str(self.name)))
+
     def install(self, inst):
         """ install the package to the system """
         lh.subsection("{0} - install package".format(str(self.name)))

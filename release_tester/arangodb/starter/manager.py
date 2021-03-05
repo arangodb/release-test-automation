@@ -227,6 +227,23 @@ Starter {0.name}
         self.instance = psutil.Popen(args)
         self.wait_for_logfile()
 
+    def attach_running_starter(self):
+        """ somebody else is running the party, but we also want to have a look """
+        match_str = "--starter.data-dir={0.basedir}".format(self)
+        for process in psutil.process_iter(['pid', 'name']):
+            try:
+                name = process.name()
+                if name.startswith('arangodb'):
+                    process = psutil.Process(process.pid)
+                    if any(match_str in s for s in process.cmdline()):
+                        print(process.cmdline())
+                        print('attaching ' + str(process.pid))
+                        self.instance = process
+                        return
+            except Exception as ex:
+                logging.error(ex)
+        raise Exception("didn't find a starter for " + match_str)
+
     def get_jwt_token_from_secret_file(self, filename):
         """ retrieve token from the JWT secret file which is cached for the future use """
         if self.jwt_tokens and self.jwt_tokens[filename]:
