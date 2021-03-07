@@ -130,7 +130,7 @@ def upgrade_package_test(verbose,
               default='Chrome',
               help='if non-interactive chose the selenium target')
 @click.option('--selenium-driver-args',
-              default=['headless'],
+              default=['headless', 'disable-dev-shm-usage'],
               multiple=True,
               help='options to the selenium web driver')
 # pylint: disable=R0913
