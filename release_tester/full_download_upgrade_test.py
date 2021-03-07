@@ -153,7 +153,7 @@ def main(verbose,
                                 version_state_dir,
                                 remote_host, force,
                                 starter_mode, stress_upgrade,
-                                publicip, selenium)
+                                publicip, selenium, selenium_driver_args)
 
 if __name__ == "__main__":
 # pylint: disable=E1120 # fix clickiness.
