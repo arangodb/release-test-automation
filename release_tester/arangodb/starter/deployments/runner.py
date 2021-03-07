@@ -36,7 +36,8 @@ class Runner(ABC):
             short_name: str,
             disk_usage_community: int,
             disk_usage_enterprise: int,
-            selenium_worker: str
+            selenium_worker: str,
+            selenium_driver_args: list
         ):
         load_scenarios()
         assert runner_type

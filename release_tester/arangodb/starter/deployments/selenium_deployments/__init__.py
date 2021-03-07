@@ -15,17 +15,18 @@ def init(runner_type: RunnerType,
     if driver_func is None:
         raise Exception("webdriver " + selenium_worker + "unknown")
     # from selenium.webdriver.chrome.options import Options
-    kwgargs = {}
-    if selenium_driver_args.len > 0:
+    kwargs = {}
+    if len(selenium_driver_args) > 0:
         selenium_worker = selenium_worker.lower()
         opts_func = getattr(webdriver, selenium_worker)
-        opts_func = getattr(opts_func, options)
-        opts_func = getattr(opts_func, Options)
+        opts_func = getattr(opts_func, 'options')
+        opts_func = getattr(opts_func, 'Options')
         options = opts_func()
         kwargs[selenium_worker +'_options'] = options
         for opt in selenium_driver_args:
             options.add_argument('--' + opt)
             # chrome_options.add_argument("--headless")
+    print(kwargs)
     driver = driver_func(**kwargs) # chrome_options=chrome_options)
 
     if runner_type == RunnerType.LEADER_FOLLOWER:

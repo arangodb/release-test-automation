@@ -16,10 +16,12 @@ from tools.asciiprint import print_progress as progress
 class Cluster(Runner):
     """ this launches a cluster setup """
     # pylint: disable=R0913 disable=R0902
-    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst, selenium):
+    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst,
+                 selenium, selenium_driver_args):
         super().__init__(runner_type,
                          cfg, old_inst, new_cfg, new_inst,
-                         'CLUSTER', 400, 600, selenium)
+                         'CLUSTER', 400, 600,
+                         selenium, selenium_driver_args)
         #self.basecfg.frontends = []
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
