@@ -24,7 +24,7 @@ def run_upgrade(old_version, new_version, verbose,
                 enterprise, encryption_at_rest,
                 zip_package, interactive,
                 starter_mode, stress_upgrade,
-                publicip, selenium):
+                publicip, selenium, selenium_driver_args):
     """ execute upgrade tests """
     lh.section("configuration")
     print("old version: " + str(old_version))
@@ -96,6 +96,7 @@ def run_upgrade(old_version, new_version, verbose,
         if runner_type:
             runner = make_runner(runner_type,
                                  selenium,
+                                 selenium_driver_args,
                                  install_config_old,
                                  old_inst,
                                  install_config_new,
@@ -154,19 +155,24 @@ def run_upgrade(old_version, new_version, verbose,
 @click.option('--selenium',
               default='none',
               help='if non-interactive chose the selenium target')
+@click.option('--selenium-driver-args',
+              default=[],
+              multiple=True,
+              help='options to the selenium web driver')
 # pylint: disable=R0913
 def main(old_version, new_version, verbose,
          package_dir, test_data_dir,
          enterprise, encryption_at_rest,
          zip_package, interactive,
-         starter_mode, stress_upgrade, publicip, selenium):
+         starter_mode, stress_upgrade,
+         publicip, selenium, selenium_driver_args):
     """ main trampoline """
     return run_upgrade(old_version, new_version, verbose,
                        package_dir, test_data_dir,
                        enterprise, encryption_at_rest,
                        zip_package, interactive,
                        starter_mode, stress_upgrade,
-                       publicip, selenium)
+                       publicip, selenium, selenium_driver_args)
 
 if __name__ == "__main__":
 # pylint: disable=E1120 # fix clickiness.

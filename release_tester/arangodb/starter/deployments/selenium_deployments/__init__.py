@@ -7,13 +7,26 @@ from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunn
 
 #pylint: disable=import-outside-toplevel
 def init(runner_type: RunnerType,
-         selenium_worker: str) -> SeleniumRunner:
+         selenium_worker: str,
+         selenium_driver_args: list) -> SeleniumRunner:
     """ build selenium testcase for runner_type """
     print(dir(webdriver))
     driver_func = getattr(webdriver, selenium_worker)
     if driver_func is None:
         raise Exception("webdriver " + selenium_worker + "unknown")
-    driver = driver_func()
+    # from selenium.webdriver.chrome.options import Options
+    kwgargs = {}
+    if selenium_driver_args.len > 0:
+        selenium_worker = selenium_worker.lower()
+        opts_func = getattr(webdriver, selenium_worker)
+        opts_func = getattr(opts_func, options)
+        opts_func = getattr(opts_func, Options)
+        options = opts_func()
+        kwargs[selenium_worker +'_options'] = options
+        for opt in selenium_driver_args:
+            options.add_argument('--' + opt)
+            # chrome_options.add_argument("--headless")
+    driver = driver_func(**kwargs) # chrome_options=chrome_options)
 
     if runner_type == RunnerType.LEADER_FOLLOWER:
         from arangodb.starter.deployments.selenium_deployments.leaderfollower import LeaderFollower

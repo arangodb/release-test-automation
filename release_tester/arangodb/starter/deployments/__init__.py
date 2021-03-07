@@ -20,6 +20,7 @@ class RunnerType(Enum):
 #pylint: disable=import-outside-toplevel
 def make_runner(runner_type: RunnerType,
                 selenium_worker: str,
+                selenium_driver_args: list,
                 baseconfig: InstallerConfig,
                 old_inst: InstallerBase,
                 new_cfg: Optional[InstallerConfig] = None,
@@ -32,7 +33,7 @@ def make_runner(runner_type: RunnerType,
     assert old_inst
 
     logging.debug("Factory for Runner of type: {0}".format(str(runner_type)))
-    args = (runner_type, baseconfig, old_inst, new_cfg, new_inst, selenium_worker)
+    args = (runner_type, baseconfig, old_inst, new_cfg, new_inst, selenium_worker, selenium_driver_args)
 
     if runner_type == RunnerType.LEADER_FOLLOWER:
         from arangodb.starter.deployments.leaderfollower import LeaderFollower

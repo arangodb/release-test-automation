@@ -97,7 +97,7 @@ class Runner(ABC):
         else:
             #pylint: disable=C0415 disable=import-outside-toplevel
             from arangodb.starter.deployments.selenium_deployments import init as init_selenium
-            self.selenium = init_selenium(runner_type, selenium_worker)
+            self.selenium = init_selenium(runner_type, selenium_worker, selenium_driver_args)
 
     def run(self):
         """ run the full lifecycle flow of this deployment """
@@ -124,7 +124,7 @@ class Runner(ABC):
                     str(self.name)))
             if self.selenium:
                 self.selenium.connect_server(self.get_frontend_instances(), '_system', self.cfg)
-                self.selenium.check_old()
+                self.selenium.check_old(self.old_installer.cfg)
             if self.hot_backup:
                 lh.section("TESTING HOTBACKUP")
                  # TODO generate name?
@@ -213,7 +213,7 @@ class Runner(ABC):
         if self.do_uninstall:
             self.uninstall(self.old_installer
                            if not self.new_installer else self.new_installer)
-
+        self.selenium.disconnect()
         lh.section("Runner of type {0} - Finished!".format(str(self.name)))
 
     def run_selenium(self):

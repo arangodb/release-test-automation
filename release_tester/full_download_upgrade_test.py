@@ -20,7 +20,7 @@ def upgrade_package_test(verbose,
                          test_data_dir, version_state_dir,
                          remote_host, force,
                          starter_mode, stress_upgrade,
-                         publicip, selenium):
+                         publicip, selenium, selenium_driver_args):
     """ process fetch & tests """
     old_version_state = None
     new_version_state = None
@@ -127,8 +127,12 @@ def upgrade_package_test(verbose,
               default='127.0.0.1',
               help='IP for the click to browser hints.')
 @click.option('--selenium',
-              default='none',
+              default='Chrome',
               help='if non-interactive chose the selenium target')
+@click.option('--selenium-driver-args',
+              default=['headless'],
+              multiple=True,
+              help='options to the selenium web driver')
 # pylint: disable=R0913
 def main(verbose,
          new_version, old_version,
@@ -138,7 +142,7 @@ def main(verbose,
          test_data_dir, git_version,
          version_state_dir, remote_host,
          force, starter_mode, stress_upgrade,
-         publicip, selenium):
+         publicip, selenium, selenium_driver_args):
     """ main """
     return upgrade_package_test(verbose,
                                 new_version, old_version,

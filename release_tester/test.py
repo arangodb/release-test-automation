@@ -59,12 +59,17 @@ logging.basicConfig(
 @click.option('--selenium',
               default='none',
               help='if non-interactive chose the selenium target')
+@click.option('--selenium-driver-args',
+              default=[],
+              multiple=True,
+              help='options to the selenium web driver')
 # pylint: disable=R0913 disable=R0914
 def run_test(old_version, new_version, verbose,
              package_dir, test_data_dir,
              enterprise, encryption_at_rest,
              zip_package, interactive, mode,
-             starter_mode, publicip, selenium):
+             starter_mode, publicip,
+             selenium, selenium_driver_args):
     """ main """
     lh.section("configuration")
     print("version: " + str(new_version))
@@ -126,7 +131,7 @@ def run_test(old_version, new_version, verbose,
     count = 1
     for runner_type in starter_mode:
         assert runner_type
-        runner = make_runner(runner_type, selenium, inst.cfg, inst, None)
+        runner = make_runner(runner_type, selenium, selenium_driver_args, inst.cfg, inst, None)
         # install on first run:
         runner.do_install = (count == 1) and do_install
         # only uninstall after the last test:
