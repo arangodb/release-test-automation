@@ -65,7 +65,7 @@ def upgrade_package_test(verbose,
                     enterprise, encryption_at_rest,
                     zip_package, False,
                     starter_mode, stress_upgrade,
-                    publicip, selenium)
+                    publicip, selenium, selenium_driver_args)
 
     if not force:
         old_version_state.write_text(fresh_old_content)
