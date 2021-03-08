@@ -31,6 +31,7 @@ class SeleniumRunner(ABC):
         assert "No results found." not in self.web.page_source
 
     def detect_version(self, cfg):
+        """ extracts the version in the lower right and compares it to a given version """
         elem = self.web.find_element_by_id("currentVersion")
         print("S: check_version (%s) ~= frontend version? (%s)" % (str(cfg.semver), elem.text))
         print(dir(elem))
@@ -47,17 +48,25 @@ class SeleniumRunner(ABC):
         elem.click()
 
     def check_health_state(self, expect_state):
+        """ xtracts the health state in the upper right corner """
         elem = self.web.find_element_by_xpath('/html/body/div[2]/div/div[1]/div/ul[1]/li[2]/a[2]')
         # self.web.find_element_by_class_name("state health-state") WTF? Y not?
         print("S: Health state:" + elem.text)
         assert elem.text == expect_state
 
     def cluster_dashboard_get_count(self):
-        rc = {}
+        """ extracts the coordinator / dbserver count from the 'cluster' page """
+        ret = {}
 
         elm = self.web.find_element_by_xpath('//*[@id="clusterCoordinators"]')
-        rc['coordinators'] = elm.text
+        ret['coordinators'] = elm.text
         elm = self.web.find_element_by_xpath('//*[@id="clusterDBServers"]')
-        rc['dbservers'] = elm.text
-        print("S: health state: %s"% str(rc))
-        return rc
+        ret['dbservers'] = elm.text
+        print("S: health state: %s"% str(ret))
+        return ret
+
+
+
+    @abstractmethod
+    def check_old(self, cfg):
+        """ check the integrity of the old system before the upgrade """

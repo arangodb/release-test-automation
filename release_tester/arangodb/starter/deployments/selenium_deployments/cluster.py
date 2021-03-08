@@ -7,7 +7,9 @@ class Cluster(SeleniumRunner):
     """ check the leader follower setup and its properties """
     def __init__(self, webdriver):
         super().__init__(webdriver)
+
     def check_old(self, cfg):
+        """ check the integrity of the old system before the upgrade """
         self.detect_version(cfg)
         self.navbar_goto('nodes')
         time.sleep(3)

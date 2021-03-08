@@ -25,9 +25,8 @@ def init(runner_type: RunnerType,
         kwargs[selenium_worker +'_options'] = options
         for opt in selenium_driver_args:
             options.add_argument('--' + opt)
-            # chrome_options.add_argument("--headless")
-    print(kwargs)
-    driver = driver_func(**kwargs) # chrome_options=chrome_options)
+
+    driver = driver_func(**kwargs)
 
     if runner_type == RunnerType.LEADER_FOLLOWER:
         from arangodb.starter.deployments.selenium_deployments.leaderfollower import LeaderFollower
