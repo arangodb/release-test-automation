@@ -39,6 +39,7 @@ class SeleniumRunner(ABC):
         print(str(cfg.semver))
         print(dir(cfg.semver))
         assert elem.text.lower().startswith(str(cfg.semver))
+        # TODO: enterprise
 
     def navbar_goto(self, tag):
         """ click on any of the items in the 'navbar' """
@@ -65,7 +66,25 @@ class SeleniumRunner(ABC):
         print("S: health state: %s"% str(ret))
         return ret
 
-
+    def cluster_get_nodes_table(self):
+        """ extracts the table of coordinators / dbservers from the 'nodes' page """
+        table_coord_elm = self.web.find_element_by_class_name('pure-g.cluster-nodes.coords-nodes.pure-table.pure-table-body')
+        table_dbsrv_elm = self.web.find_element_by_class_name('pure-g.cluster-nodes.dbs-nodes.pure-table.pure-table-body')
+        column_names = ['name', 'url', 'version', 'date', 'state']
+        table = []
+        for elm in [table_coord_elm, table_dbsrv_elm]:
+            for table_row_num in [1, 2, 3]:
+                row ={}
+                table.append(row)
+                for table_column in [1, 2, 3, 4, 5]:
+                    table_cell_elm = None
+                    if table_column is 5:
+                        table_cell_elm = elm.find_element_by_xpath('div[%d]/div[%d]/i'%(table_row_num, table_column))
+                        row[column_names[table_column - 1]] = table_cell_elm.get_property('title')
+                    else:
+                        table_cell_elm = elm.find_element_by_xpath('div[%d]/div[%d]'%(table_row_num, table_column))
+                        row[column_names[table_column - 1]] = table_cell_elm.text
+        return table
 
     @abstractmethod
     def check_old(self, cfg):

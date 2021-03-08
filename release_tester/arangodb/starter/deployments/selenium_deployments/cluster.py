@@ -13,6 +13,17 @@ class Cluster(SeleniumRunner):
         self.detect_version(cfg)
         self.navbar_goto('nodes')
         time.sleep(3)
+        table = self.cluster_get_nodes_table()
+        print(repr(table))
+        rowCount = 0
+        for row in table:
+            if row['state'] == 'SERVING':
+                rowCount += 1
+
+        print('S: serving instances 6 / %d' % rowCount)
+        assert rowCount is 6
+        time.sleep(3)
+
         self.navbar_goto('cluster')
         time.sleep(3)
         print(self.cluster_dashboard_get_count())
