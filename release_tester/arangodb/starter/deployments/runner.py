@@ -248,7 +248,8 @@ class Runner(ABC):
             #self.test_setup()
             #self.jam_attempt()
             #self.starter_shutdown()
-        self.selenium.disconnect()
+        if self.selenium:
+            self.selenium.disconnect()
         lh.section("Runner of type {0} - Finished!".format(str(self.name)))
 
     def install(self, inst):

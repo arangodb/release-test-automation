@@ -30,17 +30,16 @@ class SeleniumRunner(ABC):
 
         assert "No results found." not in self.web.page_source
 
-    def detect_version(self, cfg):
+    def detect_version(self):
         """ extracts the version in the lower right and compares it to a given version """
         elem = self.web.find_element_by_id("currentVersion")
-        print("S: check_version (%s) ~= frontend version? (%s)" % (str(cfg.semver), elem.text))
-        print(dir(elem))
-        print(elem.text)
-        print(str(cfg.semver))
-        print(dir(cfg.semver))
-        assert elem.text.lower().startswith(str(cfg.semver))
-        # TODO: enterprise
-
+        enterprise_elem = self.web.find_element_by_class_name("logo.big")
+        print("S: check_version (%s) (%s)" % (elem.text, enterprise_elem.text))
+        return {
+            'version': elem.text,
+            'enterprise': enterprise_elem.text
+        }
+        
     def navbar_goto(self, tag):
         """ click on any of the items in the 'navbar' """
         print("S: navbar goto %s"% tag)
@@ -48,12 +47,12 @@ class SeleniumRunner(ABC):
         assert elem
         elem.click()
 
-    def check_health_state(self, expect_state):
+    def get_health_state(self):
         """ xtracts the health state in the upper right corner """
         elem = self.web.find_element_by_xpath('/html/body/div[2]/div/div[1]/div/ul[1]/li[2]/a[2]')
         # self.web.find_element_by_class_name("state health-state") WTF? Y not?
         print("S: Health state:" + elem.text)
-        assert elem.text == expect_state
+        return elem.text
 
     def cluster_dashboard_get_count(self):
         """ extracts the coordinator / dbserver count from the 'cluster' page """
@@ -84,8 +83,16 @@ class SeleniumRunner(ABC):
                     else:
                         table_cell_elm = elm.find_element_by_xpath('div[%d]/div[%d]'%(table_row_num, table_column))
                         row[column_names[table_column - 1]] = table_cell_elm.text
+        for row in table:
+            print('S: ' + str(row))
         return table
 
     @abstractmethod
     def check_old(self, cfg):
+        """ check the integrity of the old system before the upgrade """
+    @abstractmethod
+    def jam_step_1(self, cfg):
+        """ check the integrity of the old system before the upgrade """
+    @abstractmethod
+    def jam_step_2(self, cfg):
         """ check the integrity of the old system before the upgrade """

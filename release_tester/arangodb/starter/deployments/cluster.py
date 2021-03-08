@@ -131,6 +131,9 @@ db.testCollection.save({test: "document"})
         self.set_frontend_instances()
 
         prompt_user(self.basecfg, "instance stopped")
+        if self.selenium:
+            self.selenium.jam_step_1(self.old_installer.cfg)
+
         # respawn instance, and get its state fixed
         self.starter_instances[2].respawn_instance()
         self.set_frontend_instances()
@@ -171,6 +174,8 @@ db.testCollection.save({test: "document"})
         logging.info('dead instance is dead?')
 
         prompt_user(self.basecfg, "cluster should be up")
+        if self.selenium:
+            self.selenium.jam_step_2(self.old_installer.cfg)
 
     def shutdown_impl(self):
         for node in self.starter_instances:

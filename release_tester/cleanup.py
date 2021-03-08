@@ -50,7 +50,7 @@ def run_test(zip_package):
     for runner_type in starter_mode:
         assert runner_type
 
-        runner = make_runner(runner_type, inst.cfg, inst, None)
+        runner = make_runner(runner_type, 'none', [], inst.cfg, inst, None)
         runner.cleanup()
     if inst.calc_config_file_name().is_file():
         try:
