@@ -59,11 +59,11 @@ class SeleniumRunner(ABC):
         print("S: Health state:" + elem.text)
         return elem.text
 
-    def cluster_dashboard_get_count(self):
+    def cluster_dashboard_get_count(self, timeout=10):
         """ extracts the coordinator / dbserver count from the 'cluster' page """
         ret = {}
 
-        elm = WebDriverWait(self.web, 10).until(
+        elm = WebDriverWait(self.web, timeout).until(
             EC.presence_of_element_located((By.XPATH, '//*[@id="clusterCoordinators"]'))
         )
         # elm = self.web.find_element_by_xpath('//*[@id="clusterCoordinators"]')
@@ -73,9 +73,9 @@ class SeleniumRunner(ABC):
         print("S: health state: %s"% str(ret))
         return ret
 
-    def cluster_get_nodes_table(self):
+    def cluster_get_nodes_table(self, timeout=20):
         """ extracts the table of coordinators / dbservers from the 'nodes' page """
-        table_coord_elm = WebDriverWait(self.web, 10).until(
+        table_coord_elm = WebDriverWait(self.web, timeout).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'pure-g.cluster-nodes.coords-nodes.pure-table.pure-table-body'))
         )
         table_dbsrv_elm = self.web.find_element_by_class_name('pure-g.cluster-nodes.dbs-nodes.pure-table.pure-table-body')

@@ -27,8 +27,6 @@ def init(runner_type: RunnerType,
     # kwargs['service_log_path'] = "/tmp/abcd123.log"
     driver = driver_func(**kwargs)
 
-    # driver.implicitly_wait(20) # seconds
-
     if runner_type == RunnerType.LEADER_FOLLOWER:
         from arangodb.starter.deployments.selenium_deployments.leaderfollower import LeaderFollower
         return LeaderFollower(driver)

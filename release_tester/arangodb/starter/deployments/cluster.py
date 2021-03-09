@@ -121,7 +121,7 @@ db.testCollection.save({test: "document"})
 
         self.starter_instances[1].command_upgrade()
         if self.selenium:
-            self.selenium.upgrade_deployment(self.old_cfg, self.new_cfg)
+            self.selenium.upgrade_deployment(self.cfg, self.new_cfg)
         self.starter_instances[1].wait_for_upgrade()
         if self.cfg.stress_upgrade:
             bench_instances[0].wait()
@@ -134,7 +134,7 @@ db.testCollection.save({test: "document"})
 
         prompt_user(self.basecfg, "instance stopped")
         if self.selenium:
-            self.selenium.jam_step_1(self.old_installer.cfg)
+            self.selenium.jam_step_1(self.new_cfg)
 
         # respawn instance, and get its state fixed
         self.starter_instances[2].respawn_instance()
@@ -177,7 +177,7 @@ db.testCollection.save({test: "document"})
 
         prompt_user(self.basecfg, "cluster should be up")
         if self.selenium:
-            self.selenium.jam_step_2(self.old_installer.cfg)
+            self.selenium.jam_step_2(self.new_cfg)
 
     def shutdown_impl(self):
         for node in self.starter_instances:

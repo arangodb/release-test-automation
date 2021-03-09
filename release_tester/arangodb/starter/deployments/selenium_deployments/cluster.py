@@ -2,6 +2,7 @@
 """ test the UI of a leader follower setup """
 import time
 from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunner
+from selenium.common.exceptions import StaleElementReferenceException
 
 class Cluster(SeleniumRunner):
     """ check the leader follower setup and its properties """
@@ -16,9 +17,8 @@ class Cluster(SeleniumRunner):
             assert ver['enterprise'] == 'ENTERPRISE EDITION'
         else:
             assert ver['enterprise'] == 'COMMUNITY EDITION'
-        
+
         self.navbar_goto('nodes')
-        time.sleep(3)
         table = self.cluster_get_nodes_table()
         rowCount = 0
         for row in table:
@@ -27,10 +27,8 @@ class Cluster(SeleniumRunner):
 
         print('S: serving instances 6 / %d' % rowCount)
         assert rowCount == 6
-        time.sleep(3)
 
         self.navbar_goto('cluster')
-        time.sleep(3)
         node_count = self.cluster_dashboard_get_count()
         assert node_count['dbservers'] == '3'
         assert node_count['coordinators'] == '3'
@@ -40,12 +38,20 @@ class Cluster(SeleniumRunner):
     def upgrade_deployment(self, old_cfg, new_cfg):
         old_ver = str(old_cfg.semver)
         new_ver = str(new_cfg.semver)
-        table = self.cluster_get_nodes_table()
+        self.navbar_goto('nodes')
+        print(old_ver)
+        print(new_ver)
         upgrade_done = False
         while not upgrade_done:
-            old_count = 0;
-            new_count = 1
+            try:
+                table = self.cluster_get_nodes_table(300)
+            except StaleElementReferenceException:
+                print("S: skip once")
+
+            old_count = 0
+            new_count = 0
             for row in table:
+                print(row['version'])
                 if row['version'].lower().startswith(old_ver):
                     old_count += 1
                 elif row['version'].lower().startswith(new_ver):
@@ -56,16 +62,22 @@ class Cluster(SeleniumRunner):
             print('S: serving instances old %d / new %d' % (old_count, new_count))
             if not upgrade_done:
                 time.sleep(5)
+        # the version doesn't update automatically, force refresh:
+        self.web.refresh();
+        ver = self.detect_version()
+        print("S: ver %s is %s?" % (str(ver), new_ver))
+        assert ver['version'].lower().startswith(new_ver)
 
     def jam_step_1(self, cfg):
         """ check for one set of instances to go away """
+        self.web.refresh();
+        time.sleep(2)
         self.navbar_goto('cluster')
-        time.sleep(3)
         node_count = None
         done = False
         retry_count = 0
         while not done:
-            node_count = self.cluster_dashboard_get_count()
+            node_count = self.cluster_dashboard_get_count(50)
 
             done = ((node_count['dbservers'] == '2/3') and
                     (node_count['coordinators'] == '2/3') and
@@ -74,14 +86,13 @@ class Cluster(SeleniumRunner):
                 time.sleep(3)
             retry_count += 1
             assert retry_count < 20
-            
+
         assert node_count['dbservers'] == '2/3'
         assert node_count['coordinators'] == '2/3'
         health_state = self.get_health_state()
         assert health_state != 'NODES OK'
 
         self.navbar_goto('nodes')
-        time.sleep(10)
         table = self.cluster_get_nodes_table()
         rowCount = 0
         for row in table:
@@ -90,14 +101,12 @@ class Cluster(SeleniumRunner):
 
         print('S: serving instances 6 / %d' % rowCount)
         assert rowCount == 4
-        time.sleep(3)
 
         health_state = self.get_health_state()
         assert health_state != 'NODES OK'
 
     def jam_step_2(self, cfg):
         self.navbar_goto('cluster')
-        time.sleep(3)
         node_count = None
         done = False
         retry_count = 0
