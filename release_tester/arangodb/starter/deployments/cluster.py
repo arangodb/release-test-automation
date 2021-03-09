@@ -134,7 +134,7 @@ db.testCollection.save({test: "document"})
 
         prompt_user(self.basecfg, "instance stopped")
         if self.selenium:
-            self.selenium.jam_step_1(self.new_cfg)
+            self.selenium.jam_step_1(self.cfg if self.cfg else self.new_cfg)
 
         # respawn instance, and get its state fixed
         self.starter_instances[2].respawn_instance()
@@ -177,7 +177,7 @@ db.testCollection.save({test: "document"})
 
         prompt_user(self.basecfg, "cluster should be up")
         if self.selenium:
-            self.selenium.jam_step_2(self.new_cfg)
+            self.selenium.jam_step_2(self.cfg if self.cfg else self.new_cfg)
 
     def shutdown_impl(self):
         for node in self.starter_instances:
