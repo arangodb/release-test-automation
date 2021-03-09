@@ -26,7 +26,7 @@ class Cluster(SeleniumRunner):
                 rowCount += 1
 
         print('S: serving instances 6 / %d' % rowCount)
-        assert rowCount is 6
+        assert rowCount == 6
         time.sleep(3)
 
         self.navbar_goto('cluster')
@@ -89,7 +89,7 @@ class Cluster(SeleniumRunner):
                 rowCount += 1
 
         print('S: serving instances 6 / %d' % rowCount)
-        assert rowCount is 4
+        assert rowCount == 4
         time.sleep(3)
 
         health_state = self.get_health_state()

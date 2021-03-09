@@ -16,6 +16,7 @@ class SeleniumRunner(ABC):
 
     def disconnect(self):
         """ byebye """
+        print("S: Close!")
         self.web.close()
 
     def connect_server(self, frontend_instance, database, cfg):
@@ -86,7 +87,7 @@ class SeleniumRunner(ABC):
                 table.append(row)
                 for table_column in [1, 2, 3, 4, 5]:
                     table_cell_elm = None
-                    if table_column is 5:
+                    if table_column == 5:
                         table_cell_elm = elm.find_element_by_xpath('div[%d]/div[%d]/i'%(table_row_num, table_column))
                         row[column_names[table_column - 1]] = table_cell_elm.get_property('title')
                     else:

@@ -256,7 +256,7 @@ class Runner(ABC):
         """ install the package to the system """
         lh.subsection("{0} - install package".format(str(self.name)))
 
-        kill_all_processes()
+        kill_all_processes(False)
         if self.do_install:
             lh.subsubsection("installing package")
             inst.install_package()

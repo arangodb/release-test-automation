@@ -3,7 +3,7 @@
 import logging
 import psutil
 
-def get_all_processes():
+def get_all_processes(kill_selenium):
     """ fetch all possible running processes that we may have spawned """
     arangods = []
     arangodbs = []
@@ -23,9 +23,9 @@ def get_all_processes():
                 arangosyncs.append(psutil.Process(process.pid))
             elif name.startswith('arangobench'):
                 arangobenchs.append(psutil.Process(process.pid))
-            elif name.startswith('chromedriver'):
+            elif name.startswith('chromedriver') and kill_selenium:
                 chromedrivers.append(psutil.Process(process.pid))
-            elif name.startswith('chrom'):
+            elif name.startswith('chrom') and kill_selenium:
                 process = psutil.Process(process.pid)
                 if any('--headless' in s for s in process.cmdline()):
                     headleschromes.append(process)
@@ -40,9 +40,9 @@ def get_all_processes():
         chromedrivers +
         headleschromes)
 
-def kill_all_processes():
+def kill_all_processes(kill_selenium=True):
     """killall arangod arangodb arangosync """
-    processlist = get_all_processes()
+    processlist = get_all_processes(kill_selenium)
     print(processlist)
     for process in processlist:
         if process.is_running():

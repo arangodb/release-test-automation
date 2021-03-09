@@ -10,7 +10,6 @@ def init(runner_type: RunnerType,
          selenium_worker: str,
          selenium_driver_args: list) -> SeleniumRunner:
     """ build selenium testcase for runner_type """
-    print(dir(webdriver))
     driver_func = getattr(webdriver, selenium_worker)
     if driver_func is None:
         raise Exception("webdriver " + selenium_worker + "unknown")
@@ -24,10 +23,10 @@ def init(runner_type: RunnerType,
         options = opts_func()
         kwargs[selenium_worker +'_options'] = options
         for opt in selenium_driver_args:
-            print("santoehusanotehu" + opt)
             options.add_argument('--' + opt)
+    # kwargs['service_log_path'] = "/tmp/abcd123.log"
+    driver = driver_func(**kwargs)
 
-    driver = driver_func() # **kwargs)
     # driver.implicitly_wait(20) # seconds
 
     if runner_type == RunnerType.LEADER_FOLLOWER:
