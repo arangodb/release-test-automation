@@ -268,7 +268,7 @@ arangod instance
     def detect_pid(self, ppid, offset=0, full_binary_path=""):
         """ detect the instance """
         self.pid = 0
-        tries = 20
+        tries = 30
         t_start = ''
         while self.pid == 0 and tries:
 

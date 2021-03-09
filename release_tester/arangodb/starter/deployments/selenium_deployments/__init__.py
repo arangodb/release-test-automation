@@ -24,9 +24,11 @@ def init(runner_type: RunnerType,
         options = opts_func()
         kwargs[selenium_worker +'_options'] = options
         for opt in selenium_driver_args:
+            print("santoehusanotehu" + opt)
             options.add_argument('--' + opt)
 
-    driver = driver_func(**kwargs)
+    driver = driver_func() # **kwargs)
+    # driver.implicitly_wait(20) # seconds
 
     if runner_type == RunnerType.LEADER_FOLLOWER:
         from arangodb.starter.deployments.selenium_deployments.leaderfollower import LeaderFollower

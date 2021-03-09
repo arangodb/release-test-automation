@@ -9,6 +9,8 @@ def get_all_processes():
     arangodbs = []
     arangobenchs = []
     arangosyncs = []
+    chromedrivers = []
+    headleschromes = []
     logging.info("searching for leftover processes")
     for process in psutil.process_iter(['pid', 'name']):
         try:
@@ -21,10 +23,22 @@ def get_all_processes():
                 arangosyncs.append(psutil.Process(process.pid))
             elif name.startswith('arangobench'):
                 arangobenchs.append(psutil.Process(process.pid))
+            elif name.startswith('chromedriver'):
+                chromedrivers.append(psutil.Process(process.pid))
+            elif name.startswith('chrom'):
+                process = psutil.Process(process.pid)
+                if any('--headless' in s for s in process.cmdline()):
+                    headleschromes.append(process)
 
         except Exception as ex:
             logging.error(ex)
-    return arangodbs + arangosyncs + arangods + arangobenchs
+    return (
+        arangodbs +
+        arangosyncs +
+        arangods +
+        arangobenchs +
+        chromedrivers +
+        headleschromes)
 
 def kill_all_processes():
     """killall arangod arangodb arangosync """

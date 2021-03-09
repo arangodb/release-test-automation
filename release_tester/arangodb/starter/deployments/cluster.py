@@ -120,6 +120,8 @@ db.testCollection.save({test: "document"})
             node.detect_instance_pids_still_alive()
 
         self.starter_instances[1].command_upgrade()
+        if self.selenium:
+            self.selenium.upgrade_deployment(self.old_cfg, self.new_cfg)
         self.starter_instances[1].wait_for_upgrade()
         if self.cfg.stress_upgrade:
             bench_instances[0].wait()

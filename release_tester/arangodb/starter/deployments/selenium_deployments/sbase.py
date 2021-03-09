@@ -2,8 +2,11 @@
 """ base class for arangodb starter deployment selenium frontend tests """
 from abc import abstractmethod, ABC
 import time
+from selenium.webdriver.common.by import By
 
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 class SeleniumRunner(ABC):
     "abstract base class for selenium UI testing"
@@ -18,6 +21,7 @@ class SeleniumRunner(ABC):
     def connect_server(self, frontend_instance, database, cfg):
         """ login... """
         print("S: Opening page")
+        print(frontend_instance[0].get_public_plain_url())
         self.web.get("http://root@" + frontend_instance[0].get_public_plain_url() + "/_db/_system/_admin/aardvark/index.html")
         assert "ArangoDB Web Interface" in self.web.title
         elem = self.web.find_element_by_id("loginUsername")
@@ -58,7 +62,10 @@ class SeleniumRunner(ABC):
         """ extracts the coordinator / dbserver count from the 'cluster' page """
         ret = {}
 
-        elm = self.web.find_element_by_xpath('//*[@id="clusterCoordinators"]')
+        elm = WebDriverWait(self.web, 10).until(
+            EC.presence_of_element_located((By.XPATH, '//*[@id="clusterCoordinators"]'))
+        )
+        # elm = self.web.find_element_by_xpath('//*[@id="clusterCoordinators"]')
         ret['coordinators'] = elm.text
         elm = self.web.find_element_by_xpath('//*[@id="clusterDBServers"]')
         ret['dbservers'] = elm.text
@@ -67,7 +74,9 @@ class SeleniumRunner(ABC):
 
     def cluster_get_nodes_table(self):
         """ extracts the table of coordinators / dbservers from the 'nodes' page """
-        table_coord_elm = self.web.find_element_by_class_name('pure-g.cluster-nodes.coords-nodes.pure-table.pure-table-body')
+        table_coord_elm = WebDriverWait(self.web, 10).until(
+            EC.presence_of_element_located((By.CLASS_NAME, 'pure-g.cluster-nodes.coords-nodes.pure-table.pure-table-body'))
+        )
         table_dbsrv_elm = self.web.find_element_by_class_name('pure-g.cluster-nodes.dbs-nodes.pure-table.pure-table-body')
         column_names = ['name', 'url', 'version', 'date', 'state']
         table = []
@@ -90,6 +99,9 @@ class SeleniumRunner(ABC):
     @abstractmethod
     def check_old(self, cfg):
         """ check the integrity of the old system before the upgrade """
+    @abstractmethod
+    def upgrade_deployment(self, old_cfg, new_cfg):
+        """ check the upgrade whether the versions in the table switch etc. """
     @abstractmethod
     def jam_step_1(self, cfg):
         """ check the integrity of the old system before the upgrade """
