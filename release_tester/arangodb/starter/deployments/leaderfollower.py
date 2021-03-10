@@ -191,6 +191,8 @@ process.exit(0);
             raise Exception("replication fuzzing test failed")
 
         prompt_user(self.basecfg, "please test the installation.")
+        if self.selenium:
+            self.selenium.jam_step_1(self.cfg if self.cfg else self.new_cfg)
 
 
     def shutdown_impl(self):

@@ -57,51 +57,11 @@ class LeaderFollower(SeleniumRunner):
 
     def jam_step_1(self, cfg):
         """ check for one set of instances to go away """
-        self.web.refresh()
-        time.sleep(2)
-        self.navbar_goto('cluster')
-        node_count = None
-        done = False
-        retry_count = 0
-        while not done:
-            node_count = self.cluster_dashboard_get_count(50)
-
-            done = ((node_count['dbservers'] == '2/3') and
-                    (node_count['coordinators'] == '2/3') and
-                    (self.get_health_state() != 'NODES OK'))
-            if not done:
-                time.sleep(3)
-            retry_count += 1
-            assert retry_count < 20
-
-        assert node_count['dbservers'] == '2/3'
-        assert node_count['coordinators'] == '2/3'
-        health_state = self.get_health_state()
-        assert health_state != 'NODES OK'
-
-        self.navbar_goto('nodes')
-        table = self.cluster_get_nodes_table()
-        row_count = 0
-        for row in table:
-            if row['state'] == 'SERVING':
-                row_count += 1
-
-        print('S: serving instances 6 / %d' % row_count)
-        assert row_count == 4
-
-        health_state = self.get_health_state()
-        assert health_state != 'NODES OK'
+        self.navbar_goto('replication')
+        replication_table = self.get_replication_screen(True)
+        print(replication_table)
+        # head and one follower should be there:
+        assert len(replication_table['follower_table']) == 2
 
     def jam_step_2(self, cfg):
-        self.navbar_goto('cluster')
-        node_count = None
-        done = False
-        retry_count = 0
-        while not done:
-            node_count = self.cluster_dashboard_get_count()
-            done = (node_count['dbservers'] == '3') and (node_count['coordinators'] == '3')
-            if not done:
-                time.sleep(3)
-            retry_count += 1
-            assert retry_count < 10
-        self.check_old(cfg)
+        pass
