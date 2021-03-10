@@ -23,11 +23,14 @@ class SeleniumRunner(ABC):
         """ login... """
         print("S: Opening page")
         print(frontend_instance[0].get_public_plain_url())
-        self.web.get("http://root@" + frontend_instance[0].get_public_plain_url() + "/_db/_system/_admin/aardvark/index.html")
+        self.web.get("http://" + frontend_instance[0].get_public_plain_url() + "/_db/_system/_admin/aardvark/index.html")
         assert "ArangoDB Web Interface" in self.web.title
         elem = self.web.find_element_by_id("loginUsername")
         elem.clear()
         elem.send_keys("root")
+        elem = self.web.find_element_by_id("loginPassword")
+        elem.clear()
+        elem.send_keys(frontend_instance[0].get_passvoid())
         elem.send_keys(Keys.RETURN)
         time.sleep(3)
         print("S: logging in")
@@ -96,6 +99,49 @@ class SeleniumRunner(ABC):
         for row in table:
             print('S: ' + str(row))
         return table
+
+    def get_replication_screen(self, isLeader, timeout=20):
+        if isLeader:
+            state_table = {}
+            table_elm = WebDriverWait(self.web, timeout).until(
+                EC.presence_of_element_located((By.CLASS_NAME, 'pure-g.cluster-values'))
+            )
+            # TODO: is it a bug that this id is info-mode-id?
+            #state_table['state'] = table_elm.find_element_by_xpath('div[1][@id="info-mode-id"]').text
+            #state_table['mode'] = table_elm.find_element_by_xpath('div[1][@id="info-mode-id"]').text
+            state_table['state'] = table_elm.find_element_by_xpath('div[1]/div[1]/div[1]').text
+            state_table['mode'] = table_elm.find_element_by_xpath('div[2]/div[1]/div[1]').text
+            state_table['role'] = table_elm.find_element_by_xpath('//*[@id="info-role-id"]').text
+            state_table['level'] = table_elm.find_element_by_xpath('//*[@id="info-level-id"]').text
+            state_table['health'] = table_elm.find_element_by_xpath('//*[@id="info-msg-id"]').text
+            state_table['tick'] = table_elm.find_element_by_xpath('//*[@id="logger-lastLogTick-id"]').text
+
+            follower_table = []
+            column_indices = [1,2,3,4,5]
+            more_lines = True
+            th = []
+            for i in column_indices:
+                th.append(self.web.find_element_by_xpath(
+                    '//*[@id="repl-logger-clients"]//thead//th[%d]'%i).text)
+            follower_table.append(th)
+            count = 1
+            while more_lines:
+                try:
+                    row_data = []
+                    for i in column_indices:
+                        cell = self.web.find_element_by_xpath(
+                            '//*[@id="repl-logger-clients"]//tr[%d]//td[%d]'%(
+                            count, i))
+                        row_data.append(cell.text)
+                    follower_table.append(row_data)
+                except Exception as x:
+                    print('no more lines')
+                    more_lines = False
+                count += 1
+            return {
+                'state_table': state_table,
+                'follower_table': follower_table,
+            }
 
     @abstractmethod
     def check_old(self, cfg):

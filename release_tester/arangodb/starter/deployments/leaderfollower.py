@@ -60,6 +60,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
             expect_instances=[
                 InstanceType.single
             ],
+            jwtStr="leader",
             moreopts=[])
         self.leader_starter_instance.is_leader = True
 
@@ -69,6 +70,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
             expect_instances=[
                 InstanceType.single
             ],
+            jwtStr="follower",
             moreopts=[])
 
     def starter_run_impl(self):
@@ -106,8 +108,8 @@ require("@arangodb/replication").setupReplicationGlobal({
     }));
 print("replication started")
 process.exit(0);
-""" % (self.leader_starter_instance.get_passvoid(),
-       str(self.leader_starter_instance.get_frontend_port())))
+""" % (str(self.leader_starter_instance.get_frontend_port()),
+        self.leader_starter_instance.get_passvoid()))
 
         lh.subsubsection("prepare leader follower replication")
         arangosh_script = self.checks['beforeReplJS']

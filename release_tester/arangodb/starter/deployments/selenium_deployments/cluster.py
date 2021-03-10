@@ -85,7 +85,7 @@ class Cluster(SeleniumRunner):
             if not done:
                 time.sleep(3)
             retry_count += 1
-            assert retry_count < 20
+            assert retry_count < 30
 
         assert node_count['dbservers'] == '2/3'
         assert node_count['coordinators'] == '2/3'

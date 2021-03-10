@@ -16,22 +16,11 @@ class LeaderFollower(SeleniumRunner):
         else:
             assert ver['enterprise'] == 'COMMUNITY EDITION'
 
-        self.navbar_goto('nodes')
-        table = self.cluster_get_nodes_table()
-        row_count = 0
-        for row in table:
-            if row['state'] == 'SERVING':
-                row_count += 1
-
-        print('S: serving instances 6 / %d' % row_count)
-        assert row_count == 6
-
-        self.navbar_goto('cluster')
-        node_count = self.cluster_dashboard_get_count()
-        assert node_count['dbservers'] == '3'
-        assert node_count['coordinators'] == '3'
-        health_state = self.get_health_state()
-        assert health_state == 'NODES OK'
+        self.navbar_goto('replication')
+        replication_table = self.get_replication_screen(True)
+        print(replication_table)
+        # head and one follower should be there:
+        assert len(replication_table['follower_table']) == 2
 
     def upgrade_deployment(self, old_cfg, new_cfg):
         old_ver = str(old_cfg.semver)
