@@ -18,7 +18,7 @@
 ## Linux
 
 - **debian** / **ubuntu**:
-  `apt-get install python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect python3-pyftpdlib python3-statsd gdb`
+  `apt-get install python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect python3-pyftpdlib python3-statsd python3-selenium gdb`
   
   the `python3-semver` on debian is to old - need to use the pip version instead:
   `pip3 install semver`
@@ -32,13 +32,17 @@
    `yum update ; yum install python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect python3-pyftpdlib; pip3 install psutil semver` 
    `sudo yum install gdb`
 - **plain pip**:
-  `pip3 install psutil pyyaml pexpect requests click semver ftplib` 
+  `pip3 install psutil pyyaml pexpect requests click semver ftplib selenium`
 
 ## Mac OS
 :
     `brew install gnu-tar`
-    `pip3 install click psutil requests pyyaml semver pexpect ftplib`
+    `pip3 install click psutil requests pyyaml semver pexpect ftplib selenium`
     `brew install gdb`
+
+## Selenium dependencies
+### chrome
+If your system already has a chrome / chromium the [chromedriver](https://chromedriver.chromium.org/downloads) matching your browser version has to be installed
 
 ## Windows
 
@@ -82,7 +86,9 @@ Supported Parameters:
    - `DCendurance` - use DC setup to launch long running arangobenches (not part of `all`)
  - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
  - `--verbose` if specified more logging is done
-
+ - `--selenium` - specify the webdriver to be used to work with selenium (if)
+ - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
+ 
 Example usage:
  - Windows: `python ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
  - Linux (ubuntu|debian) `python3 ./release_tester/test.py --new-version 3.6.2 --no-enterprise --package-dir /home/willi/Downloads`
@@ -114,7 +120,9 @@ Supported Parameters:
    - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
    - `DC` - setup 2 clusters, connect them with arangosync (enterprise only)
-
+ - `--selenium` - specify the webdriver to be used to work with selenium (if)
+ - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
+ 
 Example usage:
  - Windows: `python ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
  - Linux (ubuntu|debian) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
@@ -231,9 +239,11 @@ arangosync
 
 ## Developing
 
-- launch a SUT using i.e. ` ./release_tester/test.py --no-enterprise --new-version 3.8.0-nightly --package-dir /home/willi/Downloads/ --zip --interactive --starter-mode CL` - let it running at that state. 
+- launch a SUT using i.e. `./release_tester/test.py --no-enterprise --new-version 3.8.0-nightly --package-dir /home/willi/Downloads/ --zip --interactive --starter-mode CL` - let it running at that state. 
 - edit scripts use `./release_tester/test_selenium.py --old-version 3.8.0-nightly --new-version 3.9.0-nightly --selenium Chrome --starter-mode CL --zip` to check them against the instance running on the same machine. 
 
+once the scriptlet does what you want, you can use commands like this to run the test:
+-  `./release_tester/test.py --new-version 3.8.0-nightly --zip --no-interactive --starter-mode CL --selenium Chrome`
 # Perf
 
 # Using perf.py for performance testing
