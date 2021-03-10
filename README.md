@@ -239,6 +239,9 @@ arangosync
 
 ## Developing
 
+Launching selemium wich browser in UI mode is more easy with the zip/tar packages, since they don't require privileges to run, 
+hence just the users regular session can be used.
+
 - launch a SUT using i.e. `./release_tester/test.py --no-enterprise --new-version 3.8.0-nightly --package-dir /home/willi/Downloads/ --zip --interactive --starter-mode CL` - let it running at that state. 
 - edit scripts use `./release_tester/test_selenium.py --old-version 3.8.0-nightly --new-version 3.9.0-nightly --selenium Chrome --starter-mode CL --zip` to check them against the instance running on the same machine. 
 
