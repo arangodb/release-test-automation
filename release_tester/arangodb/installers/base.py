@@ -273,7 +273,8 @@ class InstallerBase(ABC):
                                         self.cfg.port,
                                         self.cfg.localhost,
                                         self.cfg.publicip,
-                                        self.cfg.log_dir)
+                                        self.cfg.log_dir,
+                                        self.cfg.passvoid)
         self.calculate_package_names()
         self.cfg.verbose = verbose
 
@@ -433,4 +434,5 @@ class InstallerBase(ABC):
                                         self.cfg.localhost,
                                         self.cfg.publicip,
                                         (self.cfg.installPrefix /
-                                         self.cfg.log_dir))
+                                         self.cfg.log_dir),
+                                        self.cfg.passvoid)

@@ -20,13 +20,13 @@ class Cluster(SeleniumRunner):
 
         self.navbar_goto('nodes')
         table = self.cluster_get_nodes_table()
-        rowCount = 0
+        row_count = 0
         for row in table:
             if row['state'] == 'SERVING':
-                rowCount += 1
+                row_count += 1
 
-        print('S: serving instances 6 / %d' % rowCount)
-        assert rowCount == 6
+        print('S: serving instances 6 / %d' % row_count)
+        assert row_count == 6
 
         self.navbar_goto('cluster')
         node_count = self.cluster_dashboard_get_count()
@@ -63,14 +63,14 @@ class Cluster(SeleniumRunner):
             if not upgrade_done:
                 time.sleep(5)
         # the version doesn't update automatically, force refresh:
-        self.web.refresh();
+        self.web.refresh()
         ver = self.detect_version()
         print("S: ver %s is %s?" % (str(ver), new_ver))
         assert ver['version'].lower().startswith(new_ver)
 
     def jam_step_1(self, cfg):
         """ check for one set of instances to go away """
-        self.web.refresh();
+        self.web.refresh()
         time.sleep(2)
         self.navbar_goto('cluster')
         node_count = None
@@ -94,13 +94,13 @@ class Cluster(SeleniumRunner):
 
         self.navbar_goto('nodes')
         table = self.cluster_get_nodes_table()
-        rowCount = 0
+        row_count = 0
         for row in table:
             if row['state'] == 'SERVING':
-                rowCount += 1
+                row_count += 1
 
-        print('S: serving instances 6 / %d' % rowCount)
-        assert rowCount == 4
+        print('S: serving instances 6 / %d' % row_count)
+        assert row_count == 4
 
         health_state = self.get_health_state()
         assert health_state != 'NODES OK'

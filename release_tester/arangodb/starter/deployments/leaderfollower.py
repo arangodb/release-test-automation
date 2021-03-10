@@ -80,6 +80,10 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
 
         self.leader_starter_instance.detect_instance_pids()
         self.follower_starter_instance.detect_instance_pids()
+
+        self.leader_starter_instance.set_passvoid('leader')
+        self.follower_starter_instance.set_passvoid('follower')
+        
         self.starter_instances = [self.leader_starter_instance,
                                   self.follower_starter_instance]
 
@@ -94,7 +98,7 @@ print(
 require("@arangodb/replication").setupReplicationGlobal({
     endpoint: "tcp://127.0.0.1:%s",
     username: "root",
-    password: "",
+    password: "%s",
     verbose: false,
     includeSystem: true,
     incremental: true,
@@ -102,7 +106,8 @@ require("@arangodb/replication").setupReplicationGlobal({
     }));
 print("replication started")
 process.exit(0);
-""" % (str(self.leader_starter_instance.get_frontend_port())))
+""" % (self.leader_starter_instance.get_passvoid(),
+       str(self.leader_starter_instance.get_frontend_port())))
 
         lh.subsubsection("prepare leader follower replication")
         arangosh_script = self.checks['beforeReplJS']

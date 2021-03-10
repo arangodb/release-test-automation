@@ -3,11 +3,13 @@
 from pathlib import Path
 
 import os
+import resource
 import sys
+
 import click
+
 from acquire_packages import AcquirePackages
 from upgrade import run_upgrade
-import resource
 
 # pylint: disable=R0913 disable=R0914
 def upgrade_package_test(verbose,

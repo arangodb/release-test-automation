@@ -44,7 +44,7 @@ class AfoServerState(IntEnum):
 class Instance(ABC):
     """abstract instance manager"""
     # pylint: disable=R0913 disable=R0902
-    def __init__(self, typ, port, basedir, localhost, publicip, logfile):
+    def __init__(self, typ, port, basedir, localhost, publicip, passvoid, logfile):
         self.type = InstanceType[typ]  # convert to enum
         self.type_str = TYP_STRINGS[int(self.type.value)]
         self.port = port
@@ -53,6 +53,7 @@ class Instance(ABC):
         self.logfile = logfile
         self.localhost = localhost
         self.publicip = publicip
+        self.passvoid = passvoid
         self.name = self.type.name + str(self.port)
         self.instance = None
         logging.debug("creating {0.type_str} instance: {0.name}".format(self))
@@ -60,6 +61,14 @@ class Instance(ABC):
     @abstractmethod
     def detect_pid(self, ppid, offset, full_binary_path):
         """ gets the PID from the running process of this instance """
+
+    def set_passvoid(self, passvoid):
+        """ set the pw to connect to this instance """
+        self.passvoid = passvoid
+
+    def get_passvoid(self):
+        """ retrieve the pw to connect to this instance """
+        return self.passvoid
 
     def detect_gone(self):
         """ revalidate that the managed process is actualy dead """
@@ -106,12 +115,13 @@ class Instance(ABC):
 class ArangodInstance(Instance):
     """ represent one arangodb instance """
     # pylint: disable=R0913
-    def __init__(self, typ, port, localhost, publicip, basedir):
+    def __init__(self, typ, port, localhost, publicip, basedir, passvoid):
         super().__init__(typ,
                          port,
                          basedir,
                          localhost,
                          publicip,
+                         passvoid,
                          basedir / 'arangod.log')
 
     def __repr__(self):
@@ -354,18 +364,19 @@ arangod instance
 class ArangodRemoteInstance(ArangodInstance):
     """ represent one arangodb instance """
     # pylint: disable=R0913
-    def __init__(self, typ, port, localhost, publicip, basedir):
-        super().__init__(typ, port, localhost, publicip, basedir)
+    def __init__(self, typ, port, localhost, publicip, basedir, passvoid):
+        super().__init__(typ, port, localhost, publicip, passvoid, basedir)
 
 class SyncInstance(Instance):
     """ represent one arangosync instance """
     # pylint: disable=R0913
-    def __init__(self, typ, port, localhost, publicip, basedir):
+    def __init__(self, typ, port, localhost, publicip, basedir, passvoid):
         super().__init__(typ,
                          port,
                          basedir,
                          localhost,
                          publicip,
+                         passvoid,
                          basedir / 'arangosync.log')
 
     def __repr__(self):
@@ -440,6 +451,7 @@ arangosync instance of starter
         return True
 
     def get_public_plain_url(self):
+        """ get the public connect URL """
         return '{host}:{port}'.format(
             host=self.publicip,
             port=self.port)

@@ -276,6 +276,19 @@ Starter {0.name}
         self.jwt_header = self.get_jwt_token_from_secret_file(self.jwtfile)
         return self.jwt_header
 
+    def set_passvoid(self, passvoid):
+        """ set the passvoid to the managed instance """
+        self.arangosh.js_set_passvoid('root', passvoid)
+        self.passvoid = passvoid
+        for i in self.all_instances:
+            if i.is_frontend():
+                i.set_passvoid(passvoid)
+        self.cfg.passvoid = passvoid
+
+    def get_passvoid(self):
+        """ get the passvoid to the managed instance """
+        return self.passvoid
+
     def send_request(self, instance_type, verb_method,
                      url, data=None, headers={}):
         """ send an http request to the instance """
@@ -615,7 +628,8 @@ Starter {0.name}
                                                   match.group(2),
                                                   self.cfg.localhost,
                                                   self.cfg.publicip,
-                                                  Path(root) / name)
+                                                  Path(root) / name,
+                                                  self.passvoid)
                         instance.wait_for_logfile(tries)
                         instance.detect_pid(
                             ppid=self.instance.pid,
@@ -781,7 +795,8 @@ class StarterNonManager(StarterManager):
                                      # self.cfg.localhost,
                                      basecfg.frontends[basecfg.index].ip,
                                      basecfg.frontends[basecfg.index].ip,
-                                     Path('/'))
+                                     Path('/'),
+                                     self.cfg.passvoid)
         self.all_instances.append(inst)
         basecfg.index += 1
 
