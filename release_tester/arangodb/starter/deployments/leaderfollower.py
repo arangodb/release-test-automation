@@ -84,7 +84,8 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
         self.follower_starter_instance.detect_instance_pids()
 
         self.leader_starter_instance.set_passvoid('leader')
-        self.follower_starter_instance.set_passvoid('follower')
+        # the replication will overwrite this passvoid anyways:
+        self.follower_starter_instance.set_passvoid('leader')
         
         self.starter_instances = [self.leader_starter_instance,
                                   self.follower_starter_instance]
@@ -149,6 +150,14 @@ process.exit(0);
 
         lh.subsection("leader/follower - check test data", "-")
 
+        if self.selenium:
+            self.selenium.connect_server_new_tab(
+                self.follower_starter_instance.get_frontends(),
+                '_system', self.cfg)                                 
+            self.selenium.check_old(self.new_cfg if self.new_cfg else self.cfg,
+                                    False)
+            self.selenium.close_tab_again()
+
         #assert that data has been replicated
         self.follower_starter_instance.arangosh.read_only = True
         self.makedata_instances.append(self.follower_starter_instance)
@@ -172,23 +181,34 @@ process.exit(0);
             node.detect_instances()
             node.wait_for_version_reply()
 
+        if self.selenium:
+            self.selenium.web.refresh()
+            self.selenium.check_old(self.new_cfg, True)
+            
+            self.selenium.connect_server_new_tab(
+                self.follower_starter_instance.get_frontends(),
+                '_system', self.cfg)
+            self.selenium.check_old(self.new_cfg, False)
+            self.selenium.close_tab_again()
+
     def jam_attempt_impl(self):
         """ run the replication fuzzing test """
         logging.info("running the replication fuzzing test")
         # add instace where makedata will be run on
         self.tcp_ping_all_nodes()
-        ret = self.leader_starter_instance.arangosh.run_in_arangosh(
-            ( self.cfg.test_data_dir /
-              Path(
-                  'tests/js/server/replication/fuzz/replication-fuzz-global.js')
-             ),
-            [],
-            [self.follower_starter_instance.get_frontend().get_public_url('')]
-            )
-        if not ret[0]:
-            if not self.cfg.verbose:
-                print(ret[1])
-            raise Exception("replication fuzzing test failed")
+        # ret = self.leader_starter_instance.arangosh.run_in_arangosh(
+        #     ( self.cfg.test_data_dir /
+        #       Path(
+        #           'tests/js/server/replication/fuzz/replication-fuzz-global.js')
+        #      ),
+        #     [],
+        #     [self.follower_starter_instance.get_frontend().get_public_url(
+        #         'root:%s@'%self.follower_starter_instance.passvoid)]
+        #     )
+        # if not ret[0]:
+        #     if not self.cfg.verbose:
+        #         print(ret[1])
+        #     raise Exception("replication fuzzing test failed")
 
         prompt_user(self.basecfg, "please test the installation.")
         if self.selenium:
@@ -198,7 +218,7 @@ process.exit(0);
     def shutdown_impl(self):
         self.leader_starter_instance.terminate_instance()
         self.follower_starter_instance.terminate_instance()
-        pslist = get_all_processes()
+        pslist = get_all_processes(False)
         if len(pslist) > 0:
             raise Exception("Not all processes terminated! [%s]" % str(pslist))
         logging.info('test ended')

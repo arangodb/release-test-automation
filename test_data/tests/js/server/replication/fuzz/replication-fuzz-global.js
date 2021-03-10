@@ -38,10 +38,18 @@ let compareTicks = replication.compareTicks;
 var console = require("console");
 var internal = require("internal");
 var masterEndpoint = arango.getEndpoint();
-const slaveEndpoint = ARGUMENTS[ARGUMENTS.length - 1];
+var slaveEndpoint = ARGUMENTS[ARGUMENTS.length - 1];
+
 var isCluster = arango.getRole() === 'COORDINATOR';
 var isSingle = arango.getRole() === 'SINGLE';
 const havePreconfiguredReplication = isSingle && replication.globalApplier.stateAll()["_system"].state.running === true;
+
+
+let slaveCreds = slaveEndpoint.split('/')[2].split('@')[0].split(':');
+slaveEndpoint = slaveEndpoint.split('@')[1];
+var masterCreds = slaveCreds;
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief test suite
@@ -52,12 +60,13 @@ function ReplicationSuite() {
   var cn = "UnitTestsReplication";
 
   var connectToMaster = function() {
-    reconnectRetry(masterEndpoint, db._name(), "root", "");
+    reconnectRetry(masterEndpoint, db._name(), slaveCreds[0], slaveCreds[1]);
     db._flushCache();
   };
 
   var connectToSlave = function() {
-    reconnectRetry(slaveEndpoint, db._name(), "root", "");
+    print(slaveEndpoint)
+    reconnectRetry(slaveEndpoint, db._name(), slaveCreds[0], slaveCreds[1]);
     db._flushCache();
   };
 

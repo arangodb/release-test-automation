@@ -7,7 +7,9 @@ import logging
 import re
 import sys
 import time
+
 import requests
+from requests.auth import HTTPBasicAuth
 
 import psutil
 from tools.asciiprint import print_progress as progress
@@ -206,7 +208,9 @@ arangod instance
         """ is this a leader or follower? """
         reply = None
         try:
-            reply = requests.get(self.get_local_url('')+'/_api/version')
+            reply = requests.get(self.get_local_url('')+'/_api/version',
+                                 auth=HTTPBasicAuth('root', self.passvoid)
+                                 )
         except requests.exceptions.ConnectionError:
             return AfoServerState.not_connected
 
@@ -225,7 +229,7 @@ arangod instance
             raise Exception("afo_state: unsupported error code in "
                             + str(reply.content))
         raise Exception("afo_state: unsupportet HTTP-Status code "
-                        + str(reply.status_code))
+                        + str(reply.status_code) + str(reply))
 
     def detect_restore_restart(self):
         """ has the server restored their backup restored and is back up """
