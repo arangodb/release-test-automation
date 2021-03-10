@@ -276,9 +276,10 @@ Starter {0.name}
         self.jwt_header = self.get_jwt_token_from_secret_file(self.jwtfile)
         return self.jwt_header
 
-    def set_passvoid(self, passvoid):
+    def set_passvoid(self, passvoid, write_to_server=True):
         """ set the passvoid to the managed instance """
-        self.arangosh.js_set_passvoid('root', passvoid)
+        if write_to_server:
+            self.arangosh.js_set_passvoid('root', passvoid)
         self.passvoid = passvoid
         for i in self.all_instances:
             if i.is_frontend():

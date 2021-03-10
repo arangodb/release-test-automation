@@ -51,7 +51,9 @@ class SeleniumRunner(ABC):
 
     def login_webif(self, frontend_instance, database, cfg):
         assert "ArangoDB Web Interface" in self.web.title
-        elem = self.web.find_element_by_id("loginUsername")
+        elem = WebDriverWait(self.web, 10).until(
+            EC.presence_of_element_located((By.ID, "loginUsername"))
+        )
         elem.clear()
         elem.send_keys("root")
         elem = self.web.find_element_by_id("loginPassword")
