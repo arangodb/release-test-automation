@@ -8,7 +8,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import StaleElementReferenceException
-
+from selenium.common.exceptions import NoSuchElementException
 class SeleniumRunner(ABC):
     "abstract base class for selenium UI testing"
     def __init__(self, webdriver):
@@ -80,9 +80,16 @@ class SeleniumRunner(ABC):
     def navbar_goto(self, tag):
         """ click on any of the items in the 'navbar' """
         print("S: navbar goto %s"% tag)
-        elem = self.web.find_element_by_id(tag)
-        assert elem
-        elem.click()
+        while True:
+            try:
+                elem = self.web.find_element_by_id(tag)
+                assert elem
+                elem.click()
+                self.web.find_element_by_class_name(tag + '-menu.active')
+                return
+            except NoSuchElementException:
+                print('S: retrying to switch to ' + tag)
+                time.sleep(1)
 
     def get_health_state(self):
         """ xtracts the health state in the upper right corner """
