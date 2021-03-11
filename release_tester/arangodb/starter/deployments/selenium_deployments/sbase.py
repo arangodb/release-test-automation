@@ -98,7 +98,12 @@ class SeleniumRunner(ABC):
                 assert elem
                 elem.click()
                 self.web.find_element_by_class_name(tag + '-menu.active')
-                return
+                print("S: goto current URL: " + self.web.getCurrentUrl())
+                if not self.web.getCurrentUrl().endswith('#'+ tag):
+                    # retry...
+                    continue
+                else:
+                    return
             except NoSuchElementException:
                 print('S: retrying to switch to ' + tag)
                 time.sleep(1)
