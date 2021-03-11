@@ -34,7 +34,14 @@ class Cluster(SeleniumRunner):
         node_count = self.cluster_dashboard_get_count()
         assert node_count['dbservers'] == '3'
         assert node_count['coordinators'] == '3'
-        health_state = self.get_health_state()
+        health_state = None
+        count = 0
+        while count < 10:
+            health_state = self.get_health_state()
+            if health_state == 'NODES OK':
+                break
+            count +=1
+            time.sleep(1)
         assert health_state == 'NODES OK'
 
     def upgrade_deployment(self, old_cfg, new_cfg):
