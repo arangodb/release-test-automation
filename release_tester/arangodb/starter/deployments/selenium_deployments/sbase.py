@@ -183,6 +183,7 @@ class SeleniumRunner(ABC):
                 raise ex
 
     def get_replication_screen(self, isLeader, timeout=20):
+        retry_count = 0;
         if isLeader:
             while True:
                 try:
@@ -231,8 +232,13 @@ class SeleniumRunner(ABC):
                     time.sleep(1)
                     continue
                 except TimeoutException as ex:
-                    self.take_screenshot()
-                    raise ex
+                    if retry_count < 5:
+                        print('S: re-trying goto replication')
+                        self.navbar_goto('replication')
+                        retry_count += 1
+                    else:
+                        self.take_screenshot()
+                        raise ex
         else:
             while True:
                 try:
@@ -281,8 +287,13 @@ class SeleniumRunner(ABC):
                     time.sleep(1)
                     continue
                 except TimeoutException as ex:
-                    self.take_screenshot()
-                    raise ex
+                    if retry_count < 5:
+                        print('S: re-trying goto replication')
+                        self.navbar_goto('replication')
+                        retry_count += 1
+                    else:
+                        self.take_screenshot()
+                        raise ex
 
     @abstractmethod
     def check_old(self, cfg):
