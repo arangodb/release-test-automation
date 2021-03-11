@@ -115,11 +115,11 @@ class Cluster(SeleniumRunner):
         count = 0
         while count < 10:
             health_state = self.get_health_state()
-            if health_state == 'NODES OK':
+            if health_state != 'NODES OK':
                 break
             count +=1
             time.sleep(1)
-        assert health_state == 'NODES OK'
+        assert health_state != 'NODES OK'
 
     def jam_step_2(self, cfg):
         self.navbar_goto('cluster')
