@@ -102,7 +102,7 @@ class SeleniumRunner(ABC):
             except NoSuchElementException:
                 print('S: retrying to switch to ' + tag)
                 time.sleep(1)
-
+                continue
             except TimeoutException as ex:
                 self.take_screenshot()
                 raise ex
@@ -135,6 +135,7 @@ class SeleniumRunner(ABC):
             except StaleElementReferenceException:
                 print('S: retrying after stale element')
                 time.sleep(1)
+                continue
             except TimeoutException as ex:
                 self.take_screenshot()
                 raise ex
@@ -167,9 +168,11 @@ class SeleniumRunner(ABC):
             except StaleElementReferenceException:
                 print('S: retrying after stale element')
                 time.sleep(1)
+                continue
             except NoSuchElementException:
                 print('S: retrying after no such element')
                 time.sleep(1)
+                continue
             except TimeoutException as ex:
                 self.take_screenshot()
                 raise ex
@@ -221,6 +224,7 @@ class SeleniumRunner(ABC):
                 except StaleElementReferenceException:
                     print('S: retrying after stale element')
                     time.sleep(1)
+                    continue
                 except TimeoutException as ex:
                     self.take_screenshot()
                     raise ex
@@ -270,6 +274,7 @@ class SeleniumRunner(ABC):
                 except StaleElementReferenceException:
                     print('S: retrying after stale element')
                     time.sleep(1)
+                    continue
                 except TimeoutException as ex:
                     self.take_screenshot()
                     raise ex
