@@ -12,6 +12,8 @@ class Cluster(SeleniumRunner):
     def check_old(self, cfg):
         """ check the integrity of the old system before the upgrade """
         ver = self.detect_version()
+        
+        print("S: %s ~= %s?" % (ver['version'].lower(), str(cfg.semver)))
         assert ver['version'].lower().startswith(str(cfg.semver))
         if cfg.enterprise:
             assert ver['enterprise'] == 'ENTERPRISE EDITION'
