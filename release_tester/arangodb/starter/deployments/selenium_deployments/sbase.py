@@ -97,6 +97,7 @@ class SeleniumRunner(ABC):
 
     def navbar_goto(self, tag):
         """ click on any of the items in the 'navbar' """
+        count = 0
         print("S: navbar goto %s"% tag)
         while True:
             try:
@@ -113,6 +114,11 @@ class SeleniumRunner(ABC):
             except NoSuchElementException:
                 print('S: retrying to switch to ' + tag)
                 time.sleep(1)
+                count += 1
+                if count %15 == 0:
+                    print("S: reloading page!")
+                    self.web.refresh()
+                    time.sleep(1)
                 continue
             except TimeoutException as ex:
                 self.take_screenshot()
