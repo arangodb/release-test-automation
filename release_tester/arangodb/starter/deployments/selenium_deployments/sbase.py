@@ -164,6 +164,9 @@ class SeleniumRunner(ABC):
                 for row in table:
                     print('S: ' + str(row))
                 return table
+            except StaleElementReferenceException:
+                print('S: retrying after stale element')
+                time.sleep(1)
             except NoSuchElementException:
                 print('S: retrying after no such element')
                 time.sleep(1)
