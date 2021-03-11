@@ -683,6 +683,7 @@ Starter {0.name}
 
             self.arangosh = ArangoshExecutor(self.cfg, self.get_frontend())
             if self.cfg.hot_backup:
+                self.cfg.passvoid = self.passvoid
                 self.hb_instance = HotBackupManager(
                     self.cfg,
                     self.raw_basedir,
