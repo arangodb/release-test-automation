@@ -93,6 +93,10 @@ db.testCollection.save({test: "document"})
             node.detect_instance_pids()
             #self.basecfg.add_frontend('http', self.basecfg.publicip, str(node.get_frontend_port()))
         logging.info("instances are ready")
+        count = 0
+        for node in self.starter_instances:
+            node.set_passvoid('cluster', count == 0)
+            count += 1
 
     def finish_setup_impl(self):
         self.makedata_instances = self.starter_instances[:]
