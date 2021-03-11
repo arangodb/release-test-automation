@@ -141,31 +141,35 @@ class SeleniumRunner(ABC):
 
     def cluster_get_nodes_table(self, timeout=20):
         """ extracts the table of coordinators / dbservers from the 'nodes' page """
-        try:
-            table_coord_elm = WebDriverWait(self.web, timeout).until(
-                EC.presence_of_element_located((By.CLASS_NAME, 'pure-g.cluster-nodes.coords-nodes.pure-table.pure-table-body'))
-            )
-            table_dbsrv_elm = self.web.find_element_by_class_name('pure-g.cluster-nodes.dbs-nodes.pure-table.pure-table-body')
-            column_names = ['name', 'url', 'version', 'date', 'state']
-            table = []
-            for elm in [table_coord_elm, table_dbsrv_elm]:
-                for table_row_num in [1, 2, 3]:
-                    row ={}
-                    table.append(row)
-                    for table_column in [1, 2, 3, 4, 5]:
-                        table_cell_elm = None
-                        if table_column == 5:
-                            table_cell_elm = elm.find_element_by_xpath('div[%d]/div[%d]/i'%(table_row_num, table_column))
-                            row[column_names[table_column - 1]] = table_cell_elm.get_property('title')
-                        else:
-                            table_cell_elm = elm.find_element_by_xpath('div[%d]/div[%d]'%(table_row_num, table_column))
-                            row[column_names[table_column - 1]] = table_cell_elm.text
-            for row in table:
-                print('S: ' + str(row))
-            return table
-        except TimeoutException as ex:
-            self.take_screenshot()
-            raise ex
+        while True:
+            try:
+                table_coord_elm = WebDriverWait(self.web, timeout).until(
+                    EC.presence_of_element_located((By.CLASS_NAME, 'pure-g.cluster-nodes.coords-nodes.pure-table.pure-table-body'))
+                )
+                table_dbsrv_elm = self.web.find_element_by_class_name('pure-g.cluster-nodes.dbs-nodes.pure-table.pure-table-body')
+                column_names = ['name', 'url', 'version', 'date', 'state']
+                table = []
+                for elm in [table_coord_elm, table_dbsrv_elm]:
+                    for table_row_num in [1, 2, 3]:
+                        row ={}
+                        table.append(row)
+                        for table_column in [1, 2, 3, 4, 5]:
+                            table_cell_elm = None
+                            if table_column == 5:
+                                table_cell_elm = elm.find_element_by_xpath('div[%d]/div[%d]/i'%(table_row_num, table_column))
+                                row[column_names[table_column - 1]] = table_cell_elm.get_property('title')
+                            else:
+                                table_cell_elm = elm.find_element_by_xpath('div[%d]/div[%d]'%(table_row_num, table_column))
+                                row[column_names[table_column - 1]] = table_cell_elm.text
+                for row in table:
+                    print('S: ' + str(row))
+                return table
+            except NoSuchElementException:
+                print('S: retrying after no such element')
+                time.sleep(1)
+            except TimeoutException as ex:
+                self.take_screenshot()
+                raise ex
 
     def get_replication_screen(self, isLeader, timeout=20):
         if isLeader:
