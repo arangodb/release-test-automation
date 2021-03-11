@@ -121,19 +121,23 @@ class SeleniumRunner(ABC):
     def cluster_dashboard_get_count(self, timeout=10):
         """ extracts the coordinator / dbserver count from the 'cluster' page """
         ret = {}
-        try:
-            elm = WebDriverWait(self.web, timeout).until(
-                EC.presence_of_element_located((By.XPATH, '//*[@id="clusterCoordinators"]'))
-            )
-            # elm = self.web.find_element_by_xpath('//*[@id="clusterCoordinators"]')
-            ret['coordinators'] = elm.text
-            elm = self.web.find_element_by_xpath('//*[@id="clusterDBServers"]')
-            ret['dbservers'] = elm.text
-            print("S: health state: %s"% str(ret))
-            return ret
-        except TimeoutException as ex:
-            self.take_screenshot()
-            raise ex
+        while True:
+            try:
+                elm = WebDriverWait(self.web, timeout).until(
+                    EC.presence_of_element_located((By.XPATH, '//*[@id="clusterCoordinators"]'))
+                )
+                # elm = self.web.find_element_by_xpath('//*[@id="clusterCoordinators"]')
+                ret['coordinators'] = elm.text
+                elm = self.web.find_element_by_xpath('//*[@id="clusterDBServers"]')
+                ret['dbservers'] = elm.text
+                print("S: health state: %s"% str(ret))
+                return ret
+            except StaleElementReferenceException:
+                print('S: retrying after stale element')
+                time.sleep(1)
+            except TimeoutException as ex:
+                self.take_screenshot()
+                raise ex
 
     def cluster_get_nodes_table(self, timeout=20):
         """ extracts the table of coordinators / dbservers from the 'nodes' page """
@@ -208,6 +212,7 @@ class SeleniumRunner(ABC):
                         'follower_table': follower_table,
                     }
                 except StaleElementReferenceException:
+                    print('S: retrying after stale element')
                     time.sleep(1)
                 except TimeoutException as ex:
                     self.take_screenshot()
@@ -256,6 +261,7 @@ class SeleniumRunner(ABC):
                         'follower_table': follower_table,
                     }
                 except StaleElementReferenceException:
+                    print('S: retrying after stale element')
                     time.sleep(1)
                 except TimeoutException as ex:
                     self.take_screenshot()
