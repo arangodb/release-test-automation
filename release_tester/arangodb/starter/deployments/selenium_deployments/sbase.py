@@ -98,8 +98,8 @@ class SeleniumRunner(ABC):
                 assert elem
                 elem.click()
                 self.web.find_element_by_class_name(tag + '-menu.active')
-                print("S: goto current URL: " + self.web.get_current_url())
-                if not self.web.get_current_url().endswith('#'+ tag):
+                print("S: goto current URL: " + self.web.current_url)
+                if not self.web.current_url.endswith('#'+ tag):
                     # retry...
                     continue
                 else:
