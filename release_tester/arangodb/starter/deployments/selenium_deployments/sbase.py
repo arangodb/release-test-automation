@@ -77,17 +77,23 @@ class SeleniumRunner(ABC):
 
     def detect_version(self):
         """ extracts the version in the lower right and compares it to a given version """
-        try:
-            elem = self.web.find_element_by_id("currentVersion")
-            enterprise_elem = self.web.find_element_by_class_name("logo.big")
-            print("S: check_version (%s) (%s)" % (elem.text, enterprise_elem.text))
-            return {
-                'version': elem.text,
-                'enterprise': enterprise_elem.text
-            }
-        except TimeoutException as ex:
-            self.take_screenshot()
-            raise ex
+        while True:
+            try:
+                elem = self.web.find_element_by_id("currentVersion")
+                enterprise_elem = self.web.find_element_by_class_name("logo.big")
+                ret = {
+                    'version': elem.text,
+                    'enterprise': enterprise_elem.text
+                }
+                print("S: check_version (%s) (%s)" % (ret['version'], ret['enterprise']))
+                if len(ret['version']) + len(ret['enterprise']) > 0:
+                    return ret
+                else:
+                    print('S: retry version.')
+                    continue
+            except TimeoutException as ex:
+                self.take_screenshot()
+                raise ex
 
     def navbar_goto(self, tag):
         """ click on any of the items in the 'navbar' """
