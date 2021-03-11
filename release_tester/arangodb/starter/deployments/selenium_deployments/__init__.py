@@ -26,6 +26,10 @@ def init(runner_type: RunnerType,
             options.add_argument('--' + opt)
     # kwargs['service_log_path'] = "/tmp/abcd123.log"
     driver = driver_func(**kwargs)
+    original_size = driver.get_window_size()
+    required_width = driver.execute_script('return document.body.parentNode.scrollWidth')
+    required_height = driver.execute_script('return document.body.parentNode.scrollHeight')
+    driver.set_window_size(required_width, required_height)
 
     if runner_type == RunnerType.LEADER_FOLLOWER:
         from arangodb.starter.deployments.selenium_deployments.leaderfollower import LeaderFollower

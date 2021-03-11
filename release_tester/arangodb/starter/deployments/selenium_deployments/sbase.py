@@ -7,8 +7,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import StaleElementReferenceException
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import StaleElementReferenceException, TimeoutException, NoSuchElementException
 class SeleniumRunner(ABC):
     "abstract base class for selenium UI testing"
     def __init__(self, webdriver):
@@ -21,6 +20,11 @@ class SeleniumRunner(ABC):
         """ byebye """
         print("S: Close!")
         self.web.close()
+
+    def take_screenshot(self, filename='exception_screenshot.png'):
+        #self.set_window_size(1920, total_height)
+        #time.sleep(2)
+        self.web.save_screenshot(filename)
 
     def connect_server_new_tab(self, frontend_instance, database, cfg):
         """ login... """
@@ -51,31 +55,39 @@ class SeleniumRunner(ABC):
         self.login_webif(frontend_instance, database, cfg)
 
     def login_webif(self, frontend_instance, database, cfg):
-        assert "ArangoDB Web Interface" in self.web.title
-        elem = WebDriverWait(self.web, 10).until(
-            EC.presence_of_element_located((By.ID, "loginUsername"))
-        )
-        elem.clear()
-        elem.send_keys("root")
-        elem = self.web.find_element_by_id("loginPassword")
-        elem.clear()
-        elem.send_keys(frontend_instance[0].get_passvoid())
-        elem.send_keys(Keys.RETURN)
-        time.sleep(3)
-        print("S: logging in")
-        elem = self.web.find_element_by_id("goToDatabase").click()
+        try:
+            assert "ArangoDB Web Interface" in self.web.title
+            elem = WebDriverWait(self.web, 10).until(
+                EC.presence_of_element_located((By.ID, "loginUsername"))
+            )
+            elem.clear()
+            elem.send_keys("root")
+            elem = self.web.find_element_by_id("loginPassword")
+            elem.clear()
+            elem.send_keys(frontend_instance[0].get_passvoid())
+            elem.send_keys(Keys.RETURN)
+            time.sleep(3)
+            print("S: logging in")
+            elem = self.web.find_element_by_id("goToDatabase").click()
 
-        assert "No results found." not in self.web.page_source
+            assert "No results found." not in self.web.page_source
+        except TimeoutException as ex:
+            self.take_screenshot()
+            raise ex
 
     def detect_version(self):
         """ extracts the version in the lower right and compares it to a given version """
-        elem = self.web.find_element_by_id("currentVersion")
-        enterprise_elem = self.web.find_element_by_class_name("logo.big")
-        print("S: check_version (%s) (%s)" % (elem.text, enterprise_elem.text))
-        return {
-            'version': elem.text,
-            'enterprise': enterprise_elem.text
-        }
+        try:
+            elem = self.web.find_element_by_id("currentVersion")
+            enterprise_elem = self.web.find_element_by_class_name("logo.big")
+            print("S: check_version (%s) (%s)" % (elem.text, enterprise_elem.text))
+            return {
+                'version': elem.text,
+                'enterprise': enterprise_elem.text
+            }
+        except TimeoutException as ex:
+            self.take_screenshot()
+            raise ex
 
     def navbar_goto(self, tag):
         """ click on any of the items in the 'navbar' """
@@ -91,9 +103,17 @@ class SeleniumRunner(ABC):
                 print('S: retrying to switch to ' + tag)
                 time.sleep(1)
 
+            except TimeoutException as ex:
+                self.take_screenshot()
+                raise ex
+
     def get_health_state(self):
         """ xtracts the health state in the upper right corner """
-        elem = self.web.find_element_by_xpath('/html/body/div[2]/div/div[1]/div/ul[1]/li[2]/a[2]')
+        try:
+            elem = self.web.find_element_by_xpath('/html/body/div[2]/div/div[1]/div/ul[1]/li[2]/a[2]')
+        except TimeoutException as ex:
+            self.take_screenshot()
+            raise ex
         # self.web.find_element_by_class_name("state health-state") WTF? Y not?
         print("S: Health state:" + elem.text)
         return elem.text
@@ -101,40 +121,47 @@ class SeleniumRunner(ABC):
     def cluster_dashboard_get_count(self, timeout=10):
         """ extracts the coordinator / dbserver count from the 'cluster' page """
         ret = {}
-
-        elm = WebDriverWait(self.web, timeout).until(
-            EC.presence_of_element_located((By.XPATH, '//*[@id="clusterCoordinators"]'))
-        )
-        # elm = self.web.find_element_by_xpath('//*[@id="clusterCoordinators"]')
-        ret['coordinators'] = elm.text
-        elm = self.web.find_element_by_xpath('//*[@id="clusterDBServers"]')
-        ret['dbservers'] = elm.text
-        print("S: health state: %s"% str(ret))
-        return ret
+        try:
+            elm = WebDriverWait(self.web, timeout).until(
+                EC.presence_of_element_located((By.XPATH, '//*[@id="clusterCoordinators"]'))
+            )
+            # elm = self.web.find_element_by_xpath('//*[@id="clusterCoordinators"]')
+            ret['coordinators'] = elm.text
+            elm = self.web.find_element_by_xpath('//*[@id="clusterDBServers"]')
+            ret['dbservers'] = elm.text
+            print("S: health state: %s"% str(ret))
+            return ret
+        except TimeoutException as ex:
+            self.take_screenshot()
+            raise ex
 
     def cluster_get_nodes_table(self, timeout=20):
         """ extracts the table of coordinators / dbservers from the 'nodes' page """
-        table_coord_elm = WebDriverWait(self.web, timeout).until(
-            EC.presence_of_element_located((By.CLASS_NAME, 'pure-g.cluster-nodes.coords-nodes.pure-table.pure-table-body'))
-        )
-        table_dbsrv_elm = self.web.find_element_by_class_name('pure-g.cluster-nodes.dbs-nodes.pure-table.pure-table-body')
-        column_names = ['name', 'url', 'version', 'date', 'state']
-        table = []
-        for elm in [table_coord_elm, table_dbsrv_elm]:
-            for table_row_num in [1, 2, 3]:
-                row ={}
-                table.append(row)
-                for table_column in [1, 2, 3, 4, 5]:
-                    table_cell_elm = None
-                    if table_column == 5:
-                        table_cell_elm = elm.find_element_by_xpath('div[%d]/div[%d]/i'%(table_row_num, table_column))
-                        row[column_names[table_column - 1]] = table_cell_elm.get_property('title')
-                    else:
-                        table_cell_elm = elm.find_element_by_xpath('div[%d]/div[%d]'%(table_row_num, table_column))
-                        row[column_names[table_column - 1]] = table_cell_elm.text
-        for row in table:
-            print('S: ' + str(row))
-        return table
+        try:
+            table_coord_elm = WebDriverWait(self.web, timeout).until(
+                EC.presence_of_element_located((By.CLASS_NAME, 'pure-g.cluster-nodes.coords-nodes.pure-table.pure-table-body'))
+            )
+            table_dbsrv_elm = self.web.find_element_by_class_name('pure-g.cluster-nodes.dbs-nodes.pure-table.pure-table-body')
+            column_names = ['name', 'url', 'version', 'date', 'state']
+            table = []
+            for elm in [table_coord_elm, table_dbsrv_elm]:
+                for table_row_num in [1, 2, 3]:
+                    row ={}
+                    table.append(row)
+                    for table_column in [1, 2, 3, 4, 5]:
+                        table_cell_elm = None
+                        if table_column == 5:
+                            table_cell_elm = elm.find_element_by_xpath('div[%d]/div[%d]/i'%(table_row_num, table_column))
+                            row[column_names[table_column - 1]] = table_cell_elm.get_property('title')
+                        else:
+                            table_cell_elm = elm.find_element_by_xpath('div[%d]/div[%d]'%(table_row_num, table_column))
+                            row[column_names[table_column - 1]] = table_cell_elm.text
+            for row in table:
+                print('S: ' + str(row))
+            return table
+        except TimeoutException as ex:
+            self.take_screenshot()
+            raise ex
 
     def get_replication_screen(self, isLeader, timeout=20):
         if isLeader:
@@ -182,6 +209,9 @@ class SeleniumRunner(ABC):
                     }
                 except StaleElementReferenceException:
                     time.sleep(1)
+                except TimeoutException as ex:
+                    self.take_screenshot()
+                    raise ex
         else:
             while True:
                 try:
@@ -227,6 +257,9 @@ class SeleniumRunner(ABC):
                     }
                 except StaleElementReferenceException:
                     time.sleep(1)
+                except TimeoutException as ex:
+                    self.take_screenshot()
+                    raise ex
 
     @abstractmethod
     def check_old(self, cfg):
