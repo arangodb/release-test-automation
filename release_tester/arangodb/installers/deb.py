@@ -146,7 +146,7 @@ class InstallerDeb(InstallerLinux):
         server_install = pexpect.spawnu(cmd)
         try:
             logging.debug("expect: user1")
-            i = server_install.expect(['user:', 'arangod.conf'])
+            i = server_install.expect(['user:', 'arangod.conf'], timeout=30)
             # there are remaints of previous installations.
             # We overwrite existing config files.
             if i == 1:
