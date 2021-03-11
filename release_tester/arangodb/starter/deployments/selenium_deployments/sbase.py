@@ -239,6 +239,10 @@ class SeleniumRunner(ABC):
                         'state_table': state_table,
                         'follower_table': follower_table,
                     }
+                except NoSuchElementException:
+                    print('S: retrying after element not found')
+                    time.sleep(1)
+                    continue
                 except StaleElementReferenceException:
                     print('S: retrying after stale element')
                     time.sleep(1)
@@ -294,6 +298,10 @@ class SeleniumRunner(ABC):
                         'state_table': state_table,
                         'follower_table': follower_table,
                     }
+                except NoSuchElementException:
+                    print('S: retrying after element not found')
+                    time.sleep(1)
+                    continue
                 except StaleElementReferenceException:
                     print('S: retrying after stale element')
                     time.sleep(1)
