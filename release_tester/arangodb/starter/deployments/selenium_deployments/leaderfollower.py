@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """ test the UI of a leader follower setup """
+import time
 from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunner
 
 class LeaderFollower(SeleniumRunner):
