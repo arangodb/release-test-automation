@@ -284,6 +284,8 @@ Starter {0.name}
         for i in self.all_instances:
             if i.is_frontend():
                 i.set_passvoid(passvoid)
+        if self.hb_instance:
+            self.hb_instance.set_passvoid(passvoid)
         self.cfg.passvoid = passvoid
 
     def get_passvoid(self):
