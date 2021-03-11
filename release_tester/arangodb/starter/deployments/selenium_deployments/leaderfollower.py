@@ -18,6 +18,7 @@ class LeaderFollower(SeleniumRunner):
         else:
             assert ver['enterprise'] == 'COMMUNITY EDITION'
 
+        time.sleep(5)
         self.navbar_goto('replication')
         replication_table = self.get_replication_screen(leader_follower, 120)
         print(replication_table)
