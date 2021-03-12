@@ -24,8 +24,8 @@ trap "docker kill $DOCKER_DEB_NAME; \
 
 version=$(git rev-parse --verify HEAD)
 
-docker build docker_deb -t $DOCKER_DEB_TAG
-docker build docker_rpm -t $DOCKER_RPM_TAG
+docker build docker_deb -t $DOCKER_DEB_TAG || exit
+docker build docker_rpm -t $DOCKER_RPM_TAG || exit
 
 docker run -itd \
        --ulimit core=-1 \
@@ -47,7 +47,7 @@ if docker exec $DOCKER_DEB_NAME \
           --no-zip $force_arg $@; then
     echo "OK"
 else
-    echo "FAILED!"
+    echo "FAILED DEB!"
     exit 1
 fi
 
@@ -71,11 +71,16 @@ docker run \
 
 if docker exec $DOCKER_RPM_NAME \
           /home/release-test-automation/release_tester/full_download_upgrade_test.py \
-          --no-zip $force_arg $@; then
+          --no-zip \
+          --selenium Chrome \
+          --selenium-driver-args headless \
+          --selenium-driver-args disable-dev-shm-usage \
+          --selenium-driver-args no-sandbox \
+          --selenium-driver-args remote-debugging-port=9222 \
+          --selenium-driver-args start-maximized \
+          $force_arg $@; then
     echo "OK"
 else
-    echo "FAILED!"
+    echo "FAILED RPM!"
     exit 1
 fi
-
-
