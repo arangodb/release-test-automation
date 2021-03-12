@@ -86,7 +86,7 @@ class SeleniumRunner(ABC):
                     'enterprise': enterprise_elem.text
                 }
                 print("S: check_version (%s) (%s)" % (ret['version'], ret['enterprise']))
-                if len(ret['version']) + len(ret['enterprise']) > 0:
+                if (len(ret['version']) > 0) and (len(ret['enterprise']) > 0):
                     return ret
                 else:
                     print('S: retry version.')
