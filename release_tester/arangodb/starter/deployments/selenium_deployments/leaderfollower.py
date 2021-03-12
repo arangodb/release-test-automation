@@ -19,10 +19,16 @@ class LeaderFollower(SeleniumRunner):
         else:
             assert ver['enterprise'] == 'COMMUNITY EDITION'
 
-        time.sleep(5)
-        self.navbar_goto('replication')
-        replication_table = self.get_replication_screen(leader_follower, 120)
-        print(replication_table)
+        count = 0
+        replication_table = None
+        while True:
+            self.navbar_goto('replication')
+            replication_table = self.get_replication_screen(leader_follower, 120)
+            print(replication_table)
+            if len(replication_table['follower_table']) == 2:
+                break
+            else:
+                time.sleep(5)
         # head and one follower should be there:
         assert len(replication_table['follower_table']) == 2
         
