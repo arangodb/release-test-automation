@@ -279,6 +279,7 @@ Starter {0.name}
     def set_passvoid(self, passvoid, write_to_server=True):
         """ set the passvoid to the managed instance """
         if write_to_server:
+            print("Provisioning passvoid " + passvoid)
             self.arangosh.js_set_passvoid('root', passvoid)
         self.passvoid = passvoid
         for i in self.all_instances:
