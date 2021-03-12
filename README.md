@@ -44,6 +44,16 @@
 ### chrome
 If your system already has a chrome / chromium the [chromedriver](https://chromedriver.chromium.org/downloads) matching your browser version has to be installed
 
+Typical arguments that may make chrome work:
+
+    --selenium Chrome
+    --selenium-driver-args headless
+    --selenium-driver-args disable-dev-shm-usage
+    --selenium-driver-args no-sandbox
+    --selenium-driver-args remote-debugging-port=9222
+    --selenium-driver-args start-maximized
+
+
 ## Windows
 
 TBD
