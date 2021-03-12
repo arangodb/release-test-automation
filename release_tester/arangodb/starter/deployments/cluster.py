@@ -97,6 +97,7 @@ db.testCollection.save({test: "document"})
         for node in self.starter_instances:
             node.set_passvoid('cluster', count == 0)
             count += 1
+        self.passvoid = 'cluster'
 
     def finish_setup_impl(self):
         self.makedata_instances = self.starter_instances[:]
