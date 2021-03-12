@@ -242,19 +242,24 @@ class SeleniumRunner(ABC):
                 except NoSuchElementException:
                     print('S: retrying after element not found')
                     time.sleep(1)
+                    retry_count += 1
                     continue
                 except StaleElementReferenceException:
                     print('S: retrying after stale element')
                     time.sleep(1)
+                    retry_count += 1
                     continue
                 except TimeoutException as ex:
+                    retry_count += 1
                     if retry_count < 5:
                         print('S: re-trying goto replication')
                         self.navbar_goto('replication')
-                        retry_count += 1
-                    else:
+                    elif retry_count > 20:
                         self.take_screenshot()
                         raise ex
+                    else:
+                        self.web.refresh()
+                        time.sleep(1)
         else:
             while True:
                 try:
@@ -301,19 +306,24 @@ class SeleniumRunner(ABC):
                 except NoSuchElementException:
                     print('S: retrying after element not found')
                     time.sleep(1)
+                    retry_count += 1
                     continue
                 except StaleElementReferenceException:
                     print('S: retrying after stale element')
                     time.sleep(1)
+                    retry_count += 1
                     continue
                 except TimeoutException as ex:
+                    retry_count += 1
                     if retry_count < 5:
                         print('S: re-trying goto replication')
                         self.navbar_goto('replication')
-                        retry_count += 1
-                    else:
+                    elif retry_count > 20:
                         self.take_screenshot()
                         raise ex
+                    else:
+                        self.web.refresh()
+                        time.sleep(1)
 
     @abstractmethod
     def check_old(self, cfg):

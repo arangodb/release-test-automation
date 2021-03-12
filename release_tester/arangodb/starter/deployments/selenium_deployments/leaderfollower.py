@@ -27,7 +27,12 @@ class LeaderFollower(SeleniumRunner):
             print(replication_table)
             if len(replication_table['follower_table']) == 2:
                 break
+            elif count % 5 == 0:
+                self.web.refresh()
+                time.sleep(5)
+                count +=1
             else:
+                count +=1
                 time.sleep(5)
         # head and one follower should be there:
         assert len(replication_table['follower_table']) == 2
