@@ -26,8 +26,8 @@ class InstanceType(IntEnum):
     syncworker = 7
 
 
-TYP_STRINGS = ["none", "none",
-               "coordinator"
+TYP_STRINGS = ["none",
+               "coordinator",
                "resilientsingle",
                "single",
                "agent",
@@ -128,11 +128,7 @@ class ArangodInstance(Instance):
 
     def __repr__(self):
         return """
-arangod instance
-    name:    {0.name}
-    type:    {0.type_str}
-    pid:     {0.pid}
-    logfile: {0.logfile}
+ {0.name}  |  {0.type_str}  | {0.pid} | {0.logfile}
 """.format(self)
 
     def get_local_url(self, login):
@@ -282,7 +278,7 @@ arangod instance
     def detect_pid(self, ppid, offset=0, full_binary_path=""):
         """ detect the instance """
         self.pid = 0
-        tries = 30
+        tries = 40
         t_start = ''
         while self.pid == 0 and tries:
 
@@ -293,6 +289,7 @@ arangod instance
                 for line in log_fh:
                     # skip empty lines
                     if line == "":
+                        time.sleep(1)
                         continue
                     if "] FATAL [" in line:
                         print('Error: ', line)
@@ -308,6 +305,7 @@ arangod instance
                 tries -=1
                 logging.info("no PID in [%s]: %s", self.logfile, last_line)
                 progress('.')
+                time.sleep(1)
                 continue
 
             # pid found now find the position of the pid in
@@ -351,6 +349,9 @@ arangod instance
                              self.pid)
                 time.sleep(1)
                 self.pid = 0  # a previous log run? retry.
+            time.sleep(1)
+            progress(':')
+
         if self.pid == 0:
             print()
             logging.error("could not get pid for instance: " + repr(self))
@@ -386,11 +387,8 @@ class SyncInstance(Instance):
     def __repr__(self):
         """ dump us """
         return """
-arangosync instance of starter
-    name:    {0.name}
-    type:    {0.type_str}
-    pid:     {0.pid}
-    logfile: {0.logfile}
+arangosync instance | type  | pid  | logfile
+      {0.name}      | {0.type_str} |  {0.pid} |  {0.logfile}
 """.format(self)
 
     def detect_pid(self, ppid, offset, full_binary_path):
