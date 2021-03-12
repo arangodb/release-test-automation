@@ -126,8 +126,6 @@ class Dc2Dc(Runner):
         self.starter_instances = [self.cluster1['instance'],
                                   self.cluster2['instance']]
 
-
-
     def starter_run_impl(self):
         def launch(cluster):
             inst = cluster["instance"]
@@ -146,7 +144,6 @@ class Dc2Dc(Runner):
             logging.info(str(reply))
             logging.info(str(reply.raw))
 
-
         launch(self.cluster1)
         launch(self.cluster2)
 
@@ -163,6 +160,11 @@ class Dc2Dc(Runner):
 
         self.makedata_instances = [ self.cluster1['instance'] ]
         self.set_frontend_instances()
+        count = 0
+        for node in self.starter_instances:
+            node.set_passvoid('dc2dc', count == 0)
+            count += 1
+        self.passvoid = 'dc2dc'
 
     def get_sync_version(self):
         """
@@ -185,26 +187,31 @@ class Dc2Dc(Runner):
 
     def test_setup_impl(self):
         self.cluster1['instance'].arangosh.check_test_data("dc2dc (post setup - dc1)")
-        # time.sleep(180) # TODO: howto detect dc2dc is completely up and running?
-        # exit(0)
+        count = 0
+        while not self.sync_manager.check_sync():
+            if count > 20:
+                raise Exception("failed to get the sync status")
+            time.sleep(10)
+            count += 1
         res = self.cluster2['instance'].arangosh.check_test_data("dc2dc (post setup - dc2)")
         if not res[0]:
             if not self.cfg.verbose:
                 print(res[1])
             raise Exception("error during verifying of "
                             "the test data on the target cluster")
-        #res = self.cluster1['instance'].arangosh.run_in_arangosh(
-        #    (
-        #        self.cfg.test_data_dir /
-        #        Path('tests/js/server/replication/fuzz/replication-fuzz-global.js')
-        #    ),
-        #    [],
-        #    [self.cluster2['instance'].get_frontend().get_public_url('')]
-        #    )
-        #if not res[0]:
-        #    if not self.cfg.verbose:
-        #        print(res[1])
-        #    raise Exception("replication fuzzing test failed")
+        res = self.cluster1['instance'].arangosh.run_in_arangosh(
+            (
+                self.cfg.test_data_dir /
+                Path('tests/js/server/replication/fuzz/replication-fuzz-global.js')
+            ),
+            [],
+            [self.cluster2['instance'].get_frontend().get_public_url(
+                'root:%s@'%self.passvoid)]
+            )
+        if not res[0]:
+            if not self.cfg.verbose:
+                print(res[1])
+            raise Exception("replication fuzzing test failed")
         if not self.sync_manager.check_sync():
             raise Exception("failed to get the sync status")
 
