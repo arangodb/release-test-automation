@@ -112,7 +112,6 @@ print("replication started")
 process.exit(0);
 """ % (str(self.leader_starter_instance.get_frontend_port()),
         self.leader_starter_instance.get_passvoid()))
-
         lh.subsubsection("prepare leader follower replication")
         arangosh_script = self.checks['beforeReplJS']
         logging.info(str(self.leader_starter_instance.execute_frontend(arangosh_script)))
@@ -197,19 +196,19 @@ process.exit(0);
         logging.info("running the replication fuzzing test")
         # add instace where makedata will be run on
         self.tcp_ping_all_nodes()
-        # ret = self.leader_starter_instance.arangosh.run_in_arangosh(
-        #     ( self.cfg.test_data_dir /
-        #       Path(
-        #           'tests/js/server/replication/fuzz/replication-fuzz-global.js')
-        #      ),
-        #     [],
-        #     [self.follower_starter_instance.get_frontend().get_public_url(
-        #         'root:%s@'%self.passvoid)]
-        #     )
-        # if not ret[0]:
-        #     if not self.cfg.verbose:
-        #         print(ret[1])
-        #     raise Exception("replication fuzzing test failed")
+        ret = self.leader_starter_instance.arangosh.run_in_arangosh(
+            ( self.cfg.test_data_dir /
+              Path(
+                  'tests/js/server/replication/fuzz/replication-fuzz-global.js')
+             ),
+            [],
+            [self.follower_starter_instance.get_frontend().get_public_url(
+                'root:%s@'%self.passvoid)]
+            )
+        if not ret[0]:
+            if not self.cfg.verbose:
+                print(ret[1])
+            raise Exception("replication fuzzing test failed")
 
         prompt_user(self.basecfg, "please test the installation.")
         if self.selenium:
