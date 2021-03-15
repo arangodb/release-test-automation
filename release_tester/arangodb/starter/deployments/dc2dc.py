@@ -251,9 +251,11 @@ class Dc2Dc(Runner):
         self.cluster2["instance"].terminate_instance()
 
     def before_backup_impl(self):
+        pass
         # self.sync_manager.stop_sync()
 
     def after_backup_impl(self):
+        pass
         #self.sync_manager.start_sync()
         #count = 0
         #while not self.sync_manager.check_sync():
