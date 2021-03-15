@@ -83,7 +83,7 @@ class SyncManager():
         args = [
             self.cfg.bin_dir / 'arangosync',
             'stop', 'sync',
-            '--master.cacert=' + str(self.certificate_auth["cert"]),
+            # '--master.cacert=' + str(self.certificate_auth["cert"]),
             '--master.endpoint=https://{url}:{port}'.format(
                 url=self.cfg.publicip,
                 port=str(self.clusterports[0])),
