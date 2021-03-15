@@ -44,6 +44,8 @@ docker run -itd \
 
 if docker exec $DOCKER_DEB_NAME \
           /home/release-test-automation/release_tester/full_download_upgrade_test.py \
+          --selenium Chrome \
+          --selenium-driver-args headless \
           --no-zip $force_arg $@; then
     echo "OK"
 else
