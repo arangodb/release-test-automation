@@ -33,3 +33,9 @@ class NoStarter(Runner):
 
     def shutdown_impl(self):
         pass
+
+    def before_backup_impl(self):
+        pass
+
+    def after_backup_impl(self):
+        pass

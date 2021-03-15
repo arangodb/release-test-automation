@@ -188,3 +188,9 @@ db.testCollection.save({test: "document"})
         for node in self.starter_instances:
             node.terminate_instance()
         logging.info('test ended')
+
+    def before_backup_impl(self):
+        pass
+
+    def after_backup_impl(self):
+        pass

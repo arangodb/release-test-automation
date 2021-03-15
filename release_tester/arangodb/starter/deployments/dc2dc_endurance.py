@@ -32,3 +32,15 @@ class Dc2DcEndurance(Dc2Dc):
                 print("SUCCESSS!")
 
         self.sync_manager.check_sync()
+
+    def before_backup_impl(self):
+        self.sync_manager.stop_sync()
+
+    def after_backup_impl(self):
+        self.sync_manager.start_sync()
+        count = 0
+        while not self.sync_manager.check_sync():
+            if count > 20:
+                raise Exception("failed to get the sync status")
+            time.sleep(10)
+            count += 1

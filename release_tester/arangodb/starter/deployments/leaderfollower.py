@@ -223,3 +223,9 @@ process.exit(0);
         if len(pslist) > 0:
             raise Exception("Not all processes terminated! [%s]" % str(pslist))
         logging.info('test ended')
+
+    def before_backup_impl(self):
+        pass
+
+    def after_backup_impl(self):
+        pass
