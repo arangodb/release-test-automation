@@ -251,14 +251,15 @@ class Dc2Dc(Runner):
         self.cluster2["instance"].terminate_instance()
 
     def before_backup_impl(self):
-
-        self.sync_manager.stop_sync()
+        pass
+        # self.sync_manager.stop_sync()
 
     def after_backup_impl(self):
-        self.sync_manager.run_syncer()
-        count = 0
-        while not self.sync_manager.check_sync():
-            if count > 20:
-                raise Exception("failed to get the sync status")
-            time.sleep(10)
-            count += 1
+        pass
+        #self.sync_manager.start_sync()
+        #count = 0
+        #while not self.sync_manager.check_sync():
+        #    if count > 20:
+        #        raise Exception("failed to get the sync status")
+        #    time.sleep(10)
+        #    count += 1
