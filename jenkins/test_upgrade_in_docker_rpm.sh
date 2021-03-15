@@ -1,15 +1,13 @@
 #!/bin/bash
 
-mkdir -p /tmp/rpm_versions /tmp/deb_versions
+mkdir -p /tmp/versions
 VERSION=$(cat VERSION.json)
 GIT_VERSION=$(git rev-parse --verify HEAD)
 if test -z "$GIT_VERSION"; then
     GIT_VERSION=$VERSION
 fi
-DOCKER_DEB_NAME=release-test-automation-deb-$(cat VERSION.json)
 DOCKER_RPM_NAME=release-test-automation-rpm-$(cat VERSION.json)
 
-DOCKER_DEB_TAG=arangodb/release-test-automation-deb:$(cat VERSION.json)
 DOCKER_RPM_TAG=arangodb/release-test-automation-rpm:$(cat VERSION.json)
 
 if test -n "$FORCE" -o "$TEST_BRANCH" != 'master'; then
@@ -17,42 +15,12 @@ if test -n "$FORCE" -o "$TEST_BRANCH" != 'master'; then
 fi
 
 
-trap "docker kill $DOCKER_DEB_NAME; \
-     docker rm $DOCKER_DEB_NAME; \
-     docker kill $DOCKER_RPM_NAME; \
+trap "docker kill $DOCKER_RPM_NAME; \
      docker rm $DOCKER_RPM_NAME;" EXIT
 
 version=$(git rev-parse --verify HEAD)
 
-docker build docker_deb -t $DOCKER_DEB_TAG || exit
 docker build docker_rpm -t $DOCKER_RPM_TAG || exit
-
-docker run -itd \
-       --ulimit core=-1 \
-       --privileged \
-       --name=$DOCKER_DEB_NAME \
-       -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
-       -v `pwd`:/home/release-test-automation \
-       -v `pwd`/package_cache/:/home/package_cache \
-       -v /tmp:/home/test_dir \
-       -v /tmp/tmp:/tmp/ \
-       -v /tmp/deb_versions:/home/versions \
-       \
-       $DOCKER_DEB_TAG \
-       \
-       /lib/systemd/systemd --system --unit=multiuser.target 
-
-if docker exec $DOCKER_DEB_NAME \
-          /home/release-test-automation/release_tester/full_download_upgrade_test.py \
-          --selenium Chrome \
-          --selenium-driver-args headless \
-          --no-zip $force_arg $@; then
-    echo "OK"
-else
-    echo "FAILED DEB!"
-    exit 1
-fi
-
 
 docker run \
        --ulimit core=-1 \
@@ -61,7 +29,7 @@ docker run \
        -v `pwd`/package_cache/:/home/package_cache \
        -v /tmp:/home/test_dir \
        -v /tmp/tmp:/tmp/ \
-       -v /tmp/rpm_versions:/home/versions \
+       -v /tmp/versions:/home/versions \
        \
        --privileged \
        --name=$DOCKER_RPM_NAME \

@@ -16,10 +16,12 @@ from tools.asciiprint import print_progress as progress
 class Cluster(Runner):
     """ this launches a cluster setup """
     # pylint: disable=R0913 disable=R0902
-    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
+    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst,
+                 selenium, selenium_driver_args):
         super().__init__(runner_type,
                          cfg, old_inst, new_cfg, new_inst,
-                         'CLUSTER', 400, 600)
+                         'CLUSTER', 400, 600,
+                         selenium, selenium_driver_args)
         #self.basecfg.frontends = []
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
@@ -91,6 +93,11 @@ db.testCollection.save({test: "document"})
             node.detect_instance_pids()
             #self.basecfg.add_frontend('http', self.basecfg.publicip, str(node.get_frontend_port()))
         logging.info("instances are ready")
+        count = 0
+        for node in self.starter_instances:
+            node.set_passvoid('cluster', count == 0)
+            count += 1
+        self.passvoid = 'cluster'
 
     def finish_setup_impl(self):
         self.makedata_instances = self.starter_instances[:]
@@ -118,6 +125,8 @@ db.testCollection.save({test: "document"})
             node.detect_instance_pids_still_alive()
 
         self.starter_instances[1].command_upgrade()
+        if self.selenium:
+            self.selenium.upgrade_deployment(self.cfg, self.new_cfg)
         self.starter_instances[1].wait_for_upgrade()
         if self.cfg.stress_upgrade:
             bench_instances[0].wait()
@@ -129,6 +138,9 @@ db.testCollection.save({test: "document"})
         self.set_frontend_instances()
 
         prompt_user(self.basecfg, "instance stopped")
+        if self.selenium:
+            self.selenium.jam_step_1(self.new_cfg if self.new_cfg else self.cfg)
+
         # respawn instance, and get its state fixed
         self.starter_instances[2].respawn_instance()
         self.set_frontend_instances()
@@ -169,8 +181,16 @@ db.testCollection.save({test: "document"})
         logging.info('dead instance is dead?')
 
         prompt_user(self.basecfg, "cluster should be up")
+        if self.selenium:
+            self.selenium.jam_step_2(self.new_cfg if self.new_cfg else self.cfg)
 
     def shutdown_impl(self):
         for node in self.starter_instances:
             node.terminate_instance()
         logging.info('test ended')
+
+    def before_backup_impl(self):
+        pass
+
+    def after_backup_impl(self):
+        pass

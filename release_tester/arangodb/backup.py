@@ -86,6 +86,13 @@ class HotBackupManager():
         if not self.backup_dir.exists():
             self.backup_dir.mkdir(parents=True)
 
+    def set_passvoid(self, passvoid):
+        """ replace the passvoid """
+        self.cfg.passvoid = passvoid
+        self.moreopts += [
+            '--server.password', str(self.cfg.passvoid),
+        ]
+
     def run_backup(self, arguments, name, silent=False):
         """ launch the starter for this instance"""
         if not silent:
