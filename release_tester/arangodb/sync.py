@@ -82,7 +82,21 @@ class SyncManager():
         """ run the stop sync command """
         args = [
             self.cfg.bin_dir / 'arangosync',
-            'abort', 'sync',
+            'stop', 'sync',
+            '--master.cacert=' + str(self.certificate_auth["cert"]),
+            '--master.endpoint=https://{url}:{port}'.format(
+                url=self.cfg.publicip,
+                port=str(self.clusterports[0])),
+            '--auth.keyfile=' + str(self.certificate_auth["clientkeyfile"])
+        ]
+        logging.info('SyncManager: stopping sync : %s', str(args))
+        psutil.Popen(args).wait()
+
+    def start_sync(self):
+        """ run the start sync command """
+        args = [
+            self.cfg.bin_dir / 'arangosync',
+            'run', 'sync',
             '--master.cacert=' + str(self.certificate_auth["cert"]),
             '--master.endpoint=https://{url}:{port}'.format(
                 url=self.cfg.publicip,

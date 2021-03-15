@@ -74,6 +74,7 @@ def run_test(old_version, new_version, verbose,
     lh.section("configuration")
     print("version: " + str(new_version))
     print("using enterpise: " + str(enterprise))
+    print("using encryption at rest: " + str(encryption_at_rest))
     print("using zip: " + str(zip_package))
     print("package directory: " + str(package_dir))
     print("mode: " + str(mode))

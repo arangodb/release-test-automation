@@ -22,6 +22,7 @@ class SeleniumRunner(ABC):
         self.web.close()
 
     def take_screenshot(self, filename='exception_screenshot.png'):
+        """ *snap* """
         #self.set_window_size(1920, total_height)
         #time.sleep(2)
         self.web.save_screenshot(filename)
@@ -40,6 +41,7 @@ class SeleniumRunner(ABC):
         self.login_webif(frontend_instance, database, cfg)
 
     def close_tab_again(self):
+        """ close a tab, and return to main window """
         self.web.close()# Switch back to the first tab with URL A
         # self.web.switch_to.window(self.web.window_handles[0])
         # print("Current Page Title is : %s" %self.web.title)
@@ -55,6 +57,7 @@ class SeleniumRunner(ABC):
         self.login_webif(frontend_instance, database, cfg)
 
     def login_webif(self, frontend_instance, database, cfg):
+        """ log into an arangodb webinterface """
         try:
             assert "ArangoDB Web Interface" in self.web.title
             elem = WebDriverWait(self.web, 10).until(
@@ -195,7 +198,8 @@ class SeleniumRunner(ABC):
                 raise ex
 
     def get_replication_screen(self, isLeader, timeout=20):
-        retry_count = 0;
+        """ fetch & parse the replication tab """
+        retry_count = 0
         if isLeader:
             while True:
                 try:
@@ -216,11 +220,11 @@ class SeleniumRunner(ABC):
                     follower_table = []
                     column_indices = [1,2,3,4,5]
                     more_lines = True
-                    th = []
+                    table_head = []
                     for i in column_indices:
-                        th.append(self.web.find_element_by_xpath(
+                        table_head.append(self.web.find_element_by_xpath(
                             '//*[@id="repl-logger-clients"]//thead//th[%d]'%i).text)
-                    follower_table.append(th)
+                    follower_table.append(table_head)
                     count = 1
                     while more_lines:
                         try:
@@ -231,7 +235,7 @@ class SeleniumRunner(ABC):
                                     count, i))
                                 row_data.append(cell.text)
                             follower_table.append(row_data)
-                        except Exception as x:
+                        except Exception:
                             print('no more lines')
                             more_lines = False
                         count += 1
@@ -295,7 +299,7 @@ class SeleniumRunner(ABC):
                                     count, i))
                                 row_data.append(cell.text)
                             follower_table.append(row_data)
-                        except Exception as x:
+                        except Exception:
                             print('no more lines')
                             more_lines = False
                         count += 1
@@ -326,7 +330,7 @@ class SeleniumRunner(ABC):
                         time.sleep(1)
 
     @abstractmethod
-    def check_old(self, cfg):
+    def check_old(self, cfg, leader_follower=True):
         """ check the integrity of the old system before the upgrade """
     @abstractmethod
     def upgrade_deployment(self, old_cfg, new_cfg):

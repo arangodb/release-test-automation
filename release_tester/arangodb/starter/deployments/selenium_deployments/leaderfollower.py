@@ -7,12 +7,12 @@ class LeaderFollower(SeleniumRunner):
     """ check the leader follower setup and its properties """
     def __init__(self, webdriver):
         super().__init__(webdriver)
-        
+
     def check_old(self, cfg, leader_follower=True):
         """ check the integrity of the old system before the upgrade """
         ver = self.detect_version()
         print('S: %s ~= %s?'% (ver['version'].lower(), str(cfg.semver)))
-        
+
         assert ver['version'].lower().startswith(str(cfg.semver))
         if cfg.enterprise:
             assert ver['enterprise'] == 'ENTERPRISE EDITION'
@@ -24,19 +24,16 @@ class LeaderFollower(SeleniumRunner):
         while True:
             self.navbar_goto('replication')
             replication_table = self.get_replication_screen(leader_follower, 120)
-            print(replication_table)
+            print('S: ' + str(replication_table))
             if len(replication_table['follower_table']) == 2:
                 break
-            elif count % 5 == 0:
+            if count % 5 == 0:
                 self.web.refresh()
-                time.sleep(5)
-                count +=1
-            else:
-                count +=1
-                time.sleep(5)
+            count +=1
+            time.sleep(5)
         # head and one follower should be there:
         assert len(replication_table['follower_table']) == 2
-        
+
     def upgrade_deployment(self, new_cfg, secondary, leader_follower):
         pass
 

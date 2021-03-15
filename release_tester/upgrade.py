@@ -30,6 +30,7 @@ def run_upgrade(old_version, new_version, verbose,
     print("old version: " + str(old_version))
     print("version: " + str(new_version))
     print("using enterpise: " + str(enterprise))
+    print("using encryption at rest: " + str(encryption_at_rest))
     print("using zip: " + str(zip_package))
     print("package directory: " + str(package_dir))
     print("starter mode: " + str(starter_mode))

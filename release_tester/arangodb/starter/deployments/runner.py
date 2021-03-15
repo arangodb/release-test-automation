@@ -128,6 +128,7 @@ class Runner(ABC):
                     str(self.name)))
             if self.hot_backup:
                 lh.section("TESTING HOTBACKUP")
+                self.before_backup()
                  # TODO generate name?
                 self.backup_name = self.create_backup("thy_name_is")
                 self.tcp_ping_all_nodes()
@@ -151,6 +152,7 @@ class Runner(ABC):
                 time.sleep(20)# TODO fix
                 self.restore_backup(backups[0])
                 self.tcp_ping_all_nodes()
+                self.after_backup()
                 self.check_data_impl()
                 if not self.check_non_backup_data():
                     raise Exception("data created after backup"
@@ -180,6 +182,7 @@ class Runner(ABC):
             self.make_data_after_upgrade()
             if self.hot_backup:
                 lh.section("TESTING HOTBACKUP AFTER UPGRADE")
+                self.before_backup()
                 backups = self.list_backup()
                 print(backups)
                 self.upload_backup(backups[0])
@@ -199,6 +202,7 @@ class Runner(ABC):
                 time.sleep(20)# TODO fix
                 self.restore_backup(backups[0])
                 self.tcp_ping_all_nodes()
+                self.after_backup()
                 if not self.check_non_backup_data():
                     raise Exception("data created after "
                                     "backup is still there??")
@@ -514,6 +518,24 @@ class Runner(ABC):
     def make_data_after_upgrade_impl(self):
         """ check the data after the upgrade """
 
+    def before_backup(self):
+        """ preparing SUT for the execution of the backup steps """
+        lh.subsection("{0} - preparing SUT for HotBackup".format(str(self.name)))
+        self.before_backup_impl()
+
+    @abstractmethod
+    def before_backup_impl(self):
+        """ preparing SUT for the execution of the backup steps """
+
+    def after_backup(self):
+        """ HotBackup has happened, prepare the SUT to continue testing """
+        lh.subsection("{0} - preparing SUT for tests after HotBackup".format(str(self.name)))
+        self.after_backup_impl()
+
+    @abstractmethod
+    def after_backup_impl(self):
+        """ HotBackup has happened, prepare the SUT to continue testing """
+        
     def create_backup(self, name):
         """ create a backup on the installation """
         for starter in self.makedata_instances:

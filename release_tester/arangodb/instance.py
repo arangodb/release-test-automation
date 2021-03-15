@@ -370,7 +370,13 @@ class ArangodRemoteInstance(ArangodInstance):
     """ represent one arangodb instance """
     # pylint: disable=R0913
     def __init__(self, typ, port, localhost, publicip, basedir, passvoid):
-        super().__init__(typ, port, localhost, publicip, passvoid, basedir)
+        super().__init__(typ,
+                         port,
+                         basedir,
+                         localhost,
+                         publicip,
+                         passvoid,
+                         basedir / 'arangod.log')
 
 class SyncInstance(Instance):
     """ represent one arangosync instance """

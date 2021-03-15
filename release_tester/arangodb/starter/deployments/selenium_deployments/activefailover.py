@@ -12,7 +12,7 @@ class ActiveFailover(SeleniumRunner):
         """ check the integrity of the old system before the upgrade """
         ver = self.detect_version()
         print('S: %s ~= %s?'% (ver['version'].lower(), str(cfg.semver)))
-        
+
         assert ver['version'].lower().startswith(str(cfg.semver))
         if cfg.enterprise:
             assert ver['enterprise'] == 'ENTERPRISE EDITION'
@@ -32,7 +32,7 @@ class ActiveFailover(SeleniumRunner):
         print('S: expecting %d followers, have %d followers'%(
             expect_follower_count, len(replication_table['follower_table']) - 1))
         assert len(replication_table['follower_table']) == expect_follower_count + 1
-        
+
     def upgrade_deployment(self, new_cfg, secondary, leader_follower):
         pass
 
