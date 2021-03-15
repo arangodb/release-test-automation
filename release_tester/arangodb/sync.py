@@ -101,7 +101,7 @@ class SyncManager():
             '--master.endpoint=https://{url}:{port}'.format(
                 url=self.cfg.publicip,
                 port=str(self.clusterports[0])),
-            '--auth.keyfile=' + str(self.certificate_auth["clientkeyfile"])
+            # '--auth.keyfile=' + str(self.certificate_auth["clientkeyfile"])
         ]
         logging.info('SyncManager: starting sync : %s', str(args))
         psutil.Popen(args).wait()
