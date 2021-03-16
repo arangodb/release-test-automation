@@ -37,7 +37,7 @@ docker run \
        -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
        -v `pwd`:/home/release-test-automation \
        -v `pwd`/package_cache/:/home/package_cache \
-       -v /tmp:/home/test_dir \
+       -v `pwd`/test_dir:/home/test_dir \
        -v /tmp/tmp:/tmp/ \
        -v `pwd`/${VERSION_TAR_NAME}:/home/versions \
        \
