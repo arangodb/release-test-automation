@@ -283,12 +283,15 @@ class ArangoshExecutor():
     def js_version_check(self):
         """ run a version check command; this can double as password check """
         logging.info("running version check")
+        semdict = dict(self.cfg.semver.to_dict())
+        version = '{major}.{minor}.{patch}'.format(**semdict)
         js_script_string = """
-            const version = db._version().substring(0,5);
+            const version = db._version().substring(0, {1});
             if (version != "{0}") {{
                 throw `version check failed: ${{version}} (current) !- {0} (requested)`
             }}
-        """.format(str(self.cfg.version)[:5])
+        """.format(version, len(version))
+
         logging.debug("script to be executed: " + str(js_script_string))
         res = self.run_command(['check version',
                                 js_script_string],
