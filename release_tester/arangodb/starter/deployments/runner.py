@@ -218,7 +218,8 @@ class Runner(ABC):
         if self.do_uninstall:
             self.uninstall(self.old_installer
                            if not self.new_installer else self.new_installer)
-        self.selenium.disconnect()
+        if self.selenium:
+            self.selenium.disconnect()
         lh.section("Runner of type {0} - Finished!".format(str(self.name)))
 
     def run_selenium(self):
