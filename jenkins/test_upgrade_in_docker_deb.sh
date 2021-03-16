@@ -1,11 +1,21 @@
 #!/bin/bash
 
-mkdir -p /tmp/versions
 VERSION=$(cat VERSION.json)
 GIT_VERSION=$(git rev-parse --verify HEAD)
 if test -z "$GIT_VERSION"; then
     GIT_VERSION=$VERSION
 fi
+if test -z "$OLD_VERSION"; then
+    OLD_VERSION=3.7.0-nightly
+fi
+if test -z "$NEW_VERSION"; then
+    NEW_VERSION=3.8.0-nightly
+fi
+
+VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_deb_version"
+mkdir -p ${VERSION_TAR_NAME}
+tar -xvf ${VERSION_TAR_NAME}.tar || true
+
 DOCKER_DEB_NAME=release-test-automation-deb-$(cat VERSION.json)
 
 DOCKER_DEB_TAG=arangodb/release-test-automation-deb:$(cat VERSION.json)
@@ -30,9 +40,9 @@ docker run -itd \
        -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
        -v `pwd`:/home/release-test-automation \
        -v `pwd`/package_cache/:/home/package_cache \
-       -v /tmp:/home/test_dir \
+       -v `pwd`/test_dir:/home/test_dir \
        -v /tmp/tmp:/tmp/ \
-       -v /tmp/versions:/home/versions \
+       -v `pwd`/${VERSION_TAR_NAME}:/home/versions \
        \
        $DOCKER_DEB_TAG \
        \
@@ -44,6 +54,7 @@ if docker exec $DOCKER_DEB_NAME \
           --selenium-driver-args headless \
           --no-zip $force_arg $@; then
     echo "OK"
+    tar -cvf ${VERSION_TAR_NAME}.tar ${VERSION_TAR_NAME}
 else
     echo "FAILED DEB!"
     exit 1

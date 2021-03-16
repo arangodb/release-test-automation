@@ -1,6 +1,5 @@
 #!/bin/bash
 
-mkdir -p /tmp/versions
 VERSION=$(cat VERSION.json)
 GIT_VERSION=$(git rev-parse --verify HEAD)
 if test -z "$GIT_VERSION"; then
@@ -9,6 +8,17 @@ fi
 DOCKER_RPM_NAME=release-test-automation-rpm-$(cat VERSION.json)
 
 DOCKER_RPM_TAG=arangodb/release-test-automation-rpm:$(cat VERSION.json)
+
+if test -z "$OLD_VERSION"; then
+    OLD_VERSION=3.7.0-nightly
+fi
+if test -z "$NEW_VERSION"; then
+    NEW_VERSION=3.8.0-nightly
+fi
+
+VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_rpm_version"
+mkdir -p ${VERSION_TAR_NAME}
+tar -xvf ${VERSION_TAR_NAME}.tar || true
 
 if test -n "$FORCE" -o "$TEST_BRANCH" != 'master'; then
   force_arg='--force'
@@ -29,7 +39,7 @@ docker run \
        -v `pwd`/package_cache/:/home/package_cache \
        -v /tmp:/home/test_dir \
        -v /tmp/tmp:/tmp/ \
-       -v /tmp/versions:/home/versions \
+       -v `pwd`/${VERSION_TAR_NAME}:/home/versions \
        \
        --privileged \
        --name=$DOCKER_RPM_NAME \
@@ -50,6 +60,7 @@ if docker exec $DOCKER_RPM_NAME \
           --selenium-driver-args start-maximized \
           $force_arg $@; then
     echo "OK"
+    tar -cvf ${VERSION_TAR_NAME}.tar ${VERSION_TAR_NAME}
 else
     echo "FAILED RPM!"
     exit 1

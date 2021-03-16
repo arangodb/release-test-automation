@@ -6,9 +6,13 @@ fi
 if test -z "$NEW_VERSION"; then
     NEW_VERSION=3.8.0-nightly
 fi
+
+VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_tar_version"
 mkdir -p package_cache
-mkdir -p versions
+mkdir -p ${VERSION_TAR_NAME}
 mkdir -p test_dir
+tar -xvf ${VERSION_TAR_NAME}.tar || true
+
 VERSION=$(cat VERSION.json)
 GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
 if test -z "$GIT_VERSION"; then
@@ -20,7 +24,6 @@ DOCKER_NAME=release-test-automation-tar-${VERSION}
 DOCKER_TAG=${DOCKER_TAG}:${VERSION}
 
 docker rm -f $DOCKER_NAME
-tar -xvf versions.tar || true
 
 if test -n "$FORCE" -o "$TEST_BRANCH" != 'master'; then
   force_arg='--force'
@@ -36,7 +39,7 @@ docker \
   -v `pwd`:/home/release-test-automation \
   -v `pwd`/test_dir:/home/test_dir \
   -v `pwd`/package_cache:/home/package_cache \
-  -v `pwd`/versions:/home/versions \
+  -v `pwd`/${VERSION_TAR_NAME}:/home/versions \
   --ulimit core=-1 \
   --init \
   $DOCKER_TAG \
@@ -46,5 +49,5 @@ docker \
       --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;") \
       $force_arg --git-version $GIT_VERSION $@
 result=$?
-tar -cvf versions.tar versions
+tar -cvf ${VERSION_TAR_NAME}.tar ${VERSION_TAR_NAME}
 exit $result
