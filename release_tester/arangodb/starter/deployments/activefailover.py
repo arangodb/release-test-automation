@@ -5,6 +5,7 @@ import time
 import logging
 import sys
 import requests
+from requests.auth import HTTPBasicAuth
 
 from arangodb.instance import InstanceType
 from arangodb.starter.manager import StarterManager
@@ -17,8 +18,10 @@ from tools.interact import prompt_user
 class ActiveFailover(Runner):
     """ This launches an active failover setup """
     # pylint: disable=R0913 disable=R0902
-    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
-        super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst, 'AFO', 500, 600)
+    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst,
+                 selenium, selenium_driver_args):
+        super().__init__(runner_type, cfg, old_inst, new_cfg,
+                         new_inst, 'AFO', 500, 600, selenium, selenium_driver_args)
         self.starter_instances = []
         self.follower_nodes = None
         self.leader = None
@@ -36,6 +39,7 @@ class ActiveFailover(Runner):
                                InstanceType.agent,
                                InstanceType.resilientsingle
                            ],
+                           jwtStr="afo",
                            moreopts=[]))
         self.starter_instances.append(
             StarterManager(self.basecfg,
@@ -46,6 +50,7 @@ class ActiveFailover(Runner):
                                InstanceType.agent,
                                InstanceType.resilientsingle
                            ],
+                           jwtStr="afo",
                            moreopts=['--starter.join', '127.0.0.1:9528']))
         self.starter_instances.append(
             StarterManager(self.basecfg,
@@ -56,6 +61,7 @@ class ActiveFailover(Runner):
                                InstanceType.agent,
                                InstanceType.resilientsingle
                            ],
+                           jwtStr="afo",
                            moreopts=['--starter.join', '127.0.0.1:9528']))
 
     def starter_run_impl(self):
@@ -89,6 +95,8 @@ class ActiveFailover(Runner):
             node.detect_instance_pids()
             if not node.is_leader:
                 self.follower_nodes.append(node)
+            node.set_passvoid('leader', node.is_leader)
+
 
         #add data to leader
         self.makedata_instances.append(self.leader)
@@ -102,21 +110,21 @@ class ActiveFailover(Runner):
         self.success = True
 
         url = self.leader.get_frontend().get_local_url('')
-        reply = requests.get(url)
+        reply = requests.get(url, auth=HTTPBasicAuth('root', self.leader.passvoid))
         logging.info(str(reply))
         if reply.status_code != 200:
             logging.info(reply.text)
             self.success = False
 
         url = self.follower_nodes[0].get_frontend().get_local_url('')
-        reply = requests.get(url)
+        reply = requests.get(url, auth=HTTPBasicAuth('root', self.leader.passvoid))
         logging.info(str(reply))
         logging.info(reply.text)
         if reply.status_code != 503:
             self.success = False
 
         url = self.follower_nodes[1].get_frontend().get_local_url('')
-        reply = requests.get(url)
+        reply = requests.get(url, auth=HTTPBasicAuth('root', self.leader.passvoid))
         logging.info(str(reply))
         logging.info(reply.text)
         if reply.status_code != 503:
@@ -142,6 +150,9 @@ class ActiveFailover(Runner):
             node.detect_instance_pids_still_alive()
         self.starter_instances[1].command_upgrade()
         self.starter_instances[1].wait_for_upgrade()
+        if self.selenium:
+            self.selenium.web.refresh() # version doesn't upgrade if we don't do this...
+            self.selenium.check_old(self.new_cfg, 2, 10)
 
     def jam_attempt_impl(self):
         self.first_leader.terminate_instance()
@@ -158,12 +169,16 @@ class ActiveFailover(Runner):
                     break
                 progress('.')
             time.sleep(1)
+        if self.selenium:
+            self.selenium.connect_server(self.leader.get_frontends(), '_system',
+                                         self.new_cfg if self.new_cfg else self.cfg)
+            self.selenium.check_old(self.new_cfg if self.new_cfg else self.cfg, 1)
         print()
 
         logging.info(str(self.new_leader))
         url = '{host}/_db/_system/_admin/aardvark/index.html#replication'.format(
             host=self.new_leader.get_frontend().get_local_url(''))
-        reply = requests.get(url)
+        reply = requests.get(url, auth=HTTPBasicAuth('root', self.leader.passvoid))
         logging.info(str(reply))
         if reply.status_code != 200:
             logging.info(reply.text)
@@ -183,7 +198,7 @@ please revalidate the UI states on the new leader; you should see *one* follower
 
         url = self.first_leader.get_frontend().get_local_url('')
 
-        reply = requests.get(url)
+        reply = requests.get(url, auth=HTTPBasicAuth('root', self.leader.passvoid))
         logging.info(str(reply))
         logging.info(str(reply.text))
 
@@ -197,9 +212,17 @@ please revalidate the UI states on the new leader; you should see *one* follower
 
         logging.info("state of this test is: %s",
                      "Success" if self.success else "Failed")
+        if self.selenium:
+            self.selenium.check_old(self.new_cfg if self.new_cfg else self.cfg, 2, 20)
 
     def shutdown_impl(self):
         for node in self.starter_instances:
             node.terminate_instance()
 
         logging.info('test ended')
+
+    def before_backup_impl(self):
+        pass
+
+    def after_backup_impl(self):
+        pass

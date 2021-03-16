@@ -2,8 +2,12 @@
 """ fetch nightly packages, process upgrade """
 from pathlib import Path
 
+import os
+import resource
 import sys
+
 import click
+
 from acquire_packages import AcquirePackages
 from upgrade import run_upgrade
 
@@ -18,12 +22,17 @@ def upgrade_package_test(verbose,
                          test_data_dir, version_state_dir,
                          remote_host, force,
                          starter_mode, stress_upgrade,
-                         publicip):
+                         publicip, selenium, selenium_driver_args):
     """ process fetch & tests """
     old_version_state = None
     new_version_state = None
     old_version_content = None
     new_version_content = None
+
+    os.chdir(test_data_dir)
+    resource.setrlimit(
+        resource.RLIMIT_CORE,
+        (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
 
     for enterprise, encryption_at_rest in [(True, True),
                                            (True, False),
@@ -57,7 +66,8 @@ def upgrade_package_test(verbose,
                     package_dir, test_data_dir,
                     enterprise, encryption_at_rest,
                     zip_package, False,
-                    starter_mode, stress_upgrade, publicip)
+                    starter_mode, stress_upgrade,
+                    publicip, selenium, selenium_driver_args)
 
     if not force:
         old_version_state.write_text(fresh_old_content)
@@ -118,6 +128,13 @@ def upgrade_package_test(verbose,
 @click.option('--publicip',
               default='127.0.0.1',
               help='IP for the click to browser hints.')
+@click.option('--selenium',
+              default='Chrome',
+              help='if non-interactive chose the selenium target')
+@click.option('--selenium-driver-args',
+              default=['headless', 'disable-dev-shm-usage'],
+              multiple=True,
+              help='options to the selenium web driver')
 # pylint: disable=R0913
 def main(verbose,
          new_version, old_version,
@@ -127,7 +144,7 @@ def main(verbose,
          test_data_dir, git_version,
          version_state_dir, remote_host,
          force, starter_mode, stress_upgrade,
-         publicip):
+         publicip, selenium, selenium_driver_args):
     """ main """
     return upgrade_package_test(verbose,
                                 new_version, old_version,
@@ -138,7 +155,7 @@ def main(verbose,
                                 version_state_dir,
                                 remote_host, force,
                                 starter_mode, stress_upgrade,
-                                publicip)
+                                publicip, selenium, selenium_driver_args)
 
 if __name__ == "__main__":
 # pylint: disable=E1120 # fix clickiness.

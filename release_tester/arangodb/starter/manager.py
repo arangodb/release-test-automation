@@ -227,6 +227,23 @@ Starter {0.name}
         self.instance = psutil.Popen(args)
         self.wait_for_logfile()
 
+    def attach_running_starter(self):
+        """ somebody else is running the party, but we also want to have a look """
+        match_str = "--starter.data-dir={0.basedir}".format(self)
+        for process in psutil.process_iter(['pid', 'name']):
+            try:
+                name = process.name()
+                if name.startswith('arangodb'):
+                    process = psutil.Process(process.pid)
+                    if any(match_str in s for s in process.cmdline()):
+                        print(process.cmdline())
+                        print('attaching ' + str(process.pid))
+                        self.instance = process
+                        return
+            except Exception as ex:
+                logging.error(ex)
+        raise Exception("didn't find a starter for " + match_str)
+
     def get_jwt_token_from_secret_file(self, filename):
         """ retrieve token from the JWT secret file which is cached for the future use """
         if self.jwt_tokens and self.jwt_tokens[filename]:
@@ -258,6 +275,23 @@ Starter {0.name}
             return self.jwt_header
         self.jwt_header = self.get_jwt_token_from_secret_file(self.jwtfile)
         return self.jwt_header
+
+    def set_passvoid(self, passvoid, write_to_server=True):
+        """ set the passvoid to the managed instance """
+        if write_to_server:
+            print("Provisioning passvoid " + passvoid)
+            self.arangosh.js_set_passvoid('root', passvoid)
+        self.passvoid = passvoid
+        for i in self.all_instances:
+            if i.is_frontend():
+                i.set_passvoid(passvoid)
+        if self.hb_instance:
+            self.hb_instance.set_passvoid(passvoid)
+        self.cfg.passvoid = passvoid
+
+    def get_passvoid(self):
+        """ get the passvoid to the managed instance """
+        return self.passvoid
 
     def send_request(self, instance_type, verb_method,
                      url, data=None, headers={}):
@@ -598,7 +632,8 @@ Starter {0.name}
                                                   match.group(2),
                                                   self.cfg.localhost,
                                                   self.cfg.publicip,
-                                                  Path(root) / name)
+                                                  Path(root) / name,
+                                                  self.passvoid)
                         instance.wait_for_logfile(tries)
                         instance.detect_pid(
                             ppid=self.instance.pid,
@@ -651,6 +686,7 @@ Starter {0.name}
 
             self.arangosh = ArangoshExecutor(self.cfg, self.get_frontend())
             if self.cfg.hot_backup:
+                self.cfg.passvoid = self.passvoid
                 self.hb_instance = HotBackupManager(
                     self.cfg,
                     self.raw_basedir,
@@ -764,7 +800,8 @@ class StarterNonManager(StarterManager):
                                      # self.cfg.localhost,
                                      basecfg.frontends[basecfg.index].ip,
                                      basecfg.frontends[basecfg.index].ip,
-                                     Path('/'))
+                                     Path('/'),
+                                     self.cfg.passvoid)
         self.all_instances.append(inst)
         basecfg.index += 1
 

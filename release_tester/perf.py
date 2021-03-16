@@ -65,10 +65,18 @@ logging.basicConfig(
 @click.option('--frontends',
               multiple=True,
               help='Connection strings of remote clusters')
+@click.option('--selenium',
+              default='none',
+              help='if non-interactive chose the selenium target')
+@click.option('--selenium-driver-args',
+              default=[],
+              multiple=True,
+              help='options to the selenium web driver')
 # pylint: disable=R0913
 def run_test(old_version, new_version, verbose, package_dir, test_data_dir,
              enterprise, encryption_at_rest, zip_package,
-             interactive, mode, starter_mode, publicip, scenario, frontends):
+             interactive, mode, starter_mode, publicip, scenario, frontends,
+             selenium, selenium_driver_args):
     """ main """
     lh.section("configuration")
     print("version: " + str(new_version))
@@ -117,7 +125,7 @@ def run_test(old_version, new_version, verbose, package_dir, test_data_dir,
                                   host_parts[2],
                                   host_parts[3])
     inst.cfg.scenario = Path(scenario)
-    runner = ClusterPerf(RunnerType.CLUSTER, inst.cfg, inst, None, None)
+    runner = ClusterPerf(RunnerType.CLUSTER, inst.cfg, inst, None, None, selenium, selenium_driver_args)
     runner.do_install = do_install
     runner.do_uninstall = do_uninstall
     failed = False

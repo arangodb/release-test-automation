@@ -37,6 +37,7 @@ docker \
   -v `pwd`/test_dir:/home/test_dir \
   -v `pwd`/package_cache:/home/package_cache \
   -v `pwd`/versions:/home/versions \
+  --ulimit core=-1 \
   --init \
   $DOCKER_TAG \
     /home/release-test-automation/release_tester/full_download_upgrade_test.py \

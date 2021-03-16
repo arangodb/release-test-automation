@@ -14,9 +14,10 @@ from tools.asciiprint import print_progress as progress
 class LeaderFollower(Runner):
     """ this runs a leader / Follower setup with synchronisation """
     # pylint: disable=R0913 disable=R0902
-    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst):
+    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst,
+                 selenium, selenium_driver_args):
         super().__init__(runner_type, cfg, old_inst, new_cfg,
-                         new_inst, 'lf', 400, 500)
+                         new_inst, 'lf', 400, 500, selenium, selenium_driver_args)
 
         self.leader_starter_instance = None
         self.follower_starter_instance = None
@@ -59,6 +60,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
             expect_instances=[
                 InstanceType.single
             ],
+            jwtStr="leader",
             moreopts=[])
         self.leader_starter_instance.is_leader = True
 
@@ -68,6 +70,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
             expect_instances=[
                 InstanceType.single
             ],
+            jwtStr="follower",
             moreopts=[])
 
     def starter_run_impl(self):
@@ -79,6 +82,12 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
 
         self.leader_starter_instance.detect_instance_pids()
         self.follower_starter_instance.detect_instance_pids()
+
+        self.passvoid = 'leader'
+        self.leader_starter_instance.set_passvoid(self.passvoid)
+        # the replication will overwrite this passvoid anyways:
+        self.follower_starter_instance.set_passvoid(self.passvoid)
+
         self.starter_instances = [self.leader_starter_instance,
                                   self.follower_starter_instance]
 
@@ -93,7 +102,7 @@ print(
 require("@arangodb/replication").setupReplicationGlobal({
     endpoint: "tcp://127.0.0.1:%s",
     username: "root",
-    password: "",
+    password: "%s",
     verbose: false,
     includeSystem: true,
     incremental: true,
@@ -101,8 +110,8 @@ require("@arangodb/replication").setupReplicationGlobal({
     }));
 print("replication started")
 process.exit(0);
-""" % (str(self.leader_starter_instance.get_frontend_port())))
-
+""" % (str(self.leader_starter_instance.get_frontend_port()),
+        self.leader_starter_instance.get_passvoid()))
         lh.subsubsection("prepare leader follower replication")
         arangosh_script = self.checks['beforeReplJS']
         logging.info(str(self.leader_starter_instance.execute_frontend(arangosh_script)))
@@ -141,6 +150,14 @@ process.exit(0);
 
         lh.subsection("leader/follower - check test data", "-")
 
+        if self.selenium:
+            self.selenium.connect_server_new_tab(
+                self.follower_starter_instance.get_frontends(),
+                '_system', self.cfg)
+            self.selenium.check_old(self.new_cfg if self.new_cfg else self.cfg,
+                                    False)
+            self.selenium.close_tab_again()
+
         #assert that data has been replicated
         self.follower_starter_instance.arangosh.read_only = True
         self.makedata_instances.append(self.follower_starter_instance)
@@ -164,6 +181,16 @@ process.exit(0);
             node.detect_instances()
             node.wait_for_version_reply()
 
+        if self.selenium:
+            self.selenium.web.refresh()
+            self.selenium.check_old(self.new_cfg, True)
+
+            self.selenium.connect_server_new_tab(
+                self.follower_starter_instance.get_frontends(),
+                '_system', self.cfg)
+            self.selenium.check_old(self.new_cfg, False)
+            self.selenium.close_tab_again()
+
     def jam_attempt_impl(self):
         """ run the replication fuzzing test """
         logging.info("running the replication fuzzing test")
@@ -175,7 +202,8 @@ process.exit(0);
                   'tests/js/server/replication/fuzz/replication-fuzz-global.js')
              ),
             [],
-            [self.follower_starter_instance.get_frontend().get_public_url('')]
+            [self.follower_starter_instance.get_frontend().get_public_url(
+                'root:%s@'%self.passvoid)]
             )
         if not ret[0]:
             if not self.cfg.verbose:
@@ -183,12 +211,20 @@ process.exit(0);
             raise Exception("replication fuzzing test failed")
 
         prompt_user(self.basecfg, "please test the installation.")
+        if self.selenium:
+            self.selenium.jam_step_1(self.cfg if self.cfg else self.new_cfg)
 
 
     def shutdown_impl(self):
         self.leader_starter_instance.terminate_instance()
         self.follower_starter_instance.terminate_instance()
-        pslist = get_all_processes()
+        pslist = get_all_processes(False)
         if len(pslist) > 0:
             raise Exception("Not all processes terminated! [%s]" % str(pslist))
         logging.info('test ended')
+
+    def before_backup_impl(self):
+        pass
+
+    def after_backup_impl(self):
+        pass

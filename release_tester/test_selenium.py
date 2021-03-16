@@ -30,7 +30,6 @@ def run_upgrade(old_version, new_version, verbose,
     print("old version: " + str(old_version))
     print("version: " + str(new_version))
     print("using enterpise: " + str(enterprise))
-    print("using encryption at rest: " + str(encryption_at_rest))
     print("using zip: " + str(zip_package))
     print("package directory: " + str(package_dir))
     print("starter mode: " + str(starter_mode))
@@ -67,7 +66,6 @@ def run_upgrade(old_version, new_version, verbose,
 
     for runner_type in starter_mode:
 
-        kill_all_processes()
         install_config_old = InstallerConfig(old_version,
                                              verbose,
                                              enterprise,
@@ -92,7 +90,7 @@ def run_upgrade(old_version, new_version, verbose,
                                              interactive,
                                              stress_upgrade)
         new_inst = make_installer(install_config_new)
-
+        install_config_old.add_frontend("http", "127.0.0.1", "8529")
         runner = None
         if runner_type:
             runner = make_runner(runner_type,
@@ -104,14 +102,8 @@ def run_upgrade(old_version, new_version, verbose,
                                  new_inst)
 
             if runner:
-                runner.run()
+                runner.run_selenium()
 
-        lh.section("uninstall")
-        new_inst.un_install_package()
-        lh.section("check system")
-        new_inst.check_uninstall_cleanup()
-        lh.section("remove residuals")
-        new_inst.cleanup_system()
 
 @click.command()
 @click.option('--old-version', help='old ArangoDB version number.', default="3.7.0-nightly")
@@ -165,8 +157,7 @@ def main(old_version, new_version, verbose,
          package_dir, test_data_dir,
          enterprise, encryption_at_rest,
          zip_package, interactive,
-         starter_mode, stress_upgrade,
-         publicip, selenium, selenium_driver_args):
+         starter_mode, stress_upgrade, publicip, selenium, selenium_driver_args):
     """ main trampoline """
     return run_upgrade(old_version, new_version, verbose,
                        package_dir, test_data_dir,

@@ -61,7 +61,7 @@ class ArangoshExecutor():
         ]
 
         run_cmd += [ "--server.username", str(self.cfg.username) ]
-        run_cmd += [ "--server.password", str(self.cfg.passvoid) ]
+        run_cmd += [ "--server.password", str(self.connect_instance.get_passvoid()) ]
 
         # if self.cfg.username:
         #    run_cmd += [ "--server.username", str(self.cfg.username) ]
@@ -120,7 +120,7 @@ class ArangoshExecutor():
         ]
 
         run_cmd += [ "--server.username", str(self.cfg.username) ]
-        run_cmd += [ "--server.password", str(self.cfg.passvoid) ]
+        run_cmd += [ "--server.password", str(self.connect_instance.get_passvoid()) ]
 
         # if self.cfg.username:
         #    run_cmd += [ "--server.username", str(self.cfg.username) ]
@@ -163,7 +163,7 @@ class ArangoshExecutor():
         if process_control:
             run_cmd += ['--javascript.allow-external-process-control', 'true']
         run_cmd += [ "--server.username", str(self.cfg.username) ]
-        run_cmd += [ "--server.password", str(self.cfg.passvoid) ]
+        run_cmd += [ "--server.password", str(self.connect_instance.get_passvoid()) ]
 
         run_cmd += [ "--javascript.execute", str(cmd[1]) ]
 
@@ -300,6 +300,22 @@ class ArangoshExecutor():
                                     self.cfg.interactive)
         return res
 
+    def js_set_passvoid(self, user, passvoid):
+        """ connect to the instance, and set a passvoid for the user """
+        js_set_passvoid_str = 'require("org/arangodb/users").update("%s", "%s");'% (
+            user, passvoid)
+        logging.debug("script to be executed: " + str(js_set_passvoid_str))
+        res = self.run_command(['set passvoid',
+                                js_set_passvoid_str],
+                               self.cfg.verbose)
+        logging.debug("set passvoid check result: " + str(res))
+
+        if not res:
+            eh.ask_continue_or_exit("setting passvoid failed",
+                                    self.cfg.interactive)
+        return res
+
+    
     def hotbackup_create_nonbackup_data(self):
         """
         create a collection with documents after taking a backup
