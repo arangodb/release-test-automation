@@ -52,6 +52,7 @@ if docker exec $DOCKER_DEB_NAME \
           /home/release-test-automation/release_tester/full_download_upgrade_test.py \
           --selenium Chrome \
           --selenium-driver-args headless \
+          --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;") \
           --no-zip $force_arg $@; then
     echo "OK"
     tar -cvf ${VERSION_TAR_NAME}.tar ${VERSION_TAR_NAME}
