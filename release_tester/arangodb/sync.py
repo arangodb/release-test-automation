@@ -82,7 +82,7 @@ class SyncManager():
         """ run the stop sync command """
         args = [
             self.cfg.bin_dir / 'arangosync',
-            'stop', 'sync',
+            'abort', 'sync',
             '--master.endpoint=https://{url}:{port}'.format(
                 url=self.cfg.publicip,
                 port=str(self.clusterports[0])),
