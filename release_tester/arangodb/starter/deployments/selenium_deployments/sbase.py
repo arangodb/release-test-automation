@@ -77,7 +77,7 @@ class SeleniumRunner(ABC):
             elem = WebDriverWait(self.web, 15).until(
                 EC.presence_of_element_located((By.ID, "goToDatabase"))
             )
-            time.sleep(1)
+            time.sleep(2)
             elem.click()
             print("S: we're in!")
 
