@@ -73,11 +73,11 @@ class SeleniumRunner(ABC):
             elem.clear()
             elem.send_keys(frontend_instance[0].get_passvoid())
             elem.send_keys(Keys.RETURN)
-            time.sleep(3)
             print("S: logging in")
-            elem = WebDriverWait(self.web, 10).until(
+            elem = WebDriverWait(self.web, 15).until(
                 EC.presence_of_element_located((By.ID, "goToDatabase"))
             )
+            time.sleep(1)
             elem.click()
             print("S: we're in!")
 
