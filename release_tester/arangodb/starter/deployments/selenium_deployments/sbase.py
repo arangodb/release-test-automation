@@ -36,7 +36,9 @@ class SeleniumRunner(ABC):
         # Open a new window
         self.web.execute_script("window.open('');")
         self.web.switch_to.window(self.web.window_handles[1])
-        self.web.get("http://" + frontend_instance[0].get_public_plain_url() + "/_db/_system/_admin/aardvark/index.html")
+        self.web.get("http://" +
+                     frontend_instance[0].get_public_plain_url() +
+                     "/_db/_system/_admin/aardvark/index.html")
 
         self.login_webif(frontend_instance, database, cfg)
 
@@ -53,7 +55,9 @@ class SeleniumRunner(ABC):
         """ login... """
         print("S: Opening page")
         print(frontend_instance[0].get_public_plain_url())
-        self.web.get("http://" + frontend_instance[0].get_public_plain_url() + "/_db/_system/_admin/aardvark/index.html")
+        self.web.get("http://" +
+                     frontend_instance[0].get_public_plain_url() +
+                     "/_db/_system/_admin/aardvark/index.html")
         self.login_webif(frontend_instance, database, cfg)
 
     def login_webif(self, frontend_instance, database, cfg):
@@ -71,7 +75,11 @@ class SeleniumRunner(ABC):
             elem.send_keys(Keys.RETURN)
             time.sleep(3)
             print("S: logging in")
-            elem = self.web.find_element_by_id("goToDatabase").click()
+            elem = WebDriverWait(self.web, 10).until(
+                EC.presence_of_element_located((By.ID, "goToDatabase"))
+            )
+            elem.click()
+            print("S: we're in!")
 
             assert "No results found." not in self.web.page_source
         except TimeoutException as ex:
