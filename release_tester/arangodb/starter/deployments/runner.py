@@ -129,7 +129,6 @@ class Runner(ABC):
                     str(self.name)))
             if self.hot_backup:
                 lh.section("TESTING HOTBACKUP")
-                self.before_backup()
                  # TODO generate name?
                 self.backup_name = self.create_backup("thy_name_is")
                 self.tcp_ping_all_nodes()
@@ -150,6 +149,7 @@ class Runner(ABC):
                 if backups[0] != self.backup_name:
                     raise Exception("downloaded backup has different name? " +
                                     str(backups))
+                self.before_backup()
                 self.restore_backup(backups[0])
                 self.tcp_ping_all_nodes()
                 self.after_backup()
@@ -182,7 +182,6 @@ class Runner(ABC):
             self.make_data_after_upgrade()
             if self.hot_backup:
                 lh.section("TESTING HOTBACKUP AFTER UPGRADE")
-                self.before_backup()
                 backups = self.list_backup()
                 print(backups)
                 self.upload_backup(backups[0])
@@ -200,6 +199,7 @@ class Runner(ABC):
                     raise Exception("downloaded backup has different name? " +
                                     str(backups))
                 time.sleep(20)# TODO fix
+                self.before_backup()
                 self.restore_backup(backups[0])
                 self.tcp_ping_all_nodes()
                 self.after_backup()
