@@ -81,6 +81,7 @@ class Runner(ABC):
         self.hot_backup = ( cfg.hot_backup and
                             self.supports_backup_impl() and
                             self.old_installer.supports_hot_backup() )
+        self.backup_instance_count = 3
         # starter instances that make_data wil run on
         # maybe it would be better to work directly on
         # frontends
@@ -149,7 +150,6 @@ class Runner(ABC):
                 if backups[0] != self.backup_name:
                     raise Exception("downloaded backup has different name? " +
                                     str(backups))
-                time.sleep(20)# TODO fix
                 self.restore_backup(backups[0])
                 self.tcp_ping_all_nodes()
                 self.after_backup()
@@ -589,8 +589,8 @@ class Runner(ABC):
             assert starter.hb_instance
             hb_id = starter.hb_instance.upload(name, starter.hb_config, "12345")
             return starter.hb_instance.upload_status(name,
-                                                     starter.hb_config,
-                                                     hb_id)
+                                                     hb_id,
+                                                     self.backup_instance_count)
         raise Exception("no frontend found.")
 
     def download_backup(self, name):
@@ -603,8 +603,8 @@ class Runner(ABC):
                                                  starter.hb_config,
                                                  "12345")
             return starter.hb_instance.upload_status(name,
-                                                     starter.hb_config,
-                                                     hb_id)
+                                                     hb_id,
+                                                     self.backup_instance_count)
         raise Exception("no frontend found.")
 
     def cleanup(self):
