@@ -142,7 +142,6 @@ class HotBackupManager():
 
     def restore(self, backup_name):
         """ restore an existing hot backup """
-        time.sleep(6) #TODO: remove this workaround
         args = ['restore', '--identifier', backup_name]
         self.run_backup(args, backup_name)
 
@@ -168,26 +167,41 @@ class HotBackupManager():
                 return match.group(1)
         raise Exception("couldn't locate name of the upload process!")
 
-    def upload_status(self, backup_name,
-                      backup_config: HotBackupConfig,
-                      status_id):
+    def upload_status(self,
+                      backup_name: str,
+                      status_id: str,
+                      instance_count: int):
         """ checking the progress of up/download """
         args = [
             'upload',
             '--status-id', status_id,
         ]
         while True:
-            time.sleep(1)
             out = self.run_backup(args, backup_name, True)
             progress('.')
+            counts = {
+                'ACK': 0,
+                'STARTED': 0,
+                'COMPLETED': 0,
+                'FAILED': 0,
+                'CANCELLED': 0
+            }
             for line in out:
                 match = re.match(r".*Status: (.*)'", str(line))
                 if match:
-                    if match.group(1) == 'FAILED':
-                        raise Exception("failed to create backup: " + str(out))
-                    if match.group(1) == 'COMPLETED':
-                        print()
-                        return
+                    which = match.group(1)
+                    try:
+                        counts[which] += 1
+                    except AttributeError:
+                        print("Line with unknown status [%s]: %s %s"
+                              %(which, line, str(counts)))
+
+            if counts['COMPLETED'] == instance_count:
+                return
+            if counts['FAILED'] > 0:
+                raise Exception("failed to create backup: " + str(out))
+            print("have to retry. " + str(counts) + " - " + str(instance_count))
+            time.sleep(1)
 
     def download(self, backup_name, backup_config: HotBackupConfig, identifier):
         """ download a backup using rclone on the server """

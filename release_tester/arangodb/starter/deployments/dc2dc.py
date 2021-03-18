@@ -215,6 +215,10 @@ class Dc2Dc(Runner):
         if not self.sync_manager.check_sync():
             raise Exception("failed to get the sync status")
 
+    def wait_for_restore_impl(self, backup_starter):
+        for dbserver in self.cluster1["instance"].get_dbservers():
+            dbserver.detect_restore_restart()
+
     def upgrade_arangod_version_impl(self):
         """ upgrade this installation """
         self.sync_manager.replace_binary_for_upgrade(self.new_cfg)

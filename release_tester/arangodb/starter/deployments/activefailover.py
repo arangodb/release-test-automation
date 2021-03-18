@@ -28,6 +28,7 @@ class ActiveFailover(Runner):
         self.first_leader = None
         self.new_leader = None
         self.success = True
+        self.backup_instance_count = 1
 
     def starter_prepare_env_impl(self):
         self.starter_instances.append(
