@@ -275,6 +275,13 @@ class ArangodInstance(Instance):
             progress(',')
             time.sleep(0.1)
 
+    def detect_fatal_errors(self):
+        with open(self.logfile) as log_fh:
+            for line in log_fh:
+                if "] FATAL [" in line:
+                    print('Error: ', line)
+                    raise Exception("FATAL error found in arangod.log: " + line)
+
     def detect_pid(self, ppid, offset=0, full_binary_path=""):
         """ detect the instance """
         self.pid = 0
@@ -293,7 +300,7 @@ class ArangodInstance(Instance):
                         continue
                     if "] FATAL [" in line:
                         print('Error: ', line)
-                        raise Exception("FATAL error found in arangod.log.")
+                        raise Exception("FATAL error found in arangod.log: " + line)
                     # save last line and append to string
                     # (why not slurp the whole file?)
                     last_line = line

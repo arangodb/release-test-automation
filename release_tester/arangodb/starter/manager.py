@@ -218,7 +218,6 @@ Starter {0.name}
             print(" - {0.name} (pid: {0.pid})".format(instance))
         logging.info("------------------------")
 
-
     def run_starter(self):
         """ launch the starter for this instance"""
         logging.info("running starter " + self.name)
@@ -677,6 +676,11 @@ Starter {0.name}
         self.show_all_instances()
         self.detect_arangosh_instances()
 
+    def detect_fatal_errors(self):
+        """ scan all instances for `FATAL` statements """
+        for instance in self.all_instances:
+            instance.detect_fatal_errors()
+        
     def detect_arangosh_instances(self):
         """
         gets the arangosh instance to speak to the frontend of this starter

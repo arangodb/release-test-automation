@@ -215,6 +215,8 @@ class Runner(ABC):
             self.test_setup()
             self.jam_attempt()
             self.starter_shutdown()
+            for starter in self.starter_instances:
+                starter.detect_fatal_errors()
         if self.do_uninstall:
             self.uninstall(self.old_installer
                            if not self.new_installer else self.new_installer)
