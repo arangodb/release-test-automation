@@ -25,6 +25,7 @@ class Dc2Dc(Runner):
         self.cluster1 = {}
         self.cluster2 = {}
         self.certificate_auth = {}
+        # self.hot_backup = False
 
     def starter_prepare_env_impl(self):
         def cert_op(args):
@@ -240,6 +241,7 @@ class Dc2Dc(Runner):
 
         self.cluster1["instance"].detect_instances()
         self.cluster2["instance"].detect_instances()
+        self.sync_manager.run_syncer()
 
         self.sync_manager.check_sync_status(0)
         self.sync_manager.check_sync_status(1)
@@ -260,7 +262,7 @@ class Dc2Dc(Runner):
         self.sync_manager.run_syncer()
         count = 0
         while not self.sync_manager.check_sync():
-            if count > 20:
-                raise Exception("failed to get the sync status")
+            # if count > 20:
+            #    raise Exception("failed to get the sync status")
             time.sleep(10)
             count += 1
