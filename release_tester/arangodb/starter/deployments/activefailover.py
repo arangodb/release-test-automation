@@ -173,7 +173,7 @@ class ActiveFailover(Runner):
         if self.selenium:
             self.selenium.connect_server(self.leader.get_frontends(), '_system',
                                          self.new_cfg if self.new_cfg else self.cfg)
-            self.selenium.check_old(self.new_cfg if self.new_cfg else self.cfg, 1)
+            self.selenium.check_old(self.new_cfg if self.new_cfg else self.cfg, 10)
         print()
 
         logging.info(str(self.new_leader))

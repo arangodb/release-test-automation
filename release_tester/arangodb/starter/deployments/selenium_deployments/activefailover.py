@@ -8,7 +8,7 @@ class ActiveFailover(SeleniumRunner):
     def __init__(self, webdriver):
         super().__init__(webdriver)
 
-    def check_old(self, cfg, expect_follower_count=2, retry_count=1):
+    def check_old(self, cfg, expect_follower_count=2, retry_count=10):
         """ check the integrity of the old system before the upgrade """
         ver = self.detect_version()
         print('S: %s ~= %s?'% (ver['version'].lower(), str(cfg.semver)))
