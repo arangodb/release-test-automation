@@ -64,15 +64,15 @@ class SeleniumRunner(ABC):
         """ log into an arangodb webinterface """
         try:
             assert "ArangoDB Web Interface" in self.web.title
-            elem = WebDriverWait(self.web, 10).until(
+            logname = WebDriverWait(self.web, 10).until(
                 EC.presence_of_element_located((By.ID, "loginUsername"))
             )
-            elem.clear()
-            elem.send_keys("root")
-            elem = self.web.find_element_by_id("loginPassword")
-            elem.clear()
-            elem.send_keys(frontend_instance[0].get_passvoid())
-            elem.send_keys(Keys.RETURN)
+            logname.clear()
+            logname.send_keys("root")
+            passvoid = self.web.find_element_by_id("loginPassword")
+            passvoid.clear()
+            passvoid.send_keys(frontend_instance[0].get_passvoid())
+            passvoid.send_keys(Keys.RETURN)
             print("S: logging in")
             count = 0
             while True:
