@@ -74,13 +74,22 @@ class SeleniumRunner(ABC):
             elem.send_keys(frontend_instance[0].get_passvoid())
             elem.send_keys(Keys.RETURN)
             print("S: logging in")
+            count = 0
             while True:
+                count += 1
                 elem = WebDriverWait(self.web, 15).until(
                     EC.presence_of_element_located((By.ID, "loginDatabase"))
                 )
                 txt = elem.text
                 if txt.find('_system') < 0:
+                    if count < 9:
+                        self.take_screenshot)
                     print('S: _system not found in ' + txt + ' ; retrying!')
+                    if count %10 == 0:
+                        print('S: refreshing webpage.')
+                        self.web.refresh()
+                    if count > 100:
+                        raise Exception('failed to locate "_system" in the login dialog')
                     time.sleep(2)
                 else:
                     break
