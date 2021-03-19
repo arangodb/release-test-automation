@@ -64,18 +64,36 @@ class SeleniumRunner(ABC):
         """ log into an arangodb webinterface """
         try:
             assert "ArangoDB Web Interface" in self.web.title
-            elem = WebDriverWait(self.web, 10).until(
+            logname = WebDriverWait(self.web, 10).until(
                 EC.presence_of_element_located((By.ID, "loginUsername"))
             )
-            elem.clear()
-            elem.send_keys("root")
-            elem = self.web.find_element_by_id("loginPassword")
-            elem.clear()
-            elem.send_keys(frontend_instance[0].get_passvoid())
-            elem.send_keys(Keys.RETURN)
-            time.sleep(3)
+            logname.clear()
+            logname.send_keys("root")
+            passvoid = self.web.find_element_by_id("loginPassword")
+            passvoid.clear()
+            passvoid.send_keys(frontend_instance[0].get_passvoid())
+            passvoid.send_keys(Keys.RETURN)
             print("S: logging in")
-            elem = WebDriverWait(self.web, 10).until(
+            count = 0
+            while True:
+                count += 1
+                elem = WebDriverWait(self.web, 15).until(
+                    EC.presence_of_element_located((By.ID, "loginDatabase"))
+                )
+                txt = elem.text
+                if txt.find('_system') < 0:
+                    if count < 9:
+                        self.take_screenshot()
+                    print('S: _system not found in ' + txt + ' ; retrying!')
+                    if count %10 == 0:
+                        print('S: refreshing webpage.')
+                        self.web.refresh()
+                    if count > 100:
+                        raise Exception('failed to locate "_system" in the login dialog')
+                    time.sleep(2)
+                else:
+                    break
+            elem = WebDriverWait(self.web, 15).until(
                 EC.presence_of_element_located((By.ID, "goToDatabase"))
             )
             elem.click()
@@ -151,9 +169,13 @@ class SeleniumRunner(ABC):
         ret = {}
         while True:
             try:
-                elm = WebDriverWait(self.web, timeout).until(
-                    EC.presence_of_element_located((By.XPATH, '//*[@id="clusterCoordinators"]'))
-                )
+                elm = None
+                elm_accepted = False
+                while not elm_accepted:
+                    elm = WebDriverWait(self.web, timeout).until(
+                        EC.presence_of_element_located((By.XPATH, '//*[@id="clusterCoordinators"]'))
+                    )
+                    elm_accepted = len(elm.text) > 0
                 # elm = self.web.find_element_by_xpath('//*[@id="clusterCoordinators"]')
                 ret['coordinators'] = elm.text
                 elm = self.web.find_element_by_xpath('//*[@id="clusterDBServers"]')
