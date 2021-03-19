@@ -4,7 +4,7 @@
 from selenium import webdriver
 from arangodb.starter.deployments import RunnerType
 from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunner
-
+from selenium.common.exceptions import SessionNotCreatedException
 #pylint: disable=import-outside-toplevel
 def init(runner_type: RunnerType,
          selenium_worker: str,
@@ -25,7 +25,17 @@ def init(runner_type: RunnerType,
         for opt in selenium_driver_args:
             options.add_argument('--' + opt)
     # kwargs['service_log_path'] = "/tmp/abcd123.log"
-    driver = driver_func(**kwargs)
+    driver = None
+    count = 0
+    while driver == None and count < 10:
+        count += 1
+        try:
+            driver = driver_func(**kwargs)
+        except SessionNotCreatedException as ex:
+            if count == 10:
+                raise ex
+            print('S: retrying to launch browser')
+            time.sleep(2)
     if selenium_worker.lower() == 'chrome':
         original_size = driver.get_window_size()
         required_width = driver.execute_script('return document.body.parentNode.scrollWidth')

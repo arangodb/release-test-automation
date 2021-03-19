@@ -83,7 +83,7 @@ class SeleniumRunner(ABC):
                 txt = elem.text
                 if txt.find('_system') < 0:
                     if count < 9:
-                        self.take_screenshot)
+                        self.take_screenshot()
                     print('S: _system not found in ' + txt + ' ; retrying!')
                     if count %10 == 0:
                         print('S: refreshing webpage.')
