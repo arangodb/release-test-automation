@@ -160,9 +160,13 @@ class SeleniumRunner(ABC):
         ret = {}
         while True:
             try:
-                elm = WebDriverWait(self.web, timeout).until(
-                    EC.presence_of_element_located((By.XPATH, '//*[@id="clusterCoordinators"]'))
-                )
+                elm = None
+                elm_accepted = False
+                while not elm_accepted:
+                    elm = WebDriverWait(self.web, timeout).until(
+                        EC.presence_of_element_located((By.XPATH, '//*[@id="clusterCoordinators"]'))
+                    )
+                    elm_accepted = len(elm.text) > 0
                 # elm = self.web.find_element_by_xpath('//*[@id="clusterCoordinators"]')
                 ret['coordinators'] = elm.text
                 elm = self.web.find_element_by_xpath('//*[@id="clusterDBServers"]')
