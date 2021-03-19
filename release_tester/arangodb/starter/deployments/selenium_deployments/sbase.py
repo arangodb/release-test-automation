@@ -69,10 +69,19 @@ class SeleniumRunner(ABC):
             )
             logname.clear()
             logname.send_keys("root")
-            passvoid = self.web.find_element_by_id("loginPassword")
-            passvoid.clear()
-            passvoid.send_keys(frontend_instance[0].get_passvoid())
-            passvoid.send_keys(Keys.RETURN)
+            count = 0
+            while True:
+                passvoid = self.web.find_element_by_id("loginPassword")
+                txt = passvoid.text
+                print("xxxx [" + txt + "]")
+                if len(txt) > 0:
+                    print('S: something was in the passvoid field. retrying. ' + txt)
+                    time.sleep(2)
+                    continue
+                passvoid.clear()
+                passvoid.send_keys(frontend_instance[0].get_passvoid())
+                passvoid.send_keys(Keys.RETURN)
+                break
             print("S: logging in")
             count = 0
             while True:
