@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """ baseclass to manage selenium UI tests """
 
+import time
 from selenium import webdriver
 from arangodb.starter.deployments import RunnerType
 from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunner
