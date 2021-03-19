@@ -60,8 +60,10 @@ class SeleniumRunner(ABC):
                      "/_db/_system/_admin/aardvark/index.html")
         self.login_webif(frontend_instance, database, cfg)
 
-    def login_webif(self, frontend_instance, database, cfg):
+    def login_webif(self, frontend_instance, database, cfg, recurse=0):
         """ log into an arangodb webinterface """
+        if recurse > 10:
+            raise Exception("10 successless login attempts")
         try:
             assert "ArangoDB Web Interface" in self.web.title
             logname = WebDriverWait(self.web, 10).until(
@@ -94,11 +96,10 @@ class SeleniumRunner(ABC):
                     if count < 9:
                         self.take_screenshot()
                     print('S: _system not found in ' + txt + ' ; retrying!')
-                    if count %10 == 0:
-                        print('S: refreshing webpage.')
+                    if count == 10:
+                        print('S: refreshing webpage and retrying...')
                         self.web.refresh()
-                    if count > 100:
-                        raise Exception('failed to locate "_system" in the login dialog')
+                        return self.login_webif(frontend_instance, database, cfg, recurse + 1)
                     time.sleep(2)
                 else:
                     break
