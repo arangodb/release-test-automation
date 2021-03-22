@@ -66,11 +66,18 @@ class SeleniumRunner(ABC):
             raise Exception("10 successless login attempts")
         try:
             assert "ArangoDB Web Interface" in self.web.title
-            logname = WebDriverWait(self.web, 10).until(
-                EC.presence_of_element_located((By.ID, "loginUsername"))
-            )
-            logname.clear()
-            logname.send_keys("root")
+            try:
+                logname = WebDriverWait(self.web, 10).until(
+                    EC.presence_of_element_located((By.ID, "loginUsername"))
+                )
+                logname.clear()
+                logname.send_keys("root")
+            except StaleElementReferenceException as ex:
+                print("S: stale element, force reloading with sleep: " + str(ex))
+                self.web.refresh()
+                time.sleep(5)
+                return self.login_webif(frontend_instance, database, cfg, recurse + 1)
+
             count = 0
             while True:
                 passvoid = self.web.find_element_by_id("loginPassword")
@@ -99,6 +106,7 @@ class SeleniumRunner(ABC):
                     if count == 10:
                         print('S: refreshing webpage and retrying...')
                         self.web.refresh()
+                        time.sleep(5)
                         return self.login_webif(frontend_instance, database, cfg, recurse + 1)
                     time.sleep(2)
                 else:
@@ -237,10 +245,10 @@ class SeleniumRunner(ABC):
                 self.take_screenshot()
                 raise ex
 
-    def get_replication_screen(self, isLeader, timeout=20):
+    def get_replication_screen(self, is_leader, timeout=20):
         """ fetch & parse the replication tab """
         retry_count = 0
-        if isLeader:
+        if is_leader:
             while True:
                 try:
                     state_table = {}
