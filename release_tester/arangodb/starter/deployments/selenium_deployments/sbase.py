@@ -60,19 +60,37 @@ class SeleniumRunner(ABC):
                      "/_db/_system/_admin/aardvark/index.html")
         self.login_webif(frontend_instance, database, cfg)
 
-    def login_webif(self, frontend_instance, database, cfg):
+    def login_webif(self, frontend_instance, database, cfg, recurse=0):
         """ log into an arangodb webinterface """
+        if recurse > 10:
+            raise Exception("10 successless login attempts")
         try:
             assert "ArangoDB Web Interface" in self.web.title
-            logname = WebDriverWait(self.web, 10).until(
-                EC.presence_of_element_located((By.ID, "loginUsername"))
-            )
-            logname.clear()
-            logname.send_keys("root")
-            passvoid = self.web.find_element_by_id("loginPassword")
-            passvoid.clear()
-            passvoid.send_keys(frontend_instance[0].get_passvoid())
-            passvoid.send_keys(Keys.RETURN)
+            try:
+                logname = WebDriverWait(self.web, 10).until(
+                    EC.presence_of_element_located((By.ID, "loginUsername"))
+                )
+                logname.clear()
+                logname.send_keys("root")
+            except StaleElementReferenceException as ex:
+                print("S: stale element, force reloading with sleep: " + str(ex))
+                self.web.refresh()
+                time.sleep(5)
+                return self.login_webif(frontend_instance, database, cfg, recurse + 1)
+
+            count = 0
+            while True:
+                passvoid = self.web.find_element_by_id("loginPassword")
+                txt = passvoid.text
+                print("xxxx [" + txt + "]")
+                if len(txt) > 0:
+                    print('S: something was in the passvoid field. retrying. ' + txt)
+                    time.sleep(2)
+                    continue
+                passvoid.clear()
+                passvoid.send_keys(frontend_instance[0].get_passvoid())
+                passvoid.send_keys(Keys.RETURN)
+                break
             print("S: logging in")
             count = 0
             while True:
@@ -85,11 +103,11 @@ class SeleniumRunner(ABC):
                     if count < 9:
                         self.take_screenshot()
                     print('S: _system not found in ' + txt + ' ; retrying!')
-                    if count %10 == 0:
-                        print('S: refreshing webpage.')
+                    if count == 10:
+                        print('S: refreshing webpage and retrying...')
                         self.web.refresh()
-                    if count > 100:
-                        raise Exception('failed to locate "_system" in the login dialog')
+                        time.sleep(5)
+                        return self.login_webif(frontend_instance, database, cfg, recurse + 1)
                     time.sleep(2)
                 else:
                     break
@@ -227,10 +245,10 @@ class SeleniumRunner(ABC):
                 self.take_screenshot()
                 raise ex
 
-    def get_replication_screen(self, isLeader, timeout=20):
+    def get_replication_screen(self, is_leader, timeout=20):
         """ fetch & parse the replication tab """
         retry_count = 0
-        if isLeader:
+        if is_leader:
             while True:
                 try:
                     state_table = {}
