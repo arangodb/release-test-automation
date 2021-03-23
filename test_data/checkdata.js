@@ -191,8 +191,7 @@ while (count < options.numberOfDBs) {
     ccount ++;
   }
   print(timeLine.join());
-  // TODO
-
+  
   if (options.validateOneShard) {
     validateDocumentWorksInOneShard(db, database, count);
     count ++;
