@@ -424,31 +424,10 @@ class ArangoshExecutor():
         else:
             logging.info("checking test data")
 
-        ret = self.run_script_monitored(cmd=[
-            'checking test data integrity',
-            self.cfg.test_data_dir / 'checkdata.js'],
-                                            args=args + [
-                                                '--progress', 'true'
-                                            ],
-                                        timeout=5,
-                                        result_line=result_line,
-                                        verbose=self.cfg.verbose)
-
-        return ret
-
-
-    def check_validateOneShard(self, testname, args=[], result_line=dummy_line_result):
-        # pylint: disable=W0102
-        """ check back the testdata in the instance """
-        if testname:
-            logging.info("checking validate one shard upgrade {0}".format(testname))
-        else:
-            logging.info("checking validate one shard upgrade")
-        
         validateOneShard = 'true' if semver.compare(self.cfg.version, "3.7.7") >= 0 else 'false'
 
         ret = self.run_script_monitored(cmd=[
-            'checking validate one shard upgrade',
+            'checking test data integrity',
             self.cfg.test_data_dir / 'checkdata.js'],
                                             args=args + [
                                                 '--progress', 'true',
@@ -459,7 +438,6 @@ class ArangoshExecutor():
                                         verbose=self.cfg.verbose)
 
         return ret
-
 
     def clear_test_data(self, testname, args=[], result_line=dummy_line_result):
         # pylint: disable=W0102
