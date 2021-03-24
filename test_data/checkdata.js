@@ -194,6 +194,6 @@ while (count < options.numberOfDBs) {
   
   if (options.validateOneShard) {
     validateDocumentWorksInOneShard(db, database, count);
-    count ++;
   }
+  count ++;
 }
