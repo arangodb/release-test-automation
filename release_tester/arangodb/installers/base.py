@@ -329,7 +329,9 @@ class InstallerBase(ABC):
 
         self.arango_binaries.append(BinaryDescription(
             self.cfg.real_sbin_dir, 'arangod',
-            False, True, "1.0.0", "4.0.0", [
+            False,
+            semver.compare(self.cfg.version, "3.8.0") < 0,
+            "1.0.0", "4.0.0", [
                 self.cfg.real_sbin_dir / 'arango-init-database',
                 self.cfg.real_sbin_dir / 'arango-secure-installation'
             ], 'c++'))
