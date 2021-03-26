@@ -102,13 +102,20 @@ class Cluster(SeleniumRunner):
         assert health_state != 'NODES OK'
 
         self.navbar_goto('nodes')
-        table = self.cluster_get_nodes_table()
         row_count = 0
-        for row in table:
-            if row['state'] == 'SERVING':
-                row_count += 1
+        retry_count = 0
+        while row_count != 4 and retry_count < 10:
+            table = self.cluster_get_nodes_table()
+            for row in table:
+                if row['state'] == 'SERVING':
+                    row_count += 1
+            retry_count += 1
+            if row_count != 4:
+                self.web.refresh()
+                time.sleep(2)
+                row_count = 0
 
-        print('S: serving instances 6 / %d' % row_count)
+        print('S: serving instances 6 / %d [%d]' % (row_count, retry_count))
         assert row_count == 4
 
         health_state = None
