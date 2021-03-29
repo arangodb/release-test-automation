@@ -87,11 +87,13 @@ class StarterManager():
         self.jwt_header = None
         self.jwt_tokens = dict()
         if jwtStr:
+            self.jwtfile = Path(str(self.basedir) + '_jwt')
             self.jwtfile = self.basedir / 'jwt'
             self.jwtfile.write_text(jwtStr)
             self.moreopts += ['--auth.jwt-secret', str(self.jwtfile)]
             self.get_jwt_header()
 
+        self.passvoidfile = Path(str(self.basedir) + '_passvoid')
         # arg mode
         self.mode = mode
         if self.mode:
@@ -229,6 +231,8 @@ Starter {0.name}
     def attach_running_starter(self):
         """ somebody else is running the party, but we also want to have a look """
         match_str = "--starter.data-dir={0.basedir}".format(self)
+        if self.passvoidfile.exists():
+            self.passvoid = self.passvoidfile.read_text()
         for process in psutil.process_iter(['pid', 'name']):
             try:
                 name = process.name()
@@ -280,6 +284,7 @@ Starter {0.name}
         if write_to_server:
             print("Provisioning passvoid " + passvoid)
             self.arangosh.js_set_passvoid('root', passvoid)
+            self.passvoidfile.write_text(passvoid)
         self.passvoid = passvoid
         for i in self.all_instances:
             if i.is_frontend():
