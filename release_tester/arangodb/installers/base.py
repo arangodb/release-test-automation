@@ -326,20 +326,20 @@ class InstallerBase(ABC):
     def caclulate_file_locations(self):
         """ set the global location of files """
         self.arango_binaries = []
-
+        stripped_arangod = semver.compare(self.cfg.version, "3.8.0") < 0
         self.arango_binaries.append(BinaryDescription(
             self.cfg.real_sbin_dir, 'arangod',
             False,
-            semver.compare(self.cfg.version, "3.8.0") < 0,
+            stripped_arangod,
             "1.0.0", "4.0.0", [
                 self.cfg.real_sbin_dir / 'arango-init-database',
                 self.cfg.real_sbin_dir / 'arango-secure-installation'
             ], 'c++'))
-
+        exit
         # symlink only for MMFILES
         self.arango_binaries.append(BinaryDescription(
             self.cfg.real_sbin_dir, 'arangod',
-            False, True, "1.0.0", "3.6.0", [
+            False, stripped_arangod, "1.0.0", "3.6.0", [
                 self.cfg.real_bin_dir / ('arango-dfdb' + FILE_EXTENSION)
             ], 'c++'))
 
