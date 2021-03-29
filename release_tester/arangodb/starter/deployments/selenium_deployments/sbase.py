@@ -229,6 +229,8 @@ class SeleniumRunner(ABC):
                                 try:
                                     row[column_names[table_column - 1]] = table_cell_elm.get_attribute('data-original-title')
                                 except Exception:
+                                    row[column_names[table_column - 1]] = None
+                                if row[column_names[table_column - 1]] == None:
                                     row[column_names[table_column - 1]] = table_cell_elm.get_property('title')
                             else:
                                 table_cell_elm = elm.find_element_by_xpath('div[%d]/div[%d]'%(table_row_num, table_column))
