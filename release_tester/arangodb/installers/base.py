@@ -326,7 +326,7 @@ class InstallerBase(ABC):
     def caclulate_file_locations(self):
         """ set the global location of files """
         self.arango_binaries = []
-        stripped_arangod = semver.compare(self.cfg.version, "3.8.0") < 0
+        stripped_arangod = semver.compare(self.cfg.version, "3.7.999") < 0
         self.arango_binaries.append(BinaryDescription(
             self.cfg.real_sbin_dir, 'arangod',
             False,
