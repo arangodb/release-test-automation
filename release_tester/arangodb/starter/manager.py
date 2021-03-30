@@ -88,7 +88,6 @@ class StarterManager():
         self.jwt_tokens = dict()
         if jwtStr:
             self.jwtfile = Path(str(self.basedir) + '_jwt')
-            self.jwtfile = self.basedir / 'jwt'
             self.jwtfile.write_text(jwtStr)
             self.moreopts += ['--auth.jwt-secret', str(self.jwtfile)]
             self.get_jwt_header()
