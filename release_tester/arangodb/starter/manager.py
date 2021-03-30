@@ -464,13 +464,13 @@ Starter {0.name}
         self.upgradeprocess = psutil.Popen(args,
                                            #stdout=subprocess.PIPE,
                                            #stdin=subprocess.PIPE,
-                                           stderr=subprocess.PIPE,
+                                           #stderr=subprocess.PIPE,
                                            universal_newlines=True)
 
     def wait_for_upgrade(self, timeout=60):
         """ wait for the upgrade commanding starter to finish """
-        for line in self.upgradeprocess.stderr:
-            ascii_print(line)
+        #for line in self.upgradeprocess.stderr:
+        #    ascii_print(line)
         ret = self.upgradeprocess.wait(timeout=timeout)
         logging.info("StarterManager: Upgrade command exited: %s", str(ret))
         if ret != 0:
