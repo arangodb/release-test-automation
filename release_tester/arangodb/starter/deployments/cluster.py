@@ -126,7 +126,7 @@ db.testCollection.save({test: "document"})
 
         self.starter_instances[1].command_upgrade()
         if self.selenium:
-            self.selenium.upgrade_deployment(self.cfg, self.new_cfg)
+            self.selenium.upgrade_deployment(self.cfg, self.new_cfg, timeou=30) # * 5s
         self.starter_instances[1].wait_for_upgrade(300)
         if self.cfg.stress_upgrade:
             bench_instances[0].wait()

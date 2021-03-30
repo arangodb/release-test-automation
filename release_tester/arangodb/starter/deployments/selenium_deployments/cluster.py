@@ -44,7 +44,7 @@ class Cluster(SeleniumRunner):
             time.sleep(1)
         assert health_state == 'NODES OK'
 
-    def upgrade_deployment(self, old_cfg, new_cfg):
+    def upgrade_deployment(self, old_cfg, new_cfg, timeout):
         old_ver = str(old_cfg.semver)
         new_ver = str(new_cfg.semver)
         self.navbar_goto('nodes')
@@ -71,6 +71,9 @@ class Cluster(SeleniumRunner):
             print('S: serving instances old %d / new %d' % (old_count, new_count))
             if not upgrade_done:
                 time.sleep(5)
+            timeout -= 1
+            if timeout <= 0:
+                raise TimeoutException("the cluster UI didn't show the new version in time")
         # the version doesn't update automatically, force refresh:
         self.web.refresh()
         ver = self.detect_version()
