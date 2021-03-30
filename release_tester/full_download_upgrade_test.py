@@ -9,7 +9,10 @@ import sys
 import click
 
 from acquire_packages import AcquirePackages
+from tools.killall import kill_all_processes
 from upgrade import run_upgrade
+from arangodb.installers import make_installer, InstallerConfig
+from arangodb.starter.deployments import RunnerType, make_runner
 
 # pylint: disable=R0913 disable=R0914
 def upgrade_package_test(verbose,
@@ -34,6 +37,45 @@ def upgrade_package_test(verbose,
         resource.RLIMIT_CORE,
         (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
 
+    # cleanup the system:
+    install_config = InstallerConfig('3.3.3',
+                                     True,
+                                     False,
+                                     False,
+                                     zip_package,
+                                     Path("/tmp/"),
+                                     Path("/"),
+                                     "127.0.0.1",
+                                     "",
+                                     False,
+                                     False)
+    inst = make_installer(install_config)
+
+    if inst.calc_config_file_name().is_file():
+        inst.load_config()
+        inst.cfg.interactive = False
+        inst.stop_service()
+    kill_all_processes()
+    kill_all_processes()
+    clean_starter_mode = [RunnerType.LEADER_FOLLOWER,
+                          RunnerType.ACTIVE_FAILOVER,
+                          RunnerType.CLUSTER]  # ,
+    #  RunnerType.DC2DC] here __init__ will create stuff, TODO.
+    for runner_type in clean_starter_mode:
+        assert runner_type
+
+        runner = make_runner(runner_type, 'none', [], inst.cfg, inst, None)
+        runner.cleanup()
+    if inst.calc_config_file_name().is_file():
+        try:
+            inst.un_install_debug_package()
+        except:
+            print('nothing to uninstall')
+        inst.un_install_package()
+
+    inst.cleanup_system()
+
+    # do the actual work:
     for enterprise, encryption_at_rest in [(True, True),
                                            (True, False),
                                            (False, False)]:
