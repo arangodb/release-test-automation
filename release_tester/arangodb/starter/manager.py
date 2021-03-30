@@ -338,7 +338,7 @@ Starter {0.name}
                 keep_going = False
             time.sleep(1)
 
-    def wait_for_upgrade_done_in_log(self):
+    def wait_for_upgrade_done_in_log(self, timeout=120):
         """ in single server mode the 'upgrade' commander exits before
             the actual upgrade is finished. Hence we need to look into
             the logfile of the managing starter if it thinks its finished.
@@ -352,6 +352,9 @@ Starter {0.name}
             if keep_going:
                 time.sleep(1)
             progress('.')
+            timeout -= 1
+            if timeout <= 0:
+                raise TimeoutError("upgrade of leader follower not found on time")
         for instance in self.all_instances:
             instance.wait_for_shutdown()
 
