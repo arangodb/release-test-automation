@@ -122,6 +122,7 @@ def run_upgrade(old_version, new_version, verbose,
                         traceback.print_exc()
                         kill_all_processes()
                         lh.section("uninstall")
+                        old_inst.un_install_debug_package()
                         old_inst.un_install_package()
 
             lh.section("uninstall")
