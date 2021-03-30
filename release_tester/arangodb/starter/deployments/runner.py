@@ -607,6 +607,15 @@ class Runner(ABC):
                                                      self.backup_instance_count)
         raise Exception("no frontend found.")
 
+    def search_for_warnings(self):
+        """ search for any warnings in any logfiles and dump them to the screen """
+        for starter in self.starter_instances:
+            print('Ww'*40)
+            starter.search_for_warnings()
+            for instance in starter.all_instances:
+                print('w'*80)
+                instance.search_for_warnings()
+
     def cleanup(self):
         """ remove all directories created by this test """
         testdir = self.basecfg.base_test_dir / self.basedir

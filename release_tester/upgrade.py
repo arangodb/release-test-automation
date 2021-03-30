@@ -116,6 +116,7 @@ def run_upgrade(old_version, new_version, verbose,
                             'total': False,
                             'message': str(ex)
                             }
+                        runner.search_for_warnings()
                         if abort_on_error:
                             raise ex
                         traceback.print_exc()

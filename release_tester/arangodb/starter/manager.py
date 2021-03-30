@@ -789,6 +789,15 @@ Starter {0.name}
             return True
         return False
 
+    def search_for_warnings(self):
+        """ dump out instance args, and what could be fishy in my log """
+        print(self.arguments)
+        with self.log_file.open() as f:
+            for line in f.readline():
+                if ('WARN' in line or
+                    'ERROR' in line):
+                    print(line.rstrip())
+
 class StarterNonManager(StarterManager):
     """ this class is a dummy starter manager to work with similar interface """
     # pylint: disable=W0102 disable=R0913
