@@ -9,10 +9,8 @@ import sys
 import click
 
 from acquire_packages import AcquirePackages
-from tools.killall import kill_all_processes
 from upgrade import run_upgrade
-from arangodb.installers import make_installer, InstallerConfig
-from arangodb.starter.deployments import RunnerType, make_runner
+from cleanup import run_cleanup
 
 # pylint: disable=R0913 disable=R0914
 def upgrade_package_test(verbose,
@@ -37,44 +35,9 @@ def upgrade_package_test(verbose,
         resource.RLIMIT_CORE,
         (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
 
-    # cleanup the system:
-    install_config = InstallerConfig('3.3.3',
-                                     True,
-                                     False,
-                                     False,
-                                     zip_package,
-                                     Path("/tmp/"),
-                                     Path("/"),
-                                     "127.0.0.1",
-                                     "",
-                                     False,
-                                     False)
-    inst = make_installer(install_config)
+    run_cleanup(zip_package)
 
-    if inst.calc_config_file_name().is_file():
-        inst.load_config()
-        inst.cfg.interactive = False
-        inst.stop_service()
-    kill_all_processes()
-    kill_all_processes()
-    clean_starter_mode = [RunnerType.LEADER_FOLLOWER,
-                          RunnerType.ACTIVE_FAILOVER,
-                          RunnerType.CLUSTER]  # ,
-    #  RunnerType.DC2DC] here __init__ will create stuff, TODO.
-    for runner_type in clean_starter_mode:
-        assert runner_type
-
-        runner = make_runner(runner_type, 'none', [], inst.cfg, inst, None)
-        runner.cleanup()
-    if inst.calc_config_file_name().is_file():
-        try:
-            inst.un_install_debug_package()
-        except:
-            print('nothing to uninstall')
-        inst.un_install_package()
-
-    inst.cleanup_system()
-
+    results = []
     # do the actual work:
     for enterprise, encryption_at_rest in [(True, True),
                                            (True, False),
@@ -102,14 +65,25 @@ def upgrade_package_test(verbose,
 
         dl_old.get_packages(old_changed, dlstage)
         dl_new.get_packages(new_changed, dlstage)
-        run_upgrade(dl_old.cfg.version,
-                    dl_new.cfg.version,
-                    verbose,
-                    package_dir, test_data_dir,
-                    enterprise, encryption_at_rest,
-                    zip_package, False,
-                    starter_mode, stress_upgrade,
-                    publicip, selenium, selenium_driver_args)
+
+        results.append(
+            run_upgrade(dl_old.cfg.version,
+                        dl_new.cfg.version,
+                        verbose,
+                        package_dir, test_data_dir,
+                        enterprise, encryption_at_rest,
+                        zip_package, False,
+                        starter_mode, stress_upgrade, False,
+                        publicip, selenium, selenium_driver_args))
+
+    print('V' * 80)
+    print(results)
+    status = True
+    for one_result in results:
+        status = status and one_result['status']
+    if not status:
+        print('exiting with failure')
+        sys.exit(1)
 
     if not force:
         old_version_state.write_text(fresh_old_content)

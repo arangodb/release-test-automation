@@ -114,6 +114,14 @@ class Instance(ABC):
         """ arangodb enpoint - to be specialized (if) """
         raise Exception("this instance doesn't support endpoints." + repr(self))
 
+    def search_for_warnings(self):
+        with open(self.logfile) as log_fh:
+            for line in log_fh:
+                if ("FATAL" in line or
+                    "ERROR" in line or
+                    "WARNING" in line):
+                    print(line.rstrip())
+
 class ArangodInstance(Instance):
     """ represent one arangodb instance """
     # pylint: disable=R0913

@@ -464,14 +464,14 @@ Starter {0.name}
         self.upgradeprocess = psutil.Popen(args,
                                            #stdout=subprocess.PIPE,
                                            #stdin=subprocess.PIPE,
-                                           stderr=subprocess.PIPE,
+                                           #stderr=subprocess.PIPE,
                                            universal_newlines=True)
 
-    def wait_for_upgrade(self):
+    def wait_for_upgrade(self, timeout=60):
         """ wait for the upgrade commanding starter to finish """
-        for line in self.upgradeprocess.stderr:
-            ascii_print(line)
-        ret = self.upgradeprocess.wait()
+        #for line in self.upgradeprocess.stderr:
+        #    ascii_print(line)
+        ret = self.upgradeprocess.wait(timeout=timeout)
         logging.info("StarterManager: Upgrade command exited: %s", str(ret))
         if ret != 0:
             raise Exception("Upgrade process exited with non-zero reply")
@@ -788,6 +788,15 @@ Starter {0.name}
             self.is_master = False
             return True
         return False
+
+    def search_for_warnings(self):
+        """ dump out instance args, and what could be fishy in my log """
+        print(self.arguments)
+        with self.log_file.open() as f:
+            for line in f.readline():
+                if ('WARN' in line or
+                    'ERROR' in line):
+                    print(line.rstrip())
 
 class StarterNonManager(StarterManager):
     """ this class is a dummy starter manager to work with similar interface """
