@@ -24,7 +24,8 @@ if test -n "$FORCE" -o "$TEST_BRANCH" != 'master'; then
   force_arg='--force'
 fi
 
-docker kill $DOCKER_DEB_NAME &&  docker rm $DOCKER_DEB_NAME || true
+docker kill $DOCKER_DEB_NAME || true
+docker rm $DOCKER_DEB_NAME || true
 
 trap "docker kill $DOCKER_DEB_NAME; \
      docker rm $DOCKER_DEB_NAME \
