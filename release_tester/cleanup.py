@@ -14,13 +14,7 @@ logging.basicConfig(
     format='%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s'
 )
 
-@click.command()
-@click.option('--zip', 'zip_package',
-              is_flag=True,
-              default=False,
-              help='switch to zip or tar.gz package instead of default OS package')
-
-def run_test(zip_package):
+def run_cleanup(zip_package):
     """ main """
     logging.getLogger().setLevel(logging.DEBUG)
 
@@ -55,13 +49,21 @@ def run_test(zip_package):
     if inst.calc_config_file_name().is_file():
         try:
             inst.un_install_debug_package()
-        except:
+        except Exception:
             print('nothing to uninstall')
         inst.un_install_package()
     else:
         print('Cannot uninstall package without config.yml!')
     inst.cleanup_system()
 
+@click.command()
+@click.option('--zip', 'zip_package',
+              is_flag=True,
+              default=False,
+              help='switch to zip or tar.gz package instead of default OS package')
+def run_test(zip_package):
+    """ Wrapper... """
+    return run_cleanup(zip_package)
 
 if __name__ == "__main__":
 # pylint: disable=E1120 # fix clickiness.

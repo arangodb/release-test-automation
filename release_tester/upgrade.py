@@ -3,6 +3,7 @@
 """ Release testing script"""
 import logging
 from pathlib import Path
+import traceback
 
 import sys
 import click
@@ -23,7 +24,7 @@ def run_upgrade(old_version, new_version, verbose,
                 package_dir, test_data_dir,
                 enterprise, encryption_at_rest,
                 zip_package, interactive,
-                starter_mode, stress_upgrade,
+                starter_mode, stress_upgrade, abort_on_error,
                 publicip, selenium, selenium_driver_args):
     """ execute upgrade tests """
     lh.section("configuration")
@@ -65,53 +66,78 @@ def run_upgrade(old_version, new_version, verbose,
     else:
         raise Exception("invalid starter mode: " + starter_mode)
 
+    results = []
     for runner_type in starter_mode:
+        one_result = {
+            'total': True,
+            'message': 'success'
+        }
+        try:
+            kill_all_processes()
+            install_config_old = InstallerConfig(old_version,
+                                                 verbose,
+                                                 enterprise,
+                                                 encryption_at_rest,
+                                                 zip_package,
+                                                 Path(package_dir),
+                                                 Path(test_data_dir),
+                                                 'all',
+                                                 publicip,
+                                                 interactive,
+                                                 stress_upgrade)
+            old_inst = make_installer(install_config_old)
+            install_config_new = InstallerConfig(new_version,
+                                                 verbose,
+                                                 enterprise,
+                                                 encryption_at_rest,
+                                                 zip_package,
+                                                 Path(package_dir),
+                                                 Path(test_data_dir),
+                                                 'all',
+                                                 publicip,
+                                                 interactive,
+                                                 stress_upgrade)
+            new_inst = make_installer(install_config_new)
 
-        kill_all_processes()
-        install_config_old = InstallerConfig(old_version,
-                                             verbose,
-                                             enterprise,
-                                             encryption_at_rest,
-                                             zip_package,
-                                             Path(package_dir),
-                                             Path(test_data_dir),
-                                             'all',
-                                             publicip,
-                                             interactive,
-                                             stress_upgrade)
-        old_inst = make_installer(install_config_old)
-        install_config_new = InstallerConfig(new_version,
-                                             verbose,
-                                             enterprise,
-                                             encryption_at_rest,
-                                             zip_package,
-                                             Path(package_dir),
-                                             Path(test_data_dir),
-                                             'all',
-                                             publicip,
-                                             interactive,
-                                             stress_upgrade)
-        new_inst = make_installer(install_config_new)
+            runner = None
+            if runner_type:
+                runner = make_runner(runner_type,
+                                     selenium,
+                                     selenium_driver_args,
+                                     install_config_old,
+                                     old_inst,
+                                     install_config_new,
+                                     new_inst)
+                if runner:
+                    try:
+                        runner.run()
+                    except Exception as ex:
+                        one_result = {
+                            'total': False,
+                            'message': str(ex)
+                            }
+                        if abort_on_error:
+                            raise ex
+                        traceback.print_exc()
+                        kill_all_processes()
 
-        runner = None
-        if runner_type:
-            runner = make_runner(runner_type,
-                                 selenium,
-                                 selenium_driver_args,
-                                 install_config_old,
-                                 old_inst,
-                                 install_config_new,
-                                 new_inst)
-
-            if runner:
-                runner.run()
-
-        lh.section("uninstall")
-        new_inst.un_install_package()
-        lh.section("check system")
-        new_inst.check_uninstall_cleanup()
-        lh.section("remove residuals")
-        new_inst.cleanup_system()
+            lh.section("uninstall")
+            new_inst.un_install_package()
+            lh.section("check system")
+            new_inst.check_uninstall_cleanup()
+            lh.section("remove residuals")
+            new_inst.cleanup_system()
+        except Exception as ex:
+            one_result = {
+                'total': False,
+                'message': str(ex)
+            }
+            if abort_on_error:
+                raise ex
+            traceback.print_exc()
+            runner.cleanup()
+        results.append(one_result)
+    return results
 
 @click.command()
 @click.option('--old-version', help='old ArangoDB version number.', default="3.7.0-nightly")
@@ -150,6 +176,10 @@ def run_upgrade(old_version, new_version, verbose,
               is_flag=True,
               default=False,
               help='launch arangobench before starting the upgrade')
+@click.option('--abort-on-error',
+              is_flag=True,
+              default=True,
+              help='if we should abort on first error')
 @click.option('--publicip',
               default='127.0.0.1',
               help='IP for the click to browser hints.')
@@ -165,14 +195,14 @@ def main(old_version, new_version, verbose,
          package_dir, test_data_dir,
          enterprise, encryption_at_rest,
          zip_package, interactive,
-         starter_mode, stress_upgrade,
+         starter_mode, stress_upgrade, abort_on_error,
          publicip, selenium, selenium_driver_args):
     """ main trampoline """
     return run_upgrade(old_version, new_version, verbose,
                        package_dir, test_data_dir,
                        enterprise, encryption_at_rest,
                        zip_package, interactive,
-                       starter_mode, stress_upgrade,
+                       starter_mode, stress_upgrade, abort_on_error,
                        publicip, selenium, selenium_driver_args)
 
 if __name__ == "__main__":

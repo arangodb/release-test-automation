@@ -467,11 +467,11 @@ Starter {0.name}
                                            stderr=subprocess.PIPE,
                                            universal_newlines=True)
 
-    def wait_for_upgrade(self):
+    def wait_for_upgrade(self, timeout=60):
         """ wait for the upgrade commanding starter to finish """
         for line in self.upgradeprocess.stderr:
             ascii_print(line)
-        ret = self.upgradeprocess.wait()
+        ret = self.upgradeprocess.wait(timeout=timeout)
         logging.info("StarterManager: Upgrade command exited: %s", str(ret))
         if ret != 0:
             raise Exception("Upgrade process exited with non-zero reply")

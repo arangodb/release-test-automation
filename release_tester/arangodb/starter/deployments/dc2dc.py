@@ -234,8 +234,8 @@ class Dc2Dc(Runner):
         self.cluster1["instance"].kill_sync_processes()
         self.cluster2["instance"].kill_sync_processes()
 
-        self.cluster1["instance"].wait_for_upgrade()
-        self.cluster2["instance"].wait_for_upgrade()
+        self.cluster1["instance"].wait_for_upgrade(300)
+        self.cluster2["instance"].wait_for_upgrade(300)
 
         # self.sync_manager.start_sync()
 
