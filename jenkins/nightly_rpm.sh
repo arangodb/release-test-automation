@@ -53,6 +53,8 @@ docker run \
 if docker exec $DOCKER_RPM_NAME \
           /home/release-test-automation/release_tester/full_download_upgrade_test.py \
           --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;") \
+          --old-version "${OLD_VERSION}" \
+          --new-version "${NEW_VERSION}" \
           --no-zip \
           --selenium Chrome \
           --selenium-driver-args headless \
