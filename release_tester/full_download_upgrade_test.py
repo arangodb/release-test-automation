@@ -83,10 +83,11 @@ def upgrade_package_test(verbose,
                         publicip, selenium, selenium_driver_args))
 
     print('V' * 80)
-    print(results)
     status = True
-    for one_result in results:
-        status = status and one_result['status']
+    for one_suite_result in results:
+        for one_result in one_suite_result:
+            print(one_result)
+            status = status and one_result['total']
     if not status:
         print('exiting with failure')
         sys.exit(1)
