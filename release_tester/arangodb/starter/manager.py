@@ -391,7 +391,9 @@ Starter {0.name}
         logging.info("This should terminate all child processes")
         self.instance.terminate()
         logging.info("StarterManager: waiting for process to exit")
-        self.instance.wait()
+        exit_code = self.instance.wait()
+        if exit_code != 0:
+            raise Exception("Starter exited with %d" % exit_code)
 
         logging.info("StarterManager: done - moving logfile from %s to %s",
                      str(self.log_file),
