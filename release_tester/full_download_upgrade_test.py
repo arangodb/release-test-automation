@@ -39,9 +39,12 @@ def upgrade_package_test(verbose,
 
     results = []
     # do the actual work:
-    for enterprise, encryption_at_rest in [(True, True),
-                                           (True, False),
-                                           (False, False)]:
+    execution_plan = [
+        (True, True, 'EE'),
+        (True, False, 'EP'),
+        (False, False, 'C')
+    ]
+    for enterprise, encryption_at_rest, directory_suffix in execution_plan:
         dl_old = AcquirePackages(old_version, verbose, package_dir, enterprise,
                                  enterprise_magic, zip_package, dlstage,
                                  httpusername, httppassvoid, remote_host)
@@ -66,11 +69,14 @@ def upgrade_package_test(verbose,
         dl_old.get_packages(old_changed, dlstage)
         dl_new.get_packages(new_changed, dlstage)
 
+        test_dir = Path(test_data_dir)/ directory_suffix
+        test_dir.mkdir()
         results.append(
             run_upgrade(dl_old.cfg.version,
                         dl_new.cfg.version,
                         verbose,
-                        package_dir, test_data_dir,
+                        package_dir,
+                        test_dir,
                         enterprise, encryption_at_rest,
                         zip_package, False,
                         starter_mode, stress_upgrade, False,
