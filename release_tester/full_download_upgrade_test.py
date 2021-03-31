@@ -7,6 +7,7 @@ import resource
 import sys
 
 import click
+import shutil
 
 from acquire_packages import AcquirePackages
 from upgrade import run_upgrade
@@ -70,6 +71,8 @@ def upgrade_package_test(verbose,
         dl_new.get_packages(new_changed, dlstage)
 
         test_dir = Path(test_data_dir)/ directory_suffix
+        if test_dir.exists():
+            shutil.rmtree(test_dir)
         test_dir.mkdir()
         results.append(
             run_upgrade(dl_old.cfg.version,
