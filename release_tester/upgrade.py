@@ -40,9 +40,14 @@ def run_upgrade(old_version, new_version, verbose,
     print("verbose: " + str(verbose))
 
     lh.section("startup")
+
+    logging.basicConfig()
     if verbose:
         logging.info("setting debug level to debug (verbose)")
         logging.getLogger().setLevel(logging.DEBUG)
+    requests_log = logging.getLogger("urllib3")
+    requests_log.setLevel(logging.WARNING)
+    requests_log.propagate = True
 
     if starter_mode == 'all':
         starter_mode = [RunnerType.LEADER_FOLLOWER,
