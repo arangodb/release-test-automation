@@ -70,10 +70,12 @@ def upgrade_package_test(verbose,
         dl_old.get_packages(old_changed, dlstage)
         dl_new.get_packages(new_changed, dlstage)
 
-        test_dir = Path(test_data_dir)/ directory_suffix
+        test_dir = Path(test_data_dir) / directory_suffix
         if test_dir.exists():
             shutil.rmtree(test_dir)
         test_dir.mkdir()
+        while not test_dir.exists():
+            time.sleep(1)
         results.append(
             run_upgrade(dl_old.cfg.version,
                         dl_new.cfg.version,
