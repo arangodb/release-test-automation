@@ -73,7 +73,7 @@ class Cluster(SeleniumRunner):
                 time.sleep(5)
             timeout -= 1
             if timeout <= 0:
-                raise TimeoutException("the cluster UI didn't show the new version in time")
+                raise TimeoutError("the cluster UI didn't show the new version in time")
         # the version doesn't update automatically, force refresh:
         self.web.refresh()
         ver = self.detect_version()
