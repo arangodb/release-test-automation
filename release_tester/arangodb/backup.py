@@ -204,8 +204,8 @@ class HotBackupManager():
                 raise Exception("failed to create backup: " + str(out))
             print("have to retry. " + str(counts) + " - " + str(instance_count))
             timeout -= 1
-            #if timeout <= 0:
-            #    raise TimeoutExpired("failed to find %d 'COMPLETED' status for upload status" % instance_count)
+            if timeout <= 0:
+                raise TimeoutExpired("failed to find %d 'COMPLETED' status for upload status" % instance_count)
             time.sleep(1)
 
     def download(self, backup_name, backup_config: HotBackupConfig, identifier):
