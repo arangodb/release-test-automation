@@ -65,7 +65,14 @@ class Runner(ABC):
 
         self.basedir = Path(short_name)
 
-        diskfree = shutil.disk_usage(self.basecfg.base_test_dir)
+        while True:
+            try:
+                diskfree = shutil.disk_usage(self.basecfg.base_test_dir)
+                break
+            except FileNotFoundError:
+                time.sleep(1)
+                print('.')
+
         diskused = (disk_usage_community
                     if not cfg.enterprise else disk_usage_enterprise)
         if diskused * 1024 * 1024 > diskfree.free:
