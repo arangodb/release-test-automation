@@ -70,6 +70,9 @@ class Runner(ABC):
                 diskfree = shutil.disk_usage(self.basecfg.base_test_dir)
                 break
             except FileNotFoundError:
+                self.basecfg.base_test_dir.mkdir()
+                print(self.basecfg.base_test_dir)
+                print(self.basecfg.base_test_dir.exists()
                 time.sleep(1)
                 print('.')
 
