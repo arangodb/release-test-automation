@@ -24,7 +24,8 @@ if test -n "$FORCE" -o "$TEST_BRANCH" != 'master'; then
   force_arg='--force'
 fi
 
-docker kill $DOCKER_DEB_NAME &&  docker rm $DOCKER_DEB_NAME || true
+docker kill $DOCKER_DEB_NAME || true
+docker rm $DOCKER_DEB_NAME || true
 
 trap "docker kill $DOCKER_DEB_NAME; \
      docker rm $DOCKER_DEB_NAME \
@@ -51,6 +52,8 @@ docker run -itd \
 
 if docker exec $DOCKER_DEB_NAME \
           /home/release-test-automation/release_tester/full_download_upgrade_test.py \
+          --old-version "${OLD_VERSION}" \
+          --new-version "${NEW_VERSION}" \
           --selenium Chrome \
           --selenium-driver-args headless \
           --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;") \

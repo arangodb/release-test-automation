@@ -33,8 +33,6 @@ class Dc2Dc(Runner):
             psutil.Popen([self.cfg.bin_dir / 'arangodb',
                           'create'] +
                          args).wait()
-
-
         datadir = Path('data')
         cert_dir = self.cfg.base_test_dir / self.basedir / "certs"
         print(cert_dir)
@@ -111,6 +109,8 @@ class Dc2Dc(Runner):
                     InstanceType.syncworker
                 ],
                 moreopts=[
+                    '--all.log.level=backup=trace',
+                    '--all.log.level=requests=debug',
                     '--starter.sync',
                     '--starter.local',
                     '--auth.jwt-secret=' +           str(val["JWTSecret"]),
@@ -234,8 +234,8 @@ class Dc2Dc(Runner):
         self.cluster1["instance"].kill_sync_processes()
         self.cluster2["instance"].kill_sync_processes()
 
-        self.cluster1["instance"].wait_for_upgrade()
-        self.cluster2["instance"].wait_for_upgrade()
+        self.cluster1["instance"].wait_for_upgrade(300)
+        self.cluster2["instance"].wait_for_upgrade(300)
 
         # self.sync_manager.start_sync()
 

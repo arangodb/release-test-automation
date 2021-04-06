@@ -150,7 +150,7 @@ class ActiveFailover(Runner):
         for node in self.starter_instances:
             node.detect_instance_pids_still_alive()
         self.starter_instances[1].command_upgrade()
-        self.starter_instances[1].wait_for_upgrade()
+        self.starter_instances[1].wait_for_upgrade(180)
         if self.selenium:
             self.selenium.web.refresh() # version doesn't upgrade if we don't do this...
             self.selenium.check_old(self.new_cfg, 2, 10)

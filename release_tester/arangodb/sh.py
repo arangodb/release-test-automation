@@ -10,6 +10,7 @@ from subprocess import DEVNULL, PIPE, Popen
 import sys
 from threading  import Thread
 import psutil
+import semver
 from tools.asciiprint import print_progress as progress
 import tools.errorhelper as eh
 import tools.loghelper as lh
@@ -423,11 +424,14 @@ class ArangoshExecutor():
         else:
             logging.info("checking test data")
 
+        validateOneShard = 'true' if semver.compare(self.cfg.version, "3.7.7") >= 0 else 'false'
+
         ret = self.run_script_monitored(cmd=[
             'checking test data integrity',
             self.cfg.test_data_dir / 'checkdata.js'],
                                             args=args + [
-                                                '--progress', 'true'
+                                                '--progress', 'true',
+                                                '--validateoneshard', validateOneShard
                                             ],
                                         timeout=5,
                                         result_line=result_line,

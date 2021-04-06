@@ -87,11 +87,12 @@ class StarterManager():
         self.jwt_header = None
         self.jwt_tokens = dict()
         if jwtStr:
-            self.jwtfile = self.basedir / 'jwt'
+            self.jwtfile = Path(str(self.basedir) + '_jwt')
             self.jwtfile.write_text(jwtStr)
             self.moreopts += ['--auth.jwt-secret', str(self.jwtfile)]
             self.get_jwt_header()
 
+        self.passvoidfile = Path(str(self.basedir) + '_passvoid')
         # arg mode
         self.mode = mode
         if self.mode:
@@ -229,6 +230,8 @@ Starter {0.name}
     def attach_running_starter(self):
         """ somebody else is running the party, but we also want to have a look """
         match_str = "--starter.data-dir={0.basedir}".format(self)
+        if self.passvoidfile.exists():
+            self.passvoid = self.passvoidfile.read_text()
         for process in psutil.process_iter(['pid', 'name']):
             try:
                 name = process.name()
@@ -280,6 +283,7 @@ Starter {0.name}
         if write_to_server:
             print("Provisioning passvoid " + passvoid)
             self.arangosh.js_set_passvoid('root', passvoid)
+            self.passvoidfile.write_text(passvoid)
         self.passvoid = passvoid
         for i in self.all_instances:
             if i.is_frontend():
@@ -334,7 +338,7 @@ Starter {0.name}
                 keep_going = False
             time.sleep(1)
 
-    def wait_for_upgrade_done_in_log(self):
+    def wait_for_upgrade_done_in_log(self, timeout=120):
         """ in single server mode the 'upgrade' commander exits before
             the actual upgrade is finished. Hence we need to look into
             the logfile of the managing starter if it thinks its finished.
@@ -348,6 +352,9 @@ Starter {0.name}
             if keep_going:
                 time.sleep(1)
             progress('.')
+            timeout -= 1
+            if timeout <= 0:
+                raise TimeoutError("upgrade of leader follower not found on time")
         for instance in self.all_instances:
             instance.wait_for_shutdown()
 
@@ -384,7 +391,9 @@ Starter {0.name}
         logging.info("This should terminate all child processes")
         self.instance.terminate()
         logging.info("StarterManager: waiting for process to exit")
-        self.instance.wait()
+        exit_code = self.instance.wait()
+        if exit_code != 0:
+            raise Exception("Starter exited with %d" % exit_code)
 
         logging.info("StarterManager: done - moving logfile from %s to %s",
                      str(self.log_file),
@@ -457,14 +466,14 @@ Starter {0.name}
         self.upgradeprocess = psutil.Popen(args,
                                            #stdout=subprocess.PIPE,
                                            #stdin=subprocess.PIPE,
-                                           stderr=subprocess.PIPE,
+                                           #stderr=subprocess.PIPE,
                                            universal_newlines=True)
 
-    def wait_for_upgrade(self):
+    def wait_for_upgrade(self, timeout=60):
         """ wait for the upgrade commanding starter to finish """
-        for line in self.upgradeprocess.stderr:
-            ascii_print(line)
-        ret = self.upgradeprocess.wait()
+        #for line in self.upgradeprocess.stderr:
+        #    ascii_print(line)
+        ret = self.upgradeprocess.wait(timeout=timeout)
         logging.info("StarterManager: Upgrade command exited: %s", str(ret))
         if ret != 0:
             raise Exception("Upgrade process exited with non-zero reply")
@@ -781,6 +790,15 @@ Starter {0.name}
             self.is_master = False
             return True
         return False
+
+    def search_for_warnings(self):
+        """ dump out instance args, and what could be fishy in my log """
+        print(self.arguments)
+        with self.log_file.open() as f:
+            for line in f.readline():
+                if ('WARN' in line or
+                    'ERROR' in line):
+                    print(line.rstrip())
 
 class StarterNonManager(StarterManager):
     """ this class is a dummy starter manager to work with similar interface """

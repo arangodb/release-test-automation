@@ -89,10 +89,13 @@ def run_test(old_version, new_version, verbose,
     do_install = mode in ["all", "install"]
     do_uninstall = mode in ["all", "uninstall"]
 
-    lh.section("startup")
+    logging.basicConfig()
     if verbose:
         logging.info("setting debug level to debug (verbose)")
         logging.getLogger().setLevel(logging.DEBUG)
+    requests_log = logging.getLogger("urllib3")
+    requests_log.setLevel(logging.WARNING)
+    requests_log.propagate = True
 
     install_config = InstallerConfig(new_version,
                                      verbose,

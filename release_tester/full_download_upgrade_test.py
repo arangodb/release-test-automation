@@ -7,9 +7,11 @@ import resource
 import sys
 
 import click
+import shutil
 
 from acquire_packages import AcquirePackages
 from upgrade import run_upgrade
+from cleanup import run_cleanup
 
 # pylint: disable=R0913 disable=R0914
 def upgrade_package_test(verbose,
@@ -34,9 +36,16 @@ def upgrade_package_test(verbose,
         resource.RLIMIT_CORE,
         (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
 
-    for enterprise, encryption_at_rest in [(True, True),
-                                           (True, False),
-                                           (False, False)]:
+    run_cleanup(zip_package)
+
+    results = []
+    # do the actual work:
+    execution_plan = [
+        (True, True, 'EE'),
+        (True, False, 'EP'),
+        (False, False, 'C')
+    ]
+    for enterprise, encryption_at_rest, directory_suffix in execution_plan:
         dl_old = AcquirePackages(old_version, verbose, package_dir, enterprise,
                                  enterprise_magic, zip_package, dlstage,
                                  httpusername, httppassvoid, remote_host)
@@ -60,14 +69,33 @@ def upgrade_package_test(verbose,
 
         dl_old.get_packages(old_changed, dlstage)
         dl_new.get_packages(new_changed, dlstage)
-        run_upgrade(dl_old.cfg.version,
-                    dl_new.cfg.version,
-                    verbose,
-                    package_dir, test_data_dir,
-                    enterprise, encryption_at_rest,
-                    zip_package, False,
-                    starter_mode, stress_upgrade,
-                    publicip, selenium, selenium_driver_args)
+
+        test_dir = Path(test_data_dir) / directory_suffix
+        if test_dir.exists():
+            shutil.rmtree(test_dir)
+        test_dir.mkdir()
+        while not test_dir.exists():
+            time.sleep(1)
+        results.append(
+            run_upgrade(dl_old.cfg.version,
+                        dl_new.cfg.version,
+                        verbose,
+                        package_dir,
+                        test_dir,
+                        enterprise, encryption_at_rest,
+                        zip_package, False,
+                        starter_mode, stress_upgrade, False,
+                        publicip, selenium, selenium_driver_args))
+
+    print('V' * 80)
+    status = True
+    for one_suite_result in results:
+        for one_result in one_suite_result:
+            print(one_result)
+            status = status and one_result['total']
+    if not status:
+        print('exiting with failure')
+        sys.exit(1)
 
     if not force:
         old_version_state.write_text(fresh_old_content)

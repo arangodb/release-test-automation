@@ -65,7 +65,21 @@ class Runner(ABC):
 
         self.basedir = Path(short_name)
 
-        diskfree = shutil.disk_usage(self.basecfg.base_test_dir)
+        count = 1
+        while True:
+            try:
+                diskfree = shutil.disk_usage(str(self.basecfg.base_test_dir))
+                break
+            except FileNotFoundError:
+                count += 1
+                if count > 20:
+                    raise TimeoutError("disk_usage on " + str(self.basecfg.base_test_dir) + " not working")
+                self.basecfg.base_test_dir.mkdir()
+                print(self.basecfg.base_test_dir)
+                print(self.basecfg.base_test_dir.exists()
+                time.sleep(1)
+                print('.')
+
         diskused = (disk_usage_community
                     if not cfg.enterprise else disk_usage_enterprise)
         if diskused * 1024 * 1024 > diskfree.free:
@@ -606,6 +620,15 @@ class Runner(ABC):
                                                      hb_id,
                                                      self.backup_instance_count)
         raise Exception("no frontend found.")
+
+    def search_for_warnings(self):
+        """ search for any warnings in any logfiles and dump them to the screen """
+        for starter in self.starter_instances:
+            print('Ww'*40)
+            starter.search_for_warnings()
+            for instance in starter.all_instances:
+                print('w'*80)
+                instance.search_for_warnings()
 
     def cleanup(self):
         """ remove all directories created by this test """

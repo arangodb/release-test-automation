@@ -17,7 +17,8 @@ const optionsDefaults = {
   countOffset: 0,
   collectionMultiplier: 1,
   singleShard: false,
-  progress: false
+  progress: false,
+  validateOneShard: false
 }
 
 if ((0 < ARGUMENTS.length) &&
@@ -42,7 +43,7 @@ function progress() {
     print("#");
   }
 }
-
+ 
 function getShardCount(defaultShardCount) {
   if (options.singleShard) {
     return 1;
@@ -190,7 +191,9 @@ while (count < options.numberOfDBs) {
     ccount ++;
   }
   print(timeLine.join());
-  // TODO
-  validateDocumentWorksInOneShard(db, database, count);
+  
+  if (options.validateOneShard) {
+    validateDocumentWorksInOneShard(db, database, count);
+  }
   count ++;
 }
