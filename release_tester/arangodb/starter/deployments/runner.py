@@ -65,11 +65,15 @@ class Runner(ABC):
 
         self.basedir = Path(short_name)
 
+        count = 1
         while True:
             try:
-                diskfree = shutil.disk_usage(self.basecfg.base_test_dir)
+                diskfree = shutil.disk_usage(str(self.basecfg.base_test_dir))
                 break
             except FileNotFoundError:
+                count += 1
+                if count > 20:
+                    raise TimeoutError("disk_usage on " + str(self.basecfg.base_test_dir) + " not working")
                 self.basecfg.base_test_dir.mkdir()
                 print(self.basecfg.base_test_dir)
                 print(self.basecfg.base_test_dir.exists()
