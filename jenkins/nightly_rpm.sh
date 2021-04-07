@@ -5,9 +5,6 @@ GIT_VERSION=$(git rev-parse --verify HEAD)
 if test -z "$GIT_VERSION"; then
     GIT_VERSION=$VERSION
 fi
-DOCKER_RPM_NAME=release-test-automation-rpm-$(cat VERSION.json)
-
-DOCKER_RPM_TAG=arangodb/release-test-automation-rpm:$(cat VERSION.json)
 
 if test -z "$OLD_VERSION"; then
     OLD_VERSION=3.7.0-nightly
@@ -20,6 +17,10 @@ VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_rpm_version"
 mkdir -p ${VERSION_TAR_NAME}
 tar -xvf ${VERSION_TAR_NAME}.tar || true
 
+DOCKER_RPM_NAME=release-test-automation-rpm-$(cat VERSION.json)
+
+DOCKER_RPM_TAG=arangodb/release-test-automation-rpm:$(cat VERSION.json)
+
 if test -n "$FORCE" -o "$TEST_BRANCH" != 'master'; then
   force_arg='--force'
 fi
@@ -28,7 +29,8 @@ docker kill $DOCKER_RPM_NAME || true
 docker rm $DOCKER_RPM_NAME || true
 
 trap "docker kill $DOCKER_RPM_NAME; \
-     docker rm $DOCKER_RPM_NAME;" EXIT
+     docker rm $DOCKER_RPM_NAME; \
+     " EXIT
 
 version=$(git rev-parse --verify HEAD)
 
