@@ -76,7 +76,7 @@ class Runner(ABC):
                     raise TimeoutError("disk_usage on " + str(self.basecfg.base_test_dir) + " not working")
                 self.basecfg.base_test_dir.mkdir()
                 print(self.basecfg.base_test_dir)
-                print(self.basecfg.base_test_dir.exists()
+                print(self.basecfg.base_test_dir.exists())
                 time.sleep(1)
                 print('.')
 
