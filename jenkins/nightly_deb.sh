@@ -45,6 +45,7 @@ docker run -itd \
        -v `pwd`/test_dir:/home/test_dir \
        -v /tmp/tmp:/tmp/ \
        -v `pwd`/${VERSION_TAR_NAME}:/home/versions \
+       --rm \
        \
        $DOCKER_DEB_TAG \
        \

@@ -40,6 +40,7 @@ docker \
   -v `pwd`/test_dir:/home/test_dir \
   -v `pwd`/package_cache:/home/package_cache \
   -v `pwd`/${VERSION_TAR_NAME}:/home/versions \
+  --rm \
   --ulimit core=-1 \
   --init \
   $DOCKER_TAG \

@@ -43,6 +43,7 @@ docker run \
        -v /tmp/tmp:/tmp/ \
        -v `pwd`/${VERSION_TAR_NAME}:/home/versions \
        \
+       --rm \
        --privileged \
        --name=$DOCKER_RPM_NAME \
        -itd \
