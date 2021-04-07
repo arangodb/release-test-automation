@@ -794,6 +794,9 @@ Starter {0.name}
     def search_for_warnings(self):
         """ dump out instance args, and what could be fishy in my log """
         print(self.arguments)
+        if not self.log_file.exists():
+            print(str(self.log_file) + " not there. Skipping search")
+            return
         with self.log_file.open() as f:
             for line in f.readline():
                 if ('WARN' in line or

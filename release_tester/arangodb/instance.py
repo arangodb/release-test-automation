@@ -115,6 +115,9 @@ class Instance(ABC):
         raise Exception("this instance doesn't support endpoints." + repr(self))
 
     def search_for_warnings(self):
+        if not self.logfile.exists():
+            print(str(self.logfile) + " doesn't exist, skipping.")
+            return
         with open(self.logfile) as log_fh:
             for line in log_fh:
                 if ("FATAL" in line or
