@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 """ Release testing script"""
-import logging
 from pathlib import Path
 import sys
 import re
@@ -11,13 +10,6 @@ from arangodb.installers import make_installer, InstallerConfig
 from arangodb.starter.deployments.cluster_perf import ClusterPerf
 from arangodb.starter.deployments import RunnerType
 import tools.loghelper as lh
-
-logging.basicConfig(
-    level=logging.INFO,
-    datefmt='%H:%M:%S',
-    format='%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s'
-)
-
 
 @click.command()
 @click.option('--old-version', help='unused')
@@ -78,6 +70,8 @@ def run_test(old_version, new_version, verbose, package_dir, test_data_dir,
              interactive, mode, starter_mode, publicip, scenario, frontends,
              selenium, selenium_driver_args):
     """ main """
+    lh.configure_logging(verbose)
+
     lh.section("configuration")
     print("version: " + str(new_version))
     print("using enterpise: " + str(enterprise))
@@ -97,9 +91,6 @@ def run_test(old_version, new_version, verbose, package_dir, test_data_dir,
     do_uninstall = mode in ["all", "uninstall"]
 
     lh.section("startup")
-    if verbose:
-        logging.info("setting debug level to debug (verbose)")
-        logging.getLogger().setLevel(logging.DEBUG)
 
     install_config = InstallerConfig(new_version,
                                      verbose,

@@ -335,7 +335,7 @@ class InstallerBase(ABC):
                 self.cfg.real_sbin_dir / 'arango-init-database',
                 self.cfg.real_sbin_dir / 'arango-secure-installation'
             ], 'c++'))
-        exit
+
         # symlink only for MMFILES
         self.arango_binaries.append(BinaryDescription(
             self.cfg.real_sbin_dir, 'arangod',

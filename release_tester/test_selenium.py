@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 """ Release testing script"""
-import logging
 from pathlib import Path
 
 import sys
@@ -11,12 +10,6 @@ from arangodb.installers import make_installer, InstallerConfig
 from arangodb.starter.deployments import RunnerType, make_runner
 import tools.loghelper as lh
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    datefmt='%H:%M:%S',
-    format='%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s'
-)
-
 # pylint: disable=R0913 disable=R0914
 def run_upgrade(old_version, new_version, verbose,
                 package_dir, test_data_dir,
@@ -25,6 +18,7 @@ def run_upgrade(old_version, new_version, verbose,
                 starter_mode, stress_upgrade,
                 publicip, selenium, selenium_driver_args):
     """ execute upgrade tests """
+    lh.configure_logging(verbose)
     lh.section("configuration")
     print("old version: " + str(old_version))
     print("version: " + str(new_version))
@@ -37,9 +31,6 @@ def run_upgrade(old_version, new_version, verbose,
     print("verbose: " + str(verbose))
 
     lh.section("startup")
-    if verbose:
-        logging.info("setting debug level to debug (verbose)")
-        logging.getLogger().setLevel(logging.DEBUG)
 
     if starter_mode == 'all':
         starter_mode = [RunnerType.LEADER_FOLLOWER,

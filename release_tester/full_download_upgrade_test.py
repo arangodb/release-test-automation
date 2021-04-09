@@ -6,9 +6,12 @@ import os
 import resource
 import sys
 
-import click
 import shutil
+import time
 
+import click
+
+import tools.loghelper as lh
 from acquire_packages import AcquirePackages
 from upgrade import run_upgrade
 from cleanup import run_cleanup
@@ -30,6 +33,8 @@ def upgrade_package_test(verbose,
     new_version_state = None
     old_version_content = None
     new_version_content = None
+
+    lh.configure_logging(verbose)
 
     os.chdir(test_data_dir)
     resource.setrlimit(

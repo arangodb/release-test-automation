@@ -57,6 +57,7 @@ class Runner(ABC):
         self.new_cfg = new_cfg
         self.cfg = self.basecfg
         # TODO: no passwd support in starter install yet.
+        self.passvoid = None
         self.basecfg.passvoid = ""
         self.versionstr = ''
         if self.new_cfg:
@@ -73,7 +74,9 @@ class Runner(ABC):
             except FileNotFoundError:
                 count += 1
                 if count > 20:
-                    raise TimeoutError("disk_usage on " + str(self.basecfg.base_test_dir) + " not working")
+                    raise TimeoutError("disk_usage on " +
+                                       str(self.basecfg.base_test_dir) +
+                                       " not working")
                 self.basecfg.base_test_dir.mkdir()
                 print(self.basecfg.base_test_dir)
                 print(self.basecfg.base_test_dir.exists())
@@ -552,7 +555,7 @@ class Runner(ABC):
     @abstractmethod
     def after_backup_impl(self):
         """ HotBackup has happened, prepare the SUT to continue testing """
-        
+
     def create_backup(self, name):
         """ create a backup on the installation """
         for starter in self.makedata_instances:

@@ -115,6 +115,7 @@ class Instance(ABC):
         raise Exception("this instance doesn't support endpoints." + repr(self))
 
     def search_for_warnings(self):
+        """ browse our logfile for warnings and errors """
         if not self.logfile.exists():
             print(str(self.logfile) + " doesn't exist, skipping.")
             return
@@ -287,6 +288,7 @@ class ArangodInstance(Instance):
             time.sleep(0.1)
 
     def detect_fatal_errors(self):
+        """ check whether we have FATAL lines in the logfile """
         with open(self.logfile) as log_fh:
             for line in log_fh:
                 if "] FATAL [" in line:
