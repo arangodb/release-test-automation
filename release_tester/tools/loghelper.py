@@ -1,6 +1,27 @@
 #!/usr/bin/env python3
 """ invoke subprocesses and timestamped print their output """
 # import subprocess
+import logging
+
+def configure_logging(verbose):
+    """ set up logging """
+    logging.basicConfig(
+        level=logging.DEBUG,
+        datefmt='%H:%M:%S',
+        format='%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s'
+    )
+    logging.basicConfig()
+    if verbose:
+        logging.info("setting debug level to debug (verbose)")
+        logging.getLogger().setLevel(logging.DEBUG)
+
+    requests_log = logging.getLogger("urllib3")
+    requests_log.setLevel(logging.WARNING)
+    requests_log.propagate = True
+
+    requests_log = logging.getLogger("requests")
+    requests_log.setLevel(logging.WARNING)
+    requests_log.propagate = True
 
 def get_term_width():
     """ eventually we should ask the term for the size """

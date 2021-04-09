@@ -2,7 +2,6 @@
 # pylint: disable=C0301
 # have long strings, need long lines.
 """ Release testing script"""
-import logging
 from ftplib import FTP
 from pathlib import Path
 import json
@@ -12,12 +11,6 @@ from arangodb.installers import make_installer, InstallerConfig
 import tools.loghelper as lh
 
 import requests
-
-logging.basicConfig(
-    level=logging.INFO,
-    datefmt='%H:%M:%S',
-    format='%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s'
-)
 
 class AcquirePackages():
     """ manage package downloading from any known arango package source """
@@ -54,10 +47,6 @@ class AcquirePackages():
                 self.remote_host = "fileserver.arangodb.com"
 
         lh.section("startup")
-        if verbose:
-            logging.info("setting debug level to debug (verbose)")
-            logging.getLogger().setLevel(logging.DEBUG)
-
 
         self.package_dir = Path(package_dir)
         self.cfg = InstallerConfig(version,
@@ -268,6 +257,7 @@ class AcquirePackages():
 # pylint: disable=R0913
 def main(new_version, verbose, package_dir, enterprise, enterprise_magic, zip_package, force, source, httpuser, httppassvoid, remote_host):
     """ main wrapper """
+    lh.configure_logging(verbose)
     downloader = AcquirePackages(new_version, verbose, package_dir, enterprise, enterprise_magic, zip_package, source, httpuser, httppassvoid, remote_host)
     return downloader.get_packages(force, source)
 

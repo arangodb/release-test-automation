@@ -20,7 +20,7 @@ from pathlib import Path
 import psutil
 import semver
 
-from tools.asciiprint import ascii_print, print_progress as progress
+from tools.asciiprint import print_progress as progress
 from tools.timestamp import timestamp
 from arangodb.instance import (
     ArangodInstance,
@@ -675,7 +675,6 @@ Starter {0.name}
         self.show_all_instances()
 
     def detect_instance_pids(self):
-        # TODO: Do we stil need the log.py or should it be removed
         """ detect the arangod instance PIDs"""
         for instance in self.all_instances:
             instance.detect_pid(ppid=self.instance.pid,
@@ -689,7 +688,7 @@ Starter {0.name}
         """ scan all instances for `FATAL` statements """
         for instance in self.all_instances:
             instance.detect_fatal_errors()
-        
+
     def detect_arangosh_instances(self):
         """
         gets the arangosh instance to speak to the frontend of this starter
@@ -797,8 +796,8 @@ Starter {0.name}
         if not self.log_file.exists():
             print(str(self.log_file) + " not there. Skipping search")
             return
-        with self.log_file.open() as f:
-            for line in f.readline():
+        with self.log_file.open() as log_f:
+            for line in log_f.readline():
                 if ('WARN' in line or
                     'ERROR' in line):
                     print(line.rstrip())

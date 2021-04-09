@@ -1,22 +1,15 @@
 #!/usr/bin/env python3
 
 """ Release testing script"""
-import logging
 from pathlib import Path
 import click
+import tools.loghelper as lh
 from tools.killall import kill_all_processes
 from arangodb.installers import make_installer, InstallerConfig
 from arangodb.starter.deployments import RunnerType, make_runner
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    datefmt='%H:%M:%S',
-    format='%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s'
-)
-
 def run_cleanup(zip_package):
     """ main """
-    logging.getLogger().setLevel(logging.DEBUG)
 
     install_config = InstallerConfig('3.3.3',
                                      True,
@@ -63,6 +56,7 @@ def run_cleanup(zip_package):
               help='switch to zip or tar.gz package instead of default OS package')
 def run_test(zip_package):
     """ Wrapper... """
+    lh.configure_logging(True)
     return run_cleanup(zip_package)
 
 if __name__ == "__main__":
