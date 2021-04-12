@@ -65,7 +65,7 @@ class SeleniumRunner(ABC):
         if recurse > 10:
             raise Exception("10 successless login attempts")
         try:
-            assert "ArangoDB Web Interface" in self.web.title
+            assert "ArangoDB Web Interface" in self.web.title, "webif title not found"
             try:
                 logname = WebDriverWait(self.web, 10).until(
                     EC.presence_of_element_located((By.ID, "loginUsername"))
@@ -117,7 +117,7 @@ class SeleniumRunner(ABC):
             elem.click()
             print("S: we're in!")
 
-            assert "No results found." not in self.web.page_source
+            assert "No results found." not in self.web.page_source, "no results found?"
         except TimeoutException as ex:
             self.take_screenshot()
             raise ex
@@ -149,7 +149,7 @@ class SeleniumRunner(ABC):
         while True:
             try:
                 elem = self.web.find_element_by_id(tag)
-                assert elem
+                assert elem, "navbar goto failed?"
                 elem.click()
                 self.web.find_element_by_class_name(tag + '-menu.active')
                 print("S: goto current URL: " + self.web.current_url)

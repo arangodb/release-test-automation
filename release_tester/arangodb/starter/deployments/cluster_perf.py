@@ -218,7 +218,7 @@ class ClusterPerf(Runner):
     def jam_attempt_impl(self):
         self.makedata_instances = self.starter_instances[:]
         logging.info('jamming: starting data stress')
-        assert self.makedata_instances
+        assert self.makedata_instances, "no makedata instance!"
         logging.debug("makedata instances")
         for i in self.makedata_instances:
             logging.debug(str(i))
@@ -246,7 +246,7 @@ class ClusterPerf(Runner):
         while len(workers) < self.scenario.parallelity:
             starter = self.makedata_instances[len(workers) % len(
                 self.makedata_instances)]
-            assert starter.arangosh
+            assert starter.arangosh, "no starter associated arangosh!"
             arangosh = starter.arangosh
 
             #must be writabe that the setup may not have already data

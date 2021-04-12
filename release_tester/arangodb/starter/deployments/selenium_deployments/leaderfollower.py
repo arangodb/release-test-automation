@@ -13,11 +13,11 @@ class LeaderFollower(SeleniumRunner):
         ver = self.detect_version()
         print('S: %s ~= %s?'% (ver['version'].lower(), str(cfg.semver)))
 
-        assert ver['version'].lower().startswith(str(cfg.semver))
+        assert ver['version'].lower().startswith(str(cfg.semver)), "wrong version"
         if cfg.enterprise:
-            assert ver['enterprise'] == 'ENTERPRISE EDITION'
+            assert ver['enterprise'] == 'ENTERPRISE EDITION', "expected enterprise"
         else:
-            assert ver['enterprise'] == 'COMMUNITY EDITION'
+            assert ver['enterprise'] == 'COMMUNITY EDITION', "expected community"
 
         count = 0
         replication_table = None
@@ -32,7 +32,7 @@ class LeaderFollower(SeleniumRunner):
             count +=1
             time.sleep(5)
         # head and one follower should be there:
-        assert len(replication_table['follower_table']) == 2
+        assert len(replication_table['follower_table']) == 2, "expected 1 follower"
 
     def upgrade_deployment(self, new_cfg, secondary, leader_follower):
         pass
@@ -45,7 +45,7 @@ class LeaderFollower(SeleniumRunner):
         # replication_table = self.get_replication_screen(True)
         # print(replication_table)
         # # head and one follower should be there:
-        # assert len(replication_table['follower_table']) == 2
+        # assert len(replication_table['follower_table']) == 2, "expected to have 1 follower!"
 
     def jam_step_2(self, cfg):
         pass

@@ -40,7 +40,7 @@ class Runner(ABC):
             selenium_driver_args: list
         ):
         load_scenarios()
-        assert runner_type
+        assert runner_type, "no runner no cry? no!"
         logging.debug(runner_type)
         self.runner_type = runner_type
         self.name = str(self.runner_type).split('.')[1]
@@ -465,7 +465,7 @@ class Runner(ABC):
     #@abstractmethod
     def make_data_impl(self):
         """ upload testdata into the deployment, and check it """
-        assert self.makedata_instances
+        assert self.makedata_instances, "don't have makedata instance!"
         logging.debug("makedata instances")
         for i in self.makedata_instances:
             logging.debug(str(i))
@@ -473,7 +473,7 @@ class Runner(ABC):
         interactive = self.basecfg.interactive
 
         for starter in self.makedata_instances:
-            assert starter.arangosh
+            assert starter.arangosh, "make: this starter doesn't have an arangosh!"
             arangosh = starter.arangosh
 
             #must be writabe that the setup may not have already data
@@ -507,7 +507,7 @@ class Runner(ABC):
         for starter in self.makedata_instances:
             if not starter.is_leader:
                 continue
-            assert starter.arangosh
+            assert starter.arangosh, "check: this starter doesn't have an arangosh!"
             arangosh = starter.arangosh
             return self.check_data_impl_sh(arangosh)
         raise Exception("no frontend found.")
@@ -519,7 +519,7 @@ class Runner(ABC):
     def create_non_backup_data(self):
         """ create data to be zapped by the restore operation """
         for starter in self.makedata_instances:
-            assert starter.arangosh
+            assert starter.arangosh, "non backup: this starter doesn't have an arangosh!"
             arangosh = starter.arangosh
             return arangosh.hotbackup_create_nonbackup_data()
         raise Exception("no frontend found.")
@@ -529,7 +529,7 @@ class Runner(ABC):
         for starter in self.makedata_instances:
             if not starter.is_leader:
                 continue
-            assert starter.arangosh
+            assert starter.arangosh, "check non backup: this starter doesn't have an arangosh!"
             arangosh = starter.arangosh
             return arangosh.hotbackup_check_for_nonbackup_data()
         raise Exception("no frontend found.")
@@ -561,7 +561,7 @@ class Runner(ABC):
         for starter in self.makedata_instances:
             if not starter.is_leader:
                 continue
-            assert starter.hb_instance
+            assert starter.hb_instance, "create backup: this starter doesn't have an hb instance!"
             return starter.hb_instance.create(name)
         raise Exception("no frontend found.")
 
@@ -570,7 +570,7 @@ class Runner(ABC):
         for starter in self.makedata_instances:
             if not starter.is_leader:
                 continue
-            assert starter.hb_instance
+            assert starter.hb_instance, "list backup: this starter doesn't have an hb instance!"
             return starter.hb_instance.list()
         raise Exception("no frontend found.")
 
@@ -579,7 +579,7 @@ class Runner(ABC):
         for starter in self.makedata_instances:
             if not starter.is_leader:
                 continue
-            assert starter.hb_instance
+            assert starter.hb_instance, "delete backup: this starter doesn't have an hb instance!"
             return starter.hb_instance.delete(name)
         raise Exception("no frontend found.")
 
@@ -592,7 +592,7 @@ class Runner(ABC):
         for starter in self.makedata_instances:
             if not starter.is_leader:
                 continue
-            assert starter.hb_instance
+            assert starter.hb_instance, "restore backup: this starter doesn't have an hb instance!"
             starter.hb_instance.restore(name)
             self.wait_for_restore_impl(starter)
             return
@@ -603,7 +603,7 @@ class Runner(ABC):
         for starter in self.makedata_instances:
             if not starter.is_leader:
                 continue
-            assert starter.hb_instance
+            assert starter.hb_instance, "upload backup: this starter doesn't have an hb instance!"
             hb_id = starter.hb_instance.upload(name, starter.hb_config, "12345")
             return starter.hb_instance.upload_status(name,
                                                      hb_id,
@@ -615,7 +615,7 @@ class Runner(ABC):
         for starter in self.makedata_instances:
             if not starter.is_leader:
                 continue
-            assert starter.hb_instance
+            assert starter.hb_instance, "download backup: this starter doesn't have an hb instance!"
             hb_id = starter.hb_instance.download(name,
                                                  starter.hb_config,
                                                  "12345")

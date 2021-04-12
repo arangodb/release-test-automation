@@ -186,25 +186,25 @@ Starter {0.name}
     def get_frontend(self):
         """ get the first frontendhost of this starter """
         servers = self.get_frontends()
-        assert servers
+        assert servers, "starter: don't have instances!"
         return servers[0]
 
     def get_dbserver(self):
         """ get the first dbserver of this starter """
         servers = self.get_dbservers()
-        assert servers
+        assert servers, "starter: don't have instances!"
         return servers[0]
 
     def get_agent(self):
         """ get the first agent of this starter """
         servers = self.get_agents()
-        assert servers
+        assert servers, "starter: have no instances!"
         return servers[0]
 
     def get_sync_master(self):
         """ get the first arangosync master of this starter """
         servers = self.get_sync_masters()
-        assert servers
+        assert servers, "starter: don't have instances!"
         return servers[0]
 
     def show_all_instances(self):
@@ -546,7 +546,7 @@ Starter {0.name}
                     end = lfcontent.find(' ', where)
                     port = lfcontent[where + 1: end]
                     self.starter_port = port
-                    assert int(port) #assert that we can convert to int
+                    assert int(port), "port cannot be converted to int!"
                     return port
             logging.info('retrying logfile')
             time.sleep(1)
@@ -586,13 +586,13 @@ Starter {0.name}
     def read_db_logfile(self):
         """ get the logfile of the dbserver instance"""
         server = self.get_dbserver()
-        assert server.logfile.exists()
+        assert server.logfile.exists(), "don't have logfile?"
         return server.logfile.read_text()
 
     def read_agent_logfile(self):
         """ get the agent logfile of this instance"""
         server = self.get_agent()
-        assert server.logfile.exists()
+        assert server.logfile.exists(), "don't have logfile?"
         return server.logfile.read_text()
 
     def detect_instances(self):

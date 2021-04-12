@@ -6,14 +6,14 @@ import logging
 def configure_logging(verbose):
     """ set up logging """
     logging.basicConfig(
-        level=logging.DEBUG,
+        # level=logging.DEBUG,
         datefmt='%H:%M:%S',
         format='%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s'
     )
     logging.basicConfig()
-    if verbose:
-        logging.info("setting debug level to debug (verbose)")
-        logging.getLogger().setLevel(logging.DEBUG)
+    #if verbose:
+    #    logging.info("setting debug level to debug (verbose)")
+    #    logging.getLogger().setLevel(logging.DEBUG)
 
     requests_log = logging.getLogger("urllib3")
     requests_log.setLevel(logging.WARNING)

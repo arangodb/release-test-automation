@@ -28,9 +28,9 @@ def make_runner(runner_type: RunnerType,
                 ) -> Runner:
     """ get an instance of the arangod runner - as you specify """
 
-    assert runner_type
-    assert baseconfig
-    assert old_inst
+    assert runner_type, "no runner no cry?"
+    assert baseconfig, "no base config?"
+    assert old_inst, "no old version?"
 
     logging.debug("Factory for Runner of type: {0}".format(str(runner_type)))
     args = (runner_type, baseconfig, old_inst, new_cfg, new_inst, selenium_worker, selenium_driver_args)
