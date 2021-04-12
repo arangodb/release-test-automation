@@ -14,11 +14,11 @@ class Cluster(SeleniumRunner):
         ver = self.detect_version()
         
         print("S: %s ~= %s?" % (ver['version'].lower(), str(cfg.semver)))
-        assert ver['version'].lower().startswith(str(cfg.semver))
+        assert ver['version'].lower().startswith(str(cfg.semver)), "wrong version"
         if cfg.enterprise:
-            assert ver['enterprise'] == 'ENTERPRISE EDITION'
+            assert ver['enterprise'] == 'ENTERPRISE EDITION', "expected enterprise"
         else:
-            assert ver['enterprise'] == 'COMMUNITY EDITION'
+            assert ver['enterprise'] == 'COMMUNITY EDITION', "expected community"
 
         self.navbar_goto('nodes')
         table = self.cluster_get_nodes_table()
@@ -28,12 +28,14 @@ class Cluster(SeleniumRunner):
                 row_count += 1
 
         print('S: serving instances 6 / %d' % row_count)
-        assert row_count == 6
+        assert row_count == 6, "expected 6 instances"
 
         self.navbar_goto('cluster')
         node_count = self.cluster_dashboard_get_count()
-        assert node_count['dbservers'] == '3'
-        assert node_count['coordinators'] == '3'
+        assert node_count['dbservers'] == '3', (
+            "expected 3 dbservers, got: " + node_count['dbservers'])
+        assert node_count['coordinators'] == '3', (
+            "expected 3 coordinators, got: " + node_count['coordinators'])
         health_state = None
         count = 0
         while count < 10:
@@ -42,7 +44,7 @@ class Cluster(SeleniumRunner):
                 break
             count +=1
             time.sleep(1)
-        assert health_state == 'NODES OK'
+        assert health_state == 'NODES OK', "expected all nodes to be OK"
 
     def upgrade_deployment(self, old_cfg, new_cfg, timeout):
         old_ver = str(old_cfg.semver)
@@ -78,7 +80,7 @@ class Cluster(SeleniumRunner):
         self.web.refresh()
         ver = self.detect_version()
         print("S: ver %s is %s?" % (str(ver), new_ver))
-        assert ver['version'].lower().startswith(new_ver)
+        assert ver['version'].lower().startswith(new_ver), "wrong version after upgrade"
 
     def jam_step_1(self, cfg):
         """ check for one set of instances to go away """
@@ -97,12 +99,18 @@ class Cluster(SeleniumRunner):
             if not done:
                 time.sleep(3)
             retry_count += 1
-            assert retry_count < 30
+            assert retry_count < 30, (
+                "Timeout: expocted db + c to be 2/3, have: " +
+                node_count['dbservers'] + ", " +
+                node_count['coordinators'])
 
-        assert node_count['dbservers'] == '2/3'
-        assert node_count['coordinators'] == '2/3'
+        assert node_count['dbservers'] == '2/3',(
+            "dbservers: " + node_count['dbservers'])
+        assert node_count['coordinators'] == '2/3', (
+            "coordinators: " + node_count['coordinators'])
         health_state = self.get_health_state()
-        assert health_state != 'NODES OK'
+        assert health_state != 'NODES OK', (
+            "expected health to be NODES OK, have: " + health_state)
 
         self.navbar_goto('nodes')
         row_count = 0
@@ -119,7 +127,8 @@ class Cluster(SeleniumRunner):
                 row_count = 0
 
         print('S: serving instances 6 / %d [%d]' % (row_count, retry_count))
-        assert row_count == 4
+        assert row_count == 4, (
+            "expect 2 instances to be offline have %d of 6", row_count)
 
         health_state = None
         count = 0
@@ -129,7 +138,7 @@ class Cluster(SeleniumRunner):
                 break
             count +=1
             time.sleep(1)
-        assert health_state != 'NODES OK'
+        assert health_state != 'NODES OK', "wrong health stame after jam: " + health_state
 
     def jam_step_2(self, cfg):
         self.navbar_goto('cluster')
@@ -142,5 +151,7 @@ class Cluster(SeleniumRunner):
             if not done:
                 time.sleep(3)
             retry_count += 1
-            assert retry_count < 10
+            assert retry_count < 10, (
+                "expected 3 instances each, have: DB " +
+                node_count['dbservers'] + " C " + node_count['coordinators'])
         self.check_old(cfg)

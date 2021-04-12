@@ -13,11 +13,11 @@ class ActiveFailover(SeleniumRunner):
         ver = self.detect_version()
         print('S: %s ~= %s?'% (ver['version'].lower(), str(cfg.semver)))
 
-        assert ver['version'].lower().startswith(str(cfg.semver))
+        assert ver['version'].lower().startswith(str(cfg.semver)), "wrong version"
         if cfg.enterprise:
-            assert ver['enterprise'] == 'ENTERPRISE EDITION'
+            assert ver['enterprise'] == 'ENTERPRISE EDITION', "expect enterprise"
         else:
-            assert ver['enterprise'] == 'COMMUNITY EDITION'
+            assert ver['enterprise'] == 'COMMUNITY EDITION', "expect community"
 
         while retry_count > 0:
             self.navbar_goto('replication')
@@ -31,7 +31,7 @@ class ActiveFailover(SeleniumRunner):
         # head and two followers should be there:
         print('S: expecting %d followers, have %d followers'%(
             expect_follower_count, len(replication_table['follower_table']) - 1))
-        assert len(replication_table['follower_table']) == expect_follower_count + 1
+        assert len(replication_table['follower_table']) == expect_follower_count + 1, "expect 1 follower"
 
     def upgrade_deployment(self, new_cfg, secondary, leader_follower):
         pass
@@ -42,7 +42,7 @@ class ActiveFailover(SeleniumRunner):
         replication_table = self.get_replication_screen(True)
         print(replication_table)
         # head and one follower should be there:
-        assert len(replication_table['follower_table']) == 2
+        assert len(replication_table['follower_table']) == 2, "expect 2 followers"
 
     def jam_step_2(self, cfg):
         pass
