@@ -796,6 +796,7 @@ Starter {0.name}
         if not self.log_file.exists():
             print(str(self.log_file) + " not there. Skipping search")
             return
+        print(str(self.log_file))
         with self.log_file.open() as log_f:
             for line in log_f.readline():
                 if ('WARN' in line or

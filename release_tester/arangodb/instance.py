@@ -119,6 +119,7 @@ class Instance(ABC):
         if not self.logfile.exists():
             print(str(self.logfile) + " doesn't exist, skipping.")
             return
+        print(str(self.logfile))
         with open(self.logfile) as log_fh:
             for line in log_fh:
                 if ("FATAL" in line or
