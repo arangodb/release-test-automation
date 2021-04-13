@@ -124,7 +124,8 @@ class Instance(ABC):
             for line in log_fh:
                 if ("FATAL" in line or
                     "ERROR" in line or
-                    "WARNING" in line):
+                    "WARNING" in line or
+                    "{crash}" in line):
                     print(line.rstrip())
 
 class ArangodInstance(Instance):
