@@ -4,6 +4,7 @@ import unicodedata
 import re
 import sys
 
+is_tty = sys.stdout.isatty()
 PROGRESS_COUNT=0
 
 # 7-bit C1 ANSI sequences
@@ -30,7 +31,7 @@ def print_progress(char):
     global PROGRESS_COUNT
     print(char, end="")
     PROGRESS_COUNT +=1
-    if PROGRESS_COUNT % 10 == 0:
+    if not is_tty and PROGRESS_COUNT % 10 == 0:
         # add a linebreak so we see something in jenkins (if):
         print('\n')
     sys.stdout.flush()
