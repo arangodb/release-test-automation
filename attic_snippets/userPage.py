@@ -4,6 +4,7 @@ from baseSelenium import BaseSelenium
 class UserPage(BaseSelenium):
 
     def __init__(self, driver):
+        super().__init__()
         self.driver = driver
         self.select_user_tab_id = "users"
         self.add_new_user_id = "createUser"
@@ -15,7 +16,8 @@ class UserPage(BaseSelenium):
         self.permission_link_id = "//*[@id='subNavigationBar']/ul[2]/li[2]/a"
         self.changing_db_permission_id = "//*[@id='*-db']/div[3]/input"
         self.saving_user_cfg_id = "modalButton3"
-        self.user_logout_button_id = "userLogoutIcon"
+        self.select_user_delete_btn = "modalButton0"
+        self.select_confirm_delete_btn = "modal-confirm-delete"
 
     # selecting user tab
     def new_user_tab(self):
@@ -46,7 +48,7 @@ class UserPage(BaseSelenium):
         self.enter_new_password_id.send_keys(password)
 
     # User page selecting add new user
-    def crating_new_user(self):
+    def creating_new_user(self):
         self.create_user_btn_id = BaseSelenium.locator_finder_by_id(self, self.create_user_btn_id)
         self.create_user_btn_id.click()
 
@@ -70,7 +72,12 @@ class UserPage(BaseSelenium):
         self.saving_user_cfg_id = BaseSelenium.locator_finder_by_id(self, self.saving_user_cfg_id)
         self.saving_user_cfg_id.click()
 
-    # selecting user logout button
-    def user_logout_button(self):
-        self.user_logout_button_id = BaseSelenium.locator_finder_by_id(self, self.user_logout_button_id)
-        self.user_logout_button_id.click()
+    # deleting user
+    def delete_user_btn(self):
+        self.select_user_delete_btn = BaseSelenium.locator_finder_by_id(self, self.select_user_delete_btn)
+        self.select_user_delete_btn.click()
+
+    # confirming delete user
+    def confirm_delete_btn(self):
+        self.select_confirm_delete_btn = BaseSelenium.locator_finder_by_id(self, self.select_confirm_delete_btn)
+        self.select_confirm_delete_btn.click()
