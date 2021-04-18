@@ -55,3 +55,4 @@ class LoginPage(BaseSelenium):
     def logout_button(self):
         self.logout_button_id = BaseSelenium.locator_finder_by_id(self, self.logout_button_id)
         self.logout_button_id.click()
+        print("Logout from the current user\n")
