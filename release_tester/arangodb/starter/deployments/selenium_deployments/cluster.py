@@ -99,7 +99,7 @@ class Cluster(SeleniumRunner):
             if not done:
                 time.sleep(3)
             retry_count += 1
-            assert retry_count < 30, (
+            assert retry_count < 40, (
                 "Timeout: expocted db + c to be 2/3, have: " +
                 node_count['dbservers'] + ", " +
                 node_count['coordinators'])
@@ -116,7 +116,7 @@ class Cluster(SeleniumRunner):
         row_count = 0
         retry_count = 0
         while row_count != 4 and retry_count < 10:
-            table = self.cluster_get_nodes_table()
+            table = self.cluster_get_nodes_table(30)
             for row in table:
                 if row['state'] == 'SERVING':
                     row_count += 1
