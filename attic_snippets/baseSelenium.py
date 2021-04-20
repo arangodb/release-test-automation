@@ -45,7 +45,7 @@ class BaseSelenium:
         self.driver.find_element_by_tag_name('html').send_keys(Keys.END)
         time.sleep(5)
         self.driver.find_element_by_tag_name('html').send_keys(Keys.HOME)
-        self.driver.execute_script("window.scrollTo(0,500)")
+        # self.driver.execute_script("window.scrollTo(0,500)")
 
     '''This method will used for finding all the locators by their id'''
 

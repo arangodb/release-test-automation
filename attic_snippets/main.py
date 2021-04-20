@@ -2,15 +2,18 @@ from baseSelenium import BaseSelenium
 from dashboardPage import DashboardPage
 from loginPage import LoginPage
 from userPage import UserPage
+from viewsPage import ViewsPage
 
 
 class Test(BaseSelenium):
     BaseSelenium.set_up_class()
 
-    # shutdown the driver
+    def __init__(self):
+        super().__init__()
+
     @staticmethod
     def teardown():
-        BaseSelenium.tear_down()
+        BaseSelenium.tear_down()  # shutdown the driver
 
     # testing login page
     def test_login(self):
@@ -71,8 +74,8 @@ class Test(BaseSelenium):
         self.user.changing_db_permission()
         self.driver.back()
         self.user.saving_user_cfg()
-        self.login.logout_button()
         print("Changing new user DB permission completed. \n")
+        self.login.logout_button()
 
         # creating login page object to reuse it's methods for login with newly created user
         print("Re-Login begins with new user\n")
@@ -100,9 +103,90 @@ class Test(BaseSelenium):
         del self.login
         print("---------User Test Completed---------\n")
 
+    def test_views(self):
+        print("---------Checking Views Begin--------- \n")
+        self.login = LoginPage(self.driver)
+        self.login.login('root', 'aa')
+        self.views = ViewsPage(self.driver)  # creating obj for viewPage
+        self.views1 = ViewsPage(self.driver)  # creating 2nd obj for viewPage to do counter part of the testing
 
-ui = Test()     # creating obj for the UI test
+        print("Selecting Views tab\n")
+        self.views.select_views_tab()
+        print("Creating first views\n")
+        self.views.create_new_views()
+        self.views.naming_new_view("firstView")
+        self.views.select_create_btn()
+        print("Creating first views completed\n")
+
+        print("Creating second views\n")
+        self.views1.create_new_views()
+        self.views1.naming_new_view("secondView")
+        self.views1.select_create_btn()
+        print("Creating second views completed\n")
+
+        self.views.select_views_settings()
+        print("Sorting views to descending\n")
+        self.views.select_sorting_views()
+
+        print("Sorting views to ascending\n")
+        self.views1.select_sorting_views()
+
+        print("search views option testing\n")
+        self.views1.search_views("se")
+        self.views.search_views("fi")
+
+        print("Selecting first Views \n")
+        self.views.select_first_view()
+        print("Selecting collapse button \n")
+        self.views.select_collapse_btn()
+        print("Selecting expand button \n")
+        self.views.select_expand_btn()
+        print("Selecting editor mode \n")
+        self.views.select_editor_mode_btn()
+        print("Switch editor mode to Code \n")
+        self.views.switch_to_code_editor_mode()
+
+        print("Selecting editor mode \n")
+        self.views1.select_editor_mode_btn()
+        print("Switch editor mode to Tree \n")
+        self.views1.switch_to_tree_editor_mode()
+
+        print("Clicking on ArangoSearch documentation link \n")
+        self.views.click_arangosearch_documentation_link()
+        print("Selecting search option\n")
+        self.views.select_inside_search("i")
+        print("all search results traversing results \n")
+        self.views.search_result_traverse()
+        self.views1.select_inside_search("")
+        # print("Changing views consolidationPolicy id to 55555555 \n")
+        # self.views1.change_consolidation_policy(55555555)
+        print("Rename the current Views started \n")
+        self.views.clicking_rename_views_btn()
+        self.views.rename_views_name("thirdView")
+        self.views.rename_views_name_confirm()
+        print("Rename the current Views completed \n")
+        self.driver.back()
+        print("Deleting views started \n")
+        self.views.select_renamed_view()
+        self.views.delete_views_btn()
+        self.views.delete_views_confirm_btn()
+        self.views.final_delete_confirmation()
+
+        self.views1.select_second_view()
+        self.views1.delete_views_btn()
+        self.views1.delete_views_confirm_btn()
+        self.views1.final_delete_confirmation()
+        print("Deleting views completed\n")
+        self.login.logout_button()
+        del self.login
+        del self.views
+        del self.views1
+        print("---------Checking Views completed--------- \n")
+
+
+ui = Test()  # creating obj for the UI test
 ui.test_login()  # testing Login functionality
 ui.test_dashboard()  # testing Dashboard functionality
 ui.test_user()  # testing User functionality
-ui.teardown()   # close the driver and quit
+ui.test_views()  # testing User functionality
+ui.teardown()  # close the driver and quit
