@@ -68,10 +68,15 @@ class SeleniumRunner(ABC):
             assert "ArangoDB Web Interface" in self.web.title, "webif title not found"
             try:
                 logname = WebDriverWait(self.web, 10).until(
-                    EC.presence_of_element_located((By.ID, "loginUsername"))
+                    EC.element_to_be_clickable((By.ID, "loginUsername"))
                 )
+                logname.click()
                 logname.clear()
                 logname.send_keys("root")
+                
+                if logname is None:
+                    print("locator loginUsername has not found.")
+
             except StaleElementReferenceException as ex:
                 print("S: stale element, force reloading with sleep: " + str(ex))
                 self.web.refresh()
@@ -87,6 +92,7 @@ class SeleniumRunner(ABC):
                     print('S: something was in the passvoid field. retrying. ' + txt)
                     time.sleep(2)
                     continue
+                passvoid.click()
                 passvoid.clear()
                 passvoid.send_keys(frontend_instance[0].get_passvoid())
                 passvoid.send_keys(Keys.RETURN)
@@ -112,7 +118,7 @@ class SeleniumRunner(ABC):
                 else:
                     break
             elem = WebDriverWait(self.web, 15).until(
-                EC.presence_of_element_located((By.ID, "goToDatabase"))
+                EC.element_to_be_clickable((By.ID, "goToDatabase"))
             )
             elem.click()
             print("S: we're in!")
