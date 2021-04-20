@@ -100,7 +100,7 @@ class Cluster(SeleniumRunner):
                 time.sleep(3)
             retry_count += 1
             assert retry_count < 40, (
-                "Timeout: expocted db + c to be 2/3, have: " +
+                "Timeout: expected db + c to be 2/3, have: " +
                 node_count['dbservers'] + ", " +
                 node_count['coordinators'])
 
