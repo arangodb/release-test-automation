@@ -35,7 +35,7 @@ def init(runner_type: RunnerType,
         except SessionNotCreatedException as ex:
             if count == 10:
                 raise ex
-            print('S: retrying to launch browser')
+            self.progress(' retrying to launch browser')
             time.sleep(2)
     if selenium_worker.lower() == 'chrome':
         original_size = driver.get_window_size()

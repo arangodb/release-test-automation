@@ -13,7 +13,7 @@ class Cluster(SeleniumRunner):
         """ check the integrity of the old system before the upgrade """
         ver = self.detect_version()
         
-        print("S: %s ~= %s?" % (ver['version'].lower(), str(cfg.semver)))
+        self.progress(" %s ~= %s?" % (ver['version'].lower(), str(cfg.semver)))
         assert ver['version'].lower().startswith(str(cfg.semver)), "wrong version"
         if cfg.enterprise:
             assert ver['enterprise'] == 'ENTERPRISE EDITION', "expected enterprise"
@@ -27,7 +27,7 @@ class Cluster(SeleniumRunner):
             if row['state'] == 'SERVING':
                 row_count += 1
 
-        print('S: serving instances 6 / %d' % row_count)
+        self.progress(' serving instances 6 / %d' % row_count)
         assert row_count == 6, "expected 6 instances"
 
         self.navbar_goto('cluster')
@@ -57,7 +57,7 @@ class Cluster(SeleniumRunner):
             try:
                 table = self.cluster_get_nodes_table(300)
             except StaleElementReferenceException:
-                print("S: skip once")
+                self.progress(" skip once")
 
             old_count = 0
             new_count = 0
@@ -68,9 +68,9 @@ class Cluster(SeleniumRunner):
                 elif row['version'].lower().startswith(new_ver):
                     new_count += 1
                 else:
-                    print("S: can't count this row on new or old: %s" % (str(row)))
+                    self.progress(" can't count this row on new or old: %s" % (str(row)))
             upgrade_done = (old_count == 0) and (new_count == 6)
-            print('S: serving instances old %d / new %d' % (old_count, new_count))
+            self.progress(' serving instances old %d / new %d' % (old_count, new_count))
             if not upgrade_done:
                 time.sleep(5)
             timeout -= 1
@@ -79,7 +79,7 @@ class Cluster(SeleniumRunner):
         # the version doesn't update automatically, force refresh:
         self.web.refresh()
         ver = self.detect_version()
-        print("S: ver %s is %s?" % (str(ver), new_ver))
+        self.progress(" ver %s is %s?" % (str(ver), new_ver))
         assert ver['version'].lower().startswith(new_ver), "wrong version after upgrade"
 
     def jam_step_1(self, cfg):
@@ -126,7 +126,7 @@ class Cluster(SeleniumRunner):
                 time.sleep(2)
                 row_count = 0
 
-        print('S: serving instances 6 / %d [%d]' % (row_count, retry_count))
+        self.progress(' serving instances 6 / %d [%d]' % (row_count, retry_count))
         assert row_count == 4, (
             "expect 2 instances to be offline have %d of 6", row_count)
 

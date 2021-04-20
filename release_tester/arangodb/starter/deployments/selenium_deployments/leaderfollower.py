@@ -11,7 +11,7 @@ class LeaderFollower(SeleniumRunner):
     def check_old(self, cfg, leader_follower=True):
         """ check the integrity of the old system before the upgrade """
         ver = self.detect_version()
-        print('S: %s ~= %s?'% (ver['version'].lower(), str(cfg.semver)))
+        self.progress(' %s ~= %s?'% (ver['version'].lower(), str(cfg.semver)))
 
         assert ver['version'].lower().startswith(str(cfg.semver)), "wrong version"
         if cfg.enterprise:
@@ -24,7 +24,7 @@ class LeaderFollower(SeleniumRunner):
         while True:
             self.navbar_goto('replication')
             replication_table = self.get_replication_screen(leader_follower, 120)
-            print('S: ' + str(replication_table))
+            self.progress(' ' + str(replication_table))
             if len(replication_table['follower_table']) == 2:
                 break
             if count % 5 == 0:
@@ -41,11 +41,11 @@ class LeaderFollower(SeleniumRunner):
         """ check for one set of instances to go away """
         pass
         # TODO: fix replication upgrade
-        # self.navbar_goto('replication')
-        # replication_table = self.get_replication_screen(True)
-        # print(replication_table)
-        # # head and one follower should be there:
-        # assert len(replication_table['follower_table']) == 2, "expected to have 1 follower!"
+        self.navbar_goto('replication')
+        replication_table = self.get_replication_screen(True)
+        print(replication_table)
+        # head and one follower should be there:
+        assert len(replication_table['follower_table']) == 2, "expected to have 1 follower!"
 
     def jam_step_2(self, cfg):
         pass
