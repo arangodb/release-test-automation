@@ -11,7 +11,7 @@ class ActiveFailover(SeleniumRunner):
     def check_old(self, cfg, expect_follower_count=2, retry_count=10):
         """ check the integrity of the old system before the upgrade """
         ver = self.detect_version()
-        print('S: %s ~= %s?'% (ver['version'].lower(), str(cfg.semver)))
+        self.progress(' %s ~= %s?'% (ver['version'].lower(), str(cfg.semver)))
 
         assert ver['version'].lower().startswith(str(cfg.semver)), "wrong version"
         if cfg.enterprise:
@@ -29,7 +29,7 @@ class ActiveFailover(SeleniumRunner):
             else:
                 retry_count = 0 # its there!
         # head and two followers should be there:
-        print('S: expecting %d followers, have %d followers'%(
+        self.progress(' expecting %d followers, have %d followers'%(
             expect_follower_count, len(replication_table['follower_table']) - 1))
         assert len(replication_table['follower_table']) == expect_follower_count + 1, "expect 1 follower"
 

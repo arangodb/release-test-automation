@@ -17,6 +17,16 @@ class RunnerType(Enum):
     DC2DC = 4
     DC2DCENDURANCE = 5
 
+""" map strings """
+runner_strings = {
+    RunnerType.NONE: "none",
+    RunnerType.LEADER_FOLLOWER: "Leader / Follower",
+    RunnerType.ACTIVE_FAILOVER: "Active Failover",
+    RunnerType.CLUSTER: "Cluster",
+    RunnerType.DC2DC: "DC 2 DC",
+    RunnerType.DC2DCENDURANCE: "DC 2 DC endurance"
+}
+
 #pylint: disable=import-outside-toplevel
 def make_runner(runner_type: RunnerType,
                 selenium_worker: str,

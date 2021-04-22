@@ -15,10 +15,26 @@ class SeleniumRunner(ABC):
         self.web = webdriver
         self.original_window_handle = None
         print(dir(self.web.switch_to))
+        self.state = ""
+
+    def progress(self, msg):
+        """ add something to the state... """
+        print("S: " + msg)
+        if not self.state:
+            self.state += "\n"
+        self.state += msg
+
+    def reset_progress(self):
+        self.state = ""
+
+    def get_progress(self):
+        rc = self.state
+        self.reset_progress()
+        return rc
 
     def disconnect(self):
         """ byebye """
-        print("S: Close!")
+        self.progress(" Close!")
         self.web.close()
 
     def take_screenshot(self, filename='exception_screenshot.png'):
@@ -29,7 +45,7 @@ class SeleniumRunner(ABC):
 
     def connect_server_new_tab(self, frontend_instance, database, cfg):
         """ login... """
-        print("S: Opening page")
+        self.progress(" Opening page")
         print(frontend_instance[0].get_public_plain_url())
         self.original_window_handle = self.web.current_window_handle
 
@@ -53,7 +69,7 @@ class SeleniumRunner(ABC):
 
     def connect_server(self, frontend_instance, database, cfg):
         """ login... """
-        print("S: Opening page")
+        self.progress(" Opening page")
         print(frontend_instance[0].get_public_plain_url())
         self.web.get("http://" +
                      frontend_instance[0].get_public_plain_url() +
@@ -68,12 +84,17 @@ class SeleniumRunner(ABC):
             assert "ArangoDB Web Interface" in self.web.title, "webif title not found"
             try:
                 logname = WebDriverWait(self.web, 10).until(
-                    EC.presence_of_element_located((By.ID, "loginUsername"))
+                    EC.element_to_be_clickable((By.ID, "loginUsername"))
                 )
+                logname.click()
                 logname.clear()
                 logname.send_keys("root")
+                
+                if logname is None:
+                    print("locator loginUsername has not found.")
+
             except StaleElementReferenceException as ex:
-                print("S: stale element, force reloading with sleep: " + str(ex))
+                self.progress(" stale element, force reloading with sleep: " + str(ex))
                 self.web.refresh()
                 time.sleep(5)
                 return self.login_webif(frontend_instance, database, cfg, recurse + 1)
@@ -84,14 +105,15 @@ class SeleniumRunner(ABC):
                 txt = passvoid.text
                 print("xxxx [" + txt + "]")
                 if len(txt) > 0:
-                    print('S: something was in the passvoid field. retrying. ' + txt)
+                    self.progress(' something was in the passvoid field. retrying. ' + txt)
                     time.sleep(2)
                     continue
+                passvoid.click()
                 passvoid.clear()
                 passvoid.send_keys(frontend_instance[0].get_passvoid())
                 passvoid.send_keys(Keys.RETURN)
                 break
-            print("S: logging in")
+            self.progress(" logging in")
             count = 0
             while True:
                 count += 1
@@ -102,9 +124,9 @@ class SeleniumRunner(ABC):
                 if txt.find('_system') < 0:
                     if count < 9:
                         self.take_screenshot()
-                    print('S: _system not found in ' + txt + ' ; retrying!')
+                    self.progress(' _system not found in ' + txt + ' ; retrying!')
                     if count == 10:
-                        print('S: refreshing webpage and retrying...')
+                        self.progress(' refreshing webpage and retrying...')
                         self.web.refresh()
                         time.sleep(5)
                         return self.login_webif(frontend_instance, database, cfg, recurse + 1)
@@ -112,10 +134,10 @@ class SeleniumRunner(ABC):
                 else:
                     break
             elem = WebDriverWait(self.web, 15).until(
-                EC.presence_of_element_located((By.ID, "goToDatabase"))
+                EC.element_to_be_clickable((By.ID, "goToDatabase"))
             )
             elem.click()
-            print("S: we're in!")
+            self.progress(" we're in!")
 
             assert "No results found." not in self.web.page_source, "no results found?"
         except TimeoutException as ex:
@@ -132,11 +154,11 @@ class SeleniumRunner(ABC):
                     'version': elem.text,
                     'enterprise': enterprise_elem.text
                 }
-                print("S: check_version (%s) (%s)" % (ret['version'], ret['enterprise']))
+                self.progress(" check_version (%s) (%s)" % (ret['version'], ret['enterprise']))
                 if (len(ret['version']) > 0) and (len(ret['enterprise']) > 0):
                     return ret
                 else:
-                    print('S: retry version.')
+                    self.progress(' retry version.')
                     continue
             except TimeoutException as ex:
                 self.take_screenshot()
@@ -145,25 +167,25 @@ class SeleniumRunner(ABC):
     def navbar_goto(self, tag):
         """ click on any of the items in the 'navbar' """
         count = 0
-        print("S: navbar goto %s"% tag)
+        self.progress(" navbar goto %s"% tag)
         while True:
             try:
                 elem = self.web.find_element_by_id(tag)
                 assert elem, "navbar goto failed?"
                 elem.click()
                 self.web.find_element_by_class_name(tag + '-menu.active')
-                print("S: goto current URL: " + self.web.current_url)
+                self.progress(" goto current URL: " + self.web.current_url)
                 if not self.web.current_url.endswith('#'+ tag):
                     # retry...
                     continue
                 else:
                     return
             except NoSuchElementException:
-                print('S: retrying to switch to ' + tag)
+                self.progress(' retrying to switch to ' + tag)
                 time.sleep(1)
                 count += 1
                 if count %15 == 0:
-                    print("S: reloading page!")
+                    self.progress(" reloading page!")
                     self.web.refresh()
                     time.sleep(1)
                 continue
@@ -179,7 +201,7 @@ class SeleniumRunner(ABC):
             self.take_screenshot()
             raise ex
         # self.web.find_element_by_class_name("state health-state") WTF? Y not?
-        print("S: Health state:" + elem.text)
+        self.progress(" Health state:" + elem.text)
         return elem.text
 
     def cluster_dashboard_get_count(self, timeout=10):
@@ -198,10 +220,10 @@ class SeleniumRunner(ABC):
                 ret['coordinators'] = elm.text
                 elm = self.web.find_element_by_xpath('//*[@id="clusterDBServers"]')
                 ret['dbservers'] = elm.text
-                print("S: health state: %s"% str(ret))
+                self.progress(" health state: %s"% str(ret))
                 return ret
             except StaleElementReferenceException:
-                print('S: retrying after stale element')
+                self.progress(' retrying after stale element')
                 time.sleep(1)
                 continue
             except TimeoutException as ex:
@@ -236,14 +258,14 @@ class SeleniumRunner(ABC):
                                 table_cell_elm = elm.find_element_by_xpath('div[%d]/div[%d]'%(table_row_num, table_column))
                                 row[column_names[table_column - 1]] = table_cell_elm.text
                 for row in table:
-                    print('S: ' + str(row))
+                    self.progress(' ' + str(row))
                 return table
             except StaleElementReferenceException:
-                print('S: retrying after stale element')
+                self.progress(' retrying after stale element')
                 time.sleep(1)
                 continue
             except NoSuchElementException:
-                print('S: retrying after no such element')
+                self.progress(' retrying after no such element')
                 time.sleep(1)
                 continue
             except TimeoutException as ex:
@@ -297,19 +319,19 @@ class SeleniumRunner(ABC):
                         'follower_table': follower_table,
                     }
                 except NoSuchElementException:
-                    print('S: retrying after element not found')
+                    self.progress(' retrying after element not found')
                     time.sleep(1)
                     retry_count += 1
                     continue
                 except StaleElementReferenceException:
-                    print('S: retrying after stale element')
+                    self.progress(' retrying after stale element')
                     time.sleep(1)
                     retry_count += 1
                     continue
                 except TimeoutException as ex:
                     retry_count += 1
                     if retry_count < 5:
-                        print('S: re-trying goto replication')
+                        self.progress(' re-trying goto replication')
                         self.navbar_goto('replication')
                     elif retry_count > 20:
                         self.take_screenshot()
@@ -361,19 +383,19 @@ class SeleniumRunner(ABC):
                         'follower_table': follower_table,
                     }
                 except NoSuchElementException:
-                    print('S: retrying after element not found')
+                    self.progress(' retrying after element not found')
                     time.sleep(1)
                     retry_count += 1
                     continue
                 except StaleElementReferenceException:
-                    print('S: retrying after stale element')
+                    self.progress(' retrying after stale element')
                     time.sleep(1)
                     retry_count += 1
                     continue
                 except TimeoutException as ex:
                     retry_count += 1
                     if retry_count < 5:
-                        print('S: re-trying goto replication')
+                        self.progress(' re-trying goto replication')
                         self.navbar_goto('replication')
                     elif retry_count > 20:
                         self.take_screenshot()

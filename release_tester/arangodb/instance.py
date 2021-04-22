@@ -119,11 +119,13 @@ class Instance(ABC):
         if not self.logfile.exists():
             print(str(self.logfile) + " doesn't exist, skipping.")
             return
+        print(str(self.logfile))
         with open(self.logfile) as log_fh:
             for line in log_fh:
                 if ("FATAL" in line or
                     "ERROR" in line or
-                    "WARNING" in line):
+                    "WARNING" in line or
+                    "{crash}" in line):
                     print(line.rstrip())
 
 class ArangodInstance(Instance):
@@ -289,11 +291,17 @@ class ArangodInstance(Instance):
 
     def detect_fatal_errors(self):
         """ check whether we have FATAL lines in the logfile """
+        fatal_line = None
         with open(self.logfile) as log_fh:
             for line in log_fh:
-                if "] FATAL [" in line:
-                    print('Error: ', line)
-                    raise Exception("FATAL error found in arangod.log: " + line)
+                if fatal_line is not None:
+                    fatal_line += "\n" + line
+                elif "] FATAL [" in line:
+                    fatal_line = line
+
+        if fatal_line is not None:
+            print('Error: ', fatal_line)
+            raise Exception("FATAL error found in " + str(self.logfile) + ": " + fatal_line)
 
     def detect_pid(self, ppid, offset=0, full_binary_path=""):
         """ detect the instance """

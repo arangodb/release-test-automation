@@ -9,7 +9,7 @@ import click
 
 from tools.killall import kill_all_processes
 from arangodb.installers import make_installer, InstallerConfig
-from arangodb.starter.deployments import RunnerType, make_runner
+from arangodb.starter.deployments import RunnerType, make_runner, runner_strings
 import tools.loghelper as lh
 
 # pylint: disable=R0913 disable=R0914
@@ -18,7 +18,8 @@ def run_upgrade(old_version, new_version, verbose,
                 enterprise, encryption_at_rest,
                 zip_package, interactive,
                 starter_mode, stress_upgrade, abort_on_error,
-                publicip, selenium, selenium_driver_args):
+                publicip, selenium, selenium_driver_args,
+                testrun_name):
     """ execute upgrade tests """
     lh.section("configuration")
     print("old version: " + str(old_version))
@@ -59,8 +60,11 @@ def run_upgrade(old_version, new_version, verbose,
     results = []
     for runner_type in starter_mode:
         one_result = {
-            'total': True,
-            'message': 'success'
+            'testrun name': testrun_name,
+            'testscenario': runner_strings[runner_type],
+            'success': True,
+            'message': 'success',
+            'progress': 'success',
         }
         try:
             kill_all_processes()
@@ -104,7 +108,8 @@ def run_upgrade(old_version, new_version, verbose,
                     except Exception as ex:
                         one_result = {
                             'total': False,
-                            'message': str(ex)
+                            'message': str(ex),
+                            'progress': runner.get_progress()
                             }
                         runner.search_for_warnings()
                         if abort_on_error:
@@ -114,6 +119,7 @@ def run_upgrade(old_version, new_version, verbose,
                         lh.section("uninstall")
                         old_inst.un_install_debug_package()
                         old_inst.un_install_package()
+                        continue
 
             lh.section("uninstall")
             new_inst.un_install_package()
@@ -123,8 +129,11 @@ def run_upgrade(old_version, new_version, verbose,
             new_inst.cleanup_system()
         except Exception as ex:
             one_result = {
-                'total': False,
-                'message': str(ex)
+                'testrun name': testrun_name,
+                'testscenario': runner_strings[runner_type],
+                'success': False,
+                'message': str(ex),
+                'progreess': "aborted outside of testcodes"
             }
             if abort_on_error:
                 raise ex
@@ -198,7 +207,7 @@ def main(old_version, new_version, verbose,
                        enterprise, encryption_at_rest,
                        zip_package, interactive,
                        starter_mode, stress_upgrade, abort_on_error,
-                       publicip, selenium, selenium_driver_args)
+                       publicip, selenium, selenium_driver_args, "")
 
 if __name__ == "__main__":
 # pylint: disable=E1120 # fix clickiness.

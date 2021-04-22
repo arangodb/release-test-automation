@@ -42,6 +42,7 @@ class Runner(ABC):
         load_scenarios()
         assert runner_type, "no runner no cry? no!"
         logging.debug(runner_type)
+        self.state = ""
         self.runner_type = runner_type
         self.name = str(self.runner_type).split('.')[1]
 
@@ -65,7 +66,6 @@ class Runner(ABC):
             self.versionstr = "OLD[" + self.cfg.version + "] "
 
         self.basedir = Path(short_name)
-
         count = 1
         while True:
             try:
@@ -118,20 +118,39 @@ class Runner(ABC):
             from arangodb.starter.deployments.selenium_deployments import init as init_selenium
             self.selenium = init_selenium(runner_type, selenium_worker, selenium_driver_args)
 
+    def progress(self, is_sub, msg, separator='x'):
+        if self.state:
+            self.state += "\n"
+        if self.selenium:
+            self.state += self.selenium.get_progress() + "\n"
+        if is_sub:
+            if separator is 'x':
+                separator = '='
+            lh.subsection(msg, separator)
+            self.state += "   - " + msg
+        else:
+            if separator is 'x':
+                separator = '#'
+            lh.section(msg, separator)
+            self.state += "*** " + msg
+
+    def get_progress(self):
+        return self.state
+
     def run(self):
         """ run the full lifecycle flow of this deployment """
         # pylint: disable=R0915 disable=R0912
         if self.do_starter_test and not self.remote:
             self.detect_file_ulimit()
 
-        lh.section("Runner of type {0}".format(str(self.name)), "<3")
+        self.progress(False, "Runner of type {0}".format(str(self.name)), "<3")
 
         if self.do_install or self.do_system_test:
-            lh.section("INSTALLATION for {0}".format(str(self.name)),)
+            self.progress(False, "INSTALLATION for {0}".format(str(self.name)),)
             self.install(self.old_installer)
 
         if self.do_starter_test:
-            lh.section("PREPARING DEPLOYMENT of {0}".format(str(self.name)),)
+            self.progress(False, "PREPARING DEPLOYMENT of {0}".format(str(self.name)),)
             self.starter_prepare_env()
             self.starter_run()
             self.finish_setup()
@@ -145,7 +164,7 @@ class Runner(ABC):
                     (self.versionstr),
                     str(self.name)))
             if self.hot_backup:
-                lh.section("TESTING HOTBACKUP")
+                self.progress(False, "TESTING HOTBACKUP")
                  # TODO generate name?
                 self.backup_name = self.create_backup("thy_name_is")
                 self.tcp_ping_all_nodes()
@@ -179,14 +198,14 @@ class Runner(ABC):
         if self.new_installer:
             self.versionstr = "NEW[" + self.new_cfg.version + "] "
 
-            lh.section("UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),)
+            self.progress(False, "UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),)
             if self.cfg.have_debug_package:
                 print('removing *old* debug package in advance')
                 self.old_installer.un_install_debug_package()
 
             self.new_installer.upgrade_package(self.old_installer)
             # only install debug package for new package.
-            lh.subsection('installing debug package:')
+            self.progress(True, 'installing debug package:')
             self.cfg.have_debug_package = self.new_installer.install_debug_package()
             if self.cfg.have_debug_package:
                 self.new_installer.gdb_test()
@@ -198,7 +217,7 @@ class Runner(ABC):
             self.upgrade_arangod_version() #make sure to pass new version
             self.make_data_after_upgrade()
             if self.hot_backup:
-                lh.section("TESTING HOTBACKUP AFTER UPGRADE")
+                self.progress(False, "TESTING HOTBACKUP AFTER UPGRADE")
                 backups = self.list_backup()
                 print(backups)
                 self.upload_backup(backups[0])
@@ -228,7 +247,7 @@ class Runner(ABC):
             logging.info("skipping upgrade step no new version given")
 
         if self.do_starter_test:
-            lh.section("TESTS FOR {0}".format(str(self.name)),)
+            self.progress(False, "TESTS FOR {0}".format(str(self.name)),)
             self.test_setup()
             self.jam_attempt()
             self.starter_shutdown()
@@ -239,17 +258,17 @@ class Runner(ABC):
                            if not self.new_installer else self.new_installer)
         if self.selenium:
             self.selenium.disconnect()
-        lh.section("Runner of type {0} - Finished!".format(str(self.name)))
+        self.progress(False, "Runner of type {0} - Finished!".format(str(self.name)))
 
     def run_selenium(self):
         """ fake to run the full lifecycle flow of this deployment """
 
-        lh.section("Runner of type {0}".format(str(self.name)), "<3")
+        self.progress(False, "Runner of type {0}".format(str(self.name)), "<3")
         self.old_installer.load_config()
         self.old_installer.caclulate_file_locations()
         self.basecfg.set_directories(self.old_installer.cfg)
         if self.do_starter_test:
-            lh.section("PREPARING DEPLOYMENT of {0}".format(str(self.name)),)
+            self.progress(False, "PREPARING DEPLOYMENT of {0}".format(str(self.name)),)
             self.starter_prepare_env()
             self.finish_setup() # create the instances...
             for starter in self.starter_instances:
@@ -263,22 +282,22 @@ class Runner(ABC):
         if self.new_installer:
             self.versionstr = "NEW[" + self.new_cfg.version + "] "
 
-            lh.section("UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),)
+            self.progress(False, "UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),)
             self.cfg.set_directories(self.new_installer.cfg)
             self.new_cfg.set_directories(self.new_installer.cfg)
 
         if self.do_starter_test:
-            lh.section("TESTS FOR {0}".format(str(self.name)),)
+            self.progress(False, "TESTS FOR {0}".format(str(self.name)),)
             #self.test_setup()
             #self.jam_attempt()
             #self.starter_shutdown()
         if self.selenium:
             self.selenium.disconnect()
-        lh.section("Runner of type {0} - Finished!".format(str(self.name)))
+        self.progress(False, "Runner of type {0} - Finished!".format(str(self.name)))
 
     def install(self, inst):
         """ install the package to the system """
-        lh.subsection("{0} - install package".format(str(self.name)))
+        self.progress(True, "{0} - install package".format(str(self.name)))
 
         kill_all_processes(False)
         if self.do_install:
@@ -304,10 +323,10 @@ class Runner(ABC):
 
             if not self.new_installer:
                 # only install debug package for new package.
-                lh.subsection('installing debug package:')
+                self.progress(True, 'installing debug package:')
                 self.cfg.have_debug_package = inst.install_debug_package()
                 if self.cfg.have_debug_package:
-                    lh.subsection('testing debug symbols')
+                    self.progress(True, 'testing debug symbols')
                     inst.gdb_test()
 
         # start / stop
@@ -332,7 +351,7 @@ class Runner(ABC):
 
     def uninstall(self, inst):
         """ uninstall the package from the system """
-        lh.subsection("{0} - uninstall package".format(str(self.name)))
+        self.progress(True, "{0} - uninstall package".format(str(self.name)))
         if self.cfg.have_debug_package:
             print('uninstalling debug package')
             inst.un_install_debug_package()
@@ -343,39 +362,39 @@ class Runner(ABC):
 
     def starter_prepare_env(self):
         """ base setup; declare instance variables etc """
-        lh.subsection("{0} - prepare starter launch".format(str(self.name)))
+        self.progress(True, "{0} - prepare starter launch".format(str(self.name)))
         self.starter_prepare_env_impl()
 
     def starter_run(self):
         """
         now launch the starter instance s- at this point the basic setup is done
         """
-        lh.subsection("{0} - run starter instances".format(str(self.name)))
+        self.progress(True, "{0} - run starter instances".format(str(self.name)))
         self.starter_run_impl()
 
     def finish_setup(self):
         """ not finish the setup"""
-        lh.subsection("{0} - finish setup".format(str(self.name)))
+        self.progress(True, "{0} - finish setup".format(str(self.name)))
         self.finish_setup_impl()
 
     def make_data(self):
         """ check if setup is functional """
-        lh.subsection("{0} - make data".format(str(self.name)))
+        self.progress(True, "{0} - make data".format(str(self.name)))
         self.make_data_impl()
 
     def make_data_after_upgrade(self):
         """ check if setup is functional """
-        lh.subsection("{0} - make data after upgrade".format(str(self.name)))
+        self.progress(True, "{0} - make data after upgrade".format(str(self.name)))
         self.make_data_after_upgrade_impl()
 
     def test_setup(self):
         """ setup steps after the basic instances were launched """
-        lh.subsection("{0} - basic test after startup".format(str(self.name)))
+        self.progress(True, "{0} - basic test after startup".format(str(self.name)))
         self.test_setup_impl()
 
     def upgrade_arangod_version(self):
         """ upgrade this installation """
-        lh.subsection("{0} - upgrade setup to newer version".format(
+        self.progress(True, "{0} - upgrade setup to newer version".format(
             str(self.name)))
         logging.info("{1} -> {0}".format(
             self.new_installer.cfg.version,
@@ -392,14 +411,14 @@ class Runner(ABC):
 
     def jam_attempt(self):
         """ check resilience of setup by obstructing its instances """
-        lh.subsection("{0}{1} - try to jam setup".format(
+        self.progress(True, "{0}{1} - try to jam setup".format(
             self.versionstr,
             str(self.name)))
         self.jam_attempt_impl()
 
     def starter_shutdown(self):
         """ stop everything """
-        lh.subsection("{0}{1} - shutdown".format(
+        self.progress(True, "{0}{1} - shutdown".format(
             self.versionstr,
             str(self.name)))
         self.shutdown_impl()
@@ -540,7 +559,7 @@ class Runner(ABC):
 
     def before_backup(self):
         """ preparing SUT for the execution of the backup steps """
-        lh.subsection("{0} - preparing SUT for HotBackup".format(str(self.name)))
+        self.progress(True, "{0} - preparing SUT for HotBackup".format(str(self.name)))
         self.before_backup_impl()
 
     @abstractmethod
@@ -549,7 +568,7 @@ class Runner(ABC):
 
     def after_backup(self):
         """ HotBackup has happened, prepare the SUT to continue testing """
-        lh.subsection("{0} - preparing SUT for tests after HotBackup".format(str(self.name)))
+        self.progress(True, "{0} - preparing SUT for tests after HotBackup".format(str(self.name)))
         self.after_backup_impl()
 
     @abstractmethod

@@ -46,11 +46,11 @@ def upgrade_package_test(verbose,
     results = []
     # do the actual work:
     execution_plan = [
-        (True, True, 'EE'),
-        (True, False, 'EP'),
-        (False, False, 'C')
+        (True, True, 'EE', 'Enterprise+E@REST'),
+        (True, False, 'EP', 'Enterprise'),
+        (False, False, 'C', 'Community')
     ]
-    for enterprise, encryption_at_rest, directory_suffix in execution_plan:
+    for enterprise, encryption_at_rest, directory_suffix, testrun_name in execution_plan:
         dl_old = AcquirePackages(old_version, verbose, package_dir, enterprise,
                                  enterprise_magic, zip_package, dlstage,
                                  httpusername, httppassvoid, remote_host)
@@ -90,14 +90,16 @@ def upgrade_package_test(verbose,
                         enterprise, encryption_at_rest,
                         zip_package, False,
                         starter_mode, stress_upgrade, False,
-                        publicip, selenium, selenium_driver_args))
+                        publicip, selenium, selenium_driver_args,
+                        testrun_name))
 
     print('V' * 80)
     status = True
+
     for one_suite_result in results:
         for one_result in one_suite_result:
             print(one_result)
-            status = status and one_result['total']
+            status = status and one_result['success']
     if not status:
         print('exiting with failure')
         sys.exit(1)
