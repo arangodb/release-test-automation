@@ -91,11 +91,11 @@ class SeleniumRunner(ABC):
                     )
                     data = elem.text
                     if len(data) < 0:
-                        self.progress(' ArangoDB Web Interface not loaded yet, retrying')
+                        self.progress('ArangoDB Web Interface not loaded yet, retrying')
                         time.sleep(2)
                     if count == 10:
                         if elem is None:
-                            print(elem, " locator has not found.")
+                            self.progress(elem, " locator has not found.")
                             self.web.refresh()
                             time.sleep(5)
                         else:
