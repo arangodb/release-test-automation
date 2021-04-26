@@ -95,11 +95,11 @@ def upgrade_package_test(verbose,
 
     print('V' * 80)
     status = True
-
     for one_suite_result in results:
-        for one_result in one_suite_result:
-            print(one_result)
-            status = status and one_result['success']
+        if len(one_suite_result) > 0:
+            for one_result in one_suite_result:
+                print(one_result)
+                status = status and one_result['success']
     if not status:
         print('exiting with failure')
         sys.exit(1)

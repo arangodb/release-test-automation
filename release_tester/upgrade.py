@@ -61,7 +61,7 @@ def run_upgrade(old_version, new_version, verbose,
     for runner_type in starter_mode:
         one_result = {
             'testrun name': testrun_name,
-            'testscenario': runner_strings[runner_type],
+            'testscenario': "None" if not runner_type else runner_strings[runner_type],
             'success': True,
             'message': 'success',
             'progress': 'success',
@@ -107,10 +107,13 @@ def run_upgrade(old_version, new_version, verbose,
                         runner.run()
                     except Exception as ex:
                         one_result = {
-                            'total': False,
+                            'testrun name': testrun_name,
+                            'testscenario': runner_strings[runner_type],
+                            'success': False,
                             'message': str(ex),
                             'progress': runner.get_progress()
                             }
+                        results.append(one_result)
                         runner.search_for_warnings()
                         if abort_on_error:
                             raise ex
