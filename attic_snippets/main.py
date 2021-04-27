@@ -3,20 +3,23 @@ from dashboardPage import DashboardPage
 from loginPage import LoginPage
 from userPage import UserPage
 from viewsPage import ViewsPage
+from collectionPage import CollectionPage
 
 
 class Test(BaseSelenium):
     BaseSelenium.set_up_class()
 
+    # shutdown the driver
     def __init__(self):
         super().__init__()
 
     @staticmethod
     def teardown():
-        BaseSelenium.tear_down()  # shutdown the driver
+        BaseSelenium.tear_down()
 
     # testing login page
     def test_login(self):
+        print("Starting ", self.driver.title, "\n")
         self.login = LoginPage(self.driver)
         self.login.login('root', 'aa')
         self.login.logout_button()
@@ -46,6 +49,8 @@ class Test(BaseSelenium):
         self.dash.select_reload_btn()
         print("Opening Twitter link \n")
         self.dash.click_twitter_link()
+        print("Opening Slack link \n")
+        self.dash.click_slack_link()
         print("Opening Stackoverflow link \n")
         self.dash.click_stackoverflow_link()
         print("Opening Google group link \n")
@@ -145,6 +150,8 @@ class Test(BaseSelenium):
         self.views.select_editor_mode_btn()
         print("Switch editor mode to Code \n")
         self.views.switch_to_code_editor_mode()
+        print("Switch editor mode to Compact mode Code \n")
+        self.views.compact_json_data()
 
         print("Selecting editor mode \n")
         self.views1.select_editor_mode_btn()
@@ -155,12 +162,13 @@ class Test(BaseSelenium):
         self.views.click_arangosearch_documentation_link()
         print("Selecting search option\n")
         self.views.select_inside_search("i")
-        print("all search results traversing results \n")
-        self.views.search_result_traverse()
+        print("Traversing all results up and down \n")
+        self.views.search_result_traverse_down()
+        self.views.search_result_traverse_up()
         self.views1.select_inside_search("")
-        # print("Changing views consolidationPolicy id to 55555555 \n")
-        # self.views1.change_consolidation_policy(55555555)
-        print("Rename the current Views started \n")
+        # ###print("Changing views consolidationPolicy id to 55555555 \n")
+        # ###self.views1.change_consolidation_policy(55555555)
+        print("Rename firstViews to thirdViews started \n")
         self.views.clicking_rename_views_btn()
         self.views.rename_views_name("thirdView")
         self.views.rename_views_name_confirm()
@@ -183,10 +191,200 @@ class Test(BaseSelenium):
         del self.views1
         print("---------Checking Views completed--------- \n")
 
+    def test_collection(self):
+        print("---------Checking Collection Begin--------- \n")
+        self.login = LoginPage(self.driver)
+        self.login.login('root', 'aa')
+        self.col = CollectionPage(self.driver)  # creating obj for Collection
+        self.col1 = CollectionPage(self.driver)
+        self.col2 = CollectionPage(self.driver)
+        self.col3 = CollectionPage(self.driver)
+
+        print("Selecting collection tab\n")
+        self.col.select_collection_page()
+        print("Creating new collection started \n")
+        self.col.select_create_collection()
+        print("Creating Document collection \n")
+        self.col.select_new_collection_name("TestDoc")
+        print("Creating Document type collection started \n")
+        self.col.select_collection_type(0)  # 0 for Doc type document
+        self.col.select_advance_option()
+        print("Choosing wait type to YES \n")
+        self.col.wait_for_sync(1)
+        self.col.create_new_collection_btn()
+        print("Creating Document type collection completed \n")
+
+        print("Creating Edge type collection\n")
+        self.col1.select_create_collection()
+        self.col1.select_new_collection_name("TestEdge")
+        self.col1.select_collection_type(1)  # 1 for Edge type document
+        self.col1.select_advance_option()
+        print("Choosing wait type to YES \n")
+        self.col1.wait_for_sync(1)
+        self.col1.create_new_collection_btn()
+        print("Creating new Edge collection completed \n")
+
+        print("Creating new collection started \n")
+        self.col2.select_create_collection()
+        print("Creating Document collection \n")
+        self.col2.select_new_collection_name("Test")
+        print("Creating Document type collection started \n")
+        self.col2.select_collection_type(0)  # 0 for Doc type document
+        self.col2.select_advance_option()
+        print("Choosing wait type to YES \n")
+        self.col2.wait_for_sync(1)
+        self.col2.create_new_collection_btn()
+        print("Creating Document type collection completed \n")
+
+        print("Selecting Settings\n")
+        self.col.select_collection_settings()
+        print("Displaying system's collection\n")
+        self.col.display_system_collection()
+        self.col1.display_system_collection()  # Doing the reverse part
+        print("Displaying Document type collection\n")
+        self.col.display_document_collection()
+        self.col1.display_document_collection()
+        print("Displaying Edge type collection\n")
+        self.col.display_edge_collection()
+        self.col1.display_edge_collection()
+        print("Displaying status loaded collection\n")
+        self.col.select_status_loaded()
+        self.col1.select_status_loaded()
+        print("Displaying status unloaded collection\n")
+        self.col.select_status_unloaded()
+        self.col1.select_status_unloaded()
+        print("Sorting collections by type\n")
+        self.col.sort_by_type()
+        print("Sorting collections by descending\n")
+        self.col.sort_descending()
+        self.col1.sort_descending()
+        print("Sorting collections by name\n")
+        self.col.sort_by_name()
+
+        self.col1.select_edge_collection_upload()
+        print("Uploading file to the collection started\n")
+        self.col1.select_upload_btn()
+        print("Uploading json file\n")
+        self.col1.select_choose_file_btn('C:\\Users\\rearf\\Desktop\\edges.json')
+        self.col1.select_confirm_upload_btn()
+        self.driver.refresh()  # in order to clear the screen before fetching data
+        print("Uploading " + self.col1.getting_total_row_count() + " to the collection Completed\n")
+        print("Selecting size of the displayed\n")
+
+        self.driver.back()
+
+        self.col.select_doc_collection()
+        print("Uploading file to the collection started\n")
+        self.col.select_upload_btn()
+        print("Uploading json file\n")
+        self.col.select_choose_file_btn('C:\\Users\\rearf\\Desktop\\names_100.json')
+        self.col.select_confirm_upload_btn()
+        self.driver.refresh()  # in order to clear the screen before fetching data
+        print("Uploading " + self.col.getting_total_row_count() + " to the collection Completed\n")
+        print("Selecting size of the displayed\n")
+
+        self.col.display_document_size(2)  # choosing 50 results to display
+        print("Traverse back and forth search result page 1 and 2\n")
+        self.col.traverse_search_pages()
+        print("Selecting hand selection button\n")
+        self.col.select_hand_pointer()
+        print("Select Multiple item using hand pointer\n")
+        self.col.select_multiple_item()
+        self.col.move_btn()
+        print("Multiple data moving into test collection\n")
+        self.col.move_doc_textbox('Test')
+        self.col.move_confirm_btn()
+
+        print("Deleting multiple data started\n")
+        self.col1.select_multiple_item()
+        self.col.select_collection_delete_btn()
+        self.col.collection_delete_confirm_btn()
+        self.col.collection_really_dlt_btn()
+        print("Deleting multiple data completed\n")
+
+        print("Selecting Index menu\n")
+        self.col.select_index_menu()
+        print("Create new index\n")
+        self.col.create_new_index_btn()
+
+        print("Creating Geo Index Started\n")
+        self.col.select_index_type(1)
+        print("filling up all necessary info for geo index\n")
+        self.col.creating_geo_index()
+        print("Creating new geo index\n")
+        self.col.select_create_index_btn()
+        print("Creating Geo Index completed\n")
+
+        print("Creating Persistent Index Started\n")
+        self.col1.create_new_index_btn()
+        self.col1.select_index_type(2)
+        print("filling up all necessary info for  persistent index\n")
+        self.col1.creating_persistent_index()
+        print("Creating new persistent index\n")
+        self.col1.select_create_index_btn()
+        print("Creating Persistent Index Completed\n")
+
+        print("Creating Fulltext Index Started\n")
+        self.col2.create_new_index_btn()
+        self.col2.select_index_type(3)
+        self.col2.creating_fulltext_index()
+        self.col2.select_create_index_btn()
+        print("Creating Fulltext Index Completed\n")
+
+        print("Creating TTL Index Started\n")
+        self.col3.create_new_index_btn()
+        self.col3.select_index_type(4)
+        self.col3.creating_ttl_index()
+        self.col3.select_create_index_btn()
+        print("Creating TTL Index Completed\n")
+
+        print("Deleting all index started\n")
+        self.col.delete_all_index()
+        self.col1.delete_all_index()
+        self.col2.delete_all_index()
+        self.col3.delete_all_index()
+        print("Deleting all index completed\n")
+
+        print("Select Info tab\n")
+        self.col.select_info_tab()
+        print("Selecting Schema Tab\n")
+        self.col.select_schema_tab()
+
+        print("Select Settings tab\n")
+        self.col.select_settings_tab()
+        self.driver.refresh()
+        print("Loading and Unloading collection\n")
+        self.col.select_settings_unload_btn()
+        self.col1.select_settings_unload_btn()
+        self.driver.refresh()
+        print("Truncate collection\n")
+        self.col.select_truncate_btn()
+        self.driver.refresh()
+        print("Deleting Collection started\n")
+        self.col.delete_collection()
+        #
+        print("Selecting TestEdge Collection for deleting\n")
+        self.col2.select_edge_collection()
+        self.col2.delete_collection()
+
+        print("Selecting Test Collection for deleting\n")
+        self.col3.select_test_doc_col()
+        self.col3.delete_collection()
+
+        print("Deleting Collection completed\n")
+        del self.col
+        del self.col1
+        del self.col2
+        del self.col3
+        self.login.logout_button()
+        del self.login
+        print("---------Checking Collection Completed--------- \n")
+
 
 ui = Test()  # creating obj for the UI test
 ui.test_login()  # testing Login functionality
 ui.test_dashboard()  # testing Dashboard functionality
-ui.test_user()  # testing User functionality
+ui.test_collection()  # testing Collection tab
 ui.test_views()  # testing User functionality
+ui.test_user()  # testing User functionality
 ui.teardown()  # close the driver and quit

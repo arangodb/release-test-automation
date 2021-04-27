@@ -31,9 +31,8 @@ class LoginPage(BaseSelenium):
         self.login_button_id.click()
 
     # login page selecting database by default it's _system
-    def select_db_opt(self):
-        self.select_db_opt_id = BaseSelenium.locator_finder_by_dropdown_select(self, self.select_db_opt_id)
-        self.select_db_opt_id.click()
+    def select_db_opt(self, index):
+        self.select_db_opt_id = BaseSelenium.locator_finder_by_select(self, self.select_db_opt_id, index)
 
     # select db
     def select_db(self):
@@ -41,13 +40,13 @@ class LoginPage(BaseSelenium):
         self.select_db_btn_id.click()
 
     '''This login method will call repeatedly before each tab test'''
-    def login(self, username, password):
+    def login(self, username, password, db_index=0):  # 0 = default database
         print("Login begin with root user\n")
         self.enter_username(username)
         self.enter_password(password)
         self.login_btn()
         print("Selecting DB \n")
-        self.select_db_opt()
+        self.select_db_opt(db_index)  # selecting default database _system
         self.select_db()
         print("Login completed with root user\n")
 

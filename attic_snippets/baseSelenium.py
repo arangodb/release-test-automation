@@ -5,6 +5,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.select import Select
+from selenium.webdriver.common.action_chains import ActionChains
 import time
 
 
@@ -14,13 +15,13 @@ class BaseSelenium:
     def __init__(self):
         self.locator = None
         self.height = None
-        self.dropDownLocator = None
+        self.select = None
 
     @classmethod
     def set_up_class(cls):
         cls.driverLocation = "C:/Program Files (x86)/chromedriver.exe"
         cls.driver = webdriver.Chrome(cls.driverLocation)
-        # cls.driver.maximize_window()  # this will maximize the browser window
+        cls.driver.set_window_size(1000, 1000)  # custom window size
         cls.driver.get("http://127.0.0.1:8529/_db/_system/_admin/aardvark/index.html#login")
 
     @classmethod
@@ -35,7 +36,7 @@ class BaseSelenium:
     def switch_tab(self, locator):
         self.locator.send_keys(Keys.CONTROL + Keys.RETURN)  # this will open new tab on top of current
         self.driver.switch_to.window(self.driver.window_handles[1])  # switch to new tab according to index value
-        time.sleep(5)
+        time.sleep(10)
         self.driver.close()
         self.driver.switch_to.window(self.driver.window_handles[0])
 
@@ -69,19 +70,32 @@ class BaseSelenium:
         else:
             return self.locator
 
-    '''This method will used for finding all the locators in drop down menu'''
+    '''This method will used for finding all the locators in drop down menu with options'''
 
-    def locator_finder_by_dropdown_select(self, locator_name, value=0):
-        self.locator = WebDriverWait(self.driver, 10).until(
-            ec.element_to_be_clickable((By.ID, locator_name))
-        )
-        self.dropDownLocator = Select(self.locator)
-        self.dropDownLocator.select_by_index(value)
-
-        if self.dropDownLocator is None:
+    def locator_finder_by_select(self, locator_name, value):
+        self.select = Select(self.driver.find_element_by_id(locator_name))
+        self.select.select_by_index(value)
+        if self.select is None:
             print("S:", locator_name, " locator has not found.")
-        else:
-            return self.locator
+        return self.select
+
+    '''This method will used for finding all the locators and hover the mouse by id'''
+
+    def locator_finder_by_hover_item_id(self, locator):
+        item = self.driver.find_element_by_id(locator)
+        action = ActionChains(self.driver)
+        action.move_to_element(item).click().perform()
+        time.sleep(1)
+        return action
+
+    '''This method will used for finding all the locators and hover the mouse by xpath'''
+
+    def locator_finder_by_hover_item(self, locator):
+        item = self.driver.find_element_by_xpath(locator)
+        action = ActionChains(self.driver)
+        action.move_to_element(item).click().perform()
+        time.sleep(1)
+        return action
 
     '''This method will used for finding all the locators text using ID'''
 
@@ -100,6 +114,18 @@ class BaseSelenium:
     def locator_finder_by_text_xpath(self, locator_name):
         self.locator = WebDriverWait(self.driver, 10).until(
             ec.element_to_be_clickable((By.XPATH, locator_name))
+        )
+        self.locator = self.locator.text
+        if self.locator is None:
+            print("S:", locator_name, " locator has not found.")
+        else:
+            return self.locator
+
+    '''This method will used for finding all the locators text using CSS Selector'''
+
+    def locator_finder_by_css_selectors(self, locator_name):
+        self.locator = WebDriverWait(self.driver, 10).until(
+            ec.element_to_be_clickable((By.CSS_SELECTOR, locator_name))
         )
         self.locator = self.locator.text
         if self.locator is None:

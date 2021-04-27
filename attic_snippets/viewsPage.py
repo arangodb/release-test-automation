@@ -1,5 +1,4 @@
 import time
-
 from baseSelenium import BaseSelenium
 
 
@@ -23,6 +22,8 @@ class ViewsPage(BaseSelenium):
         self.switch_to_code_editor_mode_id = "//div[@id='propertiesEditor']//div[@class='jsoneditor-anchor']" \
                                              "//div[@class='jsoneditor-contextmenu']/ul[@class='jsoneditor-menu']" \
                                              "//button[@title='Switch to code highlighter']"
+        self.compact_json_data_id = "/html//div[@id='propertiesEditor']//button[@title='Compact JSON data, " \
+                                    "remove all whitespaces (Ctrl+Shift+\)']"
         self.switch_to_tree_editor_mode_id = "//div[@id='propertiesEditor']/div[@class='jsoneditor " \
                                              "jsoneditor-mode-code']//div[@class='jsoneditor-anchor']//" \
                                              "ul[@class='jsoneditor-menu']//button[@title='Switch to tree editor']"
@@ -31,10 +32,14 @@ class ViewsPage(BaseSelenium):
                                                         "/arangosearch-views.html']"
         self.select_inside_search_id = "//*[@id='propertiesEditor']/div/div[1]/table" \
                                        "/tbody/tr/td[2]/div/table/tbody/tr/td[2]/input"
-        self.search_result_traverse_id = "/html//div[@id='propertiesEditor']/div[@class='jsoneditor " \
-                                         "jsoneditor-mode-tree']//table[@class='jsoneditor-search']" \
-                                         "//div[@title='Search fields and values']/table//button[@title=" \
-                                         "'Previous result (Shift+Enter)']"
+        self.search_result_traverse_up_id = "/html//div[@id='propertiesEditor']/div[@class='jsoneditor " \
+                                            "jsoneditor-mode-tree']//table[@class='jsoneditor-search']" \
+                                            "//div[@title='Search fields and values']/table//button[@title=" \
+                                            "'Previous result (Shift+Enter)']"
+        self.search_result_traverse_down_id = "/html//div[@id='propertiesEditor']/div[@class=" \
+                                              "'jsoneditor jsoneditor-mode-tree']//table[@class=" \
+                                              "'jsoneditor-search']//div[@title=" \
+                                              "'Search fields and values']/table//button[@title='Next result (Enter)']"
         self.change_consolidation_policy_id = "/html//div[@id='propertiesEditor']/div[@class=" \
                                               "'jsoneditor jsoneditor-mode-tree']/div[3]/div[@class=" \
                                               "'jsoneditor-tree']//table[@class='jsoneditor-tree']" \
@@ -132,6 +137,13 @@ class ViewsPage(BaseSelenium):
         self.switch_to_code_editor_mode_id.click()
         time.sleep(3)
 
+    # switching editor mode to Code compact view
+    def compact_json_data(self):
+        self.compact_json_data_id = \
+            BaseSelenium.locator_finder_by_xpath(self, self.compact_json_data_id)
+        self.compact_json_data_id.click()
+        time.sleep(3)
+
     # switching editor mode to Tree
     def switch_to_tree_editor_mode(self):
         self.switch_to_tree_editor_mode_id = \
@@ -153,12 +165,20 @@ class ViewsPage(BaseSelenium):
         self.select_inside_search_id.clear()
         self.select_inside_search_id.send_keys(keyword)
 
-    # traverse search results
-    def search_result_traverse(self):
-        self.search_result_traverse_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.search_result_traverse_id)
-        for x in range(15):
-            self.search_result_traverse_id.click()
+    # traverse search results down
+    def search_result_traverse_down(self):
+        self.search_result_traverse_down_id = \
+            BaseSelenium.locator_finder_by_xpath(self, self.search_result_traverse_down_id)
+        for x in range(8):
+            self.search_result_traverse_down_id.click()
+            time.sleep(1)
+
+    # traverse search results up
+    def search_result_traverse_up(self):
+        self.search_result_traverse_up_id = \
+            BaseSelenium.locator_finder_by_xpath(self, self.search_result_traverse_up_id)
+        for x in range(8):
+            self.search_result_traverse_up_id.click()
             time.sleep(1)
 
     # Changing views properties

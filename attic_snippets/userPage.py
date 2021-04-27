@@ -1,3 +1,4 @@
+import time
 from baseSelenium import BaseSelenium
 
 
@@ -34,6 +35,7 @@ class UserPage(BaseSelenium):
         self.enter_new_user_name_id = BaseSelenium.locator_finder_by_id(self, self.enter_new_user_name_id)
         self.enter_new_user_name_id.click()
         self.enter_new_user_name_id.send_keys(name)
+        time.sleep(3)
 
     # providing new user name
     def naming_new_user(self, name):
@@ -51,6 +53,7 @@ class UserPage(BaseSelenium):
     def creating_new_user(self):
         self.create_user_btn_id = BaseSelenium.locator_finder_by_id(self, self.create_user_btn_id)
         self.create_user_btn_id.click()
+        time.sleep(3)
 
     # selecting newly created user
     def selecting_new_user(self):
@@ -71,6 +74,7 @@ class UserPage(BaseSelenium):
     def saving_user_cfg(self):
         self.saving_user_cfg_id = BaseSelenium.locator_finder_by_id(self, self.saving_user_cfg_id)
         self.saving_user_cfg_id.click()
+        time.sleep(3)
 
     # deleting user
     def delete_user_btn(self):
@@ -81,3 +85,4 @@ class UserPage(BaseSelenium):
     def confirm_delete_btn(self):
         self.select_confirm_delete_btn = BaseSelenium.locator_finder_by_id(self, self.select_confirm_delete_btn)
         self.select_confirm_delete_btn.click()
+        time.sleep(3)
