@@ -109,7 +109,30 @@ class SeleniumRunner(ABC):
         if recurse > 10:
             raise Exception("10 successless login attempts")
         try:
-            assert "ArangoDB Web Interface" in self.web.title, "webif title not found"
+            
+            try:
+                count = 0
+                while True:
+                    count += 1
+                    elem = WebDriverWait(self.web, 10).until(
+                        EC.presence_of_element_located((By.TAG_NAME, "html"))
+                    )
+                    data = elem.text
+                    if len(data) < 0:
+                        self.progress('ArangoDB Web Interface not loaded yet, retrying')
+                        time.sleep(2)
+                    if count == 10:
+                        if elem is None:
+                            self.progress(elem, " locator has not found.")
+                            self.web.refresh()
+                            time.sleep(5)
+                        else:
+                            assert "ArangoDB Web Interface" in self.web.title, "webif title not found"
+                            break
+            except TimeoutException as ex:
+                self.take_screenshot()
+                raise ex
+            
             try:
                 logname = WebDriverWait(self.web, 10).until(
                     EC.element_to_be_clickable((By.ID, "loginUsername"))
