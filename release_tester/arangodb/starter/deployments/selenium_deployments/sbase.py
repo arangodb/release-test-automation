@@ -8,6 +8,29 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import StaleElementReferenceException, TimeoutException, NoSuchElementException
+
+REPL_TABLE_LOC = {
+    # TODO: is it a bug that this id is info-mode-id?
+    #'state': 'div[1][@id="info-mode-id"]',
+    # 'mode' : 'div[1][@id="info-mode-id"]',
+    'state': 'div[1]/div[1]/div[1]',
+    'mode': 'div[2]/div[1]/div[1]',
+    'role': '//*[@id="info-role-id"]',
+    'level': '//*[@id="info-level-id"]',
+    'health': '//*[@id="info-msg-id"]',
+    'tick':'//*[@id="logger-lastLogTick-id"]'
+}
+
+REPL_LF_TABLES = {
+    'leader': [
+        '//*[@id="repl-logger-clients"]//thead//th[%d]',
+        '//*[@id="repl-logger-clients"]//tr[%d]//td[%d]'
+    ],
+    'follower': [
+        '//*[@id="repl-follower-table"]//thead//th[%d]',
+        '//*[@id="repl-follower-table"]//tr[%d]//td[%d]'
+    ]
+}
 class SeleniumRunner(ABC):
     "abstract base class for selenium UI testing"
     def __init__(self, webdriver):
@@ -58,6 +81,11 @@ class SeleniumRunner(ABC):
 
         self.login_webif(frontend_instance, database, cfg)
 
+    def xpath(self, path):
+        return self.web.find_element_by_xpath(path)
+    def byclass(self, classname):
+        return self.web.find_element_by_class_name(classname)
+
     def close_tab_again(self):
         """ close a tab, and return to main window """
         self.web.close()# Switch back to the first tab with URL A
@@ -89,7 +117,7 @@ class SeleniumRunner(ABC):
                 logname.click()
                 logname.clear()
                 logname.send_keys("root")
-                
+
                 if logname is None:
                     print("locator loginUsername has not found.")
 
@@ -196,7 +224,7 @@ class SeleniumRunner(ABC):
     def get_health_state(self):
         """ xtracts the health state in the upper right corner """
         try:
-            elem = self.web.find_element_by_xpath('/html/body/div[2]/div/div[1]/div/ul[1]/li[2]/a[2]')
+            elem = self.xpath('/html/body/div[2]/div/div[1]/div/ul[1]/li[2]/a[2]')
         except TimeoutException as ex:
             self.take_screenshot()
             raise ex
@@ -213,12 +241,14 @@ class SeleniumRunner(ABC):
                 elm_accepted = False
                 while not elm_accepted:
                     elm = WebDriverWait(self.web, timeout).until(
-                        EC.presence_of_element_located((By.XPATH, '//*[@id="clusterCoordinators"]'))
+                        EC.presence_of_element_located((
+                            By.XPATH,
+                            '//*[@id="clusterCoordinators"]'))
                     )
                     elm_accepted = len(elm.text) > 0
                 # elm = self.web.find_element_by_xpath('//*[@id="clusterCoordinators"]')
                 ret['coordinators'] = elm.text
-                elm = self.web.find_element_by_xpath('//*[@id="clusterDBServers"]')
+                elm = self.xpath('//*[@id="clusterDBServers"]')
                 ret['dbservers'] = elm.text
                 self.progress(" health state: %s"% str(ret))
                 return ret
@@ -237,7 +267,7 @@ class SeleniumRunner(ABC):
                 table_coord_elm = WebDriverWait(self.web, timeout).until(
                     EC.presence_of_element_located((By.CLASS_NAME, 'pure-g.cluster-nodes.coords-nodes.pure-table.pure-table-body'))
                 )
-                table_dbsrv_elm = self.web.find_element_by_class_name('pure-g.cluster-nodes.dbs-nodes.pure-table.pure-table-body')
+                table_dbsrv_elm = self.by_class('pure-g.cluster-nodes.dbs-nodes.pure-table.pure-table-body')
                 column_names = ['name', 'url', 'version', 'date', 'state']
                 table = []
                 for elm in [table_coord_elm, table_dbsrv_elm]:
@@ -272,137 +302,77 @@ class SeleniumRunner(ABC):
                 self.take_screenshot()
                 raise ex
 
+    def get_state_table(self, timeout):
+        table_elm = WebDriverWait(self.web, timeout).until(
+            EC.presence_of_element_located((By.CLASS_NAME,
+                                            'pure-g.cluster-values'))
+        )
+        state_table = {}
+        for key in REPL_TABLE_LOC.keys():
+            state_table[key] = table_elm.find_element_by_xpath(
+                REPL_TABLE_LOC[key]).text
+        return state_table
+
+    def get_repl_page(self, which, timeout):
+        state_table = self.get_state_table(timeout)
+
+        follower_table = []
+        column_indices = [1,2,3,4,5]
+        more_lines = True
+        th = []
+        for i in column_indices:
+            th.append(self.web.find_element_by_xpath(
+                REPL_LF_TABLES[which][0] % i).text)
+        follower_table.append(th)
+        count = 1
+        while more_lines:
+            try:
+                row_data = []
+                for i in column_indices:
+                    cell = self.web.find_element_by_xpath(
+                        REPL_LF_TABLES[which][1]%(
+                        count, i))
+                    row_data.append(cell.text)
+                follower_table.append(row_data)
+            except Exception:
+                print('no more lines')
+                more_lines = False
+            count += 1
+        return {
+            'state_table': state_table,
+            'follower_table': follower_table,
+        }
+
     def get_replication_screen(self, is_leader, timeout=20):
         """ fetch & parse the replication tab """
         retry_count = 0
-        if is_leader:
-            while True:
-                try:
-                    state_table = {}
-                    table_elm = WebDriverWait(self.web, timeout).until(
-                        EC.presence_of_element_located((By.CLASS_NAME, 'pure-g.cluster-values'))
-                    )
-                    # TODO: is it a bug that this id is info-mode-id?
-                    #state_table['state'] = table_elm.find_element_by_xpath('div[1][@id="info-mode-id"]').text
-                    #state_table['mode'] = table_elm.find_element_by_xpath('div[1][@id="info-mode-id"]').text
-                    state_table['state'] = table_elm.find_element_by_xpath('div[1]/div[1]/div[1]').text
-                    state_table['mode'] = table_elm.find_element_by_xpath('div[2]/div[1]/div[1]').text
-                    state_table['role'] = table_elm.find_element_by_xpath('//*[@id="info-role-id"]').text
-                    state_table['level'] = table_elm.find_element_by_xpath('//*[@id="info-level-id"]').text
-                    state_table['health'] = table_elm.find_element_by_xpath('//*[@id="info-msg-id"]').text
-                    state_table['tick'] = table_elm.find_element_by_xpath('//*[@id="logger-lastLogTick-id"]').text
-
-                    follower_table = []
-                    column_indices = [1,2,3,4,5]
-                    more_lines = True
-                    table_head = []
-                    for i in column_indices:
-                        table_head.append(self.web.find_element_by_xpath(
-                            '//*[@id="repl-logger-clients"]//thead//th[%d]'%i).text)
-                    follower_table.append(table_head)
-                    count = 1
-                    while more_lines:
-                        try:
-                            row_data = []
-                            for i in column_indices:
-                                cell = self.web.find_element_by_xpath(
-                                    '//*[@id="repl-logger-clients"]//tr[%d]//td[%d]'%(
-                                    count, i))
-                                row_data.append(cell.text)
-                            follower_table.append(row_data)
-                        except Exception:
-                            print('no more lines')
-                            more_lines = False
-                        count += 1
-                    return {
-                        'state_table': state_table,
-                        'follower_table': follower_table,
-                    }
-                except NoSuchElementException:
-                    self.progress(' retrying after element not found')
+        while True:
+            try:
+                if is_leader:
+                    return self.get_repl_page('leader', timeout)
+                else:
+                    return self.get_repl_page('follower', timeout)
+            except NoSuchElementException:
+                self.progress(' retrying after element not found')
+                time.sleep(1)
+                retry_count += 1
+                continue
+            except StaleElementReferenceException:
+                self.progress(' retrying after stale element')
+                time.sleep(1)
+                retry_count += 1
+                continue
+            except TimeoutException as ex:
+                retry_count += 1
+                if retry_count < 5:
+                    self.progress(' re-trying goto replication')
+                    self.navbar_goto('replication')
+                elif retry_count > 20:
+                    self.take_screenshot()
+                    raise ex
+                else:
+                    self.web.refresh()
                     time.sleep(1)
-                    retry_count += 1
-                    continue
-                except StaleElementReferenceException:
-                    self.progress(' retrying after stale element')
-                    time.sleep(1)
-                    retry_count += 1
-                    continue
-                except TimeoutException as ex:
-                    retry_count += 1
-                    if retry_count < 5:
-                        self.progress(' re-trying goto replication')
-                        self.navbar_goto('replication')
-                    elif retry_count > 20:
-                        self.take_screenshot()
-                        raise ex
-                    else:
-                        self.web.refresh()
-                        time.sleep(1)
-        else:
-            while True:
-                try:
-                    state_table = {}
-                    table_elm = WebDriverWait(self.web, timeout).until(
-                        EC.presence_of_element_located((By.CLASS_NAME, 'pure-g.cluster-values'))
-                    )
-                    # TODO: is it a bug that this id is info-mode-id?
-                    #state_table['state'] = table_elm.find_element_by_xpath('div[1][@id="info-mode-id"]').text
-                    #state_table['mode'] = table_elm.find_element_by_xpath('div[1][@id="info-mode-id"]').text
-                    state_table['state'] = table_elm.find_element_by_xpath('div[1]/div[1]/div[1]').text
-                    state_table['mode'] = table_elm.find_element_by_xpath('div[2]/div[1]/div[1]').text
-                    state_table['role'] = table_elm.find_element_by_xpath('//*[@id="info-role-id"]').text
-                    state_table['level'] = table_elm.find_element_by_xpath('//*[@id="info-level-id"]').text
-                    state_table['health'] = table_elm.find_element_by_xpath('//*[@id="info-msg-id"]').text
-                    state_table['tick'] = table_elm.find_element_by_xpath('//*[@id="logger-lastLogTick-id"]').text
-
-                    follower_table = []
-                    column_indices = [1,2,3,4,5]
-                    more_lines = True
-                    th = []
-                    for i in column_indices:
-                        th.append(self.web.find_element_by_xpath(
-                            '//*[@id="repl-follower-table"]//thead//th[%d]'%i).text)
-                    follower_table.append(th)
-                    count = 1
-                    while more_lines:
-                        try:
-                            row_data = []
-                            for i in column_indices:
-                                cell = self.web.find_element_by_xpath(
-                                    '//*[@id="repl-follower-table"]//tr[%d]//td[%d]'%(
-                                    count, i))
-                                row_data.append(cell.text)
-                            follower_table.append(row_data)
-                        except Exception:
-                            print('no more lines')
-                            more_lines = False
-                        count += 1
-                    return {
-                        'state_table': state_table,
-                        'follower_table': follower_table,
-                    }
-                except NoSuchElementException:
-                    self.progress(' retrying after element not found')
-                    time.sleep(1)
-                    retry_count += 1
-                    continue
-                except StaleElementReferenceException:
-                    self.progress(' retrying after stale element')
-                    time.sleep(1)
-                    retry_count += 1
-                    continue
-                except TimeoutException as ex:
-                    retry_count += 1
-                    if retry_count < 5:
-                        self.progress(' re-trying goto replication')
-                        self.navbar_goto('replication')
-                    elif retry_count > 20:
-                        self.take_screenshot()
-                        raise ex
-                    else:
-                        self.web.refresh()
-                        time.sleep(1)
 
     @abstractmethod
     def check_old(self, cfg, leader_follower=True):
