@@ -217,6 +217,7 @@ class Dc2Dc(Runner):
             raise Exception("replication fuzzing test failed")
         count = 0
         while not self.sync_manager.check_sync():
+            progress("sv" + str(tcount))
             if count > 12:
                 raise Exception("failed to get the sync status")
             time.sleep(5)

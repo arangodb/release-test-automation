@@ -31,7 +31,7 @@ fi
 
 
 trap "docker kill /$DOCKER_NAME; docker rm /$DOCKER_NAME;" EXIT
-docker build docker_tar -t $DOCKER_TAG
+docker build containers/docker_tar -t $DOCKER_TAG
 # we need --init since our upgrade leans on zombies not happening:
 docker \
     run \
