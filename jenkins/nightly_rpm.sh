@@ -34,7 +34,7 @@ trap "docker kill $DOCKER_RPM_NAME; \
 
 version=$(git rev-parse --verify HEAD)
 
-docker build docker_rpm -t $DOCKER_RPM_TAG || exit
+docker build containers/docker_rpm -t $DOCKER_RPM_TAG || exit
 
 docker run \
        --ulimit core=-1 \

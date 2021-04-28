@@ -141,7 +141,8 @@ def run_upgrade(old_version, new_version, verbose,
             if abort_on_error:
                 raise ex
             traceback.print_exc()
-            runner.cleanup()
+            if runner:
+                runner.cleanup()
         results.append(one_result)
     return results
 
@@ -205,12 +206,20 @@ def main(old_version, new_version, verbose,
          publicip, selenium, selenium_driver_args):
     """ main trampoline """
     lh.configure_logging(verbose)
-    return run_upgrade(old_version, new_version, verbose,
-                       package_dir, test_data_dir,
-                       enterprise, encryption_at_rest,
-                       zip_package, interactive,
-                       starter_mode, stress_upgrade, abort_on_error,
-                       publicip, selenium, selenium_driver_args, "")
+    results = run_upgrade(old_version, new_version, verbose,
+                          package_dir, test_data_dir,
+                          enterprise, encryption_at_rest,
+                          zip_package, interactive,
+                          starter_mode, stress_upgrade, abort_on_error,
+                          publicip, selenium, selenium_driver_args, "")
+    print('V' * 80)
+    status = True
+    for one_result in results:
+        print(one_result)
+        status = status and one_result['success']
+    if not status:
+        print('exiting with failure')
+        sys.exit(1)
 
 if __name__ == "__main__":
 # pylint: disable=E1120 # fix clickiness.

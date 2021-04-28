@@ -51,29 +51,30 @@ def upgrade_package_test(verbose,
         (False, False, 'C', 'Community')
     ]
     for enterprise, encryption_at_rest, directory_suffix, testrun_name in execution_plan:
-        dl_old = AcquirePackages(old_version, verbose, package_dir, enterprise,
-                                 enterprise_magic, zip_package, dlstage,
-                                 httpusername, httppassvoid, remote_host)
-        dl_new = AcquirePackages(new_version, verbose, package_dir, enterprise,
-                                 enterprise_magic, zip_package, dlstage,
-                                 httpusername, httppassvoid, remote_host)
-        old_version_state = version_state_dir / Path(dl_old.cfg.version + "_sourceInfo.log")
-        new_version_state = version_state_dir / Path(dl_new.cfg.version + "_sourceInfo.log")
-        if old_version_state.exists():
-            old_version_content = old_version_state.read_text()
-        if new_version_state.exists():
-            new_version_content = new_version_state.read_text()
-
-        fresh_old_content = dl_old.get_version_info(dlstage, git_version)
-        fresh_new_content = dl_new.get_version_info(dlstage, git_version)
-        old_changed = old_version_content != fresh_old_content
-        new_changed = new_version_content != fresh_new_content
-        if new_changed and old_changed and not force:
-            print("we already tested this version. bye.")
-            return 0
-
-        dl_old.get_packages(old_changed, dlstage)
-        dl_new.get_packages(new_changed, dlstage)
+        if dlstage != "local":
+            dl_old = AcquirePackages(old_version, verbose, package_dir, enterprise,
+                                     enterprise_magic, zip_package, dlstage,
+                                     httpusername, httppassvoid, remote_host)
+            dl_new = AcquirePackages(new_version, verbose, package_dir, enterprise,
+                                     enterprise_magic, zip_package, dlstage,
+                                     httpusername, httppassvoid, remote_host)
+            old_version_state = version_state_dir / Path(dl_old.cfg.version + "_sourceInfo.log")
+            new_version_state = version_state_dir / Path(dl_new.cfg.version + "_sourceInfo.log")
+            if old_version_state.exists():
+                old_version_content = old_version_state.read_text()
+            if new_version_state.exists():
+                new_version_content = new_version_state.read_text()
+            
+            fresh_old_content = dl_old.get_version_info(dlstage, git_version)
+            fresh_new_content = dl_new.get_version_info(dlstage, git_version)
+            old_changed = old_version_content != fresh_old_content
+            new_changed = new_version_content != fresh_new_content
+            if new_changed and old_changed and not force:
+                print("we already tested this version. bye.")
+                return 0
+            
+            dl_old.get_packages(old_changed, dlstage)
+            dl_new.get_packages(new_changed, dlstage)
 
         test_dir = Path(test_data_dir) / directory_suffix
         if test_dir.exists():
@@ -129,7 +130,7 @@ def upgrade_package_test(verbose,
 @click.option('--source',
               default='ftp:stage2',
               help='where to download the package from '
-              '[[ftp|http]:stage1|[ftp|http]:stage2|public]')
+              '[[ftp|http]:stage1|[ftp|http]:stage2|public|local]')
 @click.option('--httpuser',
               default="",
               help='user for external http download')
