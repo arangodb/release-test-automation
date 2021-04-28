@@ -109,6 +109,19 @@ class CollectionPage(BaseSelenium):
         self.select_test_doc_settings_id = "//*[@id='subNavigationBar']/ul[2]/li[4]/a"
 
         self.select_test_doc_collection_id = "//div[@id='collection_Test']//h5[@class='collectionName']"
+        self.select_collection_search_id = "//*[@id='searchInput']"
+
+        self.select_export_doc_as_jason_id = "//*[@id='exportCollection']/span/i"
+        self.select_export_doc_confirm_btn_id = "exportDocuments"
+
+        self.select_filter_collection_id = "//*[@id='filterCollection']/span/i"
+        self.select_filter_input_id = "attribute_name0"
+        self.select_filter_operator_id = "operator0"
+        self.select_filter_attribute_value_id = "attribute_value0"
+        self.select_filter_btn_id = "//*[@id='filterSend']"
+        self.select_row4_id = "//div[@id='docPureTable']/div[2]/div[5]"
+        self.document_id = "document-id"
+        self.select_filter_reset_btn_id = "/html//button[@id='resetView']"
 
     # selecting collection tab
     def select_collection_page(self):
@@ -150,6 +163,15 @@ class CollectionPage(BaseSelenium):
             BaseSelenium.locator_finder_by_id(self, self.create_new_collection_btn_id)
         self.create_new_collection_btn_id.click()
         time.sleep(3)
+
+    # Checking search functionality
+    def checking_search_options(self, search):
+        self.select_collection_search_id = \
+            BaseSelenium.locator_finder_by_xpath(self, self.select_collection_search_id)
+        self.select_collection_search_id.click()
+        self.select_collection_search_id.clear()
+        self.select_collection_search_id.send_keys(search)
+        time.sleep(2)
 
     # selecting collection settings icon
     def select_collection_settings(self):
@@ -245,13 +267,68 @@ class CollectionPage(BaseSelenium):
             BaseSelenium.locator_finder_by_xpath(self, self.getting_total_row_count_id)
         return self.getting_total_row_count_id.text
 
+    # Exporting documents as JSON file from the collection
+    def download_doc_as_json(self):
+        self.select_export_doc_as_jason_id = \
+            BaseSelenium.locator_finder_by_xpath(self, self.select_export_doc_as_jason_id).click()
+        time.sleep(1)
+        self.select_export_doc_confirm_btn_id = \
+            BaseSelenium.locator_finder_by_id(self, self.select_export_doc_confirm_btn_id)
+        self.select_export_doc_confirm_btn_id.click()
+        time.sleep(2)
+
+    # Checking Filter functionality
+    def filter_documents(self, value):
+        self.select_filter_collection_id = \
+            BaseSelenium.locator_finder_by_xpath(self, self.select_filter_collection_id)
+        self.select_filter_collection_id.click()
+        time.sleep(1)
+
+        self.select_row4_id = \
+            BaseSelenium.locator_finder_by_xpath(self, self.select_row4_id)
+        self.select_row4_id.click()
+        time.sleep(1)
+        self.document_id = \
+            BaseSelenium.locator_finder_by_id(self, self.document_id)
+        string = self.document_id.text
+        # print(string[8:])
+        self.driver.back()
+        time.sleep(1)
+
+        self.select_filter_input_id = \
+            BaseSelenium.locator_finder_by_id(self, self.select_filter_input_id)
+        self.select_filter_input_id.click()
+        self.select_filter_input_id.clear()
+        self.select_filter_input_id.send_keys("_id")
+        time.sleep(1)
+
+        self.select_filter_operator_id = \
+            BaseSelenium.locator_finder_by_select(self, self.select_filter_operator_id, value)
+        time.sleep(1)
+
+        self.select_filter_attribute_value_id = \
+            BaseSelenium.locator_finder_by_id(self, self.select_filter_attribute_value_id)
+        self.select_filter_attribute_value_id.click()
+        self.select_filter_attribute_value_id.clear()
+        self.select_filter_attribute_value_id.send_keys(string)
+        time.sleep(1)
+
+        self.select_filter_btn_id = \
+            BaseSelenium.locator_finder_by_xpath(self, self.select_filter_btn_id)
+        self.select_filter_btn_id.click()
+        time.sleep(3)
+
+        self.select_filter_reset_btn_id = \
+            BaseSelenium.locator_finder_by_xpath(self, self.select_filter_reset_btn_id).click()
+        time.sleep(2)
+
     # Choose how many rows of docs will be display
     def display_document_size(self, value):
         self.display_document_size_id = \
             BaseSelenium.locator_finder_by_select(self, self.display_document_size_id, value)
         time.sleep(2)
 
-    # After changing the display size checking everything loads
+    # After changing the document display size checking everything loads
     def traverse_search_pages(self):
         self.move_second_page_id = \
             BaseSelenium.locator_finder_by_hover_item(self, self.move_second_page_id)
@@ -434,6 +511,7 @@ class CollectionPage(BaseSelenium):
         self.select_settings_name_textbox_id = \
             BaseSelenium.locator_finder_by_id(self, self.select_settings_name_textbox_id)
         self.select_settings_name_textbox_id.click()
+        self.select_settings_name_textbox_id.clear()
         self.select_settings_name_textbox_id.send_keys("testDocRenamed")
         self.select_settings_wait_type_id = \
             BaseSelenium.locator_finder_by_select(self, self.select_settings_wait_type_id, 0)
@@ -491,7 +569,7 @@ class CollectionPage(BaseSelenium):
         self.select_edge_settings_id.click()
 
     # selecting TestEdge Collection
-    def select_test_doc_col(self):
+    def select_test_doc_collection(self):
         self.select_test_doc_collection_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.select_test_doc_collection_id)
         self.select_test_doc_collection_id.click()

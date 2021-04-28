@@ -202,6 +202,7 @@ class Test(BaseSelenium):
 
         print("Selecting collection tab\n")
         self.col.select_collection_page()
+
         print("Creating new collection started \n")
         self.col.select_create_collection()
         print("Creating Document collection \n")
@@ -235,6 +236,17 @@ class Test(BaseSelenium):
         self.col2.wait_for_sync(1)
         self.col2.create_new_collection_btn()
         print("Creating Document type collection completed \n")
+
+        print("checking Search options\n")
+        print("Searching using keyword 'Doc'\n")
+        self.col.checking_search_options("Doc")
+        self.driver.refresh()
+        print("Searching using keyword 'Edge'\n")
+        self.col1.checking_search_options("Edge")
+        self.driver.refresh()
+        print("Searching using keyword 'test'\n")
+        self.col2.checking_search_options("Test")
+        self.driver.refresh()
 
         print("Selecting Settings\n")
         self.col.select_collection_settings()
@@ -283,6 +295,12 @@ class Test(BaseSelenium):
         print("Uploading " + self.col.getting_total_row_count() + " to the collection Completed\n")
         print("Selecting size of the displayed\n")
 
+        # print("Downloading Documents as JSON file\n")
+        # self.col.download_doc_as_json()
+
+        print("Filter collection by '_id'\n")
+        self.col.filter_documents(3)
+        self.col1.filter_documents(1)
         self.col.display_document_size(2)  # choosing 50 results to display
         print("Traverse back and forth search result page 1 and 2\n")
         self.col.traverse_search_pages()
@@ -363,12 +381,12 @@ class Test(BaseSelenium):
         print("Deleting Collection started\n")
         self.col.delete_collection()
         #
-        print("Selecting TestEdge Collection for deleting\n")
+        # print("Selecting TestEdge Collection for deleting\n")
         self.col2.select_edge_collection()
         self.col2.delete_collection()
-
-        print("Selecting Test Collection for deleting\n")
-        self.col3.select_test_doc_col()
+        #
+        # print("Selecting Test Collection for deleting\n")
+        self.col3.select_test_doc_collection()
         self.col3.delete_collection()
 
         print("Deleting Collection completed\n")
@@ -382,9 +400,9 @@ class Test(BaseSelenium):
 
 
 ui = Test()  # creating obj for the UI test
-ui.test_login()  # testing Login functionality
-ui.test_dashboard()  # testing Dashboard functionality
+# ui.test_login()  # testing Login functionality
+# ui.test_dashboard()  # testing Dashboard functionality
 ui.test_collection()  # testing Collection tab
-ui.test_views()  # testing User functionality
-ui.test_user()  # testing User functionality
+# ui.test_views()  # testing User functionality
+# ui.test_user()  # testing User functionality
 ui.teardown()  # close the driver and quit
