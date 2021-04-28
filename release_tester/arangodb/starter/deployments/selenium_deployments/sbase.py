@@ -302,17 +302,19 @@ class SeleniumRunner(ABC):
                 self.take_screenshot()
                 raise ex
 
-    def get_state_table(self):
+    def get_state_table(self, timeout):
         table_elm = WebDriverWait(self.web, timeout).until(
             EC.presence_of_element_located((By.CLASS_NAME,
                                             'pure-g.cluster-values'))
         )
+        state_table = {}
         for key in REPL_TABLE_LOC.keys():
             state_table[key] = table_elm.find_element_by_xpath(
                 REPL_TABLE_LOC[key]).text
+        return state_table
 
-    def get_repl_page(self, which):
-        state_table = self.get_state_table()
+    def get_repl_page(self, which, timeout):
+        state_table = self.get_state_table(timeout)
 
         follower_table = []
         column_indices = [1,2,3,4,5]
@@ -347,9 +349,9 @@ class SeleniumRunner(ABC):
         while True:
             try:
                 if is_leader:
-                    return self.get_repl_page('leader')
+                    return self.get_repl_page('leader', timeout)
                 else:
-                    return self.get_repl_page('follower')
+                    return self.get_repl_page('follower', timeout)
             except NoSuchElementException:
                 self.progress(' retrying after element not found')
                 time.sleep(1)
