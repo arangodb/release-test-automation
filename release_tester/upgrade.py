@@ -141,7 +141,8 @@ def run_upgrade(old_version, new_version, verbose,
             if abort_on_error:
                 raise ex
             traceback.print_exc()
-            runner.cleanup()
+            if runner:
+                runner.cleanup()
         results.append(one_result)
     return results
 
