@@ -210,9 +210,9 @@ Supported Parameters:
 
 Example usage: 
 
-- [jenkins/nightly_tar.sh] Download nightly tarball packages, and run it with selenium in `containers/docker_tar` ubuntu container
-- [jenkins/nightly_deb.sh] Download nightly debian packages, and run them with selenium in `containers/docker_deb` ubuntu container
-- [jenkins/nightly_rpm.sh] Download nightly redhat packages, and run them with selenium in `containers/docker_rpm` centos 7 container
+- [jenkins/nightly_tar.sh](jenkins/nightly_tar.sh) Download nightly tarball packages, and run it with selenium in `containers/docker_tar` ubuntu container
+- [jenkins/nightly_deb.sh](jenkins/nightly_deb.sh) Download nightly debian packages, and run them with selenium in `containers/docker_deb` ubuntu container
+- [jenkins/nightly_rpm.sh](jenkins/nightly_rpm.sh) Download nightly redhat packages, and run them with selenium in `containers/docker_rpm` centos 7 container
 
 # Using cleanup.py to clean out the system
 
