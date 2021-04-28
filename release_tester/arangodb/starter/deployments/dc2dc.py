@@ -173,8 +173,11 @@ class Dc2Dc(Runner):
         cluster_instance = self.cluster1['instance']
 
         token = cluster_instance.get_jwt_token_from_secret_file(self.cluster1["SyncSecret"])
-        url = 'https://' + cluster_instance.get_sync_master().get_public_plain_url() + '/_api/version'
-        response = requests.get(url, headers={'Authorization': 'Bearer ' + token}, verify=False)
+        url = cluster_instance.get_sync_master().get_public_plain_url()
+        url = 'https://' + url + '/_api/version'
+        response = requests.get(url,
+                                headers={'Authorization': 'Bearer ' + token},
+                                verify=False)
 
         if response.status_code != 200:
             raise Exception("could not fetch arangosync version from {0}".format(url))
@@ -182,7 +185,7 @@ class Dc2Dc(Runner):
         version = response.json().get('version')
         if not version:
             raise Exception("missing version in reponse from {0}".format(url))
-
+        print("Arangosync v%s detected" % version)
         return semver.VersionInfo.parse(version)
 
     def test_setup_impl(self):
@@ -212,8 +215,12 @@ class Dc2Dc(Runner):
             if not self.cfg.verbose:
                 print(res[1])
             raise Exception("replication fuzzing test failed")
-        if not self.sync_manager.check_sync():
-            raise Exception("failed to get the sync status")
+        count = 0
+        while not self.sync_manager.check_sync():
+            if count > 12:
+                raise Exception("failed to get the sync status")
+            time.sleep(5)
+            count += 1
 
     def wait_for_restore_impl(self, backup_starter):
         for dbserver in self.cluster1["instance"].get_dbservers():
