@@ -83,7 +83,7 @@ class SeleniumRunner(ABC):
 
     def xpath(self, path):
         return self.web.find_element_by_xpath(path)
-    def byclass(self, classname):
+    def by_class(self, classname):
         return self.web.find_element_by_class_name(classname)
 
     def close_tab_again(self):
