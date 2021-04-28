@@ -126,12 +126,12 @@ class Runner(ABC):
         if self.selenium:
             self.state += self.selenium.get_progress() + "\n"
         if is_sub:
-            if separator is 'x':
+            if separator == 'x':
                 separator = '='
             lh.subsection(msg, separator)
             self.state += "   - " + msg
         else:
-            if separator is 'x':
+            if separator == 'x':
                 separator = '#'
             lh.section(msg, separator)
             self.state += "*** " + msg
