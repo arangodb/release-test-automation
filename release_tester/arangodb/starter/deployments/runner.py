@@ -74,15 +74,17 @@ class Runner(ABC):
             except FileNotFoundError:
                 count += 1
                 if count > 20:
-                    raise TimeoutError("disk_usage on " +
-                                       str(self.basecfg.base_test_dir) +
-                                       " not working")
+                    break
                 self.basecfg.base_test_dir.mkdir()
                 print(self.basecfg.base_test_dir)
                 print(self.basecfg.base_test_dir.exists())
                 time.sleep(1)
                 print('.')
 
+        if count > 20:
+            raise TimeoutError("disk_usage on " +
+                               str(self.basecfg.base_test_dir) +
+                               " not working")
         diskused = (disk_usage_community
                     if not cfg.enterprise else disk_usage_enterprise)
         if diskused * 1024 * 1024 > diskfree.free:
