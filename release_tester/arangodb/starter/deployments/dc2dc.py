@@ -11,6 +11,7 @@ from arangodb.starter.manager import StarterManager
 from arangodb.sync import SyncManager
 from arangodb.starter.deployments.runner import Runner
 from arangodb.instance import InstanceType
+from tools.asciiprint import print_progress as progress
 
 class Dc2Dc(Runner):
     """ this launches two clusters in dc2dc mode """
@@ -217,7 +218,7 @@ class Dc2Dc(Runner):
             raise Exception("replication fuzzing test failed")
         count = 0
         while not self.sync_manager.check_sync():
-            progress("sv" + str(tcount))
+            progress("sv" + str(count))
             if count > 12:
                 raise Exception("failed to get the sync status")
             time.sleep(5)
