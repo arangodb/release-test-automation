@@ -4,6 +4,7 @@ from loginPage import LoginPage
 from userPage import UserPage
 from viewsPage import ViewsPage
 from collectionPage import CollectionPage
+from graphPage import GraphPage
 
 
 class Test(BaseSelenium):
@@ -58,138 +59,6 @@ class Test(BaseSelenium):
         self.login.logout_button()
         del self.login
         print("---------Checking Dashboard Completed--------- \n")
-
-    # testing creating new user
-    def test_user(self):
-        print("---------User Test Begin--------- \n")
-        self.login = LoginPage(self.driver)
-        self.login.login('root', 'aa')
-        self.user = UserPage(self.driver)
-        print("New user creation begins \n")
-        self.user.new_user_tab()
-        self.user.add_new_user()
-        self.user.new_user_name('tester')
-        self.user.naming_new_user('tester')
-        self.user.new_user_password('tester')
-        self.user.creating_new_user()
-        print("New user creation completed \n")
-        self.user.selecting_new_user()
-        self.user.selecting_permission()
-        print("Changing new user DB permission \n")
-        self.user.changing_db_permission()
-        self.driver.back()
-        self.user.saving_user_cfg()
-        print("Changing new user DB permission completed. \n")
-        self.login.logout_button()
-
-        # creating login page object to reuse it's methods for login with newly created user
-        print("Re-Login begins with new user\n")
-        self.login = LoginPage(self.driver)
-        self.login.login('tester', 'tester')
-        print("Re-Login begins with new user completed\n")
-
-        # logout from the current user to get back to root
-        self.login.logout_button()
-        del self.login
-        # login back with root user
-        self.login = LoginPage(self.driver)
-        self.login.login('root', 'aa')
-        # fixme Deleting old user object
-        del self.user
-        self.user = UserPage(self.driver)
-        self.user.new_user_tab()
-        self.user.selecting_new_user()
-        print("Deleting created user begins\n")
-        self.user.delete_user_btn()
-        self.user.confirm_delete_btn()
-        print("Deleting created user completed \n")
-        self.login.logout_button()
-        # fixme Deleting old user object
-        del self.login
-        print("---------User Test Completed---------\n")
-
-    def test_views(self):
-        print("---------Checking Views Begin--------- \n")
-        self.login = LoginPage(self.driver)
-        self.login.login('root', 'aa')
-        self.views = ViewsPage(self.driver)  # creating obj for viewPage
-        self.views1 = ViewsPage(self.driver)  # creating 2nd obj for viewPage to do counter part of the testing
-
-        print("Selecting Views tab\n")
-        self.views.select_views_tab()
-        print("Creating first views\n")
-        self.views.create_new_views()
-        self.views.naming_new_view("firstView")
-        self.views.select_create_btn()
-        print("Creating first views completed\n")
-
-        print("Creating second views\n")
-        self.views1.create_new_views()
-        self.views1.naming_new_view("secondView")
-        self.views1.select_create_btn()
-        print("Creating second views completed\n")
-
-        self.views.select_views_settings()
-        print("Sorting views to descending\n")
-        self.views.select_sorting_views()
-
-        print("Sorting views to ascending\n")
-        self.views1.select_sorting_views()
-
-        print("search views option testing\n")
-        self.views1.search_views("se")
-        self.views.search_views("fi")
-
-        print("Selecting first Views \n")
-        self.views.select_first_view()
-        print("Selecting collapse button \n")
-        self.views.select_collapse_btn()
-        print("Selecting expand button \n")
-        self.views.select_expand_btn()
-        print("Selecting editor mode \n")
-        self.views.select_editor_mode_btn()
-        print("Switch editor mode to Code \n")
-        self.views.switch_to_code_editor_mode()
-        print("Switch editor mode to Compact mode Code \n")
-        self.views.compact_json_data()
-
-        print("Selecting editor mode \n")
-        self.views1.select_editor_mode_btn()
-        print("Switch editor mode to Tree \n")
-        self.views1.switch_to_tree_editor_mode()
-
-        print("Clicking on ArangoSearch documentation link \n")
-        self.views.click_arangosearch_documentation_link()
-        print("Selecting search option\n")
-        self.views.select_inside_search("i")
-        print("Traversing all results up and down \n")
-        self.views.search_result_traverse_down()
-        self.views.search_result_traverse_up()
-        self.views1.select_inside_search("")
-        # ###print("Changing views consolidationPolicy id to 55555555 \n")
-        # ###self.views1.change_consolidation_policy(55555555)
-        print("Rename firstViews to thirdViews started \n")
-        self.views.clicking_rename_views_btn()
-        self.views.rename_views_name("thirdView")
-        self.views.rename_views_name_confirm()
-        print("Rename the current Views completed \n")
-        self.driver.back()
-        print("Deleting views started \n")
-        self.views.select_renamed_view()
-        self.views.delete_views_btn()
-        self.views.delete_views_confirm_btn()
-        self.views.final_delete_confirmation()
-
-        self.views1.select_second_view()
-        self.views1.delete_views_btn()
-        self.views1.delete_views_confirm_btn()
-        self.views1.final_delete_confirmation()
-        print("Deleting views completed\n")
-        self.login.logout_button()
-        del self.login
-        del self.views
-        del self.views1
-        print("---------Checking Views completed--------- \n")
 
     def test_collection(self):
         print("---------Checking Collection Begin--------- \n")
@@ -398,11 +267,263 @@ class Test(BaseSelenium):
         del self.login
         print("---------Checking Collection Completed--------- \n")
 
+    def test_views(self):
+        print("---------Checking Views Begin--------- \n")
+        self.login = LoginPage(self.driver)
+        self.login.login('root', 'aa')
+        self.views = ViewsPage(self.driver)  # creating obj for viewPage
+        self.views1 = ViewsPage(self.driver)  # creating 2nd obj for viewPage to do counter part of the testing
+
+        print("Selecting Views tab\n")
+        self.views.select_views_tab()
+        print("Creating first views\n")
+        self.views.create_new_views()
+        self.views.naming_new_view("firstView")
+        self.views.select_create_btn()
+        print("Creating first views completed\n")
+
+        print("Creating second views\n")
+        self.views1.create_new_views()
+        self.views1.naming_new_view("secondView")
+        self.views1.select_create_btn()
+        print("Creating second views completed\n")
+
+        self.views.select_views_settings()
+        print("Sorting views to descending\n")
+        self.views.select_sorting_views()
+
+        print("Sorting views to ascending\n")
+        self.views1.select_sorting_views()
+
+        print("search views option testing\n")
+        self.views1.search_views("se")
+        self.views.search_views("fi")
+
+        print("Selecting first Views \n")
+        self.views.select_first_view()
+        print("Selecting collapse button \n")
+        self.views.select_collapse_btn()
+        print("Selecting expand button \n")
+        self.views.select_expand_btn()
+        print("Selecting editor mode \n")
+        self.views.select_editor_mode_btn()
+        print("Switch editor mode to Code \n")
+        self.views.switch_to_code_editor_mode()
+        print("Switch editor mode to Compact mode Code \n")
+        self.views.compact_json_data()
+
+        print("Selecting editor mode \n")
+        self.views1.select_editor_mode_btn()
+        print("Switch editor mode to Tree \n")
+        self.views1.switch_to_tree_editor_mode()
+
+        print("Clicking on ArangoSearch documentation link \n")
+        self.views.click_arangosearch_documentation_link()
+        print("Selecting search option\n")
+        self.views.select_inside_search("i")
+        print("Traversing all results up and down \n")
+        self.views.search_result_traverse_down()
+        self.views.search_result_traverse_up()
+        self.views1.select_inside_search("")
+        # ###print("Changing views consolidationPolicy id to 55555555 \n")
+        # ###self.views1.change_consolidation_policy(55555555)
+        print("Rename firstViews to thirdViews started \n")
+        self.views.clicking_rename_views_btn()
+        self.views.rename_views_name("thirdView")
+        self.views.rename_views_name_confirm()
+        print("Rename the current Views completed \n")
+        self.driver.back()
+        print("Deleting views started \n")
+        self.views.select_renamed_view()
+        self.views.delete_views_btn()
+        self.views.delete_views_confirm_btn()
+        self.views.final_delete_confirmation()
+
+        self.views1.select_second_view()
+        self.views1.delete_views_btn()
+        self.views1.delete_views_confirm_btn()
+        self.views1.final_delete_confirmation()
+        print("Deleting views completed\n")
+        self.login.logout_button()
+        del self.login
+        del self.views
+        del self.views1
+        print("---------Checking Views completed--------- \n")
+
+    def test_graph(self):
+        print("---------Checking Graphs  started--------- \n")
+        self.login = LoginPage(self.driver)
+        self.login.login('root', 'aa')
+
+        # creating multiple graph obj
+        self.graph = GraphPage(self.driver)
+        self.graph1 = GraphPage(self.driver)
+        self.graph2 = GraphPage(self.driver)
+        self.graph3 = GraphPage(self.driver)
+        self.graph4 = GraphPage(self.driver)
+        self.graph5 = GraphPage(self.driver)
+        self.graph6 = GraphPage(self.driver)
+        self.graph7 = GraphPage(self.driver)
+        self.graph8 = GraphPage(self.driver)
+
+        print("Example Graphs creation started\n")
+        self.graph.select_graph_page()
+        print("Creating Knows Graph\n")
+        self.graph1.select_create_graph(1)
+        self.driver.refresh()
+        print("Checking required collections created for Knows Graph\n")
+        self.graph1.checking_collection_creation(1)
+        print("Searching for 'knows' and 'persons' collections\n")
+        self.graph1.check_required_collection(1)
+        self.driver.back()
+        self.driver.refresh()
+
+        print("Creating Traversal Graph\n")
+        self.graph2.select_create_graph(2)
+        self.driver.refresh()
+        print("Checking required collections created for Traversal Graph\n")
+        self.graph2.checking_collection_creation(2)
+        print("Searching for 'circles' and 'edges' collections\n")
+        self.graph2.check_required_collection(2)
+        self.driver.back()
+        self.driver.refresh()
+
+        print("Creating K Shortest Path Graph\n")
+        self.graph3.select_create_graph(3)
+        self.driver.refresh()
+        print("Checking required collections created for K Shortest Path Graph\n")
+        self.graph3.checking_collection_creation(3)
+        print("Searching for 'connections' and 'places' collections\n")
+        self.graph3.check_required_collection(3)
+        self.driver.back()
+        self.driver.refresh()
+
+        print("Creating Mps Graph\n")
+        self.graph4.select_create_graph(4)
+        self.driver.refresh()
+        print("Checking required collections created for Mps Graph\n")
+        self.graph4.checking_collection_creation(4)
+        print("Searching for 'mps_edges' and 'mps_verts' collections\n")
+        self.graph4.check_required_collection(4)
+        self.driver.back()
+        self.driver.refresh()
+
+        print("Creating World Graph\n")
+        self.graph5.select_create_graph(5)
+        self.driver.refresh()
+        print("Checking required collections created for World Graph\n")
+        self.graph5.checking_collection_creation(5)
+        print("Searching for 'worldEdges' and 'worldvertices' collections\n")
+        self.graph5.check_required_collection(5)
+        self.driver.back()
+        self.driver.refresh()
+
+        print("Creating Social Graph\n")
+        self.graph6.select_create_graph(6)
+        self.driver.refresh()
+        print("Checking required collections created for Social Graph\n")
+        self.graph6.checking_collection_creation(6)
+        print("Searching for 'male' , 'female' and 'relation' collections\n")
+        self.graph6.check_required_collection(6)
+        self.driver.back()
+        self.driver.refresh()
+
+        print("Creating City Graph\n")
+        self.graph7.select_create_graph(7)
+        self.driver.refresh()
+        print("Checking required collections created for City Graph\n")
+        self.graph7.checking_collection_creation(7)
+        print("Searching for 'frenchCity' , 'frenchHighway' 'germanCity', 'germanHighway' & 'internationalHighway'\n")
+        self.graph7.check_required_collection(7)
+        self.driver.back()
+        self.driver.refresh()
+        print("Example Graphs creation Completed\n")
+
+        print("Sorting all graphs as descending\n")
+        self.graph.select_sort_descend()
+
+        print("Selecting Knows Graph for inspection\n")
+        self.graph.inspect_knows_graph()
+        print("Selecting Graphs settings menu\n")
+        self.graph.graph_setting()
+
+        print("Deleting created Graphs started\n")
+        self.graph1.delete_graph(1)
+        self.graph2.delete_graph(2)
+        self.graph3.delete_graph(3)
+        self.graph4.delete_graph(4)
+        self.graph5.delete_graph(5)
+        self.graph6.delete_graph(6)
+        self.graph7.delete_graph(7)
+
+        # print("Deleting created Graphs Completed\n")
+        del self.graph
+        del self.graph1
+        del self.graph2
+        del self.graph3
+        del self.graph4
+        del self.graph5
+        del self.graph6
+        del self.graph7
+        del self.graph8
+        self.login.logout_button()
+        del self.login
+        print("---------Checking Graphs completed--------- \n")
+
+    def test_user(self):
+        print("---------User Test Begin--------- \n")
+        self.login = LoginPage(self.driver)
+        self.login.login('root', 'aa')
+        self.user = UserPage(self.driver)
+        print("New user creation begins \n")
+        self.user.new_user_tab()
+        self.user.add_new_user()
+        self.user.new_user_name('tester')
+        self.user.naming_new_user('tester')
+        self.user.new_user_password('tester')
+        self.user.creating_new_user()
+        print("New user creation completed \n")
+        self.user.selecting_new_user()
+        self.user.selecting_permission()
+        print("Changing new user DB permission \n")
+        self.user.changing_db_permission()
+        self.driver.back()
+        self.user.saving_user_cfg()
+        print("Changing new user DB permission completed. \n")
+        self.login.logout_button()
+
+        # creating login page object to reuse it's methods for login with newly created user
+        print("Re-Login begins with new user\n")
+        self.login = LoginPage(self.driver)
+        self.login.login('tester', 'tester')
+        print("Re-Login begins with new user completed\n")
+
+        # logout from the current user to get back to root
+        self.login.logout_button()
+        del self.login
+        # login back with root user
+        self.login = LoginPage(self.driver)
+        self.login.login('root', 'aa')
+        # fixme Deleting old user object
+        del self.user
+        self.user = UserPage(self.driver)
+        self.user.new_user_tab()
+        self.user.selecting_new_user()
+        print("Deleting created user begins\n")
+        self.user.delete_user_btn()
+        self.user.confirm_delete_btn()
+        print("Deleting created user completed \n")
+        self.login.logout_button()
+        # fixme Deleting old user object
+        del self.login
+        print("---------User Test Completed---------\n")
+
 
 ui = Test()  # creating obj for the UI test
-# ui.test_login()  # testing Login functionality
-# ui.test_dashboard()  # testing Dashboard functionality
+ui.test_login()  # testing Login functionality
+ui.test_dashboard()  # testing Dashboard functionality
 ui.test_collection()  # testing Collection tab
-# ui.test_views()  # testing User functionality
-# ui.test_user()  # testing User functionality
+ui.test_views()  # testing User functionality
+ui.test_graph()  # testing graph functionality
+ui.test_user()  # testing User functionality
 ui.teardown()  # close the driver and quit
