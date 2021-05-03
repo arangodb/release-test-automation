@@ -41,7 +41,6 @@ def init(runner_type: RunnerType,
             print('S: retrying to launch browser')
             time.sleep(2)
     if selenium_worker.lower() == 'chrome':
-        # original_size = driver.get_window_size()
         required_width = driver.execute_script('return document.body.parentNode.scrollWidth')
         required_height = driver.execute_script('return document.body.parentNode.scrollHeight')
         driver.set_window_size(required_width, required_height)
