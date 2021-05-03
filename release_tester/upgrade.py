@@ -129,7 +129,16 @@ def run_upgrade(old_version, new_version, verbose,
             lh.section("check system")
             new_inst.check_uninstall_cleanup()
             lh.section("remove residuals")
-            new_inst.cleanup_system()
+            try:
+                old_inst.cleanup_system()
+            except :
+                print("Ignoring old cleanup error!")
+                pass
+            try:
+                print("Ignoring new cleanup error!")
+                new_inst.cleanup_system()
+            except:
+                pass
         except Exception as ex:
             one_result = {
                 'testrun name': testrun_name,
@@ -143,6 +152,16 @@ def run_upgrade(old_version, new_version, verbose,
             traceback.print_exc()
             if runner:
                 runner.cleanup()
+            try:
+                old_inst.cleanup_system()
+            except :
+                print("Ignoring old cleanup error!")
+                pass
+            try:
+                print("Ignoring new cleanup error!")
+                new_inst.cleanup_system()
+            except:
+                pass
         results.append(one_result)
     return results
 
