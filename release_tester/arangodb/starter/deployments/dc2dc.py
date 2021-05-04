@@ -21,7 +21,7 @@ class Dc2Dc(Runner):
         super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst,
                          'DC2DC', 0, 3500, selenium, selenium_driver_args)
         self.success = True
-        self.cfg.passvoid = '' # TODO
+        self.cfg.passvoid = ''
         self.sync_manager = None
         self.cluster1 = {}
         self.cluster2 = {}
@@ -221,6 +221,7 @@ class Dc2Dc(Runner):
             progress("sv" + str(count))
             if count > 12:
                 raise Exception("failed to get the sync status")
+            self.sync_manager.reset_failed_shard('_system', '_users')
             time.sleep(5)
             count += 1
 
