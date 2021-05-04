@@ -70,6 +70,7 @@ class SeleniumRunner(ABC):
         """ *snap* """
         #self.set_window_size(1920, total_height)
         #time.sleep(2)
+        self.progress("taking screenshot")
         self.web.save_screenshot(filename)
 
     def connect_server_new_tab(self, frontend_instance, database, cfg):
