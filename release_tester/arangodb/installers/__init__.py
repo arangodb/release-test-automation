@@ -33,6 +33,7 @@ class InstallerConfig():
         self.enterprise = enterprise
         self.encryption_at_rest = encryption_at_rest and enterprise
         self.zip_package = zip_package
+        self.source = False
 
         self.mode = mode
         self.verbose = verbose
@@ -130,6 +131,10 @@ def make_installer(install_config: InstallerConfig):
     """ detect the OS and its distro,
         choose the proper installer
         and return it"""
+    if install_config.source:
+        from arangodb.installers.source import InstallerSource
+        return InstallerSource(install_config)
+
     winver = platform.win32_ver()
     if winver[0]:
         from arangodb.installers.nsis import InstallerW

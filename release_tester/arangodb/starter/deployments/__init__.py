@@ -16,6 +16,7 @@ class RunnerType(Enum):
     CLUSTER = 3
     DC2DC = 4
     DC2DCENDURANCE = 5
+    TESTING = 6
 
 """ map strings """
 runner_strings = {
@@ -24,7 +25,8 @@ runner_strings = {
     RunnerType.ACTIVE_FAILOVER: "Active Failover",
     RunnerType.CLUSTER: "Cluster",
     RunnerType.DC2DC: "DC 2 DC",
-    RunnerType.DC2DCENDURANCE: "DC 2 DC endurance"
+    RunnerType.DC2DCENDURANCE: "DC 2 DC endurance",
+    RunnerType.TESTING: "Testing"
 }
 
 #pylint: disable=import-outside-toplevel

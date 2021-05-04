@@ -276,8 +276,8 @@ class ArangoshExecutor():
                         print('done!')
                         break
                 else:
-                    out.write(line)
-                    #print(line)
+                    # out.write(str(line))
+                    print(line)
         thread1.join()
         thread2.join()
 
