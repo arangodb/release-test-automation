@@ -1,7 +1,15 @@
 --- # test setup configuration file
-cluster:
-  weight: 3
-  buckets: 3
-single:
-  weight: 1
-  buckets: 5
+tests:
+  - mode: single
+    weight: 1
+    buckets: 5
+    args:
+      - --vst
+      - true
+    suffix: vst
+  - mode: cluster
+    weight: 3
+    buckets: 3
+  - mode: single
+    weight: 1
+    buckets: 5

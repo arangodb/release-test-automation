@@ -88,22 +88,31 @@ def makedata_runner(queue, resq, arangosh, progressive_timeout):
             resq.put(-1)
             break
 
-def create_scenario(scenarios, testsuite, scenario_mode, test_content):
+def convert_args(args):
+    ret_args = []
+    for one_arg in args:
+        if type(one_arg) == type(True):
+            ret_args.append("true" if one_arg else "false")
+        else:
+            ret_args.append(one_arg)
+    return ret_args
+
+def create_scenario(scenarios, testsuite, test_content):
     args = []
-    if scenario_mode == "cluster":
+    if test_content['mode'] == "cluster":
         args += ["--cluster", "true"]
-    elif scenario_mode == "single":
+    elif test_content['mode'] == "single":
         pass
-    elif scenario_mode == "active_failover":
+    elif test_content['mode'] == "active_failover":
         args += ["--active", "true"]
     else:
-        raise Exception("don't know test mode " + scenario_mode)
+        raise Exception("don't know test mode " + test_content['mode'])
 
     weight = 1
     if 'weight' in test_content:
         weight = int(test_content['weight'])
-    if 'moreargs' in test_content:
-        args += test_content[moreargs]
+    if 'args' in test_content:
+        args += convert_args(test_content['args'])
     suite = {
         'args': args,
         'suite': testsuite,
@@ -111,6 +120,8 @@ def create_scenario(scenarios, testsuite, scenario_mode, test_content):
         'logfile': Path.cwd() / (testsuite + '_log.txt'),
         'weight': weight
     }
+    if 'suffix' in test_content:
+        suite['logfile'] = Path.cwd() / (testsuite + "_" + test_content['suffix'] + '_log.txt'),
     if 'buckets' in test_content:
         n_buckets = int(test_content['buckets'])
         for bucket in range(0, n_buckets):
@@ -127,12 +138,13 @@ def parse_scenario(yml_file, scenarios):
         return
     testsuite = yml_file.name[:-4]
     ymldoc = yml_file.read_text()
+    print(ymldoc)
     yml_content = yaml.load(ymldoc, Loader=yaml.Loader)
-    for mode in yml_content:
-        create_scenario(scenarios, testsuite, mode, yml_content[mode])
-    
+    pp.pprint(yml_content)
+    for suite in yml_content['tests']:
+        pp.pprint(suite)
+        create_scenario(scenarios, testsuite, suite)
 
-        
 class Testing(Runner):
     """ this launches a cluster setup """
     # pylint: disable=R0913 disable=R0902
@@ -176,6 +188,7 @@ class Testing(Runner):
 
         self.available_slots = psutil.cpu_count() / 4 # TODO well threadripper..
         self.used_slots = 0
+        #raise Exception("tschuess")
         start_offset = 0
         while True:
             if self.available_slots > self.used_slots:
@@ -189,7 +202,6 @@ class Testing(Runner):
                 time.sleep(5)
                 
         
-        raise Exception("tschuess")
 
         self.basecfg.index = 0
 

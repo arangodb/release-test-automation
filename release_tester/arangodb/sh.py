@@ -243,7 +243,7 @@ class ArangoshExecutor():
             '--javascript.allow-external-process-control', 'true',
             '--javascript.execute', str(Path('UnitTests') / 'unittest.js'),
             '--',
-            testcase, '--testBuckets'] + args
+            testcase] + args
         print(args)
         os.chdir(self.cfg.package_dir)
         process = Popen(args, stdout=PIPE, stderr=PIPE, close_fds=ON_POSIX)
