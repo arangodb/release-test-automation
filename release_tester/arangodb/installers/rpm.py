@@ -245,6 +245,7 @@ class InstallerRPM(InstallerLinux):
         self.instance.detect_pid(1) # should be owned by init
 
     def un_install_package(self):
+        self.stop_service()
         cmd = ['rpm', '-e', 'arangodb3' + ('e' if self.cfg.enterprise else '')]
         lh.log_cmd(cmd)
         uninstall = psutil.Popen(cmd)
@@ -301,10 +302,14 @@ class InstallerRPM(InstallerLinux):
     def cleanup_system(self):
         # TODO: should this be cleaned by the rpm uninstall in first place?
         if self.cfg.log_dir.exists():
+            print("cleaning upg %s "% str(self.cfg.log_dir))
             shutil.rmtree(self.cfg.log_dir)
         if self.cfg.dbdir.exists():
+            print("cleaning upg %s "% str(self.cfg.dbdir))
             shutil.rmtree(self.cfg.dbdir)
         if self.cfg.appdir.exists():
+            print("cleaning upg %s "% str(self.cfg.appdir))
             shutil.rmtree(self.cfg.appdir)
         if self.cfg.cfgdir.exists():
+            print("cleaning upg %s "% str(self.cfg.cfgdir))
             shutil.rmtree(self.cfg.cfgdir)

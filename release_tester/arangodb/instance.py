@@ -14,6 +14,11 @@ from requests.auth import HTTPBasicAuth
 import psutil
 from tools.asciiprint import print_progress as progress
 
+# log tokens we want to suppress from our dump:
+LOG_BLACKLIST = [
+    "2b6b3", # -> asio error, tcp connections died... so f* waht.
+    "2c712"  # -> agency connection died...
+]
 
 class InstanceType(IntEnum):
     """ type of arangod instance """
@@ -120,13 +125,21 @@ class Instance(ABC):
             print(str(self.logfile) + " doesn't exist, skipping.")
             return
         print(str(self.logfile))
+        count = 0
         with open(self.logfile) as log_fh:
             for line in log_fh:
                 if ("FATAL" in line or
                     "ERROR" in line or
                     "WARNING" in line or
                     "{crash}" in line):
+                    skip = False
+                    for blacklist_item in LOG_BLACKLIST:
+                        if blacklist_item in line:
+                            skip = True
+                            count += 1
                     print(line.rstrip())
+        if count > 0:
+            print(" %d lines suppressed by filters" % count)
 
 class ArangodInstance(Instance):
     """ represent one arangodb instance """

@@ -10,14 +10,7 @@ class ActiveFailover(SeleniumRunner):
 
     def check_old(self, cfg, expect_follower_count=2, retry_count=10):
         """ check the integrity of the old system before the upgrade """
-        ver = self.detect_version()
-        self.progress(' %s ~= %s?'% (ver['version'].lower(), str(cfg.semver)))
-
-        assert ver['version'].lower().startswith(str(cfg.semver)), "wrong version"
-        if cfg.enterprise:
-            assert ver['enterprise'] == 'ENTERPRISE EDITION', "expect enterprise"
-        else:
-            assert ver['enterprise'] == 'COMMUNITY EDITION', "expect community"
+        self.check_version(cfg)
 
         while retry_count > 0:
             self.navbar_goto('replication')
@@ -31,7 +24,8 @@ class ActiveFailover(SeleniumRunner):
         # head and two followers should be there:
         self.progress(' expecting %d followers, have %d followers'%(
             expect_follower_count, len(replication_table['follower_table']) - 1))
-        assert len(replication_table['follower_table']) == expect_follower_count + 1, "expect 1 follower"
+        assert len(replication_table['follower_table']) == expect_follower_count + 1, (
+            "UI-Test: expect 1 follower")
 
     def upgrade_deployment(self, new_cfg, secondary, leader_follower):
         pass
@@ -42,7 +36,7 @@ class ActiveFailover(SeleniumRunner):
         replication_table = self.get_replication_screen(True)
         print(replication_table)
         # head and one follower should be there:
-        assert len(replication_table['follower_table']) == 2, "expect 2 followers"
+        assert len(replication_table['follower_table']) == 2, "UI-Test: expect 2 followers"
 
     def jam_step_2(self, cfg):
         pass
