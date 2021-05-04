@@ -68,7 +68,7 @@ function ReplicationSuite() {
   };
 
   var connectToFollower = function() {
-    print(followerEndpoint)
+    print(followerEndpoint);
     reconnectRetry(followerEndpoint, db._name(), followerCreds[0], followerCreds[1]);
     db._flushCache();
   };
