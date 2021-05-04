@@ -1,0 +1,7 @@
+--- # test setup configuration file
+cluster:
+  weight: 3
+  buckets: 3
+single:
+  weight: 1
+  buckets: 5
