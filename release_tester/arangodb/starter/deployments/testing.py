@@ -113,7 +113,7 @@ def create_scenario(scenarios, testsuite, test_content):
             this_bucket = copy.deepcopy(suite)
             this_bucket['name'] += "_" + str(bucket)
             this_bucket['logfile'] = Path.cwd() / (this_bucket['name'] + '_log.txt')
-            this_bucket['args'] += ['--bucket', str(bucket) + '/' + str(n_buckets)]
+            this_bucket['args'] += ['--testBuckets', str(n_buckets) + '/' + str(bucket)]
             scenarios.append(this_bucket)
     else:
         scenarios.append(suite)
@@ -156,7 +156,7 @@ class Testing(Runner):
         #OTHER_SH_OUTPUT = Path('/tmp/errors.txt').open('w')
 
     def done_job(self, count):
-        with self.slot_locks:
+        with self.slot_lock:
             self.used_slots -= count
 
     def launch_next(self, offset):
@@ -192,6 +192,7 @@ class Testing(Runner):
             if self.available_slots > used_slots:
                 if start_offset < len(self.scenarios) and self.launch_next(start_offset):
                     start_offset += 1
+                    time.sleep(5)
                 else:
                     print('elsesleep')
                     time.sleep(5)
