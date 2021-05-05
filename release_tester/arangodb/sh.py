@@ -276,7 +276,8 @@ class ArangoshExecutor():
                         print('done!')
                         break
                 else:
-                    # out.write(str(line))
+                    if isinstance(line, tuple):
+                        out.write(line[0])
                     print(line)
         thread1.join()
         thread2.join()
