@@ -8,7 +8,7 @@ import pprint
 
 from pathlib import Path
 from queue import Queue, Empty
-from threading  import Thread
+from threading  import Thread, Lock
 
 import psutil
 import statsd
@@ -67,26 +67,11 @@ def result_line(line_tp):
                                   " - " + str(line_tp[0]) + '\n')
             statsdc.incr('completed')
 
-def makedata_runner(queue, resq, arangosh, progressive_timeout):
+def testing_runner(testing_instance, this, arangosh):
     """ operate one makedata instance """
-    while True:
-        try:
-            # all tasks are already there. if done:
-            job = queue.get(timeout=0.1)
-            print("starting my task! " + str(job['args']))
-            res = arangosh.create_test_data("xx", job['args'],
-                                            result_line=result_line,
-                                            timeout=progressive_timeout)
-            if not res[0]:
-                print("error executing test - giving up.")
-                print(res[1])
-                resq.put(1)
-                break
-            resq.put(res)
-        except Empty:
-            print("No more work!")
-            resq.put(-1)
-            break
+    arangosh.run_testing(this['suite'], this['args'], 999999999, this['logfile'], True)
+    print('done with ' + this['name'])
+    testing_instance.done_job(this['weight'])
 
 def convert_args(args):
     ret_args = []
@@ -166,20 +151,29 @@ class Testing(Runner):
         self.success = False
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
+        self.slot_lock = Lock()
         #RESULTS_TXT = Path('/tmp/results.txt').open('w')
         #OTHER_SH_OUTPUT = Path('/tmp/errors.txt').open('w')
+
+    def done_job(self, count):
+        with self.slot_locks:
+            self.used_slots -= count
 
     def launch_next(self, offset):
         if self.scenarios[offset]['weight'] > (self.available_slots - self.used_slots):
             return False
-        self.used_slots += self.scenarios[offset]['weight']
+        with self.slot_lock:
+            self.used_slots += self.scenarios[offset]['weight']
         this = self.scenarios[offset]
         print("launching " + this['name'])
         pp.pprint(this)
 
         print(this['logfile'])
-        self.old_installer.arangosh.run_testing(this['suite'], this['args'], 999999999, this['logfile'], True)
-
+        worker = Thread(target=testing_runner,
+                        args=(self,
+                              this,
+                              self.old_installer.arangosh))
+        worker.start()
         return True
         
     def starter_prepare_env_impl(self):
@@ -190,9 +184,13 @@ class Testing(Runner):
         self.used_slots = 0
         #raise Exception("tschuess")
         start_offset = 0
-        while True:
-            if self.available_slots > self.used_slots:
-                if self.launch_next(start_offset):
+        used_slots = 0
+        while start_offset < len(self.scenarios) or used_slots > 0:
+            used_slots = 0
+            with self.slot_lock:
+                used_slots = self.used_slots
+            if self.available_slots > used_slots:
+                if start_offset < len(self.scenarios) and self.launch_next(start_offset):
                     start_offset += 1
                 else:
                     print('elsesleep')
@@ -200,68 +198,10 @@ class Testing(Runner):
             else:
                 print('elseelsesleep')
                 time.sleep(5)
-                
-        
-
         self.basecfg.index = 0
 
     def jam_attempt_impl(self):
-        self.makedata_instances = self.starter_instances[:]
-        logging.info('jamming: starting data stress')
-        assert self.makedata_instances, "no makedata instance!"
-        logging.debug("makedata instances")
-        for i in self.makedata_instances:
-            logging.debug(str(i))
-
-        tcount = 0
-        jobs = Queue()
-        resultq = Queue()
-        results = []
-        workers = []
-        no_dbs = self.scenario.db_count
-        for i in range(self.scenario.db_count_chunks):
-            jobs.put({
-                'args': [
-                    'TESTDB',
-                    '--minReplicationFactor', str(self.scenario.min_replication_factor),
-                    '--maxReplicationFactor', str(self.scenario.max_replication_factor),
-                    '--dataMultiplier', str(self.scenario.data_multiplier),
-                    '--numberOfDBs', str(no_dbs),
-                    '--countOffset', str((i + self.scenario.db_offset) * no_dbs + 1),
-                    '--collectionMultiplier', str(self.scenario.collection_multiplier),
-                    '--singleShard', 'true' if self.scenario.single_shard else 'false',
-                    ]
-                })
-
-        while len(workers) < self.scenario.parallelity:
-            starter = self.makedata_instances[len(workers) % len(
-                self.makedata_instances)]
-            assert starter.arangosh, "no starter associated arangosh!"
-            arangosh = starter.arangosh
-
-            #must be writabe that the setup may not have already data
-            if not arangosh.read_only and not self.has_makedata_data:
-                workers.append(Thread(target=makedata_runner,
-                                      args=(jobs,
-                                            resultq,
-                                            arangosh,
-                                            self.scenario.progressive_timeout)))
-
-        thread_count = len(workers)
-        for worker in workers:
-            worker.start()
-            time.sleep(self.scenario.launch_delay)
-
-        while tcount < thread_count:
-            res_line = resultq.get()
-            if isinstance(res_line, bytes):
-                results.append(str(res_line).split(','))
-            else:
-                tcount += 1
-
-        for worker in workers:
-            worker.join()
-        ti.prompt_user(self.basecfg, "DONE! press any key to shut down the SUT.")
+        pass
 
     def make_data_impl(self):
         pass # we do this later.
@@ -273,40 +213,10 @@ class Testing(Runner):
         return False # we want to do this on our own.
 
     def starter_run_impl(self):
-        lh.subsection("instance setup")
-        #if self.remote:
-        #    logging.info("running remote, skipping")
-        #    return
-        for manager in self.starter_instances:
-            logging.info("Spawning instance")
-            manager.run_starter()
-
-        logging.info("waiting for the starters to become alive")
-        not_started = self.starter_instances[:] #This is a explicit copy
-        while not_started:
-            logging.debug("waiting for mananger with logfile:" + str(not_started[-1].log_file))
-            if not_started[-1].is_instance_up():
-                not_started.pop()
-            progress('.')
-            time.sleep(1)
-
-        logging.info("waiting for the cluster instances to become alive")
-        for node in self.starter_instances:
-            node.detect_instances()
-            node.detect_instance_pids()
-            #self.basecfg.add_frontend('http', self.basecfg.publicip, str(node.get_frontend_port()))
-        logging.info("instances are ready")
+        pass
 
     def finish_setup_impl(self):
-        if self.remote:
-            logging.info("running remote, skipping")
-            return
-
-        self.agency_set_debug_logging()
-        self.dbserver_set_debug_logging()
-        self.coordinator_set_debug_logging()
-
-        set_prometheus_jwt(self.starter_instances[0].get_jwt_header())
+        pass
 
     def test_setup_impl(self):
         pass
