@@ -1,8 +1,9 @@
 --- # test setup configuration file
 tests:
   - mode: single
+    suffix: vst
     weight: 1
-    buckets: 5
+    buckets: 3
     args:
       - --vst
       - true
