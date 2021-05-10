@@ -69,8 +69,17 @@ def result_line(line_tp):
 
 def testing_runner(testing_instance, this, arangosh):
     """ operate one makedata instance """
-    arangosh.run_testing(this['suite'], this['args'], 999999999, this['logfile'], True)
+    # arangosh.run_testing(this['suite'],
+    #                      this['args'],
+    #                      999999999,
+    #                      this['log'],
+    #                      this['log_file'],
+    #                      True)
     print('done with ' + this['name'])
+    this['crashed' ] = this['crashed_file'].read_text() == "true"
+    this['success' ] = this['success_file'].read_text() == "true"
+    this['structured_results' ] = this['crashed_file'].read_text()
+    this['summary' ] = this['summary_file'].read_text()
     testing_instance.done_job(this['weight'])
 
 def convert_args(args):
@@ -82,8 +91,16 @@ def convert_args(args):
             ret_args.append(one_arg)
     return ret_args
 
+def set_filenames(suite):
+    suite['log_file'] = Path(str(suite['log']) + '_log.txt')
+    suite['summary_file'] = suite['log'] / 'testfailures.txt'
+    suite['crashed_file'] = suite['log'] / 'UNITTEST_RESULT_CRASHED.json'
+    suite['success_file'] = suite['log'] / 'UNITTEST_RESULT_EXECUTIVE_SUMMARY.json'
+    suite['report_file'] = suite['log'] / 'UNITTEST_RESULT.json'
+
 def create_scenario(scenarios, testsuite, test_content):
     args = []
+    suffix = ""
     if test_content['mode'] == "cluster":
         args += ["--cluster", "true"]
     elif test_content['mode'] == "single":
@@ -92,7 +109,8 @@ def create_scenario(scenarios, testsuite, test_content):
         args += ["--active", "true"]
     else:
         raise Exception("don't know test mode " + test_content['mode'])
-
+    if 'suffix' in test_content:
+        suffix = '_' + test_content['suffix']
     weight = 1
     if 'weight' in test_content:
         weight = int(test_content['weight'])
@@ -102,22 +120,27 @@ def create_scenario(scenarios, testsuite, test_content):
         'args': args,
         'suite': testsuite,
         'name': testsuite,
-        'logfile': Path.cwd() / (testsuite + '_log.txt'),
+        'log': Path.cwd() / (testsuite +
+                             suffix + '_' +
+                             test_content['mode']),
         'weight': weight
     }
-    if 'suffix' in test_content:
-        suite['logfile'] = Path.cwd() / (testsuite + "_" + test_content['suffix'] + '_log.txt'),
     if 'buckets' in test_content:
         n_buckets = int(test_content['buckets'])
         for bucket in range(0, n_buckets):
             this_bucket = copy.deepcopy(suite)
             this_bucket['name'] += "_" + str(bucket)
-            this_bucket['logfile'] = Path.cwd() / (this_bucket['name'] + '_log.txt')
+            this_bucket['log'] = Path.cwd() / (testsuite +
+                                               this_bucket['name'] +
+                                               suffix + '_' +
+                                               test_content['mode'])
             this_bucket['args'] += ['--testBuckets', str(n_buckets) + '/' + str(bucket)]
             scenarios.append(this_bucket)
+            set_filenames(this_bucket)
     else:
         scenarios.append(suite)
-        
+        set_filenames(suite)
+
 def parse_scenario(yml_file, scenarios):
     if not yml_file.name.endswith('.yml'):
         return
@@ -168,7 +191,7 @@ class Testing(Runner):
         print("launching " + this['name'])
         pp.pprint(this)
 
-        print(this['logfile'])
+        print(this['log'])
         worker = Thread(target=testing_runner,
                         args=(self,
                               this,
@@ -200,6 +223,7 @@ class Testing(Runner):
                 print('elseelsesleep')
                 time.sleep(5)
         self.basecfg.index = 0
+        print(self.scenarios)
 
     def jam_attempt_impl(self):
         pass
