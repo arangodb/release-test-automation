@@ -231,7 +231,7 @@ class ArangoshExecutor():
             return (True, "")
         return (True, convert_result(result))
 
-    def run_testing(self, testcase, args, timeout, logfile, verbose):
+    def run_testing(self, testcase, args, timeout, directory, logfile, verbose):
        # pylint: disable=R0913 disable=R0902
         """ testing.js wrapper """
         args = [
@@ -243,7 +243,7 @@ class ArangoshExecutor():
             '--javascript.allow-external-process-control', 'true',
             '--javascript.execute', str(Path('UnitTests') / 'unittest.js'),
             '--',
-            testcase] + args
+            testcase] + ['--testOutput', directory ] + args
         print(args)
         os.chdir(self.cfg.package_dir)
         process = Popen(args, stdout=PIPE, stderr=PIPE, close_fds=ON_POSIX)
