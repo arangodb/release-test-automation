@@ -122,7 +122,7 @@ class Cluster(SeleniumRunner):
 
         self.progress(' serving instances 6 / %d [%d]' % (row_count, retry_count))
         self.ui_assert(row_count == 4,
-                       "UI-Test: expect 2 instances to be offline have %d of 6", row_count)
+                       "UI-Test: expect 2 instances to be offline have %d of 6" % row_count)
 
         health_state = None
         count = 0
