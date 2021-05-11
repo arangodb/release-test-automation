@@ -114,6 +114,7 @@ def run_upgrade(old_version, new_version, verbose,
                             'progress': runner.get_progress()
                             }
                         results.append(one_result)
+                        runner.take_screenshot()
                         runner.search_for_warnings()
                         if abort_on_error:
                             raise ex

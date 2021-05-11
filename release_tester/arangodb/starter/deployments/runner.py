@@ -139,6 +139,10 @@ class Runner(ABC):
     def get_progress(self):
         return self.state
 
+    def take_screenshot(self):
+        if self.selenium:
+            self.selenium.take_screenshot()
+
     def run(self):
         """ run the full lifecycle flow of this deployment """
         # pylint: disable=R0915 disable=R0912
