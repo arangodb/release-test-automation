@@ -254,6 +254,7 @@ class InstallerRPM(InstallerLinux):
 
     def install_debug_package(self):
         """ installing debug package """
+        print("uninstalling rpm package")
         cmd = 'rpm -i ' + str(self.cfg.package_dir / self.debug_package)
         lh.log_cmd(cmd)
         debug_install = pexpect.spawnu(cmd)
@@ -279,6 +280,7 @@ class InstallerRPM(InstallerLinux):
         return self.cfg.have_debug_package
 
     def un_install_debug_package(self):
+        print("uninstalling rpm debug package")
         uninstall = pexpect.spawnu('rpm -e ' +
                                    'arangodb3' +
                                    ('e-debuginfo.x86_64'
@@ -301,15 +303,27 @@ class InstallerRPM(InstallerLinux):
 
     def cleanup_system(self):
         # TODO: should this be cleaned by the rpm uninstall in first place?
+        print("attempting system directory cleanup after RPM")
         if self.cfg.log_dir.exists():
             print("cleaning upg %s "% str(self.cfg.log_dir))
             shutil.rmtree(self.cfg.log_dir)
+        else:
+            print("log directory not known")
+
         if self.cfg.dbdir.exists():
             print("cleaning upg %s "% str(self.cfg.dbdir))
             shutil.rmtree(self.cfg.dbdir)
+        else:
+            print("database directory not known")
+
         if self.cfg.appdir.exists():
-            print("cleaning upg %s "% str(self.cfg.appdir))
+            print("cleaning up %s "% str(self.cfg.appdir))
             shutil.rmtree(self.cfg.appdir)
+        else:
+            print("app directory not known")
+
         if self.cfg.cfgdir.exists():
             print("cleaning upg %s "% str(self.cfg.cfgdir))
             shutil.rmtree(self.cfg.cfgdir)
+        else:
+            print("config directory not known")

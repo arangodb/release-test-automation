@@ -24,8 +24,8 @@ class ActiveFailover(SeleniumRunner):
         # head and two followers should be there:
         self.progress(' expecting %d followers, have %d followers'%(
             expect_follower_count, len(replication_table['follower_table']) - 1))
-        assert len(replication_table['follower_table']) == expect_follower_count + 1, (
-            "UI-Test: expect 1 follower")
+        self.ui_assert(len(replication_table['follower_table']) == expect_follower_count + 1,
+                       "UI-Test: expect 1 follower")
 
     def upgrade_deployment(self, new_cfg, secondary, leader_follower):
         pass
@@ -36,7 +36,8 @@ class ActiveFailover(SeleniumRunner):
         replication_table = self.get_replication_screen(True)
         print(replication_table)
         # head and one follower should be there:
-        assert len(replication_table['follower_table']) == 2, "UI-Test: expect 2 followers"
+        self.ui_assert(len(replication_table['follower_table']) == 2,
+                       "UI-Test: expect 2 followers")
 
     def jam_step_2(self, cfg):
         pass

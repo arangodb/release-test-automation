@@ -73,6 +73,12 @@ class SeleniumRunner(ABC):
         self.progress("taking screenshot")
         self.web.save_screenshot(filename)
 
+    def ui_assert(self, conditionstate, message):
+        """ python assert sucks. fuckit. """
+        if not conditionstate:
+            self.take_screenshot()
+            assert False, message
+
     def connect_server_new_tab(self, frontend_instance, database, cfg):
         """ login... """
         self.progress("Opening page")

@@ -122,3 +122,23 @@ class SyncManager():
         ]
         logging.info('SyncManager: checking sync consistency : %s', str(args))
         return psutil.Popen(args).wait() == 0
+
+    def reset_failed_shard(self, database, collection):
+        """ run the check sync command """
+        if self.version < semver.VersionInfo.parse('1.0.0'):
+            logging.warning('SyncManager: checking sync consistency :'
+                            ' available since 1.0.0 of arangosync')
+            return True
+
+        args = [
+            self.cfg.bin_dir / 'arangosync',
+            'reset', 'failed', 'shard',
+            '--master.cacert=' + str(self.certificate_auth["cert"]),
+            '--master.endpoint=https://{url}:{port}'.format(
+                url=self.cfg.publicip,
+                port=str(self.clusterports[0])),
+            '--auth.keyfile=' + str(self.certificate_auth["clientkeyfile"]),
+            '--database', database, '--collection', collection
+        ]
+        logging.info('SyncManager: resetting failed shard : %s', str(args))
+        return psutil.Popen(args).wait() == 0

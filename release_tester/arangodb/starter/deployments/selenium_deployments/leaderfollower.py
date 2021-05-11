@@ -25,7 +25,7 @@ class LeaderFollower(SeleniumRunner):
             count +=1
             time.sleep(5)
         # head and one follower should be there:
-        assert len(replication_table['follower_table']) == 2, "UI-Test: expected 1 follower"
+        self.ui_assert(len(replication_table['follower_table']) == 2, "UI-Test: expected 1 follower")
 
     def upgrade_deployment(self, new_cfg, secondary, leader_follower):
         pass
@@ -38,8 +38,8 @@ class LeaderFollower(SeleniumRunner):
         replication_table = self.get_replication_screen(True)
         print(replication_table)
         # head and one follower should be there:
-        assert len(replication_table['follower_table']) == 2, (
-            "UI-Test: expected to have 1 follower!")
+        self.ui_assert(len(replication_table['follower_table']) == 2,
+                       "UI-Test: expected to have 1 follower!")
 
     def jam_step_2(self, cfg):
         pass

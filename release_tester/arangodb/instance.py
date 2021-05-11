@@ -17,9 +17,14 @@ from tools.asciiprint import print_progress as progress
 # log tokens we want to suppress from our dump:
 LOG_BLACKLIST = [
     "2b6b3", # -> asio error, tcp connections died... so f* waht.
-    "2c712"  # -> agency connection died...
+    "2c712", # -> agency connection died...
+    "40e37"  # -> upgrade required TODO remove me from here, add system instance handling.
 ]
 
+# log tokens we ignore in system ugprades...
+LOG_PACKAGE_BLACKLIST = [
+    "40e37"  # -> upgrade required
+]
 class InstanceType(IntEnum):
     """ type of arangod instance """
     coordinator = 1

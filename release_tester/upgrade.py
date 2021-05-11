@@ -114,6 +114,7 @@ def run_upgrade(old_version, new_version, verbose,
                             'progress': runner.get_progress()
                             }
                         results.append(one_result)
+                        runner.take_screenshot()
                         runner.search_for_warnings()
                         if abort_on_error:
                             raise ex
@@ -122,6 +123,7 @@ def run_upgrade(old_version, new_version, verbose,
                         lh.section("uninstall")
                         old_inst.un_install_debug_package()
                         old_inst.un_install_package()
+                        old_inst.cleanup_system()
                         continue
 
             lh.section("uninstall")
@@ -140,6 +142,7 @@ def run_upgrade(old_version, new_version, verbose,
             except:
                 pass
         except Exception as ex:
+            print("Caught.")
             one_result = {
                 'testrun name': testrun_name,
                 'testscenario': runner_strings[runner_type],
@@ -148,11 +151,16 @@ def run_upgrade(old_version, new_version, verbose,
                 'progreess': "aborted outside of testcodes"
             }
             if abort_on_error:
+                print("re-throwing.")
                 raise ex
             traceback.print_exc()
             if runner:
-                runner.cleanup()
+                try:
+                    runner.cleanup()
+                except:
+                    print("Ignoring runner cleanup error!")
             try:
+                print("Cleaning up system after error:")
                 old_inst.cleanup_system()
             except :
                 print("Ignoring old cleanup error!")
