@@ -22,7 +22,7 @@ LOG_BLACKLIST = [
 ]
 
 # log tokens we ignore in system ugprades...
-LOG_PACKAGE_BLACKLIST = [
+LOG_SYSTEM_BLACKLIST = [
     "40e37"  # -> upgrade required
 ]
 class InstanceType(IntEnum):
@@ -58,6 +58,7 @@ class Instance(ABC):
     # pylint: disable=R0913 disable=R0902
     def __init__(self, typ, port, basedir, localhost, publicip, passvoid, logfile):
         self.type = InstanceType[typ]  # convert to enum
+        self.is_system = False
         self.type_str = TYP_STRINGS[int(self.type.value)]
         self.port = port
         self.pid = None
@@ -124,6 +125,17 @@ class Instance(ABC):
         """ arangodb enpoint - to be specialized (if) """
         raise Exception("this instance doesn't support endpoints." + repr(self))
 
+    def is_suppressed_log_line(self, line):
+        """ check whether this is one of the errors we can ignore """
+        for blacklist_item in LOG_BLACKLIST:
+            if blacklist_item in line:
+                return True
+        if self.is_system:
+            for blacklist_item in LOG_SYSTEM_BLACKLIST:
+                if blacklist_item in line:
+                    return True
+        return False
+
     def search_for_warnings(self):
         """ browse our logfile for warnings and errors """
         if not self.logfile.exists():
@@ -137,19 +149,17 @@ class Instance(ABC):
                     "ERROR" in line or
                     "WARNING" in line or
                     "{crash}" in line):
-                    skip = False
-                    for blacklist_item in LOG_BLACKLIST:
-                        if blacklist_item in line:
-                            skip = True
-                            count += 1
-                    print(line.rstrip())
+                    if self.is_suppressed_log_line(line):
+                        count += 1
+                    else:
+                        print(line.rstrip())
         if count > 0:
             print(" %d lines suppressed by filters" % count)
 
 class ArangodInstance(Instance):
     """ represent one arangodb instance """
     # pylint: disable=R0913
-    def __init__(self, typ, port, localhost, publicip, basedir, passvoid):
+    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, is_system=False):
         super().__init__(typ,
                          port,
                          basedir,
@@ -157,6 +167,7 @@ class ArangodInstance(Instance):
                          publicip,
                          passvoid,
                          basedir / 'arangod.log')
+        self.is_system = is_system
 
     def __repr__(self):
         return """
@@ -337,7 +348,7 @@ class ArangodInstance(Instance):
                     if line == "":
                         time.sleep(1)
                         continue
-                    if "] FATAL [" in line:
+                    if "] FATAL [" in line and not self.is_suppressed_log_line(line):
                         print('Error: ', line)
                         raise Exception("FATAL error found in arangod.log: " + line)
                     # save last line and append to string
