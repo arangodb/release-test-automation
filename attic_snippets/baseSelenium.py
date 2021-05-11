@@ -31,6 +31,16 @@ class BaseSelenium:
         print("\n--------Now Quiting--------\n")
         cls.driver.quit()
 
+    '''This method will be used for clear all the text if .clear() does not work'''
+
+    def clear_text_field(self, locator):
+        locator.send_keys(Keys.CONTROL + 'a', Keys.BACKSPACE)
+
+        if self.locator is None:
+            print("UI-Test: ", locator, " locator has not found.")
+        else:
+            return self.locator
+
     '''This method will change tab and close it then return to home tab'''
 
     def switch_tab(self, locator):
@@ -71,7 +81,7 @@ class BaseSelenium:
             ec.element_to_be_clickable((By.XPATH, locator_name))
         )
         if self.locator is None:
-            print("S:", locator_name, " locator has not found.")
+            print("UI-Test: ", locator_name, " locator has not found.")
         else:
             return self.locator
 
@@ -81,7 +91,7 @@ class BaseSelenium:
         self.select = Select(self.driver.find_element_by_id(locator_name))
         self.select.select_by_index(value)
         if self.select is None:
-            print("S:", locator_name, " locator has not found.")
+            print("UI-Test: ", locator_name, " locator has not found.")
         return self.select
 
     '''This method will used for finding all the locators and hover the mouse by id'''
@@ -122,7 +132,7 @@ class BaseSelenium:
         )
         self.locator = self.locator.text
         if self.locator is None:
-            print("S:", locator_name, " locator has not found.")
+            print("UI-Test: ", locator_name, " locator has not found.")
         else:
             return self.locator
 
@@ -134,7 +144,7 @@ class BaseSelenium:
         )
         self.locator = self.locator.text
         if self.locator is None:
-            print("S:", locator_name, " locator has not found.")
+            print("UI-Test: ", locator_name, " locator has not found.")
         else:
             return self.locator
 
@@ -146,6 +156,6 @@ class BaseSelenium:
         )
         self.locator = self.locator.text
         if self.locator is None:
-            print("S:", locator_name, " locator has not found.")
+            print("UI-Test: ", locator_name, " locator has not found.")
         else:
             return self.locator

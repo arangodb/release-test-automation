@@ -375,8 +375,6 @@ class Test(BaseSelenium):
         self.graph1.checking_collection_creation(1)
         print("Searching for 'knows' and 'persons' collections\n")
         self.graph1.check_required_collection(1)
-        self.driver.back()
-        self.driver.refresh()
 
         print("Creating Traversal Graph\n")
         self.graph2.select_create_graph(2)
@@ -385,8 +383,6 @@ class Test(BaseSelenium):
         self.graph2.checking_collection_creation(2)
         print("Searching for 'circles' and 'edges' collections\n")
         self.graph2.check_required_collection(2)
-        self.driver.back()
-        self.driver.refresh()
 
         print("Creating K Shortest Path Graph\n")
         self.graph3.select_create_graph(3)
@@ -395,8 +391,6 @@ class Test(BaseSelenium):
         self.graph3.checking_collection_creation(3)
         print("Searching for 'connections' and 'places' collections\n")
         self.graph3.check_required_collection(3)
-        self.driver.back()
-        self.driver.refresh()
 
         print("Creating Mps Graph\n")
         self.graph4.select_create_graph(4)
@@ -405,8 +399,6 @@ class Test(BaseSelenium):
         self.graph4.checking_collection_creation(4)
         print("Searching for 'mps_edges' and 'mps_verts' collections\n")
         self.graph4.check_required_collection(4)
-        self.driver.back()
-        self.driver.refresh()
 
         print("Creating World Graph\n")
         self.graph5.select_create_graph(5)
@@ -415,18 +407,14 @@ class Test(BaseSelenium):
         self.graph5.checking_collection_creation(5)
         print("Searching for 'worldEdges' and 'worldvertices' collections\n")
         self.graph5.check_required_collection(5)
-        self.driver.back()
-        self.driver.refresh()
 
         print("Creating Social Graph\n")
         self.graph6.select_create_graph(6)
         self.driver.refresh()
         print("Checking required collections created for Social Graph\n")
         self.graph6.checking_collection_creation(6)
-        print("Searching for 'male' , 'female' and 'relation' collections\n")
+        print("Searching for 'female' , 'male' and 'relation' collections\n")
         self.graph6.check_required_collection(6)
-        self.driver.back()
-        self.driver.refresh()
 
         print("Creating City Graph\n")
         self.graph7.select_create_graph(7)
@@ -435,8 +423,6 @@ class Test(BaseSelenium):
         self.graph7.checking_collection_creation(7)
         print("Searching for 'frenchCity' , 'frenchHighway' 'germanCity', 'germanHighway' & 'internationalHighway'\n")
         self.graph7.check_required_collection(7)
-        self.driver.back()
-        self.driver.refresh()
         print("Example Graphs creation Completed\n")
 
         print("Sorting all graphs as descending\n")
@@ -520,10 +506,10 @@ class Test(BaseSelenium):
 
 
 ui = Test()  # creating obj for the UI test
-ui.test_login()  # testing Login functionality
-ui.test_dashboard()  # testing Dashboard functionality
-ui.test_collection()  # testing Collection tab
-ui.test_views()  # testing User functionality
+# ui.test_login()  # testing Login functionality
+# ui.test_dashboard()  # testing Dashboard functionality
+# ui.test_collection()  # testing Collection tab
+# ui.test_views()  # testing User functionality
 ui.test_graph()  # testing graph functionality
-ui.test_user()  # testing User functionality
+# ui.test_user()  # testing User functionality
 ui.teardown()  # close the driver and quit
