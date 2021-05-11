@@ -121,6 +121,7 @@ class Runner(ABC):
             self.selenium = init_selenium(runner_type, selenium_worker, selenium_driver_args)
 
     def progress(self, is_sub, msg, separator='x'):
+        """ report user message, record for error handling. """
         if self.state:
             self.state += "\n"
         if self.selenium:
@@ -137,9 +138,11 @@ class Runner(ABC):
             self.state += "*** " + msg
 
     def get_progress(self):
+        """ get user message reports """
         return self.state
 
     def take_screenshot(self):
+        """ if we are a selenium enabled run, take a screenshot with the browser. """
         if self.selenium:
             self.selenium.take_screenshot()
 
