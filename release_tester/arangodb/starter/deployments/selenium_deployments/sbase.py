@@ -334,7 +334,7 @@ class SeleniumRunner(ABC):
                         EC.presence_of_element_located((
                             By.CLASS_NAME,
                             'pure-g.cluster-nodes.coords-nodes.pure-table.pure-table-body')),
-                        message="UI-Test: Cluster nodes table didn't become available on time %s" % timout
+                        message="UI-Test: Cluster nodes table didn't become available on time %s" % timeout
                 )
                 table_dbsrv_elm = self.by_class(
                     'pure-g.cluster-nodes.dbs-nodes.pure-table.pure-table-body')
