@@ -136,6 +136,10 @@ class Instance(ABC):
                     return True
         return False
 
+    def is_line_relevant(self, line):
+        """ it returns true if the line from logs should be printed """
+        return "FATAL" in line or "ERROR" in line or "WARNING" in line or "{crash}" in line
+
     def search_for_warnings(self):
         """ browse our logfile for warnings and errors """
         if not self.logfile.exists():
@@ -145,10 +149,7 @@ class Instance(ABC):
         count = 0
         with open(self.logfile) as log_fh:
             for line in log_fh:
-                if ("FATAL" in line or
-                    "ERROR" in line or
-                    "WARNING" in line or
-                    "{crash}" in line):
+                if self.is_line_relevant(line):
                     if self.is_suppressed_log_line(line):
                         count += 1
                     else:
@@ -514,6 +515,17 @@ arangosync instance | type  | pid  | logfile
         """ yes. """
         # pylint: disable=R0201
         return True
+
+    def is_line_relevant(self, line):
+        """ it returns true if the line from logs should be printed """
+        if ("|FATAL|" in line or "|ERRO|" in line or "|WARN|" in line):
+            # logs from arangosync v1
+            return True
+        if (" FTL " in line or " ERR " in line or " WRN " in line):
+            # logs from arangosync v2
+            return True
+
+        return False
 
     def get_public_plain_url(self):
         """ get the public connect URL """
