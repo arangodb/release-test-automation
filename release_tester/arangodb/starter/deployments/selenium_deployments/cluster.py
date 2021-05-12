@@ -48,7 +48,7 @@ class Cluster(SeleniumRunner):
         upgrade_done = False
         while not upgrade_done:
             try:
-                table = self.cluster_get_nodes_table(300)
+                table = self.cluster_get_nodes_table(600)
             except StaleElementReferenceException:
                 self.progress(" skip once")
 
