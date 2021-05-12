@@ -149,7 +149,7 @@ def run_upgrade(old_version, new_version, verbose,
                 'testscenario': runner_strings[runner_type],
                 'success': False,
                 'message': str(ex),
-                'progreess': "aborted outside of testcodes"
+                'progress': "aborted outside of testcodes"
             }
             if abort_on_error:
                 print("re-throwing.")

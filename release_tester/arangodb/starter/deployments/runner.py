@@ -120,7 +120,7 @@ class Runner(ABC):
         else:
             #pylint: disable=C0415 disable=import-outside-toplevel
             from arangodb.starter.deployments.selenium_deployments import init as init_selenium
-            self.selenium = init_selenium(runner_type, selenium_worker, selenium_driver_args)
+            self.selenium = init_selenium(runner_type, selenium_worker, selenium_driver_args, self.testrun_name)
 
     def progress(self, is_sub, msg, separator='x'):
         """ report user message, record for error handling. """
