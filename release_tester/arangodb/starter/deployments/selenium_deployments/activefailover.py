@@ -5,8 +5,10 @@ from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunn
 
 class ActiveFailover(SeleniumRunner):
     """ check the leader follower setup and its properties """
-    def __init__(self, webdriver):
-        super().__init__(webdriver)
+    def __init__(self, webdriver,
+                 testrun_name: str):
+        super().__init__(webdriver,
+                         testrun_name)
 
     def check_old(self, cfg, expect_follower_count=2, retry_count=10):
         """ check the integrity of the old system before the upgrade """

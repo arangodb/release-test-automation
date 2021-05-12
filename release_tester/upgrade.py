@@ -101,7 +101,8 @@ def run_upgrade(old_version, new_version, verbose,
                                      install_config_old,
                                      old_inst,
                                      install_config_new,
-                                     new_inst)
+                                     new_inst,
+                                     testrun_name)
                 if runner:
                     try:
                         runner.run()

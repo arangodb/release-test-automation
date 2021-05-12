@@ -37,11 +37,13 @@ class Runner(ABC):
             disk_usage_community: int,
             disk_usage_enterprise: int,
             selenium_worker: str,
-            selenium_driver_args: list
+            selenium_driver_args: list,
+            testrun_name: str
         ):
         load_scenarios()
         assert runner_type, "no runner no cry? no!"
         logging.debug(runner_type)
+        self.testrun_name = testrun_name
         self.state = ""
         self.runner_type = runner_type
         self.name = str(self.runner_type).split('.')[1]

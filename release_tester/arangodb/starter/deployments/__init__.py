@@ -35,6 +35,7 @@ def make_runner(runner_type: RunnerType,
                 old_inst: InstallerBase,
                 new_cfg: Optional[InstallerConfig] = None,
                 new_inst: Optional[InstallerBase] = None,
+                testrun_name: str = ""
                 ) -> Runner:
     """ get an instance of the arangod runner - as you specify """
 
@@ -43,7 +44,7 @@ def make_runner(runner_type: RunnerType,
     assert old_inst, "no old version?"
 
     logging.debug("Factory for Runner of type: {0}".format(str(runner_type)))
-    args = (runner_type, baseconfig, old_inst, new_cfg, new_inst, selenium_worker, selenium_driver_args)
+    args = (runner_type, baseconfig, old_inst, new_cfg, new_inst, selenium_worker, selenium_driver_args, testrun_name)
 
     if runner_type == RunnerType.LEADER_FOLLOWER:
         from arangodb.starter.deployments.leaderfollower import LeaderFollower

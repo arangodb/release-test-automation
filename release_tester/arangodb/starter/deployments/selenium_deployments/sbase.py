@@ -37,8 +37,10 @@ REPL_LF_TABLES = {
 }
 class SeleniumRunner(ABC):
     "abstract base class for selenium UI testing"
-    def __init__(self, webdriver):
+    def __init__(self, webdriver,
+                 testrun_name: str):
         """ hi """
+        self.testrun_name = testrun_name
         self.web = webdriver
         self.original_window_handle = None
         print(dir(self.web.switch_to))
@@ -66,8 +68,13 @@ class SeleniumRunner(ABC):
         self.progress("Close!")
         self.web.close()
 
-    def take_screenshot(self, filename='exception_screenshot.png'):
+    def take_screenshot(self, filename=None):
         """ *snap* """
+        if filename is None:
+            filename = '%s_$s_exception_screenshot.png' % (
+                self.testrun_name,
+                self.__class__.__name__
+            )
         #self.set_window_size(1920, total_height)
         #time.sleep(2)
         self.progress("taking screenshot")

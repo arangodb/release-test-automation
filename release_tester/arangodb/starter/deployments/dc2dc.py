@@ -17,9 +17,11 @@ class Dc2Dc(Runner):
     """ this launches two clusters in dc2dc mode """
     # pylint: disable=R0913 disable=R0902
     def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst,
-                 selenium, selenium_driver_args):
+                 selenium, selenium_driver_args,
+                 testrun_name: str):
         super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst,
-                         'DC2DC', 0, 3500, selenium, selenium_driver_args)
+                         'DC2DC', 0, 3500, selenium, selenium_driver_args,
+                         testrun_name)
         self.success = True
         self.cfg.passvoid = ''
         self.sync_manager = None
