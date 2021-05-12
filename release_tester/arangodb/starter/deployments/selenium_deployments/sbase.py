@@ -304,7 +304,7 @@ class SeleniumRunner(ABC):
                         EC.presence_of_element_located((
                             By.XPATH,
                             '//*[@id="clusterCoordinators"]')),
-                        message="UI-Test: coordinators path didn't arive on time " + timeout
+                        message="UI-Test: coordinators path didn't arive on time %ds" % timeout
                     )
                     elm_accepted = len(elm.text) > 0
                 # elm = self.web.find_element_by_xpath(
@@ -334,7 +334,7 @@ class SeleniumRunner(ABC):
                         EC.presence_of_element_located((
                             By.CLASS_NAME,
                             'pure-g.cluster-nodes.coords-nodes.pure-table.pure-table-body')),
-                        message="UI-Test: Cluster nodes table didn't become available on time " + timout
+                        message="UI-Test: Cluster nodes table didn't become available on time %s" % timout
                 )
                 table_dbsrv_elm = self.by_class(
                     'pure-g.cluster-nodes.dbs-nodes.pure-table.pure-table-body')
@@ -387,7 +387,7 @@ class SeleniumRunner(ABC):
         table_elm = WebDriverWait(self.web, timeout).until(
             EC.presence_of_element_located((By.CLASS_NAME,
                                             'pure-g.cluster-values')),
-            message="UI-Test: replication state table didn't arive on time " + timeout
+            message="UI-Test: replication state table didn't arive on time %s " % timeout
         )
         state_table = {}
         for key in REPL_TABLE_LOC:
