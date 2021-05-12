@@ -131,7 +131,7 @@ class SeleniumRunner(ABC):
                     count += 1
                     elem = WebDriverWait(self.web, 10).until(
                         EC.presence_of_element_located((By.TAG_NAME, "html")),
-                        message="UI-Test: page didn't load?"
+                        message="UI-Test: page didn't load after 10s"
                     )
                     data = elem.text
                     if len(data) < 0:
@@ -153,7 +153,7 @@ class SeleniumRunner(ABC):
             try:
                 logname = WebDriverWait(self.web, 10).until(
                     EC.element_to_be_clickable((By.ID, "loginUsername")),
-                    message="UI-Test: loginUsername didn't become clickeable on time."
+                    message="UI-Test: loginUsername didn't become clickeable on time. 10s"
                 )
                 logname.click()
                 logname.clear()
@@ -194,7 +194,7 @@ class SeleniumRunner(ABC):
                 count += 1
                 elem = WebDriverWait(self.web, 15).until(
                     EC.presence_of_element_located((By.ID, "loginDatabase")),
-                    message="UI-Test: loginDatabase didn't become clickeable on time"
+                    message="UI-Test: loginDatabase didn't become clickeable on time 15s"
                 )
                 txt = elem.text
                 if txt.find('_system') < 0:
@@ -216,7 +216,7 @@ class SeleniumRunner(ABC):
                     break
             elem = WebDriverWait(self.web, 15).until(
                 EC.element_to_be_clickable((By.ID, "goToDatabase")),
-                message="UI-Test: choosing database didn't become clickeable on time"
+                message="UI-Test: choosing database didn't become clickeable on time 15s"
             )
             elem.click()
             self.progress("we're in!")
@@ -304,7 +304,7 @@ class SeleniumRunner(ABC):
                         EC.presence_of_element_located((
                             By.XPATH,
                             '//*[@id="clusterCoordinators"]')),
-                        message="UI-Test: coordinators path didn't arive on time"
+                        message="UI-Test: coordinators path didn't arive on time " + timeout
                     )
                     elm_accepted = len(elm.text) > 0
                 # elm = self.web.find_element_by_xpath(
@@ -334,7 +334,7 @@ class SeleniumRunner(ABC):
                         EC.presence_of_element_located((
                             By.CLASS_NAME,
                             'pure-g.cluster-nodes.coords-nodes.pure-table.pure-table-body')),
-                        message="UI-Test: Cluster nodes table didn't become available on time"
+                        message="UI-Test: Cluster nodes table didn't become available on time " + timout
                 )
                 table_dbsrv_elm = self.by_class(
                     'pure-g.cluster-nodes.dbs-nodes.pure-table.pure-table-body')
@@ -387,7 +387,7 @@ class SeleniumRunner(ABC):
         table_elm = WebDriverWait(self.web, timeout).until(
             EC.presence_of_element_located((By.CLASS_NAME,
                                             'pure-g.cluster-values')),
-            message="UI-Test: replication state table didn't arive on time"
+            message="UI-Test: replication state table didn't arive on time " + timeout
         )
         state_table = {}
         for key in REPL_TABLE_LOC:
