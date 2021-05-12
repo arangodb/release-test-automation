@@ -8,7 +8,7 @@ class LeaderFollower(SeleniumRunner):
     def __init__(self, webdriver,
                  testrun_name: str):
         super().__init__(webdriver,
-                         testrun_name: str)
+                         testrun_name)
 
     def check_old(self, cfg, leader_follower=True):
         """ check the integrity of the old system before the upgrade """

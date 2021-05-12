@@ -68,6 +68,7 @@ class Runner(ABC):
             self.versionstr = "OLD[" + self.cfg.version + "] "
 
         self.basedir = Path(short_name)
+        print(self.__class__.__name__)
         count = 1
         while True:
             try:
@@ -258,7 +259,7 @@ class Runner(ABC):
             logging.info("skipping upgrade step no new version given")
 
         if self.do_starter_test:
-            self.progress(False, "TESTS FOR {0}".format(str(self.name)),)
+            self.progress(False, "{0} TESTS FOR {1}".format(self.testrun_name, str(self.name)),)
             self.test_setup()
             self.jam_attempt()
             self.starter_shutdown()

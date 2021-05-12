@@ -73,7 +73,7 @@ class SeleniumRunner(ABC):
         if filename is None:
             filename = '%s_$s_exception_screenshot.png' % (
                 self.testrun_name,
-                self.__class__.__name__
+                str(self.__class__.__name__)
             )
         #self.set_window_size(1920, total_height)
         #time.sleep(2)
