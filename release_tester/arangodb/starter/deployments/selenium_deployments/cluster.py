@@ -50,7 +50,7 @@ class Cluster(SeleniumRunner):
         upgrade_done = False
         while not upgrade_done:
             try:
-                table = self.cluster_get_nodes_table(600)
+                table = self.cluster_get_nodes_table(300)
             except StaleElementReferenceException:
                 self.progress(" skip once")
 
@@ -112,7 +112,7 @@ class Cluster(SeleniumRunner):
         row_count = 0
         retry_count = 0
         while row_count != 4 and retry_count < 10:
-            table = self.cluster_get_nodes_table(30)
+            table = self.cluster_get_nodes_table(300)
             for row in table:
                 if row['state'] == 'SERVING':
                     row_count += 1
