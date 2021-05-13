@@ -101,7 +101,8 @@ def run_upgrade(old_version, new_version, verbose,
                                      install_config_old,
                                      old_inst,
                                      install_config_new,
-                                     new_inst)
+                                     new_inst,
+                                     testrun_name)
                 if runner:
                     try:
                         runner.run()
@@ -148,7 +149,7 @@ def run_upgrade(old_version, new_version, verbose,
                 'testscenario': runner_strings[runner_type],
                 'success': False,
                 'message': str(ex),
-                'progreess': "aborted outside of testcodes"
+                'progress': "aborted outside of testcodes"
             }
             if abort_on_error:
                 print("re-throwing.")

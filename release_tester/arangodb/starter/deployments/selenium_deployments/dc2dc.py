@@ -4,8 +4,10 @@ from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunn
 
 class Dc2Dc(SeleniumRunner):
     """ check the leader follower setup and its properties """
-    def __init__(self, webdriver):
-        super().__init__(webdriver)
+    def __init__(self, webdriver,
+                 testrun_name: str):
+        super().__init__(webdriver,
+                         testrun_name)
 
     def check_old(self, cfg):
         """ check the integrity of the old system before the upgrade """

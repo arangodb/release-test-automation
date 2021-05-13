@@ -8,10 +8,12 @@ class NoStarter(Runner):
     """ This runner does not use the starter """
 # pylint: disable=R0913 disable=R0902
     def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst,
-                 selenium, selenium_driver_args):
+                 selenium, selenium_driver_args,
+                 testrun_name: str):
         super().__init__(runner_type, cfg,
                          old_inst, new_cfg, new_inst,
-                         'none', 0, 0, selenium, selenium_driver_args)
+                         'none', 0, 0, selenium, selenium_driver_args,
+                         testrun_name)
 
     def starter_prepare_env_impl(self):
         pass

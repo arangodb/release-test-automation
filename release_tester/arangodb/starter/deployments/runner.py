@@ -37,11 +37,13 @@ class Runner(ABC):
             disk_usage_community: int,
             disk_usage_enterprise: int,
             selenium_worker: str,
-            selenium_driver_args: list
+            selenium_driver_args: list,
+            testrun_name: str
         ):
         load_scenarios()
         assert runner_type, "no runner no cry? no!"
         logging.debug(runner_type)
+        self.testrun_name = testrun_name
         self.state = ""
         self.runner_type = runner_type
         self.name = str(self.runner_type).split('.')[1]
@@ -66,6 +68,7 @@ class Runner(ABC):
             self.versionstr = "OLD[" + self.cfg.version + "] "
 
         self.basedir = Path(short_name)
+        print(self.__class__.__name__)
         count = 1
         while True:
             try:
@@ -118,7 +121,7 @@ class Runner(ABC):
         else:
             #pylint: disable=C0415 disable=import-outside-toplevel
             from arangodb.starter.deployments.selenium_deployments import init as init_selenium
-            self.selenium = init_selenium(runner_type, selenium_worker, selenium_driver_args)
+            self.selenium = init_selenium(runner_type, selenium_worker, selenium_driver_args, self.testrun_name)
 
     def progress(self, is_sub, msg, separator='x'):
         """ report user message, record for error handling. """
@@ -256,7 +259,7 @@ class Runner(ABC):
             logging.info("skipping upgrade step no new version given")
 
         if self.do_starter_test:
-            self.progress(False, "TESTS FOR {0}".format(str(self.name)),)
+            self.progress(False, "{0} TESTS FOR {1}".format(self.testrun_name, str(self.name)),)
             self.test_setup()
             self.jam_attempt()
             self.starter_shutdown()
