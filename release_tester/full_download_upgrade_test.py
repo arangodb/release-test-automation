@@ -41,8 +41,6 @@ def upgrade_package_test(verbose,
         resource.RLIMIT_CORE,
         (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
 
-    run_cleanup(zip_package)
-
     results = []
     # do the actual work:
     execution_plan = [
@@ -50,6 +48,10 @@ def upgrade_package_test(verbose,
         (True, False, 'EP', 'Enterprise'),
         (False, False, 'C', 'Community')
     ]
+
+    for enterprise, encryption_at_rest, directory_suffix, testrun_name in execution_plan:
+        run_cleanup(zip_package, testrun_name)
+
     for enterprise, encryption_at_rest, directory_suffix, testrun_name in execution_plan:
         if dlstage != "local":
             dl_old = AcquirePackages(old_version, verbose, package_dir, enterprise,

@@ -68,7 +68,6 @@ class Runner(ABC):
             self.versionstr = "OLD[" + self.cfg.version + "] "
 
         self.basedir = Path(short_name)
-        print(self.__class__.__name__)
         count = 1
         while True:
             try:
@@ -88,9 +87,10 @@ class Runner(ABC):
             raise TimeoutError("disk_usage on " +
                                str(self.basecfg.base_test_dir) +
                                " not working")
+        is_cleanup = self.cfg.version == "3.3.3"
         diskused = (disk_usage_community
                     if not cfg.enterprise else disk_usage_enterprise)
-        if diskused * 1024 * 1024 > diskfree.free:
+        if not is_cleanup and diskused * 1024 * 1024 > diskfree.free:
             logging.error("Scenario demanded %d MB "
                           "but only %d MB are available in %s",
                           diskused, diskfree.free / (1024*1024),
