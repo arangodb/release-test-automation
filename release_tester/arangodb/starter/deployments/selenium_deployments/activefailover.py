@@ -6,8 +6,10 @@ from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunn
 class ActiveFailover(SeleniumRunner):
     """ check the leader follower setup and its properties """
     def __init__(self, webdriver,
+                 is_headless: bool,
                  testrun_name: str):
         super().__init__(webdriver,
+                         is_headless,
                          testrun_name)
 
     def check_old(self, cfg, expect_follower_count=2, retry_count=10):
@@ -27,8 +29,9 @@ class ActiveFailover(SeleniumRunner):
         self.progress(' expecting %d followers, have %d followers'%(
             expect_follower_count, len(replication_table['follower_table']) - 1))
         self.ui_assert(len(replication_table['follower_table']) == expect_follower_count + 1,
-                       "UI-Test: expect 1 follower")
+                       "UI-Test: expect 1 follower in: %s" % str(replication_table))
 
+        self.take_screenshot()
     def upgrade_deployment(self, new_cfg, secondary, leader_follower):
         pass
 
@@ -39,7 +42,7 @@ class ActiveFailover(SeleniumRunner):
         print(replication_table)
         # head and one follower should be there:
         self.ui_assert(len(replication_table['follower_table']) == 2,
-                       "UI-Test: expect 2 followers")
+                       "UI-Test: expect 2 followers in: %s" % str(replication_table))
 
     def jam_step_2(self, cfg):
         pass

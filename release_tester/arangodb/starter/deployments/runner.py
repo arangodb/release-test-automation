@@ -125,10 +125,10 @@ class Runner(ABC):
 
     def progress(self, is_sub, msg, separator='x'):
         """ report user message, record for error handling. """
-        if self.state:
+        if len(self.state) > 0:
             self.state += "\n"
         if self.selenium:
-            self.state += self.selenium.get_progress() + "\n"
+            self.state += self.selenium.get_progress()
         if is_sub:
             if separator == 'x':
                 separator = '='

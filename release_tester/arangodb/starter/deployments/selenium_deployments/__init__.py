@@ -20,6 +20,7 @@ def init(runner_type: RunnerType,
         raise Exception("webdriver " + selenium_worker + "unknown")
     # from selenium.webdriver.chrome.options import Options
     kwargs = {}
+    is_headless = False
     if len(selenium_driver_args) > 0:
         selenium_worker = selenium_worker.lower()
         opts_func = getattr(webdriver, selenium_worker)
@@ -28,6 +29,8 @@ def init(runner_type: RunnerType,
         options = opts_func()
         kwargs[selenium_worker +'_options'] = options
         for opt in selenium_driver_args:
+            if opt == 'headless':
+                is_headless = True
             options.add_argument('--' + opt)
     # kwargs['service_log_path'] = "/tmp/abcd123.log"
     driver = None
@@ -49,31 +52,37 @@ def init(runner_type: RunnerType,
     if runner_type == RunnerType.LEADER_FOLLOWER:
         from arangodb.starter.deployments.selenium_deployments.leaderfollower import LeaderFollower
         return LeaderFollower(driver,
+                              is_headless,
                               testrun_name)
 
     if runner_type == RunnerType.ACTIVE_FAILOVER:
         from arangodb.starter.deployments.selenium_deployments.activefailover import ActiveFailover
         return ActiveFailover(driver,
+                              is_headless,
                               testrun_name)
 
     if runner_type == RunnerType.CLUSTER:
         from arangodb.starter.deployments.selenium_deployments.cluster import Cluster
         return Cluster(driver,
+                       is_headless,
                        testrun_name)
 
     if runner_type == RunnerType.DC2DC:
         from arangodb.starter.deployments.selenium_deployments.dc2dc import Dc2Dc
         return Dc2Dc(driver,
+                     is_headless,
                      testrun_name)
 
     if runner_type == RunnerType.DC2DCENDURANCE:
         from arangodb.starter.deployments.selenium_deployments.dc2dc_endurance import Dc2DcEndurance
         return Dc2DcEndurance(driver,
+                              is_headless,
                               testrun_name)
 
     if runner_type == RunnerType.NONE:
         from arangodb.starter.deployments.selenium_deployments.none import NoStarter
         return NoStarter(driver,
+                         is_headless,
                          testrun_name)
 
     raise Exception("unknown starter type")

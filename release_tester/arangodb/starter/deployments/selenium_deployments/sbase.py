@@ -38,13 +38,16 @@ REPL_LF_TABLES = {
 class SeleniumRunner(ABC):
     "abstract base class for selenium UI testing"
     def __init__(self, webdriver,
+                 is_headless: bool,
                  testrun_name: str):
         """ hi """
+        self.is_headless = is_headless
         self.testrun_name = testrun_name
         self.web = webdriver
         self.original_window_handle = None
         print(dir(self.web.switch_to))
         self.state = ""
+        self.web.set_window_size(1920, 2048)
 
     def progress(self, msg):
         """ add something to the state... """
@@ -59,7 +62,7 @@ class SeleniumRunner(ABC):
 
     def get_progress(self):
         """ extract the current progress buffer """
-        ret = self.state
+        ret = self.state + "\n"
         self.reset_progress()
         return ret
 
@@ -75,10 +78,18 @@ class SeleniumRunner(ABC):
                 self.testrun_name,
                 self.__class__.__name__
             )
-        #self.set_window_size(1920, total_height)
         #time.sleep(2)
-        self.progress("taking screenshot")
-        self.web.save_screenshot(filename)
+        try:
+            if self.is_headless:
+                self.progress("taking full screenshot")
+                el = self.web.find_element_by_tag_name('body')
+                el.screenshot(filename)
+            else:
+                self.progress("taking screenshot")
+                self.web.save_screenshot(filename)
+        except Exception as ex:
+            self.progress("falling back to taking partial screenshot " + str(ex))
+            self.web.save_screenshot(filename)
 
     def ui_assert(self, conditionstate, message):
         """ python assert sucks. fuckit. """

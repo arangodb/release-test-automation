@@ -7,8 +7,10 @@ from selenium.common.exceptions import StaleElementReferenceException
 class Cluster(SeleniumRunner):
     """ check the leader follower setup and its properties """
     def __init__(self, webdriver,
+                 is_headless: bool,
                  testrun_name: str):
         super().__init__(webdriver,
+                         is_headless,
                          testrun_name)
 
     def check_old(self, cfg):

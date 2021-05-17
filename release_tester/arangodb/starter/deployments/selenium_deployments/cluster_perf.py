@@ -6,5 +6,8 @@ class LeaderFollower(SeleniumRunner,
                      testrun_name: str):
     """ check the leader follower setup and its properties """
     def __init__(self, webdriver,
+                 is_headless,
                  testrun_name):
-        super().__init__(webdriver)
+        super().__init__(webdriver,
+                         is_headless,
+                         testrun_name)
