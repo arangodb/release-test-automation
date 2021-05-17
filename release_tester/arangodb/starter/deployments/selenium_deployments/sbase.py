@@ -49,7 +49,7 @@ class SeleniumRunner(ABC):
     def progress(self, msg):
         """ add something to the state... """
         print("UI-Test: " + msg)
-        if not self.state:
+        if len(self.state) > 0:
             self.state += "\n"
         self.state += msg
 
