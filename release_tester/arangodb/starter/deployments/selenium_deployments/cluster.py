@@ -92,13 +92,13 @@ class Cluster(SeleniumRunner):
             done = ((node_count['dbservers'] == '2/3') and
                     (node_count['coordinators'] == '2/3') and
                     (self.get_health_state() != 'NODES OK'))
-            if not done:
-                time.sleep(3)
-            retry_count += 1
             self.ui_assert(retry_count < 40,
                            "UI-Test: Timeout: expected db + c to be 2/3, have: " +
                            node_count['dbservers'] + ", " +
                            node_count['coordinators'])
+            if not done:
+                time.sleep(3)
+            retry_count += 1
 
         self.ui_assert(node_count['dbservers'] == '2/3',
                        "UI-Test: dbservers: " + node_count['dbservers'])
