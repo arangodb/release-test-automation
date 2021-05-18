@@ -116,7 +116,7 @@ def run_test(old_version, new_version, verbose, package_dir, test_data_dir,
                                   host_parts[2],
                                   host_parts[3])
     inst.cfg.scenario = Path(scenario)
-    runner = ClusterPerf(RunnerType.CLUSTER, inst.cfg, inst, None, None, selenium, selenium_driver_args)
+    runner = ClusterPerf(RunnerType.CLUSTER, inst.cfg, inst, None, None, selenium, selenium_driver_args, "perf")
     runner.do_install = do_install
     runner.do_uninstall = do_uninstall
     failed = False
