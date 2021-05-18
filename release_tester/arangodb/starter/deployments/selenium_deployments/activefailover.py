@@ -31,7 +31,6 @@ class ActiveFailover(SeleniumRunner):
         self.ui_assert(len(replication_table['follower_table']) == expect_follower_count + 1,
                        "UI-Test: expect 1 follower in: %s" % str(replication_table))
 
-        self.take_screenshot()
     def upgrade_deployment(self, new_cfg, secondary, leader_follower):
         pass
 

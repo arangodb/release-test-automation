@@ -11,6 +11,8 @@ import time
 
 import click
 
+from beautifultable import BeautifulTable
+
 import tools.loghelper as lh
 from acquire_packages import AcquirePackages
 from upgrade import run_upgrade
@@ -99,11 +101,26 @@ def upgrade_package_test(verbose,
 
     print('V' * 80)
     status = True
+    table = BeautifulTable(maxwidth=140)
     for one_suite_result in results:
         if len(one_suite_result) > 0:
             for one_result in one_suite_result:
+                table.rows.append([
+                    one_result['testrun name'],
+                    one_result['testscenario'],
+                    one_result['success'],
+                    one_result['message'],
+                    one_result['progress']
+                    ])
                 print(one_result)
                 status = status and one_result['success']
+    table.columns.header = [
+        'testrun name',
+        'testscenario',
+        'success',
+        'message',
+        'progress']
+    print(table)
     if not status:
         print('exiting with failure')
         sys.exit(1)
