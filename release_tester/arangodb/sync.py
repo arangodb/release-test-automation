@@ -6,6 +6,7 @@ import copy
 import logging
 import psutil
 import semver
+import subprocess
 
 class SyncManager():
     """ manage arangosync """
@@ -96,7 +97,7 @@ class SyncManager():
         if self.version < semver.VersionInfo.parse('1.0.0'):
             logging.warning('SyncManager: checking sync consistency :'
                             ' available since 1.0.0 of arangosync')
-            return True
+            return ("", "", True)
 
         args = [
             self.cfg.bin_dir / 'arangosync',
@@ -108,7 +109,15 @@ class SyncManager():
             '--auth.keyfile=' + str(self.certificate_auth["clientkeyfile"])
         ]
         logging.info('SyncManager: checking sync consistency : %s', str(args))
-        return psutil.Popen(args).wait() == 0
+        instance = psutil.Popen(args,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
+        (output, err) = instance.communicate()
+        instance.wait()
+        output = output.decode("utf-8")
+        print(output)
+        return (output, err, instance.returncode)
+
 
     def reset_failed_shard(self, database, collection):
         """ run the check sync command """
