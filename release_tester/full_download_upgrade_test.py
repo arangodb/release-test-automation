@@ -112,7 +112,6 @@ def upgrade_package_test(verbose,
                     one_result['message'],
                     one_result['progress']
                     ])
-                print(one_result)
                 status = status and one_result['success']
     table.columns.header = [
         'testrun name',
