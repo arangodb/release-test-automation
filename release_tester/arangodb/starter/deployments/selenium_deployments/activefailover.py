@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """ test the UI of a leader follower setup """
 import time
+import pprint
 from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunner
 
 class ActiveFailover(SeleniumRunner):
@@ -29,7 +30,8 @@ class ActiveFailover(SeleniumRunner):
         self.progress(' expecting %d followers, have %d followers'%(
             expect_follower_count, len(replication_table['follower_table']) - 1))
         self.ui_assert(len(replication_table['follower_table']) == expect_follower_count + 1,
-                       "UI-Test: expect 1 follower in: %s" % str(replication_table))
+                       "UI-Test: expect 1 follower in: %s" % pprint.pformat(
+                           replication_table))
 
     def upgrade_deployment(self, new_cfg, secondary, leader_follower):
         pass
@@ -41,7 +43,8 @@ class ActiveFailover(SeleniumRunner):
         print(replication_table)
         # head and one follower should be there:
         self.ui_assert(len(replication_table['follower_table']) == 2,
-                       "UI-Test: expect 2 followers in: %s" % str(replication_table))
+                       "UI-Test: expect 2 followers in: %s" % pprint.pformat(
+                           replication_table))
 
     def jam_step_2(self, cfg):
         pass
