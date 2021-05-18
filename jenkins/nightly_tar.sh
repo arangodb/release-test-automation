@@ -36,6 +36,7 @@ docker build containers/docker_tar -t $DOCKER_TAG
 docker \
     run \
   --name=$DOCKER_NAME \
+  -v /dev/shm:/dev/shm \
   -v `pwd`:/home/release-test-automation \
   -v `pwd`/test_dir:/home/test_dir \
   -v `pwd`/package_cache:/home/package_cache \
@@ -49,6 +50,7 @@ docker \
       --new-version $NEW_VERSION \
       --selenium Chrome \
       --selenium-driver-args headless \
+      --selenium-driver-args no-sandbox \
       --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;") \
       $force_arg --git-version $GIT_VERSION $@
 result=$?
