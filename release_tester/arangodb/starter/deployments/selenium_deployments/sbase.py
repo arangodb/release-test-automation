@@ -8,6 +8,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import (
+    InvalidSessionIdException,
     StaleElementReferenceException,
     TimeoutException,
     NoSuchElementException
@@ -45,9 +46,10 @@ class SeleniumRunner(ABC):
         self.testrun_name = testrun_name
         self.web = webdriver
         self.original_window_handle = None
-        print(dir(self.web.switch_to))
         self.state = ""
+        time.sleep(3)
         self.web.set_window_size(1920, 2048)
+        time.sleep(3)
 
     def progress(self, msg):
         """ add something to the state... """
@@ -87,6 +89,8 @@ class SeleniumRunner(ABC):
             else:
                 self.progress("taking screenshot")
                 self.web.save_screenshot(filename)
+        except InvalidSessionIdException:
+            self.progress("Fatal: webdriver not connected!")
         except Exception as ex:
             self.progress("falling back to taking partial screenshot " + str(ex))
             self.web.save_screenshot(filename)
@@ -250,6 +254,7 @@ class SeleniumRunner(ABC):
         extracts the version in the lower right and
          compares it to a given version
         """
+        count = 0
         while True:
             try:
                 elem = self.web.find_element_by_id("currentVersion")
@@ -264,6 +269,10 @@ class SeleniumRunner(ABC):
                 if (len(ret['version']) > 0) and (len(ret['enterprise']) > 0):
                     return ret
                 self.progress('retry version.')
+                time.sleep(1)
+                if count > 200:
+                    raise TimeoutException("canot detect version, found: %s " %str(ret))
+                count += 1
             except TimeoutException as ex:
                 self.take_screenshot()
                 raise ex
