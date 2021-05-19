@@ -26,6 +26,10 @@ def configure_logging(verbose):
     requests_log.setLevel(logging.WARNING)
     requests_log.propagate = True
 
+    requests_log = logging.getLogger("selenium.webdriver.remote.remote_connection")
+    requests_log.setLevel(logging.WARNING)
+    requests_log.propagate = True
+
 def get_term_width():
     """ eventually we should ask the term for the size """
     return 60
