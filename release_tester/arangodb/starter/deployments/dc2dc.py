@@ -196,10 +196,12 @@ class Dc2Dc(Runner):
         for count in range (20):
             (output, err, result) = self.sync_manager.check_sync()
             if result:
+                print("CHECK SYNC OK!")
                 break
             if count >= 19:
-                raise Exception("failed to get the sync status: %s - %s"%(
-                    str(output), str(err)))
+                self.state += "\n" + output
+                self.state += "\n" + err
+                raise Exception("failed to get the sync status")
             progress("sx" + str(count))
             time.sleep(10)
         res = self.cluster2['instance'].arangosh.check_test_data("dc2dc (post setup - dc2)")
@@ -224,10 +226,12 @@ class Dc2Dc(Runner):
         for count in range (12):
             (output, err, result) = self.sync_manager.check_sync()
             if result:
+                print("CHECK SYNC OK!")
                 break
             if count >= 11:
-                raise Exception("failed to get the sync status: %s - %s"%(
-                    str(output), str(err)))
+                self.state += "\n" + output
+                self.state += "\n" + err
+                raise Exception("failed to get the sync status")
             progress("sv" + str(count))
             self.sync_manager.reset_failed_shard('_system', '_users')
             time.sleep(5)
@@ -280,9 +284,11 @@ class Dc2Dc(Runner):
         for count in range (20):
             (output, err, result) = self.sync_manager.check_sync()
             if result:
+                print("CHECK SYNC OK!")
                 break
             if count >= 19:
-                raise Exception("failed to get the sync status: %s - %s"%(
-                    str(output), str(err)))
+                self.state += "\n" + output
+                self.state += "\n" + err
+                raise Exception("failed to get the sync status")
             progress("sx" + str(count))
             time.sleep(10)

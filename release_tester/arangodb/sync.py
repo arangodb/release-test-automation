@@ -8,6 +8,8 @@ import psutil
 import semver
 import subprocess
 
+from tools.asciiprint import ascii_convert
+
 class SyncManager():
     """ manage arangosync """
     def __init__(self,
@@ -114,9 +116,10 @@ class SyncManager():
                                 stderr=subprocess.PIPE)
         (output, err) = instance.communicate()
         instance.wait()
-        output = output.decode("utf-8")
+        output = ascii_convert(output)
         print(output)
-        return (output, err, instance.returncode)
+        success = output.find('The whole data is the same') >= 0
+        return (output, ascii_convert(err), success)
 
 
     def reset_failed_shard(self, database, collection):

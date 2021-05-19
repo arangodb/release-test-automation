@@ -8,6 +8,23 @@ is_tty = sys.stdout.isatty()
 PROGRESS_COUNT=0
 
 # 7-bit C1 ANSI sequences
+ANSI_ESCAPE_B = re.compile(rb'''
+    \x1B  # ESC
+    (?:   # 7-bit C1 Fe (except CSI)
+        [@-Z\\-_]
+    |     # or [ for CSI, followed by a control sequence
+        \[
+        [0-?]*  # Parameter bytes
+        [ -/]*  # Intermediate bytes
+        [@-~]   # Final byte
+    )
+''', re.VERBOSE)
+
+def ascii_convert(bytes):
+    """ convert string to only be ascii without control sequences """
+    return ANSI_ESCAPE_B.sub('', bytes).decode("utf-8")
+
+# 7-bit C1 ANSI sequences
 ANSI_ESCAPE = re.compile(r'''
     \x1B  # ESC
     (?:   # 7-bit C1 Fe (except CSI)
