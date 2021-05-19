@@ -6,6 +6,7 @@ import copy
 import logging
 from pathlib import Path
 import platform
+import re
 import shutil
 import time
 from typing import Optional
@@ -22,6 +23,8 @@ from arangodb.installers import InstallerConfig
 from arangodb.instance import InstanceType, print_instances_table
 from arangodb.sh import ArangoshExecutor
 from tools.killall import kill_all_processes
+
+FNRX = re.compile("[\n@]*")
 
 class Runner(ABC):
     """abstract starter deployment runner"""
@@ -59,7 +62,6 @@ class Runner(ABC):
         self.basecfg = copy.deepcopy(cfg)
         self.new_cfg = new_cfg
         self.cfg = self.basecfg
-        # TODO: no passwd support in starter install yet.
         self.passvoid = None
         self.basecfg.passvoid = ""
         self.versionstr = ''
@@ -676,6 +678,18 @@ class Runner(ABC):
             for instance in starter.all_instances:
                 print('w'*80)
                 instance.search_for_warnings()
+
+    def zip_test_dir(self):
+        """ stores the test directory for later analysis """
+        testdir = self.basecfg.base_test_dir / self.basedir
+        filename = '%s_%s' % (
+            FNRX.sub('', self.testrun_name),
+            self.__class__.__name__
+        )
+        shutil.make_archive(filename,
+                            "bztar",
+                            testdir,
+                            self.basecfg.base_test_dir)
 
     def cleanup(self):
         """ remove all directories created by this test """

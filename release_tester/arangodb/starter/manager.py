@@ -28,8 +28,7 @@ from arangodb.instance import (
     SyncInstance,
     InstanceType,
     AfoServerState,
-    get_instances_table,
-    print_instances_table
+    get_instances_table
 )
 from arangodb.backup import HotBackupConfig, HotBackupManager
 from arangodb.sh import ArangoshExecutor
@@ -200,6 +199,7 @@ class StarterManager():
         return servers[0]
 
     def get_instance_essentials(self):
+        """ get the essentials of all instances controlled by this starter """
         ret = []
         for instance in self.all_instances:
             ret.append(instance.get_essentials())

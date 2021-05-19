@@ -119,9 +119,11 @@ def upgrade_package_test(verbose,
         # 'success', we also have this in message.
         'Message',
         'Progress']
-    print(table)
+    tablestr = str(table)
+    print(tablestr)
     if not status:
         print('exiting with failure')
+        Path('testfailures.txt').write_text(tablestr)
         sys.exit(1)
 
     if not force:

@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """ base class for arangodb starter deployment selenium frontend tests """
 from abc import abstractmethod, ABC
+import logging
+import re
 import time
+
+from beautifultable import BeautifulTable
 from selenium.webdriver.common.by import By
 
 from selenium.webdriver.common.keys import Keys
@@ -13,6 +17,9 @@ from selenium.common.exceptions import (
     TimeoutException,
     NoSuchElementException
 )
+
+FNRX = re.compile("[\n@]*")
+
 
 REPL_TABLE_LOC = {
     # TODO: is it a bug that this id is info-mode-id?
@@ -53,7 +60,7 @@ class SeleniumRunner(ABC):
 
     def progress(self, msg):
         """ add something to the state... """
-        print("UI-Test: " + msg)
+        logging.info("UI-Test: " + msg)
         if len(self.state) > 0:
             self.state += "\n"
         self.state += msg
@@ -77,10 +84,9 @@ class SeleniumRunner(ABC):
         """ *snap* """
         if filename is None:
             filename = '%s_%s_exception_screenshot.png' % (
-                self.testrun_name,
+                FNRX.sub('', self.testrun_name),
                 self.__class__.__name__
             )
-        #time.sleep(2)
         try:
             if self.is_headless:
                 self.progress("taking full screenshot")
@@ -98,6 +104,7 @@ class SeleniumRunner(ABC):
     def ui_assert(self, conditionstate, message):
         """ python assert sucks. fuckit. """
         if not conditionstate:
+            logging.error(message)
             self.take_screenshot()
             assert False, message
 
@@ -394,8 +401,18 @@ class SeleniumRunner(ABC):
                                         table_row_num,
                                         table_column))
                                 row[column_names[table_column - 1]] = table_cell_elm.text
+                pretty_table = BeautifulTable(maxwidth=160)
                 for row in table:
-                    self.progress('' + str(row))
+                    pretty_table.rows.append([
+                        row['name'],
+                        row['url'],
+                        row['version'],
+                        row['date'],
+                        row['state']
+                        ])
+                pretty_table.columns.header = [
+                    "Name", "URL", "Ver", "Date", "State"]
+                self.progress('\n' + str(pretty_table))
                 return table
             except StaleElementReferenceException:
                 self.progress('retrying after stale element')

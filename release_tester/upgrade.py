@@ -117,11 +117,12 @@ def run_upgrade(old_version, new_version, verbose,
                         results.append(one_result)
                         runner.take_screenshot()
                         runner.search_for_warnings()
+                        runner.zip_test_dir()
                         if abort_on_error:
                             raise ex
                         traceback.print_exc()
                         kill_all_processes()
-                        lh.section("uninstall")
+                        lh.section("uninstall on error")
                         old_inst.un_install_debug_package()
                         old_inst.un_install_package()
                         old_inst.cleanup_system()
