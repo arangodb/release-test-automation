@@ -178,7 +178,7 @@ class ActiveFailover(Runner):
             self.selenium.check_old(self.new_cfg if self.new_cfg else self.cfg, 1, 10)
         print()
 
-        logging.info(str(self.new_leader))
+        logging.info("\n" + str(self.new_leader))
         url = '{host}/_db/_system/_admin/aardvark/index.html#replication'.format(
             host=self.new_leader.get_frontend().get_local_url(''))
         reply = requests.get(url, auth=HTTPBasicAuth('root', self.leader.passvoid))

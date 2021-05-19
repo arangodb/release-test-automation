@@ -8,6 +8,7 @@ import re
 import sys
 import time
 
+from beautifultable import BeautifulTable
 import requests
 from requests.auth import HTTPBasicAuth
 
@@ -93,6 +94,10 @@ class Instance(ABC):
                           + repr(self))
             return True
 
+    @abstractmethod
+    def get_essentials(self):
+        """ get the essential attributes of the class """
+
     def rename_logfile(self):
         """ to ease further analysis, move old logfile out of our way"""
         logfile = str(self.logfile)
@@ -171,9 +176,21 @@ class ArangodInstance(Instance):
         self.is_system = is_system
 
     def __repr__(self):
+        raise Exception("blarg")
         return """
  {0.name}  |  {0.type_str}  | {0.pid} | {0.logfile}
 """.format(self)
+
+    def get_essentials(self):
+        """ get the essential attributes of the class """
+        return {
+            "name": self.name,
+            "pid": self.pid,
+            "type": self.type_str,
+            "log": self.logfile,
+            "is_frontend": self.is_frontend(),
+            "url": self.get_public_login_url() if self.is_frontend() else ""
+        }
 
     def get_local_url(self, login):
         """ our public url """
@@ -188,6 +205,10 @@ class ArangodInstance(Instance):
             login=login,
             host=self.publicip,
             port=self.port)
+
+    def get_public_login_url(self):
+        """ our public url with passvoid """
+        return 'http://root:{0.passvoid}@{0.publicip}:{0.port}'.format(self)
 
     def get_public_plain_url(self):
         """ our public url """
@@ -450,10 +471,22 @@ class SyncInstance(Instance):
 
     def __repr__(self):
         """ dump us """
+        raise Exception("blarg")
         return """
 arangosync instance | type  | pid  | logfile
       {0.name}      | {0.type_str} |  {0.pid} |  {0.logfile}
 """.format(self)
+
+    def get_essentials(self):
+        """ get the essential attributes of the class """
+        return {
+            "name": self.name,
+            "pid": self.pid,
+            "type": self.type_str,
+            "log": self.logfile,
+            "is_frontend": False,
+            "url": ""
+        }
 
     def detect_pid(self, ppid, offset, full_binary_path):
         # first get the starter provided commandline:
@@ -532,3 +565,29 @@ arangosync instance | type  | pid  | logfile
         return '{host}:{port}'.format(
             host=self.publicip,
             port=self.port)
+
+def get_instances_table(instances):
+    """ print all instances provided in tabular format """
+    table = BeautifulTable(maxwidth=160)
+    for one_instance in instances:
+        table.rows.append([
+            one_instance["name"],
+            one_instance["pid"],
+            one_instance["type"],
+            one_instance["log"],
+            # one_instance["is_frontend"],
+            one_instance["url"]
+            ])
+    table.columns.header = [
+        "Name",
+        "PID",
+        "type",
+        "Logfile",
+        # "Frontend",
+        "URL"
+    ]
+    return str(table)
+
+def print_instances_table(instances):
+    """ print all instances provided in tabular format """
+    print(get_instances_table(instances))

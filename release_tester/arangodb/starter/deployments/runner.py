@@ -19,7 +19,7 @@ import tools.interact as ti
 from arangodb.bench import load_scenarios
 from arangodb.installers.base import InstallerBase
 from arangodb.installers import InstallerConfig
-from arangodb.instance import InstanceType
+from arangodb.instance import InstanceType, print_instances_table
 from arangodb.sh import ArangoshExecutor
 from tools.killall import kill_all_processes
 
@@ -493,13 +493,26 @@ class Runner(ABC):
         for frontend in frontends:
             print(frontend.get_public_url('root@'))
 
+    def print_all_instances_table(self):
+        """ print all http frontends to the user """
+        instances = []
+        for starter in self.starter_instances:
+            instances += starter.get_instance_essentials()
+        print_instances_table(instances)
+
+    def print_makedata_instances_table(self):
+        """ print all http frontends to the user """
+        instances = []
+        for starter in self.makedata_instances:
+            instances += starter.get_instance_essentials()
+        print_instances_table(instances)
+
     #@abstractmethod
     def make_data_impl(self):
         """ upload testdata into the deployment, and check it """
         assert self.makedata_instances, "don't have makedata instance!"
         logging.debug("makedata instances")
-        for i in self.makedata_instances:
-            logging.debug(str(i))
+        self.print_makedata_instances_table()
 
         interactive = self.basecfg.interactive
 
