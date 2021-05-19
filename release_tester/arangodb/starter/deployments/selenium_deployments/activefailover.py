@@ -23,7 +23,7 @@ class ActiveFailover(SeleniumRunner):
             print(replication_table)
             if len(replication_table['follower_table']) != expect_follower_count + 1:
                 time.sleep(5)
-                retry_count -= 1
+                # TODO: re-enable me! retry_count -= 1
             else:
                 retry_count = 0 # its there!
         # head and two followers should be there:
