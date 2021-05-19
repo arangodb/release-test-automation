@@ -46,7 +46,7 @@ def upgrade_package_test(verbose,
     results = []
     # do the actual work:
     execution_plan = [
-        (True, True, 'EE', 'Enterprise+E@REST'),
+        (True, True, 'EE', 'Enterprise\nEnc@REST'),
         (True, False, 'EP', 'Enterprise'),
         (False, False, 'C', 'Community')
     ]
@@ -108,17 +108,17 @@ def upgrade_package_test(verbose,
                 table.rows.append([
                     one_result['testrun name'],
                     one_result['testscenario'],
-                    one_result['success'],
+                    # one_result['success'],
                     one_result['message'],
                     one_result['progress']
                     ])
                 status = status and one_result['success']
     table.columns.header = [
-        'testrun name',
-        'testscenario',
-        'success',
-        'message',
-        'progress']
+        'Testrun',
+        'Test Scenario',
+        # 'success', we also have this in message.
+        'Message',
+        'Progress']
     print(table)
     if not status:
         print('exiting with failure')
