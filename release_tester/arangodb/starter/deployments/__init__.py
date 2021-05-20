@@ -27,6 +27,21 @@ runner_strings = {
     RunnerType.DC2DCENDURANCE: "DC 2 DC endurance"
 }
 
+STARTER_MODES = {
+    'all': [
+        RunnerType.LEADER_FOLLOWER,
+        RunnerType.ACTIVE_FAILOVER,
+        RunnerType.CLUSTER,
+        RunnerType.DC2DC
+    ],
+    'LF': [RunnerType.LEADER_FOLLOWER],
+    'AFO': [RunnerType.ACTIVE_FAILOVER],
+    'CL': [RunnerType.CLUSTER],
+    'DC': [RunnerType.DC2DC],
+    'DCendurance': [RunnerType.DC2DCENDURANCE],
+    'none': [RunnerType.NONE],
+}
+
 #pylint: disable=import-outside-toplevel
 def make_runner(runner_type: RunnerType,
                 selenium_worker: str,
@@ -44,7 +59,14 @@ def make_runner(runner_type: RunnerType,
     assert old_inst, "no old version?"
 
     logging.debug("Factory for Runner of type: {0}".format(str(runner_type)))
-    args = (runner_type, baseconfig, old_inst, new_cfg, new_inst, selenium_worker, selenium_driver_args, testrun_name)
+    args = (runner_type,
+            baseconfig,
+            old_inst,
+            new_cfg,
+            new_inst,
+            selenium_worker,
+            selenium_driver_args,
+            testrun_name)
 
     if runner_type == RunnerType.LEADER_FOLLOWER:
         from arangodb.starter.deployments.leaderfollower import LeaderFollower

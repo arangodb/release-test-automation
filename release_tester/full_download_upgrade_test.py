@@ -17,6 +17,7 @@ import tools.loghelper as lh
 from acquire_packages import AcquirePackages
 from upgrade import run_upgrade
 from cleanup import run_cleanup
+from arangodb.starter.deployments import STARTER_MODES
 
 # pylint: disable=R0913 disable=R0914
 def upgrade_package_test(verbose,
@@ -184,8 +185,8 @@ def upgrade_package_test(verbose,
               help='whether to overwrite existing target files or not.')
 @click.option('--starter-mode',
               default='all',
-              help='which starter environments to start - ' +
-              '[all|LF|AFO|CL|DC|none].')
+              type=click.Choice(STARTER_MODES.keys()),
+              help='which starter deployments modes to use')
 @click.option('--stress-upgrade',
               is_flag=True,
               default=False,

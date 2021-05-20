@@ -8,7 +8,12 @@ import click
 from tools.killall import kill_all_processes
 from arangodb.installers import make_installer, InstallerConfig
 from arangodb.starter.deployments.cluster_perf import ClusterPerf
-from arangodb.starter.deployments import RunnerType
+from arangodb.starter.deployments import (
+    RunnerType,
+    make_runner,
+    runner_strings,
+    STARTER_MODES
+)
 import tools.loghelper as lh
 
 @click.command()
@@ -41,12 +46,13 @@ import tools.loghelper as lh
               default='/tmp/',
               help='directory create databases etc. in.')
 @click.option('--mode',
+              type=click.Choice(["all", "install", "uninstall", "tests", ]),
               default='all',
-              help='operation mode - [all|install|uninstall|tests].')
+              help='operation mode.')
 @click.option('--starter-mode',
               default='all',
-              help='which starter deployments modes to use - ' +
-              '[all|LF|AFO|CL|DC|none].')
+              type=click.Choice(STARTER_MODES.keys()),
+              help='which starter deployments modes to use')
 @click.option('--publicip',
               default='127.0.0.1',
               help='IP for the click to browser hints.')
@@ -83,9 +89,6 @@ def run_test(old_version, new_version, verbose, package_dir, test_data_dir,
     print("interactive: " + str(interactive))
     print("scenario: " + str(scenario))
     print("verbose: " + str(verbose))
-
-    if mode not in ['all', 'install', 'system', 'tests', 'uninstall']:
-        raise Exception("unsupported mode %s!" % mode)
 
     do_install = mode in ["all", "install"]
     do_uninstall = mode in ["all", "uninstall"]
