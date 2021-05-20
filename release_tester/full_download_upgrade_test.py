@@ -105,20 +105,28 @@ def upgrade_package_test(verbose,
     for one_suite_result in results:
         if len(one_suite_result) > 0:
             for one_result in one_suite_result:
-                table.rows.append([
-                    one_result['testrun name'],
-                    one_result['testscenario'],
-                    # one_result['success'],
-                    one_result['message'],
-                    one_result['progress']
+                if one_result['success']:
+                    table.rows.append([
+                        one_result['testrun name'],
+                        one_result['testscenario'],
+                        # one_result['success'],
+                        one_result['message']
+                    ])
+                else:
+                    table.rows.append([
+                        one_result['testrun name'],
+                        one_result['testscenario'],
+                        # one_result['success'],
+                        one_result['message'] +
+                        '\n' + 'H' * 40 + '\n' +
+                        one_result['progress']
                     ])
                 status = status and one_result['success']
     table.columns.header = [
         'Testrun',
         'Test Scenario',
         # 'success', we also have this in message.
-        'Message',
-        'Progress']
+        'Message + Progress']
     tablestr = str(table)
     print(tablestr)
     if not status:
