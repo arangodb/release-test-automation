@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
+from datetime import datetime
 import time
 import logging
 import os
 import copy
 import pprint
+import shutil
 
 from pathlib import Path
 from queue import Queue, Empty
@@ -69,17 +71,27 @@ def result_line(line_tp):
 
 def testing_runner(testing_instance, this, arangosh):
     """ operate one makedata instance """
-    # arangosh.run_testing(this['suite'],
-    #                      this['args'],
-    #                      999999999,
-    #                      this['log'],
-    #                      this['log_file'],
-    #                      True)
+    arangosh.run_testing(this['suite'],
+                         this['args'],
+                         999999999,
+                         this['log'],
+                         this['log_file'],
+                         True)
     print('done with ' + this['name'])
     this['crashed' ] = this['crashed_file'].read_text() == "true"
     this['success' ] = this['success_file'].read_text() == "true"
     this['structured_results' ] = this['crashed_file'].read_text()
     this['summary' ] = this['summary_file'].read_text()
+
+    if this['crashed' ] or not this['success' ]:
+        print(str(this['log_file'].name))
+        print(this['log_file'].parent / ("FAIL_" + str(this['log_file'].name))
+              )
+        failname = this['log_file'].parent / ("FAIL_" + str(this['log_file'].name))
+        this['log_file'].rename(failname)
+        this['log_file'] = failname
+        # raise Exception("santehusanotehusanotehu")
+    
     testing_instance.done_job(this['weight'])
 
 def convert_args(args):
@@ -92,11 +104,13 @@ def convert_args(args):
     return ret_args
 
 def set_filenames(suite):
-    suite['log_file'] = Path(str(suite['log']) + '_log.txt')
-    suite['summary_file'] = suite['log'] / 'testfailures.txt'
-    suite['crashed_file'] = suite['log'] / 'UNITTEST_RESULT_CRASHED.json'
-    suite['success_file'] = suite['log'] / 'UNITTEST_RESULT_EXECUTIVE_SUMMARY.json'
-    suite['report_file'] = suite['log'] / 'UNITTEST_RESULT.json'
+    suite['base_logdir' ] = Path.cwd() / 'testrun'
+    suite['base_testdir'] = Path.cwd() / 'tmp'
+    suite['log_file'] =  suite['base_logdir'] / (str(suite['log']) + '.log')
+    suite['summary_file'] = suite['base_testdir'] / suite['log'] / 'testfailures.txt'
+    suite['crashed_file'] = suite['base_testdir'] / suite['log'] / 'UNITTEST_RESULT_CRASHED.json'
+    suite['success_file'] = suite['base_testdir'] / suite['log'] / 'UNITTEST_RESULT_EXECUTIVE_SUMMARY.json'
+    suite['report_file'] =  suite['base_testdir'] / suite['log'] / 'UNITTEST_RESULT.json'
 
 def create_scenario(scenarios, testsuite, test_content):
     args = []
@@ -120,17 +134,18 @@ def create_scenario(scenarios, testsuite, test_content):
         'args': args,
         'suite': testsuite,
         'name': testsuite,
-        'log': Path.cwd() / (testsuite +
-                             suffix + '_' +
-                             test_content['mode']),
+        'log': Path(testsuite +
+                    suffix + '_' +
+                    test_content['mode']),
         'weight': weight
     }
+    # Path.cwd() / 'testrun'
     if 'buckets' in test_content:
         n_buckets = int(test_content['buckets'])
         for bucket in range(0, n_buckets):
             this_bucket = copy.deepcopy(suite)
             this_bucket['name'] += "_" + str(bucket)
-            this_bucket['log'] = Path.cwd() / (testsuite +
+            this_bucket['log'] = Path( # testsuite +
                                                this_bucket['name'] +
                                                suffix + '_' +
                                                test_content['mode'])
@@ -170,7 +185,7 @@ class Testing(Runner):
                 print('no: ' + str(scenario))
         pp.pprint(self.scenarios)
         super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst,
-                         'TESTING', 1, 1, selenium, selenium_driver_args)
+                         'TESTING', 1, 1, selenium, selenium_driver_args, "xx")
         self.success = False
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
@@ -208,6 +223,13 @@ class Testing(Runner):
         #raise Exception("tschuess")
         start_offset = 0
         used_slots = 0
+        some_scenario = self.scenarios[0]
+        if not some_scenario['base_logdir'].exists():
+            some_scenario['base_logdir'].mkdir()
+        if not some_scenario['base_testdir'].exists():
+            some_scenario['base_testdir'].mkdir()
+        os.environ['TMP'] = str(some_scenario['base_testdir'])
+        os.environ['TEMP'] = str(some_scenario['base_testdir']) # TODO howto wintendo?
         while start_offset < len(self.scenarios) or used_slots > 0:
             used_slots = 0
             with self.slot_lock:
@@ -217,6 +239,9 @@ class Testing(Runner):
                     start_offset += 1
                     time.sleep(5)
                 else:
+                    if used_slots == 0:
+                        print("done")
+                        break
                     print('elsesleep')
                     time.sleep(5)
             else:
@@ -224,7 +249,26 @@ class Testing(Runner):
                 time.sleep(5)
         self.basecfg.index = 0
         print(self.scenarios)
+        summary = ""
+        for testrun in self.scenarios:
+            if testrun['crashed' ] or not testrun['success' ]:
+                summary += testrun['summary']
+        print("\n")
+        print(summary)
 
+        (some_scenario['base_logdir'] / 'testfailures.txt').write_text(summary)
+
+        shutil.make_archive(some_scenario['base_logdir'] / 'innerlogs',
+                            "tar",
+                            suite['base_testdir'],
+                            Path.cwd())
+
+        tarfn = datetime.now(tz=None).strftime("testreport-%d-%b-%YT%H:%M:%SZ")
+        shutil.make_archive(tarfn,
+                            "bztar",
+                            suite['base_logdir'],
+                            suite['base_logdir'])
+        
     def jam_attempt_impl(self):
         pass
 
