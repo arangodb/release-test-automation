@@ -117,7 +117,7 @@ class HotBackupManager():
         if instance.returncode != 0:
             raise Exception("arangobackup exited " + str(instance.returncode))
         if not success:
-            raise Exception("arangobackup indicated 'ERROR' in its output: %s" % str(stroutput))
+            raise Exception("arangobackup indicated 'ERROR' in its output: %s" % str(output))
         return output.splitlines()
 
     def create(self, backup_name):
