@@ -11,6 +11,7 @@
 - pyyaml - for parsing saved data.
 - click - for commandline parsing https://click.palletsprojects.com/en/7.x/
 - semver - semantic versioning.
+- beautiful table - https://beautifultable.readthedocs.io/en/latest/quickstart.html
 - gdb - for checking debug symbol. `sudo apt-get install gdb` macos:`brew install gdb` 
 
 # Installing
