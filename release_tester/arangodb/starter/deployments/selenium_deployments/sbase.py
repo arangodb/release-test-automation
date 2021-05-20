@@ -63,7 +63,7 @@ class SeleniumRunner(ABC):
         logging.info("UI-Test: " + msg)
         if len(self.state) > 0:
             self.state += "\n"
-        self.state += msg
+        self.state += "UI: " + msg
 
     def reset_progress(self):
         """ done with one test. Flush status buffer. """

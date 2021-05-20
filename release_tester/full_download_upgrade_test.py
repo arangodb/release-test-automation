@@ -128,6 +128,8 @@ def upgrade_package_test(verbose,
         'Test Scenario',
         # 'success', we also have this in message.
         'Message + Progress']
+    table.columns.alignment['Message + Progress'] = BeautifulTable.ALIGN_LEFT
+
     tablestr = str(table)
     print(tablestr)
     if not status:
