@@ -158,6 +158,10 @@ class ActiveFailover(Runner):
             self.selenium.check_old(self.new_cfg, 2, 10)
 
     def jam_attempt_impl(self):
+        agency_leader = self.agency_get_leader()
+        if self.first_leader.have_this_instance(agency_leader):
+            print("AFO-Leader and agency leader are attached by the same starter!")
+            
         self.first_leader.terminate_instance()
         logging.info("waiting for new leader...")
         self.new_leader = None

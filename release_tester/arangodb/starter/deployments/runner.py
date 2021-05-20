@@ -3,6 +3,7 @@
 
 from abc import abstractmethod, ABC
 import copy
+import datetime
 import logging
 from pathlib import Path
 import platform
@@ -711,6 +712,21 @@ class Runner(ABC):
                                 " or eqaul 65535. Currently you have"
                                 " set the limit to: " + str(nofd))
 
+    def agency_get_leader(self):
+        """ get the agent that has the latest "serving" line """
+        # TODO: dc2dc has two agencies :/ 
+        agency = []
+        for starter_mgr in self.starter_instances:
+            agency += starter_mgr.get_agents()
+        leader = None
+        leading_date = datetime.datetime(1970, 1, 1, 0, 0, 0)
+        for agent in agency:
+            agent_leading_date = agent.search_for_agent_serving()
+            if agent_leading_date > leading_date:
+                leading_date = agent_leading_date
+                leader = agent
+        return leader
+            
     def agency_set_debug_logging(self):
         """ turns on logging on the agency """
         for starter_mgr in self.starter_instances:

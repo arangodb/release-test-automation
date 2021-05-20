@@ -198,6 +198,15 @@ class StarterManager():
         assert servers, "starter: don't have instances!"
         return servers[0]
 
+    def have_this_instance(self, instance):
+        """ detect whether this manager manages instance """
+        for i in self.all_instances:
+            if i == instance:
+                print("YES ITS ME!")
+                return True
+        print("NO S.B. ELSE")
+        return False
+
     def get_instance_essentials(self):
         """ get the essentials of all instances controlled by this starter """
         ret = []

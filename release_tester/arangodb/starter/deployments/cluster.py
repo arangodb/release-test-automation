@@ -136,6 +136,10 @@ db.testCollection.save({test: "document"})
 
     def jam_attempt_impl(self):
         logging.info("stopping instance 2")
+        agency_leader = self.agency_get_leader()
+        if self.starter_instances[2].have_this_instance(agency_leader):
+            print("Cluster instance 2 has the agency leader!")
+
         self.starter_instances[2].terminate_instance()
         self.set_frontend_instances()
 

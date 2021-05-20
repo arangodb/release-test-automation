@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """ class to manage an arangod or arangosync instance """
 from abc import abstractmethod, ABC
+import datetime 
 from enum import IntEnum
 import json
 import logging
@@ -46,6 +47,9 @@ TYP_STRINGS = ["none",
                "syncmaster",
                "syncworker"]
 
+def log_line_get_date(line):
+    return datetime.datetime.strptime(line.split(' ')[0], '%Y-%m-%dT%H:%M:%SZ')
+
 class AfoServerState(IntEnum):
     """ in which sate is this active failover instance? """
     leader = 1
@@ -70,6 +74,8 @@ class Instance(ABC):
         self.passvoid = passvoid
         self.name = self.type.name + str(self.port)
         self.instance = None
+        self.serving = datetime.datetime(1970, 1, 1, 0, 0, 0)
+
         logging.debug("creating {0.type_str} instance: {0.name}".format(self))
 
     @abstractmethod
@@ -93,7 +99,7 @@ class Instance(ABC):
             logging.error("was supposed to be dead, but I'm still alive? "
                           + repr(self))
             return True
-
+        
     @abstractmethod
     def get_essentials(self):
         """ get the essential attributes of the class """
@@ -161,7 +167,7 @@ class Instance(ABC):
                         print(line.rstrip())
         if count > 0:
             print(" %d lines suppressed by filters" % count)
-
+        
 class ArangodInstance(Instance):
     """ represent one arangodb instance """
     # pylint: disable=R0913
@@ -176,7 +182,7 @@ class ArangodInstance(Instance):
         self.is_system = is_system
 
     def __repr__(self):
-        raise Exception("blarg")
+        # raise Exception("blarg")
         return """
  {0.name}  |  {0.type_str}  | {0.pid} | {0.logfile}
 """.format(self)
@@ -444,6 +450,22 @@ class ArangodInstance(Instance):
                 str(self.logfile),
                 t_start
             ))
+
+    def search_for_agent_serving(self):
+        """ this string is emitted by the agent, if he is leading the agency:
+ 2021-05-19T16:02:18Z [3447] INFO [a66dc] {agency} AGNT-0dc4dd67-4340-4645-913f-9415adfbeda7 rebuilt key-value stores - serving.
+        """
+        serving_line = None
+        if not self.logfile.exists():
+            print(str(self.logfile) + " doesn't exist, skipping.")
+            return self.serving
+        with open(self.logfile) as log_fh:
+            for line in log_fh:
+                if 'a66dc' in line:
+                    serving_line = line
+        if serving_line:
+            self.serving = log_line_get_date(line)
+        return self.serving
 
 class ArangodRemoteInstance(ArangodInstance):
     """ represent one arangodb instance """
