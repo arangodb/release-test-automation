@@ -120,6 +120,9 @@ class SeleniumRunner(ABC):
                 FNRX.sub('', self.testrun_name),
                 self.__class__.__name__
             )
+
+        self.progress("Taking screenshot from: %s " %
+                      self.web.current_url)
         try:
             if self.is_headless:
                 self.progress("taking full screenshot")
