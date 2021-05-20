@@ -17,11 +17,13 @@ class Cluster(Runner):
     """ this launches a cluster setup """
     # pylint: disable=R0913 disable=R0902
     def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst,
-                 selenium, selenium_driver_args):
+                 selenium, selenium_driver_args,
+                 testrun_name: str):
         super().__init__(runner_type,
                          cfg, old_inst, new_cfg, new_inst,
                          'CLUSTER', 400, 600,
-                         selenium, selenium_driver_args)
+                         selenium, selenium_driver_args,
+                         testrun_name)
         #self.basecfg.frontends = []
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
@@ -134,6 +136,10 @@ db.testCollection.save({test: "document"})
 
     def jam_attempt_impl(self):
         logging.info("stopping instance 2")
+        agency_leader = self.agency_get_leader()
+        if self.starter_instances[2].have_this_instance(agency_leader):
+            print("Cluster instance 2 has the agency leader!")
+
         self.starter_instances[2].terminate_instance()
         self.set_frontend_instances()
 

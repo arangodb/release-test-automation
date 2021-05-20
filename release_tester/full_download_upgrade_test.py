@@ -11,10 +11,13 @@ import time
 
 import click
 
+from beautifultable import BeautifulTable
+
 import tools.loghelper as lh
 from acquire_packages import AcquirePackages
 from upgrade import run_upgrade
 from cleanup import run_cleanup
+from arangodb.starter.deployments import STARTER_MODES
 
 # pylint: disable=R0913 disable=R0914
 def upgrade_package_test(verbose,
@@ -41,15 +44,17 @@ def upgrade_package_test(verbose,
         resource.RLIMIT_CORE,
         (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
 
-    run_cleanup(zip_package)
-
     results = []
     # do the actual work:
     execution_plan = [
-        (True, True, 'EE', 'Enterprise+E@REST'),
+        (True, True, 'EE', 'Enterprise\nEnc@REST'),
         (True, False, 'EP', 'Enterprise'),
         (False, False, 'C', 'Community')
     ]
+
+    for enterprise, encryption_at_rest, directory_suffix, testrun_name in execution_plan:
+        run_cleanup(zip_package, testrun_name)
+
     for enterprise, encryption_at_rest, directory_suffix, testrun_name in execution_plan:
         if dlstage != "local":
             dl_old = AcquirePackages(old_version, verbose, package_dir, enterprise,
@@ -64,15 +69,16 @@ def upgrade_package_test(verbose,
                 old_version_content = old_version_state.read_text()
             if new_version_state.exists():
                 new_version_content = new_version_state.read_text()
-            
+
             fresh_old_content = dl_old.get_version_info(dlstage, git_version)
             fresh_new_content = dl_new.get_version_info(dlstage, git_version)
             old_changed = old_version_content != fresh_old_content
             new_changed = new_version_content != fresh_new_content
+
             if new_changed and old_changed and not force:
                 print("we already tested this version. bye.")
                 return 0
-            
+
             dl_old.get_packages(old_changed, dlstage)
             dl_new.get_packages(new_changed, dlstage)
 
@@ -96,13 +102,39 @@ def upgrade_package_test(verbose,
 
     print('V' * 80)
     status = True
+    table = BeautifulTable(maxwidth=140)
     for one_suite_result in results:
         if len(one_suite_result) > 0:
             for one_result in one_suite_result:
-                print(one_result)
+                if one_result['success']:
+                    table.rows.append([
+                        one_result['testrun name'],
+                        one_result['testscenario'],
+                        # one_result['success'],
+                        one_result['message']
+                    ])
+                else:
+                    table.rows.append([
+                        one_result['testrun name'],
+                        one_result['testscenario'],
+                        # one_result['success'],
+                        one_result['message'] +
+                        '\n' + 'H' * 40 + '\n' +
+                        one_result['progress']
+                    ])
                 status = status and one_result['success']
+    table.columns.header = [
+        'Testrun',
+        'Test Scenario',
+        # 'success', we also have this in message.
+        'Message + Progress']
+    table.columns.alignment['Message + Progress'] = BeautifulTable.ALIGN_LEFT
+
+    tablestr = str(table)
+    print(tablestr)
     if not status:
         print('exiting with failure')
+        Path('testfailures.txt').write_text(tablestr)
         sys.exit(1)
 
     if not force:
@@ -155,8 +187,8 @@ def upgrade_package_test(verbose,
               help='whether to overwrite existing target files or not.')
 @click.option('--starter-mode',
               default='all',
-              help='which starter environments to start - ' +
-              '[all|LF|AFO|CL|DC|none].')
+              type=click.Choice(STARTER_MODES.keys()),
+              help='which starter deployments modes to use')
 @click.option('--stress-upgrade',
               is_flag=True,
               default=False,

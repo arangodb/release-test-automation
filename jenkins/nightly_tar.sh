@@ -36,6 +36,7 @@ docker build containers/docker_tar -t $DOCKER_TAG
 docker \
     run \
   --name=$DOCKER_NAME \
+  -v /dev/shm:/dev/shm \
   -v `pwd`:/home/release-test-automation \
   -v `pwd`/test_dir:/home/test_dir \
   -v `pwd`/package_cache:/home/package_cache \
@@ -47,6 +48,9 @@ docker \
     /home/release-test-automation/release_tester/full_download_upgrade_test.py \
       --old-version $OLD_VERSION \
       --new-version $NEW_VERSION \
+      --selenium Chrome \
+      --selenium-driver-args headless \
+      --selenium-driver-args no-sandbox \
       --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;") \
       $force_arg --git-version $GIT_VERSION $@
 result=$?

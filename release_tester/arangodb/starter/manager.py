@@ -27,7 +27,8 @@ from arangodb.instance import (
     ArangodRemoteInstance,
     SyncInstance,
     InstanceType,
-    AfoServerState
+    AfoServerState,
+    get_instances_table
 )
 from arangodb.backup import HotBackupConfig, HotBackupManager
 from arangodb.sh import ArangoshExecutor
@@ -135,17 +136,7 @@ class StarterManager():
         ] + self.moreopts
 
     def __repr__(self):
-        return """
-===================================================
-Starter {0.name}
-    user            {0.username}
-    password        {0.passvoid}
-    -----------------------------------------------
-    all_instances   {0.all_instances}
-    -----------------------------------------------
-    frontends       {1}
-===================================================
-""".format(self, self.get_frontends())
+        return get_instances_table(self.get_instance_essentials())
 
     def name(self):
         """ name of this starter """
@@ -207,17 +198,31 @@ Starter {0.name}
         assert servers, "starter: don't have instances!"
         return servers[0]
 
+    def have_this_instance(self, instance):
+        """ detect whether this manager manages instance """
+        for i in self.all_instances:
+            if i == instance:
+                print("YES ITS ME!")
+                return True
+        print("NO S.B. ELSE")
+        return False
+
+    def get_instance_essentials(self):
+        """ get the essentials of all instances controlled by this starter """
+        ret = []
+        for instance in self.all_instances:
+            ret.append(instance.get_essentials())
+        return ret
+
     def show_all_instances(self):
         """ print all instances of this starter to the user """
-        logging.info("arangod instances for starter: " + self.name)
         if not self.all_instances:
-            logging.info("no instances detected")
+            logging.error("%s: no instances detected", self.name)
             return
-
-        logging.info("detected instances: ----")
+        instances = ""
         for instance in self.all_instances:
-            print(" - {0.name} (pid: {0.pid})".format(instance))
-        logging.info("------------------------")
+            instances += " - {0.name} (pid: {0.pid})".format(instance)
+        logging.info("arangod instances for starter: %s - %s", self.name, instances)
 
     def run_starter(self):
         """ launch the starter for this instance"""
@@ -732,8 +737,8 @@ Starter {0.name}
             sys.exit(1)
             #raise Exception("instances missing: " + str(missing_instances))
         else:
-            logging.info("All arangod instances still running: %s",
-                         str(self.all_instances))
+            logging.info("All arangod instances still running: \n%s",
+                         get_instances_table(self.get_instance_essentials()))
 
     def detect_leader(self):
         """ in active failover detect whether we run the leader"""
