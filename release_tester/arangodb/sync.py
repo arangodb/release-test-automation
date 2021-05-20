@@ -4,9 +4,10 @@
 """
 import copy
 import logging
+import subprocess
+
 import psutil
 import semver
-import subprocess
 
 from tools.asciiprint import ascii_convert
 
