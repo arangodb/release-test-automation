@@ -29,7 +29,8 @@ class LeaderFollower(SeleniumRunner):
             count +=1
             time.sleep(5)
         # head and one follower should be there:
-        self.ui_assert(len(replication_table['follower_table']) == 2, "UI-Test: expected 1 follower")
+        self.ui_assert(len(replication_table['follower_table']) == 2,
+                       "UI-Test: expected 1 follower")
 
     def upgrade_deployment(self, new_cfg, secondary, leader_follower):
         pass
