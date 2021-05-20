@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ class to manage an arangod or arangosync instance """
 from abc import abstractmethod, ABC
-import datetime 
+import datetime
 from enum import IntEnum
 import json
 import logging
@@ -99,7 +99,7 @@ class Instance(ABC):
             logging.error("was supposed to be dead, but I'm still alive? "
                           + repr(self))
             return True
-        
+
     @abstractmethod
     def get_essentials(self):
         """ get the essential attributes of the class """
@@ -167,7 +167,7 @@ class Instance(ABC):
                         print(line.rstrip())
         if count > 0:
             print(" %d lines suppressed by filters" % count)
-        
+
 class ArangodInstance(Instance):
     """ represent one arangodb instance """
     # pylint: disable=R0913
