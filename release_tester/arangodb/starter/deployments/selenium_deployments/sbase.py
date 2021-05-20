@@ -80,6 +80,39 @@ class SeleniumRunner(ABC):
         self.progress("Close!")
         self.web.close()
 
+    def get_browser_log_entries(self):
+        """get log entreies from selenium and add to python logger before returning"""
+        print('B'*80)
+        loglevels = { 'NOTSET':   0,
+                      'DEBUG':   10,
+                      'INFO':    20,
+                      'WARNING': 30,
+                      'ERROR':   40,
+                      'SEVERE':  40,
+                      'CRITICAL':50}
+        slurped_logs = self.web.get_log('browser')
+        browserlog = logging.getLogger('browser')
+        for entry in slurped_logs:
+            print(entry['message'])
+            #convert broswer log to python log format
+            rec = browserlog.makeRecord("%s.%s"%(
+                browserlog.name,entry['source']
+            ),
+                                        loglevels.get('WARNING'), # always log it as warn...
+                                        # loglevels.get(entry['level']),
+                                        '.',
+                                        0,
+                                        entry['message'],
+                                        None,
+                                        None)
+            rec.created = entry['timestamp'] /1000 # log using original timestamp.. us -> ms
+            try:
+                #add browser log to python log
+                browserlog.handle(rec)
+                self.progress(entry['message'])
+            except:
+                print(entry)
+
     def take_screenshot(self, filename=None):
         """ *snap* """
         if filename is None:
@@ -100,6 +133,7 @@ class SeleniumRunner(ABC):
         except Exception as ex:
             self.progress("falling back to taking partial screenshot " + str(ex))
             self.web.save_screenshot(filename)
+        self.get_browser_log_entries()
 
     def ui_assert(self, conditionstate, message):
         """ python assert sucks. fuckit. """
