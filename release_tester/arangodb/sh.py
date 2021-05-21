@@ -262,7 +262,7 @@ class ArangoshExecutor():
         # read line without blocking
         count = 0
         while True:
-            print(".", end="")
+            # print(".", end="")
             line = ''
             try:
                 line = queue.get(timeout=1)
@@ -278,7 +278,7 @@ class ArangoshExecutor():
                 else:
                     if isinstance(line, tuple):
                         out.write(line[0])
-                    print(line)
+                    # print(line)
         thread1.join()
         thread2.join()
 
