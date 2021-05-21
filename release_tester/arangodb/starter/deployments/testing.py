@@ -47,34 +47,34 @@ class TestConfig():
         self.db_offset = 0
         self.progressive_timeout = 100
 
-statsdc = statsd.StatsClient('localhost', 8125)
-RESULTS_TXT = None
-OTHER_SH_OUTPUT = None
-def result_line(line_tp):
-    """ get one result line """
-    global OTHER_SH_OUTPUT, RESULTS_TXT
-    if isinstance(line_tp, tuple):
-        if line_tp[0].startswith(b'#'):
-            str_line = str(line_tp[0])[6:-3]
-            segments = str_line.split(',')
-            if len(segments) < 3:
-                print('n/a')
-            else:
-                str_line = ','.join(segments) + '\n'
-                print(str_line)
-                RESULTS_TXT.write(str_line)
-                statsdc.timing(segments[0], float(segments[2]))
-        else:
-            OTHER_SH_OUTPUT.write(line_tp[1].get_endpoint() +
-                                  " - " + str(line_tp[0]) + '\n')
-            statsdc.incr('completed')
+#statsdc = statsd.StatsClient('localhost', 8125)
+# RESULTS_TXT = None
+# OTHER_SH_OUTPUT = None
+# def result_line(line_tp):
+#     """ get one result line """
+#     global OTHER_SH_OUTPUT, RESULTS_TXT
+#     if isinstance(line_tp, tuple):
+#         if line_tp[0].startswith(b'#'):
+#             str_line = str(line_tp[0])[6:-3]
+#             segments = str_line.split(',')
+#             if len(segments) < 3:
+#                 print('n/a')
+#             else:
+#                 str_line = ','.join(segments) + '\n'
+#                 # print(str_line)
+#                 RESULTS_TXT.write(str_line)
+#                 # statsdc.timing(segments[0], float(segments[2]))
+#         else:
+#             OTHER_SH_OUTPUT.write(line_tp[1].get_endpoint() +
+#                                   " - " + str(line_tp[0]) + '\n')
+#             statsdc.incr('completed')
 
 def testing_runner(testing_instance, this, arangosh):
     """ operate one makedata instance """
     arangosh.run_testing(this['suite'],
                          this['args'],
                          999999999,
-                         this['log'],
+                         this['base_thislogdir'],
                          this['log_file'],
                          True)
     print('done with ' + this['name'])
@@ -104,13 +104,14 @@ def convert_args(args):
     return ret_args
 
 def set_filenames(suite):
-    suite['base_logdir' ] = Path.cwd() / 'testrun'
     suite['base_testdir'] = Path.cwd() / 'tmp'
+    suite['base_logdir' ] = Path.cwd() / 'testrun'
+    suite['base_thislogdir'] = suite['base_testdir'] / suite['log']
     suite['log_file'] =  suite['base_logdir'] / (str(suite['log']) + '.log')
-    suite['summary_file'] = suite['base_testdir'] / suite['log'] / 'testfailures.txt'
-    suite['crashed_file'] = suite['base_testdir'] / suite['log'] / 'UNITTEST_RESULT_CRASHED.json'
-    suite['success_file'] = suite['base_testdir'] / suite['log'] / 'UNITTEST_RESULT_EXECUTIVE_SUMMARY.json'
-    suite['report_file'] =  suite['base_testdir'] / suite['log'] / 'UNITTEST_RESULT.json'
+    suite['summary_file'] = suite['base_thislogdir'] / 'testfailures.txt'
+    suite['crashed_file'] = suite['base_thislogdir'] / 'UNITTEST_RESULT_CRASHED.json'
+    suite['success_file'] = suite['base_thislogdir'] / 'UNITTEST_RESULT_EXECUTIVE_SUMMARY.json'
+    suite['report_file'] =  suite['base_thislogdir'] / 'UNITTEST_RESULT.json'
 
 def create_scenario(scenarios, testsuite, test_content):
     args = []
@@ -228,7 +229,7 @@ class Testing(Runner):
             some_scenario['base_logdir'].mkdir()
         if not some_scenario['base_testdir'].exists():
             some_scenario['base_testdir'].mkdir()
-        os.environ['TMP'] = str(some_scenario['base_testdir'])
+        os.environ['TMPDIR'] = str(some_scenario['base_testdir'])
         os.environ['TEMP'] = str(some_scenario['base_testdir']) # TODO howto wintendo?
         while start_offset < len(self.scenarios) or used_slots > 0:
             used_slots = 0
@@ -257,17 +258,18 @@ class Testing(Runner):
         print(summary)
 
         (some_scenario['base_logdir'] / 'testfailures.txt').write_text(summary)
-
+        print(                            some_scenario['base_testdir'])
         shutil.make_archive(some_scenario['base_logdir'] / 'innerlogs',
                             "tar",
-                            suite['base_testdir'],
-                            Path.cwd())
+                            Path.cwd(),
+                            str(some_scenario['base_testdir']) + "/")
 
-        tarfn = datetime.now(tz=None).strftime("testreport-%d-%b-%YT%H:%M:%SZ")
+        tarfn = datetime.now(tz=None).strftime("testreport-%d-%b-%YT%H.%M.%SZ")
+        print(some_scenario['base_logdir'])
         shutil.make_archive(tarfn,
                             "bztar",
-                            suite['base_logdir'],
-                            suite['base_logdir'])
+                            str(some_scenario['base_logdir']) + "/",
+                            str(some_scenario['base_logdir']) + "/")
         
     def jam_attempt_impl(self):
         pass
