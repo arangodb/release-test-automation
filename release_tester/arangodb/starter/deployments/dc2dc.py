@@ -17,11 +17,13 @@ class Dc2Dc(Runner):
     """ this launches two clusters in dc2dc mode """
     # pylint: disable=R0913 disable=R0902
     def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst,
-                 selenium, selenium_driver_args):
+                 selenium, selenium_driver_args,
+                 testrun_name: str):
         super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst,
-                         'DC2DC', 0, 3500, selenium, selenium_driver_args)
+                         'DC2DC', 0, 3500, selenium, selenium_driver_args,
+                         testrun_name)
         self.success = True
-        self.cfg.passvoid = '' # TODO
+        self.cfg.passvoid = ''
         self.sync_manager = None
         self.cluster1 = {}
         self.cluster2 = {}
@@ -191,12 +193,17 @@ class Dc2Dc(Runner):
 
     def test_setup_impl(self):
         self.cluster1['instance'].arangosh.check_test_data("dc2dc (post setup - dc1)")
-        count = 0
-        while not self.sync_manager.check_sync():
-            if count > 20:
+        for count in range (20):
+            (output, err, result) = self.sync_manager.check_sync()
+            if result:
+                print("CHECK SYNC OK!")
+                break
+            if count >= 19:
+                self.state += "\n" + output
+                self.state += "\n" + err
                 raise Exception("failed to get the sync status")
+            progress("sx" + str(count))
             time.sleep(10)
-            count += 1
         res = self.cluster2['instance'].arangosh.check_test_data("dc2dc (post setup - dc2)")
         if not res[0]:
             if not self.cfg.verbose:
@@ -216,13 +223,18 @@ class Dc2Dc(Runner):
             if not self.cfg.verbose:
                 print(res[1])
             raise Exception("replication fuzzing test failed")
-        count = 0
-        while not self.sync_manager.check_sync():
-            progress("sv" + str(count))
-            if count > 12:
+        for count in range (12):
+            (output, err, result) = self.sync_manager.check_sync()
+            if result:
+                print("CHECK SYNC OK!")
+                break
+            if count >= 11:
+                self.state += "\n" + output
+                self.state += "\n" + err
                 raise Exception("failed to get the sync status")
+            progress("sv" + str(count))
+            self.sync_manager.reset_failed_shard('_system', '_users')
             time.sleep(5)
-            count += 1
 
     def wait_for_restore_impl(self, backup_starter):
         for dbserver in self.cluster1["instance"].get_dbservers():
@@ -269,9 +281,14 @@ class Dc2Dc(Runner):
 
     def after_backup_impl(self):
         self.sync_manager.run_syncer()
-        count = 0
-        while not self.sync_manager.check_sync():
-            if count > 20:
+        for count in range (20):
+            (output, err, result) = self.sync_manager.check_sync()
+            if result:
+                print("CHECK SYNC OK!")
+                break
+            if count >= 19:
+                self.state += "\n" + output
+                self.state += "\n" + err
                 raise Exception("failed to get the sync status")
+            progress("sx" + str(count))
             time.sleep(10)
-            count += 1

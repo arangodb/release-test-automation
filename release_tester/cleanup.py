@@ -8,7 +8,7 @@ from tools.killall import kill_all_processes
 from arangodb.installers import make_installer, InstallerConfig
 from arangodb.starter.deployments import RunnerType, make_runner
 
-def run_cleanup(zip_package):
+def run_cleanup(zip_package, testrun_name: str = ""):
     """ main """
 
     install_config = InstallerConfig('3.3.3',
@@ -37,7 +37,12 @@ def run_cleanup(zip_package):
     for runner_type in starter_mode:
         assert runner_type
 
-        runner = make_runner(runner_type, 'none', [], inst.cfg, inst, None)
+        runner = make_runner(runner_type,
+                             'none', [],
+                             inst.cfg, inst,
+                             None, None,
+                             testrun_name
+                             )
         runner.cleanup()
     if inst.calc_config_file_name().is_file():
         try:

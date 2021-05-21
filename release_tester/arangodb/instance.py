@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """ class to manage an arangod or arangosync instance """
 from abc import abstractmethod, ABC
+import datetime
 from enum import IntEnum
 import json
 import logging
@@ -8,13 +9,24 @@ import re
 import sys
 import time
 
+from beautifultable import BeautifulTable
 import requests
 from requests.auth import HTTPBasicAuth
 
 import psutil
 from tools.asciiprint import print_progress as progress
 
+# log tokens we want to suppress from our dump:
+LOG_BLACKLIST = [
+    "2b6b3", # -> asio error, tcp connections died... so f* waht.
+    "2c712", # -> agency connection died...
+    "40e37"  # -> upgrade required TODO remove me from here, add system instance handling.
+]
 
+# log tokens we ignore in system ugprades...
+LOG_SYSTEM_BLACKLIST = [
+    "40e37"  # -> upgrade required
+]
 class InstanceType(IntEnum):
     """ type of arangod instance """
     coordinator = 1
@@ -35,6 +47,9 @@ TYP_STRINGS = ["none",
                "syncmaster",
                "syncworker"]
 
+def log_line_get_date(line):
+    return datetime.datetime.strptime(line.split(' ')[0], '%Y-%m-%dT%H:%M:%SZ')
+
 class AfoServerState(IntEnum):
     """ in which sate is this active failover instance? """
     leader = 1
@@ -48,6 +63,7 @@ class Instance(ABC):
     # pylint: disable=R0913 disable=R0902
     def __init__(self, typ, port, basedir, localhost, publicip, passvoid, logfile):
         self.type = InstanceType[typ]  # convert to enum
+        self.is_system = False
         self.type_str = TYP_STRINGS[int(self.type.value)]
         self.port = port
         self.pid = None
@@ -58,6 +74,8 @@ class Instance(ABC):
         self.passvoid = passvoid
         self.name = self.type.name + str(self.port)
         self.instance = None
+        self.serving = datetime.datetime(1970, 1, 1, 0, 0, 0)
+
         logging.debug("creating {0.type_str} instance: {0.name}".format(self))
 
     @abstractmethod
@@ -81,6 +99,10 @@ class Instance(ABC):
             logging.error("was supposed to be dead, but I'm still alive? "
                           + repr(self))
             return True
+
+    @abstractmethod
+    def get_essentials(self):
+        """ get the essential attributes of the class """
 
     def rename_logfile(self):
         """ to ease further analysis, move old logfile out of our way"""
@@ -114,24 +136,42 @@ class Instance(ABC):
         """ arangodb enpoint - to be specialized (if) """
         raise Exception("this instance doesn't support endpoints." + repr(self))
 
+    def is_suppressed_log_line(self, line):
+        """ check whether this is one of the errors we can ignore """
+        for blacklist_item in LOG_BLACKLIST:
+            if blacklist_item in line:
+                return True
+        if self.is_system:
+            for blacklist_item in LOG_SYSTEM_BLACKLIST:
+                if blacklist_item in line:
+                    return True
+        return False
+
+    def is_line_relevant(self, line):
+        """ it returns true if the line from logs should be printed """
+        return "FATAL" in line or "ERROR" in line or "WARNING" in line or "{crash}" in line
+
     def search_for_warnings(self):
         """ browse our logfile for warnings and errors """
         if not self.logfile.exists():
             print(str(self.logfile) + " doesn't exist, skipping.")
             return
         print(str(self.logfile))
+        count = 0
         with open(self.logfile) as log_fh:
             for line in log_fh:
-                if ("FATAL" in line or
-                    "ERROR" in line or
-                    "WARNING" in line or
-                    "{crash}" in line):
-                    print(line.rstrip())
+                if self.is_line_relevant(line):
+                    if self.is_suppressed_log_line(line):
+                        count += 1
+                    else:
+                        print(line.rstrip())
+        if count > 0:
+            print(" %d lines suppressed by filters" % count)
 
 class ArangodInstance(Instance):
     """ represent one arangodb instance """
     # pylint: disable=R0913
-    def __init__(self, typ, port, localhost, publicip, basedir, passvoid):
+    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, is_system=False):
         super().__init__(typ,
                          port,
                          basedir,
@@ -139,11 +179,24 @@ class ArangodInstance(Instance):
                          publicip,
                          passvoid,
                          basedir / 'arangod.log')
+        self.is_system = is_system
 
     def __repr__(self):
+        # raise Exception("blarg")
         return """
  {0.name}  |  {0.type_str}  | {0.pid} | {0.logfile}
 """.format(self)
+
+    def get_essentials(self):
+        """ get the essential attributes of the class """
+        return {
+            "name": self.name,
+            "pid": self.pid,
+            "type": self.type_str,
+            "log": self.logfile,
+            "is_frontend": self.is_frontend(),
+            "url": self.get_public_login_url() if self.is_frontend() else ""
+        }
 
     def get_local_url(self, login):
         """ our public url """
@@ -158,6 +211,10 @@ class ArangodInstance(Instance):
             login=login,
             host=self.publicip,
             port=self.port)
+
+    def get_public_login_url(self):
+        """ our public url with passvoid """
+        return 'http://root:{0.passvoid}@{0.publicip}:{0.port}'.format(self)
 
     def get_public_plain_url(self):
         """ our public url """
@@ -319,7 +376,7 @@ class ArangodInstance(Instance):
                     if line == "":
                         time.sleep(1)
                         continue
-                    if "] FATAL [" in line:
+                    if "] FATAL [" in line and not self.is_suppressed_log_line(line):
                         print('Error: ', line)
                         raise Exception("FATAL error found in arangod.log: " + line)
                     # save last line and append to string
@@ -394,6 +451,22 @@ class ArangodInstance(Instance):
                 t_start
             ))
 
+    def search_for_agent_serving(self):
+        """ this string is emitted by the agent, if he is leading the agency:
+ 2021-05-19T16:02:18Z [3447] INFO [a66dc] {agency} AGNT-0dc4dd67-4340-4645-913f-9415adfbeda7 rebuilt key-value stores - serving.
+        """
+        serving_line = None
+        if not self.logfile.exists():
+            print(str(self.logfile) + " doesn't exist, skipping.")
+            return self.serving
+        with open(self.logfile) as log_fh:
+            for line in log_fh:
+                if 'a66dc' in line:
+                    serving_line = line
+        if serving_line:
+            self.serving = log_line_get_date(line)
+        return self.serving
+
 class ArangodRemoteInstance(ArangodInstance):
     """ represent one arangodb instance """
     # pylint: disable=R0913
@@ -420,10 +493,22 @@ class SyncInstance(Instance):
 
     def __repr__(self):
         """ dump us """
+        raise Exception("blarg")
         return """
 arangosync instance | type  | pid  | logfile
       {0.name}      | {0.type_str} |  {0.pid} |  {0.logfile}
 """.format(self)
+
+    def get_essentials(self):
+        """ get the essential attributes of the class """
+        return {
+            "name": self.name,
+            "pid": self.pid,
+            "type": self.type_str,
+            "log": self.logfile,
+            "is_frontend": False,
+            "url": ""
+        }
 
     def detect_pid(self, ppid, offset, full_binary_path):
         # first get the starter provided commandline:
@@ -486,8 +571,45 @@ arangosync instance | type  | pid  | logfile
         # pylint: disable=R0201
         return True
 
+    def is_line_relevant(self, line):
+        """ it returns true if the line from logs should be printed """
+        if ("|FATAL|" in line or "|ERRO|" in line or "|WARN|" in line):
+            # logs from arangosync v1
+            return True
+        if (" FTL " in line or " ERR " in line or " WRN " in line):
+            # logs from arangosync v2
+            return True
+
+        return False
+
     def get_public_plain_url(self):
         """ get the public connect URL """
         return '{host}:{port}'.format(
             host=self.publicip,
             port=self.port)
+
+def get_instances_table(instances):
+    """ print all instances provided in tabular format """
+    table = BeautifulTable(maxwidth=160)
+    for one_instance in instances:
+        table.rows.append([
+            one_instance["name"],
+            one_instance["pid"],
+            one_instance["type"],
+            one_instance["log"],
+            # one_instance["is_frontend"],
+            one_instance["url"]
+            ])
+    table.columns.header = [
+        "Name",
+        "PID",
+        "type",
+        "Logfile",
+        # "Frontend",
+        "URL"
+    ]
+    return str(table)
+
+def print_instances_table(instances):
+    """ print all instances provided in tabular format """
+    print(get_instances_table(instances))

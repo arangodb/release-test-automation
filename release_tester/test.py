@@ -6,7 +6,11 @@ import sys
 import click
 from tools.killall import kill_all_processes
 from arangodb.installers import make_installer, InstallerConfig
-from arangodb.starter.deployments import RunnerType, make_runner
+from arangodb.starter.deployments import (
+    RunnerType,
+    make_runner,
+    STARTER_MODES
+)
 import tools.loghelper as lh
 
 @click.command()
@@ -39,12 +43,13 @@ import tools.loghelper as lh
               default='/tmp/',
               help='directory create databases etc. in.')
 @click.option('--mode',
+              type=click.Choice(["all", "install", "uninstall", "tests", ]),
               default='all',
-              help='operation mode - [all|install|uninstall|tests].')
+              help='operation mode.')
 @click.option('--starter-mode',
               default='all',
-              help='which starter deployments modes to use - ' +
-              '[all|LF|AFO|CL|DC|DCEndurance|none].')
+              type=click.Choice(STARTER_MODES.keys()),
+              help='which starter deployments modes to use')
 @click.option('--publicip',
               default='127.0.0.1',
               help='IP for the click to browser hints.')
@@ -76,9 +81,6 @@ def run_test(old_version, new_version, verbose,
     print("interactive: " + str(interactive))
     print("verbose: " + str(verbose))
 
-    if mode not in ['all', 'install', 'system', 'tests', 'uninstall']:
-        raise Exception("unsupported mode %s!" % mode)
-
     do_install = mode in ["all", "install"]
     do_uninstall = mode in ["all", "uninstall"]
 
@@ -96,30 +98,10 @@ def run_test(old_version, new_version, verbose,
 
     inst = make_installer(install_config)
 
-    if starter_mode == 'all':
-        starter_mode = [RunnerType.LEADER_FOLLOWER,
-                        RunnerType.ACTIVE_FAILOVER,
-                        RunnerType.CLUSTER]
-        if enterprise:
-            starter_mode.append(RunnerType.DC2DC)
-    elif starter_mode == 'LF':
-        starter_mode = [RunnerType.LEADER_FOLLOWER]
-    elif starter_mode == 'AFO':
-        starter_mode = [RunnerType.ACTIVE_FAILOVER]
-    elif starter_mode == 'CL':
-        starter_mode = [RunnerType.CLUSTER]
-    elif starter_mode == 'DC':
-        starter_mode = [RunnerType.DC2DC]
-    elif starter_mode == 'DCendurance':
-        starter_mode = [RunnerType.DC2DCENDURANCE]
-    elif starter_mode == 'none':
-        starter_mode = [RunnerType.NONE]
-    else:
-        raise Exception("invalid starter mode: " + starter_mode)
-
     count = 1
-    for runner_type in starter_mode:
-        assert runner_type
+    for runner_type in STARTER_MODES[starter_mode]:
+        if not enterprise and runner_type == RunnerType.DC2DC:
+            continue
         runner = make_runner(runner_type, selenium, selenium_driver_args, inst.cfg, inst, None)
         # install on first run:
         runner.do_install = (count == 1) and do_install

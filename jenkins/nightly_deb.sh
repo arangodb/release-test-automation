@@ -45,7 +45,8 @@ docker run -itd \
        -v `pwd`/test_dir:/home/test_dir \
        -v /tmp/tmp:/tmp/ \
        -v `pwd`/${VERSION_TAR_NAME}:/home/versions \
-       --rm \
+       -v /dev/shm:/dev/shm \
+        --rm \
        \
        $DOCKER_DEB_TAG \
        \
@@ -57,6 +58,7 @@ if docker exec $DOCKER_DEB_NAME \
           --new-version "${NEW_VERSION}" \
           --selenium Chrome \
           --selenium-driver-args headless \
+          --selenium-driver-args no-sandbox \
           --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;") \
           --no-zip $force_arg $@; then
     echo "OK"

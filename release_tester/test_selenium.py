@@ -7,7 +7,12 @@ import sys
 import click
 
 from arangodb.installers import make_installer, InstallerConfig
-from arangodb.starter.deployments import RunnerType, make_runner
+from arangodb.starter.deployments import (
+    RunnerType,
+    make_runner,
+    runner_strings,
+    STARTER_MODES
+)
 import tools.loghelper as lh
 
 # pylint: disable=R0913 disable=R0914
@@ -32,30 +37,9 @@ def run_upgrade(old_version, new_version, verbose,
 
     lh.section("startup")
 
-    if starter_mode == 'all':
-        starter_mode = [RunnerType.LEADER_FOLLOWER,
-                        RunnerType.ACTIVE_FAILOVER,
-                        RunnerType.CLUSTER]
-        if enterprise:
-            starter_mode.append(RunnerType.DC2DC)
-    elif starter_mode == 'LF':
-        starter_mode = [RunnerType.LEADER_FOLLOWER]
-    elif starter_mode == 'AFO':
-        starter_mode = [RunnerType.ACTIVE_FAILOVER]
-    elif starter_mode == 'CL':
-        starter_mode = [RunnerType.CLUSTER]
-    elif starter_mode == 'DC':
-        if enterprise:
-            starter_mode = [RunnerType.DC2DC]
-        else:
-            starter_mode = [None]
-    elif starter_mode == 'none':
-        starter_mode = [None]
-    else:
-        raise Exception("invalid starter mode: " + starter_mode)
-
-    for runner_type in starter_mode:
-
+    for runner_type in STARTER_MODES[starter_mode]:
+        if not enterprise and runner_type == RunnerType.DC2DC:
+            continue
         install_config_old = InstallerConfig(old_version,
                                              verbose,
                                              enterprise,
@@ -126,8 +110,8 @@ def run_upgrade(old_version, new_version, verbose,
               help='wait for the user to hit Enter?')
 @click.option('--starter-mode',
               default='all',
-              help='which starter environments to start - ' +
-              '[all|LF|AFO|CL|DC|none].')
+              type=click.Choice(STARTER_MODES.keys()),
+              help='which starter deployments modes to use')
 @click.option('--stress-upgrade',
               is_flag=True,
               default=False,

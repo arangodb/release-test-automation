@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
 import time
@@ -19,9 +18,11 @@ class ActiveFailover(Runner):
     """ This launches an active failover setup """
     # pylint: disable=R0913 disable=R0902
     def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst,
-                 selenium, selenium_driver_args):
+                 selenium, selenium_driver_args,
+                 testrun_name: str):
         super().__init__(runner_type, cfg, old_inst, new_cfg,
-                         new_inst, 'AFO', 500, 600, selenium, selenium_driver_args)
+                         new_inst, 'AFO', 500, 600, selenium, selenium_driver_args,
+                         testrun_name)
         self.starter_instances = []
         self.follower_nodes = None
         self.leader = None
@@ -41,7 +42,7 @@ class ActiveFailover(Runner):
                                InstanceType.resilientsingle
                            ],
                            jwtStr="afo",
-                           moreopts=[]))
+                           moreopts=['--all.log.level=replication=debug']))
         self.starter_instances.append(
             StarterManager(self.basecfg,
                            self.basedir, 'node2',
@@ -52,7 +53,11 @@ class ActiveFailover(Runner):
                                InstanceType.resilientsingle
                            ],
                            jwtStr="afo",
-                           moreopts=['--starter.join', '127.0.0.1:9528']))
+                           moreopts=[
+                               '--starter.join',
+                               '127.0.0.1:9528',
+                               '--all.log.level=replication=debug'
+                           ]))
         self.starter_instances.append(
             StarterManager(self.basecfg,
                            self.basedir, 'node3',
@@ -63,7 +68,11 @@ class ActiveFailover(Runner):
                                InstanceType.resilientsingle
                            ],
                            jwtStr="afo",
-                           moreopts=['--starter.join', '127.0.0.1:9528']))
+                           moreopts=[
+                               '--starter.join',
+                               '127.0.0.1:9528',
+                               '--all.log.level=replication=debug'
+                           ]))
 
     def starter_run_impl(self):
         logging.info("Spawning starter instances")
@@ -156,6 +165,10 @@ class ActiveFailover(Runner):
             self.selenium.check_old(self.new_cfg, 2, 10)
 
     def jam_attempt_impl(self):
+        agency_leader = self.agency_get_leader()
+        if self.first_leader.have_this_instance(agency_leader):
+            print("AFO-Leader and agency leader are attached by the same starter!")
+
         self.first_leader.terminate_instance()
         logging.info("waiting for new leader...")
         self.new_leader = None
@@ -170,13 +183,9 @@ class ActiveFailover(Runner):
                     break
                 progress('.')
             time.sleep(1)
-        if self.selenium:
-            self.selenium.connect_server(self.leader.get_frontends(), '_system',
-                                         self.new_cfg if self.new_cfg else self.cfg)
-            self.selenium.check_old(self.new_cfg if self.new_cfg else self.cfg, 1, 10)
         print()
 
-        logging.info(str(self.new_leader))
+        logging.info("\n" + str(self.new_leader))
         url = '{host}/_db/_system/_admin/aardvark/index.html#replication'.format(
             host=self.new_leader.get_frontend().get_local_url(''))
         reply = requests.get(url, auth=HTTPBasicAuth('root', self.leader.passvoid))
@@ -185,6 +194,11 @@ class ActiveFailover(Runner):
             logging.info(reply.text)
             self.success = False
         self.set_frontend_instances()
+
+        if self.selenium:
+            self.selenium.connect_server(self.leader.get_frontends(), '_system',
+                                         self.new_cfg if self.new_cfg else self.cfg)
+            self.selenium.check_old(self.new_cfg if self.new_cfg else self.cfg, 1, 10)
 
         prompt_user(self.basecfg,
                     '''The leader failover has happened.

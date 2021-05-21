@@ -1,23 +1,21 @@
 #!/usr/bin/env python3
 """ test the UI of a leader follower setup """
 import time
+import pprint
 from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunner
 
 class ActiveFailover(SeleniumRunner):
     """ check the leader follower setup and its properties """
-    def __init__(self, webdriver):
-        super().__init__(webdriver)
+    def __init__(self, webdriver,
+                 is_headless: bool,
+                 testrun_name: str):
+        super().__init__(webdriver,
+                         is_headless,
+                         testrun_name)
 
     def check_old(self, cfg, expect_follower_count=2, retry_count=10):
         """ check the integrity of the old system before the upgrade """
-        ver = self.detect_version()
-        self.progress(' %s ~= %s?'% (ver['version'].lower(), str(cfg.semver)))
-
-        assert ver['version'].lower().startswith(str(cfg.semver)), "wrong version"
-        if cfg.enterprise:
-            assert ver['enterprise'] == 'ENTERPRISE EDITION', "expect enterprise"
-        else:
-            assert ver['enterprise'] == 'COMMUNITY EDITION', "expect community"
+        self.check_version(cfg)
 
         while retry_count > 0:
             self.navbar_goto('replication')
@@ -25,13 +23,15 @@ class ActiveFailover(SeleniumRunner):
             print(replication_table)
             if len(replication_table['follower_table']) != expect_follower_count + 1:
                 time.sleep(5)
-                retry_count -= 1
+                # TODO: re-enable me! retry_count -= 1
             else:
                 retry_count = 0 # its there!
         # head and two followers should be there:
         self.progress(' expecting %d followers, have %d followers'%(
             expect_follower_count, len(replication_table['follower_table']) - 1))
-        assert len(replication_table['follower_table']) == expect_follower_count + 1, "expect 1 follower"
+        self.ui_assert(len(replication_table['follower_table']) == expect_follower_count + 1,
+                       "UI-Test:\nexpect 1 follower in:\n%s" % pprint.pformat(
+                           replication_table))
 
     def upgrade_deployment(self, new_cfg, secondary, leader_follower):
         pass
@@ -42,7 +42,9 @@ class ActiveFailover(SeleniumRunner):
         replication_table = self.get_replication_screen(True)
         print(replication_table)
         # head and one follower should be there:
-        assert len(replication_table['follower_table']) == 2, "expect 2 followers"
+        self.ui_assert(len(replication_table['follower_table']) == 2,
+                       "UI-Test:\nexpect 2 followers in:\n %s" % pprint.pformat(
+                           replication_table))
 
     def jam_step_2(self, cfg):
         pass

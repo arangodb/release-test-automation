@@ -44,6 +44,7 @@ docker run \
        -v `pwd`/test_dir:/home/test_dir \
        -v /tmp/tmp:/tmp/ \
        -v `pwd`/${VERSION_TAR_NAME}:/home/versions \
+       -v /dev/shm:/dev/shm \
        \
        --rm \
        --privileged \
