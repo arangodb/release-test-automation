@@ -6,6 +6,7 @@ from enum import IntEnum
 import json
 import logging
 import re
+import signal
 import sys
 import time
 
@@ -116,6 +117,18 @@ class Instance(ABC):
         if self.instance:
             try:
                 self.instance.terminate()
+                self.instance.wait()
+            except psutil.NoSuchProcess:
+                logging.info("instance already dead: " + str(self.instance))
+            self.instance = None
+        else:
+            logging.info("I'm already dead, jim!" + str(repr(self)))
+
+    def crash_instancen(self):
+        """ send SIG-11 to instance... """
+        if self.instance:
+            try:
+                self.instance.send_signal(signal.SIGSEGV)
                 self.instance.wait()
             except psutil.NoSuchProcess:
                 logging.info("instance already dead: " + str(self.instance))

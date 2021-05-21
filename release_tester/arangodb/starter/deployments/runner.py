@@ -709,6 +709,8 @@ class Runner(ABC):
                                 " filedescriptors to a value greater"
                                 " or eqaul 65535. Currently you have"
                                 " set the limit to: " + str(nofd))
+            giga_byte = 2**30
+            resource.setrlimit(resource.RLIMIT_CORE, (giga_byte,giga_byte))
 
     def agency_get_leader(self):
         """ get the agent that has the latest "serving" line """
@@ -727,7 +729,7 @@ class Runner(ABC):
 
     def agency_acquire_dump(self):
         """ turns on logging on the agency """
-
+        print("Duming agency")
         commands = [
             {
                 'URL'   : '/_api/agency/config',
@@ -746,12 +748,8 @@ class Runner(ABC):
                 'body'  : '[["/"]]'
             }
         ]
-        print('sanotehusnaotehu')
         for starter_mgr in self.starter_instances:
-            print('sanotehusnaotehu----')
-            
             for cmd in commands:
-                print('+++sanotehusnaotehu----')
                 reply = starter_mgr.send_request(
                     InstanceType.agent,
                     cmd['method'],
@@ -760,7 +758,7 @@ class Runner(ABC):
                 print(reply)
                 count = 0
                 for repl in reply:
-                    (starter_mgr.basedir / "%s_%d.json" % (cmd['basefn'], count)).write_text(repl.text)
+                    (starter_mgr.basedir / f"{cmd['basefn']}_{count}.json").write_text(repl.text)
                     count += 1
 
     def agency_set_debug_logging(self):
