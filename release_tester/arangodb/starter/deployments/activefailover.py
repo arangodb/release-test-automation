@@ -173,6 +173,7 @@ class ActiveFailover(Runner):
         logging.info("waiting for new leader...")
         self.new_leader = None
 
+        count = 0
         while self.new_leader is None:
             for node in self.follower_nodes:
                 node.detect_leader()
@@ -183,6 +184,13 @@ class ActiveFailover(Runner):
                     break
                 progress('.')
             time.sleep(1)
+            if count > 120:
+                self.progress("Timeout waiting for new leader - crashing!")
+                for node in self.follower_nodes:
+                    node.crash_all()
+                raise TimeoutException("Timeout waiting for new leader - crashing!")
+            count += 1
+
         print()
 
         logging.info("\n" + str(self.new_leader))

@@ -709,6 +709,7 @@ class Runner(ABC):
                                 " filedescriptors to a value greater"
                                 " or eqaul 65535. Currently you have"
                                 " set the limit to: " + str(nofd))
+            resource.setrlimit(resource.RLIMIT_CORE, (0,0))
 
     def agency_get_leader(self):
         """ get the agent that has the latest "serving" line """
@@ -760,7 +761,7 @@ class Runner(ABC):
                 print(reply)
                 count = 0
                 for repl in reply:
-                    (starter_mgr.basedir / "%s_%d.json" % (cmd['basefn'], count)).write_text(repl.text)
+                    (starter_mgr.basedir / f"{cmd['basefn']}_{count}.json").write_text(repl.text)
                     count += 1
 
     def agency_set_debug_logging(self):

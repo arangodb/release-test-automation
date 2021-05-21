@@ -317,6 +317,12 @@ class StarterManager():
                 results.append(reply)
         return results
 
+    def crash_instances(self):
+        """ make all managed instances plus the starter itself crash. """
+        for instance in self.all_instances:
+            instance.crash_instance()
+        self.instance.send_signal(signal.SIGSEGV)
+
     def is_instance_running(self):
         """ check whether this is still running"""
         try:
