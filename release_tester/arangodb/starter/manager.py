@@ -313,7 +313,7 @@ class StarterManager():
                 base_url = instance.get_public_plain_url()
                 reply = verb_method(
                     'http://' + base_url + url, data=data, headers=headers)
-                print(reply.text)
+                # print(reply.text)
                 results.append(reply)
         return results
 

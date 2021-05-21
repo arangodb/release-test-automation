@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
 import time
@@ -176,10 +175,6 @@ class ActiveFailover(Runner):
                     break
                 progress('.')
             time.sleep(1)
-        if self.selenium:
-            self.selenium.connect_server(self.leader.get_frontends(), '_system',
-                                         self.new_cfg if self.new_cfg else self.cfg)
-            self.selenium.check_old(self.new_cfg if self.new_cfg else self.cfg, 1, 10)
         print()
 
         logging.info("\n" + str(self.new_leader))
@@ -191,6 +186,11 @@ class ActiveFailover(Runner):
             logging.info(reply.text)
             self.success = False
         self.set_frontend_instances()
+
+        if self.selenium:
+            self.selenium.connect_server(self.leader.get_frontends(), '_system',
+                                         self.new_cfg if self.new_cfg else self.cfg)
+            self.selenium.check_old(self.new_cfg if self.new_cfg else self.cfg, 1, 10)
 
         prompt_user(self.basecfg,
                     '''The leader failover has happened.

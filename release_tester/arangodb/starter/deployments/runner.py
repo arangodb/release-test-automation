@@ -724,7 +724,45 @@ class Runner(ABC):
                 leading_date = agent_leading_date
                 leader = agent
         return leader
+
+    def agency_acquire_dump(self):
+        """ turns on logging on the agency """
+
+        commands = [
+            {
+                'URL'   : '/_api/agency/config',
+                'method': requests.get,
+                'basefn': 'agencyConfig',
+                'body'  : None
+            }, {
+                'URL'   :'/_api/agency/state',
+                'method': requests.get,
+                'basefn': 'agencyState',
+                'body'  : None
+            }, {
+                'URL'   : '/_api/agency/read',
+                'method': requests.post,
+                'basefn': 'agencyPlan',
+                'body'  : '[["/"]]'
+            }
+        ]
+        print('sanotehusnaotehu')
+        for starter_mgr in self.starter_instances:
+            print('sanotehusnaotehu----')
             
+            for cmd in commands:
+                print('+++sanotehusnaotehu----')
+                reply = starter_mgr.send_request(
+                    InstanceType.agent,
+                    cmd['method'],
+                    cmd['URL'],
+                    cmd['body'])
+                print(reply)
+                count = 0
+                for repl in reply:
+                    (starter_mgr.basedir / "%s_%d.json" % (cmd['basefn'], count)).write_text(repl.text)
+                    count += 1
+
     def agency_set_debug_logging(self):
         """ turns on logging on the agency """
         for starter_mgr in self.starter_instances:
