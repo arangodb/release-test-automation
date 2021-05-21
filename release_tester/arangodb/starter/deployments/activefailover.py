@@ -42,7 +42,7 @@ class ActiveFailover(Runner):
                                InstanceType.resilientsingle
                            ],
                            jwtStr="afo",
-                           moreopts=[]))
+                           moreopts=['--all.log.level=replication=debug']))
         self.starter_instances.append(
             StarterManager(self.basecfg,
                            self.basedir, 'node2',
@@ -53,7 +53,11 @@ class ActiveFailover(Runner):
                                InstanceType.resilientsingle
                            ],
                            jwtStr="afo",
-                           moreopts=['--starter.join', '127.0.0.1:9528']))
+                           moreopts=[
+                               '--starter.join',
+                               '127.0.0.1:9528',
+                               '--all.log.level=replication=debug'
+                           ]))
         self.starter_instances.append(
             StarterManager(self.basecfg,
                            self.basedir, 'node3',
@@ -64,7 +68,11 @@ class ActiveFailover(Runner):
                                InstanceType.resilientsingle
                            ],
                            jwtStr="afo",
-                           moreopts=['--starter.join', '127.0.0.1:9528']))
+                           moreopts=[
+                               '--starter.join',
+                               '127.0.0.1:9528',
+                               '--all.log.level=replication=debug'
+                           ]))
 
     def starter_run_impl(self):
         logging.info("Spawning starter instances")
