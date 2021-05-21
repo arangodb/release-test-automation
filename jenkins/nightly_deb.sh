@@ -11,6 +11,9 @@ fi
 if test -z "$NEW_VERSION"; then
     NEW_VERSION=3.8.0-nightly
 fi
+if test -n "$PACKAGE_CACHE"; then
+    PACKAGE_CACHE=$(pwd)/package_cache
+fi
 
 VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_deb_version"
 mkdir -p ${VERSION_TAR_NAME}
@@ -40,11 +43,11 @@ docker run -itd \
        --privileged \
        --name=$DOCKER_DEB_NAME \
        -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
-       -v `pwd`:/home/release-test-automation \
-       -v `pwd`/package_cache/:/home/package_cache \
-       -v `pwd`/test_dir:/home/test_dir \
+       -v $(PWD):/home/release-test-automation \
+       -v $(PWD)/test_dir:/home/test_dir \
+       -v "$PACKAGE_CACHE":/home/package_cache \
+       -v $(PWD)/${VERSION_TAR_NAME}:/home/versions \
        -v /tmp/tmp:/tmp/ \
-       -v `pwd`/${VERSION_TAR_NAME}:/home/versions \
        -v /dev/shm:/dev/shm \
         --rm \
        \
