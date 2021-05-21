@@ -99,8 +99,8 @@ function testSmartGraphValidator(ccount) {
     const vColName = `patents_smart_${ccount}`;
     const eColName = `citations_smart_${ccount}`;
     const gName = `G_smart_${ccount}`;
-    const remoteDocument = {_key: "abc:123::def", _from: `${vColName}/abc:123`, _to: `${vColName}/def:123`};
-    const localDocument = {_key: "abc:123::abc", _from: `${vColName}/abc:123`, _to: `${vColName}/abc:123`};
+    const remoteDocument = {_key: "abc:123:def", _from: `${vColName}/abc:123`, _to: `${vColName}/def:123`};
+    const localDocument = {_key: "abc:123:abc", _from: `${vColName}/abc:123`, _to: `${vColName}/abc:123`};
     const testValidator = (colName, doc) => {
       let col = db._collection(colName);
       if (!col) {
@@ -116,10 +116,13 @@ function testSmartGraphValidator(ccount) {
           message: `Validator did not trigger on collection ${colName} stored illegal document`
         };
       } catch (e) {
-        return {
-          fail: true,
-          message: `Validator returned ${JSON.stringify(e)}`
-        };
+        // We only allow the following two errors, all others should be reported.
+        if (e.errorNum != 1466 && e.errorNum != 1233) {
+          return {
+            fail: true,
+            message: `Validator of collection ${colName} on atempt to store ${doc} returned unexpected error ${JSON.stringify(e)}`
+          };
+        }
       }
       return {fail: false};
     }
