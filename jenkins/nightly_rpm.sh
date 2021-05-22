@@ -42,10 +42,10 @@ docker build containers/docker_rpm -t $DOCKER_RPM_TAG || exit
 docker run \
        --ulimit core=-1 \
        -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
-       -v $(PWD):/home/release-test-automation \
-       -v $(PWD)/test_dir:/home/test_dir \
+       -v $(pwd):/home/release-test-automation \
+       -v $(pwd)/test_dir:/home/test_dir \
        -v "$PACKAGE_CACHE":/home/package_cache \
-       -v $(PWD)/${VERSION_TAR_NAME}:/home/versions \
+       -v $(pwd)/${VERSION_TAR_NAME}:/home/versions \
        -v /tmp/tmp:/tmp/ \
        -v /dev/shm:/dev/shm \
        \

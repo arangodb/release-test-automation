@@ -39,10 +39,10 @@ docker \
     run \
   --name=$DOCKER_NAME \
   -v /dev/shm:/dev/shm \
-  -v $(PWD):/home/release-test-automation \
-  -v $(PWD)/test_dir:/home/test_dir \
+  -v $(pwd):/home/release-test-automation \
+  -v $(pwd)/test_dir:/home/test_dir \
   -v "$PACKAGE_CACHE":/home/package_cache \
-  -v $(PWD)/${VERSION_TAR_NAME}:/home/versions \
+  -v $(pwd)/${VERSION_TAR_NAME}:/home/versions \
   --rm \
   --ulimit core=-1 \
   --init \
