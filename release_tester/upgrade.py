@@ -130,7 +130,7 @@ def run_upgrade(old_version, new_version, verbose,
             except:
                 pass
         except Exception as ex:
-            print("Caught.")
+            print("Caught. " + str(ex))
             one_result = {
                 'testrun name': testrun_name,
                 'testscenario': runner_strings[runner_type],
@@ -142,6 +142,7 @@ def run_upgrade(old_version, new_version, verbose,
                 print("re-throwing.")
                 raise ex
             traceback.print_exc()
+            kill_all_processes()
             if runner:
                 try:
                     runner.cleanup()
