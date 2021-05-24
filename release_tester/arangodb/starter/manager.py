@@ -306,10 +306,10 @@ class StarterManager():
         """ send an http request to the instance """
         http_client.HTTPConnection.debuglevel = 1
 
-        headers ['Authorization'] = 'Bearer '+ self.jwt_header
         results = []
         for instance in self.all_instances:
             if instance.type == instance_type:
+                headers ['Authorization'] = 'Bearer ' + str(self.get_jwt_token_from_secret_file())
                 base_url = instance.get_public_plain_url()
                 reply = verb_method(
                     'http://' + base_url + url, data=data, headers=headers)
