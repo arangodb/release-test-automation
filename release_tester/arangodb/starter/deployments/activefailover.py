@@ -185,7 +185,7 @@ class ActiveFailover(Runner):
                 progress('.')
             time.sleep(1)
             if count > 120:
-                self.progress("Timeout waiting for new leader - crashing!")
+                self.progress(False, "Timeout waiting for new leader - crashing!")
                 for node in self.follower_nodes:
                     node.crash_all()
                 raise TimeoutException("Timeout waiting for new leader - crashing!")
