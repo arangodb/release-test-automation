@@ -162,7 +162,7 @@ class StarterManager():
         """ get the list of agents managed by this starter """
         ret = []
         for i in self.all_instances:
-            if i.type == InstanceType.agent:
+            if i.type == InstanceType.AGENT:
                 ret.append(i)
         return ret
 
@@ -170,7 +170,7 @@ class StarterManager():
         """ get the list of arangosync masters managed by this starter """
         ret = []
         for i in self.all_instances:
-            if i.type == InstanceType.syncmaster:
+            if i.type == InstanceType.SYNCMASTER:
                 ret.append(i)
         return ret
 
@@ -494,9 +494,9 @@ class StarterManager():
         tries to wait for the server to restart after the 'restore' command
         """
         for node in  self.all_instances:
-            if node.type in [InstanceType.resilientsingle,
-                             InstanceType.single,
-                             InstanceType.dbserver]:
+            if node.type in [InstanceType.RESILIENT_SINGLE,
+                             InstanceType.SINGLE,
+                             InstanceType.DBSERVER]:
                 node.detect_restore_restart()
 
     def tcp_ping_nodes(self):
@@ -504,9 +504,9 @@ class StarterManager():
         tries to wait for the server to restart after the 'restore' command
         """
         for node in  self.all_instances:
-            if node.type in [InstanceType.resilientsingle,
-                             InstanceType.single,
-                             InstanceType.dbserver]:
+            if node.type in [InstanceType.RESILIENT_SINGLE,
+                             InstanceType.SINGLE,
+                             InstanceType.DBSERVER]:
                 node.check_version_request(20.0)
 
     def respawn_instance(self):
@@ -524,7 +524,7 @@ class StarterManager():
         frontends = self.get_frontends()
         for frontend in frontends:
             # we abuse this function:
-            while frontend.get_afo_state() != AfoServerState.leader:
+            while frontend.get_afo_state() != AfoServerState.LEADER:
                 progress(".")
                 time.sleep(0.1)
 

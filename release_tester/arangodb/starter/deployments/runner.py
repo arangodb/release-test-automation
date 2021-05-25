@@ -755,7 +755,7 @@ class Runner(ABC):
         for starter_mgr in self.starter_instances:
             for cmd in commands:
                 reply = starter_mgr.send_request(
-                    InstanceType.agent,
+                    InstanceType.AGENT,
                     cmd['method'],
                     cmd['URL'],
                     cmd['body'])
@@ -770,26 +770,26 @@ class Runner(ABC):
         """ turns on logging on the agency """
         for starter_mgr in self.starter_instances:
             starter_mgr.send_request(
-                InstanceType.agent,
+                InstanceType.AGENT,
                 requests.put,
                 '/_admin/log/level',
                 '{"agency":"debug", "requests":"trace", '
-                '"cluster":"debug", "maintainance":"debug"}')
+                '"cluster":"debug", "maintenance":"debug"}')
     def dbserver_set_debug_logging(self):
         """ turns on logging on the dbserver """
         for starter_mgr in self.starter_instances:
             starter_mgr.send_request(
-                InstanceType.dbserver,
+                InstanceType.DBSERVER,
                 requests.put,
                 '/_admin/log/level',
                 '{"agency":"debug", "requests":"trace", '
-                '"cluster":"debug", "maintainance":"debug"}')
+                '"cluster":"debug", "maintenance":"debug"}')
     def coordinator_set_debug_logging(self):
         """ turns on logging on the coordinator """
         for starter_mgr in self.starter_instances:
             starter_mgr.send_request(
-                InstanceType.coordinator,
+                InstanceType.COORDINATOR,
                 requests.put,
                 '/_admin/log/level',
                 '{"agency":"debug", "requests":"trace", '
-                '"cluster":"debug", "maintainance":"debug"}')
+                '"cluster":"debug", "maintenance":"debug"}')

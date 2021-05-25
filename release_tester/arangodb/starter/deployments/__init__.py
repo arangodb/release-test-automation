@@ -17,7 +17,6 @@ class RunnerType(Enum):
     DC2DC = 4
     DC2DCENDURANCE = 5
 
-""" map strings """
 runner_strings = {
     RunnerType.NONE: "none",
     RunnerType.LEADER_FOLLOWER: "Leader / Follower",

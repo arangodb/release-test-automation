@@ -124,9 +124,9 @@ class ClusterPerf(Runner):
                            jwtStr=self.jwtdatastr,
                            port=9528,
                            expect_instances=[
-                               InstanceType.agent,
-                               InstanceType.coordinator,
-                               InstanceType.dbserver,
+                               InstanceType.AGENT,
+                               InstanceType.COORDINATOR,
+                               InstanceType.DBSERVER
                            ],
                            moreopts=[
                                #    '--agents.agency.election-timeout-min=5',
@@ -139,9 +139,9 @@ class ClusterPerf(Runner):
                            jwtStr=self.jwtdatastr,
                            port=9628,
                            expect_instances=[
-                               InstanceType.agent,
-                               InstanceType.coordinator,
-                               InstanceType.dbserver,
+                               InstanceType.AGENT,
+                               InstanceType.COORDINATOR,
+                               InstanceType.DBSERVER
                            ],
                            moreopts=[
                                '--starter.join', '127.0.0.1:9528',
@@ -155,9 +155,9 @@ class ClusterPerf(Runner):
                            jwtStr=self.jwtdatastr,
                            port=9728,
                            expect_instances=[
-                               InstanceType.agent,
-                               InstanceType.coordinator,
-                               InstanceType.dbserver,
+                               InstanceType.AGENT,
+                               InstanceType.COORDINATOR,
+                               InstanceType.DBSERVER
                            ],
                            moreopts=[
                                '--starter.join', '127.0.0.1:9528',

@@ -38,8 +38,8 @@ class ActiveFailover(Runner):
                            mode='activefailover',
                            port=9528,
                            expect_instances=[
-                               InstanceType.agent,
-                               InstanceType.resilientsingle
+                               InstanceType.AGENT,
+                               InstanceType.RESILIENT_SINGLE
                            ],
                            jwtStr="afo",
                            moreopts=['--all.log.level=replication=debug']))
@@ -49,8 +49,8 @@ class ActiveFailover(Runner):
                            mode='activefailover',
                            port=9628,
                            expect_instances=[
-                               InstanceType.agent,
-                               InstanceType.resilientsingle
+                               InstanceType.AGENT,
+                               InstanceType.RESILIENT_SINGLE
                            ],
                            jwtStr="afo",
                            moreopts=[
@@ -64,8 +64,8 @@ class ActiveFailover(Runner):
                            mode='activefailover',
                            port=9728,
                            expect_instances=[
-                               InstanceType.agent,
-                               InstanceType.resilientsingle
+                               InstanceType.AGENT,
+                               InstanceType.RESILIENT_SINGLE
                            ],
                            jwtStr="afo",
                            moreopts=[

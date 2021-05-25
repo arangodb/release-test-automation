@@ -30,14 +30,23 @@ LOG_SYSTEM_BLACKLIST = [
 ]
 class InstanceType(IntEnum):
     """ type of arangod instance """
-    coordinator = 1
-    resilientsingle = 2
-    single = 3
-    agent = 4
-    dbserver = 5
-    syncmaster = 6
-    syncworker = 7
+    COORDINATOR = 1
+    RESILIENT_SINGLE = 2
+    SINGLE = 3
+    AGENT = 4
+    DBSERVER = 5
+    SYNCMASTER = 6
+    SYNCWORKER = 7
 
+INSTANCE_TYPE_STRING_MAP = {
+    'coordinator': InstanceType.COORDINATOR,
+    'resilientsingle': InstanceType.RESILIENT_SINGLE,
+    'single': InstanceType.SINGLE,
+    'agent': InstanceType.AGENT,
+    'dbserver': InstanceType.DBSERVER,
+    'syncmaster': InstanceType.SYNCMASTER,
+    'syncworker': InstanceType.SYNCWORKER
+}
 
 TYP_STRINGS = ["none",
                "coordinator",
@@ -54,17 +63,17 @@ def log_line_get_date(line):
 
 class AfoServerState(IntEnum):
     """ in which sate is this active failover instance? """
-    leader = 1
-    not_leader = 2
-    challenge_ongoing = 3
-    startup_maintainance = 4
-    not_connected = 5
+    LEADER = 1
+    NOT_LEADER = 2
+    CHALLENGE_ONGOING = 3
+    STARTUP_MAINTENANCE = 4
+    NOT_CONNECTED = 5
 
 class Instance(ABC):
     """abstract instance manager"""
     # pylint: disable=R0913 disable=R0902
     def __init__(self, typ, port, basedir, localhost, publicip, passvoid, logfile):
-        self.type = InstanceType[typ]  # convert to enum
+        self.type = INSTANCE_TYPE_STRING_MAP[typ]
         self.is_system = False
         self.type_str = TYP_STRINGS[int(self.type.value)]
         self.port = port
@@ -245,15 +254,15 @@ class ArangodInstance(Instance):
     def is_frontend(self):
         """ is this instance a frontend """
         # print(repr(self))
-        return self.type in [InstanceType.coordinator,
-                             InstanceType.resilientsingle,
-                             InstanceType.single]
+        return self.type in [InstanceType.COORDINATOR,
+                             InstanceType.RESILIENT_SINGLE,
+                             InstanceType.SINGLE]
 
     def is_dbserver(self):
         """ is this instance a dbserver? """
-        return self.type in [InstanceType.dbserver,
-                             InstanceType.resilientsingle,
-                             InstanceType.single]
+        return self.type in [InstanceType.DBSERVER,
+                             InstanceType.RESILIENT_SINGLE,
+                             InstanceType.SINGLE]
 
     def is_sync_instance(self):
         """ no. """
@@ -269,7 +278,7 @@ class ArangodInstance(Instance):
 
     def probe_if_is_leader(self):
         """ detect if I am the leader? """
-        return self.get_afo_state() == AfoServerState.leader
+        return self.get_afo_state() == AfoServerState.LEADER
 
     def check_version_request(self, timeout):
         """ wait for the instance to reply with 200 to api/version """
@@ -293,20 +302,20 @@ class ArangodInstance(Instance):
                                  auth=HTTPBasicAuth('root', self.passvoid)
                                  )
         except requests.exceptions.ConnectionError:
-            return AfoServerState.not_connected
+            return AfoServerState.NOT_CONNECTED
 
         if reply.status_code == 200:
-            return AfoServerState.leader
+            return AfoServerState.LEADER
         if reply.status_code == 503:
             body_json = json.loads(reply.content)
             # leadership challenge is ongoing...
             if body_json['errorNum'] == 1495:
-                return AfoServerState.challenge_ongoing
+                return AfoServerState.CHALLENGE_ONGOING
             # leadership challenge is ongoing...
             if body_json['errorNum'] == 1496:
-                return AfoServerState.not_leader
+                return AfoServerState.NOT_LEADER
             if body_json['errorNum'] == 503:
-                return AfoServerState.startup_maintainance
+                return AfoServerState.STARTUP_MAINTENANCE
             raise Exception("afo_state: unsupported error code in "
                             + str(reply.content))
         raise Exception("afo_state: unsupportet HTTP-Status code "
@@ -346,12 +355,12 @@ class ArangodInstance(Instance):
             if offset >= 0:
                 print("server restarting with restored backup.")
                 self.detect_pid(0, offset)
-                if self.type == InstanceType.resilientsingle:
+                if self.type == InstanceType.RESILIENT_SINGLE:
                     print("waiting for leader election: ", end="")
-                    status = AfoServerState.challenge_ongoing
-                    while status in [AfoServerState.challenge_ongoing,
-                                     AfoServerState.not_connected,
-                                     AfoServerState.startup_maintainance]:
+                    status = AfoServerState.CHALLENGE_ONGOING
+                    while status in [AfoServerState.CHALLENGE_ONGOING,
+                                     AfoServerState.NOT_CONNECTED,
+                                     AfoServerState.STARTUP_MAINTENANCE]:
                         status = self.get_afo_state()
                         progress('%')
                         time.sleep(0.1)
@@ -467,7 +476,8 @@ class ArangodInstance(Instance):
 
     def search_for_agent_serving(self):
         """ this string is emitted by the agent, if he is leading the agency:
- 2021-05-19T16:02:18Z [3447] INFO [a66dc] {agency} AGNT-0dc4dd67-4340-4645-913f-9415adfbeda7 rebuilt key-value stores - serving.
+ 2021-05-19T16:02:18Z [3447] INFO [a66dc] {agency} AGNT-0dc4dd67-4340-4645-913f-9415adfbeda7
+   rebuilt key-value stores - serving.
         """
         serving_line = None
         if not self.logfile.exists():

@@ -42,9 +42,9 @@ db.testCollection.save({test: "document"})
                            jwtStr=self.jwtdatastr,
                            port=9528,
                            expect_instances=[
-                               InstanceType.agent,
-                               InstanceType.coordinator,
-                               InstanceType.dbserver,
+                               InstanceType.AGENT,
+                               InstanceType.COORDINATOR,
+                               InstanceType.DBSERVER
                            ],
                            moreopts=[]))
         self.starter_instances.append(
@@ -54,9 +54,9 @@ db.testCollection.save({test: "document"})
                            jwtStr=self.jwtdatastr,
                            port=9628,
                            expect_instances=[
-                               InstanceType.agent,
-                               InstanceType.coordinator,
-                               InstanceType.dbserver,
+                               InstanceType.AGENT,
+                               InstanceType.COORDINATOR,
+                               InstanceType.DBSERVER
                            ],
                            moreopts=['--starter.join', '127.0.0.1:9528']))
         self.starter_instances.append(
@@ -66,9 +66,9 @@ db.testCollection.save({test: "document"})
                            jwtStr=self.jwtdatastr,
                            port=9728,
                            expect_instances=[
-                               InstanceType.agent,
-                               InstanceType.coordinator,
-                               InstanceType.dbserver,
+                               InstanceType.AGENT,
+                               InstanceType.COORDINATOR,
+                               InstanceType.DBSERVER
                            ],
                            moreopts=['--starter.join', '127.0.0.1:9528']))
         for instance in self.starter_instances:
@@ -166,9 +166,9 @@ db.testCollection.save({test: "document"})
             mode='cluster',
             jwtStr=None,
             expect_instances=[
-                InstanceType.agent,
-                InstanceType.coordinator,
-                InstanceType.dbserver,
+                InstanceType.AGENT,
+                InstanceType.COORDINATOR,
+                InstanceType.DBSERVER
             ],
             moreopts=['--starter.join', '127.0.0.1:9528'])
         dead_instance.run_starter()
