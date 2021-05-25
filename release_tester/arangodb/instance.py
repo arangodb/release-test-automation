@@ -124,7 +124,7 @@ class Instance(ABC):
         else:
             logging.info("I'm already dead, jim!" + str(repr(self)))
 
-    def crash_instancen(self):
+    def crash_instance(self):
         """ send SIG-11 to instance... """
         if self.instance:
             try:
