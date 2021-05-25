@@ -150,12 +150,16 @@ def run_upgrade(old_version, new_version, verbose,
                     print("Ignoring runner cleanup error!")
             try:
                 print("Cleaning up system after error:")
+                old_inst.un_install_debug_package()
+                old_inst.un_install_package()
                 old_inst.cleanup_system()
             except :
                 print("Ignoring old cleanup error!")
                 pass
             try:
                 print("Ignoring new cleanup error!")
+                new_inst.un_install_debug_package()
+                new_inst.un_install_package()
                 new_inst.cleanup_system()
             except:
                 pass
