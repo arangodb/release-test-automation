@@ -30,13 +30,13 @@ LOG_SYSTEM_BLACKLIST = [
 ]
 class InstanceType(IntEnum):
     """ type of arangod instance """
-    COORDINATOR = 1
-    RESILIENT_SINGLE = 2
-    SINGLE = 3
-    AGENT = 4
-    DBSERVER = 5
-    SYNCMASTER = 6
-    SYNCWORKER = 7
+    COORDINATOR = 0
+    RESILIENT_SINGLE = 1
+    SINGLE = 2
+    AGENT = 3
+    DBSERVER = 4
+    SYNCMASTER = 5
+    SYNCWORKER = 6
 
 INSTANCE_TYPE_STRING_MAP = {
     'coordinator': InstanceType.COORDINATOR,
@@ -48,14 +48,6 @@ INSTANCE_TYPE_STRING_MAP = {
     'syncworker': InstanceType.SYNCWORKER
 }
 
-TYP_STRINGS = ["none",
-               "coordinator",
-               "resilientsingle",
-               "single",
-               "agent",
-               "dbserver",
-               "syncmaster",
-               "syncworker"]
 
 def log_line_get_date(line):
     """ parse the date out of an arangod logfile line """
@@ -72,10 +64,10 @@ class AfoServerState(IntEnum):
 class Instance(ABC):
     """abstract instance manager"""
     # pylint: disable=R0913 disable=R0902
-    def __init__(self, typ, port, basedir, localhost, publicip, passvoid, logfile):
-        self.type = INSTANCE_TYPE_STRING_MAP[typ]
+    def __init__(self, instance_type, port, basedir, localhost, publicip, passvoid, logfile):
+        self.instance_type = INSTANCE_TYPE_STRING_MAP[instance_type]
         self.is_system = False
-        self.type_str = TYP_STRINGS[int(self.type.value)]
+        self.type_str = list(INSTANCE_TYPE_STRING_MAP.keys())[int(self.instance_type.value)]
         self.port = port
         self.pid = None
         self.basedir = basedir
@@ -83,7 +75,7 @@ class Instance(ABC):
         self.localhost = localhost
         self.publicip = publicip
         self.passvoid = passvoid
-        self.name = self.type.name + str(self.port)
+        self.name = self.instance_type.name + str(self.port)
         self.instance = None
         self.serving = datetime.datetime(1970, 1, 1, 0, 0, 0)
 
@@ -254,15 +246,17 @@ class ArangodInstance(Instance):
     def is_frontend(self):
         """ is this instance a frontend """
         # print(repr(self))
-        return self.type in [InstanceType.COORDINATOR,
-                             InstanceType.RESILIENT_SINGLE,
-                             InstanceType.SINGLE]
+        return self.instance_type in [
+            InstanceType.COORDINATOR,
+            InstanceType.RESILIENT_SINGLE,
+            InstanceType.SINGLE]
 
     def is_dbserver(self):
         """ is this instance a dbserver? """
-        return self.type in [InstanceType.DBSERVER,
-                             InstanceType.RESILIENT_SINGLE,
-                             InstanceType.SINGLE]
+        return self.instance_type in [
+            InstanceType.DBSERVER,
+            InstanceType.RESILIENT_SINGLE,
+            InstanceType.SINGLE]
 
     def is_sync_instance(self):
         """ no. """
@@ -355,7 +349,7 @@ class ArangodInstance(Instance):
             if offset >= 0:
                 print("server restarting with restored backup.")
                 self.detect_pid(0, offset)
-                if self.type == InstanceType.RESILIENT_SINGLE:
+                if self.instance_type == InstanceType.RESILIENT_SINGLE:
                     print("waiting for leader election: ", end="")
                     status = AfoServerState.CHALLENGE_ONGOING
                     while status in [AfoServerState.CHALLENGE_ONGOING,

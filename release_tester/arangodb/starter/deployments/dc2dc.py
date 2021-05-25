@@ -121,6 +121,7 @@ class Dc2Dc(Runner):
                     '--sync.master.jwt-secret=' +    str(val["SyncSecret"]),
                     '--starter.address=' +           self.cfg.publicip
                 ])
+            val["instance"].set_jwt_file(val["JWTSecret"])
             if port is None:
                 val["instance"].is_leader = True
 
@@ -139,7 +140,7 @@ class Dc2Dc(Runner):
             inst.detect_instances()
             inst.detect_instance_pids()
             cluster['smport'] = inst.get_sync_master_port()
-
+            
             url = 'http://{host}:{port}'.format(
                 host=self.cfg.publicip,
                 port=str(cluster['smport']))

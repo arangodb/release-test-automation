@@ -162,7 +162,7 @@ class StarterManager():
         """ get the list of agents managed by this starter """
         ret = []
         for i in self.all_instances:
-            if i.type == InstanceType.AGENT:
+            if i.instance_type == InstanceType.AGENT:
                 ret.append(i)
         return ret
 
@@ -170,7 +170,7 @@ class StarterManager():
         """ get the list of arangosync masters managed by this starter """
         ret = []
         for i in self.all_instances:
-            if i.type == InstanceType.SYNCMASTER:
+            if i.instance_type == InstanceType.SYNCMASTER:
                 ret.append(i)
         return ret
 
@@ -251,9 +251,13 @@ class StarterManager():
                 logging.error(ex)
         raise Exception("didn't find a starter for " + match_str)
 
+    def set_jwt_file(self, filename):
+        """ some scenarios don't want to use the builtin jwt generation from the manager """
+        self.jwtfile = filename
+
     def get_jwt_token_from_secret_file(self, filename):
         """ retrieve token from the JWT secret file which is cached for the future use """
-        if self.jwt_tokens and self.jwt_tokens[filename]:
+        if filename in self.jwt_tokens.keys():
             # token for that file was checked already.
             return self.jwt_tokens[filename]
 
@@ -280,7 +284,7 @@ class StarterManager():
         """ return jwt header from current installation """
         if self.jwt_header:
             return self.jwt_header
-        self.jwt_header = self.get_jwt_token_from_secret_file(self.jwtfile)
+        self.jwt_header = self.get_jwt_token_from_secret_file(str(self.jwtfile))
         return self.jwt_header
 
     def set_passvoid(self, passvoid, write_to_server=True):
@@ -308,11 +312,15 @@ class StarterManager():
 
         results = []
         for instance in self.all_instances:
-            if instance.type == instance_type:
+            if instance.instance_type == instance_type:
                 headers ['Authorization'] = 'Bearer ' + str(self.get_jwt_header())
                 base_url = instance.get_public_plain_url()
                 reply = verb_method(
-                    'http://' + base_url + url, data=data, headers=headers)
+                    'http://' + base_url + url,
+                    data=data,
+                    headers=headers,
+                    allow_redirects=False
+                )
                 # print(reply.text)
                 results.append(reply)
         return results
@@ -494,9 +502,10 @@ class StarterManager():
         tries to wait for the server to restart after the 'restore' command
         """
         for node in  self.all_instances:
-            if node.type in [InstanceType.RESILIENT_SINGLE,
-                             InstanceType.SINGLE,
-                             InstanceType.DBSERVER]:
+            if node.instance_type in [
+                    InstanceType.RESILIENT_SINGLE,
+                    InstanceType.SINGLE,
+                    InstanceType.DBSERVER]:
                 node.detect_restore_restart()
 
     def tcp_ping_nodes(self):
@@ -504,9 +513,10 @@ class StarterManager():
         tries to wait for the server to restart after the 'restore' command
         """
         for node in  self.all_instances:
-            if node.type in [InstanceType.RESILIENT_SINGLE,
-                             InstanceType.SINGLE,
-                             InstanceType.DBSERVER]:
+            if node.instance_type in [
+                    InstanceType.RESILIENT_SINGLE,
+                    InstanceType.SINGLE,
+                    InstanceType.DBSERVER]:
                 node.check_version_request(20.0)
 
     def respawn_instance(self):
@@ -658,7 +668,7 @@ class StarterManager():
                             ppid=self.instance.pid,
                             full_binary_path=self.cfg.real_sbin_dir,
                             offset=0)
-                        detected_instances.append(instance.type)
+                        detected_instances.append(instance.instance_type)
                         self.all_instances.append(instance)
 
             print(self.expect_instances)
