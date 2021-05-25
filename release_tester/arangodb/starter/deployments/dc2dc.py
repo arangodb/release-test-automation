@@ -286,9 +286,9 @@ class Dc2Dc(Runner):
             if result:
                 print("CHECK SYNC OK!")
                 break
-            if count >= 19:
-                self.state += "\n" + output
-                self.state += "\n" + err
-                raise Exception("failed to get the sync status")
             progress("sx" + str(count))
             time.sleep(10)
+        else:
+            self.state += "\n" + output
+            self.state += "\n" + err
+            raise Exception("failed to get the sync status")
