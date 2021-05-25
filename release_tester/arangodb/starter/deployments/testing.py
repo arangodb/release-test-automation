@@ -13,16 +13,12 @@ from queue import Queue, Empty
 from threading  import Thread, Lock
 
 import psutil
-import statsd
 import yaml
 
 from arangodb.instance import InstanceType
 from arangodb.starter.deployments.runner import Runner
 
 from tools.asciiprint import print_progress as progress
-import tools.interact as ti
-import tools.loghelper as lh
-from tools.prometheus import set_prometheus_jwt
 from tools.timestamp import timestamp
 
 
@@ -97,7 +93,7 @@ def testing_runner(testing_instance, this, arangosh):
 def convert_args(args):
     ret_args = []
     for one_arg in args:
-        if type(one_arg) == type(True):
+        if isinstance(one_arg, bool):
             ret_args.append("true" if one_arg else "false")
         else:
             ret_args.append(one_arg)
@@ -178,7 +174,7 @@ class Testing(Runner):
         #    cfg.scenario.write_text(yaml.dump(TestConfig()))
         #    raise Exception("have written %s with default config" % str(cfg.scenario))
 
-        self.scenarios = [];
+        self.scenarios = []
         for scenario in cfg.scenario.iterdir():
             if scenario.is_file():
                 parse_scenario(scenario, self.scenarios)
