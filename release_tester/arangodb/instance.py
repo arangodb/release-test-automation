@@ -49,6 +49,7 @@ TYP_STRINGS = ["none",
                "syncworker"]
 
 def log_line_get_date(line):
+    """ parse the date out of an arangod logfile line """
     return datetime.datetime.strptime(line.split(' ')[0], '%Y-%m-%dT%H:%M:%SZ')
 
 class AfoServerState(IntEnum):
@@ -477,7 +478,7 @@ class ArangodInstance(Instance):
                 if 'a66dc' in line:
                     serving_line = line
         if serving_line:
-            self.serving = log_line_get_date(line)
+            self.serving = log_line_get_date(serving_line)
         return self.serving
 
 class ArangodRemoteInstance(ArangodInstance):
@@ -507,10 +508,10 @@ class SyncInstance(Instance):
     def __repr__(self):
         """ dump us """
         raise Exception("blarg")
-        return """
-arangosync instance | type  | pid  | logfile
-      {0.name}      | {0.type_str} |  {0.pid} |  {0.logfile}
-""".format(self)
+#         return """
+# arangosync instance | type  | pid  | logfile
+#       {0.name}      | {0.type_str} |  {0.pid} |  {0.logfile}
+# """.format(self)
 
     def get_essentials(self):
         """ get the essential attributes of the class """

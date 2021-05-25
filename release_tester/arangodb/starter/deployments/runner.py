@@ -124,7 +124,11 @@ class Runner(ABC):
         else:
             #pylint: disable=C0415 disable=import-outside-toplevel
             from arangodb.starter.deployments.selenium_deployments import init as init_selenium
-            self.selenium = init_selenium(runner_type, selenium_worker, selenium_driver_args, self.testrun_name)
+            self.selenium = init_selenium(
+                runner_type,
+                selenium_worker,
+                selenium_driver_args,
+                self.testrun_name)
 
     def progress(self, is_sub, msg, separator='x'):
         """ report user message, record for error handling. """
@@ -714,7 +718,7 @@ class Runner(ABC):
 
     def agency_get_leader(self):
         """ get the agent that has the latest "serving" line """
-        # TODO: dc2dc has two agencies :/ 
+        # TODO: dc2dc has two agencies :/
         agency = []
         for starter_mgr in self.starter_instances:
             agency += starter_mgr.get_agents()
@@ -758,7 +762,8 @@ class Runner(ABC):
                 print(reply)
                 count = 0
                 for repl in reply:
-                    (starter_mgr.basedir / f"{cmd['basefn']}_{count}.json").write_text(repl.text)
+                    (starter_mgr.basedir / f"{cmd['basefn']}_{count}.json"
+                     ).write_text(repl.text)
                     count += 1
 
     def agency_set_debug_logging(self):

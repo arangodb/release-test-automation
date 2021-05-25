@@ -10,7 +10,6 @@ from arangodb.installers import make_installer, InstallerConfig
 from arangodb.starter.deployments import (
     RunnerType,
     make_runner,
-    runner_strings,
     STARTER_MODES
 )
 import tools.loghelper as lh
