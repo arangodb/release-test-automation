@@ -309,7 +309,7 @@ class StarterManager():
         results = []
         for instance in self.all_instances:
             if instance.type == instance_type:
-                headers ['Authorization'] = 'Bearer ' + str(self.get_jwt_token_from_secret_file())
+                headers ['Authorization'] = 'Bearer ' + str(self.get_jwt_header())
                 base_url = instance.get_public_plain_url()
                 reply = verb_method(
                     'http://' + base_url + url, data=data, headers=headers)
