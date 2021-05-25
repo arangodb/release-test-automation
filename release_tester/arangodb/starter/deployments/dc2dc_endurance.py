@@ -39,7 +39,7 @@ class Dc2DcEndurance(Dc2Dc):
         self.sync_manager.stop_sync()
 
     def after_backup_impl(self):
-        self.sync_manager.start_sync()
+        # TODO self.sync_manager.start_sync()
         count = 0
         while not self.sync_manager.check_sync():
             if count > 20:

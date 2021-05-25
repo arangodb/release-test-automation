@@ -124,7 +124,11 @@ class Runner(ABC):
         else:
             #pylint: disable=C0415 disable=import-outside-toplevel
             from arangodb.starter.deployments.selenium_deployments import init as init_selenium
-            self.selenium = init_selenium(runner_type, selenium_worker, selenium_driver_args, self.testrun_name)
+            self.selenium = init_selenium(
+                runner_type,
+                selenium_worker,
+                selenium_driver_args,
+                self.testrun_name)
 
     def progress(self, is_sub, msg, separator='x'):
         """ report user message, record for error handling. """
@@ -709,10 +713,12 @@ class Runner(ABC):
                                 " filedescriptors to a value greater"
                                 " or eqaul 65535. Currently you have"
                                 " set the limit to: " + str(nofd))
+            giga_byte = 2**30
+            resource.setrlimit(resource.RLIMIT_CORE, (giga_byte,giga_byte))
 
     def agency_get_leader(self):
         """ get the agent that has the latest "serving" line """
-        # TODO: dc2dc has two agencies :/ 
+        # TODO: dc2dc has two agencies :/
         agency = []
         for starter_mgr in self.starter_instances:
             agency += starter_mgr.get_agents()
@@ -724,31 +730,66 @@ class Runner(ABC):
                 leading_date = agent_leading_date
                 leader = agent
         return leader
-            
+
+    def agency_acquire_dump(self):
+        """ turns on logging on the agency """
+        print("Duming agency")
+        commands = [
+            {
+                'URL'   : '/_api/agency/config',
+                'method': requests.get,
+                'basefn': 'agencyConfig',
+                'body'  : None
+            }, {
+                'URL'   :'/_api/agency/state',
+                'method': requests.get,
+                'basefn': 'agencyState',
+                'body'  : None
+            }, {
+                'URL'   : '/_api/agency/read',
+                'method': requests.post,
+                'basefn': 'agencyPlan',
+                'body'  : '[["/"]]'
+            }
+        ]
+        for starter_mgr in self.starter_instances:
+            for cmd in commands:
+                reply = starter_mgr.send_request(
+                    InstanceType.AGENT,
+                    cmd['method'],
+                    cmd['URL'],
+                    cmd['body'])
+                print(reply)
+                count = 0
+                for repl in reply:
+                    (starter_mgr.basedir / f"{cmd['basefn']}_{count}.json"
+                     ).write_text(repl.text)
+                    count += 1
+
     def agency_set_debug_logging(self):
         """ turns on logging on the agency """
         for starter_mgr in self.starter_instances:
             starter_mgr.send_request(
-                InstanceType.agent,
+                InstanceType.AGENT,
                 requests.put,
                 '/_admin/log/level',
                 '{"agency":"debug", "requests":"trace", '
-                '"cluster":"debug", "maintainance":"debug"}')
+                '"cluster":"debug", "maintenance":"debug"}')
     def dbserver_set_debug_logging(self):
         """ turns on logging on the dbserver """
         for starter_mgr in self.starter_instances:
             starter_mgr.send_request(
-                InstanceType.dbserver,
+                InstanceType.DBSERVER,
                 requests.put,
                 '/_admin/log/level',
                 '{"agency":"debug", "requests":"trace", '
-                '"cluster":"debug", "maintainance":"debug"}')
+                '"cluster":"debug", "maintenance":"debug"}')
     def coordinator_set_debug_logging(self):
         """ turns on logging on the coordinator """
         for starter_mgr in self.starter_instances:
             starter_mgr.send_request(
-                InstanceType.coordinator,
+                InstanceType.COORDINATOR,
                 requests.put,
                 '/_admin/log/level',
                 '{"agency":"debug", "requests":"trace", '
-                '"cluster":"debug", "maintainance":"debug"}')
+                '"cluster":"debug", "maintenance":"debug"}')

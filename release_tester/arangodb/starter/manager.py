@@ -9,7 +9,7 @@ import http.client as http_client
 import logging
 import os
 import re
-# import signal
+import signal
 import subprocess
 import sys
 import time
@@ -162,7 +162,7 @@ class StarterManager():
         """ get the list of agents managed by this starter """
         ret = []
         for i in self.all_instances:
-            if i.type == InstanceType.agent:
+            if i.type == InstanceType.AGENT:
                 ret.append(i)
         return ret
 
@@ -170,7 +170,7 @@ class StarterManager():
         """ get the list of arangosync masters managed by this starter """
         ret = []
         for i in self.all_instances:
-            if i.type == InstanceType.syncmaster:
+            if i.type == InstanceType.SYNCMASTER:
                 ret.append(i)
         return ret
 
@@ -306,16 +306,22 @@ class StarterManager():
         """ send an http request to the instance """
         http_client.HTTPConnection.debuglevel = 1
 
-        headers ['Authorization'] = 'Bearer '+ self.jwt_header
         results = []
         for instance in self.all_instances:
             if instance.type == instance_type:
+                headers ['Authorization'] = 'Bearer ' + str(self.get_jwt_header())
                 base_url = instance.get_public_plain_url()
                 reply = verb_method(
                     'http://' + base_url + url, data=data, headers=headers)
-                print(reply.text)
+                # print(reply.text)
                 results.append(reply)
         return results
+
+    def crash_instances(self):
+        """ make all managed instances plus the starter itself crash. """
+        for instance in self.all_instances:
+            instance.crash_instance()
+        self.instance.send_signal(signal.SIGSEGV)
 
     def is_instance_running(self):
         """ check whether this is still running"""
@@ -488,9 +494,9 @@ class StarterManager():
         tries to wait for the server to restart after the 'restore' command
         """
         for node in  self.all_instances:
-            if node.type in [InstanceType.resilientsingle,
-                             InstanceType.single,
-                             InstanceType.dbserver]:
+            if node.type in [InstanceType.RESILIENT_SINGLE,
+                             InstanceType.SINGLE,
+                             InstanceType.DBSERVER]:
                 node.detect_restore_restart()
 
     def tcp_ping_nodes(self):
@@ -498,9 +504,9 @@ class StarterManager():
         tries to wait for the server to restart after the 'restore' command
         """
         for node in  self.all_instances:
-            if node.type in [InstanceType.resilientsingle,
-                             InstanceType.single,
-                             InstanceType.dbserver]:
+            if node.type in [InstanceType.RESILIENT_SINGLE,
+                             InstanceType.SINGLE,
+                             InstanceType.DBSERVER]:
                 node.check_version_request(20.0)
 
     def respawn_instance(self):
@@ -518,7 +524,7 @@ class StarterManager():
         frontends = self.get_frontends()
         for frontend in frontends:
             # we abuse this function:
-            while frontend.get_afo_state() != AfoServerState.leader:
+            while frontend.get_afo_state() != AfoServerState.LEADER:
                 progress(".")
                 time.sleep(0.1)
 

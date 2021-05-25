@@ -12,6 +12,9 @@ fi
 if test -z "$NEW_VERSION"; then
     NEW_VERSION=3.8.0-nightly
 fi
+if test -n "$PACKAGE_CACHE"; then
+    PACKAGE_CACHE=$(pwd)/package_cache
+fi
 
 VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_rpm_version"
 mkdir -p ${VERSION_TAR_NAME}
@@ -39,11 +42,11 @@ docker build containers/docker_rpm -t $DOCKER_RPM_TAG || exit
 docker run \
        --ulimit core=-1 \
        -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
-       -v `pwd`:/home/release-test-automation \
-       -v `pwd`/package_cache/:/home/package_cache \
-       -v `pwd`/test_dir:/home/test_dir \
+       -v $(pwd):/home/release-test-automation \
+       -v $(pwd)/test_dir:/home/test_dir \
+       -v "$PACKAGE_CACHE":/home/package_cache \
+       -v $(pwd)/${VERSION_TAR_NAME}:/home/versions \
        -v /tmp/tmp:/tmp/ \
-       -v `pwd`/${VERSION_TAR_NAME}:/home/versions \
        -v /dev/shm:/dev/shm \
        \
        --rm \

@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
 import time
@@ -39,33 +38,41 @@ class ActiveFailover(Runner):
                            mode='activefailover',
                            port=9528,
                            expect_instances=[
-                               InstanceType.agent,
-                               InstanceType.resilientsingle
+                               InstanceType.AGENT,
+                               InstanceType.RESILIENT_SINGLE
                            ],
                            jwtStr="afo",
-                           moreopts=[]))
+                           moreopts=['--all.log.level=replication=debug']))
         self.starter_instances.append(
             StarterManager(self.basecfg,
                            self.basedir, 'node2',
                            mode='activefailover',
                            port=9628,
                            expect_instances=[
-                               InstanceType.agent,
-                               InstanceType.resilientsingle
+                               InstanceType.AGENT,
+                               InstanceType.RESILIENT_SINGLE
                            ],
                            jwtStr="afo",
-                           moreopts=['--starter.join', '127.0.0.1:9528']))
+                           moreopts=[
+                               '--starter.join',
+                               '127.0.0.1:9528',
+                               '--all.log.level=replication=debug'
+                           ]))
         self.starter_instances.append(
             StarterManager(self.basecfg,
                            self.basedir, 'node3',
                            mode='activefailover',
                            port=9728,
                            expect_instances=[
-                               InstanceType.agent,
-                               InstanceType.resilientsingle
+                               InstanceType.AGENT,
+                               InstanceType.RESILIENT_SINGLE
                            ],
                            jwtStr="afo",
-                           moreopts=['--starter.join', '127.0.0.1:9528']))
+                           moreopts=[
+                               '--starter.join',
+                               '127.0.0.1:9528',
+                               '--all.log.level=replication=debug'
+                           ]))
 
     def starter_run_impl(self):
         logging.info("Spawning starter instances")
@@ -166,6 +173,7 @@ class ActiveFailover(Runner):
         logging.info("waiting for new leader...")
         self.new_leader = None
 
+        count = 0
         while self.new_leader is None:
             for node in self.follower_nodes:
                 node.detect_leader()
@@ -176,10 +184,13 @@ class ActiveFailover(Runner):
                     break
                 progress('.')
             time.sleep(1)
-        if self.selenium:
-            self.selenium.connect_server(self.leader.get_frontends(), '_system',
-                                         self.new_cfg if self.new_cfg else self.cfg)
-            self.selenium.check_old(self.new_cfg if self.new_cfg else self.cfg, 1, 10)
+            if count > 120:
+                self.progress(False, "Timeout waiting for new leader - crashing!")
+                for node in self.follower_nodes:
+                    node.crash_instances()
+                raise TimeoutError("Timeout waiting for new leader - crashing!")
+            count += 1
+
         print()
 
         logging.info("\n" + str(self.new_leader))
@@ -191,6 +202,11 @@ class ActiveFailover(Runner):
             logging.info(reply.text)
             self.success = False
         self.set_frontend_instances()
+
+        if self.selenium:
+            self.selenium.connect_server(self.leader.get_frontends(), '_system',
+                                         self.new_cfg if self.new_cfg else self.cfg)
+            self.selenium.check_old(self.new_cfg if self.new_cfg else self.cfg, 1, 10)
 
         prompt_user(self.basecfg,
                     '''The leader failover has happened.

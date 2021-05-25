@@ -11,7 +11,7 @@ import time
 
 import click
 
-from beautifultable import BeautifulTable
+from beautifultable import BeautifulTable, ALIGN_LEFT
 
 import tools.loghelper as lh
 from acquire_packages import AcquirePackages
@@ -25,7 +25,8 @@ def upgrade_package_test(verbose,
                          package_dir,
                          enterprise_magic,
                          zip_package,
-                         dlstage, git_version,
+                         new_dlstage, old_dlstage,
+                         git_version,
                          httpusername, httppassvoid,
                          test_data_dir, version_state_dir,
                          remote_host, force,
@@ -56,31 +57,42 @@ def upgrade_package_test(verbose,
         run_cleanup(zip_package, testrun_name)
 
     for enterprise, encryption_at_rest, directory_suffix, testrun_name in execution_plan:
-        if dlstage != "local":
-            dl_old = AcquirePackages(old_version, verbose, package_dir, enterprise,
-                                     enterprise_magic, zip_package, dlstage,
-                                     httpusername, httppassvoid, remote_host)
-            dl_new = AcquirePackages(new_version, verbose, package_dir, enterprise,
-                                     enterprise_magic, zip_package, dlstage,
-                                     httpusername, httppassvoid, remote_host)
-            old_version_state = version_state_dir / Path(dl_old.cfg.version + "_sourceInfo.log")
-            new_version_state = version_state_dir / Path(dl_new.cfg.version + "_sourceInfo.log")
-            if old_version_state.exists():
-                old_version_content = old_version_state.read_text()
-            if new_version_state.exists():
-                new_version_content = new_version_state.read_text()
+        if new_dlstage != "local" or old_dlstage != "local":
+            dl_old = None
+            dl_new = None
+            fresh_old_content = None
+            fresh_new_content = None
+            if old_dlstage != "local":
+                dl_old = AcquirePackages(old_version, verbose, package_dir, enterprise,
+                                         enterprise_magic, zip_package, old_dlstage,
+                                         httpusername, httppassvoid, remote_host)
+                old_version_state = version_state_dir / Path(dl_old.cfg.version + "_sourceInfo.log")
+                if old_version_state.exists():
+                    old_version_content = old_version_state.read_text()
+                fresh_old_content = dl_old.get_version_info(old_dlstage, git_version)
 
-            fresh_old_content = dl_old.get_version_info(dlstage, git_version)
-            fresh_new_content = dl_new.get_version_info(dlstage, git_version)
-            old_changed = old_version_content != fresh_old_content
-            new_changed = new_version_content != fresh_new_content
+            if new_dlstage != "local":
+                dl_new = AcquirePackages(new_version, verbose, package_dir, enterprise,
+                                         enterprise_magic, zip_package, new_dlstage,
+                                         httpusername, httppassvoid, remote_host)
 
-            if new_changed and old_changed and not force:
-                print("we already tested this version. bye.")
-                return 0
+                new_version_state = version_state_dir / Path(dl_new.cfg.version + "_sourceInfo.log")
+                if new_version_state.exists():
+                    new_version_content = new_version_state.read_text()
+                fresh_new_content = dl_new.get_version_info(new_dlstage, git_version)
 
-            dl_old.get_packages(old_changed, dlstage)
-            dl_new.get_packages(new_changed, dlstage)
+            if new_dlstage != "local" and old_dlstage != "local":
+                old_changed = old_version_content != fresh_old_content
+                new_changed = new_version_content != fresh_new_content
+
+                if new_changed and old_changed and not force:
+                    print("we already tested this version. bye.")
+                    return 0
+
+            if dl_old:
+                dl_old.get_packages(old_changed, old_dlstage)
+            if dl_new:
+                dl_new.get_packages(new_changed, new_dlstage)
 
         test_dir = Path(test_data_dir) / directory_suffix
         if test_dir.exists():
@@ -128,7 +140,7 @@ def upgrade_package_test(verbose,
         'Test Scenario',
         # 'success', we also have this in message.
         'Message + Progress']
-    table.columns.alignment['Message + Progress'] = BeautifulTable.ALIGN_LEFT
+    table.columns.alignment['Message + Progress'] = ALIGN_LEFT
 
     tablestr = str(table)
     print(tablestr)
@@ -159,7 +171,11 @@ def upgrade_package_test(verbose,
 @click.option('--package-dir',
               default='/home/package_cache/',
               help='directory to store the packages to.')
-@click.option('--source',
+@click.option('--new-source',
+              default='ftp:stage2',
+              help='where to download the package from '
+              '[[ftp|http]:stage1|[ftp|http]:stage2|public|local]')
+@click.option('--old-source',
               default='ftp:stage2',
               help='where to download the package from '
               '[[ftp|http]:stage1|[ftp|http]:stage2|public|local]')
@@ -207,7 +223,8 @@ def upgrade_package_test(verbose,
 def main(verbose,
          new_version, old_version,
          package_dir, enterprise_magic,
-         zip_package, source,
+         zip_package,
+         new_source, old_source,
          httpuser, httppassvoid,
          test_data_dir, git_version,
          version_state_dir, remote_host,
@@ -217,7 +234,9 @@ def main(verbose,
     return upgrade_package_test(verbose,
                                 new_version, old_version,
                                 package_dir, enterprise_magic,
-                                zip_package, source, git_version,
+                                zip_package,
+                                new_source, old_source,
+                                git_version,
                                 httpuser, httppassvoid,
                                 test_data_dir,
                                 version_state_dir,

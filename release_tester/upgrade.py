@@ -101,6 +101,7 @@ def run_upgrade(old_version, new_version, verbose,
                             }
                         results.append(one_result)
                         runner.take_screenshot()
+                        runner.agency_acquire_dump()
                         runner.search_for_warnings()
                         runner.zip_test_dir()
                         if abort_on_error:
@@ -129,7 +130,7 @@ def run_upgrade(old_version, new_version, verbose,
             except:
                 pass
         except Exception as ex:
-            print("Caught.")
+            print("Caught. " + str(ex))
             one_result = {
                 'testrun name': testrun_name,
                 'testscenario': runner_strings[runner_type],
@@ -141,6 +142,7 @@ def run_upgrade(old_version, new_version, verbose,
                 print("re-throwing.")
                 raise ex
             traceback.print_exc()
+            kill_all_processes()
             if runner:
                 try:
                     runner.cleanup()
@@ -148,12 +150,16 @@ def run_upgrade(old_version, new_version, verbose,
                     print("Ignoring runner cleanup error!")
             try:
                 print("Cleaning up system after error:")
+                old_inst.un_install_debug_package()
+                old_inst.un_install_package()
                 old_inst.cleanup_system()
             except :
                 print("Ignoring old cleanup error!")
                 pass
             try:
                 print("Ignoring new cleanup error!")
+                new_inst.un_install_debug_package()
+                new_inst.un_install_package()
                 new_inst.cleanup_system()
             except:
                 pass

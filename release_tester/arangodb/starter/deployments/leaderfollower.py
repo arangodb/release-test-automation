@@ -60,7 +60,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
             self.cfg, self.basedir, 'leader',
             mode='single', port=1234,
             expect_instances=[
-                InstanceType.single
+                InstanceType.SINGLE
             ],
             jwtStr="leader",
             moreopts=[])
@@ -70,7 +70,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
             self.cfg, self.basedir, 'follower',
             mode='single', port=2345,
             expect_instances=[
-                InstanceType.single
+                InstanceType.SINGLE
             ],
             jwtStr="follower",
             moreopts=[])
