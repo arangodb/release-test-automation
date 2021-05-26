@@ -135,12 +135,15 @@ db.testCollection.save({test: "document"})
             bench_instances[1].wait()
 
     def jam_attempt_impl(self):
-        logging.info("stopping instance 2")
         agency_leader = self.agency_get_leader()
-        if self.starter_instances[2].have_this_instance(agency_leader):
-            print("Cluster instance 2 has the agency leader!")
+        terminate_instance = 2
+        if self.starter_instances[terminate_instance].have_this_instance(agency_leader):
+            print("Cluster instance 2 has the agency leader; killing 1 instead")
+            terminate_instance = 1
 
-        self.starter_instances[2].terminate_instance()
+        logging.info("stopping instance %d" % terminate_instance)
+
+        self.starter_instances[terminate_instance].terminate_instance()
         self.set_frontend_instances()
 
         prompt_user(self.basecfg, "instance stopped")
@@ -148,15 +151,15 @@ db.testCollection.save({test: "document"})
             self.selenium.jam_step_1(self.new_cfg if self.new_cfg else self.cfg)
 
         # respawn instance, and get its state fixed
-        self.starter_instances[2].respawn_instance()
+        self.starter_instances[terminate_instance].respawn_instance()
         self.set_frontend_instances()
-        while not self.starter_instances[2].is_instance_up():
+        while not self.starter_instances[terminate_instance].is_instance_up():
             progress('.')
             time.sleep(1)
         print()
-        self.starter_instances[2].detect_instances()
-        self.starter_instances[2].detect_instance_pids()
-        self.starter_instances[2].detect_instance_pids_still_alive()
+        self.starter_instances[terminate_instance].detect_instances()
+        self.starter_instances[terminate_instance].detect_instance_pids()
+        self.starter_instances[terminate_instance].detect_instance_pids_still_alive()
         self.set_frontend_instances()
 
         logging.info('jamming: Starting instance without jwt')
