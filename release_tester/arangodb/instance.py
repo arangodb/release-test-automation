@@ -128,7 +128,7 @@ class Instance(ABC):
 
     def crash_instance(self):
         """ send SIG-11 to instance... """
-        if self.instance:
+        if self.instance.status() != psutil.STATUS_RUNNING:
             try:
                 print("generating coredump for " + str(self.instance))
                 psutil.Popen(['gcore', str(self.instance.pid)], cwd=self.basedir).wait()
