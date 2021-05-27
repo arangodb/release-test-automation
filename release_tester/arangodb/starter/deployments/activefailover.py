@@ -21,7 +21,8 @@ class ActiveFailover(Runner):
                  selenium, selenium_driver_args,
                  testrun_name: str):
         super().__init__(runner_type, cfg, old_inst, new_cfg,
-                         new_inst, 'AFO', 500, 600, selenium, selenium_driver_args,
+                         new_inst, 'ActiveFailOver',
+                         500, 600, selenium, selenium_driver_args,
                          testrun_name)
         self.starter_instances = []
         self.follower_nodes = None

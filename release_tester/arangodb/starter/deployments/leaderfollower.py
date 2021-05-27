@@ -18,7 +18,7 @@ class LeaderFollower(Runner):
                  selenium, selenium_driver_args,
                  testrun_name: str):
         super().__init__(runner_type, cfg, old_inst, new_cfg,
-                         new_inst, 'lf', 400, 500, selenium, selenium_driver_args,
+                         new_inst, 'LeaderFollower', 400, 500, selenium, selenium_driver_args,
                          testrun_name)
 
         self.leader_starter_instance = None

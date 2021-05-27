@@ -25,7 +25,7 @@ from arangodb.instance import InstanceType, print_instances_table
 from arangodb.sh import ArangoshExecutor
 from tools.killall import kill_all_processes
 
-FNRX = re.compile("[\n@]*")
+FNRX = re.compile("[\n@ ]*")
 
 class Runner(ABC):
     """abstract starter deployment runner"""
@@ -684,15 +684,14 @@ class Runner(ABC):
 
     def zip_test_dir(self):
         """ stores the test directory for later analysis """
-        testdir = self.basecfg.base_test_dir / self.basedir
         filename = '%s_%s' % (
             FNRX.sub('', self.testrun_name),
             self.__class__.__name__
         )
         shutil.make_archive(filename,
                             "bztar",
-                            testdir,
-                            self.basecfg.base_test_dir)
+                            self.basecfg.base_test_dir,
+                            self.basedir)
 
     def cleanup(self):
         """ remove all directories created by this test """
