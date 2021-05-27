@@ -130,12 +130,16 @@ class Instance(ABC):
         """ send SIG-11 to instance... """
         if self.instance:
             try:
-                if self.instance.status() == psutil.STATUS_RUNNING:
+                print(self.instance.status() )
+                if (self.instance.status() == psutil.STATUS_RUNNING or
+                    self.instance.status() == psutil.STATUS_SLEEPING):
                     print("generating coredump for " + str(self.instance))
                     psutil.Popen(['gcore', str(self.instance.pid)], cwd=self.basedir).wait()
 
                     self.instance.send_signal(signal.SIGSEGV)
                     self.instance.wait()
+                else:
+                    print("NOT generating coredump for " + str(self.instance))
             except psutil.NoSuchProcess:
                 logging.info("instance already dead: " + str(self.instance))
             self.instance = None
