@@ -11,7 +11,7 @@ from arangodb.installers import make_installer, InstallerConfig
 import tools.loghelper as lh
 
 import requests
-
+from common_options import very_common_options, download_options
 class AcquirePackages():
     """ manage package downloading from any known arango package source """
 
@@ -38,6 +38,7 @@ class AcquirePackages():
         self.passvoid = httppassvoid
         self.enterprise_magic = enterprise_magic
         if remote_host != "":
+            # external DNS to wuerg around docker dns issues...
             self.remote_host = remote_host
         else:
             # dns split horizon...
@@ -219,43 +220,23 @@ class AcquirePackages():
         return json.dumps(val)
 
 @click.command()
-@click.option('--new-version', help='ArangoDB version number.')
-@click.option('--verbose/--no-verbose',
-              is_flag=True,
-              default=False,
-              help='switch starter to verbose logging mode.')
-@click.option('--enterprise/--no-enterprise',
-              is_flag=True,
-              default=False,
-              help='Enterprise or community?')
-@click.option('--enterprise-magic',
-              default='',
-              help='Enterprise or community?')
-@click.option('--zip/--no-zip', 'zip_package',
-              is_flag=True,
-              default=False,
-              help='switch to zip or tar.gz package instead of default OS package')
-@click.option('--package-dir',
-              default='/tmp/',
-              help='directory to store the packages to.')
-@click.option('--force/--no-force',
-              is_flag=True,
-              default=False,
-              help='whether to overwrite existing target files or not.')
-@click.option('--source',
-              default='public',
-              help='where to download the package from [[ftp|http]:stage1|[ftp|http]:stage2|public]')
-@click.option('--httpuser',
-              default="",
-              help='user for external http download')
-@click.option('--httppassvoid',
-              default="",
-              help='passvoid for external http download')
-@click.option('--remote-host',
-              default="",
-              help='remote host to acquire packages from')
+@very_common_options
+@download_options
 # pylint: disable=R0913
-def main(new_version, verbose, package_dir, enterprise, enterprise_magic, zip_package, force, source, httpuser, httppassvoid, remote_host):
+def main(
+        #very_common_options
+        new_version,
+        verbose,
+        enterprise,
+        package_dir,
+        zip_package,
+        # download options:
+        enterprise_magic,
+        force,
+        source,
+        httpuser,
+        httppassvoid,
+        remote_host):
     """ main wrapper """
     lh.configure_logging(verbose)
     downloader = AcquirePackages(new_version, verbose, package_dir, enterprise, enterprise_magic, zip_package, source, httpuser, httppassvoid, remote_host)

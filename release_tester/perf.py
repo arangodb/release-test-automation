@@ -5,55 +5,18 @@ from pathlib import Path
 import sys
 import re
 import click
+from common_options import very_common_options, common_options
 from tools.killall import kill_all_processes
 from arangodb.installers import make_installer, InstallerConfig
 from arangodb.starter.deployments.cluster_perf import ClusterPerf
-from arangodb.starter.deployments import (
-    RunnerType,
-    STARTER_MODES
-)
+from arangodb.starter.deployments import RunnerType
 import tools.loghelper as lh
 
 @click.command()
-@click.option('--old-version', help='unused')
-@click.option('--new-version', help='ArangoDB version number.')
-@click.option('--verbose/--no-verbose',
-              is_flag=True,
-              default=False,
-              help='switch starter to verbose logging mode.')
-@click.option('--enterprise/--no-enterprise',
-              is_flag=True,
-              default=False,
-              help='Enterprise or community?')
-@click.option('--encryption-at-rest/--no-encryption-at-rest',
-              is_flag=True,
-              default=False,
-              help='turn on encryption at rest for Enterprise packages')
-@click.option('--zip/--no-zip', 'zip_package',
-              is_flag=True,
-              default=False,
-              help='switch to zip or tar.gz package instead of default OS package')
-@click.option('--interactive/--no-interactive',
-              is_flag=True,
-              default=False,
-              help='wait for the user to hit Enter?')
-@click.option('--package-dir',
-              default='/tmp/',
-              help='directory to load the packages from.')
-@click.option('--test-data-dir',
-              default='/tmp/',
-              help='directory create databases etc. in.')
 @click.option('--mode',
               type=click.Choice(["all", "install", "uninstall", "tests", ]),
               default='all',
               help='operation mode.')
-@click.option('--starter-mode',
-              default='all',
-              type=click.Choice(STARTER_MODES.keys()),
-              help='which starter deployments modes to use')
-@click.option('--publicip',
-              default='127.0.0.1',
-              help='IP for the click to browser hints.')
 
 @click.option('--scenario',
               default='scenarios/cluster_replicated.yml',
@@ -61,18 +24,27 @@ import tools.loghelper as lh
 @click.option('--frontends',
               multiple=True,
               help='Connection strings of remote clusters')
-@click.option('--selenium',
-              default='none',
-              help='if non-interactive chose the selenium target')
-@click.option('--selenium-driver-args',
-              default=[],
-              multiple=True,
-              help='options to the selenium web driver')
+@very_common_options()
+@common_options(support_old=False)
 # pylint: disable=R0913
-def run_test(old_version, new_version, verbose, package_dir, test_data_dir,
-             enterprise, encryption_at_rest, zip_package,
-             interactive, mode, starter_mode, publicip, scenario, frontends,
-             selenium, selenium_driver_args):
+def run_test(mode, scenario, frontends,
+             #very_common_options
+             new_version,
+             verbose,
+             enterprise,
+             package_dir,
+             zip_package,
+             # common_options
+             # old_version,
+             test_data_dir,
+             encryption_at_rest,
+             interactive,
+             starter_mode,
+             stress_upgrade,
+             abort_on_error,
+             publicip,
+             selenium,
+             selenium_driver_args):
     """ main """
     lh.configure_logging(verbose)
 

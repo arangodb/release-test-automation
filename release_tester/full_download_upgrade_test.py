@@ -10,6 +10,7 @@ import shutil
 import time
 
 import click
+from common_options import very_common_options, common_options, download_options
 
 from beautifultable import BeautifulTable, ALIGN_LEFT
 
@@ -17,7 +18,6 @@ import tools.loghelper as lh
 from acquire_packages import AcquirePackages
 from upgrade import run_upgrade
 from cleanup import run_cleanup
-from arangodb.starter.deployments import STARTER_MODES
 
 # pylint: disable=R0913 disable=R0914
 def upgrade_package_test(verbose,
@@ -155,81 +155,43 @@ def upgrade_package_test(verbose,
     return 0
 
 @click.command()
-@click.option('--verbose/--no-verbose',
-              is_flag=True,
-              default=True,
-              help='switch starter to verbose logging mode.')
-@click.option('--new-version', help='ArangoDB version number.', default="3.8.0-nightly")
-@click.option('--old-version', help='old ArangoDB version number.', default="3.7.7-nightly")
-@click.option('--enterprise-magic',
-              default='',
-              help='Enterprise or community?')
-@click.option('--zip/--no-zip', 'zip_package',
-              is_flag=True,
-              default=True,
-              help='switch to zip or tar.gz package instead of default OS package')
-@click.option('--package-dir',
-              default='/home/package_cache/',
-              help='directory to store the packages to.')
-@click.option('--new-source',
-              default='ftp:stage2',
-              help='where to download the package from '
-              '[[ftp|http]:stage1|[ftp|http]:stage2|public|local]')
-@click.option('--old-source',
-              default='ftp:stage2',
-              help='where to download the package from '
-              '[[ftp|http]:stage1|[ftp|http]:stage2|public|local]')
-@click.option('--httpuser',
-              default="",
-              help='user for external http download')
-@click.option('--httppassvoid',
-              default="",
-              help='passvoid for external http download')
-@click.option('--test-data-dir',
-              default='/home/test_dir',
-              help='directory create databases etc. in.')
 @click.option('--version-state-dir',
               default='/home/versions',
               help='directory to remember the tested version combination in.')
 @click.option('--git-version',
               default='',
               help='specify the output of: git rev-parse --verify HEAD')
-@click.option('--remote-host',
-              default="",
-              help='remote host to acquire packages from')
-@click.option('--force/--no-force',
-              is_flag=True,
-              default=False,
-              help='whether to overwrite existing target files or not.')
-@click.option('--starter-mode',
-              default='all',
-              type=click.Choice(STARTER_MODES.keys()),
-              help='which starter deployments modes to use')
-@click.option('--stress-upgrade',
-              is_flag=True,
-              default=False,
-              help='launch arangobench before starting the upgrade')
-@click.option('--publicip',
-              default='127.0.0.1',
-              help='IP for the click to browser hints.')
-@click.option('--selenium',
-              default='Chrome',
-              help='if non-interactive chose the selenium target')
-@click.option('--selenium-driver-args',
-              default=['headless', 'disable-dev-shm-usage'],
-              multiple=True,
-              help='options to the selenium web driver')
+@very_common_options()
+@common_options(True, interactive=False)
+@download_options(double_source=True)
 # pylint: disable=R0913
-def main(verbose,
-         new_version, old_version,
-         package_dir, enterprise_magic,
-         zip_package,
-         new_source, old_source,
-         httpuser, httppassvoid,
-         test_data_dir, git_version,
-         version_state_dir, remote_host,
-         force, starter_mode, stress_upgrade,
-         publicip, selenium, selenium_driver_args):
+def main(
+        version_state_dir,
+        git_version,
+        #very_common_options
+        new_version,
+        verbose,
+        enterprise,
+        package_dir,
+        zip_package,
+        # common_options
+        old_version,
+        test_data_dir,
+        encryption_at_rest,
+        # no-interactive!
+        starter_mode,
+        stress_upgrade,
+        abort_on_error,
+        publicip,
+        selenium,
+        selenium_driver_args,
+        # download options:
+        enterprise_magic,
+        force,
+        new_source, old_source,
+        httpuser,
+        httppassvoid,
+        remote_host):
     """ main """
     return upgrade_package_test(verbose,
                                 new_version, old_version,
