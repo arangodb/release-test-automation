@@ -6,7 +6,7 @@ import traceback
 
 import sys
 import click
-from common_options import common_options
+from common_options import very_common_options, common_options
 from tools.killall import kill_all_processes
 from arangodb.installers import make_installer, InstallerConfig
 from arangodb.starter.deployments import (
