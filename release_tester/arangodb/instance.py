@@ -128,13 +128,14 @@ class Instance(ABC):
 
     def crash_instance(self):
         """ send SIG-11 to instance... """
-        if self.instance.status() != psutil.STATUS_RUNNING:
+        if self.instance:
             try:
-                print("generating coredump for " + str(self.instance))
-                psutil.Popen(['gcore', str(self.instance.pid)], cwd=self.basedir).wait()
+                if self.instance.status() == psutil.STATUS_RUNNING:
+                    print("generating coredump for " + str(self.instance))
+                    psutil.Popen(['gcore', str(self.instance.pid)], cwd=self.basedir).wait()
 
-                self.instance.send_signal(signal.SIGSEGV)
-                self.instance.wait()
+                    self.instance.send_signal(signal.SIGSEGV)
+                    self.instance.wait()
             except psutil.NoSuchProcess:
                 logging.info("instance already dead: " + str(self.instance))
             self.instance = None
