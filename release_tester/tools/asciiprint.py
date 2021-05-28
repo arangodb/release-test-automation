@@ -45,6 +45,7 @@ def ascii_print(string):
 
 def print_progress(char):
     """ print a throbber alike that immediately is sent to the console """
+    # pylint: disable=W0603
     global PROGRESS_COUNT
     print(char, end="")
     PROGRESS_COUNT +=1

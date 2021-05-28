@@ -64,6 +64,7 @@ if docker exec $DOCKER_RPM_NAME \
           --old-version "${OLD_VERSION}" \
           --new-version "${NEW_VERSION}" \
           --no-zip \
+          --verbose \
           --selenium Chrome \
           --selenium-driver-args headless \
           --selenium-driver-args disable-dev-shm-usage \
