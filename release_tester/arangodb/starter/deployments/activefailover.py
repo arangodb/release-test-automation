@@ -161,6 +161,9 @@ class ActiveFailover(Runner):
             node.detect_instance_pids_still_alive()
         self.starter_instances[1].command_upgrade()
         self.starter_instances[1].wait_for_upgrade(180)
+        for node in self.starter_instances:
+            node.detect_instance_pids()
+        self.print_all_instances_table()
         if self.selenium:
             self.selenium.web.refresh() # version doesn't upgrade if we don't do this...
             self.selenium.check_old(self.new_cfg, 2, 10)
@@ -187,7 +190,7 @@ class ActiveFailover(Runner):
             time.sleep(1)
             if count > 120:
                 self.progress(False, "Timeout waiting for new leader - crashing!")
-                for node in self.follower_nodes:
+                for node in self.starter_instances:
                     node.crash_instances()
                 raise TimeoutError("Timeout waiting for new leader - crashing!")
             count += 1
