@@ -3,9 +3,8 @@
 """ Release testing script"""
 from pathlib import Path
 
-import sys
 import click
-
+from common_options import very_common_options, common_options
 from arangodb.installers import make_installer, InstallerConfig
 from arangodb.starter.deployments import (
     RunnerType,
@@ -14,7 +13,7 @@ from arangodb.starter.deployments import (
 )
 import tools.loghelper as lh
 
-# pylint: disable=R0913 disable=R0914
+# pylint: disable=R0913 disable=R0914 disable=R0914
 def run_upgrade(old_version, new_version, verbose,
                 package_dir, test_data_dir,
                 enterprise, encryption_at_rest,
@@ -84,22 +83,11 @@ def run_upgrade(old_version, new_version, verbose,
 @common_options(support_old=True)
 def main(
         #very_common_options
-        new_version,
-        verbose,
-        enterprise,
-        package_dir,
-        zip_package,
-        # common_options 
-        old_version,
-        test_data_dir,
-        encryption_at_rest,
-        interactive,
-        starter_mode,
-        stress_upgrade,
-        abort_on_error,
-        publicip,
-        selenium,
-        selenium_driver_args):
+        new_version, verbose, enterprise, package_dir, zip_package,
+        # common_options
+        old_version, test_data_dir, encryption_at_rest, interactive,
+        starter_mode, stress_upgrade, abort_on_error, publicip,
+        selenium, selenium_driver_args):
     """ main trampoline """
     return run_upgrade(old_version, new_version, verbose,
                        package_dir, test_data_dir,

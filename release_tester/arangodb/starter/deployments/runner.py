@@ -29,7 +29,7 @@ FNRX = re.compile("[\n@ ]*")
 
 class Runner(ABC):
     """abstract starter deployment runner"""
-# pylint: disable=R0913 disable=R0902 disable=R0904
+# pylint: disable=R0913 disable=R0902 disable=R0904 disable=C0415
     def __init__(
             self,
             runner_type,
@@ -122,7 +122,6 @@ class Runner(ABC):
         if selenium_worker == "none":
             self.selenium = None
         else:
-            #pylint: disable=C0415 disable=import-outside-toplevel
             from arangodb.starter.deployments.selenium_deployments import init as init_selenium
             self.selenium = init_selenium(
                 runner_type,

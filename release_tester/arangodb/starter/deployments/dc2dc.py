@@ -140,7 +140,7 @@ class Dc2Dc(Runner):
             inst.detect_instances()
             inst.detect_instance_pids()
             cluster['smport'] = inst.get_sync_master_port()
-            
+
             url = 'http://{host}:{port}'.format(
                 host=self.cfg.publicip,
                 port=str(cluster['smport']))

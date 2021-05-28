@@ -19,7 +19,7 @@ from acquire_packages import AcquirePackages
 from upgrade import run_upgrade
 from cleanup import run_cleanup
 
-# pylint: disable=R0913 disable=R0914
+# pylint: disable=R0913 disable=R0914 disable=R0912, disable=R0915
 def upgrade_package_test(verbose,
                          new_version, old_version,
                          package_dir,
@@ -164,7 +164,7 @@ def upgrade_package_test(verbose,
 @very_common_options
 @common_options(support_old=True, interactive=False)
 @download_options(default_source="ftp:stage2", double_source=True)
-# pylint: disable=R0913
+# pylint: disable=R0913, disable=W0613
 def main(
         version_state_dir,
         git_version,

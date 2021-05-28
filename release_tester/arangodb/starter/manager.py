@@ -234,6 +234,7 @@ class StarterManager():
 
     def attach_running_starter(self):
         """ somebody else is running the party, but we also want to have a look """
+        #pylint disable=W0703
         match_str = "--starter.data-dir={0.basedir}".format(self)
         if self.passvoidfile.exists():
             self.passvoid = self.passvoidfile.read_text()
@@ -332,14 +333,13 @@ class StarterManager():
                 self.instance.status() == psutil.STATUS_SLEEPING):
                 print("generating coredump for " + str(self.instance))
                 psutil.Popen(['gcore', str(self.instance.pid)], cwd=self.basedir).wait()
-                
                 self.instance.send_signal(signal.SIGSEGV)
                 self.instance.wait()
             else:
                 print("NOT generating coredump for " + str(self.instance))
         except psutil.NoSuchProcess:
             logging.info("instance already dead: " + str(self.instance))
-            
+
         for instance in self.all_instances:
             instance.crash_instance()
 

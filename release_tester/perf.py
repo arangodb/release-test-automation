@@ -24,9 +24,9 @@ import tools.loghelper as lh
 @click.option('--frontends',
               multiple=True,
               help='Connection strings of remote clusters')
-@very_common_options()
+@very_common_options
 @common_options(support_old=False)
-# pylint: disable=R0913
+# pylint: disable=R0913 disable=W0613
 def run_test(mode, scenario, frontends,
              #very_common_options
              new_version,

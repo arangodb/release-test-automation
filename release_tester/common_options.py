@@ -135,6 +135,5 @@ def download_options(default_source="public", double_source=False):
                                 default="",
                                 help='remote host to acquire packages from'
                                 )(function)
-    
         return function
     return inner_func

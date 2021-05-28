@@ -9,6 +9,7 @@ from tools.killall import kill_all_processes
 from arangodb.installers import make_installer, InstallerConfig
 from arangodb.starter.deployments import RunnerType, make_runner
 
+# pylint: disable=W0703
 def run_cleanup(zip_package, testrun_name: str = ""):
     """ main """
 

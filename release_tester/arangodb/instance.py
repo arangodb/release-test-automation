@@ -7,7 +7,6 @@ import json
 import logging
 import re
 import signal
-import sys
 import time
 
 from beautifultable import BeautifulTable
@@ -467,10 +466,9 @@ class ArangodInstance(Instance):
             logging.error("could not get pid for instance: " + repr(self))
             logging.error("inspect: " + str(self.logfile))
             raise TimeoutError("could not get pid for instance: " + repr(self))
-        else:
-            logging.info(
-                "found process for pid {0} for "
-                "instance with logfile {1} at {2}.".format(
+        logging.info(
+            "found process for pid {0} for "
+            "instance with logfile {1} at {2}.".format(
                 self.pid,
                 str(self.logfile),
                 t_start

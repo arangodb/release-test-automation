@@ -39,6 +39,7 @@ class InstallerRPM(InstallerLinux):
         architecture = 'x86_64'
 
         if self.cfg.semver.prerelease == "nightly":
+            # pylint disable=W0212
             self.cfg.semver._prerelease = ''
             self.cfg.semver._build = "0.2"
         semdict = dict(self.cfg.semver.to_dict())
@@ -74,7 +75,7 @@ class InstallerRPM(InstallerLinux):
         if self.instance.pid:
             try:
                 psutil.Process(self.instance.pid)
-            except:
+            except Exception:
                 return False
         else:
             return False

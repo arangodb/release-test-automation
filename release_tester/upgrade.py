@@ -17,7 +17,7 @@ from arangodb.starter.deployments import (
 )
 import tools.loghelper as lh
 
-# pylint: disable=R0913 disable=R0914, disable=W0703
+# pylint: disable=R0913 disable=R0914, disable=W0703, disable=R0912, disable=R0915
 def run_upgrade(old_version, new_version, verbose,
                 package_dir, test_data_dir,
                 enterprise, encryption_at_rest,
