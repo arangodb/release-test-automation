@@ -7,6 +7,7 @@ import logging
 from pathlib import Path
 import pexpect
 import psutil
+import semver
 from arangodb.sh import ArangoshExecutor
 from arangodb.installers.linux import InstallerLinux
 from tools.asciiprint import ascii_print, print_progress as progress
@@ -43,11 +44,9 @@ class InstallerRPM(InstallerLinux):
         if prerelease is None or prerelease == '':
             semdict['prerelease'] = ''
         elif prerelease == 'nightly':
-            print(semdict)
-            self.cfg.semver._prerelease = ''
-            self.cfg.semver._build = "0.2"
-            semdict = dict(self.cfg.semver.to_dict())
-            print(semdict)
+            self.cfg.semver = semver.VersionInfo.parse(
+                "{major}.{minor}.{patch}+0.2".format(**semdict))
+            semdict['prerelease'] = ''
         elif prerelease.startswith("beta"):
             semdict['prerelease'] = '.' + semdict['prerelease'].replace('.', '')
             semdict['build'] = "0.201"
