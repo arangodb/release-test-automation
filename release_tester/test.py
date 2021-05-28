@@ -20,26 +20,16 @@ import tools.loghelper as lh
               default='all',
               help='operation mode.')
 @very_common_options
-@common_options(support_old=True)
-# pylint: disable=R0913 disable=R0914
+@common_options(support_old=False)
+# pylint: disable=R0913 disable=R0914, disable=W0703
 def run_test(mode,
              #very_common_options
-             new_version,
-             verbose,
-             enterprise,
-             package_dir,
-             zip_package,
+             new_version, verbose, enterprise, package_dir, zip_package,
              # common_options
-             old_version,
-             test_data_dir,
-             encryption_at_rest,
-             interactive,
-             starter_mode,
-             stress_upgrade,
-             abort_on_error,
-             publicip,
-             selenium,
-             selenium_driver_args):
+             # old_version,
+             test_data_dir, encryption_at_rest, interactive, starter_mode,
+             # stress_upgrade,
+             abort_on_error, publicip, selenium, selenium_driver_args):
     """ main """
     lh.configure_logging(verbose)
     lh.section("configuration")
@@ -81,8 +71,14 @@ def run_test(mode,
         # only uninstall after the last test:
         runner.do_uninstall = (count == len(starter_mode)) and do_uninstall
         failed = False
-        if not runner.run():
+        try:
+            if not runner.run():
+                failed = True
+        except Exception as ex:
             failed = True
+            if abort_on_error:
+                raise ex
+            print(ex)
 
         kill_all_processes()
         count += 1

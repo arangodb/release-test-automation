@@ -65,11 +65,12 @@ def common_options( support_old=True, interactive=True):
                                 type=click.Choice(STARTER_MODES.keys()),
                                 help='which starter deployments modes to use'
                                 )(function)
-        function = click.option('--stress-upgrade',
-                                is_flag=True,
-                                default=False,
-                                help='launch arangobench before starting the upgrade'
-                                )(function)
+        if support_old:
+            function = click.option('--stress-upgrade',
+                                    is_flag=True,
+                                    default=False,
+                                    help='launch arangobench before starting the upgrade'
+                                    )(function)
         function = click.option('--abort-on-error',
                                 is_flag=True,
                                 default=True,

@@ -17,7 +17,7 @@ from arangodb.starter.deployments import (
 )
 import tools.loghelper as lh
 
-# pylint: disable=R0913 disable=R0914
+# pylint: disable=R0913 disable=R0914, disable=W0703
 def run_upgrade(old_version, new_version, verbose,
                 package_dir, test_data_dir,
                 enterprise, encryption_at_rest,
@@ -121,13 +121,13 @@ def run_upgrade(old_version, new_version, verbose,
             lh.section("remove residuals")
             try:
                 old_inst.cleanup_system()
-            except :
+            except Exception:
                 print("Ignoring old cleanup error!")
                 pass
             try:
                 print("Ignoring new cleanup error!")
                 new_inst.cleanup_system()
-            except:
+            except Exception:
                 pass
         except Exception as ex:
             print("Caught. " + str(ex))
@@ -146,14 +146,14 @@ def run_upgrade(old_version, new_version, verbose,
             if runner:
                 try:
                     runner.cleanup()
-                except:
+                except Exception:
                     print("Ignoring runner cleanup error!")
             try:
                 print("Cleaning up system after error:")
                 old_inst.un_install_debug_package()
                 old_inst.un_install_package()
                 old_inst.cleanup_system()
-            except :
+            except Exception:
                 print("Ignoring old cleanup error!")
                 pass
             try:
@@ -161,7 +161,7 @@ def run_upgrade(old_version, new_version, verbose,
                 new_inst.un_install_debug_package()
                 new_inst.un_install_package()
                 new_inst.cleanup_system()
-            except:
+            except Exception:
                 pass
         results.append(one_result)
     return results
@@ -173,7 +173,7 @@ def run_upgrade(old_version, new_version, verbose,
 def main(
         #very_common_options
         new_version, verbose, enterprise, package_dir, zip_package,
-        # common_options 
+        # common_options
         old_version, test_data_dir, encryption_at_rest, interactive,
         starter_mode, stress_upgrade, abort_on_error, publicip,
         selenium, selenium_driver_args):
