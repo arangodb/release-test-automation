@@ -520,7 +520,7 @@ class SyncInstance(Instance):
     def __repr__(self):
         """ dump us """
         #raise Exception("blarg")
-         return """
+        return """
  arangosync instance | type  | pid  | logfile
        {0.name}      | {0.type_str} |  {0.pid} |  {0.logfile}
  """.format(self)
