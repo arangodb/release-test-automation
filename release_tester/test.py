@@ -19,7 +19,7 @@ import tools.loghelper as lh
               type=click.Choice(["all", "install", "uninstall", "tests", ]),
               default='all',
               help='operation mode.')
-@very_common_options()
+@very_common_options
 @common_options(support_old=True)
 # pylint: disable=R0913 disable=R0914
 def run_test(mode,

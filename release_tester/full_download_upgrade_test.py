@@ -161,37 +161,23 @@ def upgrade_package_test(verbose,
 @click.option('--git-version',
               default='',
               help='specify the output of: git rev-parse --verify HEAD')
-@very_common_options()
-@common_options(True, interactive=False)
-@download_options(double_source=True)
+@very_common_options
+@common_options(support_old=True, interactive=False)
+@download_options(default_source="ftp:stage2", double_source=True)
 # pylint: disable=R0913
 def main(
         version_state_dir,
         git_version,
         #very_common_options
-        new_version,
-        verbose,
-        enterprise,
-        package_dir,
-        zip_package,
+        new_version, verbose, enterprise, package_dir, zip_package,
         # common_options
-        old_version,
-        test_data_dir,
-        encryption_at_rest,
+        old_version, test_data_dir, encryption_at_rest,
         # no-interactive!
-        starter_mode,
-        stress_upgrade,
-        abort_on_error,
-        publicip,
-        selenium,
-        selenium_driver_args,
+        starter_mode, stress_upgrade, abort_on_error, publicip,
+        selenium, selenium_driver_args,
         # download options:
-        enterprise_magic,
-        force,
-        new_source, old_source,
-        httpuser,
-        httppassvoid,
-        remote_host):
+        enterprise_magic, force, new_source, old_source,
+        httpuser, httppassvoid, remote_host):
     """ main """
     return upgrade_package_test(verbose,
                                 new_version, old_version,

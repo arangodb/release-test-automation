@@ -169,25 +169,14 @@ def run_upgrade(old_version, new_version, verbose,
 @click.command()
 # pylint: disable=R0913
 @very_common_options
-@common_options(support_old=True)
+@common_options(support_old=True, interactive=True)
 def main(
         #very_common_options
-        new_version,
-        verbose,
-        enterprise,
-        package_dir,
-        zip_package,
+        new_version, verbose, enterprise, package_dir, zip_package,
         # common_options 
-        old_version,
-        test_data_dir,
-        encryption_at_rest,
-        interactive,
-        starter_mode,
-        stress_upgrade,
-        abort_on_error,
-        publicip,
-        selenium,
-        selenium_driver_args):
+        old_version, test_data_dir, encryption_at_rest, interactive,
+        starter_mode, stress_upgrade, abort_on_error, publicip,
+        selenium, selenium_driver_args):
     """ main trampoline """
     lh.configure_logging(verbose)
     results = run_upgrade(old_version, new_version, verbose,
