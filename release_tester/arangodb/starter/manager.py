@@ -9,7 +9,6 @@ import http.client as http_client
 import logging
 import os
 import re
-import signal
 import subprocess
 import sys
 import time
@@ -247,7 +246,7 @@ class StarterManager():
                         print('attaching ' + str(process.pid))
                         self.instance = process
                         return
-            except Exception as ex:
+            except psutil.NoSuchProcess as ex:
                 logging.error(ex)
         raise Exception("didn't find a starter for " + match_str)
 
@@ -332,7 +331,6 @@ class StarterManager():
                 self.instance.status() == psutil.STATUS_SLEEPING):
                 print("generating coredump for " + str(self.instance))
                 psutil.Popen(['gcore', str(self.instance.pid)], cwd=self.basedir).wait()
-                
                 self.kill_instance()
             else:
                 print("NOT generating coredump for " + str(self.instance))
