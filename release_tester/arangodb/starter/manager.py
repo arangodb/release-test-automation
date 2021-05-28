@@ -9,7 +9,6 @@ import http.client as http_client
 import logging
 import os
 import re
-import signal
 import subprocess
 import sys
 import time
@@ -248,7 +247,7 @@ class StarterManager():
                         print('attaching ' + str(process.pid))
                         self.instance = process
                         return
-            except Exception as ex:
+            except psutil.NoSuchProcess as ex:
                 logging.error(ex)
         raise Exception("didn't find a starter for " + match_str)
 

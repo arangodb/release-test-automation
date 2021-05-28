@@ -6,7 +6,6 @@ from enum import IntEnum
 import json
 import logging
 import re
-import signal
 import time
 
 from beautifultable import BeautifulTable
