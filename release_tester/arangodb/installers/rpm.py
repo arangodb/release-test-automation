@@ -37,24 +37,21 @@ class InstallerRPM(InstallerLinux):
     def calculate_package_names(self):
         enterprise = 'e' if self.cfg.enterprise else ''
         architecture = 'x86_64'
+
         prerelease = self.cfg.semver.prerelease
-        if prerelease == "nightly":
-            # pylint disable=W0212
-            self.cfg.semver._prerelease = ''
-            self.cfg.semver._build = "0.2"
-        elif prerelease == "beta":
-            # pylint disable=W0212
-            self.cfg.semver._build = "0.201"
-        elif prerelease == "rc":
-            # pylint disable=W0212
-            self.cfg.semver._build = "0.501"
-
         semdict = dict(self.cfg.semver.to_dict())
-
-        if semdict['prerelease']:
+        if prerelease:
             if prerelease == 'nightly':
                 # remove dots, but prepend one:
                 semdict['prerelease'] = '.' + semdict['prerelease'].replace('.', '')
+                self.cfg.semver._build = "0.2"
+            elif prerelease.startswith("beta"):
+                semdict['prerelease'] = '.' + semdict['prerelease'].replace('.', '')
+                semdict['build'] = "0.201"
+            elif prerelease.startswith("rc"):
+                # remove dots, but prepend one:
+                semdict['prerelease'] = '.' + semdict['prerelease'].replace('.', '')
+                semdict['build'] = "0.501"
         else:
             semdict['prerelease'] = ''
 
