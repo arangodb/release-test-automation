@@ -43,9 +43,11 @@ class InstallerRPM(InstallerLinux):
         if prerelease is None or prerelease == '':
             semdict['prerelease'] = ''
         elif prerelease == 'nightly':
+            print(semdict)
             self.cfg.semver._prerelease = ''
             self.cfg.semver._build = "0.2"
             semdict = dict(self.cfg.semver.to_dict())
+            print(semdict)
         elif prerelease.startswith("beta"):
             semdict['prerelease'] = '.' + semdict['prerelease'].replace('.', '')
             semdict['build'] = "0.201"
