@@ -40,18 +40,19 @@ class InstallerRPM(InstallerLinux):
 
         prerelease = self.cfg.semver.prerelease
         semdict = dict(self.cfg.semver.to_dict())
-        if prerelease:
-            if prerelease == 'nightly':
-                # remove dots, but prepend one:
-                semdict['prerelease'] = '.' + semdict['prerelease'].replace('.', '')
-                self.cfg.semver._build = "0.2"
-            elif prerelease.startswith("beta"):
-                semdict['prerelease'] = '.' + semdict['prerelease'].replace('.', '')
-                semdict['build'] = "0.201"
-            elif prerelease.startswith("rc"):
-                # remove dots, but prepend one:
-                semdict['prerelease'] = '.' + semdict['prerelease'].replace('.', '')
-                semdict['build'] = "0.501"
+        if prerelease == 'nightly':
+            self.cfg.semver._prerelease = ''
+            self.cfg.semver._build = "0.2"
+        elif prerelease.startswith("beta"):
+            semdict['prerelease'] = '.' + semdict['prerelease'].replace('.', '')
+            semdict['build'] = "0.201"
+        elif prerelease.startswith("rc"):
+            # remove dots, but prepend one:
+            semdict['prerelease'] = '.' + semdict['prerelease'].replace('.', '')
+            semdict['build'] = "0.501"
+        elif len(prerelease) > 0:
+            # remove dots, but prepend one:
+            semdict['prerelease'] = '.' + semdict['prerelease'].replace('.', '')
         else:
             semdict['prerelease'] = ''
 
