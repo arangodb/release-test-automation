@@ -466,7 +466,7 @@ class ArangodInstance(Instance):
             print()
             logging.error("could not get pid for instance: " + repr(self))
             logging.error("inspect: " + str(self.logfile))
-            sys.exit(1)
+            raise TimeoutError("could not get pid for instance: " + repr(self))
         else:
             logging.info(
                 "found process for pid {0} for "
@@ -519,11 +519,11 @@ class SyncInstance(Instance):
 
     def __repr__(self):
         """ dump us """
-        raise Exception("blarg")
-#         return """
-# arangosync instance | type  | pid  | logfile
-#       {0.name}      | {0.type_str} |  {0.pid} |  {0.logfile}
-# """.format(self)
+        #raise Exception("blarg")
+         return """
+ arangosync instance | type  | pid  | logfile
+       {0.name}      | {0.type_str} |  {0.pid} |  {0.logfile}
+ """.format(self)
 
     def get_essentials(self):
         """ get the essential attributes of the class """
