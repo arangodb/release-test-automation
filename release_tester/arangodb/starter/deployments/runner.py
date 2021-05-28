@@ -122,12 +122,14 @@ class Runner(ABC):
         if selenium_worker == "none":
             self.selenium = None
         else:
+            print("Launching Browser")
             from arangodb.starter.deployments.selenium_deployments import init as init_selenium
             self.selenium = init_selenium(
                 runner_type,
                 selenium_worker,
                 selenium_driver_args,
                 self.testrun_name)
+            print("Browser online")
 
     def progress(self, is_sub, msg, separator='x'):
         """ report user message, record for error handling. """
