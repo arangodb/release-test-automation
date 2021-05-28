@@ -49,6 +49,7 @@ docker \
   $DOCKER_TAG \
   /home/release-test-automation/release_tester/full_download_upgrade_test.py \
       --zip \
+      --verbose \
       --old-version $OLD_VERSION \
       --new-version $NEW_VERSION \
       --selenium Chrome \
