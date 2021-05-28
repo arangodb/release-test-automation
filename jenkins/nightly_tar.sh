@@ -47,7 +47,8 @@ docker \
   --ulimit core=-1 \
   --init \
   $DOCKER_TAG \
-    /home/release-test-automation/release_tester/full_download_upgrade_test.py \
+  /home/release-test-automation/release_tester/full_download_upgrade_test.py \
+      --zip \
       --old-version $OLD_VERSION \
       --new-version $NEW_VERSION \
       --selenium Chrome \
