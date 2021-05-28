@@ -47,7 +47,7 @@ class InstallerDeb(InstallerLinux):
 
         if semdict['prerelease']:
             if semdict['prerelease'].startswith('rc'):
-                semdict['prerelease'] = '~{prerelease}-1'.format(**semdict)
+                semdict['prerelease'] = '~{prerelease}'.format(**semdict)
             else:
                 semdict['prerelease'] = '~~{prerelease}'.format(**semdict)
         else:
