@@ -122,7 +122,7 @@ class Runner(ABC):
         if selenium_worker == "none":
             self.selenium = None
         else:
-            print("Launching Browser %s %s" %(selenium_worker, str(selenium_driver_args))
+            print("Launching Browser %s %s" %(selenium_worker, str(selenium_driver_args)))
             from arangodb.starter.deployments.selenium_deployments import init as init_selenium
             self.selenium = init_selenium(
                 runner_type,
