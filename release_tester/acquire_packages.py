@@ -68,7 +68,8 @@ class AcquirePackages():
 
     def calculate_package_names(self):
         """ guess where to locate the packages """
-        self.inst.calculate_package_names()
+        if self.is_nightly:
+            self.inst.calculate_package_names()
         self.params = {
             "full_version": 'v{major}.{minor}.{patch}'.format(**self.cfg.semver.to_dict()),
             "major_version": 'arangodb{major}{minor}'.format(**self.cfg.semver.to_dict()),
