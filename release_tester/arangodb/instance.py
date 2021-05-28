@@ -134,8 +134,8 @@ class Instance(ABC):
                     self.instance.status() == psutil.STATUS_SLEEPING):
                     print("generating coredump for " + str(self.instance))
                     psutil.Popen(['gcore', str(self.instance.pid)], cwd=self.basedir).wait()
-
-                    self.instance.send_signal(signal.SIGSEGV)
+                    print("Terminating " + str(self.instance))
+                    self.instance.kill()
                     self.instance.wait()
                 else:
                     print("NOT generating coredump for " + str(self.instance))
