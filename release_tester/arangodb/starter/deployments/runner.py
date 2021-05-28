@@ -752,18 +752,23 @@ class Runner(ABC):
             }
         ]
         for starter_mgr in self.starter_instances:
-            for cmd in commands:
-                reply = starter_mgr.send_request(
-                    InstanceType.AGENT,
-                    cmd['method'],
-                    cmd['URL'],
-                    cmd['body'])
-                print(reply)
-                count = 0
-                for repl in reply:
-                    (starter_mgr.basedir / f"{cmd['basefn']}_{count}.json"
-                     ).write_text(repl.text)
-                    count += 1
+            try:
+                for cmd in commands:
+                    reply = starter_mgr.send_request(
+                        InstanceType.AGENT,
+                        cmd['method'],
+                        cmd['URL'],
+                        cmd['body'])
+                    print(reply)
+                    count = 0
+                    for repl in reply:
+                        (starter_mgr.basedir / f"{cmd['basefn']}_{count}.json"
+                         ).write_text(repl.text)
+                        count += 1
+            except Exception as ex:
+                # We skip one starter and all its agency dump attempts now.
+                print("Error during an agency: " + str(ex))
+                pass
 
     def agency_set_debug_logging(self):
         """ turns on logging on the agency """
