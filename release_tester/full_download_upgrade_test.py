@@ -144,9 +144,9 @@ def upgrade_package_test(verbose,
 
     tablestr = str(table)
     print(tablestr)
+    Path('testfailures.txt').write_text(tablestr)
     if not status:
         print('exiting with failure')
-        Path('testfailures.txt').write_text(tablestr)
         sys.exit(1)
 
     if not force:
