@@ -56,6 +56,8 @@ def upgrade_package_test(verbose,
     for enterprise, encryption_at_rest, directory_suffix, testrun_name in execution_plan:
         run_cleanup(zip_package, testrun_name)
 
+    print("Cleanup done")
+
     for enterprise, encryption_at_rest, directory_suffix, testrun_name in execution_plan:
         if new_dlstage != "local" or old_dlstage != "local":
             dl_old = None
@@ -162,7 +164,7 @@ def upgrade_package_test(verbose,
               default='',
               help='specify the output of: git rev-parse --verify HEAD')
 @very_common_options
-@common_options(support_old=True, interactive=False)
+@common_options(support_old=True, interactive=False, test_data_dir='/home/test_dir')
 @download_options(default_source="ftp:stage2", double_source=True)
 # pylint: disable=R0913, disable=W0613
 def main(

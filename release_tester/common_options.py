@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 """ these are our common CLI options """
+from pathlib import Path
 import sys
 import click
 
@@ -19,6 +20,9 @@ def zip_common_options(function):
 
 def very_common_options(function):
     """ These options are in all scripts """
+    package_dir = Path('/home/package_cache/')
+    if not package_dir.exists():
+        package_dir = Path('/tmp/')
     function = click.option('--new-version',
                             help='ArangoDB version number.',
                             default="3.8.0-nightly")(function)
@@ -32,13 +36,13 @@ def very_common_options(function):
                             default=False,
                             help='Enterprise or community?')(function)
     function = click.option('--package-dir',
-                            default='/tmp/',
+                            default=package_dir,
                             help='directory to load the packages from.'
                             )(function)
     function = zip_common_options(function)
     return function
 
-def common_options( support_old=True, interactive=True):
+def common_options(support_old=True, interactive=True, test_data_dir='/tmp/'):
     """ these options are common to most scripts """
     def inner_func(function):
         if support_old:
@@ -46,7 +50,7 @@ def common_options( support_old=True, interactive=True):
                                     help='old ArangoDB version number.',
                                     default="3.7.0-nightly")(function)
         function = click.option('--test-data-dir',
-                                default='/tmp/',
+                                default=test_data_dir,
                                 help='directory create databases etc. in.'
                                 )(function)
         function = click.option('--encryption-at-rest/--no-encryption-at-rest',
