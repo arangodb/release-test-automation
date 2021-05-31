@@ -9,6 +9,7 @@ import http.client as http_client
 import logging
 import os
 import re
+import signal
 import subprocess
 import sys
 import time
@@ -418,15 +419,27 @@ class StarterManager():
 
 
         logging.info("This should terminate all child processes")
-        self.instance.terminate()
+        if not ON_WINDOWS:
+            self.instance.terminate()
+        else:
+            children = self.instance.children(recursive=True)
+            children.insert(0, self.instance)
+            for p in children:
+                try:
+                    p.send_signal(signal.SIGTERM)
+                except psutil.NoSuchProcess:
+                    pass
+            psutil.wait_procs(children)
         logging.info("StarterManager: waiting for process to exit")
         exit_code = self.instance.wait()
-        if exit_code != 0:
+        if exit_code != 0 and not ON_WINDOWS:
             raise Exception("Starter exited with %d" % exit_code)
 
         logging.info("StarterManager: done - moving logfile from %s to %s",
                      str(self.log_file),
                      str(self.basedir / "arangodb.log.old"))
+        if Path(self.basedir / "arangodb.log.old").exists():
+            os.remove(Path(self.basedir / "arangodb.log.old"))
         self.log_file.rename(self.basedir / "arangodb.log.old")
 
         for instance in self.all_instances:

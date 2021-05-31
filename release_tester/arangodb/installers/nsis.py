@@ -7,6 +7,7 @@ import multiprocessing
 from pathlib import Path
 from pathlib import PureWindowsPath
 import psutil
+import subprocess
 from arangodb.installers.base import InstallerBase
 
 class InstallerW(InstallerBase):
@@ -167,7 +168,7 @@ class InstallerW(InstallerBase):
         if not self.service:
             logging.error("no service registered, not starting")
             return
-        self.service.start()
+        subprocess.Popen("sc start ArangoDB", shell=True, stdout=subprocess.PIPE)
         while self.service.status() != "running":
             logging.info(self.service.status())
             time.sleep(1)
@@ -178,12 +179,11 @@ class InstallerW(InstallerBase):
         self.instance.detect_pid(1)
 
     def stop_service(self):
-        self.get_service()
         if not self.service:
             logging.error("no service registered, not stopping")
             return
         if self.service.status() != "stopped":
-            self.service.stop()
+            subprocess.Popen("sc stop ArangoDB", shell=True, stdout=subprocess.PIPE)
         while self.service.status() != "stopped":
             logging.info(self.service.status())
             time.sleep(1)

@@ -5,6 +5,8 @@ import datetime
 from enum import IntEnum
 import json
 import logging
+import os
+from pathlib import Path
 import re
 import time
 
@@ -110,6 +112,8 @@ class Instance(ABC):
         logfile = str(self.logfile)
         logging.info("renaming instance logfile: %s -> %s",
                      logfile, logfile + '.old')
+        if Path(logfile + '.old').exists():
+            os.remove(Path(logfile + '.old'))
         self.logfile.rename(logfile + '.old')
 
     def terminate_instance(self):
