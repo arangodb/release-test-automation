@@ -43,6 +43,7 @@ docker \
   -v $(pwd)/test_dir:/home/test_dir \
   -v "$PACKAGE_CACHE":/home/package_cache \
   -v $(pwd)/${VERSION_TAR_NAME}:/home/versions \
+  --pid=host \
   --rm \
   --ulimit core=-1 \
   --init \

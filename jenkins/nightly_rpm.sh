@@ -49,6 +49,7 @@ docker run \
        -v /tmp/tmp:/tmp/ \
        -v /dev/shm:/dev/shm \
        \
+       --pid=host \
        --rm \
        --privileged \
        --name=$DOCKER_RPM_NAME \
