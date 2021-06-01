@@ -41,7 +41,6 @@ class ActiveFailover(SeleniumRunner):
         self.navbar_goto('replication')
         replication_table = self.get_replication_screen(True)
         print(replication_table)
-        self.take_screenshot()# TODO weg
         # head and one follower should be there:
         self.ui_assert(len(replication_table['follower_table']) == 2,
                        "UI-Test:\nexpect 2 followers in:\n %s" % pprint.pformat(
