@@ -32,17 +32,6 @@ def run_test(mode,
              abort_on_error, publicip, selenium, selenium_driver_args):
     """ main """
     lh.configure_logging(verbose)
-    lh.section("configuration")
-    print("version: " + str(new_version))
-    print("using enterpise: " + str(enterprise))
-    print("using encryption at rest: " + str(encryption_at_rest))
-    print("using zip: " + str(zip_package))
-    print("package directory: " + str(package_dir))
-    print("mode: " + str(mode))
-    print("starter mode: " + str(starter_mode))
-    print("public ip: " + str(publicip))
-    print("interactive: " + str(interactive))
-    print("verbose: " + str(verbose))
 
     do_install = mode in ["all", "install"]
     do_uninstall = mode in ["all", "uninstall"]
@@ -58,6 +47,14 @@ def run_test(mode,
                                              publicip,
                                              interactive,
                                              False)
+    lh.section("configuration")
+    print("""
+    mode: {mode}
+    {cfg_repr}
+    """.format(**{
+        "mode": str(mode),
+        "cfg_repr": repr(installers[0][0])}))
+
     count = 1
     for runner_type in STARTER_MODES[starter_mode]:
         if not enterprise and runner_type == RunnerType.DC2DC:

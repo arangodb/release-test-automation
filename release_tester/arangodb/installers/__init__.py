@@ -72,6 +72,18 @@ class InstallerConfig():
             (semver.compare(self.version, "3.5.1") >= 0) and
             not isinstance(winver, list)
         )
+    def __repr__(self):
+        return """
+version: {0.version}"
+using enterpise: {0.enterprise}"
+using encryption at rest: {0.encryption_at_rest}"
+using zip: {0.zip_package}"
+package directory: {0.package_dir}"
+mode: {0.mode}"
+public ip: {0.publicip}"
+interactive: {0.interactive}"
+verbose: {0.verbose}"
+""".format(self)
 
     def reset_version(self, version):
         """ establish a new version to manage """

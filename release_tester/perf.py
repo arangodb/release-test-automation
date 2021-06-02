@@ -26,7 +26,7 @@ import tools.loghelper as lh
               help='Connection strings of remote clusters')
 @very_common_options
 @common_options(support_old=False)
-# pylint: disable=R0913 disable=W0613
+# pylint: disable=R0913 disable=W0613 disable=R0914
 def run_test(mode, scenario, frontends,
              #very_common_options
              new_version,
@@ -48,18 +48,6 @@ def run_test(mode, scenario, frontends,
     """ main """
     lh.configure_logging(verbose)
 
-    lh.section("configuration")
-    print("version: " + str(new_version))
-    print("using enterpise: " + str(enterprise))
-    print("using zip: " + str(zip_package))
-    print("package directory: " + str(package_dir))
-    print("mode: " + str(mode))
-    print("starter mode: " + str(starter_mode))
-    print("public ip: " + str(publicip))
-    print("interactive: " + str(interactive))
-    print("scenario: " + str(scenario))
-    print("verbose: " + str(verbose))
-
     do_install = mode in ["all", "install"]
     do_uninstall = mode in ["all", "uninstall"]
 
@@ -78,6 +66,13 @@ def run_test(mode, scenario, frontends,
                                              False)
 
     inst = installers[0][1]
+    lh.section("configuration")
+    print("""
+    mode: {mode}
+    {cfg_repr}
+    """.format(**{
+        "mode": str(mode),
+        "cfg_repr": repr(installers[0][0])}))
 
     split_host = re.compile(r'([a-z]*)://([0-9.:]*):(\d*)')
 

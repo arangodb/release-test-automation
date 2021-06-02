@@ -26,18 +26,6 @@ def run_upgrade(old_version, new_version, verbose,
                 publicip, selenium, selenium_driver_args,
                 testrun_name):
     """ execute upgrade tests """
-    lh.section("configuration")
-    print("old version: " + str(old_version))
-    print("version: " + str(new_version))
-    print("using enterpise: " + str(enterprise))
-    print("using encryption at rest: " + str(encryption_at_rest))
-    print("using zip: " + str(zip_package))
-    print("package directory: " + str(package_dir))
-    print("starter mode: " + str(starter_mode))
-    print("public ip: " + str(publicip))
-    print("interactive: " + str(interactive))
-    print("verbose: " + str(verbose))
-
     lh.section("startup")
 
     results = []
@@ -67,6 +55,14 @@ def run_upgrade(old_version, new_version, verbose,
             runner = None
             old_inst = installers[0][1]
             new_inst = installers[1][1]
+            lh.section("configuration")
+            print("""
+            starter mode: {starter_mode}
+            old version: {old_version}
+            {cfg_repr}
+            """.format(**{
+                "starter_mode": str(starter_mode),
+                "cfg_repr": repr(installers[1][0])}))
             if runner_type:
                 runner = make_runner(runner_type,
                                      selenium,

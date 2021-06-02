@@ -22,16 +22,6 @@ def run_upgrade(old_version, new_version, verbose,
                 publicip, selenium, selenium_driver_args):
     """ execute upgrade tests """
     lh.configure_logging(verbose)
-    lh.section("configuration")
-    print("old version: " + str(old_version))
-    print("version: " + str(new_version))
-    print("using enterpise: " + str(enterprise))
-    print("using zip: " + str(zip_package))
-    print("package directory: " + str(package_dir))
-    print("starter mode: " + str(starter_mode))
-    print("public ip: " + str(publicip))
-    print("interactive: " + str(interactive))
-    print("verbose: " + str(verbose))
 
     lh.section("startup")
 
@@ -49,6 +39,15 @@ def run_upgrade(old_version, new_version, verbose,
                                                  publicip,
                                                  interactive,
                                                  stress_upgrade)
+        lh.section("configuration")
+        print("""
+        starter mode: {starter_mode}
+        old version: {old_version}
+        {cfg_repr}
+        """.format(**{
+            "starter_mode": str(starter_mode),
+            "old_version": old_version,
+            "cfg_repr": repr(installers[1][0])}))
         runner = None
         installers[0][0].add_frontend("http", "127.0.0.1", "8529")
         runner = None
