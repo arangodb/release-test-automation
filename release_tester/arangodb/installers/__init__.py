@@ -160,3 +160,35 @@ def make_installer(install_config: InstallerConfig):
             return InstallerDocker(install_config)
         raise Exception('unsupported linux distribution: ' + str(distro))
     raise Exception('unsupported os' + platform.system())
+
+
+def create_config_installer_set(versions: list,
+                                verbose: bool,
+                                enterprise: bool,
+                                encryption_at_rest: bool,
+                                zip_package: bool,
+                                package_dir: Path,
+                                test_dir: Path,
+                                mode: str,
+                                publicip: str,
+                                interactive: bool,
+                                stress_upgrade: bool):
+    """ creates sets of configs and installers """
+    # pylint: disable=R0902
+    res = []
+    for version in versions:
+        print(version)
+        install_config = InstallerConfig(version,
+                                         verbose,
+                                         enterprise,
+                                         encryption_at_rest,
+                                         zip_package,
+                                         package_dir,
+                                         test_dir,
+                                         mode,
+                                         publicip,
+                                         interactive,
+                                         stress_upgrade)
+        installer = make_installer(install_config)
+        res.append([install_config, installer])
+    return res

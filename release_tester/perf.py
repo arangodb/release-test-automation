@@ -7,7 +7,7 @@ import re
 import click
 from common_options import very_common_options, common_options
 from tools.killall import kill_all_processes
-from arangodb.installers import make_installer, InstallerConfig
+from arangodb.installers import create_config_installer_set
 from arangodb.starter.deployments.cluster_perf import ClusterPerf
 from arangodb.starter.deployments import RunnerType
 import tools.loghelper as lh
@@ -65,21 +65,21 @@ def run_test(mode, scenario, frontends,
 
     lh.section("startup")
 
-    install_config = InstallerConfig(new_version,
-                                     verbose,
-                                     enterprise,
-                                     encryption_at_rest,
-                                     zip_package,
-                                     Path(package_dir),
-                                     Path(test_data_dir),
-                                     mode,
-                                     publicip,
-                                     interactive,
-                                     False)
+    installers = create_config_installer_set([new_version],
+                                             verbose,
+                                             enterprise,
+                                             encryption_at_rest,
+                                             zip_package,
+                                             Path(package_dir),
+                                             Path(test_data_dir),
+                                             mode,
+                                             publicip,
+                                             interactive,
+                                             False)
+
+    inst = installers[0][1]
 
     split_host = re.compile(r'([a-z]*)://([0-9.:]*):(\d*)')
-
-    inst = make_installer(install_config)
 
     if len(frontends) > 0:
         for frontend in frontends:
@@ -90,8 +90,7 @@ def run_test(mode, scenario, frontends,
                                   host_parts[3])
     inst.cfg.scenario = Path(scenario)
     runner = ClusterPerf(RunnerType.CLUSTER,
-                         inst.cfg, inst,
-                         None, None,
+                         installers,
                          selenium,
                          selenium_driver_args,
                          "perf")

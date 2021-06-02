@@ -6,7 +6,7 @@ import sys
 import click
 from common_options import very_common_options, common_options
 from tools.killall import kill_all_processes
-from arangodb.installers import make_installer, InstallerConfig
+from arangodb.installers import create_config_installer_set
 from arangodb.starter.deployments import (
     RunnerType,
     make_runner,
@@ -47,25 +47,22 @@ def run_test(mode,
     do_install = mode in ["all", "install"]
     do_uninstall = mode in ["all", "uninstall"]
 
-    install_config = InstallerConfig(new_version,
-                                     verbose,
-                                     enterprise,
-                                     encryption_at_rest,
-                                     zip_package,
-                                     Path(package_dir),
-                                     Path(test_data_dir),
-                                     mode,
-                                     publicip,
-                                     interactive,
-                                     False)
-
-    inst = make_installer(install_config)
-
+    installers = create_config_installer_set([new_version],
+                                             verbose,
+                                             enterprise,
+                                             encryption_at_rest,
+                                             zip_package,
+                                             Path(package_dir),
+                                             Path(test_data_dir),
+                                             mode,
+                                             publicip,
+                                             interactive,
+                                             False)
     count = 1
     for runner_type in STARTER_MODES[starter_mode]:
         if not enterprise and runner_type == RunnerType.DC2DC:
             continue
-        runner = make_runner(runner_type, selenium, selenium_driver_args, inst.cfg, inst, None)
+        runner = make_runner(runner_type, selenium, selenium_driver_args, installers)
         # install on first run:
         runner.do_install = (count == 1) and do_install
         # only uninstall after the last test:
