@@ -6,8 +6,12 @@ from selenium.common.exceptions import StaleElementReferenceException
 
 class Cluster(SeleniumRunner):
     """ check the leader follower setup and its properties """
-    def __init__(self, webdriver):
-        super().__init__(webdriver)
+    def __init__(self, webdriver,
+                 is_headless: bool,
+                 testrun_name: str):
+        super().__init__(webdriver,
+                         is_headless,
+                         testrun_name)
 
     def check_old(self, cfg):
         """ check the integrity of the old system before the upgrade """
@@ -48,7 +52,7 @@ class Cluster(SeleniumRunner):
         upgrade_done = False
         while not upgrade_done:
             try:
-                table = self.cluster_get_nodes_table(600)
+                table = self.cluster_get_nodes_table(300)
             except StaleElementReferenceException:
                 self.progress(" skip once")
 
@@ -90,13 +94,13 @@ class Cluster(SeleniumRunner):
             done = ((node_count['dbservers'] == '2/3') and
                     (node_count['coordinators'] == '2/3') and
                     (self.get_health_state() != 'NODES OK'))
-            if not done:
-                time.sleep(3)
-            retry_count += 1
             self.ui_assert(retry_count < 40,
                            "UI-Test: Timeout: expected db + c to be 2/3, have: " +
                            node_count['dbservers'] + ", " +
                            node_count['coordinators'])
+            if not done:
+                time.sleep(3)
+            retry_count += 1
 
         self.ui_assert(node_count['dbservers'] == '2/3',
                        "UI-Test: dbservers: " + node_count['dbservers'])
@@ -110,7 +114,7 @@ class Cluster(SeleniumRunner):
         row_count = 0
         retry_count = 0
         while row_count != 4 and retry_count < 10:
-            table = self.cluster_get_nodes_table(30)
+            table = self.cluster_get_nodes_table(300)
             for row in table:
                 if row['state'] == 'SERVING':
                     row_count += 1

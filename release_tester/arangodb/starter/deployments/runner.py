@@ -3,9 +3,11 @@
 
 from abc import abstractmethod, ABC
 import copy
+import datetime
 import logging
 from pathlib import Path
 import platform
+import re
 import shutil
 import time
 from typing import Optional
@@ -19,13 +21,15 @@ import tools.interact as ti
 from arangodb.bench import load_scenarios
 from arangodb.installers.base import InstallerBase
 from arangodb.installers import InstallerConfig
-from arangodb.instance import InstanceType
+from arangodb.instance import InstanceType, print_instances_table
 from arangodb.sh import ArangoshExecutor
 from tools.killall import kill_all_processes
 
+FNRX = re.compile("[\n@ ]*")
+
 class Runner(ABC):
     """abstract starter deployment runner"""
-# pylint: disable=R0913 disable=R0902 disable=R0904
+# pylint: disable=R0913 disable=R0902 disable=R0904 disable=C0415
     def __init__(
             self,
             runner_type,
@@ -37,11 +41,13 @@ class Runner(ABC):
             disk_usage_community: int,
             disk_usage_enterprise: int,
             selenium_worker: str,
-            selenium_driver_args: list
+            selenium_driver_args: list,
+            testrun_name: str
         ):
         load_scenarios()
         assert runner_type, "no runner no cry? no!"
         logging.debug(runner_type)
+        self.testrun_name = testrun_name
         self.state = ""
         self.runner_type = runner_type
         self.name = str(self.runner_type).split('.')[1]
@@ -57,7 +63,6 @@ class Runner(ABC):
         self.basecfg = copy.deepcopy(cfg)
         self.new_cfg = new_cfg
         self.cfg = self.basecfg
-        # TODO: no passwd support in starter install yet.
         self.passvoid = None
         self.basecfg.passvoid = ""
         self.versionstr = ''
@@ -85,9 +90,10 @@ class Runner(ABC):
             raise TimeoutError("disk_usage on " +
                                str(self.basecfg.base_test_dir) +
                                " not working")
+        is_cleanup = self.cfg.version == "3.3.3"
         diskused = (disk_usage_community
                     if not cfg.enterprise else disk_usage_enterprise)
-        if diskused * 1024 * 1024 > diskfree.free:
+        if not is_cleanup and diskused * 1024 * 1024 > diskfree.free:
             logging.error("Scenario demanded %d MB "
                           "but only %d MB are available in %s",
                           diskused, diskfree.free / (1024*1024),
@@ -116,16 +122,19 @@ class Runner(ABC):
         if selenium_worker == "none":
             self.selenium = None
         else:
-            #pylint: disable=C0415 disable=import-outside-toplevel
+            print("Launching Browser %s %s" %(selenium_worker, str(selenium_driver_args)))
             from arangodb.starter.deployments.selenium_deployments import init as init_selenium
-            self.selenium = init_selenium(runner_type, selenium_worker, selenium_driver_args)
+            self.selenium = init_selenium(
+                runner_type,
+                selenium_worker,
+                selenium_driver_args,
+                self.testrun_name)
+            print("Browser online")
 
     def progress(self, is_sub, msg, separator='x'):
         """ report user message, record for error handling. """
-        if self.state:
-            self.state += "\n"
         if self.selenium:
-            self.state += self.selenium.get_progress() + "\n"
+            self.state += self.selenium.get_progress()
         if is_sub:
             if separator == 'x':
                 separator = '='
@@ -256,7 +265,7 @@ class Runner(ABC):
             logging.info("skipping upgrade step no new version given")
 
         if self.do_starter_test:
-            self.progress(False, "TESTS FOR {0}".format(str(self.name)),)
+            self.progress(False, "{0} TESTS FOR {1}".format(self.testrun_name, str(self.name)),)
             self.test_setup()
             self.jam_attempt()
             self.starter_shutdown()
@@ -490,13 +499,26 @@ class Runner(ABC):
         for frontend in frontends:
             print(frontend.get_public_url('root@'))
 
+    def print_all_instances_table(self):
+        """ print all http frontends to the user """
+        instances = []
+        for starter in self.starter_instances:
+            instances += starter.get_instance_essentials()
+        print_instances_table(instances)
+
+    def print_makedata_instances_table(self):
+        """ print all http frontends to the user """
+        instances = []
+        for starter in self.makedata_instances:
+            instances += starter.get_instance_essentials()
+        print_instances_table(instances)
+
     #@abstractmethod
     def make_data_impl(self):
         """ upload testdata into the deployment, and check it """
         assert self.makedata_instances, "don't have makedata instance!"
         logging.debug("makedata instances")
-        for i in self.makedata_instances:
-            logging.debug(str(i))
+        self.print_makedata_instances_table()
 
         interactive = self.basecfg.interactive
 
@@ -661,6 +683,17 @@ class Runner(ABC):
                 print('w'*80)
                 instance.search_for_warnings()
 
+    def zip_test_dir(self):
+        """ stores the test directory for later analysis """
+        filename = '%s_%s' % (
+            FNRX.sub('', self.testrun_name),
+            self.__class__.__name__
+        )
+        shutil.make_archive(filename,
+                            "bztar",
+                            self.basecfg.base_test_dir,
+                            self.basedir)
+
     def cleanup(self):
         """ remove all directories created by this test """
         testdir = self.basecfg.base_test_dir / self.basedir
@@ -680,31 +713,88 @@ class Runner(ABC):
                                 " filedescriptors to a value greater"
                                 " or eqaul 65535. Currently you have"
                                 " set the limit to: " + str(nofd))
+            giga_byte = 2**30
+            resource.setrlimit(resource.RLIMIT_CORE, (giga_byte,giga_byte))
+
+    def agency_get_leader(self):
+        """ get the agent that has the latest "serving" line """
+        # TODO: dc2dc has two agencies :/
+        agency = []
+        for starter_mgr in self.starter_instances:
+            agency += starter_mgr.get_agents()
+        leader = None
+        leading_date = datetime.datetime(1970, 1, 1, 0, 0, 0)
+        for agent in agency:
+            agent_leading_date = agent.search_for_agent_serving()
+            if agent_leading_date > leading_date:
+                leading_date = agent_leading_date
+                leader = agent
+        return leader
+
+    def agency_acquire_dump(self):
+        """ turns on logging on the agency """
+        print("Duming agency")
+        commands = [
+            {
+                'URL'   : '/_api/agency/config',
+                'method': requests.get,
+                'basefn': 'agencyConfig',
+                'body'  : None
+            }, {
+                'URL'   :'/_api/agency/state',
+                'method': requests.get,
+                'basefn': 'agencyState',
+                'body'  : None
+            }, {
+                'URL'   : '/_api/agency/read',
+                'method': requests.post,
+                'basefn': 'agencyPlan',
+                'body'  : '[["/"]]'
+            }
+        ]
+        for starter_mgr in self.starter_instances:
+            try:
+                for cmd in commands:
+                    reply = starter_mgr.send_request(
+                        InstanceType.AGENT,
+                        cmd['method'],
+                        cmd['URL'],
+                        cmd['body'])
+                    print(reply)
+                    count = 0
+                    for repl in reply:
+                        (starter_mgr.basedir / f"{cmd['basefn']}_{count}.json"
+                         ).write_text(repl.text)
+                        count += 1
+            except Exception as ex:
+                # We skip one starter and all its agency dump attempts now.
+                print("Error during an agency: " + str(ex))
+                pass
 
     def agency_set_debug_logging(self):
         """ turns on logging on the agency """
         for starter_mgr in self.starter_instances:
             starter_mgr.send_request(
-                InstanceType.agent,
+                InstanceType.AGENT,
                 requests.put,
                 '/_admin/log/level',
                 '{"agency":"debug", "requests":"trace", '
-                '"cluster":"debug", "maintainance":"debug"}')
+                '"cluster":"debug", "maintenance":"debug"}')
     def dbserver_set_debug_logging(self):
         """ turns on logging on the dbserver """
         for starter_mgr in self.starter_instances:
             starter_mgr.send_request(
-                InstanceType.dbserver,
+                InstanceType.DBSERVER,
                 requests.put,
                 '/_admin/log/level',
                 '{"agency":"debug", "requests":"trace", '
-                '"cluster":"debug", "maintainance":"debug"}')
+                '"cluster":"debug", "maintenance":"debug"}')
     def coordinator_set_debug_logging(self):
         """ turns on logging on the coordinator """
         for starter_mgr in self.starter_instances:
             starter_mgr.send_request(
-                InstanceType.coordinator,
+                InstanceType.COORDINATOR,
                 requests.put,
                 '/_admin/log/level',
                 '{"agency":"debug", "requests":"trace", '
-                '"cluster":"debug", "maintainance":"debug"}')
+                '"cluster":"debug", "maintenance":"debug"}')

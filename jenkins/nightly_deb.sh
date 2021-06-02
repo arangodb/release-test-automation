@@ -11,6 +11,9 @@ fi
 if test -z "$NEW_VERSION"; then
     NEW_VERSION=3.8.0-nightly
 fi
+if test -n "$PACKAGE_CACHE"; then
+    PACKAGE_CACHE=$(pwd)/package_cache
+fi
 
 VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_deb_version"
 mkdir -p ${VERSION_TAR_NAME}
@@ -40,12 +43,13 @@ docker run -itd \
        --privileged \
        --name=$DOCKER_DEB_NAME \
        -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
-       -v `pwd`:/home/release-test-automation \
-       -v `pwd`/package_cache/:/home/package_cache \
-       -v `pwd`/test_dir:/home/test_dir \
+       -v $(pwd):/home/release-test-automation \
+       -v $(pwd)/test_dir:/home/test_dir \
+       -v "$PACKAGE_CACHE":/home/package_cache \
+       -v $(pwd)/${VERSION_TAR_NAME}:/home/versions \
        -v /tmp/tmp:/tmp/ \
-       -v `pwd`/${VERSION_TAR_NAME}:/home/versions \
-       --rm \
+       -v /dev/shm:/dev/shm \
+        --rm \
        \
        $DOCKER_DEB_TAG \
        \
@@ -55,8 +59,10 @@ if docker exec $DOCKER_DEB_NAME \
           /home/release-test-automation/release_tester/full_download_upgrade_test.py \
           --old-version "${OLD_VERSION}" \
           --new-version "${NEW_VERSION}" \
+          --verbose \
           --selenium Chrome \
           --selenium-driver-args headless \
+          --selenium-driver-args no-sandbox \
           --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;") \
           --no-zip $force_arg $@; then
     echo "OK"

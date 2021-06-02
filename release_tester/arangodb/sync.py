@@ -4,8 +4,12 @@
 """
 import copy
 import logging
+import subprocess
+
 import psutil
 import semver
+
+from tools.asciiprint import ascii_convert
 
 class SyncManager():
     """ manage arangosync """
@@ -109,7 +113,7 @@ class SyncManager():
         if self.version < semver.VersionInfo.parse('1.0.0'):
             logging.warning('SyncManager: checking sync consistency :'
                             ' available since 1.0.0 of arangosync')
-            return True
+            return ("", "", True)
 
         args = [
             self.cfg.bin_dir / 'arangosync',
@@ -121,7 +125,16 @@ class SyncManager():
             '--auth.keyfile=' + str(self.certificate_auth["clientkeyfile"])
         ]
         logging.info('SyncManager: checking sync consistency : %s', str(args))
-        return psutil.Popen(args).wait() == 0
+        instance = psutil.Popen(args,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
+        (output, err) = instance.communicate()
+        instance.wait()
+        output = ascii_convert(output)
+        print(output)
+        success = output.find('The whole data is the same') >= 0
+        return (output, ascii_convert(err), success)
+
 
     def reset_failed_shard(self, database, collection):
         """ run the check sync command """

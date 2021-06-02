@@ -8,9 +8,11 @@ class Dc2DcEndurance(Dc2Dc):
     """ this launches two clusters in dc2dc mode """
     # pylint: disable=R0913 disable=R0902
     def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst,
-                 selenium, selenium_driver_args):
+                 selenium, selenium_driver_args,
+                 testrun_name: str):
         super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst,
-                         'DC2DC_endurance', 0, 3500, selenium, selenium_driver_args)
+                         'DC2DC_endurance', 0, 3500, selenium, selenium_driver_args,
+                         testrun_name)
         self.hot_backup = False
 
     def test_setup_impl(self):
@@ -37,7 +39,7 @@ class Dc2DcEndurance(Dc2Dc):
         self.sync_manager.stop_sync()
 
     def after_backup_impl(self):
-        self.sync_manager.start_sync()
+        # TODO self.sync_manager.start_sync()
         count = 0
         while not self.sync_manager.check_sync():
             if count > 20:

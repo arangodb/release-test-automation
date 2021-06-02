@@ -82,7 +82,12 @@ def makedata_runner(queue, resq, arangosh, progressive_timeout):
 class ClusterPerf(Runner):
     """ this launches a cluster setup """
     # pylint: disable=R0913 disable=R0902
-    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst, selenium, selenium_driver_args):
+    def __init__(self,
+                 runner_type,
+                 cfg, old_inst,
+                 new_cfg, new_inst,
+                 selenium, selenium_driver_args,
+                 testrun_name: str):
         global OTHER_SH_OUTPUT, RESULTS_TXT
         if not cfg.scenario.exists():
             cfg.scenario.write_text(yaml.dump(TestConfig()))
@@ -92,7 +97,8 @@ class ClusterPerf(Runner):
             self.scenario = yaml.load(fileh, Loader=yaml.Loader)
 
         super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst,
-                         'CLUSTER', 9999999, 99999999, selenium, selenium_driver_args)
+                         'CLUSTER', 9999999, 99999999, selenium, selenium_driver_args,
+                         testrun_name)
         self.success = False
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
@@ -118,9 +124,9 @@ class ClusterPerf(Runner):
                            jwtStr=self.jwtdatastr,
                            port=9528,
                            expect_instances=[
-                               InstanceType.agent,
-                               InstanceType.coordinator,
-                               InstanceType.dbserver,
+                               InstanceType.AGENT,
+                               InstanceType.COORDINATOR,
+                               InstanceType.DBSERVER
                            ],
                            moreopts=[
                                #    '--agents.agency.election-timeout-min=5',
@@ -133,9 +139,9 @@ class ClusterPerf(Runner):
                            jwtStr=self.jwtdatastr,
                            port=9628,
                            expect_instances=[
-                               InstanceType.agent,
-                               InstanceType.coordinator,
-                               InstanceType.dbserver,
+                               InstanceType.AGENT,
+                               InstanceType.COORDINATOR,
+                               InstanceType.DBSERVER
                            ],
                            moreopts=[
                                '--starter.join', '127.0.0.1:9528',
@@ -149,9 +155,9 @@ class ClusterPerf(Runner):
                            jwtStr=self.jwtdatastr,
                            port=9728,
                            expect_instances=[
-                               InstanceType.agent,
-                               InstanceType.coordinator,
-                               InstanceType.dbserver,
+                               InstanceType.AGENT,
+                               InstanceType.COORDINATOR,
+                               InstanceType.DBSERVER
                            ],
                            moreopts=[
                                '--starter.join', '127.0.0.1:9528',

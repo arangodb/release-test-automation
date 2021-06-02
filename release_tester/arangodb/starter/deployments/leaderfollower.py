@@ -15,9 +15,11 @@ class LeaderFollower(Runner):
     """ this runs a leader / Follower setup with synchronisation """
     # pylint: disable=R0913 disable=R0902
     def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst,
-                 selenium, selenium_driver_args):
+                 selenium, selenium_driver_args,
+                 testrun_name: str):
         super().__init__(runner_type, cfg, old_inst, new_cfg,
-                         new_inst, 'lf', 400, 500, selenium, selenium_driver_args)
+                         new_inst, 'LeaderFollower', 400, 500, selenium, selenium_driver_args,
+                         testrun_name)
 
         self.leader_starter_instance = None
         self.follower_starter_instance = None
@@ -58,7 +60,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
             self.cfg, self.basedir, 'leader',
             mode='single', port=1234,
             expect_instances=[
-                InstanceType.single
+                InstanceType.SINGLE
             ],
             jwtStr="leader",
             moreopts=[])
@@ -68,7 +70,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
             self.cfg, self.basedir, 'follower',
             mode='single', port=2345,
             expect_instances=[
-                InstanceType.single
+                InstanceType.SINGLE
             ],
             jwtStr="follower",
             moreopts=[])

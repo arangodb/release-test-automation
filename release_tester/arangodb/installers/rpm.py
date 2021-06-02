@@ -7,6 +7,7 @@ import logging
 from pathlib import Path
 import pexpect
 import psutil
+import semver
 from arangodb.sh import ArangoshExecutor
 from arangodb.installers.linux import InstallerLinux
 from tools.asciiprint import ascii_print, print_progress as progress
@@ -38,16 +39,26 @@ class InstallerRPM(InstallerLinux):
         enterprise = 'e' if self.cfg.enterprise else ''
         architecture = 'x86_64'
 
-        if self.cfg.semver.prerelease == "nightly":
-            self.cfg.semver._prerelease = ''
-            self.cfg.semver._build = "0.2"
+        prerelease = self.cfg.semver.prerelease
         semdict = dict(self.cfg.semver.to_dict())
-
-        if semdict['prerelease']:
+        if prerelease is None or prerelease == '':
+            semdict['prerelease'] = ''
+        elif prerelease == 'nightly':
+            semdict['build'] = "0.2"
+            self.cfg.semver = semver.VersionInfo.parse(
+                "{major}.{minor}.{patch}+{build}".format(**semdict))
+            semdict = dict(self.cfg.semver.to_dict())
+            semdict['prerelease'] = ''
+        elif prerelease.startswith("beta"):
+            semdict['prerelease'] = '.' + semdict['prerelease'].replace('.', '')
+            semdict['build'] = "0.201"
+        elif prerelease.startswith("rc"):
             # remove dots, but prepend one:
             semdict['prerelease'] = '.' + semdict['prerelease'].replace('.', '')
-        else:
-            semdict['prerelease'] = ''
+            semdict['build'] = "0.501"
+        elif len(prerelease) > 0:
+            # remove dots, but prepend one:
+            semdict['prerelease'] = '.' + semdict['prerelease'].replace('.', '')
 
         if not semdict['build']:
             semdict['build'] = '1.0'
@@ -74,7 +85,7 @@ class InstallerRPM(InstallerLinux):
         if self.instance.pid:
             try:
                 psutil.Process(self.instance.pid)
-            except:
+            except Exception:
                 return False
         else:
             return False

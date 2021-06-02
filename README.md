@@ -11,6 +11,7 @@
 - pyyaml - for parsing saved data.
 - click - for commandline parsing https://click.palletsprojects.com/en/7.x/
 - semver - semantic versioning.
+- beautiful table - https://beautifultable.readthedocs.io/en/latest/quickstart.html
 - gdb - for checking debug symbol. `sudo apt-get install gdb` macos:`brew install gdb` 
 
 # Installing
@@ -21,24 +22,26 @@
   `apt-get install python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect python3-pyftpdlib python3-statsd python3-selenium gdb`
   
   the `python3-semver` on debian is to old - need to use the pip version instead:
-  `pip3 install semver`
+  `pip3 install semver beautifultable`
   
   Ubuntu 16.40 pip3 system package is broken. Fix like this: 
   `dpkg -r python3-pip python3-pexpect` 
   `python3.8 -m easy_install pip`
-  `pip install distro semver pexpect psutil`
+  `pip install distro semver pexpect psutil beautifultable`
   
 - **centos**:
-   `yum update ; yum install python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect python3-pyftpdlib; pip3 install psutil semver` 
+   `yum update ; yum install python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect python3-pyftpdlib; pip3 install psutil semver beautifultable` 
    `sudo yum install gdb`
 - **plain pip**:
-  `pip3 install psutil pyyaml pexpect requests click semver ftplib selenium`
+  `pip3 install psutil pyyaml pexpect requests click semver ftplib selenium beautifultable`
 
 ## Mac OS
 :
     `brew install gnu-tar`
-    `pip3 install click psutil requests pyyaml semver pexpect ftplib selenium`
+    `pip3 install click psutil requests pyyaml semver pexpect selenium beautifultable`
     `brew install gdb`
+if `python --version` is below 3.9 you also have to download ftplib:
+    `pip3 install click ftplib`
 
 ## Selenium dependencies
 ### chrome

@@ -5,8 +5,12 @@ from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunn
 
 class LeaderFollower(SeleniumRunner):
     """ check the leader follower setup and its properties """
-    def __init__(self, webdriver):
-        super().__init__(webdriver)
+    def __init__(self, webdriver,
+                 is_headless: bool,
+                 testrun_name: str):
+        super().__init__(webdriver,
+                         is_headless,
+                         testrun_name)
 
     def check_old(self, cfg, leader_follower=True):
         """ check the integrity of the old system before the upgrade """
@@ -25,7 +29,8 @@ class LeaderFollower(SeleniumRunner):
             count +=1
             time.sleep(5)
         # head and one follower should be there:
-        self.ui_assert(len(replication_table['follower_table']) == 2, "UI-Test: expected 1 follower")
+        self.ui_assert(len(replication_table['follower_table']) == 2,
+                       "UI-Test: expected 1 follower")
 
     def upgrade_deployment(self, new_cfg, secondary, leader_follower):
         pass
