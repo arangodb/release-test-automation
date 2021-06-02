@@ -62,6 +62,7 @@ def run_upgrade(old_version, new_version, verbose,
             {cfg_repr}
             """.format(**{
                 "starter_mode": str(starter_mode),
+                "old_version": old_version,
                 "cfg_repr": repr(installers[1][0])}))
             if runner_type:
                 runner = make_runner(runner_type,
