@@ -49,7 +49,6 @@ docker run -itd \
        -v $(pwd)/${VERSION_TAR_NAME}:/home/versions \
        -v /tmp/tmp:/tmp/ \
        -v /dev/shm:/dev/shm \
-       --pid=host \
         --rm \
        \
        $DOCKER_DEB_TAG \
