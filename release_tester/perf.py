@@ -7,7 +7,7 @@ import re
 import click
 from common_options import very_common_options, common_options
 from tools.killall import kill_all_processes
-from arangodb.installers import make_installer, InstallerConfig
+from arangodb.installers import create_config_installer_set
 from arangodb.starter.deployments.cluster_perf import ClusterPerf
 from arangodb.starter.deployments import RunnerType
 import tools.loghelper as lh
@@ -26,7 +26,7 @@ import tools.loghelper as lh
               help='Connection strings of remote clusters')
 @very_common_options
 @common_options(support_old=False)
-# pylint: disable=R0913 disable=W0613
+# pylint: disable=R0913 disable=W0613 disable=R0914
 def run_test(mode, scenario, frontends,
              #very_common_options
              new_version,
@@ -48,38 +48,33 @@ def run_test(mode, scenario, frontends,
     """ main """
     lh.configure_logging(verbose)
 
-    lh.section("configuration")
-    print("version: " + str(new_version))
-    print("using enterpise: " + str(enterprise))
-    print("using zip: " + str(zip_package))
-    print("package directory: " + str(package_dir))
-    print("mode: " + str(mode))
-    print("starter mode: " + str(starter_mode))
-    print("public ip: " + str(publicip))
-    print("interactive: " + str(interactive))
-    print("scenario: " + str(scenario))
-    print("verbose: " + str(verbose))
-
     do_install = mode in ["all", "install"]
     do_uninstall = mode in ["all", "uninstall"]
 
     lh.section("startup")
 
-    install_config = InstallerConfig(new_version,
-                                     verbose,
-                                     enterprise,
-                                     encryption_at_rest,
-                                     zip_package,
-                                     Path(package_dir),
-                                     Path(test_data_dir),
-                                     mode,
-                                     publicip,
-                                     interactive,
-                                     False)
+    installers = create_config_installer_set([new_version],
+                                             verbose,
+                                             enterprise,
+                                             encryption_at_rest,
+                                             zip_package,
+                                             Path(package_dir),
+                                             Path(test_data_dir),
+                                             mode,
+                                             publicip,
+                                             interactive,
+                                             False)
+
+    inst = installers[0][1]
+    lh.section("configuration")
+    print("""
+    mode: {mode}
+    {cfg_repr}
+    """.format(**{
+        "mode": str(mode),
+        "cfg_repr": repr(installers[0][0])}))
 
     split_host = re.compile(r'([a-z]*)://([0-9.:]*):(\d*)')
-
-    inst = make_installer(install_config)
 
     if len(frontends) > 0:
         for frontend in frontends:
@@ -90,8 +85,7 @@ def run_test(mode, scenario, frontends,
                                   host_parts[3])
     inst.cfg.scenario = Path(scenario)
     runner = ClusterPerf(RunnerType.CLUSTER,
-                         inst.cfg, inst,
-                         None, None,
+                         installers,
                          selenium,
                          selenium_driver_args,
                          "perf")

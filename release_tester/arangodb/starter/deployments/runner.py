@@ -10,7 +10,6 @@ import platform
 import re
 import shutil
 import time
-from typing import Optional
 
 import requests
 
@@ -19,8 +18,6 @@ import tools.errorhelper as eh
 import tools.interact as ti
 
 from arangodb.bench import load_scenarios
-from arangodb.installers.base import InstallerBase
-from arangodb.installers import InstallerConfig
 from arangodb.instance import InstanceType, print_instances_table
 from arangodb.sh import ArangoshExecutor
 from tools.killall import kill_all_processes
@@ -33,10 +30,7 @@ class Runner(ABC):
     def __init__(
             self,
             runner_type,
-            cfg: InstallerConfig,
-            old_inst: InstallerBase,
-            new_cfg: InstallerConfig,
-            new_inst: Optional[InstallerBase],
+            install_set: list,
             short_name: str,
             disk_usage_community: int,
             disk_usage_enterprise: int,
@@ -51,6 +45,13 @@ class Runner(ABC):
         self.state = ""
         self.runner_type = runner_type
         self.name = str(self.runner_type).split('.')[1]
+        cfg = install_set[0][0]
+        old_inst = install_set[0][1]
+        new_cfg = None
+        new_inst = None
+        if len(install_set) > 1:
+            new_cfg = install_set[1][0]
+            new_inst = install_set[1][1]
 
         self.do_install = cfg.mode == "all" or cfg.mode == "install"
         self.do_uninstall = cfg.mode == "all" or cfg.mode == "uninstall"
