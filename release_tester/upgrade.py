@@ -84,8 +84,8 @@ def run_upgrade(old_version, new_version, verbose,
                         results.append(one_result)
                         runner.take_screenshot()
                         runner.agency_acquire_dump()
-                        runner.search_for_warnings()
                         runner.zip_test_dir()
+                        runner.search_for_warnings()
                         if abort_on_error:
                             raise ex
                         traceback.print_exc()
