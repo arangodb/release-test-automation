@@ -44,9 +44,10 @@ class AcquirePackages():
             # dns split horizon...
             if source in ["ftp:stage1", "ftp:stage2"]:
                 self.remote_host = "Nas02.arangodb.biz"
-            else:
+            elif source in ["http:stage1", "http:stage2"]:
                 self.remote_host = "fileserver.arangodb.com"
-
+            else:
+                self.remote_host = "download.arangodb.com"
         lh.section("startup")
 
         self.package_dir = Path(package_dir)
@@ -165,7 +166,8 @@ class AcquirePackages():
     def acquire_live(self, directory, package, local_dir, force):
         """ download live files via http """
         print('live')
-        url = 'https://download.arangodb.com/{dir}{pkg}'.format(**{
+        url = 'https://{remote_host}/{dir}{pkg}'.format(**{
+            'remote_host': self.remote_host,
             'dir': directory,
             'pkg': package
             })

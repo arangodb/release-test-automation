@@ -8,7 +8,7 @@ import sys
 import click
 from common_options import very_common_options, common_options
 from tools.killall import kill_all_processes
-from arangodb.installers import make_installer, InstallerConfig
+from arangodb.installers import create_config_installer_set
 from arangodb.starter.deployments import (
     RunnerType,
     make_runner,
@@ -26,18 +26,6 @@ def run_upgrade(old_version, new_version, verbose,
                 publicip, selenium, selenium_driver_args,
                 testrun_name):
     """ execute upgrade tests """
-    lh.section("configuration")
-    print("old version: " + str(old_version))
-    print("version: " + str(new_version))
-    print("using enterpise: " + str(enterprise))
-    print("using encryption at rest: " + str(encryption_at_rest))
-    print("using zip: " + str(zip_package))
-    print("package directory: " + str(package_dir))
-    print("starter mode: " + str(starter_mode))
-    print("public ip: " + str(publicip))
-    print("interactive: " + str(interactive))
-    print("verbose: " + str(verbose))
-
     lh.section("startup")
 
     results = []
@@ -53,40 +41,34 @@ def run_upgrade(old_version, new_version, verbose,
         }
         try:
             kill_all_processes()
-            install_config_old = InstallerConfig(old_version,
-                                                 verbose,
-                                                 enterprise,
-                                                 encryption_at_rest,
-                                                 zip_package,
-                                                 Path(package_dir),
-                                                 Path(test_data_dir),
-                                                 'all',
-                                                 publicip,
-                                                 interactive,
-                                                 stress_upgrade)
-            old_inst = make_installer(install_config_old)
-            install_config_new = InstallerConfig(new_version,
-                                                 verbose,
-                                                 enterprise,
-                                                 encryption_at_rest,
-                                                 zip_package,
-                                                 Path(package_dir),
-                                                 Path(test_data_dir),
-                                                 'all',
-                                                 publicip,
-                                                 interactive,
-                                                 stress_upgrade)
-            new_inst = make_installer(install_config_new)
-
+            installers = create_config_installer_set([old_version, new_version],
+                                                     verbose,
+                                                     enterprise,
+                                                     encryption_at_rest,
+                                                     zip_package,
+                                                     Path(package_dir),
+                                                     Path(test_data_dir),
+                                                     'all',
+                                                     publicip,
+                                                     interactive,
+                                                     stress_upgrade)
             runner = None
+            old_inst = installers[0][1]
+            new_inst = installers[1][1]
+            lh.section("configuration")
+            print("""
+            starter mode: {starter_mode}
+            old version: {old_version}
+            {cfg_repr}
+            """.format(**{
+                "starter_mode": str(starter_mode),
+                "old_version": old_version,
+                "cfg_repr": repr(installers[1][0])}))
             if runner_type:
                 runner = make_runner(runner_type,
                                      selenium,
                                      selenium_driver_args,
-                                     install_config_old,
-                                     old_inst,
-                                     install_config_new,
-                                     new_inst,
+                                     installers,
                                      testrun_name)
                 if runner:
                     try:
@@ -102,8 +84,8 @@ def run_upgrade(old_version, new_version, verbose,
                         results.append(one_result)
                         runner.take_screenshot()
                         runner.agency_acquire_dump()
-                        runner.search_for_warnings()
                         runner.zip_test_dir()
+                        runner.search_for_warnings()
                         if abort_on_error:
                             raise ex
                         traceback.print_exc()
