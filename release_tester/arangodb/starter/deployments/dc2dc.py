@@ -13,9 +13,9 @@ from arangodb.starter.deployments.runner import Runner
 from arangodb.instance import InstanceType
 from tools.asciiprint import print_progress as progress
 
-VERSION_OLD_MIN_FIX = semver.VersionInfo('1.5.0')
-VERSION_OLD_MAX_FIX = semver.VersionInfo('2.0.0')
-VERSION_NEW_FIX = semver.VersionInfo('2.3.0')
+VERSION_OLD_MIN_FIX = semver.VersionInfo.parse('1.5.0')
+VERSION_OLD_MAX_FIX = semver.VersionInfo.parse('2.0.0')
+VERSION_NEW_FIX = semver.VersionInfo.parse('2.3.0')
 class Dc2Dc(Runner):
     """ this launches two clusters in dc2dc mode """
     # pylint: disable=R0913 disable=R0902
