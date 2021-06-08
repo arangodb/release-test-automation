@@ -42,7 +42,7 @@ class InstallerLinux(InstallerBase):
         for count in range (20):
             if not self.instance.detect_gone():
                 return True
-            progress("SR", count)
+            progress("SR" + str(count))
             time.sleep(1)
         return False
 
