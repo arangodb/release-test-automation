@@ -10,7 +10,7 @@ import requests
 import semver
 from arangodb.starter.manager import StarterManager
 from arangodb.sync import SyncManager
-from arangodb.starter.deployments.runner import Runner, runner_properties
+from arangodb.starter.deployments.runner import Runner, PunnerProperties
 from arangodb.instance import InstanceType
 from tools.asciiprint import print_progress as progress
 
@@ -26,7 +26,7 @@ class Dc2Dc(Runner):
                  selenium, selenium_driver_args,
                  testrun_name: str):
         super().__init__(runner_type, installer_set,
-                         runner_properties('DC2DC', 0, 3500, True),
+                         PunnerProperties('DC2DC', 0, 3500, True),
                          selenium, selenium_driver_args,
                          testrun_name)
         self.success = True
