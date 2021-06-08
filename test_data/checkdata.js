@@ -8,6 +8,11 @@ const internal = require('internal')
 const time = internal.time;
 let db = internal.db;
 let print = internal.print;
+const isCluster = require("internal").isCluster();
+const  dbVersion = db._version();
+
+const { FeatureFlags } = require("./test_data/feature_flags");
+
 let database = "_system";
 
 const optionsDefaults = {
@@ -18,8 +23,8 @@ const optionsDefaults = {
   collectionMultiplier: 1,
   singleShard: false,
   progress: false,
-  validateOneShard: false
-}
+  oldVersion: "3.8.0"
+};
 
 if ((0 < ARGUMENTS.length) &&
     (ARGUMENTS[0].slice(0, 1) !== '-')) {
@@ -29,6 +34,7 @@ if ((0 < ARGUMENTS.length) &&
 
 let options = internal.parseArgv(ARGUMENTS, 0);
 _.defaults(options, optionsDefaults);
+
 
 var numberLength = Math.log(options.numberOfDBs + options.countOffset) * Math.LOG10E + 1 | 0;
 
@@ -43,6 +49,8 @@ function progress() {
     print("#");
   }
 }
+
+const flags = new FeatureFlags(dbVersion, options.oldVersion);
  
 function getShardCount(defaultShardCount) {
   if (options.singleShard) {
@@ -78,6 +86,62 @@ function validateDocumentWorksInOneShard(db, baseName, count) {
       throw "DOCUMENT call in OneShard database does not return data";
     }
 
+  }
+}
+
+function testSmartGraphValidator(ccount) {
+  if (!isCluster || !flags.hasSmartGraphValidator()) {
+    // Feature does not exist, no need to test:
+    return {fail: false};
+  }
+  try {
+    const vColName = `patents_smart_${ccount}`;
+    const eColName = `citations_smart_${ccount}`;
+    const gName = `G_smart_${ccount}`;
+    const remoteDocument = {_key: "abc:123:def", _from: `${vColName}/abc:123`, _to: `${vColName}/def:123`};
+    const localDocument = {_key: "abc:123:abc", _from: `${vColName}/abc:123`, _to: `${vColName}/abc:123`};
+    const testValidator = (colName, doc) => {
+      let col = db._collection(colName);
+      if (!col) {
+        return {
+          fail: true,
+          message: `The smartGraph "${gName}" was not created correctly, collection ${colName} missing`
+        };
+      }
+      try {
+        col.save(doc);
+        return {
+          fail: true,
+          message: `Validator did not trigger on collection ${colName} stored illegal document`
+        };
+      } catch (e) {
+        // We only allow the following two errors, all others should be reported.
+        if (e.errorNum != 1466 && e.errorNum != 1233) {
+          return {
+            fail: true,
+            message: `Validator of collection ${colName} on atempt to store ${doc} returned unexpected error ${JSON.stringify(e)}`
+          };
+        }
+      }
+      return {fail: false};
+    }
+    // We try to insert a document into the wrong shard. This should be rejected by the internal validator
+    let res = testValidator(`_local_${eColName}`, remoteDocument);
+    if (res.fail) {
+      return res;
+    }
+    res = testValidator(`_from_${eColName}`, localDocument);
+    if (res.fail) {
+      return res;
+    }
+    res = testValidator(`_to_${eColName}`, localDocument);
+    if (res.fail) {
+      return res;
+    }
+    return {fail: false};
+  } finally {
+    // Always report that we tested SmartGraph Validators
+    progress("Tested SmartGraph validators");
   }
 }
 
@@ -177,22 +241,29 @@ while (count < options.numberOfDBs) {
                  RETURN v`).toArray().length !== 6) { throw "Physalis"; }
     progress();
     if (enterprise){
-      let patents_smart = db._collection(`patents_smart_${ccount}`)
+      const vColName = `patents_smart_${ccount}`;
+      let patents_smart = db._collection(vColName);
       if (patents_smart.count() !== 761) { throw "Cherry"; }
       progress();
-      let citations_smart = db._collection(`citations_smart_${ccount}`)
+      const eColName = `citations_smart_${ccount}`;
+      let citations_smart = db._collection(eColName);
       if (citations_smart.count() !== 1000) { throw "Liji"; }
       progress();
+      const gName = `G_smart_${ccount}`;
       if (db._query(`FOR v, e, p IN 1..10 OUTBOUND "${patents_smart.name()}/US:3858245" 
-                   GRAPH "G_smart_${ccount}"
+                   GRAPH "${gName}"
                    RETURN v`).toArray().length !== 6) { throw "Black Currant"; }
       progress();
+      const res = testSmartGraphValidator(ccount);
+      if (res.fail) {
+        throw res.message;
+      }
     }
     ccount ++;
   }
   print(timeLine.join());
-  
-  if (options.validateOneShard) {
+
+  if (flags.shouldValidateOneShard()) {
     validateDocumentWorksInOneShard(db, database, count);
   }
   count ++;

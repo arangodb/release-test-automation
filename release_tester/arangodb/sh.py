@@ -423,19 +423,16 @@ class ArangoshExecutor():
         else:
             logging.info("checking test data")
 
-        validate_one_shard = 'true' if semver.compare(self.cfg.version, "3.7.7") >= 0 else 'false'
-
         ret = self.run_script_monitored(cmd=[
             'checking test data integrity',
             self.cfg.test_data_dir / 'checkdata.js'],
                                             args=args + [
                                                 '--progress', 'true',
-                                                '--validateoneshard', validate_one_shard
+                                                '--oldVersion', self.cfg.version
                                             ],
                                         timeout=5,
                                         result_line=result_line,
                                         verbose=self.cfg.verbose)
-
         return ret
 
     def clear_test_data(self, testname, args=[], result_line=dummy_line_result):
