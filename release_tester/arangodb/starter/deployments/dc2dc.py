@@ -3,6 +3,7 @@
 import time
 import logging
 from pathlib import Path
+import re
 
 import psutil
 import requests
@@ -12,6 +13,11 @@ from arangodb.sync import SyncManager
 from arangodb.starter.deployments.runner import Runner
 from arangodb.instance import InstanceType
 from tools.asciiprint import print_progress as progress
+
+VERSION_OLD_MIN_FIX = semver.VersionInfo.parse('1.5.0')
+VERSION_OLD_MAX_FIX = semver.VersionInfo.parse('2.0.0')
+VERSION_NEW_FIX = semver.VersionInfo.parse('2.3.0')
+USERS_ERROR_RX = re.compile('.*\n.*\n.*(_users).*DIFFERENT.*', re.MULTILINE)
 
 class Dc2Dc(Runner):
     """ this launches two clusters in dc2dc mode """
@@ -25,6 +31,7 @@ class Dc2Dc(Runner):
         self.success = True
         self.cfg.passvoid = ''
         self.sync_manager = None
+        self.sync_version = None
         self.cluster1 = {}
         self.cluster2 = {}
         self.certificate_auth = {}
@@ -153,12 +160,12 @@ class Dc2Dc(Runner):
         launch(self.cluster2)
 
     def finish_setup_impl(self):
-        version = self.get_sync_version()
+        self.sync_version = self.get_sync_version()
         self.sync_manager = SyncManager(self.cfg,
                                         self.certificate_auth,
                                         [self.cluster2['smport'],
                                          self.cluster1['smport']],
-                                        version)
+                                        self.sync_version)
 
         if not self.sync_manager.run_syncer():
             raise Exception("starting the synchronisation failed!")
@@ -193,19 +200,52 @@ class Dc2Dc(Runner):
         print("Arangosync v%s detected" % version)
         return semver.VersionInfo.parse(version)
 
+    def mitigate_known_issues(self, last_sync_output):
+        """
+        this function contains counter measures against known issues of arangosync
+        """
+        if re.match(USERS_ERROR_RX, last_sync_output):
+            self.progress(True, 'arangosync: resetting users collection...')
+            self.sync_manager.reset_failed_shard('_system', '_users')
+        elif last_sync_output.find(
+                'temporary failure with http status code: 503: service unavailable') >= 0:
+            if (self.sync_version < VERSION_OLD_MIN_FIX or (
+                    (self.sync_version >= VERSION_OLD_MAX_FIX) and
+                    (self.sync_version < VERSION_NEW_FIX))):
+                self.progress(True, 'arangosync: restarting instances...')
+                self.cluster1["instance"].kill_sync_processes()
+                self.cluster2["instance"].kill_sync_processes()
+                time.sleep(3)
+                self.cluster1["instance"].detect_instances()
+                self.cluster2["instance"].detect_instances()
+            else:
+                self.progress(
+                    True,
+                    'arangosync: {0} does not qualify for restart workaround..'.format(
+                    str(self.sync_version))
+                )
+        elif last_sync_output.find('Shard is not turned on for synchronizing') >= 0:
+            self.progress(True, 'arangosync: sync in progress.')
+        else:
+            self.progress(True, 'arangosync: unknown error condition, doing nothing.')
+
     def test_setup_impl(self):
+        output = None
+        err = None
         self.cluster1['instance'].arangosh.check_test_data("dc2dc (post setup - dc1)")
         for count in range (20):
             (output, err, result) = self.sync_manager.check_sync()
             if result:
                 print("CHECK SYNC OK!")
                 break
-            if count >= 19:
-                self.state += "\n" + output
-                self.state += "\n" + err
-                raise Exception("failed to get the sync status")
             progress("sx" + str(count))
             time.sleep(10)
+            self.mitigate_known_issues(output)
+        else:
+            self.state += "\n" + output
+            self.state += "\n" + err
+            raise Exception("failed to get the sync status")
+
         res = self.cluster2['instance'].arangosh.check_test_data("dc2dc (post setup - dc2)")
         if not res[0]:
             if not self.cfg.verbose:
@@ -230,13 +270,13 @@ class Dc2Dc(Runner):
             if result:
                 print("CHECK SYNC OK!")
                 break
-            if count >= 11:
-                self.state += "\n" + output
-                self.state += "\n" + err
-                raise Exception("failed to get the sync status")
             progress("sv" + str(count))
-            self.sync_manager.reset_failed_shard('_system', '_users')
+            self.mitigate_known_issues(output)
             time.sleep(5)
+        else:
+            self.state += "\n" + output
+            self.state += "\n" + err
+            raise Exception("failed to get the sync status")
 
     def wait_for_restore_impl(self, backup_starter):
         for dbserver in self.cluster1["instance"].get_dbservers():
@@ -265,6 +305,7 @@ class Dc2Dc(Runner):
         self.cluster2["instance"].detect_instances()
         self.sync_manager.run_syncer()
 
+        self.sync_version = self.get_sync_version()
         self.sync_manager.check_sync_status(0)
         self.sync_manager.check_sync_status(1)
         self.sync_manager.get_sync_tasks(0)
@@ -289,6 +330,7 @@ class Dc2Dc(Runner):
                 print("CHECK SYNC OK!")
                 break
             progress("sx" + str(count))
+            self.mitigate_known_issues(output)
             time.sleep(10)
         else:
             self.state += "\n" + output

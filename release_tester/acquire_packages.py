@@ -224,25 +224,20 @@ class AcquirePackages():
 
 @click.command()
 @very_common_options
-@download_options
+@download_options()
 # pylint: disable=R0913
 def main(
         #very_common_options
-        new_version,
-        verbose,
-        enterprise,
-        package_dir,
-        zip_package,
+        new_version, verbose, enterprise, package_dir, zip_package,
         # download options:
-        enterprise_magic,
-        force,
-        source,
-        httpuser,
-        httppassvoid,
-        remote_host):
+        enterprise_magic, force, source,
+        httpuser, httppassvoid, remote_host):
     """ main wrapper """
     lh.configure_logging(verbose)
-    downloader = AcquirePackages(new_version, verbose, package_dir, enterprise, enterprise_magic, zip_package, source, httpuser, httppassvoid, remote_host)
+    downloader = AcquirePackages(new_version, verbose, package_dir,
+                                 enterprise, enterprise_magic,
+                                 zip_package, source,
+                                 httpuser, httppassvoid, remote_host)
     return downloader.get_packages(force, source)
 
 if __name__ == "__main__":

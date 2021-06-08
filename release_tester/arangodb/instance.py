@@ -100,6 +100,11 @@ class Instance(ABC):
             logging.error("was supposed to be dead, but I'm still alive? "
                           + repr(self))
             return True
+        except AttributeError:
+            logging.error("was supposed to be dead, but I don't have an instance? "
+                          + repr(self))
+            return True
+        return False
 
     @abstractmethod
     def get_essentials(self):

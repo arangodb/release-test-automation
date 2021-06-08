@@ -5,6 +5,24 @@ from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunn
 class NoStarter(SeleniumRunner):
     """ check the leader follower setup and its properties """
     def __init__(self, webdriver,
+                 is_headless: bool,
                  testrun_name: str):
         super().__init__(webdriver,
+                         is_headless,
                          testrun_name)
+
+    def check_old(self, cfg):
+        """ check the integrity of the old system before the upgrade """
+        pass
+
+    def upgrade_deployment(self, old_cfg, new_cfg):
+        """ check the upgrade whether the versions in the table switch etc. """
+        pass
+
+    def jam_step_1(self, cfg):
+        """ check the integrity of the old system before the upgrade """
+        pass
+
+    def jam_step_2(self, cfg):
+        """ check the integrity of the old system before the upgrade """
+        pass
