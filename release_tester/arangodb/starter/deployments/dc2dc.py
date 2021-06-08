@@ -214,6 +214,9 @@ class Dc2Dc(Runner):
                 self.progress(True, 'arangosync: restarting instances...')
                 self.cluster1["instance"].kill_sync_processes()
                 self.cluster2["instance"].kill_sync_processes()
+                time.sleep(3)
+                self.cluster1["instance"].detect_instances()
+                self.cluster2["instance"].detect_instances()
             else:
                 self.progress(
                     True,
