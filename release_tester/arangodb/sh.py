@@ -159,7 +159,8 @@ class ArangoshExecutor():
             self.cfg.bin_dir / "arangosh",
             "--server.endpoint", self.connect_instance.get_endpoint(),
             "--log.level", "v8=debug",
-            "--log.foreground-tty", "true"
+            "--log.foreground-tty", "true",
+            "--javascript.module-directory", self.cfg.test_data_dir.resolve()
         ]
         if process_control:
             run_cmd += ['--javascript.allow-external-process-control', 'true']
@@ -176,7 +177,7 @@ class ArangoshExecutor():
 
         if verbose:
             lh.log_cmd(run_cmd)
-        process = Popen(run_cmd, stdout=PIPE, stderr=PIPE, close_fds=ON_POSIX)
+        process = Popen(run_cmd, stdout=PIPE, stderr=PIPE, close_fds=ON_POSIX, cwd=self.cfg.test_data_dir.resolve())
         queue = Queue()
         thread1 = Thread(target=enqueue_stdout, args=(process.stdout,
                                                       queue,
@@ -365,7 +366,7 @@ class ArangoshExecutor():
                         result_line=dummy_line_result,
                         timeout=100):
        # pylint: disable=R0913 disable=R0902 disable=W0102
-        """ deploy testdata into the instance """
+        """ mimic runInArangosh testing.js behaviour """
         if testname:
             logging.info("adding test data for {0}".format(testname))
         else:
@@ -383,7 +384,7 @@ class ArangoshExecutor():
             pass
         ret = self.run_script_monitored(cmd=[
             'setting up test data',
-            self.cfg.test_data_dir / 'run_in_arangosh.js'],
+            self.cfg.test_data_dir.resolve() / 'run_in_arangosh.js'],
                                         args = [testname] + args + [
                                             '--args'
                                         ] + moreargs,
@@ -405,7 +406,7 @@ class ArangoshExecutor():
 
         ret = self.run_script_monitored(cmd=[
             'setting up test data',
-            self.cfg.test_data_dir / 'makedata.js'],
+            self.cfg.test_data_dir.resolve() / 'makedata.js'],
                                             args =args +[
                                                 '--progress', 'true'
                                             ],
@@ -425,7 +426,7 @@ class ArangoshExecutor():
 
         ret = self.run_script_monitored(cmd=[
             'checking test data integrity',
-            self.cfg.test_data_dir / 'checkdata.js'],
+            self.cfg.test_data_dir.resolve() / 'checkdata.js'],
                                             args=args + [
                                                 '--progress', 'true',
                                                 '--oldVersion', self.cfg.version
@@ -445,7 +446,7 @@ class ArangoshExecutor():
 
         ret = self.run_script_monitored(cmd=[
             'cleaning up test data',
-            self.cfg.test_data_dir / 'cleardata.js'],
+            self.cfg.test_data_dir.resolve() / 'cleardata.js'],
                                             args=args + [
                                                 '--progress', 'true'
                                             ],

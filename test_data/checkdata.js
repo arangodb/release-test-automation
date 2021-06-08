@@ -11,7 +11,7 @@ let print = internal.print;
 const isCluster = require("internal").isCluster();
 const  dbVersion = db._version();
 
-const { FeatureFlags } = require("./test_data/feature_flags");
+const { FeatureFlags } = require("./feature_flags");
 
 let database = "_system";
 
