@@ -314,7 +314,7 @@ class StarterManager():
         for instance in self.all_instances:
             if instance.instance_type == instance_type:
                 if instance.detect_gone():
-                    lh.progress(True, "Instance to send request to already gone: " + repr(instance))
+                    print("Instance to send request to already gone: " + repr(instance))
                 else:
                     headers ['Authorization'] = 'Bearer ' + str(self.get_jwt_header())
                     base_url = instance.get_public_plain_url()
