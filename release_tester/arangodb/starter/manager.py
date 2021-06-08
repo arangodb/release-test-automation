@@ -313,16 +313,19 @@ class StarterManager():
         results = []
         for instance in self.all_instances:
             if instance.instance_type == instance_type:
-                headers ['Authorization'] = 'Bearer ' + str(self.get_jwt_header())
-                base_url = instance.get_public_plain_url()
-                reply = verb_method(
-                    'http://' + base_url + url,
-                    data=data,
-                    headers=headers,
-                    allow_redirects=False
-                )
-                # print(reply.text)
-                results.append(reply)
+                if instance.detect_gone():
+                    lh.progress(True, "Instance to send request to already gone: " + repr(instance))
+                else:
+                    headers ['Authorization'] = 'Bearer ' + str(self.get_jwt_header())
+                    base_url = instance.get_public_plain_url()
+                    reply = verb_method(
+                        'http://' + base_url + url,
+                        data=data,
+                        headers=headers,
+                        allow_redirects=False
+                    )
+                    # print(reply.text)
+                    results.append(reply)
         return results
 
     def crash_instances(self):
