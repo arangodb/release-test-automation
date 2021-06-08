@@ -105,12 +105,11 @@ def run_upgrade(old_version, new_version, verbose,
                 old_inst.cleanup_system()
             except Exception:
                 print("Ignoring old cleanup error!")
-                pass
             try:
                 print("Ignoring new cleanup error!")
                 new_inst.cleanup_system()
             except Exception:
-                pass
+                print("Ignoring general cleanup error!")
         except Exception as ex:
             print("Caught. " + str(ex))
             one_result = {
@@ -137,14 +136,13 @@ def run_upgrade(old_version, new_version, verbose,
                 old_inst.cleanup_system()
             except Exception:
                 print("Ignoring old cleanup error!")
-                pass
             try:
                 print("Ignoring new cleanup error!")
                 new_inst.un_install_debug_package()
                 new_inst.un_install_package()
                 new_inst.cleanup_system()
             except Exception:
-                pass
+                print("Ignoring new cleanup error!")
         results.append(one_result)
     return results
 

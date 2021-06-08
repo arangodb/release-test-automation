@@ -2,7 +2,7 @@
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
 
-from arangodb.starter.deployments.runner import Runner
+from arangodb.starter.deployments.runner import Runner, PunnerProperties
 
 class NoStarter(Runner):
     """ This runner does not use the starter """
@@ -11,32 +11,33 @@ class NoStarter(Runner):
                  selenium, selenium_driver_args,
                  testrun_name: str):
         super().__init__(runner_type, installer_set,
-                         'none', 0, 0, selenium, selenium_driver_args,
+                         PunnerProperties('none', 0, 0, False),
+                         selenium, selenium_driver_args,
                          testrun_name)
 
     def starter_prepare_env_impl(self):
-        pass
+        """ nothing to see here """
 
     def starter_run_impl(self):
-        pass
+        """ nothing to see here """
 
     def finish_setup_impl(self):
-        pass
+        """ nothing to see here """
 
     def test_setup_impl(self):
-        pass
+        """ nothing to see here """
 
     def upgrade_arangod_version_impl(self):
-        pass
+        """ nothing to see here """
 
     def jam_attempt_impl(self):
-        pass
+        """ nothing to see here """
 
     def shutdown_impl(self):
-        pass
+        """ nothing to see here """
 
     def before_backup_impl(self):
-        pass
+        """ nothing to see here """
 
     def after_backup_impl(self):
-        pass
+        """ nothing to see here """

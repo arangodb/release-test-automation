@@ -33,7 +33,7 @@ class LeaderFollower(SeleniumRunner):
                        "UI-Test: expected 1 follower")
 
     def upgrade_deployment(self, new_cfg, secondary, leader_follower):
-        pass
+        """ nothing to see here """
 
     def jam_step_1(self, cfg):
         """ check for one set of instances to go away """
@@ -47,4 +47,4 @@ class LeaderFollower(SeleniumRunner):
                        "UI-Test: expected to have 1 follower!")
 
     def jam_step_2(self, cfg):
-        pass
+        """ nothing to see here """

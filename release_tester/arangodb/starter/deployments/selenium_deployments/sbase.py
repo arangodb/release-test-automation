@@ -45,6 +45,7 @@ REPL_LF_TABLES = {
 }
 class SeleniumRunner(ABC):
     "abstract base class for selenium UI testing"
+    # pylint: disable=C0301
     def __init__(self, webdriver,
                  is_headless: bool,
                  testrun_name: str):

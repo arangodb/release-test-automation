@@ -24,6 +24,34 @@ from tools.killall import kill_all_processes
 
 FNRX = re.compile("[\n@ ]*")
 
+def detect_file_ulimit():
+    """ check whether the ulimit for files is to low """
+    winver = platform.win32_ver()
+    if not winver[0]:
+        # pylint: disable=C0415
+        import resource
+        nofd = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
+        if nofd < 65535:
+            raise Exception("please use ulimit -n <count>"
+                            " to adjust the number of allowed"
+                            " filedescriptors to a value greater"
+                            " or eqaul 65535. Currently you have"
+                            " set the limit to: " + str(nofd))
+        giga_byte = 2**30
+        resource.setrlimit(resource.RLIMIT_CORE, (giga_byte,giga_byte))
+
+class PunnerProperties():
+    """ runner properties management class """
+    def __init__(self,
+                 short_name: str,
+                 disk_usage_community: int,
+                 disk_usage_enterprise: int,
+                 supports_hotbackup: bool):
+        self.short_name = short_name
+        self.disk_usage_community = disk_usage_community
+        self.disk_usage_enterprise = disk_usage_enterprise
+        self.supports_hotbackup = supports_hotbackup
+
 class Runner(ABC):
     """abstract starter deployment runner"""
 # pylint: disable=R0913 disable=R0902 disable=R0904 disable=C0415
@@ -31,9 +59,7 @@ class Runner(ABC):
             self,
             runner_type,
             install_set: list,
-            short_name: str,
-            disk_usage_community: int,
-            disk_usage_enterprise: int,
+            properties: PunnerProperties,
             selenium_worker: str,
             selenium_driver_args: list,
             testrun_name: str
@@ -71,7 +97,7 @@ class Runner(ABC):
             self.new_cfg.passvoid = ""   # TODO
             self.versionstr = "OLD[" + self.cfg.version + "] "
 
-        self.basedir = Path(short_name)
+        self.basedir = Path(properties.short_name)
         count = 1
         while True:
             try:
@@ -92,8 +118,8 @@ class Runner(ABC):
                                str(self.basecfg.base_test_dir) +
                                " not working")
         is_cleanup = self.cfg.version == "3.3.3"
-        diskused = (disk_usage_community
-                    if not cfg.enterprise else disk_usage_enterprise)
+        diskused = (properties.disk_usage_community
+                    if not cfg.enterprise else properties.disk_usage_enterprise)
         if not is_cleanup and diskused * 1024 * 1024 > diskfree.free:
             logging.error("Scenario demanded %d MB "
                           "but only %d MB are available in %s",
@@ -105,7 +131,7 @@ class Runner(ABC):
         self.new_installer = new_inst
         self.backup_name = None
         self.hot_backup = ( cfg.hot_backup and
-                            self.supports_backup_impl() and
+                            properties.supports_hotbackup and
                             self.old_installer.supports_hot_backup() )
         self.backup_instance_count = 3
         # starter instances that make_data wil run on
@@ -160,7 +186,7 @@ class Runner(ABC):
         """ run the full lifecycle flow of this deployment """
         # pylint: disable=R0915 disable=R0912
         if self.do_starter_test and not self.remote:
-            self.detect_file_ulimit()
+            detect_file_ulimit()
 
         self.progress(False, "Runner of type {0}".format(str(self.name)), "<3")
 
@@ -514,7 +540,6 @@ class Runner(ABC):
             instances += starter.get_instance_essentials()
         print_instances_table(instances)
 
-    #@abstractmethod
     def make_data_impl(self):
         """ upload testdata into the deployment, and check it """
         assert self.makedata_instances, "don't have makedata instance!"
@@ -546,8 +571,8 @@ class Runner(ABC):
         if self.has_makedata_data:
             success = arangosh.check_test_data(self.name)
             if not success[0]:
-                if not self.cfg.verbose:
-                    print(success[1])
+                #if not self.cfg.verbose:
+                print(success[1])
                 eh.ask_continue_or_exit(
                     "has data failed for {0.name}".format(self),
                     self.basecfg.interactive,
@@ -562,10 +587,6 @@ class Runner(ABC):
             arangosh = starter.arangosh
             return self.check_data_impl_sh(arangosh)
         raise Exception("no frontend found.")
-
-    def supports_backup_impl(self):
-        """ whether or not this deployment will support hot backup """
-        return True
 
     def create_non_backup_data(self):
         """ create data to be zapped by the restore operation """
@@ -701,22 +722,6 @@ class Runner(ABC):
         if testdir.exists():
             shutil.rmtree(testdir)
 
-    def detect_file_ulimit(self):
-        """ check whether the ulimit for files is to low """
-        winver = platform.win32_ver()
-        if not winver[0]:
-            # pylint: disable=C0415
-            import resource
-            nofd = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
-            if nofd < 65535:
-                raise Exception("please use ulimit -n <count>"
-                                " to adjust the number of allowed"
-                                " filedescriptors to a value greater"
-                                " or eqaul 65535. Currently you have"
-                                " set the limit to: " + str(nofd))
-            giga_byte = 2**30
-            resource.setrlimit(resource.RLIMIT_CORE, (giga_byte,giga_byte))
-
     def agency_get_leader(self):
         """ get the agent that has the latest "serving" line """
         # TODO: dc2dc has two agencies :/
@@ -770,7 +775,6 @@ class Runner(ABC):
             except Exception as ex:
                 # We skip one starter and all its agency dump attempts now.
                 print("Error during an agency: " + str(ex))
-                pass
 
     def agency_set_debug_logging(self):
         """ turns on logging on the agency """

@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """ inbetween class for linux specific utilities - GDB tests. """
-import sys
 import logging
+import sys
+import time
 import pexpect
 from arangodb.installers.base import InstallerBase
+from tools.asciiprint import print_progress as progress
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 class InstallerLinux(InstallerBase):
@@ -35,3 +37,12 @@ class InstallerLinux(InstallerBase):
         else:
             logging.info('Something wrong')
             sys.exit(1)
+
+    def check_service_up(self):
+        for count in range (20):
+            if not self.instance.detect_gone():
+                return True
+            progress("SR", count)
+            time.sleep(1)
+        return False
+

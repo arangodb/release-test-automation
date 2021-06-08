@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """ run an installer for the debian based operating system """
 import time
+import os
 import sys
 import shutil
 import logging
@@ -81,17 +82,6 @@ class InstallerRPM(InstallerLinux):
         self.debug_package = (
             'arangodb3{ep}-debuginfo-{cfg}-{ver}.{arch}.rpm'.format(**desc))
 
-    def check_service_up(self):
-        if self.instance.pid:
-            try:
-                psutil.Process(self.instance.pid)
-            except Exception:
-                return False
-        else:
-            return False
-        time.sleep(1)   # TODO
-        return True
-
     def start_service(self):
         assert self.instance
 
@@ -117,7 +107,7 @@ class InstallerRPM(InstallerLinux):
     def upgrade_package(self, old_installer):
         logging.info("upgrading Arangodb rpm package")
 
-        self.cfg.passvoid = "sanoetuh"   # TODO
+        self.cfg.passvoid = "RPM_passvoid_%d" % os.getpid()
         self.cfg.log_dir = Path('/var/log/arangodb3')
         self.cfg.dbdir  = Path('/var/lib/arangodb3')
         self.cfg.appdir = Path('/var/lib/arangodb3-apps')
@@ -210,7 +200,7 @@ class InstallerRPM(InstallerLinux):
 
         self.stop_service()
 
-        self.cfg.passvoid = "sanoetuh"   # TODO
+        self.cfg.passvoid = "RPM_passvoid_%d" % os.getpid()
         lh.log_cmd('/usr/sbin/arango-secure-installation')
         with pexpect.spawnu('/usr/sbin/arango-secure-installation') as etpw:
             result = None
@@ -313,7 +303,6 @@ class InstallerRPM(InstallerLinux):
                                 " didn't finish successfully!")
 
     def cleanup_system(self):
-        # TODO: should this be cleaned by the rpm uninstall in first place?
         print("attempting system directory cleanup after RPM")
         if self.cfg.log_dir.exists():
             print("cleaning upg %s "% str(self.cfg.log_dir))

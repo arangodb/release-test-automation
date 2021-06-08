@@ -8,7 +8,7 @@ from tools.timestamp import timestamp
 from tools.interact import prompt_user
 from arangodb.instance import InstanceType
 from arangodb.starter.manager import StarterManager
-from arangodb.starter.deployments.runner import Runner
+from arangodb.starter.deployments.runner import Runner, PunnerProperties
 import tools.loghelper as lh
 from tools.asciiprint import print_progress as progress
 
@@ -20,7 +20,7 @@ class Cluster(Runner):
                  selenium, selenium_driver_args,
                  testrun_name: str):
         super().__init__(runner_type, installer_set,
-                         'CLUSTER', 400, 600,
+                         PunnerProperties('CLUSTER', 400, 600, True),
                          selenium, selenium_driver_args,
                          testrun_name)
         #self.basecfg.frontends = []

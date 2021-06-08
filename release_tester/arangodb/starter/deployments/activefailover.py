@@ -8,7 +8,7 @@ from requests.auth import HTTPBasicAuth
 
 from arangodb.instance import InstanceType
 from arangodb.starter.manager import StarterManager
-from arangodb.starter.deployments.runner import Runner
+from arangodb.starter.deployments.runner import Runner, PunnerProperties
 
 from tools.asciiprint import print_progress as progress
 from tools.interact import prompt_user
@@ -21,7 +21,7 @@ class ActiveFailover(Runner):
                  selenium, selenium_driver_args,
                  testrun_name: str):
         super().__init__(runner_type, installer_set,
-                         'ActiveFailOver', 500, 600,
+                         PunnerProperties('ActiveFailOver', 500, 600, True),
                          selenium, selenium_driver_args,
                          testrun_name)
         self.starter_instances = []

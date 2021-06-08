@@ -3,6 +3,7 @@
 import time
 
 from arangodb.starter.deployments.dc2dc import Dc2Dc
+from arangodb.starter.deployments.runner import PunnerProperties
 
 class Dc2DcEndurance(Dc2Dc):
     """ this launches two clusters in dc2dc mode """
@@ -11,7 +12,8 @@ class Dc2DcEndurance(Dc2Dc):
                  selenium, selenium_driver_args,
                  testrun_name: str):
         super().__init__(runner_type, installer_set,
-                         'DC2DC_endurance', 0, 3500, selenium, selenium_driver_args,
+                         PunnerProperties('DC2DC_endurance', 0, 3500, True),
+                         selenium, selenium_driver_args,
                          testrun_name)
         self.hot_backup = False
 

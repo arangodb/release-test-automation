@@ -7,7 +7,7 @@ from tools.interact import prompt_user
 from tools.killall import get_all_processes
 from arangodb.starter.manager import StarterManager
 from arangodb.instance import InstanceType
-from arangodb.starter.deployments.runner import Runner
+from arangodb.starter.deployments.runner import Runner, PunnerProperties
 import tools.loghelper as lh
 from tools.asciiprint import print_progress as progress
 
@@ -18,7 +18,8 @@ class LeaderFollower(Runner):
                  selenium, selenium_driver_args,
                  testrun_name: str):
         super().__init__(runner_type, installer_set,
-                         'LeaderFollower', 400, 500, selenium, selenium_driver_args,
+                         PunnerProperties('LeaderFollower', 400, 500, False),
+                         selenium, selenium_driver_args,
                          testrun_name)
 
         self.leader_starter_instance = None
@@ -167,9 +168,6 @@ process.exit(0);
 
         logging.info("Leader follower setup successfully finished!")
 
-    def supports_backup_impl(self):
-        return False
-
     def upgrade_arangod_version_impl(self):
         """ upgrade this installation """
         for node in [self.leader_starter_instance, self.follower_starter_instance]:
@@ -224,7 +222,7 @@ process.exit(0);
         logging.info('test ended')
 
     def before_backup_impl(self):
-        pass
+        """ nothing to see here """
 
     def after_backup_impl(self):
-        pass
+        """ nothing to see here """
