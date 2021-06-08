@@ -3,10 +3,10 @@
 import time
 import logging
 from pathlib import Path
+import re
 
 import psutil
 import requests
-import re
 import semver
 from arangodb.starter.manager import StarterManager
 from arangodb.sync import SyncManager
