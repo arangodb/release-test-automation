@@ -17,7 +17,7 @@ from tools.asciiprint import print_progress as progress
 VERSION_OLD_MIN_FIX = semver.VersionInfo.parse('1.5.0')
 VERSION_OLD_MAX_FIX = semver.VersionInfo.parse('2.0.0')
 VERSION_NEW_FIX = semver.VersionInfo.parse('2.3.0')
-USERS_ERROR_RX = re.compile('.*\n.*(_users).*DIFFERENT.*', re.MULTILINE)
+USERS_ERROR_RX = re.compile('.*\n.*\n.*(_users).*DIFFERENT.*', re.MULTILINE)
 
 class Dc2Dc(Runner):
     """ this launches two clusters in dc2dc mode """
