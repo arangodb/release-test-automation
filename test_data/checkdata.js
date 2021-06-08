@@ -94,7 +94,6 @@ function testSmartGraphValidator(ccount) {
     // Feature does not exist, no need to test:
     return {fail: false};
   }
-  // Feature does not exist, no need to test:
   try {
     const vColName = `patents_smart_${ccount}`;
     const eColName = `citations_smart_${ccount}`;
