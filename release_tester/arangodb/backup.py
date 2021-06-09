@@ -31,11 +31,11 @@ class HotBackupConfig():
         self.install_prefix = raw_install_prefix
         self.cfg_type = "local"
         self.name = str(name).replace('/', '_')
-        self.provider = None
-        self.env_auth = False
-        self.access_key_id = None
-        self.secret_access_key = None
-        self.region = None
+        #self.provider = None
+        #self.env_auth = False
+        #self.access_key_id = None
+        #self.secret_access_key = None
+        #self.region = None
         self.acl = "private"
 
     def save_config(self, filename):
@@ -58,6 +58,7 @@ class HotBackupConfig():
         return self.save_config("rclone_config.json")
 
 class HotBackupManager():
+    # pylint: disable=R0902
     """ manages one arangobackup instance"""
     def __init__(self,
                  basecfg,
@@ -205,7 +206,9 @@ class HotBackupManager():
             print("have to retry. " + str(counts) + " - " + str(instance_count))
             timeout -= 1
             if timeout <= 0:
-                raise TimeoutError("failed to find %d 'COMPLETED' status for upload status" % instance_count)
+                raise TimeoutError(
+                    "failed to find %d 'COMPLETED' status for upload status" %
+                    instance_count)
             time.sleep(1)
 
     def download(self, backup_name, backup_config: HotBackupConfig, identifier):

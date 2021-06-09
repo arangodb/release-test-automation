@@ -43,6 +43,7 @@ def detect_file_ulimit():
 
 class PunnerProperties():
     """ runner properties management class """
+    #pylint: disable=R0903
     def __init__(self,
                  short_name: str,
                  disk_usage_community: int,
@@ -55,7 +56,7 @@ class PunnerProperties():
 
 class Runner(ABC):
     """abstract starter deployment runner"""
-# pylint: disable=R0913 disable=R0902 disable=R0904 disable=C0415
+# pylint: disable=R0913 disable=R0902 disable=R0904 disable=C0415 disable=R0914 disable=R0915
     def __init__(
             self,
             runner_type,
@@ -225,8 +226,7 @@ class Runner(ABC):
                     str(self.name)))
             if self.hot_backup:
                 self.progress(False, "TESTING HOTBACKUP")
-                 # TODO generate name?
-                self.backup_name = self.create_backup("thy_name_is")
+                self.backup_name = self.create_backup("thy_name_is_" + self.name)
                 self.tcp_ping_all_nodes()
                 self.create_non_backup_data()
                 backups = self.list_backup()
@@ -666,6 +666,7 @@ class Runner(ABC):
             return starter.hb_instance.delete(name)
         raise Exception("no frontend found.")
 
+    # pylint: disable=R0201
     def wait_for_restore_impl(self, backup_starter):
         """ wait for all restores to be finished """
         backup_starter.wait_for_restore()

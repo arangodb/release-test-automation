@@ -5,6 +5,8 @@ import os
 from pathlib import Path
 import semver
 
+# pylint: disable=R0903
+
 class InstallerFrontend():
     """ class describing frontend instances """
     def __init__(self, proto: str, ip_address: str, port: int):
@@ -186,7 +188,7 @@ def create_config_installer_set(versions: list,
                                 interactive: bool,
                                 stress_upgrade: bool):
     """ creates sets of configs and installers """
-    # pylint: disable=R0902
+    # pylint: disable=R0902 disable=R0913
     res = []
     for version in versions:
         print(version)
