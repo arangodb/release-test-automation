@@ -9,7 +9,7 @@ import time
 
 import psutil
 
-from tools.asciiprint import ascii_print, print_progress as progress
+from tools.asciiprint import ascii_convert, ascii_print, print_progress as progress
 import tools.loghelper as lh
 
 #            json.dumps({
