@@ -8,6 +8,7 @@ from selenium.webdriver.support.select import Select
 from selenium.webdriver.common.action_chains import ActionChains
 import time
 import pyautogui
+import os
 
 
 class BaseSelenium:
@@ -30,6 +31,12 @@ class BaseSelenium:
         cls.driver.close()
         print("\n--------Now Quiting--------\n")
         cls.driver.quit()
+
+    '''This method will be used for executing console command'''
+
+    @staticmethod
+    def command(cmd):
+        os.system(cmd)
 
     '''This method will be used for clear all the text if .clear() does not work'''
 

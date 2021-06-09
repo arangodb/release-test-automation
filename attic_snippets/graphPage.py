@@ -387,10 +387,8 @@ class GraphPage(BaseSelenium):
             BaseSelenium.locator_finder_by_id(self, select_graph_id)
         select_graph_id.click()
 
-        # # list of id's for satellite graph
-
+        # list of id's for satellite graph
         select_satellite = 'tab-satelliteGraph'
-
         new_graph = self.select_new_graph_name_id
         edge_definition = "s2id_newEdgeDefinitions0"
         from_collection = "s2id_fromCollections0"
@@ -452,10 +450,8 @@ class GraphPage(BaseSelenium):
             BaseSelenium.locator_finder_by_id(self, select_graph_id)
         select_graph_id.click()
 
-        # # list of id's for satellite graph
-
+        # list of id's for smart graph
         select_smart = 'tab-smartGraph'
-
         new_graph = self.select_new_graph_name_id
         shard = 'new-numberOfShards'
         replication = 'new-replicationFactor'
@@ -467,9 +463,8 @@ class GraphPage(BaseSelenium):
         from_collection = "s2id_fromCollections0"
         to_collection = "s2id_toCollections0"
         create_btn_id = "modalButton1"
-        # knows_graph_id = '//*[@id="knows_graph_manual_tile"]/div/h5'
 
-        # selecting satellite graph tab
+        # selecting smart graph tab
         select_smart = \
             BaseSelenium.locator_finder_by_id(self, select_smart)
         select_smart.click()
@@ -490,7 +485,7 @@ class GraphPage(BaseSelenium):
         replication = \
             BaseSelenium.locator_finder_by_id(self, replication)
         replication.click()
-        replication.send_keys('2')
+        replication.send_keys('3')
 
         # specifying write concern of shards
         write_concern = \
@@ -500,6 +495,7 @@ class GraphPage(BaseSelenium):
 
         # specifying write disjoint graphs
         if disjointgraph:
+            print('Disjoint Graph selected. \n')
             disjoint = \
                 BaseSelenium.locator_finder_by_id(self, disjoint)
             disjoint.click()
@@ -510,7 +506,7 @@ class GraphPage(BaseSelenium):
         smart_attribute = \
             BaseSelenium.locator_finder_by_id(self, smart_attribute)
         smart_attribute.click()
-        smart_attribute.send_keys('smartGraph')
+        smart_attribute.send_keys('community')
 
         # scrolling down
         super().scroll(1)
@@ -520,13 +516,15 @@ class GraphPage(BaseSelenium):
         edge_definition = \
             BaseSelenium.locator_finder_by_id(self, edge_definition)
         edge_definition.click()
-        pyautogui.press('enter')
+        # pyautogui.press('enter')
+
+        pyautogui.typewrite('relations\n')
 
         # selecting from collection from auto suggestion
         from_collection = \
             BaseSelenium.locator_finder_by_id(self, from_collection)
         from_collection.click()
-        pyautogui.press('enter')
+        pyautogui.typewrite('profiles\n')
 
         time.sleep(1)
 
@@ -534,18 +532,81 @@ class GraphPage(BaseSelenium):
         to_collection = \
             BaseSelenium.locator_finder_by_id(self, to_collection)
         to_collection.click()
-        pyautogui.press('enter')
-
+        pyautogui.typewrite('profiles\n')
         time.sleep(1)
 
         # selecting create graph btn
         create_btn_id = \
             BaseSelenium.locator_finder_by_id(self, create_btn_id)
         create_btn_id.click()
+        time.sleep(2)
+
+        # import data to the smart graph collections
+        collection = self.select_collection_page_id
+        collection = \
+            BaseSelenium.locator_finder_by_id(self, collection)
+        collection.click()
+
+        print("Importing profile collections \n")
+        cmd_for_profile = 'cmd /c "arangoimp --file C:\\Users\\rearf\\Desktop\\collections\\profiles.jsonl ' \
+                          '--collection "profiles" --type=jsonl --server.username root --server.password ""' \
+                          ' --server.endpoint tcp://127.0.0.1:8529"'
+        super().command(cmd_for_profile)
+
+        time.sleep(1)
+
+        print("Importing relations collections \n")
+        cmd_for_relation = 'cmd /c "arangoimp --file C:\\Users\\rearf\Desktop\\collections\\relations.jsonl ' \
+                           '--collection "relations" --type=json --server.username root --server.password "" ' \
+                           '--server.endpoint tcp://127.0.0.1:8529 --to-collection-prefix profiles_smart' \
+                           ' --from-collection-prefix profiles_smart"'
+        super().command(cmd_for_relation)
+
+        time.sleep(1)
+
+        self.driver.back()
+
+        # opening smart graph
+        smart_graph = 'smart_graph_tile'
+        smart_graph = BaseSelenium.locator_finder_by_id(self, smart_graph)
+        smart_graph.click()
+        time.sleep(2)
+
+        # loading full graph
+        load_graph = 'loadFullGraph'
+        load_graph = BaseSelenium.locator_finder_by_id(self, load_graph)
+        load_graph.click()
+        time.sleep(1)
+
+        load_full_graph = 'modalButton1'
+        load_full_graph = BaseSelenium.locator_finder_by_id(self, load_full_graph)
+        load_full_graph.click()
+        time.sleep(5)
+
+        self.driver.back()
 
         time.sleep(2)
 
-        print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+        print("Smart Graph deleting started \n")
+        smart_settings = 'smart_graph_settings'
+        smart_settings = BaseSelenium.locator_finder_by_id(self, smart_settings)
+        smart_settings.click()
+
+        delete_btn = 'modalButton0'
+        delete_btn = BaseSelenium.locator_finder_by_id(self, delete_btn)
+        delete_btn.click()
+
+        delete_check_id = 'dropGraphCollections'
+        delete_check_id = BaseSelenium.locator_finder_by_id(self, delete_check_id)
+        delete_check_id.click()
+
+        delete_confirm_btn = 'modal-confirm-delete'
+        delete_confirm_btn = BaseSelenium.locator_finder_by_id(self, delete_confirm_btn)
+        delete_confirm_btn.click()
+
+        time.sleep(2)
+
+        print("Smart Graph deleted successfully \n")
 
     # Creating new example graphs
     def select_create_graph(self, graph):

@@ -383,7 +383,8 @@ class Test(BaseSelenium):
         # print("Adding Satellite Graph started \n")
 
         print("Adding Smart Graph started \n")
-        self.graph01.adding_smart_graph(True)
+        self.graph01.adding_smart_graph()
+        print("Adding Smart Graph completed \n")
 
         # print("Example Graphs creation started\n")
         # print("Creating Knows Graph\n")
@@ -471,6 +472,7 @@ class Test(BaseSelenium):
         # del self.graph7
         # del self.graph8
         del self.graph9
+        del self.graph01
         # self.login.logout_button()
         # del self.login
         print("---------Checking Graphs completed--------- \n")
