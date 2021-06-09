@@ -97,12 +97,12 @@ class Instance(ABC):
             # we expect it to be dead anyways!
             return self.instance.wait(3) is None
         except psutil.TimeoutExpired:
-            logging.error("was supposed to be dead, but I'm still alive? "
-                          + repr(self))
+            #logging.error("was supposed to be dead, but I'm still alive? "
+            #              + repr(self))
             return True
         except AttributeError:
-            logging.error("was supposed to be dead, but I don't have an instance? "
-                          + repr(self))
+            #logging.error("was supposed to be dead, but I don't have an instance? "
+            #              + repr(self))
             return True
         return False
 
