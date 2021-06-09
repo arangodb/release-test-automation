@@ -29,22 +29,12 @@ import tools.loghelper as lh
 # pylint: disable=R0913 disable=W0613 disable=R0914
 def run_test(mode, scenario, frontends,
              #very_common_options
-             new_version,
-             verbose,
-             enterprise,
-             package_dir,
-             zip_package,
+             new_version, verbose, enterprise, package_dir, zip_package,
              # common_options
              # old_version,
-             test_data_dir,
-             encryption_at_rest,
-             interactive,
-             starter_mode,
-             stress_upgrade,
-             abort_on_error,
-             publicip,
-             selenium,
-             selenium_driver_args):
+             test_data_dir, encryption_at_rest, interactive, starter_mode,
+             stress_upgrade, abort_on_error, publicip,
+             selenium, selenium_driver_args):
     """ main """
     lh.configure_logging(verbose)
 
@@ -85,6 +75,7 @@ def run_test(mode, scenario, frontends,
                                   host_parts[3])
     inst.cfg.scenario = Path(scenario)
     runner = ClusterPerf(RunnerType.CLUSTER,
+                         abort_on_error,
                          installers,
                          selenium,
                          selenium_driver_args,

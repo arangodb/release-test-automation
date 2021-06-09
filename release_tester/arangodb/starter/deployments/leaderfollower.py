@@ -14,10 +14,10 @@ from tools.asciiprint import print_progress as progress
 class LeaderFollower(Runner):
     """ this runs a leader / Follower setup with synchronisation """
     # pylint: disable=R0913 disable=R0902
-    def __init__(self, runner_type, installer_set,
+    def __init__(self, runner_type, abort_on_error, installer_set,
                  selenium, selenium_driver_args,
                  testrun_name: str):
-        super().__init__(runner_type, installer_set,
+        super().__init__(runner_type, abort_on_error, installer_set,
                          PunnerProperties('LeaderFollower', 400, 500, False),
                          selenium, selenium_driver_args,
                          testrun_name)

@@ -18,7 +18,7 @@ def run_upgrade(old_version, new_version, verbose,
                 package_dir, test_data_dir,
                 enterprise, encryption_at_rest,
                 zip_package, interactive,
-                starter_mode, stress_upgrade,
+                starter_mode, stress_upgrade, abort_on_error,
                 publicip, selenium, selenium_driver_args):
     """ execute upgrade tests """
     lh.configure_logging(verbose)
@@ -53,6 +53,7 @@ def run_upgrade(old_version, new_version, verbose,
         runner = None
         if runner_type:
             runner = make_runner(runner_type,
+                                 abort_on_error,
                                  selenium,
                                  selenium_driver_args,
                                  installers)
@@ -77,7 +78,7 @@ def main(
                        package_dir, test_data_dir,
                        enterprise, encryption_at_rest,
                        zip_package, interactive,
-                       starter_mode, stress_upgrade,
+                       starter_mode, stress_upgrade, abort_on_error,
                        publicip, selenium, selenium_driver_args)
 
 if __name__ == "__main__":

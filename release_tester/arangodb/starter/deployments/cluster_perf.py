@@ -82,7 +82,7 @@ def makedata_runner(queue, resq, arangosh, progressive_timeout):
 class ClusterPerf(Runner):
     """ this launches a cluster setup """
     # pylint: disable=R0913 disable=R0902
-    def __init__(self, runner_type, installer_set,
+    def __init__(self, runner_type, abort_on_error, installer_set,
                  selenium, selenium_driver_args,
                  testrun_name: str):
         global OTHER_SH_OUTPUT, RESULTS_TXT
@@ -94,7 +94,7 @@ class ClusterPerf(Runner):
         with open(cfg.scenario) as fileh:
             self.scenario = yaml.load(fileh, Loader=yaml.Loader)
 
-        super().__init__(runner_type, installer_set,
+        super().__init__(runner_type, abort_on_error, installer_set,
                          PunnerProperties('CLUSTER', 9999999, 99999999, False),
                          selenium, selenium_driver_args,
                          testrun_name)

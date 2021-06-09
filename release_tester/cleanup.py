@@ -40,7 +40,7 @@ def run_cleanup(zip_package, testrun_name: str = ""):
         assert runner_type
 
         runner = make_runner(runner_type,
-                             'none', [],
+                             False, 'none', [],
                              installer_set,
                              testrun_name
                              )

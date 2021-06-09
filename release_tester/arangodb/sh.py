@@ -10,7 +10,6 @@ from subprocess import DEVNULL, PIPE, Popen
 import sys
 from threading  import Thread
 import psutil
-import semver
 from tools.asciiprint import print_progress as progress
 import tools.errorhelper as eh
 import tools.loghelper as lh
@@ -177,7 +176,9 @@ class ArangoshExecutor():
 
         if verbose:
             lh.log_cmd(run_cmd)
-        process = Popen(run_cmd, stdout=PIPE, stderr=PIPE, close_fds=ON_POSIX, cwd=self.cfg.test_data_dir.resolve())
+        process = Popen(run_cmd,
+                        stdout=PIPE, stderr=PIPE, close_fds=ON_POSIX,
+                        cwd=self.cfg.test_data_dir.resolve())
         queue = Queue()
         thread1 = Thread(target=enqueue_stdout, args=(process.stdout,
                                                       queue,

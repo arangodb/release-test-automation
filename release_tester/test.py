@@ -59,7 +59,11 @@ def run_test(mode,
     for runner_type in STARTER_MODES[starter_mode]:
         if not enterprise and runner_type == RunnerType.DC2DC:
             continue
-        runner = make_runner(runner_type, selenium, selenium_driver_args, installers)
+        runner = make_runner(runner_type,
+                             abort_on_error,
+                             selenium,
+                             selenium_driver_args,
+                             installers)
         # install on first run:
         runner.do_install = (count == 1) and do_install
         # only uninstall after the last test:
