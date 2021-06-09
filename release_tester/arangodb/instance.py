@@ -97,12 +97,12 @@ class Instance(ABC):
             # we expect it to be dead anyways!
             return self.instance.wait(3) is None
         except psutil.TimeoutExpired:
-            logging.error("was supposed to be dead, but I'm still alive? "
-                          + repr(self))
+            #logging.error("was supposed to be dead, but I'm still alive? "
+            #              + repr(self))
             return True
         except AttributeError:
-            logging.error("was supposed to be dead, but I don't have an instance? "
-                          + repr(self))
+            #logging.error("was supposed to be dead, but I don't have an instance? "
+            #              + repr(self))
             return True
         return False
 
@@ -175,6 +175,7 @@ class Instance(ABC):
 
     def is_line_relevant(self, line):
         """ it returns true if the line from logs should be printed """
+        # pylint: disable=R0201
         return "FATAL" in line or "ERROR" in line or "WARNING" in line or "{crash}" in line
 
     def search_for_warnings(self):
@@ -390,6 +391,7 @@ class ArangodInstance(Instance):
 
     def detect_pid(self, ppid, offset=0, full_binary_path=""):
         """ detect the instance """
+        # pylint: disable=R0915
         self.pid = 0
         tries = 40
         t_start = ''

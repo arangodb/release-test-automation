@@ -17,6 +17,92 @@ from arangodb.installers.base import InstallerBase
 from tools.asciiprint import ascii_print
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
+def _mountdmg(dmgpath):
+    """
+    Attempts to mount the dmg at dmgpath and returns first mountpoint
+    """
+    mountpoints = []
+    cmd = ['/usr/bin/hdiutil', 'attach', str(dmgpath),
+           '-mountRandom', '/tmp', '-nobrowse', '-plist',
+           '-owners', 'on']
+    print(cmd)
+    proc = subprocess.Popen(cmd, bufsize=-1,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            stdin=subprocess.PIPE)
+    proc.stdin.write(b"y\n") # answer 'Agree Y/N?' the dumb way...
+    # pylint: disable=W0612
+    (pliststr,void) = proc.communicate()
+
+    offset = pliststr.find(b'<?xml version="1.0" encoding="UTF-8"?>')
+    if offset > 0:
+        print('got string')
+        print(offset)
+        ascii_print(str(pliststr[0:offset]))
+        pliststr = pliststr[offset:]
+
+    if proc.returncode:
+        logging.error('while mounting')
+        return None
+    if pliststr:
+        # pliststr = bytearray(pliststr, 'ascii')
+        # print(pliststr)
+        plist = plistlib.loads(pliststr)
+        print(plist)
+        for entity in plist['system-entities']:
+            if 'mount-point' in entity:
+                mountpoints.append(entity['mount-point'])
+    else:
+        raise Exception("plist empty")
+    return mountpoints[0]
+
+def _detect_dmg_mountpoints(dmgpath):
+    """
+    Unmounts the dmg at mountpoint
+    """
+    mountpoints = []
+    cmd = ['/usr/bin/hdiutil', 'info', '-plist']
+    proc = subprocess.Popen(cmd, bufsize=-1,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE)
+    (pliststr, err) = proc.communicate()
+    if proc.returncode:
+        logging.error('Error: "%s" while listing mountpoints %s.' %
+                      (err, dmgpath))
+        return mountpoints
+    if pliststr:
+        plist = plistlib.loads(pliststr)
+        for entity in plist['images']:
+            if ('image-path' not in entity or
+                entity['image-path'].find(str(dmgpath)) < 0):
+                continue
+            if 'system-entities' in entity:
+                for item in entity['system-entities']:
+                    if 'mount-point' in item:
+                        mountpoints.append(item['mount-point'])
+    else:
+        raise Exception("plist empty")
+    return mountpoints
+
+def _unmountdmg(mountpoint):
+    """
+    Unmounts the dmg at mountpoint
+    """
+    logging.info("unmounting %s", mountpoint)
+    proc = subprocess.Popen(['/usr/bin/hdiutil', 'detach', mountpoint],
+                             bufsize=-1, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+    (dummy_output, err) = proc.communicate()
+    if proc.returncode:
+        logging.error('Polite unmount failed: %s' % err)
+        logging.error('Attempting to force unmount %s' % mountpoint)
+        # try forcing the unmount
+        retcode = subprocess.call(['/usr/bin/hdiutil',
+                                   'detach',
+                                   mountpoint,
+                                   '-force'])
+        if retcode:
+            logging.error('while mounting')
 
 class InstallerMac(InstallerBase):
     """ install .dmg's on a mac """
@@ -51,97 +137,6 @@ class InstallerMac(InstallerBase):
         cfg.real_sbin_dir = Path('/')
 
         super().__init__(cfg)
-
-
-    def mountdmg(self, dmgpath):
-        """
-        Attempts to mount the dmg at dmgpath and returns first mountpoint
-        """
-        mountpoints = []
-        # dmgname = os.path.basename(dmgpath)
-        cmd = ['/usr/bin/hdiutil', 'attach', str(dmgpath),
-               '-mountRandom', '/tmp', '-nobrowse', '-plist',
-               '-owners', 'on']
-        print(cmd)
-        proc = subprocess.Popen(cmd, bufsize=-1,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE,
-                                stdin=subprocess.PIPE)
-        proc.stdin.write(b"y\n") # answer 'Agree Y/N?' the dumb way...
-        (pliststr,) = proc.communicate()
-        # print(str(pliststr))
-
-        offset = pliststr.find(b'<?xml version="1.0" encoding="UTF-8"?>')
-        if offset > 0:
-            print('got string')
-            print(offset)
-            ascii_print(str(pliststr[0:offset]))
-            pliststr = pliststr[offset:]
-
-        if proc.returncode:
-            logging.error('while mounting')
-            return None
-        if pliststr:
-            # pliststr = bytearray(pliststr, 'ascii')
-            # print(pliststr)
-            plist = plistlib.loads(pliststr)
-            print(plist)
-            for entity in plist['system-entities']:
-                if 'mount-point' in entity:
-                    mountpoints.append(entity['mount-point'])
-        else:
-            raise Exception("plist empty")
-        return mountpoints[0]
-
-    def detect_dmg_mountpoints(self, dmgpath):
-        """
-        Unmounts the dmg at mountpoint
-        """
-        mountpoints = []
-        # dmgname = os.path.basename(dmgpath)
-        cmd = ['/usr/bin/hdiutil', 'info', '-plist']
-        proc = subprocess.Popen(cmd, bufsize=-1,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
-        (pliststr, err) = proc.communicate()
-        if proc.returncode:
-            logging.error('Error: "%s" while listing mountpoints %s.' %
-                          (err, dmgpath))
-            return mountpoints
-        if pliststr:
-            plist = plistlib.loads(pliststr)
-            for entity in plist['images']:
-                if ('image-path' not in entity or
-                    entity['image-path'].find(str(dmgpath)) < 0):
-                    continue
-                if 'system-entities' in entity:
-                    for item in entity['system-entities']:
-                        if 'mount-point' in item:
-                            mountpoints.append(item['mount-point'])
-        else:
-            raise Exception("plist empty")
-        return mountpoints
-
-    def unmountdmg(self, mountpoint):
-        """
-        Unmounts the dmg at mountpoint
-        """
-        logging.info("unmounting %s", mountpoint)
-        proc = subprocess.Popen(['/usr/bin/hdiutil', 'detach', mountpoint],
-                                 bufsize=-1, stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
-        (dummy_output, err) = proc.communicate()
-        if proc.returncode:
-            logging.error('Polite unmount failed: %s' % err)
-            logging.error('Attempting to force unmount %s' % mountpoint)
-            # try forcing the unmount
-            retcode = subprocess.call(['/usr/bin/hdiutil',
-                                       'detach',
-                                       mountpoint,
-                                       '-force'])
-            if retcode:
-                logging.error('while mounting')
-
 
     def run_installer_script(self):
         """ this will run the installer script from the dmg """
@@ -187,7 +182,7 @@ class InstallerMac(InstallerBase):
         return True
 
     def start_service(self):
-        pass
+        """ nothing to see here """
 
     def stop_service(self):
         self.instance.terminate_instance()
@@ -198,14 +193,13 @@ class InstallerMac(InstallerBase):
 
     def un_install_package_for_upgrade(self):
         """ hook to uninstall old package for upgrade """
-        pass
 
     def install_package(self):
         if self.cfg.pidfile.exists():
             self.cfg.pidfile.unlink()
         logging.info("Mounting DMG")
-        self.mountpoint = self.mountdmg(self.cfg.package_dir /
-                                        self.server_package)
+        self.mountpoint = _mountdmg(self.cfg.package_dir /
+                                    self.server_package)
         print(self.mountpoint)
         enterprise = 'e' if self.cfg.enterprise else ''
         self.cfg.installPrefix = ( Path(self.mountpoint) /
@@ -232,12 +226,12 @@ class InstallerMac(InstallerBase):
     def un_install_package(self):
         self.stop_service()
         if not self.mountpoint:
-            mpts = self.detect_dmg_mountpoints(self.cfg.package_dir /
-                                               self.server_package)
+            mpts = _detect_dmg_mountpoints(self.cfg.package_dir /
+                                           self.server_package)
             for mountpoint in mpts:
-                self.unmountdmg(mountpoint)
+                _unmountdmg(mountpoint)
         else:
-            self.unmountdmg(self.mountpoint)
+            _unmountdmg(self.mountpoint)
 
     def cleanup_system(self):
         if self.cfg.log_dir.exists():

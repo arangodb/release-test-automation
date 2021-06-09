@@ -9,6 +9,7 @@ from pathlib import Path
 import platform
 import re
 import shutil
+import sys
 import time
 
 import requests
@@ -42,6 +43,7 @@ def detect_file_ulimit():
 
 class PunnerProperties():
     """ runner properties management class """
+    #pylint: disable=R0903
     def __init__(self,
                  short_name: str,
                  disk_usage_community: int,
@@ -54,10 +56,11 @@ class PunnerProperties():
 
 class Runner(ABC):
     """abstract starter deployment runner"""
-# pylint: disable=R0913 disable=R0902 disable=R0904 disable=C0415
+# pylint: disable=R0913 disable=R0902 disable=R0904 disable=C0415 disable=R0914 disable=R0915
     def __init__(
             self,
             runner_type,
+            abort_on_error: bool,
             install_set: list,
             properties: PunnerProperties,
             selenium_worker: str,
@@ -67,6 +70,7 @@ class Runner(ABC):
         load_scenarios()
         assert runner_type, "no runner no cry? no!"
         logging.debug(runner_type)
+        self.abort_on_error = abort_on_error
         self.testrun_name = testrun_name
         self.state = ""
         self.runner_type = runner_type
@@ -173,6 +177,18 @@ class Runner(ABC):
             lh.section(msg, separator)
             self.state += "*** " + msg
 
+    def ask_continue_or_exit(self, msg, output, default=True, status=1):
+        """ ask the user whether to abort the execution or continue anyways """
+        self.progress(False, msg)
+        if not self.basecfg.interactive:
+            raise Exception("%s:\n%s"%(msg, output))
+        if not eh.ask_continue(msg, self.basecfg.interactive, default):
+            print()
+            print("Abort requested (default action)")
+            raise Exception("must not continue from here - bye " + str(status))
+        if self.abort_on_error:
+            sys.exit(status)
+
     def get_progress(self):
         """ get user message reports """
         return self.state
@@ -210,8 +226,7 @@ class Runner(ABC):
                     str(self.name)))
             if self.hot_backup:
                 self.progress(False, "TESTING HOTBACKUP")
-                 # TODO generate name?
-                self.backup_name = self.create_backup("thy_name_is")
+                self.backup_name = self.create_backup("thy_name_is_" + self.name)
                 self.tcp_ping_all_nodes()
                 self.create_non_backup_data()
                 backups = self.list_backup()
@@ -545,9 +560,6 @@ class Runner(ABC):
         assert self.makedata_instances, "don't have makedata instance!"
         logging.debug("makedata instances")
         self.print_makedata_instances_table()
-
-        interactive = self.basecfg.interactive
-
         for starter in self.makedata_instances:
             assert starter.arangosh, "make: this starter doesn't have an arangosh!"
             arangosh = starter.arangosh
@@ -558,24 +570,23 @@ class Runner(ABC):
                 if not success[0]:
                     if not self.cfg.verbose:
                         print(success[1])
-                    eh.ask_continue_or_exit(
-                        "make data failed for {0.name}".format(self),
-                        interactive,
+                    self.ask_continue_or_exit(
+                        "make_data failed for {0.name}".format(self),
+                        success[1],
                         False)
                 self.has_makedata_data = True
             self.check_data_impl_sh(arangosh)
-
 
     def check_data_impl_sh(self, arangosh):
         """ check for data on the installation """
         if self.has_makedata_data:
             success = arangosh.check_test_data(self.name)
             if not success[0]:
-                #if not self.cfg.verbose:
-                print(success[1])
-                eh.ask_continue_or_exit(
-                    "has data failed for {0.name}".format(self),
-                    self.basecfg.interactive,
+                if not self.cfg.verbose:
+                    print(success[1])
+                self.ask_continue_or_exit(
+                    "check_data has data failed for {0.name}".format(self),
+                    success[1],
                     False)
 
     def check_data_impl(self):
@@ -655,6 +666,7 @@ class Runner(ABC):
             return starter.hb_instance.delete(name)
         raise Exception("no frontend found.")
 
+    # pylint: disable=R0201
     def wait_for_restore_impl(self, backup_starter):
         """ wait for all restores to be finished """
         backup_starter.wait_for_restore()
@@ -772,9 +784,9 @@ class Runner(ABC):
                         (starter_mgr.basedir / f"{cmd['basefn']}_{count}.json"
                          ).write_text(repl.text)
                         count += 1
-            except Exception as ex:
+            except requests.exceptions.RequestException as ex:
                 # We skip one starter and all its agency dump attempts now.
-                print("Error during an agency: " + str(ex))
+                print("Error during an agency dump: " + str(ex))
 
     def agency_set_debug_logging(self):
         """ turns on logging on the agency """

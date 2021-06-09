@@ -39,7 +39,7 @@ ON_WINDOWS = (sys.platform == 'win32')
 
 class StarterManager():
     """ manages one starter instance"""
-    # pylint: disable=R0913 disable=R0902 disable=W0102 disable=R0915 disable=R0904
+    # pylint: disable=R0913 disable=R0902 disable=W0102 disable=R0915 disable=R0904 disable=E0202
     def __init__(self,
                  basecfg,
                  install_prefix, instance_prefix,
@@ -58,7 +58,7 @@ class StarterManager():
 
         #directories
         self.raw_basedir = install_prefix
-        self.name = str(install_prefix / instance_prefix)
+        self.name = str(install_prefix / instance_prefix) # this is magic with the name function.
         self.basedir = self.cfg.base_test_dir / install_prefix / instance_prefix
         self.basedir.mkdir(parents=True, exist_ok=True)
         self.log_file = self.basedir / "arangodb.log"
@@ -268,9 +268,7 @@ class StarterManager():
         jwt_proc = psutil.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (header, err) = jwt_proc.communicate()
         jwt_proc.wait()
-        print(err)
-        print(len(str(err)))
-        if len(str(err)) > 3:# TODO Y?
+        if len(str(err)) > 3:
             raise Exception("error invoking the starter "
                             "to generate the jwt header token! " + str(err))
         if len(str(header).split(' ')) != 3:
@@ -557,8 +555,6 @@ class StarterManager():
 
     def get_frontend_port(self):
         """ get the port of the arangod which is coordinator etc."""
-        #FIXME This looks unreliable to me, especially when terminating
-        #      instances. How will the variable get updated?
         if self.frontend_port:
             return self.frontend_port
         return self.get_frontend().port
@@ -762,12 +758,12 @@ class StarterManager():
             logging.error("Not all instances are alive. "
                           "The following are not running: %s",
                           str(missing_instances))
-            logging.error("exiting")
-            sys.exit(1)
-            #raise Exception("instances missing: " + str(missing_instances))
-        else:
-            logging.info("All arangod instances still running: \n%s",
-                         get_instances_table(self.get_instance_essentials()))
+            #if self.abort_on_error:
+            #    logging.error("exiting")
+            #    sys.exit(1)
+            raise Exception("instances missing: " + str(missing_instances))
+        logging.info("All arangod instances still running: \n%s",
+                     get_instances_table(self.get_instance_essentials()))
 
     def detect_leader(self):
         """ in active failover detect whether we run the leader"""

@@ -66,6 +66,7 @@ def run_upgrade(old_version, new_version, verbose,
                 "cfg_repr": repr(installers[1][0])}))
             if runner_type:
                 runner = make_runner(runner_type,
+                                     abort_on_error,
                                      selenium,
                                      selenium_driver_args,
                                      installers,

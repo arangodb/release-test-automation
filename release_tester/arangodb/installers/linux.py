@@ -45,4 +45,3 @@ class InstallerLinux(InstallerBase):
             progress("SR" + str(count))
             time.sleep(1)
         return False
-

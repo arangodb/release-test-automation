@@ -41,8 +41,9 @@ STARTER_MODES = {
     'none': [RunnerType.NONE],
 }
 
-#pylint: disable=import-outside-toplevel
+#pylint: disable=import-outside-toplevel disable=R0913
 def make_runner(runner_type: RunnerType,
+                abort_on_error: bool,
                 selenium_worker: str,
                 selenium_driver_args: list,
                 installer_set: list,
@@ -56,6 +57,7 @@ def make_runner(runner_type: RunnerType,
 
     logging.debug("Factory for Runner of type: {0}".format(str(runner_type)))
     args = (runner_type,
+            abort_on_error,
             installer_set,
             selenium_worker,
             selenium_driver_args,
