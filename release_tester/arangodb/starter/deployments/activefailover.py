@@ -190,11 +190,11 @@ class ActiveFailover(Runner):
                     break
                 progress('.')
             time.sleep(1)
-            if count > 120:
-                self.progress(False, "Timeout waiting for new leader - crashing!")
-                for node in self.starter_instances:
-                    node.crash_instances()
-                raise TimeoutError("Timeout waiting for new leader - crashing!")
+            if count > 360:
+                #self.progress(False, "Timeout waiting for new leader - crashing!")
+                #for node in self.starter_instances:
+                #    node.crash_instances()
+                raise TimeoutError("Timeout waiting for new leader!")
             count += 1
 
         print()
