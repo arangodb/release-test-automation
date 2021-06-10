@@ -99,12 +99,12 @@ class Instance(ABC):
         except psutil.TimeoutExpired:
             #logging.error("was supposed to be dead, but I'm still alive? "
             #              + repr(self))
-            return True
+            return False
         except AttributeError:
             #logging.error("was supposed to be dead, but I don't have an instance? "
             #              + repr(self))
             return True
-        return False
+        return True
 
     @abstractmethod
     def get_essentials(self):
