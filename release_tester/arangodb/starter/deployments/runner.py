@@ -736,7 +736,9 @@ class Runner(ABC):
 
     def agency_get_leader(self):
         """ get the agent that has the latest "serving" line """
-        # TODO: dc2dc has two agencies :/
+        # please note: dc2dc has two agencies, this function cannot
+        # decide between the two of them, and hence may give you
+        # the follower DC agent as leader.
         agency = []
         for starter_mgr in self.starter_instances:
             agency += starter_mgr.get_agents()
