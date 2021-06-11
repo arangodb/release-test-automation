@@ -69,14 +69,11 @@ result=$?
 
 # Cleanup ownership:
 docker run \
-    -v $(pwd)/test_dir:/home/test_dir \
-    -e UID=(id -u) \
-    -e GID=(id -g) \
-    -e test_dir="/home/test_dir"\
-    --rm \
-   $DOCKER_TAG chown -R $UID:$GID $test_dir
+       -v $(pwd)/test_dir:/home/test_dir \
+       --rm \
+       $DOCKER_TAG chown -R $(id -u):$(id -g) /home/test_dir
 
-if $result; then
+if test "$result" -eq "0"; then
     echo "OK"
     tar -cvf ${VERSION_TAR_NAME}.tar ${VERSION_TAR_NAME}
 else
