@@ -244,7 +244,7 @@ please revalidate the UI states on the new leader; you should see *one* follower
                      "Success" if self.success else "Failed")
         if self.selenium:
             cfg = self.new_cfg if self.new_cfg else self.cfg
-            self.selenium.check_old(cfg=cfg, expect_follower_count=1, retry_count=10)
+            self.selenium.check_old(cfg=cfg, expect_follower_count=2, retry_count=10)
 
     def shutdown_impl(self):
         for node in self.starter_instances:
