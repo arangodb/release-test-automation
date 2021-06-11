@@ -59,5 +59,20 @@ docker \
       --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;") \
       $force_arg --git-version $GIT_VERSION $@
 result=$?
-tar -cvf ${VERSION_TAR_NAME}.tar ${VERSION_TAR_NAME}
-exit $result
+
+# Cleanup ownership:
+docker run \
+    -v $(pwd)/test_dir:/home/test_dir \
+    -e UID=(id -u) \
+    -e GID=(id -g) \
+    -e test_dir="/home/test_dir"\
+    --rm \
+   $DOCKER_TAG chown -R $UID:$GID $test_dir
+
+if $result; then
+    echo "OK"
+    tar -cvf ${VERSION_TAR_NAME}.tar ${VERSION_TAR_NAME}
+else
+    echo "FAILED TAR!"
+    exit 1
+fi

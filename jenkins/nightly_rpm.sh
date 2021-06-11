@@ -58,7 +58,7 @@ docker run \
        \
        /lib/systemd/systemd --system --unit=multiuser.target 
 
-if docker exec $DOCKER_RPM_NAME \
+docker exec $DOCKER_RPM_NAME \
           /home/release-test-automation/release_tester/full_download_upgrade_test.py \
           --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;") \
           --old-version "${OLD_VERSION}" \
@@ -71,7 +71,21 @@ if docker exec $DOCKER_RPM_NAME \
           --selenium-driver-args no-sandbox \
           --selenium-driver-args remote-debugging-port=9222 \
           --selenium-driver-args start-maximized \
-          $force_arg $@; then
+          $force_arg $@
+result=$?
+
+docker stop $DOCKER_RPM_NAME
+
+# Cleanup ownership:
+docker run \
+    -v $(pwd)/test_dir:/home/test_dir \
+    -e UID=(id -u) \
+    -e GID=(id -g) \
+    -e test_dir="/home/test_dir"\
+    --rm \
+   $DOCKER_TAG chown -R $UID:$GID $test_dir
+
+if $result; then
     echo "OK"
     tar -cvf ${VERSION_TAR_NAME}.tar ${VERSION_TAR_NAME}
 else
