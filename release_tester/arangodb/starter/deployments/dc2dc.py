@@ -36,6 +36,7 @@ class Dc2Dc(Runner):
         self.cluster1 = {}
         self.cluster2 = {}
         self.certificate_auth = {}
+        self.source_dc = None
         # self.hot_backup = False
 
     def starter_prepare_env_impl(self):
@@ -160,16 +161,27 @@ class Dc2Dc(Runner):
         launch(self.cluster1)
         launch(self.cluster2)
 
-    def finish_setup_impl(self):
-        self.sync_version = self.get_sync_version()
+    def _launch_sync(self, direction):
+        """ configure / start a sync """
+        from_to_dc = None
+        if direction:
+            from_to_dc = [self.cluster2['smport'],
+                          self.cluster1['smport']]
+            self.source_dc = from_to_dc[0]
+        else:
+            from_to_dc = [self.cluster1['smport'],
+                          self.cluster2['smport']]
+            self.source_dc = from_to_dc[1]
         self.sync_manager = SyncManager(self.cfg,
                                         self.certificate_auth,
-                                        [self.cluster2['smport'],
-                                         self.cluster1['smport']],
+                                        from_to_dc,
                                         self.sync_version)
-
         if not self.sync_manager.run_syncer():
             raise Exception("starting the synchronisation failed!")
+
+    def finish_setup_impl(self):
+        self.sync_version = self._get_sync_version()
+        self._launch_sync(True)
 
         self.makedata_instances = [ self.cluster1['instance'] ]
         self.set_frontend_instances()
@@ -179,7 +191,7 @@ class Dc2Dc(Runner):
             count += 1
         self.passvoid = 'dc2dc'
 
-    def get_sync_version(self):
+    def _get_sync_version(self):
         """
         Check version of the arangosync master on the first cluster
         """
@@ -201,7 +213,7 @@ class Dc2Dc(Runner):
         print("Arangosync v%s detected" % version)
         return semver.VersionInfo.parse(version)
 
-    def mitigate_known_issues(self, last_sync_output):
+    def _mitigate_known_issues(self, last_sync_output):
         """
         this function contains counter measures against known issues of arangosync
         """
@@ -230,22 +242,26 @@ class Dc2Dc(Runner):
         else:
             self.progress(True, 'arangosync: unknown error condition, doing nothing.')
 
-    def test_setup_impl(self):
+    def _get_in_sync(self, attempts):
+        self.progress(True, "waiting for the DCs to get in sync")
         output = None
         err = None
-        self.cluster1['instance'].arangosh.check_test_data("dc2dc (post setup - dc1)")
-        for count in range (20):
+        for count in range (attempts):
             (output, err, result) = self.sync_manager.check_sync()
             if result:
                 print("CHECK SYNC OK!")
                 break
             progress("sx" + str(count))
+            self._mitigate_known_issues(output)
             time.sleep(10)
-            self.mitigate_known_issues(output)
         else:
             self.state += "\n" + output
             self.state += "\n" + err
             raise Exception("failed to get the sync status")
+
+    def test_setup_impl(self):
+        self.cluster1['instance'].arangosh.check_test_data("dc2dc (post setup - dc1)")
+        self._get_in_sync(20)
 
         res = self.cluster2['instance'].arangosh.check_test_data("dc2dc (post setup - dc2)")
         if not res[0]:
@@ -266,18 +282,7 @@ class Dc2Dc(Runner):
             if not self.cfg.verbose:
                 print(res[1])
             raise Exception("replication fuzzing test failed")
-        for count in range (12):
-            (output, err, result) = self.sync_manager.check_sync()
-            if result:
-                print("CHECK SYNC OK!")
-                break
-            progress("sv" + str(count))
-            self.mitigate_known_issues(output)
-            time.sleep(5)
-        else:
-            self.state += "\n" + output
-            self.state += "\n" + err
-            raise Exception("failed to get the sync status")
+        self._get_in_sync(12)
 
     def wait_for_restore_impl(self, backup_starter):
         for dbserver in self.cluster1["instance"].get_dbservers():
@@ -306,14 +311,32 @@ class Dc2Dc(Runner):
         self.cluster2["instance"].detect_instances()
         self.sync_manager.run_syncer()
 
-        self.sync_version = self.get_sync_version()
+        self.sync_version = self._get_sync_version()
         self.sync_manager.check_sync_status(0)
         self.sync_manager.check_sync_status(1)
         self.sync_manager.get_sync_tasks(0)
         self.sync_manager.get_sync_tasks(1)
 
     def jam_attempt_impl(self):
-        """ nothing to see here """
+        """ stress the DC2DC, test edge cases """
+        self.progress(True, "stopping sync")
+        self.sync_manager.stop_sync()
+        self.progress(True, "creating volatile data on secondary DC")
+        self.cluster2["instance"].arangosh.hotbackup_create_nonbackup_data()
+        self.progress(True, "restarting sync")
+        self._launch_sync(True)
+        self._get_in_sync(20)
+
+        self.progress(True, "checking whether volatile data has been removed from both DCs")
+        if (not self.cluster1["instance"].arangosh.hotbackup_check_for_nonbackup_data() or
+            not self.cluster2["instance"].arangosh.hotbackup_check_for_nonbackup_data()):
+            raise Exception("expected data created on disconnected follower DC to be gone!")
+
+        self.progress(True, "stopping sync")
+        self.sync_manager.stop_sync()
+        self.progress(True, "reversing sync direction")
+        self._launch_sync(False)
+        self._get_in_sync(20)
 
     def shutdown_impl(self):
         self.cluster1["instance"].terminate_instance()
@@ -325,15 +348,4 @@ class Dc2Dc(Runner):
     def after_backup_impl(self):
         self.sync_manager.run_syncer()
 
-        for count in range (20):
-            (output, err, result) = self.sync_manager.check_sync()
-            if result:
-                print("CHECK SYNC OK!")
-                break
-            progress("sx" + str(count))
-            self.mitigate_known_issues(output)
-            time.sleep(10)
-        else:
-            self.state += "\n" + output
-            self.state += "\n" + err
-            raise Exception("failed to get the sync status")
+        self._get_in_sync(20)
