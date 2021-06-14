@@ -269,20 +269,19 @@ class Dc2Dc(Runner):
                 print(res[1])
             raise Exception("error during verifying of "
                             "the test data on the target cluster")
-        # TODO: re-enable
-        # res = self.cluster1['instance'].arangosh.run_in_arangosh(
-        #     (
-        #         self.cfg.test_data_dir /
-        #         Path('tests/js/server/replication/fuzz/replication-fuzz-global.js')
-        #     ),
-        #     [],
-        #     [self.cluster2['instance'].get_frontend().get_public_url(
-        #         'root:%s@'%self.passvoid)]
-        #     )
-        # if not res[0]:
-        #     if not self.cfg.verbose:
-        #         print(res[1])
-        #     raise Exception("replication fuzzing test failed")
+        res = self.cluster1['instance'].arangosh.run_in_arangosh(
+            (
+                self.cfg.test_data_dir /
+                Path('tests/js/server/replication/fuzz/replication-fuzz-global.js')
+            ),
+            [],
+            [self.cluster2['instance'].get_frontend().get_public_url(
+                'root:%s@'%self.passvoid)]
+            )
+        if not res[0]:
+            if not self.cfg.verbose:
+                print(res[1])
+            raise Exception("replication fuzzing test failed")
         self._get_in_sync(12)
 
     def wait_for_restore_impl(self, backup_starter):
@@ -332,8 +331,10 @@ class Dc2Dc(Runner):
         if (not self.cluster1["instance"].arangosh.hotbackup_check_for_nonbackup_data() or
             not self.cluster2["instance"].arangosh.hotbackup_check_for_nonbackup_data()):
             raise Exception("expected data created on disconnected follower DC to be gone!")
-        self.progress(True, "reversing sync direction")
 
+        self.progress(True, "stopping sync")
+        self.sync_manager.stop_sync()
+        self.progress(True, "reversing sync direction")
         self._launch_sync(False)
         self._get_in_sync(20)
 
