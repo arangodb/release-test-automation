@@ -34,8 +34,8 @@ def run_cleanup(zip_package, testrun_name: str = ""):
     kill_all_processes()
     starter_mode = [RunnerType.LEADER_FOLLOWER,
                     RunnerType.ACTIVE_FAILOVER,
-                    RunnerType.CLUSTER]  # ,
-    #  RunnerType.DC2DC] here __init__ will create stuff, TODO.
+                    RunnerType.CLUSTER,
+                    RunnerType.DC2DC]
     for runner_type in starter_mode:
         assert runner_type
 
