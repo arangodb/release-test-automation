@@ -311,10 +311,51 @@ class Dc2Dc(Runner):
         self.sync_manager.check_sync_status(1)
         self.sync_manager.get_sync_tasks(0)
         self.sync_manager.get_sync_tasks(1)
+        
 
     def jam_attempt_impl(self):
-        """ nothing to see here """
+        """ stress the DC2DC, test edge cases """
+        self.progress(True, "stopping sync")
+        self.sync_manager.stop_sync()
+        self.progress(True, "creating volatile data on secondary DC")
+        self.cluster2["instance"].arangosh.hotbackup_create_nonbackup_data()
+        self.progress(True, "restarting sync")
+        self.sync_manager.start_sync()
 
+        self.progress(True, "waiting for the DCs to get in sync again")
+        for count in range (20):
+            (output, err, result) = self.sync_manager.check_sync()
+            if result:
+                print("CHECK SYNC OK!")
+                break
+            progress("sx" + str(count))
+            self.mitigate_known_issues(output)
+            time.sleep(10)
+        else:
+            self.state += "\n" + output
+            self.state += "\n" + err
+            raise Exception("failed to get the sync status")
+
+        self.progress(True, "checking whether volatile data has been removed from both DCs")
+        if (not self.cluster1["instance"].arangosh.hotbackup_check_for_nonbackup_data() or 
+            not self.cluster2["instance"].arangosh.hotbackup_check_for_nonbackup_data()):
+            raise Exception("expected data created on disconnected follower DC to be gone!")
+        self.progress(True, "reversing sync direction")
+
+        # TODO: what to do to revert the sync?
+        self.progress(True, "waiting for the DCs to get in sync again")
+        for count in range (20):
+            (output, err, result) = self.sync_manager.check_sync()
+            if result:
+                print("CHECK SYNC OK!")
+                break
+            progress("sx" + str(count))
+            self.mitigate_known_issues(output)
+            time.sleep(10)
+        else:
+            self.state += "\n" + output
+            self.state += "\n" + err
+            raise Exception("failed to get the sync status")
     def shutdown_impl(self):
         self.cluster1["instance"].terminate_instance()
         self.cluster2["instance"].terminate_instance()
