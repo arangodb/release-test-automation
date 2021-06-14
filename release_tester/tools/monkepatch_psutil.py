@@ -15,7 +15,7 @@ if winver[0]:
 
     from psutil.psutil._pswindows import WindowsService
 
-    class WindowsService_monkey():
+    class WindowsService_monkey(WindowsService):
         # actions
         # XXX: the necessary C bindings for start() and stop() are
         # implemented but for now I prefer not to expose them.
@@ -60,7 +60,7 @@ if winver[0]:
 
 
     from psutil import Process
-    class Process_monkey():
+    class Process_monkey(Process):
         """ overload this function """
         def terminate(self):
             """Terminate the process with SIGTERM pre-emptively checking
