@@ -213,6 +213,17 @@ class Dc2Dc(Runner):
         print("Arangosync v%s detected" % version)
         return semver.VersionInfo.parse(version)
 
+    def _stop_sync(self):
+        try:
+            self.sync_manager.stop_sync()
+        except psutil.TimeoutExpired as ex:
+            print("stopping didn't work out in time, force killing! " + str(ex))
+            self.cluster1["instance"].kill_sync_processes()
+            self.cluster2["instance"].kill_sync_processes()
+            time.sleep(3)
+            self.cluster1["instance"].detect_instances()
+            self.cluster2["instance"].detect_instances()
+
     def _mitigate_known_issues(self, last_sync_output):
         """
         this function contains counter measures against known issues of arangosync
@@ -298,7 +309,7 @@ class Dc2Dc(Runner):
         self.cluster2["instance"].command_upgrade()
 
         # workaround: kill the sync'ers by hand, the starter doesn't
-        # self.sync_manager.stop_sync()
+        # self._stop_sync()
         self.cluster1["instance"].kill_sync_processes()
         self.cluster2["instance"].kill_sync_processes()
 
@@ -320,7 +331,7 @@ class Dc2Dc(Runner):
     def jam_attempt_impl(self):
         """ stress the DC2DC, test edge cases """
         self.progress(True, "stopping sync")
-        self.sync_manager.stop_sync()
+        self._stop_sync()
         self.progress(True, "creating volatile data on secondary DC")
         self.cluster2["instance"].arangosh.hotbackup_create_nonbackup_data()
         self.progress(True, "restarting sync")
@@ -333,7 +344,7 @@ class Dc2Dc(Runner):
             raise Exception("expected data created on disconnected follower DC to be gone!")
 
         self.progress(True, "stopping sync")
-        self.sync_manager.stop_sync()
+        self._stop_sync()
         self.progress(True, "reversing sync direction")
         self._launch_sync(False)
         self._get_in_sync(20)
