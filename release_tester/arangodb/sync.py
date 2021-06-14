@@ -93,7 +93,7 @@ class SyncManager():
             '--auth.keyfile=' + str(self.certificate_auth["clientkeyfile"])
         ]
         logging.info('SyncManager: stopping sync : %s', str(args))
-        psutil.Popen(args).wait(30)
+        psutil.Popen(args).wait(60)
 
     def abort_sync(self):
         """ run the stop sync command """
