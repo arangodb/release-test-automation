@@ -36,6 +36,7 @@ class Dc2Dc(Runner):
         self.cluster1 = {}
         self.cluster2 = {}
         self.certificate_auth = {}
+        self.source_dc = None
         # self.hot_backup = False
 
     def starter_prepare_env_impl(self):
@@ -166,21 +167,21 @@ class Dc2Dc(Runner):
         if direction:
             from_to_dc = [self.cluster2['smport'],
                           self.cluster1['smport']]
+            self.source_dc = from_to_dc[0]
         else:
             from_to_dc = [self.cluster1['smport'],
                           self.cluster2['smport']]
-
+            self.source_dc = from_to_dc[1]
         self.sync_manager = SyncManager(self.cfg,
                                         self.certificate_auth,
                                         from_to_dc,
                                         self.sync_version)
+        if not self.sync_manager.run_syncer():
+            raise Exception("starting the synchronisation failed!")
 
     def finish_setup_impl(self):
         self.sync_version = self._get_sync_version()
         self._launch_sync(True)
-
-        if not self.sync_manager.run_syncer():
-            raise Exception("starting the synchronisation failed!")
 
         self.makedata_instances = [ self.cluster1['instance'] ]
         self.set_frontend_instances()
@@ -268,19 +269,20 @@ class Dc2Dc(Runner):
                 print(res[1])
             raise Exception("error during verifying of "
                             "the test data on the target cluster")
-        res = self.cluster1['instance'].arangosh.run_in_arangosh(
-            (
-                self.cfg.test_data_dir /
-                Path('tests/js/server/replication/fuzz/replication-fuzz-global.js')
-            ),
-            [],
-            [self.cluster2['instance'].get_frontend().get_public_url(
-                'root:%s@'%self.passvoid)]
-            )
-        if not res[0]:
-            if not self.cfg.verbose:
-                print(res[1])
-            raise Exception("replication fuzzing test failed")
+        # TODO: re-enable
+        # res = self.cluster1['instance'].arangosh.run_in_arangosh(
+        #     (
+        #         self.cfg.test_data_dir /
+        #         Path('tests/js/server/replication/fuzz/replication-fuzz-global.js')
+        #     ),
+        #     [],
+        #     [self.cluster2['instance'].get_frontend().get_public_url(
+        #         'root:%s@'%self.passvoid)]
+        #     )
+        # if not res[0]:
+        #     if not self.cfg.verbose:
+        #         print(res[1])
+        #     raise Exception("replication fuzzing test failed")
         self._get_in_sync(12)
 
     def wait_for_restore_impl(self, backup_starter):
