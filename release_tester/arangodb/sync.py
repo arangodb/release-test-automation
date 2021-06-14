@@ -82,7 +82,7 @@ class SyncManager():
         logging.info(args)
         psutil.Popen(args).wait()
 
-    def stop_sync(self):
+    def stop_sync(self, timeout=60):
         """ run the stop sync command """
         args = [
             self.cfg.bin_dir / 'arangosync',
@@ -93,7 +93,7 @@ class SyncManager():
             '--auth.keyfile=' + str(self.certificate_auth["clientkeyfile"])
         ]
         logging.info('SyncManager: stopping sync : %s', str(args))
-        psutil.Popen(args).wait(60)
+        psutil.Popen(args).wait(timeout)
 
     def abort_sync(self):
         """ run the stop sync command """

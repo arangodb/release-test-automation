@@ -213,12 +213,12 @@ class Dc2Dc(Runner):
         print("Arangosync v%s detected" % version)
         return semver.VersionInfo.parse(version)
 
-    def _stop_sync(self):
+    def _stop_sync(self, timeout=60):
         output = None
         err = None
         for count in range (10):
             try:
-                self.sync_manager.stop_sync()
+                self.sync_manager.stop_sync(timeout)
                 break
             except psutil.TimeoutExpired as ex:
                 print("stopping didn't work out in time, force killing! " + str(ex))
@@ -352,7 +352,7 @@ class Dc2Dc(Runner):
             raise Exception("expected data created on disconnected follower DC to be gone!")
 
         self.progress(True, "stopping sync")
-        self._stop_sync()
+        self._stop_sync(120)
         self.progress(True, "reversing sync direction")
         self._launch_sync(False)
         self._get_in_sync(20)
