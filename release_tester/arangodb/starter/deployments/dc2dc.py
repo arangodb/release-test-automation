@@ -214,15 +214,23 @@ class Dc2Dc(Runner):
         return semver.VersionInfo.parse(version)
 
     def _stop_sync(self):
-        try:
-            self.sync_manager.stop_sync()
-        except psutil.TimeoutExpired as ex:
-            print("stopping didn't work out in time, force killing! " + str(ex))
-            self.cluster1["instance"].kill_sync_processes()
-            self.cluster2["instance"].kill_sync_processes()
-            time.sleep(3)
-            self.cluster1["instance"].detect_instances()
-            self.cluster2["instance"].detect_instances()
+        output = None
+        err = None
+        for count in range (10):
+            try:
+                self.sync_manager.stop_sync()
+                break
+            except psutil.TimeoutExpired as ex:
+                print("stopping didn't work out in time, force killing! " + str(ex))
+                self.cluster1["instance"].kill_sync_processes()
+                self.cluster2["instance"].kill_sync_processes()
+                time.sleep(3)
+                self.cluster1["instance"].detect_instances()
+                self.cluster2["instance"].detect_instances()
+        else:
+            self.state += "\n" + output
+            self.state += "\n" + err
+            raise Exception("failed to stop the synchronisation in 10 attempts")
 
     def _mitigate_known_issues(self, last_sync_output):
         """
