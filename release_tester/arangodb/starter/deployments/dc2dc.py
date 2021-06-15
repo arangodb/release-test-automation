@@ -313,7 +313,7 @@ class Dc2Dc(Runner):
 
     def upgrade_arangod_version_impl(self):
         """ upgrade this installation """
-        self._stop_sync()
+        self._stop_sync(300)
         self.sync_manager.replace_binary_for_upgrade(self.new_cfg)
         self.cluster1["instance"].replace_binary_for_upgrade(self.new_cfg)
         self.cluster2["instance"].replace_binary_for_upgrade(self.new_cfg)
