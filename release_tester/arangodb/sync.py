@@ -107,9 +107,9 @@ class SyncManager():
         try:
             timer.start()
             (output, err) = instance.communicate()
-            exitcode = instance.wait()
         finally:
             timer.cancel()
+        exitcode = instance.wait()
         return (ascii_convert(output),ascii_convert(err),  exitcode == 0)
 
     def abort_sync(self):
