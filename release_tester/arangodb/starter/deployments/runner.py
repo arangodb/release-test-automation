@@ -779,7 +779,8 @@ class Runner(ABC):
                         InstanceType.AGENT,
                         cmd['method'],
                         cmd['URL'],
-                        cmd['body'])
+                        cmd['body'],
+                        timeout=10)
                     print(reply)
                     count = 0
                     for repl in reply:
