@@ -176,8 +176,10 @@ class Dc2Dc(Runner):
                                         self.certificate_auth,
                                         from_to_dc,
                                         self.sync_version)
-        if not self.sync_manager.run_syncer():
-            raise Exception("starting the synchronisation failed!")
+        (output, err, exitsucess) = self.sync_manager.run_syncer()
+        if not exitsucess:
+            raise Exception("starting the synchronisation failed!" + str(output) + str(err))
+        self.progress(True, "SyncManager: up %s", output)
 
     def finish_setup_impl(self):
         self.sync_version = self._get_sync_version()
@@ -214,14 +216,18 @@ class Dc2Dc(Runner):
         return semver.VersionInfo.parse(version)
 
     def _stop_sync(self, timeout=60):
-        output = None
-        err = None
+        output = ""
+        err = ""
+        success = True
         for count in range (10):
             try:
-                self.sync_manager.stop_sync(timeout)
-                break
+                (output, err, success) = self.sync_manager.stop_sync(timeout)
+                if success:
+                    break
             except psutil.TimeoutExpired as ex:
-                print("stopping didn't work out in time, force killing! " + str(ex))
+                self.progress(True,
+                              "stopping didn't work out in time %d, force killing! %s" %
+                      (count, str(ex)) )
                 self.cluster1["instance"].kill_sync_processes()
                 self.cluster2["instance"].kill_sync_processes()
                 time.sleep(3)
