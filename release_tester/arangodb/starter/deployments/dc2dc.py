@@ -220,19 +220,17 @@ class Dc2Dc(Runner):
         err = ""
         success = True
         for count in range (10):
-            try:
-                (output, err, success) = self.sync_manager.stop_sync(timeout)
-                if success:
-                    break
-            except psutil.TimeoutExpired as ex:
-                self.progress(True,
-                              "stopping didn't work out in time %d, force killing! %s" %
-                      (count, str(ex)) )
-                self.cluster1["instance"].kill_sync_processes()
-                self.cluster2["instance"].kill_sync_processes()
-                time.sleep(3)
-                self.cluster1["instance"].detect_instances()
-                self.cluster2["instance"].detect_instances()
+            (output, err, success) = self.sync_manager.stop_sync(timeout)
+            if success:
+                break
+            self.progress(True,
+                          "stopping didn't work out in time %d, force killing! %s" %
+                          (count, output) )
+            self.cluster1["instance"].kill_sync_processes()
+            self.cluster2["instance"].kill_sync_processes()
+            time.sleep(3)
+            self.cluster1["instance"].detect_instances()
+            self.cluster2["instance"].detect_instances()
         else:
             self.state += "\n" + output
             self.state += "\n" + err
