@@ -88,8 +88,8 @@ class SyncManager():
 
     def stop_sync(self, timeout=60):
         """ run the stop sync command """
-        output = ""
-        err = ""
+        output = bytearray()
+        err = bytearray()
         exitcode = 1
         args = [
             self.cfg.bin_dir / 'arangosync',
