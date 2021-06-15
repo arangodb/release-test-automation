@@ -22,14 +22,14 @@ class Test(BaseSelenium):
     def test_login(self):
         print("Starting ", self.driver.title, "\n")
         self.login = LoginPage(self.driver)
-        self.login.login('root', 'aa')
+        self.login.login('root', '')
         self.login.logout_button()
         del self.login
 
     def test_dashboard(self):
         print("---------Checking Dashboard started--------- \n")
         self.login = LoginPage(self.driver)
-        self.login.login('root', 'aa')
+        self.login.login('root', '')
         # creating object for dashboard
         self.dash = DashboardPage(self.driver)
         self.dash.check_server_package_name()
@@ -63,7 +63,7 @@ class Test(BaseSelenium):
     def test_collection(self):
         print("---------Checking Collection Begin--------- \n")
         self.login = LoginPage(self.driver)
-        self.login.login('root', 'aa')
+        self.login.login('root', '')
         self.col = CollectionPage(self.driver)  # creating obj for Collection
         self.col1 = CollectionPage(self.driver)
         self.col2 = CollectionPage(self.driver)
@@ -357,130 +357,133 @@ class Test(BaseSelenium):
 
         # creating multiple graph obj
         self.graph = GraphPage(self.driver)
-        # self.graph1 = GraphPage(self.driver)
-        # self.graph2 = GraphPage(self.driver)
-        # self.graph3 = GraphPage(self.driver)
-        # self.graph4 = GraphPage(self.driver)
-        # self.graph5 = GraphPage(self.driver)
-        # self.graph6 = GraphPage(self.driver)
-        # self.graph7 = GraphPage(self.driver)
-        # self.graph8 = GraphPage(self.driver)
+        self.graph1 = GraphPage(self.driver)
+        self.graph2 = GraphPage(self.driver)
+        self.graph3 = GraphPage(self.driver)
+        self.graph4 = GraphPage(self.driver)
+        self.graph5 = GraphPage(self.driver)
+        self.graph6 = GraphPage(self.driver)
+        self.graph7 = GraphPage(self.driver)
+        self.graph8 = GraphPage(self.driver)
         self.graph9 = GraphPage(self.driver)
         self.graph01 = GraphPage(self.driver)
 
-        # print("Manual Graph creation started \n")
-        # self.graph.create_manual_graph()
+        print("Manual Graph creation started \n")
+        self.graph.create_manual_graph()
         self.graph.select_graph_page()
-        # self.graph.adding_knows_manual_graph()
-        # print("Manual Graph creation completed \n")
-        # self.graph.delete_graph(9)
-        # self.driver.refresh()
+        self.graph.adding_knows_manual_graph()
+        print("Manual Graph creation completed \n")
+        self.graph.delete_graph(9)
+        self.driver.refresh()
 
-        # print("Adding Satellite Graph started \n")
-        # self.graph9.create_satellite_graph()
-        # self.graph9.select_graph_page()
-        # self.graph9.adding_satellite_graph()
-        # print("Adding Satellite Graph started \n")
+        print("Adding Satellite Graph started \n")
+        self.graph9.select_graph_page()
+        self.graph9.adding_satellite_graph()
+        print("Adding Satellite Graph started \n")
 
         print("Adding Smart Graph started \n")
         self.graph01.adding_smart_graph()
         print("Adding Smart Graph completed \n")
 
-        # print("Example Graphs creation started\n")
-        # print("Creating Knows Graph\n")
-        # self.graph1.select_create_graph(1)
-        # self.driver.refresh()
-        # print("Checking required collections created for Knows Graph\n")
-        # self.graph1.checking_collection_creation(1)
-        # print("Searching for 'knows' and 'persons' collections\n")
-        # self.graph1.check_required_collection(1)
-        # 
-        # print("Creating Traversal Graph\n")
-        # self.graph2.select_create_graph(2)
-        # self.driver.refresh()
-        # print("Checking required collections created for Traversal Graph\n")
-        # self.graph2.checking_collection_creation(2)
-        # print("Searching for 'circles' and 'edges' collections\n")
-        # self.graph2.check_required_collection(2)
-        # 
-        # print("Creating K Shortest Path Graph\n")
-        # self.graph3.select_create_graph(3)
-        # self.driver.refresh()
-        # print("Checking required collections created for K Shortest Path Graph\n")
-        # self.graph3.checking_collection_creation(3)
-        # print("Searching for 'connections' and 'places' collections\n")
-        # self.graph3.check_required_collection(3)
-        # 
-        # print("Creating Mps Graph\n")
-        # self.graph4.select_create_graph(4)
-        # self.driver.refresh()
-        # print("Checking required collections created for Mps Graph\n")
-        # self.graph4.checking_collection_creation(4)
-        # print("Searching for 'mps_edges' and 'mps_verts' collections\n")
-        # self.graph4.check_required_collection(4)
-        # 
-        # print("Creating World Graph\n")
-        # self.graph5.select_create_graph(5)
-        # self.driver.refresh()
-        # print("Checking required collections created for World Graph\n")
-        # self.graph5.checking_collection_creation(5)
-        # print("Searching for 'worldEdges' and 'worldvertices' collections\n")
-        # self.graph5.check_required_collection(5)
-        # 
-        # print("Creating Social Graph\n")
-        # self.graph6.select_create_graph(6)
-        # self.driver.refresh()
-        # print("Checking required collections created for Social Graph\n")
-        # self.graph6.checking_collection_creation(6)
-        # print("Searching for 'female' , 'male' and 'relation' collections\n")
-        # self.graph6.check_required_collection(6)
-        # 
-        # print("Creating City Graph\n")
-        # self.graph7.select_create_graph(7)
-        # self.driver.refresh()
-        # print("Checking required collections created for City Graph\n")
-        # self.graph7.checking_collection_creation(7)
-        # print("Searching for 'frenchCity' , 'frenchHighway' 'germanCity', 'germanHighway' & 'internationalHighway'\n")
-        # self.graph7.check_required_collection(7)
-        # print("Example Graphs creation Completed\n")
-        # 
-        # print("Sorting all graphs as descending\n")
-        # self.graph.select_sort_descend()
-        # 
-        # print("Selecting Knows Graph for inspection\n")
-        # self.graph.inspect_knows_graph()
-        # print("Selecting Graphs settings menu\n")
-        # self.graph.graph_setting()
-        # 
-        # print("Deleting created Graphs started\n")
-        # self.graph1.delete_graph(1)
-        # self.graph2.delete_graph(2)
-        # self.graph3.delete_graph(3)
-        # self.graph4.delete_graph(4)
-        # self.graph5.delete_graph(5)
-        # self.graph6.delete_graph(6)
-        # self.graph7.delete_graph(7)
-        # 
+        print("Adding Disjoint Smart Graph started \n")
+        self.graph01.adding_smart_graph(True)
+        print("Adding Disjoint Smart Graph completed \n")
+
+        print("Example Graphs creation started\n")
+        print("Creating Knows Graph\n")
+        self.graph1.select_create_graph(1)
+        self.driver.refresh()
+        print("Checking required collections created for Knows Graph\n")
+        self.graph1.checking_collection_creation(1)
+        print("Searching for 'knows' and 'persons' collections\n")
+        self.graph1.check_required_collection(1)
+
+        print("Creating Traversal Graph\n")
+        self.graph2.select_create_graph(2)
+        self.driver.refresh()
+        print("Checking required collections created for Traversal Graph\n")
+        self.graph2.checking_collection_creation(2)
+        print("Searching for 'circles' and 'edges' collections\n")
+        self.graph2.check_required_collection(2)
+
+        print("Creating K Shortest Path Graph\n")
+        self.graph3.select_create_graph(3)
+        self.driver.refresh()
+        print("Checking required collections created for K Shortest Path Graph\n")
+        self.graph3.checking_collection_creation(3)
+        print("Searching for 'connections' and 'places' collections\n")
+        self.graph3.check_required_collection(3)
+
+        print("Creating Mps Graph\n")
+        self.graph4.select_create_graph(4)
+        self.driver.refresh()
+        print("Checking required collections created for Mps Graph\n")
+        self.graph4.checking_collection_creation(4)
+        print("Searching for 'mps_edges' and 'mps_verts' collections\n")
+        self.graph4.check_required_collection(4)
+
+        print("Creating World Graph\n")
+        self.graph5.select_create_graph(5)
+        self.driver.refresh()
+        print("Checking required collections created for World Graph\n")
+        self.graph5.checking_collection_creation(5)
+        print("Searching for 'worldEdges' and 'worldvertices' collections\n")
+        self.graph5.check_required_collection(5)
+
+        print("Creating Social Graph\n")
+        self.graph6.select_create_graph(6)
+        self.driver.refresh()
+        print("Checking required collections created for Social Graph\n")
+        self.graph6.checking_collection_creation(6)
+        print("Searching for 'female' , 'male' and 'relation' collections\n")
+        self.graph6.check_required_collection(6)
+
+        print("Creating City Graph\n")
+        self.graph7.select_create_graph(7)
+        self.driver.refresh()
+        print("Checking required collections created for City Graph\n")
+        self.graph7.checking_collection_creation(7)
+        print("Searching for 'frenchCity' , 'frenchHighway' 'germanCity', 'germanHighway' & 'internationalHighway'\n")
+        self.graph7.check_required_collection(7)
+        print("Example Graphs creation Completed\n")
+
+        print("Sorting all graphs as descending\n")
+        self.graph.select_sort_descend()
+
+        print("Selecting Knows Graph for inspection\n")
+        self.graph.inspect_knows_graph()
+        print("Selecting Graphs settings menu\n")
+        self.graph.graph_setting()
+
+        print("Deleting created Graphs started\n")
+        self.graph1.delete_graph(1)
+        self.graph2.delete_graph(2)
+        self.graph3.delete_graph(3)
+        self.graph4.delete_graph(4)
+        self.graph5.delete_graph(5)
+        self.graph6.delete_graph(6)
+        self.graph7.delete_graph(7)
+
         # print("Deleting created Graphs Completed\n")
-        # del self.graph
-        # del self.graph1
-        # del self.graph2
-        # del self.graph3
-        # del self.graph4
-        # del self.graph5
-        # del self.graph6
-        # del self.graph7
-        # del self.graph8
+        del self.graph
+        del self.graph1
+        del self.graph2
+        del self.graph3
+        del self.graph4
+        del self.graph5
+        del self.graph6
+        del self.graph7
+        del self.graph8
         del self.graph9
         del self.graph01
-        # self.login.logout_button()
-        # del self.login
+        self.login.logout_button()
+        del self.login
         print("---------Checking Graphs completed--------- \n")
 
     def test_user(self):
         print("---------User Test Begin--------- \n")
         self.login = LoginPage(self.driver)
-        self.login.login('root', 'aa')
+        self.login.login('root', '')
         self.user = UserPage(self.driver)
         print("New user creation begins \n")
         self.user.new_user_tab()
@@ -510,7 +513,7 @@ class Test(BaseSelenium):
         del self.login
         # login back with root user
         self.login = LoginPage(self.driver)
-        self.login.login('root', 'aa')
+        self.login.login('root', '')
         # fixme Deleting old user object
         del self.user
         self.user = UserPage(self.driver)

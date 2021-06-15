@@ -269,118 +269,12 @@ class GraphPage(BaseSelenium):
         # load_full_graph = \
         #     BaseSelenium.locator_finder_by_id(self, load_full_graph)
         # load_full_graph.click()
+        # fixme
 
         time.sleep(3)
         self.driver.back()
 
     # creating satellite graph
-    def create_satellite_graph(self):
-
-        # selecting collection page for satellite graph
-        collectionPage = self.select_collection_page_id
-        collectionPage = \
-            BaseSelenium.locator_finder_by_id(self, collectionPage)
-        collectionPage.click()
-
-        # first collection for the satellite graphs begins
-        col1 = self.create_new_collection_id
-        col1_name = self.new_collection_name_id
-        col1_save = self.save_collection_btn_id
-        col1_select = "//*[@id='collection_knows_edge']/div/h5"
-        col1_edge_id = "new-collection-type"
-        col1_upload = self.select_upload_btn_id
-        col1_file = self.select_choose_file_btn_id
-        col1_import = self.select_confirm_upload_btn_id
-        path1 = 'C:\\Users\\rearf\\Desktop\\collections\\knows_edge.json'
-
-        print("Creating knows_edge collections for knows_graph_manual Graph\n")
-        col1 = \
-            BaseSelenium.locator_finder_by_id(self, col1)
-        col1.click()
-
-        col1_name = \
-            BaseSelenium.locator_finder_by_id(self, col1_name)
-        col1_name.click()
-        col1_name.send_keys("knows_edge")
-
-        BaseSelenium.locator_finder_by_select(self, col1_edge_id, 1)
-
-        col1_save = \
-            BaseSelenium.locator_finder_by_xpath(self, col1_save)
-        col1_save.click()
-
-        col1_select = \
-            BaseSelenium.locator_finder_by_xpath(self, col1_select)
-        col1_select.click()
-
-        # selecting collection upload btn
-        col1_upload = \
-            BaseSelenium.locator_finder_by_xpath(self, col1_upload)
-        col1_upload.click()
-        time.sleep(3)
-
-        # This method will upload the file with the file path given
-        col1_file = \
-            BaseSelenium.locator_finder_by_xpath(self, col1_file)
-        time.sleep(2)
-        col1_file.send_keys(path1)
-
-        print("Importing knows_edge.json to the collection\n")
-        col1_import = \
-            BaseSelenium.locator_finder_by_id(self, col1_import)
-        col1_import.click()
-        time.sleep(2)
-        print("Importing knows_edge.json to the collection completed\n")
-
-        self.driver.back()
-
-        # second collection for the satellite graphs begins
-        col2 = self.create_new_collection_id
-        col2_name = self.new_collection_name_id
-        col2_save = self.save_collection_btn_id
-        col2_select = "//*[@id='collection_persons']/div/h5"
-        col2_upload = self.select_upload_btn_id
-        col2_file = self.select_choose_file_btn_id
-        col2_import = self.select_confirm_upload_btn_id
-        path2 = 'C:\\Users\\rearf\\Desktop\\collections\\persons.json'
-
-        print("Creating person_vertices collections for knows_graph_manual Graph\n")
-        col2 = \
-            BaseSelenium.locator_finder_by_id(self, col2)
-        col2.click()
-
-        col2_name = \
-            BaseSelenium.locator_finder_by_id(self, col2_name)
-        col2_name.click()
-        col2_name.send_keys("persons")
-
-        col2_save = \
-            BaseSelenium.locator_finder_by_xpath(self, col2_save)
-        col2_save.click()
-
-        col2_select = \
-            BaseSelenium.locator_finder_by_xpath(self, col2_select)
-        col2_select.click()
-
-        # selecting collection upload btn
-        col2_upload = \
-            BaseSelenium.locator_finder_by_xpath(self, col2_upload)
-        col2_upload.click()
-        time.sleep(3)
-
-        # This method will upload the file with the file path given
-        col2_file = \
-            BaseSelenium.locator_finder_by_xpath(self, col2_file)
-        time.sleep(2)
-        col2_file.send_keys(path2)
-
-        print("Importing person_vertices.json to the collection\n")
-        col2_import = \
-            BaseSelenium.locator_finder_by_id(self, col2_import)
-        col2_import.click()
-        time.sleep(3)
-        print("Importing person_vertices.json to the collection completed\n")
-
     def adding_satellite_graph(self):
         select_graph_id = self.select_create_graph_id
         select_graph_id = \
@@ -394,7 +288,6 @@ class GraphPage(BaseSelenium):
         from_collection = "s2id_fromCollections0"
         to_collection = "s2id_toCollections0"
         create_btn_id = "modalButton1"
-        knows_graph_id = '//*[@id="knows_graph_manual_tile"]/div/h5'
 
         # selecting satellite graph tab
         select_satellite = \
@@ -411,13 +304,13 @@ class GraphPage(BaseSelenium):
         edge_definition = \
             BaseSelenium.locator_finder_by_id(self, edge_definition)
         edge_definition.click()
-        pyautogui.press('enter')
+        pyautogui.typewrite('knows_edge\n')
 
         # selecting from collection from auto suggestion
         from_collection = \
             BaseSelenium.locator_finder_by_id(self, from_collection)
         from_collection.click()
-        pyautogui.press('enter')
+        pyautogui.typewrite('persons\n')
 
         time.sleep(1)
 
@@ -425,7 +318,7 @@ class GraphPage(BaseSelenium):
         to_collection = \
             BaseSelenium.locator_finder_by_id(self, to_collection)
         to_collection.click()
-        pyautogui.press('enter')
+        pyautogui.typewrite('persons\n')
 
         time.sleep(1)
 
@@ -436,15 +329,57 @@ class GraphPage(BaseSelenium):
 
         time.sleep(2)
 
-        # selecting newly created graph btn
-        knows_graph_id = \
-            BaseSelenium.locator_finder_by_xpath(self, knows_graph_id)
-        knows_graph_id.click()
-        time.sleep(3)
+        # importing collections using arangoimport
+        print("Importing knows_edge collections \n")
+        cmd_for_knows_edge = 'cmd /c "arangoimp --file C:\\Users\\rearf\Desktop\\collections\\knows_edge.json ' \
+                             '--collection "knows_edge" --type=json --server.username root --server.password "" ' \
+                             '--server.endpoint tcp://127.0.0.1:8529 --to-collection-prefix profiles_smart' \
+                             ' --from-collection-prefix profiles_smart"'
+        super().command(cmd_for_knows_edge)
+
+        time.sleep(1)
+
+        print("Importing persons collections \n")
+        cmd_for_persons = 'cmd /c "arangoimp --file C:\\Users\\rearf\\Desktop\\collections\\persons.json ' \
+                          '--collection "persons" --type=json --server.username root --server.password ""' \
+                          ' --server.endpoint tcp://127.0.0.1:8529"'
+        super().command(cmd_for_persons)
+
+        time.sleep(1)
+
+        # Selecting satellite graph settings to view and delete
+        satellite_settings_id = '//*[@id="satellite_graph_tile"]/div/h5'
+        satellite_settings_id = \
+            BaseSelenium.locator_finder_by_xpath(self, satellite_settings_id)
+        satellite_settings_id.click()
+
+        time.sleep(5)
         self.driver.back()
+        time.sleep(1)
+
+        print("\n")
+        print("Smart Graph deleting started \n")
+        satellite_settings_id = 'satellite_graph_settings'
+        satellite_settings_id = BaseSelenium.locator_finder_by_id(self, satellite_settings_id)
+        satellite_settings_id.click()
+
+        delete_btn = 'modalButton0'
+        delete_btn = BaseSelenium.locator_finder_by_id(self, delete_btn)
+        delete_btn.click()
+
+        delete_check_id = 'dropGraphCollections'
+        delete_check_id = BaseSelenium.locator_finder_by_id(self, delete_check_id)
+        delete_check_id.click()
+
+        delete_confirm_btn = 'modal-confirm-delete'
+        delete_confirm_btn = BaseSelenium.locator_finder_by_id(self, delete_confirm_btn)
+        delete_confirm_btn.click()
+
+        time.sleep(2)
+        print("Satellite Graph deleted successfully \n")
+        self.driver.refresh()
 
     def adding_smart_graph(self, disjointgraph=False):
-        print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
         select_graph_id = self.select_create_graph_id
         select_graph_id = \
             BaseSelenium.locator_finder_by_id(self, select_graph_id)
@@ -495,7 +430,6 @@ class GraphPage(BaseSelenium):
 
         # specifying write disjoint graphs
         if disjointgraph:
-            print('Disjoint Graph selected. \n')
             disjoint = \
                 BaseSelenium.locator_finder_by_id(self, disjoint)
             disjoint.click()
@@ -541,12 +475,6 @@ class GraphPage(BaseSelenium):
         create_btn_id.click()
         time.sleep(2)
 
-        # import data to the smart graph collections
-        collection = self.select_collection_page_id
-        collection = \
-            BaseSelenium.locator_finder_by_id(self, collection)
-        collection.click()
-
         print("Importing profile collections \n")
         cmd_for_profile = 'cmd /c "arangoimp --file C:\\Users\\rearf\\Desktop\\collections\\profiles.jsonl ' \
                           '--collection "profiles" --type=jsonl --server.username root --server.password ""' \
@@ -563,8 +491,6 @@ class GraphPage(BaseSelenium):
         super().command(cmd_for_relation)
 
         time.sleep(1)
-
-        self.driver.back()
 
         # opening smart graph
         smart_graph = 'smart_graph_tile'
@@ -587,6 +513,7 @@ class GraphPage(BaseSelenium):
 
         time.sleep(2)
 
+        print("\n")
         print("Smart Graph deleting started \n")
         smart_settings = 'smart_graph_settings'
         smart_settings = BaseSelenium.locator_finder_by_id(self, smart_settings)
@@ -605,8 +532,9 @@ class GraphPage(BaseSelenium):
         delete_confirm_btn.click()
 
         time.sleep(2)
-
         print("Smart Graph deleted successfully \n")
+
+        self.driver.refresh()
 
     # Creating new example graphs
     def select_create_graph(self, graph):
