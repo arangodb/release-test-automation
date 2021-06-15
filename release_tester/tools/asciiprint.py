@@ -22,7 +22,7 @@ ANSI_ESCAPE_B = re.compile(rb'''
 
 def ascii_convert(the_bytes):
     """ convert string to only be ascii without control sequences """
-    return ANSI_ESCAPE_B.sub('', the_bytes).decode("utf-8")
+    return ANSI_ESCAPE_B.sub(rb'', the_bytes).decode("utf-8")
 
 # 7-bit C1 ANSI sequences
 ANSI_ESCAPE = re.compile(r'''
