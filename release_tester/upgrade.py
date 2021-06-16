@@ -74,6 +74,7 @@ def run_upgrade(old_version, new_version, verbose,
                 if runner:
                     try:
                         runner.run()
+                        runner.cleanup()
                     except Exception as ex:
                         one_result = {
                             'testrun name': testrun_name,
@@ -95,6 +96,7 @@ def run_upgrade(old_version, new_version, verbose,
                         old_inst.un_install_debug_package()
                         old_inst.un_install_package()
                         old_inst.cleanup_system()
+                        runner.cleanup()
                         continue
 
             lh.section("uninstall")
