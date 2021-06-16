@@ -96,7 +96,10 @@ def run_upgrade(old_version, new_version, verbose,
                         old_inst.un_install_debug_package()
                         old_inst.un_install_package()
                         old_inst.cleanup_system()
-                        runner.cleanup()
+                        try:
+                            runner.cleanup()
+                        finally:
+                            continue
                         continue
 
             lh.section("uninstall")
