@@ -344,7 +344,6 @@ class Dc2Dc(Runner):
 
     def jam_attempt_impl(self):
         """ stress the DC2DC, test edge cases """
-        return # TODO: re-enable once its fixed.
         self.progress(True, "stopping sync")
         self._stop_sync()
         self.progress(True, "creating volatile data on secondary DC")
