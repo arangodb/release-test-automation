@@ -220,8 +220,12 @@ class Dc2Dc(Runner):
         err = ""
         success = True
         for count in range (10):
-            (output, err, success) = self.sync_manager.stop_sync(timeout)
-            if success:
+            (output, err, exitcode) = self.sync_manager.stop_sync(timeout)
+            if exitcode == 0:
+                break
+            else if exitcode == 3:
+            (output, err, exitcode) = self.sync_manager.stop_sync(timeout, ['--ensure-in-sync=false'])
+            if exitcode == 0:
                 break
             self.progress(True,
                           "stopping didn't work out in time %d, force killing! %s" %
