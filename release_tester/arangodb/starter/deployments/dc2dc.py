@@ -14,9 +14,13 @@ from arangodb.starter.deployments.runner import Runner, PunnerProperties
 from arangodb.instance import InstanceType
 from tools.asciiprint import print_progress as progress
 
-VERSION_OLD_MIN_FIX = semver.VersionInfo.parse('1.5.0')
-VERSION_OLD_MAX_FIX = semver.VersionInfo.parse('2.0.0')
-VERSION_NEW_FIX = semver.VersionInfo.parse('2.3.0')
+SYNC_VERSIONS = {
+    "150": semver.VersionInfo.parse('1.5.0'),
+    "160": semver.VersionInfo.parse('1.6.0'),
+    "200": semver.VersionInfo.parse('2.0.0'),
+    "230": semver.VersionInfo.parse('2.3.0'),
+    "240": semver.VersionInfo.parse('2.4.0')
+}
 USERS_ERROR_RX = re.compile('.*\n.*\n.*(_users).*DIFFERENT.*', re.MULTILINE)
 
 class Dc2Dc(Runner):
@@ -223,8 +227,10 @@ class Dc2Dc(Runner):
             (output, err, exitcode) = self.sync_manager.stop_sync(timeout)
             if exitcode == 0:
                 break
-            else if exitcode == 3:
-            (output, err, exitcode) = self.sync_manager.stop_sync(timeout, ['--ensure-in-sync=false'])
+            else if (self.sync_version < SYNC_VERSIONS['160'] or (
+                    (self.sync_version >= SYNC_VERSIONS['200']) and
+                    (self.sync_version < SYNC_VERSIONS['240']))):
+                (output, err, exitcode) = self.sync_manager.stop_sync(timeout, ['--ensure-in-sync=false'])
             if exitcode == 0:
                 break
             self.progress(True,
@@ -249,9 +255,9 @@ class Dc2Dc(Runner):
             self.sync_manager.reset_failed_shard('_system', '_users')
         elif last_sync_output.find(
                 'temporary failure with http status code: 503: service unavailable') >= 0:
-            if (self.sync_version < VERSION_OLD_MIN_FIX or (
-                    (self.sync_version >= VERSION_OLD_MAX_FIX) and
-                    (self.sync_version < VERSION_NEW_FIX))):
+            if (self.sync_version < SYNC_VERSIONS['150'] or (
+                    (self.sync_version >= SYNC_VERSIONS['200']) and
+                    (self.sync_version < SYNC_VERSIONS['230']))):
                 self.progress(True, 'arangosync: restarting instances...')
                 self.cluster1["instance"].kill_sync_processes()
                 self.cluster2["instance"].kill_sync_processes()
