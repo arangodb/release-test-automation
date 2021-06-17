@@ -452,5 +452,4 @@ while (count < options.numberOfDBs) {
 
 try {
   db._create('_fishbowl')
-}
-catch() {}
+} catch(err) {}
