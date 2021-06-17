@@ -99,7 +99,7 @@ def run_upgrade(old_version, new_version, verbose,
                         try:
                             runner.cleanup()
                         finally:
-                            continue
+                            pass
                         continue
 
             lh.section("uninstall")
