@@ -199,7 +199,7 @@ class Dc2Dc(Runner):
 
     def _is_higher_sync_version(self, min_v1_version, min_v2_version):
         """ check if the current arangosync version is higher than expected minimum version """
-        if self.sync_version.major == '1':
+        if self.sync_version.major == 1:
             # It is version 1.y.z so it should be compared to the expected min_v1_version.
             return is_higher_version(self.sync_version, min_v1_version)
 
