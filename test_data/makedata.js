@@ -449,3 +449,8 @@ while (count < options.numberOfDBs) {
 
   count++;
 }
+
+try {
+  db._create('_fishbowl')
+}
+catch() {}
