@@ -13,13 +13,13 @@ from arangodb.sync import SyncManager
 from arangodb.starter.deployments.runner import Runner, PunnerProperties
 from arangodb.instance import InstanceType
 from tools.asciiprint import print_progress as progress
+from tools.versionhelper import is_higher_version
 
-ARANGOSYNC_V2 = semver.VersionInfo.parse('2.0.0')
 SYNC_VERSIONS = {
+    "140": semver.VersionInfo.parse('1.4.0'),
     "150": semver.VersionInfo.parse('1.5.0'),
-    "160": semver.VersionInfo.parse('1.6.0'),
-    "230": semver.VersionInfo.parse('2.3.0'),
-    "240": semver.VersionInfo.parse('2.4.0')
+    "220": semver.VersionInfo.parse('2.2.0'),
+    "230": semver.VersionInfo.parse('2.3.0')
 }
 USERS_ERROR_RX = re.compile('.*\n.*\n.*(_users).*DIFFERENT.*', re.MULTILINE)
 
@@ -197,6 +197,14 @@ class Dc2Dc(Runner):
             count += 1
         self.passvoid = 'dc2dc'
 
+    def _is_higher_sync_version(self, min_v1_version, min_v2_version):
+        """ check if the current arangosync version is higher than expected minimum version """
+        if self.sync_version.major == '1':
+            # It is version 1.y.z so it should be compared to the expected min_v1_version.
+            return is_higher_version(self.sync_version, min_v1_version)
+
+        return is_higher_version(self.sync_version, min_v2_version)
+
     def _get_sync_version(self):
         """
         Check version of the arangosync master on the first cluster
@@ -225,7 +233,7 @@ class Dc2Dc(Runner):
         exitcode = 0
         success = True
         for count in range (10):
-            if self.is_min_version(SYNC_VERSIONS['160'], SYNC_VERSIONS['240']):
+            if self._is_higher_sync_version(SYNC_VERSIONS['150'], SYNC_VERSIONS['230']):
                 (output, err, exitcode) = self.sync_manager.stop_sync(timeout)
             else:
                 # Arangosync with the bug for checking in-sync status.
@@ -257,7 +265,7 @@ class Dc2Dc(Runner):
             self.sync_manager.reset_failed_shard('_system', '_users')
         elif last_sync_output.find(
                 'temporary failure with http status code: 503: service unavailable') >= 0:
-            if self.is_min_version(SYNC_VERSIONS['150'], SYNC_VERSIONS['230']):
+            if self._is_higher_sync_version(SYNC_VERSIONS['140'], SYNC_VERSIONS['220']):
                 self.progress(
                     True,
                     'arangosync: {0} does not qualify for restart workaround..'.format(str(self.sync_version))
@@ -384,10 +392,3 @@ class Dc2Dc(Runner):
         self.sync_manager.run_syncer()
 
         self._get_in_sync(20)
-
-    def is_min_version(self, min_v1_version, min_v2_version):
-        """ check if the current arangosync version is greater than expected minimum version """
-        if self.sync_version >= ARANGOSYNC_V2:
-            return self.sync_version >= min_v2_version
-
-        return self.sync_version >= min_v1_version
