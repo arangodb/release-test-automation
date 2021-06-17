@@ -229,7 +229,7 @@ class Dc2Dc(Runner):
                 (output, err, exitcode) = self.sync_manager.stop_sync(timeout)
             else:
                 # Arangosync with the bug for checking in-sync status.
-                self.progress(True, "stopping sync without checking if shards are in-sync")
+                self.progress(True, "arangosync: stopping sync without checking if shards are in-sync")
                 (output, err, exitcode) = self.sync_manager.stop_sync(timeout, ['--ensure-in-sync=false'])
 
             if exitcode == 0:
