@@ -14,10 +14,10 @@ from arangodb.starter.deployments.runner import Runner, PunnerProperties
 from arangodb.instance import InstanceType
 from tools.asciiprint import print_progress as progress
 
+ARANGOSYNC_V2 = semver.VersionInfo.parse('2.0.0')
 SYNC_VERSIONS = {
     "150": semver.VersionInfo.parse('1.5.0'),
     "160": semver.VersionInfo.parse('1.6.0'),
-    "200": semver.VersionInfo.parse('2.0.0'),
     "230": semver.VersionInfo.parse('2.3.0'),
     "240": semver.VersionInfo.parse('2.4.0')
 }
@@ -222,17 +222,19 @@ class Dc2Dc(Runner):
     def _stop_sync(self, timeout=60):
         output = ""
         err = ""
+        exitcode = 0
         success = True
         for count in range (10):
-            (output, err, exitcode) = self.sync_manager.stop_sync(timeout)
-            if exitcode == 0:
-                break
-            else if (self.sync_version < SYNC_VERSIONS['160'] or (
-                    (self.sync_version >= SYNC_VERSIONS['200']) and
-                    (self.sync_version < SYNC_VERSIONS['240']))):
+            if self.is_min_version(SYNC_VERSIONS['160'], SYNC_VERSIONS['240']):
+                (output, err, exitcode) = self.sync_manager.stop_sync(timeout)
+            else:
+                # Arangosync with the bug for checking in-sync status.
+                self.progress(True, "stopping sync without checking if shards are in-sync")
                 (output, err, exitcode) = self.sync_manager.stop_sync(timeout, ['--ensure-in-sync=false'])
+
             if exitcode == 0:
                 break
+
             self.progress(True,
                           "stopping didn't work out in time %d, force killing! %s" %
                           (count, output) )
@@ -255,21 +257,19 @@ class Dc2Dc(Runner):
             self.sync_manager.reset_failed_shard('_system', '_users')
         elif last_sync_output.find(
                 'temporary failure with http status code: 503: service unavailable') >= 0:
-            if (self.sync_version < SYNC_VERSIONS['150'] or (
-                    (self.sync_version >= SYNC_VERSIONS['200']) and
-                    (self.sync_version < SYNC_VERSIONS['230']))):
+            if self.is_min_version(SYNC_VERSIONS['150'], SYNC_VERSIONS['230']):
+                self.progress(
+                    True,
+                    'arangosync: {0} does not qualify for restart workaround..'.format(str(self.sync_version))
+                )
+            else:
                 self.progress(True, 'arangosync: restarting instances...')
                 self.cluster1["instance"].kill_sync_processes()
                 self.cluster2["instance"].kill_sync_processes()
                 time.sleep(3)
                 self.cluster1["instance"].detect_instances()
                 self.cluster2["instance"].detect_instances()
-            else:
-                self.progress(
-                    True,
-                    'arangosync: {0} does not qualify for restart workaround..'.format(
-                    str(self.sync_version))
-                )
+
         elif last_sync_output.find('Shard is not turned on for synchronizing') >= 0:
             self.progress(True, 'arangosync: sync in progress.')
         else:
@@ -384,3 +384,10 @@ class Dc2Dc(Runner):
         self.sync_manager.run_syncer()
 
         self._get_in_sync(20)
+
+    def is_min_version(self, min_v1_version, min_v2_version):
+        """ check if the current arangosync version is greater than expected minimum version """
+        if self.sync_version >= ARANGOSYNC_V2:
+            return self.sync_version >= min_v2_version
+
+        return self.sync_version >= min_v1_version
