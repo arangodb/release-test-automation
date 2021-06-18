@@ -523,5 +523,6 @@ while (count < options.numberOfDBs) {
 }
 
 try {
+  db._useDatabase("_system");
   db._create('_fishbowl')
 } catch(err) {}
