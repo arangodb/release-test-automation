@@ -452,5 +452,5 @@ while (count < options.numberOfDBs) {
 
 try {
   db._useDatabase("_system");
-  db._create('_fishbowl')
+  db._create('_fishbowl', { isSystem: true, distributeShardsLike: '_users' });
 } catch(err) {}
