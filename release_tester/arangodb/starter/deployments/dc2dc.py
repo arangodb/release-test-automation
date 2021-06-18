@@ -30,7 +30,7 @@ class Dc2Dc(Runner):
                  selenium, selenium_driver_args,
                  testrun_name: str):
         super().__init__(runner_type, abort_on_error, installer_set,
-                         PunnerProperties('DC2DC', 0, 3500, True),
+                         PunnerProperties('DC2DC', 0, 4000, True),
                          selenium, selenium_driver_args,
                          testrun_name)
         self.success = True
