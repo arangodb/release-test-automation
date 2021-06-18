@@ -30,7 +30,6 @@ class InstallerConfig():
                  publicip: str,
                  interactive: bool,
                  stress_upgrade: bool):
-        print(zip_package)
         self.publicip = publicip
         self.interactive = interactive
         self.enterprise = enterprise
@@ -194,7 +193,6 @@ def create_config_installer_set(versions: list,
     res = []
     for version in versions:
         print(version)
-        print(zip_package)
         install_config = InstallerConfig(version,
                                          verbose,
                                          enterprise,
