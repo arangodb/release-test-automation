@@ -13,10 +13,14 @@ from arangodb.sync import SyncManager
 from arangodb.starter.deployments.runner import Runner, PunnerProperties
 from arangodb.instance import InstanceType
 from tools.asciiprint import print_progress as progress
+from tools.versionhelper import is_higher_version
 
-VERSION_OLD_MIN_FIX = semver.VersionInfo.parse('1.5.0')
-VERSION_OLD_MAX_FIX = semver.VersionInfo.parse('2.0.0')
-VERSION_NEW_FIX = semver.VersionInfo.parse('2.3.0')
+SYNC_VERSIONS = {
+    "140": semver.VersionInfo.parse('1.4.0'),
+    "150": semver.VersionInfo.parse('1.5.0'),
+    "220": semver.VersionInfo.parse('2.2.0'),
+    "230": semver.VersionInfo.parse('2.3.0')
+}
 USERS_ERROR_RX = re.compile('.*\n.*\n.*(_users).*DIFFERENT.*', re.MULTILINE)
 
 class Dc2Dc(Runner):
@@ -193,6 +197,14 @@ class Dc2Dc(Runner):
             count += 1
         self.passvoid = 'dc2dc'
 
+    def _is_higher_sync_version(self, min_v1_version, min_v2_version):
+        """ check if the current arangosync version is higher than expected minimum version """
+        if self.sync_version.major == 1:
+            # It is version 1.y.z so it should be compared to the expected min_v1_version.
+            return is_higher_version(self.sync_version, min_v1_version)
+
+        return is_higher_version(self.sync_version, min_v2_version)
+
     def _get_sync_version(self):
         """
         Check version of the arangosync master on the first cluster
@@ -218,11 +230,19 @@ class Dc2Dc(Runner):
     def _stop_sync(self, timeout=60):
         output = ""
         err = ""
+        exitcode = 0
         success = True
         for count in range (10):
-            (output, err, success) = self.sync_manager.stop_sync(timeout)
-            if success:
+            if self._is_higher_sync_version(SYNC_VERSIONS['150'], SYNC_VERSIONS['230']):
+                (output, err, exitcode) = self.sync_manager.stop_sync(timeout)
+            else:
+                # Arangosync with the bug for checking in-sync status.
+                self.progress(True, "arangosync: stopping sync without checking if shards are in-sync")
+                (output, err, exitcode) = self.sync_manager.stop_sync(timeout, ['--ensure-in-sync=false'])
+
+            if exitcode == 0:
                 break
+
             self.progress(True,
                           "stopping didn't work out in time %d, force killing! %s" %
                           (count, output) )
@@ -245,21 +265,19 @@ class Dc2Dc(Runner):
             self.sync_manager.reset_failed_shard('_system', '_users')
         elif last_sync_output.find(
                 'temporary failure with http status code: 503: service unavailable') >= 0:
-            if (self.sync_version < VERSION_OLD_MIN_FIX or (
-                    (self.sync_version >= VERSION_OLD_MAX_FIX) and
-                    (self.sync_version < VERSION_NEW_FIX))):
+            if self._is_higher_sync_version(SYNC_VERSIONS['140'], SYNC_VERSIONS['220']):
+                self.progress(
+                    True,
+                    'arangosync: {0} does not qualify for restart workaround..'.format(str(self.sync_version))
+                )
+            else:
                 self.progress(True, 'arangosync: restarting instances...')
                 self.cluster1["instance"].kill_sync_processes()
                 self.cluster2["instance"].kill_sync_processes()
                 time.sleep(3)
                 self.cluster1["instance"].detect_instances()
                 self.cluster2["instance"].detect_instances()
-            else:
-                self.progress(
-                    True,
-                    'arangosync: {0} does not qualify for restart workaround..'.format(
-                    str(self.sync_version))
-                )
+
         elif last_sync_output.find('Shard is not turned on for synchronizing') >= 0:
             self.progress(True, 'arangosync: sync in progress.')
         else:
@@ -344,7 +362,6 @@ class Dc2Dc(Runner):
 
     def jam_attempt_impl(self):
         """ stress the DC2DC, test edge cases """
-        return # TODO: re-enable once its fixed.
         self.progress(True, "stopping sync")
         self._stop_sync()
         self.progress(True, "creating volatile data on secondary DC")
