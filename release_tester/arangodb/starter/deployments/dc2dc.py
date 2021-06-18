@@ -304,7 +304,9 @@ class Dc2Dc(Runner):
         self.cluster1['instance'].arangosh.check_test_data("dc2dc (post setup - dc1)")
         self._get_in_sync(20)
 
-        res = self.cluster2['instance'].arangosh.check_test_data("dc2dc (post setup - dc2)")
+        res = self.cluster2['instance'].arangosh.check_test_data("dc2dc (post setup - dc2)", [
+            "--readOnly", "true"
+        ])
         if not res[0]:
             if not self.cfg.verbose:
                 print(res[1])

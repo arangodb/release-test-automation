@@ -22,7 +22,6 @@ const internal = require('internal');
 const arangodb = require("@arangodb");
 const console = require("console");
 const g = require('@arangodb/general-graph');
-const fs = require("fs");
 const db = internal.db;
 const time = internal.time;
 const sleep = internal.sleep;
@@ -142,7 +141,7 @@ function createCollectionSafe(name, DefaultNoSharts, DefaultReplFactor) {
 }
 
 function createIndexSafe(options) {
-  opts = _.clone(options);
+  let opts = _.clone(options);
   delete opts.col
   return createSafe(options.col.name(), colname => {
     options.col.ensureIndex(opts);
@@ -246,17 +245,25 @@ function deleteFoxx(mountpoint) {
 
 const itzpapalotlPath = path.resolve(internal.pathForTesting('common'), 'test-data', 'apps', 'itzpapalotl');
 const itzpapalotlZip = loadFoxxIntoZip(itzpapalotlPath);
+const minimalWorkingServicePath = path.resolve(internal.pathForTesting('common'), 'test-data', 'apps', 'crud');
+const minimalWorkingZip = loadFoxxIntoZip(minimalWorkingServicePath);
+const minimalWorkingZipDev = {
+  buffer: minimalWorkingZip.buffer,
+  devmode: true,
+  type: minimalWorkingZip.type
+};
+const minimalWorkingZipPath = utils.zipDirectory(minimalWorkingServicePath);
 
-const serviceServiceMount = '/foxx-crud-test-download';
 const serviceServicePath = path.resolve(internal.pathForTesting('common'), 'test-data', 'apps', 'service-service', 'index.js');
 const crudTestServiceSource = {
   type: 'js',
   buffer: fs.readFileSync(serviceServicePath)
 };
+print("installing Itzpapalotl");
+installFoxx('/itz', itzpapalotlZip);
 
-const mount = '/foxx-crud-test';
-
-installFoxx(mount, itzpapalotlZip);
+print("installing crud");
+installFoxx('/crud', minimalWorkingZip);
 
 let count = 0;
 while (count < options.numberOfDBs) {
@@ -524,5 +531,5 @@ while (count < options.numberOfDBs) {
 
 try {
   db._useDatabase("_system");
-  db._create('_fishbowl')
+  db._create('_fishbowl', { isSystem: true, distributeShardsLike: '_users' });
 } catch(err) {}

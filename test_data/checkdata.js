@@ -10,6 +10,13 @@ let db = internal.db;
 let print = internal.print;
 const isCluster = require("internal").isCluster();
 const  dbVersion = db._version();
+const {
+  assertTrue,
+  assertFalse,
+  assertEqual,
+  assertNotEqual,
+  assertException
+} = require("jsunity").jsUnity.assertions;
 
 const { FeatureFlags } = require("./feature_flags");
 
@@ -18,6 +25,7 @@ let database = "_system";
 const optionsDefaults = {
   minReplicationFactor: 1,
   maxReplicationFactor: 2,
+  readonly: false,
   numberOfDBs: 1,
   countOffset: 0,
   collectionMultiplier: 1,
@@ -149,9 +157,60 @@ function testSmartGraphValidator(ccount) {
   }
 }
 
+function checkFoxxService() {
+  let reply;
+  db._useDatabase("_system");
+
+  print("getting the root of the gods");
+  reply = arango.GET_RAW('/_db/_system/itz');
+  assertEqual(reply.code, "307");
+
+  print('getting index html with list of gods');
+  reply = arango.GET_RAW('/_db/_system/itz/index');
+  assertEqual(reply.code, "200");
+
+  print("summoning Chalchihuitlicue");
+  reply = arango.GET_RAW('/_db/_system/itz/Chalchihuitlicue/summon')
+  assertEqual(reply.code, "200");
+  assertEqual(reply.parsedBody.name, "Chalchihuitlicue");
+  assertTrue(reply.parsedBody.summoned);
+
+  print("testing get xxx");
+  reply = arango.GET_RAW('/_db/_system/crud/xxx');
+  assertEqual(reply.code, "200");
+  print(reply.parsedBody)
+  assertEqual(reply.parsedBody, []);
+
+  print("testing POST xxx");
+  
+  reply = arango.POST_RAW('/_db/_system/crud/xxx', {_key: "test"})
+  if (options.readOnly) {
+    assertEqual(reply.code, "400");
+  } else {
+    assertEqual(reply.code, "201");
+  }
+  
+  print("testing get xxx");
+  reply = arango.GET_RAW('/_db/_system/crud/xxx');
+  assertEqual(reply.code, "200");
+  if (options.readOnly) {
+    assertEqual(reply.parsedBody, []);
+  } else {
+    assertEqual(reply.parsedBody.length, 1);
+  }
+
+  print('testing delete document')
+  reply = arango.DELETE_RAW('/_db/_system/crud/xxx/' + 'test');
+  if (options.readOnly) {
+    assertEqual(reply.code, "400");
+  } else {
+    assertEqual(reply.code, "204");
+  }
+}
+
 let v = db._connection.GET("/_api/version");
 const enterprise = v.license === "enterprise"
-
+checkFoxxService()
 let count = 0;
 while (count < options.numberOfDBs) {
   tStart = time();
