@@ -76,15 +76,16 @@ class InstallerConfig():
         )
     def __repr__(self):
         return """
-version: {0.version}"
-using enterpise: {0.enterprise}"
-using encryption at rest: {0.encryption_at_rest}"
-using zip: {0.zip_package}"
-package directory: {0.package_dir}"
-mode: {0.mode}"
-public ip: {0.publicip}"
-interactive: {0.interactive}"
-verbose: {0.verbose}"
+version: {0.version}
+using enterpise: {0.enterprise}
+using encryption at rest: {0.encryption_at_rest}
+using zip: {0.zip_package}
+package directory: {0.package_dir}
+test directory: {0.base_test_dir}
+mode: {0.mode}
+public ip: {0.publicip}
+interactive: {0.interactive}
+verbose: {0.verbose}
 """.format(self)
 
     def reset_version(self, version):

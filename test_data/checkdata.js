@@ -240,7 +240,7 @@ while (count < options.numberOfDBs) {
                  GRAPH "G_naive_${ccount}"
                  RETURN v`).toArray().length !== 6) { throw "Physalis"; }
     progress();
-    if (enterprise){
+    if (enterprise && false){ // TODO: re-enable me!
       const vColName = `patents_smart_${ccount}`;
       let patents_smart = db._collection(vColName);
       if (patents_smart.count() !== 761) { throw "Cherry"; }

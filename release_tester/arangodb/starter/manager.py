@@ -304,7 +304,7 @@ class StarterManager():
         return self.passvoid
 
     def send_request(self, instance_type, verb_method,
-                     url, data=None, headers={}):
+                     url, data=None, headers={}, timeout = None):
         """ send an http request to the instance """
         http_client.HTTPConnection.debuglevel = 1
 
@@ -320,7 +320,8 @@ class StarterManager():
                         'http://' + base_url + url,
                         data=data,
                         headers=headers,
-                        allow_redirects=False
+                        allow_redirects=False,
+                        timeout=timeout
                     )
                     # print(reply.text)
                     results.append(reply)

@@ -30,15 +30,15 @@ def run_cleanup(zip_package, testrun_name: str = ""):
         inst.load_config()
         inst.cfg.interactive = False
         inst.stop_service()
+        installer_set[0][0].set_directories(inst.cfg)
     kill_all_processes()
     kill_all_processes()
     starter_mode = [RunnerType.LEADER_FOLLOWER,
                     RunnerType.ACTIVE_FAILOVER,
-                    RunnerType.CLUSTER]  # ,
-    #  RunnerType.DC2DC] here __init__ will create stuff, TODO.
+                    RunnerType.CLUSTER,
+                    RunnerType.DC2DC]
     for runner_type in starter_mode:
         assert runner_type
-
         runner = make_runner(runner_type,
                              False, 'none', [],
                              installer_set,

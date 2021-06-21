@@ -1,10 +1,10 @@
 #!/bin/bash
 
 if test -z "$OLD_VERSION"; then
-    OLD_VERSION=3.7.0-nightly
+    OLD_VERSION=3.8.0-nightly
 fi
 if test -z "$NEW_VERSION"; then
-    NEW_VERSION=3.8.0-nightly
+    NEW_VERSION=3.9.0-nightly
 fi
 if test -n "$PACKAGE_CACHE"; then
     PACKAGE_CACHE=$(pwd)/package_cache

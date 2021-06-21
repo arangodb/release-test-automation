@@ -58,7 +58,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
 
     def starter_prepare_env_impl(self):
         self.leader_starter_instance = StarterManager(
-            self.cfg, self.basedir, 'leader',
+            self.basecfg, self.basedir, 'leader',
             mode='single', port=1234,
             expect_instances=[
                 InstanceType.SINGLE
@@ -68,7 +68,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
         self.leader_starter_instance.is_leader = True
 
         self.follower_starter_instance = StarterManager(
-            self.cfg, self.basedir, 'follower',
+            self.basecfg, self.basedir, 'follower',
             mode='single', port=2345,
             expect_instances=[
                 InstanceType.SINGLE
@@ -209,8 +209,8 @@ process.exit(0);
             raise Exception("replication fuzzing test failed")
 
         prompt_user(self.basecfg, "please test the installation.")
-        # if self.selenium:
-        #    self.selenium.jam_step_1(self.cfg if self.cfg else self.new_cfg)
+        if self.selenium:
+            self.selenium.jam_step_1(self.cfg if self.cfg else self.new_cfg)
 
 
     def shutdown_impl(self):
