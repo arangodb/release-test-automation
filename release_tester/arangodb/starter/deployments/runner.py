@@ -209,6 +209,8 @@ class Runner(ABC):
         if self.do_install or self.do_system_test:
             self.progress(False, "INSTALLATION for {0}".format(str(self.name)),)
             self.install(self.old_installer)
+        else:
+            self.basecfg.set_directories(self.old_installer.cfg)
 
         if self.do_starter_test:
             self.progress(False, "PREPARING DEPLOYMENT of {0}".format(str(self.name)),)
