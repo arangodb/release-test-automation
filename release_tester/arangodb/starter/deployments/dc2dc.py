@@ -227,34 +227,24 @@ class Dc2Dc(Runner):
         print("Arangosync v%s detected" % version)
         return semver.VersionInfo.parse(version)
 
-    def _stop_sync(self, timeout=60):
+    def _stop_sync(self, timeout=120):
         output = ""
         err = ""
         exitcode = 0
-        success = True
-        for count in range (10):
-            if self._is_higher_sync_version(SYNC_VERSIONS['150'], SYNC_VERSIONS['230']):
-                (output, err, exitcode) = self.sync_manager.stop_sync(timeout)
-            else:
-                # Arangosync with the bug for checking in-sync status.
-                self.progress(True, "arangosync: stopping sync without checking if shards are in-sync")
-                (output, err, exitcode) = self.sync_manager.stop_sync(timeout, ['--ensure-in-sync=false'])
 
-            if exitcode == 0:
-                break
-
-            self.progress(True,
-                          "stopping didn't work out in time %d, force killing! %s" %
-                          (count, output) )
-            self.cluster1["instance"].kill_sync_processes()
-            self.cluster2["instance"].kill_sync_processes()
-            time.sleep(3)
-            self.cluster1["instance"].detect_instances()
-            self.cluster2["instance"].detect_instances()
+        if self._is_higher_sync_version(SYNC_VERSIONS['150'], SYNC_VERSIONS['230']):
+            output, err, exitcode = self.sync_manager.stop_sync(timeout)
         else:
-            self.state += "\n" + output
-            self.state += "\n" + err
-            raise Exception("failed to stop the synchronisation in 10 attempts")
+            # Arangosync with the bug for checking in-sync status.
+            self.progress(True, "arangosync: stopping sync without checking if shards are in-sync")
+            output, err, exitcode = self.sync_manager.stop_sync(timeout, ['--ensure-in-sync=false'])
+
+        if exitcode == 0:
+            return
+
+        self.state += "\n" + output
+        self.state += "\n" + err
+        raise Exception("failed to stop the synchronization")
 
     def _mitigate_known_issues(self, last_sync_output):
         """
