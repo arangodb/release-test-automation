@@ -67,7 +67,7 @@ def run_test(mode,
         # install on first run:
         runner.do_install = (count == 1) and do_install
         # only uninstall after the last test:
-        runner.do_uninstall = (count == len(starter_mode)) and do_uninstall
+        runner.do_uninstall = (count == len(STARTER_MODES[starter_mode])) and do_uninstall
         failed = False
         try:
             if not runner.run():
