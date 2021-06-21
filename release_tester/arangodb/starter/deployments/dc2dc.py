@@ -227,34 +227,24 @@ class Dc2Dc(Runner):
         print("Arangosync v%s detected" % version)
         return semver.VersionInfo.parse(version)
 
-    def _stop_sync(self, timeout=60):
+    def _stop_sync(self, timeout=120):
         output = ""
         err = ""
         exitcode = 0
-        success = True
-        for count in range (10):
-            if self._is_higher_sync_version(SYNC_VERSIONS['150'], SYNC_VERSIONS['230']):
-                (output, err, exitcode) = self.sync_manager.stop_sync(timeout)
-            else:
-                # Arangosync with the bug for checking in-sync status.
-                self.progress(True, "arangosync: stopping sync without checking if shards are in-sync")
-                (output, err, exitcode) = self.sync_manager.stop_sync(timeout, ['--ensure-in-sync=false'])
 
-            if exitcode == 0:
-                break
-
-            self.progress(True,
-                          "stopping didn't work out in time %d, force killing! %s" %
-                          (count, output) )
-            self.cluster1["instance"].kill_sync_processes()
-            self.cluster2["instance"].kill_sync_processes()
-            time.sleep(3)
-            self.cluster1["instance"].detect_instances()
-            self.cluster2["instance"].detect_instances()
+        if self._is_higher_sync_version(SYNC_VERSIONS['150'], SYNC_VERSIONS['230']):
+            output, err, exitcode = self.sync_manager.stop_sync(timeout)
         else:
-            self.state += "\n" + output
-            self.state += "\n" + err
-            raise Exception("failed to stop the synchronisation in 10 attempts")
+            # Arangosync with the bug for checking in-sync status.
+            self.progress(True, "arangosync: stopping sync without checking if shards are in-sync")
+            output, err, exitcode = self.sync_manager.stop_sync(timeout, ['--ensure-in-sync=false'])
+
+        if exitcode == 0:
+            return
+
+        self.state += "\n" + output
+        self.state += "\n" + err
+        raise Exception("failed to stop the synchronization")
 
     def _mitigate_known_issues(self, last_sync_output):
         """
@@ -304,7 +294,9 @@ class Dc2Dc(Runner):
         self.cluster1['instance'].arangosh.check_test_data("dc2dc (post setup - dc1)")
         self._get_in_sync(20)
 
-        res = self.cluster2['instance'].arangosh.check_test_data("dc2dc (post setup - dc2)")
+        res = self.cluster2['instance'].arangosh.check_test_data("dc2dc (post setup - dc2)", [
+            "--readOnly", "true"
+        ])
         if not res[0]:
             if not self.cfg.verbose:
                 print(res[1])
@@ -362,25 +354,24 @@ class Dc2Dc(Runner):
 
     def jam_attempt_impl(self):
         """ stress the DC2DC, test edge cases """
-        return #TODO: re-enable me.
-        #self.progress(True, "stopping sync")
-        #self._stop_sync()
-        #self.progress(True, "creating volatile data on secondary DC")
-        #self.cluster2["instance"].arangosh.hotbackup_create_nonbackup_data()
-        #self.progress(True, "restarting sync")
-        #self._launch_sync(True)
-        #self._get_in_sync(20)
-        #
-        #self.progress(True, "checking whether volatile data has been removed from both DCs")
-        #if (not self.cluster1["instance"].arangosh.hotbackup_check_for_nonbackup_data() or
-        #    not self.cluster2["instance"].arangosh.hotbackup_check_for_nonbackup_data()):
-        #    raise Exception("expected data created on disconnected follower DC to be gone!")
-        #
-        #self.progress(True, "stopping sync")
-        #self._stop_sync(120)
-        #self.progress(True, "reversing sync direction")
-        #self._launch_sync(False)
-        #self._get_in_sync(20)
+        self.progress(True, "stopping sync")
+        self._stop_sync()
+        self.progress(True, "creating volatile data on secondary DC")
+        self.cluster2["instance"].arangosh.hotbackup_create_nonbackup_data()
+        self.progress(True, "restarting sync")
+        self._launch_sync(True)
+        self._get_in_sync(20)
+        
+        self.progress(True, "checking whether volatile data has been removed from both DCs")
+        if (not self.cluster1["instance"].arangosh.hotbackup_check_for_nonbackup_data() or
+            not self.cluster2["instance"].arangosh.hotbackup_check_for_nonbackup_data()):
+            raise Exception("expected data created on disconnected follower DC to be gone!")
+        
+        self.progress(True, "stopping sync")
+        self._stop_sync(120)
+        self.progress(True, "reversing sync direction")
+        self._launch_sync(False)
+        self._get_in_sync(20)
 
     def shutdown_impl(self):
         self.cluster1["instance"].terminate_instance()
