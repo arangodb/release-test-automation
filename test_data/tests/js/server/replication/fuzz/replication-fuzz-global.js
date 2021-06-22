@@ -31,6 +31,7 @@
 var jsunity = require("jsunity");
 var arangodb = require("@arangodb");
 var db = arangodb.db;
+const request = require("@arangodb/request");
 
 const reconnectRetry = require('@arangodb/replication-common').reconnectRetry;
 var replication = require("@arangodb/replication");
@@ -38,8 +39,9 @@ let compareTicks = replication.compareTicks;
 var console = require("console");
 var internal = require("internal");
 var leaderEndpoint = arango.getEndpoint();
-var followerEndpoint = ARGUMENTS[ARGUMENTS.length - 1];
 
+const options = internal.parseArgv(ARGUMENTS, 0);
+var followerEndpoint = options['args'];
 var isCluster = arango.getRole() === 'COORDINATOR';
 var isSingle = arango.getRole() === 'SINGLE';
 const replStateBeforeStart = replication.globalApplier.stateAll();
@@ -49,10 +51,27 @@ const havePreconfiguredReplication = isSingle && (
     (replStateBeforeStart['_system'].state.phase === 'inactive')
 );
 let followerCreds = followerEndpoint.split('/')[2].split('@')[0].split(':');
-followerEndpoint = followerEndpoint.split('@')[1];
+followerEndpoint = followerEndpoint.split('/')[0] + '//' + followerEndpoint.split('@')[1];
 var leaderCreds = followerCreds;
 
-
+function getCollectionChecksum(baseUrl, jwt, database, colName) {
+  var res;
+  try {
+    let args = {
+       url: baseUrl.replace(/^tcp:/, 'http:').replace(/^ssl:/, 'https:') +
+         '/_db/' + database + '/_api/collection/' + colName + '/checksum',
+       auth: {
+         bearer: jwt,
+       },
+       timeout: 300
+    }
+    res = request.get(args);
+  } catch (x) {
+    print('waserlaube' + x)
+    throw x;
+  }
+  return JSON.parse(res.body).checksum;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief test suite
@@ -72,6 +91,7 @@ function ReplicationSuite() {
     reconnectRetry(followerEndpoint, db._name(), followerCreds[0], followerCreds[1]);
     db._flushCache();
   };
+
 
   var collectionChecksum = function(name) {
     if (isCluster) {
@@ -462,7 +482,6 @@ function ReplicationSuite() {
             db._dropDatabase(name);
           };
 
-
           let ops = [
             { name: "insert", func: insert },
             { name: "insertOverwrite", func: insertOverwrite },
@@ -495,6 +514,22 @@ function ReplicationSuite() {
             let op = ops[Math.floor(Math.random() * ops.length)];
             print(Date() + " - " + op.name);
             op.func();
+            if (isCluster) {
+              let leaderChecksum = getCollectionChecksum(leaderEndpoint, options.jwt1, '_system', '_users');
+              let followerChecksum;
+              let checksumCount = 0;
+              while (leaderChecksum !== followerChecksum) {
+                followerChecksum = getCollectionChecksum(followerEndpoint, options.jwt2, '_system', '_users');
+                if (leaderChecksum !== followerChecksum) {
+                  print('C');
+                  if (checksumCount > 20) {
+                    throw Exception("_users collection isn't getting in sync!")
+                  }
+                  sleep(1);
+                  checksumCount += 1;
+                }
+              }
+            }
           }
           if (isCluster) {
             for (let i = 0; i < 300; i++) {

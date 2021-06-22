@@ -308,8 +308,14 @@ class Dc2Dc(Runner):
                 Path('tests/js/server/replication/fuzz/replication-fuzz-global.js')
             ),
             [],
-            [self.cluster2['instance'].get_frontend().get_public_url(
-                'root:%s@'%self.passvoid)]
+            [
+                self.cluster2['instance'].get_frontend().get_public_url(
+                    'root:%s@'%self.passvoid),
+                '--jwt1', self.cluster1['instance'].get_jwt_token_from_secret_file(
+                    self.cluster1['instance'].jwtfile),
+                '--jwt2', self.cluster2['instance'].get_jwt_token_from_secret_file(
+                    self.cluster2['instance'].jwtfile)
+            ]
             )
         if not res[0]:
             if not self.cfg.verbose:
