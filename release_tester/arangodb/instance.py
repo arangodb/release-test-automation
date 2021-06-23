@@ -129,6 +129,28 @@ class Instance(ABC):
         else:
             logging.info("I'm already dead, jim!" + str(repr(self)))
 
+    def suspend_instance(self):
+        """ halt an instance using SIG_STOP """
+        if self.instance:
+            try:
+                self.instance.suspend()
+            except psutil.NoSuchProcess:
+                logging.info("instance not available with this PID: " + str(self.instance))
+            self.instance = None
+        else:
+            logging.error("instance not available with this PID: " + str(repr(self)))
+
+    def resume_instance(self):
+        """ resume the instance using SIG_CONT """
+        if self.instance:
+            try:
+                self.instance.resume()
+            except psutil.NoSuchProcess:
+                logging.info("instance not available with this PID: " + str(self.instance))
+            self.instance = None
+        else:
+            logging.error("instance not available with this PID: " + str(repr(self)))
+
     def crash_instance(self):
         """ send SIG-11 to instance... """
         if self.instance:

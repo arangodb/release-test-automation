@@ -737,6 +737,18 @@ class Runner(ABC):
         if testdir.exists():
             shutil.rmtree(testdir)
 
+    def agency_trigger_leader_relection(self, old_leader):
+        self.progress(False, "AGENCY stopping leader to trigger a failover")
+        old_leader.suspend_instance()
+        time.sleep(1)
+        while True:
+            new_leader = self.agency_get_leader()
+            if old_leader != new_leader:
+                self.progress(False, "AGENCY failover has happened")
+                break
+            time.sleep(1)
+        old_leader.resume_instance()
+
     def agency_get_leader(self):
         """ get the agent that has the latest "serving" line """
         # please note: dc2dc has two agencies, this function cannot

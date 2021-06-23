@@ -176,6 +176,7 @@ class ActiveFailover(Runner):
         # pylint: disable=R0915
         agency_leader = self.agency_get_leader()
         if self.first_leader.have_this_instance(agency_leader):
+            self.agency_trigger_leader_relection(agency_leader)
             print("AFO-Leader and agency leader are attached by the same starter!")
 
         self.first_leader.terminate_instance()
