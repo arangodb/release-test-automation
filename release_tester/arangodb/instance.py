@@ -400,13 +400,12 @@ class ArangodInstance(Instance):
             log_file_content = ''
             last_line = ''
 
-            for n in range(10):
+            for () in range(10):
                 if self.logfile.exists():
                     break
-                else:
-                    time.sleep(1)
+                time.sleep(1)
             else:
-                raise TimeoutException("instance logfile didn't show up in 10 seconds")
+                raise TimeoutError("instance logfile didn't show up in 10 seconds")
 
             with open(self.logfile, errors='ignore') as log_fh:
                 for line in log_fh:
