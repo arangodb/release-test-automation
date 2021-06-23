@@ -258,7 +258,8 @@ class Dc2Dc(Runner):
             if self._is_higher_sync_version(SYNC_VERSIONS['140'], SYNC_VERSIONS['220']):
                 self.progress(
                     True,
-                    'arangosync: {0} does not qualify for restart workaround..'.format(str(self.sync_version))
+                    'arangosync: {0} does not qualify for restart workaround..'.format(
+                        str(self.sync_version))
                 )
             else:
                 self.progress(True, 'arangosync: restarting instances...')
@@ -302,20 +303,25 @@ class Dc2Dc(Runner):
                 print(res[1])
             raise Exception("error during verifying of "
                             "the test data on the target cluster")
+
+        args = [
+                self.cluster2['instance'].get_frontend().get_public_url(
+                    'root:%s@'%self.passvoid)]
+        if self.cfg.semver.major >= 3 and self.cfg.semver.minor >= 8:
+            args += [
+                '--jwt1', self.cluster1['instance'].get_jwt_token_from_secret_file(
+                    self.cluster1['instance'].jwtfile),
+                '--jwt2', self.cluster2['instance'].get_jwt_token_from_secret_file(
+                    self.cluster2['instance'].jwtfile)
+            ]
+
         res = self.cluster1['instance'].arangosh.run_in_arangosh(
             (
                 self.cfg.test_data_dir /
                 Path('tests/js/server/replication/fuzz/replication-fuzz-global.js')
             ),
             [],
-            [
-                self.cluster2['instance'].get_frontend().get_public_url(
-                    'root:%s@'%self.passvoid),
-                '--jwt1', self.cluster1['instance'].get_jwt_token_from_secret_file(
-                    self.cluster1['instance'].jwtfile),
-                '--jwt2', self.cluster2['instance'].get_jwt_token_from_secret_file(
-                    self.cluster2['instance'].jwtfile)
-            ]
+            args
             )
         if not res[0]:
             if not self.cfg.verbose:

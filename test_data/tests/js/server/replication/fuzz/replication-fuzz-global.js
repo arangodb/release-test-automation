@@ -514,7 +514,7 @@ function ReplicationSuite() {
             let op = ops[Math.floor(Math.random() * ops.length)];
             print(Date() + " - " + op.name);
             op.func();
-            if (isCluster) {
+            if (isCluster && options.hasOwnProperty('jwt1')) {
               let leaderChecksum = getCollectionChecksum(leaderEndpoint, options.jwt1, '_system', '_users');
               let followerChecksum;
               let checksumCount = 0;
