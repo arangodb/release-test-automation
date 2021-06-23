@@ -422,7 +422,7 @@ class ArangodInstance(Instance):
             log_file_content = ''
             last_line = ''
 
-            for _ in range(10):
+            for _ in range(20):
                 if self.logfile.exists():
                     break
                 time.sleep(1)
