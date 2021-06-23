@@ -12,13 +12,16 @@
 // `--collectionMultiplier [1] how many times to create the collections / index / view / graph set?
 // `--singleShard [false]      whether this should only be a single shard instance
 // `--progress [false]         whether to output a keepalive indicator to signal the invoker that work is ongoing
-
+'use strict';
+const utils = require('@arangodb/foxx/manager-utils');
+const fs = require('fs');
+const expect = require('chai').expect;
+const path = require('path');
 const _ = require('lodash');
 const internal = require('internal');
 const arangodb = require("@arangodb");
 const console = require("console");
 const g = require('@arangodb/general-graph');
-const fs = require("fs");
 const db = internal.db;
 const time = internal.time;
 const sleep = internal.sleep;
@@ -138,7 +141,7 @@ function createCollectionSafe(name, DefaultNoSharts, DefaultReplFactor) {
 }
 
 function createIndexSafe(options) {
-  opts = _.clone(options);
+  let opts = _.clone(options);
   delete opts.col
   return createSafe(options.col.name(), colname => {
     options.col.ensureIndex(opts);
@@ -185,6 +188,82 @@ function createOneShardVariant(db, baseName, count) {
   }
   progress('stored OneShard Data');
 }
+
+// inspired by shell-foxx-api-spec.js
+function loadFoxxIntoZip(path) {
+  let zip = utils.zipDirectory(path);
+  let content = fs.readFileSync(zip);
+  fs.remove(zip);
+  return {
+    type: 'inlinezip',
+    buffer: content
+  };
+}
+
+function installFoxx(mountpoint, which, mode) {
+  let headers = {};
+  let content;
+  if (which.type === 'js') {
+    headers['content-type'] = 'application/javascript';
+    content = which.buffer;
+  } else if (which.type === 'dir') {
+    headers['content-type'] = 'application/zip';
+    var utils = require('@arangodb/foxx/manager-utils');
+    let zip = utils.zipDirectory(which.buffer);
+    content = fs.readFileSync(zip);
+    fs.remove(zip);
+  } else if (which.type === 'inlinezip') {
+    content = which.buffer;
+    headers['content-type'] = 'application/zip';
+  } else if (which.type === 'url') {
+    content = { source: which };
+  } else if (which.type === 'file') {
+    content = fs.readFileSync(which.buffer);
+  }
+  let devmode = '';
+  if (typeof which.devmode === "boolean") {
+    devmode = `&development=${which.devmode}`;
+  }
+  let crudResp;
+  if (mode === "upgrade") {
+    crudResp = arango.PATCH('/_api/foxx/service?mount=' + mountpoint + devmode, content, headers);
+  } else if (mode === "replace") {
+    crudResp = arango.PUT('/_api/foxx/service?mount=' + mountpoint + devmode, content, headers);
+  } else {
+    crudResp = arango.POST('/_api/foxx?mount=' + mountpoint + devmode, content, headers);
+  }
+  expect(crudResp).to.have.property('manifest');
+  return crudResp;
+}
+
+function deleteFoxx(mountpoint) {
+  const deleteResp = arango.DELETE('/_api/foxx/service?force=true&mount=' + mountpoint);
+  expect(deleteResp).to.have.property('code');
+  expect(deleteResp.code).to.equal(204);
+  expect(deleteResp.error).to.equal(false);
+}
+
+const itzpapalotlPath = path.resolve(internal.pathForTesting('common'), 'test-data', 'apps', 'itzpapalotl');
+const itzpapalotlZip = loadFoxxIntoZip(itzpapalotlPath);
+const minimalWorkingServicePath = path.resolve(internal.pathForTesting('common'), 'test-data', 'apps', 'crud');
+const minimalWorkingZip = loadFoxxIntoZip(minimalWorkingServicePath);
+const minimalWorkingZipDev = {
+  buffer: minimalWorkingZip.buffer,
+  devmode: true,
+  type: minimalWorkingZip.type
+};
+const minimalWorkingZipPath = utils.zipDirectory(minimalWorkingServicePath);
+
+const serviceServicePath = path.resolve(internal.pathForTesting('common'), 'test-data', 'apps', 'service-service', 'index.js');
+const crudTestServiceSource = {
+  type: 'js',
+  buffer: fs.readFileSync(serviceServicePath)
+};
+print("installing Itzpapalotl");
+installFoxx('/itz', itzpapalotlZip);
+
+print("installing crud");
+installFoxx('/crud', minimalWorkingZip);
 
 let count = 0;
 while (count < options.numberOfDBs) {
