@@ -391,7 +391,7 @@ class ArangodInstance(Instance):
 
     def detect_pid(self, ppid, offset=0, full_binary_path=""):
         """ detect the instance """
-        # pylint: disable=R0915
+        # pylint: disable=R0915 disable=R0914
         self.pid = 0
         tries = 40
         t_start = ''
@@ -400,7 +400,7 @@ class ArangodInstance(Instance):
             log_file_content = ''
             last_line = ''
 
-            for () in range(10):
+            for _ in range(10):
                 if self.logfile.exists():
                     break
                 time.sleep(1)
