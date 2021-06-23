@@ -236,7 +236,7 @@ class StarterManager():
         #pylint disable=W0703
         match_str = "--starter.data-dir={0.basedir}".format(self)
         if self.passvoidfile.exists():
-            self.passvoid = self.passvoidfile.read_text(errors='ignore')
+            self.passvoid = self.passvoidfile.read_text(errors='backslashreplace')
         for process in psutil.process_iter(['pid', 'name']):
             try:
                 name = process.name()
@@ -612,19 +612,19 @@ class StarterManager():
 
     def get_log_file(self):
         """ fetch the logfile of this starter"""
-        return self.log_file.read_text(errors='ignore')
+        return self.log_file.read_text(errors='backslashreplace')
 
     def read_db_logfile(self):
         """ get the logfile of the dbserver instance"""
         server = self.get_dbserver()
         assert server.logfile.exists(), "don't have logfile?"
-        return server.logfile.read_text(errors='ignore')
+        return server.logfile.read_text(errors='backslashreplace')
 
     def read_agent_logfile(self):
         """ get the agent logfile of this instance"""
         server = self.get_agent()
         assert server.logfile.exists(), "don't have logfile?"
-        return server.logfile.read_text(errors='ignore')
+        return server.logfile.read_text(errors='backslashreplace')
 
     def detect_instances(self):
         """ see which arangods where spawned and inspect their logfiles"""
@@ -828,7 +828,7 @@ class StarterManager():
             print(str(self.log_file) + " not there. Skipping search")
             return
         print(str(self.log_file))
-        with self.log_file.open(errors='ignore') as log_f:
+        with self.log_file.open(errors='backslashreplace') as log_f:
             for line in log_f.readline():
                 if ('WARN' in line or
                     'ERROR' in line):
