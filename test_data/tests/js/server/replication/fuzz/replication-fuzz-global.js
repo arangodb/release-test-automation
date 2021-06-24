@@ -30,6 +30,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 var jsunity = require("jsunity");
+let url = require('url');
 var arangodb = require("@arangodb");
 var db = arangodb.db;
 const request = require("@arangodb/request");
@@ -51,7 +52,7 @@ const havePreconfiguredReplication = isSingle && (
     (replStateBeforeStart['_system'].state.phase === 'inactive')
 );
 
-const followerURL = new URL(options['args'])
+const followerURL = url.parse(options['args'])
 const followerCreds = [followerURL.username, followerURL.password]
 const followerEndpoint = followerURL.protocol + '//' + followerURL.host // host contains hostname and port
 
