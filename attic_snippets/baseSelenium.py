@@ -38,6 +38,18 @@ class BaseSelenium:
     def command(cmd):
         os.system(cmd)
 
+    @staticmethod
+    def query(query):
+        pyautogui.typewrite(query)
+
+    '''This method will close the download bar from the chrome browser'''
+
+    @staticmethod
+    def clear_download_bar():
+        print("closing download banner from the bottom \n")
+        pyautogui.hotkey('ctrl', 'j')
+        pyautogui.hotkey('ctrl', 'w')
+
     '''This method will be used for clear all the text if .clear() does not work'''
 
     def clear_text_field(self, locator):

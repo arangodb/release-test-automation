@@ -5,6 +5,7 @@ from userPage import UserPage
 from viewsPage import ViewsPage
 from collectionPage import CollectionPage
 from graphPage import GraphPage
+from queryPage import QueryPage
 
 
 class Test(BaseSelenium):
@@ -39,15 +40,16 @@ class Test(BaseSelenium):
         self.dash.check_db_status()
         self.dash.check_db_engine()
         self.dash.check_db_uptime()
-        print("\nSwitch to System Resource tab\n")
-        self.dash.check_system_resource()
-        print("Switch to Metrics tab\n")
-        self.dash.check_system_metrics()
-        print("scrolling the current page \n")
-        self.dash.scroll()
-        print("Downloading Metrics as JSON file \n")
-        self.dash.metrics_download()
-        self.dash.select_reload_btn()
+        # fixme (not supported v3.7.7)
+        # print("\nSwitch to System Resource tab\n")
+        # # self.dash.check_system_resource()
+        # # print("Switch to Metrics tab\n")
+        # # self.dash.check_system_metrics()
+        # print("scrolling the current page \n")
+        # self.dash.scroll()
+        # print("Downloading Metrics as JSON file \n")
+        # self.dash.metrics_download()
+        # self.dash.select_reload_btn()
         print("Opening Twitter link \n")
         self.dash.click_twitter_link()
         print("Opening Slack link \n")
@@ -250,11 +252,11 @@ class Test(BaseSelenium):
         print("Deleting Collection started\n")
         self.col.delete_collection()
         #
-        # print("Selecting TestEdge Collection for deleting\n")
+        print("Selecting TestEdge Collection for deleting\n")
         self.col2.select_edge_collection()
         self.col2.delete_collection()
-        #
-        # print("Selecting Test Collection for deleting\n")
+
+        print("Selecting Test Collection for deleting\n")
         self.col3.select_test_doc_collection()
         self.col3.delete_collection()
 
@@ -270,7 +272,7 @@ class Test(BaseSelenium):
     def test_views(self):
         print("---------Checking Views Begin--------- \n")
         self.login = LoginPage(self.driver)
-        self.login.login('root', 'aa')
+        self.login.login('root', '')
         self.views = ViewsPage(self.driver)  # creating obj for viewPage
         self.views1 = ViewsPage(self.driver)  # creating 2nd obj for viewPage to do counter part of the testing
 
@@ -528,12 +530,62 @@ class Test(BaseSelenium):
         del self.login
         print("---------User Test Completed---------\n")
 
+    def test_query(self):
+        print("---------Query Test Begin--------- \n")
+        self.login = LoginPage(self.driver)
+        self.login.login('root', '')
+
+        # creating multiple query obj
+        self.query = QueryPage(self.driver)
+        self.query01 = QueryPage(self.driver)
+        # print("Importing IMDB collections \n")
+        # self.query.import_collections()
+
+        print("Selecting Query page for basic CRUD operation \n")
+        self.query.selecting_query_page()
+
+        print("Executing insert query \n")
+        self.query.execute_query('for i IN 1..10000\n INSERT {\n \t "name": "Ned",\n "surname": "Stark",'
+                                        '\n"alive": true,\n"age": 41,"traits":["A","H","C","N","P"]\n} INTO '
+                                        'Characters')
+        print("Profiling current query \n")
+        self.query.profile_query()
+        print("Explaining current query \n")
+        self.query.explain_query()
+        # print("Debug packaged downloading for the current query \n")
+        # self.query.debug_package_download()
+        print("Removing all query results \n")
+        self.query.remove_query_result()
+        print("Clearing query execution area \n")
+        self.query.clear_query_area()
+        print("Executing spot light functionality \n")
+        self.query.spot_light_function('COUNT')  # can be used for search different keyword
+
+        print('Executing read query\n')
+        self.query01.execute_query('FOR c IN imdb_vertices\n\tLIMIT 500\nRETURN c')
+        self.query01.clear_query_area()
+
+        print('Updating documents\n')
+        self.query.update_documents()
+        print("Saving Current query as custom query\n")
+        self.query.save_and_delete_current_query()
+        print('Importing new queries \n')
+        self.query.importing_new_queries('C:\\Users\\rearf\\Desktop\\collections\\imported_query.json')
+
+        # logging out from the current user
+        self.login.logout_button()
+        del self.login
+        del self.query
+        del self.query01
+        print("---------Checking Query completed--------- \n")
+
 
 ui = Test()  # creating obj for the UI test
 # ui.test_login()  # testing Login functionality
 # ui.test_dashboard()  # testing Dashboard functionality
 # ui.test_collection()  # testing Collection tab
 # ui.test_views()  # testing User functionality
-ui.test_graph()  # testing graph functionality
+# ui.test_graph()  # testing graph functionality
+ui.test_query()  # testing query functionality
 # ui.test_user()  # testing User functionality
 ui.teardown()  # close the driver and quit

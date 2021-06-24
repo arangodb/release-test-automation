@@ -256,21 +256,6 @@ class GraphPage(BaseSelenium):
             BaseSelenium.locator_finder_by_xpath(self, knows_graph_id)
         knows_graph_id.click()
 
-        # share_btn_id = '//*[@id="loadFullGraph"]/span/i'
-        # load_full_graph = "modalButton1"
-        # # selecting share btn
-        # share_btn_id = \
-        #     BaseSelenium.locator_finder_by_xpath(self, share_btn_id)
-        # share_btn_id.click()
-        #
-        # time.sleep(1)
-        #
-        # # selecting load full graph btn
-        # load_full_graph = \
-        #     BaseSelenium.locator_finder_by_id(self, load_full_graph)
-        # load_full_graph.click()
-        # fixme
-
         time.sleep(3)
         self.driver.back()
 
@@ -941,9 +926,7 @@ class GraphPage(BaseSelenium):
         camera.click()
         time.sleep(3)
 
-        print("closing download banner from the bottom. \n")
-        pyautogui.hotkey('ctrl', 'j')
-        pyautogui.hotkey('ctrl', 'w')
+        super().clear_download_bar()
 
         print("Selecting full screen mode\n")
         full_screen = self.select_full_screen_btn_id

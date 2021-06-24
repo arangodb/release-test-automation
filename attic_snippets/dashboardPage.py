@@ -1,5 +1,7 @@
 import time
 
+from selenium.common.exceptions import TimeoutException
+
 from baseSelenium import BaseSelenium
 
 
@@ -13,6 +15,7 @@ class DashboardPage(BaseSelenium):
         self.check_current_username_id = "//li[@id='userBar']//span[@class='toggle']"
         self.check_current_db_id = "//li[@id='dbStatus']/a[@class='state']"
         self.check_db_status_id = "//li[@id='healthStatus']/a[.='GOOD']"
+        self.check_cluster_status_id = '//*[@id="healthStatus"]/a[2]'
         self.check_db_engine_id = "nodeattribute-Engine"
         self.check_db_uptime_id = "/html//div[@id='nodeattribute-Uptime']"
         self.check_system_resource_id = "system-statistics"
@@ -54,10 +57,17 @@ class DashboardPage(BaseSelenium):
 
     # checking current database status from the dashboard
     def check_db_status(self):
-        self.check_db_status_id = \
-            BaseSelenium.locator_finder_by_text_xpath(self, self.check_db_status_id)
-        print("Current Status: ", self.check_db_status_id)
-        time.sleep(1)
+        try:
+            self.check_db_status_id = \
+                BaseSelenium.locator_finder_by_text_xpath(self, self.check_db_status_id)
+            print("Current Status: ", self.check_db_status_id)
+            time.sleep(1)
+        except TimeoutException:
+            node = self.check_cluster_status_id
+            node = \
+                BaseSelenium.locator_finder_by_text_xpath(self, node)
+            print("Cluster Health: ", node)
+            time.sleep(1)
 
     # checking current database status from the dashboard
     def check_db_engine(self):
