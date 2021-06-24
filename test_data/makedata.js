@@ -266,13 +266,13 @@ const crudTestServiceSource = {
   buffer: fs.readFileSync(serviceServicePath)
 };
 
-if (flags.shouldValidateFoxx()) {
-  print("installing Itzpapalotl");
-  installFoxx('/itz', itzpapalotlZip);
-
-  print("installing crud");
-  installFoxx('/crud', minimalWorkingZip);
-}
+//if (flags.shouldValidateFoxx()) {
+//  print("installing Itzpapalotl");
+//  installFoxx('/itz', itzpapalotlZip);
+//
+//  print("installing crud");
+//  installFoxx('/crud', minimalWorkingZip);
+//}
 let count = 0;
 while (count < options.numberOfDBs) {
   tStart = time();

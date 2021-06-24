@@ -211,9 +211,9 @@ function checkFoxxService() {
 let v = db._connection.GET("/_api/version");
 const enterprise = v.license === "enterprise"
 
-if (flags.shouldValidateFoxx()) {
-  checkFoxxService()
-}
+//if (flags.shouldValidateFoxx()) {
+//  checkFoxxService()
+//}
 let count = 0;
 while (count < options.numberOfDBs) {
   tStart = time();
