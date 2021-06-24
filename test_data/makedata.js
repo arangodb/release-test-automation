@@ -28,6 +28,7 @@ const sleep = internal.sleep;
 const ERRORS = arangodb.errors;
 let v = db._version(true);
 const enterprise = v.license === "enterprise";
+const dbVersion = db._version();
 let gsm;
 if (enterprise) {
   gsm = require('@arangodb/smart-graph');
@@ -41,6 +42,7 @@ let vertices = JSON.parse(fs.readFileSync(`${PWD}/vertices.json`));
 let edges = JSON.parse(fs.readFileSync(`${PWD}/edges_naive.json`));
 let smart_edges = JSON.parse(fs.readFileSync(`${PWD}/edges.json`));
 
+const { FeatureFlags } = require("./feature_flags");
 
 let database = "_system";
 let databaseName;
@@ -53,7 +55,8 @@ const optionsDefaults = {
   dataMultiplier: 1,
   collectionMultiplier: 1,
   singleShard: false,
-  progress: false
+  progress: false,
+  oldVersion: "3.5.0"
 };
 
 let args = ARGUMENTS;
@@ -69,6 +72,8 @@ _.defaults(options, optionsDefaults);
 var numberLength = Math.log(options.numberOfDBs + options.countOffset) * Math.LOG10E + 1 | 0;
 
 const zeroPad = (num) => String(num).padStart(numberLength, '0');
+
+const flags = new FeatureFlags(dbVersion, options.oldVersion);
 
 let tStart = 0;
 let timeLine = [];
@@ -232,6 +237,7 @@ function installFoxx(mountpoint, which, mode) {
   } else {
     crudResp = arango.POST('/_api/foxx?mount=' + mountpoint + devmode, content, headers);
   }
+  print(crudResp)
   expect(crudResp).to.have.property('manifest');
   return crudResp;
 }
@@ -259,12 +265,14 @@ const crudTestServiceSource = {
   type: 'js',
   buffer: fs.readFileSync(serviceServicePath)
 };
-print("installing Itzpapalotl");
-installFoxx('/itz', itzpapalotlZip);
 
-print("installing crud");
-installFoxx('/crud', minimalWorkingZip);
+if (flags.shouldValidateFoxx()) {
+  print("installing Itzpapalotl");
+  installFoxx('/itz', itzpapalotlZip);
 
+  print("installing crud");
+  installFoxx('/crud', minimalWorkingZip);
+}
 let count = 0;
 while (count < options.numberOfDBs) {
   tStart = time();
