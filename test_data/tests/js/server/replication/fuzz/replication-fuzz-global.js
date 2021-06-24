@@ -52,9 +52,9 @@ const havePreconfiguredReplication = isSingle && (
     (replStateBeforeStart['_system'].state.phase === 'inactive')
 );
 
-const followerURL = url.parse(options['args'])
-const followerCreds = [followerURL.username, followerURL.password]
-const followerEndpoint = followerURL.protocol + '//' + followerURL.host // host contains hostname and port
+const followerURL = url.parse(options['args']);
+const followerCreds = followerURL.auth.split(':');
+const followerEndpoint = followerURL.protocol + '//' + followerURL.host; // host contains hostname and port
 
 
 function getCollectionChecksum(baseUrl, jwt, database, colName) {
