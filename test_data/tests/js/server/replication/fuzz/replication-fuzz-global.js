@@ -8,7 +8,7 @@
 ///
 /// DISCLAIMER
 ///
-/// Copyright 2010-2012 triagens GmbH, Cologne, Germany
+/// Copyright 2010-2021 triagens GmbH, Cologne, Germany
 ///
 /// Licensed under the Apache License, Version 2.0 (the "License");
 /// you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@
 /// Copyright holder is triAGENS GmbH, Cologne, Germany
 ///
 /// @author Jan Steemann
+/// @author Tomasz Mielech
 /// @author Copyright 2017, triAGENS GmbH, Cologne, Germany
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -41,7 +42,6 @@ var internal = require("internal");
 var leaderEndpoint = arango.getEndpoint();
 
 const options = internal.parseArgv(ARGUMENTS, 0);
-var followerEndpoint = options['args'];
 var isCluster = arango.getRole() === 'COORDINATOR';
 var isSingle = arango.getRole() === 'SINGLE';
 const replStateBeforeStart = replication.globalApplier.stateAll();
@@ -50,9 +50,11 @@ const havePreconfiguredReplication = isSingle && (
   (replStateBeforeStart['_system'].state.running === true) ||
     (replStateBeforeStart['_system'].state.phase === 'inactive')
 );
-let followerCreds = followerEndpoint.split('/')[2].split('@')[0].split(':');
-followerEndpoint = followerEndpoint.split('/')[0] + '//' + followerEndpoint.split('@')[1];
-var leaderCreds = followerCreds;
+
+const followerURL = new URL(options['args'])
+const followerCreds = [followerURL.username, followerURL.password]
+const followerEndpoint = followerURL.protocol + '//' + followerURL.host // host contains hostname and port
+
 
 function getCollectionChecksum(baseUrl, jwt, database, colName) {
   var res;
@@ -67,7 +69,7 @@ function getCollectionChecksum(baseUrl, jwt, database, colName) {
     }
     res = request.get(args);
   } catch (x) {
-    print('waserlaube' + x)
+    print('can not get collection checksum' + x)
     throw x;
   }
   return JSON.parse(res.body).checksum;
@@ -509,12 +511,13 @@ function ReplicationSuite() {
             ops.push({ name: "renameCollection", func: renameCollection });
           }
 
+          const jwtExist = options.hasOwnProperty('jwt1') && options.hasOwnProperty('jwt2')
           for (let i = 0; i < 3000; ++i) {
             pickDatabase();
             let op = ops[Math.floor(Math.random() * ops.length)];
             print(Date() + " - " + op.name);
             op.func();
-            if (isCluster && options.hasOwnProperty('jwt1')) {
+            if (isCluster && jwtExist) {
               let leaderChecksum = getCollectionChecksum(leaderEndpoint, options.jwt1, '_system', '_users');
               let followerChecksum;
               let checksumCount = 0;
