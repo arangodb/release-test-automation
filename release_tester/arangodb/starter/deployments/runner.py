@@ -255,9 +255,10 @@ class Runner(ABC):
                 if not self.check_non_backup_data():
                     raise Exception("data created after backup"
                                     " is still there??")
-                self.create_non_backup_data()
 
         if self.new_installer:
+            if self.hot_backup:
+                self.create_non_backup_data()
             self.versionstr = "NEW[" + self.new_cfg.version + "] "
 
             self.progress(False, "UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),)
