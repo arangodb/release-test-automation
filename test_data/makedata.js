@@ -237,7 +237,6 @@ function installFoxx(mountpoint, which, mode) {
   } else if (mode === "replace") {
     crudResp = arango.PUT('/_api/foxx/service?mount=' + mountpoint + devmode, content, headers);
   } else {
-  } else {
     let reply = download(
       arango.getEndpoint().replace(/^tcp:/, 'http:').replace(/^ssl:/, 'https:') +
         '/_api/foxx?mount=' + mountpoint + devmode,
