@@ -725,10 +725,13 @@ class Runner(ABC):
             FNRX.sub('', self.testrun_name),
             self.__class__.__name__
         )
-        shutil.make_archive(filename,
-                            "bztar",
-                            self.basecfg.base_test_dir,
-                            self.basedir)
+        if self.basedir.exists():
+            shutil.make_archive(filename,
+                                "bztar",
+                                self.basecfg.base_test_dir,
+                                self.basedir)
+        else:
+            print("test basedir doesn't exist, won't create report tar")
 
     def cleanup(self):
         """ remove all directories created by this test """
