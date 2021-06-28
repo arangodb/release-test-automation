@@ -38,8 +38,10 @@
 ## Mac OS
 :
     `brew install gnu-tar`
-    `pip3 install click psutil requests pyyaml semver pexpect ftplib selenium beautifultable`
+    `pip3 install click psutil requests pyyaml semver pexpect selenium beautifultable`
     `brew install gdb`
+if `python --version` is below 3.9 you also have to download ftplib:
+    `pip3 install click ftplib`
 
 ## Selenium dependencies
 ### chrome

@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """ run an installer for the debian based operating system """
 import time
+import os
 import sys
 import shutil
 import logging
 from pathlib import Path
 import pexpect
 import psutil
+import semver
 from arangodb.sh import ArangoshExecutor
 from arangodb.installers.linux import InstallerLinux
 from tools.asciiprint import ascii_print, print_progress as progress
@@ -38,16 +40,26 @@ class InstallerRPM(InstallerLinux):
         enterprise = 'e' if self.cfg.enterprise else ''
         architecture = 'x86_64'
 
-        if self.cfg.semver.prerelease == "nightly":
-            self.cfg.semver._prerelease = ''
-            self.cfg.semver._build = "0.2"
+        prerelease = self.cfg.semver.prerelease
         semdict = dict(self.cfg.semver.to_dict())
-
-        if semdict['prerelease']:
+        if prerelease is None or prerelease == '':
+            semdict['prerelease'] = ''
+        elif prerelease == 'nightly':
+            semdict['build'] = "0.2"
+            self.cfg.semver = semver.VersionInfo.parse(
+                "{major}.{minor}.{patch}+{build}".format(**semdict))
+            semdict = dict(self.cfg.semver.to_dict())
+            semdict['prerelease'] = ''
+        elif prerelease.startswith("beta"):
+            semdict['prerelease'] = '.' + semdict['prerelease'].replace('.', '')
+            semdict['build'] = "0.201"
+        elif prerelease.startswith("rc"):
             # remove dots, but prepend one:
             semdict['prerelease'] = '.' + semdict['prerelease'].replace('.', '')
-        else:
-            semdict['prerelease'] = ''
+            semdict['build'] = "0.501"
+        elif len(prerelease) > 0:
+            # remove dots, but prepend one:
+            semdict['prerelease'] = '.' + semdict['prerelease'].replace('.', '')
 
         if not semdict['build']:
             semdict['build'] = '1.0'
@@ -69,17 +81,6 @@ class InstallerRPM(InstallerLinux):
             'arangodb3{ep}-client-{cfg}-{ver}.{arch}.rpm'.format(**desc))
         self.debug_package = (
             'arangodb3{ep}-debuginfo-{cfg}-{ver}.{arch}.rpm'.format(**desc))
-
-    def check_service_up(self):
-        if self.instance.pid:
-            try:
-                psutil.Process(self.instance.pid)
-            except:
-                return False
-        else:
-            return False
-        time.sleep(1)   # TODO
-        return True
 
     def start_service(self):
         assert self.instance
@@ -106,7 +107,7 @@ class InstallerRPM(InstallerLinux):
     def upgrade_package(self, old_installer):
         logging.info("upgrading Arangodb rpm package")
 
-        self.cfg.passvoid = "sanoetuh"   # TODO
+        self.cfg.passvoid = "RPM_passvoid_%d" % os.getpid()
         self.cfg.log_dir = Path('/var/log/arangodb3')
         self.cfg.dbdir  = Path('/var/lib/arangodb3')
         self.cfg.appdir = Path('/var/lib/arangodb3-apps')
@@ -199,7 +200,7 @@ class InstallerRPM(InstallerLinux):
 
         self.stop_service()
 
-        self.cfg.passvoid = "sanoetuh"   # TODO
+        self.cfg.passvoid = "RPM_passvoid_%d" % os.getpid()
         lh.log_cmd('/usr/sbin/arango-secure-installation')
         with pexpect.spawnu('/usr/sbin/arango-secure-installation') as etpw:
             result = None
@@ -302,7 +303,6 @@ class InstallerRPM(InstallerLinux):
                                 " didn't finish successfully!")
 
     def cleanup_system(self):
-        # TODO: should this be cleaned by the rpm uninstall in first place?
         print("attempting system directory cleanup after RPM")
         if self.cfg.log_dir.exists():
             print("cleaning upg %s "% str(self.cfg.log_dir))

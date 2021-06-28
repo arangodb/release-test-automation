@@ -79,13 +79,13 @@ class InstallerTAR(InstallerBase):
         self.cfg.log_dir = self.cfg.installPrefix # n/A
 
     def check_service_up(self):
-        pass
+        """ nothing to see here """
 
     def start_service(self):
-        pass
+        """ nothing to see here """
 
     def stop_service(self):
-        pass
+        """ nothing to see here """
 
     def upgrade_package(self, old_installer):
         """ Tar installer is the same way we did for installing."""
@@ -116,13 +116,13 @@ class InstallerTAR(InstallerBase):
             shutil.rmtree(self.cfg.installPrefix)
 
     def broadcast_bind(self):
-        pass
+        """ nothing to see here """
 
     def check_engine_file(self):
-        pass
+        """ nothing to see here """
 
     def check_installed_paths(self):
-        pass
+        """ nothing to see here """
 
     def cleanup_system(self):
-        pass
+        """ nothing to see here """

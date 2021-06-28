@@ -8,11 +8,12 @@ class LeaderFollower(SeleniumRunner):
     def __init__(self, webdriver,
                  is_headless: bool,
                  testrun_name: str):
+        # pylint: disable=W0235
         super().__init__(webdriver,
                          is_headless,
                          testrun_name)
 
-    def check_old(self, cfg, leader_follower=True):
+    def check_old(self, cfg, leader_follower=True, expect_follower_count=2, retry_count=10):
         """ check the integrity of the old system before the upgrade """
         self.check_version(cfg)
 
@@ -32,13 +33,11 @@ class LeaderFollower(SeleniumRunner):
         self.ui_assert(len(replication_table['follower_table']) == 2,
                        "UI-Test: expected 1 follower")
 
-    def upgrade_deployment(self, new_cfg, secondary, leader_follower):
-        pass
+    def upgrade_deployment(self, old_cfg, new_cfg, timeout):
+        """ nothing to see here """
 
     def jam_step_1(self, cfg):
         """ check for one set of instances to go away """
-        pass
-        # TODO: fix replication upgrade
         self.navbar_goto('replication')
         replication_table = self.get_replication_screen(True)
         print(replication_table)
@@ -47,4 +46,4 @@ class LeaderFollower(SeleniumRunner):
                        "UI-Test: expected to have 1 follower!")
 
     def jam_step_2(self, cfg):
-        pass
+        """ nothing to see here """

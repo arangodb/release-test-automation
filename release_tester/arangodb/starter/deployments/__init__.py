@@ -43,28 +43,24 @@ STARTER_MODES = {
     'none': [RunnerType.NONE],
 }
 
-#pylint: disable=import-outside-toplevel
+#pylint: disable=import-outside-toplevel disable=R0913
 def make_runner(runner_type: RunnerType,
+                abort_on_error: bool,
                 selenium_worker: str,
                 selenium_driver_args: list,
-                baseconfig: InstallerConfig,
-                old_inst: InstallerBase,
-                new_cfg: Optional[InstallerConfig] = None,
-                new_inst: Optional[InstallerBase] = None,
+                installer_set: list,
                 testrun_name: str = ""
                 ) -> Runner:
     """ get an instance of the arangod runner - as you specify """
-
     assert runner_type, "no runner no cry?"
-    assert baseconfig, "no base config?"
-    assert old_inst, "no old version?"
+    assert len(installer_set) > 0 , "no base config?"
+    for one_installer_set in installer_set:
+        assert len(one_installer_set) == 2 , "no complete object config?"
 
     logging.debug("Factory for Runner of type: {0}".format(str(runner_type)))
     args = (runner_type,
-            baseconfig,
-            old_inst,
-            new_cfg,
-            new_inst,
+            abort_on_error,
+            installer_set,
             selenium_worker,
             selenium_driver_args,
             testrun_name)

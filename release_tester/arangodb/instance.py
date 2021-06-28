@@ -6,8 +6,6 @@ from enum import IntEnum
 import json
 import logging
 import re
-import signal
-import sys
 import time
 
 from beautifultable import BeautifulTable
@@ -30,13 +28,13 @@ LOG_SYSTEM_BLACKLIST = [
 ]
 class InstanceType(IntEnum):
     """ type of arangod instance """
-    COORDINATOR = 1
-    RESILIENT_SINGLE = 2
-    SINGLE = 3
-    AGENT = 4
-    DBSERVER = 5
-    SYNCMASTER = 6
-    SYNCWORKER = 7
+    COORDINATOR = 0
+    RESILIENT_SINGLE = 1
+    SINGLE = 2
+    AGENT = 3
+    DBSERVER = 4
+    SYNCMASTER = 5
+    SYNCWORKER = 6
 
 INSTANCE_TYPE_STRING_MAP = {
     'coordinator': InstanceType.COORDINATOR,
@@ -48,14 +46,6 @@ INSTANCE_TYPE_STRING_MAP = {
     'syncworker': InstanceType.SYNCWORKER
 }
 
-TYP_STRINGS = ["none",
-               "coordinator",
-               "resilientsingle",
-               "single",
-               "agent",
-               "dbserver",
-               "syncmaster",
-               "syncworker"]
 
 def log_line_get_date(line):
     """ parse the date out of an arangod logfile line """
@@ -72,10 +62,10 @@ class AfoServerState(IntEnum):
 class Instance(ABC):
     """abstract instance manager"""
     # pylint: disable=R0913 disable=R0902
-    def __init__(self, typ, port, basedir, localhost, publicip, passvoid, logfile):
-        self.type = INSTANCE_TYPE_STRING_MAP[typ]
+    def __init__(self, instance_type, port, basedir, localhost, publicip, passvoid, logfile):
+        self.instance_type = INSTANCE_TYPE_STRING_MAP[instance_type]
         self.is_system = False
-        self.type_str = TYP_STRINGS[int(self.type.value)]
+        self.type_str = list(INSTANCE_TYPE_STRING_MAP.keys())[int(self.instance_type.value)]
         self.port = port
         self.pid = None
         self.basedir = basedir
@@ -83,7 +73,7 @@ class Instance(ABC):
         self.localhost = localhost
         self.publicip = publicip
         self.passvoid = passvoid
-        self.name = self.type.name + str(self.port)
+        self.name = self.instance_type.name + str(self.port)
         self.instance = None
         self.serving = datetime.datetime(1970, 1, 1, 0, 0, 0)
 
@@ -107,9 +97,14 @@ class Instance(ABC):
             # we expect it to be dead anyways!
             return self.instance.wait(3) is None
         except psutil.TimeoutExpired:
-            logging.error("was supposed to be dead, but I'm still alive? "
-                          + repr(self))
+            #logging.error("was supposed to be dead, but I'm still alive? "
+            #              + repr(self))
+            return False
+        except AttributeError:
+            #logging.error("was supposed to be dead, but I don't have an instance? "
+            #              + repr(self))
             return True
+        return True
 
     @abstractmethod
     def get_essentials(self):
@@ -138,8 +133,16 @@ class Instance(ABC):
         """ send SIG-11 to instance... """
         if self.instance:
             try:
-                self.instance.send_signal(signal.SIGSEGV)
-                self.instance.wait()
+                print(self.instance.status() )
+                if (self.instance.status() == psutil.STATUS_RUNNING or
+                    self.instance.status() == psutil.STATUS_SLEEPING):
+                    print("generating coredump for " + str(self.instance))
+                    psutil.Popen(['gcore', str(self.instance.pid)], cwd=self.basedir).wait()
+                    print("Terminating " + str(self.instance))
+                    self.instance.kill()
+                    self.instance.wait()
+                else:
+                    print("NOT generating coredump for " + str(self.instance))
             except psutil.NoSuchProcess:
                 logging.info("instance already dead: " + str(self.instance))
             self.instance = None
@@ -172,6 +175,7 @@ class Instance(ABC):
 
     def is_line_relevant(self, line):
         """ it returns true if the line from logs should be printed """
+        # pylint: disable=R0201
         return "FATAL" in line or "ERROR" in line or "WARNING" in line or "{crash}" in line
 
     def search_for_warnings(self):
@@ -181,7 +185,7 @@ class Instance(ABC):
             return
         print(str(self.logfile))
         count = 0
-        with open(self.logfile) as log_fh:
+        with open(self.logfile, errors='backslashreplace') as log_fh:
             for line in log_fh:
                 if self.is_line_relevant(line):
                     if self.is_suppressed_log_line(line):
@@ -254,15 +258,17 @@ class ArangodInstance(Instance):
     def is_frontend(self):
         """ is this instance a frontend """
         # print(repr(self))
-        return self.type in [InstanceType.COORDINATOR,
-                             InstanceType.RESILIENT_SINGLE,
-                             InstanceType.SINGLE]
+        return self.instance_type in [
+            InstanceType.COORDINATOR,
+            InstanceType.RESILIENT_SINGLE,
+            InstanceType.SINGLE]
 
     def is_dbserver(self):
         """ is this instance a dbserver? """
-        return self.type in [InstanceType.DBSERVER,
-                             InstanceType.RESILIENT_SINGLE,
-                             InstanceType.SINGLE]
+        return self.instance_type in [
+            InstanceType.DBSERVER,
+            InstanceType.RESILIENT_SINGLE,
+            InstanceType.SINGLE]
 
     def is_sync_instance(self):
         """ no. """
@@ -327,7 +333,7 @@ class ArangodInstance(Instance):
         while True:
             log_file_content = ""
             last_line = ''
-            with open(self.logfile) as log_fh:
+            with open(self.logfile, errors='backslashreplace') as log_fh:
                 for line in log_fh:
                     # skip empty lines
                     if line == "":
@@ -355,7 +361,7 @@ class ArangodInstance(Instance):
             if offset >= 0:
                 print("server restarting with restored backup.")
                 self.detect_pid(0, offset)
-                if self.type == InstanceType.RESILIENT_SINGLE:
+                if self.instance_type == InstanceType.RESILIENT_SINGLE:
                     print("waiting for leader election: ", end="")
                     status = AfoServerState.CHALLENGE_ONGOING
                     while status in [AfoServerState.CHALLENGE_ONGOING,
@@ -372,7 +378,7 @@ class ArangodInstance(Instance):
     def detect_fatal_errors(self):
         """ check whether we have FATAL lines in the logfile """
         fatal_line = None
-        with open(self.logfile) as log_fh:
+        with open(self.logfile, errors='backslashreplace') as log_fh:
             for line in log_fh:
                 if fatal_line is not None:
                     fatal_line += "\n" + line
@@ -385,6 +391,7 @@ class ArangodInstance(Instance):
 
     def detect_pid(self, ppid, offset=0, full_binary_path=""):
         """ detect the instance """
+        # pylint: disable=R0915 disable=R0914
         self.pid = 0
         tries = 40
         t_start = ''
@@ -393,7 +400,14 @@ class ArangodInstance(Instance):
             log_file_content = ''
             last_line = ''
 
-            with open(self.logfile) as log_fh:
+            for _ in range(10):
+                if self.logfile.exists():
+                    break
+                time.sleep(1)
+            else:
+                raise TimeoutError("instance logfile didn't show up in 10 seconds")
+
+            with open(self.logfile, errors='backslashreplace') as log_fh:
                 for line in log_fh:
                     # skip empty lines
                     if line == "":
@@ -464,11 +478,10 @@ class ArangodInstance(Instance):
             print()
             logging.error("could not get pid for instance: " + repr(self))
             logging.error("inspect: " + str(self.logfile))
-            sys.exit(1)
-        else:
-            logging.info(
-                "found process for pid {0} for "
-                "instance with logfile {1} at {2}.".format(
+            raise TimeoutError("could not get pid for instance: " + repr(self))
+        logging.info(
+            "found process for pid {0} for "
+            "instance with logfile {1} at {2}.".format(
                 self.pid,
                 str(self.logfile),
                 t_start
@@ -483,7 +496,7 @@ class ArangodInstance(Instance):
         if not self.logfile.exists():
             print(str(self.logfile) + " doesn't exist, skipping.")
             return self.serving
-        with open(self.logfile) as log_fh:
+        with open(self.logfile, errors='backslashreplace') as log_fh:
             for line in log_fh:
                 if 'a66dc' in line:
                     serving_line = line
@@ -517,11 +530,11 @@ class SyncInstance(Instance):
 
     def __repr__(self):
         """ dump us """
-        raise Exception("blarg")
-#         return """
-# arangosync instance | type  | pid  | logfile
-#       {0.name}      | {0.type_str} |  {0.pid} |  {0.logfile}
-# """.format(self)
+        #raise Exception("blarg")
+        return """
+ arangosync instance | type  | pid  | logfile
+       {0.name}      | {0.type_str} |  {0.pid} |  {0.logfile}
+ """.format(self)
 
     def get_essentials(self):
         """ get the essential attributes of the class """
@@ -540,7 +553,7 @@ class SyncInstance(Instance):
         cmd = []
         # we search for the logfile parameter, since its unique to our instance.
         logfile_parameter = ''
-        with open(command) as filedesc:
+        with open(command, errors='backslashreplace') as filedesc:
             for line in filedesc.readlines():
                 line = line.rstrip().rstrip(' \\')
                 if line.find('--log.file') >=0:

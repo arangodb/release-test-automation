@@ -155,7 +155,7 @@ class InstallerW(InstallerBase):
             self.get_service()
             if self.service and self.service.status() != 'stopped':
                 logging.info("service shouldn't exist anymore!")
-        except:
+        except Exception:
             pass
 
     def check_service_up(self):

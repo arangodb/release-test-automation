@@ -9,7 +9,6 @@ import http.client as http_client
 import logging
 import os
 import re
-import signal
 import subprocess
 import sys
 import time
@@ -40,7 +39,7 @@ ON_WINDOWS = (sys.platform == 'win32')
 
 class StarterManager():
     """ manages one starter instance"""
-    # pylint: disable=R0913 disable=R0902 disable=W0102 disable=R0915 disable=R0904
+    # pylint: disable=R0913 disable=R0902 disable=W0102 disable=R0915 disable=R0904 disable=E0202
     def __init__(self,
                  basecfg,
                  install_prefix, instance_prefix,
@@ -59,7 +58,7 @@ class StarterManager():
 
         #directories
         self.raw_basedir = install_prefix
-        self.name = str(install_prefix / instance_prefix)
+        self.name = str(install_prefix / instance_prefix) # this is magic with the name function.
         self.basedir = self.cfg.base_test_dir / install_prefix / instance_prefix
         self.basedir.mkdir(parents=True, exist_ok=True)
         self.log_file = self.basedir / "arangodb.log"
@@ -162,7 +161,7 @@ class StarterManager():
         """ get the list of agents managed by this starter """
         ret = []
         for i in self.all_instances:
-            if i.type == InstanceType.AGENT:
+            if i.instance_type == InstanceType.AGENT:
                 ret.append(i)
         return ret
 
@@ -170,7 +169,7 @@ class StarterManager():
         """ get the list of arangosync masters managed by this starter """
         ret = []
         for i in self.all_instances:
-            if i.type == InstanceType.SYNCMASTER:
+            if i.instance_type == InstanceType.SYNCMASTER:
                 ret.append(i)
         return ret
 
@@ -234,9 +233,10 @@ class StarterManager():
 
     def attach_running_starter(self):
         """ somebody else is running the party, but we also want to have a look """
+        #pylint disable=W0703
         match_str = "--starter.data-dir={0.basedir}".format(self)
         if self.passvoidfile.exists():
-            self.passvoid = self.passvoidfile.read_text()
+            self.passvoid = self.passvoidfile.read_text(errors='backslashreplace')
         for process in psutil.process_iter(['pid', 'name']):
             try:
                 name = process.name()
@@ -247,13 +247,17 @@ class StarterManager():
                         print('attaching ' + str(process.pid))
                         self.instance = process
                         return
-            except Exception as ex:
+            except psutil.NoSuchProcess as ex:
                 logging.error(ex)
         raise Exception("didn't find a starter for " + match_str)
 
+    def set_jwt_file(self, filename):
+        """ some scenarios don't want to use the builtin jwt generation from the manager """
+        self.jwtfile = filename
+
     def get_jwt_token_from_secret_file(self, filename):
         """ retrieve token from the JWT secret file which is cached for the future use """
-        if self.jwt_tokens and self.jwt_tokens[filename]:
+        if filename in self.jwt_tokens.keys():
             # token for that file was checked already.
             return self.jwt_tokens[filename]
 
@@ -264,9 +268,7 @@ class StarterManager():
         jwt_proc = psutil.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (header, err) = jwt_proc.communicate()
         jwt_proc.wait()
-        print(err)
-        print(len(str(err)))
-        if len(str(err)) > 3:# TODO Y?
+        if len(str(err)) > 3:
             raise Exception("error invoking the starter "
                             "to generate the jwt header token! " + str(err))
         if len(str(header).split(' ')) != 3:
@@ -280,7 +282,7 @@ class StarterManager():
         """ return jwt header from current installation """
         if self.jwt_header:
             return self.jwt_header
-        self.jwt_header = self.get_jwt_token_from_secret_file(self.jwtfile)
+        self.jwt_header = self.get_jwt_token_from_secret_file(str(self.jwtfile))
         return self.jwt_header
 
     def set_passvoid(self, passvoid, write_to_server=True):
@@ -302,26 +304,44 @@ class StarterManager():
         return self.passvoid
 
     def send_request(self, instance_type, verb_method,
-                     url, data=None, headers={}):
+                     url, data=None, headers={}, timeout = None):
         """ send an http request to the instance """
         http_client.HTTPConnection.debuglevel = 1
 
         results = []
         for instance in self.all_instances:
-            if instance.type == instance_type:
-                headers ['Authorization'] = 'Bearer ' + str(self.get_jwt_header())
-                base_url = instance.get_public_plain_url()
-                reply = verb_method(
-                    'http://' + base_url + url, data=data, headers=headers)
-                # print(reply.text)
-                results.append(reply)
+            if instance.instance_type == instance_type:
+                if instance.detect_gone():
+                    print("Instance to send request to already gone: " + repr(instance))
+                else:
+                    headers ['Authorization'] = 'Bearer ' + str(self.get_jwt_header())
+                    base_url = instance.get_public_plain_url()
+                    reply = verb_method(
+                        'http://' + base_url + url,
+                        data=data,
+                        headers=headers,
+                        allow_redirects=False,
+                        timeout=timeout
+                    )
+                    # print(reply.text)
+                    results.append(reply)
         return results
 
     def crash_instances(self):
         """ make all managed instances plus the starter itself crash. """
+        try:
+            if (self.instance.status() == psutil.STATUS_RUNNING or
+                self.instance.status() == psutil.STATUS_SLEEPING):
+                print("generating coredump for " + str(self.instance))
+                psutil.Popen(['gcore', str(self.instance.pid)], cwd=self.basedir).wait()
+                self.kill_instance()
+            else:
+                print("NOT generating coredump for " + str(self.instance))
+        except psutil.NoSuchProcess:
+            logging.info("instance already dead: " + str(self.instance))
+
         for instance in self.all_instances:
             instance.crash_instance()
-        self.instance.send_signal(signal.SIGSEGV)
 
     def is_instance_running(self):
         """ check whether this is still running"""
@@ -494,9 +514,10 @@ class StarterManager():
         tries to wait for the server to restart after the 'restore' command
         """
         for node in  self.all_instances:
-            if node.type in [InstanceType.RESILIENT_SINGLE,
-                             InstanceType.SINGLE,
-                             InstanceType.DBSERVER]:
+            if node.instance_type in [
+                    InstanceType.RESILIENT_SINGLE,
+                    InstanceType.SINGLE,
+                    InstanceType.DBSERVER]:
                 node.detect_restore_restart()
 
     def tcp_ping_nodes(self):
@@ -504,9 +525,10 @@ class StarterManager():
         tries to wait for the server to restart after the 'restore' command
         """
         for node in  self.all_instances:
-            if node.type in [InstanceType.RESILIENT_SINGLE,
-                             InstanceType.SINGLE,
-                             InstanceType.DBSERVER]:
+            if node.instance_type in [
+                    InstanceType.RESILIENT_SINGLE,
+                    InstanceType.SINGLE,
+                    InstanceType.DBSERVER]:
                 node.check_version_request(20.0)
 
     def respawn_instance(self):
@@ -534,8 +556,6 @@ class StarterManager():
 
     def get_frontend_port(self):
         """ get the port of the arangod which is coordinator etc."""
-        #FIXME This looks unreliable to me, especially when terminating
-        #      instances. How will the variable get updated?
         if self.frontend_port:
             return self.frontend_port
         return self.get_frontend().port
@@ -592,19 +612,19 @@ class StarterManager():
 
     def get_log_file(self):
         """ fetch the logfile of this starter"""
-        return self.log_file.read_text()
+        return self.log_file.read_text(errors='backslashreplace')
 
     def read_db_logfile(self):
         """ get the logfile of the dbserver instance"""
         server = self.get_dbserver()
         assert server.logfile.exists(), "don't have logfile?"
-        return server.logfile.read_text()
+        return server.logfile.read_text(errors='backslashreplace')
 
     def read_agent_logfile(self):
         """ get the agent logfile of this instance"""
         server = self.get_agent()
         assert server.logfile.exists(), "don't have logfile?"
-        return server.logfile.read_text()
+        return server.logfile.read_text(errors='backslashreplace')
 
     def detect_instances(self):
         """ see which arangods where spawned and inspect their logfiles"""
@@ -658,7 +678,7 @@ class StarterManager():
                             ppid=self.instance.pid,
                             full_binary_path=self.cfg.real_sbin_dir,
                             offset=0)
-                        detected_instances.append(instance.type)
+                        detected_instances.append(instance.instance_type)
                         self.all_instances.append(instance)
 
             print(self.expect_instances)
@@ -739,12 +759,12 @@ class StarterManager():
             logging.error("Not all instances are alive. "
                           "The following are not running: %s",
                           str(missing_instances))
-            logging.error("exiting")
-            sys.exit(1)
-            #raise Exception("instances missing: " + str(missing_instances))
-        else:
-            logging.info("All arangod instances still running: \n%s",
-                         get_instances_table(self.get_instance_essentials()))
+            #if self.abort_on_error:
+            #    logging.error("exiting")
+            #    sys.exit(1)
+            raise Exception("instances missing: " + str(missing_instances))
+        logging.info("All arangod instances still running: \n%s",
+                     get_instances_table(self.get_instance_essentials()))
 
     def detect_leader(self):
         """ in active failover detect whether we run the leader"""
@@ -808,7 +828,7 @@ class StarterManager():
             print(str(self.log_file) + " not there. Skipping search")
             return
         print(str(self.log_file))
-        with self.log_file.open() as log_f:
+        with self.log_file.open(errors='backslashreplace') as log_f:
             for line in log_f.readline():
                 if ('WARN' in line or
                     'ERROR' in line):

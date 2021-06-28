@@ -1,10 +1,10 @@
 #!/bin/bash
 
 if test -z "$OLD_VERSION"; then
-    OLD_VERSION=3.7.0-nightly
+    OLD_VERSION=3.8.0-nightly
 fi
 if test -z "$NEW_VERSION"; then
-    NEW_VERSION=3.8.0-nightly
+    NEW_VERSION=3.9.0-nightly
 fi
 if test -n "$PACKAGE_CACHE"; then
     PACKAGE_CACHE=$(pwd)/package_cache
@@ -43,11 +43,14 @@ docker \
   -v $(pwd)/test_dir:/home/test_dir \
   -v "$PACKAGE_CACHE":/home/package_cache \
   -v $(pwd)/${VERSION_TAR_NAME}:/home/versions \
+  --pid=host \
   --rm \
   --ulimit core=-1 \
   --init \
   $DOCKER_TAG \
-    /home/release-test-automation/release_tester/full_download_upgrade_test.py \
+  /home/release-test-automation/release_tester/full_download_upgrade_test.py \
+      --zip \
+      --verbose \
       --old-version $OLD_VERSION \
       --new-version $NEW_VERSION \
       --selenium Chrome \
@@ -56,5 +59,17 @@ docker \
       --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;") \
       $force_arg --git-version $GIT_VERSION $@
 result=$?
-tar -cvf ${VERSION_TAR_NAME}.tar ${VERSION_TAR_NAME}
-exit $result
+
+# Cleanup ownership:
+docker run \
+       -v $(pwd)/test_dir:/home/test_dir \
+       --rm \
+       $DOCKER_TAG chown -R $(id -u):$(id -g) /home/test_dir
+
+if test "$result" -eq "0"; then
+    echo "OK"
+    tar -cvf ${VERSION_TAR_NAME}.tar ${VERSION_TAR_NAME}
+else
+    echo "FAILED TAR!"
+    exit 1
+fi

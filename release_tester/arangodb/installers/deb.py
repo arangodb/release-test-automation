@@ -46,7 +46,10 @@ class InstallerDeb(InstallerLinux):
         semdict = dict(self.cfg.semver.to_dict())
 
         if semdict['prerelease']:
-            semdict['prerelease'] = '~~{prerelease}'.format(**semdict)
+            if semdict['prerelease'].startswith('rc'):
+                semdict['prerelease'] = '~{prerelease}'.format(**semdict)
+            else:
+                semdict['prerelease'] = '~~{prerelease}'.format(**semdict)
         else:
             semdict['prerelease'] = ''
 
@@ -65,10 +68,6 @@ class InstallerDeb(InstallerLinux):
             'arangodb3{ep}-client_{cfg}-{ver}_{arch}.deb'.format(**desc))
         self.debug_package = (
             'arangodb3{ep}-dbg_{cfg}-{ver}_{arch}.deb'.format(**desc))
-
-    def check_service_up(self):
-        time.sleep(1)    # TODO
-        return True
 
     def start_service(self):
         startserver = pexpect.spawnu('service arangodb3 start')
@@ -139,7 +138,7 @@ class InstallerDeb(InstallerLinux):
         logging.info("installing Arangodb debian package")
         server_not_started = False
         os.environ['DEBIAN_FRONTEND'] = 'readline'
-        self.cfg.passvoid = "sanoetuh"   # TODO
+        self.cfg.passvoid = "DEB_passvoid_%d" % os.getpid()
         logging.debug("package dir: {0.cfg.package_dir}- "
                       "server_package: {0.server_package}".format(self))
         cmd = 'dpkg -i ' + str(self.cfg.package_dir / self.server_package)
@@ -278,9 +277,7 @@ class InstallerDeb(InstallerLinux):
                 raise Exception(
                     "Debug package uninstallation didn't finish successfully!")
 
-
     def cleanup_system(self):
-        # TODO: should this be cleaned by the deb uninstall in first place?
         if self.cfg.log_dir.exists():
             shutil.rmtree(self.cfg.log_dir)
         if self.cfg.dbdir.exists():

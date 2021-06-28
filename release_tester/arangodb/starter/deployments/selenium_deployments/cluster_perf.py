@@ -1,12 +1,6 @@
 #!/usr/bin/env python3
-""" test the UI of a leader follower setup """
-from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunner
+""" test the UI of a cluster performance setup """
+from arangodb.starter.deployments.selenium_deployments.none import NoStarter
 
-class ClusterPerf(SeleniumRunner):
-    """ check the leader follower setup and its properties """
-    def __init__(self, webdriver,
-                 is_headless: bool,
-                 testrun_name: str):
-        super().__init__(webdriver,
-                         is_headless,
-                         testrun_name)
+class ClusterPerf(NoStarter):
+    """ nothing to see here """

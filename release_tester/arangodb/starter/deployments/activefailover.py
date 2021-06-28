@@ -8,7 +8,7 @@ from requests.auth import HTTPBasicAuth
 
 from arangodb.instance import InstanceType
 from arangodb.starter.manager import StarterManager
-from arangodb.starter.deployments.runner import Runner
+from arangodb.starter.deployments.runner import Runner, PunnerProperties
 
 from tools.asciiprint import print_progress as progress
 from tools.interact import prompt_user
@@ -17,11 +17,12 @@ from tools.interact import prompt_user
 class ActiveFailover(Runner):
     """ This launches an active failover setup """
     # pylint: disable=R0913 disable=R0902
-    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst,
+    def __init__(self, runner_type, abort_on_error, installer_set,
                  selenium, selenium_driver_args,
                  testrun_name: str):
-        super().__init__(runner_type, cfg, old_inst, new_cfg,
-                         new_inst, 'AFO', 500, 600, selenium, selenium_driver_args,
+        super().__init__(runner_type, abort_on_error, installer_set,
+                         PunnerProperties('ActiveFailOver', 500, 600, True),
+                         selenium, selenium_driver_args,
                          testrun_name)
         self.starter_instances = []
         self.follower_nodes = None
@@ -142,6 +143,9 @@ class ActiveFailover(Runner):
         logging.info("success" if self.success else "fail")
         logging.info('leader can be reached at: %s',
                      self.leader.get_frontend().get_public_url(''))
+        self.follower_nodes[0].arangosh.check_test_data("checking active failover follower node", [
+            "--readOnly", "true"
+            ])
 
     def wait_for_restore_impl(self, backup_starter):
         backup_starter.wait_for_restore()
@@ -160,11 +164,16 @@ class ActiveFailover(Runner):
             node.detect_instance_pids_still_alive()
         self.starter_instances[1].command_upgrade()
         self.starter_instances[1].wait_for_upgrade(180)
+        for node in self.starter_instances:
+            node.detect_instance_pids()
+        self.print_all_instances_table()
         if self.selenium:
             self.selenium.web.refresh() # version doesn't upgrade if we don't do this...
-            self.selenium.check_old(self.new_cfg, 2, 10)
+            self.selenium.check_old(self.new_cfg,
+                                    expect_follower_count=2, retry_count=10)
 
     def jam_attempt_impl(self):
+        # pylint: disable=R0915
         agency_leader = self.agency_get_leader()
         if self.first_leader.have_this_instance(agency_leader):
             print("AFO-Leader and agency leader are attached by the same starter!")
@@ -184,14 +193,15 @@ class ActiveFailover(Runner):
                     break
                 progress('.')
             time.sleep(1)
-            if count > 120:
-                self.progress(False, "Timeout waiting for new leader - crashing!")
-                for node in self.follower_nodes:
-                    node.crash_instances()
-                raise TimeoutError("Timeout waiting for new leader - crashing!")
+            if count > 360:
+                #self.progress(False, "Timeout waiting for new leader - crashing!")
+                #for node in self.starter_instances:
+                #    node.crash_instances()
+                raise TimeoutError("Timeout waiting for new leader!")
             count += 1
 
         print()
+        self.new_leader.arangosh.check_test_data("checking active failover new leader node")
 
         logging.info("\n" + str(self.new_leader))
         url = '{host}/_db/_system/_admin/aardvark/index.html#replication'.format(
@@ -206,7 +216,8 @@ class ActiveFailover(Runner):
         if self.selenium:
             self.selenium.connect_server(self.leader.get_frontends(), '_system',
                                          self.new_cfg if self.new_cfg else self.cfg)
-            self.selenium.check_old(self.new_cfg if self.new_cfg else self.cfg, 1, 10)
+            cfg = self.new_cfg if self.new_cfg else self.cfg
+            self.selenium.check_old(cfg=cfg, expect_follower_count=1, retry_count=10)
 
         prompt_user(self.basecfg,
                     '''The leader failover has happened.
@@ -236,7 +247,8 @@ please revalidate the UI states on the new leader; you should see *one* follower
         logging.info("state of this test is: %s",
                      "Success" if self.success else "Failed")
         if self.selenium:
-            self.selenium.check_old(self.new_cfg if self.new_cfg else self.cfg, 2, 20)
+            cfg = self.new_cfg if self.new_cfg else self.cfg
+            self.selenium.check_old(cfg=cfg, expect_follower_count=2, retry_count=10)
 
     def shutdown_impl(self):
         for node in self.starter_instances:

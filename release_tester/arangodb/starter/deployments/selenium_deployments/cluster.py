@@ -9,11 +9,12 @@ class Cluster(SeleniumRunner):
     def __init__(self, webdriver,
                  is_headless: bool,
                  testrun_name: str):
+        # pylint: disable=W0235
         super().__init__(webdriver,
                          is_headless,
                          testrun_name)
 
-    def check_old(self, cfg):
+    def check_old(self, cfg, leader_follower=False, expect_follower_count=2, retry_count=10):
         """ check the integrity of the old system before the upgrade """
         self.check_version(cfg)
 

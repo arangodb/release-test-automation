@@ -7,18 +7,19 @@ from tools.interact import prompt_user
 from tools.killall import get_all_processes
 from arangodb.starter.manager import StarterManager
 from arangodb.instance import InstanceType
-from arangodb.starter.deployments.runner import Runner
+from arangodb.starter.deployments.runner import Runner, PunnerProperties
 import tools.loghelper as lh
 from tools.asciiprint import print_progress as progress
 
 class LeaderFollower(Runner):
     """ this runs a leader / Follower setup with synchronisation """
     # pylint: disable=R0913 disable=R0902
-    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst,
+    def __init__(self, runner_type, abort_on_error, installer_set,
                  selenium, selenium_driver_args,
                  testrun_name: str):
-        super().__init__(runner_type, cfg, old_inst, new_cfg,
-                         new_inst, 'lf', 400, 500, selenium, selenium_driver_args,
+        super().__init__(runner_type, abort_on_error, installer_set,
+                         PunnerProperties('LeaderFollower', 400, 500, False),
+                         selenium, selenium_driver_args,
                          testrun_name)
 
         self.leader_starter_instance = None
@@ -57,7 +58,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
 
     def starter_prepare_env_impl(self):
         self.leader_starter_instance = StarterManager(
-            self.cfg, self.basedir, 'leader',
+            self.basecfg, self.basedir, 'leader',
             mode='single', port=1234,
             expect_instances=[
                 InstanceType.SINGLE
@@ -67,7 +68,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
         self.leader_starter_instance.is_leader = True
 
         self.follower_starter_instance = StarterManager(
-            self.cfg, self.basedir, 'follower',
+            self.basecfg, self.basedir, 'follower',
             mode='single', port=2345,
             expect_instances=[
                 InstanceType.SINGLE
@@ -167,9 +168,6 @@ process.exit(0);
 
         logging.info("Leader follower setup successfully finished!")
 
-    def supports_backup_impl(self):
-        return False
-
     def upgrade_arangod_version_impl(self):
         """ upgrade this installation """
         for node in [self.leader_starter_instance, self.follower_starter_instance]:
@@ -211,8 +209,8 @@ process.exit(0);
             raise Exception("replication fuzzing test failed")
 
         prompt_user(self.basecfg, "please test the installation.")
-        # if self.selenium:
-        #    self.selenium.jam_step_1(self.cfg if self.cfg else self.new_cfg)
+        if self.selenium:
+            self.selenium.jam_step_1(self.cfg if self.cfg else self.new_cfg)
 
 
     def shutdown_impl(self):
@@ -224,7 +222,7 @@ process.exit(0);
         logging.info('test ended')
 
     def before_backup_impl(self):
-        pass
+        """ nothing to see here """
 
     def after_backup_impl(self):
-        pass
+        """ nothing to see here """
