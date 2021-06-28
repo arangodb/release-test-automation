@@ -237,7 +237,7 @@ class Test(BaseSelenium):
         print("Select Info tab\n")
         self.col.select_info_tab()
         print("Selecting Schema Tab\n")
-        self.col.select_schema_tab()
+        # self.col.select_schema_tab()
 
         print("Select Settings tab\n")
         self.col.select_settings_tab()
@@ -538,39 +538,42 @@ class Test(BaseSelenium):
         # creating multiple query obj
         self.query = QueryPage(self.driver)
         self.query01 = QueryPage(self.driver)
-        # print("Importing IMDB collections \n")
-        # self.query.import_collections()
+        print("Importing IMDB collections \n")
+        self.query.import_collections()
 
         print("Selecting Query page for basic CRUD operation \n")
         self.query.selecting_query_page()
 
         print("Executing insert query \n")
         self.query.execute_query('for i IN 1..10000\n INSERT {\n \t "name": "Ned",\n "surname": "Stark",'
-                                        '\n"alive": true,\n"age": 41,"traits":["A","H","C","N","P"]\n} INTO '
-                                        'Characters')
+                                 '\n"alive": true,\n"age": 41,"traits":["A","H","C","N","P"]\n} INTO '
+                                 'Characters')
         print("Profiling current query \n")
         self.query.profile_query()
         print("Explaining current query \n")
         self.query.explain_query()
-        # print("Debug packaged downloading for the current query \n")
-        # self.query.debug_package_download()
+        print("Debug packaged downloading for the current query \n")
+        self.query.debug_package_download()
         print("Removing all query results \n")
         self.query.remove_query_result()
         print("Clearing query execution area \n")
         self.query.clear_query_area()
+
         print("Executing spot light functionality \n")
         self.query.spot_light_function('COUNT')  # can be used for search different keyword
-
         print('Executing read query\n')
         self.query01.execute_query('FOR c IN imdb_vertices\n\tLIMIT 500\nRETURN c')
-        self.query01.clear_query_area()
-
         print('Updating documents\n')
         self.query.update_documents()
-        print("Saving Current query as custom query\n")
-        self.query.save_and_delete_current_query()
+        print('Executing query with bind parameters \n')
+        self.query.bind_parameters_query()
+
         print('Importing new queries \n')
-        self.query.importing_new_queries('C:\\Users\\rearf\\Desktop\\collections\\imported_query.json')
+        self.query.import_queries('C:\\Users\\rearf\\Desktop\\collections\\imported_query.json')
+        print("Saving Current query as custom query\n")
+        self.query.custom_query()
+        print('Changing the number of results from 1000 to 100\n')
+        self.query.number_of_results()
 
         # logging out from the current user
         self.login.logout_button()
