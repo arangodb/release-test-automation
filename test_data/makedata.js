@@ -19,6 +19,7 @@ const expect = require('chai').expect;
 const path = require('path');
 const _ = require('lodash');
 const internal = require('internal');
+const download = internal.download;
 const arangodb = require("@arangodb");
 const console = require("console");
 const g = require('@arangodb/general-graph');
@@ -28,6 +29,7 @@ const sleep = internal.sleep;
 const ERRORS = arangodb.errors;
 let v = db._version(true);
 const enterprise = v.license === "enterprise";
+const dbVersion = db._version();
 let gsm;
 if (enterprise) {
   gsm = require('@arangodb/smart-graph');
@@ -41,6 +43,7 @@ let vertices = JSON.parse(fs.readFileSync(`${PWD}/vertices.json`));
 let edges = JSON.parse(fs.readFileSync(`${PWD}/edges_naive.json`));
 let smart_edges = JSON.parse(fs.readFileSync(`${PWD}/edges.json`));
 
+const { FeatureFlags } = require("./feature_flags");
 
 let database = "_system";
 let databaseName;
@@ -53,7 +56,9 @@ const optionsDefaults = {
   dataMultiplier: 1,
   collectionMultiplier: 1,
   singleShard: false,
-  progress: false
+  progress: false,
+  oldVersion: "3.5.0",
+  passvoid: ''
 };
 
 let args = ARGUMENTS;
@@ -69,6 +74,8 @@ _.defaults(options, optionsDefaults);
 var numberLength = Math.log(options.numberOfDBs + options.countOffset) * Math.LOG10E + 1 | 0;
 
 const zeroPad = (num) => String(num).padStart(numberLength, '0');
+
+const flags = new FeatureFlags(dbVersion, options.oldVersion);
 
 let tStart = 0;
 let timeLine = [];
@@ -230,7 +237,19 @@ function installFoxx(mountpoint, which, mode) {
   } else if (mode === "replace") {
     crudResp = arango.PUT('/_api/foxx/service?mount=' + mountpoint + devmode, content, headers);
   } else {
-    crudResp = arango.POST('/_api/foxx?mount=' + mountpoint + devmode, content, headers);
+    let reply = download(
+      arango.getEndpoint().replace(/^tcp:/, 'http:').replace(/^ssl:/, 'https:') +
+        '/_api/foxx?mount=' + mountpoint + devmode,
+      content,
+      {
+        method: 'POST',
+        headers: headers,
+        timeout: 300,
+        username: 'root',
+        password: options.passvoid,
+      });
+    expect(reply.code).to.equal(201);
+    crudResp = JSON.parse(reply.body);
   }
   expect(crudResp).to.have.property('manifest');
   return crudResp;
@@ -259,6 +278,7 @@ const crudTestServiceSource = {
   type: 'js',
   buffer: fs.readFileSync(serviceServicePath)
 };
+
 print("installing Itzpapalotl");
 installFoxx('/itz', itzpapalotlZip);
 

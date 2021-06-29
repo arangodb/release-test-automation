@@ -9,7 +9,7 @@ const time = internal.time;
 let db = internal.db;
 let print = internal.print;
 const isCluster = require("internal").isCluster();
-const  dbVersion = db._version();
+const dbVersion = db._version();
 const {
   assertTrue,
   assertFalse,
@@ -31,7 +31,7 @@ const optionsDefaults = {
   collectionMultiplier: 1,
   singleShard: false,
   progress: false,
-  oldVersion: "3.8.0"
+  oldVersion: "3.5.0"
 };
 
 if ((0 < ARGUMENTS.length) &&
@@ -158,6 +158,10 @@ function testSmartGraphValidator(ccount) {
 }
 
 function checkFoxxService() {
+  const onlyJson = {
+    'accept': 'application/json',
+    'accept-content-type': 'application/json'
+  };
   let reply;
   db._useDatabase("_system");
 
@@ -170,16 +174,17 @@ function checkFoxxService() {
   assertEqual(reply.code, "200");
 
   print("summoning Chalchihuitlicue");
-  reply = arango.GET_RAW('/_db/_system/itz/Chalchihuitlicue/summon')
+  reply = arango.GET_RAW('/_db/_system/itz/Chalchihuitlicue/summon', onlyJson);
   assertEqual(reply.code, "200");
-  assertEqual(reply.parsedBody.name, "Chalchihuitlicue");
-  assertTrue(reply.parsedBody.summoned);
+  let parsedBody = JSON.parse(reply.body);
+  assertEqual(parsedBody.name, "Chalchihuitlicue");
+  assertTrue(parsedBody.summoned);
 
   print("testing get xxx");
-  reply = arango.GET_RAW('/_db/_system/crud/xxx');
+  reply = arango.GET_RAW('/_db/_system/crud/xxx', onlyJson);
   assertEqual(reply.code, "200");
-  print(reply.parsedBody)
-  assertEqual(reply.parsedBody, []);
+  parsedBody = JSON.parse(reply.body);
+  assertEqual(parsedBody, []);
 
   print("testing POST xxx");
   
@@ -191,12 +196,13 @@ function checkFoxxService() {
   }
   
   print("testing get xxx");
-  reply = arango.GET_RAW('/_db/_system/crud/xxx');
+  reply = arango.GET_RAW('/_db/_system/crud/xxx', onlyJson);
   assertEqual(reply.code, "200");
+  parsedBody = JSON.parse(reply.body);
   if (options.readOnly) {
-    assertEqual(reply.parsedBody, []);
+    assertEqual(parsedBody, []);
   } else {
-    assertEqual(reply.parsedBody.length, 1);
+    assertEqual(parsedBody.length, 1);
   }
 
   print('testing delete document')
@@ -210,7 +216,9 @@ function checkFoxxService() {
 
 let v = db._connection.GET("/_api/version");
 const enterprise = v.license === "enterprise"
+
 checkFoxxService()
+
 let count = 0;
 while (count < options.numberOfDBs) {
   tStart = time();
