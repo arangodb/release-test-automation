@@ -726,7 +726,7 @@ class Runner(ABC):
             FNRX.sub('', self.testrun_name),
             self.__class__.__name__
         )
-        if self.basedir.exists():
+        if self.basecfg.base_test_dir.exists():
             shutil.make_archive(filename,
                                 "bztar",
                                 self.basecfg.base_test_dir,
