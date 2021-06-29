@@ -427,7 +427,9 @@ class ArangodInstance(Instance):
                     break
                 time.sleep(1)
             else:
-                raise TimeoutError("instance logfile didn't show up in 10 seconds")
+                raise TimeoutError("instance logfile '" +
+                                   str(self.logfile) +
+                                   "' didn't show up in 20 seconds")
 
             with open(self.logfile, errors='backslashreplace') as log_fh:
                 for line in log_fh:
