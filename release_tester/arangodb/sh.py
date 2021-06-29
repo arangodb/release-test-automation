@@ -405,7 +405,8 @@ class ArangoshExecutor():
             'setting up test data',
             self.cfg.test_data_dir.resolve() / 'makedata.js'],
                                             args =args +[
-                                                '--progress', 'true'
+                                                '--progress', 'true',
+                                                '--passvoid', self.cfg.passvoid
                                             ],
                                             timeout=timeout,
                                         result_line=result_line,

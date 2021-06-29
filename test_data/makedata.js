@@ -19,6 +19,7 @@ const expect = require('chai').expect;
 const path = require('path');
 const _ = require('lodash');
 const internal = require('internal');
+const download = internal.download;
 const arangodb = require("@arangodb");
 const console = require("console");
 const g = require('@arangodb/general-graph');
@@ -56,7 +57,8 @@ const optionsDefaults = {
   collectionMultiplier: 1,
   singleShard: false,
   progress: false,
-  oldVersion: "3.5.0"
+  oldVersion: "3.5.0",
+  passvoid: ''
 };
 
 let args = ARGUMENTS;
@@ -235,9 +237,20 @@ function installFoxx(mountpoint, which, mode) {
   } else if (mode === "replace") {
     crudResp = arango.PUT('/_api/foxx/service?mount=' + mountpoint + devmode, content, headers);
   } else {
-    crudResp = arango.POST('/_api/foxx?mount=' + mountpoint + devmode, content, headers);
+    let reply = download(
+      arango.getEndpoint().replace(/^tcp:/, 'http:').replace(/^ssl:/, 'https:') +
+        '/_api/foxx?mount=' + mountpoint + devmode,
+      content,
+      {
+        method: 'POST',
+        headers: headers,
+        timeout: 300,
+        username: 'root',
+        password: options.passvoid,
+      });
+    expect(reply.code).to.equal(201);
+    crudResp = JSON.parse(reply.body);
   }
-  print(crudResp)
   expect(crudResp).to.have.property('manifest');
   return crudResp;
 }
@@ -266,13 +279,12 @@ const crudTestServiceSource = {
   buffer: fs.readFileSync(serviceServicePath)
 };
 
-//if (flags.shouldValidateFoxx()) {
-//  print("installing Itzpapalotl");
-//  installFoxx('/itz', itzpapalotlZip);
-//
-//  print("installing crud");
-//  installFoxx('/crud', minimalWorkingZip);
-//}
+print("installing Itzpapalotl");
+installFoxx('/itz', itzpapalotlZip);
+
+print("installing crud");
+installFoxx('/crud', minimalWorkingZip);
+
 let count = 0;
 while (count < options.numberOfDBs) {
   tStart = time();
