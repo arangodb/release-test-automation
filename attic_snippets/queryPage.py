@@ -22,6 +22,7 @@ class QueryPage(BaseSelenium):
         self.new_query_name_id = 'new-query-name'
         self.select_query_size_id = 'querySize'
         self.json_to_table_span_it = 'switchTypes'
+        self.collection_settings_id = "//*[@id='subNavigationBar']/ul[2]/li[4]/a"
 
     # importing collections for query
     def import_collections(self):
@@ -237,6 +238,24 @@ class QueryPage(BaseSelenium):
         time.sleep(2)
 
         super().scroll()
+
+        print('Downloading query results \n')
+        # downloading query results
+        download_query_results = 'downloadQueryResult'
+        download_query_results = \
+            BaseSelenium.locator_finder_by_id(self, download_query_results)
+        download_query_results.click()
+        time.sleep(3)
+        super().clear_download_bar()
+
+        print('Downloading query results as CSV format \n')
+        # downloading CSV query results
+        csv = 'downloadCsvResult'
+        csv = \
+            BaseSelenium.locator_finder_by_id(self, csv)
+        csv.click()
+        time.sleep(3)
+        super().clear_download_bar()
 
         # clear the execution area
         self.clear_query_area()
@@ -556,3 +575,54 @@ class QueryPage(BaseSelenium):
         time.sleep(1)
 
         super().scroll()
+
+        self.driver.refresh()
+
+    # Selecting collections for deletion
+    def preparing_collection(self, collection):
+        collection = \
+            BaseSelenium.locator_finder_by_xpath(self, collection)
+        collection.click()
+        settings = self.collection_settings_id
+        settings = \
+            BaseSelenium.locator_finder_by_xpath(self, settings)
+        settings.click()
+
+    # Deleting Collection from settings tab
+    def delete_collection(self):
+        delete_collection_id = "//*[@id='modalButton0']"
+        delete_collection_id = \
+            BaseSelenium.locator_finder_by_xpath(self, delete_collection_id)
+        delete_collection_id.click()
+        time.sleep(2)
+
+        delete_collection_confirm_id = "//*[@id='modal-confirm-delete']"
+        delete_collection_confirm_id = \
+            BaseSelenium.locator_finder_by_xpath(self, delete_collection_confirm_id)
+        delete_collection_confirm_id.click()
+
+    # deleting all the collections
+    def delete_all_collections(self):
+        collection_page = 'collections'
+        collection_page = \
+            BaseSelenium.locator_finder_by_id(self, collection_page)
+        collection_page.click()
+        time.sleep(2)
+
+        print('deleting Characters collections \n')
+        characters = '//*[@id="collection_Characters"]/div/h5'
+        self.preparing_collection(characters)
+        time.sleep(2)
+        self.delete_collection()
+
+        print('deleting imdb_edges collections \n')
+        imdb_edges = '//*[@id="collection_imdb_edges"]/div/h5'
+        self.preparing_collection(imdb_edges)
+        time.sleep(2)
+        self.delete_collection()
+
+        print('deleting imdb_vertices collections \n')
+        imdb_edges = '//*[@id="collection_imdb_vertices"]/div/h5'
+        self.preparing_collection(imdb_edges)
+        time.sleep(2)
+        self.delete_collection()

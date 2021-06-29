@@ -259,8 +259,8 @@ class Test(BaseSelenium):
         print("Selecting Test Collection for deleting\n")
         self.col3.select_test_doc_collection()
         self.col3.delete_collection()
-
         print("Deleting Collection completed\n")
+
         del self.col
         del self.col1
         del self.col2
@@ -552,8 +552,8 @@ class Test(BaseSelenium):
         self.query.profile_query()
         print("Explaining current query \n")
         self.query.explain_query()
-        print("Debug packaged downloading for the current query \n")
-        self.query.debug_package_download()
+        # print("Debug packaged downloading for the current query \n")
+        # self.query.debug_package_download()
         print("Removing all query results \n")
         self.query.remove_query_result()
         print("Clearing query execution area \n")
@@ -574,6 +574,10 @@ class Test(BaseSelenium):
         self.query.custom_query()
         print('Changing the number of results from 1000 to 100\n')
         self.query.number_of_results()
+
+        print('Deleting collections begins \n')
+        self.query.delete_all_collections()
+        print('Deleting collections completed \n')
 
         # logging out from the current user
         self.login.logout_button()
