@@ -122,6 +122,7 @@ class Instance(ABC):
         """ terminate the process represented by this wrapper class """
         if self.instance:
             try:
+                print('terminating instance {0}'.format(self.instance.pid))
                 self.instance.terminate()
                 self.instance.wait()
             except psutil.NoSuchProcess:
@@ -135,9 +136,9 @@ class Instance(ABC):
         if self.instance:
             try:
                 self.instance.suspend()
-            except psutil.NoSuchProcess:
+            except psutil.NoSuchProcess as ex:
                 logging.info("instance not available with this PID: " + str(self.instance))
-            self.instance = None
+                raise ex
         else:
             logging.error("instance not available with this PID: " + str(repr(self)))
 
