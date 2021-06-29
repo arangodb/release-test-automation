@@ -742,16 +742,22 @@ class Runner(ABC):
             shutil.rmtree(testdir)
 
     def agency_trigger_leader_relection(self, old_leader):
-        self.progress(False, "AGENCY stopping leader to trigger a failover")
+        """ halt one agent to trigger an agency leader re-election """
+        self.progress(True, "AGENCY pausing leader to trigger a failover")
         old_leader.suspend_instance()
         time.sleep(1)
         while True:
             new_leader = self.agency_get_leader()
             if old_leader != new_leader:
-                self.progress(False, "AGENCY failover has happened")
+                self.progress(True, "AGENCY failover has happened")
                 break
             time.sleep(1)
+        old_leader.rename_logfile('.before_trigger_leader_change')
         old_leader.resume_instance()
+        self.progress(True, "AGENCY killing instance and waiting for respawn")
+        old_leader.terminate_instance()
+        old_leader.detect_pid(old_leader.ppid)
+        self.progress(True, "AGENCY back online")
 
     def agency_get_leader(self):
         """ get the agent that has the latest "serving" line """

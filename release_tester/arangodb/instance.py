@@ -68,6 +68,7 @@ class Instance(ABC):
         self.type_str = list(INSTANCE_TYPE_STRING_MAP.keys())[int(self.instance_type.value)]
         self.port = port
         self.pid = None
+        self.ppid = None
         self.basedir = basedir
         self.logfile = logfile
         self.localhost = localhost
@@ -110,12 +111,12 @@ class Instance(ABC):
     def get_essentials(self):
         """ get the essential attributes of the class """
 
-    def rename_logfile(self):
+    def rename_logfile(self, suffix='.old'):
         """ to ease further analysis, move old logfile out of our way"""
         logfile = str(self.logfile)
         logging.info("renaming instance logfile: %s -> %s",
-                     logfile, logfile + '.old')
-        self.logfile.rename(logfile + '.old')
+                     logfile, logfile + suffix)
+        self.logfile.rename(logfile + suffix)
 
     def terminate_instance(self):
         """ terminate the process represented by this wrapper class """
@@ -415,6 +416,7 @@ class ArangodInstance(Instance):
         """ detect the instance """
         # pylint: disable=R0915 disable=R0914
         self.pid = 0
+        self.ppid = ppid
         tries = 40
         t_start = ''
         while self.pid == 0 and tries:
@@ -573,6 +575,7 @@ class SyncInstance(Instance):
 
     def detect_pid(self, ppid, offset, full_binary_path):
         # first get the starter provided commandline:
+        self.ppid = ppid
         command = self.basedir / 'arangosync_command.txt'
         cmd = []
         # we search for the logfile parameter, since its unique to our instance.
