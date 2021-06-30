@@ -42,6 +42,15 @@ class BaseSelenium:
     def query(query):
         pyautogui.typewrite(query)
 
+    '''This method will select all text and clean it'''
+
+    @staticmethod
+    def clear_all_text():
+        pyautogui.keyDown('ctrl')
+        pyautogui.press('a')
+        pyautogui.keyUp('ctrl')
+        pyautogui.press('del')
+
     '''This method will close the download bar from the chrome browser'''
 
     @staticmethod
@@ -50,7 +59,7 @@ class BaseSelenium:
         pyautogui.hotkey('ctrl', 'j')
         pyautogui.hotkey('ctrl', 'w')
 
-    '''This method will be used for clear all the text if .clear() does not work'''
+    '''This method will be used for clear all the text in single text field if .clear() does not work'''
 
     def clear_text_field(self, locator):
         locator.send_keys(Keys.CONTROL + 'a', Keys.BACKSPACE)

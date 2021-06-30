@@ -538,6 +538,7 @@ class Test(BaseSelenium):
         # creating multiple query obj
         self.query = QueryPage(self.driver)
         self.query01 = QueryPage(self.driver)
+
         print("Importing IMDB collections \n")
         self.query.import_collections()
 
@@ -567,6 +568,12 @@ class Test(BaseSelenium):
         self.query.update_documents()
         print('Executing query with bind parameters \n')
         self.query.bind_parameters_query()
+
+        print("Executing example graph query \n")
+        self.query.world_country_graph_query()
+
+        print('Executing K_Shortest_Paths Graph query \n')
+        self.query.k_shortest_paths_graph_query()
 
         print('Importing new queries \n')
         self.query.import_queries('C:\\Users\\rearf\\Desktop\\collections\\imported_query.json')

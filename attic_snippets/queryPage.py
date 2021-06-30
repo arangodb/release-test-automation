@@ -23,6 +23,18 @@ class QueryPage(BaseSelenium):
         self.select_query_size_id = 'querySize'
         self.json_to_table_span_it = 'switchTypes'
         self.collection_settings_id = "//*[@id='subNavigationBar']/ul[2]/li[4]/a"
+        self.graph_page = 'graphs'
+        self.select_create_graph_id = "createGraph"
+        self.select_world_graph_id = "//*[@id='exampleGraphs']/table/tbody/tr[5]/td[2]/button"
+        self.select_example_graph_btn_id = "tab-exampleGraphs"
+
+        self.confirm_delete_graph_id = "modalButton0"
+        self.drop_graph_collection = "dropGraphCollections"
+        self.select_really_delete_btn_id = "modal-confirm-delete"
+
+        self.select_k_shortest_path_id = "//*[@id='exampleGraphs']/table/tbody/tr[3]/td[2]/button"
+        self.select_k_shortest_path_graphs_setting_btn_id = "kShortestPathsGraph_settings"
+        self.select_k_shortest_path_graphs_setting_btn_id_check = "kShortestPathsGraph_settings"
 
     # importing collections for query
     def import_collections(self):
@@ -147,10 +159,7 @@ class QueryPage(BaseSelenium):
             BaseSelenium.locator_finder_by_xpath(self, clear_query)
         clear_query.click()
 
-        pyautogui.keyDown('ctrl')
-        pyautogui.press('a')
-        pyautogui.keyUp('ctrl')
-        pyautogui.press('del')
+        super().clear_all_text()
         time.sleep(2)
 
     # Selecting spot light function helper
@@ -545,6 +554,199 @@ class QueryPage(BaseSelenium):
         print('Deleting Saved query completed\n')
         self.clear_query_area()
 
+    # Graph query
+    def world_country_graph_query(self):
+        print('Creating worldCountry example graph \n')
+        graph = self.graph_page
+        graph = \
+            BaseSelenium.locator_finder_by_id(self, graph)
+        graph.click()
+        time.sleep(2)
+
+        select_graph = self.select_create_graph_id
+        select_graph = \
+            BaseSelenium.locator_finder_by_id(self, select_graph)
+        select_graph.click()
+        time.sleep(1)
+
+        # Selecting example graph button
+        example = self.select_example_graph_btn_id
+        example = \
+            BaseSelenium.locator_finder_by_id(self, example)
+        example.click()
+        time.sleep(1)
+
+        # select worldCountry graph
+        self.select_world_graph_id = \
+            BaseSelenium.locator_finder_by_xpath(self, self.select_world_graph_id)
+        self.select_world_graph_id.click()
+        time.sleep(4)
+
+        # navigating back to query tab
+        query = self.selecting_query_page_id
+        query = \
+            BaseSelenium.locator_finder_by_id(self, query)
+        query.click()
+        time.sleep(1)
+
+        query_execution = self.query_execution_area
+        query_execution = \
+            BaseSelenium.locator_finder_by_xpath(self, query_execution)
+        query_execution.click()
+        time.sleep(1)
+
+        # clear the execution area
+        self.clear_query_area()
+
+        print('Executing sample graph query for worldCountry Graph \n')
+        query_name = 'FOR v, e, p IN 1..1\n\tANY "worldVertices/continent-south-america"\nGRAPH ' \
+                     '"worldCountry"\nRETURN {v, e, p}'
+        super().query(query_name)
+        time.sleep(2)
+
+        execute = self.execute_query_btn_id
+        execute = \
+            BaseSelenium.locator_finder_by_id(self, execute)
+        execute.click()
+        time.sleep(3)
+
+        super().scroll()
+
+        print('Deleting worldCountry graph \n')
+        graph_id = "worldCountry_settings"
+        self.delete_all_graph(graph_id)
+        self.driver.refresh()
+
+    # K Shortest Paths Graph Query
+    def k_shortest_paths_graph_query(self):
+        print('Creating KShortestPaths example graph \n')
+        graph = self.graph_page
+        graph = \
+            BaseSelenium.locator_finder_by_id(self, graph)
+        graph.click()
+        time.sleep(2)
+
+        select_graph = self.select_create_graph_id
+        select_graph = \
+            BaseSelenium.locator_finder_by_id(self, select_graph)
+        select_graph.click()
+        time.sleep(1)
+
+        # Selecting example graph button
+        graph_example_id = self.select_example_graph_btn_id
+        graph_example_id = \
+            BaseSelenium.locator_finder_by_id(self, graph_example_id)
+        graph_example_id.click()
+        time.sleep(1)
+
+        # selecting kshortestpaths graph from example graph
+        self.select_k_shortest_path_id = \
+            BaseSelenium.locator_finder_by_xpath(self, self.select_k_shortest_path_id)
+        self.select_k_shortest_path_id.click()
+        time.sleep(1)
+
+        # navigating back to query tab
+        query = self.selecting_query_page_id
+        query = \
+            BaseSelenium.locator_finder_by_id(self, query)
+        query.click()
+        time.sleep(1)
+
+        query_execution = self.query_execution_area
+        query_execution = \
+            BaseSelenium.locator_finder_by_xpath(self, query_execution)
+        query_execution.click()
+        time.sleep(1)
+
+        super().clear_all_text()
+
+        print('Executing sample graph query for KShortestPaths Graph')
+        query_name = 'FOR path IN OUTBOUND K_SHORTEST_PATHS\n\t"places/Birmingham" TO "places/StAndrews"\nGRAPH ' \
+                     '"kShortestPathsGraph"\nLIMIT 4\nRETURN path '
+        super().query(query_name)
+        time.sleep(2)
+
+        execute = self.execute_query_btn_id
+        execute = \
+            BaseSelenium.locator_finder_by_id(self, execute)
+        execute.click()
+        time.sleep(6)
+
+        super().scroll(1)
+        time.sleep(8)
+
+        print('Switch output to JSON format')
+        output_switch_json = 'json-switch'
+        output_switch_json = \
+            BaseSelenium.locator_finder_by_id(self, output_switch_json)
+        output_switch_json.click()
+
+        execution_area = self.query_execution_area
+        execution_area = \
+            BaseSelenium.locator_finder_by_xpath(self, execution_area)
+        execution_area.click()
+        time.sleep(1)
+
+        super().scroll(1)
+        time.sleep(3)
+
+        print('Switch output to Graph')
+        output_switch_graph = 'graph-switch'
+        output_switch_graph = \
+            BaseSelenium.locator_finder_by_id(self, output_switch_graph)
+        output_switch_graph.click()
+
+        execution_area1 = self.query_execution_area
+        execution_area1 = \
+            BaseSelenium.locator_finder_by_xpath(self, execution_area1)
+        execution_area1.click()
+        time.sleep(1)
+
+        super().scroll(1)
+        time.sleep(3)
+
+        print('Observe current query on Graph viewer \n')
+        graph_page_btn = 'copy2gV'
+        graph_page_btn = \
+            BaseSelenium.locator_finder_by_id(self, graph_page_btn)
+        graph_page_btn.click()
+        time.sleep(5)
+
+        print('Navigate back to query page\n')
+        query_page = self.selecting_query_page_id
+        query_page = \
+            BaseSelenium.locator_finder_by_id(self, query_page)
+        query_page.click()
+        time.sleep(2)
+
+        # selecting query execution area
+        query01 = self.query_execution_area
+        query01 = \
+            BaseSelenium.locator_finder_by_xpath(self, query01)
+        query01.click()
+
+        print('Clear query execution area \n')
+        super().clear_all_text()
+
+        print('Executing one more KShortestPaths graph query \n')
+        query_example = 'FOR v, e IN OUTBOUND SHORTEST_PATH "places/Aberdeen" TO "places/London"\n\tGRAPH ' \
+                        '"kShortestPathsGraph"\nRETURN { place: v.label, travelTime: e.travelTime }'
+        super().query(query_example)
+        time.sleep(2)
+
+        execute2 = self.execute_query_btn_id
+        execute2 = \
+            BaseSelenium.locator_finder_by_id(self, execute2)
+        execute2.click()
+        time.sleep(2)
+
+        super().scroll()
+
+        print('Deleting KShortestPath graph \n')
+        graph_id = "kShortestPathsGraph_settings"
+        self.delete_all_graph(graph_id)
+        self.driver.refresh()
+
     # changing the number of output
     def number_of_results(self):
         query = self.query_execution_area
@@ -578,8 +780,8 @@ class QueryPage(BaseSelenium):
 
         self.driver.refresh()
 
-    # Selecting collections for deletion
-    def preparing_collection(self, collection):
+    # Deleting Collection using any collections locator id
+    def delete_collection(self, collection):
         collection = \
             BaseSelenium.locator_finder_by_xpath(self, collection)
         collection.click()
@@ -588,8 +790,6 @@ class QueryPage(BaseSelenium):
             BaseSelenium.locator_finder_by_xpath(self, settings)
         settings.click()
 
-    # Deleting Collection from settings tab
-    def delete_collection(self):
         delete_collection_id = "//*[@id='modalButton0']"
         delete_collection_id = \
             BaseSelenium.locator_finder_by_xpath(self, delete_collection_id)
@@ -611,18 +811,60 @@ class QueryPage(BaseSelenium):
 
         print('deleting Characters collections \n')
         characters = '//*[@id="collection_Characters"]/div/h5'
-        self.preparing_collection(characters)
-        time.sleep(2)
-        self.delete_collection()
+        self.delete_collection(characters)
 
         print('deleting imdb_edges collections \n')
         imdb_edges = '//*[@id="collection_imdb_edges"]/div/h5'
-        self.preparing_collection(imdb_edges)
-        time.sleep(2)
-        self.delete_collection()
+        self.delete_collection(imdb_edges)
 
         print('deleting imdb_vertices collections \n')
         imdb_edges = '//*[@id="collection_imdb_vertices"]/div/h5'
-        self.preparing_collection(imdb_edges)
+        self.delete_collection(imdb_edges)
+
+    # deleting any graphs with given graph id
+    def delete_all_graph(self, graph_id):
+        print('Navigating back to graph page \n')
+        graph = self.graph_page
+        graph = \
+            BaseSelenium.locator_finder_by_id(self, graph)
+        graph.click()
         time.sleep(2)
-        self.delete_collection()
+
+        graphs_setting_btn_id = \
+            BaseSelenium.locator_finder_by_id(self, graph_id)
+        graphs_setting_btn_id.click()
+        time.sleep(1)
+
+        confirm = self.confirm_delete_graph_id
+        confirm = \
+            BaseSelenium.locator_finder_by_id(self, confirm)
+        confirm.click()
+        time.sleep(1)
+
+        drop = self.drop_graph_collection
+        drop = \
+            BaseSelenium.locator_finder_by_id(self, drop)
+        drop.click()
+        time.sleep(1)
+
+        really = self.select_really_delete_btn_id
+        really = \
+            BaseSelenium.locator_finder_by_id(self, really)
+        really.click()
+        time.sleep(3)
+
+        # navigate back to query page
+        query_page = self.selecting_query_page_id
+        query_page = \
+            BaseSelenium.locator_finder_by_id(self, query_page)
+        query_page.click()
+        time.sleep(3)
+
+        # selecting query execution area
+        query = self.query_execution_area
+        query = \
+            BaseSelenium.locator_finder_by_xpath(self, query)
+        query.click()
+
+        # clearing all text from the execution area
+        super().clear_all_text()
