@@ -68,6 +68,7 @@ class Instance(ABC):
         self.type_str = list(INSTANCE_TYPE_STRING_MAP.keys())[int(self.instance_type.value)]
         self.port = port
         self.pid = None
+        self.ppid = None
         self.basedir = basedir
         self.logfile = logfile
         self.localhost = localhost
@@ -110,17 +111,18 @@ class Instance(ABC):
     def get_essentials(self):
         """ get the essential attributes of the class """
 
-    def rename_logfile(self):
+    def rename_logfile(self, suffix='.old'):
         """ to ease further analysis, move old logfile out of our way"""
         logfile = str(self.logfile)
         logging.info("renaming instance logfile: %s -> %s",
-                     logfile, logfile + '.old')
-        self.logfile.rename(logfile + '.old')
+                     logfile, logfile + suffix)
+        self.logfile.rename(logfile + suffix)
 
     def terminate_instance(self):
         """ terminate the process represented by this wrapper class """
         if self.instance:
             try:
+                print('terminating instance {0}'.format(self.instance.pid))
                 self.instance.terminate()
                 self.instance.wait()
             except psutil.NoSuchProcess:
@@ -128,6 +130,28 @@ class Instance(ABC):
             self.instance = None
         else:
             logging.info("I'm already dead, jim!" + str(repr(self)))
+
+    def suspend_instance(self):
+        """ halt an instance using SIG_STOP """
+        if self.instance:
+            try:
+                self.instance.suspend()
+            except psutil.NoSuchProcess as ex:
+                logging.info("instance not available with this PID: " + str(self.instance))
+                raise ex
+        else:
+            logging.error("instance not available with this PID: " + str(repr(self)))
+
+    def resume_instance(self):
+        """ resume the instance using SIG_CONT """
+        if self.instance:
+            try:
+                self.instance.resume()
+            except psutil.NoSuchProcess:
+                logging.info("instance not available with this PID: " + str(self.instance))
+            self.instance = None
+        else:
+            logging.error("instance not available with this PID: " + str(repr(self)))
 
     def crash_instance(self):
         """ send SIG-11 to instance... """
@@ -185,7 +209,7 @@ class Instance(ABC):
             return
         print(str(self.logfile))
         count = 0
-        with open(self.logfile) as log_fh:
+        with open(self.logfile, errors='backslashreplace') as log_fh:
             for line in log_fh:
                 if self.is_line_relevant(line):
                     if self.is_suppressed_log_line(line):
@@ -333,7 +357,7 @@ class ArangodInstance(Instance):
         while True:
             log_file_content = ""
             last_line = ''
-            with open(self.logfile) as log_fh:
+            with open(self.logfile, errors='backslashreplace') as log_fh:
                 for line in log_fh:
                     # skip empty lines
                     if line == "":
@@ -378,7 +402,7 @@ class ArangodInstance(Instance):
     def detect_fatal_errors(self):
         """ check whether we have FATAL lines in the logfile """
         fatal_line = None
-        with open(self.logfile) as log_fh:
+        with open(self.logfile, errors='backslashreplace') as log_fh:
             for line in log_fh:
                 if fatal_line is not None:
                     fatal_line += "\n" + line
@@ -391,8 +415,9 @@ class ArangodInstance(Instance):
 
     def detect_pid(self, ppid, offset=0, full_binary_path=""):
         """ detect the instance """
-        # pylint: disable=R0915
+        # pylint: disable=R0915 disable=R0914
         self.pid = 0
+        self.ppid = ppid
         tries = 40
         t_start = ''
         while self.pid == 0 and tries:
@@ -400,7 +425,16 @@ class ArangodInstance(Instance):
             log_file_content = ''
             last_line = ''
 
-            with open(self.logfile) as log_fh:
+            for _ in range(20):
+                if self.logfile.exists():
+                    break
+                time.sleep(1)
+            else:
+                raise TimeoutError("instance logfile '" +
+                                   str(self.logfile) +
+                                   "' didn't show up in 20 seconds")
+
+            with open(self.logfile, errors='backslashreplace') as log_fh:
                 for line in log_fh:
                     # skip empty lines
                     if line == "":
@@ -489,7 +523,7 @@ class ArangodInstance(Instance):
         if not self.logfile.exists():
             print(str(self.logfile) + " doesn't exist, skipping.")
             return self.serving
-        with open(self.logfile) as log_fh:
+        with open(self.logfile, errors='backslashreplace') as log_fh:
             for line in log_fh:
                 if 'a66dc' in line:
                     serving_line = line
@@ -542,11 +576,12 @@ class SyncInstance(Instance):
 
     def detect_pid(self, ppid, offset, full_binary_path):
         # first get the starter provided commandline:
+        self.ppid = ppid
         command = self.basedir / 'arangosync_command.txt'
         cmd = []
         # we search for the logfile parameter, since its unique to our instance.
         logfile_parameter = ''
-        with open(command) as filedesc:
+        with open(command, errors='backslashreplace') as filedesc:
             for line in filedesc.readlines():
                 line = line.rstrip().rstrip(' \\')
                 if line.find('--log.file') >=0:

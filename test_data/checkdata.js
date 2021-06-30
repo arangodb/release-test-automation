@@ -9,7 +9,14 @@ const time = internal.time;
 let db = internal.db;
 let print = internal.print;
 const isCluster = require("internal").isCluster();
-const  dbVersion = db._version();
+const dbVersion = db._version();
+const {
+  assertTrue,
+  assertFalse,
+  assertEqual,
+  assertNotEqual,
+  assertException
+} = require("jsunity").jsUnity.assertions;
 
 const { FeatureFlags } = require("./feature_flags");
 
@@ -18,12 +25,13 @@ let database = "_system";
 const optionsDefaults = {
   minReplicationFactor: 1,
   maxReplicationFactor: 2,
+  readonly: false,
   numberOfDBs: 1,
   countOffset: 0,
   collectionMultiplier: 1,
   singleShard: false,
   progress: false,
-  oldVersion: "3.8.0"
+  oldVersion: "3.5.0"
 };
 
 if ((0 < ARGUMENTS.length) &&
@@ -149,8 +157,67 @@ function testSmartGraphValidator(ccount) {
   }
 }
 
+function checkFoxxService() {
+  const onlyJson = {
+    'accept': 'application/json',
+    'accept-content-type': 'application/json'
+  };
+  let reply;
+  db._useDatabase("_system");
+
+  print("getting the root of the gods");
+  reply = arango.GET_RAW('/_db/_system/itz');
+  assertEqual(reply.code, "307");
+
+  print('getting index html with list of gods');
+  reply = arango.GET_RAW('/_db/_system/itz/index');
+  assertEqual(reply.code, "200");
+
+  print("summoning Chalchihuitlicue");
+  reply = arango.GET_RAW('/_db/_system/itz/Chalchihuitlicue/summon', onlyJson);
+  assertEqual(reply.code, "200");
+  let parsedBody = JSON.parse(reply.body);
+  assertEqual(parsedBody.name, "Chalchihuitlicue");
+  assertTrue(parsedBody.summoned);
+
+  print("testing get xxx");
+  reply = arango.GET_RAW('/_db/_system/crud/xxx', onlyJson);
+  assertEqual(reply.code, "200");
+  parsedBody = JSON.parse(reply.body);
+  assertEqual(parsedBody, []);
+
+  print("testing POST xxx");
+  
+  reply = arango.POST_RAW('/_db/_system/crud/xxx', {_key: "test"})
+  if (options.readOnly) {
+    assertEqual(reply.code, "400");
+  } else {
+    assertEqual(reply.code, "201");
+  }
+  
+  print("testing get xxx");
+  reply = arango.GET_RAW('/_db/_system/crud/xxx', onlyJson);
+  assertEqual(reply.code, "200");
+  parsedBody = JSON.parse(reply.body);
+  if (options.readOnly) {
+    assertEqual(parsedBody, []);
+  } else {
+    assertEqual(parsedBody.length, 1);
+  }
+
+  print('testing delete document')
+  reply = arango.DELETE_RAW('/_db/_system/crud/xxx/' + 'test');
+  if (options.readOnly) {
+    assertEqual(reply.code, "400");
+  } else {
+    assertEqual(reply.code, "204");
+  }
+}
+
 let v = db._connection.GET("/_api/version");
 const enterprise = v.license === "enterprise"
+
+checkFoxxService()
 
 let count = 0;
 while (count < options.numberOfDBs) {
@@ -244,7 +311,7 @@ while (count < options.numberOfDBs) {
                  GRAPH "G_naive_${ccount}"
                  RETURN v`).toArray().length !== 6) { throw "Physalis"; }
     progress();
-    if (enterprise){
+    if (enterprise && false){ // TODO: re-enable me!
       const vColName = `patents_smart_${ccount}`;
       let patents_smart = db._collection(vColName);
       if (patents_smart.count() !== 761) { throw "Cherry"; }

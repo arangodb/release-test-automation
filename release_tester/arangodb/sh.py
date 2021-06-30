@@ -60,13 +60,13 @@ class ArangoshExecutor():
             "--log.level", "v8=debug",
             "--server.endpoint", self.connect_instance.get_endpoint(),
             "--server.username", str(self.cfg.username),
-            "--server.password", str(self.connect_instance.get_passvoid()),
+            "--server.password", str(self.connect_instance.get_passvoid())]
         # if self.cfg.username:
         #    run_cmd += [ "--server.username", str(self.cfg.username) ]
+        if self.cfg.passvoid:
+            run_cmd += [ "--server.password", str(self.cfg.passvoid) ]
 
-        # if self.cfg.passvoid:
-        #    run_cmd += [ "--server.password", str(self.cfg.passvoid) ]
-            "--javascript.execute-string", str(cmd[1]) ]
+        run_cmd += ["--javascript.execute-string", str(cmd[1]) ]
 
         if len(cmd) > 2:
             run_cmd += cmd[2:]
@@ -405,7 +405,8 @@ class ArangoshExecutor():
             'setting up test data',
             self.cfg.test_data_dir.resolve() / 'makedata.js'],
                                             args =args +[
-                                                '--progress', 'true'
+                                                '--progress', 'true',
+                                                '--passvoid', self.cfg.passvoid
                                             ],
                                             timeout=timeout,
                                         result_line=result_line,

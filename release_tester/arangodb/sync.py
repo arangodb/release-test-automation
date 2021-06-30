@@ -5,6 +5,7 @@
 import copy
 import logging
 import subprocess
+from threading import Timer
 
 import psutil
 import semver
@@ -44,9 +45,12 @@ class SyncManager():
         ] + self.arguments
 
         logging.info("SyncManager: launching %s", str(args))
-        exitcode = psutil.Popen(args).wait()
-        logging.info("SyncManager: up %s", str(exitcode))
-        return exitcode == 0
+        instance = psutil.Popen(args,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
+        (output, err) = instance.communicate()
+        exitcode = instance.wait()
+        return (ascii_convert(output), ascii_convert(err), exitcode == 0)
 
     def replace_binary_for_upgrade(self, new_install_cfg):
         """ set the new config properties """
@@ -82,8 +86,11 @@ class SyncManager():
         logging.info(args)
         psutil.Popen(args).wait()
 
-    def stop_sync(self):
+    def stop_sync(self, timeout=60, more_args=[]):
         """ run the stop sync command """
+        output = rb''
+        err = rb''
+        exitcode = 1
         args = [
             self.cfg.bin_dir / 'arangosync',
             'stop', 'sync',
@@ -91,9 +98,19 @@ class SyncManager():
                 url=self.cfg.publicip,
                 port=str(self.clusterports[0])),
             '--auth.keyfile=' + str(self.certificate_auth["clientkeyfile"])
-        ]
+        ] + more_args
         logging.info('SyncManager: stopping sync : %s', str(args))
-        psutil.Popen(args).wait()
+        instance = psutil.Popen(args,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
+        timer = Timer(timeout, instance.kill)
+        try:
+            timer.start()
+            (output, err) = instance.communicate()
+        finally:
+            timer.cancel()
+        exitcode = instance.wait()
+        return (ascii_convert(output),ascii_convert(err),  exitcode)
 
     def abort_sync(self):
         """ run the stop sync command """
