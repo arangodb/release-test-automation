@@ -255,9 +255,10 @@ class Runner(ABC):
                 if not self.check_non_backup_data():
                     raise Exception("data created after backup"
                                     " is still there??")
-                self.create_non_backup_data()
 
         if self.new_installer:
+            if self.hot_backup:
+                self.create_non_backup_data()
             self.versionstr = "NEW[" + self.new_cfg.version + "] "
 
             self.progress(False, "UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),)
@@ -725,10 +726,13 @@ class Runner(ABC):
             FNRX.sub('', self.testrun_name),
             self.__class__.__name__
         )
-        shutil.make_archive(filename,
-                            "bztar",
-                            self.basecfg.base_test_dir,
-                            self.basedir)
+        if self.basecfg.base_test_dir.exists():
+            shutil.make_archive(filename,
+                                "bztar",
+                                self.basecfg.base_test_dir,
+                                self.basedir)
+        else:
+            print("test basedir doesn't exist, won't create report tar")
 
     def cleanup(self):
         """ remove all directories created by this test """
@@ -736,6 +740,19 @@ class Runner(ABC):
         print('cleaning up ' + str(testdir))
         if testdir.exists():
             shutil.rmtree(testdir)
+
+    def agency_trigger_leader_relection(self, old_leader):
+        """ halt one agent to trigger an agency leader re-election """
+        self.progress(True, "AGENCY pausing leader to trigger a failover\n%s"%repr(old_leader))
+        old_leader.suspend_instance()
+        time.sleep(1)
+        while True:
+            new_leader = self.agency_get_leader()
+            if old_leader != new_leader:
+                self.progress(True, "AGENCY failover has happened")
+                break
+            time.sleep(1)
+        old_leader.resume_instance()
 
     def agency_get_leader(self):
         """ get the agent that has the latest "serving" line """
