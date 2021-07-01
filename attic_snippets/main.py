@@ -575,6 +575,9 @@ class Test(BaseSelenium):
         print('Executing K_Shortest_Paths Graph query \n')
         self.query.k_shortest_paths_graph_query()
 
+        print('Executing City Graph query \n')
+        self.query.city_graph()
+
         print('Importing new queries \n')
         self.query.import_queries('C:\\Users\\rearf\\Desktop\\collections\\imported_query.json')
         print("Saving Current query as custom query\n")

@@ -86,6 +86,7 @@ class BaseSelenium:
 
         if down == 1:
             print("")
+            time.sleep(3)
         else:
             time.sleep(5)
             self.driver.find_element_by_tag_name('html').send_keys(Keys.HOME)

@@ -747,6 +747,94 @@ class QueryPage(BaseSelenium):
         self.delete_all_graph(graph_id)
         self.driver.refresh()
 
+    # Example City Graph
+    def city_graph(self):
+        print('Creating example City Graph \n')
+        graph = self.graph_page
+        graph = \
+            BaseSelenium.locator_finder_by_id(self, graph)
+        graph.click()
+        time.sleep(2)
+
+        select_graph = self.select_create_graph_id
+        select_graph = \
+            BaseSelenium.locator_finder_by_id(self, select_graph)
+        select_graph.click()
+        time.sleep(1)
+
+        # Selecting example graph button
+        graph_example_id = self.select_example_graph_btn_id
+        graph_example_id = \
+            BaseSelenium.locator_finder_by_id(self, graph_example_id)
+        graph_example_id.click()
+        time.sleep(1)
+
+        # selecting City Graph from example
+        route_planner = '//*[@id="exampleGraphs"]/table/tbody/tr[7]/td[2]/button'
+        route_planner = \
+            BaseSelenium.locator_finder_by_xpath(self, route_planner)
+        route_planner.click()
+        time.sleep(4)
+
+        # navigating back to query tab
+        query = self.selecting_query_page_id
+        query = \
+            BaseSelenium.locator_finder_by_id(self, query)
+        query.click()
+        time.sleep(1)
+
+        query_execution = self.query_execution_area
+        query_execution = \
+            BaseSelenium.locator_finder_by_xpath(self, query_execution)
+        query_execution.click()
+        time.sleep(1)
+
+        super().clear_all_text()
+
+        map_query = 'for u in germanCity return u'
+        self.query(map_query)
+        time.sleep(1)
+
+        # execute query
+        execute = self.execute_query_btn_id
+        execute = \
+            BaseSelenium.locator_finder_by_id(self, execute)
+        execute.click()
+        time.sleep(3)
+
+        super().scroll()
+
+        time.sleep(1)
+
+        print('Switch output to JSON format')
+        output_switch_json = 'json-switch'
+        output_switch_json = \
+            BaseSelenium.locator_finder_by_id(self, output_switch_json)
+        output_switch_json.click()
+
+        query01 = self.query_execution_area
+        query01 = \
+            BaseSelenium.locator_finder_by_xpath(self, query01)
+        query01.click()
+        super().scroll(1)
+
+        print('Switch output to Table format')
+        output_switch_table = 'table-switch'
+        output_switch_table = \
+            BaseSelenium.locator_finder_by_id(self, output_switch_table)
+        output_switch_table.click()
+
+        query02 = self.query_execution_area
+        query02 = \
+            BaseSelenium.locator_finder_by_xpath(self, query02)
+        query02.click()
+        super().scroll(1)
+
+        print('Deleting City graph \n')
+        graph_id = "routeplanner_settings"
+        self.delete_all_graph(graph_id)
+        self.driver.refresh()
+
     # changing the number of output
     def number_of_results(self):
         query = self.query_execution_area
