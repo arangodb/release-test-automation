@@ -6,15 +6,19 @@ fi
 if test -z "$NEW_VERSION"; then
     NEW_VERSION=3.9.0-nightly
 fi
-if test -n "$PACKAGE_CACHE"; then
+if test -z "${PACKAGE_CACHE}"; then
     PACKAGE_CACHE=$(pwd)/package_cache
 fi
 
 VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_tar_version"
-mkdir -p package_cache
-mkdir -p ${VERSION_TAR_NAME}
+if test -h "${PACKAGE_CACHE}"; then
+    PACKAGE_CACHE="$(realpath "${PACKAGE_CACHE}")"
+else
+    mkdir -p "${PACKAGE_CACHE}"
+fi
+mkdir -p "${VERSION_TAR_NAME}"
 mkdir -p test_dir
-tar -xvf ${VERSION_TAR_NAME}.tar || true
+tar -xvf "${VERSION_TAR_NAME}.tar" || true
 
 VERSION=$(cat VERSION.json)
 GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
@@ -41,7 +45,7 @@ docker \
   -v /dev/shm:/dev/shm \
   -v $(pwd):/home/release-test-automation \
   -v $(pwd)/test_dir:/home/test_dir \
-  -v "$PACKAGE_CACHE":/home/package_cache \
+  -v "${PACKAGE_CACHE}":/home/package_cache \
   -v $(pwd)/${VERSION_TAR_NAME}:/home/versions \
   --pid=host \
   --rm \
@@ -57,7 +61,20 @@ docker \
       --selenium-driver-args headless \
       --selenium-driver-args no-sandbox \
       --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;") \
-      $force_arg --git-version $GIT_VERSION $@
+      $force_arg --git-version $GIT_VERSION $@ &
+docker_pid=$!
+
+sleep 2
+
+PID=$(ps -eaf | \
+          grep -v docker |\
+          grep -v grep |\
+          grep full_download_upgrade_test.py |\
+          sed "s;root *\([0-9]*\) .*;\1;")
+
+sudo /usr/sbin/killsnoop.bt -p $PID >  $(pwd)/test_dir/kill_snoop.txt
+
+wait $docker_pid
 result=$?
 
 # Cleanup ownership:
