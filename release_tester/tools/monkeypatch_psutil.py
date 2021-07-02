@@ -4,16 +4,15 @@ import signal
 import subprocess
 import time
 
-# import psutil
-
 winver = platform.win32_ver()
 if winver[0]:
     WINDOWS = True
     POSIX = False
     # may throw on elderly wintendos?
+    from psutil import Process, Popen
     from psutil import _psutil_windows as cext
 
-    from psutil.psutil._pswindows import WindowsService
+    from psutil._pswindows import WindowsService
 
     class WindowsService_monkey(WindowsService):
         # actions
@@ -59,7 +58,6 @@ if winver[0]:
     WindowsService.stop = WindowsService_monkey.stop
 
 
-    from psutil import Process
     class Process_monkey(Process):
         """ overload this function """
         def terminate(self):
@@ -83,22 +81,20 @@ if winver[0]:
                 # restore original handler
                 signal.signal(signal.SIGINT, original_sigint_handler)
 
-    from psutil import Process
     Process.terminate = Process_monkey.terminate
 
-
-    class Popen_monkey(subprocess.Popen):
+    class Popen_monkey(Popen):
         """ overload this function """
         def __init__(self, *args, **kwargs):
             # Explicitly avoid to raise NoSuchProcess in case the process
             # spawned by subprocess.Popen terminates too quickly, see:
             # https://github.com/giampaolo/psutil/issues/193
-            self.__psproc = None
+            print("santoehusanotehusanoethsnaoteuh")
             if WINDOWS:
                 kwargs['creationflags'] = subprocess.CREATE_NEW_PROCESS_GROUP
-            subprocess.Popen.__init__(self, *args, **kwargs)
-            self.__psproc = Process(self.pid)
-            self.__psproc._init(self.pid, _ignore_nsp=True)
+            self.__subproc = subprocess.Popen(*args, **kwargs)
+            self._init(self.__subproc.pid, _ignore_nsp=True)
 
-    from psutil import Popen
+    print(dir(Popen_monkey))
+    print(dir(Popen))
     Popen.__init__ = Popen_monkey.__init__
