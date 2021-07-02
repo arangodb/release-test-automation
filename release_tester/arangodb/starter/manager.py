@@ -21,7 +21,7 @@ import semver
 
 from tools.asciiprint import print_progress as progress
 from tools.timestamp import timestamp
-import tools.mokeypatch_psutil
+import tools.monkeypatch_psutil
 from arangodb.instance import (
     ArangodInstance,
     ArangodRemoteInstance,
