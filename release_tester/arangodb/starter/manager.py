@@ -427,10 +427,12 @@ class StarterManager():
         if exit_code != 0:
             raise Exception("Starter exited with %d" % exit_code)
 
+        old_log = self.basedir / "arangodb.log.old"
         logging.info("StarterManager: done - moving logfile from %s to %s",
-                     str(self.log_file),
-                     str(self.basedir / "arangodb.log.old"))
-        self.log_file.rename(self.basedir / "arangodb.log.old")
+                     str(self.log_file), str(old_log))
+        if old_log.exists():
+            old_log.unlink()
+        self.log_file.rename(old_log)
 
         for instance in self.all_instances:
             instance.rename_logfile()
