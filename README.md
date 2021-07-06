@@ -11,6 +11,7 @@
 - pyyaml - for parsing saved data.
 - click - for commandline parsing https://click.palletsprojects.com/en/7.x/
 - semver - semantic versioning.
+- beautiful table - https://beautifultable.readthedocs.io/en/latest/quickstart.html
 - gdb - for checking debug symbol. `sudo apt-get install gdb` macos:`brew install gdb` 
 
 # Installing
@@ -21,24 +22,26 @@
   `apt-get install python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect python3-pyftpdlib python3-statsd python3-selenium gdb`
   
   the `python3-semver` on debian is to old - need to use the pip version instead:
-  `pip3 install semver`
+  `pip3 install semver beautifultable`
   
   Ubuntu 16.40 pip3 system package is broken. Fix like this: 
   `dpkg -r python3-pip python3-pexpect` 
   `python3.8 -m easy_install pip`
-  `pip install distro semver pexpect psutil`
+  `pip install distro semver pexpect psutil beautifultable`
   
 - **centos**:
-   `yum update ; yum install python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect python3-pyftpdlib; pip3 install psutil semver` 
+   `yum update ; yum install python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect python3-pyftpdlib; pip3 install psutil semver beautifultable` 
    `sudo yum install gdb`
 - **plain pip**:
-  `pip3 install psutil pyyaml pexpect requests click semver ftplib selenium`
+  `pip3 install psutil pyyaml pexpect requests click semver ftplib selenium beautifultable`
 
 ## Mac OS
 :
     `brew install gnu-tar`
-    `pip3 install click psutil requests pyyaml semver pexpect ftplib selenium`
+    `pip3 install click psutil requests pyyaml semver pexpect selenium beautifultable`
     `brew install gdb`
+if `python --version` is below 3.9 you also have to download ftplib:
+    `pip3 install click ftplib`
 
 ## Selenium dependencies
 ### chrome
@@ -65,14 +68,14 @@ https://python-semver.readthedocs.io/ is used for version handling. hence the sy
 `3.7.1-rc.1+0.501` where `0.501` is the package version that we add in .rpm
 `3.7.1` will download the final release packages.
 
-# Using test.py for release testing
+# Using `test.py` for release testing
 
-test.py is intended to test the flow
+`test.py` is intended to test the flow
  - install package
  - run starter tests
  - uninstall package
 
-This sequence can be broken up by invoking test.py with `--mode install` and subsequently multiple invokactions with `--mode tests`. The system can afterwards be cleaned with `--mode uninstall`. 
+This sequence can be broken up by invoking `test.py` with `--mode install` and subsequently multiple invokactions with `--mode tests`. The system can afterwards be cleaned with `--mode uninstall`. 
 For this, a setting file `/tmp/config.yml` is kept. This way parts of this flow can be better tuned without the resource intense un/install process.
 
 Supported Parameters:
@@ -104,9 +107,9 @@ Example usage:
  - Linux (ubuntu|debian) `python3 ./release_tester/test.py --new-version 3.6.2 --no-enterprise --package-dir /home/willi/Downloads`
  - Linux (centos|fedora|sles) `python3 ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
 
-# Using upgrade.py for upgrade testing
+# Using `upgrade.py` for upgrade testing
 
-upgrade.py is intended to test the flow
+`upgrade.py` is intended to test the flow
  - install old package
  - setup one starter test
  - upgrade package
@@ -138,9 +141,9 @@ Example usage:
  - Linux (ubuntu|debian) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
  - Linux (centos|fedora|sles) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
 
-# using acquire_packages.py to download packages from stage1/stage2/live
+# using `acquire_packages.py` to download packages from stage1/stage2/live
 
-acquire_packages.py can fetch a set of packages for later use with upgrade.py/test.py. It will detect the platform its working on.
+`acquire_packages.py` can fetch a set of packages for later use with `upgrade.py`/`test.py`. It will detect the platform its working on.
 
 Supported Parameters:
  - `--new-version` which Arangodb Version you want to run the test on
@@ -156,7 +159,6 @@ Supported Parameters:
  - `--httppassvoid` secret for stage http access
  - `--verbose` if specified more logging is done
  - `--force` overwrite readily existing downloaded packages
- - `--stress-upgrade` run stresstest while attempting the upgrade of [cluster]
 
 example usage:
 `python3 release_tester/acquire_packages.py --enterprise \
@@ -165,6 +167,55 @@ example usage:
                                             --package-dir /home/willi/Downloads/ \
                                             --force \
                                             --source ftp:stage2`
+
+# Using `full_download_upgrade_test.py` for automated upgrade testing
+
+`full_download_upgrade_test.py` integrates `upgrade.py` and `acquire_packages.py`.
+It will download `Enterprise` and `Community` packages, while `-nightly` will first attempt
+to resolve the proper version of the nightly package, since `-nightly` allways is a suffix to the latest released version + 1.
+
+It will then run the `upgrade.py` mechanic for:
+ - enterprise with encryption at rest enabled
+ - enterprise 
+ - community
+
+and create a final report at the end of the run.
+
+The downloading of packages can be circumvented by specifying `--source local`.
+
+Supported Parameters:
+ - `--old-version` which Arangodb Version you want to install to setup the old system
+ - `--new-version` which Arangodb Version you want to upgrade the environment to
+ - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
+ - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
+ - `--[no-]encryption-at-rest` turn on encryption at rest for Enterprise packages
+ - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
+ - `--enterprise-magic` specify your secret enterprise download key here.
+ - `--source [local|public|[ftp|http]:stage1|[ftp|http]:stage2]`
+   - `local` no packages will be downloaded at all, but rather are expected to be found in `package-dir`.
+   - `public` (default) will download the packages from downloads.arangodb.com
+   - `stage1` will download the files from the staging fileserver - level 1 - ftp: internal http external requires credentials
+   - `stage2` will download the files from the staging fileserver - level 2 - ftp: internal http external requires credentials
+ - `--httpuser` username for stage http access
+ - `--httppassvoid` secret for stage http access
+ - `--force` overwrite readily existing downloaded packages
+ - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
+ - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
+ - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
+ - `--verbose` if specified more logging is done
+ - `--starter-mode [all|LF|AFO|CL|DC|none]` which starter test to exute, `all` of them or `none` at all or: 
+   - `LF` - Leader / Follower - setup two single instances, start replication between them
+   - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
+   - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
+   - `DC` - setup 2 clusters, connect them with arangosync (enterprise only)
+ - `--selenium` - specify the webdriver to be used to work with selenium (if)
+ - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
+
+Example usage: 
+
+- [jenkins/nightly_tar.sh](jenkins/nightly_tar.sh) Download nightly tarball packages, and run it with selenium in `containers/docker_tar` ubuntu container
+- [jenkins/nightly_deb.sh](jenkins/nightly_deb.sh) Download nightly debian packages, and run them with selenium in `containers/docker_deb` ubuntu container
+- [jenkins/nightly_rpm.sh](jenkins/nightly_rpm.sh) Download nightly redhat packages, and run them with selenium in `containers/docker_rpm` centos 7 container
 
 # Using cleanup.py to clean out the system
 

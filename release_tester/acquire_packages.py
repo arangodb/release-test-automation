@@ -2,7 +2,6 @@
 # pylint: disable=C0301
 # have long strings, need long lines.
 """ Release testing script"""
-import logging
 from ftplib import FTP
 from pathlib import Path
 import json
@@ -12,13 +11,7 @@ from arangodb.installers import make_installer, InstallerConfig
 import tools.loghelper as lh
 
 import requests
-
-logging.basicConfig(
-    level=logging.INFO,
-    datefmt='%H:%M:%S',
-    format='%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s'
-)
-
+from common_options import very_common_options, download_options
 class AcquirePackages():
     """ manage package downloading from any known arango package source """
 
@@ -45,19 +38,17 @@ class AcquirePackages():
         self.passvoid = httppassvoid
         self.enterprise_magic = enterprise_magic
         if remote_host != "":
+            # external DNS to wuerg around docker dns issues...
             self.remote_host = remote_host
         else:
             # dns split horizon...
             if source in ["ftp:stage1", "ftp:stage2"]:
                 self.remote_host = "Nas02.arangodb.biz"
-            else:
+            elif source in ["http:stage1", "http:stage2"]:
                 self.remote_host = "fileserver.arangodb.com"
-
+            else:
+                self.remote_host = "download.arangodb.com"
         lh.section("startup")
-        if verbose:
-            logging.info("setting debug level to debug (verbose)")
-            logging.getLogger().setLevel(logging.DEBUG)
-
 
         self.package_dir = Path(package_dir)
         self.cfg = InstallerConfig(version,
@@ -78,7 +69,8 @@ class AcquirePackages():
 
     def calculate_package_names(self):
         """ guess where to locate the packages """
-        self.inst.calculate_package_names()
+        if self.is_nightly:
+            self.inst.calculate_package_names()
         self.params = {
             "full_version": 'v{major}.{minor}.{patch}'.format(**self.cfg.semver.to_dict()),
             "major_version": 'arangodb{major}{minor}'.format(**self.cfg.semver.to_dict()),
@@ -174,7 +166,8 @@ class AcquirePackages():
     def acquire_live(self, directory, package, local_dir, force):
         """ download live files via http """
         print('live')
-        url = 'https://download.arangodb.com/{dir}{pkg}'.format(**{
+        url = 'https://{remote_host}/{dir}{pkg}'.format(**{
+            'remote_host': self.remote_host,
             'dir': directory,
             'pkg': package
             })
@@ -230,45 +223,21 @@ class AcquirePackages():
         return json.dumps(val)
 
 @click.command()
-@click.option('--new-version', help='ArangoDB version number.')
-@click.option('--verbose/--no-verbose',
-              is_flag=True,
-              default=False,
-              help='switch starter to verbose logging mode.')
-@click.option('--enterprise/--no-enterprise',
-              is_flag=True,
-              default=False,
-              help='Enterprise or community?')
-@click.option('--enterprise-magic',
-              default='',
-              help='Enterprise or community?')
-@click.option('--zip/--no-zip', 'zip_package',
-              is_flag=True,
-              default=False,
-              help='switch to zip or tar.gz package instead of default OS package')
-@click.option('--package-dir',
-              default='/tmp/',
-              help='directory to store the packages to.')
-@click.option('--force/--no-force',
-              is_flag=True,
-              default=False,
-              help='whether to overwrite existing target files or not.')
-@click.option('--source',
-              default='public',
-              help='where to download the package from [[ftp|http]:stage1|[ftp|http]:stage2|public]')
-@click.option('--httpuser',
-              default="",
-              help='user for external http download')
-@click.option('--httppassvoid',
-              default="",
-              help='passvoid for external http download')
-@click.option('--remote-host',
-              default="",
-              help='remote host to acquire packages from')
+@very_common_options
+@download_options()
 # pylint: disable=R0913
-def main(new_version, verbose, package_dir, enterprise, enterprise_magic, zip_package, force, source, httpuser, httppassvoid, remote_host):
+def main(
+        #very_common_options
+        new_version, verbose, enterprise, package_dir, zip_package,
+        # download options:
+        enterprise_magic, force, source,
+        httpuser, httppassvoid, remote_host):
     """ main wrapper """
-    downloader = AcquirePackages(new_version, verbose, package_dir, enterprise, enterprise_magic, zip_package, source, httpuser, httppassvoid, remote_host)
+    lh.configure_logging(verbose)
+    downloader = AcquirePackages(new_version, verbose, package_dir,
+                                 enterprise, enterprise_magic,
+                                 zip_package, source,
+                                 httpuser, httppassvoid, remote_host)
     return downloader.get_packages(force, source)
 
 if __name__ == "__main__":

@@ -1,10 +1,13 @@
 #!/bin/bash
 
 if test -z "$OLD_VERSION"; then
-    OLD_VERSION=3.7.0-nightly
+    OLD_VERSION=3.8.0-nightly
 fi
 if test -z "$NEW_VERSION"; then
-    NEW_VERSION=3.8.0-nightly
+    NEW_VERSION=3.9.0-nightly
+fi
+if test -n "$PACKAGE_CACHE"; then
+    PACKAGE_CACHE=$(pwd)/package_cache
 fi
 
 VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_tar_version"
@@ -29,25 +32,44 @@ if test -n "$FORCE" -o "$TEST_BRANCH" != 'master'; then
   force_arg='--force'
 fi
 
-
 trap "docker kill /$DOCKER_NAME; docker rm /$DOCKER_NAME;" EXIT
-docker build docker_tar -t $DOCKER_TAG
+docker build containers/docker_tar -t $DOCKER_TAG
 # we need --init since our upgrade leans on zombies not happening:
 docker \
     run \
   --name=$DOCKER_NAME \
-  -v `pwd`:/home/release-test-automation \
-  -v `pwd`/test_dir:/home/test_dir \
-  -v `pwd`/package_cache:/home/package_cache \
-  -v `pwd`/${VERSION_TAR_NAME}:/home/versions \
+  -v /dev/shm:/dev/shm \
+  -v $(pwd):/home/release-test-automation \
+  -v $(pwd)/test_dir:/home/test_dir \
+  -v "$PACKAGE_CACHE":/home/package_cache \
+  -v $(pwd)/${VERSION_TAR_NAME}:/home/versions \
+  --pid=host \
+  --rm \
   --ulimit core=-1 \
   --init \
   $DOCKER_TAG \
-    /home/release-test-automation/release_tester/full_download_upgrade_test.py \
+  /home/release-test-automation/release_tester/full_download_upgrade_test.py \
+      --zip \
+      --verbose \
       --old-version $OLD_VERSION \
       --new-version $NEW_VERSION \
+      --selenium Chrome \
+      --selenium-driver-args headless \
+      --selenium-driver-args no-sandbox \
       --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;") \
       $force_arg --git-version $GIT_VERSION $@
 result=$?
-tar -cvf ${VERSION_TAR_NAME}.tar ${VERSION_TAR_NAME}
-exit $result
+
+# Cleanup ownership:
+docker run \
+       -v $(pwd)/test_dir:/home/test_dir \
+       --rm \
+       $DOCKER_TAG chown -R $(id -u):$(id -g) /home/test_dir
+
+if test "$result" -eq "0"; then
+    echo "OK"
+    tar -cvf ${VERSION_TAR_NAME}.tar ${VERSION_TAR_NAME}
+else
+    echo "FAILED TAR!"
+    exit 1
+fi

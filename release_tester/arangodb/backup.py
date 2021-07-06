@@ -9,7 +9,7 @@ import time
 
 import psutil
 
-from tools.asciiprint import ascii_print, print_progress as progress
+from tools.asciiprint import ascii_convert, ascii_print, print_progress as progress
 import tools.loghelper as lh
 
 #            json.dumps({
@@ -31,11 +31,11 @@ class HotBackupConfig():
         self.install_prefix = raw_install_prefix
         self.cfg_type = "local"
         self.name = str(name).replace('/', '_')
-        self.provider = None
-        self.env_auth = False
-        self.access_key_id = None
-        self.secret_access_key = None
-        self.region = None
+        #self.provider = None
+        #self.env_auth = False
+        #self.access_key_id = None
+        #self.secret_access_key = None
+        #self.region = None
         self.acl = "private"
 
     def save_config(self, filename):
@@ -58,6 +58,7 @@ class HotBackupConfig():
         return self.save_config("rclone_config.json")
 
 class HotBackupManager():
+    # pylint: disable=R0902
     """ manages one arangobackup instance"""
     def __init__(self,
                  basecfg,
@@ -113,10 +114,12 @@ class HotBackupManager():
                 ascii_print(strline)
                 if strline.find('ERROR') >= 0:
                     success = False
+        instance.wait()
         if instance.returncode != 0:
             raise Exception("arangobackup exited " + str(instance.returncode))
         if not success:
-            raise Exception("arangobackup indicated 'ERROR' in its output!")
+            raise Exception("arangobackup indicated 'ERROR' in its output: %s" %
+                            ascii_convert(output))
         return output.splitlines()
 
     def create(self, backup_name):
@@ -142,7 +145,6 @@ class HotBackupManager():
 
     def restore(self, backup_name):
         """ restore an existing hot backup """
-        time.sleep(6) #TODO: remove this workaround
         args = ['restore', '--identifier', backup_name]
         self.run_backup(args, backup_name)
 
@@ -205,7 +207,9 @@ class HotBackupManager():
             print("have to retry. " + str(counts) + " - " + str(instance_count))
             timeout -= 1
             if timeout <= 0:
-                raise TimeoutExpired("failed to find %d 'COMPLETED' status for upload status" % instance_count)
+                raise TimeoutError(
+                    "failed to find %d 'COMPLETED' status for upload status" %
+                    instance_count)
             time.sleep(1)
 
     def download(self, backup_name, backup_config: HotBackupConfig, identifier):

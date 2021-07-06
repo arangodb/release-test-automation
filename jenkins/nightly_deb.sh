@@ -11,6 +11,9 @@ fi
 if test -z "$NEW_VERSION"; then
     NEW_VERSION=3.8.0-nightly
 fi
+if test -n "$PACKAGE_CACHE"; then
+    PACKAGE_CACHE=$(pwd)/package_cache
+fi
 
 VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_deb_version"
 mkdir -p ${VERSION_TAR_NAME}
@@ -33,31 +36,44 @@ trap "docker kill $DOCKER_DEB_NAME; \
 
 version=$(git rev-parse --verify HEAD)
 
-docker build docker_deb -t $DOCKER_DEB_TAG || exit
+docker build containers/docker_deb -t $DOCKER_DEB_TAG || exit
 
 docker run -itd \
        --ulimit core=-1 \
        --privileged \
        --name=$DOCKER_DEB_NAME \
        -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
-       -v `pwd`:/home/release-test-automation \
-       -v `pwd`/package_cache/:/home/package_cache \
-       -v `pwd`/test_dir:/home/test_dir \
+       -v $(pwd):/home/release-test-automation \
+       -v $(pwd)/test_dir:/home/test_dir \
+       -v "$PACKAGE_CACHE":/home/package_cache \
+       -v $(pwd)/${VERSION_TAR_NAME}:/home/versions \
        -v /tmp/tmp:/tmp/ \
-       -v `pwd`/${VERSION_TAR_NAME}:/home/versions \
+       -v /dev/shm:/dev/shm \
+        --rm \
        \
        $DOCKER_DEB_TAG \
        \
        /lib/systemd/systemd --system --unit=multiuser.target 
 
-if docker exec $DOCKER_DEB_NAME \
+docker exec $DOCKER_DEB_NAME \
           /home/release-test-automation/release_tester/full_download_upgrade_test.py \
           --old-version "${OLD_VERSION}" \
           --new-version "${NEW_VERSION}" \
+          --verbose \
           --selenium Chrome \
           --selenium-driver-args headless \
+          --selenium-driver-args no-sandbox \
           --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;") \
-          --no-zip $force_arg $@; then
+          --no-zip $force_arg $@
+result=$?
+
+# Cleanup ownership:
+docker run \
+       -v $(pwd)/test_dir:/home/test_dir \
+       --rm \
+       $DOCKER_DEB_TAG chown -R $(id -u):$(id -g) /home/test_dir
+
+if test "$result" -eq "0"; then
     echo "OK"
     tar -cvf ${VERSION_TAR_NAME}.tar ${VERSION_TAR_NAME}
 else

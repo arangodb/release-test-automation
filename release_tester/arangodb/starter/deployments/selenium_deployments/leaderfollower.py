@@ -5,26 +5,24 @@ from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunn
 
 class LeaderFollower(SeleniumRunner):
     """ check the leader follower setup and its properties """
-    def __init__(self, webdriver):
-        super().__init__(webdriver)
+    def __init__(self, webdriver,
+                 is_headless: bool,
+                 testrun_name: str):
+        # pylint: disable=W0235
+        super().__init__(webdriver,
+                         is_headless,
+                         testrun_name)
 
-    def check_old(self, cfg, leader_follower=True):
+    def check_old(self, cfg, leader_follower=True, expect_follower_count=2, retry_count=10):
         """ check the integrity of the old system before the upgrade """
-        ver = self.detect_version()
-        print('S: %s ~= %s?'% (ver['version'].lower(), str(cfg.semver)))
-
-        assert ver['version'].lower().startswith(str(cfg.semver))
-        if cfg.enterprise:
-            assert ver['enterprise'] == 'ENTERPRISE EDITION'
-        else:
-            assert ver['enterprise'] == 'COMMUNITY EDITION'
+        self.check_version(cfg)
 
         count = 0
         replication_table = None
         while True:
             self.navbar_goto('replication')
             replication_table = self.get_replication_screen(leader_follower, 120)
-            print('S: ' + str(replication_table))
+            self.progress(' ' + str(replication_table))
             if len(replication_table['follower_table']) == 2:
                 break
             if count % 5 == 0:
@@ -32,20 +30,20 @@ class LeaderFollower(SeleniumRunner):
             count +=1
             time.sleep(5)
         # head and one follower should be there:
-        assert len(replication_table['follower_table']) == 2
+        self.ui_assert(len(replication_table['follower_table']) == 2,
+                       "UI-Test: expected 1 follower")
 
-    def upgrade_deployment(self, new_cfg, secondary, leader_follower):
-        pass
+    def upgrade_deployment(self, old_cfg, new_cfg, timeout):
+        """ nothing to see here """
 
     def jam_step_1(self, cfg):
         """ check for one set of instances to go away """
-        pass
-        # TODO: fix replication upgrade
-        # self.navbar_goto('replication')
-        # replication_table = self.get_replication_screen(True)
-        # print(replication_table)
-        # # head and one follower should be there:
-        # assert len(replication_table['follower_table']) == 2
+        self.navbar_goto('replication')
+        replication_table = self.get_replication_screen(True)
+        print(replication_table)
+        # head and one follower should be there:
+        self.ui_assert(len(replication_table['follower_table']) == 2,
+                       "UI-Test: expected to have 1 follower!")
 
     def jam_step_2(self, cfg):
-        pass
+        """ nothing to see here """

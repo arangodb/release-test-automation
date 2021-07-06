@@ -10,7 +10,6 @@ from subprocess import DEVNULL, PIPE, Popen
 import sys
 from threading  import Thread
 import psutil
-import semver
 from tools.asciiprint import print_progress as progress
 import tools.errorhelper as eh
 import tools.loghelper as lh
@@ -19,6 +18,7 @@ ON_POSIX = 'posix' in sys.builtin_module_names
 
 def dummy_line_result(line):
     """ do nothing with the line... """
+    #pylint: disable=W0104
     line
 
 def enqueue_stdout(std_out, queue, instance):
@@ -58,19 +58,15 @@ class ArangoshExecutor():
         run_cmd = [
             self.cfg.bin_dir / "arangosh",
             "--log.level", "v8=debug",
-            "--server.endpoint", self.connect_instance.get_endpoint()
-        ]
-
-        run_cmd += [ "--server.username", str(self.cfg.username) ]
-        run_cmd += [ "--server.password", str(self.connect_instance.get_passvoid()) ]
-
+            "--server.endpoint", self.connect_instance.get_endpoint(),
+            "--server.username", str(self.cfg.username),
+            "--server.password", str(self.connect_instance.get_passvoid())]
         # if self.cfg.username:
         #    run_cmd += [ "--server.username", str(self.cfg.username) ]
+        if self.cfg.passvoid:
+            run_cmd += [ "--server.password", str(self.cfg.passvoid) ]
 
-        # if self.cfg.passvoid:
-        #    run_cmd += [ "--server.password", str(self.cfg.passvoid) ]
-
-        run_cmd += [ "--javascript.execute-string", str(cmd[1]) ]
+        run_cmd += ["--javascript.execute-string", str(cmd[1]) ]
 
         if len(cmd) > 2:
             run_cmd += cmd[2:]
@@ -115,21 +111,18 @@ class ArangoshExecutor():
     def run_script(self, cmd, verbose = True):
         """ launch an external js-script, print its name """
         run_cmd = [
-            self.cfg.bin_dir / "arangosh",
-            "--log.level", "v8=debug",
-            "--server.endpoint", self.connect_instance.get_endpoint()
-        ]
-
-        run_cmd += [ "--server.username", str(self.cfg.username) ]
-        run_cmd += [ "--server.password", str(self.connect_instance.get_passvoid()) ]
-
         # if self.cfg.username:
         #    run_cmd += [ "--server.username", str(self.cfg.username) ]
 
         # if self.cfg.passvoid:
         #    run_cmd += [ "--server.password", str(self.cfg.passvoid) ]
 
-        run_cmd += [ "--javascript.execute", str(cmd[1]) ]
+            self.cfg.bin_dir / "arangosh",
+            "--log.level", "v8=debug",
+            "--server.endpoint", self.connect_instance.get_endpoint(),
+            "--server.username", str(self.cfg.username),
+            "--server.password", str(self.connect_instance.get_passvoid()),
+            "--javascript.execute", str(cmd[1]) ]
 
         if len(cmd) > 2:
             run_cmd += cmd[2:]
@@ -149,34 +142,35 @@ class ArangoshExecutor():
 
     def run_script_monitored(self, cmd, args, timeout, result_line,
                              process_control=False, verbose=True):
-       # pylint: disable=R0913 disable=R0902 disable=R0915 disable=R0912
+       # pylint: disable=R0913 disable=R0902 disable=R0915 disable=R0912 disable=R0914
         """
         runs a script in background tracing with
         a dynamic timeout that its got output
         (is still alive...)
         """
+        if process_control:
+            process_control = ['--javascript.allow-external-process-control', 'true']
+        else:
+            process_control = []
         run_cmd = [
             self.cfg.bin_dir / "arangosh",
             "--server.endpoint", self.connect_instance.get_endpoint(),
             "--log.level", "v8=debug",
-            "--log.foreground-tty", "true"
-        ]
-        if process_control:
-            run_cmd += ['--javascript.allow-external-process-control', 'true']
-        run_cmd += [ "--server.username", str(self.cfg.username) ]
-        run_cmd += [ "--server.password", str(self.connect_instance.get_passvoid()) ]
-
-        run_cmd += [ "--javascript.execute", str(cmd[1]) ]
-
-        if len(cmd) > 2:
-            run_cmd += cmd[2:]
+            "--log.foreground-tty", "true",
+            "--javascript.module-directory", self.cfg.test_data_dir.resolve(),
+            "--server.username", str(self.cfg.username),
+            "--server.password", str(self.connect_instance.get_passvoid())
+        ] + process_control + [
+            "--javascript.execute", str(cmd[1]) ]
 
         if len(args) > 0:
             run_cmd += ['--'] + args
 
         if verbose:
             lh.log_cmd(run_cmd)
-        process = Popen(run_cmd, stdout=PIPE, stderr=PIPE, close_fds=ON_POSIX)
+        process = Popen(run_cmd,
+                        stdout=PIPE, stderr=PIPE, close_fds=ON_POSIX,
+                        cwd=self.cfg.test_data_dir.resolve())
         queue = Queue()
         thread1 = Thread(target=enqueue_stdout, args=(process.stdout,
                                                       queue,
@@ -231,7 +225,11 @@ class ArangoshExecutor():
             return (True, "")
         return (True, convert_result(result))
 
-    def run_testing(self, testcase, args, timeout, logfile, verbose):
+    def run_testing(self, testcase, args,
+                    #timeout,
+                    logfile,
+                    #verbose
+                    ):
        # pylint: disable=R0913 disable=R0902
         """ testing.js wrapper """
         args = [
@@ -319,7 +317,6 @@ class ArangoshExecutor():
                                     self.cfg.interactive)
         return res
 
-    
     def hotbackup_create_nonbackup_data(self):
         """
         create a collection with documents after taking a backup
@@ -366,7 +363,7 @@ class ArangoshExecutor():
                         result_line=dummy_line_result,
                         timeout=100):
        # pylint: disable=R0913 disable=R0902 disable=W0102
-        """ deploy testdata into the instance """
+        """ mimic runInArangosh testing.js behaviour """
         if testname:
             logging.info("adding test data for {0}".format(testname))
         else:
@@ -380,11 +377,11 @@ class ArangoshExecutor():
             (cwd / 'arangosh').mkdir()
             (cwd / 'arangod').mkdir()
             (cwd / 'tests').mkdir()
-        except:
+        except FileExistsError:
             pass
         ret = self.run_script_monitored(cmd=[
             'setting up test data',
-            self.cfg.test_data_dir / 'run_in_arangosh.js'],
+            self.cfg.test_data_dir.resolve() / 'run_in_arangosh.js'],
                                         args = [testname] + args + [
                                             '--args'
                                         ] + moreargs,
@@ -406,9 +403,10 @@ class ArangoshExecutor():
 
         ret = self.run_script_monitored(cmd=[
             'setting up test data',
-            self.cfg.test_data_dir / 'makedata.js'],
+            self.cfg.test_data_dir.resolve() / 'makedata.js'],
                                             args =args +[
-                                                '--progress', 'true'
+                                                '--progress', 'true',
+                                                '--passvoid', self.cfg.passvoid
                                             ],
                                             timeout=timeout,
                                         result_line=result_line,
@@ -424,19 +422,16 @@ class ArangoshExecutor():
         else:
             logging.info("checking test data")
 
-        validateOneShard = 'true' if semver.compare(self.cfg.version, "3.7.7") >= 0 else 'false'
-
         ret = self.run_script_monitored(cmd=[
             'checking test data integrity',
-            self.cfg.test_data_dir / 'checkdata.js'],
+            self.cfg.test_data_dir.resolve() / 'checkdata.js'],
                                             args=args + [
                                                 '--progress', 'true',
-                                                '--validateoneshard', validateOneShard
+                                                '--oldVersion', self.cfg.version
                                             ],
                                         timeout=5,
                                         result_line=result_line,
                                         verbose=self.cfg.verbose)
-
         return ret
 
     def clear_test_data(self, testname, args=[], result_line=dummy_line_result):
@@ -449,7 +444,7 @@ class ArangoshExecutor():
 
         ret = self.run_script_monitored(cmd=[
             'cleaning up test data',
-            self.cfg.test_data_dir / 'cleardata.js'],
+            self.cfg.test_data_dir.resolve() / 'cleardata.js'],
                                             args=args + [
                                                 '--progress', 'true'
                                             ],

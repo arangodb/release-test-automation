@@ -2,7 +2,8 @@
 """ tiny utility to kill all arangodb related processes """
 import logging
 import psutil
-
+# yes, we catch all.
+# pylint: disable=W0703
 def get_all_processes(kill_selenium):
     """ fetch all possible running processes that we may have spawned """
     arangods = []

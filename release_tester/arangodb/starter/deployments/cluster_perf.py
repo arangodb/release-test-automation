@@ -12,7 +12,7 @@ import statsd
 import yaml
 
 from arangodb.instance import InstanceType
-from arangodb.starter.deployments.runner import Runner
+from arangodb.starter.deployments.runner import Runner, PunnerProperties
 
 from tools.asciiprint import print_progress as progress
 import tools.interact as ti
@@ -82,8 +82,11 @@ def makedata_runner(queue, resq, arangosh, progressive_timeout):
 class ClusterPerf(Runner):
     """ this launches a cluster setup """
     # pylint: disable=R0913 disable=R0902
-    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst, selenium, selenium_driver_args):
+    def __init__(self, runner_type, abort_on_error, installer_set,
+                 selenium, selenium_driver_args,
+                 testrun_name: str):
         global OTHER_SH_OUTPUT, RESULTS_TXT
+        cfg = installer_set[0][0]
         if not cfg.scenario.exists():
             cfg.scenario.write_text(yaml.dump(TestConfig()))
             raise Exception("have written %s with default config" % str(cfg.scenario))
@@ -91,8 +94,10 @@ class ClusterPerf(Runner):
         with open(cfg.scenario) as fileh:
             self.scenario = yaml.load(fileh, Loader=yaml.Loader)
 
-        super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst,
-                         'CLUSTER', 9999999, 99999999, selenium, selenium_driver_args)
+        super().__init__(runner_type, abort_on_error, installer_set,
+                         PunnerProperties('CLUSTER', 9999999, 99999999, False),
+                         selenium, selenium_driver_args,
+                         testrun_name)
         self.success = False
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
@@ -118,9 +123,9 @@ class ClusterPerf(Runner):
                            jwtStr=self.jwtdatastr,
                            port=9528,
                            expect_instances=[
-                               InstanceType.agent,
-                               InstanceType.coordinator,
-                               InstanceType.dbserver,
+                               InstanceType.AGENT,
+                               InstanceType.COORDINATOR,
+                               InstanceType.DBSERVER
                            ],
                            moreopts=[
                                #    '--agents.agency.election-timeout-min=5',
@@ -133,9 +138,9 @@ class ClusterPerf(Runner):
                            jwtStr=self.jwtdatastr,
                            port=9628,
                            expect_instances=[
-                               InstanceType.agent,
-                               InstanceType.coordinator,
-                               InstanceType.dbserver,
+                               InstanceType.AGENT,
+                               InstanceType.COORDINATOR,
+                               InstanceType.DBSERVER
                            ],
                            moreopts=[
                                '--starter.join', '127.0.0.1:9528',
@@ -149,9 +154,9 @@ class ClusterPerf(Runner):
                            jwtStr=self.jwtdatastr,
                            port=9728,
                            expect_instances=[
-                               InstanceType.agent,
-                               InstanceType.coordinator,
-                               InstanceType.dbserver,
+                               InstanceType.AGENT,
+                               InstanceType.COORDINATOR,
+                               InstanceType.DBSERVER
                            ],
                            moreopts=[
                                '--starter.join', '127.0.0.1:9528',
@@ -167,8 +172,6 @@ class ClusterPerf(Runner):
         pass # we don't care
     def check_data_impl(self):
         pass
-    def supports_backup_impl(self):
-        return False # we want to do this on our own.
 
     def starter_run_impl(self):
         lh.subsection("instance setup")
@@ -218,7 +221,7 @@ class ClusterPerf(Runner):
     def jam_attempt_impl(self):
         self.makedata_instances = self.starter_instances[:]
         logging.info('jamming: starting data stress')
-        assert self.makedata_instances
+        assert self.makedata_instances, "no makedata instance!"
         logging.debug("makedata instances")
         for i in self.makedata_instances:
             logging.debug(str(i))
@@ -246,7 +249,7 @@ class ClusterPerf(Runner):
         while len(workers) < self.scenario.parallelity:
             starter = self.makedata_instances[len(workers) % len(
                 self.makedata_instances)]
-            assert starter.arangosh
+            assert starter.arangosh, "no starter associated arangosh!"
             arangosh = starter.arangosh
 
             #must be writabe that the setup may not have already data

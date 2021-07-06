@@ -8,7 +8,7 @@ from tools.timestamp import timestamp
 from tools.interact import prompt_user
 from arangodb.instance import InstanceType
 from arangodb.starter.manager import StarterManager
-from arangodb.starter.deployments.runner import Runner
+from arangodb.starter.deployments.runner import Runner, PunnerProperties
 import tools.loghelper as lh
 from tools.asciiprint import print_progress as progress
 
@@ -16,12 +16,13 @@ from tools.asciiprint import print_progress as progress
 class Cluster(Runner):
     """ this launches a cluster setup """
     # pylint: disable=R0913 disable=R0902
-    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst,
-                 selenium, selenium_driver_args):
-        super().__init__(runner_type,
-                         cfg, old_inst, new_cfg, new_inst,
-                         'CLUSTER', 400, 600,
-                         selenium, selenium_driver_args)
+    def __init__(self, runner_type, abort_on_error, installer_set,
+                 selenium, selenium_driver_args,
+                 testrun_name: str):
+        super().__init__(runner_type, abort_on_error, installer_set,
+                         PunnerProperties('CLUSTER', 400, 600, True),
+                         selenium, selenium_driver_args,
+                         testrun_name)
         #self.basecfg.frontends = []
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
@@ -40,9 +41,9 @@ db.testCollection.save({test: "document"})
                            jwtStr=self.jwtdatastr,
                            port=9528,
                            expect_instances=[
-                               InstanceType.agent,
-                               InstanceType.coordinator,
-                               InstanceType.dbserver,
+                               InstanceType.AGENT,
+                               InstanceType.COORDINATOR,
+                               InstanceType.DBSERVER
                            ],
                            moreopts=[]))
         self.starter_instances.append(
@@ -52,9 +53,9 @@ db.testCollection.save({test: "document"})
                            jwtStr=self.jwtdatastr,
                            port=9628,
                            expect_instances=[
-                               InstanceType.agent,
-                               InstanceType.coordinator,
-                               InstanceType.dbserver,
+                               InstanceType.AGENT,
+                               InstanceType.COORDINATOR,
+                               InstanceType.DBSERVER
                            ],
                            moreopts=['--starter.join', '127.0.0.1:9528']))
         self.starter_instances.append(
@@ -64,9 +65,9 @@ db.testCollection.save({test: "document"})
                            jwtStr=self.jwtdatastr,
                            port=9728,
                            expect_instances=[
-                               InstanceType.agent,
-                               InstanceType.coordinator,
-                               InstanceType.dbserver,
+                               InstanceType.AGENT,
+                               InstanceType.COORDINATOR,
+                               InstanceType.DBSERVER
                            ],
                            moreopts=['--starter.join', '127.0.0.1:9528']))
         for instance in self.starter_instances:
@@ -133,24 +134,32 @@ db.testCollection.save({test: "document"})
             bench_instances[1].wait()
 
     def jam_attempt_impl(self):
-        logging.info("stopping instance 2")
-        self.starter_instances[2].terminate_instance()
+        agency_leader = self.agency_get_leader()
+        terminate_instance = 2
+        if self.starter_instances[terminate_instance].have_this_instance(agency_leader):
+            print("Cluster instance 2 has the agency leader; killing 1 instead")
+            terminate_instance = 1
+
+        logging.info("stopping instance %d" % terminate_instance)
+
+        self.starter_instances[terminate_instance].terminate_instance()
         self.set_frontend_instances()
+        self.starter_instances[0].arangosh.check_test_data("Cluster one node missing")
 
         prompt_user(self.basecfg, "instance stopped")
         if self.selenium:
             self.selenium.jam_step_1(self.new_cfg if self.new_cfg else self.cfg)
 
         # respawn instance, and get its state fixed
-        self.starter_instances[2].respawn_instance()
+        self.starter_instances[terminate_instance].respawn_instance()
         self.set_frontend_instances()
-        while not self.starter_instances[2].is_instance_up():
+        while not self.starter_instances[terminate_instance].is_instance_up():
             progress('.')
             time.sleep(1)
         print()
-        self.starter_instances[2].detect_instances()
-        self.starter_instances[2].detect_instance_pids()
-        self.starter_instances[2].detect_instance_pids_still_alive()
+        self.starter_instances[terminate_instance].detect_instances()
+        self.starter_instances[terminate_instance].detect_instance_pids()
+        self.starter_instances[terminate_instance].detect_instance_pids_still_alive()
         self.set_frontend_instances()
 
         logging.info('jamming: Starting instance without jwt')
@@ -160,9 +169,9 @@ db.testCollection.save({test: "document"})
             mode='cluster',
             jwtStr=None,
             expect_instances=[
-                InstanceType.agent,
-                InstanceType.coordinator,
-                InstanceType.dbserver,
+                InstanceType.AGENT,
+                InstanceType.COORDINATOR,
+                InstanceType.DBSERVER
             ],
             moreopts=['--starter.join', '127.0.0.1:9528'])
         dead_instance.run_starter()

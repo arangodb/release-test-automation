@@ -5,6 +5,8 @@ import os
 from pathlib import Path
 import semver
 
+# pylint: disable=R0903
+
 class InstallerFrontend():
     """ class describing frontend instances """
     def __init__(self, proto: str, ip_address: str, port: int):
@@ -72,6 +74,19 @@ class InstallerConfig():
             (semver.compare(self.version, "3.5.1") >= 0) and
             not isinstance(winver, list)
         )
+    def __repr__(self):
+        return """
+version: {0.version}
+using enterpise: {0.enterprise}
+using encryption at rest: {0.encryption_at_rest}
+using zip: {0.zip_package}
+package directory: {0.package_dir}
+test directory: {0.base_test_dir}
+mode: {0.mode}
+public ip: {0.publicip}
+interactive: {0.interactive}
+verbose: {0.verbose}
+""".format(self)
 
     def reset_version(self, version):
         """ establish a new version to manage """
@@ -160,3 +175,35 @@ def make_installer(install_config: InstallerConfig):
             return InstallerDocker(install_config)
         raise Exception('unsupported linux distribution: ' + str(distro))
     raise Exception('unsupported os' + platform.system())
+
+
+def create_config_installer_set(versions: list,
+                                verbose: bool,
+                                enterprise: bool,
+                                encryption_at_rest: bool,
+                                zip_package: bool,
+                                package_dir: Path,
+                                test_dir: Path,
+                                mode: str,
+                                publicip: str,
+                                interactive: bool,
+                                stress_upgrade: bool):
+    """ creates sets of configs and installers """
+    # pylint: disable=R0902 disable=R0913
+    res = []
+    for version in versions:
+        print(version)
+        install_config = InstallerConfig(version,
+                                         verbose,
+                                         enterprise,
+                                         encryption_at_rest,
+                                         zip_package,
+                                         package_dir,
+                                         test_dir,
+                                         mode,
+                                         publicip,
+                                         interactive,
+                                         stress_upgrade)
+        installer = make_installer(install_config)
+        res.append([install_config, installer])
+    return res

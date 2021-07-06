@@ -6,19 +6,17 @@ from selenium.common.exceptions import StaleElementReferenceException
 
 class Cluster(SeleniumRunner):
     """ check the leader follower setup and its properties """
-    def __init__(self, webdriver):
-        super().__init__(webdriver)
+    def __init__(self, webdriver,
+                 is_headless: bool,
+                 testrun_name: str):
+        # pylint: disable=W0235
+        super().__init__(webdriver,
+                         is_headless,
+                         testrun_name)
 
-    def check_old(self, cfg):
+    def check_old(self, cfg, leader_follower=False, expect_follower_count=2, retry_count=10):
         """ check the integrity of the old system before the upgrade """
-        ver = self.detect_version()
-        
-        print("S: %s ~= %s?" % (ver['version'].lower(), str(cfg.semver)))
-        assert ver['version'].lower().startswith(str(cfg.semver))
-        if cfg.enterprise:
-            assert ver['enterprise'] == 'ENTERPRISE EDITION'
-        else:
-            assert ver['enterprise'] == 'COMMUNITY EDITION'
+        self.check_version(cfg)
 
         self.navbar_goto('nodes')
         table = self.cluster_get_nodes_table()
@@ -27,13 +25,15 @@ class Cluster(SeleniumRunner):
             if row['state'] == 'SERVING':
                 row_count += 1
 
-        print('S: serving instances 6 / %d' % row_count)
-        assert row_count == 6
+        self.progress('serving instances 6 / %d' % row_count)
+        self.ui_assert(row_count == 6, "UI-Test: expected 6 instances")
 
         self.navbar_goto('cluster')
         node_count = self.cluster_dashboard_get_count()
-        assert node_count['dbservers'] == '3'
-        assert node_count['coordinators'] == '3'
+        self.ui_assert(node_count['dbservers'] == '3',
+                       "UI-Test: expected 3 dbservers, got: " + node_count['dbservers'])
+        self.ui_assert(node_count['coordinators'] == '3',
+                       "UI-Test: expected 3 coordinators, got: " + node_count['coordinators'])
         health_state = None
         count = 0
         while count < 10:
@@ -42,7 +42,7 @@ class Cluster(SeleniumRunner):
                 break
             count +=1
             time.sleep(1)
-        assert health_state == 'NODES OK'
+        self.ui_assert(health_state == 'NODES OK', "UI-Test: expected all nodes to be OK")
 
     def upgrade_deployment(self, old_cfg, new_cfg, timeout):
         old_ver = str(old_cfg.semver)
@@ -55,7 +55,7 @@ class Cluster(SeleniumRunner):
             try:
                 table = self.cluster_get_nodes_table(300)
             except StaleElementReferenceException:
-                print("S: skip once")
+                self.progress(" skip once")
 
             old_count = 0
             new_count = 0
@@ -66,19 +66,20 @@ class Cluster(SeleniumRunner):
                 elif row['version'].lower().startswith(new_ver):
                     new_count += 1
                 else:
-                    print("S: can't count this row on new or old: %s" % (str(row)))
+                    self.progress(" can't count this row on new or old: %s" % (str(row)))
             upgrade_done = (old_count == 0) and (new_count == 6)
-            print('S: serving instances old %d / new %d' % (old_count, new_count))
+            self.progress(' serving instances old %d / new %d' % (old_count, new_count))
             if not upgrade_done:
                 time.sleep(5)
             timeout -= 1
             if timeout <= 0:
-                raise TimeoutError("the cluster UI didn't show the new version in time")
+                raise TimeoutError("UI-Test: the cluster UI didn't show the new version in time")
         # the version doesn't update automatically, force refresh:
         self.web.refresh()
         ver = self.detect_version()
-        print("S: ver %s is %s?" % (str(ver), new_ver))
-        assert ver['version'].lower().startswith(new_ver)
+        self.progress(" ver %s is %s?" % (str(ver), new_ver))
+        self.ui_assert(ver['version'].lower().startswith(new_ver),
+                       "UI-Test: wrong version after upgrade")
 
     def jam_step_1(self, cfg):
         """ check for one set of instances to go away """
@@ -94,21 +95,27 @@ class Cluster(SeleniumRunner):
             done = ((node_count['dbservers'] == '2/3') and
                     (node_count['coordinators'] == '2/3') and
                     (self.get_health_state() != 'NODES OK'))
+            self.ui_assert(retry_count < 40,
+                           "UI-Test: Timeout: expected db + c to be 2/3, have: " +
+                           node_count['dbservers'] + ", " +
+                           node_count['coordinators'])
             if not done:
                 time.sleep(3)
             retry_count += 1
-            assert retry_count < 30
 
-        assert node_count['dbservers'] == '2/3'
-        assert node_count['coordinators'] == '2/3'
+        self.ui_assert(node_count['dbservers'] == '2/3',
+                       "UI-Test: dbservers: " + node_count['dbservers'])
+        self.ui_assert(node_count['coordinators'] == '2/3',
+                       "UI-Test: coordinators: " + node_count['coordinators'])
         health_state = self.get_health_state()
-        assert health_state != 'NODES OK'
+        self.ui_assert(health_state != 'NODES OK',
+                       "UI-Test: expected health to be NODES OK, have: " + health_state)
 
         self.navbar_goto('nodes')
         row_count = 0
         retry_count = 0
         while row_count != 4 and retry_count < 10:
-            table = self.cluster_get_nodes_table()
+            table = self.cluster_get_nodes_table(300)
             for row in table:
                 if row['state'] == 'SERVING':
                     row_count += 1
@@ -118,8 +125,9 @@ class Cluster(SeleniumRunner):
                 time.sleep(2)
                 row_count = 0
 
-        print('S: serving instances 6 / %d [%d]' % (row_count, retry_count))
-        assert row_count == 4
+        self.progress(' serving instances 6 / %d [%d]' % (row_count, retry_count))
+        self.ui_assert(row_count == 4,
+                       "UI-Test: expect 2 instances to be offline have %d of 6" % row_count)
 
         health_state = None
         count = 0
@@ -129,7 +137,8 @@ class Cluster(SeleniumRunner):
                 break
             count +=1
             time.sleep(1)
-        assert health_state != 'NODES OK'
+        self.ui_assert(health_state != 'NODES OK',
+                       "UI-Test: wrong health stame after jam: " + health_state)
 
     def jam_step_2(self, cfg):
         self.navbar_goto('cluster')
@@ -142,5 +151,7 @@ class Cluster(SeleniumRunner):
             if not done:
                 time.sleep(3)
             retry_count += 1
-            assert retry_count < 10
+            self.ui_assert(retry_count < 10,
+                           "UI-Test: expected 3 instances each, have: DB " +
+                           node_count['dbservers'] + " C " + node_count['coordinators'])
         self.check_old(cfg)

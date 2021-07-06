@@ -24,8 +24,8 @@ trap "docker kill $DOCKER_DEB_NAME; \
 
 version=$(git rev-parse --verify HEAD)
 
-docker build docker_deb -t $DOCKER_DEB_TAG || exit
-docker build docker_rpm -t $DOCKER_RPM_TAG || exit
+docker build containers/docker_deb -t $DOCKER_DEB_TAG || exit
+docker build containers/docker_rpm -t $DOCKER_RPM_TAG || exit
 
 docker run -itd \
        --ulimit core=-1 \

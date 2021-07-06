@@ -1,50 +1,49 @@
 #!/usr/bin/env python3
 
 """ Release testing script"""
-import logging
 from pathlib import Path
 import click
+import tools.loghelper as lh
+from common_options import zip_common_options
 from tools.killall import kill_all_processes
-from arangodb.installers import make_installer, InstallerConfig
+from arangodb.installers import create_config_installer_set
+
 from arangodb.starter.deployments import RunnerType, make_runner
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    datefmt='%H:%M:%S',
-    format='%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s'
-)
-
-def run_cleanup(zip_package):
+# pylint: disable=W0703
+def run_cleanup(zip_package, testrun_name: str = ""):
     """ main """
-    logging.getLogger().setLevel(logging.DEBUG)
 
-    install_config = InstallerConfig('3.3.3',
-                                     True,
-                                     False,
-                                     False,
-                                     zip_package,
-                                     Path("/tmp/"),
-                                     Path("/"),
-                                     "127.0.0.1",
-                                     "",
-                                     False,
-                                     False)
-    inst = make_installer(install_config)
-
+    installer_set = create_config_installer_set(['3.3.3'],
+                                                True,
+                                                False,
+                                                False,
+                                                zip_package,
+                                                Path("/tmp/"),
+                                                Path("/"),
+                                                "127.0.0.1",
+                                                "",
+                                                False,
+                                                False)
+    inst = installer_set[0][1]
     if inst.calc_config_file_name().is_file():
         inst.load_config()
         inst.cfg.interactive = False
         inst.stop_service()
+        installer_set[0][0].set_directories(inst.cfg)
     kill_all_processes()
     kill_all_processes()
     starter_mode = [RunnerType.LEADER_FOLLOWER,
                     RunnerType.ACTIVE_FAILOVER,
-                    RunnerType.CLUSTER]  # ,
-    #  RunnerType.DC2DC] here __init__ will create stuff, TODO.
+                    RunnerType.CLUSTER,
+                    RunnerType.DC2DC]
     for runner_type in starter_mode:
         assert runner_type
-
-        runner = make_runner(runner_type, 'none', [], inst.cfg, inst, None)
+        runner = make_runner(runner_type,
+                             False, 'none', [],
+                             installer_set,
+                             testrun_name
+                             )
         runner.cleanup()
     if inst.calc_config_file_name().is_file():
         try:
@@ -57,12 +56,10 @@ def run_cleanup(zip_package):
     inst.cleanup_system()
 
 @click.command()
-@click.option('--zip', 'zip_package',
-              is_flag=True,
-              default=False,
-              help='switch to zip or tar.gz package instead of default OS package')
+@zip_common_options
 def run_test(zip_package):
     """ Wrapper... """
+    lh.configure_logging(True)
     return run_cleanup(zip_package)
 
 if __name__ == "__main__":

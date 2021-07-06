@@ -274,7 +274,8 @@ class InstallerBase(ABC):
                                         self.cfg.localhost,
                                         self.cfg.publicip,
                                         self.cfg.log_dir,
-                                        self.cfg.passvoid)
+                                        self.cfg.passvoid,
+                                        True)
         self.calculate_package_names()
         self.cfg.verbose = verbose
 
@@ -335,7 +336,7 @@ class InstallerBase(ABC):
                 self.cfg.real_sbin_dir / 'arango-init-database',
                 self.cfg.real_sbin_dir / 'arango-secure-installation'
             ], 'c++'))
-        exit
+
         # symlink only for MMFILES
         self.arango_binaries.append(BinaryDescription(
             self.cfg.real_sbin_dir, 'arangod',
@@ -437,4 +438,5 @@ class InstallerBase(ABC):
                                         self.cfg.publicip,
                                         (self.cfg.installPrefix /
                                          self.cfg.log_dir),
-                                        self.cfg.passvoid)
+                                        self.cfg.passvoid,
+                                        True)
