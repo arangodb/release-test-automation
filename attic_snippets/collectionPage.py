@@ -392,6 +392,7 @@ class CollectionPage(BaseSelenium):
         self.collection_really_dlt_btn_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.collection_really_dlt_btn_id)
         self.collection_really_dlt_btn_id.click()
+        self.driver.refresh()
 
     # Selecting index menu from collection
     def select_index_menu(self):
@@ -488,6 +489,7 @@ class CollectionPage(BaseSelenium):
         self.select_index_confirm_delete = \
             BaseSelenium.locator_finder_by_id(self, self.select_index_confirm_delete)
         self.select_index_confirm_delete.click()
+        self.driver.refresh()
 
     # Selecting info tab from the collection submenu
     def select_info_tab(self):

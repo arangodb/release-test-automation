@@ -11,6 +11,8 @@ class SupportPage(BaseSelenium):
         self.select_support_page_id = "support"
         self.select_documentation_support_id = 'documentation-support'
         self.select_community_support_id = 'community-support'
+        self.select_rest_api_swagger_id = 'swagger-support'
+        self.switch_to_iframe_id = '//*[@id="swagger"]/iframe'
 
     # creating graph manually
     def select_support_page(self):
@@ -36,12 +38,30 @@ class SupportPage(BaseSelenium):
         self.switch_tab(click_on_link_id)  # this method will call switch tab and close tab
 
     # this method will be loop through all the list links
-    def loop_for_link_traversal(self, print_statement, link_list):
+    def loop_through_link_traversal(self, print_statement, link_list):
         i = 0
         while i < len(link_list):
             print(print_statement[i])
             self.click_on_link(link_list[i])
             i = i + 1
+
+    # this method will execute multiple backup restore tab documentation
+    def click_on_btn(self, link_id):
+        click_on_btn = link_id
+        click_on_btn = \
+            BaseSelenium.locator_finder_by_xpath(self, click_on_btn)
+        click_on_btn.click()
+
+    # this method will be loop through all the list buttons
+    def loop_through_btn_traversal(self, print_statement, btn_list):
+        i = 0
+        while i < len(btn_list):
+            print(print_statement[i])
+            self.click_on_btn(btn_list[i])
+            i = i + 1
+            if i == len(btn_list):
+                print('Checking Backup Restore option completed \n')
+            time.sleep(2)
 
     # Clicking all the links on manual link tab
     def manual_link(self):
@@ -65,7 +85,7 @@ class SupportPage(BaseSelenium):
         manual_link_list = [getting_started, data_models_and_modelling,
                             administration, scaling, graphs, go_to_manual_start_page]
 
-        self.loop_for_link_traversal(manual_link_list_print_statement, manual_link_list)
+        self.loop_through_link_traversal(manual_link_list_print_statement, manual_link_list)
 
         print('Checking all arangodb manual link completed \n')
 
@@ -87,7 +107,7 @@ class SupportPage(BaseSelenium):
                                          'Checking Go to AQL start page link \n']
         aql_link_list = [fundamentals, data_queries, functions, usual_query_patterns, go_to_aql_query_page]
 
-        self.loop_for_link_traversal(aql_link_list_print_statement, aql_link_list)
+        self.loop_through_link_traversal(aql_link_list_print_statement, aql_link_list)
 
         print('Checking all arangodb AQL Query Language link completed\n')
 
@@ -110,7 +130,7 @@ class SupportPage(BaseSelenium):
 
         fox_framework_list = [micro_service, guides, reference, deployment, go_to_fox_start]
 
-        self.loop_for_link_traversal(fox_framework_print_statement, fox_framework_list)
+        self.loop_through_link_traversal(fox_framework_print_statement, fox_framework_list)
 
         print('Checking all arangodb Fox Framework link completed\n')
 
@@ -138,7 +158,7 @@ class SupportPage(BaseSelenium):
         drivers_and_integration = [arangodb_java_driver, arangojs_java_script, arangodb_php, arangodb_go_driver,
                                    arangodb_spring_data, arangodb_spark_connector, driver_and_integration]
 
-        self.loop_for_link_traversal(Official_print_statement, drivers_and_integration)
+        self.loop_through_link_traversal(Official_print_statement, drivers_and_integration)
 
         print('Checking all arangodb Drivers and Integration link completed\n')
 
@@ -178,6 +198,77 @@ class SupportPage(BaseSelenium):
         support_list = [paying_customer_support, github_issues, stack_overflow,
                         slack, google_groups, arangodb_contact_us]
 
-        self.loop_for_link_traversal(support_tab_print_statement, support_list)
+        self.loop_through_link_traversal(support_tab_print_statement, support_list)
 
         print('Checking all Support tab link completed \n')
+
+    # Checking all rest api swagger link
+    def rest_api(self):
+        print('Checking all Rest api tab link started\n')
+
+        support = self.select_support_page_id
+        support = \
+            BaseSelenium.locator_finder_by_id(self, support)
+        support.click()
+        time.sleep(1)
+
+        # selecting community support tab
+        rest_api = self.select_rest_api_swagger_id
+        rest_api = \
+            BaseSelenium.locator_finder_by_id(self, rest_api)
+        rest_api.click()
+        time.sleep(1)
+
+        # checking backup restore
+        iframe = self.switch_to_iframe_id
+        super().switch_to_iframe(iframe)
+
+        print('Checking Backup Restore option started\n')
+        backup_restore = '//*[@id="operations-tag-BackupRestore"]'
+        backup_restore = \
+            BaseSelenium.locator_finder_by_xpath(self, backup_restore)
+        backup_restore.click()
+        time.sleep(1)
+
+        # all documentation example list for Backup restore option
+        create_backup = '//*[@id="operations-BackupRestore-CreateBackup"]/div/span[1]'
+        create_backup01 = '// *[@id = "operations-BackupRestore-CreateBackup"]/div[1]/span[1]'
+
+        delete_backup = '//*[@id="operations-BackupRestore-DeleteABackup"]/div/span[1]'
+        delete_backup01 = '//*[@id="operations-BackupRestore-DeleteABackup"]/div[1]/span[1]'
+
+        download_backup = '//*[@id="operations-BackupRestore-DownloadABackupFromARemoteRepository"]/div/span[1]'
+        download_backup01 = '//*[@id="operations-BackupRestore-DownloadABackupFromARemoteRepository"]/div[1]/span[1]'
+
+        list_backup = '//*[@id="operations-BackupRestore-ListBackups"]/div/span[1]'
+        list_backup01 = '//*[@id="operations-BackupRestore-ListBackups"]/div[1]/span[1]'
+
+        restore_backup = '//*[@id="operations-BackupRestore-RestoreBackup"]/div/span[1]'
+        restore_backup01 = '//*[@id="operations-BackupRestore-RestoreBackup"]/div/span[1]'
+
+        upload_remote_repository = '//*[@id="operations-BackupRestore-UploadABackupToARemoteRepository"]/div/span[1]'
+        upload_remote_repository01 = '//*[@id="operations-BackupRestore-UploadABackupToARemoteRepository"]/div/span[1]'
+
+        # making a list out of these documentation list
+        backup_restore_list = [create_backup, create_backup01, delete_backup, delete_backup01,
+                               download_backup, download_backup01, list_backup, list_backup01,
+                               restore_backup, restore_backup01, upload_remote_repository, upload_remote_repository01]
+
+        backup_restore_print_statement = ['Checking create backup \n',
+                                          'Checking create backup completed\n',
+                                          'Checking delete backup button \n',
+                                          'Checking delete backup button completed\n',
+                                          'Checking list backup button\n',
+                                          'Checking list backup button completed\n',
+                                          'Checking download backup button \n',
+                                          'Checking download backup button completed\n',
+                                          'Checking restore backup button \n',
+                                          'Checking restore backup button completed\n',
+                                          'Checking upload backup to remote repository button \n',
+                                          'Checking upload backup to remote repository button completed\n', ]
+
+        self.loop_through_btn_traversal(backup_restore_print_statement, backup_restore_list)
+        # print('Checking Backup Restore option started\n')
+
+        # switching back to default view
+        super().switch_back_to_origin_window()

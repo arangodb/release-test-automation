@@ -106,6 +106,10 @@ class DashboardPage(BaseSelenium):
         self.metrics_download_id.click()
         time.sleep(3)
 
+        # this will check which browser is being using1
+        if super().browser_name == 1:
+            self.clear_download_bar()
+
     # Clicking on twitter link on dashboard
     def click_twitter_link(self):
         self.click_twitter_link_id = \

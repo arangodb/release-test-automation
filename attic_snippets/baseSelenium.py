@@ -1,14 +1,18 @@
+import os
+import time
+
+import pyautogui
 from selenium import webdriver
 from selenium.webdriver.chrome.webdriver import WebDriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as ec
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.select import Select
 from selenium.webdriver.common.action_chains import ActionChains
-import time
-import pyautogui
-import os
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions as ec
+from selenium.webdriver.support.select import Select
+from selenium.webdriver.support.ui import WebDriverWait
+from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.firefox import GeckoDriverManager
+from webdriver_manager.microsoft import EdgeChromiumDriverManager
 
 
 class BaseSelenium:
@@ -20,8 +24,36 @@ class BaseSelenium:
 
     @classmethod
     def set_up_class(cls):
-        cls.driverLocation = "C:/Program Files (x86)/chromedriver.exe"
-        cls.driver = webdriver.Chrome(cls.driverLocation)
+
+        browser_list = ['1 = chrome', '2 = firefox', '3 = edge']
+        print(*browser_list, sep="\n")
+        cls.browser_name = None
+
+        while cls.browser_name not in {1, 2, 3}:
+            cls.browser_name = int(input('Choose your browser: '))
+
+            if cls.browser_name == 1:
+                print("You have chosen: Chrome browser \n")
+                cls.driver = webdriver.Chrome(ChromeDriverManager().install())
+            elif cls.browser_name == 2:
+                print("You have chosen: Firefox browser \n")
+
+                # This preference will disappear download bar for firefox
+                profile = webdriver.FirefoxProfile()
+                profile.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/json, text/csv")  # mime
+                profile.set_preference("browser.download.manager.showWhenStarting", False)
+                profile.set_preference("browser.download.dir", "C:\\Users\\rearf\\Downloads")
+                profile.set_preference("browser.download.folderList", 2)
+                profile.set_preference("pdfjs.disabled", True)
+
+                cls.driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), firefox_profile=profile)
+
+            elif cls.browser_name == 3:
+                print("You have chosen: Edge browser \n")
+                cls.driver = webdriver.Edge(EdgeChromiumDriverManager().install())
+            else:
+                print("provide a specific browser name from the list. \n")
+
         cls.driver.set_window_size(1250, 1000)  # custom window size
         cls.driver.get("http://127.0.0.1:8529/_db/_system/_admin/aardvark/index.html#login")
 
@@ -41,6 +73,18 @@ class BaseSelenium:
     @staticmethod
     def query(query):
         pyautogui.typewrite(query)
+
+    '''This method will switch to IFrame window'''
+
+    def switch_to_iframe(self, iframe_id):
+        self.driver.switch_to.frame(self.driver.find_element_by_xpath(iframe_id))
+        time.sleep(1)
+
+    '''This method will switch back to origin window'''
+
+    def switch_back_to_origin_window(self):
+        self.driver.switch_to.default_content()
+        time.sleep(1)
 
     '''This method will select all text and clean it'''
 
@@ -69,7 +113,7 @@ class BaseSelenium:
         else:
             return self.locator
 
-    '''This method will change tab and close it then return to home tab'''
+    '''This method will change tab and close it and finally return to origin tab'''
 
     def switch_tab(self, locator):
         self.locator = locator
@@ -132,7 +176,7 @@ class BaseSelenium:
         time.sleep(1)
         return action
 
-    '''This method will used for escape from a maximized window'''
+    '''This method will used for escape from a maximized to minimize window'''
 
     @staticmethod
     def escape():

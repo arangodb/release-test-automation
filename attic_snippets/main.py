@@ -6,6 +6,7 @@ from viewsPage import ViewsPage
 from collectionPage import CollectionPage
 from graphPage import GraphPage
 from queryPage import QueryPage
+from supportPage import SupportPage
 
 
 class Test(BaseSelenium):
@@ -41,15 +42,15 @@ class Test(BaseSelenium):
         self.dash.check_db_engine()
         self.dash.check_db_uptime()
         # fixme (not supported v3.7.7)
-        # print("\nSwitch to System Resource tab\n")
-        # # self.dash.check_system_resource()
-        # # print("Switch to Metrics tab\n")
-        # # self.dash.check_system_metrics()
-        # print("scrolling the current page \n")
-        # self.dash.scroll()
-        # print("Downloading Metrics as JSON file \n")
-        # self.dash.metrics_download()
-        # self.dash.select_reload_btn()
+        print("\nSwitch to System Resource tab\n")
+        self.dash.check_system_resource()
+        print("Switch to Metrics tab\n")
+        self.dash.check_system_metrics()
+        print("scrolling the current page \n")
+        self.dash.scroll()
+        print("Downloading Metrics as JSON file \n")
+        self.dash.metrics_download()
+        self.dash.select_reload_btn()
         print("Opening Twitter link \n")
         self.dash.click_twitter_link()
         print("Opening Slack link \n")
@@ -353,7 +354,7 @@ class Test(BaseSelenium):
         print("---------Checking Views completed--------- \n")
 
     def test_graph(self):
-        print("---------Checking Graphs  started--------- \n")
+        print("---------Checking Graphs started--------- \n")
         self.login = LoginPage(self.driver)
         self.login.login('root', '')
 
@@ -545,29 +546,29 @@ class Test(BaseSelenium):
         print("Selecting Query page for basic CRUD operation \n")
         self.query.selecting_query_page()
 
-        print("Executing insert query \n")
-        self.query.execute_query('for i IN 1..10000\n INSERT {\n \t "name": "Ned",\n "surname": "Stark",'
-                                 '\n"alive": true,\n"age": 41,"traits":["A","H","C","N","P"]\n} INTO '
-                                 'Characters')
-        print("Profiling current query \n")
-        self.query.profile_query()
-        print("Explaining current query \n")
-        self.query.explain_query()
-        # print("Debug packaged downloading for the current query \n")
-        # self.query.debug_package_download()
-        print("Removing all query results \n")
-        self.query.remove_query_result()
-        print("Clearing query execution area \n")
-        self.query.clear_query_area()
-
-        print("Executing spot light functionality \n")
-        self.query.spot_light_function('COUNT')  # can be used for search different keyword
-        print('Executing read query\n')
-        self.query01.execute_query('FOR c IN imdb_vertices\n\tLIMIT 500\nRETURN c')
-        print('Updating documents\n')
-        self.query.update_documents()
-        print('Executing query with bind parameters \n')
-        self.query.bind_parameters_query()
+        # print("Executing insert query \n")
+        # self.query.execute_query('for i IN 1..10000\n INSERT {\n \t "name": "Ned",\n "surname": "Stark",'
+        #                          '\n"alive": true,\n"age": 41,"traits":["A","H","C","N","P"]\n} INTO '
+        #                          'Characters')
+        # print("Profiling current query \n")
+        # self.query.profile_query()
+        # print("Explaining current query \n")
+        # self.query.explain_query()
+        # # print("Debug packaged downloading for the current query \n")
+        # # self.query.debug_package_download()
+        # print("Removing all query results \n")
+        # self.query.remove_query_result()
+        # print("Clearing query execution area \n")
+        # self.query.clear_query_area()
+        #
+        # print("Executing spot light functionality \n")
+        # self.query.spot_light_function('COUNT')  # can be used for search different keyword
+        # print('Executing read query\n')
+        # self.query01.execute_query('FOR c IN imdb_vertices\n\tLIMIT 500\nRETURN c')
+        # print('Updating documents\n')
+        # self.query.update_documents()
+        # print('Executing query with bind parameters \n')
+        # self.query.bind_parameters_query()
 
         print("Executing example graph query \n")
         self.query.world_country_graph_query()
@@ -596,13 +597,46 @@ class Test(BaseSelenium):
         del self.query01
         print("---------Checking Query completed--------- \n")
 
+    def test_support(self):
+        print("---------Checking Support page started--------- \n")
+        self.login = LoginPage(self.driver)
+        self.login.login('root', '')
+
+        # creating multiple support page obj
+        self.support = SupportPage(self.driver)
+
+        print('Selecting Support Page \n')
+        self.support.select_support_page()
+
+        # print('Selecting documentation tab \n')
+        # self.support.select_documentation_support()
+        # print('Checking all arangodb manual link\n')
+        # self.support.manual_link()
+        # print('Checking all AQL Query Language link\n')
+        # self.support.aql_query_language_link()
+        # print('Checking all Fox Framework link \n')
+        # self.support.fox_framework_link()
+        # print('Checking all Drivers and Integration links\n')
+        # self.support.driver_and_integration_link()
+        # print('Checking Community Support tab \n')
+        # self.support.community_support_link()
+        print('Checking Rest API tab \n')
+        self.support.rest_api()
+
+        # logging out from the current user
+        self.login.logout_button()
+        del self.login
+        del self.support
+        print("---------Checking Support page completed--------- \n")
+
 
 ui = Test()  # creating obj for the UI test
 # ui.test_login()  # testing Login functionality
 # ui.test_dashboard()  # testing Dashboard functionality
-# ui.test_collection()  # testing Collection tab
+ui.test_collection()  # testing Collection tab
 # ui.test_views()  # testing User functionality
-# ui.test_graph()  # testing graph functionality
-ui.test_query()  # testing query functionality
+# ui.test_query()  # testing query functionality **needs cluster deployment
+# ui.test_graph()  # testing graph functionality **needs cluster deployment
+# ui.test_support()
 # ui.test_user()  # testing User functionality
 ui.teardown()  # close the driver and quit
