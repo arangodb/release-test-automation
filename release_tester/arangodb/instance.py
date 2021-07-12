@@ -588,6 +588,8 @@ class SyncInstance(Instance):
                     logfile_parameter = line
                 cmd.append(line)
         # wait till the process has startet writing its logfile:
+        if logfile_parameter == '--log.file':
+            logfile_parameter = cmd[cmd.index('--log.file') + 1]
         while not self.logfile.exists():
             progress('v')
             time.sleep(1)
