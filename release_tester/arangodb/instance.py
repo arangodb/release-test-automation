@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """ class to manage an arangod or arangosync instance """
 from abc import abstractmethod, ABC
@@ -5,6 +6,7 @@ import datetime
 from enum import IntEnum
 import json
 import logging
+from pathlib import Path
 import re
 import time
 
@@ -114,9 +116,12 @@ class Instance(ABC):
     def rename_logfile(self, suffix='.old'):
         """ to ease further analysis, move old logfile out of our way"""
         logfile = str(self.logfile)
+        new_logfile = Path(logfile + suffix)
         logging.info("renaming instance logfile: %s -> %s",
-                     logfile, logfile + suffix)
-        self.logfile.rename(logfile + suffix)
+                     logfile, str(new_logfile))
+        if new_logfile.exists():
+            new_logfile.unlink()
+        self.logfile.rename(new_logfile)
 
     def terminate_instance(self):
         """ terminate the process represented by this wrapper class """
