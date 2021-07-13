@@ -33,6 +33,7 @@ from arangodb.instance import (
 )
 from arangodb.backup import HotBackupConfig, HotBackupManager
 from arangodb.sh import ArangoshExecutor
+from arangodb.imp import ArangoImportExecutor
 from arangodb.bench import ArangoBenchManager
 
 ON_WINDOWS = (sys.platform == 'win32')
@@ -120,6 +121,7 @@ class StarterManager():
         self.is_master = None
         self.is_leader = False
         self.arangosh = None
+        self.arango_import = None
         self.arangobench = None
         self.executor = None # meaning?
         self.sync_master_port = None
@@ -731,6 +733,7 @@ class StarterManager():
             self.cfg.port = self.get_frontend_port()
 
             self.arangosh = ArangoshExecutor(self.cfg, self.get_frontend())
+            self.arango_import = ArangoImportExecutor(self.cfg, self.get_frontend())
             if self.cfg.hot_backup:
                 self.cfg.passvoid = self.passvoid
                 self.hb_instance = HotBackupManager(
