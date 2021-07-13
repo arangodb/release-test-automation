@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """ class to manage an arangod or arangosync instance """
 from abc import abstractmethod, ABC
@@ -5,6 +6,7 @@ import datetime
 from enum import IntEnum
 import json
 import logging
+from pathlib import Path
 import re
 import time
 
@@ -114,15 +116,20 @@ class Instance(ABC):
     def rename_logfile(self, suffix='.old'):
         """ to ease further analysis, move old logfile out of our way"""
         logfile = str(self.logfile)
+        new_logfile = Path(logfile + suffix)
         logging.info("renaming instance logfile: %s -> %s",
-                     logfile, logfile + suffix)
-        self.logfile.rename(logfile + suffix)
+                     logfile, str(new_logfile))
+        if new_logfile.exists():
+            new_logfile.unlink()
+        self.logfile.rename(new_logfile)
 
     def terminate_instance(self):
         """ terminate the process represented by this wrapper class """
         if self.instance:
             try:
-                print('terminating instance {0}'.format(self.instance.pid))
+                print('terminating {0} instance PID [{1}]'.format(
+                    self.type_str,
+                    self.instance.pid))
                 self.instance.terminate()
                 self.instance.wait()
             except psutil.NoSuchProcess:
@@ -587,6 +594,13 @@ class SyncInstance(Instance):
                 if line.find('--log.file') >=0:
                     logfile_parameter = line
                 cmd.append(line)
+        logfile_parameter_raw = ''
+        if logfile_parameter == '--log.file':
+            # newer starters will use '--foo bar' instead of '--foo=bar'
+            logfile_parameter = cmd[cmd.index('--log.file') + 1]
+            logfile_parameter_raw = logfile_parameter
+        else:
+            logfile_parameter_raw = logfile_parameter.split('=')[1]
         # wait till the process has startet writing its logfile:
         while not self.logfile.exists():
             progress('v')
@@ -605,7 +619,15 @@ class SyncInstance(Instance):
                             'cmdline': proccmd
                         })
                     except ValueError:
-                        pass
+                        try:
+                            # this will throw if its not in there:
+                            proccmd.index(logfile_parameter_raw)
+                            possible_me_pid.append({
+                                'p': process.pid,
+                                'cmdline': proccmd
+                            })
+                        except ValueError:
+                            pass
 
             if len(possible_me_pid) == 0 and count > 0:
                 progress('s')
