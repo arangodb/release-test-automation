@@ -217,10 +217,13 @@ class Runner(ABC):
             self.starter_prepare_env()
             self.starter_run()
             self.finish_setup()
-            self.make_data()
             if self.selenium:
                 self.selenium.connect_server(self.get_frontend_instances(), '_system', self.cfg)
+                self.selenium.check_empty_ui()
+            self.make_data()
+            if self.selenium:
                 self.selenium.check_old(self.old_installer.cfg)
+                self.selenium.check_empty_ui()
             ti.prompt_user(
                 self.basecfg,
                 "{0}{1} Deployment started. Please test the UI!".format(
@@ -320,6 +323,7 @@ class Runner(ABC):
             self.uninstall(self.old_installer
                            if not self.new_installer else self.new_installer)
         if self.selenium:
+            self.selenium.clear_ui()
             self.selenium.disconnect()
         self.progress(False, "Runner of type {0} - Finished!".format(str(self.name)))
 

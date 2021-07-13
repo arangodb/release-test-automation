@@ -38,12 +38,14 @@ class LeaderFollower(SeleniumRunner):
 
     def jam_step_1(self, cfg):
         """ check for one set of instances to go away """
+        self.check_full_ui()
         self.navbar_goto('replication')
         replication_table = self.get_replication_screen(True)
         print(replication_table)
         # head and one follower should be there:
         self.ui_assert(len(replication_table['follower_table']) == 2,
                        "UI-Test: expected to have 1 follower!")
+        self.check_full_ui()
 
     def jam_step_2(self, cfg):
         """ nothing to see here """
