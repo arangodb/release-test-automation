@@ -105,7 +105,7 @@ class GraphPage(BaseSelenium):
         col1_upload = self.select_upload_btn_id
         col1_file = self.select_choose_file_btn_id
         col1_import = self.select_confirm_upload_btn_id
-        path1 = 'C:\\Users\\rearf\\Desktop\\collections\\knows_edge.json'
+        path1 = 'release-test-automation\\test_data\\ui_data\\graph_page\\knows_edge.json'
 
         print("Creating knows_edge collections for knows_graph_manual Graph\n")
         col1 = \
@@ -156,7 +156,7 @@ class GraphPage(BaseSelenium):
         col2_upload = self.select_upload_btn_id
         col2_file = self.select_choose_file_btn_id
         col2_import = self.select_confirm_upload_btn_id
-        path2 = 'C:\\Users\\rearf\\Desktop\\collections\\persons.json'
+        path2 = 'release-test-automation\\test_data\\ui_data\\graph_page\\\\persons.json'
 
         print("Creating person_vertices collections for knows_graph_manual Graph\n")
         col2 = \
@@ -316,7 +316,7 @@ class GraphPage(BaseSelenium):
 
         # importing collections using arangoimport
         print("Importing knows_edge collections \n")
-        cmd_for_knows_edge = 'cmd /c "arangoimp --file C:\\Users\\rearf\Desktop\\collections\\knows_edge.json ' \
+        cmd_for_knows_edge = 'cmd /c "arangoimp --file release-test-automation\\test_data\\ui_data\\graph_page\\knows_edge.json ' \
                              '--collection "knows_edge" --type=json --server.username root --server.password "" ' \
                              '--server.endpoint tcp://127.0.0.1:8529 --to-collection-prefix profiles_smart' \
                              ' --from-collection-prefix profiles_smart"'
@@ -325,7 +325,7 @@ class GraphPage(BaseSelenium):
         time.sleep(1)
 
         print("Importing persons collections \n")
-        cmd_for_persons = 'cmd /c "arangoimp --file C:\\Users\\rearf\\Desktop\\collections\\persons.json ' \
+        cmd_for_persons = 'cmd /c "arangoimp --file release-test-automation\\test_data\\ui_data\\graph_page\\persons.json ' \
                           '--collection "persons" --type=json --server.username root --server.password ""' \
                           ' --server.endpoint tcp://127.0.0.1:8529"'
         super().command(cmd_for_persons)
@@ -461,7 +461,7 @@ class GraphPage(BaseSelenium):
         time.sleep(2)
 
         print("Importing profile collections \n")
-        cmd_for_profile = 'cmd /c "arangoimp --file C:\\Users\\rearf\\Desktop\\collections\\profiles.jsonl ' \
+        cmd_for_profile = 'cmd /c "arangoimp --file release-test-automation\\test_data\\ui_data\\graph_page\\profiles.jsonl ' \
                           '--collection "profiles" --type=jsonl --server.username root --server.password ""' \
                           ' --server.endpoint tcp://127.0.0.1:8529"'
         super().command(cmd_for_profile)
@@ -469,7 +469,7 @@ class GraphPage(BaseSelenium):
         time.sleep(1)
 
         print("Importing relations collections \n")
-        cmd_for_relation = 'cmd /c "arangoimp --file C:\\Users\\rearf\Desktop\\collections\\relations.jsonl ' \
+        cmd_for_relation = 'cmd /c "arangoimp --file release-test-automation\\test_data\\ui_data\\graph_page\\relations.jsonl ' \
                            '--collection "relations" --type=json --server.username root --server.password "" ' \
                            '--server.endpoint tcp://127.0.0.1:8529 --to-collection-prefix profiles_smart' \
                            ' --from-collection-prefix profiles_smart"'
