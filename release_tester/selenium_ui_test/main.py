@@ -150,7 +150,7 @@ class Test(BaseSelenium):
         print("Uploading file to the collection started\n")
         self.col1.select_upload_btn()
         print("Uploading json file\n")
-        self.col1.select_choose_file_btn('C:\\Users\\rearf\\Desktop\\collections\\edges.json')
+        self.col1.select_choose_file_btn('release-test-automation\\test_data\\ui_data\\edges.json')
         self.col1.select_confirm_upload_btn()
         self.driver.refresh()  # in order to clear the screen before fetching data
         print("Uploading " + self.col1.getting_total_row_count() + " to the collection Completed\n")
@@ -162,7 +162,7 @@ class Test(BaseSelenium):
         print("Uploading file to the collection started\n")
         self.col.select_upload_btn()
         print("Uploading json file\n")
-        self.col.select_choose_file_btn('C:\\Users\\rearf\\Desktop\\collections\\names_100.json')
+        self.col.select_choose_file_btn('release-test-automation\\test_data\\ui_data\\edges.json\\names_100.json')
         self.col.select_confirm_upload_btn()
         self.driver.refresh()  # in order to clear the screen before fetching data
         print("Uploading " + self.col.getting_total_row_count() + " to the collection Completed\n")
@@ -581,7 +581,7 @@ class Test(BaseSelenium):
         self.query.city_graph()
 
         print('Importing new queries \n')
-        self.query.import_queries('C:\\Users\\rearf\\Desktop\\collections\\imported_query.json')
+        self.query.import_queries('release-test-automation\\test_data\\ui_data\\query_page\\imported_query.json')
         print("Saving Current query as custom query\n")
         self.query.custom_query()
         print('Changing the number of results from 1000 to 100\n')

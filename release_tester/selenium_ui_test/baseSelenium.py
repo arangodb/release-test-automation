@@ -26,6 +26,7 @@ class BaseSelenium:
 
     @classmethod
     def set_up_class(cls):
+        """This method will be used for the basic driver setup"""
 
         browser_list = ['1 = chrome', '2 = firefox', '3 = edge', '4 = chromium']
         print(*browser_list, sep="\n")
@@ -44,7 +45,7 @@ class BaseSelenium:
                 profile = webdriver.FirefoxProfile()
                 profile.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/json, text/csv")  # mime
                 profile.set_preference("browser.download.manager.showWhenStarting", False)
-                profile.set_preference("browser.download.dir", "C:\\Users\\rearf\\Downloads")
+                profile.set_preference("browser.download.dir", "C:\\Users\\rearf\\Downloads") # fixme
                 profile.set_preference("browser.download.folderList", 2)
                 profile.set_preference("pdfjs.disabled", True)
 
@@ -64,53 +65,48 @@ class BaseSelenium:
 
     @classmethod
     def tear_down(cls):
+        """This method will be used for teardown the driver instance"""
         time.sleep(5)
         cls.driver.close()
         print("\n--------Now Quiting--------\n")
         cls.driver.quit()
 
-    '''This method will be used for executing console command'''
-
     @staticmethod
     def command(cmd):
+        """This method will be used for executing console command"""
         os.system(cmd)
 
     @staticmethod
     def query(query):
         pyautogui.typewrite(query)
 
-    '''This method will switch to IFrame window'''
-
     def switch_to_iframe(self, iframe_id):
+        """This method will switch to IFrame window"""
         self.driver.switch_to.frame(self.driver.find_element_by_xpath(iframe_id))
         time.sleep(1)
 
-    '''This method will switch back to origin window'''
-
     def switch_back_to_origin_window(self):
+        """This method will switch back to origin window"""
         self.driver.switch_to.default_content()
         time.sleep(1)
 
-    '''This method will select all text and clean it'''
-
     @staticmethod
     def clear_all_text():
+        """This method will select all text and clean it"""
         pyautogui.keyDown('ctrl')
         pyautogui.press('a')
         pyautogui.keyUp('ctrl')
         pyautogui.press('del')
 
-    '''This method will close the download bar from the chrome browser'''
-
     @staticmethod
     def clear_download_bar():
+        """This method will close the download bar from the chrome browser"""
         print("closing download banner from the bottom \n")
         pyautogui.hotkey('ctrl', 'j')
         pyautogui.hotkey('ctrl', 'w')
 
-    '''This method will be used for clear all the text in single text field if .clear() does not work'''
-
     def clear_text_field(self, locator):
+        """This method will be used for clear all the text in single text field if .clear() does not work"""
         locator.send_keys(Keys.CONTROL + 'a', Keys.BACKSPACE)
 
         if self.locator is None:
@@ -118,9 +114,8 @@ class BaseSelenium:
         else:
             return self.locator
 
-    '''This method will change tab and close it and finally return to origin tab'''
-
     def switch_tab(self, locator):
+        """This method will change tab and close it and finally return to origin tab"""
         self.locator = locator
         self.locator.send_keys(Keys.CONTROL + Keys.RETURN)  # this will open new tab on top of current
         self.driver.switch_to.window(self.driver.window_handles[1])  # switch to new tab according to index value
@@ -128,9 +123,8 @@ class BaseSelenium:
         self.driver.close()
         self.driver.switch_to.window(self.driver.window_handles[0])
 
-    '''This method will be used to scroll up and down to any page'''
-
     def scroll(self, down=0):
+        """This method will be used to scroll up and down to any page"""
         self.driver.find_element_by_tag_name('html').send_keys(Keys.END)
 
         if down == 1:
@@ -141,9 +135,8 @@ class BaseSelenium:
             self.driver.find_element_by_tag_name('html').send_keys(Keys.HOME)
         # self.driver.execute_script("window.scrollTo(0,500)")
 
-    '''This method will used for finding all the locators by their id'''
-
     def locator_finder_by_id(self, locator_name):
+        """This method will used for finding all the locators by their id"""
         self.locator = WebDriverWait(self.driver, 10).until(
             ec.element_to_be_clickable((By.ID, locator_name))
         )
@@ -152,9 +145,8 @@ class BaseSelenium:
         else:
             return self.locator
 
-    '''This method will used for finding all the locators by their xpath'''
-
     def locator_finder_by_xpath(self, locator_name):
+        """This method will used for finding all the locators by their xpath"""
         self.locator = WebDriverWait(self.driver, 10).until(
             ec.element_to_be_clickable((By.XPATH, locator_name))
         )
@@ -163,48 +155,42 @@ class BaseSelenium:
         else:
             return self.locator
 
-    '''This method will used for finding all the locators in drop down menu with options'''
-
     def locator_finder_by_select(self, locator_name, value):
+        """This method will used for finding all the locators in drop down menu with options"""
         self.select = Select(self.driver.find_element_by_id(locator_name))
         self.select.select_by_index(value)
         if self.select is None:
             print("UI-Test: ", locator_name, " locator has not found.")
         return self.select
 
-    '''This method will used for finding all the locators and hover the mouse by id'''
-
     def locator_finder_by_hover_item_id(self, locator):
+        """This method will used for finding all the locators and hover the mouse by id"""
         item = self.driver.find_element_by_id(locator)
         action = ActionChains(self.driver)
         action.move_to_element(item).click().perform()
         time.sleep(1)
         return action
 
-    '''This method will used for escape from a maximized to minimize window'''
-
     @staticmethod
     def escape():
+        """This method will used for escape from a maximized to minimize window"""
         pyautogui.press("f11")
 
-    '''This method will used for zoom in/out on any perspective window'''
-
     def zoom(self):
+        """This method will used for zoom in/out on any perspective window"""
         print("zooming in now\n")
         self.driver.execute_script("document.body.style.zoom='80%'")
 
-    '''This method will used for finding all the locators and hover the mouse by xpath'''
-
     def locator_finder_by_hover_item(self, locator):
+        """This method will used for finding all the locators and hover the mouse by xpath"""
         item = self.driver.find_element_by_xpath(locator)
         action = ActionChains(self.driver)
         action.move_to_element(item).click().perform()
         time.sleep(1)
         return action
 
-    '''This method will used for finding all the locators text using ID'''
-
     def locator_finder_by_text_id(self, locator_name):
+        """This method will used for finding all the locators text using ID"""
         self.locator = WebDriverWait(self.driver, 10).until(
             ec.element_to_be_clickable((By.ID, locator_name))
         )
@@ -214,9 +200,8 @@ class BaseSelenium:
         else:
             return self.locator
 
-    '''This method will used for finding all the locators text using xpath'''
-
     def locator_finder_by_text_xpath(self, locator_name):
+        """This method will used for finding all the locators text using xpath"""
         self.locator = WebDriverWait(self.driver, 10).until(
             ec.element_to_be_clickable((By.XPATH, locator_name))
         )
@@ -226,9 +211,8 @@ class BaseSelenium:
         else:
             return self.locator
 
-    '''This method will used for finding all the locators text using CSS Selector'''
-
     def locator_finder_by_css_selectors(self, locator_name):
+        """This method will used for finding all the locators text using CSS Selector"""
         self.locator = WebDriverWait(self.driver, 10).until(
             ec.element_to_be_clickable((By.CSS_SELECTOR, locator_name))
         )
