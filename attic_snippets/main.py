@@ -12,10 +12,11 @@ from supportPage import SupportPage
 class Test(BaseSelenium):
     BaseSelenium.set_up_class()
 
-    # shutdown the driver
+    # initial web driver setup
     def __init__(self):
         super().__init__()
 
+    # shutdown the driver
     @staticmethod
     def teardown():
         BaseSelenium.tear_down()
@@ -546,29 +547,29 @@ class Test(BaseSelenium):
         print("Selecting Query page for basic CRUD operation \n")
         self.query.selecting_query_page()
 
-        # print("Executing insert query \n")
-        # self.query.execute_query('for i IN 1..10000\n INSERT {\n \t "name": "Ned",\n "surname": "Stark",'
-        #                          '\n"alive": true,\n"age": 41,"traits":["A","H","C","N","P"]\n} INTO '
-        #                          'Characters')
-        # print("Profiling current query \n")
-        # self.query.profile_query()
-        # print("Explaining current query \n")
-        # self.query.explain_query()
-        # # print("Debug packaged downloading for the current query \n")
-        # # self.query.debug_package_download()
-        # print("Removing all query results \n")
-        # self.query.remove_query_result()
-        # print("Clearing query execution area \n")
-        # self.query.clear_query_area()
-        #
-        # print("Executing spot light functionality \n")
-        # self.query.spot_light_function('COUNT')  # can be used for search different keyword
-        # print('Executing read query\n')
-        # self.query01.execute_query('FOR c IN imdb_vertices\n\tLIMIT 500\nRETURN c')
-        # print('Updating documents\n')
-        # self.query.update_documents()
-        # print('Executing query with bind parameters \n')
-        # self.query.bind_parameters_query()
+        print("Executing insert query \n")
+        self.query.execute_query('for i IN 1..10000\n INSERT {\n \t "name": "Ned",\n "surname": "Stark",'
+                                 '\n"alive": true,\n"age": 41,"traits":["A","H","C","N","P"]\n} INTO '
+                                 'Characters')
+        print("Profiling current query \n")
+        self.query.profile_query()
+        print("Explaining current query \n")
+        self.query.explain_query()
+        # print("Debug packaged downloading for the current query \n")
+        # self.query.debug_package_download()
+        print("Removing all query results \n")
+        self.query.remove_query_result()
+        print("Clearing query execution area \n")
+        self.query.clear_query_area()
+
+        print("Executing spot light functionality \n")
+        self.query.spot_light_function('COUNT')  # can be used for search different keyword
+        print('Executing read query\n')
+        self.query01.execute_query('FOR c IN imdb_vertices\n\tLIMIT 500\nRETURN c')
+        print('Updating documents\n')
+        self.query.update_documents()
+        print('Executing query with bind parameters \n')
+        self.query.bind_parameters_query()
 
         print("Executing example graph query \n")
         self.query.world_country_graph_query()
@@ -608,18 +609,18 @@ class Test(BaseSelenium):
         print('Selecting Support Page \n')
         self.support.select_support_page()
 
-        # print('Selecting documentation tab \n')
-        # self.support.select_documentation_support()
-        # print('Checking all arangodb manual link\n')
-        # self.support.manual_link()
-        # print('Checking all AQL Query Language link\n')
-        # self.support.aql_query_language_link()
-        # print('Checking all Fox Framework link \n')
-        # self.support.fox_framework_link()
-        # print('Checking all Drivers and Integration links\n')
-        # self.support.driver_and_integration_link()
-        # print('Checking Community Support tab \n')
-        # self.support.community_support_link()
+        print('Selecting documentation tab \n')
+        self.support.select_documentation_support()
+        print('Checking all arangodb manual link\n')
+        self.support.manual_link()
+        print('Checking all AQL Query Language link\n')
+        self.support.aql_query_language_link()
+        print('Checking all Fox Framework link \n')
+        self.support.fox_framework_link()
+        print('Checking all Drivers and Integration links\n')
+        self.support.driver_and_integration_link()
+        print('Checking Community Support tab \n')
+        self.support.community_support_link()
         print('Checking Rest API tab \n')
         self.support.rest_api()
 
@@ -632,8 +633,8 @@ class Test(BaseSelenium):
 
 ui = Test()  # creating obj for the UI test
 # ui.test_login()  # testing Login functionality
-# ui.test_dashboard()  # testing Dashboard functionality
-ui.test_collection()  # testing Collection tab
+ui.test_dashboard()  # testing Dashboard functionality
+# ui.test_collection()  # testing Collection tab
 # ui.test_views()  # testing User functionality
 # ui.test_query()  # testing query functionality **needs cluster deployment
 # ui.test_graph()  # testing graph functionality **needs cluster deployment

@@ -10,9 +10,11 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
+
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 from webdriver_manager.microsoft import EdgeChromiumDriverManager
+from webdriver_manager.utils import ChromeType
 
 
 class BaseSelenium:
@@ -25,11 +27,11 @@ class BaseSelenium:
     @classmethod
     def set_up_class(cls):
 
-        browser_list = ['1 = chrome', '2 = firefox', '3 = edge']
+        browser_list = ['1 = chrome', '2 = firefox', '3 = edge', '4 = chromium']
         print(*browser_list, sep="\n")
         cls.browser_name = None
 
-        while cls.browser_name not in {1, 2, 3}:
+        while cls.browser_name not in {1, 2, 3, 4}:
             cls.browser_name = int(input('Choose your browser: '))
 
             if cls.browser_name == 1:
@@ -51,8 +53,11 @@ class BaseSelenium:
             elif cls.browser_name == 3:
                 print("You have chosen: Edge browser \n")
                 cls.driver = webdriver.Edge(EdgeChromiumDriverManager().install())
+            elif cls.browser_name == 4:
+                print("You have chosen: Chromium browser \n")
+                cls.driver = webdriver.Chrome(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
             else:
-                print("provide a specific browser name from the list. \n")
+                print("Kindly provide a specific browser name from the list. \n")
 
         cls.driver.set_window_size(1250, 1000)  # custom window size
         cls.driver.get("http://127.0.0.1:8529/_db/_system/_admin/aardvark/index.html#login")
