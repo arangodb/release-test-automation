@@ -388,7 +388,7 @@ class SeleniumRunner(ABC):
         self.progress("Health state:" + elem.text)
         return elem.text
 
-    def cluster_dashboard_get_count(self, timeout=10):
+    def cluster_dashboard_get_count(self, timeout=15):
         """
          extracts the coordinator / dbserver count from the 'cluster' page
         """
