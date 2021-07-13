@@ -4,8 +4,10 @@ from baseSelenium import BaseSelenium
 
 
 class SupportPage(BaseSelenium):
+    """Class for Support page"""
 
     def __init__(self, driver):
+        """Support page initialization"""
         super().__init__()
         self.driver = driver
         self.select_support_page_id = "support"
@@ -14,46 +16,46 @@ class SupportPage(BaseSelenium):
         self.select_rest_api_swagger_id = 'swagger-support'
         self.switch_to_iframe_id = '//*[@id="swagger"]/iframe'
 
-    # creating graph manually
     def select_support_page(self):
+        """creating graph manually"""
         support = self.select_support_page_id
         support = \
             BaseSelenium.locator_finder_by_id(self, support)
         support.click()
         time.sleep(1)
 
-    # selecting documentation support
     def select_documentation_support(self):
+        """selecting documentation support"""
         documentation = self.select_documentation_support_id
         documentation = \
             BaseSelenium.locator_finder_by_id(self, documentation)
         documentation.click()
         time.sleep(1)
 
-    # Clicking on link on any page and switch to that tab and return to origin tab
     def click_on_link(self, link_id):
+        """Clicking on link on any page and switch to that tab and return to origin tab"""
         click_on_link_id = link_id
         click_on_link_id = \
             BaseSelenium.locator_finder_by_xpath(self, click_on_link_id)
         self.switch_tab(click_on_link_id)  # this method will call switch tab and close tab
 
-    # this method will be loop through all the list links
     def loop_through_link_traversal(self, print_statement, link_list):
+        """this method will be loop through all the list links"""
         i = 0
         while i < len(link_list):
             print(print_statement[i])
             self.click_on_link(link_list[i])
             i = i + 1
 
-    # this method will execute multiple backup restore tab documentation
     def click_on_btn(self, link_id):
+        """this method will execute multiple backup restore tab documentation"""
         click_on_btn = link_id
         click_on_btn = \
             BaseSelenium.locator_finder_by_xpath(self, click_on_btn)
         click_on_btn.click()
 
-    # this method will be loop through all the list buttons
     def loop_through_btn_traversal(self, print_statement, btn_list):
+        """this method will be loop through all the list buttons"""
         i = 0
         while i < len(btn_list):
             print(print_statement[i])
@@ -63,8 +65,8 @@ class SupportPage(BaseSelenium):
                 print('Checking Backup Restore option completed \n')
             time.sleep(2)
 
-    # Clicking all the links on manual link tab
     def manual_link(self):
+        """Clicking all the links on manual link tab"""
         print('Checking all arangodb manual link started\n')
 
         # link name for all the manual link
@@ -89,8 +91,8 @@ class SupportPage(BaseSelenium):
 
         print('Checking all arangodb manual link completed \n')
 
-    # Clicking all the links on AQL Query Language link tab
     def aql_query_language_link(self):
+        """Clicking all the links on AQL Query Language link tab"""
         print('Checking all arangodb AQL Query Language link started\n')
 
         # link name for all the AQL Query link
@@ -111,8 +113,8 @@ class SupportPage(BaseSelenium):
 
         print('Checking all arangodb AQL Query Language link completed\n')
 
-    # Clicking all the links on fox framework link tab
     def fox_framework_link(self):
+        """Clicking all the links on fox framework link tab"""
         print('Checking all arangodb Fox Framework link started\n')
 
         # link name for all the fox framework link
@@ -134,8 +136,8 @@ class SupportPage(BaseSelenium):
 
         print('Checking all arangodb Fox Framework link completed\n')
 
-    # Clicking all the links official drivers and integration link tab
     def driver_and_integration_link(self):
+        """Clicking all the links official drivers and integration link tab"""
         print('Checking all Drivers and Integration link started\n')
 
         # link name for all the Drivers and Integration link
@@ -162,8 +164,8 @@ class SupportPage(BaseSelenium):
 
         print('Checking all arangodb Drivers and Integration link completed\n')
 
-    # Checking community support link
     def community_support_link(self):
+        """Checking community support link"""
         print('Checking all Support tab link started\n')
 
         support = self.select_support_page_id
@@ -202,8 +204,8 @@ class SupportPage(BaseSelenium):
 
         print('Checking all Support tab link completed \n')
 
-    # Checking all rest api swagger link
     def rest_api(self):
+        """Checking all rest api swagger link"""
         print('Checking all Rest api tab link started\n')
 
         support = self.select_support_page_id

@@ -10,19 +10,20 @@ from supportPage import SupportPage
 
 
 class Test(BaseSelenium):
+    """initial base class setup"""
     BaseSelenium.set_up_class()
 
-    # initial web driver setup
     def __init__(self):
+        """initial web driver setup"""
         super().__init__()
 
-    # shutdown the driver
     @staticmethod
     def teardown():
+        """tear down class and quit driver instance"""
         BaseSelenium.tear_down()
 
-    # testing login page
     def test_login(self):
+        """testing login page"""
         print("Starting ", self.driver.title, "\n")
         self.login = LoginPage(self.driver)
         self.login.login('root', '')
@@ -30,6 +31,7 @@ class Test(BaseSelenium):
         del self.login
 
     def test_dashboard(self):
+        """testing dasboard page"""
         print("---------Checking Dashboard started--------- \n")
         self.login = LoginPage(self.driver)
         self.login.login('root', '')
@@ -65,6 +67,7 @@ class Test(BaseSelenium):
         print("---------Checking Dashboard Completed--------- \n")
 
     def test_collection(self):
+        """testing collection page"""
         print("---------Checking Collection Begin--------- \n")
         self.login = LoginPage(self.driver)
         self.login.login('root', '')
@@ -272,6 +275,7 @@ class Test(BaseSelenium):
         print("---------Checking Collection Completed--------- \n")
 
     def test_views(self):
+        """testing Views page"""
         print("---------Checking Views Begin--------- \n")
         self.login = LoginPage(self.driver)
         self.login.login('root', '')
@@ -355,6 +359,7 @@ class Test(BaseSelenium):
         print("---------Checking Views completed--------- \n")
 
     def test_graph(self):
+        """testing graph page"""
         print("---------Checking Graphs started--------- \n")
         self.login = LoginPage(self.driver)
         self.login.login('root', '')
@@ -485,6 +490,7 @@ class Test(BaseSelenium):
         print("---------Checking Graphs completed--------- \n")
 
     def test_user(self):
+        """testing user page"""
         print("---------User Test Begin--------- \n")
         self.login = LoginPage(self.driver)
         self.login.login('root', '')
@@ -533,6 +539,7 @@ class Test(BaseSelenium):
         print("---------User Test Completed---------\n")
 
     def test_query(self):
+        """testing query page"""
         print("---------Query Test Begin--------- \n")
         self.login = LoginPage(self.driver)
         self.login.login('root', '')
@@ -599,6 +606,7 @@ class Test(BaseSelenium):
         print("---------Checking Query completed--------- \n")
 
     def test_support(self):
+        """testing support page"""
         print("---------Checking Support page started--------- \n")
         self.login = LoginPage(self.driver)
         self.login.login('root', '')

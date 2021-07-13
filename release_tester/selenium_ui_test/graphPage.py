@@ -6,8 +6,10 @@ from baseSelenium import BaseSelenium
 
 
 class GraphPage(BaseSelenium):
+    """class for Graph page"""
 
     def __init__(self, driver):
+        """Graph page initialization"""
         super().__init__()
         self.driver = driver
         self.select_graph_page_id = "graphs"
@@ -89,8 +91,8 @@ class GraphPage(BaseSelenium):
 
         self.select_new_graph_name_id = "createNewGraphName"
 
-    # creating graph manually
     def create_manual_graph(self):
+        """creating graph manually"""
         collectionPage = self.select_collection_page_id
         collectionPage = \
             BaseSelenium.locator_finder_by_id(self, collectionPage)
@@ -156,7 +158,7 @@ class GraphPage(BaseSelenium):
         col2_upload = self.select_upload_btn_id
         col2_file = self.select_choose_file_btn_id
         col2_import = self.select_confirm_upload_btn_id
-        path2 = 'release-test-automation\\test_data\\ui_data\\graph_page\\\\persons.json'
+        path2 = 'release-test-automation\\test_data\\ui_data\\graph_page\\persons.json'
 
         print("Creating person_vertices collections for knows_graph_manual Graph\n")
         col2 = \
@@ -195,14 +197,14 @@ class GraphPage(BaseSelenium):
         time.sleep(3)
         print("Importing person_vertices.json to the collection completed\n")
 
-    # selecting Graph tab
     def select_graph_page(self):
+        """selecting Graph tab"""
         self.select_graph_page_id = \
             BaseSelenium.locator_finder_by_id(self, self.select_graph_page_id)
         self.select_graph_page_id.click()
 
-    # adding knows_graph_manual graph
     def adding_knows_manual_graph(self):
+        """adding knows_graph_manual graph"""
         select_graph_id = self.select_create_graph_id
         select_graph_id = \
             BaseSelenium.locator_finder_by_id(self, select_graph_id)
@@ -259,8 +261,8 @@ class GraphPage(BaseSelenium):
         time.sleep(3)
         self.driver.back()
 
-    # creating satellite graph
     def adding_satellite_graph(self):
+        """creating satellite graph"""
         select_graph_id = self.select_create_graph_id
         select_graph_id = \
             BaseSelenium.locator_finder_by_id(self, select_graph_id)
@@ -365,6 +367,7 @@ class GraphPage(BaseSelenium):
         self.driver.refresh()
 
     def adding_smart_graph(self, disjointgraph=False):
+        """Adding smart disjoint graph"""
         select_graph_id = self.select_create_graph_id
         select_graph_id = \
             BaseSelenium.locator_finder_by_id(self, select_graph_id)
@@ -521,8 +524,8 @@ class GraphPage(BaseSelenium):
 
         self.driver.refresh()
 
-    # Creating new example graphs
     def select_create_graph(self, graph):
+        """Creating new example graphs"""
         select_graph = self.select_create_graph_id
         select_graph = \
             BaseSelenium.locator_finder_by_id(self, select_graph)
@@ -570,8 +573,8 @@ class GraphPage(BaseSelenium):
             print("Invalid Graph\n")
         time.sleep(2)
 
-    # selecting collection tab and search for required collections
     def check_required_collection(self, graph):
+        """selecting collection tab and search for required collections"""
         collectionPage = self.select_collection_page_id
         collectionPage = \
             BaseSelenium.locator_finder_by_id(self, collectionPage)
@@ -839,8 +842,8 @@ class GraphPage(BaseSelenium):
         self.driver.back()
         self.driver.refresh()
 
-    # Checking required collections creation for the particular example graph.
     def checking_collection_creation(self, graph):
+        """Checking required collections creation for the particular example graph."""
         if graph == 1:
             self.select_knows_graphs_setting_btn_id_check = \
                 BaseSelenium.locator_finder_by_id(self, self.select_knows_graphs_setting_btn_id_check)
@@ -878,8 +881,8 @@ class GraphPage(BaseSelenium):
         self.select_graph_cancel_btn_id.click()
         time.sleep(3)
 
-    # Sorting all graphs to descending and then ascending again
     def select_sort_descend(self):
+        """Sorting all graphs to descending and then ascending again"""
         self.select_sort_settings_id = \
             BaseSelenium.locator_finder_by_id(self, self.select_sort_settings_id)
         self.select_sort_settings_id.click()
@@ -900,8 +903,8 @@ class GraphPage(BaseSelenium):
         ascend.click()
         time.sleep(2)
 
-    # Selecting Knows Graph for checking graph functionality
     def inspect_knows_graph(self):
+        """Selecting Knows Graph for checking graph functionality"""
         print("Selecting Knows Graph\n")
         graph = self.knows_graph_id
         graph = BaseSelenium.locator_finder_by_id(self, graph)
@@ -948,8 +951,8 @@ class GraphPage(BaseSelenium):
         pause.click()
         time.sleep(3)
 
-    # Checking all the options inside graph settings
     def graph_setting(self):
+        """Checking all the options inside graph settings"""
         configure_graph_settings_id = BaseSelenium.locator_finder_by_id(self, self.configure_graph_settings_id)
         configure_graph_settings_id.click()
         time.sleep(2)
@@ -1094,9 +1097,8 @@ class GraphPage(BaseSelenium):
         self.driver.back()
         time.sleep(3)
 
-    # Deleting created graphs
     def delete_graph(self, graph):
-
+        """Deleting created graphs"""
         if graph == 1:
             self.select_knows_graphs_setting_btn_id = \
                 BaseSelenium.locator_finder_by_id(self, self.select_knows_graphs_setting_btn_id)

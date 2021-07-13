@@ -5,6 +5,7 @@ class LoginPage(BaseSelenium):
     """Login class for selenium UI testing"""
 
     def __init__(self, driver):
+        """Login page initialization"""
         super().__init__()
         self.driver = driver
         self.username_textbox_id = "loginUsername"

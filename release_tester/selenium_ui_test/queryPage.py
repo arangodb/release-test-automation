@@ -6,8 +6,10 @@ from baseSelenium import BaseSelenium
 
 
 class QueryPage(BaseSelenium):
+    """Class for Query page"""
 
     def __init__(self, driver):
+        """Query page initialization"""
         super().__init__()
         self.driver = driver
         self.selecting_query_page_id = "queries"
@@ -36,8 +38,8 @@ class QueryPage(BaseSelenium):
         self.select_k_shortest_path_graphs_setting_btn_id = "kShortestPathsGraph_settings"
         self.select_k_shortest_path_graphs_setting_btn_id_check = "kShortestPathsGraph_settings"
 
-    # importing collections for query
     def import_collections(self):
+        """importing collections for query"""
         print("Navigating to Collection page \n")
         # Selecting collections page
         collections = "collections"
@@ -88,8 +90,8 @@ class QueryPage(BaseSelenium):
         self.driver.back()
         time.sleep(1)
 
-    # Selecting query page
     def selecting_query_page(self):
+        """Selecting query page"""
         query_page = self.selecting_query_page_id
         query_page = \
             BaseSelenium.locator_finder_by_id(self, query_page)
@@ -97,6 +99,7 @@ class QueryPage(BaseSelenium):
         time.sleep(1)
 
     def execute_query(self, query_name):
+        """Executing query with given query string"""
         query = self.query_execution_area
         query = \
             BaseSelenium.locator_finder_by_xpath(self, query)
@@ -113,8 +116,8 @@ class QueryPage(BaseSelenium):
 
         time.sleep(3)
 
-    # profiling query
     def profile_query(self):
+        """profiling query"""
         profile = self.profile_query_id
         profile = \
             BaseSelenium.locator_finder_by_id(self, profile)
@@ -123,16 +126,16 @@ class QueryPage(BaseSelenium):
 
         super().scroll()
 
-    # Downloading debug package
     def explain_query(self):
+        """Downloading debug package"""
         explainQuery = self.explain_query_id
         explainQuery = \
             BaseSelenium.locator_finder_by_id(self, explainQuery)
         explainQuery.click()
         time.sleep(2)
 
-    # Downloading debug package
     def debug_package_download(self):
+        """Downloading debug package"""
         debug = self.create_debug_package_id
         debug = \
             BaseSelenium.locator_finder_by_id(self, debug)
@@ -144,16 +147,16 @@ class QueryPage(BaseSelenium):
         debug_btn.click()
         time.sleep(2)
 
-    # Removing all query results
     def remove_query_result(self):
+        """Removing all query results"""
         remove_results = self.remove_all_results_id
         remove_results = \
             BaseSelenium.locator_finder_by_id(self, remove_results)
         remove_results.click()
         time.sleep(2)
 
-    # Clearing current query area
     def clear_query_area(self):
+        """Clearing current query area"""
         clear_query = self.query_execution_area
         clear_query = \
             BaseSelenium.locator_finder_by_xpath(self, clear_query)
@@ -162,8 +165,8 @@ class QueryPage(BaseSelenium):
         super().clear_all_text()
         time.sleep(2)
 
-    # Selecting spot light function helper
     def spot_light_function(self, search):
+        """Selecting spot light function helper"""
         spot_light = self.query_spot_light_id
         spot_light = \
             BaseSelenium.locator_finder_by_id(self, spot_light)
@@ -180,8 +183,8 @@ class QueryPage(BaseSelenium):
 
         self.clear_query_area()
 
-    # Updating documents
     def update_documents(self):
+        """Updating documents"""
         print("Navigating to Collection page \n")
         # Selecting collections page
         collections = "collections"
@@ -269,8 +272,8 @@ class QueryPage(BaseSelenium):
         # clear the execution area
         self.clear_query_area()
 
-    # executing query with bind parameters
     def bind_parameters_query(self):
+        """executing query with bind parameters"""
         # selecting query execution area
         query_area = self.query_execution_area
         query_area = \
@@ -337,8 +340,8 @@ class QueryPage(BaseSelenium):
         # clear the execution area
         self.clear_query_area()
 
-    # importing new queries
     def import_queries(self, path):
+        """importing new queries"""
         toggle_query = 'toggleQueries1'
         toggle_query = \
             BaseSelenium.locator_finder_by_id(self, toggle_query)
@@ -424,8 +427,8 @@ class QueryPage(BaseSelenium):
         editor_btn.click()
         time.sleep(1)
 
-    # saving custom query and check slow query
     def custom_query(self):
+        """saving custom query and check slow query"""
         self.clear_query_area()
 
         print("Executing Custom query\n")
@@ -554,8 +557,8 @@ class QueryPage(BaseSelenium):
         print('Deleting Saved query completed\n')
         self.clear_query_area()
 
-    # Graph query
     def world_country_graph_query(self):
+        """Graph query"""
         print('Creating worldCountry example graph \n')
         graph = self.graph_page
         graph = \
@@ -617,8 +620,8 @@ class QueryPage(BaseSelenium):
         self.delete_all_graph(graph_id)
         self.driver.refresh()
 
-    # K Shortest Paths Graph Query
     def k_shortest_paths_graph_query(self):
+        """K Shortest Paths Graph Query"""
         print('Creating KShortestPaths example graph \n')
         graph = self.graph_page
         graph = \
@@ -747,8 +750,8 @@ class QueryPage(BaseSelenium):
         self.delete_all_graph(graph_id)
         self.driver.refresh()
 
-    # Example City Graph
     def city_graph(self):
+        """Example City Graph"""
         print('Creating example City Graph \n')
         graph = self.graph_page
         graph = \
@@ -835,8 +838,8 @@ class QueryPage(BaseSelenium):
         self.delete_all_graph(graph_id)
         self.driver.refresh()
 
-    # changing the number of output
     def number_of_results(self):
+        """changing the number of output"""
         query = self.query_execution_area
         query = \
             BaseSelenium.locator_finder_by_xpath(self, query)
@@ -868,8 +871,8 @@ class QueryPage(BaseSelenium):
 
         self.driver.refresh()
 
-    # Deleting Collection using any collections locator id
     def delete_collection(self, collection):
+        """Deleting Collection using any collections locator id"""
         collection = \
             BaseSelenium.locator_finder_by_xpath(self, collection)
         collection.click()
@@ -889,8 +892,8 @@ class QueryPage(BaseSelenium):
             BaseSelenium.locator_finder_by_xpath(self, delete_collection_confirm_id)
         delete_collection_confirm_id.click()
 
-    # deleting all the collections
     def delete_all_collections(self):
+        """deleting all the collections"""
         collection_page = 'collections'
         collection_page = \
             BaseSelenium.locator_finder_by_id(self, collection_page)
@@ -909,8 +912,8 @@ class QueryPage(BaseSelenium):
         imdb_edges = '//*[@id="collection_imdb_vertices"]/div/h5'
         self.delete_collection(imdb_edges)
 
-    # deleting any graphs with given graph id
     def delete_all_graph(self, graph_id):
+        """deleting any graphs with given graph id"""
         print('Navigating back to graph page \n')
         graph = self.graph_page
         graph = \

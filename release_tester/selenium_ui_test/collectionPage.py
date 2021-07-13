@@ -3,8 +3,10 @@ from baseSelenium import BaseSelenium
 
 
 class CollectionPage(BaseSelenium):
+    """Collection page class"""
 
     def __init__(self, driver):
+        """class initialization"""
         super().__init__()
         self.driver = driver
         self.select_collection_page_id = "collections"
@@ -123,49 +125,50 @@ class CollectionPage(BaseSelenium):
         self.document_id = "document-id"
         self.select_filter_reset_btn_id = "/html//button[@id='resetView']"
 
-    # selecting collection tab
     def select_collection_page(self):
+        """selecting collection tab"""
         self.select_collection_page_id = \
             BaseSelenium.locator_finder_by_id(self, self.select_collection_page_id)
         self.select_collection_page_id.click()
 
-    # Clicking on create new collection box
     def select_create_collection(self):
+        """Clicking on create new collection box"""
         self.select_create_collection_id = \
             BaseSelenium.locator_finder_by_id(self, self.select_create_collection_id)
         self.select_create_collection_id.click()
 
-    # Providing new collection name
     def select_new_collection_name(self, name):
+        """Providing new collection name"""
         self.select_new_collection_name_id = \
             BaseSelenium.locator_finder_by_id(self, self.select_new_collection_name_id)
         self.select_new_collection_name_id.click()
         self.select_new_collection_name_id.send_keys(name)
 
-    # Selecting collection Document type where # '2' = Document, '3' = Edge
     def select_collection_type(self, value):
+        """Selecting collection Document type where # '2' = Document, '3' = Edge"""
         self.select_collection_type_id = \
             BaseSelenium.locator_finder_by_select(self, self.select_collection_type_id, value)
 
     def select_advance_option(self):
+        """Selecting collection advance options"""
         self.select_advance_option_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.select_advance_option_id)
         self.select_advance_option_id.click()
 
-    # Selecting collection wait type where value # 0 = YES, '1' = NO
     def wait_for_sync(self, value):
+        """Selecting collection wait type where value # 0 = YES, '1' = NO"""
         self.wait_for_sync_id = \
             BaseSelenium.locator_finder_by_select(self, self.wait_for_sync_id, value)
 
-    # selecting collection tab
     def create_new_collection_btn(self):
+        """selecting collection tab"""
         self.create_new_collection_btn_id = \
             BaseSelenium.locator_finder_by_id(self, self.create_new_collection_btn_id)
         self.create_new_collection_btn_id.click()
         time.sleep(3)
 
-    # Checking search functionality
     def checking_search_options(self, search):
+        """Checking search functionality"""
         self.select_collection_search_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.select_collection_search_id)
         self.select_collection_search_id.click()
@@ -173,102 +176,102 @@ class CollectionPage(BaseSelenium):
         self.select_collection_search_id.send_keys(search)
         time.sleep(2)
 
-    # selecting collection settings icon
     def select_collection_settings(self):
+        """selecting collection settings icon"""
         self.select_collection_settings_id = \
             BaseSelenium.locator_finder_by_id(self, self.select_collection_settings_id)
         self.select_collection_settings_id.click()
 
-    # Displaying system's collection
     def display_system_collection(self):
+        """Displaying system's collection"""
         self.display_system_collection_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.display_system_collection_id)
         self.display_system_collection_id.click()
         time.sleep(2)
 
-    # Displaying Document type collection
     def display_document_collection(self):
+        """Displaying Document type collection"""
         self.display_document_collection_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.display_document_collection_id)
         self.display_document_collection_id.click()
         time.sleep(2)
 
-    # Displaying Edge type collection
     def display_edge_collection(self):
+        """Displaying Edge type collection"""
         self.display_edge_collection_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.display_edge_collection_id)
         self.display_edge_collection_id.click()
         time.sleep(2)
 
-    # Displaying status loaded collection
     def select_status_loaded(self):
+        """Displaying status loaded collection"""
         self.select_status_loaded_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.select_status_loaded_id)
         self.select_status_loaded_id.click()
         time.sleep(2)
 
-    # Displaying status unloaded collection
     def select_status_unloaded(self):
+        """Displaying status unloaded collection"""
         self.select_status_unloaded_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.select_status_unloaded_id)
         self.select_status_unloaded_id.click()
         time.sleep(2)
 
-    # Sorting collection by type
     def sort_by_type(self):
+        """Sorting collection by type"""
         self.sort_by_type_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.sort_by_type_id)
         self.sort_by_type_id.click()
         time.sleep(2)
 
-    # Sorting collection by descending
     def sort_descending(self):
+        """Sorting collection by descending"""
         self.sort_descending_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.sort_descending_id)
         self.sort_descending_id.click()
         time.sleep(2)
 
-    # Sorting collection by name
     def sort_by_name(self):
+        """Sorting collection by name"""
         self.sort_by_name_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.sort_by_name_id)
         self.sort_by_name_id.click()
         time.sleep(2)
 
-    # selecting TestDoc Collection
     def select_doc_collection(self):
+        """selecting TestDoc Collection"""
         self.select_doc_collection_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.select_doc_collection_id)
         self.select_doc_collection_id.click()
 
-    # selecting collection upload btn
     def select_upload_btn(self):
+        """selecting collection upload btn"""
         self.select_upload_btn_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.select_upload_btn_id)
         self.select_upload_btn_id.click()
         time.sleep(3)
 
-    # This method will upload the file with the file path given
     def select_choose_file_btn(self, path):
+        """This method will upload the file with the file path given"""
         self.select_choose_file_btn_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.select_choose_file_btn_id)
         time.sleep(2)
         self.select_choose_file_btn_id.send_keys(path)
 
-    # Confirm file upload btn
     def select_confirm_upload_btn(self):
+        """Confirm file upload btn"""
         self.select_confirm_upload_btn_id = \
             BaseSelenium.locator_finder_by_id(self, self.select_confirm_upload_btn_id)
         self.select_confirm_upload_btn_id.click()
 
-    # Confirm file upload btn
     def getting_total_row_count(self):
+        """Confirm file upload btn"""
         self.getting_total_row_count_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.getting_total_row_count_id)
         return self.getting_total_row_count_id.text
 
-    # Exporting documents as JSON file from the collection
     def download_doc_as_json(self):
+        """Exporting documents as JSON file from the collection"""
         self.select_export_doc_as_jason_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.select_export_doc_as_jason_id).click()
         time.sleep(1)
@@ -277,8 +280,8 @@ class CollectionPage(BaseSelenium):
         self.select_export_doc_confirm_btn_id.click()
         time.sleep(2)
 
-    # Checking Filter functionality
     def filter_documents(self, value):
+        """Checking Filter functionality"""
         self.select_filter_collection_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.select_filter_collection_id)
         self.select_filter_collection_id.click()
@@ -322,14 +325,14 @@ class CollectionPage(BaseSelenium):
             BaseSelenium.locator_finder_by_xpath(self, self.select_filter_reset_btn_id).click()
         time.sleep(2)
 
-    # Choose how many rows of docs will be display
     def display_document_size(self, value):
+        """Choose how many rows of docs will be display"""
         self.display_document_size_id = \
             BaseSelenium.locator_finder_by_select(self, self.display_document_size_id, value)
         time.sleep(2)
 
-    # After changing the document display size checking everything loads
     def traverse_search_pages(self):
+        """After changing the document display size checking everything loads"""
         self.move_second_page_id = \
             BaseSelenium.locator_finder_by_hover_item(self, self.move_second_page_id)
         time.sleep(2)
@@ -337,14 +340,13 @@ class CollectionPage(BaseSelenium):
             BaseSelenium.locator_finder_by_hover_item(self, self.move_first_page_id)
         time.sleep(2)
 
-    # Selecting Hand selection button
     def select_hand_pointer(self):
+        """Selecting Hand selection button"""
         self.select_hand_pointer_id = \
             BaseSelenium.locator_finder_by_hover_item(self, self.select_hand_pointer_id)
 
-    # selecting multiple document rows from the current collection
     def select_multiple_item(self):
-        # selecting multiple rows of collection
+        """selecting multiple document rows from the current collection"""
         time.sleep(2)
         self.row1_id = \
             BaseSelenium.locator_finder_by_hover_item(self, self.row1_id)
@@ -356,71 +358,71 @@ class CollectionPage(BaseSelenium):
             BaseSelenium.locator_finder_by_hover_item(self, self.row4_id)
         time.sleep(1)
 
-    # selecting collection move button after selecting
     def move_btn(self):
+        """selecting collection move button after selecting"""
         self.move_btn_id = \
             BaseSelenium.locator_finder_by_hover_item(self, self.move_btn_id)
         time.sleep(1)
 
-    # selecting Collection to move the selected data
     def move_doc_textbox(self, collection):
+        """selecting Collection to move the selected data"""
         self.move_doc_textbox_id = \
             BaseSelenium.locator_finder_by_id(self, self.move_doc_textbox_id)
         self.move_doc_textbox_id.click()
         self.move_doc_textbox_id.send_keys(collection)
 
-    # Confirming move data to the Collection
     def move_confirm_btn(self):
+        """Confirming move data to the Collection"""
         self.move_confirm_btn_id = \
             BaseSelenium.locator_finder_by_id(self, self.move_confirm_btn_id)
         self.move_confirm_btn_id.click()
 
-    # Selecting delete button for selected data
     def select_collection_delete_btn(self):
+        """Selecting delete button for selected data"""
         self.select_collection_delete_btn_id = \
             BaseSelenium.locator_finder_by_id(self, self.select_collection_delete_btn_id)
         self.select_collection_delete_btn_id.click()
 
-    # Selecting delete button for selected data
     def collection_delete_confirm_btn(self):
+        """Selecting delete button for selected data"""
         self.collection_delete_confirm_btn_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.collection_delete_confirm_btn_id)
         self.collection_delete_confirm_btn_id.click()
 
-    # Selecting really delete button for selected data
     def collection_really_dlt_btn(self):
+        """Selecting really delete button for selected data"""
         self.collection_really_dlt_btn_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.collection_really_dlt_btn_id)
         self.collection_really_dlt_btn_id.click()
         self.driver.refresh()
 
-    # Selecting index menu from collection
     def select_index_menu(self):
+        """Selecting index menu from collection"""
         self.select_index_menu_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.select_index_menu_id)
         self.select_index_menu_id.click()
 
-    # Selecting index menu from collection
     def create_new_index_btn(self):
+        """Selecting index menu from collection"""
         self.create_new_index_btn_id = \
             BaseSelenium.locator_finder_by_id(self, self.create_new_index_btn_id)
         self.create_new_index_btn_id.click()
         time.sleep(2)
 
-    # Selecting type of index here 1 = Geo, 2 = persistent, 3 = Fulltext, 4 = TTL type
     def select_index_type(self, value):
+        """Selecting type of index here 1 = Geo, 2 = persistent, 3 = Fulltext, 4 = TTL type"""
         self.select_index_type_id = \
             BaseSelenium.locator_finder_by_select(self, self.select_index_type_id, value)
 
-    # Selecting index menu from collection
     def select_create_index_btn(self):
+        """Selecting index menu from collection"""
         self.select_create_index_btn_id = \
             BaseSelenium.locator_finder_by_id(self, self.select_create_index_btn_id)
         self.select_create_index_btn_id.click()
         time.sleep(2)
 
-    # Filling up all the information for geo index
     def creating_geo_index(self):
+        """Filling up all the information for geo index"""
         self.select_geo_fields_id = \
             BaseSelenium.locator_finder_by_hover_item_id(self, self.select_geo_fields_id)
         self.select_geo_fields_id.send_keys("gfields").perform()
@@ -433,8 +435,8 @@ class CollectionPage(BaseSelenium):
             BaseSelenium.locator_finder_by_hover_item_id(self, self.select_geo_background_id)
         time.sleep(1)
 
-    # Filling up all the information for persistent index
     def creating_persistent_index(self):
+        """Filling up all the information for persistent index"""
         self.select_persistent_fields_id = \
             BaseSelenium.locator_finder_by_hover_item_id(self, self.select_persistent_fields_id)
         self.select_persistent_fields_id.send_keys("pfields").perform()
@@ -451,8 +453,8 @@ class CollectionPage(BaseSelenium):
             BaseSelenium.locator_finder_by_hover_item_id(self, self.select_persistent_background_id)
         time.sleep(1)
 
-    # Filling up all the information for Fulltext index
     def creating_fulltext_index(self):
+        """Filling up all the information for Fulltext index"""
         self.select_fulltext_field_id = \
             BaseSelenium.locator_finder_by_hover_item_id(self, self.select_fulltext_field_id)
         self.select_fulltext_field_id.send_keys("ffields").perform()
@@ -466,8 +468,8 @@ class CollectionPage(BaseSelenium):
             BaseSelenium.locator_finder_by_hover_item_id(self, self.select_fulltext_background_id)
         time.sleep(1)
 
-    # Filling up all the information for TTL index
     def creating_ttl_index(self):
+        """Filling up all the information for TTL index"""
         self.select_ttl_field_id = \
             BaseSelenium.locator_finder_by_hover_item_id(self, self.select_ttl_field_id)
         self.select_ttl_field_id.send_keys("tfields").perform()
@@ -481,8 +483,8 @@ class CollectionPage(BaseSelenium):
             BaseSelenium.locator_finder_by_hover_item_id(self, self.select_ttl_background_id)
         time.sleep(1)
 
-    # this method will delete all the indexes one by one
     def delete_all_index(self):
+        """this method will delete all the indexes one by one"""
         self.select_index_for_delete_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.select_index_for_delete_id)
         self.select_index_for_delete_id.click()
@@ -491,22 +493,22 @@ class CollectionPage(BaseSelenium):
         self.select_index_confirm_delete.click()
         self.driver.refresh()
 
-    # Selecting info tab from the collection submenu
     def select_info_tab(self):
+        """Selecting info tab from the collection submenu"""
         self.select_info_tab_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.select_info_tab_id)
         self.select_info_tab_id.click()
         time.sleep(2)
 
-    # Selecting Schema tab from the collection submenu
     def select_schema_tab(self):
+        """Selecting Schema tab from the collection submenu"""
         self.select_schema_tab_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.select_schema_tab_id)
         self.select_schema_tab_id.click()
         time.sleep(2)
 
-    # Selecting settings tab from the collection submenu
     def select_settings_tab(self):
+        """Selecting settings tab from the collection submenu"""
         self.select_settings_tab_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.select_settings_tab_id)
         self.select_settings_tab_id.click()
@@ -527,15 +529,15 @@ class CollectionPage(BaseSelenium):
         self.select_load_index_into_memory_id.click()
         time.sleep(2)
 
-    # Loading and Unloading collection
     def select_settings_unload_btn(self):
+        """Loading and Unloading collection"""
         self.select_settings_unload_btn_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.select_settings_unload_btn_id)
         self.select_settings_unload_btn_id.click()
         time.sleep(2)
 
-    # Loading and Unloading collection
     def select_truncate_btn(self):
+        """Loading and Unloading collection"""
         self.select_truncate_btn_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.select_truncate_btn_id)
         self.select_truncate_btn_id.click()
@@ -545,8 +547,8 @@ class CollectionPage(BaseSelenium):
         self.select_truncate_confirm_btn_id.click()
         time.sleep(2)
 
-    # Deleting Collection from settings tab
     def delete_collection(self):
+        """Deleting Collection from settings tab"""
         self.delete_collection_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.delete_collection_id)
         self.delete_collection_id.click()
@@ -555,14 +557,14 @@ class CollectionPage(BaseSelenium):
             BaseSelenium.locator_finder_by_xpath(self, self.delete_collection_confirm_id)
         self.delete_collection_confirm_id.click()
 
-    # selecting Edge collection for data uploading
     def select_edge_collection_upload(self):
+        """selecting Edge collection for data uploading"""
         self.select_edge_collection_upload_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.select_edge_collection_upload_id)
         self.select_edge_collection_upload_id.click()
 
-    # selecting TestEdge Collection
     def select_edge_collection(self):
+        """selecting TestEdge Collection"""
         self.select_edge_collection_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.select_edge_collection_id)
         self.select_edge_collection_id.click()
@@ -570,8 +572,8 @@ class CollectionPage(BaseSelenium):
             BaseSelenium.locator_finder_by_xpath(self, self.select_edge_settings_id)
         self.select_edge_settings_id.click()
 
-    # selecting TestEdge Collection
     def select_test_doc_collection(self):
+        """selecting TestEdge Collection"""
         self.select_test_doc_collection_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.select_test_doc_collection_id)
         self.select_test_doc_collection_id.click()

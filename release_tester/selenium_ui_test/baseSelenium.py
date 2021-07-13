@@ -18,9 +18,11 @@ from webdriver_manager.utils import ChromeType
 
 
 class BaseSelenium:
+    """Base class for selenium"""
     driver: WebDriver
 
     def __init__(self):
+        """base initialization"""
         self.locator = None
         self.select = None
 
@@ -78,6 +80,7 @@ class BaseSelenium:
 
     @staticmethod
     def query(query):
+        """This method will type the query in to the text area"""
         pyautogui.typewrite(query)
 
     def switch_to_iframe(self, iframe_id):
