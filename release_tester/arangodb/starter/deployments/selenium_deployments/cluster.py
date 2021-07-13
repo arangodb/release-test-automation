@@ -91,7 +91,7 @@ class Cluster(SeleniumRunner):
         done = False
         retry_count = 0
         while not done:
-            node_count = self.cluster_dashboard_get_count(50)
+            node_count = self.cluster_dashboard_get_count(timeout=50)
 
             done = ((node_count['dbservers'] == '2/3') and
                     (node_count['coordinators'] == '2/3') and
