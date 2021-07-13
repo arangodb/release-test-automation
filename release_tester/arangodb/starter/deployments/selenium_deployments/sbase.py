@@ -402,7 +402,7 @@ class SeleniumRunner(ABC):
                         EC.presence_of_element_located((
                             By.XPATH,
                             '//*[@id="clusterCoordinators"]')),
-                        message="UI-Test: [CLUSTER tab] coordinators path didn't arive" +
+                        message="UI-Test: [CLUSTER tab] coordinators path didn't arive " +
                         "on time %ds inspect screenshot!" % timeout
                     )
                     elm_accepted = len(elm.text) > 0
