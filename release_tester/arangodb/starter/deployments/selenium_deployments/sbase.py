@@ -595,12 +595,11 @@ class SeleniumRunner(ABC):
     def jam_step_2(self, cfg):
         """ check the integrity of the old system before the upgrade """
     
-    @abstractmethod
-    def check_empty_ui():
+    def check_empty_ui(self):
         """ run all tests that expect the server to be empty """
-    @abstractmethod
-    def check_full_ui ():
+    
+    def check_full_ui (self):
         """ run all tests that work with data """
-    @abstractmethod
-    def clear_ui ():
+
+    def clear_ui (self):
         """ go all through the ui, flush all data (graphs, users, databases, collections) """
