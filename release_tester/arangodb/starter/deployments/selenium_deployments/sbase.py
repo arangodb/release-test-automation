@@ -388,7 +388,7 @@ class SeleniumRunner(ABC):
         self.progress("Health state:" + elem.text)
         return elem.text
 
-    def cluster_dashboard_get_count(self, timeout=10):
+    def cluster_dashboard_get_count(self, timeout=15):
         """
          extracts the coordinator / dbserver count from the 'cluster' page
         """
@@ -402,7 +402,7 @@ class SeleniumRunner(ABC):
                         EC.presence_of_element_located((
                             By.XPATH,
                             '//*[@id="clusterCoordinators"]')),
-                        message="UI-Test: [CLUSTER tab] coordinators path didn't arive" +
+                        message="UI-Test: [CLUSTER tab] coordinators path didn't arive " +
                         "on time %ds inspect screenshot!" % timeout
                     )
                     elm_accepted = len(elm.text) > 0
