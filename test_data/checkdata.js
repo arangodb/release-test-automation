@@ -167,15 +167,15 @@ function checkFoxxService() {
 
   print("getting the root of the gods");
   reply = arango.GET_RAW('/_db/_system/itz');
-  assertEqual(reply.code, "307");
+  assertEqual(reply.code, "307", JSON.stringify(reply));
 
   print('getting index html with list of gods');
   reply = arango.GET_RAW('/_db/_system/itz/index');
-  assertEqual(reply.code, "200");
+  assertEqual(reply.code, "200", JSON.stringify(reply));
 
   print("summoning Chalchihuitlicue");
   reply = arango.GET_RAW('/_db/_system/itz/Chalchihuitlicue/summon', onlyJson);
-  assertEqual(reply.code, "200");
+  assertEqual(reply.code, "200", JSON.stringify(reply));
   let parsedBody = JSON.parse(reply.body);
   assertEqual(parsedBody.name, "Chalchihuitlicue");
   assertTrue(parsedBody.summoned);
