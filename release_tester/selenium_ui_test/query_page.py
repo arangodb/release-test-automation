@@ -2,7 +2,7 @@ import time
 
 import pyautogui
 
-from baseSelenium import BaseSelenium
+from base_selenium import BaseSelenium
 
 
 class QueryPage(BaseSelenium):
@@ -49,7 +49,8 @@ class QueryPage(BaseSelenium):
         time.sleep(1)
 
         cmd1 = 'cmd /c "arangorestore --server.endpoint tcp://127.0.0.1:8529 --input-directory ' \
-               'release-test-automation\\test_data\\ui_data\\query_page\\IMDB_DUMP --server.username root --server.password "" ' \
+               'release-test-automation\\test_data\\ui_data\\query_page\\IMDB_DUMP --server.username root ' \
+               '--server.password "" ' \
                '--number-of-shards 9 --replication-factor 2"'
         super().command(cmd1)
         time.sleep(1)

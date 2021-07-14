@@ -2,7 +2,7 @@ import time
 
 from selenium.common.exceptions import TimeoutException
 
-from baseSelenium import BaseSelenium
+from base_selenium import BaseSelenium
 
 
 class DashboardPage(BaseSelenium):

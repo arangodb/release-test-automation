@@ -1,4 +1,4 @@
-from baseSelenium import BaseSelenium
+from base_selenium import BaseSelenium
 
 
 class LoginPage(BaseSelenium):
@@ -42,7 +42,7 @@ class LoginPage(BaseSelenium):
         self.select_db_btn_id.click()
 
     def login(self, username, password, db_index=0):  # 0 = default database
-        '''This login method will call repeatedly before each tab test'''
+        """This login method will call repeatedly before each tab test"""
         print("Login begin with root user\n")
         self.enter_username(username)
         self.enter_password(password)

@@ -1,5 +1,5 @@
 import time
-from baseSelenium import BaseSelenium
+from base_selenium import BaseSelenium
 
 
 class UserPage(BaseSelenium):

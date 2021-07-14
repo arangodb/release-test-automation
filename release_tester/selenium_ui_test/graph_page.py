@@ -2,7 +2,7 @@ import time
 
 import pyautogui
 
-from baseSelenium import BaseSelenium
+from base_selenium import BaseSelenium
 
 
 class GraphPage(BaseSelenium):

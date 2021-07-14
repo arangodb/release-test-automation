@@ -47,7 +47,7 @@ class BaseSelenium:
                 profile = webdriver.FirefoxProfile()
                 profile.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/json, text/csv")  # mime
                 profile.set_preference("browser.download.manager.showWhenStarting", False)
-                profile.set_preference("browser.download.dir", "C:\\Users\\rearf\\Downloads") # fixme
+                profile.set_preference("browser.download.dir", "C:\\Users\\rearf\\Downloads")  # fixme
                 profile.set_preference("browser.download.folderList", 2)
                 profile.set_preference("pdfjs.disabled", True)
 
