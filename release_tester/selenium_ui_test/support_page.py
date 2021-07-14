@@ -1,6 +1,8 @@
 import time
 
-from base_selenium import BaseSelenium
+from selenium_ui_test.base_selenium import BaseSelenium
+# can't circumvent long lines.. nAttr nLines
+# pylint: disable=C0301 disable=R0902 disable=R0915
 
 
 class SupportPage(BaseSelenium):

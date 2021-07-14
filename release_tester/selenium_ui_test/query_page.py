@@ -2,7 +2,7 @@ import time
 
 import pyautogui
 
-from base_selenium import BaseSelenium
+from selenium_ui_test.base_selenium import BaseSelenium
 
 # can't circumvent long lines..
 # pylint: disable=C0301
@@ -83,10 +83,10 @@ class QueryPage(BaseSelenium):
         new_replication_factor.click()
         pyautogui.typewrite('2')
 
-        modalButton1 = 'modalButton1'
-        modalButton1 = \
+        modal_button1 = 'modalButton1'
+        modal_button1 = \
             BaseSelenium.locator_finder_by_id(self, modalButton1)
-        modalButton1.click()
+        modal_button1.click()
 
         self.driver.refresh()
         time.sleep(5)
@@ -411,10 +411,10 @@ class QueryPage(BaseSelenium):
         delete_query.click()
         time.sleep(1)
 
-        Del_btn = 'modalButton1'
-        Del_btn = \
-            BaseSelenium.locator_finder_by_id(self, Del_btn)
-        Del_btn.click()
+        del_btn = 'modalButton1'
+        del_btn = \
+            BaseSelenium.locator_finder_by_id(self, del_btn)
+        del_btn.click()
         time.sleep(1)
 
         del_confirm_btn = 'modal-confirm-delete'
@@ -540,10 +540,10 @@ class QueryPage(BaseSelenium):
             BaseSelenium.locator_finder_by_id(self, delete_query)
         delete_query.click()
         time.sleep(1)
-        Del_btn = 'modalButton1'
-        Del_btn = \
-            BaseSelenium.locator_finder_by_id(self, Del_btn)
-        Del_btn.click()
+        del_btn = 'modalButton1'
+        del_btn = \
+            BaseSelenium.locator_finder_by_id(self, del_btn)
+        del_btn.click()
         time.sleep(1)
 
         del_confirm_btn = 'modal-confirm-delete'

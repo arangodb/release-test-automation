@@ -1,4 +1,4 @@
-from base_selenium import BaseSelenium
+from selenium_ui_test.base_selenium import BaseSelenium
 
 # can't circumvent long lines..
 # pylint: disable=C0301
