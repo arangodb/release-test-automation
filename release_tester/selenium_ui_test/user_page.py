@@ -1,6 +1,8 @@
 import time
 from base_selenium import BaseSelenium
 
+# can't circumvent long lines..
+# pylint: disable=C0301
 
 class UserPage(BaseSelenium):
     """Class for User page"""

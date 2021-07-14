@@ -1,5 +1,7 @@
 from base_selenium import BaseSelenium
 
+# can't circumvent long lines..
+# pylint: disable=C0301
 
 class LoginPage(BaseSelenium):
     """Login class for selenium UI testing"""

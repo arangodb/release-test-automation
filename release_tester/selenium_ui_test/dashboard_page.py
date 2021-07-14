@@ -4,6 +4,8 @@ from selenium.common.exceptions import TimeoutException
 
 from base_selenium import BaseSelenium
 
+# can't circumvent long lines..
+# pylint: disable=C0301
 
 class DashboardPage(BaseSelenium):
     """Class for Dashboard page"""

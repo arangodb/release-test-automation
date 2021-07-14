@@ -8,6 +8,8 @@ from graph_page import GraphPage
 from query_page import QueryPage
 from support_page import SupportPage
 
+# can't circumvent long lines..
+# pylint: disable=C0301
 
 class Test(BaseSelenium):
     """initial base class setup"""

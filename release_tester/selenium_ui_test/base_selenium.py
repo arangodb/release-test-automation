@@ -16,6 +16,8 @@ from webdriver_manager.firefox import GeckoDriverManager
 from webdriver_manager.microsoft import EdgeChromiumDriverManager
 from webdriver_manager.utils import ChromeType
 
+# can't circumvent long lines..
+# pylint: disable=C0301
 
 class BaseSelenium:
     """Base class for selenium"""
