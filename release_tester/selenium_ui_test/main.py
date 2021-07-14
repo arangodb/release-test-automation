@@ -1,12 +1,12 @@
-from baseSelenium import BaseSelenium
-from dashboardPage import DashboardPage
-from loginPage import LoginPage
-from userPage import UserPage
-from viewsPage import ViewsPage
-from collectionPage import CollectionPage
-from graphPage import GraphPage
-from queryPage import QueryPage
-from supportPage import SupportPage
+from base_selenium import BaseSelenium
+from dashboard_page import DashboardPage
+from login_page import LoginPage
+from user_page import UserPage
+from views_page import ViewsPage
+from collection_page import CollectionPage
+from graph_page import GraphPage
+from query_page import QueryPage
+from support_page import SupportPage
 
 
 class Test(BaseSelenium):
@@ -31,7 +31,7 @@ class Test(BaseSelenium):
         del self.login
 
     def test_dashboard(self):
-        """testing dasboard page"""
+        """testing dashboard page"""
         print("---------Checking Dashboard started--------- \n")
         self.login = LoginPage(self.driver)
         self.login.login('root', '')
