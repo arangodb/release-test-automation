@@ -74,11 +74,11 @@ class Test(BaseSelenium):
         login.logout_button()
         print("---------Checking Dashboard Completed--------- \n")
 
-    def test_collection(self):
+    def test_collection(self, testdata_path):
         """testing collection page"""
         print("---------Checking Collection Begin--------- \n")
-        login = LoginPage(self.driver)
-        login.login('root', self.root_passvoid)
+        #login = LoginPage(self.driver)
+        #login.login('root', self.root_passvoid)
         col = CollectionPage(self.driver)  # creating obj for Collection
         col1 = CollectionPage(self.driver)
         col2 = CollectionPage(self.driver)
@@ -161,7 +161,7 @@ class Test(BaseSelenium):
         print("Uploading file to the collection started\n")
         col1.select_upload_btn()
         print("Uploading json file\n")
-        col1.select_choose_file_btn('release-test-automation\\test_data\\ui_data\\edges.json')
+        col1.select_choose_file_btn(str(testdata_path / 'ui_data' / 'edges.json'))
         col1.select_confirm_upload_btn()
         self.driver.refresh()  # in order to clear the screen before fetching data
         print("Uploading " + col1.getting_total_row_count() + " to the collection Completed\n")
@@ -173,7 +173,7 @@ class Test(BaseSelenium):
         print("Uploading file to the collection started\n")
         col.select_upload_btn()
         print("Uploading json file\n")
-        col.select_choose_file_btn('release-test-automation\\test_data\\ui_data\\edges.json\\names_100.json')
+        col.select_choose_file_btn(str(testdata_path / 'ui_data' / 'names_100.json'))
         col.select_confirm_upload_btn()
         self.driver.refresh()  # in order to clear the screen before fetching data
         print("Uploading " + col.getting_total_row_count() + " to the collection Completed\n")
@@ -278,8 +278,8 @@ class Test(BaseSelenium):
         del col1
         del col2
         del col3
-        login.logout_button()
-        del login
+        #login.logout_button()
+        #del login
         print("---------Checking Collection Completed--------- \n")
 
     def test_views(self):
@@ -596,7 +596,7 @@ class Test(BaseSelenium):
         query.city_graph()
 
         print('Importing new queries \n')
-        query.import_queries('release-test-automation\\test_data\\ui_data\\query_page\\imported_query.json')
+        query.import_queries(str(testdata_path / 'query_page' / 'imported_query.json'))
         print("Saving Current query as custom query\n")
         query.custom_query()
         print('Changing the number of results from 1000 to 100\n')

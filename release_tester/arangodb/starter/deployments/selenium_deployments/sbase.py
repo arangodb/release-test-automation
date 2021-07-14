@@ -18,6 +18,7 @@ from selenium.common.exceptions import (
     NoSuchElementException
 )
 
+from selenium_ui_test.main import Test as UITest
 FNRX = re.compile("[\n@]*")
 
 
@@ -598,8 +599,12 @@ class SeleniumRunner(ABC):
     def check_empty_ui(self):
         """ run all tests that expect the server to be empty """
 
-    def check_full_ui (self):
+    def check_full_ui(self, cfg): # , frontend_instance
         """ run all tests that work with data """
+        # frontend = frontend_instance[0]
+        # ui_test = UITest(frontend.get_passvoid(), frontend.get_endpoint(), self.web)
+        ui_test = UITest('', '', self.web)
+        ui_test.test_collection(cfg.test_data_dir.resolve())
 
     def clear_ui (self):
         """ go all through the ui, flush all data (graphs, users, databases, collections) """

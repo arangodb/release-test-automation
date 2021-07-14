@@ -46,7 +46,7 @@ class ActiveFailover(SeleniumRunner):
         self.ui_assert(len(replication_table['follower_table']) == 2,
                        "UI-Test:\nexpect 2 followers in:\n %s" % pprint.pformat(
                            replication_table))
-        self.check_full_ui()
+        self.check_full_ui(cfg)
 
     def jam_step_2(self, cfg):
         pass
