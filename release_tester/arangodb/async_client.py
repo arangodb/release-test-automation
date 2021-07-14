@@ -1,0 +1,133 @@
+#!/usr/bin/env python
+""" Run a javascript command by spawning an arangosh
+    to the configured connection """
+
+from queue import Queue, Empty
+from subprocess import PIPE, Popen
+import sys
+from threading  import Thread
+from tools.asciiprint import print_progress as progress
+import tools.loghelper as lh
+
+ON_POSIX = 'posix' in sys.builtin_module_names
+
+def dummy_line_result(line):
+    """ do nothing with the line... """
+    #pylint: disable=W0104
+    line
+
+def enqueue_stdout(std_out, queue, instance):
+    """ add stdout to the specified queue """
+    for line in iter(std_out.readline, b''):
+        #print("O: " + str(line))
+        queue.put((line, instance))
+    #print('0 done!')
+    queue.put(-1)
+    std_out.close()
+
+def enqueue_stderr(std_err, queue, instance):
+    """ add stderr to the specified queue """
+    for line in iter(std_err.readline, b''):
+        #print("E: " + str(line))
+        queue.put((line, instance))
+    #print('1 done!')
+    queue.put(-1)
+    std_err.close()
+
+def convert_result(result_array):
+    """ binary -> string """
+    result = ""
+    for one_line in result_array:
+        result += "\n" + one_line[0].decode("utf-8").rstrip()
+    return result
+
+
+class ArangoCLIprogressiveTimeoutExecutor():
+    """
+    Abstract base class to run arangodb cli tools
+    with username/password/endpoint specification
+    timeout will be relative to the last thing printed.
+    """
+    # pylint: disable=R0903 R0913 disable=R0902 disable=R0915 disable=R0912 disable=R0914
+    def __init__(self, config, connect_instance):
+        self.connect_instance = connect_instance
+        self.cfg = config
+        self.read_only = False
+
+    def run_monitored(self,
+                      executeable,
+                      more_args,
+                      timeout,
+                      result_line,
+                      verbose):
+        """
+        runs a script in background tracing with
+        a dynamic timeout that its got output
+        (is still alive...)
+        """
+        run_cmd = [
+            executeable,
+            "--server.endpoint", self.connect_instance.get_endpoint(),
+            "--log.foreground-tty", "true",
+            "--server.username", str(self.cfg.username),
+            "--server.password", str(self.connect_instance.get_passvoid())
+        ] + more_args
+
+        if verbose:
+            lh.log_cmd(run_cmd)
+        process = Popen(run_cmd,
+                        stdout=PIPE, stderr=PIPE, close_fds=ON_POSIX,
+                        cwd=self.cfg.test_data_dir.resolve())
+        queue = Queue()
+        thread1 = Thread(target=enqueue_stdout, args=(process.stdout,
+                                                      queue,
+                                                      self.connect_instance))
+        thread2 = Thread(target=enqueue_stderr, args=(process.stderr,
+                                                      queue,
+                                                      self.connect_instance))
+        thread1.start()
+        thread2.start()
+
+        # ... do other things here
+        # out = logfile.open('wb')
+        # read line without blocking
+        have_timeout = False
+        tcount = 0
+        close_count = 0
+        result = []
+        while not have_timeout:
+            if not verbose:
+                progress("sj" + str(tcount))
+            line = ''
+            try:
+                line = queue.get(timeout=1)
+                result_line(line)
+            except Empty:
+                tcount += 1
+                if verbose:
+                    progress('T ' + str(tcount))
+                have_timeout = tcount >= timeout
+            else:
+                tcount = 0
+                if isinstance(line, tuple):
+                    if verbose:
+                        print("e: " + str(line[0]))
+                    if not str(line[0]).startswith('#'):
+                        result.append(line)
+                else:
+                    close_count += 1
+                    if close_count == 2:
+                        print(' done!')
+                        break
+        if have_timeout:
+            print(" TIMEOUT OCCURED!")
+            process.kill()
+        rc_exit = process.wait()
+        print(rc_exit)
+        thread1.join()
+        thread2.join()
+        if have_timeout or rc_exit != 0:
+            return (False, convert_result(result))
+        if len(result) == 0:
+            return (True, "")
+        return (True, convert_result(result))
