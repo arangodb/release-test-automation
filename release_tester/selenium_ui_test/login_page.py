@@ -1,3 +1,8 @@
+#!/usr/bin/env python
+"""
+login to the UI
+"""
+
 from selenium_ui_test.base_selenium import BaseSelenium
 
 # can't circumvent long lines..

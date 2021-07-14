@@ -1,8 +1,12 @@
+#!/usr/bin/env python
+"""
+aardvark views page
+"""
 import time
 from selenium_ui_test.base_selenium import BaseSelenium
 
-# can't circumvent long lines..
-# pylint: disable=C0301
+# can't circumvent long lines.. nAttr nLines
+# pylint: disable=C0301 disable=R0902 disable=R0915 disable=R0904
 
 class ViewsPage(BaseSelenium):
     """Class for View Page"""
@@ -27,7 +31,7 @@ class ViewsPage(BaseSelenium):
                                              "//div[@class='jsoneditor-contextmenu']/ul[@class='jsoneditor-menu']" \
                                              "//button[@title='Switch to code highlighter']"
         self.compact_json_data_id = "/html//div[@id='propertiesEditor']//button[@title='Compact JSON data, " \
-                                    "remove all whitespaces (Ctrl+Shift+\)']"
+                                    "remove all whitespaces (Ctrl+Shift+\\)']"
         self.switch_to_tree_editor_mode_id = "//div[@id='propertiesEditor']/div[@class='jsoneditor " \
                                              "jsoneditor-mode-code']//div[@class='jsoneditor-anchor']//" \
                                              "ul[@class='jsoneditor-menu']//button[@title='Switch to tree editor']"
@@ -173,7 +177,7 @@ class ViewsPage(BaseSelenium):
         """traverse search results down"""
         self.search_result_traverse_down_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.search_result_traverse_down_id)
-        for x in range(8):
+        for () in range(8):
             self.search_result_traverse_down_id.click()
             time.sleep(1)
 
@@ -181,7 +185,7 @@ class ViewsPage(BaseSelenium):
         """traverse search results up"""
         self.search_result_traverse_up_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.search_result_traverse_up_id)
-        for x in range(8):
+        for () in range(8):
             self.search_result_traverse_up_id.click()
             time.sleep(1)
 

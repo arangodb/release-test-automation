@@ -1,8 +1,12 @@
+#!/usr/bin/env python
+"""
+aardvark collection tab ui object
+"""
 import time
 from selenium_ui_test.base_selenium import BaseSelenium
 
-# can't circumvent long lines..
-# pylint: disable=C0301
+# can't circumvent long lines.. nAttr nLines
+# pylint: disable=C0301 disable=R0902 disable=R0915 disable=R0904
 
 class CollectionPage(BaseSelenium):
     """Collection page class"""

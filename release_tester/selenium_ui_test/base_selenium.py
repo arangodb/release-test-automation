@@ -1,8 +1,13 @@
+#!/usr/bin/env python
+"""
+base class for aardvark management
+"""
+
 import os
 import time
 
 import pyautogui
-from selenium import webdriver
+#from selenium import webdriver
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
@@ -11,13 +16,13 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 
-from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.firefox import GeckoDriverManager
-from webdriver_manager.microsoft import EdgeChromiumDriverManager
-from webdriver_manager.utils import ChromeType
+# from webdriver_manager.chrome import ChromeDriverManager
+# from webdriver_manager.firefox import GeckoDriverManager
+# from webdriver_manager.microsoft import EdgeChromiumDriverManager
+# from webdriver_manager.utils import ChromeType
 
-# can't circumvent long lines..
-# pylint: disable=C0301
+# can't circumvent long lines.. nAttr nLines
+# pylint: disable=C0301 disable=R0902 disable=R0904 disable=R0915
 
 class BaseSelenium:
     """Base class for selenium"""
@@ -32,37 +37,37 @@ class BaseSelenium:
     def set_up_class(cls):
         """This method will be used for the basic driver setup"""
 
-        browser_list = ['1 = chrome', '2 = firefox', '3 = edge', '4 = chromium']
-        print(*browser_list, sep="\n")
+        # browser_list = ['1 = chrome', '2 = firefox', '3 = edge', '4 = chromium']
+        # print(*browser_list, sep="\n")
         cls.browser_name = None
 
-        while cls.browser_name not in {1, 2, 3, 4}:
-            cls.browser_name = int(input('Choose your browser: '))
-
-            if cls.browser_name == 1:
-                print("You have chosen: Chrome browser \n")
-                cls.driver = webdriver.Chrome(ChromeDriverManager().install())
-            elif cls.browser_name == 2:
-                print("You have chosen: Firefox browser \n")
-
-                # This preference will disappear download bar for firefox
-                profile = webdriver.FirefoxProfile()
-                profile.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/json, text/csv")  # mime
-                profile.set_preference("browser.download.manager.showWhenStarting", False)
-                profile.set_preference("browser.download.dir", "C:\\Users\\rearf\\Downloads")  # fixme
-                profile.set_preference("browser.download.folderList", 2)
-                profile.set_preference("pdfjs.disabled", True)
-
-                cls.driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), firefox_profile=profile)
-
-            elif cls.browser_name == 3:
-                print("You have chosen: Edge browser \n")
-                cls.driver = webdriver.Edge(EdgeChromiumDriverManager().install())
-            elif cls.browser_name == 4:
-                print("You have chosen: Chromium browser \n")
-                cls.driver = webdriver.Chrome(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
-            else:
-                print("Kindly provide a specific browser name from the list. \n")
+        # while cls.browser_name not in {1, 2, 3, 4}:
+        #     cls.browser_name = int(input('Choose your browser: '))
+        #
+        #     if cls.browser_name == 1:
+        #         print("You have chosen: Chrome browser \n")
+        #         cls.driver = webdriver.Chrome(ChromeDriverManager().install())
+        #     elif cls.browser_name == 2:
+        #         print("You have chosen: Firefox browser \n")
+        #
+        #         # This preference will disappear download bar for firefox
+        #         profile = webdriver.FirefoxProfile()
+        #         profile.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/json, text/csv")  # mime
+        #         profile.set_preference("browser.download.manager.showWhenStarting", False)
+        #         profile.set_preference("browser.download.dir", "C:\\Users\\rearf\\Downloads")  # fixme
+        #         profile.set_preference("browser.download.folderList", 2)
+        #         profile.set_preference("pdfjs.disabled", True)
+        #
+        #         cls.driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), firefox_profile=profile)
+        #
+        #     elif cls.browser_name == 3:
+        #         print("You have chosen: Edge browser \n")
+        #         cls.driver = webdriver.Edge(EdgeChromiumDriverManager().install())
+        #     elif cls.browser_name == 4:
+        #         print("You have chosen: Chromium browser \n")
+        #         cls.driver = webdriver.Chrome(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
+        #     else:
+        #         print("Kindly provide a specific browser name from the list. \n")
 
         cls.driver.set_window_size(1250, 1000)  # custom window size
         cls.driver.get("http://127.0.0.1:8529/_db/_system/_admin/aardvark/index.html#login")
@@ -115,9 +120,8 @@ class BaseSelenium:
         locator.send_keys(Keys.CONTROL + 'a', Keys.BACKSPACE)
 
         if self.locator is None:
-            print("UI-Test: ", locator, " locator has not found.")
-        else:
-            return self.locator
+            raise Exception("UI-Test: ", locator, " locator was not found.")
+        return self.locator
 
     def switch_tab(self, locator):
         """This method will change tab and close it and finally return to origin tab"""
@@ -130,9 +134,10 @@ class BaseSelenium:
 
     def scroll(self, down=0):
         """This method will be used to scroll up and down to any page"""
-        self.driver.find_element_by_tag_name('html').send_keys(Keys.END)
-
+        # TODO: do this instead of sleep?
+        # https://sqa.stackexchange.com/questions/35589/how-to-wait-for-javascript-scroll-action-to-finish-in-selenium
         if down == 1:
+            self.driver.find_element_by_tag_name('html').send_keys(Keys.END)
             print("")
             time.sleep(3)
         else:
@@ -146,9 +151,8 @@ class BaseSelenium:
             ec.element_to_be_clickable((By.ID, locator_name))
         )
         if self.locator is None:
-            print(locator_name, " locator has not found.")
-        else:
-            return self.locator
+            raise Exception(locator_name, " locator was not found.")
+        return self.locator
 
     def locator_finder_by_xpath(self, locator_name):
         """This method will used for finding all the locators by their xpath"""
@@ -156,16 +160,15 @@ class BaseSelenium:
             ec.element_to_be_clickable((By.XPATH, locator_name))
         )
         if self.locator is None:
-            print("UI-Test: ", locator_name, " locator has not found.")
-        else:
-            return self.locator
+            raise Exception("UI-Test: ", locator_name, " locator was not found.")
+        return self.locator
 
     def locator_finder_by_select(self, locator_name, value):
         """This method will used for finding all the locators in drop down menu with options"""
         self.select = Select(self.driver.find_element_by_id(locator_name))
         self.select.select_by_index(value)
         if self.select is None:
-            print("UI-Test: ", locator_name, " locator has not found.")
+            raise Exception("UI-Test: ", locator_name, " locator was not found.")
         return self.select
 
     def locator_finder_by_hover_item_id(self, locator):
@@ -201,9 +204,8 @@ class BaseSelenium:
         )
         self.locator = self.locator.text
         if self.locator is None:
-            print("UI-Test: ", locator_name, " locator has not found.")
-        else:
-            return self.locator
+            raise Exception("UI-Test: ", locator_name, " locator was not found.")
+        return self.locator
 
     def locator_finder_by_text_xpath(self, locator_name):
         """This method will used for finding all the locators text using xpath"""
@@ -212,9 +214,8 @@ class BaseSelenium:
         )
         self.locator = self.locator.text
         if self.locator is None:
-            print("UI-Test: ", locator_name, " locator has not found.")
-        else:
-            return self.locator
+            raise Exception("UI-Test: ", locator_name, " locator was not found.")
+        return self.locator
 
     def locator_finder_by_css_selectors(self, locator_name):
         """This method will used for finding all the locators text using CSS Selector"""
@@ -223,6 +224,5 @@ class BaseSelenium:
         )
         self.locator = self.locator.text
         if self.locator is None:
-            print("UI-Test: ", locator_name, " locator has not found.")
-        else:
-            return self.locator
+            raise Exception("UI-Test: ", locator_name, " locator was not found.")
+        return self.locator

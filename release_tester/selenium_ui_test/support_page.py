@@ -1,8 +1,13 @@
+#!/usr/bin/env python
+"""
+test the QUERY tab in the UI
+"""
+
 import time
 
 from selenium_ui_test.base_selenium import BaseSelenium
 # can't circumvent long lines.. nAttr nLines
-# pylint: disable=C0301 disable=R0902 disable=R0915
+# pylint: disable=C0301 disable=R0902 disable=R0915 disable=R0914
 
 
 class SupportPage(BaseSelenium):
@@ -151,7 +156,7 @@ class SupportPage(BaseSelenium):
         arangodb_spark_connector = '//*[@id="documentation"]/div/div[5]/ul/li[6]/a'
         driver_and_integration = '//*[@id="documentation"]/div/div[5]/ul/li[7]/a'
 
-        Official_print_statement = ['Checking ArangoDB Java Driver link \n',
+        official_print_statement = ['Checking ArangoDB Java Driver link \n',
                                     'Checking ArangoJS - Javascript Driver link \n',
                                     'Checking ArangoDB-PHP link \n',
                                     'Checking ArangoDB Go Driver link \n',
@@ -162,7 +167,7 @@ class SupportPage(BaseSelenium):
         drivers_and_integration = [arangodb_java_driver, arangojs_java_script, arangodb_php, arangodb_go_driver,
                                    arangodb_spring_data, arangodb_spark_connector, driver_and_integration]
 
-        self.loop_through_link_traversal(Official_print_statement, drivers_and_integration)
+        self.loop_through_link_traversal(official_print_statement, drivers_and_integration)
 
         print('Checking all arangodb Drivers and Integration link completed\n')
 

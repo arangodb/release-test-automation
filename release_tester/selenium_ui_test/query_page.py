@@ -1,11 +1,16 @@
+#!/usr/bin/env python
+"""
+test the QUERY tab in the UI
+"""
+
 import time
 
 import pyautogui
 
 from selenium_ui_test.base_selenium import BaseSelenium
 
-# can't circumvent long lines..
-# pylint: disable=C0301
+# can't circumvent long lines.. nAttr nLines
+# pylint: disable=C0301 disable=R0902 disable=R0915 disable=R0914
 
 class QueryPage(BaseSelenium):
     """Class for Query page"""
@@ -85,7 +90,7 @@ class QueryPage(BaseSelenium):
 
         modal_button1 = 'modalButton1'
         modal_button1 = \
-            BaseSelenium.locator_finder_by_id(self, modalButton1)
+            BaseSelenium.locator_finder_by_id(self, modal_button1)
         modal_button1.click()
 
         self.driver.refresh()
@@ -131,10 +136,10 @@ class QueryPage(BaseSelenium):
 
     def explain_query(self):
         """Downloading debug package"""
-        explainQuery = self.explain_query_id
-        explainQuery = \
-            BaseSelenium.locator_finder_by_id(self, explainQuery)
-        explainQuery.click()
+        explain_query = self.explain_query_id
+        explain_query = \
+            BaseSelenium.locator_finder_by_id(self, explain_query)
+        explain_query.click()
         time.sleep(2)
 
     def debug_package_download(self):

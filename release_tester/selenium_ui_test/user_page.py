@@ -1,8 +1,12 @@
+#!/usr/bin/env python
+"""
+aardvark ui object for users
+"""
 import time
 from selenium_ui_test.base_selenium import BaseSelenium
 
-# can't circumvent long lines..
-# pylint: disable=C0301
+# can't circumvent long lines.. nAttr nLines
+# pylint: disable=C0301 disable=R0902 disable=R0915
 
 class UserPage(BaseSelenium):
     """Class for User page"""

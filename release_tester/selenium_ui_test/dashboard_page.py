@@ -1,11 +1,16 @@
+#!/usr/bin/env python
+"""
+aardvark dashboard page object
+"""
+
 import time
 
 from selenium.common.exceptions import TimeoutException
 
 from selenium_ui_test.base_selenium import BaseSelenium
 
-# can't circumvent long lines..
-# pylint: disable=C0301
+# can't circumvent long lines.. nAttr nLines
+# pylint: disable=C0301 disable=R0902 disable=R0915
 
 class DashboardPage(BaseSelenium):
     """Class for Dashboard page"""

@@ -1,11 +1,16 @@
+#!/usr/bin/env python
+"""
+aardvark graphs page object
+"""
+
 import time
 
 import pyautogui
 
 from selenium_ui_test.base_selenium import BaseSelenium
 
-# can't circumvent long lines..
-# pylint: disable=C0301
+# can't circumvent long lines.. nAttr nLines
+# pylint: disable=C0301 disable=C0302 disable=R0902 disable=R0915 disable=R0914
 
 class GraphPage(BaseSelenium):
     """class for Graph page"""
@@ -95,10 +100,10 @@ class GraphPage(BaseSelenium):
 
     def create_manual_graph(self):
         """creating graph manually"""
-        collectionPage = self.select_collection_page_id
-        collectionPage = \
-            BaseSelenium.locator_finder_by_id(self, collectionPage)
-        collectionPage.click()
+        collection_page = self.select_collection_page_id
+        collection_page = \
+            BaseSelenium.locator_finder_by_id(self, collection_page)
+        collection_page.click()
 
         # first collection for the knows_graph_manual begins
         col1 = self.create_new_collection_id
@@ -322,7 +327,7 @@ class GraphPage(BaseSelenium):
         # importing collections using arangoimport
         print("Importing knows_edge collections \n")
         importer.import_smart_edge_collection("knows_edge", knows_path / 'knows_edge.json', ['profiles_smart'])
-        
+
         print("Importing persons collections \n")
         importer.import_collection('persons', knows_path / 'persons.json')
 
@@ -557,22 +562,22 @@ class GraphPage(BaseSelenium):
 
     def check_required_collection(self, graph):
         """selecting collection tab and search for required collections"""
-        collectionPage = self.select_collection_page_id
-        collectionPage = \
-            BaseSelenium.locator_finder_by_id(self, collectionPage)
-        collectionPage.click()
+        collection_page = self.select_collection_page_id
+        collection_page = \
+            BaseSelenium.locator_finder_by_id(self, collection_page)
+        collection_page.click()
 
         if graph == 1:
-            s1 = self.select_search_id
-            s2 = self.select_search_id
+            search1 = self.select_search_id
+            search2 = self.select_search_id
             person = "//*[@id='collection_persons']/div/h5"
             knows = "//*[@id='collection_knows']/div/h5"
 
             knows = BaseSelenium.locator_finder_by_xpath(self, knows)
-            s1 = BaseSelenium.locator_finder_by_id(self, s1)
-            s1.click()
-            s1.clear()
-            s1.send_keys("knows")
+            search1 = BaseSelenium.locator_finder_by_id(self, search1)
+            search1.click()
+            search1.clear()
+            search1.send_keys("knows")
             if knows.text == 'knows':
                 print("knows collection creation has been validated.\n")
             else:
@@ -581,10 +586,10 @@ class GraphPage(BaseSelenium):
             self.driver.refresh()
 
             person = BaseSelenium.locator_finder_by_xpath(self, person)
-            s2 = BaseSelenium.locator_finder_by_id(self, s2)
-            s2.click()
-            s2.clear()
-            s2.send_keys("persons")
+            search2 = BaseSelenium.locator_finder_by_id(self, search2)
+            search2.click()
+            search2.clear()
+            search2.send_keys("persons")
             if person.text == 'persons':
                 print("persons collection creation has been validated.\n")
             else:
@@ -592,16 +597,16 @@ class GraphPage(BaseSelenium):
             time.sleep(3)
 
         elif graph == 2:
-            s1 = self.select_search_id
-            s2 = self.select_search_id
+            search1 = self.select_search_id
+            search2 = self.select_search_id
             circle = "//*[@id='collection_circles']/div/h5"
             edges = "//*[@id='collection_edges']/div/h5"
 
             circle = BaseSelenium.locator_finder_by_xpath(self, circle)
-            s1 = BaseSelenium.locator_finder_by_id(self, s1)
-            s1.click()
-            s1.clear()
-            s1.send_keys("circles")
+            search1 = BaseSelenium.locator_finder_by_id(self, search1)
+            search1.click()
+            search1.clear()
+            search1.send_keys("circles")
             if circle.text == 'circles':
                 print("circle collection creation has been validated.\n")
             else:
@@ -610,10 +615,10 @@ class GraphPage(BaseSelenium):
             self.driver.refresh()
 
             edges = BaseSelenium.locator_finder_by_xpath(self, edges)
-            s2 = BaseSelenium.locator_finder_by_id(self, s2)
-            s2.click()
-            s2.clear()
-            s2.send_keys("edges")
+            search2 = BaseSelenium.locator_finder_by_id(self, search2)
+            search2.click()
+            search2.clear()
+            search2.send_keys("edges")
             if edges.text == 'edges':
                 print("edges collection creation has been validated.\n")
             else:
@@ -621,16 +626,16 @@ class GraphPage(BaseSelenium):
             time.sleep(3)
 
         elif graph == 3:
-            s1 = self.select_search_id
-            s2 = self.select_search_id
+            search1 = self.select_search_id
+            search2 = self.select_search_id
             connections = "//*[@id='collection_connections']/div/h5"
             places = "//*[@id='collection_places']/div/h5"
 
             connections = BaseSelenium.locator_finder_by_xpath(self, connections)
-            s1 = BaseSelenium.locator_finder_by_id(self, s1)
-            s1.click()
-            s1.clear()
-            s1.send_keys("connections")
+            search1 = BaseSelenium.locator_finder_by_id(self, search1)
+            search1.click()
+            search1.clear()
+            search1.send_keys("connections")
             if connections.text == 'connections':
                 print("connections collection creation has been validated.\n")
             else:
@@ -639,10 +644,10 @@ class GraphPage(BaseSelenium):
             self.driver.refresh()
 
             places = BaseSelenium.locator_finder_by_xpath(self, places)
-            s2 = BaseSelenium.locator_finder_by_id(self, s2)
-            s2.click()
-            s2.clear()
-            s2.send_keys("places")
+            search2 = BaseSelenium.locator_finder_by_id(self, search2)
+            search2.click()
+            search2.clear()
+            search2.send_keys("places")
             if places.text == 'places':
                 print("places collection creation has been validated.\n")
             else:
@@ -650,16 +655,16 @@ class GraphPage(BaseSelenium):
             time.sleep(3)
 
         elif graph == 4:
-            s1 = self.select_search_id
-            s2 = self.select_search_id
+            search1 = self.select_search_id
+            search2 = self.select_search_id
             mps_edges = "//*[@id='collection_mps_edges']/div/h5"
             mps_verts = "//*[@id='collection_mps_verts']/div/h5"
 
             mps_edges = BaseSelenium.locator_finder_by_xpath(self, mps_edges)
-            s1 = BaseSelenium.locator_finder_by_id(self, s1)
-            s1.click()
-            s1.clear()
-            s1.send_keys("mps_edges")
+            search1 = BaseSelenium.locator_finder_by_id(self, search1)
+            search1.click()
+            search1.clear()
+            search1.send_keys("mps_edges")
             if mps_edges.text == 'mps_edges':
                 print("mps_edges collection creation has been validated.\n")
             else:
@@ -668,10 +673,10 @@ class GraphPage(BaseSelenium):
             self.driver.refresh()
 
             mps_verts = BaseSelenium.locator_finder_by_xpath(self, mps_verts)
-            s2 = BaseSelenium.locator_finder_by_id(self, s2)
-            s2.click()
-            s2.clear()
-            s2.send_keys("mps_verts")
+            search2 = BaseSelenium.locator_finder_by_id(self, search2)
+            search2.click()
+            search2.clear()
+            search2.send_keys("mps_verts")
             if mps_verts.text == 'mps_verts':
                 print("mps_verts collection creation has been validated.\n")
             else:
@@ -679,47 +684,47 @@ class GraphPage(BaseSelenium):
             time.sleep(3)
 
         elif graph == 5:
-            s1 = self.select_search_id
-            s2 = self.select_search_id
-            worldEdges = "//*[@id='collection_worldEdges']/div/h5"
-            worldVertices = "//*[@id='collection_worldVertices']/div/h5"
+            search1 = self.select_search_id
+            search2 = self.select_search_id
+            world_edges = "//*[@id='collection_worldEdges']/div/h5"
+            world_vertices = "//*[@id='collection_worldVertices']/div/h5"
 
-            worldEdges = BaseSelenium.locator_finder_by_xpath(self, worldEdges)
-            s1 = BaseSelenium.locator_finder_by_id(self, s1)
-            s1.click()
-            s1.clear()
-            s1.send_keys("worldEdges")
-            if worldEdges.text == 'worldEdges':
+            world_edges = BaseSelenium.locator_finder_by_xpath(self, world_edges)
+            search1 = BaseSelenium.locator_finder_by_id(self, search1)
+            search1.click()
+            search1.clear()
+            search1.send_keys("worldEdges")
+            if world_edges.text == 'worldEdges':
                 print("worldEdges collection creation has been validated.\n")
             else:
                 print("worldEdges collection not found\n")
             time.sleep(3)
             self.driver.refresh()
 
-            worldVertices = BaseSelenium.locator_finder_by_xpath(self, worldVertices)
-            s2 = BaseSelenium.locator_finder_by_id(self, s2)
-            s2.click()
-            s2.clear()
-            s2.send_keys("worldVertices")
-            if worldVertices.text == 'worldVertices':
+            world_vertices = BaseSelenium.locator_finder_by_xpath(self, world_vertices)
+            search2 = BaseSelenium.locator_finder_by_id(self, search2)
+            search2.click()
+            search2.clear()
+            search2.send_keys("worldVertices")
+            if world_vertices.text == 'worldVertices':
                 print("worldVertices collection creation has been validated.\n")
             else:
                 print("worldVertices collection not found\n")
             time.sleep(3)
 
         elif graph == 6:
-            s1 = self.select_search_id
-            s2 = self.select_search_id
-            s3 = self.select_search_id
+            search1 = self.select_search_id
+            search2 = self.select_search_id
+            search3 = self.select_search_id
             female = "//*[@id='collection_female']/div/h5"
             male = "//*[@id='collection_male']/div/h5"
             relation = "//*[@id='collection_relation']/div/h5"
 
             female = BaseSelenium.locator_finder_by_xpath(self, female)
-            s1 = BaseSelenium.locator_finder_by_id(self, s1)
-            s1.click()
-            s1.clear()
-            s1.send_keys("female")
+            search1 = BaseSelenium.locator_finder_by_id(self, search1)
+            search1.click()
+            search1.clear()
+            search1.send_keys("female")
             if female.text == 'female':
                 print("female collection creation has been validated.\n")
             else:
@@ -728,10 +733,10 @@ class GraphPage(BaseSelenium):
             self.driver.refresh()
 
             male = BaseSelenium.locator_finder_by_xpath(self, male)
-            s2 = BaseSelenium.locator_finder_by_id(self, s2)
-            s2.click()
-            s2.clear()
-            s2.send_keys("male")
+            search2 = BaseSelenium.locator_finder_by_id(self, search2)
+            search2.click()
+            search2.clear()
+            search2.send_keys("male")
             if male.text == 'male':
                 print("male collection creation has been validated.\n")
             else:
@@ -740,10 +745,10 @@ class GraphPage(BaseSelenium):
             self.driver.refresh()
 
             relation = BaseSelenium.locator_finder_by_xpath(self, relation)
-            s3 = BaseSelenium.locator_finder_by_id(self, s3)
-            s3.click()
-            s3.clear()
-            s3.send_keys("relation")
+            search3 = BaseSelenium.locator_finder_by_id(self, search3)
+            search3.click()
+            search3.clear()
+            search3.send_keys("relation")
             if relation.text == 'relation':
                 print("relation collection creation has been validated.\n")
             else:
@@ -751,71 +756,71 @@ class GraphPage(BaseSelenium):
             time.sleep(3)
 
         elif graph == 7:
-            s1 = self.select_search_id
-            s2 = self.select_search_id
-            s3 = self.select_search_id
-            s4 = self.select_search_id
-            s5 = self.select_search_id
-            frenchCity = "//*[@id='collection_frenchCity']/div/h5"
-            frenchHighway = '//*[@id="collection_frenchHighway"]/div/h5'
-            germanCity = '//*[@id="collection_germanCity"]/div/h5'
-            germanHighway = '//*[@id="collection_germanHighway"]/div/h5'
-            internationalHighway = '//*[@id="collection_internationalHighway"]/div/h5'
+            search1 = self.select_search_id
+            search2 = self.select_search_id
+            search3 = self.select_search_id
+            search4 = self.select_search_id
+            search5 = self.select_search_id
+            french_city = "//*[@id='collection_frenchCity']/div/h5"
+            french_highway = '//*[@id="collection_frenchHighway"]/div/h5'
+            german_city = '//*[@id="collection_germanCity"]/div/h5'
+            german_highway = '//*[@id="collection_germanHighway"]/div/h5'
+            international_highway = '//*[@id="collection_internationalHighway"]/div/h5'
 
-            frenchCity = BaseSelenium.locator_finder_by_xpath(self, frenchCity)
-            s1 = BaseSelenium.locator_finder_by_id(self, s1)
-            s1.click()
-            s1.clear()
-            s1.send_keys("frenchCity")
-            if frenchCity.text == 'frenchCity':
+            french_city = BaseSelenium.locator_finder_by_xpath(self, french_city)
+            search1 = BaseSelenium.locator_finder_by_id(self, search1)
+            search1.click()
+            search1.clear()
+            search1.send_keys("frenchCity")
+            if french_city.text == 'frenchCity':
                 print("frenchCity collection creation has been validated.\n")
             else:
                 print("frenchCity collection not found\n")
             time.sleep(3)
             self.driver.refresh()
 
-            frenchHighway = BaseSelenium.locator_finder_by_xpath(self, frenchHighway)
-            s2 = BaseSelenium.locator_finder_by_id(self, s2)
-            s2.click()
-            s2.clear()
-            s2.send_keys("frenchHighway")
-            if frenchHighway.text == 'frenchHighway':
+            french_highway = BaseSelenium.locator_finder_by_xpath(self, french_highway)
+            search2 = BaseSelenium.locator_finder_by_id(self, search2)
+            search2.click()
+            search2.clear()
+            search2.send_keys("frenchHighway")
+            if french_highway.text == 'frenchHighway':
                 print("frenchHighway collection creation has been validated.\n")
             else:
                 print("frenchHighway collection not found\n")
             time.sleep(3)
             self.driver.refresh()
 
-            germanCity = BaseSelenium.locator_finder_by_xpath(self, germanCity)
-            s3 = BaseSelenium.locator_finder_by_id(self, s3)
-            s3.click()
-            s3.clear()
-            s3.send_keys("germanCity")
-            if germanCity.text == 'germanCity':
+            german_city = BaseSelenium.locator_finder_by_xpath(self, german_city)
+            search3 = BaseSelenium.locator_finder_by_id(self, search3)
+            search3.click()
+            search3.clear()
+            search3.send_keys("germanCity")
+            if german_city.text == 'germanCity':
                 print("germanCity collection creation has been validated.\n")
             else:
                 print("germanCity collection not found\n")
             time.sleep(3)
             self.driver.refresh()
 
-            germanHighway = BaseSelenium.locator_finder_by_xpath(self, germanHighway)
-            s4 = BaseSelenium.locator_finder_by_id(self, s4)
-            s4.click()
-            s4.clear()
-            s4.send_keys("germanHighway")
-            if germanHighway.text == 'germanHighway':
+            german_highway = BaseSelenium.locator_finder_by_xpath(self, german_highway)
+            search4 = BaseSelenium.locator_finder_by_id(self, search4)
+            search4.click()
+            search4.clear()
+            search4.send_keys("germanHighway")
+            if german_highway.text == 'germanHighway':
                 print("germanHighway collection creation has been validated.\n")
             else:
                 print("germanHighway collection not found\n")
             time.sleep(3)
             self.driver.refresh()
 
-            internationalHighway = BaseSelenium.locator_finder_by_xpath(self, internationalHighway)
-            s5 = BaseSelenium.locator_finder_by_id(self, s5)
-            s5.click()
-            s5.clear()
-            s5.send_keys("internationalHighway")
-            if internationalHighway.text == 'internationalHighway':
+            international_highway = BaseSelenium.locator_finder_by_xpath(self, international_highway)
+            search5 = BaseSelenium.locator_finder_by_id(self, search5)
+            search5.click()
+            search5.clear()
+            search5.send_keys("internationalHighway")
+            if international_highway.text == 'internationalHighway':
                 print("internationalHighway collection creation has been validated.\n")
             else:
                 print("internationalHighway collection not found\n")
