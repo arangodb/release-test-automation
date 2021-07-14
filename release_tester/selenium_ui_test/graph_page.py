@@ -261,8 +261,9 @@ class GraphPage(BaseSelenium):
         time.sleep(3)
         self.driver.back()
 
-    def adding_satellite_graph(self):
+    def adding_satellite_graph(self, importer, testdata_path):
         """creating satellite graph"""
+        knows_path = testdata_path / 'ui_data' / 'graph_page' / 'knows'
         select_graph_id = self.select_create_graph_id
         select_graph_id = \
             BaseSelenium.locator_finder_by_id(self, select_graph_id)
@@ -318,21 +319,10 @@ class GraphPage(BaseSelenium):
 
         # importing collections using arangoimport
         print("Importing knows_edge collections \n")
-        cmd_for_knows_edge = 'cmd /c "arangoimp --file release-test-automation\\test_data\\ui_data\\graph_page\\knows_edge.json ' \
-                             '--collection "knows_edge" --type=json --server.username root --server.password "" ' \
-                             '--server.endpoint tcp://127.0.0.1:8529 --to-collection-prefix profiles_smart' \
-                             ' --from-collection-prefix profiles_smart"'
-        super().command(cmd_for_knows_edge)
-
-        time.sleep(1)
-
+        importer.import_smart_edge_collection("knows_edge", knows_path / 'knows_edge.json', ['profiles_smart'])
+        
         print("Importing persons collections \n")
-        cmd_for_persons = 'cmd /c "arangoimp --file release-test-automation\\test_data\\ui_data\\graph_page\\persons.json ' \
-                          '--collection "persons" --type=json --server.username root --server.password ""' \
-                          ' --server.endpoint tcp://127.0.0.1:8529"'
-        super().command(cmd_for_persons)
-
-        time.sleep(1)
+        importer.import_collection('persons', knows_path / 'persons.json')
 
         # Selecting satellite graph settings to view and delete
         satellite_settings_id = '//*[@id="satellite_graph_tile"]/div/h5'
@@ -366,8 +356,9 @@ class GraphPage(BaseSelenium):
         print("Satellite Graph deleted successfully \n")
         self.driver.refresh()
 
-    def adding_smart_graph(self, disjointgraph=False):
+    def adding_smart_graph(self, importer, testdata_path, disjointgraph=False):
         """Adding smart disjoint graph"""
+        page_path = testdata_path / 'ui_data' / 'graph_page' / 'pregel_community'
         select_graph_id = self.select_create_graph_id
         select_graph_id = \
             BaseSelenium.locator_finder_by_id(self, select_graph_id)
@@ -464,21 +455,10 @@ class GraphPage(BaseSelenium):
         time.sleep(2)
 
         print("Importing profile collections \n")
-        cmd_for_profile = 'cmd /c "arangoimp --file release-test-automation\\test_data\\ui_data\\graph_page\\profiles.jsonl ' \
-                          '--collection "profiles" --type=jsonl --server.username root --server.password ""' \
-                          ' --server.endpoint tcp://127.0.0.1:8529"'
-        super().command(cmd_for_profile)
-
-        time.sleep(1)
+        importer.import_collection('profiles', page_path / 'profiles.jsonl')
 
         print("Importing relations collections \n")
-        cmd_for_relation = 'cmd /c "arangoimp --file release-test-automation\\test_data\\ui_data\\graph_page\\relations.jsonl ' \
-                           '--collection "relations" --type=json --server.username root --server.password "" ' \
-                           '--server.endpoint tcp://127.0.0.1:8529 --to-collection-prefix profiles_smart' \
-                           ' --from-collection-prefix profiles_smart"'
-        super().command(cmd_for_relation)
-
-        time.sleep(1)
+        importer.import_smart_edge_collection('relations', page_path / 'relations.jsonl', ['profiles_smart'])
 
         # opening smart graph
         smart_graph = 'smart_graph_tile'
