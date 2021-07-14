@@ -3,7 +3,6 @@
 base class for aardvark management
 """
 
-import os
 import time
 
 import pyautogui
@@ -79,11 +78,6 @@ class BaseSelenium:
         cls.driver.close()
         print("\n--------Now Quiting--------\n")
         cls.driver.quit()
-
-    @staticmethod
-    def command(cmd):
-        """This method will be used for executing console command"""
-        os.system(cmd)
 
     @staticmethod
     def query(query):

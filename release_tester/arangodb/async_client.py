@@ -52,7 +52,6 @@ class ArangoCLIprogressiveTimeoutExecutor():
     def __init__(self, config, connect_instance):
         self.connect_instance = connect_instance
         self.cfg = config
-        self.read_only = False
 
     def run_monitored(self,
                       executeable,

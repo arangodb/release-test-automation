@@ -546,7 +546,7 @@ class Test(BaseSelenium):
         del login
         print("---------User Test Completed---------\n")
 
-    def test_query(self):
+    def test_query(self, restore, testdata_path):
         """testing query page"""
         print("---------Query Test Begin--------- \n")
         login = LoginPage(self.driver)
@@ -557,7 +557,7 @@ class Test(BaseSelenium):
         query01 = QueryPage(self.driver)
 
         print("Importing IMDB collections \n")
-        query.import_collections()
+        query.import_collections(restore, testdata_path)
 
         print("Selecting Query page for basic CRUD operation \n")
         query.selecting_query_page()

@@ -594,10 +594,10 @@ class SeleniumRunner(ABC):
     @abstractmethod
     def jam_step_2(self, cfg):
         """ check the integrity of the old system before the upgrade """
-    
+
     def check_empty_ui(self):
         """ run all tests that expect the server to be empty """
-    
+
     def check_full_ui (self):
         """ run all tests that work with data """
 

@@ -45,7 +45,7 @@ class QueryPage(BaseSelenium):
         self.select_k_shortest_path_graphs_setting_btn_id = "kShortestPathsGraph_settings"
         self.select_k_shortest_path_graphs_setting_btn_id_check = "kShortestPathsGraph_settings"
 
-    def import_collections(self):
+    def import_collections(self, restore, testdata_path):
         """importing collections for query"""
         print("Navigating to Collection page \n")
         # Selecting collections page
@@ -54,13 +54,9 @@ class QueryPage(BaseSelenium):
             BaseSelenium.locator_finder_by_id(self, collections)
         collections.click()
         time.sleep(1)
-
-        cmd1 = 'cmd /c "arangorestore --server.endpoint tcp://127.0.0.1:8529 --input-directory ' \
-               'release-test-automation\\test_data\\ui_data\\query_page\\IMDB_DUMP --server.username root ' \
-               '--server.password "" ' \
-               '--number-of-shards 9 --replication-factor 2"'
-        super().command(cmd1)
-        time.sleep(1)
+        ret = restore.run_restore_monitored(
+            testdata_path / 'ui_data' / 'query_page', 'IMDB_DUMP',
+            ['--number-of-shards', '9', '--replication-factor', '2'])
 
         print('Creating a blank collection\n')
         create_collection = "createCollection"

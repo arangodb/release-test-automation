@@ -72,7 +72,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         success = self.run_command((
             'check normal exit',
             'let foo = "bar"'),
-                                   self.cfg.verbose)
+            self.cfg.verbose)
 
         logging.debug("sanity result: " + str(success) + " - expected: True")
 
