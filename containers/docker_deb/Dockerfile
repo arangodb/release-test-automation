@@ -53,7 +53,7 @@ RUN if [ -z "$CHROME_DRIVER_VERSION" ]; \
   && sudo ln -fs /opt/selenium/chromedriver-$CHROME_DRIVER_VERSION /usr/bin/chromedriver
 
 
-RUN pip3 install semver selenium beautifultable pyautogui
+RUN pip3 install semver selenium beautifultable
 
 run mkdir -p /home/release-test-automation \
  /home/package_cache \
