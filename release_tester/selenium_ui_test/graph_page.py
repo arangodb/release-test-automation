@@ -236,12 +236,14 @@ class GraphPage(BaseSelenium):
             BaseSelenium.locator_finder_by_id(self, edge_definition)
         edge_definition.click()
         # pyautogui.press('enter')
+        super().send_key_action(Keys.ENTER)
 
         # selecting from collection from auto suggestion
         from_collection = \
             BaseSelenium.locator_finder_by_id(self, from_collection)
         from_collection.click()
         # pyautogui.press('enter')
+        super().send_key_action(Keys.ENTER)
 
         time.sleep(1)
 
@@ -250,6 +252,7 @@ class GraphPage(BaseSelenium):
             BaseSelenium.locator_finder_by_id(self, to_collection)
         to_collection.click()
         # pyautogui.press('enter')
+        super().send_key_action(Keys.ENTER)
 
         time.sleep(1)
 
@@ -300,12 +303,16 @@ class GraphPage(BaseSelenium):
             BaseSelenium.locator_finder_by_id(self, edge_definition)
         edge_definition.click()
         # pyautogui.typewrite('knows_edge\n')
+        super().send_key_action('knows_edge')
+        super().send_key_action(Keys.ENTER)
 
         # selecting from collection from auto suggestion
         from_collection = \
             BaseSelenium.locator_finder_by_id(self, from_collection)
         from_collection.click()
         # pyautogui.typewrite('persons\n')
+        super().send_key_action('persons')
+        super().send_key_action(Keys.ENTER)
 
         time.sleep(1)
 
@@ -314,6 +321,8 @@ class GraphPage(BaseSelenium):
             BaseSelenium.locator_finder_by_id(self, to_collection)
         to_collection.click()
         # pyautogui.typewrite('persons\n')
+        super().send_key_action('persons')
+        super().send_key_action(Keys.ENTER)
 
         time.sleep(1)
 
@@ -436,15 +445,18 @@ class GraphPage(BaseSelenium):
         edge_definition = \
             BaseSelenium.locator_finder_by_id(self, edge_definition)
         edge_definition.click()
-        # pyautogui.press('enter')
 
         # pyautogui.typewrite('relations\n')
+        super().send_key_action('relations')
+        super().send_key_action(Keys.ENTER)
 
         # selecting from collection from auto suggestion
         from_collection = \
             BaseSelenium.locator_finder_by_id(self, from_collection)
         from_collection.click()
         # pyautogui.typewrite('profiles\n')
+        super().send_key_action('profiles')
+        super().send_key_action(Keys.ENTER)
 
         time.sleep(1)
 
@@ -453,6 +465,8 @@ class GraphPage(BaseSelenium):
             BaseSelenium.locator_finder_by_id(self, to_collection)
         to_collection.click()
         # pyautogui.typewrite('profiles\n')
+        super().send_key_action('profiles')
+        super().send_key_action(Keys.ENTER)
         time.sleep(1)
 
         # selecting create graph btn
