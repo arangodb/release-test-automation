@@ -105,6 +105,7 @@ db.testCollection.save({test: "document"})
         self.set_frontend_instances()
 
     def test_setup_impl(self):
+        raise Exception('test')
         pass
 
     def wait_for_restore_impl(self, backup_starter):
