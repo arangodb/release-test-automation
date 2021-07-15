@@ -49,6 +49,7 @@ docker run -itd \
        -v $(pwd)/${VERSION_TAR_NAME}:/home/versions \
        -v /tmp/tmp:/tmp/ \
        -v /dev/shm:/dev/shm \
+       --env="BUILD_NUMBER=${BUILD_NUMBER}" \
         --rm \
        \
        $DOCKER_DEB_TAG \
