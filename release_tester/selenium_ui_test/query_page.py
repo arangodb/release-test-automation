@@ -5,7 +5,7 @@ test the QUERY tab in the UI
 
 import time
 
-import pyautogui
+# import pyautogui
 
 from selenium_ui_test.base_selenium import BaseSelenium
 
@@ -68,13 +68,13 @@ class QueryPage(BaseSelenium):
         new_collection_name = \
             BaseSelenium.locator_finder_by_id(self, new_collection_name)
         new_collection_name.click()
-        pyautogui.typewrite('Characters')
+        # pyautogui.typewrite('Characters')
 
         new_collections_shards = 'new-collection-shards'
         new_collections_shards = \
             BaseSelenium.locator_finder_by_id(self, new_collections_shards)
         new_collections_shards.click()
-        pyautogui.typewrite('9')
+        # pyautogui.typewrite('9')
 
         new_replication_factor = 'new-replication-factor'
         new_replication_factor = \
@@ -82,7 +82,7 @@ class QueryPage(BaseSelenium):
         new_replication_factor.click()
         new_replication_factor.clear()
         new_replication_factor.click()
-        pyautogui.typewrite('2')
+        # pyautogui.typewrite('2')
 
         modal_button1 = 'modalButton1'
         modal_button1 = \
@@ -178,11 +178,11 @@ class QueryPage(BaseSelenium):
         time.sleep(2)
 
         # searching for COUNT attribute
-        pyautogui.typewrite(search)
-        pyautogui.press('down', presses=5, interval=.5)
+        #pyautogui.typewrite(search)
+        #pyautogui.press('down', presses=5, interval=.5)
         time.sleep(1)
-        pyautogui.press('up', presses=3, interval=.5)
-        pyautogui.press('enter')
+        #pyautogui.press('up', presses=3, interval=.5)
+        #pyautogui.press('enter')
         time.sleep(2)
 
         self.clear_query_area()
@@ -235,7 +235,7 @@ class QueryPage(BaseSelenium):
         time.sleep(1)
 
         query_def = key_updated + "\n\tWITH { alive: false }\nIN Characters"
-        pyautogui.typewrite(query_def)
+        # pyautogui.typewrite(query_def)
 
         # selecting execute query button
         execute = self.execute_query_btn_id
@@ -296,12 +296,12 @@ class QueryPage(BaseSelenium):
         bind_query = \
             BaseSelenium.locator_finder_by_xpath(self, bind_alive)
         bind_query.click()
-        pyautogui.typewrite('false')
+        # pyautogui.typewrite('false')
 
         bind_alive = \
             BaseSelenium.locator_finder_by_xpath(self, bind_name)
         bind_alive.click()
-        pyautogui.typewrite('Ned')
+        # pyautogui.typewrite('Ned')
 
         # execute query with bind parameters
         execute = self.execute_query_btn_id
@@ -436,7 +436,7 @@ class QueryPage(BaseSelenium):
         self.clear_query_area()
 
         print("Executing Custom query\n")
-        pyautogui.typewrite('return sleep(10)')
+        # pyautogui.typewrite('return sleep(10)')
 
         save_query = self.save_current_query_id
         save_query = \
@@ -447,7 +447,7 @@ class QueryPage(BaseSelenium):
         query_name = \
             BaseSelenium.locator_finder_by_id(self, query_name)
         query_name.click()
-        pyautogui.typewrite('Custom query')
+        # pyautogui.typewrite('Custom query')
 
         btn = 'modalButton1'
         btn = \

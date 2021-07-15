@@ -5,7 +5,7 @@ base class for aardvark management
 
 import time
 
-import pyautogui
+# import pyautogui
 #from selenium import webdriver
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.action_chains import ActionChains
@@ -27,7 +27,7 @@ class BaseSelenium:
     """Base class for selenium"""
     driver: WebDriver
 
-    def __init__(self):
+    def __init__(self, ):
         """base initialization"""
         self.locator = None
         self.select = None
@@ -38,7 +38,7 @@ class BaseSelenium:
 
         # browser_list = ['1 = chrome', '2 = firefox', '3 = edge', '4 = chromium']
         # print(*browser_list, sep="\n")
-        cls.browser_name = None
+        # cls.browser_name = None
 
         # while cls.browser_name not in {1, 2, 3, 4}:
         #     cls.browser_name = int(input('Choose your browser: '))
@@ -68,21 +68,21 @@ class BaseSelenium:
         #     else:
         #         print("Kindly provide a specific browser name from the list. \n")
 
-        cls.driver.set_window_size(1250, 1000)  # custom window size
-        cls.driver.get("http://127.0.0.1:8529/_db/_system/_admin/aardvark/index.html#login")
+        # cls.driver.set_window_size(1250, 1000)  # custom window size
+        # cls.driver.get("http://127.0.0.1:8529/_db/_system/_admin/aardvark/index.html#login")
 
     @classmethod
     def tear_down(cls):
         """This method will be used for teardown the driver instance"""
         time.sleep(5)
-        cls.driver.close()
+        # cls.driver.close()
         print("\n--------Now Quiting--------\n")
-        cls.driver.quit()
+        # cls.driver.quit()
 
     @staticmethod
     def query(query):
         """This method will type the query in to the text area"""
-        pyautogui.typewrite(query)
+        # pyautogui.typewrite(query)
 
     def switch_to_iframe(self, iframe_id):
         """This method will switch to IFrame window"""
@@ -97,17 +97,17 @@ class BaseSelenium:
     @staticmethod
     def clear_all_text():
         """This method will select all text and clean it"""
-        pyautogui.keyDown('ctrl')
-        pyautogui.press('a')
-        pyautogui.keyUp('ctrl')
-        pyautogui.press('del')
+        # pyautogui.keyDown('ctrl')
+        # pyautogui.press('a')
+        # pyautogui.keyUp('ctrl')
+        # pyautogui.press('del')
 
     @staticmethod
     def clear_download_bar():
         """This method will close the download bar from the chrome browser"""
         print("closing download banner from the bottom \n")
-        pyautogui.hotkey('ctrl', 'j')
-        pyautogui.hotkey('ctrl', 'w')
+        #pyautogui.hotkey('ctrl', 'j')
+        #pyautogui.hotkey('ctrl', 'w')
 
     def clear_text_field(self, locator):
         """This method will be used for clear all the text in single text field if .clear() does not work"""
@@ -176,7 +176,7 @@ class BaseSelenium:
     @staticmethod
     def escape():
         """This method will used for escape from a maximized to minimize window"""
-        pyautogui.press("f11")
+        # pyautogui.press("f11")
 
     def zoom(self):
         """This method will used for zoom in/out on any perspective window"""
