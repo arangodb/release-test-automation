@@ -6,6 +6,8 @@ import logging
 import multiprocessing
 from pathlib import Path
 from pathlib import PureWindowsPath
+
+from reporting.reporting_utils import step
 import psutil
 from arangodb.installers.base import InstallerBase
 
@@ -57,6 +59,7 @@ class InstallerW(InstallerBase):
             architecture)
         self.debug_package = None # TODO
 
+    @step("Upgrade package")
     def upgrade_package(self, old_installer):
         self.stop_service()
         cmd = [str(self.cfg.package_dir / self.server_package),
@@ -84,7 +87,7 @@ class InstallerW(InstallerBase):
         self.start_service()
         logging.info('Installation successfull')
 
-
+    @step("Install package")
     def install_package(self):
         cmd = [str(self.cfg.package_dir / self.server_package),
                '/PASSWORD=' + self.cfg.passvoid,
@@ -122,6 +125,7 @@ class InstallerW(InstallerBase):
             logging.error("failed to get service! - %s", str(exc))
             return
 
+    @step("Uninstall package")
     def un_install_package(self):
         # once we modify it, the uninstaller will leave it there...
         if self.get_arangod_conf().exists():
@@ -158,10 +162,12 @@ class InstallerW(InstallerBase):
         except Exception:
             pass
 
+    @step("Check that service is UP")
     def check_service_up(self):
         self.get_service()
         return self.service and self.service.status() == 'running'
 
+    @step("Start service")
     def start_service(self):
         self.get_service()
         if not self.service:
@@ -177,6 +183,7 @@ class InstallerW(InstallerBase):
         # should be owned by init TODO wintendo what do you do here?
         self.instance.detect_pid(1)
 
+    @step("Stop service")
     def stop_service(self):
         self.get_service()
         if not self.service:
@@ -188,6 +195,7 @@ class InstallerW(InstallerBase):
             logging.info(self.service.status())
             time.sleep(1)
 
+    @step("Clean up the system")
     def cleanup_system(self):
         # TODO: should this be cleaned by the nsis uninstall in first place?
         if self.cfg.log_dir.exists():

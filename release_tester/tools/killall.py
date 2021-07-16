@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 """ tiny utility to kill all arangodb related processes """
 import logging
+
+from reporting.reporting_utils import step
 import psutil
+from allure_commons._allure import attach
 # yes, we catch all.
 # pylint: disable=W0703
+
+@step
 def get_all_processes(kill_selenium):
     """ fetch all possible running processes that we may have spawned """
     arangods = []
@@ -41,10 +46,13 @@ def get_all_processes(kill_selenium):
         chromedrivers +
         headleschromes)
 
+
+@step
 def kill_all_processes(kill_selenium=True):
     """killall arangod arangodb arangosync """
     processlist = get_all_processes(kill_selenium)
     print(processlist)
+    attach(str(processlist), "List of processes")
     for process in processlist:
         if process.is_running():
             logging.info("cleanup killing ${proc}".format(proc=process))

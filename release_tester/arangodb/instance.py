@@ -1,23 +1,26 @@
 
 #!/usr/bin/env python3
 """ class to manage an arangod or arangosync instance """
-from abc import abstractmethod, ABC
 import datetime
-from enum import IntEnum
 import json
 import logging
-from pathlib import Path
 import re
 import time
+from abc import abstractmethod, ABC
+from enum import IntEnum
+from pathlib import Path
 
-from beautifultable import BeautifulTable
-import requests
-from requests.auth import HTTPBasicAuth
-
+from reporting.reporting_utils import step
 import psutil
+import requests
+from beautifultable import BeautifulTable
+from requests.auth import HTTPBasicAuth
 from tools.asciiprint import print_progress as progress
 
+from reporting.reporting_utils import attach_table
+
 # log tokens we want to suppress from our dump:
+
 LOG_BLACKLIST = [
     "2b6b3", # -> asio error, tcp connections died... so f* waht.
     "2c712", # -> agency connection died...
@@ -113,6 +116,7 @@ class Instance(ABC):
     def get_essentials(self):
         """ get the essential attributes of the class """
 
+    @step("Rename log file")
     def rename_logfile(self, suffix='.old'):
         """ to ease further analysis, move old logfile out of our way"""
         logfile = str(self.logfile)
@@ -123,6 +127,7 @@ class Instance(ABC):
             new_logfile.unlink()
         self.logfile.rename(new_logfile)
 
+    @step("Terminate instance")
     def terminate_instance(self):
         """ terminate the process represented by this wrapper class """
         if self.instance:
@@ -138,6 +143,7 @@ class Instance(ABC):
         else:
             logging.info("I'm already dead, jim!" + str(repr(self)))
 
+    @step("Suspend instance")
     def suspend_instance(self):
         """ halt an instance using SIG_STOP """
         if self.instance:
@@ -149,6 +155,7 @@ class Instance(ABC):
         else:
             logging.error("instance not available with this PID: " + str(repr(self)))
 
+    @step("Resume instance")
     def resume_instance(self):
         """ resume the instance using SIG_CONT """
         if self.instance:
@@ -160,6 +167,7 @@ class Instance(ABC):
         else:
             logging.error("instance not available with this PID: " + str(repr(self)))
 
+    @step("Crash instance")
     def crash_instance(self):
         """ send SIG-11 to instance... """
         if self.instance:
@@ -180,6 +188,7 @@ class Instance(ABC):
         else:
             logging.info("I'm already dead, jim!" + str(repr(self)))
 
+    @step("Wait for instance shutdown")
     def wait_for_shutdown(self):
         """ wait for the instance to anounce its dead! """
         while True:
@@ -306,6 +315,7 @@ class ArangodInstance(Instance):
         # pylint: disable=R0201
         return False
 
+    @step("Wait for logfile to appear")
     def wait_for_logfile(self, tries):
         """ wait for logfile to appear """
         while not self.logfile.exists() and tries:
@@ -317,6 +327,7 @@ class ArangodInstance(Instance):
         """ detect if I am the leader? """
         return self.get_afo_state() == AfoServerState.LEADER
 
+    @step("Wait for the instance to reply with 200 to api/version")
     def check_version_request(self, timeout):
         """ wait for the instance to reply with 200 to api/version """
         until = time.time() + timeout
@@ -695,8 +706,10 @@ def get_instances_table(instances):
         # "Frontend",
         "URL"
     ]
-    return str(table)
+    return table
 
 def print_instances_table(instances):
     """ print all instances provided in tabular format """
-    print(get_instances_table(instances))
+    table = get_instances_table(instances)
+    print(str(table))
+    attach_table(table, "Instances table")

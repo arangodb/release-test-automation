@@ -6,6 +6,8 @@ import sys
 import shutil
 import logging
 from pathlib import Path
+
+from reporting.reporting_utils import step
 import pexpect
 import psutil
 import semver
@@ -82,6 +84,7 @@ class InstallerRPM(InstallerLinux):
         self.debug_package = (
             'arangodb3{ep}-debuginfo-{cfg}-{ver}.{arch}.rpm'.format(**desc))
 
+    @step("Start service")
     def start_service(self):
         assert self.instance
 
@@ -94,6 +97,7 @@ class InstallerRPM(InstallerLinux):
         time.sleep(0.1)
         self.instance.detect_pid(1) # should be owned by init
 
+    @step("Stop service")
     def stop_service(self):
         logging.info("stopping service")
         cmd = ['service', 'arangodb3', 'stop']
@@ -104,6 +108,7 @@ class InstallerRPM(InstallerLinux):
         while self.check_service_up():
             time.sleep(1)
 
+    @step("Upgrade package")
     def upgrade_package(self, old_installer):
         logging.info("upgrading Arangodb rpm package")
 
@@ -147,6 +152,7 @@ class InstallerRPM(InstallerLinux):
 
         logging.debug("upgrade successfully finished")
 
+    @step("Install package")
     def install_package(self):
         # pylint: disable=too-many-statements
         self.cfg.log_dir = Path('/var/log/arangodb3')
@@ -245,6 +251,7 @@ class InstallerRPM(InstallerLinux):
         self.start_service()
         self.instance.detect_pid(1) # should be owned by init
 
+    @step("Uninstall package")
     def un_install_package(self):
         self.stop_service()
         cmd = ['rpm', '-e', 'arangodb3' + ('e' if self.cfg.enterprise else '')]
@@ -252,7 +259,7 @@ class InstallerRPM(InstallerLinux):
         uninstall = psutil.Popen(cmd)
         uninstall.wait()
 
-
+    @step("Install debug package")
     def install_debug_package(self):
         """ installing debug package """
         print("uninstalling rpm package")
@@ -280,6 +287,7 @@ class InstallerRPM(InstallerLinux):
                     " debug installation didn't finish successfully!")
         return self.cfg.have_debug_package
 
+    @step("Uninstall debug package")
     def un_install_debug_package(self):
         print("uninstalling rpm debug package")
         uninstall = pexpect.spawnu('rpm -e ' +
@@ -302,6 +310,7 @@ class InstallerRPM(InstallerLinux):
                 raise Exception("Debug package uninstallation"
                                 " didn't finish successfully!")
 
+    @step("Clean up the system")
     def cleanup_system(self):
         print("attempting system directory cleanup after RPM")
         if self.cfg.log_dir.exists():

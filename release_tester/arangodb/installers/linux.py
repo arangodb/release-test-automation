@@ -3,6 +3,8 @@
 import logging
 import sys
 import time
+
+from reporting.reporting_utils import step
 import pexpect
 from arangodb.installers.base import InstallerBase
 from tools.asciiprint import print_progress as progress
@@ -38,6 +40,7 @@ class InstallerLinux(InstallerBase):
             logging.info('Something wrong')
             sys.exit(1)
 
+    @step("Check that service is up")
     def check_service_up(self):
         for count in range (20):
             if not self.instance.detect_gone():

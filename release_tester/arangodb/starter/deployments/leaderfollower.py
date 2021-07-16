@@ -3,6 +3,7 @@
 import time
 import logging
 from pathlib import Path
+
 from tools.interact import prompt_user
 from tools.killall import get_all_processes
 from arangodb.starter.manager import StarterManager
@@ -10,6 +11,9 @@ from arangodb.instance import InstanceType
 from arangodb.starter.deployments.runner import Runner, PunnerProperties
 import tools.loghelper as lh
 from tools.asciiprint import print_progress as progress
+
+from reporting.reporting_utils import step
+
 
 class LeaderFollower(Runner):
     """ this runs a leader / Follower setup with synchronisation """
@@ -133,6 +137,8 @@ process.exit(0);
         logging.info(str(self.leader_starter_instance.execute_frontend(arangosh_script)))
         self.makedata_instances.append(self.leader_starter_instance)
 
+
+    @step("Setup test")
     def test_setup_impl(self):
         logging.info("testing the leader/follower setup")
         tries = 30
@@ -168,6 +174,7 @@ process.exit(0);
 
         logging.info("Leader follower setup successfully finished!")
 
+    @step
     def upgrade_arangod_version_impl(self):
         """ upgrade this installation """
         for node in [self.leader_starter_instance, self.follower_starter_instance]:
@@ -189,6 +196,7 @@ process.exit(0);
             self.selenium.check_old(self.new_cfg, False)
             self.selenium.close_tab_again()
 
+    @step
     def jam_attempt_impl(self):
         """ run the replication fuzzing test """
         logging.info("running the replication fuzzing test")
@@ -212,7 +220,7 @@ process.exit(0);
         if self.selenium:
             self.selenium.jam_step_1(self.cfg if self.cfg else self.new_cfg)
 
-
+    @step("Shutdown")
     def shutdown_impl(self):
         self.leader_starter_instance.terminate_instance()
         self.follower_starter_instance.terminate_instance()

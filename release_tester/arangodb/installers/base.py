@@ -14,8 +14,11 @@ import semver
 import yaml
 from arangodb.instance import ArangodInstance
 from tools.asciiprint import print_progress as progress
+from allure_commons._allure import attach
+from reporting.reporting_utils import step
 
-## helper functions
+
+@step("Run \"file\" command")
 def run_file_command(file_to_check):
     """ run `file file_to_check` and return the output """
     proc = subprocess.Popen(['file', file_to_check],
@@ -75,6 +78,7 @@ class BinaryDescription():
         binary_type: {0.binary_type}
         """.format(self)
 
+    @step("Check installed file")
     def check_installed(self,
                         version,
                         enterprise,
@@ -149,6 +153,7 @@ class BinaryDescription():
                         "', unparseable output:  [" +
                         output + "]")
 
+    @step("Check that binary file is stripped")
     def check_stripped(self):
         """ check whether this file is stripped (or not) """
         is_stripped = True
@@ -166,12 +171,14 @@ class BinaryDescription():
                 raise Exception("expected " + str(self.path) +
                                 " not to be stripped, but it is stripped")
 
+    @step("Check whether the file exists and is a symlink")
     def check_symlink(self):
         """ check whether the file exists and is a symlink (if) """
         for link in self.symlink:
             if not link.is_symlink():
                 Exception("{0} is not a symlink".format(str(link)))
 
+    @step("Uninstall old package for upgrade")
     def un_install_package_for_upgrade(self):
         """ hook to uninstall old package for upgrade """
 
@@ -257,12 +264,14 @@ class InstallerBase(ABC):
             cfg_file = Path('c:') / 'tmp' / 'config.yml'
         return cfg_file
 
+    @step("Save config to disk")
     def save_config(self):
         """ dump the config to disk """
         self.cfg.semver = None
         self.calc_config_file_name().write_text(yaml.dump(self.cfg))
         self.cfg.semver = semver.VersionInfo.parse(self.cfg.version)
 
+    @step("Deserialize the config from disk")
     def load_config(self):
         """ deserialize the config from disk """
         verbose = self.cfg.verbose
@@ -279,6 +288,7 @@ class InstallerBase(ABC):
         self.calculate_package_names()
         self.cfg.verbose = verbose
 
+    @step("Modify the arangod.conf so the system will broadcast bind")
     def broadcast_bind(self):
         """
         modify the arangod.conf so the system will broadcast bind
@@ -292,6 +302,7 @@ class InstallerBase(ABC):
         logging.info("arangod now configured for broadcast bind")
         self.cfg.add_frontend('http', self.cfg.publicip, '8529')
 
+    @step("Enable logging")
     def enable_logging(self):
         """ if the packaging doesn't enable logging,
             do it using this function """
@@ -303,9 +314,11 @@ class InstallerBase(ABC):
             '[log]\nfile = ' +
             str(self.cfg.log_dir / 'arangod.log'))
         print(new_arangod_conf)
+        attach(new_arangod_conf, "New arangod.conf")
         self.get_arangod_conf().write_text(new_arangod_conf)
         logging.info("arangod now configured for logging")
 
+    @step("Check whether the requested directories and files were created")
     def check_installed_paths(self):
         """ check whether the requested directories and files were created """
         if (
@@ -318,12 +331,14 @@ class InstallerBase(ABC):
         if not self.get_arangod_conf().is_file():
             raise Exception("configuration files aren't there")
 
+    @step("Check engine file")
     def check_engine_file(self):
         """ check for the engine file to test whether the DB was created """
         if not Path(self.cfg.dbdir / 'ENGINE').is_file():
             raise Exception("database engine file not there!")
 
 
+    @step
     def caclulate_file_locations(self):
         """ set the global location of files """
         self.arango_binaries = []
@@ -396,6 +411,7 @@ class InstallerBase(ABC):
             self.cfg.real_sbin_dir, 'rclone-arangodb',
             True, True, "3.5.1", "4.0.0", [], 'go'))
 
+    @step("Check installed files")
     def check_installed_files(self):
         """ check for the files whether they're installed """
         if IS_MAC:
@@ -410,6 +426,7 @@ class InstallerBase(ABC):
         print('\n')
         logging.info("all files ok")
 
+    @step("check that everything is gone after the uninstallation")
     def check_uninstall_cleanup(self):
         """ check whether all is gone after the uninstallation """
         success = True

@@ -3,6 +3,11 @@
 # import subprocess
 import logging
 
+from allure_commons._allure import attach
+
+from reporting.logging import AllureLogInterceptor
+
+
 def configure_logging(verbose):
     """ set up logging """
     logging.basicConfig(
@@ -30,13 +35,16 @@ def configure_logging(verbose):
     requests_log.setLevel(logging.WARNING)
     requests_log.propagate = True
 
+
 def get_term_width():
     """ eventually we should ask the term for the size """
     return 60
 
+
 def line(sym="-", length=get_term_width()):
     """ adjust line to terminal width """
     print(sym * int (length / len(sym)))
+
 
 def log_cmd(cmd):
     """ log string """
@@ -45,6 +53,7 @@ def log_cmd(cmd):
 
     line("<")
     print("executing: " + str(cmd))
+    attach(str(cmd), "Command")
     line("^")
 
 # def logged_command_wait():

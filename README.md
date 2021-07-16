@@ -101,6 +101,8 @@ Supported Parameters:
  - `--verbose` if specified more logging is done
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
+ - `--alluredir` - directory to save test results in allure format (default = allure_results)
+ - `--clean-alluredir` - clean allure directory before running tests (default = True)
  
 Example usage:
  - Windows: `python ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
@@ -477,4 +479,13 @@ These tests use the CSV data from the wikip
  http://home.apache.org/~mikemccand/enwiki-20120502-lines-1k.txt.lzma
 
 
+# Allure reporting
+To view allure report, you must have allure installed in your system. Download link(for Linux):
+https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/2.14.0/allure-commandline-2.14.0.zip
 
+After the test run is finished, run the following command:
+```bash
+allure serve [results_dir]
+```
+Default results dir: allure_results
+This will open a browser with the test report.

@@ -7,6 +7,7 @@ import logging
 import subprocess
 from threading import Timer
 
+from reporting.reporting_utils import step
 import psutil
 import semver
 
@@ -38,6 +39,7 @@ class SyncManager():
         self.version = version
         self.instance = None
 
+    @step("Run syncer")
     def run_syncer(self):
         """ launch the syncer for this instance """
         args = [
@@ -56,6 +58,7 @@ class SyncManager():
         """ set the new config properties """
         self.cfg.installPrefix = new_install_cfg.installPrefix
 
+    @step("Run the syncer status command")
     def check_sync_status(self, which):
         """ run the syncer status command """
         logging.info('SyncManager: Check status of cluster %s', str(which))
@@ -71,6 +74,7 @@ class SyncManager():
         logging.info(args)
         psutil.Popen(args).wait()
 
+    @step("Run the syncer get tasks command")
     def get_sync_tasks(self, which):
         """ run the get tasks command """
         logging.info('SyncManager: Check tasks of cluster %s', str(which))
@@ -86,6 +90,7 @@ class SyncManager():
         logging.info(args)
         psutil.Popen(args).wait()
 
+    @step("Stop sync")
     def stop_sync(self, timeout=60, more_args=[]):
         """ run the stop sync command """
         output = rb''
@@ -112,6 +117,7 @@ class SyncManager():
         exitcode = instance.wait()
         return (ascii_convert(output),ascii_convert(err),  exitcode)
 
+    @step("Abort sync")
     def abort_sync(self):
         """ run the stop sync command """
         args = [
@@ -125,6 +131,7 @@ class SyncManager():
         logging.info('SyncManager: stopping sync : %s', str(args))
         psutil.Popen(args).wait()
 
+    @step("Check sync")
     def check_sync(self):
         """ run the check sync command """
         if self.version < semver.VersionInfo.parse('1.0.0'):
@@ -152,7 +159,7 @@ class SyncManager():
         success = output.find('The whole data is the same') >= 0
         return (output, ascii_convert(err), success)
 
-
+    @step("Reset failed shard")
     def reset_failed_shard(self, database, collection):
         """ run the check sync command """
         if self.version < semver.VersionInfo.parse('1.0.0'):

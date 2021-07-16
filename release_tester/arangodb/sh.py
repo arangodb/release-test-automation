@@ -9,6 +9,7 @@ from queue import Queue, Empty
 from subprocess import DEVNULL, PIPE, Popen
 import sys
 from threading  import Thread
+from reporting.reporting_utils import step
 import psutil
 from tools.asciiprint import print_progress as progress
 import tools.errorhelper as eh
@@ -53,6 +54,7 @@ class ArangoshExecutor():
         self.cfg = config
         self.read_only = False
 
+    @step("Run command")
     def run_command(self, cmd, verbose=True):
         """ launch a command, print its name """
         run_cmd = [
@@ -84,6 +86,7 @@ class ArangoshExecutor():
         # logging.debug("exitcode {0}".format(exitcode))
         return exitcode == 0
 
+    @step("Check that arangosh exits with correct code when running a command")
     def self_test(self):
         """ run a command that throws to check exit code handling """
         logging.info("running arangosh check")
@@ -108,6 +111,7 @@ class ArangoshExecutor():
             raise Exception(
                 "arangosh doesn't exit with 0 to indicate no errors")
 
+    @step("Run script")
     def run_script(self, cmd, verbose = True):
         """ launch an external js-script, print its name """
         run_cmd = [
@@ -140,6 +144,7 @@ class ArangoshExecutor():
         logging.debug("exitcode {0}".format(exitcode))
         return exitcode == 0
 
+    @step("Run script(monitored)")
     def run_script_monitored(self, cmd, args, timeout, result_line,
                              process_control=False, verbose=True):
        # pylint: disable=R0913 disable=R0902 disable=R0915 disable=R0912 disable=R0914
@@ -225,6 +230,7 @@ class ArangoshExecutor():
             return (True, "")
         return (True, convert_result(result))
 
+    @step("Run testing.js")
     def run_testing(self, testcase, args,
                     #timeout,
                     logfile,
@@ -279,6 +285,7 @@ class ArangoshExecutor():
         thread1.join()
         thread2.join()
 
+    @step("Run version check")
     def js_version_check(self):
         """ run a version check command; this can double as password check """
         logging.info("running version check")
@@ -302,6 +309,7 @@ class ArangoshExecutor():
                                     self.cfg.interactive)
         return res
 
+    @step("Set password")
     def js_set_passvoid(self, user, passvoid):
         """ connect to the instance, and set a passvoid for the user """
         js_set_passvoid_str = 'require("org/arangodb/users").update("%s", "%s");'% (
@@ -317,6 +325,7 @@ class ArangoshExecutor():
                                     self.cfg.interactive)
         return res
 
+    @step("Create a collection with documents after taking a backup(to verify its not in the backup)")
     def hotbackup_create_nonbackup_data(self):
         """
         create a collection with documents after taking a backup
@@ -339,6 +348,7 @@ class ArangoshExecutor():
                                     self.cfg.interactive)
         return res
 
+    @step("Check that data added after backup is not present in the DB")
     def hotbackup_check_for_nonbackup_data(self):
         """ check whether the data is in there or not. """
         logging.info("running version check")
@@ -358,6 +368,7 @@ class ArangoshExecutor():
 
         return res
 
+    @step("Run test in arangosh")
     def run_in_arangosh(self, testname,
                         args=[], moreargs=[],
                         result_line=dummy_line_result,
@@ -391,6 +402,7 @@ class ArangoshExecutor():
                                         verbose=self.cfg.verbose)
         return ret
 
+    @step("Create test data")
     def create_test_data(self, testname, args=[],
                          result_line=dummy_line_result,
                          timeout=100):
@@ -414,6 +426,7 @@ class ArangoshExecutor():
 
         return ret
 
+    @step("Check test data")
     def check_test_data(self, testname, args=[], result_line=dummy_line_result):
         # pylint: disable=W0102
         """ check back the testdata in the instance """
@@ -434,6 +447,7 @@ class ArangoshExecutor():
                                         verbose=self.cfg.verbose)
         return ret
 
+    @step("Clear test data")
     def clear_test_data(self, testname, args=[], result_line=dummy_line_result):
         # pylint: disable=W0102
         """ flush the testdata from the instance again """

@@ -7,6 +7,7 @@ import re
 import subprocess
 import time
 
+from reporting.reporting_utils import step
 import psutil
 
 from tools.asciiprint import ascii_convert, ascii_print, print_progress as progress
@@ -94,6 +95,7 @@ class HotBackupManager():
             '--server.password', str(self.cfg.passvoid),
         ]
 
+    @step("Run backup")
     def run_backup(self, arguments, name, silent=False):
         """ launch the starter for this instance"""
         if not silent:
@@ -122,6 +124,7 @@ class HotBackupManager():
                             ascii_convert(output))
         return output.splitlines()
 
+    @step("Create a hot backup")
     def create(self, backup_name):
         """ create a hot backup """
         args = ['create', '--label', backup_name, '--max-wait-for-lock', '180']
@@ -143,16 +146,19 @@ class HotBackupManager():
                 backups.append(match.group(1))
         return backups
 
+    @step("Restore an existing hot backup")
     def restore(self, backup_name):
         """ restore an existing hot backup """
         args = ['restore', '--identifier', backup_name]
         self.run_backup(args, backup_name)
 
+    @step("Delete an existing hot backup")
     def delete(self, backup_name):
         """ delete an existing hot backup """
         args = ['delete', '--identifier', backup_name]
         self.run_backup(args, backup_name)
 
+    @step("Upload a backup using rclone")
     def upload(self, backup_name, backup_config: HotBackupConfig, identifier):
         """ upload a backup using rclone on the server """
         args = [
@@ -212,6 +218,7 @@ class HotBackupManager():
                     instance_count)
             time.sleep(1)
 
+    @step("Download a backup using rclone")
     def download(self, backup_name, backup_config: HotBackupConfig, identifier):
         """ download a backup using rclone on the server """
         args = [
