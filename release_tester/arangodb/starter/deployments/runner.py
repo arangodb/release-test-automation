@@ -6,6 +6,7 @@ import copy
 import datetime
 import logging
 from pathlib import Path
+import os
 import platform
 import re
 import shutil
@@ -726,9 +727,20 @@ class Runner(ABC):
 
     def zip_test_dir(self):
         """ stores the test directory for later analysis """
-        filename = '%s_%s' % (
+        build_number = os.environ.get('BUILD_NUMBER')
+        if build_number:
+            build_number = '_' + build_number
+        else:
+            build_number = ''
+        ver = self.cfg.version
+        if self.new_cfg:
+            ver += '_' + self.new_cfg.version
+
+        filename = '%s_%s%s%s' % (
             FNRX.sub('', self.testrun_name),
-            self.__class__.__name__
+            self.__class__.__name__,
+            ver,
+            build_number
         )
         if self.basecfg.base_test_dir.exists():
             shutil.make_archive(filename,
