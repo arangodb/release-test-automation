@@ -219,6 +219,7 @@ class ActiveFailover(Runner):
                                          self.new_cfg if self.new_cfg else self.cfg)
             cfg = self.new_cfg if self.new_cfg else self.cfg
             self.selenium.check_old(cfg=cfg, expect_follower_count=1, retry_count=10)
+            self.selenium.jam_step_1(cfg=cfg)
 
         prompt_user(self.basecfg,
                     '''The leader failover has happened.
