@@ -147,7 +147,8 @@ class ActiveFailover(Runner):
             "--readOnly", "true"
             ])
         self.leader.detect_arangosh_instances()
-        self.selenium.check_full_ui(self.cfg, self.leader.arango_importer, self.leader.arango_restore) # TODO: remove me
+        self.selenium.set_instances(self.cfg, self.leader.arango_importer, self.leader.arango_restore)
+        self.selenium.check_full_ui() # TODO: remove me
 
     def wait_for_restore_impl(self, backup_starter):
         backup_starter.wait_for_restore()
@@ -252,6 +253,7 @@ please revalidate the UI states on the new leader; you should see *one* follower
                      "Success" if self.success else "Failed")
         if self.selenium:
             cfg = self.new_cfg if self.new_cfg else self.cfg
+            self.selenium.set_instances(cfg, self.leader.arango_importer, self.leader.arango_restore)
             self.selenium.check_old(cfg=cfg, expect_follower_count=2, retry_count=10)
 
     def shutdown_impl(self):

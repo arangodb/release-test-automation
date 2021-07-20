@@ -13,6 +13,7 @@ class Cluster(SeleniumRunner):
         super().__init__(webdriver,
                          is_headless,
                          testrun_name)
+        self.is_cluster = True
 
     def check_old(self, cfg, leader_follower=False, expect_follower_count=2, retry_count=10):
         """ check the integrity of the old system before the upgrade """

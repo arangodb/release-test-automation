@@ -8,7 +8,10 @@ import time
 # import pyautogui
 
 from selenium_ui_test.base_selenium import BaseSelenium
+from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=R0902 disable=R0915 disable=R0914
@@ -46,7 +49,7 @@ class QueryPage(BaseSelenium):
         self.select_k_shortest_path_graphs_setting_btn_id = "kShortestPathsGraph_settings"
         self.select_k_shortest_path_graphs_setting_btn_id_check = "kShortestPathsGraph_settings"
 
-    def import_collections(self, restore, testdata_path):
+    def import_collections(self, restore, testdata_path, is_cluster):
         """importing collections for query"""
         print("Navigating to Collection page \n")
         # Selecting collections page
@@ -73,25 +76,29 @@ class QueryPage(BaseSelenium):
             BaseSelenium.locator_finder_by_id(self, new_collection_name)
         new_collection_name.click()
         super().send_key_action('Characters')
+        super().send_key_action(Keys.ENTER)
 
-        new_collections_shards = 'new-collection-shards'
-        new_collections_shards = \
-            BaseSelenium.locator_finder_by_id(self, new_collections_shards)
-        new_collections_shards.click()
-        super().send_key_action('9')
+        if is_cluster:
+            new_collections_shards = 'new-collection-shards'
+            new_collections_shards = \
+                BaseSelenium.locator_finder_by_id(self, new_collections_shards)
+            new_collections_shards.click()
+            super().send_key_action('9')
 
-        new_replication_factor = 'new-replication-factor'
-        new_replication_factor = \
-            BaseSelenium.locator_finder_by_id(self, new_replication_factor)
-        new_replication_factor.click()
-        new_replication_factor.clear()
-        new_replication_factor.click()
-        super().send_key_action('2')
+            new_replication_factor = 'new-replication-factor'
+            new_replication_factor = \
+                BaseSelenium.locator_finder_by_id(self, new_replication_factor)
+            new_replication_factor.click()
+            new_replication_factor.clear()
+            new_replication_factor.click()
+            super().send_key_action('2')
 
-        modal_button1 = 'modalButton1'
-        modal_button1 = \
-            BaseSelenium.locator_finder_by_id(self, modal_button1)
-        modal_button1.click()
+            modal_button1_str = 'modalButton1'
+            modal_button1 = \
+                WebDriverWait(self.driver, 15).until(
+                    EC.element_to_be_clickable((By.ID, modal_button1_str)),
+                    message="failed to wait for collection save button")
+            modal_button1.click()
 
         self.driver.refresh()
         time.sleep(5)

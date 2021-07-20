@@ -59,6 +59,15 @@ class SeleniumRunner(ABC):
         time.sleep(3)
         self.web.set_window_size(1920, 2048)
         time.sleep(3)
+        self.importer = None
+        self.restorer = None
+        self.cfg = None
+        self.is_cluster = False
+
+    def set_instances(self, cfg, importer, restorer):
+        self.cfg = cfg
+        self.importer = importer
+        self.restorer = restorer
 
     def progress(self, msg):
         """ add something to the state... """
@@ -599,15 +608,15 @@ class SeleniumRunner(ABC):
     def check_empty_ui(self):
         """ run all tests that expect the server to be empty """
 
-    def check_full_ui(self, cfg, importer, restore): # , frontend_instance
+    def check_full_ui(self): # , frontend_instance
         """ run all tests that work with data """
         # frontend = frontend_instance[0]
         # ui_test = UITest(frontend.get_passvoid(), frontend.get_endpoint(), self.web)
         ui_test = UITest('', '', self.web)
-        ui_test.test_collection(cfg.test_data_dir.resolve())
+        ui_test.test_collection(self.cfg.test_data_dir.resolve())
         # TODO ui_test.test_views()
-        ui_test.test_graph(cfg, importer, cfg.test_data_dir.resolve())
-        # TODO: keyboard control not yet working. ui_test.test_query(restore, cfg.test_data_dir)
+        ui_test.test_graph(self.cfg, self.importer, self.cfg.test_data_dir.resolve())
+        ui_test.test_query(self.restorer, self.cfg.test_data_dir, self.is_cluster)
         ui_test.test_support()
 
     def clear_ui (self):

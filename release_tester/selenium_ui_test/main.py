@@ -546,7 +546,7 @@ class Test(BaseSelenium):
         del login
         print("---------User Test Completed---------\n")
 
-    def test_query(self, restore, testdata_path):
+    def test_query(self, restore, testdata_path, is_cluster):
         """testing query page"""
         print("---------Query Test Begin--------- \n")
         #login = LoginPage(self.driver)
@@ -557,13 +557,13 @@ class Test(BaseSelenium):
         query01 = QueryPage(self.driver)
 
         print("Importing IMDB collections \n")
-        query.import_collections(restore, testdata_path)
+        query.import_collections(restore, testdata_path, is_cluster)
 
         print("Selecting Query page for basic CRUD operation \n")
         query.selecting_query_page()
 
         print("Executing insert query \n")
-        self.query.execute_insert_query()
+        query.execute_insert_query()
 
         print("Profiling current query \n")
         query.profile_query()
