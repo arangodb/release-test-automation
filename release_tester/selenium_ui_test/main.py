@@ -563,15 +563,14 @@ class Test(BaseSelenium):
         query.selecting_query_page()
 
         print("Executing insert query \n")
-        query.execute_query('for i IN 1..10000\n INSERT {\n \t "name": "Ned",\n "surname": "Stark",'
-                                 '\n"alive": true,\n"age": 41,"traits":["A","H","C","N","P"]\n} INTO '
-                                 'Characters')
+        self.query.execute_insert_query()
+
         print("Profiling current query \n")
         query.profile_query()
         print("Explaining current query \n")
         query.explain_query()
-        # print("Debug packaged downloading for the current query \n")
-        # query.debug_package_download()
+        print("Debug packaged downloading for the current query \n")
+        query.debug_package_download()
         print("Removing all query results \n")
         query.remove_query_result()
         print("Clearing query execution area \n")
@@ -580,7 +579,8 @@ class Test(BaseSelenium):
         # TODO: print("Executing spot light functionality \n")
         #query.spot_light_function('COUNT')  # can be used for search different keyword
         print('Executing read query\n')
-        query01.execute_query('FOR c IN imdb_vertices\n\tLIMIT 500\nRETURN c')
+        query01.execute_read_query()
+        
         print('Updating documents\n')
         query.update_documents()
         print('Executing query with bind parameters \n')

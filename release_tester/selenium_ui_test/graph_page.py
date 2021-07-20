@@ -5,8 +5,6 @@ aardvark graphs page object
 
 import time
 
-# import pyautogui
-
 from selenium_ui_test.base_selenium import BaseSelenium
 
 # can't circumvent long lines.. nAttr nLines
@@ -235,14 +233,12 @@ class GraphPage(BaseSelenium):
         edge_definition = \
             BaseSelenium.locator_finder_by_id(self, edge_definition)
         edge_definition.click()
-        # pyautogui.press('enter')
         super().send_key_action('\n')
 
         # selecting from collection from auto suggestion
         from_collection = \
             BaseSelenium.locator_finder_by_id(self, from_collection)
         from_collection.click()
-        # pyautogui.press('enter')
         super().send_key_action('\n')
 
         time.sleep(1)
@@ -251,7 +247,6 @@ class GraphPage(BaseSelenium):
         to_collection = \
             BaseSelenium.locator_finder_by_id(self, to_collection)
         to_collection.click()
-        # pyautogui.press('enter')
         super().send_key_action('\n')
 
         time.sleep(1)
@@ -302,7 +297,6 @@ class GraphPage(BaseSelenium):
         edge_definition = \
             BaseSelenium.locator_finder_by_id(self, edge_definition)
         edge_definition.click()
-        # pyautogui.typewrite('knows_edge\n')
         super().send_key_action('knows_edge')
         super().send_key_action(Keys.ENTER)
 
@@ -310,7 +304,6 @@ class GraphPage(BaseSelenium):
         from_collection = \
             BaseSelenium.locator_finder_by_id(self, from_collection)
         from_collection.click()
-        # pyautogui.typewrite('persons\n')
         super().send_key_action('persons')
         super().send_key_action(Keys.ENTER)
 
@@ -320,7 +313,6 @@ class GraphPage(BaseSelenium):
         to_collection = \
             BaseSelenium.locator_finder_by_id(self, to_collection)
         to_collection.click()
-        # pyautogui.typewrite('persons\n')
         super().send_key_action('persons')
         super().send_key_action(Keys.ENTER)
 
@@ -446,7 +438,6 @@ class GraphPage(BaseSelenium):
             BaseSelenium.locator_finder_by_id(self, edge_definition)
         edge_definition.click()
 
-        # pyautogui.typewrite('relations\n')
         super().send_key_action('relations')
         super().send_key_action('\n')
 
@@ -454,7 +445,6 @@ class GraphPage(BaseSelenium):
         from_collection = \
             BaseSelenium.locator_finder_by_id(self, from_collection)
         from_collection.click()
-        # pyautogui.typewrite('profiles\n')
         super().send_key_action('profiles')
         super().send_key_action('\n')
 
@@ -464,7 +454,6 @@ class GraphPage(BaseSelenium):
         to_collection = \
             BaseSelenium.locator_finder_by_id(self, to_collection)
         to_collection.click()
-        # pyautogui.typewrite('profiles\n')
         super().send_key_action('profiles')
         super().send_key_action('\n')
         time.sleep(1)

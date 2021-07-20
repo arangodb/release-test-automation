@@ -7,6 +7,8 @@ import time
 
 # import pyautogui
 #from selenium import webdriver
+from pynput.keyboard import Key, Controller
+
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
@@ -97,17 +99,34 @@ class BaseSelenium:
     @staticmethod
     def clear_all_text():
         """This method will select all text and clean it"""
-        # pyautogui.keyDown('ctrl')
-        # pyautogui.press('a')
-        # pyautogui.keyUp('ctrl')
-        # pyautogui.press('del')
+        print("Cleaning input field \n")
+        keyboard = Controller()
+        with keyboard.pressed(Key.ctrl):
+            keyboard.press('a')
+            keyboard.release('a')
+        
+        time.sleep(2)
+
+        keyboard01 = Controller()
+        keyboard01.press(Key.backspace)
+        keyboard01.release(Key.backspace)
 
     @staticmethod
     def clear_download_bar():
         """This method will close the download bar from the chrome browser"""
         print("closing download banner from the bottom \n")
-        #pyautogui.hotkey('ctrl', 'j')
-        #pyautogui.hotkey('ctrl', 'w')
+        keyboard = Controller()
+        with keyboard.pressed(Key.ctrl):
+            keyboard.press('j')
+            keyboard.release('j')
+
+        time.sleep(2)
+
+        keyboard01 = Controller()
+        with keyboard01.pressed(Key.ctrl):
+            keyboard01.press('w')
+            keyboard01.release('w')
+        
     
     def send_key_action(self, key):
         """This method will send dummy data to the textfield as necessary"""
@@ -182,7 +201,9 @@ class BaseSelenium:
     @staticmethod
     def escape():
         """This method will used for escape from a maximized to minimize window"""
-        # pyautogui.press("f11")
+        keyboard = Controller()
+        keyboard.press(Key.f11)
+        keyboard.release(Key.f11)
 
     def zoom(self):
         """This method will used for zoom in/out on any perspective window"""
