@@ -5,8 +5,7 @@ aardvark graphs page object
 
 import time
 
-from selenium_ui_test.base_selenium import BaseSelenium
-
+from selenium_ui_test.base_selenium import BaseSelenium, Keys
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=C0302 disable=R0902 disable=R0915 disable=R0914
 
@@ -233,13 +232,13 @@ class GraphPage(BaseSelenium):
         edge_definition = \
             BaseSelenium.locator_finder_by_id(self, edge_definition)
         edge_definition.click()
-        super().send_key_action('\n')
+        super().send_key_action(Keys.ENTER)
 
         # selecting from collection from auto suggestion
         from_collection = \
             BaseSelenium.locator_finder_by_id(self, from_collection)
         from_collection.click()
-        super().send_key_action('\n')
+        super().send_key_action(Keys.ENTER)
 
         time.sleep(1)
 
@@ -247,7 +246,7 @@ class GraphPage(BaseSelenium):
         to_collection = \
             BaseSelenium.locator_finder_by_id(self, to_collection)
         to_collection.click()
-        super().send_key_action('\n')
+        super().send_key_action(Keys.ENTER)
 
         time.sleep(1)
 
@@ -439,14 +438,14 @@ class GraphPage(BaseSelenium):
         edge_definition.click()
 
         super().send_key_action('relations')
-        super().send_key_action('\n')
+        super().send_key_action(Keys.ENTER)
 
         # selecting from collection from auto suggestion
         from_collection = \
             BaseSelenium.locator_finder_by_id(self, from_collection)
         from_collection.click()
         super().send_key_action('profiles')
-        super().send_key_action('\n')
+        super().send_key_action(Keys.ENTER)
 
         time.sleep(1)
 
@@ -455,7 +454,7 @@ class GraphPage(BaseSelenium):
             BaseSelenium.locator_finder_by_id(self, to_collection)
         to_collection.click()
         super().send_key_action('profiles')
-        super().send_key_action('\n')
+        super().send_key_action(Keys.ENTER)
         time.sleep(1)
 
         # selecting create graph btn
