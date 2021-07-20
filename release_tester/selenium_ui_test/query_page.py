@@ -54,9 +54,12 @@ class QueryPage(BaseSelenium):
             BaseSelenium.locator_finder_by_id(self, collections)
         collections.click()
         time.sleep(1)
+        data_path = testdata_path / 'ui_data' / 'query_page' / 'IMDB_DUMP'
+        print(data_path)
         ret = restore.run_restore_monitored(
-            testdata_path / 'ui_data' / 'query_page', 'IMDB_DUMP',
-            ['--number-of-shards', '9', '--replication-factor', '2'])
+            str(data_path.absolute()),
+            ['--number-of-shards', '9', '--replication-factor', '2'],
+            40)
 
         print('Creating a blank collection\n')
         create_collection = "createCollection"
@@ -68,13 +71,13 @@ class QueryPage(BaseSelenium):
         new_collection_name = \
             BaseSelenium.locator_finder_by_id(self, new_collection_name)
         new_collection_name.click()
-        # pyautogui.typewrite('Characters')
+        super().send_key_action('Characters')
 
         new_collections_shards = 'new-collection-shards'
         new_collections_shards = \
             BaseSelenium.locator_finder_by_id(self, new_collections_shards)
         new_collections_shards.click()
-        # pyautogui.typewrite('9')
+        super().send_key_action('9')
 
         new_replication_factor = 'new-replication-factor'
         new_replication_factor = \
@@ -82,7 +85,7 @@ class QueryPage(BaseSelenium):
         new_replication_factor.click()
         new_replication_factor.clear()
         new_replication_factor.click()
-        # pyautogui.typewrite('2')
+        super().send_key_action('2')
 
         modal_button1 = 'modalButton1'
         modal_button1 = \
@@ -178,7 +181,7 @@ class QueryPage(BaseSelenium):
         time.sleep(2)
 
         # searching for COUNT attribute
-        #pyautogui.typewrite(search)
+        super().send_key_action(search)
         #pyautogui.press('down', presses=5, interval=.5)
         time.sleep(1)
         #pyautogui.press('up', presses=3, interval=.5)

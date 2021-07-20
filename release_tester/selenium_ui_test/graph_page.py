@@ -98,7 +98,7 @@ class GraphPage(BaseSelenium):
 
         self.select_new_graph_name_id = "createNewGraphName"
 
-    def create_manual_graph(self):
+    def create_manual_graph(self, testdata_path):
         """creating graph manually"""
         collection_page = self.select_collection_page_id
         collection_page = \
@@ -114,7 +114,7 @@ class GraphPage(BaseSelenium):
         col1_upload = self.select_upload_btn_id
         col1_file = self.select_choose_file_btn_id
         col1_import = self.select_confirm_upload_btn_id
-        path1 = 'release-test-automation\\test_data\\ui_data\\graph_page\\knows_edge.json'
+        path1 = testdata_path / 'ui_data' / 'graph_page' / 'knows' / 'knows_edge.json'
 
         print("Creating knows_edge collections for knows_graph_manual Graph\n")
         col1 = \
@@ -146,7 +146,7 @@ class GraphPage(BaseSelenium):
         col1_file = \
             BaseSelenium.locator_finder_by_xpath(self, col1_file)
         time.sleep(2)
-        col1_file.send_keys(path1)
+        col1_file.send_keys(str(path1.absolute()))
 
         print("Importing knows_edge.json to the collection\n")
         col1_import = \
@@ -165,7 +165,7 @@ class GraphPage(BaseSelenium):
         col2_upload = self.select_upload_btn_id
         col2_file = self.select_choose_file_btn_id
         col2_import = self.select_confirm_upload_btn_id
-        path2 = 'release-test-automation\\test_data\\ui_data\\graph_page\\persons.json'
+        path2 = testdata_path / 'ui_data' / 'graph_page' / 'knows' / 'persons.json'
 
         print("Creating person_vertices collections for knows_graph_manual Graph\n")
         col2 = \
@@ -195,7 +195,7 @@ class GraphPage(BaseSelenium):
         col2_file = \
             BaseSelenium.locator_finder_by_xpath(self, col2_file)
         time.sleep(2)
-        col2_file.send_keys(path2)
+        col2_file.send_keys(str(path2.absolute()))
 
         print("Importing person_vertices.json to the collection\n")
         col2_import = \
@@ -236,14 +236,14 @@ class GraphPage(BaseSelenium):
             BaseSelenium.locator_finder_by_id(self, edge_definition)
         edge_definition.click()
         # pyautogui.press('enter')
-        super().send_key_action(Keys.ENTER)
+        super().send_key_action('\n')
 
         # selecting from collection from auto suggestion
         from_collection = \
             BaseSelenium.locator_finder_by_id(self, from_collection)
         from_collection.click()
         # pyautogui.press('enter')
-        super().send_key_action(Keys.ENTER)
+        super().send_key_action('\n')
 
         time.sleep(1)
 
@@ -252,7 +252,7 @@ class GraphPage(BaseSelenium):
             BaseSelenium.locator_finder_by_id(self, to_collection)
         to_collection.click()
         # pyautogui.press('enter')
-        super().send_key_action(Keys.ENTER)
+        super().send_key_action('\n')
 
         time.sleep(1)
 
@@ -448,7 +448,7 @@ class GraphPage(BaseSelenium):
 
         # pyautogui.typewrite('relations\n')
         super().send_key_action('relations')
-        super().send_key_action(Keys.ENTER)
+        super().send_key_action('\n')
 
         # selecting from collection from auto suggestion
         from_collection = \
@@ -456,7 +456,7 @@ class GraphPage(BaseSelenium):
         from_collection.click()
         # pyautogui.typewrite('profiles\n')
         super().send_key_action('profiles')
-        super().send_key_action(Keys.ENTER)
+        super().send_key_action('\n')
 
         time.sleep(1)
 
@@ -466,7 +466,7 @@ class GraphPage(BaseSelenium):
         to_collection.click()
         # pyautogui.typewrite('profiles\n')
         super().send_key_action('profiles')
-        super().send_key_action(Keys.ENTER)
+        super().send_key_action('\n')
         time.sleep(1)
 
         # selecting create graph btn

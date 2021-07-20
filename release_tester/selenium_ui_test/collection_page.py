@@ -272,8 +272,9 @@ class CollectionPage(BaseSelenium):
 
     def getting_total_row_count(self):
         """Confirm file upload btn"""
+        # ATTENTION: this will only be visible & successfull if the browser window is wide enough!
         self.getting_total_row_count_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.getting_total_row_count_id)
+            BaseSelenium.locator_finder_by_xpath(self, self.getting_total_row_count_id, 20)
         return self.getting_total_row_count_id.text
 
     def download_doc_as_json(self):

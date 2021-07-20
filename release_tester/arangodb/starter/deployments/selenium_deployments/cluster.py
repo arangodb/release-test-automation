@@ -80,7 +80,7 @@ class Cluster(SeleniumRunner):
         self.progress(" ver %s is %s?" % (str(ver), new_ver))
         self.ui_assert(ver['version'].lower().startswith(new_ver),
                        "UI-Test: wrong version after upgrade")
-        self.check_full_ui(new_cfg)
+        # TODO self.check_full_ui(new_cfg)
 
     def jam_step_1(self, cfg):
         """ check for one set of instances to go away """
@@ -140,7 +140,7 @@ class Cluster(SeleniumRunner):
             time.sleep(1)
         self.ui_assert(health_state != 'NODES OK',
                        "UI-Test: wrong health stame after jam: " + health_state)
-        self.check_full_ui(cfg)
+        # TODO self.check_full_ui(cfg)
 
     def jam_step_2(self, cfg):
         self.navbar_goto('cluster')
@@ -157,4 +157,4 @@ class Cluster(SeleniumRunner):
                            "UI-Test: expected 3 instances each, have: DB " +
                            node_count['dbservers'] + " C " + node_count['coordinators'])
         self.check_old(cfg)
-        self.check_full_ui(cfg)
+        # TODO self.check_full_ui(cfg)

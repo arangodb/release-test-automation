@@ -146,6 +146,8 @@ class ActiveFailover(Runner):
         self.follower_nodes[0].arangosh.check_test_data("checking active failover follower node", [
             "--readOnly", "true"
             ])
+        self.leader.detect_arangosh_instances()
+        self.selenium.check_full_ui(self.cfg, self.leader.arango_importer, self.leader.arango_restore) # TODO: remove me
 
     def wait_for_restore_impl(self, backup_starter):
         backup_starter.wait_for_restore()

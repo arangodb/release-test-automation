@@ -154,9 +154,9 @@ class BaseSelenium:
             raise Exception(locator_name, " locator was not found.")
         return self.locator
 
-    def locator_finder_by_xpath(self, locator_name):
+    def locator_finder_by_xpath(self, locator_name, timeout=10):
         """This method will used for finding all the locators by their xpath"""
-        self.locator = WebDriverWait(self.driver, 10).until(
+        self.locator = WebDriverWait(self.driver, timeout).until(
             ec.element_to_be_clickable((By.XPATH, locator_name))
         )
         if self.locator is None:
