@@ -8,6 +8,7 @@ import time
 # import pyautogui
 
 from selenium_ui_test.base_selenium import BaseSelenium
+from selenium.webdriver.common.keys import Keys
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=R0902 disable=R0915 disable=R0914
@@ -101,16 +102,25 @@ class QueryPage(BaseSelenium):
             BaseSelenium.locator_finder_by_id(self, query_page)
         query_page.click()
         time.sleep(1)
-
-    def execute_query(self, query_name):
-        """Executing query with given query string"""
-        query = self.query_execution_area
-        query = \
-            BaseSelenium.locator_finder_by_xpath(self, query)
-        query.click()
-
-        super().query(query_name)
-        time.sleep(2)
+    
+    def execute_insert_query(self):
+        """This method will run an insert query"""
+        super().send_key_action('for i IN 1..10000')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action('INSERT {')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action(Keys.TAB)
+        super().send_key_action('"name": "Ned",')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action('"surname": "Stark",')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action('"alive": true,')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action('"age": 41,')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action('"traits": ["A","H","C","N","P"]')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action('} INTO Characters')
 
         # selecting execute query button
         execute = self.execute_query_btn_id
@@ -119,6 +129,29 @@ class QueryPage(BaseSelenium):
         execute.click()
 
         time.sleep(3)
+
+        super().scroll(1)
+
+    
+    def execute_read_query(self):
+        """This method will run a read query"""
+        super().send_key_action('FOR c IN imdb_vertices')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action(Keys.TAB)
+        super().send_key_action('LIMIT 500')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action('RETURN c')
+
+        # selecting execute query button
+        execute = self.execute_query_btn_id
+        execute = \
+            BaseSelenium.locator_finder_by_id(self, execute)
+        execute.click()
+
+        time.sleep(3)
+
+        super().scroll(1)
+
 
     def profile_query(self):
         """profiling query"""
@@ -151,6 +184,8 @@ class QueryPage(BaseSelenium):
         debug_btn.click()
         time.sleep(2)
 
+        super().clear_download_bar()
+
     def remove_query_result(self):
         """Removing all query results"""
         remove_results = self.remove_all_results_id
@@ -170,7 +205,6 @@ class QueryPage(BaseSelenium):
         time.sleep(2)
 
     def spot_light_function(self, search):
-        """Selecting spot light function helper"""
         spot_light = self.query_spot_light_id
         spot_light = \
             BaseSelenium.locator_finder_by_id(self, spot_light)
@@ -178,17 +212,17 @@ class QueryPage(BaseSelenium):
         time.sleep(2)
 
         # searching for COUNT attribute
-        #pyautogui.typewrite(search)
-        #pyautogui.press('down', presses=5, interval=.5)
+        super().send_key_action(search)
+        super().send_key_action(Keys.DOWN * 5)
         time.sleep(1)
-        #pyautogui.press('up', presses=3, interval=.5)
-        #pyautogui.press('enter')
+
+        super().send_key_action(Keys.UP * 3)
+        super().send_key_action(Keys.ENTER)
         time.sleep(2)
 
         self.clear_query_area()
 
     def update_documents(self):
-        """Updating documents"""
         print("Navigating to Collection page \n")
         # Selecting collections page
         collections = "collections"
@@ -234,8 +268,12 @@ class QueryPage(BaseSelenium):
         self.clear_query_area()
         time.sleep(1)
 
-        query_def = key_updated + "\n\tWITH { alive: false }\nIN Characters"
-        # pyautogui.typewrite(query_def)
+        super().send_key_action(key_updated)
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action(Keys.TAB)
+        super().send_key_action('WITH {alive: false}')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action('IN Characters')
 
         # selecting execute query button
         execute = self.execute_query_btn_id
@@ -250,10 +288,25 @@ class QueryPage(BaseSelenium):
         self.clear_query_area()
 
         print("Checking update query execution \n")
-        self.execute_query('for doc in Characters\n\tFILTER doc.alive == false\n\tRETURN doc')
+        # self.execute_query('for doc in Characters\n\tFILTER doc.alive == false\n\tRETURN doc')
+        super().send_key_action('for doc in Characters')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action(Keys.TAB)
+        super().send_key_action('FILTER doc.alive == false')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action(Keys.TAB)
+        super().send_key_action('RETURN doc')
         time.sleep(2)
 
-        super().scroll()
+        # selecting execute query button
+        execute02 = self.execute_query_btn_id
+        execute02 = \
+            BaseSelenium.locator_finder_by_id(self, execute02)
+        execute02.click()
+
+        time.sleep(3)
+
+        super().scroll(1)
 
         print('Downloading query results \n')
         # downloading query results
@@ -275,7 +328,7 @@ class QueryPage(BaseSelenium):
 
         # clear the execution area
         self.clear_query_area()
-
+    
     def bind_parameters_query(self):
         """executing query with bind parameters"""
         # selecting query execution area
@@ -283,25 +336,30 @@ class QueryPage(BaseSelenium):
         query_area = \
             BaseSelenium.locator_finder_by_xpath(self, query_area)
         query_area.click()
-
-        # writing the query with bing parameters
-        bind_query = 'FOR doc IN Characters\n\tFILTER doc.alive == @alive && doc.name == @name\n\tRETURN doc'
         bind_alive = '//*[@id="arangoBindParamTable"]/tbody/tr[1]/td[2]/input'
         bind_name = '//*[@id="arangoBindParamTable"]/tbody/tr[2]/td[2]/input'
 
         # writing the query with bind parameters
-        self.query(bind_query)
+        # self.query(bind_query)
+        super().send_key_action('FOR doc IN Characters')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action(Keys.TAB)
+        super().send_key_action('FILTER doc.alive == @alive && doc.name == @name')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action(Keys.TAB)
+        super().send_key_action('RETURN doc')
+        
         time.sleep(2)
 
         bind_query = \
             BaseSelenium.locator_finder_by_xpath(self, bind_alive)
         bind_query.click()
-        # pyautogui.typewrite('false')
+        super().send_key_action('false')
 
         bind_alive = \
             BaseSelenium.locator_finder_by_xpath(self, bind_name)
         bind_alive.click()
-        # pyautogui.typewrite('Ned')
+        super().send_key_action('Ned')
 
         # execute query with bind parameters
         execute = self.execute_query_btn_id
@@ -604,11 +662,17 @@ class QueryPage(BaseSelenium):
 
         # clear the execution area
         self.clear_query_area()
-
+        
         print('Executing sample graph query for worldCountry Graph \n')
-        query_name = 'FOR v, e, p IN 1..1\n\tANY "worldVertices/continent-south-america"\nGRAPH ' \
-                     '"worldCountry"\nRETURN {v, e, p}'
-        super().query(query_name)
+        super().send_key_action('FOR v, e, p IN 1..1')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action(Keys.TAB)
+        super().send_key_action('ANY "worldVertices/continent-south-america"')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action('GRAPH "worldCountry"')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action('RETURN {v, e, p}')
+
         time.sleep(2)
 
         execute = self.execute_query_btn_id
@@ -623,6 +687,7 @@ class QueryPage(BaseSelenium):
         graph_id = "worldCountry_settings"
         self.delete_all_graph(graph_id)
         self.driver.refresh()
+
 
     def k_shortest_paths_graph_query(self):
         """K Shortest Paths Graph Query"""
@@ -668,9 +733,17 @@ class QueryPage(BaseSelenium):
         super().clear_all_text()
 
         print('Executing sample graph query for KShortestPaths Graph')
-        query_name = 'FOR path IN OUTBOUND K_SHORTEST_PATHS\n\t"places/Birmingham" TO "places/StAndrews"\nGRAPH ' \
-                     '"kShortestPathsGraph"\nLIMIT 4\nRETURN path '
-        super().query(query_name)
+        super().send_key_action('FOR path IN OUTBOUND K_SHORTEST_PATHS')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action(Keys.TAB)
+        super().send_key_action('"places/Birmingham" TO "places/StAndrews"')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action('GRAPH "kShortestPathsGraph"')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action('LIMIT 4')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action('RETURN path')
+        
         time.sleep(2)
 
         execute = self.execute_query_btn_id
@@ -736,9 +809,12 @@ class QueryPage(BaseSelenium):
         super().clear_all_text()
 
         print('Executing one more KShortestPaths graph query \n')
-        query_example = 'FOR v, e IN OUTBOUND SHORTEST_PATH "places/Aberdeen" TO "places/London"\n\tGRAPH ' \
-                        '"kShortestPathsGraph"\nRETURN { place: v.label, travelTime: e.travelTime }'
-        super().query(query_example)
+        super().send_key_action('FOR v, e IN OUTBOUND SHORTEST_PATH "places/Aberdeen" TO "places/London"')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action(Keys.TAB)
+        super().send_key_action('GRAPH "kShortestPathsGraph"')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action('RETURN { place: v.label, travelTime: e.travelTime }')
         time.sleep(2)
 
         execute2 = self.execute_query_btn_id
