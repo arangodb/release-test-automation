@@ -525,7 +525,9 @@ class StarterManager():
         #for line in self.upgradeprocess.stderr:
         #    ascii_print(line)
         ret = self.upgradeprocess.wait(timeout=timeout)
-        logging.info("StarterManager: Upgrade command exited: %s", str(ret))
+        logging.info("StarterManager: Upgrade command [%s] exited: %s",
+                     str(self.basedir),
+                     str(ret))
         if ret != 0:
             raise Exception("Upgrade process exited with non-zero reply")
 
