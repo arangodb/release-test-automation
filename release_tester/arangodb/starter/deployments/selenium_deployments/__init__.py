@@ -39,6 +39,14 @@ def init(runner_type: RunnerType,
         count += 1
         try:
             driver = driver_func(**kwargs)
+        except TypeError:
+            try:
+                driver = driver_func.webdriver.WebDriver(**kwargs)
+            except SessionNotCreatedException as ex:
+                if count == 10:
+                    raise ex
+                print('S: retrying to launch browser')
+                time.sleep(2)
         except SessionNotCreatedException as ex:
             if count == 10:
                 raise ex

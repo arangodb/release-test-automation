@@ -21,7 +21,8 @@ import semver
 
 from tools.asciiprint import print_progress as progress
 from tools.timestamp import timestamp
-import tools.monkeypatch_psutil
+import tools.monkeypatch_psutil # pylint: disable=W0611
+import tools.loghelper as lh
 from arangodb.instance import (
     ArangodInstance,
     ArangodRemoteInstance,
@@ -33,7 +34,6 @@ from arangodb.instance import (
 from arangodb.backup import HotBackupConfig, HotBackupManager
 from arangodb.sh import ArangoshExecutor
 from arangodb.bench import ArangoBenchManager
-import tools.loghelper as lh
 
 ON_WINDOWS = (sys.platform == 'win32')
 
@@ -508,7 +508,9 @@ class StarterManager():
         #for line in self.upgradeprocess.stderr:
         #    ascii_print(line)
         ret = self.upgradeprocess.wait(timeout=timeout)
-        logging.info("StarterManager: Upgrade command exited: %s", str(ret))
+        logging.info("StarterManager: Upgrade command [%s] exited: %s",
+                     str(self.basedir),
+                     str(ret))
         if ret != 0:
             raise Exception("Upgrade process exited with non-zero reply")
 
