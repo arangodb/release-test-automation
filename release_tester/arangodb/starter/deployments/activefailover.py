@@ -144,10 +144,10 @@ class ActiveFailover(Runner):
         logging.info('leader can be reached at: %s',
                      self.leader.get_frontend().get_public_url(''))
         self.follower_nodes[0].arangosh.check_test_data(
-            "checking active failover follower node", [
+            "checking active failover follower node",
+            True, [
                 "--readOnly", "true"
-            ],
-            True)
+            ])
 
     def wait_for_restore_impl(self, backup_starter):
         backup_starter.wait_for_restore()
