@@ -604,13 +604,14 @@ class Runner(ABC):
                         success[1],
                         False)
                 self.has_makedata_data = True
-            self.check_data_impl_sh(arangosh)
+            self.check_data_impl_sh(arangosh, starter.supports_foxx_tests)
+
 
     @step
-    def check_data_impl_sh(self, arangosh):
+    def check_data_impl_sh(self, arangosh, supports_foxx_tests):
         """ check for data on the installation """
         if self.has_makedata_data:
-            success = arangosh.check_test_data(self.name)
+            success = arangosh.check_test_data(self.name, supports_foxx_tests)
             if not success[0]:
                 if not self.cfg.verbose:
                     print(success[1])
@@ -627,7 +628,7 @@ class Runner(ABC):
                 continue
             assert starter.arangosh, "check: this starter doesn't have an arangosh!"
             arangosh = starter.arangosh
-            return self.check_data_impl_sh(arangosh)
+            return self.check_data_impl_sh(arangosh, starter.supports_foxx_tests)
         raise Exception("no frontend found.")
 
     @step

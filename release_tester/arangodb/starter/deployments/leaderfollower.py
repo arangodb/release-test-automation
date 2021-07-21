@@ -169,6 +169,8 @@ process.exit(0);
 
         #assert that data has been replicated
         self.follower_starter_instance.arangosh.read_only = True
+        self.follower_starter_instance.supports_foxx_tests = False
+        logging.info("Leader follower testing makedata on follower")
         self.makedata_instances.append(self.follower_starter_instance)
         self.make_data()
 

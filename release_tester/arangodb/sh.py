@@ -44,7 +44,7 @@ def convert_result(result_array):
     """ binary -> string """
     result = ""
     for one_line in result_array:
-        result += "\n" + one_line[0].decode("utf-8").rstrip()
+        result += "\n" + one_line[0].decode("unicode_escape").rstrip()
     return result
 
 class ArangoshExecutor():
@@ -426,8 +426,12 @@ class ArangoshExecutor():
 
         return ret
 
-    @step("Check test data")
-    def check_test_data(self, testname, args=[], result_line=dummy_line_result):
+
+    @step
+    def check_test_data(self, testname,
+                        supports_foxx_tests,
+                        args=[],
+                        result_line=dummy_line_result):
         # pylint: disable=W0102
         """ check back the testdata in the instance """
         if testname:
@@ -435,16 +439,18 @@ class ArangoshExecutor():
         else:
             logging.info("checking test data")
 
-        ret = self.run_script_monitored(cmd=[
+        ret = self.run_script_monitored(
+            cmd=[
             'checking test data integrity',
             self.cfg.test_data_dir.resolve() / 'checkdata.js'],
-                                            args=args + [
-                                                '--progress', 'true',
-                                                '--oldVersion', self.cfg.version
-                                            ],
-                                        timeout=5,
-                                        result_line=result_line,
-                                        verbose=self.cfg.verbose)
+            args=args + [
+                '--progress', 'true',
+                '--oldVersion', self.cfg.version,
+                '--testFoxx', 'true' if supports_foxx_tests else 'false'
+            ],
+            timeout=5,
+            result_line=result_line,
+            verbose=self.cfg.verbose)
         return ret
 
     @step("Clear test data")
