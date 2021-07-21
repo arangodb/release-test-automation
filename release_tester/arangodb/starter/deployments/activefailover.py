@@ -204,7 +204,7 @@ class ActiveFailover(Runner):
             count += 1
 
         print()
-        self.new_leader.arangosh.check_test_data("checking active failover new leader node")
+        self.new_leader.arangosh.check_test_data("checking active failover new leader node", True)
 
         logging.info("\n" + str(self.new_leader))
         url = '{host}/_db/_system/_admin/aardvark/index.html#replication'.format(
