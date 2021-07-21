@@ -31,7 +31,8 @@ const optionsDefaults = {
   collectionMultiplier: 1,
   singleShard: false,
   progress: false,
-  oldVersion: "3.5.0"
+  oldVersion: "3.5.0",
+  testFoxx: true
 };
 
 if ((0 < ARGUMENTS.length) &&
@@ -165,28 +166,28 @@ function checkFoxxService() {
   let reply;
   db._useDatabase("_system");
 
-  print("getting the root of the gods");
+  print("Foxx: Itzpapalotl getting the root of the gods");
   reply = arango.GET_RAW('/_db/_system/itz');
   assertEqual(reply.code, "307", JSON.stringify(reply));
 
-  print('getting index html with list of gods');
+  print('Foxx: Itzpapalotl getting index html with list of gods');
   reply = arango.GET_RAW('/_db/_system/itz/index');
   assertEqual(reply.code, "200", JSON.stringify(reply));
 
-  print("summoning Chalchihuitlicue");
+  print("Foxx: Itzpapalotl summoning Chalchihuitlicue");
   reply = arango.GET_RAW('/_db/_system/itz/Chalchihuitlicue/summon', onlyJson);
   assertEqual(reply.code, "200", JSON.stringify(reply));
   let parsedBody = JSON.parse(reply.body);
   assertEqual(parsedBody.name, "Chalchihuitlicue");
   assertTrue(parsedBody.summoned);
 
-  print("testing get xxx");
+  print("Foxx: crud testing get xxx");
   reply = arango.GET_RAW('/_db/_system/crud/xxx', onlyJson);
   assertEqual(reply.code, "200");
   parsedBody = JSON.parse(reply.body);
   assertEqual(parsedBody, []);
 
-  print("testing POST xxx");
+  print("Foxx: crud testing POST xxx");
   
   reply = arango.POST_RAW('/_db/_system/crud/xxx', {_key: "test"})
   if (options.readOnly) {
@@ -195,7 +196,7 @@ function checkFoxxService() {
     assertEqual(reply.code, "201");
   }
   
-  print("testing get xxx");
+  print("Foxx: crud testing get xxx");
   reply = arango.GET_RAW('/_db/_system/crud/xxx', onlyJson);
   assertEqual(reply.code, "200");
   parsedBody = JSON.parse(reply.body);
@@ -205,7 +206,7 @@ function checkFoxxService() {
     assertEqual(parsedBody.length, 1);
   }
 
-  print('testing delete document')
+  print('Foxx: crud testing delete document')
   reply = arango.DELETE_RAW('/_db/_system/crud/xxx/' + 'test');
   if (options.readOnly) {
     assertEqual(reply.code, "400");
@@ -217,7 +218,13 @@ function checkFoxxService() {
 let v = db._connection.GET("/_api/version");
 const enterprise = v.license === "enterprise"
 
-checkFoxxService()
+
+  checkFoxxService()
+if (options.testFoxx) {
+  checkFoxxService()
+} else {
+  print("Skipping foxx tests!")
+}
 
 let count = 0;
 while (count < options.numberOfDBs) {
