@@ -144,7 +144,7 @@ db.testCollection.save({test: "document"})
 
         self.starter_instances[terminate_instance].terminate_instance()
         self.set_frontend_instances()
-        self.starter_instances[0].arangosh.check_test_data("Cluster one node missing")
+        self.starter_instances[0].arangosh.check_test_data("Cluster one node missing", True)
 
         prompt_user(self.basecfg, "instance stopped")
         if self.selenium:
