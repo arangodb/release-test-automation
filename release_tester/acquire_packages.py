@@ -109,11 +109,11 @@ class AcquirePackages():
             return
         ftp = FTP(self.remote_host)
         print(stage + ": " + ftp.login(user='anonymous', passwd='anonymous', acct='anonymous'))
-        print(directory)
+        print(stage + ": Downloading from " + directory)
         print(stage + ": " + ftp.cwd(directory))
         ftp.set_pasv(True)
         with out.open(mode='wb') as filedes:
-            print(stage + ": downloading to " + str(out))
+            print(stage + ": downloading from " + directory + " to " + str(out))
             print(stage + ": " + ftp.retrbinary('RETR ' + package, filedes.write))
 
     def acquire_stage_http(self, directory, package, local_dir, force, stage):
