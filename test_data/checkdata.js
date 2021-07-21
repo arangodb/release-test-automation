@@ -219,7 +219,6 @@ let v = db._connection.GET("/_api/version");
 const enterprise = v.license === "enterprise"
 
 
-  checkFoxxService()
 if (options.testFoxx) {
   checkFoxxService()
 } else {
