@@ -143,11 +143,12 @@ class ActiveFailover(Runner):
         logging.info("success" if self.success else "fail")
         logging.info('leader can be reached at: %s',
                      self.leader.get_frontend().get_public_url(''))
-        self.follower_nodes[0].arangosh.check_test_data(
-            "checking active failover follower node",
-            True, [
-                "--readOnly", "true"
-            ])
+        if not self.follower_nodes[0].arangosh.check_test_data(
+                "checking active failover follower node",
+                True, [
+                    "--readOnly", "true"
+                ])[0]:
+            roise Exception("check data failed")
 
     def wait_for_restore_impl(self, backup_starter):
         backup_starter.wait_for_restore()
@@ -204,7 +205,9 @@ class ActiveFailover(Runner):
             count += 1
 
         print()
-        self.new_leader.arangosh.check_test_data("checking active failover new leader node", True)
+        if not self.new_leader.arangosh.check_test_data(
+                "checking active failover new leader node", True)[0]:
+            roise Exception("check data failed")
 
         logging.info("\n" + str(self.new_leader))
         url = '{host}/_db/_system/_admin/aardvark/index.html#replication'.format(

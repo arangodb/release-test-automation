@@ -292,7 +292,9 @@ class Dc2Dc(Runner):
             raise Exception("failed to get the sync status")
 
     def test_setup_impl(self):
-        self.cluster1['instance'].arangosh.check_test_data("dc2dc (post setup - dc1)", True)
+        if not self.cluster1['instance'].arangosh.check_test_data(
+                "dc2dc (post setup - dc1)", True)[0]:
+            roise Exception("check data on source cluster failed")
         self._get_in_sync(20)
 
         res = self.cluster2['instance'].arangosh.check_test_data("dc2dc (post setup - dc2)",
@@ -371,17 +373,25 @@ class Dc2Dc(Runner):
         self._stop_sync()
         self.progress(True, "creating volatile data on secondary DC")
         self.cluster2["instance"].arangosh.hotbackup_create_nonbackup_data()
-        self.cluster2["instance"].arangosh.check_test_data("cluster1 after dissolving", True)
-        self.cluster2["instance"].arangosh.check_test_data("cluster2 after dissolving", True)
+        if not self.cluster2["instance"].arangosh.check_test_data(
+                "cluster1 after dissolving", True)[0]:
+            roise Exception("check data on cluster 1 after dissolving failed")
+        if not self.cluster2["instance"].arangosh.check_test_data(
+                "cluster2 after dissolving", True)[0]:
+            roise Exception("check data on cluster2 after dissolving failed")
         self.progress(True, "restarting sync")
         self._launch_sync(True)
         self._get_in_sync(20)
-        self.cluster2["instance"].arangosh.check_test_data("cluster2 after re-syncing",
-                                                           True
-                                                           , [
-                                                               "--readOnly", "true"
-                                                           ])
-        self.cluster1["instance"].arangosh.check_test_data("cluster1 after re-syncing", True)
+        if not self.cluster2["instance"].arangosh.check_test_data(
+                "cluster2 after re-syncing",
+                True
+                , [
+                    "--readOnly", "true"
+                ])[0]:
+            roise Exception("check data on cluster1 failed after re-sync")
+        if not self.cluster1["instance"].arangosh.check_test_data(
+                "cluster1 after re-syncing", True)[0]
+            roise Exception("check data on cluster1 failed after re-sync")
 
         self.progress(True, "checking whether volatile data has been removed from both DCs")
         if (not self.cluster1["instance"].arangosh.hotbackup_check_for_nonbackup_data() or
@@ -393,7 +403,9 @@ class Dc2Dc(Runner):
         self.progress(True, "reversing sync direction")
         self._launch_sync(False)
         self._get_in_sync(20)
-        self.cluster2["instance"].arangosh.check_test_data("cluster2 after reversing direction", True)
+        if not self.cluster2["instance"].arangosh.check_test_data(
+                "cluster2 after reversing direction", True)[0]:
+            roise Exception("check data on cluster 2 failed after reversing")
 
     def shutdown_impl(self):
         self.cluster1["instance"].terminate_instance()
