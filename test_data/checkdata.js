@@ -166,6 +166,27 @@ function checkFoxxService() {
   let reply;
   db._useDatabase("_system");
 
+  [
+    '/_db/_system/_admin/aardvark/index.html',
+    '/_db/_system/itz/index',
+    '/_db/_system/crud/xxx'
+  ].forEach(route => {
+    for (i=0; i < 10; i++) {
+      try {
+        reply = arango.GET_RAW(route, onlyJson);
+        if (reply.code == "200") {
+          print(route + " OK");
+          return;
+        }
+        print(route + " Not yet ready, retrying: " + JSON.stringify(reply))
+      } catch (e) {
+        print(route + " Caught - need to retry. " + JSON.stringify(e))
+      }
+      internal.sleep(2);
+    }
+    throw Exception("foxx route '" + route + "' not ready on time!");
+  });
+
   print("Foxx: Itzpapalotl getting the root of the gods");
   reply = arango.GET_RAW('/_db/_system/itz');
   assertEqual(reply.code, "307", JSON.stringify(reply));
