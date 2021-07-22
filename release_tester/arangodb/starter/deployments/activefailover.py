@@ -148,7 +148,7 @@ class ActiveFailover(Runner):
                 True, [
                     "--readOnly", "true"
                 ])[0]:
-            roise Exception("check data failed")
+            raise Exception("check data failed")
 
     def wait_for_restore_impl(self, backup_starter):
         backup_starter.wait_for_restore()
@@ -207,7 +207,7 @@ class ActiveFailover(Runner):
         print()
         if not self.new_leader.arangosh.check_test_data(
                 "checking active failover new leader node", True)[0]:
-            roise Exception("check data failed")
+            raise Exception("check data failed")
 
         logging.info("\n" + str(self.new_leader))
         url = '{host}/_db/_system/_admin/aardvark/index.html#replication'.format(
