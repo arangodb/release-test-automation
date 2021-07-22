@@ -171,7 +171,7 @@ function checkFoxxService() {
     '/_db/_system/itz/index',
     '/_db/_system/crud/xxx'
   ].forEach(route => {
-    for (i=0; i < 10; i++) {
+    for (i=0; i < 30; i++) {
       try {
         reply = arango.GET_RAW(route, onlyJson);
         if (reply.code == "200") {
