@@ -41,6 +41,7 @@ class Dc2Dc(Runner):
         self.cluster2 = {}
         self.certificate_auth = {}
         self.source_dc = None
+        self.min_replication_factor = 2
         # self.hot_backup = False
 
     def starter_prepare_env_impl(self):

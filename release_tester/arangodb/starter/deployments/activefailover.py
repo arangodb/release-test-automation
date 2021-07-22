@@ -145,7 +145,7 @@ class ActiveFailover(Runner):
                      self.leader.get_frontend().get_public_url(''))
         ret = self.follower_nodes[0].arangosh.check_test_data(
                 "checking active failover follower node",
-                True, [
+                False, [
                     "--readOnly", "true"
                 ])
         if not ret[0]:

@@ -27,6 +27,7 @@ class Cluster(Runner):
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
         self.create_test_collection = ""
+        self.min_replication_factor = 2
 
     def starter_prepare_env_impl(self):
         self.create_test_collection = ("""
