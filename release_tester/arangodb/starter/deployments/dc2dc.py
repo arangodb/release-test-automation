@@ -306,7 +306,7 @@ class Dc2Dc(Runner):
             if not self.cfg.verbose:
                 print(ret[1])
             raise Exception("error during verifying of "
-                            "the test data on the target cluster " ret[1])
+                            "the test data on the target cluster " + ret[1])
 
         args = [
                 self.cluster2['instance'].get_frontend().get_public_url(
