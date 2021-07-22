@@ -171,7 +171,7 @@ function checkFoxxService() {
     '/_db/_system/itz/index',
     '/_db/_system/crud/xxx'
   ].forEach(route => {
-    for (i=0; i < 30; i++) {
+    for (i=0; i < 200; i++) {
       try {
         reply = arango.GET_RAW(route, onlyJson);
         if (reply.code == "200") {
@@ -182,9 +182,9 @@ function checkFoxxService() {
       } catch (e) {
         print(route + " Caught - need to retry. " + JSON.stringify(e))
       }
-      internal.sleep(2);
+      internal.sleep(3);
     }
-    throw Exception("foxx route '" + route + "' not ready on time!");
+    throw ("foxx route '" + route + "' not ready on time!");
   });
 
   print("Foxx: Itzpapalotl getting the root of the gods");
