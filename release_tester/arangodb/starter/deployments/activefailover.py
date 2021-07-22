@@ -143,10 +143,10 @@ class ActiveFailover(Runner):
         logging.info("success" if self.success else "fail")
         logging.info('leader can be reached at: %s',
                      self.leader.get_frontend().get_public_url(''))
-        ret = self.follower_nodes[0].arangosh.check_test_data(
+        ret = self.leader.arangosh.check_test_data(
                 "checking active failover follower node",
-                False, [
-                    "--readOnly", "true"
+                True, [
+                    "--readOnly", "false"
                 ])
         if not ret[0]:
             raise Exception("check data failed " + ret[1])
