@@ -37,7 +37,7 @@ const optionsDefaults = {
 
 if ((0 < ARGUMENTS.length) &&
     (ARGUMENTS[0].slice(0, 1) !== '-')) {
-  database = ARGUMENTS[0];
+  database = ARGUMENTS[0]; // must start with 'system_' else replication fuzzing may delete it!
   ARGUMENTS=ARGUMENTS.slice(1);
 }
 
@@ -83,6 +83,8 @@ function validateDocumentWorksInOneShard(db, baseName, count) {
   }
   progress("Test OneShard setup")
   const databaseName = `${baseName}_${count}_oneShard`;
+  print('vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv ' + databaseName)
+  print(db._databases())
   db._useDatabase(databaseName);
   for (let ccount = 0; ccount < options.collectionMultiplier; ++ccount) {
     const query = `
@@ -165,6 +167,27 @@ function checkFoxxService() {
   };
   let reply;
   db._useDatabase("_system");
+
+  [
+    '/_db/_system/_admin/aardvark/index.html',
+    '/_db/_system/itz/index',
+    '/_db/_system/crud/xxx'
+  ].forEach(route => {
+    for (i=0; i < 200; i++) {
+      try {
+        reply = arango.GET_RAW(route, onlyJson);
+        if (reply.code == "200") {
+          print(route + " OK");
+          return;
+        }
+        print(route + " Not yet ready, retrying: " + JSON.stringify(reply))
+      } catch (e) {
+        print(route + " Caught - need to retry. " + JSON.stringify(e))
+      }
+      internal.sleep(3);
+    }
+    throw ("foxx route '" + route + "' not ready on time!");
+  });
 
   print("Foxx: Itzpapalotl getting the root of the gods");
   reply = arango.GET_RAW('/_db/_system/itz');

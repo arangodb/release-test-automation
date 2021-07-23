@@ -141,22 +141,39 @@ class ActiveFailover(Runner):
         if reply.status_code != 503:
             self.success = False
         logging.info("success" if self.success else "fail")
+        if not self.success:
+            raise Exception("leader/follower instances didn't reply as expected 200/503/503")
         logging.info('leader can be reached at: %s',
                      self.leader.get_frontend().get_public_url(''))
-        self.follower_nodes[0].arangosh.check_test_data(
-            "checking active failover follower node",
-            True, [
-                "--readOnly", "true"
-            ])
+        ret = self.leader.arangosh.check_test_data(
+                "checking active failover follower node",
+                True, [
+                    "--readOnly", "false"
+                ])
+        if not ret[0]:
+            raise Exception("check data failed " + ret[1])
 
     def wait_for_restore_impl(self, backup_starter):
         backup_starter.wait_for_restore()
         self.leader = None
-        for node in self.starter_instances:
-            if node.probe_leader():
-                self.leader = node
+        retry = True
+        time.sleep(5) # Make shaky leader less viable.
+        while retry:
+            for node in self.starter_instances:
+                if node.probe_leader():
+                    if self.leader is not None:
+                        print("Shaky leader?")
+                        time.sleep(20)
+                        retry = True
+                        self.leader = None
+                    else:
+                        retry = False
+                        self.leader = node
+
         if self.leader is None:
             raise Exception("wasn't able to detect the leader after restoring the backup!")
+        print("Leader after restore: ")
+        print(self.leader)
 
     def upgrade_arangod_version_impl(self):
         """ upgrade this installation """
@@ -204,7 +221,10 @@ class ActiveFailover(Runner):
             count += 1
 
         print()
-        self.new_leader.arangosh.check_test_data("checking active failover new leader node", True)
+        ret = self.new_leader.arangosh.check_test_data(
+            "checking active failover new leader node", True)
+        if not ret[0]:
+            raise Exception("check data failed " + ret[1])
 
         logging.info("\n" + str(self.new_leader))
         url = '{host}/_db/_system/_admin/aardvark/index.html#replication'.format(
