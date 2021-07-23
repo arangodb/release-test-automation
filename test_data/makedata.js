@@ -553,3 +553,6 @@ try {
   db._useDatabase("_system");
   db._create('_fishbowl', { isSystem: true, distributeShardsLike: '_users' });
 } catch(err) {}
+
+print('YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY')
+print(db._databases())

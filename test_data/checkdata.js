@@ -37,7 +37,7 @@ const optionsDefaults = {
 
 if ((0 < ARGUMENTS.length) &&
     (ARGUMENTS[0].slice(0, 1) !== '-')) {
-  database = ARGUMENTS[0];
+  database = ARGUMENTS[0]; // must start with 'system_' else replication fuzzing may delete it!
   ARGUMENTS=ARGUMENTS.slice(1);
 }
 
@@ -84,6 +84,7 @@ function validateDocumentWorksInOneShard(db, baseName, count) {
   progress("Test OneShard setup")
   const databaseName = `${baseName}_${count}_oneShard`;
   print('vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv ' + databaseName)
+  print(db._databases())
   db._useDatabase(databaseName);
   for (let ccount = 0; ccount < options.collectionMultiplier; ++ccount) {
     const query = `

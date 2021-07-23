@@ -234,7 +234,9 @@ function ReplicationSuite() {
             db._useDatabase('_system');
             let dbs;
             while (true) {
-              dbs = db._databases().filter(function(db) { return db !== '_system'; });
+              dbs = db._databases().filter(function(db) {
+                return ((db !== '_system') !db.startsWith('system_'));
+              });
               if (dbs.length !== 0) {
                 break;
               }
@@ -482,6 +484,7 @@ function ReplicationSuite() {
             pickDatabase();
             let name = db._name();
             db._useDatabase('_system');
+            print("dropping Database " + name)
             db._dropDatabase(name);
           };
 
