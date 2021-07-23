@@ -73,6 +73,7 @@ class Runner(ABC):
         logging.debug(runner_type)
         self.abort_on_error = abort_on_error
         self.testrun_name = testrun_name
+        self.min_replication_factor = None
         self.state = ""
         self.runner_type = runner_type
         self.name = str(self.runner_type).split('.')[1]
@@ -564,13 +565,17 @@ class Runner(ABC):
         assert self.makedata_instances, "don't have makedata instance!"
         logging.debug("makedata instances")
         self.print_makedata_instances_table()
+        args = []
+        if self.min_replication_factor:
+            args += ['--minReplicationFactor', str(self.min_replication_factor)]
+
         for starter in self.makedata_instances:
             assert starter.arangosh, "make: this starter doesn't have an arangosh!"
             arangosh = starter.arangosh
 
             #must be writabe that the setup may not have already data
             if not arangosh.read_only and not self.has_makedata_data:
-                success = arangosh.create_test_data(self.name)
+                success = arangosh.create_test_data(self.name, args=args)
                 if not success[0]:
                     if not self.cfg.verbose:
                         print(success[1])
