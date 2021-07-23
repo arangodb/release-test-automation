@@ -28,6 +28,7 @@ class Cluster(Runner):
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
         self.create_test_collection = ""
+        self.min_replication_factor = 2
 
     def starter_prepare_env_impl(self):
         self.create_test_collection = ("""
@@ -146,11 +147,18 @@ db.testCollection.save({test: "document"})
 
         self.starter_instances[terminate_instance].terminate_instance()
         self.set_frontend_instances()
-        self.starter_instances[0].arangosh.check_test_data("Cluster one node missing", True)
 
         prompt_user(self.basecfg, "instance stopped")
         if self.selenium:
             self.selenium.jam_step_1(self.new_cfg if self.new_cfg else self.cfg)
+
+        # TODO: we should wait until all shards from the stopped DB-Server have a new leader.
+        # waiting for the UI first makes it probable that this has happened,
+        # but doesn't warant it.
+        ret = self.starter_instances[0].arangosh.check_test_data(
+                "Cluster one node missing", True)
+        if not ret[0]:
+            raise Exception("check data failed " + ret[1])
 
         # respawn instance, and get its state fixed
         self.starter_instances[terminate_instance].respawn_instance()
