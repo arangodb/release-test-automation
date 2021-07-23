@@ -1,5 +1,5 @@
-from .logging import AllureLogInterceptor
-import logging
+import sys
+
 import allure_commons
 from allure_commons.model2 import TestStepResult, Parameter, TestResult, Status, Label, StatusDetails
 from allure_commons.reporter import AllureReporter
@@ -7,14 +7,19 @@ from allure_commons.types import LabelType, AttachmentType
 from allure_commons.utils import now, format_traceback, format_exception
 from allure_commons.utils import uuid4
 
+import logging
+from .logging import AllureLogInterceptor, IoDuplicator
 
-class AllureTitleHelper(object):
-    @allure_commons.hookimpl
-    def decorate_as_title(self, test_title):
-        def decorator(func):
-            func.__allure_display_name__ = test_title
-            return func
-        return decorator
+
+class StepData(object):
+    system_stdout = sys.stdout
+    system_stderr = sys.stderr
+
+    def __init__(self):
+        self.prev_stdout = sys.stdout
+        self.prev_stderr = sys.stderr
+        sys.stdout = IoDuplicator(StepData.system_stdout)
+        sys.stderr = IoDuplicator(StepData.system_stderr)
 
 
 class AllureTestHelper(object):
@@ -71,28 +76,29 @@ class AllureListener(object):
 
     @allure_commons.hookimpl
     def start_step(self, uuid, title, params):
+        step_data = StepData()
+        self._cache.push(step_data, uuid)
         parameters = [Parameter(name=name, value=value) for name, value in params.items()]
         step = TestStepResult(name=title, start=now(), parameters=parameters)
         self.allure_logger.start_step(None, uuid, step)
 
     @allure_commons.hookimpl
     def stop_step(self, uuid, exc_type, exc_val, exc_tb):
+        step_data = self._cache.get(uuid)
+        out = sys.stdout.getvalue()
+        sys.stdout.close()
+        if len(out) != 0:
+            self.attach_data(out, "STDOUT", AttachmentType.TEXT, "txt")
+        sys.stdout = step_data.prev_stdout
+        err = sys.stderr.getvalue()
+        sys.stderr.close()
+        if len(err) != 0:
+            self.attach_data(err, "STDERR", AttachmentType.TEXT, "txt")
+        sys.stderr = step_data.prev_stderr
         self.allure_logger.stop_step(uuid,
                                      stop=now(),
                                      status=get_status(exc_val),
                                      statusDetails=get_status_details(exc_type, exc_val, exc_tb))
-
-    @allure_commons.hookimpl
-    def start_fixture(self, parent_uuid, uuid, name):
-        after_fixture = TestAfterResult(name=name, start=now())
-        self.allure_logger.start_after_fixture(parent_uuid, uuid, after_fixture)
-
-    @allure_commons.hookimpl
-    def stop_fixture(self, parent_uuid, uuid, name, exc_type, exc_val, exc_tb):
-        self.allure_logger.stop_after_fixture(uuid,
-                                              stop=now(),
-                                              status=get_status(exc_val),
-                                              statusDetails=get_status_details(exc_type, exc_val, exc_tb))
 
     @allure_commons.hookimpl
     def start_test(self, name, uuid, context):

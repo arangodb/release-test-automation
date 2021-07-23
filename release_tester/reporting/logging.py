@@ -1,5 +1,6 @@
 import collections
 import io
+
 from allure_commons._allure import attach
 
 
@@ -27,3 +28,17 @@ class AllureLogInterceptor(io.TextIOBase):
     def save_logs(self):
         attach(self.getvalue(), "Log output")
         self.deque.clear()
+
+
+class IoDuplicator(io.TextIOBase):
+    def __init__(self, downstream, *args):
+        self.downstream = downstream
+        io.TextIOBase.__init__(self, *args)
+        self.deque = collections.deque()
+
+    def getvalue(self):
+        return ''.join(self.deque)
+
+    def write(self, x):
+        self.downstream.write(x)
+        self.deque.append(x)
