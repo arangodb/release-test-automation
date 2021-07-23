@@ -119,10 +119,11 @@ class ActiveFailover(Runner):
 
     def test_setup_impl(self):
         self.success = True
-
+        replies = []
         url = self.leader.get_frontend().get_local_url('')
         reply = requests.get(url, auth=HTTPBasicAuth('root', self.leader.passvoid))
         logging.info(str(reply))
+        replies.append(reply)
         if reply.status_code != 200:
             logging.info(reply.text)
             self.success = False
@@ -131,6 +132,7 @@ class ActiveFailover(Runner):
         reply = requests.get(url, auth=HTTPBasicAuth('root', self.leader.passvoid))
         logging.info(str(reply))
         logging.info(reply.text)
+        replies.append(reply)
         if reply.status_code != 503:
             self.success = False
 
@@ -138,11 +140,13 @@ class ActiveFailover(Runner):
         reply = requests.get(url, auth=HTTPBasicAuth('root', self.leader.passvoid))
         logging.info(str(reply))
         logging.info(reply.text)
+        replies.append(reply)
         if reply.status_code != 503:
             self.success = False
         logging.info("success" if self.success else "fail")
         if not self.success:
-            raise Exception("leader/follower instances didn't reply as expected 200/503/503")
+            raise Exception("leader/follower instances didn't reply as expected 200/503/503 " +
+                            str(replies))
         logging.info('leader can be reached at: %s',
                      self.leader.get_frontend().get_public_url(''))
         ret = self.leader.arangosh.check_test_data(
