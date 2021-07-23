@@ -75,15 +75,15 @@ class QueryPage(BaseSelenium):
         new_collection_name = \
             BaseSelenium.locator_finder_by_id(self, new_collection_name)
         new_collection_name.click()
-        super().send_key_action('Characters')
-        super().send_key_action(Keys.ENTER)
+        new_collection_name.send_keys('Characters')
+        new_collection_name.send_keys(Keys.ENTER)
 
         if is_cluster:
             new_collections_shards = 'new-collection-shards'
             new_collections_shards = \
                 BaseSelenium.locator_finder_by_id(self, new_collections_shards)
             new_collections_shards.click()
-            super().send_key_action('9')
+            new_collections_shards.send_keys('9')
 
             new_replication_factor = 'new-replication-factor'
             new_replication_factor = \
@@ -91,7 +91,7 @@ class QueryPage(BaseSelenium):
             new_replication_factor.click()
             new_replication_factor.clear()
             new_replication_factor.click()
-            super().send_key_action('2')
+            new_replication_factor.send_keys('2')
 
             modal_button1_str = 'modalButton1'
             modal_button1 = \
@@ -108,29 +108,43 @@ class QueryPage(BaseSelenium):
     def selecting_query_page(self):
         """Selecting query page"""
         query_page = self.selecting_query_page_id
-        query_page = \
+        self.current = \
             BaseSelenium.locator_finder_by_id(self, query_page)
-        query_page.click()
+        self.current.click()
         time.sleep(1)
     
     def execute_insert_query(self):
         """This method will run an insert query"""
-        super().send_key_action('for i IN 1..10000')
-        super().send_key_action(Keys.ENTER)
-        super().send_key_action('INSERT {')
-        super().send_key_action(Keys.ENTER)
-        super().send_key_action(Keys.TAB)
-        super().send_key_action('"name": "Ned",')
-        super().send_key_action(Keys.ENTER)
-        super().send_key_action('"surname": "Stark",')
-        super().send_key_action(Keys.ENTER)
-        super().send_key_action('"alive": true,')
-        super().send_key_action(Keys.ENTER)
-        super().send_key_action('"age": 41,')
-        super().send_key_action(Keys.ENTER)
-        super().send_key_action('"traits": ["A","H","C","N","P"]')
-        super().send_key_action(Keys.ENTER)
-        super().send_key_action('} INTO Characters')
+        self.switch_tab('Query')
+        editor = self.locator_finder_by_class('ace_content')
+        query = '''
+        for i IN 1..10000
+        INSERT {
+        \t"name": "Ned",
+        "surname": "Stark",
+        "alive": true,
+        "age": 41,
+        "traits": ["A","H","C","N","P"]
+        } INTO Characters
+        '''
+        editor.send_keys(query)
+        time.sleep(50000000)
+        #super().send_key_action('for i IN 1..10000')
+        #super().send_key_action(Keys.ENTER)
+        #super().send_key_action('INSERT {')
+        #super().send_key_action(Keys.ENTER)
+        #super().send_key_action(Keys.TAB)
+        #super().send_key_action('"name": "Ned",')
+        #super().send_key_action(Keys.ENTER)
+        #super().send_key_action('"surname": "Stark",')
+        #super().send_key_action(Keys.ENTER)
+        #super().send_key_action('"alive": true,')
+        #super().send_key_action(Keys.ENTER)
+        #super().send_key_action('"age": 41,')
+        #super().send_key_action(Keys.ENTER)
+        #super().send_key_action('"traits": ["A","H","C","N","P"]')
+        #super().send_key_action(Keys.ENTER)
+        #super().send_key_action('} INTO Characters')
 
         # selecting execute query button
         execute = self.execute_query_btn_id

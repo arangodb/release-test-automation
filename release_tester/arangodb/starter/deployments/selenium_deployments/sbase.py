@@ -610,14 +610,17 @@ class SeleniumRunner(ABC):
 
     def check_full_ui(self): # , frontend_instance
         """ run all tests that work with data """
-        # frontend = frontend_instance[0]
-        # ui_test = UITest(frontend.get_passvoid(), frontend.get_endpoint(), self.web)
-        ui_test = UITest('', '', self.web)
-        ui_test.test_collection(self.cfg.test_data_dir.resolve())
-        # TODO ui_test.test_views()
-        ui_test.test_graph(self.cfg, self.importer, self.cfg.test_data_dir.resolve())
-        ui_test.test_query(self.restorer, self.cfg.test_data_dir, self.is_cluster)
-        ui_test.test_support()
+        try:
+            # frontend = frontend_instance[0]
+            # ui_test = UITest(frontend.get_passvoid(), frontend.get_endpoint(), self.web)
+            ui_test = UITest('', '', self.web)
+            # ui_test.test_collection(self.cfg.test_data_dir.resolve())
+            # TODO ui_test.test_views()
+            # ui_test.test_graph(self.cfg, self.importer, self.cfg.test_data_dir.resolve())
+            ui_test.test_query(self.restorer, self.cfg.test_data_dir, self.is_cluster)
+            ui_test.test_support()
+        except Exception:
+            self.take_screenshot()
 
     def clear_ui (self):
         """ go all through the ui, flush all data (graphs, users, databases, collections) """
