@@ -235,7 +235,7 @@ function ReplicationSuite() {
             let dbs;
             while (true) {
               dbs = db._databases().filter(function(db) {
-                return ((db !== '_system') !db.startsWith('system_'));
+                return ((db !== '_system') && !db.startsWith('system_'));
               });
               if (dbs.length !== 0) {
                 break;
