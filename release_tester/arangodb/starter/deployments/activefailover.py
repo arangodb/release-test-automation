@@ -154,11 +154,24 @@ class ActiveFailover(Runner):
     def wait_for_restore_impl(self, backup_starter):
         backup_starter.wait_for_restore()
         self.leader = None
-        for node in self.starter_instances:
-            if node.probe_leader():
-                self.leader = node
+        retry = True
+        time.sleep(5) # Make shaky leader less viable.
+        while retry:
+            for node in self.starter_instances:
+                if node.probe_leader():
+                    if self.leader is not None:
+                        print("Shaky leader?")
+                        time.sleep(20)
+                        retry = True
+                        self.leader = None
+                    else:
+                        retry = False
+                        self.leader = node
+
         if self.leader is None:
             raise Exception("wasn't able to detect the leader after restoring the backup!")
+        print("Leader after restore: ")
+        print(self.leader)
 
     def upgrade_arangod_version_impl(self):
         """ upgrade this installation """
