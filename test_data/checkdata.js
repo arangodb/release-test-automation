@@ -83,6 +83,7 @@ function validateDocumentWorksInOneShard(db, baseName, count) {
   }
   progress("Test OneShard setup")
   const databaseName = `${baseName}_${count}_oneShard`;
+  print('vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv ' + databaseName)
   db._useDatabase(databaseName);
   for (let ccount = 0; ccount < options.collectionMultiplier; ++ccount) {
     const query = `
