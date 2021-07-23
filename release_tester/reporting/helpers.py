@@ -3,8 +3,8 @@ import logging
 import allure_commons
 from allure_commons.model2 import TestStepResult, Parameter, TestResult, Status, Label, StatusDetails
 from allure_commons.reporter import AllureReporter
-from allure_commons.types import LabelType
-from allure_commons.utils import now
+from allure_commons.types import LabelType, AttachmentType
+from allure_commons.utils import now, format_traceback, format_exception
 from allure_commons.utils import uuid4
 
 
@@ -122,6 +122,7 @@ class AllureListener(object):
                 continue
             else:
                 test_result.status = Status.FAILED
+                test_result.statusDetails = step.statusDetails
         self.allure_logger.close_test(uuid)
 
 
@@ -151,6 +152,8 @@ def get_status(exception):
 
 
 def get_status_details(exception_type, exception, exception_traceback):
-    message = "Sample message"
-    trace = "Sample trace"
-    return StatusDetails(message=message, trace=trace) if message or trace else None
+    if exception:
+        return StatusDetails(message=format_exception(exception_type, exception),
+                             trace=format_traceback(exception_traceback))
+    else:
+        return None

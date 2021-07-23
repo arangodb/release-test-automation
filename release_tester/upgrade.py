@@ -27,10 +27,9 @@ def run_upgrade(old_version, new_version, verbose,
                 zip_package, interactive,
                 starter_mode, stress_upgrade, abort_on_error,
                 publicip, selenium, selenium_driver_args,
-                testrun_name, alluredir, clean_alluredir):
+                testrun_name):
     """ execute upgrade tests """
     lh.section("startup")
-    configure_allure(alluredir, clean_alluredir, enterprise, zip_package, new_version, old_version)
     results = []
     for runner_type in STARTER_MODES[starter_mode]:
         with RtaTestcase(runner_strings[runner_type]) as testcase:
@@ -172,12 +171,13 @@ def main(
         selenium, selenium_driver_args, alluredir, clean_alluredir):
     """ main trampoline """
     lh.configure_logging(verbose)
+    configure_allure(alluredir, clean_alluredir, enterprise, zip_package, new_version, old_version)
     results = run_upgrade(old_version, new_version, verbose,
                           package_dir, test_data_dir,
                           enterprise, encryption_at_rest,
                           zip_package, interactive,
                           starter_mode, stress_upgrade, abort_on_error,
-                          publicip, selenium, selenium_driver_args, "", alluredir, clean_alluredir)
+                          publicip, selenium, selenium_driver_args, "")
     print('V' * 80)
     status = True
     for one_result in results:
