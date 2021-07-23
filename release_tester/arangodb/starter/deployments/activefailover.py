@@ -141,6 +141,8 @@ class ActiveFailover(Runner):
         if reply.status_code != 503:
             self.success = False
         logging.info("success" if self.success else "fail")
+        if not self.success:
+            raise Exception("leader/follower instances didn't reply as expected 200/503/503")
         logging.info('leader can be reached at: %s',
                      self.leader.get_frontend().get_public_url(''))
         ret = self.leader.arangosh.check_test_data(
