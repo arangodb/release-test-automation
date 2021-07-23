@@ -8,7 +8,7 @@ from allure_commons.utils import now, format_traceback, format_exception
 from allure_commons.utils import uuid4
 
 import logging
-from .logging import AllureLogInterceptor, IoDuplicator
+from .logging import IoDuplicator
 
 
 class StepData(object):
@@ -108,21 +108,21 @@ class AllureListener(object):
         test_result.labels.append(Label(name=LabelType.FRAMEWORK, value='ArangoDB Release Test Automation'))
         self.allure_logger.schedule_test(uuid, test_result)
         self._cache.push(test_result, uuid)
-        logger = logging.getLogger()
-        log_captor = AllureLogInterceptor()
-        formatter = logging.Formatter('%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s')
-        ch = logging.StreamHandler(log_captor)
-        ch.setLevel(logger.level)
-        ch.setFormatter(formatter)
-        logger.addHandler(ch)
-        context.log_captor = log_captor
+        # logger = logging.getLogger()
+        # log_captor = AllureLogInterceptor()
+        # formatter = logging.Formatter('%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s')
+        # ch = logging.StreamHandler(log_captor)
+        # ch.setLevel(logger.level)
+        # ch.setFormatter(formatter)
+        # logger.addHandler(ch)
+        # context.log_captor = log_captor
 
     @allure_commons.hookimpl
     def stop_test(self, uuid, context):
         test_result = self._cache.get(uuid)
         test_result.status = context.status
         test_result.stop = now()
-        context.log_captor.save_logs()
+        # context.log_captor.save_logs()
         for step in test_result.steps:
             if step.status != Status.FAILED:
                 continue
