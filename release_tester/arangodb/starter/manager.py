@@ -525,7 +525,15 @@ class StarterManager():
         """ wait for the upgrade commanding starter to finish """
         #for line in self.upgradeprocess.stderr:
         #    ascii_print(line)
-        ret = self.upgradeprocess.wait(timeout=timeout)
+        ret = None
+        try:
+            ret = self.upgradeprocess.wait(timeout=timeout)
+        except psutil.TimeoutExpired as timeout_ex:
+            logging.err("StarterManager: Upgrade command [%s] didn't finish in time: %d %s",
+                        str(self.basedir),
+                        timeout,
+                        str(timeout_ex))
+            raise timeout_ex
         logging.info("StarterManager: Upgrade command [%s] exited: %s",
                      str(self.basedir),
                      str(ret))
