@@ -83,11 +83,6 @@ class BaseSelenium:
         print("\n--------Now Quiting--------\n")
         # cls.driver.quit()
 
-    @staticmethod
-    def query(query):
-        """This method will type the query in to the text area"""
-        # pyautogui.typewrite(query)
-
     def switch_to_iframe(self, iframe_id):
         """This method will switch to IFrame window"""
         self.driver.switch_to.frame(self.driver.find_element_by_xpath(iframe_id))
@@ -98,20 +93,27 @@ class BaseSelenium:
         self.driver.switch_to.default_content()
         time.sleep(1)
 
-    @staticmethod
-    def clear_all_text():
+    def clear_all_text(self, locator=None):
         """This method will select all text and clean it"""
+        if locator is not None:
+            locator = locator
+            locator = BaseSelenium.locator_finder_by_xpath(self, locator)
+            locator.click()
+            time.sleep(2)
+
         print("Cleaning input field \n")
         keyboard = Controller()
         with keyboard.pressed(Key.ctrl):
             keyboard.press('a')
             keyboard.release('a')
-        
+
         time.sleep(2)
 
         keyboard01 = Controller()
         keyboard01.press(Key.backspace)
         keyboard01.release(Key.backspace)
+    
+    
 
     @staticmethod
     def clear_download_bar():
@@ -128,7 +130,23 @@ class BaseSelenium:
         with keyboard01.pressed(Key.ctrl):
             keyboard01.press('w')
             keyboard01.release('w')
+    
+    def select_query_execution_area(self):
+        """This method will select the query execution area"""
+        query = '//*[@id="aqlEditor"]'
+        query = \
+            BaseSelenium.locator_finder_by_xpath(self, query)
+        query.click()
+        time.sleep(2)
         
+    def query_execution_btn(self):
+        """Clicking execute query button"""
+        execute = 'executeQuery'
+        execute = \
+            BaseSelenium.locator_finder_by_id(self, execute)
+        execute.click()
+        time.sleep(2)
+
     
     def send_key_action(self, key):
         """This method will send dummy data to the textfield as necessary"""

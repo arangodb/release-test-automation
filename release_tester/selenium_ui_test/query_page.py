@@ -25,7 +25,7 @@ class QueryPage(BaseSelenium):
         self.driver = driver
         self.selecting_query_page_id = "queries"
         self.query_execution_area = '//*[@id="aqlEditor"]'
-        self.execute_query_btn_id = 'executeQuery'
+        # self.execute_query_btn_id = 'executeQuery'
         self.profile_query_id = 'profileQuery'
         self.explain_query_id = 'explainQuery'
         self.create_debug_package_id = 'debugQuery'
@@ -116,7 +116,8 @@ class QueryPage(BaseSelenium):
     def execute_insert_query(self):
         """This method will run an insert query"""
         self.switch_tab('Query')
-        editor = self.locator_finder_by_class('ace_content')
+        # editor = self.locator_finder_by_class('ace_content')
+        super().select_query_execution_area()
         query = '''
         for i IN 1..10000
         INSERT {
@@ -147,18 +148,16 @@ class QueryPage(BaseSelenium):
         #super().send_key_action('} INTO Characters')
 
         # selecting execute query button
-        execute = self.execute_query_btn_id
-        execute = \
-            BaseSelenium.locator_finder_by_id(self, execute)
-        execute.click()
-
-        time.sleep(3)
+        super().query_execution_btn()
 
         super().scroll(1)
 
     
     def execute_read_query(self):
         """This method will run a read query"""
+
+        super().select_query_execution_area()
+
         super().send_key_action('FOR c IN imdb_vertices')
         super().send_key_action(Keys.ENTER)
         super().send_key_action(Keys.TAB)
@@ -167,12 +166,7 @@ class QueryPage(BaseSelenium):
         super().send_key_action('RETURN c')
 
         # selecting execute query button
-        execute = self.execute_query_btn_id
-        execute = \
-            BaseSelenium.locator_finder_by_id(self, execute)
-        execute.click()
-
-        time.sleep(3)
+        super().query_execution_btn()
 
         super().scroll(1)
 
@@ -220,13 +214,16 @@ class QueryPage(BaseSelenium):
 
     def clear_query_area(self):
         """Clearing current query area"""
-        clear_query = self.query_execution_area
-        clear_query = \
-            BaseSelenium.locator_finder_by_xpath(self, clear_query)
-        clear_query.click()
+        # clear_query = self.query_execution_area
+        # clear_query = \
+        #     BaseSelenium.locator_finder_by_xpath(self, clear_query)
+        # clear_query.click()
 
-        super().clear_all_text()
+        # super().clear_all_text()
+        # give it a try if not works just revert the code
+        super().clear_all_text(self.query_execution_area)
         time.sleep(2)
+
 
     def spot_light_function(self, search):
         spot_light = self.query_spot_light_id
@@ -282,10 +279,7 @@ class QueryPage(BaseSelenium):
 
         time.sleep(1)
 
-        query = self.query_execution_area
-        query = \
-            BaseSelenium.locator_finder_by_xpath(self, query)
-        query.click()
+        super().select_query_execution_area()
 
         key_updated = f"UPDATE \"{key}\""
 
@@ -356,10 +350,7 @@ class QueryPage(BaseSelenium):
     def bind_parameters_query(self):
         """executing query with bind parameters"""
         # selecting query execution area
-        query_area = self.query_execution_area
-        query_area = \
-            BaseSelenium.locator_finder_by_xpath(self, query_area)
-        query_area.click()
+        super().select_query_execution_area()
         bind_alive = '//*[@id="arangoBindParamTable"]/tbody/tr[1]/td[2]/input'
         bind_name = '//*[@id="arangoBindParamTable"]/tbody/tr[2]/td[2]/input'
 
@@ -386,11 +377,7 @@ class QueryPage(BaseSelenium):
         super().send_key_action('Ned')
 
         # execute query with bind parameters
-        execute = self.execute_query_btn_id
-        execute = \
-            BaseSelenium.locator_finder_by_id(self, execute)
-        execute.click()
-        time.sleep(5)
+        super().query_execution_btn()
 
         super().scroll()
 
@@ -678,14 +665,7 @@ class QueryPage(BaseSelenium):
         query.click()
         time.sleep(1)
 
-        query_execution = self.query_execution_area
-        query_execution = \
-            BaseSelenium.locator_finder_by_xpath(self, query_execution)
-        query_execution.click()
-        time.sleep(1)
-
-        # clear the execution area
-        self.clear_query_area()
+        super().clear_all_text(self.query_execution_area)
         
         print('Executing sample graph query for worldCountry Graph \n')
         super().send_key_action('FOR v, e, p IN 1..1')
@@ -699,11 +679,7 @@ class QueryPage(BaseSelenium):
 
         time.sleep(2)
 
-        execute = self.execute_query_btn_id
-        execute = \
-            BaseSelenium.locator_finder_by_id(self, execute)
-        execute.click()
-        time.sleep(3)
+        super().query_execution_btn()
 
         super().scroll()
 
@@ -748,13 +724,7 @@ class QueryPage(BaseSelenium):
         query.click()
         time.sleep(1)
 
-        query_execution = self.query_execution_area
-        query_execution = \
-            BaseSelenium.locator_finder_by_xpath(self, query_execution)
-        query_execution.click()
-        time.sleep(1)
-
-        super().clear_all_text()
+        super().clear_all_text(self.query_execution_area)
 
         print('Executing sample graph query for KShortestPaths Graph')
         super().send_key_action('FOR path IN OUTBOUND K_SHORTEST_PATHS')
@@ -770,11 +740,8 @@ class QueryPage(BaseSelenium):
         
         time.sleep(2)
 
-        execute = self.execute_query_btn_id
-        execute = \
-            BaseSelenium.locator_finder_by_id(self, execute)
-        execute.click()
-        time.sleep(6)
+        super().query_execution_btn()
+        time.sleep(3)
 
         super().scroll(1)
         time.sleep(8)
@@ -785,11 +752,7 @@ class QueryPage(BaseSelenium):
             BaseSelenium.locator_finder_by_id(self, output_switch_json)
         output_switch_json.click()
 
-        execution_area = self.query_execution_area
-        execution_area = \
-            BaseSelenium.locator_finder_by_xpath(self, execution_area)
-        execution_area.click()
-        time.sleep(1)
+        super().select_query_execution_area()
 
         super().scroll(1)
         time.sleep(3)
@@ -823,14 +786,8 @@ class QueryPage(BaseSelenium):
         query_page.click()
         time.sleep(2)
 
-        # selecting query execution area
-        query01 = self.query_execution_area
-        query01 = \
-            BaseSelenium.locator_finder_by_xpath(self, query01)
-        query01.click()
-
         print('Clear query execution area \n')
-        super().clear_all_text()
+        super().clear_all_text(self.query_execution_area)
 
         print('Executing one more KShortestPaths graph query \n')
         super().send_key_action('FOR v, e IN OUTBOUND SHORTEST_PATH "places/Aberdeen" TO "places/London"')
@@ -841,12 +798,7 @@ class QueryPage(BaseSelenium):
         super().send_key_action('RETURN { place: v.label, travelTime: e.travelTime }')
         time.sleep(2)
 
-        execute2 = self.execute_query_btn_id
-        execute2 = \
-            BaseSelenium.locator_finder_by_id(self, execute2)
-        execute2.click()
-        time.sleep(2)
-
+        super().query_execution_btn()
         super().scroll()
 
         print('Deleting KShortestPath graph \n')
@@ -890,24 +842,14 @@ class QueryPage(BaseSelenium):
         query.click()
         time.sleep(1)
 
-        query_execution = self.query_execution_area
-        query_execution = \
-            BaseSelenium.locator_finder_by_xpath(self, query_execution)
-        query_execution.click()
-        time.sleep(1)
-
-        super().clear_all_text()
+        super().clear_all_text(self.query_execution_area)
 
         map_query = 'for u in germanCity return u'
         self.query(map_query)
         time.sleep(1)
 
         # execute query
-        execute = self.execute_query_btn_id
-        execute = \
-            BaseSelenium.locator_finder_by_id(self, execute)
-        execute.click()
-        time.sleep(3)
+        super().query_execution_btn()
 
         super().scroll()
 
@@ -919,10 +861,7 @@ class QueryPage(BaseSelenium):
             BaseSelenium.locator_finder_by_id(self, output_switch_json)
         output_switch_json.click()
 
-        query01 = self.query_execution_area
-        query01 = \
-            BaseSelenium.locator_finder_by_xpath(self, query01)
-        query01.click()
+        super().select_query_execution_area()
         super().scroll(1)
 
         print('Switch output to Table format')
@@ -931,10 +870,7 @@ class QueryPage(BaseSelenium):
             BaseSelenium.locator_finder_by_id(self, output_switch_table)
         output_switch_table.click()
 
-        query02 = self.query_execution_area
-        query02 = \
-            BaseSelenium.locator_finder_by_xpath(self, query02)
-        query02.click()
+        super().select_query_execution_area()
         super().scroll(1)
 
         print('Deleting City graph \n')
@@ -944,32 +880,26 @@ class QueryPage(BaseSelenium):
 
     def number_of_results(self):
         """changing the number of output"""
-        query = self.query_execution_area
-        query = \
-            BaseSelenium.locator_finder_by_xpath(self, query)
-        query.click()
-        time.sleep(1)
+        super().select_query_execution_area()
 
         print('Changing query results size 1000 to 100 \n')
         query_size = self.select_query_size_id
         BaseSelenium.locator_finder_by_select(self, query_size, 0)
         time.sleep(1)
 
-        query_01 = self.query_execution_area
-        query_01 = \
-            BaseSelenium.locator_finder_by_xpath(self, query_01)
-        query_01.click()
-        time.sleep(1)
+        super().select_query_execution_area()
 
         print('Execute sample query\n')
-        self.query('FOR c IN imdb_vertices\n\tLIMIT 500\nRETURN c')
+        super().send_key_action('FOR c IN imdb_vertices')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action(Keys.TAB)
+        super().send_key_action('LIMIT 500')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action(Keys.TAB)
+        super().send_key_action('RETURN c')
         time.sleep(2)
 
-        execute = self.execute_query_btn_id
-        execute = \
-            BaseSelenium.locator_finder_by_id(self, execute)
-        execute.click()
-        time.sleep(1)
+        super().query_execution_btn()
 
         super().scroll()
 
@@ -1056,10 +986,7 @@ class QueryPage(BaseSelenium):
         time.sleep(3)
 
         # selecting query execution area
-        query = self.query_execution_area
-        query = \
-            BaseSelenium.locator_finder_by_xpath(self, query)
-        query.click()
+        super().select_query_execution_area()
 
         # clearing all text from the execution area
-        super().clear_all_text()
+        super().clear_all_text(self.query_execution_area)
