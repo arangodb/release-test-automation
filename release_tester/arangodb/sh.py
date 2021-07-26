@@ -13,45 +13,21 @@ import psutil
 from tools.asciiprint import print_progress as progress
 import tools.errorhelper as eh
 import tools.loghelper as lh
+from arangodb.async_client import (
+    ArangoCLIprogressiveTimeoutExecutor,
+    dummy_line_result,
+    enqueue_stdout,
+    enqueue_stderr
+    )
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
-def dummy_line_result(line):
-    """ do nothing with the line... """
-    #pylint: disable=W0104
-    line
-
-def enqueue_stdout(std_out, queue, instance):
-    """ add stdout to the specified queue """
-    for line in iter(std_out.readline, b''):
-        #print("O: " + str(line))
-        queue.put((line, instance))
-    #print('0 done!')
-    queue.put(-1)
-    std_out.close()
-
-def enqueue_stderr(std_err, queue, instance):
-    """ add stderr to the specified queue """
-    for line in iter(std_err.readline, b''):
-        #print("E: " + str(line))
-        queue.put((line, instance))
-    #print('1 done!')
-    queue.put(-1)
-    std_err.close()
-
-def convert_result(result_array):
-    """ binary -> string """
-    result = ""
-    for one_line in result_array:
-        result += "\n" + one_line[0].decode("unicode_escape").rstrip()
-    return result
-
-class ArangoshExecutor():
+class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
     """ configuration """
+
     def __init__(self, config, connect_instance):
-        self.connect_instance = connect_instance
-        self.cfg = config
-        self.read_only = False
+        self.read_only = True
+        super().__init__(config, connect_instance)
 
     def run_command(self, cmd, verbose=True):
         """ launch a command, print its name """
@@ -100,7 +76,7 @@ class ArangoshExecutor():
         success = self.run_command((
             'check normal exit',
             'let foo = "bar"'),
-                                   self.cfg.verbose)
+            self.cfg.verbose)
 
         logging.debug("sanity result: " + str(success) + " - expected: True")
 
@@ -153,79 +129,23 @@ class ArangoshExecutor():
         else:
             process_control = []
         run_cmd = [
-            self.cfg.bin_dir / "arangosh",
-            "--server.endpoint", self.connect_instance.get_endpoint(),
             "--log.level", "v8=debug",
-            "--log.foreground-tty", "true",
             "--javascript.module-directory", self.cfg.test_data_dir.resolve(),
-            "--server.username", str(self.cfg.username),
-            "--server.password", str(self.connect_instance.get_passvoid())
         ] + process_control + [
-            "--javascript.execute", str(cmd[1]) ]
+            "--javascript.execute", str(cmd[1])
+        ]
 
         if len(args) > 0:
             run_cmd += ['--'] + args
 
-        if verbose:
-            lh.log_cmd(run_cmd)
-        process = Popen(run_cmd,
-                        stdout=PIPE, stderr=PIPE, close_fds=ON_POSIX,
-                        cwd=self.cfg.test_data_dir.resolve())
-        queue = Queue()
-        thread1 = Thread(target=enqueue_stdout, args=(process.stdout,
-                                                      queue,
-                                                      self.connect_instance))
-        thread2 = Thread(target=enqueue_stderr, args=(process.stderr,
-                                                      queue,
-                                                      self.connect_instance))
-        thread1.start()
-        thread2.start()
+        return self.run_monitored(self.cfg.bin_dir / "arangosh",
+                                  run_cmd,
+                                  timeout,
+                                  result_line,
+                                  verbose)
 
-        # ... do other things here
-        # out = logfile.open('wb')
-        # read line without blocking
-        have_timeout = False
-        tcount = 0
-        close_count = 0
-        result = []
-        while not have_timeout:
-            if not verbose:
-                progress("sj" + str(tcount))
-            line = ''
-            try:
-                line = queue.get(timeout=1)
-                result_line(line)
-            except Empty:
-                tcount += 1
-                if verbose:
-                    progress('T ' + str(tcount))
-                have_timeout = tcount >= timeout
-            else:
-                tcount = 0
-                if isinstance(line, tuple):
-                    if verbose:
-                        print("e: " + str(line[0]))
-                    if not str(line[0]).startswith('#'):
-                        result.append(line)
-                else:
-                    close_count += 1
-                    if close_count == 2:
-                        print(' done!')
-                        break
-        if have_timeout:
-            print(" TIMEOUT OCCURED!")
-            process.kill()
-        rc_exit = process.wait()
-        print(rc_exit)
-        thread1.join()
-        thread2.join()
-        if have_timeout or rc_exit != 0:
-            return (False, convert_result(result))
-        if len(result) == 0:
-            return (True, "")
-        return (True, convert_result(result))
-
-    def run_testing(self, testcase, args,
+    def run_testing(self,
+                    testcase, args,
                     #timeout,
                     logfile,
                     #verbose
