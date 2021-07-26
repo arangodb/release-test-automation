@@ -448,7 +448,7 @@ class ArangoshExecutor():
                 '--oldVersion', self.cfg.version,
                 '--testFoxx', 'true' if supports_foxx_tests else 'false'
             ],
-            timeout=5,
+            timeout=25,
             result_line=result_line,
             verbose=self.cfg.verbose)
         return ret
