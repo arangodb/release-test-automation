@@ -47,6 +47,7 @@ docker \
   -v $(pwd)/test_dir:/home/test_dir \
   -v "${PACKAGE_CACHE}":/home/package_cache \
   -v $(pwd)/${VERSION_TAR_NAME}:/home/versions \
+  --env="BUILD_NUMBER=${BUILD_NUMBER}" \
   --pid=host \
   --rm \
   --ulimit core=-1 \

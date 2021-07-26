@@ -6,6 +6,7 @@ import copy
 import datetime
 import logging
 from pathlib import Path
+import os
 import platform
 import re
 import shutil
@@ -72,6 +73,7 @@ class Runner(ABC):
         logging.debug(runner_type)
         self.abort_on_error = abort_on_error
         self.testrun_name = testrun_name
+        self.min_replication_factor = None
         self.state = ""
         self.runner_type = runner_type
         self.name = str(self.runner_type).split('.')[1]
@@ -563,13 +565,17 @@ class Runner(ABC):
         assert self.makedata_instances, "don't have makedata instance!"
         logging.debug("makedata instances")
         self.print_makedata_instances_table()
+        args = []
+        if self.min_replication_factor:
+            args += ['--minReplicationFactor', str(self.min_replication_factor)]
+
         for starter in self.makedata_instances:
             assert starter.arangosh, "make: this starter doesn't have an arangosh!"
             arangosh = starter.arangosh
 
             #must be writabe that the setup may not have already data
             if not arangosh.read_only and not self.has_makedata_data:
-                success = arangosh.create_test_data(self.name)
+                success = arangosh.create_test_data(self.name, args=args)
                 if not success[0]:
                     if not self.cfg.verbose:
                         print(success[1])
@@ -578,12 +584,12 @@ class Runner(ABC):
                         success[1],
                         False)
                 self.has_makedata_data = True
-            self.check_data_impl_sh(arangosh)
+            self.check_data_impl_sh(arangosh, starter.supports_foxx_tests)
 
-    def check_data_impl_sh(self, arangosh):
+    def check_data_impl_sh(self, arangosh, supports_foxx_tests):
         """ check for data on the installation """
         if self.has_makedata_data:
-            success = arangosh.check_test_data(self.name)
+            success = arangosh.check_test_data(self.name, supports_foxx_tests)
             if not success[0]:
                 if not self.cfg.verbose:
                     print(success[1])
@@ -599,7 +605,7 @@ class Runner(ABC):
                 continue
             assert starter.arangosh, "check: this starter doesn't have an arangosh!"
             arangosh = starter.arangosh
-            return self.check_data_impl_sh(arangosh)
+            return self.check_data_impl_sh(arangosh, starter.supports_foxx_tests)
         raise Exception("no frontend found.")
 
     def create_non_backup_data(self):
@@ -722,9 +728,20 @@ class Runner(ABC):
 
     def zip_test_dir(self):
         """ stores the test directory for later analysis """
-        filename = '%s_%s' % (
+        build_number = os.environ.get('BUILD_NUMBER')
+        if build_number:
+            build_number = '_' + build_number
+        else:
+            build_number = ''
+        ver = self.cfg.version
+        if self.new_cfg:
+            ver += '_' + self.new_cfg.version
+
+        filename = '%s_%s%s%s' % (
             FNRX.sub('', self.testrun_name),
-            self.__class__.__name__
+            self.__class__.__name__,
+            ver,
+            build_number
         )
         if self.basecfg.base_test_dir.exists():
             shutil.make_archive(filename,

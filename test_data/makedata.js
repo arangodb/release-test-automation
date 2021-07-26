@@ -139,7 +139,7 @@ function createCollectionSafe(name, DefaultNoSharts, DefaultReplFactor) {
     numberOfShards: getShardCount(DefaultNoSharts),
     replicationFactor: getReplicationFactor(DefaultReplFactor)
   };
-  
+  print(options);
   return createSafe(name, colName => {
     return db._create(colName, options);
   }, colName => {
@@ -188,8 +188,8 @@ function createOneShardVariant(db, baseName, count) {
   }
   progress('created OneShard DB');
   for (let ccount = 0; ccount < options.collectionMultiplier; ++ccount) {
-    const c0 = createCollectionSafe(`c_${ccount}_0`, 1, 1);
-    const c1 = createCollectionSafe(`c_${ccount}_1`, 1, 1);
+    const c0 = createCollectionSafe(`c_${ccount}_0`, 1, 2);
+    const c1 = createCollectionSafe(`c_${ccount}_1`, 1, 2);
     c0.save({_key: "knownKey", value: "success"});
     c1.save({_key: "knownKey", value: "success"});
   }
@@ -553,3 +553,6 @@ try {
   db._useDatabase("_system");
   db._create('_fishbowl', { isSystem: true, distributeShardsLike: '_users' });
 } catch(err) {}
+
+print('YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY')
+print(db._databases())

@@ -41,6 +41,7 @@ class Dc2Dc(Runner):
         self.cluster2 = {}
         self.certificate_auth = {}
         self.source_dc = None
+        self.min_replication_factor = 2
         # self.hot_backup = False
 
     def starter_prepare_env_impl(self):
@@ -258,7 +259,8 @@ class Dc2Dc(Runner):
             if self._is_higher_sync_version(SYNC_VERSIONS['140'], SYNC_VERSIONS['220']):
                 self.progress(
                     True,
-                    'arangosync: {0} does not qualify for restart workaround..'.format(str(self.sync_version))
+                    'arangosync: {0} does not qualify for restart workaround..'.format(
+                        str(self.sync_version))
                 )
             else:
                 self.progress(True, 'arangosync: restarting instances...')
@@ -291,25 +293,40 @@ class Dc2Dc(Runner):
             raise Exception("failed to get the sync status")
 
     def test_setup_impl(self):
-        self.cluster1['instance'].arangosh.check_test_data("dc2dc (post setup - dc1)")
+        ret = self.cluster1['instance'].arangosh.check_test_data(
+            "dc2dc (post setup - dc1)", True)
+        if not [0]:
+            raise Exception("check data on source cluster failed " + ret[1])
         self._get_in_sync(20)
 
-        res = self.cluster2['instance'].arangosh.check_test_data("dc2dc (post setup - dc2)", [
-            "--readOnly", "true"
-        ])
-        if not res[0]:
+        ret = self.cluster2['instance'].arangosh.check_test_data("dc2dc (post setup - dc2)",
+                                                                 True, [
+                                                                     "--readOnly", "true"
+                                                                 ])
+        if not ret[0]:
             if not self.cfg.verbose:
-                print(res[1])
+                print(ret[1])
             raise Exception("error during verifying of "
-                            "the test data on the target cluster")
+                            "the test data on the target cluster " + ret[1])
+
+        args = [
+                self.cluster2['instance'].get_frontend().get_public_url(
+                    'root:%s@'%self.passvoid)]
+        if self.cfg.semver.major >= 3 and self.cfg.semver.minor >= 8:
+            args += [
+                '--jwt1', self.cluster1['instance'].get_jwt_token_from_secret_file(
+                    self.cluster1['instance'].jwtfile),
+                '--jwt2', self.cluster2['instance'].get_jwt_token_from_secret_file(
+                    self.cluster2['instance'].jwtfile)
+            ]
+
         res = self.cluster1['instance'].arangosh.run_in_arangosh(
             (
                 self.cfg.test_data_dir /
                 Path('tests/js/server/replication/fuzz/replication-fuzz-global.js')
             ),
             [],
-            [self.cluster2['instance'].get_frontend().get_public_url(
-                'root:%s@'%self.passvoid)]
+            args
             )
         if not res[0]:
             if not self.cfg.verbose:
@@ -358,15 +375,29 @@ class Dc2Dc(Runner):
         self._stop_sync()
         self.progress(True, "creating volatile data on secondary DC")
         self.cluster2["instance"].arangosh.hotbackup_create_nonbackup_data()
-        self.cluster2["instance"].arangosh.check_test_data("cluster1 after dissolving")
-        self.cluster2["instance"].arangosh.check_test_data("cluster2 after dissolving")
+        ret = self.cluster2["instance"].arangosh.check_test_data(
+            "cluster1 after dissolving", True)
+        if not ret[0]:
+            raise Exception("check data on cluster 1 after dissolving failed " + ret[1])
+        ret = self.cluster2["instance"].arangosh.check_test_data(
+            "cluster2 after dissolving", True)
+        if not ret[0]:
+            raise Exception("check data on cluster2 after dissolving failed " + ret[1])
         self.progress(True, "restarting sync")
         self._launch_sync(True)
         self._get_in_sync(20)
-        self.cluster2["instance"].arangosh.check_test_data("cluster2 after re-syncing", [
-            "--readOnly", "true"
-            ])
-        self.cluster1["instance"].arangosh.check_test_data("cluster1 after re-syncing")
+        ret = self.cluster2["instance"].arangosh.check_test_data(
+                "cluster2 after re-syncing",
+                True
+                , [
+                    "--readOnly", "true"
+                ])
+        if not ret[0]:
+            raise Exception("check data on cluster1 failed after re-sync \n" + ret[1])
+        ret =self.cluster1["instance"].arangosh.check_test_data(
+                "cluster1 after re-syncing", True)
+        if not ret[0]:
+            raise Exception("check data on cluster1 failed after re-sync " + ret[1])
 
         self.progress(True, "checking whether volatile data has been removed from both DCs")
         if (not self.cluster1["instance"].arangosh.hotbackup_check_for_nonbackup_data() or
@@ -378,7 +409,10 @@ class Dc2Dc(Runner):
         self.progress(True, "reversing sync direction")
         self._launch_sync(False)
         self._get_in_sync(20)
-        self.cluster2["instance"].arangosh.check_test_data("cluster2 after reversing direction")
+        ret = self.cluster2["instance"].arangosh.check_test_data(
+            "cluster2 after reversing direction", True)
+        if not ret[0]:
+            raise Exception("check data on cluster 2 failed after reversing " + ret[1])
 
     def shutdown_impl(self):
         self.cluster1["instance"].terminate_instance()

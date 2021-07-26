@@ -21,6 +21,8 @@ import semver
 
 from tools.asciiprint import print_progress as progress
 from tools.timestamp import timestamp
+import tools.monkeypatch_psutil # pylint: disable=W0611
+import tools.loghelper as lh
 from arangodb.instance import (
     ArangodInstance,
     ArangodRemoteInstance,
@@ -32,7 +34,6 @@ from arangodb.instance import (
 from arangodb.backup import HotBackupConfig, HotBackupManager
 from arangodb.sh import ArangoshExecutor
 from arangodb.bench import ArangoBenchManager
-import tools.loghelper as lh
 
 ON_WINDOWS = (sys.platform == 'win32')
 
@@ -125,6 +126,7 @@ class StarterManager():
         self.coordinator = None # meaning - port
         self.expect_instance_count = 1
         self.startupwait = 2
+        self.supports_foxx_tests = True
 
         self.upgradeprocess = None
 
@@ -426,10 +428,12 @@ class StarterManager():
         if exit_code != 0:
             raise Exception("Starter exited with %d" % exit_code)
 
+        old_log = self.basedir / "arangodb.log.old"
         logging.info("StarterManager: done - moving logfile from %s to %s",
-                     str(self.log_file),
-                     str(self.basedir / "arangodb.log.old"))
-        self.log_file.rename(self.basedir / "arangodb.log.old")
+                     str(self.log_file), str(old_log))
+        if old_log.exists():
+            old_log.unlink()
+        self.log_file.rename(old_log)
 
         for instance in self.all_instances:
             instance.rename_logfile()
@@ -504,8 +508,18 @@ class StarterManager():
         """ wait for the upgrade commanding starter to finish """
         #for line in self.upgradeprocess.stderr:
         #    ascii_print(line)
-        ret = self.upgradeprocess.wait(timeout=timeout)
-        logging.info("StarterManager: Upgrade command exited: %s", str(ret))
+        ret = None
+        try:
+            ret = self.upgradeprocess.wait(timeout=timeout)
+        except psutil.TimeoutExpired as timeout_ex:
+            logging.error("StarterManager: Upgrade command [%s] didn't finish in time: %d %s",
+                          str(self.basedir),
+                          timeout,
+                          str(timeout_ex))
+            raise timeout_ex
+        logging.info("StarterManager: Upgrade command [%s] exited: %s",
+                     str(self.basedir),
+                     str(ret))
         if ret != 0:
             raise Exception("Upgrade process exited with non-zero reply")
 

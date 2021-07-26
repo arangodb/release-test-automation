@@ -59,42 +59,43 @@ def upgrade_package_test(verbose,
     print("Cleanup done")
 
     for enterprise, encryption_at_rest, directory_suffix, testrun_name in execution_plan:
-        if new_dlstage != "local" or old_dlstage != "local":
-            dl_old = None
-            dl_new = None
-            fresh_old_content = None
-            fresh_new_content = None
-            if old_dlstage != "local":
-                dl_old = AcquirePackages(old_version, verbose, package_dir, enterprise,
-                                         enterprise_magic, zip_package, old_dlstage,
-                                         httpusername, httppassvoid, remote_host)
-                old_version_state = version_state_dir / Path(dl_old.cfg.version + "_sourceInfo.log")
-                if old_version_state.exists():
-                    old_version_content = old_version_state.read_text()
-                fresh_old_content = dl_old.get_version_info(old_dlstage, git_version)
+        dl_old = None
+        dl_new = None
+        fresh_old_content = None
+        fresh_new_content = None
+        if old_dlstage != "local":
+            dl_old = AcquirePackages(old_version, verbose, package_dir, enterprise,
+                                     enterprise_magic, zip_package, old_dlstage,
+                                     httpusername, httppassvoid, remote_host)
+            old_version_state = version_state_dir / Path(dl_old.cfg.version + "_sourceInfo.log")
+            if old_version_state.exists():
+                old_version_content = old_version_state.read_text()
+            fresh_old_content = dl_old.get_version_info(old_dlstage, git_version)
 
-            if new_dlstage != "local":
-                dl_new = AcquirePackages(new_version, verbose, package_dir, enterprise,
-                                         enterprise_magic, zip_package, new_dlstage,
-                                         httpusername, httppassvoid, remote_host)
+        if new_dlstage != "local":
+            dl_new = AcquirePackages(new_version, verbose, package_dir, enterprise,
+                                     enterprise_magic, zip_package, new_dlstage,
+                                     httpusername, httppassvoid, remote_host)
 
-                new_version_state = version_state_dir / Path(dl_new.cfg.version + "_sourceInfo.log")
-                if new_version_state.exists():
-                    new_version_content = new_version_state.read_text()
-                fresh_new_content = dl_new.get_version_info(new_dlstage, git_version)
+            new_version_state = version_state_dir / Path(dl_new.cfg.version + "_sourceInfo.log")
+            if new_version_state.exists():
+                new_version_content = new_version_state.read_text()
+            fresh_new_content = dl_new.get_version_info(new_dlstage, git_version)
 
-            if new_dlstage != "local" and old_dlstage != "local":
-                old_changed = old_version_content != fresh_old_content
-                new_changed = new_version_content != fresh_new_content
+        if new_dlstage != "local" and old_dlstage != "local":
+            old_changed = old_version_content != fresh_old_content
+            new_changed = new_version_content != fresh_new_content
 
-                if new_changed and old_changed and not force:
-                    print("we already tested this version. bye.")
-                    return 0
+            if not new_changed and not old_changed and not force:
+                print("we already tested this version. bye.")
+                return 0
 
-            if dl_old:
-                dl_old.get_packages(old_changed, old_dlstage)
-            if dl_new:
-                dl_new.get_packages(new_changed, new_dlstage)
+        if dl_old:
+            dl_old.get_packages(old_changed, old_dlstage)
+            old_version = dl_old.cfg.version
+        if dl_new:
+            dl_new.get_packages(new_changed, new_dlstage)
+            new_version = dl_new.cfg.version
 
         test_dir = Path(test_data_dir) / directory_suffix
         if test_dir.exists():
@@ -103,8 +104,8 @@ def upgrade_package_test(verbose,
         while not test_dir.exists():
             time.sleep(1)
         results.append(
-            run_upgrade(dl_old.cfg.version,
-                        dl_new.cfg.version,
+            run_upgrade(old_version,
+                        new_version,
                         verbose,
                         package_dir,
                         test_dir,
