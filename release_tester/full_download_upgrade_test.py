@@ -16,7 +16,7 @@ from beautifultable import BeautifulTable, ALIGN_LEFT
 
 import tools.loghelper as lh
 from acquire_packages import AcquirePackages
-from release_tester.reporting.reporting_utils import AllureTestSuiteContext
+from reporting.reporting_utils import AllureTestSuiteContext
 from upgrade import run_upgrade
 from cleanup import run_cleanup
 
