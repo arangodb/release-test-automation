@@ -102,7 +102,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         if not ret[0]:
             raise Exception("arangobackup exited " + str(ret[2]))
         
-        if not success on not ret[3]:
+        if not success or not ret[3]:
             raise Exception("arangobackup indicated 'ERROR' in its output: %s" %
                             ascii_convert(ret[1]))
         return ret[1]
