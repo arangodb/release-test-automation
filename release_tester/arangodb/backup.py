@@ -4,13 +4,12 @@
 import logging
 import json
 import re
-import subprocess
 import time
 
-import psutil
-
-from tools.asciiprint import ascii_convert, ascii_print, print_progress as progress
+from tools.asciiprint import ascii_convert, print_progress as progress
 import tools.loghelper as lh
+
+from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor
 
 #            json.dumps({
 #                self.name: {
@@ -57,70 +56,55 @@ class HotBackupConfig():
         """ create a config file and return its full name """
         return self.save_config("rclone_config.json")
 
-class HotBackupManager():
+class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
     # pylint: disable=R0902
     """ manages one arangobackup instance"""
     def __init__(self,
-                 basecfg,
+                 config,
                  name,
-                 raw_install_prefix):
-
-        self.cfg = basecfg
-        self.moreopts = [
-            '--server.endpoint', "tcp://127.0.0.1:{cfg.port}".format(cfg=self.cfg),
-            '--server.username', str(self.cfg.username),
-            '--server.password', str(self.cfg.passvoid),
-            # else the wintendo may stay mute:
-            '--log.force-direct', 'true', '--log.foreground-tty', 'true'
-        ]
-        if self.cfg.verbose:
-            self.moreopts += ["--log.level=debug"]
+                 raw_install_prefix,
+                 connect_instance):
+        super().__init__(config, connect_instance)
 
         #directories
         self.name = str(name)
         self.install_prefix = raw_install_prefix
         self.basedir = raw_install_prefix
 
-        self.username = 'testuser'
-        self.passvoid = 'testpassvoid'
         self.backup_dir = self.install_prefix / 'backup'
         if not self.backup_dir.exists():
             self.backup_dir.mkdir(parents=True)
 
-    def set_passvoid(self, passvoid):
-        """ replace the passvoid """
-        self.cfg.passvoid = passvoid
-        self.moreopts += [
-            '--server.password', str(self.cfg.passvoid),
-        ]
 
     def run_backup(self, arguments, name, silent=False):
         """ launch the starter for this instance"""
         if not silent:
             logging.info("running hot backup " + name)
-        args = [self.cfg.bin_dir / 'arangobackup'] + arguments + self.moreopts
+        run_cmd = []
+        if self.cfg.verbose:
+            run_cmd += ["--log.level=debug"]
+        run_cmd += arguments
         if not silent:
-            lh.log_cmd(args)
-        instance = psutil.Popen(args,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
-        (output, err) = instance.communicate()
-        if len(err) > 0:
-            ascii_print(str(err))
+            lh.log_cmd(arguments)
+
         success = True
-        if not silent:
-            for line in output.splitlines():
-                strline = str(line)
-                ascii_print(strline)
-                if strline.find('ERROR') >= 0:
-                    success = False
-        instance.wait()
-        if instance.returncode != 0:
-            raise Exception("arangobackup exited " + str(instance.returncode))
+        def inspect_line_result(line):
+            strline = str(line)
+            if strline.find('ERROR') >= 0:
+                success = False
+
+        ret = self.run_monitored(self.cfg.bin_dir / 'arangobackup',
+                                  run_cmd,
+                                  20,
+                                  inspect_line_result,
+                                  self.cfg.verbose and not silent)
+
+        if not ret[0]:
+            raise Exception("arangobackup exited " + str(ret[2]))
         if not success:
             raise Exception("arangobackup indicated 'ERROR' in its output: %s" %
-                            ascii_convert(output))
-        return output.splitlines()
+                            ascii_convert(ret[1]))
+        return ret[1]
 
     def create(self, backup_name):
         """ create a hot backup """

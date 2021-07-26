@@ -301,8 +301,6 @@ class StarterManager():
         for i in self.all_instances:
             if i.is_frontend():
                 i.set_passvoid(passvoid)
-        if self.hb_instance:
-            self.hb_instance.set_passvoid(passvoid)
         self.cfg.passvoid = passvoid
 
     def get_passvoid(self):
@@ -753,7 +751,8 @@ class StarterManager():
                 self.hb_instance = HotBackupManager(
                     self.cfg,
                     self.raw_basedir,
-                    self.cfg.base_test_dir / self.raw_basedir)
+                    self.cfg.base_test_dir / self.raw_basedir,
+                    self.get_frontend())
                 self.hb_config = HotBackupConfig(
                     self.cfg,
                     self.raw_basedir,

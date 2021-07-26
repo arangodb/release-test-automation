@@ -68,6 +68,7 @@ class ArangoCLIprogressiveTimeoutExecutor():
             executeable,
             "--server.endpoint", self.connect_instance.get_endpoint(),
             "--log.foreground-tty", "true",
+            "--log.force-direct", "true",
             "--server.username", str(self.cfg.username),
             "--server.password", str(self.connect_instance.get_passvoid())
         ] + more_args
@@ -126,7 +127,7 @@ class ArangoCLIprogressiveTimeoutExecutor():
         thread1.join()
         thread2.join()
         if have_timeout or rc_exit != 0:
-            return (False, convert_result(result))
+            return (False, convert_result(result), rc_exit)
         if len(result) == 0:
-            return (True, "")
-        return (True, convert_result(result))
+            return (True, "", 0)
+        return (True, convert_result(result), 0)
