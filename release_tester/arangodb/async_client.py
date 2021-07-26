@@ -15,6 +15,7 @@ def dummy_line_result(line):
     """ do nothing with the line... """
     #pylint: disable=W0104
     line
+    return True
 
 def enqueue_stdout(std_out, queue, instance):
     """ add stdout to the specified queue """
@@ -92,6 +93,7 @@ class ArangoCLIprogressiveTimeoutExecutor():
         # out = logfile.open('wb')
         # read line without blocking
         have_timeout = False
+        success = True
         tcount = 0
         close_count = 0
         result = []
@@ -101,7 +103,7 @@ class ArangoCLIprogressiveTimeoutExecutor():
             line = ''
             try:
                 line = queue.get(timeout=1)
-                result_line(line)
+                success = success and result_line(line)
             except Empty:
                 tcount += 1
                 if verbose:
@@ -127,7 +129,7 @@ class ArangoCLIprogressiveTimeoutExecutor():
         thread1.join()
         thread2.join()
         if have_timeout or rc_exit != 0:
-            return (False, convert_result(result), rc_exit)
+            return (False, convert_result(result), rc_exit, success)
         if len(result) == 0:
-            return (True, "", 0)
-        return (True, convert_result(result), 0)
+            return (True, "", 0, success)
+        return (True, convert_result(result), 0, success)

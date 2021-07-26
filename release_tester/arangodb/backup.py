@@ -87,11 +87,11 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         if not silent:
             lh.log_cmd(arguments)
 
-        success = True
         def inspect_line_result(line):
             strline = str(line)
             if strline.find('ERROR') >= 0:
-                success = False
+                return False
+            return True
 
         ret = self.run_monitored(self.cfg.bin_dir / 'arangobackup',
                                   run_cmd,
@@ -101,7 +101,8 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
 
         if not ret[0]:
             raise Exception("arangobackup exited " + str(ret[2]))
-        if not success:
+        
+        if not success on not ret[3]:
             raise Exception("arangobackup indicated 'ERROR' in its output: %s" %
                             ascii_convert(ret[1]))
         return ret[1]
