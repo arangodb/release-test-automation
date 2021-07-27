@@ -17,6 +17,7 @@ from pathlib import Path
 # from typing import List, Dict, NamedTuple
 
 import psutil
+import requests
 import semver
 
 from tools.asciiprint import print_progress as progress
@@ -329,6 +330,7 @@ class StarterManager():
                     )
                     # print(reply.text)
                     results.append(reply)
+        http_client.HTTPConnection.debuglevel = 0
         return results
 
     def crash_instances(self):
@@ -784,6 +786,19 @@ class StarterManager():
             raise Exception("instances missing: " + str(missing_instances))
         logging.info("All arangod instances still running: \n%s",
                      get_instances_table(self.get_instance_essentials()))
+
+    def maintainance(self, on_off, instance_type):
+        """ enables / disables maintainance mode """
+        print(("enabling" if on_off else "disabling") + " Maintainer mode")
+        while True:
+            reply = self.send_request(instance_type,
+                                      requests.put,
+                                      "/_admin/cluster/maintenance",
+                                      '"on"' if on_off else '"off"')
+            print("Reply: " + str(reply[0].text))
+            if reply[0].status_code == 200:
+                return
+            time.sleep(3)
 
     def detect_leader(self):
         """ in active failover detect whether we run the leader"""

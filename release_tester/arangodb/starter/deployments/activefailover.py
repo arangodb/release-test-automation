@@ -178,6 +178,10 @@ class ActiveFailover(Runner):
             raise Exception("wasn't able to detect the leader after restoring the backup!")
         print("Leader after restore: ")
         print(self.leader)
+        """ release from maintainance mode according to
+        https://www.arangodb.com/docs/3.7/programs-arangobackup-limitations.html#active-failover-special-limitations
+        """
+        self.leader.maintainance(False, InstanceType.RESILIENT_SINGLE)
 
     def upgrade_arangod_version_impl(self):
         """ upgrade this installation """
@@ -284,7 +288,10 @@ please revalidate the UI states on the new leader; you should see *one* follower
         logging.info('test ended')
 
     def before_backup_impl(self):
-        pass
+        """ put into maintainance mode according to
+        https://www.arangodb.com/docs/3.7/programs-arangobackup-limitations.html#active-failover-special-limitations
+        """
+        self.leader.maintainance(True, InstanceType.RESILIENT_SINGLE)
 
     def after_backup_impl(self):
         pass
