@@ -31,12 +31,13 @@ const optionsDefaults = {
   collectionMultiplier: 1,
   singleShard: false,
   progress: false,
-  oldVersion: "3.5.0"
+  oldVersion: "3.5.0",
+  testFoxx: true
 };
 
 if ((0 < ARGUMENTS.length) &&
     (ARGUMENTS[0].slice(0, 1) !== '-')) {
-  database = ARGUMENTS[0];
+  database = ARGUMENTS[0]; // must start with 'system_' else replication fuzzing may delete it!
   ARGUMENTS=ARGUMENTS.slice(1);
 }
 
@@ -82,6 +83,8 @@ function validateDocumentWorksInOneShard(db, baseName, count) {
   }
   progress("Test OneShard setup")
   const databaseName = `${baseName}_${count}_oneShard`;
+  print('vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv ' + databaseName)
+  print(db._databases())
   db._useDatabase(databaseName);
   for (let ccount = 0; ccount < options.collectionMultiplier; ++ccount) {
     const query = `
@@ -165,28 +168,53 @@ function checkFoxxService() {
   let reply;
   db._useDatabase("_system");
 
-  print("getting the root of the gods");
+  [
+    '/_db/_system/_admin/aardvark/index.html',
+    '/_db/_system/itz/index',
+    '/_db/_system/crud/xxx'
+  ].forEach(route => {
+    for (i=0; i < 200; i++) {
+      try {
+        reply = arango.GET_RAW(route, onlyJson);
+        if (reply.code == "200") {
+          print(route + " OK");
+          return;
+        }
+        msg = JSON.stringify(reply);
+        if (reply.hasOwnProperty('parsedBody')) {
+          msg = " '" + reply.parsedBody.errorNum + "' - " + reply.parsedBody.errorMessage;
+        }
+        print(route + " Not yet ready, retrying: " + msg)
+      } catch (e) {
+        print(route + " Caught - need to retry. " + JSON.stringify(e))
+      }
+      internal.sleep(3);
+    }
+    throw ("foxx route '" + route + "' not ready on time!");
+  });
+
+  print("Foxx: Itzpapalotl getting the root of the gods");
   reply = arango.GET_RAW('/_db/_system/itz');
   assertEqual(reply.code, "307", JSON.stringify(reply));
 
-  print('getting index html with list of gods');
+  print('Foxx: Itzpapalotl getting index html with list of gods');
   reply = arango.GET_RAW('/_db/_system/itz/index');
   assertEqual(reply.code, "200", JSON.stringify(reply));
 
-  print("summoning Chalchihuitlicue");
+  print("Foxx: Itzpapalotl summoning Chalchihuitlicue");
   reply = arango.GET_RAW('/_db/_system/itz/Chalchihuitlicue/summon', onlyJson);
   assertEqual(reply.code, "200", JSON.stringify(reply));
   let parsedBody = JSON.parse(reply.body);
   assertEqual(parsedBody.name, "Chalchihuitlicue");
   assertTrue(parsedBody.summoned);
 
-  print("testing get xxx");
+  print("Foxx: crud testing get xxx");
   reply = arango.GET_RAW('/_db/_system/crud/xxx', onlyJson);
   assertEqual(reply.code, "200");
   parsedBody = JSON.parse(reply.body);
   assertEqual(parsedBody, []);
 
-  print("testing POST xxx");
+  print("Foxx: crud testing POST xxx");
   
   reply = arango.POST_RAW('/_db/_system/crud/xxx', {_key: "test"})
   if (options.readOnly) {
@@ -195,7 +223,7 @@ function checkFoxxService() {
     assertEqual(reply.code, "201");
   }
   
-  print("testing get xxx");
+  print("Foxx: crud testing get xxx");
   reply = arango.GET_RAW('/_db/_system/crud/xxx', onlyJson);
   assertEqual(reply.code, "200");
   parsedBody = JSON.parse(reply.body);
@@ -205,7 +233,7 @@ function checkFoxxService() {
     assertEqual(parsedBody.length, 1);
   }
 
-  print('testing delete document')
+  print('Foxx: crud testing delete document')
   reply = arango.DELETE_RAW('/_db/_system/crud/xxx/' + 'test');
   if (options.readOnly) {
     assertEqual(reply.code, "400");
@@ -217,7 +245,12 @@ function checkFoxxService() {
 let v = db._connection.GET("/_api/version");
 const enterprise = v.license === "enterprise"
 
-checkFoxxService()
+
+if (options.testFoxx) {
+  checkFoxxService()
+} else {
+  print("Skipping foxx tests!")
+}
 
 let count = 0;
 while (count < options.numberOfDBs) {

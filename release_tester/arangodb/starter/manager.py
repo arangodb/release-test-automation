@@ -130,6 +130,7 @@ class StarterManager():
         self.coordinator = None # meaning - port
         self.expect_instance_count = 1
         self.startupwait = 2
+        self.supports_foxx_tests = True
 
         self.upgradeprocess = None
 
@@ -300,8 +301,6 @@ class StarterManager():
         for i in self.all_instances:
             if i.is_frontend():
                 i.set_passvoid(passvoid)
-        if self.hb_instance:
-            self.hb_instance.set_passvoid(passvoid)
         self.cfg.passvoid = passvoid
 
     def get_passvoid(self):
@@ -511,7 +510,15 @@ class StarterManager():
         """ wait for the upgrade commanding starter to finish """
         #for line in self.upgradeprocess.stderr:
         #    ascii_print(line)
-        ret = self.upgradeprocess.wait(timeout=timeout)
+        ret = None
+        try:
+            ret = self.upgradeprocess.wait(timeout=timeout)
+        except psutil.TimeoutExpired as timeout_ex:
+            logging.error("StarterManager: Upgrade command [%s] didn't finish in time: %d %s",
+                          str(self.basedir),
+                          timeout,
+                          str(timeout_ex))
+            raise timeout_ex
         logging.info("StarterManager: Upgrade command [%s] exited: %s",
                      str(self.basedir),
                      str(ret))
@@ -744,7 +751,8 @@ class StarterManager():
                 self.hb_instance = HotBackupManager(
                     self.cfg,
                     self.raw_basedir,
-                    self.cfg.base_test_dir / self.raw_basedir)
+                    self.cfg.base_test_dir / self.raw_basedir,
+                    self.get_frontend())
                 self.hb_config = HotBackupConfig(
                     self.cfg,
                     self.raw_basedir,
