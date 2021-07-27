@@ -174,6 +174,17 @@ class BaseSelenium:
         time.sleep(10)
         self.driver.close()
         self.driver.switch_to.window(self.driver.window_handles[0])
+    
+    def current_package_version(self):
+        """checking current package version from the dashboard"""
+        package_version = "currentVersion"
+        package_version = \
+            BaseSelenium.locator_finder_by_text_id(self, package_version)
+        print("Package Version: ", package_version)
+        time.sleep(1)
+
+        version = float(package_version[0:3])
+        return version
 
     def scroll(self, down=0):
         """This method will be used to scroll up and down to any page"""

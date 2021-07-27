@@ -45,14 +45,7 @@ class DashboardPage(BaseSelenium):
 
     def check_current_package_version(self):
         """checking current package version from the dashboard"""
-        package_version = self.check_current_package_version_id
-        package_version = \
-            BaseSelenium.locator_finder_by_text_id(self, package_version)
-        print("Package Version: ", package_version)
-        time.sleep(1)
-
-        version = float(package_version[0:3])
-        return version
+        super().current_package_version()
 
     def check_current_username(self):
         """checking current username from the dashboard"""

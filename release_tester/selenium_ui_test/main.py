@@ -390,7 +390,6 @@ class Test(BaseSelenium):
             graph9 = GraphPage(self.driver)
             graph01 = GraphPage(self.driver)
             print("Adding Satellite Graph started \n")
-            graph9.select_graph_page()
             graph9.adding_satellite_graph(importer, test_data_dir)
             print("Adding Satellite Graph started \n")
 

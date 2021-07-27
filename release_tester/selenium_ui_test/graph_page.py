@@ -267,251 +267,260 @@ class GraphPage(BaseSelenium):
 
     def adding_satellite_graph(self, importer, testdata_path):
         """creating satellite graph"""
-        knows_path = testdata_path / 'ui_data' / 'graph_page' / 'knows'
-        select_graph_id = self.select_create_graph_id
-        select_graph_id = \
-            BaseSelenium.locator_finder_by_id(self, select_graph_id)
-        select_graph_id.click()
+        if super().current_package_version() >= 3.8:
+            self.select_graph_page()
+            knows_path = testdata_path / 'ui_data' / 'graph_page' / 'knows'
+            select_graph_id = self.select_create_graph_id
+            select_graph_id = \
+                BaseSelenium.locator_finder_by_id(self, select_graph_id)
+            select_graph_id.click()
 
-        # list of id's for satellite graph
-        select_satellite = 'tab-satelliteGraph'
-        new_graph = self.select_new_graph_name_id
-        edge_definition = "s2id_newEdgeDefinitions0"
-        from_collection = "s2id_fromCollections0"
-        to_collection = "s2id_toCollections0"
-        create_btn_id = "modalButton1"
+            # list of id's for satellite graph
+            select_satellite = 'tab-satelliteGraph'
+            new_graph = self.select_new_graph_name_id
+            edge_definition = "s2id_newEdgeDefinitions0"
+            from_collection = "s2id_fromCollections0"
+            to_collection = "s2id_toCollections0"
+            create_btn_id = "modalButton1"
 
-        # selecting satellite graph tab
-        select_satellite = \
-            BaseSelenium.locator_finder_by_id(self, select_satellite)
-        select_satellite.click()
+            # selecting satellite graph tab
+            select_satellite = \
+                BaseSelenium.locator_finder_by_id(self, select_satellite)
+            select_satellite.click()
 
-        new_graph = \
-            BaseSelenium.locator_finder_by_id(self, new_graph)
-        new_graph.click()
-        new_graph.clear()
-        new_graph.send_keys("satellite_graph")
+            new_graph = \
+                BaseSelenium.locator_finder_by_id(self, new_graph)
+            new_graph.click()
+            new_graph.clear()
+            new_graph.send_keys("satellite_graph")
 
-        # selecting edge definition from auto suggestion
-        edge_definition = \
-            BaseSelenium.locator_finder_by_id(self, edge_definition)
-        edge_definition.click()
-        super().send_key_action('knows_edge')
-        super().send_key_action(Keys.ENTER)
+            # selecting edge definition from auto suggestion
+            edge_definition = \
+                BaseSelenium.locator_finder_by_id(self, edge_definition)
+            edge_definition.click()
+            super().send_key_action('knows_edge')
+            super().send_key_action(Keys.ENTER)
 
-        # selecting from collection from auto suggestion
-        from_collection = \
-            BaseSelenium.locator_finder_by_id(self, from_collection)
-        from_collection.click()
-        super().send_key_action('persons')
-        super().send_key_action(Keys.ENTER)
+            # selecting from collection from auto suggestion
+            from_collection = \
+                BaseSelenium.locator_finder_by_id(self, from_collection)
+            from_collection.click()
+            super().send_key_action('persons')
+            super().send_key_action(Keys.ENTER)
 
-        time.sleep(1)
+            time.sleep(1)
 
-        # selecting to collection from auto suggestion
-        to_collection = \
-            BaseSelenium.locator_finder_by_id(self, to_collection)
-        to_collection.click()
-        super().send_key_action('persons')
-        super().send_key_action(Keys.ENTER)
+            # selecting to collection from auto suggestion
+            to_collection = \
+                BaseSelenium.locator_finder_by_id(self, to_collection)
+            to_collection.click()
+            super().send_key_action('persons')
+            super().send_key_action(Keys.ENTER)
 
-        time.sleep(1)
+            time.sleep(1)
 
-        # selecting create graph btn
-        create_btn_id = \
-            BaseSelenium.locator_finder_by_id(self, create_btn_id)
-        create_btn_id.click()
+            # selecting create graph btn
+            create_btn_id = \
+                BaseSelenium.locator_finder_by_id(self, create_btn_id)
+            create_btn_id.click()
 
-        time.sleep(2)
+            time.sleep(2)
 
-        # importing collections using arangoimport
-        print("Importing knows_edge collections \n")
-        importer.import_smart_edge_collection("knows_edge", knows_path / 'knows_edge.json', ['profiles_smart'])
+            # importing collections using arangoimport
+            print("Importing knows_edge collections \n")
+            importer.import_smart_edge_collection("knows_edge", knows_path / 'knows_edge.json', ['profiles_smart'])
 
-        print("Importing persons collections \n")
-        importer.import_collection('persons', knows_path / 'persons.json')
+            print("Importing persons collections \n")
+            importer.import_collection('persons', knows_path / 'persons.json')
 
-        # Selecting satellite graph settings to view and delete
-        satellite_settings_id = '//*[@id="satellite_graph_tile"]/div/h5'
-        satellite_settings_id = \
-            BaseSelenium.locator_finder_by_xpath(self, satellite_settings_id)
-        satellite_settings_id.click()
+            # Selecting satellite graph settings to view and delete
+            satellite_settings_id = '//*[@id="satellite_graph_tile"]/div/h5'
+            satellite_settings_id = \
+                BaseSelenium.locator_finder_by_xpath(self, satellite_settings_id)
+            satellite_settings_id.click()
 
-        time.sleep(5)
-        self.driver.back()
-        time.sleep(1)
+            time.sleep(5)
+            self.driver.back()
+            time.sleep(1)
 
-        print("\n")
-        print("Smart Graph deleting started \n")
-        satellite_settings_id = 'satellite_graph_settings'
-        satellite_settings_id = BaseSelenium.locator_finder_by_id(self, satellite_settings_id)
-        satellite_settings_id.click()
+            print("\n")
+            print("Smart Graph deleting started \n")
+            satellite_settings_id = 'satellite_graph_settings'
+            satellite_settings_id = BaseSelenium.locator_finder_by_id(self, satellite_settings_id)
+            satellite_settings_id.click()
 
-        delete_btn = 'modalButton0'
-        delete_btn = BaseSelenium.locator_finder_by_id(self, delete_btn)
-        delete_btn.click()
+            delete_btn = 'modalButton0'
+            delete_btn = BaseSelenium.locator_finder_by_id(self, delete_btn)
+            delete_btn.click()
 
-        delete_check_id = 'dropGraphCollections'
-        delete_check_id = BaseSelenium.locator_finder_by_id(self, delete_check_id)
-        delete_check_id.click()
+            delete_check_id = 'dropGraphCollections'
+            delete_check_id = BaseSelenium.locator_finder_by_id(self, delete_check_id)
+            delete_check_id.click()
 
-        delete_confirm_btn = 'modal-confirm-delete'
-        delete_confirm_btn = BaseSelenium.locator_finder_by_id(self, delete_confirm_btn)
-        delete_confirm_btn.click()
+            delete_confirm_btn = 'modal-confirm-delete'
+            delete_confirm_btn = BaseSelenium.locator_finder_by_id(self, delete_confirm_btn)
+            delete_confirm_btn.click()
 
-        time.sleep(2)
-        print("Satellite Graph deleted successfully \n")
-        self.driver.refresh()
+            time.sleep(2)
+            print("Satellite Graph deleted successfully \n")
+            self.driver.refresh()
+        else:
+            print('Satellite Graph is not supported for the current package \n')
 
     def adding_smart_graph(self, importer, testdata_path, disjointgraph=False):
         """Adding smart disjoint graph"""
         page_path = testdata_path / 'ui_data' / 'graph_page' / 'pregel_community'
-        select_graph_id = self.select_create_graph_id
-        select_graph_id = \
-            BaseSelenium.locator_finder_by_id(self, select_graph_id)
-        select_graph_id.click()
+        
+        if super().current_package_version() >= 3.6 and disjointgraph is False:
+            select_graph_id = self.select_create_graph_id
+            select_graph_id = \
+                BaseSelenium.locator_finder_by_id(self, select_graph_id)
+            select_graph_id.click()
 
-        # list of id's for smart graph
-        select_smart = 'tab-smartGraph'
-        new_graph = self.select_new_graph_name_id
-        shard = 'new-numberOfShards'
-        replication = 'new-replicationFactor'
-        write_concern = 'new-writeConcern'
-        disjoint = 'new-isDisjoint'
-        smart_attribute = "new-smartGraphAttribute"
+            # list of id's for smart graph
+            select_smart = 'tab-smartGraph'
+            new_graph = self.select_new_graph_name_id
+            shard = 'new-numberOfShards'
+            replication = 'new-replicationFactor'
+            write_concern = 'new-writeConcern'
+            disjoint = 'new-isDisjoint'
+            smart_attribute = "new-smartGraphAttribute"
 
-        edge_definition = "s2id_newEdgeDefinitions0"
-        from_collection = "s2id_fromCollections0"
-        to_collection = "s2id_toCollections0"
-        create_btn_id = "modalButton1"
+            edge_definition = "s2id_newEdgeDefinitions0"
+            from_collection = "s2id_fromCollections0"
+            to_collection = "s2id_toCollections0"
+            create_btn_id = "modalButton1"
 
-        # selecting smart graph tab
-        select_smart = \
-            BaseSelenium.locator_finder_by_id(self, select_smart)
-        select_smart.click()
+            # selecting smart graph tab
+            select_smart = \
+                BaseSelenium.locator_finder_by_id(self, select_smart)
+            select_smart.click()
 
-        new_graph = \
-            BaseSelenium.locator_finder_by_id(self, new_graph)
-        new_graph.click()
-        new_graph.clear()
-        new_graph.send_keys("smart_graph")
+            new_graph = \
+                BaseSelenium.locator_finder_by_id(self, new_graph)
+            new_graph.click()
+            new_graph.clear()
+            new_graph.send_keys("smart_graph")
 
-        # specifying number of shards
-        shard = \
-            BaseSelenium.locator_finder_by_id(self, shard)
-        shard.click()
-        shard.send_keys('3')
+            # specifying number of shards
+            shard = \
+                BaseSelenium.locator_finder_by_id(self, shard)
+            shard.click()
+            shard.send_keys('3')
 
-        # specifying replication of shards
-        replication = \
-            BaseSelenium.locator_finder_by_id(self, replication)
-        replication.click()
-        replication.send_keys('3')
+            # specifying replication of shards
+            replication = \
+                BaseSelenium.locator_finder_by_id(self, replication)
+            replication.click()
+            replication.send_keys('3')
 
-        # specifying write concern of shards
-        write_concern = \
-            BaseSelenium.locator_finder_by_id(self, write_concern)
-        write_concern.click()
-        write_concern.send_keys('1')
+            # specifying write concern of shards
+            write_concern = \
+                BaseSelenium.locator_finder_by_id(self, write_concern)
+            write_concern.click()
+            write_concern.send_keys('1')
 
-        # specifying write disjoint graphs
-        if disjointgraph:
-            disjoint = \
-                BaseSelenium.locator_finder_by_id(self, disjoint)
-            disjoint.click()
+            # specifying write disjoint graphs
+            if disjointgraph:
+                disjoint = \
+                    BaseSelenium.locator_finder_by_id(self, disjoint)
+                disjoint.click()
+            else:
+                print('Disjoint Graph not selected. \n')
+
+            # specifying write concern of shards
+            smart_attribute = \
+                BaseSelenium.locator_finder_by_id(self, smart_attribute)
+            smart_attribute.click()
+            smart_attribute.send_keys('community')
+
+            # scrolling down
+            super().scroll(1)
+            time.sleep(2)
+
+            # selecting edge definition from auto suggestion
+            edge_definition = \
+                BaseSelenium.locator_finder_by_id(self, edge_definition)
+            edge_definition.click()
+
+            super().send_key_action('relations')
+            super().send_key_action(Keys.ENTER)
+
+            # selecting from collection from auto suggestion
+            from_collection = \
+                BaseSelenium.locator_finder_by_id(self, from_collection)
+            from_collection.click()
+            super().send_key_action('profiles')
+            super().send_key_action(Keys.ENTER)
+
+            time.sleep(1)
+
+            # selecting to collection from auto suggestion
+            to_collection = \
+                BaseSelenium.locator_finder_by_id(self, to_collection)
+            to_collection.click()
+            super().send_key_action('profiles')
+            super().send_key_action(Keys.ENTER)
+            time.sleep(1)
+
+            # selecting create graph btn
+            create_btn_id = \
+                BaseSelenium.locator_finder_by_id(self, create_btn_id)
+            create_btn_id.click()
+            time.sleep(2)
+
+            print("Importing profile collections \n")
+            importer.import_collection('profiles', page_path / 'profiles.jsonl')
+
+            print("Importing relations collections \n")
+            importer.import_smart_edge_collection('relations', page_path / 'relations.jsonl', ['profiles_smart'])
+
+            # opening smart graph
+            smart_graph = 'smart_graph_tile'
+            smart_graph = BaseSelenium.locator_finder_by_id(self, smart_graph)
+            smart_graph.click()
+            time.sleep(2)
+
+            # loading full graph
+            load_graph = 'loadFullGraph'
+            load_graph = BaseSelenium.locator_finder_by_id(self, load_graph)
+            load_graph.click()
+            time.sleep(1)
+
+            load_full_graph = 'modalButton1'
+            load_full_graph = BaseSelenium.locator_finder_by_id(self, load_full_graph)
+            load_full_graph.click()
+            time.sleep(5)
+
+            self.driver.back()
+
+            time.sleep(2)
+
+            print("\n")
+            print("Smart Graph deleting started \n")
+            smart_settings = 'smart_graph_settings'
+            smart_settings = BaseSelenium.locator_finder_by_id(self, smart_settings)
+            smart_settings.click()
+
+            delete_btn = 'modalButton0'
+            delete_btn = BaseSelenium.locator_finder_by_id(self, delete_btn)
+            delete_btn.click()
+
+            delete_check_id = 'dropGraphCollections'
+            delete_check_id = BaseSelenium.locator_finder_by_id(self, delete_check_id)
+            delete_check_id.click()
+
+            delete_confirm_btn = 'modal-confirm-delete'
+            delete_confirm_btn = BaseSelenium.locator_finder_by_id(self, delete_confirm_btn)
+            delete_confirm_btn.click()
+
+            time.sleep(2)
+            print("Smart Graph deleted successfully \n")
+
+            self.driver.refresh()
         else:
-            print('Disjoint Graph not selected. \n')
+            print('Disjoint Graph is not supported for the current package \n')
 
-        # specifying write concern of shards
-        smart_attribute = \
-            BaseSelenium.locator_finder_by_id(self, smart_attribute)
-        smart_attribute.click()
-        smart_attribute.send_keys('community')
-
-        # scrolling down
-        super().scroll(1)
-        time.sleep(2)
-
-        # selecting edge definition from auto suggestion
-        edge_definition = \
-            BaseSelenium.locator_finder_by_id(self, edge_definition)
-        edge_definition.click()
-
-        super().send_key_action('relations')
-        super().send_key_action(Keys.ENTER)
-
-        # selecting from collection from auto suggestion
-        from_collection = \
-            BaseSelenium.locator_finder_by_id(self, from_collection)
-        from_collection.click()
-        super().send_key_action('profiles')
-        super().send_key_action(Keys.ENTER)
-
-        time.sleep(1)
-
-        # selecting to collection from auto suggestion
-        to_collection = \
-            BaseSelenium.locator_finder_by_id(self, to_collection)
-        to_collection.click()
-        super().send_key_action('profiles')
-        super().send_key_action(Keys.ENTER)
-        time.sleep(1)
-
-        # selecting create graph btn
-        create_btn_id = \
-            BaseSelenium.locator_finder_by_id(self, create_btn_id)
-        create_btn_id.click()
-        time.sleep(2)
-
-        print("Importing profile collections \n")
-        importer.import_collection('profiles', page_path / 'profiles.jsonl')
-
-        print("Importing relations collections \n")
-        importer.import_smart_edge_collection('relations', page_path / 'relations.jsonl', ['profiles_smart'])
-
-        # opening smart graph
-        smart_graph = 'smart_graph_tile'
-        smart_graph = BaseSelenium.locator_finder_by_id(self, smart_graph)
-        smart_graph.click()
-        time.sleep(2)
-
-        # loading full graph
-        load_graph = 'loadFullGraph'
-        load_graph = BaseSelenium.locator_finder_by_id(self, load_graph)
-        load_graph.click()
-        time.sleep(1)
-
-        load_full_graph = 'modalButton1'
-        load_full_graph = BaseSelenium.locator_finder_by_id(self, load_full_graph)
-        load_full_graph.click()
-        time.sleep(5)
-
-        self.driver.back()
-
-        time.sleep(2)
-
-        print("\n")
-        print("Smart Graph deleting started \n")
-        smart_settings = 'smart_graph_settings'
-        smart_settings = BaseSelenium.locator_finder_by_id(self, smart_settings)
-        smart_settings.click()
-
-        delete_btn = 'modalButton0'
-        delete_btn = BaseSelenium.locator_finder_by_id(self, delete_btn)
-        delete_btn.click()
-
-        delete_check_id = 'dropGraphCollections'
-        delete_check_id = BaseSelenium.locator_finder_by_id(self, delete_check_id)
-        delete_check_id.click()
-
-        delete_confirm_btn = 'modal-confirm-delete'
-        delete_confirm_btn = BaseSelenium.locator_finder_by_id(self, delete_confirm_btn)
-        delete_confirm_btn.click()
-
-        time.sleep(2)
-        print("Smart Graph deleted successfully \n")
-
-        self.driver.refresh()
 
     def select_create_graph(self, graph):
         """Creating new example graphs"""

@@ -286,6 +286,7 @@ class CollectionPage(BaseSelenium):
             BaseSelenium.locator_finder_by_id(self, self.select_export_doc_confirm_btn_id)
         self.select_export_doc_confirm_btn_id.click()
         time.sleep(2)
+        super().clear_download_bar()
 
     def filter_documents(self, value):
         """Checking Filter functionality"""
@@ -509,10 +510,14 @@ class CollectionPage(BaseSelenium):
 
     def select_schema_tab(self):
         """Selecting Schema tab from the collection submenu"""
-        self.select_schema_tab_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.select_schema_tab_id)
-        self.select_schema_tab_id.click()
+        if super().current_package_version() >= 3.8:
+            self.select_schema_tab_id = BaseSelenium.locator_finder_by_xpath(self, self.select_schema_tab_id)
+            self.select_schema_tab_id.click()
+            time.sleep(2)
+        else:
+            print('Schema check not supported for the current package \n')
         time.sleep(2)
+
 
     def select_settings_tab(self):
         """Selecting settings tab from the collection submenu"""
