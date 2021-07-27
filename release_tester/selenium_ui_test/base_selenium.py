@@ -9,7 +9,7 @@ import time
 #from selenium import webdriver
 from pynput.keyboard import Key, Controller
 
-
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
@@ -133,11 +133,14 @@ class BaseSelenium:
     
     def select_query_execution_area(self):
         """This method will select the query execution area"""
-        query = '//*[@id="aqlEditor"]'
-        query = \
-            BaseSelenium.locator_finder_by_xpath(self, query)
-        query.click()
-        time.sleep(2)
+        try:
+            query = '//*[@id="aqlEditor"]'
+            query = \
+                BaseSelenium.locator_finder_by_xpath(self, query)
+            query.click()
+            time.sleep(2)
+        except TimeoutException:
+            print("Can't find the query execution area \n")
         
     def query_execution_btn(self):
         """Clicking execute query button"""

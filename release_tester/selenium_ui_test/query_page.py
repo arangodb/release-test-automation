@@ -115,43 +115,27 @@ class QueryPage(BaseSelenium):
     
     def execute_insert_query(self):
         """This method will run an insert query"""
-        self.switch_tab('Query')
-        # editor = self.locator_finder_by_class('ace_content')
         super().select_query_execution_area()
-        query = '''
-        for i IN 1..10000
-        INSERT {
-        \t"name": "Ned",
-        "surname": "Stark",
-        "alive": true,
-        "age": 41,
-        "traits": ["A","H","C","N","P"]
-        } INTO Characters
-        '''
-        editor.send_keys(query)
-        time.sleep(50000000)
-        #super().send_key_action('for i IN 1..10000')
-        #super().send_key_action(Keys.ENTER)
-        #super().send_key_action('INSERT {')
-        #super().send_key_action(Keys.ENTER)
-        #super().send_key_action(Keys.TAB)
-        #super().send_key_action('"name": "Ned",')
-        #super().send_key_action(Keys.ENTER)
-        #super().send_key_action('"surname": "Stark",')
-        #super().send_key_action(Keys.ENTER)
-        #super().send_key_action('"alive": true,')
-        #super().send_key_action(Keys.ENTER)
-        #super().send_key_action('"age": 41,')
-        #super().send_key_action(Keys.ENTER)
-        #super().send_key_action('"traits": ["A","H","C","N","P"]')
-        #super().send_key_action(Keys.ENTER)
-        #super().send_key_action('} INTO Characters')
 
-        # selecting execute query button
+        super().send_key_action('for i IN 1..10000')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action('INSERT {')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action(Keys.TAB)
+        super().send_key_action('"name": "Ned",')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action('"surname": "Stark",')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action('"alive": true,')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action('"age": 41,')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action('"traits": ["A","H","C","N","P"]')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action('} INTO Characters')
+
         super().query_execution_btn()
-
         super().scroll(1)
-
     
     def execute_read_query(self):
         """This method will run a read query"""
@@ -214,13 +198,6 @@ class QueryPage(BaseSelenium):
 
     def clear_query_area(self):
         """Clearing current query area"""
-        # clear_query = self.query_execution_area
-        # clear_query = \
-        #     BaseSelenium.locator_finder_by_xpath(self, clear_query)
-        # clear_query.click()
-
-        # super().clear_all_text()
-        # give it a try if not works just revert the code
         super().clear_all_text(self.query_execution_area)
         time.sleep(2)
 
@@ -306,7 +283,6 @@ class QueryPage(BaseSelenium):
         self.clear_query_area()
 
         print("Checking update query execution \n")
-        # self.execute_query('for doc in Characters\n\tFILTER doc.alive == false\n\tRETURN doc')
         super().send_key_action('for doc in Characters')
         super().send_key_action(Keys.ENTER)
         super().send_key_action(Keys.TAB)
@@ -354,8 +330,6 @@ class QueryPage(BaseSelenium):
         bind_alive = '//*[@id="arangoBindParamTable"]/tbody/tr[1]/td[2]/input'
         bind_name = '//*[@id="arangoBindParamTable"]/tbody/tr[2]/td[2]/input'
 
-        # writing the query with bind parameters
-        # self.query(bind_query)
         super().send_key_action('FOR doc IN Characters')
         super().send_key_action(Keys.ENTER)
         super().send_key_action(Keys.TAB)
