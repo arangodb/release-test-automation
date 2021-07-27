@@ -610,6 +610,8 @@ class Runner(ABC):
                         False)
                 self.has_makedata_data = True
             self.check_data_impl_sh(arangosh, starter.supports_foxx_tests)
+        if not self.has_makedata_data:
+            raise Exception("didn't find makedata instances, no data created!")
 
 
     @step

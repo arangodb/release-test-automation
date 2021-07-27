@@ -33,6 +33,8 @@ from arangodb.instance import (
 )
 from arangodb.backup import HotBackupConfig, HotBackupManager
 from arangodb.sh import ArangoshExecutor
+from arangodb.imp import ArangoImportExecutor
+from arangodb.restore import ArangoRestoreExecutor
 from arangodb.bench import ArangoBenchManager
 
 from reporting.reporting_utils import attach_table, step
@@ -122,6 +124,8 @@ class StarterManager():
         self.is_master = None
         self.is_leader = False
         self.arangosh = None
+        self.arango_importer = None
+        self.arango_restore = None
         self.arangobench = None
         self.executor = None # meaning?
         self.sync_master_port = None
@@ -303,8 +307,6 @@ class StarterManager():
         for i in self.all_instances:
             if i.is_frontend():
                 i.set_passvoid(passvoid)
-        if self.hb_instance:
-            self.hb_instance.set_passvoid(passvoid)
         self.cfg.passvoid = passvoid
 
     def get_passvoid(self):
@@ -772,12 +774,15 @@ class StarterManager():
             self.cfg.port = self.get_frontend_port()
 
             self.arangosh = ArangoshExecutor(self.cfg, self.get_frontend())
+            self.arango_importer = ArangoImportExecutor(self.cfg, self.get_frontend())
+            self.arango_restore = ArangoRestoreExecutor(self.cfg, self.get_frontend())
             if self.cfg.hot_backup:
                 self.cfg.passvoid = self.passvoid
                 self.hb_instance = HotBackupManager(
                     self.cfg,
                     self.raw_basedir,
-                    self.cfg.base_test_dir / self.raw_basedir)
+                    self.cfg.base_test_dir / self.raw_basedir,
+                    self.get_frontend())
                 self.hb_config = HotBackupConfig(
                     self.cfg,
                     self.raw_basedir,
