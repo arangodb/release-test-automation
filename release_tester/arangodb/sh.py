@@ -26,7 +26,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
     """ configuration """
 
     def __init__(self, config, connect_instance):
-        self.read_only = True
+        self.read_only = False
         super().__init__(config, connect_instance)
 
     def run_command(self, cmd, verbose=True):
