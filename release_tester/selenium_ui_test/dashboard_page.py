@@ -45,10 +45,14 @@ class DashboardPage(BaseSelenium):
 
     def check_current_package_version(self):
         """checking current package version from the dashboard"""
-        self.check_current_package_version_id = \
-            BaseSelenium.locator_finder_by_text_id(self, self.check_current_package_version_id)
-        print("Package Version: ", self.check_current_package_version_id)
+        package_version = self.check_current_package_version_id
+        package_version = \
+            BaseSelenium.locator_finder_by_text_id(self, package_version)
+        print("Package Version: ", package_version)
         time.sleep(1)
+
+        version = float(package_version[0:3])
+        return version
 
     def check_current_username(self):
         """checking current username from the dashboard"""
@@ -100,24 +104,28 @@ class DashboardPage(BaseSelenium):
 
     def check_system_metrics(self):
         """checking system metrics tab from the dashboard"""
-        self.check_system_metrics_id = BaseSelenium.locator_finder_by_id(self, self.check_system_metrics_id)
-        self.check_system_metrics_id.click()
-        time.sleep(1)
+        if self.check_current_package_version() >= 3.8:
+            self.check_system_metrics_id = BaseSelenium.locator_finder_by_id(self, self.check_system_metrics_id)
+            self.check_system_metrics_id.click()
+            time.sleep(1)
 
-    def select_reload_btn(self):
-        """Reloading system metrics tab from the dashboard"""
-        self.select_reload_btn_id = BaseSelenium.locator_finder_by_id(self, self.select_reload_btn_id)
-        self.select_reload_btn_id.click()
+            print("scrolling the metrics tab \n")
+            super().scroll()
 
-    def metrics_download(self):
-        """Downloading metrics from the dashboard"""
-        self.metrics_download_id = BaseSelenium.locator_finder_by_id(self, self.metrics_download_id)
-        self.metrics_download_id.click()
-        time.sleep(3)
+            # Reloading system metrics tab from the dashboard"""
+            self.select_reload_btn_id = BaseSelenium.locator_finder_by_id(self, self.select_reload_btn_id)
+            self.select_reload_btn_id.click()
 
-        # this will check which browser is being using
-        if super().browser_name == 1:
-            self.clear_download_bar()
+            # Downloading metrics from the dashboard
+            self.metrics_download_id = BaseSelenium.locator_finder_by_id(self, self.metrics_download_id)
+            self.metrics_download_id.click()
+            time.sleep(3)
+
+            # this will check which browser is being using
+            if super().browser_name == 1:
+                self.clear_download_bar()
+        else:
+            print('Metrics Tab not supported for the current package \n')
 
     def click_twitter_link(self):
         """Clicking on twitter link on dashboard"""
