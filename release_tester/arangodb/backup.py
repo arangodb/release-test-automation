@@ -75,7 +75,6 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         if not self.backup_dir.exists():
             self.backup_dir.mkdir(parents=True)
 
-
     def run_backup(self, arguments, name, silent=False):
         """ launch the starter for this instance"""
         if not silent:
@@ -90,28 +89,29 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         def inspect_line_result(line):
             strline = str(line)
             if strline.find('ERROR') >= 0:
-                return False
-            return True
+                return True
+            return False
 
-        ret = self.run_monitored(self.cfg.bin_dir / 'arangobackup',
-                                  run_cmd,
-                                  20,
-                                  inspect_line_result,
-                                  self.cfg.verbose and not silent)
+        success, output, exit_code, error_found = self.run_monitored(
+            self.cfg.bin_dir / 'arangobackup',
+            run_cmd,
+            20,
+            inspect_line_result,
+            self.cfg.verbose and not silent)
 
-        if not ret[0]:
-            raise Exception("arangobackup exited " + str(ret[2]))
+        if not success:
+            raise Exception("arangobackup exited " + str(output))
         
-        if not success or not ret[3]:
+        if not success or error_found:
             raise Exception("arangobackup indicated 'ERROR' in its output: %s" %
-                            ascii_convert(ret[1]))
-        return ret[1]
+                            ascii_convert(output))
+        return output
 
     def create(self, backup_name):
         """ create a hot backup """
         args = ['create', '--label', backup_name, '--max-wait-for-lock', '180']
         out = self.run_backup(args, backup_name)
-        for line in out:
+        for line in out.split('\n'):
             match = re.match(r".*identifier '(.*)'", str(line))
             if match:
                 return match.group(1)
@@ -122,8 +122,8 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         args = ['list']
         out = self.run_backup(args, "list")
         backups = []
-        for line in out:
-            match = re.match(r".* - (.*)'$", str(line))
+        for line in out.split('\n'):
+            match = re.match(r".* - (.*)$", line)
             if match:
                 backups.append(match.group(1))
         return backups
@@ -148,7 +148,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
             '--remote-path', backup_config.name + '://' + str(self.backup_dir)
         ]
         out = self.run_backup(args, backup_name)
-        for line in out:
+        for line in out.split('\n'):
             match = re.match(r".*arangobackup upload --status-id=(\d*)", str(line))
             if match:
                 # time.sleep(600000000)
@@ -175,8 +175,8 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
                 'FAILED': 0,
                 'CANCELLED': 0
             }
-            for line in out:
-                match = re.match(r".*Status: (.*)'", str(line))
+            for line in out.split('\n'):
+                match = re.match(r".*Status: (.*)", str(line))
                 if match:
                     which = match.group(1)
                     try:
@@ -186,6 +186,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
                               %(which, line, str(counts)))
 
             if counts['COMPLETED'] == instance_count:
+                print("all nodes have completed to restore the backup")
                 return
             if counts['FAILED'] > 0:
                 raise Exception("failed to create backup: " + str(out))
@@ -207,7 +208,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
             '--remote-path', backup_config.name + '://' + str(self.backup_dir)
         ]
         out = self.run_backup(args, backup_name)
-        for line in out:
+        for line in out.split('\n'):
             match = re.match(r".*arangobackup download --status-id=(\d*)", str(line))
             if match:
                 return match.group(1)

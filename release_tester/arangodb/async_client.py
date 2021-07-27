@@ -93,7 +93,7 @@ class ArangoCLIprogressiveTimeoutExecutor():
         # out = logfile.open('wb')
         # read line without blocking
         have_timeout = False
-        success = True
+        line_filter = False
         tcount = 0
         close_count = 0
         result = []
@@ -103,7 +103,7 @@ class ArangoCLIprogressiveTimeoutExecutor():
             line = ''
             try:
                 line = queue.get(timeout=1)
-                success = success and result_line(line)
+                line_filter = line_filter or result_line(line)
             except Empty:
                 tcount += 1
                 if verbose:
@@ -125,11 +125,10 @@ class ArangoCLIprogressiveTimeoutExecutor():
             print(" TIMEOUT OCCURED!")
             process.kill()
         rc_exit = process.wait()
-        print(rc_exit)
         thread1.join()
         thread2.join()
         if have_timeout or rc_exit != 0:
-            return (False, convert_result(result), rc_exit, success)
+            return (False, convert_result(result), rc_exit, line_filter)
         if len(result) == 0:
-            return (True, "", 0, success)
-        return (True, convert_result(result), 0, success)
+            return (True, "", 0, line_filter)
+        return (True, convert_result(result), 0, line_filter)
