@@ -14,14 +14,13 @@ import sys
 import time
 
 from pathlib import Path
-# from typing import List, Dict, NamedTuple
 import psutil
+import requests
 import semver
 from allure_commons._allure import attach
 
 from tools.asciiprint import print_progress as progress
 from tools.timestamp import timestamp
-import tools.monkeypatch_psutil # pylint: disable=W0611
 import tools.loghelper as lh
 from arangodb.instance import (
     ArangodInstance,
@@ -336,6 +335,7 @@ class StarterManager():
                     )
                     # print(reply.text)
                     results.append(reply)
+        http_client.HTTPConnection.debuglevel = 0
         return results
 
     @step("Crash managed instances and the starter")
@@ -819,6 +819,21 @@ class StarterManager():
                      str(instances_table))
         attach_table(instances_table, "Instances table")
 
+
+    @step
+    def maintainance(self, on_off, instance_type):
+        """ enables / disables maintainance mode """
+        print(("enabling" if on_off else "disabling") + " Maintainer mode")
+        while True:
+            reply = self.send_request(instance_type,
+                                      requests.put,
+                                      "/_admin/cluster/maintenance",
+                                      '"on"' if on_off else '"off"')
+            print("Reply: " + str(reply[0].text))
+            if reply[0].status_code == 200:
+                return
+            time.sleep(3)
+
     @step
     def detect_leader(self):
         """ in active failover detect whether we run the leader"""
@@ -829,6 +844,12 @@ class StarterManager():
         took_over = lfs.find('Successful leadership takeover:'
                              ' All your base are belong to us') >= 0
         self.is_leader = (became_leader or took_over)
+        if self.is_leader:
+            url = self.get_frontend().get_local_url('')
+            reply = requests.get(url, auth=requests.auth.HTTPBasicAuth('root', self.passvoid))
+            print(str(reply))
+            if reply.status_code == 503:
+                self.is_leader = False
         return self.is_leader
 
     @step
