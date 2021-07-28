@@ -228,16 +228,19 @@ class SupportPage(BaseSelenium):
         rest_api.click()
         time.sleep(1)
 
+        version = super().current_package_version()
+
         # checking backup restore
         iframe = self.switch_to_iframe_id
         super().switch_to_iframe(iframe)
 
-        print('Checking Backup Restore option started\n')
-        backup_restore = '//*[@id="operations-tag-BackupRestore"]'
-        backup_restore = \
-            BaseSelenium.locator_finder_by_xpath(self, backup_restore)
-        backup_restore.click()
-        time.sleep(1)
+        if version >= 3.7:
+            print('Checking Backup Restore option started\n')
+            backup_restore = '//*[@id="operations-tag-BackupRestore"]'
+            backup_restore = \
+                BaseSelenium.locator_finder_by_xpath(self, backup_restore)
+            backup_restore.click()
+            time.sleep(1)
 
         # all documentation example list for Backup restore option
         create_backup = '//*[@id="operations-BackupRestore-CreateBackup"]/div/span[1]'
