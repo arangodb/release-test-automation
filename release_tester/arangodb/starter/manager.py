@@ -809,6 +809,12 @@ class StarterManager():
         took_over = lfs.find('Successful leadership takeover:'
                              ' All your base are belong to us') >= 0
         self.is_leader = (became_leader or took_over)
+        if self.is_leader:
+            url = self.get_frontend().get_local_url('')
+            reply = requests.get(url, auth=requests.auth.HTTPBasicAuth('root', self.passvoid))
+            print(str(reply))
+            if reply.status_code == 503:
+                self.is_leader = False
         return self.is_leader
 
     def probe_leader(self):

@@ -164,7 +164,7 @@ class ActiveFailover(Runner):
         time.sleep(5) # Make shaky leader less viable.
         while retry:
             for node in self.starter_instances:
-                if node.probe_leader():
+                if node.detect_leader():
                     if self.leader is not None:
                         print("Shaky leader?")
                         time.sleep(20)
