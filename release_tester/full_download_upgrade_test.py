@@ -18,6 +18,10 @@ import tools.loghelper as lh
 from acquire_packages import AcquirePackages
 from upgrade import run_upgrade
 from cleanup import run_cleanup
+import re
+
+def workaround_nightly_versioning(ver):
+    return ver.sub("-nightly", ".9999999-nightly")
 
 # pylint: disable=R0913 disable=R0914 disable=R0912, disable=R0915
 def upgrade_package_test(verbose,
@@ -183,7 +187,8 @@ def main(
         httpuser, httppassvoid, remote_host):
     """ main """
     return upgrade_package_test(verbose,
-                                new_version, old_version,
+                                workaround_nightly_versioning(new_version),
+                                workaround_nightly_versioning(old_version),
                                 package_dir, enterprise_magic,
                                 zip_package,
                                 new_source, old_source,
