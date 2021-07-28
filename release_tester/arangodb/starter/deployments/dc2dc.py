@@ -181,9 +181,9 @@ class Dc2Dc(Runner):
                                         self.certificate_auth,
                                         from_to_dc,
                                         self.sync_version)
-        (output, err, exitsucess) = self.sync_manager.run_syncer()
-        if not exitsucess:
-            raise Exception("starting the synchronisation failed!" + str(output) + str(err))
+        (success, output, exit_code, dummy) = self.sync_manager.run_syncer()
+        if not success:
+            raise Exception("starting the synchronisation failed!" + str(output))
         self.progress(True, "SyncManager: up %s", output)
 
     def finish_setup_impl(self):
@@ -231,20 +231,19 @@ class Dc2Dc(Runner):
     def _stop_sync(self, timeout=120):
         output = ""
         err = ""
-        exitcode = 0
+        exit_code = 0
 
         if self._is_higher_sync_version(SYNC_VERSIONS['150'], SYNC_VERSIONS['230']):
-            output, err, exitcode = self.sync_manager.stop_sync(timeout)
+            success, output, exit_code, dummy = self.sync_manager.stop_sync(timeout)
         else:
             # Arangosync with the bug for checking in-sync status.
             self.progress(True, "arangosync: stopping sync without checking if shards are in-sync")
-            output, err, exitcode = self.sync_manager.stop_sync(timeout, ['--ensure-in-sync=false'])
+            success, output, exit_code, dummy = self.sync_manager.stop_sync(timeout, ['--ensure-in-sync=false'])
 
-        if exitcode == 0:
+        if success:
             return
 
         self.state += "\n" + output
-        self.state += "\n" + err
         raise Exception("failed to stop the synchronization")
 
     def _mitigate_known_issues(self, last_sync_output):
@@ -280,7 +279,7 @@ class Dc2Dc(Runner):
         output = None
         err = None
         for count in range (attempts):
-            (output, err, result) = self.sync_manager.check_sync()
+            (result, output) = self.sync_manager.check_sync()
             if result:
                 print("CHECK SYNC OK!")
                 break

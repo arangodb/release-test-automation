@@ -4,16 +4,16 @@
 """
 import copy
 import logging
-import subprocess
-from threading import Timer
 
 from reporting.reporting_utils import step
-import psutil
 import semver
 
-from tools.asciiprint import ascii_convert
+from arangodb.async_client import (
+    ArangoCLIprogressiveTimeoutExecutor,
+    dummy_line_result
+    )
 
-class SyncManager():
+class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
     """ manage arangosync """
     def __init__(self,
                  basecfg,
@@ -38,21 +38,19 @@ class SyncManager():
         ]
         self.version = version
         self.instance = None
+        super().__init__(basecfg, None)
 
     @step("Run syncer")
     def run_syncer(self):
         """ launch the syncer for this instance """
         args = [
-            self.cfg.bin_dir / 'arangosync',
         ] + self.arguments
 
-        logging.info("SyncManager: launching %s", str(args))
-        instance = psutil.Popen(args,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
-        (output, err) = instance.communicate()
-        exitcode = instance.wait()
-        return (ascii_convert(output), ascii_convert(err), exitcode == 0)
+        return self. run_monitored(self.cfg.bin_dir / 'arangosync',
+                                   self.arguments,
+                                   999,
+                                   dummy_line_result,
+                                   self.cfg.verbose)
 
     def replace_binary_for_upgrade(self, new_install_cfg):
         """ set the new config properties """
@@ -63,7 +61,6 @@ class SyncManager():
         """ run the syncer status command """
         logging.info('SyncManager: Check status of cluster %s', str(which))
         args = [
-            self.cfg.bin_dir / 'arangosync',
             'get', 'status',
             '--master.cacert=' + str(self.certificate_auth["cert"]),
             '--master.endpoint=https://{url}:{port}'.format(
@@ -71,15 +68,17 @@ class SyncManager():
                 port=str(self.clusterports[which])),
             '--auth.keyfile=' + str(self.certificate_auth["clientkeyfile"]),
             '--verbose']
-        logging.info(args)
-        psutil.Popen(args).wait()
+        return self.run_monitored(self.cfg.bin_dir / 'arangosync',
+                                  args,
+                                  999,
+                                  dummy_line_result,
+                                  self.cfg.verbose)
 
     @step("Run the syncer get tasks command")
     def get_sync_tasks(self, which):
         """ run the get tasks command """
         logging.info('SyncManager: Check tasks of cluster %s', str(which))
         args = [
-            self.cfg.bin_dir / 'arangosync',
             'get', 'tasks',
             '--master.cacert=' + str(self.certificate_auth["cert"]),
             '--master.endpoint=https://{url}:{port}'.format(
@@ -87,8 +86,11 @@ class SyncManager():
                 port=str(self.clusterports[which])),
             '--auth.keyfile=' + str(self.certificate_auth["clientkeyfile"]),
             '--verbose']
-        logging.info(args)
-        psutil.Popen(args).wait()
+        return self.run_monitored(self.cfg.bin_dir / 'arangosync',
+                                  args,
+                                  999,
+                                  dummy_line_result,
+                                  self.cfg.verbose)
 
     @step("Stop sync")
     def stop_sync(self, timeout=60, more_args=[]):
@@ -97,7 +99,6 @@ class SyncManager():
         err = rb''
         exitcode = 1
         args = [
-            self.cfg.bin_dir / 'arangosync',
             'stop', 'sync',
             '--master.endpoint=https://{url}:{port}'.format(
                 url=self.cfg.publicip,
@@ -105,23 +106,28 @@ class SyncManager():
             '--auth.keyfile=' + str(self.certificate_auth["clientkeyfile"])
         ] + more_args
         logging.info('SyncManager: stopping sync : %s', str(args))
-        instance = psutil.Popen(args,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
-        timer = Timer(timeout, instance.kill)
-        try:
-            timer.start()
-            (output, err) = instance.communicate()
-        finally:
-            timer.cancel()
-        exitcode = instance.wait()
-        return (ascii_convert(output),ascii_convert(err),  exitcode)
+        # todo: do we need an absolute timeout?
+        # instance = psutil.Popen(args,
+        #                         stdout=subprocess.PIPE,
+        #                         stderr=subprocess.PIPE)
+        # timer = Timer(timeout, instance.kill)
+        # try:
+        #     timer.start()
+        #     (output, err) = instance.communicate()
+        # finally:
+        #     timer.cancel()
+        # exitcode = instance.wait()
+        # return (ascii_convert(output),ascii_convert(err),  exitcode)
+        return self.run_monitored(self.cfg.bin_dir / 'arangosync',
+                                  args,
+                                  timeout,
+                                  dummy_line_result,
+                                  self.cfg.verbose)
 
     @step("Abort sync")
     def abort_sync(self):
         """ run the stop sync command """
         args = [
-            self.cfg.bin_dir / 'arangosync',
             'abort', 'sync',
             '--master.endpoint=https://{url}:{port}'.format(
                 url=self.cfg.publicip,
@@ -129,7 +135,11 @@ class SyncManager():
             '--auth.keyfile=' + str(self.certificate_auth["clientkeyfile"])
         ]
         logging.info('SyncManager: stopping sync : %s', str(args))
-        psutil.Popen(args).wait()
+        return self.run_monitored(self.cfg.bin_dir / 'arangosync',
+                                  args,
+                                  300,
+                                  dummy_line_result,
+                                  self.cfg.verbose)
 
     @step("Check sync")
     def check_sync(self):
@@ -140,7 +150,6 @@ class SyncManager():
             return ("", "", True)
 
         args = [
-            self.cfg.bin_dir / 'arangosync',
             'check', 'sync',
             '--master.cacert=' + str(self.certificate_auth["cert"]),
             '--master.endpoint=https://{url}:{port}'.format(
@@ -149,15 +158,15 @@ class SyncManager():
             '--auth.keyfile=' + str(self.certificate_auth["clientkeyfile"])
         ]
         logging.info('SyncManager: checking sync consistency : %s', str(args))
-        instance = psutil.Popen(args,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
-        (output, err) = instance.communicate()
-        instance.wait()
-        output = ascii_convert(output)
-        print(output)
+        success, output, exit_code, dummy = self.run_monitored(
+            self.cfg.bin_dir / 'arangosync',
+            args,
+            300,
+            dummy_line_result,
+            self.cfg.verbose)
+
         success = output.find('The whole data is the same') >= 0
-        return (output, ascii_convert(err), success)
+        return (success, output)
 
     @step("Reset failed shard")
     def reset_failed_shard(self, database, collection):
@@ -168,7 +177,6 @@ class SyncManager():
             return True
 
         args = [
-            self.cfg.bin_dir / 'arangosync',
             'reset', 'failed', 'shard',
             '--master.cacert=' + str(self.certificate_auth["cert"]),
             '--master.endpoint=https://{url}:{port}'.format(
@@ -178,4 +186,10 @@ class SyncManager():
             '--database', database, '--collection', collection
         ]
         logging.info('SyncManager: resetting failed shard : %s', str(args))
-        return psutil.Popen(args).wait() == 0
+        success, output, exit_code, dummy = self.run_monitored(
+            self.cfg.bin_dir / 'arangosync',
+            args,
+            300,
+            dummy_line_result,
+            self.cfg.verbose)
+        return success
