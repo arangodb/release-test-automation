@@ -22,8 +22,8 @@ class ArangoRestoreExecutor(ArangoCLIprogressiveTimeoutExecutor):
             "--input-directory", str(basepath),
         ] + args
 
-        return self.run_monitored(self.cfg.bin_dir / "arangorestore",
-                                  run_cmd,
-                                  timeout,
-                                  dummy_line_result,
-                                  verbose)
+        return self.run_arango_tool_monitored(self.cfg.bin_dir / "arangorestore",
+                                              run_cmd,
+                                              timeout,
+                                              dummy_line_result,
+                                              verbose)

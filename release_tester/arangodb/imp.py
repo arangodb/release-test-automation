@@ -32,11 +32,11 @@ class ArangoImportExecutor(ArangoCLIprogressiveTimeoutExecutor):
             "--log.level", "debug",
         ] + args
 
-        return self.run_monitored(self.cfg.bin_dir / "arangoimport",
-                                  run_cmd,
-                                  timeout,
-                                  dummy_line_result,
-                                  verbose)
+        return self.run_arango_tool_monitored(self.cfg.bin_dir / "arangoimport",
+                                              run_cmd,
+                                              timeout,
+                                              dummy_line_result,
+                                              verbose)
 
     def import_collection(self, collection_name, filename, more_args=[]):
         """ import into any collection """

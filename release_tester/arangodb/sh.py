@@ -138,11 +138,11 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         if len(args) > 0:
             run_cmd += ['--'] + args
 
-        return self.run_monitored(self.cfg.bin_dir / "arangosh",
-                                  run_cmd,
-                                  timeout,
-                                  result_line,
-                                  verbose)
+        return self.run_arango_tool_monitored(self.cfg.bin_dir / "arangosh",
+                                              run_cmd,
+                                              timeout,
+                                              result_line,
+                                              verbose)
 
     def run_testing(self,
                     testcase, args,
