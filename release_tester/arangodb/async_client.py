@@ -73,7 +73,7 @@ class ArangoCLIprogressiveTimeoutExecutor():
             "--server.password", str(self.connect_instance.get_passvoid())
         ] + more_args
         return self.run_monitored(executeable, run_cmd, timeout, result_line, verbose)
-        
+
     def run_monitored(self,
                       executeable,
                       args,

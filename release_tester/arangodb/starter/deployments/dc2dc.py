@@ -181,7 +181,7 @@ class Dc2Dc(Runner):
                                         self.certificate_auth,
                                         from_to_dc,
                                         self.sync_version)
-        (success, output, exit_code, dummy) = self.sync_manager.run_syncer()
+        (success, output, _, _) = self.sync_manager.run_syncer()
         if not success:
             raise Exception("starting the synchronisation failed!" + str(output))
         self.progress(True, "SyncManager: up %s", output)
@@ -230,15 +230,14 @@ class Dc2Dc(Runner):
 
     def _stop_sync(self, timeout=120):
         output = ""
-        err = ""
-        exit_code = 0
+        success = True
 
         if self._is_higher_sync_version(SYNC_VERSIONS['150'], SYNC_VERSIONS['230']):
-            success, output, exit_code, dummy = self.sync_manager.stop_sync(timeout)
+            success, output, _, _ = self.sync_manager.stop_sync(timeout)
         else:
             # Arangosync with the bug for checking in-sync status.
             self.progress(True, "arangosync: stopping sync without checking if shards are in-sync")
-            success, output, exit_code, dummy = self.sync_manager.stop_sync(timeout, ['--ensure-in-sync=false'])
+            success, output, _, _ = self.sync_manager.stop_sync(timeout, ['--ensure-in-sync=false'])
 
         if success:
             return
