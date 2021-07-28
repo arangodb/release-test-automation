@@ -18,10 +18,10 @@ import tools.loghelper as lh
 from acquire_packages import AcquirePackages
 from upgrade import run_upgrade
 from cleanup import run_cleanup
-import re
 
 def workaround_nightly_versioning(ver):
-    return ver.sub("-nightly", ".9999999-nightly")
+    """ adjust package names of nightlies to be semver parseable """
+    return ver.replace("-nightly", ".9999999-nightly")
 
 # pylint: disable=R0913 disable=R0914 disable=R0912, disable=R0915
 def upgrade_package_test(verbose,
@@ -71,20 +71,21 @@ def upgrade_package_test(verbose,
             dl_old = AcquirePackages(old_version, verbose, package_dir, enterprise,
                                      enterprise_magic, zip_package, old_dlstage,
                                      httpusername, httppassvoid, remote_host)
-            old_version_state = version_state_dir / Path(dl_old.cfg.version + "_sourceInfo.log")
-            if old_version_state.exists():
-                old_version_content = old_version_state.read_text()
-            fresh_old_content = dl_old.get_version_info(old_dlstage, git_version)
+            if old_version.find('-nightly') >= 0:
+                old_version_state = version_state_dir / Path(dl_old.cfg.version + "_sourceInfo.log")
+                if old_version_state.exists():
+                    old_version_content = old_version_state.read_text()
+                fresh_old_content = dl_old.get_version_info(old_dlstage, git_version)
 
         if new_dlstage != "local":
             dl_new = AcquirePackages(new_version, verbose, package_dir, enterprise,
                                      enterprise_magic, zip_package, new_dlstage,
                                      httpusername, httppassvoid, remote_host)
-
-            new_version_state = version_state_dir / Path(dl_new.cfg.version + "_sourceInfo.log")
-            if new_version_state.exists():
-                new_version_content = new_version_state.read_text()
-            fresh_new_content = dl_new.get_version_info(new_dlstage, git_version)
+            if new_version.find('-nightly') >= 0:
+                new_version_state = version_state_dir / Path(dl_new.cfg.version + "_sourceInfo.log")
+                if new_version_state.exists():
+                    new_version_content = new_version_state.read_text()
+                fresh_new_content = dl_new.get_version_info(new_dlstage, git_version)
 
         if new_dlstage != "local" and old_dlstage != "local":
             old_changed = old_version_content != fresh_old_content
