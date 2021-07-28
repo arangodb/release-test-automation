@@ -4,13 +4,10 @@
 """
 import copy
 import logging
-import subprocess
-from threading import Timer
+# import subprocess
+# from threading import Timer
 
-import psutil
 import semver
-
-from tools.asciiprint import ascii_convert
 
 from arangodb.async_client import (
     ArangoCLIprogressiveTimeoutExecutor,
@@ -46,9 +43,6 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
 
     def run_syncer(self):
         """ launch the syncer for this instance """
-        args = [
-        ] + self.arguments
-
         return self. run_monitored(self.cfg.bin_dir / 'arangosync',
                                    self.arguments,
                                    999,
@@ -93,11 +87,9 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
                                   dummy_line_result,
                                   self.cfg.verbose)
 
+    #pylint: disable=W0102
     def stop_sync(self, timeout=60, more_args=[]):
         """ run the stop sync command """
-        output = rb''
-        err = rb''
-        exitcode = 1
         args = [
             'stop', 'sync',
             '--master.endpoint=https://{url}:{port}'.format(
@@ -106,18 +98,6 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             '--auth.keyfile=' + str(self.certificate_auth["clientkeyfile"])
         ] + more_args
         logging.info('SyncManager: stopping sync : %s', str(args))
-        # todo: do we need an absolute timeout?
-        # instance = psutil.Popen(args,
-        #                         stdout=subprocess.PIPE,
-        #                         stderr=subprocess.PIPE)
-        # timer = Timer(timeout, instance.kill)
-        # try:
-        #     timer.start()
-        #     (output, err) = instance.communicate()
-        # finally:
-        #     timer.cancel()
-        # exitcode = instance.wait()
-        # return (ascii_convert(output),ascii_convert(err),  exitcode)
         return self.run_monitored(self.cfg.bin_dir / 'arangosync',
                                   args,
                                   timeout,
@@ -156,7 +136,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             '--auth.keyfile=' + str(self.certificate_auth["clientkeyfile"])
         ]
         logging.info('SyncManager: checking sync consistency : %s', str(args))
-        success, output, exit_code, dummy = self.run_monitored(
+        (success, output, _, _) = self.run_monitored(
             self.cfg.bin_dir / 'arangosync',
             args,
             300,
@@ -183,10 +163,10 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             '--database', database, '--collection', collection
         ]
         logging.info('SyncManager: resetting failed shard : %s', str(args))
-        success, output, exit_code, dummy = self.run_monitored(
+        success = self.run_monitored(
             self.cfg.bin_dir / 'arangosync',
             args,
             300,
             dummy_line_result,
-            self.cfg.verbose)
+            self.cfg.verbose)[0]
         return success
