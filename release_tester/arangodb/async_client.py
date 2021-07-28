@@ -54,9 +54,29 @@ class ArangoCLIprogressiveTimeoutExecutor():
         self.connect_instance = connect_instance
         self.cfg = config
 
+    def run_arango_tool_monitored(self,
+                                  executeable,
+                                  more_args,
+                                  timeout,
+                                  result_line,
+                                  verbose):
+        """
+        runs a script in background tracing with
+        a dynamic timeout that its got output
+        (is still alive...)
+        """
+        run_cmd = [
+            "--server.endpoint", self.connect_instance.get_endpoint(),
+            "--log.foreground-tty", "true",
+            "--log.force-direct", "true",
+            "--server.username", str(self.cfg.username),
+            "--server.password", str(self.connect_instance.get_passvoid())
+        ] + more_args
+        return self.run_monitored(executeable, run_cmd, timeout, result_line, verbose)
+        
     def run_monitored(self,
                       executeable,
-                      more_args,
+                      args,
                       timeout,
                       result_line,
                       verbose):
@@ -65,15 +85,8 @@ class ArangoCLIprogressiveTimeoutExecutor():
         a dynamic timeout that its got output
         (is still alive...)
         """
-        run_cmd = [
-            executeable,
-            "--server.endpoint", self.connect_instance.get_endpoint(),
-            "--log.foreground-tty", "true",
-            "--log.force-direct", "true",
-            "--server.username", str(self.cfg.username),
-            "--server.password", str(self.connect_instance.get_passvoid())
-        ] + more_args
 
+        run_cmd = [executeable] + args
         if verbose:
             lh.log_cmd(run_cmd)
         process = Popen(run_cmd,
@@ -121,14 +134,17 @@ class ArangoCLIprogressiveTimeoutExecutor():
                     if close_count == 2:
                         print(' done!')
                         break
+        timeout_str = ""
         if have_timeout:
-            print(" TIMEOUT OCCURED!")
+            timeout_str = "TIMEOUT OCCURED!"
+            print(timeout_str)
+            timeout_str += '\n'
             process.kill()
         rc_exit = process.wait()
         thread1.join()
         thread2.join()
         if have_timeout or rc_exit != 0:
-            return (False, convert_result(result), rc_exit, line_filter)
+            return (False, timeout_str + convert_result(result), rc_exit, line_filter)
         if len(result) == 0:
             return (True, "", 0, line_filter)
         return (True, convert_result(result), 0, line_filter)
