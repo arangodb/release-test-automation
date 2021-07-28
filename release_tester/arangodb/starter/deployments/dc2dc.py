@@ -276,7 +276,6 @@ class Dc2Dc(Runner):
     def _get_in_sync(self, attempts):
         self.progress(True, "waiting for the DCs to get in sync")
         output = None
-        err = None
         for count in range (attempts):
             (result, output) = self.sync_manager.check_sync()
             if result:
@@ -287,7 +286,6 @@ class Dc2Dc(Runner):
             time.sleep(10)
         else:
             self.state += "\n" + output
-            self.state += "\n" + err
             raise Exception("failed to get the sync status")
 
     def test_setup_impl(self):
