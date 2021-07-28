@@ -180,7 +180,11 @@ function checkFoxxService() {
           print(route + " OK");
           return;
         }
-        print(route + " Not yet ready, retrying: " + JSON.stringify(reply))
+        msg = JSON.stringify(reply);
+        if (reply.hasOwnProperty('parsedBody')) {
+          msg = " '" + reply.parsedBody.errorNum + "' - " + reply.parsedBody.errorMessage;
+        }
+        print(route + " Not yet ready, retrying: " + msg)
       } catch (e) {
         print(route + " Caught - need to retry. " + JSON.stringify(e))
       }
