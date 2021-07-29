@@ -158,10 +158,10 @@ class BaseSelenium:
     
     def send_key_action(self, key):
         """This method will send dummy data to the textfield as necessary"""
-        #actions = ActionChains(self.driver)
-        #actions.send_keys(key)
-        #actions.perform()
-        self.current.send_keys(key)
+        actions = ActionChains(self.driver)
+        actions.send_keys(key)
+        actions.perform()
+        # self.current.send_keys(key)
 
     def clear_text_field(self, locator):
         """This method will be used for clear all the text in single text field if .clear() does not work"""
