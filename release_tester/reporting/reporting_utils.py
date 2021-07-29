@@ -1,3 +1,4 @@
+""" utility functions/classes for allure reporting """
 from string import Template
 from uuid import uuid4
 
@@ -48,6 +49,7 @@ def attach_table(table, title="HTML table"):
     $html_table
     </html>
     """
+    # pylint: disable=E1101
     table.set_style(BeautifulTable.STYLE_MARKDOWN)
     template = Template(template_str)
     html_table = markdown.markdown(str(table), extensions=['markdown.extensions.tables'])
@@ -55,6 +57,7 @@ def attach_table(table, title="HTML table"):
 
 
 def step(title):
+    """ init allure step """
     if callable(title):
         if title.__doc__:
             return StepContext(title.__doc__, {})(title)
@@ -63,6 +66,7 @@ def step(title):
 
 
 class RtaTestcase():
+    """ test case class for allure reporting """
     def __init__(self, name):
         self.name = name
         self._uuid = str(uuid4())
@@ -85,18 +89,20 @@ class RtaTestcase():
                                       exc_val=exc_val,
                                       exc_tb=exc_tb)
 
-
+# pylint: disable=R0903
 class TestcaseContext:
-    def __init__(self, status):
-        self.status = status
-
-    def __init__(self):
-        self.status = Status.UNKNOWN
+    """ a class to store test case context """
+    def __init__(self, status=None):
+        if status:
+            self.status = status
+        else:
+            self.status = Status.UNKNOWN
 
 
 class AllureTestSuiteContext:
+    """ test suite class for allure reporting """
     test_suite_count = 0
-
+    # pylint: disable=R0913
     def __init__(self,
                  results_dir,
                  clean,
@@ -151,4 +157,7 @@ Release Test Suite for ArangoDB v.{} ({}) {} package (clean install)
 
 
 def configure_allure(results_dir, clean, enterprise, zip_package, new_version, old_version=None):
-    return AllureTestSuiteContext(results_dir, clean, enterprise, zip_package, new_version, old_version)
+    """ configure allure reporting """
+    # pylint: disable=R0913
+    return AllureTestSuiteContext(results_dir, clean, enterprise,
+                                  zip_package, new_version, old_version)
