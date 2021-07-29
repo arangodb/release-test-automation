@@ -1,17 +1,22 @@
 import sys
 
 import allure_commons
-from allure_commons.model2 import TestStepResult, Parameter, TestResult, Status, Label, StatusDetails
+from allure_commons.model2 import (
+    TestStepResult,
+    Parameter,
+    TestResult,
+    Status,
+    Label,
+    StatusDetails
+)
 from allure_commons.reporter import AllureReporter
 from allure_commons.types import LabelType, AttachmentType
-from allure_commons.utils import now, format_traceback, format_exception
-from allure_commons.utils import uuid4
+from allure_commons.utils import now, format_traceback, format_exception, uuid4
 
-import logging
 from .logging import IoDuplicator
 
 
-class StepData(object):
+class StepData():
     system_stdout = sys.stdout
     system_stderr = sys.stderr
 
@@ -22,30 +27,26 @@ class StepData(object):
         sys.stderr = IoDuplicator(StepData.system_stderr)
 
 
-class AllureTestHelper(object):
+class AllureTestHelper():
 
     @allure_commons.hookimpl
     def decorate_as_description(self, test_description):
         """Not implemented"""
-        pass
 
     @allure_commons.hookimpl
     def decorate_as_description_html(self, test_description_html):
         """Not implemented"""
-        pass
 
     @allure_commons.hookimpl
     def decorate_as_label(self, label_type, labels):
         """Not implemented"""
-        pass
 
     @allure_commons.hookimpl
     def decorate_as_link(self, url, link_type, name):
         """Not implemented"""
-        pass
 
 
-class AllureListener(object):
+class AllureListener():
     def __init__(self, default_test_suite_name=None):
         self.allure_logger = AllureReporter()
         self._cache = ItemCache()
@@ -56,11 +57,19 @@ class AllureListener(object):
 
     @allure_commons.hookimpl
     def attach_data(self, body, name, attachment_type, extension):
-        self.allure_logger.attach_data(uuid4(), body, name=name, attachment_type=attachment_type, extension=extension)
+        self.allure_logger.attach_data(uuid4(),
+                                       body,
+                                       name=name,
+                                       attachment_type=attachment_type,
+                                       extension=extension)
 
     @allure_commons.hookimpl
     def attach_file(self, source, name, attachment_type, extension):
-        self.allure_logger.attach_file(uuid4(), source, name=name, attachment_type=attachment_type, extension=extension)
+        self.allure_logger.attach_file(uuid4(),
+                                       source,
+                                       name=name,
+                                       attachment_type=attachment_type,
+                                       extension=extension)
 
     @allure_commons.hookimpl
     def add_title(self, test_title):
@@ -124,15 +133,13 @@ class AllureListener(object):
         test_result.stop = now()
         # context.log_captor.save_logs()
         for step in test_result.steps:
-            if step.status != Status.FAILED:
-                continue
-            else:
+            if step.status == Status.FAILED:
                 test_result.status = Status.FAILED
                 test_result.statusDetails = step.statusDetails
         self.allure_logger.close_test(uuid)
 
 
-class ItemCache(object):
+class ItemCache():
 
     def __init__(self):
         self._items = dict()
@@ -153,13 +160,10 @@ class ItemCache(object):
 def get_status(exception):
     if exception:
         return Status.FAILED
-    else:
-        return Status.PASSED
-
+    return Status.PASSED
 
 def get_status_details(exception_type, exception, exception_traceback):
     if exception:
         return StatusDetails(message=format_exception(exception_type, exception),
                              trace=format_traceback(exception_traceback))
-    else:
-        return None
+    return None

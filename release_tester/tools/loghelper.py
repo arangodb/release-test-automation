@@ -5,9 +5,6 @@ import logging
 
 from allure_commons._allure import attach
 
-from reporting.logging import AllureLogInterceptor
-
-
 def configure_logging(verbose):
     """ set up logging """
     logging.basicConfig(

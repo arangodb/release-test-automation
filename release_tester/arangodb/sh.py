@@ -244,7 +244,8 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                                     self.cfg.interactive)
         return res
 
-    @step("Create a collection with documents after taking a backup(to verify its not in the backup)")
+    @step("""Create a collection with documents after taking a backup
+          (to verify its not in the backup)""")
     def hotbackup_create_nonbackup_data(self):
         """
         create a collection with documents after taking a backup

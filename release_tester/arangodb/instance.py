@@ -12,14 +12,13 @@ from pathlib import Path
 
 from allure_commons._allure import attach
 from allure_commons.types import AttachmentType
-from reporting.reporting_utils import step
+from reporting.reporting_utils import step, attach_table
 import psutil
 import requests
 from beautifultable import BeautifulTable
 from requests.auth import HTTPBasicAuth
 from tools.asciiprint import print_progress as progress
 
-from reporting.reporting_utils import attach_table
 
 # log tokens we want to suppress from our dump:
 
@@ -243,8 +242,9 @@ class Instance(ABC):
     def add_logfile_to_report(self):
         """ Add log to allure report"""
         logfile = str(self.logfile)
-        attach.file(logfile, "Log file(name: {name}, PID: {pid}, port: {port}, type: {type})"
-                    .format(name = self.name, pid = self.pid, port = self.port, type = self.type_str),
+        attach.file(logfile,
+                    "Log file(name: {name}, PID: {pid}, port: {port}, type: {type})"
+                    .format(name=self.name, pid=self.pid, port=self.port, type=self.type_str),
                     AttachmentType.TEXT)
 
 

@@ -7,7 +7,6 @@ import re
 import time
 
 from reporting.reporting_utils import step
-import psutil
 
 from tools.asciiprint import ascii_convert, print_progress as progress
 import tools.loghelper as lh
