@@ -786,10 +786,11 @@ class Runner(ABC):
             build_number
         )
         if self.basecfg.base_test_dir.exists():
-            shutil.make_archive(filename,
+            archive = shutil.make_archive(filename,
                                 "bztar",
                                 self.basecfg.base_test_dir,
                                 self.basedir)
+            attach.file(archive, "test dir archive", "application/x-bzip2", "tar.bz2")
         else:
             print("test basedir doesn't exist, won't create report tar")
 
