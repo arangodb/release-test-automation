@@ -18,6 +18,7 @@ import psutil
 import requests
 import semver
 from allure_commons._allure import attach
+from allure_commons.types import AttachmentType
 
 from tools.asciiprint import print_progress as progress
 from tools.timestamp import timestamp
@@ -439,6 +440,7 @@ class StarterManager():
         self.instance.terminate()
         logging.info("StarterManager: waiting for process to exit")
         exit_code = self.instance.wait()
+        self.add_logfile_to_report()
         if exit_code != 0:
             raise Exception("Starter exited with %d" % exit_code)
 
@@ -465,6 +467,7 @@ class StarterManager():
         self.instance.kill()
         try:
             logging.info(str(self.instance.wait(timeout=45)))
+            self.add_logfile_to_report()
         except Exception as ex:
             raise Exception("Failed to KILL the starter instance? " +
                             repr(self)) from ex
@@ -915,6 +918,13 @@ class StarterManager():
                     print(line.rstrip())
                     log += line.rstrip()
         attach(log, "WARN or ERROR lines from starter log")
+
+    @step("Save starter log file")
+    def add_logfile_to_report(self):
+        """ Add starter log to allure report"""
+        logfile = str(self.log_file)
+        attach.file(logfile, "Starter log file", AttachmentType.TEXT)
+
 
 class StarterNonManager(StarterManager):
     """ this class is a dummy starter manager to work with similar interface """

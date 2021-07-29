@@ -10,6 +10,8 @@ from abc import abstractmethod, ABC
 from enum import IntEnum
 from pathlib import Path
 
+from allure_commons._allure import attach
+from allure_commons.types import AttachmentType
 from reporting.reporting_utils import step
 import psutil
 import requests
@@ -137,6 +139,7 @@ class Instance(ABC):
                     self.instance.pid))
                 self.instance.terminate()
                 self.instance.wait()
+                self.add_logfile_to_report()
             except psutil.NoSuchProcess:
                 logging.info("instance already dead: " + str(self.instance))
             self.instance = None
@@ -180,6 +183,7 @@ class Instance(ABC):
                     print("Terminating " + str(self.instance))
                     self.instance.kill()
                     self.instance.wait()
+                    self.add_logfile_to_report()
                 else:
                     print("NOT generating coredump for " + str(self.instance))
             except psutil.NoSuchProcess:
@@ -234,6 +238,15 @@ class Instance(ABC):
                         print(line.rstrip())
         if count > 0:
             print(" %d lines suppressed by filters" % count)
+
+    @step("Save logfile")
+    def add_logfile_to_report(self):
+        """ Add log to allure report"""
+        logfile = str(self.logfile)
+        attach.file(logfile, "Log file(name: {name}, PID: {pid}, port: {port}, type: {type})"
+                    .format(name = self.name, pid = self.pid, port = self.port, type = self.type_str),
+                    AttachmentType.TEXT)
+
 
 class ArangodInstance(Instance):
     """ represent one arangodb instance """
