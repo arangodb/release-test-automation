@@ -102,23 +102,19 @@ class BaseSelenium:
             time.sleep(2)
 
         print("Cleaning input field \n")
-        # keyboard = Controller()
-        # with keyboard.pressed(Key.ctrl):
-        #     keyboard.press('a')
-        #     keyboard.release('a')
+        """This method will select all text and clean it"""
+        if locator is not None:
+            locator = locator
+            locator = BaseSelenium.locator_finder_by_xpath(self, locator)
 
-        # time.sleep(2)
-
-        # keyboard01 = Controller()
-        # keyboard01.press(Key.backspace)
-        # keyboard01.release(Key.backspace)
-    
+        print("Cleaning input field \n")
         actions = ActionChains(self.driver)
         actions.click(locator)
         actions.key_down(Keys.CONTROL)
         actions.send_keys('a')
         actions.send_keys(Keys.DELETE)
         actions.perform()
+
 
     @staticmethod
     def clear_download_bar():
