@@ -58,13 +58,11 @@ def step(title):
     if callable(title):
         if title.__doc__:
             return StepContext(title.__doc__, {})(title)
-        else:
-            return StepContext(title.__name__, {})(title)
-    else:
-        return StepContext(title, {})
+        return StepContext(title.__name__, {})(title)
+    return StepContext(title, {})
 
 
-class RtaTestcase(object):
+class RtaTestcase():
     def __init__(self, name):
         self.name = name
         self._uuid = str(uuid4())
@@ -99,7 +97,14 @@ class TestcaseContext:
 class AllureTestSuiteContext:
     test_suite_count = 0
 
-    def __init__(self, results_dir, clean, enterprise, zip, new_version, old_version=None, suite_name=None):
+    def __init__(self,
+                 results_dir,
+                 clean,
+                 enterprise,
+                 zip_package,
+                 new_version,
+                 old_version=None,
+                 suite_name=None):
         if suite_name:
             self.test_suite_name = suite_name
         else:
@@ -108,16 +113,21 @@ class AllureTestSuiteContext:
             else:
                 edition = "Community"
 
-            if zip:
+            if zip_package:
                 package_type = ".tar.gz"
             else:
                 package_type = "deb/rpm"
             if not old_version:
-                self.test_suite_name = "Release Test Suite for ArangoDB v.{} ({}) {} package (clean install)".format(new_version,
-                                                                                                                edition,
-                                                                                                                package_type)
+                self.test_suite_name =\
+                    """
+Release Test Suite for ArangoDB v.{} ({}) {} package (clean install)
+                    """.format(new_version,
+                               edition,
+                               package_type)
             else:
-                self.test_suite_name = "Release Test Suite for ArangoDB v.{} ({}) {} package (upgrade from {})".format(
+                self.test_suite_name = """
+                Release Test Suite for ArangoDB v.{} ({}) {} package (upgrade from {})
+                """.format(
                     new_version, edition,
                     package_type, old_version)
 
@@ -140,5 +150,5 @@ class AllureTestSuiteContext:
         allure_commons.plugin_manager.unregister(self.file_logger)
 
 
-def configure_allure(results_dir, clean, enterprise, zip, new_version, old_version=None):
-    return AllureTestSuiteContext(results_dir, clean, enterprise, zip, new_version, old_version)
+def configure_allure(results_dir, clean, enterprise, zip_package, new_version, old_version=None):
+    return AllureTestSuiteContext(results_dir, clean, enterprise, zip_package, new_version, old_version)
