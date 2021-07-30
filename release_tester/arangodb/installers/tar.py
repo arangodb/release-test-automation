@@ -4,8 +4,6 @@ import platform
 import shutil
 import logging
 from pathlib import Path
-import psutil
-import tools.loghelper as lh
 from arangodb.installers.base import InstallerBase
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
@@ -14,12 +12,6 @@ class InstallerTAR(InstallerBase):
     """ install Tar.gz's on Linux/Mac hosts """
 # pylint: disable=R0913 disable=R0902
     def __init__(self, cfg):
-        macver = platform.mac_ver()
-        winver = platform.win32_ver()
-        self.dash = "-"
-        self.cfg.installPrefix = Path("/tmp")
-        self.extension = 'tar.gz'
-        self.hot_backup = True
         cfg.have_system_service = False
 
         cfg.installPrefix = None
@@ -33,12 +25,20 @@ class InstallerTAR(InstallerBase):
         cfg.appdir = None
         cfg.cfgdir = None
 
+        self.cfg = cfg
+        self.dash = "-"
+        self.cfg.installPrefix = Path("/tmp")
+        self.extension = 'tar.gz'
+        self.hot_backup = True
+        self.architecture = None
 
+        macver = platform.mac_ver()
+        winver = platform.win32_ver()
         if macver[0]:
             cfg.localhost = 'localhost'
             self.remote_package_dir  = 'MacOSX'
             self.architecture = 'macos'
-        if winver[0]:
+        elif winver[0]:
             self.dash = "_"
             cfg.localhost = 'localhost'
             cfg.installPrefix = Path("C:/tmp")
@@ -57,8 +57,10 @@ class InstallerTAR(InstallerBase):
         self.debug_package = None
         self.log_examiner = None
         self.instance = None
-
         super().__init__(cfg)
+        if winver[0]:
+            self.check_stripped = False
+            self.check_symlink = False
 
     def supports_hot_backup(self):
         """ no hot backup support on the wintendo. """
@@ -68,7 +70,6 @@ class InstallerTAR(InstallerBase):
 
     def calculate_package_names(self):
         enterprise = 'e' if self.cfg.enterprise else ''
-        macver = platform.mac_ver()
 
         semdict = dict(self.cfg.semver.to_dict())
         if semdict['prerelease']:
@@ -84,15 +85,24 @@ class InstallerTAR(InstallerBase):
             "dashus" : self.dash,
             "ext" : self.extension
         }
-
-        self.server_package = 'arangodb3{ep}-{arch}{dashus}{ver}.{ext}'.format(**self.desc)
         self.debug_package = None
         self.client_package = None
-        self.cfg.installPrefix = Path("/tmp") / 'arangodb3{ep}-{arch}{dashus}{ver}'.format(**self.desc)
-        self.cfg.bin_dir = self.cfg.installPrefix / "bin"
-        self.cfg.sbin_dir = self.cfg.installPrefix / "usr" / "sbin"
-        self.cfg.real_bin_dir = self.cfg.installPrefix / "usr" / "bin"
-        self.cfg.real_sbin_dir = self.cfg.sbin_dir
+        if self.architecture == 'win64':
+            self.server_package = 'Arangodb3{ep}-{ver}{dashus}{arch}.{ext}'.format(**self.desc)
+            self.cfg.installPrefix = Path("c:/tmp") / \
+                'arangodb3{ep}-{ver}{dashus}{arch}'.format(**self.desc)
+            self.cfg.bin_dir = self.cfg.installPrefix / "usr" / "bin"
+            self.cfg.sbin_dir = self.cfg.installPrefix / "usr" / "bin"
+            self.cfg.real_bin_dir = self.cfg.bin_dir
+            self.cfg.real_sbin_dir = self.cfg.sbin_dir
+        else:
+            self.server_package = 'arangodb3{ep}-{arch}{dashus}{ver}.{ext}'.format(**self.desc)
+            self.cfg.installPrefix = Path("/tmp") / \
+                'arangodb3{ep}-{arch}{dashus}{ver}'.format(**self.desc)
+            self.cfg.bin_dir = self.cfg.installPrefix / "bin"
+            self.cfg.sbin_dir = self.cfg.installPrefix / "usr" / "sbin"
+            self.cfg.real_bin_dir = self.cfg.installPrefix / "usr" / "bin"
+            self.cfg.real_sbin_dir = self.cfg.sbin_dir
         self.cfg.cfgdir = self.cfg.installPrefix # n/A
         self.cfg.appdir = self.cfg.installPrefix # n/A
         self.cfg.dbdir = self.cfg.installPrefix # n/A
