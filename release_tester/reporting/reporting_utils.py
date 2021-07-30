@@ -120,9 +120,9 @@ class AllureTestSuiteContext:
                 edition = "Community"
 
             if zip_package:
-                package_type = ".tar.gz"
+                package_type = "universal binary archive"
             else:
-                package_type = "deb/rpm"
+                package_type = "deb/rpm/nsis/dmg"
             if not old_version:
                 self.test_suite_name =\
                     """

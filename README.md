@@ -101,7 +101,7 @@ Supported Parameters:
  - `--verbose` if specified more logging is done
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
- - `--alluredir` - directory to save test results in allure format (default = allure_results)
+ - `--alluredir` - directory to save test results in allure format (default = allure-results)
  - `--clean-alluredir` - clean allure directory before running tests (default = True)
  
 Example usage:
@@ -137,6 +137,8 @@ Supported Parameters:
    - `DC` - setup 2 clusters, connect them with arangosync (enterprise only)
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
+ - `--alluredir` - directory to save test results in allure format (default = allure-results)
+ - `--clean-alluredir` - clean allure directory before running tests (default = True)
  
 Example usage:
  - Windows: `python ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
@@ -212,6 +214,8 @@ Supported Parameters:
    - `DC` - setup 2 clusters, connect them with arangosync (enterprise only)
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
+ - `--alluredir` - directory to save test results in allure format (default = allure-results)
+ - `--clean-alluredir` - clean allure directory before running tests (default = True)
 
 Example usage: 
 

@@ -13,7 +13,8 @@ from arangodb.installers import create_config_installer_set
 from arangodb.starter.deployments import (
     RunnerType,
     make_runner,
-    STARTER_MODES, runner_strings
+    STARTER_MODES,
+    runner_strings
 )
 import tools.loghelper as lh
 
