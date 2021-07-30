@@ -12,6 +12,7 @@ from pathlib import Path
 from abc import abstractmethod, ABC
 import semver
 import yaml
+import psutil
 from arangodb.instance import ArangodInstance
 from tools.asciiprint import print_progress as progress
 from allure_commons._allure import attach
@@ -337,6 +338,9 @@ class InstallerBase(ABC):
         if not Path(self.cfg.dbdir / 'ENGINE').is_file():
             raise Exception("database engine file not there!")
 
+    def output_arangod_version(self):
+        """ document the output of arangod --version """
+        psutil.Popen([self.cfg.sbin_dir / "arangod", '--version']).wait()
 
     @step
     def caclulate_file_locations(self):

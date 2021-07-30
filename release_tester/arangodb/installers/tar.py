@@ -15,14 +15,15 @@ class InstallerTAR(InstallerBase):
     """ install Tar.gz's on Linux/Mac hosts """
 # pylint: disable=R0913 disable=R0902
     def __init__(self, cfg):
-        self.tar = 'tar'
         macver = platform.mac_ver()
         if macver[0]:
             cfg.localhost = 'localhost'
             self.remote_package_dir  = 'MacOSX'
+            self.architecture = 'macos'
         else:
             self.remote_package_dir  = 'Linux'
             cfg.localhost = 'localhost'
+            self.architecture = 'linux'
 
         self.hot_backup = True
         self.server_package = None
@@ -48,10 +49,7 @@ class InstallerTAR(InstallerBase):
 
     def calculate_package_names(self):
         enterprise = 'e' if self.cfg.enterprise else ''
-        architecture = 'linux'
         macver = platform.mac_ver()
-        if macver[0]:
-            architecture = 'macos'
 
         semdict = dict(self.cfg.semver.to_dict())
         if semdict['prerelease']:
@@ -63,13 +61,13 @@ class InstallerTAR(InstallerBase):
         self.desc = {
             "ep"   : enterprise,
             "ver"  : version,
-            "arch" : architecture
+            "arch" : self.architecture
         }
 
         self.server_package = 'arangodb3{ep}-{arch}-{ver}.tar.gz'.format(**self.desc)
         self.debug_package = None
         self.client_package = None
-        self.cfg.installPrefix = Path("/tmp") / 'arangodb3{ep}-{ver}'.format(**self.desc)
+        self.cfg.installPrefix = Path("/tmp") / 'arangodb3{ep}-{arch}-{ver}'.format(**self.desc)
         self.cfg.bin_dir = self.cfg.installPrefix / "bin"
         self.cfg.sbin_dir = self.cfg.installPrefix / "usr" / "sbin"
         self.cfg.real_bin_dir = self.cfg.installPrefix / "usr" / "bin"
@@ -102,16 +100,8 @@ class InstallerTAR(InstallerBase):
 
         if not self.cfg.installPrefix.exists():
             self.cfg.installPrefix.mkdir()
-        cmd = [self.tar,
-                   '-xf', str(self.cfg.package_dir / self.server_package),
-                   '-C',  str(self.cfg.installPrefix),
-                   '--strip-components', '1'
-               ]
-        lh.log_cmd(cmd)
-        install = psutil.Popen(cmd)
-        if install.wait() != 0:
-            raise Exception("extracting the Archive failed!")
-        print()
+        shutil.unpack_archive(str(self.cfg.package_dir / self.server_package),
+                              str(self.cfg.installPrefix / '..'))
         logging.info('Installation successfull')
 
     @step("Uninstall package")

@@ -275,6 +275,8 @@ class Runner(ABC):
                 self.old_installer.un_install_debug_package()
 
             self.new_installer.upgrade_package(self.old_installer)
+            lh.subsection("outputting version")
+            self.new_installer.output_arangod_version()
             # only install debug package for new package.
             self.progress(True, 'installing debug package:')
             self.cfg.have_debug_package = self.new_installer.install_debug_package()
@@ -386,6 +388,9 @@ class Runner(ABC):
                 lh.subsubsection("stopping service")
                 inst.stop_service()
             inst.broadcast_bind()
+            lh.subsubsection("outputting version")
+            inst.output_arangod_version()
+
             lh.subsubsection("starting service")
 
             inst.start_service()
