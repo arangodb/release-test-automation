@@ -191,6 +191,29 @@ process.exit(0);
             self.selenium.check_old(self.new_cfg, False)
             self.selenium.close_tab_again()
 
+    @step
+    def upgrade_arangod_version_manual_impl(self):
+        """ upgrade this installation """
+        for node in [self.leader_starter_instance, self.follower_starter_instance]:
+            node.replace_binary_for_upgrade(self.new_cfg)
+        for node in [self.leader_starter_instance, self.follower_starter_instance]:
+            node.command_upgrade()
+            node.wait_for_upgrade()
+            node.wait_for_upgrade_done_in_log()
+
+        for node in [self.leader_starter_instance, self.follower_starter_instance]:
+            node.detect_instances()
+            node.wait_for_version_reply()
+        if self.selenium:
+            self.selenium.web.refresh()
+            self.selenium.check_old(self.new_cfg, True)
+            self.selenium.connect_server_new_tab(
+                self.follower_starter_instance.get_frontends(),
+                '_system', self.cfg)
+            self.selenium.check_old(self.new_cfg, False)
+            self.selenium.close_tab_again()
+
+    @step
     def jam_attempt_impl(self):
         """ run the replication fuzzing test """
         logging.info("running the replication fuzzing test")

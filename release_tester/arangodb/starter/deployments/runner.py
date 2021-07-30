@@ -25,11 +25,11 @@ from arangodb.sh import ArangoshExecutor
 from tools.killall import kill_all_processes
 
 FNRX = re.compile("[\n@ ]*")
+WINVER = platform.win32_ver()
 
 def detect_file_ulimit():
     """ check whether the ulimit for files is to low """
-    winver = platform.win32_ver()
-    if not winver[0]:
+    if not WINVER[0]:
         # pylint: disable=C0415
         import resource
         nofd = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
@@ -92,6 +92,7 @@ class Runner(ABC):
             "system"] and cfg.have_system_service
         self.do_starter_test = cfg.mode in ["all", "tests"]
         self.do_upgrade = False
+        self.supports_rolling_upgrade = WINVER[0] == None or True# TODO True weg.
 
         self.basecfg = copy.deepcopy(cfg)
         self.new_cfg = new_cfg
@@ -470,7 +471,10 @@ class Runner(ABC):
         print("install")
         print("replace starter")
         print("upgrade instances")
-        self.upgrade_arangod_version_impl()
+        if self.supports_rolling_upgrade:
+            self.upgrade_arangod_version_impl()
+        else:
+            self.upgrade_arangod_version_manual_impl()
         print("check data in instaces")
 
 
@@ -511,7 +515,11 @@ class Runner(ABC):
 
     @abstractmethod
     def upgrade_arangod_version_impl(self):
-        """ upgrade this deployment """
+        """ rolling upgrade this deployment """
+
+    @abstractmethod
+    def upgrade_arangod_version_manual_impl(self):
+        """ start/stop upgrade this deployment """
 
     @abstractmethod
     def jam_attempt_impl(self):
