@@ -95,7 +95,7 @@ def common_options(support_old=True, interactive=True, test_data_dir='/tmp/'):
                                 default=True,
                                 help='clean allure results dir before running tests')(function)
         function = click.option('--alluredir',
-                                default='./allure_results',
+                                default='./allure-results',
                                 help='directory to store allure results')(function)
         return function
     return inner_func
