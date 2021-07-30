@@ -14,7 +14,6 @@ class InstallerTAR(InstallerBase):
     """ install Tar.gz's on Linux/Mac hosts """
 # pylint: disable=R0913 disable=R0902
     def __init__(self, cfg):
-        self.tar = 'tar'
         macver = platform.mac_ver()
         if macver[0]:
             cfg.localhost = 'localhost'
