@@ -15,22 +15,11 @@ class InstallerTAR(InstallerBase):
 # pylint: disable=R0913 disable=R0902
     def __init__(self, cfg):
         macver = platform.mac_ver()
-        if macver[0]:
-            cfg.localhost = 'localhost'
-            self.remote_package_dir  = 'MacOSX'
-            self.architecture = 'macos'
-        else:
-            self.remote_package_dir  = 'Linux'
-            cfg.localhost = 'localhost'
-            self.architecture = 'linux'
-
+        winver = platform.win32_ver()
+        self.dash = "-"
+        self.cfg.installPrefix = Path("/tmp")
+        self.extension = 'tar.gz'
         self.hot_backup = True
-        self.server_package = None
-        self.client_package = None
-        self.debug_package = None
-        self.log_examiner = None
-        self.instance = None
-
         cfg.have_system_service = False
 
         cfg.installPrefix = None
@@ -44,7 +33,38 @@ class InstallerTAR(InstallerBase):
         cfg.appdir = None
         cfg.cfgdir = None
 
+
+        if macver[0]:
+            cfg.localhost = 'localhost'
+            self.remote_package_dir  = 'MacOSX'
+            self.architecture = 'macos'
+        if winver[0]:
+            self.dash = "_"
+            cfg.localhost = 'localhost'
+            cfg.installPrefix = Path("C:/tmp")
+            self.remote_package_dir  = 'Windows'
+            self.architecture = 'win64'
+            self.extension = 'zip'
+            self.hot_backup = False
+        else:
+            self.remote_package_dir  = 'Linux'
+            cfg.localhost = 'localhost'
+            self.architecture = 'linux'
+
+        self.hot_backup = True
+        self.server_package = None
+        self.client_package = None
+        self.debug_package = None
+        self.log_examiner = None
+        self.instance = None
+
         super().__init__(cfg)
+
+    def supports_hot_backup(self):
+        """ no hot backup support on the wintendo. """
+        if not self.hot_backup:
+            return False
+        return super().supports_hot_backup()
 
     def calculate_package_names(self):
         enterprise = 'e' if self.cfg.enterprise else ''
@@ -60,13 +80,15 @@ class InstallerTAR(InstallerBase):
         self.desc = {
             "ep"   : enterprise,
             "ver"  : version,
-            "arch" : self.architecture
+            "arch" : self.architecture,
+            "dashus" : self.dash,
+            "ext" : self.extension
         }
 
-        self.server_package = 'arangodb3{ep}-{arch}-{ver}.tar.gz'.format(**self.desc)
+        self.server_package = 'arangodb3{ep}-{arch}{dashus}{ver}.{ext}'.format(**self.desc)
         self.debug_package = None
         self.client_package = None
-        self.cfg.installPrefix = Path("/tmp") / 'arangodb3{ep}-{arch}-{ver}'.format(**self.desc)
+        self.cfg.installPrefix = Path("/tmp") / 'arangodb3{ep}-{arch}{dashus}{ver}'.format(**self.desc)
         self.cfg.bin_dir = self.cfg.installPrefix / "bin"
         self.cfg.sbin_dir = self.cfg.installPrefix / "usr" / "sbin"
         self.cfg.real_bin_dir = self.cfg.installPrefix / "usr" / "bin"
