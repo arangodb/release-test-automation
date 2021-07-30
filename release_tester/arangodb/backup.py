@@ -193,6 +193,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
                               %(which, line, str(counts)))
 
             if counts['COMPLETED'] == instance_count:
+                print("all nodes have completed to restore the backup")
                 return
             if counts['FAILED'] > 0:
                 raise Exception("failed to create backup: " + str(out))
