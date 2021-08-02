@@ -135,6 +135,37 @@ db.testCollection.save({test: "document"})
             bench_instances[0].wait()
             bench_instances[1].wait()
 
+    def upgrade_arangod_version_manual_impl(self):
+        """ upgrade this installation """
+        print("manual upgrade step 1")
+        for node in self.starter_instances:
+            node.replace_binary_for_upgrade(self.new_cfg)
+            node.terminate_instance(True)
+        print("step 2")
+        for node in self.starter_instances:
+            print('launch')
+            node.manually_launch_instances([
+                InstanceType.AGENT,
+                InstanceType.DBSERVER,
+            ], ['--database.auto-upgrade', 'true', '--log.foreground-tty', 'true'])
+        print("step 3")
+        for node in self.starter_instances:
+            node.respawn_instance()
+        print("step 4")
+        self.starter_instances[0].manually_launch_instances([
+                InstanceType.COORDINATOR
+            ], ['--database.auto-upgrade', 'true'])
+        for node in self.starter_instances:
+            node.detect_instances()
+            node.wait_for_version_reply()
+
+        if self.selenium:
+            self.selenium.upgrade_deployment(self.cfg, self.new_cfg, timeout=30) # * 5s
+        self.starter_instances[1].wait_for_upgrade(300)
+        if self.cfg.stress_upgrade:
+            bench_instances[0].wait()
+            bench_instances[1].wait()
+
     @step
     def jam_attempt_impl(self):
         agency_leader = self.agency_get_leader()

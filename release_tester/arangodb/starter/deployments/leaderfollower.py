@@ -205,17 +205,16 @@ process.exit(0);
         instances = [self.leader_starter_instance, self.follower_starter_instance]
         for node in instances:
             node.replace_binary_setup_for_upgrade(self.new_cfg)
+            node.terminate_instance(True)
         print("step 2")
         for node in instances:
-            node.terminate_instance()
+            print('launch')
+            node.manually_launch_instances([InstanceType.SINGLE], ['--database.auto-upgrade', 'true'])
         print("step 3")
-        for node in instances:
-            node.respawn_instance(['--all.database.auto-upgrade', 'true'], False)
-        print("step 4")
         for node in instances:
             node.respawn_instance()
 
-        print("step 5")
+        print("step 4")
         for node in instances:
             node.detect_instances()
             node.wait_for_version_reply()

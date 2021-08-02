@@ -427,7 +427,7 @@ class StarterManager():
         return False
 
     @step
-    def terminate_instance(self):
+    def terminate_instance(self, keep_instances=False):
         """ terminate the instance of this starter
             (it should kill all its managed services)"""
 
@@ -456,8 +456,9 @@ class StarterManager():
             instance.detect_gone()
         # Clear instances as they have been stopped and the logfiles
         # have been moved.
-        self.is_leader = False
-        self.all_instances = []
+        if not keep_instances:
+            self.is_leader = False
+            self.all_instances = []
 
     @step
     def kill_instance(self):
@@ -495,6 +496,24 @@ class StarterManager():
         logging.info("StarterManager: respawned instance as [%s]",
                      str(self.instance.pid))
 
+    @step
+    def manually_launch_instances(self, which_instances, moreargs, waitpid=True):
+        """ launch the instances of this starter with optional arguments """
+        print(which_instances)
+        for instance_type in which_instances:
+            print("in")
+            print(instance_type)
+            for i in self.all_instances:
+                print("ININ")
+                print(instance_type)
+                print(i)
+                if i.instance_type == instance_type:
+                    print("upgrading!")
+                    i.launch_manual_form_instance_control_file(
+                        self.cfg.bin_dir,
+                        moreargs,
+                        waitpid)
+        
     @step
     def replace_binary_setup_for_upgrade(self, new_install_cfg):
         """
