@@ -90,6 +90,13 @@ def common_options(support_old=True, interactive=True, test_data_dir='/tmp/'):
                                 default=[],
                                 multiple=True,
                                 help='options to the selenium web driver')(function)
+        function = click.option('--clean-alluredir',
+                                is_flag=True,
+                                default=True,
+                                help='clean allure results dir before running tests')(function)
+        function = click.option('--alluredir',
+                                default=Path('./allure-results'),
+                                help='directory to store allure results')(function)
         return function
     return inner_func
 

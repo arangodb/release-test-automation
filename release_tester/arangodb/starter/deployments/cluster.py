@@ -4,6 +4,7 @@ import time
 import logging
 from pathlib import Path
 
+from reporting.reporting_utils import step
 from tools.timestamp import timestamp
 from tools.interact import prompt_user
 from arangodb.instance import InstanceType
@@ -134,6 +135,7 @@ db.testCollection.save({test: "document"})
             bench_instances[0].wait()
             bench_instances[1].wait()
 
+    @step
     def jam_attempt_impl(self):
         agency_leader = self.agency_get_leader()
         terminate_instance = 2

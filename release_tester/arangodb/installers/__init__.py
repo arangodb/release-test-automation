@@ -3,6 +3,7 @@
 import platform
 import os
 from pathlib import Path
+from reporting.reporting_utils import step
 import semver
 
 # pylint: disable=R0903
@@ -93,19 +94,23 @@ verbose: {0.verbose}
         self.version = version
         self.semver = semver.VersionInfo.parse(version)
 
+    @step
     def add_frontend(self, proto, ip_address, port):
         """ add a frontend URL in components """
         self.frontends.append(InstallerFrontend(proto, ip_address, port))
 
+    @step
     def set_frontend(self, proto, ip_address, port):
         """ add a frontend URL in components """
         self.frontends = [InstallerFrontend(proto, ip_address, port)]
 
+    @step
     def generate_password(self):
         """ generate a new password """
         raise NotImplementedError()
         #self.passvoid = 'cde'
 
+    @step
     def set_directories(self, other):
         """ set all directories from the other object """
         if other.base_test_dir is None:

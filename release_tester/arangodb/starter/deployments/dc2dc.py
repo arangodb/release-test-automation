@@ -21,7 +21,7 @@ SYNC_VERSIONS = {
     "220": semver.VersionInfo.parse('2.2.0'),
     "230": semver.VersionInfo.parse('2.3.0')
 }
-USERS_ERROR_RX = re.compile('.*\n.*\n.*(_users).*DIFFERENT.*', re.MULTILINE)
+USERS_ERROR_RX = re.compile('.*\n*.*\n*.*(_users).*DIFFERENT.*', re.MULTILINE)
 
 class Dc2Dc(Runner):
     """ this launches two clusters in dc2dc mode """
@@ -181,9 +181,9 @@ class Dc2Dc(Runner):
                                         self.certificate_auth,
                                         from_to_dc,
                                         self.sync_version)
-        (output, err, exitsucess) = self.sync_manager.run_syncer()
-        if not exitsucess:
-            raise Exception("starting the synchronisation failed!" + str(output) + str(err))
+        (success, output, _, _) = self.sync_manager.run_syncer()
+        if not success:
+            raise Exception("starting the synchronisation failed!" + str(output))
         self.progress(True, "SyncManager: up %s", output)
 
     def finish_setup_impl(self):
@@ -230,27 +230,26 @@ class Dc2Dc(Runner):
 
     def _stop_sync(self, timeout=120):
         output = ""
-        err = ""
-        exitcode = 0
+        success = True
 
         if self._is_higher_sync_version(SYNC_VERSIONS['150'], SYNC_VERSIONS['230']):
-            output, err, exitcode = self.sync_manager.stop_sync(timeout)
+            success, output, _, _ = self.sync_manager.stop_sync(timeout)
         else:
             # Arangosync with the bug for checking in-sync status.
             self.progress(True, "arangosync: stopping sync without checking if shards are in-sync")
-            output, err, exitcode = self.sync_manager.stop_sync(timeout, ['--ensure-in-sync=false'])
+            success, output, _, _ = self.sync_manager.stop_sync(timeout, ['--ensure-in-sync=false'])
 
-        if exitcode == 0:
+        if success:
             return
 
         self.state += "\n" + output
-        self.state += "\n" + err
         raise Exception("failed to stop the synchronization")
 
     def _mitigate_known_issues(self, last_sync_output):
         """
         this function contains counter measures against known issues of arangosync
         """
+        print(last_sync_output)
         if re.match(USERS_ERROR_RX, last_sync_output):
             self.progress(True, 'arangosync: resetting users collection...')
             self.sync_manager.reset_failed_shard('_system', '_users')
@@ -278,9 +277,8 @@ class Dc2Dc(Runner):
     def _get_in_sync(self, attempts):
         self.progress(True, "waiting for the DCs to get in sync")
         output = None
-        err = None
         for count in range (attempts):
-            (output, err, result) = self.sync_manager.check_sync()
+            (result, output) = self.sync_manager.check_sync()
             if result:
                 print("CHECK SYNC OK!")
                 break
@@ -289,7 +287,6 @@ class Dc2Dc(Runner):
             time.sleep(10)
         else:
             self.state += "\n" + output
-            self.state += "\n" + err
             raise Exception("failed to get the sync status")
 
     def test_setup_impl(self):

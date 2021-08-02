@@ -14,6 +14,7 @@ VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_tar_version"
 mkdir -p package_cache
 mkdir -p ${VERSION_TAR_NAME}
 mkdir -p test_dir
+mkdir -p allure-results
 tar -xvf ${VERSION_TAR_NAME}.tar || true
 
 VERSION=$(cat VERSION.json)
@@ -41,6 +42,7 @@ docker \
   -v /dev/shm:/dev/shm \
   -v $(pwd):/home/release-test-automation \
   -v $(pwd)/test_dir:/home/test_dir \
+  -v $(pwd)/allure-results:/home/allure-results \
   -v "$PACKAGE_CACHE":/home/package_cache \
   -v $(pwd)/${VERSION_TAR_NAME}:/home/versions \
   --env="BUILD_NUMBER=${BUILD_NUMBER}" \
@@ -58,6 +60,7 @@ docker \
       --selenium-driver-args headless \
       --selenium-driver-args no-sandbox \
       --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;") \
+      --alluredir /home/allure-results \
       $force_arg --git-version $GIT_VERSION $@
 result=$?
 

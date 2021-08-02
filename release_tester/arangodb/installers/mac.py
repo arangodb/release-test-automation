@@ -11,12 +11,16 @@ import logging
 import subprocess
 from pathlib import Path
 import plistlib
+
+from reporting.reporting_utils import step
 import pexpect
+from allure_commons._allure import attach
 
 from arangodb.installers.base import InstallerBase
 from tools.asciiprint import ascii_print
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
+@step
 def _mountdmg(dmgpath):
     """
     Attempts to mount the dmg at dmgpath and returns first mountpoint
@@ -56,6 +60,7 @@ def _mountdmg(dmgpath):
         raise Exception("plist empty")
     return mountpoints[0]
 
+@step
 def _detect_dmg_mountpoints(dmgpath):
     """
     Unmounts the dmg at mountpoint
@@ -82,6 +87,7 @@ def _detect_dmg_mountpoints(dmgpath):
                         mountpoints.append(item['mount-point'])
     else:
         raise Exception("plist empty")
+    attach(mountpoints)
     return mountpoints
 
 def _unmountdmg(mountpoint):
@@ -138,6 +144,7 @@ class InstallerMac(InstallerBase):
 
         super().__init__(cfg)
 
+    @step
     def run_installer_script(self):
         """ this will run the installer script from the dmg """
         enterprise = 'e' if self.cfg.enterprise else ''
@@ -177,6 +184,7 @@ class InstallerMac(InstallerBase):
         self.client_package = None
         self.debug_package = None
 
+    @step
     def check_service_up(self):
         time.sleep(1)    # TODO
         return True
@@ -184,16 +192,20 @@ class InstallerMac(InstallerBase):
     def start_service(self):
         """ nothing to see here """
 
+    @step
     def stop_service(self):
         self.instance.terminate_instance()
 
+    @step
     def upgrade_package(self, old_installer):
         os.environ["UPGRADE_DB"] = "No"
         self.install_package()
 
+    @step
     def un_install_package_for_upgrade(self):
         """ hook to uninstall old package for upgrade """
 
+    @step
     def install_package(self):
         if self.cfg.pidfile.exists():
             self.cfg.pidfile.unlink()
@@ -223,6 +235,7 @@ class InstallerMac(InstallerBase):
         self.set_system_instance()
         self.instance.detect_pid(1) # should be owned by init - TODO
 
+    @step
     def un_install_package(self):
         self.stop_service()
         if not self.mountpoint:
@@ -233,6 +246,7 @@ class InstallerMac(InstallerBase):
         else:
             _unmountdmg(self.mountpoint)
 
+    @step
     def cleanup_system(self):
         if self.cfg.log_dir.exists():
             shutil.rmtree(self.cfg.log_dir)
