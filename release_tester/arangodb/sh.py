@@ -9,6 +9,7 @@ from queue import Queue, Empty
 from subprocess import DEVNULL, PIPE, Popen
 import sys
 from threading  import Thread
+from reporting.reporting_utils import step
 import psutil
 from tools.asciiprint import print_progress as progress
 import tools.errorhelper as eh
@@ -60,6 +61,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         # logging.debug("exitcode {0}".format(exitcode))
         return exitcode == 0
 
+    @step
     def self_test(self):
         """ run a command that throws to check exit code handling """
         logging.info("running arangosh check")
@@ -84,6 +86,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             raise Exception(
                 "arangosh doesn't exit with 0 to indicate no errors")
 
+    @step
     def run_script(self, cmd, verbose = True):
         """ launch an external js-script, print its name """
         run_cmd = [
@@ -116,6 +119,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         logging.debug("exitcode {0}".format(exitcode))
         return exitcode == 0
 
+    @step
     def run_script_monitored(self, cmd, args, timeout, result_line,
                              process_control=False, verbose=True):
        # pylint: disable=R0913 disable=R0902 disable=R0915 disable=R0912 disable=R0914
@@ -144,6 +148,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                                               result_line,
                                               verbose)
 
+    @step
     def run_testing(self,
                     testcase, args,
                     #timeout,
@@ -199,6 +204,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         thread1.join()
         thread2.join()
 
+    @step
     def js_version_check(self):
         """ run a version check command; this can double as password check """
         logging.info("running version check")
@@ -222,6 +228,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                                     self.cfg.interactive)
         return res
 
+    @step
     def js_set_passvoid(self, user, passvoid):
         """ connect to the instance, and set a passvoid for the user """
         js_set_passvoid_str = 'require("org/arangodb/users").update("%s", "%s");'% (
@@ -237,6 +244,8 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                                     self.cfg.interactive)
         return res
 
+    @step("""Create a collection with documents after taking a backup
+          (to verify its not in the backup)""")
     def hotbackup_create_nonbackup_data(self):
         """
         create a collection with documents after taking a backup
@@ -259,6 +268,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                                     self.cfg.interactive)
         return res
 
+    @step
     def hotbackup_check_for_nonbackup_data(self):
         """ check whether the data is in there or not. """
         logging.info("running version check")
@@ -278,6 +288,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
 
         return res
 
+    @step
     def run_in_arangosh(self, testname,
                         args=[], moreargs=[],
                         result_line=dummy_line_result,
@@ -311,6 +322,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                                         verbose=self.cfg.verbose)
         return ret
 
+    @step
     def create_test_data(self, testname, args=[],
                          result_line=dummy_line_result,
                          timeout=100):
@@ -334,6 +346,8 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
 
         return ret
 
+
+    @step
     def check_test_data(self, testname,
                         supports_foxx_tests,
                         args=[],
@@ -359,6 +373,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             verbose=self.cfg.verbose)
         return ret
 
+    @step
     def clear_test_data(self, testname, args=[], result_line=dummy_line_result):
         # pylint: disable=W0102
         """ flush the testdata from the instance again """

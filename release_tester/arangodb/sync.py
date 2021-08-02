@@ -4,9 +4,7 @@
 """
 import copy
 import logging
-# import subprocess
-# from threading import Timer
-
+from reporting.reporting_utils import step
 import semver
 
 from arangodb.async_client import (
@@ -41,6 +39,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         self.instance = None
         super().__init__(basecfg, None)
 
+    @step
     def run_syncer(self):
         """ launch the syncer for this instance """
         return self. run_monitored(self.cfg.bin_dir / 'arangosync',
@@ -53,6 +52,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         """ set the new config properties """
         self.cfg.installPrefix = new_install_cfg.installPrefix
 
+    @step
     def check_sync_status(self, which):
         """ run the syncer status command """
         logging.info('SyncManager: Check status of cluster %s', str(which))
@@ -70,6 +70,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
                                   dummy_line_result,
                                   self.cfg.verbose)
 
+    @step
     def get_sync_tasks(self, which):
         """ run the get tasks command """
         logging.info('SyncManager: Check tasks of cluster %s', str(which))
@@ -87,6 +88,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
                                   dummy_line_result,
                                   self.cfg.verbose)
 
+    @step
     #pylint: disable=W0102
     def stop_sync(self, timeout=60, more_args=[]):
         """ run the stop sync command """
@@ -104,6 +106,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
                                   dummy_line_result,
                                   self.cfg.verbose)
 
+    @step
     def abort_sync(self):
         """ run the stop sync command """
         args = [
@@ -120,6 +123,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
                                   dummy_line_result,
                                   self.cfg.verbose)
 
+    @step
     def check_sync(self):
         """ run the check sync command """
         if self.version < semver.VersionInfo.parse('1.0.0'):
@@ -146,6 +150,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         success = output.find('The whole data is the same') >= 0
         return (success, output)
 
+    @step
     def reset_failed_shard(self, database, collection):
         """ run the check sync command """
         if self.version < semver.VersionInfo.parse('1.0.0'):

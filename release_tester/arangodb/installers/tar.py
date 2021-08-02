@@ -4,6 +4,7 @@ import platform
 import shutil
 import logging
 from pathlib import Path
+from reporting.reporting_utils import step
 import psutil
 import tools.loghelper as lh
 from arangodb.installers.base import InstallerBase
@@ -85,10 +86,12 @@ class InstallerTAR(InstallerBase):
     def stop_service(self):
         """ nothing to see here """
 
+    @step
     def upgrade_package(self, old_installer):
         """ Tar installer is the same way we did for installing."""
         self.install_package()
 
+    @step
     def install_package(self):
         logging.info("installing Arangodb debian Tar package")
         logging.debug(
@@ -101,6 +104,7 @@ class InstallerTAR(InstallerBase):
                               str(self.cfg.installPrefix / '..'))
         logging.info('Installation successfull')
 
+    @step
     def un_install_package(self):
         if self.cfg.installPrefix.exists():
             shutil.rmtree(self.cfg.installPrefix)
