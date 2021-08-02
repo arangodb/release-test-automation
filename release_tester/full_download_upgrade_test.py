@@ -65,10 +65,6 @@ def upgrade_package_test(verbose,
     print("Cleanup done")
 
     for enterprise, encryption_at_rest, directory_suffix, testrun_name in execution_plan:
-        dl_old = None
-        dl_new = None
-        fresh_old_content = None
-        fresh_new_content = None
         #pylint: disable=W0612
         with AllureTestSuiteContext(alluredir,
                                     clean_alluredir,
@@ -77,6 +73,10 @@ def upgrade_package_test(verbose,
                                     new_version,
                                     old_version,
                                     testrun_name) as suite_context:
+            dl_old = None
+            dl_new = None
+            fresh_old_content = None
+            fresh_new_content = None
             if old_dlstage != "local":
                 dl_old = AcquirePackages(old_version, verbose, package_dir, enterprise,
                                          enterprise_magic, zip_package, old_dlstage,
