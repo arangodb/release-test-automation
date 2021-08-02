@@ -35,6 +35,7 @@ docker run -itd \
        -v `pwd`:/home/release-test-automation \
        -v `pwd`/package_cache/:/home/package_cache \
        -v /tmp:/home/test_dir \
+       -v $(pwd)/allure-results:/home/allure-results \
        -v /tmp/tmp:/tmp/ \
        -v /tmp/deb_versions:/home/versions \
        \
@@ -80,6 +81,7 @@ if docker exec $DOCKER_RPM_NAME \
           --selenium-driver-args no-sandbox \
           --selenium-driver-args remote-debugging-port=9222 \
           --selenium-driver-args start-maximized \
+          --alluredir /home/allure-results \
           $force_arg $@; then
     echo "OK"
 else

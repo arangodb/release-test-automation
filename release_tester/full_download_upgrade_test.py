@@ -16,6 +16,7 @@ from beautifultable import BeautifulTable, ALIGN_LEFT
 
 import tools.loghelper as lh
 from acquire_packages import AcquirePackages
+from reporting.reporting_utils import AllureTestSuiteContext
 from upgrade import run_upgrade
 from cleanup import run_cleanup
 
@@ -31,7 +32,8 @@ def upgrade_package_test(verbose,
                          test_data_dir, version_state_dir,
                          remote_host, force,
                          starter_mode, stress_upgrade,
-                         publicip, selenium, selenium_driver_args):
+                         publicip, selenium, selenium_driver_args,
+                         alluredir, clean_alluredir):
     """ process fetch & tests """
     old_version_state = None
     new_version_state = None
@@ -59,61 +61,70 @@ def upgrade_package_test(verbose,
     print("Cleanup done")
 
     for enterprise, encryption_at_rest, directory_suffix, testrun_name in execution_plan:
-        dl_old = None
-        dl_new = None
-        fresh_old_content = None
-        fresh_new_content = None
-        if old_dlstage != "local":
-            dl_old = AcquirePackages(old_version, verbose, package_dir, enterprise,
-                                     enterprise_magic, zip_package, old_dlstage,
-                                     httpusername, httppassvoid, remote_host)
-            old_version_state = version_state_dir / Path(dl_old.cfg.version + "_sourceInfo.log")
-            if old_version_state.exists():
-                old_version_content = old_version_state.read_text()
-            fresh_old_content = dl_old.get_version_info(old_dlstage, git_version)
+        #pylint: disable=W0612
+        with AllureTestSuiteContext(alluredir,
+                                    clean_alluredir,
+                                    enterprise,
+                                    zip_package,
+                                    new_version,
+                                    old_version,
+                                    testrun_name) as suite_context:
+            dl_old = None
+            dl_new = None
+            fresh_old_content = None
+            fresh_new_content = None
+            if old_dlstage != "local":
+                dl_old = AcquirePackages(old_version, verbose, package_dir, enterprise,
+                                         enterprise_magic, zip_package, old_dlstage,
+                                         httpusername, httppassvoid, remote_host)
+                old_version_state = version_state_dir / Path(dl_old.cfg.version + "_sourceInfo.log")
+                if old_version_state.exists():
+                    old_version_content = old_version_state.read_text()
+                fresh_old_content = dl_old.get_version_info(old_dlstage, git_version)
 
-        if new_dlstage != "local":
-            dl_new = AcquirePackages(new_version, verbose, package_dir, enterprise,
-                                     enterprise_magic, zip_package, new_dlstage,
-                                     httpusername, httppassvoid, remote_host)
+            if new_dlstage != "local":
+                dl_new = AcquirePackages(new_version, verbose, package_dir, enterprise,
+                                         enterprise_magic, zip_package, new_dlstage,
+                                         httpusername, httppassvoid, remote_host)
 
-            new_version_state = version_state_dir / Path(dl_new.cfg.version + "_sourceInfo.log")
-            if new_version_state.exists():
-                new_version_content = new_version_state.read_text()
-            fresh_new_content = dl_new.get_version_info(new_dlstage, git_version)
+                new_version_state = version_state_dir / Path(dl_new.cfg.version + "_sourceInfo.log")
+                if new_version_state.exists():
+                    new_version_content = new_version_state.read_text()
+                fresh_new_content = dl_new.get_version_info(new_dlstage, git_version)
 
-        if new_dlstage != "local" and old_dlstage != "local":
-            old_changed = old_version_content != fresh_old_content
-            new_changed = new_version_content != fresh_new_content
+            if new_dlstage != "local" and old_dlstage != "local":
+                old_changed = old_version_content != fresh_old_content
+                new_changed = new_version_content != fresh_new_content
 
-            if not new_changed and not old_changed and not force:
-                print("we already tested this version. bye.")
-                return 0
+                if not new_changed and not old_changed and not force:
+                    print("we already tested this version. bye.")
+                    return 0
 
-        if dl_old:
-            dl_old.get_packages(old_changed, old_dlstage)
-            old_version = dl_old.cfg.version
-        if dl_new:
-            dl_new.get_packages(new_changed, new_dlstage)
-            new_version = dl_new.cfg.version
+            if dl_old:
+                dl_old.get_packages(old_changed, old_dlstage)
+                old_version = dl_old.cfg.version
+            if dl_new:
+                dl_new.get_packages(new_changed, new_dlstage)
+                new_version = dl_new.cfg.version
 
-        test_dir = Path(test_data_dir) / directory_suffix
-        if test_dir.exists():
-            shutil.rmtree(test_dir)
-        test_dir.mkdir()
-        while not test_dir.exists():
-            time.sleep(1)
-        results.append(
-            run_upgrade(old_version,
-                        new_version,
-                        verbose,
-                        package_dir,
-                        test_dir,
-                        enterprise, encryption_at_rest,
-                        zip_package, False,
-                        starter_mode, stress_upgrade, False,
-                        publicip, selenium, selenium_driver_args,
-                        testrun_name))
+            test_dir = Path(test_data_dir) / directory_suffix
+            if test_dir.exists():
+                shutil.rmtree(test_dir)
+            test_dir.mkdir()
+            while not test_dir.exists():
+                time.sleep(1)
+            results.append(
+                run_upgrade(old_version,
+                            new_version,
+                            verbose,
+                            package_dir,
+                            test_dir,
+                            enterprise, encryption_at_rest,
+                            zip_package, False,
+                            starter_mode, stress_upgrade, False,
+                            publicip, selenium, selenium_driver_args,
+                            testrun_name))
+
 
     print('V' * 80)
     status = True
@@ -174,7 +185,7 @@ def main(
         #very_common_options
         new_version, verbose, enterprise, package_dir, zip_package,
         # common_options
-        old_version, test_data_dir, encryption_at_rest,
+        old_version, test_data_dir, encryption_at_rest, alluredir, clean_alluredir,
         # no-interactive!
         starter_mode, stress_upgrade, abort_on_error, publicip,
         selenium, selenium_driver_args,
@@ -193,7 +204,8 @@ def main(
                                 version_state_dir,
                                 remote_host, force,
                                 starter_mode, stress_upgrade,
-                                publicip, selenium, selenium_driver_args)
+                                publicip, selenium, selenium_driver_args,
+                                alluredir, clean_alluredir)
 
 if __name__ == "__main__":
 # pylint: disable=E1120 # fix clickiness.
