@@ -94,24 +94,24 @@ def upgrade_package_test(verbose,
                 if new_version.find('-nightly') >= 0:
                     new_version_state = version_state_dir / Path(dl_new.cfg.version + "_sourceInfo.log")
                     if new_version_state.exists():
-                    new_version_content = new_version_state.read_text()
+                        new_version_content = new_version_state.read_text()
                     fresh_new_content = dl_new.get_version_info(new_dlstage, git_version)
 
             if new_dlstage != "local" and old_dlstage != "local":
                 old_changed = old_version_content != fresh_old_content
                 new_changed = new_version_content != fresh_new_content
-    
+
                 if not new_changed and not old_changed and not force:
                     print("we already tested this version. bye.")
                     return 0
-    
+
             if dl_old:
                 dl_old.get_packages(old_changed, old_dlstage)
                 old_version = dl_old.cfg.version
             if dl_new:
                 dl_new.get_packages(new_changed, new_dlstage)
                 new_version = dl_new.cfg.version
-    
+
             test_dir = Path(test_data_dir) / directory_suffix
             if test_dir.exists():
                 shutil.rmtree(test_dir)
