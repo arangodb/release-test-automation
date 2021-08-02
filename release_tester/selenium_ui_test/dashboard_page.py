@@ -89,6 +89,10 @@ class DashboardPage(BaseSelenium):
         print("DB Uptime: ", self.check_db_uptime_id)
         time.sleep(1)
 
+    def check_responsiveness_for_dashboard(self):
+        """Checking LOG tab causes unresponsive UI (found in 3.8 server package"""
+        super().check_ui_responsiveness()
+
     def check_system_resource(self):
         """checking system resource tab from the dashboard"""
         self.check_system_resource_id = BaseSelenium.locator_finder_by_id(self, self.check_system_resource_id)

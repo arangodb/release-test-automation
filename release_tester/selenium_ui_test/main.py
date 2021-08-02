@@ -53,6 +53,7 @@ class Test(BaseSelenium):
         dash.check_db_status()
         dash.check_db_engine()
         dash.check_db_uptime()
+        dash.check_responsiveness_for_dashboard()
         print("\nSwitch to System Resource tab\n")
         dash.check_system_resource()
         print("Switch to Metrics tab\n")

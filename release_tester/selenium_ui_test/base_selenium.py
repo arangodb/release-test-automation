@@ -132,6 +132,55 @@ class BaseSelenium:
             keyboard01.press('w')
             keyboard01.release('w')
     
+    def check_ui_responsiveness(self):
+        """Checking LOG tab causes unresponsive UI (found in 3.8 server package"""
+        print("\n")
+        print("Clicking on Log tab \n")
+        log = "logs"
+        log = BaseSelenium.locator_finder_by_id(self, log)
+        log.click()
+
+        print("Try to tap on Log Level drop down button \n")
+        log_level = 'logLevelSelection'
+        log_level = BaseSelenium.locator_finder_by_id(self, log_level)
+        log_level.click()
+
+        time.sleep(3)
+
+        print("Close the Log Level button \n")
+        log_level01 = 'closeFilter'
+        log_level01 = BaseSelenium.locator_finder_by_id(self, log_level01)
+        log_level01.click()
+
+        print("Quickly tap on to Collection Tab")
+        collection = "collections"
+        collection = BaseSelenium.locator_finder_by_id(self, collection)
+        collection.click()
+
+        print("Waiting for few seconds \n")
+        time.sleep(3)
+
+        print("Return back to Log tab again \n")
+        log01 = "logs"
+        log01 = BaseSelenium.locator_finder_by_id(self, log01)
+        log01.click()
+
+        print("Trying to tap on Log Level once again \n")
+        try:
+            log_level = 'logLevelSelection'
+            log_level = BaseSelenium.locator_finder_by_id(self, log_level)
+            log_level.click()
+            assert "Level" in log_level.text, "********UI become unresponsive******"
+        except TimeoutException:
+            print("Dashboard responsiveness failed")
+
+        print("Back to Dashboard again \n")
+        self.driver.refresh()
+        dash = "dashboard"
+        dash = BaseSelenium.locator_finder_by_id(self, dash)
+        dash.click()
+        time.sleep(2)
+    
     def select_query_execution_area(self):
         """This method will select the query execution area"""
         try:
