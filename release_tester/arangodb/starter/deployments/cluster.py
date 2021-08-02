@@ -135,7 +135,7 @@ db.testCollection.save({test: "document"})
             bench_instances[0].wait()
             bench_instances[1].wait()
 
-    @step("Attempt to jam cluster")
+    @step
     def jam_attempt_impl(self):
         agency_leader = self.agency_get_leader()
         terminate_instance = 2

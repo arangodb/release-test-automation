@@ -94,23 +94,23 @@ verbose: {0.verbose}
         self.version = version
         self.semver = semver.VersionInfo.parse(version)
 
-    @step("Add a frontend URL in components")
+    @step
     def add_frontend(self, proto, ip_address, port):
         """ add a frontend URL in components """
         self.frontends.append(InstallerFrontend(proto, ip_address, port))
 
-    @step("Set a frontend URL in components")
+    @step
     def set_frontend(self, proto, ip_address, port):
         """ add a frontend URL in components """
         self.frontends = [InstallerFrontend(proto, ip_address, port)]
 
-    @step("Generate a new password")
+    @step
     def generate_password(self):
         """ generate a new password """
         raise NotImplementedError()
         #self.passvoid = 'cde'
 
-    @step("Set directories")
+    @step
     def set_directories(self, other):
         """ set all directories from the other object """
         if other.base_test_dir is None:

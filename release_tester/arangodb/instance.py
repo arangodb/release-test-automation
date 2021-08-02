@@ -117,7 +117,7 @@ class Instance(ABC):
     def get_essentials(self):
         """ get the essential attributes of the class """
 
-    @step("Rename log file")
+    @step
     def rename_logfile(self, suffix='.old'):
         """ to ease further analysis, move old logfile out of our way"""
         logfile = str(self.logfile)
@@ -128,7 +128,7 @@ class Instance(ABC):
             new_logfile.unlink()
         self.logfile.rename(new_logfile)
 
-    @step("Terminate instance")
+    @step
     def terminate_instance(self):
         """ terminate the process represented by this wrapper class """
         if self.instance:
@@ -145,7 +145,7 @@ class Instance(ABC):
         else:
             logging.info("I'm already dead, jim!" + str(repr(self)))
 
-    @step("Suspend instance")
+    @step
     def suspend_instance(self):
         """ halt an instance using SIG_STOP """
         if self.instance:
@@ -157,7 +157,7 @@ class Instance(ABC):
         else:
             logging.error("instance not available with this PID: " + str(repr(self)))
 
-    @step("Resume instance")
+    @step
     def resume_instance(self):
         """ resume the instance using SIG_CONT """
         if self.instance:
@@ -169,7 +169,7 @@ class Instance(ABC):
         else:
             logging.error("instance not available with this PID: " + str(repr(self)))
 
-    @step("Crash instance")
+    @step
     def crash_instance(self):
         """ send SIG-11 to instance... """
         if self.instance:
@@ -191,7 +191,7 @@ class Instance(ABC):
         else:
             logging.info("I'm already dead, jim!" + str(repr(self)))
 
-    @step("Wait for instance shutdown")
+    @step
     def wait_for_shutdown(self):
         """ wait for the instance to anounce its dead! """
         while True:
@@ -238,7 +238,7 @@ class Instance(ABC):
         if count > 0:
             print(" %d lines suppressed by filters" % count)
 
-    @step("Save logfile")
+    @step
     def add_logfile_to_report(self):
         """ Add log to allure report"""
         logfile = str(self.logfile)
@@ -328,7 +328,7 @@ class ArangodInstance(Instance):
         # pylint: disable=R0201
         return False
 
-    @step("Wait for logfile to appear")
+    @step
     def wait_for_logfile(self, tries):
         """ wait for logfile to appear """
         while not self.logfile.exists() and tries:
@@ -340,7 +340,7 @@ class ArangodInstance(Instance):
         """ detect if I am the leader? """
         return self.get_afo_state() == AfoServerState.LEADER
 
-    @step("Wait for the instance to reply with 200 to api/version")
+    @step
     def check_version_request(self, timeout):
         """ wait for the instance to reply with 200 to api/version """
         until = time.time() + timeout

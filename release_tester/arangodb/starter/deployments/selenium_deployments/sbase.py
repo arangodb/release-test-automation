@@ -83,13 +83,13 @@ class SeleniumRunner(ABC):
         self.reset_progress()
         return ret
 
-    @step("Disconnect")
+    @step
     def disconnect(self):
         """ byebye """
         self.progress("Close!")
         self.web.close()
 
-    @step("Get browser log entries")
+    @step
     def get_browser_log_entries(self):
         """get log entreies from selenium and add to python logger before returning"""
         print('B'*80)
@@ -125,7 +125,7 @@ class SeleniumRunner(ABC):
                 print("caught exception during transfering browser logs: " + str(ex))
                 print(entry)
 
-    @step("Take screenshot")
+    @step
     def take_screenshot(self, filename=None):
         """ *snap* """
         if filename is None:
@@ -157,7 +157,7 @@ class SeleniumRunner(ABC):
 
         attach(screenshot, name="Screenshot ({fn})".format(fn=filename), attachment_type=AttachmentType.PNG)
 
-    @step("Make UI assertion")
+    @step
     def ui_assert(self, conditionstate, message):
         """ python assert sucks. fuckit. """
         if not conditionstate:
@@ -165,7 +165,7 @@ class SeleniumRunner(ABC):
             self.take_screenshot()
             assert False, message
 
-    @step("Open new tab and go to /_db/_system/_admin/aardvark/index.html")
+    @step
     def connect_server_new_tab(self, frontend_instance, database, cfg):
         """ login... """
         self.progress("Opening page")
@@ -198,7 +198,7 @@ class SeleniumRunner(ABC):
         self.web.switch_to.window(self.original_window_handle)
         self.original_window_handle = None
 
-    @step("Open /_db/_system/_admin/aardvark/index.html")
+    @step
     def connect_server(self, frontend_instance, database, cfg):
         """ login... """
         self.progress("Opening page")

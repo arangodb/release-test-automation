@@ -77,7 +77,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         if not self.backup_dir.exists():
             self.backup_dir.mkdir(parents=True)
 
-    @step("Run backup")
+    @step
     def run_backup(self, arguments, name, silent=False):
         """ launch the starter for this instance"""
         if not silent:
@@ -110,7 +110,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
                             ascii_convert(output))
         return output
 
-    @step("Create a hot backup")
+    @step
     def create(self, backup_name):
         """ create a hot backup """
         args = ['create', '--label', backup_name, '--max-wait-for-lock', '180']
@@ -132,19 +132,19 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
                 backups.append(match.group(1))
         return backups
 
-    @step("Restore an existing hot backup")
+    @step
     def restore(self, backup_name):
         """ restore an existing hot backup """
         args = ['restore', '--identifier', backup_name]
         self.run_backup(args, backup_name)
 
-    @step("Delete an existing hot backup")
+    @step
     def delete(self, backup_name):
         """ delete an existing hot backup """
         args = ['delete', '--identifier', backup_name]
         self.run_backup(args, backup_name)
 
-    @step("Upload a backup using rclone")
+    @step
     def upload(self, backup_name, backup_config: HotBackupConfig, identifier):
         """ upload a backup using rclone on the server """
         args = [
@@ -205,7 +205,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
                     instance_count)
             time.sleep(1)
 
-    @step("Download a backup using rclone")
+    @step
     def download(self, backup_name, backup_config: HotBackupConfig, identifier):
         """ download a backup using rclone on the server """
         args = [

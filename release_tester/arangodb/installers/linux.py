@@ -40,7 +40,7 @@ class InstallerLinux(InstallerBase):
             logging.info('Something wrong')
             sys.exit(1)
 
-    @step("Check that service is up")
+    @step
     def check_service_up(self):
         for count in range (20):
             if not self.instance.detect_gone():

@@ -138,7 +138,7 @@ process.exit(0);
         self.makedata_instances.append(self.leader_starter_instance)
 
 
-    @step("Setup test")
+    @step
     def test_setup_impl(self):
         logging.info("testing the leader/follower setup")
         tries = 30
@@ -222,7 +222,7 @@ process.exit(0);
         if self.selenium:
             self.selenium.jam_step_1(self.cfg if self.cfg else self.new_cfg)
 
-    @step("Shutdown")
+    @step
     def shutdown_impl(self):
         self.leader_starter_instance.terminate_instance()
         self.follower_starter_instance.terminate_instance()

@@ -93,7 +93,7 @@ class InstallerDeb(InstallerLinux):
                 raise Exception("server service stop didn't"
                                 "finish successfully!")
 
-    @step("Upgrade package")
+    @step
     def upgrade_package(self, old_installer):
         logging.info("upgrading Arangodb debian package")
         os.environ['DEBIAN_FRONTEND'] = 'readline'
@@ -136,7 +136,7 @@ class InstallerDeb(InstallerLinux):
         except pexpect.exceptions.EOF:
             logging.info("TIMEOUT!")
 
-    @step("Install package")
+    @step
     def install_package(self):
         # pylint: disable=too-many-statements
         logging.info("installing Arangodb debian package")
@@ -216,7 +216,7 @@ class InstallerDeb(InstallerLinux):
             self.start_service()
         self.instance.detect_pid(1) # should be owned by init
 
-    @step("Uninstall package")
+    @step
     def un_install_package(self):
         cmd = ('dpkg --purge ' + 'arangodb3' +
                ('e' if self.cfg.enterprise else ''))
@@ -231,7 +231,7 @@ class InstallerDeb(InstallerLinux):
             ascii_print(uninstall.before)
             sys.exit(1)
 
-    @step("Install debug package")
+    @step
     def install_debug_package(self):
         """ installing debug package """
         cmd = 'dpkg -i ' + str(self.cfg.package_dir / self.debug_package)
@@ -259,7 +259,7 @@ class InstallerDeb(InstallerLinux):
                     " debug installation didn't finish successfully!")
         return self.cfg.have_debug_package
 
-    @step("Uninstall debug package")
+    @step
     def un_install_debug_package(self):
         os.environ['DEBIAN_FRONTEND'] = 'readline'
         cmd = ('dpkg --purge ' + 'arangodb3' +
@@ -283,7 +283,7 @@ class InstallerDeb(InstallerLinux):
                 raise Exception(
                     "Debug package uninstallation didn't finish successfully!")
 
-    @step("Clean up the system")
+    @step
     def cleanup_system(self):
         if self.cfg.log_dir.exists():
             shutil.rmtree(self.cfg.log_dir)

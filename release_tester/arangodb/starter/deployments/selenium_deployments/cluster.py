@@ -48,7 +48,7 @@ class Cluster(SeleniumRunner):
             time.sleep(1)
         self.ui_assert(health_state == 'NODES OK', "UI-Test: expected all nodes to be OK")
 
-    @step("Upgrade deployment")
+    @step
     def upgrade_deployment(self, old_cfg, new_cfg, timeout):
         old_ver = str(old_cfg.semver)
         new_ver = str(new_cfg.semver)

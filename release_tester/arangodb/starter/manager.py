@@ -231,7 +231,7 @@ class StarterManager():
             instances += " - {0.name} (pid: {0.pid})".format(instance)
         logging.info("arangod instances for starter: %s - %s", self.name, instances)
 
-    @step("Run starter")
+    @step
     def run_starter(self):
         """ launch the starter for this instance"""
         logging.info("running starter " + self.name)
@@ -240,7 +240,7 @@ class StarterManager():
         self.instance = psutil.Popen(args)
         self.wait_for_logfile()
 
-    @step("Attach to a running starter")
+    @step
     def attach_running_starter(self):
         """ somebody else is running the party, but we also want to have a look """
         #pylint disable=W0703
@@ -261,7 +261,7 @@ class StarterManager():
                 logging.error(ex)
         raise Exception("didn't find a starter for " + match_str)
 
-    @step("Set JWT file")
+    @step
     def set_jwt_file(self, filename):
         """ some scenarios don't want to use the builtin jwt generation from the manager """
         self.jwtfile = filename
@@ -313,7 +313,7 @@ class StarterManager():
         """ get the passvoid to the managed instance """
         return self.passvoid
 
-    @step("Send HTTP request")
+    @step
     def send_request(self, instance_type, verb_method,
                      url, data=None, headers={}, timeout = None):
         """ send an http request to the instance """
@@ -339,7 +339,7 @@ class StarterManager():
         http_client.HTTPConnection.debuglevel = 0
         return results
 
-    @step("Crash managed instances and the starter")
+    @step
     def crash_instances(self):
         """ make all managed instances plus the starter itself crash. """
         try:
@@ -364,7 +364,7 @@ class StarterManager():
             pass
         return self.instance.is_running()
 
-    @step("Wait for our instance to create a logfile")
+    @step
     def wait_for_logfile(self):
         """ wait for our instance to create a logfile """
         counter = 0
@@ -383,7 +383,7 @@ class StarterManager():
                 keep_going = False
             time.sleep(1)
 
-    @step("Wait until upgrade is finished")
+    @step
     def wait_for_upgrade_done_in_log(self, timeout=120):
         """ in single server mode the 'upgrade' commander exits before
             the actual upgrade is finished. Hence we need to look into
@@ -426,7 +426,7 @@ class StarterManager():
 
         return False
 
-    @step("Terminate instance")
+    @step
     def terminate_instance(self):
         """ terminate the instance of this starter
             (it should kill all its managed services)"""
@@ -459,7 +459,7 @@ class StarterManager():
         self.is_leader = False
         self.all_instances = []
 
-    @step("Kill instance")
+    @step
     def kill_instance(self):
         """ kill the instance of this starter
             (it won't kill its managed services)"""
@@ -474,7 +474,7 @@ class StarterManager():
 
         logging.info("StarterManager: Instance now dead.")
 
-    @step("Replace binary for upgrade")
+    @step
     def replace_binary_for_upgrade(self, new_install_cfg):
         """
           - replace the parts of the installation with information
@@ -499,7 +499,7 @@ class StarterManager():
         logging.info("StarterManager: respawned instance as [%s]",
                      str(self.instance.pid))
 
-    @step("Kill all arangosync instances")
+    @step
     def kill_sync_processes(self):
         """ kill all arangosync instances we posses """
         for i in self.all_instances:
@@ -507,7 +507,7 @@ class StarterManager():
                 logging.info("manually killing syncer: " + str(i.pid))
                 i.terminate_instance()
 
-    @step("Perform a rolling upgrade using starter")
+    @step
     def command_upgrade(self):
         """
         we use a starter, to tell daemon starters to perform the rolling upgrade
@@ -525,7 +525,7 @@ class StarterManager():
                                            #stderr=subprocess.PIPE,
                                            universal_newlines=True)
 
-    @step("Wait for the upgrade commanding starter to finish")
+    @step
     def wait_for_upgrade(self, timeout=60):
         """ wait for the upgrade commanding starter to finish """
         #for line in self.upgradeprocess.stderr:
@@ -545,7 +545,7 @@ class StarterManager():
         if ret != 0:
             raise Exception("Upgrade process exited with non-zero reply")
 
-    @step("Wait for the server to restart after the \"restore\" command")
+    @step
     def wait_for_restore(self):
         """
         tries to wait for the server to restart after the 'restore' command
@@ -557,7 +557,7 @@ class StarterManager():
                     InstanceType.DBSERVER]:
                 node.detect_restore_restart()
 
-    @step("Wait until all instances reply with 200 to \"api/version\"")
+    @step
     def tcp_ping_nodes(self):
         """
         tries to wait for the server to restart after the 'restore' command
@@ -569,7 +569,7 @@ class StarterManager():
                     InstanceType.DBSERVER]:
                 node.check_version_request(20.0)
 
-    @step("Restart the starter instance")
+    @step
     def respawn_instance(self):
         """ restart the starter instance after we killed it eventually """
         args = [
@@ -580,7 +580,7 @@ class StarterManager():
         self.instance = psutil.Popen(args)
         self.wait_for_logfile()
 
-    @step("Wait until SUT replies with a 200 to /_api/version")
+    @step
     def wait_for_version_reply(self):
         """ wait for the SUT reply with a 200 to /_api/version """
         frontends = self.get_frontends()
@@ -590,7 +590,7 @@ class StarterManager():
                 progress(".")
                 time.sleep(0.1)
 
-    @step("Run command in arangosh")
+    @step
     def execute_frontend(self, cmd, verbose=True):
         """ use arangosh to run a command on the frontend arangod"""
         return self.arangosh.run_command(cmd, verbose)
@@ -669,7 +669,7 @@ class StarterManager():
         assert server.logfile.exists(), "don't have logfile?"
         return server.logfile.read_text(errors='backslashreplace')
 
-    @step("Detect instances")
+    @step
     def detect_instances(self):
         """ see which arangods where spawned and inspect their logfiles"""
         lh.subsection("Instance Detection for {0.name}".format(self))
@@ -768,7 +768,7 @@ class StarterManager():
         for instance in self.all_instances:
             instance.detect_fatal_errors()
 
-    @step("Detect arangosh instances")
+    @step
     def detect_arangosh_instances(self):
         """
         gets the arangosh instance to speak to the frontend of this starter
@@ -791,7 +791,7 @@ class StarterManager():
                     self.raw_basedir,
                     self.cfg.base_test_dir / self.raw_basedir)
 
-    @step("Launch arangobench")
+    @step
     def launch_arangobench(self, testacse_no, moreopts = []):
         """ launch an arangobench instance to the frontend of this starter """
         arangobench = ArangoBenchManager(self.cfg, self.get_frontend())
@@ -902,7 +902,7 @@ class StarterManager():
             return True
         return False
 
-    @step("Look for warnings or errors in starter logs")
+    @step
     def search_for_warnings(self):
         """ dump out instance args, and what could be fishy in my log """
         log = str()
@@ -919,7 +919,7 @@ class StarterManager():
                     log += line.rstrip()
         attach(log, "WARN or ERROR lines from starter log")
 
-    @step("Save starter log file")
+    @step
     def add_logfile_to_report(self):
         """ Add starter log to allure report"""
         logfile = str(self.log_file)

@@ -368,7 +368,7 @@ class Runner(ABC):
             self.selenium.disconnect()
         self.progress(False, "Runner of type {0} - Finished!".format(str(self.name)))
 
-    @step("Install the package to the system")
+    @step
     def install(self, inst):
         """ install the package to the system """
         self.progress(True, "{0} - install package".format(str(self.name)))
@@ -425,7 +425,7 @@ class Runner(ABC):
                           "to make ports available for starter")
             inst.stop_service()
 
-    @step("Uninstall the package from the system")
+    @step
     def uninstall(self, inst):
         """ uninstall the package from the system """
         self.progress(True, "{0} - uninstall package".format(str(self.name)))
@@ -437,13 +437,13 @@ class Runner(ABC):
         inst.check_uninstall_cleanup()
         inst.cleanup_system()
 
-    @step("Uninstall the package from the system")
+    @step
     def starter_prepare_env(self):
         """ base setup; declare instance variables etc """
         self.progress(True, "{0} - prepare starter launch".format(str(self.name)))
         self.starter_prepare_env_impl()
 
-    @step("Run starter")
+    @step
     def starter_run(self):
         """
         now launch the starter instance s- at this point the basic setup is done
@@ -451,31 +451,31 @@ class Runner(ABC):
         self.progress(True, "{0} - run starter instances".format(str(self.name)))
         self.starter_run_impl()
 
-    @step("Finish setup")
+    @step
     def finish_setup(self):
         """ not finish the setup"""
         self.progress(True, "{0} - finish setup".format(str(self.name)))
         self.finish_setup_impl()
 
-    @step("Make data")
+    @step
     def make_data(self):
         """ check if setup is functional """
         self.progress(True, "{0} - make data".format(str(self.name)))
         self.make_data_impl()
 
-    @step("Make data after upgrade")
+    @step
     def make_data_after_upgrade(self):
         """ check if setup is functional """
         self.progress(True, "{0} - make data after upgrade".format(str(self.name)))
         self.make_data_after_upgrade_impl()
 
-    @step("Test setup after the basic instances were launched")
+    @step
     def test_setup(self):
         """ setup steps after the basic instances were launched """
         self.progress(True, "{0} - basic test after startup".format(str(self.name)))
         self.test_setup_impl()
 
-    @step("Upgrade arangod version")
+    @step
     def upgrade_arangod_version(self):
         """ upgrade this installation """
         self.progress(True, "{0} - upgrade setup to newer version".format(
@@ -492,7 +492,7 @@ class Runner(ABC):
         self.upgrade_arangod_version_impl()
         print("check data in instaces")
 
-    @step("Try to jam setup by obstructing instances")
+    @step
     def jam_attempt(self):
         """ check resilience of setup by obstructing its instances """
         self.progress(True, "{0}{1} - try to jam setup".format(
@@ -500,7 +500,7 @@ class Runner(ABC):
             str(self.name)))
         self.jam_attempt_impl()
 
-    @step("Shutdown starter")
+    @step
     def starter_shutdown(self):
         """ stop everything """
         self.progress(True, "{0}{1} - shutdown".format(
@@ -538,7 +538,7 @@ class Runner(ABC):
         """ if known, try to break this deployment """
 
 
-    @step("Set frontend instances")
+    @step
     def set_frontend_instances(self):
         """ actualises the list of available frontends """
         self.basecfg.frontends = [] # reset the array...
@@ -557,13 +557,13 @@ class Runner(ABC):
                 frontends.append(frontend)
         return frontends
 
-    @step("Ping all nodes via TCP")
+    @step
     def tcp_ping_all_nodes(self):
         """ check whether all nodes react via tcp connection """
         for starter in self.starter_instances:
             starter.tcp_ping_nodes()
 
-    @step("List all HTTP frontend instances")
+    @step
     def print_frontend_instances(self):
         """ print all http frontends to the user """
         frontends = self.get_frontend_instances()
@@ -573,7 +573,7 @@ class Runner(ABC):
         print(result)
         attach(result)
 
-    @step("Print all starter instances")
+    @step
     def print_all_instances_table(self):
         """ print all http frontends to the user """
         instances = []
@@ -581,7 +581,7 @@ class Runner(ABC):
             instances += starter.get_instance_essentials()
         print_instances_table(instances)
 
-    @step("Print all \"make data\" instances")
+    @step
     def print_makedata_instances_table(self):
         """ print all http frontends to the user """
         instances = []
@@ -589,7 +589,7 @@ class Runner(ABC):
             instances += starter.get_instance_essentials()
         print_instances_table(instances)
 
-    @step("Upload testdata into the deployment, and check it")
+    @step
     def make_data_impl(self):
         """ upload testdata into the deployment, and check it """
         assert self.makedata_instances, "don't have makedata instance!"

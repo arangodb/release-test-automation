@@ -61,7 +61,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         # logging.debug("exitcode {0}".format(exitcode))
         return exitcode == 0
 
-    @step("Check that arangosh exits with correct code when running a command")
+    @step
     def self_test(self):
         """ run a command that throws to check exit code handling """
         logging.info("running arangosh check")
@@ -86,7 +86,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             raise Exception(
                 "arangosh doesn't exit with 0 to indicate no errors")
 
-    @step("Run script")
+    @step
     def run_script(self, cmd, verbose = True):
         """ launch an external js-script, print its name """
         run_cmd = [
@@ -119,7 +119,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         logging.debug("exitcode {0}".format(exitcode))
         return exitcode == 0
 
-    @step("Run script(monitored)")
+    @step
     def run_script_monitored(self, cmd, args, timeout, result_line,
                              process_control=False, verbose=True):
        # pylint: disable=R0913 disable=R0902 disable=R0915 disable=R0912 disable=R0914
@@ -148,7 +148,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                                               result_line,
                                               verbose)
 
-    @step("Run testing.js")
+    @step
     def run_testing(self,
                     testcase, args,
                     #timeout,
@@ -204,7 +204,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         thread1.join()
         thread2.join()
 
-    @step("Run version check")
+    @step
     def js_version_check(self):
         """ run a version check command; this can double as password check """
         logging.info("running version check")
@@ -228,7 +228,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                                     self.cfg.interactive)
         return res
 
-    @step("Set password")
+    @step
     def js_set_passvoid(self, user, passvoid):
         """ connect to the instance, and set a passvoid for the user """
         js_set_passvoid_str = 'require("org/arangodb/users").update("%s", "%s");'% (
@@ -268,7 +268,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                                     self.cfg.interactive)
         return res
 
-    @step("Check that data added after backup is not present in the DB")
+    @step
     def hotbackup_check_for_nonbackup_data(self):
         """ check whether the data is in there or not. """
         logging.info("running version check")
@@ -288,7 +288,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
 
         return res
 
-    @step("Run test in arangosh")
+    @step
     def run_in_arangosh(self, testname,
                         args=[], moreargs=[],
                         result_line=dummy_line_result,
@@ -322,7 +322,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                                         verbose=self.cfg.verbose)
         return ret
 
-    @step("Create test data")
+    @step
     def create_test_data(self, testname, args=[],
                          result_line=dummy_line_result,
                          timeout=100):
@@ -373,7 +373,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             verbose=self.cfg.verbose)
         return ret
 
-    @step("Clear test data")
+    @step
     def clear_test_data(self, testname, args=[], result_line=dummy_line_result):
         # pylint: disable=W0102
         """ flush the testdata from the instance again """
