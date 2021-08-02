@@ -525,7 +525,9 @@ class ArangodInstance(Instance):
                         continue
                     if "] FATAL [" in line and not self.is_suppressed_log_line(line):
                         print('Error: ', line)
-                        raise Exception("FATAL error found in arangod.log: " + line)
+                        raise Exception("FATAL error found in " +
+                                        str(self.logfile) +
+                                        ": " + line)
                     # save last line and append to string
                     # (why not slurp the whole file?)
                     last_line = line
@@ -665,7 +667,6 @@ class SyncInstance(Instance):
         # first get the starter provided commandline:
         self.ppid = ppid
         self.load_starter_instance_control_file()
-        self.logfile_parameter = ''
         logfile_parameter_raw = ''
         if self.logfile_parameter == '--log.file':
             # newer starters will use '--foo bar' instead of '--foo=bar'
