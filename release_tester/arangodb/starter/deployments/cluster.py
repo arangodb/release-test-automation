@@ -137,34 +137,59 @@ db.testCollection.save({test: "document"})
 
     def upgrade_arangod_version_manual_impl(self):
         """ upgrade this installation """
-        print("manual upgrade step 1")
+        print("manual upgrade step 1 - stop instances")
         for node in self.starter_instances:
             node.replace_binary_for_upgrade(self.new_cfg)
             node.terminate_instance(True)
-        print("step 2")
+        print("step 2 - launch instances with the upgrade option set")
         for node in self.starter_instances:
             print('launch')
             node.manually_launch_instances([
                 InstanceType.AGENT,
                 InstanceType.DBSERVER,
             ], ['--database.auto-upgrade', 'true', '--log.foreground-tty', 'true'])
-        print("step 3")
+        print("step 3 restart the full cluster ")
         for node in self.starter_instances:
             node.respawn_instance()
-        print("step 4")
-        self.starter_instances[0].manually_launch_instances([
+        print("step 4 wait for the cluster to be up")
+        for node in self.starter_instances:
+            node.detect_instances()
+            node.wait_for_version_reply()
+        print("step 5 - coordinator upgrade")
+        # now the new cluster is running. We will now attempt to kill a non-agency-leader
+        # instance, run the coordinator upgrade on it, and launch it again.
+        agency_leader = self.agency_get_leader()
+        terminate_instance = 2
+        if self.starter_instances[terminate_instance].have_this_instance(agency_leader):
+            print("Cluster instance 2 has the agency leader; killing 1 instead")
+            terminate_instance = 1
+
+        logging.info("stopping instance %d" % terminate_instance)
+
+        self.starter_instances[terminate_instance].terminate_instance()
+
+        self.starter_instances[terminate_instance].manually_launch_instances([
                 InstanceType.COORDINATOR
             ], ['--database.auto-upgrade', 'true'])
+
+        self.starter_instances[terminate_instance].respawn_instance()
+        self.set_frontend_instances()
+        while not self.starter_instances[terminate_instance].is_instance_up():
+            progress('.')
+            time.sleep(1)
+        print()
+        self.starter_instances[terminate_instance].detect_instances()
+        self.starter_instances[terminate_instance].detect_instance_pids()
+        self.starter_instances[terminate_instance].detect_instance_pids_still_alive()
+        self.set_frontend_instances()
+
+        # now the upgrade should be done.
         for node in self.starter_instances:
             node.detect_instances()
             node.wait_for_version_reply()
 
         if self.selenium:
             self.selenium.upgrade_deployment(self.cfg, self.new_cfg, timeout=30) # * 5s
-        self.starter_instances[1].wait_for_upgrade(300)
-        if self.cfg.stress_upgrade:
-            bench_instances[0].wait()
-            bench_instances[1].wait()
 
     @step
     def jam_attempt_impl(self):
