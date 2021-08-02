@@ -156,11 +156,10 @@ db.testCollection.save({test: "document"})
             node.detect_instances()
             node.wait_for_version_reply()
         self.progress(True, "step 5 - coordinator upgrade")
-        # now the new cluster is running. We will now attempt to kill a non-agency-leader
-        # instance, run the coordinator upgrade on it, and launch it again.
-        for upgrade_instance in [0, 1, 2]:
-            logging.info("stopping instance %d" % upgrade_instance)
-            self.starter_instances[upgrade_instance].temporarily_replace_instances([
+        # now the new cluster is running. we will now run the coordinator upgrades
+        for node in self.starter_instances:
+            logging.info("upgrading coordinator instances\n" + str(node))
+            node.temporarily_replace_instances([
                 InstanceType.COORDINATOR
             ], [
                 '--database.auto-upgrade', 'true'
