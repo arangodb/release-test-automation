@@ -94,7 +94,7 @@ class Runner(ABC):
             "system"] and cfg.have_system_service
         self.do_starter_test = cfg.mode in ["all", "tests"]
         self.do_upgrade = False
-        self.supports_rolling_upgrade = WINVER[0] == None and False# TODO True weg.
+        self.supports_rolling_upgrade = WINVER[0] is None and False# TODO True weg.
 
         self.basecfg = copy.deepcopy(cfg)
         self.new_cfg = new_cfg
@@ -856,6 +856,7 @@ class Runner(ABC):
     def agency_acquire_dump(self):
         """ turns on logging on the agency """
         print("Duming agency")
+        return #TODO
         commands = [
             {
                 'URL'   : '/_api/agency/config',

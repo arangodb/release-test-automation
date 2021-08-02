@@ -137,45 +137,34 @@ db.testCollection.save({test: "document"})
 
     def upgrade_arangod_version_manual_impl(self):
         """ upgrade this installation """
-        print("manual upgrade step 1 - stop instances")
+        self.progress(True, "manual upgrade step 1 - stop instances")
         for node in self.starter_instances:
             node.replace_binary_for_upgrade(self.new_cfg)
             node.terminate_instance(True)
-        print("step 2 - launch instances with the upgrade option set")
+        self.progress(True, "step 2 - launch instances with the upgrade option set")
         for node in self.starter_instances:
             print('launch')
             node.manually_launch_instances([
                 InstanceType.AGENT,
                 InstanceType.DBSERVER
             ], ['--database.auto-upgrade', 'true', '--log.foreground-tty', 'true'])
-        print("step 3 restart the full cluster ")
+        self.progress(True, "step 3 restart the full cluster ")
         for node in self.starter_instances:
             node.respawn_instance()
-        print("step 4 wait for the cluster to be up")
+        self.progress(True, "step 4 wait for the cluster to be up")
         for node in self.starter_instances:
             node.detect_instances()
             node.wait_for_version_reply()
-        print("step 5 - coordinator upgrade")
+        self.progress(True, "step 5 - coordinator upgrade")
         # now the new cluster is running. We will now attempt to kill a non-agency-leader
         # instance, run the coordinator upgrade on it, and launch it again.
         for upgrade_instance in [0, 1, 2]:
             logging.info("stopping instance %d" % upgrade_instance)
-            self.starter_instances[upgrade_instance].terminate_instance()
-            self.starter_instances[upgrade_instance].manually_launch_instances([
+            self.starter_instances[upgrade_instance].temporarily_replace_instances([
                 InstanceType.COORDINATOR
             ], [
                 '--database.auto-upgrade', 'true'
             ])
-
-            self.starter_instances[upgrade_instance].respawn_instance()
-            self.set_frontend_instances()
-            while not self.starter_instances[upgrade_instance].is_instance_up():
-                progress('.')
-                time.sleep(1)
-            print()
-            self.starter_instances[upgrade_instance].detect_instances()
-            self.starter_instances[upgrade_instance].detect_instance_pids()
-            self.starter_instances[upgrade_instance].detect_instance_pids_still_alive()
 
         # now the upgrade should be done.
         for node in self.starter_instances:

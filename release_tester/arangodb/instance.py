@@ -67,7 +67,14 @@ class AfoServerState(IntEnum):
 class Instance(ABC):
     """abstract instance manager"""
     # pylint: disable=R0913 disable=R0902
-    def __init__(self, instance_type, port, basedir, localhost, publicip, passvoid, instance_string):
+    def __init__(self,
+                 instance_type,
+                 port,
+                 basedir,
+                 localhost,
+                 publicip,
+                 passvoid,
+                 instance_string):
         self.instance_type = INSTANCE_TYPE_STRING_MAP[instance_type]
         self.is_system = False
         self.type_str = list(INSTANCE_TYPE_STRING_MAP.keys())[int(self.instance_type.value)]
@@ -120,8 +127,9 @@ class Instance(ABC):
         """ get the essential attributes of the class """
 
     def analyze_starter_file_line(self, line):
+        """ instance specific analyzer function """
         pass
-    
+
     def load_starter_instance_control_file(self):
         """ load & parse the <instance_string>_command.txt file of the starter """
         if not self.instance_control_file.exists():
@@ -143,7 +151,7 @@ class Instance(ABC):
         self.instance = psutil.Popen(command)
         if waitpid:
             self.instance.wait()
-        
+
     @step
     def rename_logfile(self, suffix='.old'):
         """ to ease further analysis, move old logfile out of our way"""
@@ -154,6 +162,23 @@ class Instance(ABC):
         if new_logfile.exists():
             new_logfile.unlink()
         self.logfile.rename(new_logfile)
+
+    @step
+    def kill_instance(self):
+        """ terminate the process represented by this wrapper class """
+        if self.instance:
+            try:
+                print('force-killing {0} instance PID [{1}]'.format(
+                    self.type_str,
+                    self.instance.pid))
+                self.instance.kill()
+                # if the starter is stopped, will never end:
+                # self.instance.wait()
+            except psutil.NoSuchProcess:
+                logging.info("instance already dead: " + str(self.instance))
+            self.instance = None
+        else:
+            logging.info("I'm already dead, jim!" + str(repr(self)))
 
     @step
     def terminate_instance(self):
@@ -645,7 +670,7 @@ class SyncInstance(Instance):
         if self.logfile_parameter == '--log.file':
             # newer starters will use '--foo bar' instead of '--foo=bar'
             logfile_parameter = self.instance_arguments[
-                self.instance_arguments('--log.file') + 1]
+                self.instance_arguments.index('--log.file') + 1]
             logfile_parameter_raw = logfile_parameter
         else:
             logfile_parameter_raw = self.logfile_parameter.split('=')[1]

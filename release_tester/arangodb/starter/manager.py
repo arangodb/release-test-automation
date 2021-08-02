@@ -513,7 +513,28 @@ class StarterManager():
                         self.cfg.bin_dir,
                         moreargs,
                         waitpid)
-        
+
+    @step
+    def temporarily_replace_instances(self, which_instances, moreargs):
+        self.instance.suspend()
+        print(which_instances)
+        for instance_type in which_instances:
+            print("in")
+            print(instance_type)
+            for i in self.all_instances:
+                print("ININ")
+                print(instance_type)
+                print(i)
+                if i.instance_type == instance_type:
+                    i.kill_instance()
+                    print("upgrading!")
+                    i.launch_manual_form_instance_control_file(
+                        self.cfg.bin_dir,
+                        moreargs,
+                        True)
+        self.instance.resume()
+        self.detect_instances()
+
     @step
     def replace_binary_setup_for_upgrade(self, new_install_cfg):
         """
