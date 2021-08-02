@@ -191,17 +191,25 @@ process.exit(0);
             self.selenium.check_old(self.new_cfg, False)
             self.selenium.close_tab_again()
 
-    @step
+    # @step
     def upgrade_arangod_version_manual_impl(self):
         """ upgrade this installation """
-        for node in [self.leader_starter_instance, self.follower_starter_instance]:
-            node.replace_binary_for_upgrade(self.new_cfg)
-        for node in [self.leader_starter_instance, self.follower_starter_instance]:
-            node.command_upgrade()
-            node.wait_for_upgrade()
-            node.wait_for_upgrade_done_in_log()
+        print("manual upgrade step 1")
+        instances = [self.leader_starter_instance, self.follower_starter_instance]
+        for node in instances:
+            node.replace_binary_setup_for_upgrade(self.new_cfg)
+        print("step 2")
+        for node in instances:
+            node.terminate_instance()
+        print("step 3")
+        for node in instances:
+            node.respawn_instance(['--all.database.auto-upgrade', 'true'], False)
+        print("step 4")
+        for node in instances:
+            node.respawn_instance()
 
-        for node in [self.leader_starter_instance, self.follower_starter_instance]:
+        print("step 5")
+        for node in instances:
             node.detect_instances()
             node.wait_for_version_reply()
         if self.selenium:
@@ -213,7 +221,7 @@ process.exit(0);
             self.selenium.check_old(self.new_cfg, False)
             self.selenium.close_tab_again()
 
-    @step
+    #@step
     def jam_attempt_impl(self):
         """ run the replication fuzzing test """
         logging.info("running the replication fuzzing test")

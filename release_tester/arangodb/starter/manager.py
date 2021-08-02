@@ -471,11 +471,7 @@ class StarterManager():
         """
         # On windows the install prefix may change,
         # since we can't overwrite open files:
-        self.cfg.set_directories(new_install_cfg)
-        if self.cfg.hot_backup:
-            self.hotbackup = [
-                '--all.rclone.executable',
-                self.cfg.real_sbin_dir / 'rclone-arangodb']
+        self.replace_binary_setup_for_upgrade(new_install_cfg)
         logging.info("StarterManager: Killing my instance [%s]",
                      str(self.instance.pid))
         self.kill_instance()
@@ -483,6 +479,23 @@ class StarterManager():
         self.respawn_instance()
         logging.info("StarterManager: respawned instance as [%s]",
                      str(self.instance.pid))
+
+    def replace_binary_setup_for_upgrade(self, new_install_cfg):
+        """
+          - replace the parts of the installation with information
+            after an upgrade
+          - kill the starter processes of the old version
+          - revalidate that the old arangods are still running and alive
+          - replace the starter binary with a new one.
+            this has not yet spawned any children
+        """
+        # On windows the install prefix may change,
+        # since we can't overwrite open files:
+        self.cfg.set_directories(new_install_cfg)
+        if self.cfg.hot_backup:
+            self.hotbackup = [
+                '--all.rclone.executable',
+                self.cfg.real_sbin_dir / 'rclone-arangodb']
 
     def kill_sync_processes(self):
         """ kill all arangosync instances we posses """
@@ -549,15 +562,22 @@ class StarterManager():
                     InstanceType.DBSERVER]:
                 node.check_version_request(20.0)
 
-    def respawn_instance(self):
-        """ restart the starter instance after we killed it eventually """
+    def respawn_instance(self, moreargs=[], wait_for_logfile=True):
+        """
+        restart the starter instance after we killed it eventually,
+        maybe command manual upgrade (and wait for exit)
+        """
         args = [
             self.cfg.bin_dir / 'arangodb'
-        ] + self.hotbackup + self.arguments
+        ] + self.hotbackup + self.arguments + moreargs
 
         logging.info("StarterManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)
-        self.wait_for_logfile()
+        if wait_for_logfile:
+            self.wait_for_logfile()
+        else:
+            print("Waiting for starter to exit")
+            print("Starter exited %d" % self.instance.wait())
 
     def wait_for_version_reply(self):
         """ wait for the SUT reply with a 200 to /_api/version """

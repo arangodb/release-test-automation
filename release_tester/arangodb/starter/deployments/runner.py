@@ -92,7 +92,7 @@ class Runner(ABC):
             "system"] and cfg.have_system_service
         self.do_starter_test = cfg.mode in ["all", "tests"]
         self.do_upgrade = False
-        self.supports_rolling_upgrade = WINVER[0] == None or True# TODO True weg.
+        self.supports_rolling_upgrade = WINVER[0] == None and False# TODO True weg.
 
         self.basecfg = copy.deepcopy(cfg)
         self.new_cfg = new_cfg
@@ -460,8 +460,11 @@ class Runner(ABC):
 
     def upgrade_arangod_version(self):
         """ upgrade this installation """
-        self.progress(True, "{0} - upgrade setup to newer version".format(
-            str(self.name)))
+        mode = "rolling" if self.supports_rolling_upgrade else "manual"
+        self.progress(True, "{0} - {1} upgrade setup to newer version".format(
+            str(self.name),
+            mode
+        ))
         logging.info("{1} -> {0}".format(
             self.new_installer.cfg.version,
             self.old_installer.cfg.version
@@ -470,10 +473,11 @@ class Runner(ABC):
         print("deinstall")
         print("install")
         print("replace starter")
-        print("upgrade instances")
         if self.supports_rolling_upgrade:
+            print("upgrading instances in roling mode")
             self.upgrade_arangod_version_impl()
         else:
+            print("upgrading instances in manual mode")
             self.upgrade_arangod_version_manual_impl()
         print("check data in instaces")
 
@@ -517,9 +521,10 @@ class Runner(ABC):
     def upgrade_arangod_version_impl(self):
         """ rolling upgrade this deployment """
 
-    @abstractmethod
+    #@abstractmethod
     def upgrade_arangod_version_manual_impl(self):
         """ start/stop upgrade this deployment """
+        pass #todo
 
     @abstractmethod
     def jam_attempt_impl(self):
