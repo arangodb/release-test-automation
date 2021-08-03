@@ -67,6 +67,7 @@ result=$?
 # Cleanup ownership:
 docker run \
        -v $(pwd)/test_dir:/home/test_dir \
+       -v $(pwd)/allure-results:/home/allure-results \
        --rm \
        $DOCKER_TAG chown -R $(id -u):$(id -g) /home/test_dir /home/allure-results
 
