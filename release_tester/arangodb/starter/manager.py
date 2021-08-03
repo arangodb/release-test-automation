@@ -510,7 +510,7 @@ class StarterManager():
                 if i.instance_type == instance_type:
                     print("upgrading!")
                     i.launch_manual_form_instance_control_file(
-                        self.cfg.bin_dir,
+                        self.cfg.sbin_dir,
                         moreargs,
                         waitpid)
 
