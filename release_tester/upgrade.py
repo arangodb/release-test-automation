@@ -6,7 +6,8 @@ import traceback
 
 import sys
 import click
-from allure_commons.model2 import Status
+from allure_commons.model2 import Status, Label
+from allure_commons.types import LabelType
 
 from common_options import very_common_options, common_options
 from reporting.reporting_utils import configure_allure, RtaTestcase
@@ -68,6 +69,7 @@ def run_upgrade(old_version, new_version, verbose,
                     "starter_mode": str(starter_mode),
                     "old_version": old_version,
                     "cfg_repr": repr(installers[1][0])}))
+                testcase.add_label(Label(name=LabelType.SUB_SUITE, value=new_inst.installer_type))
                 if runner_type:
                     runner = make_runner(runner_type,
                                          abort_on_error,

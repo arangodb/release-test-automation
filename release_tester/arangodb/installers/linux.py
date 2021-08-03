@@ -14,6 +14,8 @@ class InstallerLinux(InstallerBase):
     """ inbetween class for linux specific utilities - GDB tests. """
     def __init__(self, cfg):
         self.remote_package_dir = 'Linux'
+        if not self.installer_type:
+            self.installer_type = "generic Linux"
         super().__init__(cfg)
 
     def gdb_test(self):

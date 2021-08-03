@@ -23,6 +23,7 @@ class InstallerDeb(InstallerLinux):
         self.client_package = None
         self.debug_package = None
         self.log_examiner = None
+        self.installer_type = "DEB"
 
         # Are those required to be stored in the cfg?
         cfg.installPrefix = Path("/")

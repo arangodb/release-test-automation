@@ -89,6 +89,11 @@ class RtaTestcase():
                                       exc_val=exc_val,
                                       exc_tb=exc_tb)
 
+    def add_label(self, label):
+        """ add label to allure test case """
+        self.context.labels.append(label)
+
+
 # pylint: disable=R0903
 class TestcaseContext:
     """ a class to store test case context """
@@ -97,6 +102,7 @@ class TestcaseContext:
             self.status = status
         else:
             self.status = Status.UNKNOWN
+        self.labels = []
 
 
 class AllureTestSuiteContext:
