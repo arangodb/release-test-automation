@@ -224,6 +224,8 @@ class ActiveFailover(Runner):
         self._detect_leader()
         self.print_all_instances_table()
         if self.selenium:
+            self.selenium.connect_server(self.leader.get_frontends(), '_system',
+                                         self.new_cfg if self.new_cfg else self.cfg)
             self.selenium.web.refresh() # version doesn't upgrade if we don't do this...
             self.selenium.check_old(self.new_cfg,
                                     expect_follower_count=2, retry_count=10)
