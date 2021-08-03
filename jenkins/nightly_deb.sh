@@ -74,7 +74,7 @@ result=$?
 docker run \
        -v $(pwd)/test_dir:/home/test_dir \
        --rm \
-       $DOCKER_DEB_TAG chown -R $(id -u):$(id -g) /home/test_dir
+       $DOCKER_DEB_TAG chown -R $(id -u):$(id -g) /home/test_dir /home/allure-results
 
 if test "$result" -eq "0"; then
     echo "OK"
