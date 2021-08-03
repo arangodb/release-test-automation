@@ -198,8 +198,6 @@ class InstallerBase(ABC):
         self.check_stripped = True
         self.check_symlink = True
         self.instance = None
-        if not self.installer_type:
-            self.installer_type = "generic installer"
 
     def reset_version(self, version):
         """ re-configure the version we work with """
