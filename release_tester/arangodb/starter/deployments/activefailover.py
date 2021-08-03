@@ -40,6 +40,7 @@ class ActiveFailover(Runner):
                 if node.detect_leader():
                     self.leader = node
                     self.first_leader = node
+        self.first_leader.wait_for_version_reply()
         self.follower_nodes = []
         for node in self.starter_instances:
             node.detect_instance_pids()
