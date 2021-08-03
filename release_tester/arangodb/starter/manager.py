@@ -529,7 +529,7 @@ class StarterManager():
                     i.kill_instance()
                     print("upgrading!")
                     i.launch_manual_form_instance_control_file(
-                        self.cfg.bin_dir,
+                        self.cfg.sbin_dir,
                         moreargs,
                         True)
         self.instance.resume()
