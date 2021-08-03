@@ -20,10 +20,12 @@ class InstallerTAR(InstallerBase):
             cfg.localhost = 'localhost'
             self.remote_package_dir  = 'MacOSX'
             self.architecture = 'macos'
+            self.installer_type = ".tar.gz MacOS"
         else:
             self.remote_package_dir  = 'Linux'
             cfg.localhost = 'localhost'
             self.architecture = 'linux'
+            self.installer_type = ".tar.gz Linux"
 
         self.hot_backup = True
         self.server_package = None

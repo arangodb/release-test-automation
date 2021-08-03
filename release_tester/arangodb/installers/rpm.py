@@ -24,6 +24,7 @@ class InstallerRPM(InstallerLinux):
         self.server_package = None
         self.client_package = None
         self.debug_package = None
+        self.installer_type = "RPM"
 
         cfg.installPrefix = Path("/")
         cfg.bin_dir = cfg.installPrefix / "usr" / "bin"

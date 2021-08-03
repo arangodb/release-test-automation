@@ -120,8 +120,10 @@ class AllureListener():
             if step.status == Status.FAILED:
                 test_result.status = Status.FAILED
                 test_result.statusDetails = step.statusDetails
-        self.allure_logger.close_test(uuid)
 
+        for label in context.labels:
+            test_result.labels.append(label)
+        self.allure_logger.close_test(uuid)
 
 class ItemCache():
     """ a class to store allure report objects before writing to output """

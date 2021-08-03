@@ -24,6 +24,7 @@ class InstallerDocker(InstallerBase):
         self.debug_package = None
         self.log_examiner = None
         self.instance = None
+        self.installer_type = "Docker"
         version = cfg.version.split("~")[0]
         version = ".".join(version.split(".")[:3])
         self.semver = semver.VersionInfo.parse(version)
