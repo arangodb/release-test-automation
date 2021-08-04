@@ -497,41 +497,27 @@ class StarterManager():
                      str(self.instance.pid))
 
     @step
-    def manually_launch_instances(self, which_instances, moreargs, waitpid=True):
+    def manually_launch_instances(self,
+                                  which_instances,
+                                  moreargs,
+                                  waitpid=True,
+                                  kill_nstance=False):
         """ launch the instances of this starter with optional arguments """
-        print(which_instances)
         for instance_type in which_instances:
-            print("in")
-            print(instance_type)
             for i in self.all_instances:
-                print("ININ")
-                print(instance_type)
-                print(i)
                 if i.instance_type == instance_type:
-                    print("upgrading!")
-                    i.launch_manual_form_instance_control_file(
+                    if kill_nstance:
+                        i.kill_instance()
+                    i.launch_manual_from_instance_control_file(
                         self.cfg.sbin_dir,
                         moreargs,
                         waitpid)
 
     @step
     def temporarily_replace_instances(self, which_instances, moreargs):
+        """ halt starter, launch instance, wait for it to exit, continue starter """
         self.instance.suspend()
-        print(which_instances)
-        for instance_type in which_instances:
-            print("in")
-            print(instance_type)
-            for i in self.all_instances:
-                print("ININ")
-                print(instance_type)
-                print(i)
-                if i.instance_type == instance_type:
-                    i.kill_instance()
-                    print("upgrading!")
-                    i.launch_manual_form_instance_control_file(
-                        self.cfg.sbin_dir,
-                        moreargs,
-                        True)
+        self.manually_launch_instances(which_instances, moreargs, waitpid=True, kill_nstance=True)
         self.instance.resume()
         self.detect_instances()
 

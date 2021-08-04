@@ -178,7 +178,7 @@ process.exit(0);
 
     @step
     def upgrade_arangod_version_impl(self):
-        """ upgrade this installation """
+        """ rolling upgrade this installation """
         for node in [self.leader_starter_instance, self.follower_starter_instance]:
             node.replace_binary_for_upgrade(self.new_cfg)
         for node in [self.leader_starter_instance, self.follower_starter_instance]:
@@ -200,21 +200,22 @@ process.exit(0);
 
     @step
     def upgrade_arangod_version_manual_impl(self):
-        """ upgrade this installation """
-        print("manual upgrade step 1")
+        """ manual upgrade this installation """
+        self.progress(True, "step 1 - shut down instances")
         instances = [self.leader_starter_instance, self.follower_starter_instance]
         for node in instances:
             node.replace_binary_setup_for_upgrade(self.new_cfg)
             node.terminate_instance(True)
-        print("step 2")
+        self.progress(True, "step 2 - launch instances with the upgrade options set")
         for node in instances:
             print('launch')
-            node.manually_launch_instances([InstanceType.SINGLE], ['--database.auto-upgrade', 'true'])
-        print("step 3")
+            node.manually_launch_instances(
+                [ InstanceType.SINGLE ],
+                [ '--database.auto-upgrade', 'true' ] )
+        self.progress(True, "step 3 - launch instances again")
         for node in instances:
             node.respawn_instance()
-
-        print("step 4")
+        self.progress(True, "step 4 - detect system state")
         for node in instances:
             node.detect_instances()
             node.wait_for_version_reply()

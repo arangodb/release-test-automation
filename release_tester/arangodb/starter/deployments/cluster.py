@@ -115,6 +115,7 @@ db.testCollection.save({test: "document"})
                 dbserver.detect_restore_restart()
 
     def upgrade_arangod_version_impl(self):
+        """ rolling upgrade this installation """
         bench_instances = []
         if self.cfg.stress_upgrade:
             bench_instances.append(self.starter_instances[0].launch_arangobench(
@@ -136,7 +137,7 @@ db.testCollection.save({test: "document"})
             bench_instances[1].wait()
 
     def upgrade_arangod_version_manual_impl(self):
-        """ upgrade this installation """
+        """ manual upgrade this installation """
         self.progress(True, "manual upgrade step 1 - stop instances")
         for node in self.starter_instances:
             node.replace_binary_for_upgrade(self.new_cfg)

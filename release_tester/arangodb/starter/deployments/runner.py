@@ -541,10 +541,9 @@ class Runner(ABC):
     def upgrade_arangod_version_impl(self):
         """ rolling upgrade this deployment """
 
-    #@abstractmethod
+    @abstractmethod
     def upgrade_arangod_version_manual_impl(self):
         """ start/stop upgrade this deployment """
-        pass #todo
 
     @abstractmethod
     def jam_attempt_impl(self):

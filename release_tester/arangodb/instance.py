@@ -128,6 +128,7 @@ class Instance(ABC):
 
     def analyze_starter_file_line(self, line):
         """ instance specific analyzer function """
+        #pylint: disable=W0107
         pass
 
     def load_starter_instance_control_file(self):
@@ -142,7 +143,7 @@ class Instance(ABC):
                 self.analyze_starter_file_line(line)
                 self.instance_arguments.append(line)
 
-    def launch_manual_form_instance_control_file(self, sbin_dir, moreargs, waitpid=True):
+    def launch_manual_from_instance_control_file(self, sbin_dir, moreargs, waitpid=True):
         """ launch instance without starter with additional arguments """
         self.load_starter_instance_control_file()
         command = [str(sbin_dir / self.instance_string)] + \

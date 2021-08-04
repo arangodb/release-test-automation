@@ -30,6 +30,9 @@ class NoStarter(Runner):
     def upgrade_arangod_version_impl(self):
         """ nothing to see here """
 
+    def upgrade_arangod_version_manual_impl(self):
+        """ nothing to see here """
+
     def jam_attempt_impl(self):
         """ nothing to see here """
 

@@ -336,7 +336,7 @@ class Dc2Dc(Runner):
             dbserver.detect_restore_restart()
 
     def upgrade_arangod_version_impl(self):
-        """ upgrade this installation """
+        """ rolling upgrade this installation """
         self._stop_sync(300)
         print('aoeu'*30)
         print(self.cfg)
@@ -367,10 +367,8 @@ class Dc2Dc(Runner):
         self.sync_manager.get_sync_tasks(1)
 
     def upgrade_arangod_version_manual_impl(self):
-        """ upgrade this installation manually """
+        """ manual upgrade this installation """
         self._stop_sync(300)
-        # workaround: kill the sync'ers by hand, the starter doesn't
-        # self._stop_sync()
         self.sync_manager.replace_binary_for_upgrade(self.new_cfg)
         for node in self.starter_instances:
             node.replace_binary_for_upgrade(self.new_cfg)
@@ -387,10 +385,10 @@ class Dc2Dc(Runner):
                 '--log.foreground-tty', 'true',
                 '--server.rest-server', 'false'
             ])
-        self.progress(True, "step 3 restart the full cluster ")
+        self.progress(True, "step 3 - restart the full cluster ")
         for node in self.starter_instances:
             node.respawn_instance()
-        self.progress(True, "step 4 wait for the cluster to be up")
+        self.progress(True, "step 4 - wait for the cluster to be up")
         for node in self.starter_instances:
             node.detect_instances()
             node.wait_for_version_reply()

@@ -187,7 +187,7 @@ class ActiveFailover(Runner):
         self.leader.maintainance(False, InstanceType.RESILIENT_SINGLE)
 
     def upgrade_arangod_version_impl(self):
-        """ upgrade this installation """
+        """ rolling upgrade this installation """
         for node in self.starter_instances:
             node.replace_binary_for_upgrade(self.new_cfg)
         for node in self.starter_instances:
@@ -203,23 +203,23 @@ class ActiveFailover(Runner):
                                     expect_follower_count=2, retry_count=10)
 
     def upgrade_arangod_version_manual_impl(self):
-        """ upgrade this installation """
-        print("manual upgrade step 1")
+        """ manual upgrade this installation """
+        self.progress(True, "manual upgrade step 1 - stop system")
         self.leader.maintainance(True, InstanceType.RESILIENT_SINGLE)
         for node in self.starter_instances:
             node.replace_binary_for_upgrade(self.new_cfg)
             node.terminate_instance(True)
-        print("step 2")
+        self.progress(True, "step 2 - upgrade database directories")
         for node in self.starter_instances:
             print('launch')
             node.manually_launch_instances([
                 InstanceType.AGENT,
                 InstanceType.RESILIENT_SINGLE,
             ], ['--database.auto-upgrade', 'true'])
-        print("step 3")
+        self.progress(True, "step 3 - launch instances again")
         for node in self.starter_instances:
             node.respawn_instance()
-        print("step 4")
+        self.progress(True, "step 4 - check alive status")
         for node in self.starter_instances:
             node.detect_instances()
             node.wait_for_version_reply()
