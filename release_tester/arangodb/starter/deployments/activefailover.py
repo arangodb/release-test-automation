@@ -205,6 +205,7 @@ class ActiveFailover(Runner):
     def upgrade_arangod_version_manual_impl(self):
         """ upgrade this installation """
         print("manual upgrade step 1")
+        self.leader.maintainance(True, InstanceType.RESILIENT_SINGLE)
         for node in self.starter_instances:
             node.replace_binary_for_upgrade(self.new_cfg)
             node.terminate_instance(True)
@@ -223,13 +224,13 @@ class ActiveFailover(Runner):
             node.detect_instances()
             node.wait_for_version_reply()
         self._detect_leader()
+        self.leader.maintainance(False, InstanceType.RESILIENT_SINGLE)
         self.print_all_instances_table()
         if self.selenium:
-            self.selenium.connect_server(self.leader.get_frontends(), '_system',
-                                         self.new_cfg if self.new_cfg else self.cfg)
             self.selenium.web.refresh() # version doesn't upgrade if we don't do this...
             self.selenium.check_old(self.new_cfg,
-                                    expect_follower_count=2, retry_count=10)
+                                    expect_follower_count=2,
+                                    retry_count=10)
 
     def jam_attempt_impl(self):
         # pylint: disable=R0915
