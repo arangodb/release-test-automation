@@ -1,5 +1,10 @@
 #!/bin/bash
 
+VERSION=$cat VERSION.json)
+GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
+if test -z "$GIT_VERSION"; then
+    GIT_VERSION=$VERSION
+fi
 if test -z "$OLD_VERSION"; then
     OLD_VERSION=3.8.0-nightly
 fi
@@ -10,25 +15,6 @@ if test -n "$PACKAGE_CACHE"; then
     PACKAGE_CACHE=$(pwd)/package_cache
 fi
 
-VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_tar_version"
-mkdir -p package_cache
-mkdir -p ${VERSION_TAR_NAME}
-mkdir -p test_dir
-mkdir -p allure-results
-tar -xvf ${VERSION_TAR_NAME}.tar || true
-
-VERSION=$(cat VERSION.json)
-GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
-if test -z "$GIT_VERSION"; then
-    GIT_VERSION=$VERSION
-fi
-DOCKER_TAG=arangodb/release-test-automation-tar
-docker pull $DOCKER_TAG
-DOCKER_NAME=release-test-automation-tar-${VERSION}
-DOCKER_TAG=${DOCKER_TAG}:${VERSION}
-
-docker rm -f $DOCKER_NAME
-
 if test -n "$FORCE" -o "$TEST_BRANCH" != 'master'; then
   force_arg='--force'
 fi
@@ -38,8 +24,27 @@ if test -n "$SOURCE"; then
 else
     force_arg="${force_arg} --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;")"
 fi
+
+VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_tar_version"
+mkdir -p package_cache
+mkdir -p ${VERSION_TAR_NAME}
+mkdir -p test_dir
+mkdir -p allure-results
+tar -xvf ${VERSION_TAR_NAME}.tar || true
+
+DOCKER_TAG=arangodb/release-test-automation-tar
+docker pull $DOCKER_TAG
+DOCKER_NAME=release-test-automation-tar-${VERSION}
+DOCKER_TAG=${DOCKER_TAG}:$(cat containers/this_version.txt)
+
+docker rm -f $DOCKER_NAME
+
 trap "docker kill /$DOCKER_NAME; docker rm /$DOCKER_NAME;" EXIT
-docker build containers/docker_tar -t $DOCKER_TAG
+if docker pull $DOCKER_TAG; then
+    echo "using ready built container"
+else
+    docker build containers/docker_tar -t $DOCKER_TAG || exit
+fi
 # we need --init since our upgrade leans on zombies not happening:
 docker \
     run \

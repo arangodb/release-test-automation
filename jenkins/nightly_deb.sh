@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 VERSION=$(cat VERSION.json)
 GIT_VERSION=$(git rev-parse --verify HEAD)
 if test -z "$GIT_VERSION"; then
@@ -15,14 +16,6 @@ if test -n "$PACKAGE_CACHE"; then
     PACKAGE_CACHE=$(pwd)/package_cache
 fi
 
-VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_deb_version"
-mkdir -p ${VERSION_TAR_NAME}
-tar -xvf ${VERSION_TAR_NAME}.tar || true
-
-DOCKER_DEB_NAME=release-test-automation-deb-$(cat VERSION.json)
-
-DOCKER_DEB_TAG=arangodb/release-test-automation-deb:$(cat VERSION.json)
-
 if test -n "$FORCE" -o "$TEST_BRANCH" != 'master'; then
   force_arg='--force'
 fi
@@ -33,6 +26,14 @@ else
     force_arg="${force_arg} --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;")"
 fi
 
+VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_deb_version"
+mkdir -p ${VERSION_TAR_NAME}
+tar -xvf ${VERSION_TAR_NAME}.tar || true
+
+DOCKER_DEB_NAME=release-test-automation-deb-$(cat VERSION.json)
+
+DOCKER_DEB_TAG=arangodb/release-test-automation-deb:$(cat containers/this_version.txt)
+
 docker kill $DOCKER_DEB_NAME || true
 docker rm $DOCKER_DEB_NAME || true
 
@@ -42,7 +43,11 @@ trap "docker kill $DOCKER_DEB_NAME; \
 
 version=$(git rev-parse --verify HEAD)
 
-docker build containers/docker_deb -t $DOCKER_DEB_TAG || exit
+if docker pull $DOCKER_DEB_TAG; then
+    echo "using ready built container"
+else
+    docker build containers/docker_deb -t $DOCKER_DEB_TAG || exit
+fi
 
 docker run -itd \
        --ulimit core=-1 \

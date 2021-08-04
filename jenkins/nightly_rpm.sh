@@ -16,14 +16,6 @@ if test -n "$PACKAGE_CACHE"; then
     PACKAGE_CACHE=$(pwd)/package_cache
 fi
 
-VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_rpm_version"
-mkdir -p ${VERSION_TAR_NAME}
-tar -xvf ${VERSION_TAR_NAME}.tar || true
-
-DOCKER_RPM_NAME=release-test-automation-rpm-$(cat VERSION.json)
-
-DOCKER_RPM_TAG=arangodb/release-test-automation-rpm:$(cat VERSION.json)
-
 if test -n "$FORCE" -o "$TEST_BRANCH" != 'master'; then
   force_arg='--force'
 fi
@@ -34,6 +26,14 @@ else
     force_arg="${force_arg} --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;")"
 fi
 
+VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_rpm_version"
+mkdir -p ${VERSION_TAR_NAME}
+tar -xvf ${VERSION_TAR_NAME}.tar || true
+
+DOCKER_RPM_NAME=release-test-automation-rpm-$(cat VERSION.json)
+
+DOCKER_RPM_TAG=arangodb/release-test-automation-rpm:$(cat containers/this_version.txt)
+
 docker kill $DOCKER_RPM_NAME || true
 docker rm $DOCKER_RPM_NAME || true
 
@@ -43,7 +43,11 @@ trap "docker kill $DOCKER_RPM_NAME; \
 
 version=$(git rev-parse --verify HEAD)
 
-docker build containers/docker_rpm -t $DOCKER_RPM_TAG || exit
+if docker pull $DOCKER_RPM_TAG; then
+    echo "using ready built container"
+else
+    docker build containers/docker_rpm -t $DOCKER_RPM_TAG || exit
+fi
 
 docker run \
        --ulimit core=-1 \
