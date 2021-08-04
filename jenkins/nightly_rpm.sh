@@ -28,6 +28,12 @@ if test -n "$FORCE" -o "$TEST_BRANCH" != 'master'; then
   force_arg='--force'
 fi
 
+if test -n "$SOURCE"; then
+    force_arg="${force_arg} --old-source $SOURCE --new-source $SOURCE"
+else
+    force_arg="${force_arg} --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;")"
+fi
+
 docker kill $DOCKER_RPM_NAME || true
 docker rm $DOCKER_RPM_NAME || true
 
@@ -62,7 +68,6 @@ docker run \
 
 docker exec $DOCKER_RPM_NAME \
           /home/release-test-automation/release_tester/full_download_upgrade_test.py \
-          --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;") \
           --old-version "${OLD_VERSION}" \
           --new-version "${NEW_VERSION}" \
           --no-zip \

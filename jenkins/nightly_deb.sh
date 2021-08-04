@@ -27,6 +27,12 @@ if test -n "$FORCE" -o "$TEST_BRANCH" != 'master'; then
   force_arg='--force'
 fi
 
+if test -n "$SOURCE"; then
+    force_arg="${force_arg} --old-source $SOURCE --new-source $SOURCE"
+else
+    force_arg="${force_arg} --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;")"
+fi
+
 docker kill $DOCKER_DEB_NAME || true
 docker rm $DOCKER_DEB_NAME || true
 
@@ -65,7 +71,6 @@ docker exec $DOCKER_DEB_NAME \
           --selenium Chrome \
           --selenium-driver-args headless \
           --selenium-driver-args no-sandbox \
-          --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;") \
           --alluredir /home/allure-results \
           --no-zip $force_arg $@
 result=$?
