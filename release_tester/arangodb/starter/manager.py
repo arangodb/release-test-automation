@@ -442,7 +442,7 @@ class StarterManager():
         exit_code = self.instance.wait()
         self.add_logfile_to_report()
         if exit_code != 0:
-            raise Exception("Starter exited with %d" % exit_code)
+            raise Exception("Starter %s exited with %d" % (self.basedir, exit_code))
 
         old_log = self.basedir / "arangodb.log.old"
         logging.info("StarterManager: done - moving logfile from %s to %s",

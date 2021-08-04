@@ -150,6 +150,9 @@ def make_installer(install_config: InstallerConfig):
     """ detect the OS and its distro,
         choose the proper installer
         and return it"""
+    if install_config.zip_package:
+        from arangodb.installers.tar import InstallerTAR
+        return InstallerTAR(install_config)
     winver = platform.win32_ver()
     if winver[0]:
         from arangodb.installers.nsis import InstallerW
@@ -157,18 +160,12 @@ def make_installer(install_config: InstallerConfig):
 
     macver = platform.mac_ver()
     if macver[0]:
-        if install_config.zip_package:
-            from arangodb.installers.tar import InstallerTAR
-            return InstallerTAR(install_config)
         from arangodb.installers.mac import InstallerMac
         return InstallerMac(install_config)
 
     if platform.system() in [ "linux", "Linux" ]:
         import distro
         distro = distro.linux_distribution(full_distribution_name=False)
-        if install_config.zip_package:
-            from arangodb.installers.tar import InstallerTAR
-            return InstallerTAR(install_config)
         if distro[0] in ['debian', 'ubuntu']:
             from arangodb.installers.deb import InstallerDeb
             return InstallerDeb(install_config)
