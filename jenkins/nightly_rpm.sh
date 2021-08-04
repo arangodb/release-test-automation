@@ -44,6 +44,7 @@ docker run \
        -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
        -v $(pwd):/home/release-test-automation \
        -v $(pwd)/test_dir:/home/test_dir \
+       -v $(pwd)/allure-results:/home/allure-results \
        -v "$PACKAGE_CACHE":/home/package_cache \
        -v $(pwd)/${VERSION_TAR_NAME}:/home/versions \
        -v /tmp/tmp:/tmp/ \
@@ -72,6 +73,7 @@ docker exec $DOCKER_RPM_NAME \
           --selenium-driver-args no-sandbox \
           --selenium-driver-args remote-debugging-port=9222 \
           --selenium-driver-args start-maximized \
+          --alluredir /home/allure-results \
           $force_arg $@
 result=$?
 
@@ -80,8 +82,9 @@ docker stop $DOCKER_RPM_NAME
 # Cleanup ownership:
 docker run \
        -v $(pwd)/test_dir:/home/test_dir \
+       -v $(pwd)/allure-results:/home/allure-results \
        --rm \
-       $DOCKER_RPM_TAG chown -R $(id -u):$(id -g) /home/test_dir
+       $DOCKER_RPM_TAG chown -R $(id -u):$(id -g) /home/test_dir /home/allure-results
 
 if test "$result" -eq "0"; then
     echo "OK"

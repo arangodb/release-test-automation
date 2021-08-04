@@ -4,6 +4,9 @@ import time
 from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunner
 from selenium.common.exceptions import StaleElementReferenceException
 
+from reporting.reporting_utils import step
+
+
 class Cluster(SeleniumRunner):
     """ check the leader follower setup and its properties """
     def __init__(self, webdriver,
@@ -15,6 +18,7 @@ class Cluster(SeleniumRunner):
                          testrun_name)
         self.is_cluster = True
 
+    @step
     def check_old(self, cfg, leader_follower=False, expect_follower_count=2, retry_count=10):
         """ check the integrity of the old system before the upgrade """
         self.check_version(cfg)
@@ -45,6 +49,7 @@ class Cluster(SeleniumRunner):
             time.sleep(1)
         self.ui_assert(health_state == 'NODES OK', "UI-Test: expected all nodes to be OK")
 
+    @step
     def upgrade_deployment(self, old_cfg, new_cfg, timeout):
         old_ver = str(old_cfg.semver)
         new_ver = str(new_cfg.semver)
@@ -83,6 +88,7 @@ class Cluster(SeleniumRunner):
                        "UI-Test: wrong version after upgrade")
         # TODO self.check_full_ui(new_cfg)
 
+    @step
     def jam_step_1(self, cfg):
         """ check for one set of instances to go away """
         self.web.refresh()
@@ -143,6 +149,7 @@ class Cluster(SeleniumRunner):
                        "UI-Test: wrong health stame after jam: " + health_state)
         # TODO self.check_full_ui(cfg)
 
+    @step
     def jam_step_2(self, cfg):
         self.navbar_goto('cluster')
         node_count = None

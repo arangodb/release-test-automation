@@ -13,11 +13,13 @@ import shutil
 import sys
 import time
 
+from reporting.reporting_utils import step
 import requests
 
 import tools.loghelper as lh
 import tools.errorhelper as eh
 import tools.interact as ti
+from allure_commons._allure import attach
 
 from arangodb.bench import load_scenarios
 from arangodb.instance import InstanceType, print_instances_table
@@ -179,6 +181,10 @@ class Runner(ABC):
             lh.section(msg, separator)
             self.state += "*** " + msg
 
+        with step("Progress: " + msg):
+            pass
+
+
     def ask_continue_or_exit(self, msg, output, default=True, status=1):
         """ ask the user whether to abort the execution or continue anyways """
         self.progress(False, msg)
@@ -272,6 +278,8 @@ class Runner(ABC):
                 self.old_installer.un_install_debug_package()
 
             self.new_installer.upgrade_package(self.old_installer)
+            lh.subsection("outputting version")
+            self.new_installer.output_arangod_version()
             # only install debug package for new package.
             self.progress(True, 'installing debug package:')
             self.cfg.have_debug_package = self.new_installer.install_debug_package()
@@ -364,6 +372,7 @@ class Runner(ABC):
             self.selenium.disconnect()
         self.progress(False, "Runner of type {0} - Finished!".format(str(self.name)))
 
+    @step
     def install(self, inst):
         """ install the package to the system """
         self.progress(True, "{0} - install package".format(str(self.name)))
@@ -383,6 +392,9 @@ class Runner(ABC):
                 lh.subsubsection("stopping service")
                 inst.stop_service()
             inst.broadcast_bind()
+            lh.subsubsection("outputting version")
+            inst.output_arangod_version()
+
             lh.subsubsection("starting service")
 
             inst.start_service()
@@ -417,7 +429,7 @@ class Runner(ABC):
                           "to make ports available for starter")
             inst.stop_service()
 
-
+    @step
     def uninstall(self, inst):
         """ uninstall the package from the system """
         self.progress(True, "{0} - uninstall package".format(str(self.name)))
@@ -429,11 +441,13 @@ class Runner(ABC):
         inst.check_uninstall_cleanup()
         inst.cleanup_system()
 
+    @step
     def starter_prepare_env(self):
         """ base setup; declare instance variables etc """
         self.progress(True, "{0} - prepare starter launch".format(str(self.name)))
         self.starter_prepare_env_impl()
 
+    @step
     def starter_run(self):
         """
         now launch the starter instance s- at this point the basic setup is done
@@ -441,26 +455,31 @@ class Runner(ABC):
         self.progress(True, "{0} - run starter instances".format(str(self.name)))
         self.starter_run_impl()
 
+    @step
     def finish_setup(self):
         """ not finish the setup"""
         self.progress(True, "{0} - finish setup".format(str(self.name)))
         self.finish_setup_impl()
 
+    @step
     def make_data(self):
         """ check if setup is functional """
         self.progress(True, "{0} - make data".format(str(self.name)))
         self.make_data_impl()
 
+    @step
     def make_data_after_upgrade(self):
         """ check if setup is functional """
         self.progress(True, "{0} - make data after upgrade".format(str(self.name)))
         self.make_data_after_upgrade_impl()
 
+    @step
     def test_setup(self):
         """ setup steps after the basic instances were launched """
         self.progress(True, "{0} - basic test after startup".format(str(self.name)))
         self.test_setup_impl()
 
+    @step
     def upgrade_arangod_version(self):
         """ upgrade this installation """
         self.progress(True, "{0} - upgrade setup to newer version".format(
@@ -477,7 +496,7 @@ class Runner(ABC):
         self.upgrade_arangod_version_impl()
         print("check data in instaces")
 
-
+    @step
     def jam_attempt(self):
         """ check resilience of setup by obstructing its instances """
         self.progress(True, "{0}{1} - try to jam setup".format(
@@ -485,6 +504,7 @@ class Runner(ABC):
             str(self.name)))
         self.jam_attempt_impl()
 
+    @step
     def starter_shutdown(self):
         """ stop everything """
         self.progress(True, "{0}{1} - shutdown".format(
@@ -521,6 +541,8 @@ class Runner(ABC):
     def jam_attempt_impl(self):
         """ if known, try to break this deployment """
 
+
+    @step
     def set_frontend_instances(self):
         """ actualises the list of available frontends """
         self.basecfg.frontends = [] # reset the array...
@@ -539,17 +561,23 @@ class Runner(ABC):
                 frontends.append(frontend)
         return frontends
 
+    @step
     def tcp_ping_all_nodes(self):
         """ check whether all nodes react via tcp connection """
         for starter in self.starter_instances:
             starter.tcp_ping_nodes()
 
+    @step
     def print_frontend_instances(self):
         """ print all http frontends to the user """
         frontends = self.get_frontend_instances()
+        result = str()
         for frontend in frontends:
-            print(frontend.get_public_url('root@'))
+            result += frontend.get_public_url('root@')
+        print(result)
+        attach(result)
 
+    @step
     def print_all_instances_table(self):
         """ print all http frontends to the user """
         instances = []
@@ -557,6 +585,7 @@ class Runner(ABC):
             instances += starter.get_instance_essentials()
         print_instances_table(instances)
 
+    @step
     def print_makedata_instances_table(self):
         """ print all http frontends to the user """
         instances = []
@@ -564,6 +593,7 @@ class Runner(ABC):
             instances += starter.get_instance_essentials()
         print_instances_table(instances)
 
+    @step
     def make_data_impl(self):
         """ upload testdata into the deployment, and check it """
         assert self.makedata_instances, "don't have makedata instance!"
@@ -592,6 +622,8 @@ class Runner(ABC):
         if not self.has_makedata_data:
             raise Exception("didn't find makedata instances, no data created!")
 
+
+    @step
     def check_data_impl_sh(self, arangosh, supports_foxx_tests):
         """ check for data on the installation """
         if self.has_makedata_data:
@@ -604,6 +636,7 @@ class Runner(ABC):
                     success[1],
                     False)
 
+    @step
     def check_data_impl(self):
         """ check for data on the installation """
         for starter in self.makedata_instances:
@@ -614,6 +647,7 @@ class Runner(ABC):
             return self.check_data_impl_sh(arangosh, starter.supports_foxx_tests)
         raise Exception("no frontend found.")
 
+    @step
     def create_non_backup_data(self):
         """ create data to be zapped by the restore operation """
         for starter in self.makedata_instances:
@@ -622,6 +656,7 @@ class Runner(ABC):
             return arangosh.hotbackup_create_nonbackup_data()
         raise Exception("no frontend found.")
 
+    @step
     def check_non_backup_data(self):
         """ check whether after a restore dummy data has vanished """
         for starter in self.makedata_instances:
@@ -636,6 +671,7 @@ class Runner(ABC):
     def make_data_after_upgrade_impl(self):
         """ check the data after the upgrade """
 
+    @step
     def before_backup(self):
         """ preparing SUT for the execution of the backup steps """
         self.progress(True, "{0} - preparing SUT for HotBackup".format(str(self.name)))
@@ -645,6 +681,7 @@ class Runner(ABC):
     def before_backup_impl(self):
         """ preparing SUT for the execution of the backup steps """
 
+    @step
     def after_backup(self):
         """ HotBackup has happened, prepare the SUT to continue testing """
         self.progress(True, "{0} - preparing SUT for tests after HotBackup".format(str(self.name)))
@@ -654,6 +691,7 @@ class Runner(ABC):
     def after_backup_impl(self):
         """ HotBackup has happened, prepare the SUT to continue testing """
 
+    @step
     def create_backup(self, name):
         """ create a backup on the installation """
         for starter in self.makedata_instances:
@@ -663,6 +701,7 @@ class Runner(ABC):
             return starter.hb_instance.create(name)
         raise Exception("no frontend found.")
 
+    @step
     def list_backup(self):
         """ fetch the list of all backups known to the installation """
         for starter in self.makedata_instances:
@@ -672,6 +711,7 @@ class Runner(ABC):
             return starter.hb_instance.list()
         raise Exception("no frontend found.")
 
+    @step
     def delete_backup(self, name):
         """ delete a hotbackup from an installation """
         for starter in self.makedata_instances:
@@ -686,6 +726,7 @@ class Runner(ABC):
         """ wait for all restores to be finished """
         backup_starter.wait_for_restore()
 
+    @step
     def restore_backup(self, name):
         """ restore the named hotbackup to the installation """
         for starter in self.makedata_instances:
@@ -697,6 +738,7 @@ class Runner(ABC):
             return
         raise Exception("no frontend found.")
 
+    @step
     def upload_backup(self, name):
         """ upload a backup from the installation to a remote site """
         for starter in self.makedata_instances:
@@ -709,6 +751,7 @@ class Runner(ABC):
                                                      self.backup_instance_count)
         raise Exception("no frontend found.")
 
+    @step
     def download_backup(self, name):
         """ download a backup to the installation from remote """
         for starter in self.makedata_instances:
@@ -723,6 +766,7 @@ class Runner(ABC):
                                                      self.backup_instance_count)
         raise Exception("no frontend found.")
 
+    @step
     def search_for_warnings(self):
         """ search for any warnings in any logfiles and dump them to the screen """
         for starter in self.starter_instances:
@@ -732,6 +776,7 @@ class Runner(ABC):
                 print('w'*80)
                 instance.search_for_warnings()
 
+    @step
     def zip_test_dir(self):
         """ stores the test directory for later analysis """
         build_number = os.environ.get('BUILD_NUMBER')
@@ -750,13 +795,15 @@ class Runner(ABC):
             build_number
         )
         if self.basecfg.base_test_dir.exists():
-            shutil.make_archive(filename,
+            archive = shutil.make_archive(filename,
                                 "bztar",
                                 self.basecfg.base_test_dir,
                                 self.basedir)
+            attach.file(archive, "test dir archive", "application/x-bzip2", "tar.bz2")
         else:
             print("test basedir doesn't exist, won't create report tar")
 
+    @step
     def cleanup(self):
         """ remove all directories created by this test """
         testdir = self.basecfg.base_test_dir / self.basedir
@@ -764,6 +811,7 @@ class Runner(ABC):
         if testdir.exists():
             shutil.rmtree(testdir)
 
+    @step
     def agency_trigger_leader_relection(self, old_leader):
         """ halt one agent to trigger an agency leader re-election """
         self.progress(True, "AGENCY pausing leader to trigger a failover\n%s"%repr(old_leader))
@@ -777,6 +825,7 @@ class Runner(ABC):
             time.sleep(1)
         old_leader.resume_instance()
 
+    @step
     def agency_get_leader(self):
         """ get the agent that has the latest "serving" line """
         # please note: dc2dc has two agencies, this function cannot
@@ -794,6 +843,7 @@ class Runner(ABC):
                 leader = agent
         return leader
 
+    @step
     def agency_acquire_dump(self):
         """ turns on logging on the agency """
         print("Duming agency")
@@ -834,6 +884,7 @@ class Runner(ABC):
                 # We skip one starter and all its agency dump attempts now.
                 print("Error during an agency dump: " + str(ex))
 
+    @step
     def agency_set_debug_logging(self):
         """ turns on logging on the agency """
         for starter_mgr in self.starter_instances:
@@ -843,6 +894,8 @@ class Runner(ABC):
                 '/_admin/log/level',
                 '{"agency":"debug", "requests":"trace", '
                 '"cluster":"debug", "maintenance":"debug"}')
+
+    @step
     def dbserver_set_debug_logging(self):
         """ turns on logging on the dbserver """
         for starter_mgr in self.starter_instances:
@@ -852,6 +905,8 @@ class Runner(ABC):
                 '/_admin/log/level',
                 '{"agency":"debug", "requests":"trace", '
                 '"cluster":"debug", "maintenance":"debug"}')
+
+    @step
     def coordinator_set_debug_logging(self):
         """ turns on logging on the coordinator """
         for starter_mgr in self.starter_instances:

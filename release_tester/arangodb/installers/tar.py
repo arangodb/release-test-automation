@@ -4,6 +4,7 @@ import platform
 import shutil
 import logging
 from pathlib import Path
+from reporting.reporting_utils import step
 import psutil
 import tools.loghelper as lh
 from arangodb.installers.base import InstallerBase
@@ -14,14 +15,17 @@ class InstallerTAR(InstallerBase):
     """ install Tar.gz's on Linux/Mac hosts """
 # pylint: disable=R0913 disable=R0902
     def __init__(self, cfg):
-        self.tar = 'tar'
         macver = platform.mac_ver()
         if macver[0]:
             cfg.localhost = 'localhost'
             self.remote_package_dir  = 'MacOSX'
+            self.architecture = 'macos'
+            self.installer_type = ".tar.gz MacOS"
         else:
             self.remote_package_dir  = 'Linux'
             cfg.localhost = 'localhost'
+            self.architecture = 'linux'
+            self.installer_type = ".tar.gz Linux"
 
         self.hot_backup = True
         self.server_package = None
@@ -47,10 +51,7 @@ class InstallerTAR(InstallerBase):
 
     def calculate_package_names(self):
         enterprise = 'e' if self.cfg.enterprise else ''
-        architecture = 'linux'
         macver = platform.mac_ver()
-        if macver[0]:
-            architecture = 'macos'
 
         semdict = dict(self.cfg.semver.to_dict())
         if semdict['prerelease']:
@@ -62,13 +63,13 @@ class InstallerTAR(InstallerBase):
         self.desc = {
             "ep"   : enterprise,
             "ver"  : version,
-            "arch" : architecture
+            "arch" : self.architecture
         }
 
         self.server_package = 'arangodb3{ep}-{arch}-{ver}.tar.gz'.format(**self.desc)
         self.debug_package = None
         self.client_package = None
-        self.cfg.installPrefix = Path("/tmp") / 'arangodb3{ep}-{ver}'.format(**self.desc)
+        self.cfg.installPrefix = Path("/tmp") / 'arangodb3{ep}-{arch}-{ver}'.format(**self.desc)
         self.cfg.bin_dir = self.cfg.installPrefix / "bin"
         self.cfg.sbin_dir = self.cfg.installPrefix / "usr" / "sbin"
         self.cfg.real_bin_dir = self.cfg.installPrefix / "usr" / "bin"
@@ -87,10 +88,12 @@ class InstallerTAR(InstallerBase):
     def stop_service(self):
         """ nothing to see here """
 
+    @step
     def upgrade_package(self, old_installer):
         """ Tar installer is the same way we did for installing."""
         self.install_package()
 
+    @step
     def install_package(self):
         logging.info("installing Arangodb debian Tar package")
         logging.debug(
@@ -99,18 +102,11 @@ class InstallerTAR(InstallerBase):
 
         if not self.cfg.installPrefix.exists():
             self.cfg.installPrefix.mkdir()
-        cmd = [self.tar,
-                   '-xf', str(self.cfg.package_dir / self.server_package),
-                   '-C',  str(self.cfg.installPrefix),
-                   '--strip-components', '1'
-               ]
-        lh.log_cmd(cmd)
-        install = psutil.Popen(cmd)
-        if install.wait() != 0:
-            raise Exception("extracting the Archive failed!")
-        print()
+        shutil.unpack_archive(str(self.cfg.package_dir / self.server_package),
+                              str(self.cfg.installPrefix / '..'))
         logging.info('Installation successfull')
 
+    @step
     def un_install_package(self):
         if self.cfg.installPrefix.exists():
             shutil.rmtree(self.cfg.installPrefix)

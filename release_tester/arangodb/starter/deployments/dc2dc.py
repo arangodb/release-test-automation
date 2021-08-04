@@ -21,7 +21,7 @@ SYNC_VERSIONS = {
     "220": semver.VersionInfo.parse('2.2.0'),
     "230": semver.VersionInfo.parse('2.3.0')
 }
-USERS_ERROR_RX = re.compile('.*\n.*\n.*(_users).*DIFFERENT.*', re.MULTILINE)
+USERS_ERROR_RX = re.compile('.*\n*.*\n*.*(_users).*DIFFERENT.*', re.MULTILINE)
 
 class Dc2Dc(Runner):
     """ this launches two clusters in dc2dc mode """
@@ -249,6 +249,7 @@ class Dc2Dc(Runner):
         """
         this function contains counter measures against known issues of arangosync
         """
+        print(last_sync_output)
         if re.match(USERS_ERROR_RX, last_sync_output):
             self.progress(True, 'arangosync: resetting users collection...')
             self.sync_manager.reset_failed_shard('_system', '_users')
@@ -276,7 +277,6 @@ class Dc2Dc(Runner):
     def _get_in_sync(self, attempts):
         self.progress(True, "waiting for the DCs to get in sync")
         output = None
-        err = None
         for count in range (attempts):
             (result, output) = self.sync_manager.check_sync()
             if result:
@@ -287,7 +287,6 @@ class Dc2Dc(Runner):
             time.sleep(10)
         else:
             self.state += "\n" + output
-            self.state += "\n" + err
             raise Exception("failed to get the sync status")
 
     def test_setup_impl(self):

@@ -5,6 +5,8 @@ import logging
 import re
 import time
 
+from allure_commons._allure import attach
+from allure_commons.types import AttachmentType
 from beautifultable import BeautifulTable
 from selenium.webdriver.common.by import By
 
@@ -19,6 +21,7 @@ from selenium.common.exceptions import (
 )
 
 from selenium_ui_test.main import Test as UITest
+from reporting.reporting_utils import step, attach_table
 FNRX = re.compile("[\n@]*")
 
 
@@ -69,9 +72,12 @@ class SeleniumRunner(ABC):
         self.importer = importer
         self.restorer = restorer
 
+
     def progress(self, msg):
         """ add something to the state... """
         logging.info("UI-Test: " + msg)
+        with step("UI test progress: " + msg):
+            pass
         if len(self.state) > 0:
             self.state += "\n"
         self.state += "UI: " + msg
@@ -86,11 +92,13 @@ class SeleniumRunner(ABC):
         self.reset_progress()
         return ret
 
+    @step
     def disconnect(self):
         """ byebye """
         self.progress("Close!")
         self.web.close()
 
+    @step
     def get_browser_log_entries(self):
         """get log entreies from selenium and add to python logger before returning"""
         print('B'*80)
@@ -126,6 +134,7 @@ class SeleniumRunner(ABC):
                 print("caught exception during transfering browser logs: " + str(ex))
                 print(entry)
 
+    @step
     def take_screenshot(self, filename=None):
         """ *snap* """
         if filename is None:
@@ -141,17 +150,23 @@ class SeleniumRunner(ABC):
             if self.is_headless:
                 self.progress("taking full screenshot")
                 elmnt = self.web.find_element_by_tag_name('body')
-                elmnt.screenshot(filename)
+                screenshot = elmnt.screenshot_as_png()
             else:
                 self.progress("taking screenshot")
-                self.web.save_screenshot(filename)
+                screenshot = self.web.get_screenshot_as_png()
         except InvalidSessionIdException:
             self.progress("Fatal: webdriver not connected!")
         except Exception as ex:
             self.progress("falling back to taking partial screenshot " + str(ex))
-            self.web.save_screenshot(filename)
+            screenshot = self.web.get_screenshot_as_png()
         self.get_browser_log_entries()
+        self.progress("Saving screenshot to file: %s" % filename)
+        with open(filename, "wb") as file:
+            file.write(screenshot)
 
+        attach(screenshot, name="Screenshot ({fn})".format(fn=filename), attachment_type=AttachmentType.PNG)
+
+    @step
     def ui_assert(self, conditionstate, message):
         """ python assert sucks. fuckit. """
         if not conditionstate:
@@ -159,6 +174,7 @@ class SeleniumRunner(ABC):
             self.take_screenshot()
             assert False, message
 
+    @step
     def connect_server_new_tab(self, frontend_instance, database, cfg):
         """ login... """
         self.progress("Opening page")
@@ -181,7 +197,7 @@ class SeleniumRunner(ABC):
     def by_class(self, classname):
         """ shortcut class-id """
         return self.web.find_element_by_class_name(classname)
-
+    @step
     def close_tab_again(self):
         """ close a tab, and return to main window """
         self.web.close()# Switch back to the first tab with URL A
@@ -191,6 +207,7 @@ class SeleniumRunner(ABC):
         self.web.switch_to.window(self.original_window_handle)
         self.original_window_handle = None
 
+    @step
     def connect_server(self, frontend_instance, database, cfg):
         """ login... """
         self.progress("Opening page")
@@ -200,6 +217,7 @@ class SeleniumRunner(ABC):
                      "/_db/_system/_admin/aardvark/index.html")
         self.login_webif(frontend_instance, database, cfg)
 
+    @step
     def _login_wait_for_screen(self):
         """ wait for the browser to show the login screen """
         try:
@@ -229,6 +247,7 @@ class SeleniumRunner(ABC):
             raise ex
         return True
 
+    @step
     def _login_fill_username(self, frontend_instance, database, cfg, recurse=0):
         """ fill in the username column """
         try:
@@ -255,6 +274,7 @@ class SeleniumRunner(ABC):
                                     recurse + 1)
         return True
 
+    @step
     def _login_fill_passvoid(self, frontend_instance):
         """ fill the passvoid and click login """
         while True:
@@ -275,6 +295,7 @@ class SeleniumRunner(ABC):
             break
         return True
 
+    @step
     def _login_choose_database(self, frontend_instance, database, cfg, recurse=0):
         """ choose the database from the second login screen """
         count = 0
@@ -309,6 +330,7 @@ class SeleniumRunner(ABC):
         elem.click()
         return True
 
+    @step
     def login_webif(self, frontend_instance, database, cfg, recurse=0):
         """ log into an arangodb webinterface """
         if recurse > 10:
@@ -330,6 +352,7 @@ class SeleniumRunner(ABC):
             raise ex
         return False
 
+    @step
     def detect_version(self):
         """
         extracts the version in the lower right and
@@ -358,6 +381,7 @@ class SeleniumRunner(ABC):
                 self.take_screenshot()
                 raise ex
 
+    @step
     def navbar_goto(self, tag):
         """ click on any of the items in the 'navbar' """
         count = 0
@@ -386,8 +410,9 @@ class SeleniumRunner(ABC):
                 self.take_screenshot()
                 raise ex
 
+    @step
     def get_health_state(self):
-        """ xtracts the health state in the upper right corner """
+        """ extract the health state in the upper right corner """
         try:
             elem = self.xpath(
                 '/html/body/div[2]/div/div[1]/div/ul[1]/li[2]/a[2]')
@@ -398,9 +423,10 @@ class SeleniumRunner(ABC):
         self.progress("Health state:" + elem.text)
         return elem.text
 
+    @step
     def cluster_dashboard_get_count(self, timeout=15):
         """
-         extracts the coordinator / dbserver count from the 'cluster' page
+         extract the coordinator / dbserver count from the 'cluster' page
         """
         ret = {}
         while True:
@@ -484,15 +510,18 @@ class SeleniumRunner(ABC):
         pretty_table.columns.header = [
             "Name", "URL", "Ver", "Date", "State"]
         self.progress('\n' + str(pretty_table))
+        attach_table(pretty_table, "Cluster nodes table")
         return table
 
+    @step
     def cluster_get_nodes_table(self, timeout=20):
         """
-        extracts the table of coordinators / dbservers from the 'nodes' page
+        extract the table of coordinators / dbservers from the 'nodes' page
         """
         while True:
             try:
-                return self._cluster_get_nodes_table(timeout)
+                table = self._cluster_get_nodes_table(timeout)
+                return table
             except StaleElementReferenceException:
                 self.progress('retrying after stale element')
                 time.sleep(1)

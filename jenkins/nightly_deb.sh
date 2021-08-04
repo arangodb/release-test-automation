@@ -45,6 +45,7 @@ docker run -itd \
        -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
        -v $(pwd):/home/release-test-automation \
        -v $(pwd)/test_dir:/home/test_dir \
+       -v $(pwd)/allure-results:/home/allure-results \
        -v "$PACKAGE_CACHE":/home/package_cache \
        -v $(pwd)/${VERSION_TAR_NAME}:/home/versions \
        -v /tmp/tmp:/tmp/ \
@@ -65,14 +66,16 @@ docker exec $DOCKER_DEB_NAME \
           --selenium-driver-args headless \
           --selenium-driver-args no-sandbox \
           --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;") \
+          --alluredir /home/allure-results \
           --no-zip $force_arg $@
 result=$?
 
 # Cleanup ownership:
 docker run \
        -v $(pwd)/test_dir:/home/test_dir \
+       -v $(pwd)/allure-results:/home/allure-results \
        --rm \
-       $DOCKER_DEB_TAG chown -R $(id -u):$(id -g) /home/test_dir
+       $DOCKER_DEB_TAG chown -R $(id -u):$(id -g) /home/test_dir /home/allure-results
 
 if test "$result" -eq "0"; then
     echo "OK"
