@@ -56,7 +56,6 @@ class InstallerTAR(InstallerBase):
             self.architecture = 'linux'
             self.installer_type = ".tar.gz Linux"
 
-        self.hot_backup = True
         self.server_package = None
         self.client_package = None
         self.debug_package = None
