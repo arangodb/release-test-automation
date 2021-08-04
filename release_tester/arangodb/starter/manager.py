@@ -427,7 +427,7 @@ class StarterManager():
         return False
 
     @step
-    def terminate_instance(self):
+    def terminate_instance(self, keep_instances=False):
         """ terminate the instance of this starter
             (it should kill all its managed services)"""
 
@@ -456,8 +456,9 @@ class StarterManager():
             instance.detect_gone()
         # Clear instances as they have been stopped and the logfiles
         # have been moved.
-        self.is_leader = False
-        self.all_instances = []
+        if not keep_instances:
+            self.is_leader = False
+            self.all_instances = []
 
     @step
     def kill_instance(self):
@@ -486,11 +487,7 @@ class StarterManager():
         """
         # On windows the install prefix may change,
         # since we can't overwrite open files:
-        self.cfg.set_directories(new_install_cfg)
-        if self.cfg.hot_backup:
-            self.hotbackup = [
-                '--all.rclone.executable',
-                self.cfg.real_sbin_dir / 'rclone-arangodb']
+        self.replace_binary_setup_for_upgrade(new_install_cfg)
         logging.info("StarterManager: Killing my instance [%s]",
                      str(self.instance.pid))
         self.kill_instance()
@@ -498,6 +495,49 @@ class StarterManager():
         self.respawn_instance()
         logging.info("StarterManager: respawned instance as [%s]",
                      str(self.instance.pid))
+
+    @step
+    def manually_launch_instances(self,
+                                  which_instances,
+                                  moreargs,
+                                  waitpid=True,
+                                  kill_nstance=False):
+        """ launch the instances of this starter with optional arguments """
+        for instance_type in which_instances:
+            for i in self.all_instances:
+                if i.instance_type == instance_type:
+                    if kill_nstance:
+                        i.kill_instance()
+                    i.launch_manual_from_instance_control_file(
+                        self.cfg.sbin_dir,
+                        moreargs,
+                        waitpid)
+
+    @step
+    def temporarily_replace_instances(self, which_instances, moreargs):
+        """ halt starter, launch instance, wait for it to exit, continue starter """
+        self.instance.suspend()
+        self.manually_launch_instances(which_instances, moreargs, waitpid=True, kill_nstance=True)
+        self.instance.resume()
+        self.detect_instances()
+
+    @step
+    def replace_binary_setup_for_upgrade(self, new_install_cfg):
+        """
+          - replace the parts of the installation with information
+            after an upgrade
+          - kill the starter processes of the old version
+          - revalidate that the old arangods are still running and alive
+          - replace the starter binary with a new one.
+            this has not yet spawned any children
+        """
+        # On windows the install prefix may change,
+        # since we can't overwrite open files:
+        self.cfg.set_directories(new_install_cfg)
+        if self.cfg.hot_backup:
+            self.hotbackup = [
+                '--all.rclone.executable',
+                self.cfg.real_sbin_dir / 'rclone-arangodb']
 
     @step
     def kill_sync_processes(self):
@@ -570,15 +610,22 @@ class StarterManager():
                 node.check_version_request(20.0)
 
     @step
-    def respawn_instance(self):
-        """ restart the starter instance after we killed it eventually """
+    def respawn_instance(self, moreargs=[], wait_for_logfile=True):
+        """
+        restart the starter instance after we killed it eventually,
+        maybe command manual upgrade (and wait for exit)
+        """
         args = [
             self.cfg.bin_dir / 'arangodb'
-        ] + self.hotbackup + self.arguments
+        ] + self.hotbackup + self.arguments + moreargs
 
         logging.info("StarterManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)
-        self.wait_for_logfile()
+        if wait_for_logfile:
+            self.wait_for_logfile()
+        else:
+            print("Waiting for starter to exit")
+            print("Starter exited %d" % self.instance.wait())
 
     @step
     def wait_for_version_reply(self):

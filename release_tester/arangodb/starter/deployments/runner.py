@@ -27,11 +27,11 @@ from arangodb.sh import ArangoshExecutor
 from tools.killall import kill_all_processes
 
 FNRX = re.compile("[\n@ ]*")
+WINVER = platform.win32_ver()
 
 def detect_file_ulimit():
     """ check whether the ulimit for files is to low """
-    winver = platform.win32_ver()
-    if not winver[0]:
+    if not WINVER[0]:
         # pylint: disable=C0415
         import resource
         nofd = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
@@ -94,6 +94,7 @@ class Runner(ABC):
             "system"] and cfg.have_system_service
         self.do_starter_test = cfg.mode in ["all", "tests"]
         self.do_upgrade = False
+        self.supports_rolling_upgrade = WINVER[0] is None
 
         self.basecfg = copy.deepcopy(cfg)
         self.new_cfg = new_cfg
@@ -478,8 +479,11 @@ class Runner(ABC):
     @step
     def upgrade_arangod_version(self):
         """ upgrade this installation """
-        self.progress(True, "{0} - upgrade setup to newer version".format(
-            str(self.name)))
+        mode = "rolling" if self.supports_rolling_upgrade else "manual"
+        self.progress(True, "{0} - {1} upgrade setup to newer version".format(
+            str(self.name),
+            mode
+        ))
         logging.info("{1} -> {0}".format(
             self.new_installer.cfg.version,
             self.old_installer.cfg.version
@@ -488,8 +492,12 @@ class Runner(ABC):
         print("deinstall")
         print("install")
         print("replace starter")
-        print("upgrade instances")
-        self.upgrade_arangod_version_impl()
+        if self.supports_rolling_upgrade:
+            print("upgrading instances in roling mode")
+            self.upgrade_arangod_version_impl()
+        else:
+            print("upgrading instances in manual mode")
+            self.upgrade_arangod_version_manual_impl()
         print("check data in instaces")
 
     @step
@@ -531,7 +539,11 @@ class Runner(ABC):
 
     @abstractmethod
     def upgrade_arangod_version_impl(self):
-        """ upgrade this deployment """
+        """ rolling upgrade this deployment """
+
+    @abstractmethod
+    def upgrade_arangod_version_manual_impl(self):
+        """ start/stop upgrade this deployment """
 
     @abstractmethod
     def jam_attempt_impl(self):

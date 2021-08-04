@@ -32,6 +32,22 @@ class ActiveFailover(Runner):
         self.success = True
         self.backup_instance_count = 1
 
+    def _detect_leader(self):
+        """ find out the leader node """
+        self.leader = None
+        while self.leader is None:
+            for node in self.starter_instances:
+                if node.detect_leader():
+                    self.leader = node
+                    self.first_leader = node
+        self.first_leader.wait_for_version_reply()
+        self.follower_nodes = []
+        for node in self.starter_instances:
+            node.detect_instance_pids()
+            if not node.is_leader:
+                self.follower_nodes.append(node)
+            node.set_passvoid('leader', node.is_leader)
+
     def starter_prepare_env_impl(self):
         self.starter_instances.append(
             StarterManager(self.basecfg,
@@ -95,19 +111,7 @@ class ActiveFailover(Runner):
 
     def finish_setup_impl(self):
         logging.info("instances are ready, detecting leader")
-        self.follower_nodes = []
-        while self.leader is None:
-            for node in self.starter_instances:
-                if node.detect_leader():
-                    self.leader = node
-                    self.first_leader = node
-
-        for node in self.starter_instances:
-            node.detect_instance_pids()
-            if not node.is_leader:
-                self.follower_nodes.append(node)
-            node.set_passvoid('leader', node.is_leader)
-
+        self._detect_leader()
 
         #add data to leader
         self.makedata_instances.append(self.leader)
@@ -183,7 +187,7 @@ class ActiveFailover(Runner):
         self.leader.maintainance(False, InstanceType.RESILIENT_SINGLE)
 
     def upgrade_arangod_version_impl(self):
-        """ upgrade this installation """
+        """ rolling upgrade this installation """
         for node in self.starter_instances:
             node.replace_binary_for_upgrade(self.new_cfg)
         for node in self.starter_instances:
@@ -197,6 +201,36 @@ class ActiveFailover(Runner):
             self.selenium.web.refresh() # version doesn't upgrade if we don't do this...
             self.selenium.check_old(self.new_cfg,
                                     expect_follower_count=2, retry_count=10)
+
+    def upgrade_arangod_version_manual_impl(self):
+        """ manual upgrade this installation """
+        self.progress(True, "manual upgrade step 1 - stop system")
+        self.leader.maintainance(True, InstanceType.RESILIENT_SINGLE)
+        for node in self.starter_instances:
+            node.replace_binary_for_upgrade(self.new_cfg)
+            node.terminate_instance(True)
+        self.progress(True, "step 2 - upgrade database directories")
+        for node in self.starter_instances:
+            print('launch')
+            node.manually_launch_instances([
+                InstanceType.AGENT,
+                InstanceType.RESILIENT_SINGLE,
+            ], ['--database.auto-upgrade', 'true'])
+        self.progress(True, "step 3 - launch instances again")
+        for node in self.starter_instances:
+            node.respawn_instance()
+        self.progress(True, "step 4 - check alive status")
+        for node in self.starter_instances:
+            node.detect_instances()
+            node.wait_for_version_reply()
+        self._detect_leader()
+        self.leader.maintainance(False, InstanceType.RESILIENT_SINGLE)
+        self.print_all_instances_table()
+        if self.selenium:
+            self.selenium.web.refresh() # version doesn't upgrade if we don't do this...
+            self.selenium.check_old(self.new_cfg,
+                                    expect_follower_count=2,
+                                    retry_count=10)
 
     def jam_attempt_impl(self):
         # pylint: disable=R0915

@@ -178,7 +178,7 @@ process.exit(0);
 
     @step
     def upgrade_arangod_version_impl(self):
-        """ upgrade this installation """
+        """ rolling upgrade this installation """
         for node in [self.leader_starter_instance, self.follower_starter_instance]:
             node.replace_binary_for_upgrade(self.new_cfg)
         for node in [self.leader_starter_instance, self.follower_starter_instance]:
@@ -187,6 +187,36 @@ process.exit(0);
             node.wait_for_upgrade_done_in_log()
 
         for node in [self.leader_starter_instance, self.follower_starter_instance]:
+            node.detect_instances()
+            node.wait_for_version_reply()
+        if self.selenium:
+            self.selenium.web.refresh()
+            self.selenium.check_old(self.new_cfg, True)
+            self.selenium.connect_server_new_tab(
+                self.follower_starter_instance.get_frontends(),
+                '_system', self.cfg)
+            self.selenium.check_old(self.new_cfg, False)
+            self.selenium.close_tab_again()
+
+    @step
+    def upgrade_arangod_version_manual_impl(self):
+        """ manual upgrade this installation """
+        self.progress(True, "step 1 - shut down instances")
+        instances = [self.leader_starter_instance, self.follower_starter_instance]
+        for node in instances:
+            node.replace_binary_setup_for_upgrade(self.new_cfg)
+            node.terminate_instance(True)
+        self.progress(True, "step 2 - launch instances with the upgrade options set")
+        for node in instances:
+            print('launch')
+            node.manually_launch_instances(
+                [ InstanceType.SINGLE ],
+                [ '--database.auto-upgrade', 'true' ] )
+        self.progress(True, "step 3 - launch instances again")
+        for node in instances:
+            node.respawn_instance()
+        self.progress(True, "step 4 - detect system state")
+        for node in instances:
             node.detect_instances()
             node.wait_for_version_reply()
         if self.selenium:

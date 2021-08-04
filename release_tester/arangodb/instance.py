@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 """ class to manage an arangod or arangosync instance """
 import datetime
@@ -68,7 +67,14 @@ class AfoServerState(IntEnum):
 class Instance(ABC):
     """abstract instance manager"""
     # pylint: disable=R0913 disable=R0902
-    def __init__(self, instance_type, port, basedir, localhost, publicip, passvoid, logfile):
+    def __init__(self,
+                 instance_type,
+                 port,
+                 basedir,
+                 localhost,
+                 publicip,
+                 passvoid,
+                 instance_string):
         self.instance_type = INSTANCE_TYPE_STRING_MAP[instance_type]
         self.is_system = False
         self.type_str = list(INSTANCE_TYPE_STRING_MAP.keys())[int(self.instance_type.value)]
@@ -76,13 +82,16 @@ class Instance(ABC):
         self.pid = None
         self.ppid = None
         self.basedir = basedir
-        self.logfile = logfile
+        self.instance_string = instance_string
+        self.logfile = basedir / (instance_string + '.log')
+        self.instance_control_file = basedir / (instance_string + '_command.txt')
         self.localhost = localhost
         self.publicip = publicip
         self.passvoid = passvoid
         self.name = self.instance_type.name + str(self.port)
         self.instance = None
         self.serving = datetime.datetime(1970, 1, 1, 0, 0, 0)
+        self.instance_arguments = []
 
         logging.debug("creating {0.type_str} instance: {0.name}".format(self))
 
@@ -117,6 +126,33 @@ class Instance(ABC):
     def get_essentials(self):
         """ get the essential attributes of the class """
 
+    def analyze_starter_file_line(self, line):
+        """ instance specific analyzer function """
+        #pylint: disable=W0107
+        pass
+
+    def load_starter_instance_control_file(self):
+        """ load & parse the <instance_string>_command.txt file of the starter """
+        if not self.instance_control_file.exists():
+            raise FileNotFoundError("Instance control file not found! " +
+                                    str(self.instance_control_file))
+        self.instance_arguments = []
+        with self.instance_control_file.open(errors='backslashreplace') as filedesc:
+            for line in filedesc.readlines():
+                line = line.rstrip().rstrip(' \\')
+                self.analyze_starter_file_line(line)
+                self.instance_arguments.append(line)
+
+    def launch_manual_from_instance_control_file(self, sbin_dir, moreargs, waitpid=True):
+        """ launch instance without starter with additional arguments """
+        self.load_starter_instance_control_file()
+        command = [str(sbin_dir / self.instance_string)] + \
+            self.instance_arguments[1:] + moreargs
+        print("Manually launching: " + str(command))
+        self.instance = psutil.Popen(command)
+        if waitpid:
+            self.instance.wait()
+
     @step
     def rename_logfile(self, suffix='.old'):
         """ to ease further analysis, move old logfile out of our way"""
@@ -127,6 +163,23 @@ class Instance(ABC):
         if new_logfile.exists():
             new_logfile.unlink()
         self.logfile.rename(new_logfile)
+
+    @step
+    def kill_instance(self):
+        """ terminate the process represented by this wrapper class """
+        if self.instance:
+            try:
+                print('force-killing {0} instance PID [{1}]'.format(
+                    self.type_str,
+                    self.instance.pid))
+                self.instance.kill()
+                # if the starter is stopped, will never end:
+                # self.instance.wait()
+            except psutil.NoSuchProcess:
+                logging.info("instance already dead: " + str(self.instance))
+            self.instance = None
+        else:
+            logging.info("I'm already dead, jim!" + str(repr(self)))
 
     @step
     def terminate_instance(self):
@@ -258,7 +311,7 @@ class ArangodInstance(Instance):
                          localhost,
                          publicip,
                          passvoid,
-                         basedir / 'arangod.log')
+                         'arangod')
         self.is_system = is_system
 
     def __repr__(self):
@@ -473,7 +526,9 @@ class ArangodInstance(Instance):
                         continue
                     if "] FATAL [" in line and not self.is_suppressed_log_line(line):
                         print('Error: ', line)
-                        raise Exception("FATAL error found in arangod.log: " + line)
+                        raise Exception("FATAL error found in " +
+                                        str(self.logfile) +
+                                        ": " + line)
                     # save last line and append to string
                     # (why not slurp the whole file?)
                     last_line = line
@@ -572,7 +627,7 @@ class ArangodRemoteInstance(ArangodInstance):
                          localhost,
                          publicip,
                          passvoid,
-                         basedir / 'arangod.log')
+                         'arangod')
 
 class SyncInstance(Instance):
     """ represent one arangosync instance """
@@ -584,7 +639,8 @@ class SyncInstance(Instance):
                          localhost,
                          publicip,
                          passvoid,
-                         basedir / 'arangosync.log')
+                         'arangosync')
+        self.logfile_parameter = ''
 
     def __repr__(self):
         """ dump us """
@@ -604,27 +660,22 @@ class SyncInstance(Instance):
             "is_frontend": False,
             "url": ""
         }
+    def analyze_starter_file_line(self, line):
+        if line.find('--log.file') >=0:
+            self.logfile_parameter = line
 
     def detect_pid(self, ppid, offset, full_binary_path):
         # first get the starter provided commandline:
         self.ppid = ppid
-        command = self.basedir / 'arangosync_command.txt'
-        cmd = []
-        # we search for the logfile parameter, since its unique to our instance.
-        logfile_parameter = ''
-        with open(command, errors='backslashreplace') as filedesc:
-            for line in filedesc.readlines():
-                line = line.rstrip().rstrip(' \\')
-                if line.find('--log.file') >=0:
-                    logfile_parameter = line
-                cmd.append(line)
+        self.load_starter_instance_control_file()
         logfile_parameter_raw = ''
-        if logfile_parameter == '--log.file':
+        if self.logfile_parameter == '--log.file':
             # newer starters will use '--foo bar' instead of '--foo=bar'
-            logfile_parameter = cmd[cmd.index('--log.file') + 1]
+            logfile_parameter = self.instance_arguments[
+                self.instance_arguments.index('--log.file') + 1]
             logfile_parameter_raw = logfile_parameter
         else:
-            logfile_parameter_raw = logfile_parameter.split('=')[1]
+            logfile_parameter_raw = self.logfile_parameter.split('=')[1]
         # wait till the process has startet writing its logfile:
         while not self.logfile.exists():
             progress('v')
