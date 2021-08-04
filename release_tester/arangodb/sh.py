@@ -36,13 +36,15 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             self.cfg.bin_dir / "arangosh",
             "--log.level", "v8=debug",
             "--server.endpoint", self.connect_instance.get_endpoint(),
-            "--server.username", str(self.cfg.username),
-            "--server.password", str(self.connect_instance.get_passvoid())]
+            "--server.username", str(self.cfg.username)]
         # if self.cfg.username:
         #    run_cmd += [ "--server.username", str(self.cfg.username) ]
         if self.cfg.passvoid:
             run_cmd += [ "--server.password", str(self.cfg.passvoid) ]
-
+        else:
+            run_cmd += [
+                "--server.password", str(self.connect_instance.get_passvoid())
+            ]
         run_cmd += ["--javascript.execute-string", str(cmd[1]) ]
 
         if len(cmd) > 2:
