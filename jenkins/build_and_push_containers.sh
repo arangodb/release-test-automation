@@ -1,3 +1,4 @@
+#!/bin/bash
 
 DOCKER_DEB_TAG=arangodb/release-test-automation-deb:$(cat containers/this_version.txt)
 docker build containers/docker_deb -t $DOCKER_DEB_TAG || exit
