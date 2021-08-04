@@ -89,13 +89,15 @@ class AcquirePackages():
             "ftp:stage2": '/buildfiles/stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/'.format(**self.params),
             "http:stage1": 'stage1/{full_version}/release/packages/{enterprise}/{remote_package_dir}/'.format(**self.params),
             "http:stage2": 'stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/'.format(**self.params),
-            "public": '{enterprise_magic}{major_version}/{enterprise}/{remote_package_dir}/'.format(**self.params)
+            "nightlypublic": '{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/'.format(**self.params).replace('///', '/'),
+            "public": '{enterprise_magic}{major_version}/{enterprise}/{remote_package_dir}/'.format(**self.params).replace('///', '/')
         }
         self.funcs = {
             "http:stage1": self.acquire_stage1_http,
             "http:stage2": self.acquire_stage2_http,
             "ftp:stage1": self.acquire_stage1_ftp,
             "ftp:stage2": self.acquire_stage2_ftp,
+            "nightlypublic": self.acquire_live,
             "public": self.acquire_live
         }
 

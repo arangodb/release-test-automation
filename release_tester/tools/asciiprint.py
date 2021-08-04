@@ -20,7 +20,7 @@ ANSI_ESCAPE_B = re.compile(rb'''
     )
 ''', re.VERBOSE)
 
-def ascii_convert(the_bytes):
+def ascii_convert(the_bytes:bytes):
     """ convert string to only be ascii without control sequences """
     return ANSI_ESCAPE_B.sub(rb'', the_bytes).decode("utf-8")
 
@@ -36,6 +36,10 @@ ANSI_ESCAPE = re.compile(r'''
         [@-~]   # Final byte
     )
 ''', re.VERBOSE)
+
+def ascii_convert_str(the_str:str):
+    """ convert string to only be ascii without control sequences """
+    return ANSI_ESCAPE.sub(rb'', the_str)
 
 def ascii_print(string):
     """ convert string to only be ascii without control sequences """

@@ -107,6 +107,7 @@ def download_options(default_source="public", double_source=False):
         "http:stage1",
         "ftp:stage2",
         "http:stage2",
+        "nightlypublic",
         "public"
     ]
     download_sources_local = download_sources + ['local']
