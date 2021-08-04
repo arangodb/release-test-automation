@@ -94,13 +94,6 @@ class BaseSelenium:
         time.sleep(1)
 
     def clear_all_text(self, locator=None):
-        """This method will select all text and clean it"""
-        if locator is not None:
-            locator = locator
-            locator = BaseSelenium.locator_finder_by_xpath(self, locator)
-            locator.click()
-            time.sleep(2)
-
         print("Cleaning input field \n")
         """This method will select all text and clean it"""
         if locator is not None:
@@ -113,6 +106,7 @@ class BaseSelenium:
         actions.key_down(Keys.CONTROL)
         actions.send_keys('a')
         actions.send_keys(Keys.DELETE)
+        actions.key_up(Keys.CONTROL)
         actions.perform()
 
 
@@ -171,9 +165,13 @@ class BaseSelenium:
             log_level = BaseSelenium.locator_finder_by_id(self, log_level)
             log_level.click()
             assert "Level" in log_level.text, "********UI become unresponsive******"
+            if log_level.text == 'Level':
+                print("Ui is responsive and working as usual\n")
         except TimeoutException:
-            print("Dashboard responsiveness failed")
+            print("********Dashboard responsiveness check failed********")
 
+        time.sleep(2)
+        print("UI responsiveness test completed \n")
         print("Back to Dashboard again \n")
         self.driver.refresh()
         dash = "dashboard"

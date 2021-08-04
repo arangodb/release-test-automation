@@ -166,7 +166,7 @@ class QueryPage(BaseSelenium):
         super().scroll()
 
     def explain_query(self):
-        """Downloading debug package"""
+        """Explaining query"""
         explain_query = self.explain_query_id
         explain_query = \
             BaseSelenium.locator_finder_by_id(self, explain_query)
@@ -175,18 +175,20 @@ class QueryPage(BaseSelenium):
 
     def debug_package_download(self):
         """Downloading debug package"""
-        debug = self.create_debug_package_id
-        debug = \
-            BaseSelenium.locator_finder_by_id(self, debug)
-        debug.click()
-        time.sleep(2)
-        debug_btn = 'modalButton1'
-        debug_btn = \
-            BaseSelenium.locator_finder_by_id(self, debug_btn)
-        debug_btn.click()
-        time.sleep(2)
-
-        super().clear_download_bar()
+        if self.driver.name == "chrome":  # this will check browser name
+            print("Download has been disabled for the Chrome browser \n")
+        else:
+            debug = self.create_debug_package_id
+            debug = \
+                BaseSelenium.locator_finder_by_id(self, debug)
+            debug.click()
+            time.sleep(2)
+            debug_btn = 'modalButton1'
+            debug_btn = \
+                BaseSelenium.locator_finder_by_id(self, debug_btn)
+            debug_btn.click()
+            time.sleep(2)
+            # super().clear_download_bar()
 
     def remove_query_result(self):
         """Removing all query results"""
@@ -217,8 +219,6 @@ class QueryPage(BaseSelenium):
         super().send_key_action(Keys.UP * 3)
         super().send_key_action(Keys.ENTER)
         time.sleep(2)
-
-        self.clear_query_area()
 
     def update_documents(self):
         print("Navigating to Collection page \n")
@@ -292,36 +292,35 @@ class QueryPage(BaseSelenium):
         super().send_key_action('RETURN doc')
         time.sleep(2)
 
-        # selecting execute query button
-        execute02 = self.execute_query_btn_id
-        execute02 = \
-            BaseSelenium.locator_finder_by_id(self, execute02)
-        execute02.click()
+        print("Executing Update query \n")
+        super().query_execution_btn()
 
-        time.sleep(3)
+        super().scroll()
 
-        super().scroll(1)
+        if self.driver.name == "chrome":  # this will check browser name
+            print("Download has been disabled for the Chrome browser \n")
+        else:
+            print('Downloading query results \n')
+            # downloading query results
+            download_query_results = 'downloadQueryResult'
+            download_query_results = \
+                BaseSelenium.locator_finder_by_id(self, download_query_results)
+            download_query_results.click()
+            time.sleep(3)
 
-        print('Downloading query results \n')
-        # downloading query results
-        download_query_results = 'downloadQueryResult'
-        download_query_results = \
-            BaseSelenium.locator_finder_by_id(self, download_query_results)
-        download_query_results.click()
-        time.sleep(3)
-        super().clear_download_bar()
+            # super().clear_download_bar()
 
-        print('Downloading query results as CSV format \n')
-        # downloading CSV query results
-        csv = 'downloadCsvResult'
-        csv = \
-            BaseSelenium.locator_finder_by_id(self, csv)
-        csv.click()
-        time.sleep(3)
-        super().clear_download_bar()
+            print('Downloading query results as CSV format \n')
+            # downloading CSV query results
+            csv = 'downloadCsvResult'
+            csv = \
+                BaseSelenium.locator_finder_by_id(self, csv)
+            csv.click()
+            time.sleep(3)
+            # super().clear_download_bar()
 
-        # clear the execution area
-        self.clear_query_area()
+            # clear the execution area
+            self.clear_query_area()
     
     def bind_parameters_query(self):
         """executing query with bind parameters"""
@@ -425,21 +424,21 @@ class QueryPage(BaseSelenium):
         run_query.click()
         time.sleep(3)
 
-        print('Exporting newly imported query\n')
-        select_imp_query = '//*[@id="arangoMyQueriesTable"]/tbody/tr[1]/td[1]'
-        select_imp_query = \
-            BaseSelenium.locator_finder_by_xpath(self, select_imp_query)
-        select_imp_query.click()
-        time.sleep(1)
+        if self.driver.name == "chrome":  # this will check browser name
+            print("Download has been disabled for the Chrome browser \n")
+        else:
+            print('Exporting newly imported query\n')
+            select_imp_query = '//*[@id="arangoMyQueriesTable"]/tbody/tr[1]/td[1]'
+            select_imp_query = \
+                BaseSelenium.locator_finder_by_xpath(self, select_imp_query)
+            select_imp_query.click()
+            time.sleep(1)
 
-        export_query = 'exportQuery'
-        export_query = \
-            BaseSelenium.locator_finder_by_id(self, export_query)
-        export_query.click()
-        time.sleep(3)
-
-        super().clear_download_bar()
-
+            export_query = 'exportQuery'
+            export_query = \
+                BaseSelenium.locator_finder_by_id(self, export_query)
+            export_query.click()
+            # super().clear_download_bar()
         time.sleep(5)
 
         print('Deleting imported query \n')

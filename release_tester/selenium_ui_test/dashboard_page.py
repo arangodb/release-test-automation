@@ -106,21 +106,21 @@ class DashboardPage(BaseSelenium):
             self.check_system_metrics_id.click()
             time.sleep(1)
 
-            print("scrolling the metrics tab \n")
+            print("scrolling the current page \n")
             super().scroll()
 
-            # Reloading system metrics tab from the dashboard"""
+            # Reloading system metrics tab from the dashboard
             self.select_reload_btn_id = BaseSelenium.locator_finder_by_id(self, self.select_reload_btn_id)
             self.select_reload_btn_id.click()
 
             # Downloading metrics from the dashboard
-            self.metrics_download_id = BaseSelenium.locator_finder_by_id(self, self.metrics_download_id)
-            self.metrics_download_id.click()
-            time.sleep(3)
-
-            # this will check which browser is being using
-            if super().browser_name == 1:
-                self.clear_download_bar()
+            if self.driver.name == "chrome":  # this will check browser name
+                 print("Downloading metrics has been disabled for the Chrome browser \n")
+            else:
+                self.metrics_download_id = BaseSelenium.locator_finder_by_id(self, self.metrics_download_id)
+                self.metrics_download_id.click()
+                time.sleep(3)
+                # self.clear_download_bar()
         else:
             print('Metrics Tab not supported for the current package \n')
 

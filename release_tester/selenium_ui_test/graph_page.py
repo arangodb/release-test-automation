@@ -921,13 +921,15 @@ class GraphPage(BaseSelenium):
         full_graph.click()
         time.sleep(4)
 
-        print("Selecting Graph download button\n")
-        camera = self.select_camera_download_icon
-        camera = BaseSelenium.locator_finder_by_xpath(self, camera)
-        camera.click()
-        time.sleep(3)
-
-        super().clear_download_bar()
+        if self.driver.name == "chrome":  # this will check browser name
+            print("Download has been disabled for the Chrome browser \n")
+        else:
+            print("Selecting Graph download button\n")
+            camera = self.select_camera_download_icon
+            camera = BaseSelenium.locator_finder_by_xpath(self, camera)
+            camera.click()
+            time.sleep(3)
+            # super().clear_download_bar()
 
         print("Selecting full screen mode\n")
         full_screen = self.select_full_screen_btn_id

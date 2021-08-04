@@ -279,14 +279,17 @@ class CollectionPage(BaseSelenium):
 
     def download_doc_as_json(self):
         """Exporting documents as JSON file from the collection"""
-        self.select_export_doc_as_jason_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.select_export_doc_as_jason_id).click()
-        time.sleep(1)
-        self.select_export_doc_confirm_btn_id = \
-            BaseSelenium.locator_finder_by_id(self, self.select_export_doc_confirm_btn_id)
-        self.select_export_doc_confirm_btn_id.click()
-        time.sleep(2)
-        super().clear_download_bar()
+        if self.driver.name == "chrome":  # this will check browser name
+            print("Download has been disabled for the Chrome browser \n")
+        else:
+            self.select_export_doc_as_jason_id = \
+                BaseSelenium.locator_finder_by_xpath(self, self.select_export_doc_as_jason_id).click()
+            time.sleep(1)
+            self.select_export_doc_confirm_btn_id = \
+                BaseSelenium.locator_finder_by_id(self, self.select_export_doc_confirm_btn_id)
+            self.select_export_doc_confirm_btn_id.click()
+            time.sleep(2)
+            # super().clear_download_bar()
 
     def filter_documents(self, value):
         """Checking Filter functionality"""

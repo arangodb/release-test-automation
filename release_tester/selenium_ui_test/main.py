@@ -568,11 +568,10 @@ class Test(BaseSelenium):
         query.debug_package_download()
         print("Removing all query results \n")
         query.remove_query_result()
-        print("Clearing query execution area \n")
-        query.clear_query_area()
 
         # TODO: print("Executing spot light functionality \n")
         #query.spot_light_function('COUNT')  # can be used for search different keyword
+        
         print('Executing read query\n')
         query01.execute_read_query()
         
