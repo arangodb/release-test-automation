@@ -8,7 +8,9 @@ import time
 
 from reporting.reporting_utils import step
 
-from tools.asciiprint import ascii_convert, print_progress as progress
+from tools.asciiprint import (
+    ascii_convert_str,
+    print_progress as progress)
 import tools.loghelper as lh
 
 from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor
@@ -107,7 +109,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
 
         if not success or error_found:
             raise Exception("arangobackup indicated 'ERROR' in its output: %s" %
-                            ascii_convert(output))
+                            ascii_convert_str(output))
         return output
 
     @step
