@@ -4,7 +4,8 @@
 from pathlib import Path
 import sys
 import click
-from allure_commons.model2 import Status
+from allure_commons.model2 import Status, Label
+from allure_commons.types import LabelType
 
 from common_options import very_common_options, common_options
 from reporting.reporting_utils import RtaTestcase, configure_allure
@@ -69,6 +70,7 @@ def run_test(mode,
             if not enterprise and runner_type == RunnerType.DC2DC:
                 testcase.context.status = Status.SKIPPED
                 continue
+            testcase.add_label(Label(name=LabelType.SUB_SUITE, value=installers[0][1].installer_type))
             runner = make_runner(runner_type,
                                  abort_on_error,
                                  selenium,

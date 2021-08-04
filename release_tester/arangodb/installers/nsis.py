@@ -19,6 +19,7 @@ class InstallerW(InstallerBase):
         self.client_package = None
         self.service = None
         self.remote_package_dir  = 'Windows'
+        self.installer_type = "NSIS"
 
         cfg.installPrefix = Path("C:/tmp")
         cfg.log_dir = cfg.installPrefix / "LOG"

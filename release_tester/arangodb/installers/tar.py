@@ -40,6 +40,7 @@ class InstallerTAR(InstallerBase):
             cfg.localhost = 'localhost'
             self.remote_package_dir  = 'MacOSX'
             self.architecture = 'macos'
+            self.installer_type = ".tar.gz MacOS"
         elif winver[0]:
             self.dash = "_"
             cfg.localhost = 'localhost'
@@ -48,10 +49,12 @@ class InstallerTAR(InstallerBase):
             self.architecture = 'win64'
             self.extension = 'zip'
             self.hot_backup = False
+            self.installer_type = ".zip Windows"
         else:
             self.remote_package_dir  = 'Linux'
             cfg.localhost = 'localhost'
             self.architecture = 'linux'
+            self.installer_type = ".tar.gz Linux"
 
         self.hot_backup = True
         self.server_package = None
