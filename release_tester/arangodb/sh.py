@@ -218,6 +218,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                 throw `version check failed: ${{version}} (current) !- {0} (requested)`
             }}
         """.format(version, len(version))
+
         logging.debug("script to be executed: " + str(js_script_string))
         res = self.run_command(['check version',
                                 js_script_string],
