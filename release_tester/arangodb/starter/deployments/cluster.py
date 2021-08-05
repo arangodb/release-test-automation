@@ -148,15 +148,13 @@ db.testCollection.save({test: "document"})
             node.manually_launch_instances([
                 InstanceType.AGENT
             ], ['--database.auto-upgrade', 'true',
-                '--log.foreground-tty', 'true',
-                '--console'])
+                '--log.foreground-tty', 'true'])
         for node in self.starter_instances:
             print('launch')
             node.manually_launch_instances([
                 InstanceType.DBSERVER
             ], ['--database.auto-upgrade', 'true',
-                '--log.foreground-tty', 'true',
-                '--console'])
+                '--log.foreground-tty', 'true'])
         self.progress(True, "step 3 restart the full cluster ")
         for node in self.starter_instances:
             node.respawn_instance()
@@ -172,8 +170,7 @@ db.testCollection.save({test: "document"})
                 InstanceType.COORDINATOR
             ], [
                 '--database.auto-upgrade', 'true',
-                '--server.rest-server', 'false',
-                '--console'
+                '--server.rest-server', 'false'
             ])
 
         # now the upgrade should be done.

@@ -382,8 +382,7 @@ class Dc2Dc(Runner):
             ], [
                 '--database.auto-upgrade', 'true',
                 '--log.foreground-tty', 'true',
-                '--server.rest-server', 'false',
-                '--console'
+                '--server.rest-server', 'false'
             ])
         for node in self.starter_instances:
             print('launch dbservers for upgrade')
@@ -392,8 +391,7 @@ class Dc2Dc(Runner):
             ], [
                 '--database.auto-upgrade', 'true',
                 '--log.foreground-tty', 'true',
-                '--server.rest-server', 'false',
-                '--console'
+                '--server.rest-server', 'false'
             ])
         self.progress(True, "step 3 - restart the full cluster ")
         for node in self.starter_instances:
@@ -411,8 +409,7 @@ class Dc2Dc(Runner):
             ], [
                 '--database.auto-upgrade', 'true',
                 '--log.foreground-tty', 'true',
-                '--server.rest-server', 'false',
-                '--console'
+                '--server.rest-server', 'false'
             ])
 
 
