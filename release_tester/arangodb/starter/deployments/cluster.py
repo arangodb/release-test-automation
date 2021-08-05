@@ -171,7 +171,7 @@ db.testCollection.save({test: "document"})
             node.temporarily_replace_instances([
                 InstanceType.COORDINATOR
             ], [
-                '--database.auto-upgrade', 'true'
+                '--database.auto-upgrade', 'true',
                 '--server.rest-server', 'false',
                 '--console'
             ])
