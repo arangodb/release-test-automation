@@ -21,9 +21,9 @@ from cleanup import run_cleanup
 
 def set_r_limits():
     """ on linux manipulate ulimit values """
+    #pylint: disable=C0415
     import platform
-    WINVER = platform.win32_ver()
-    if not WINVER[0]:
+    if not platform.win32_ver()[0]:
         import resource
         resource.setrlimit(
             resource.RLIMIT_CORE,
