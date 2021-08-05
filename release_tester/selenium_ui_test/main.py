@@ -9,7 +9,7 @@ from selenium_ui_test.login_page import LoginPage
 from selenium_ui_test.user_page import UserPage
 from selenium_ui_test.views_page import ViewsPage
 from selenium_ui_test.collection_page import CollectionPage
-from selenium_ui_test.graph_page import GraphPage
+from selenium_ui_test.graph_page import GraphPage, GraphExample, get_graph_name
 from selenium_ui_test.query_page import QueryPage
 from selenium_ui_test.support_page import SupportPage
 
@@ -370,14 +370,6 @@ class Test(BaseSelenium):
 
         # creating multiple graph obj
         graph = GraphPage(self.driver)
-        graph1 = GraphPage(self.driver)
-        graph2 = GraphPage(self.driver)
-        graph3 = GraphPage(self.driver)
-        graph4 = GraphPage(self.driver)
-        graph5 = GraphPage(self.driver)
-        graph6 = GraphPage(self.driver)
-        graph7 = GraphPage(self.driver)
-        graph8 = GraphPage(self.driver)
 
         print("Manual Graph creation started \n")
         graph.create_manual_graph(test_data_dir)
@@ -403,6 +395,13 @@ class Test(BaseSelenium):
             print("Adding Disjoint Smart Graph completed \n")
 
         print("Example Graphs creation started\n")
+        graphs = []
+        for graph in GraphExample:
+            this_graph = GraphPage(self.driver)
+            print("Creating '%s' Graph"% get_graph_name(graph))
+            this_graph.select_create_graph(graph)
+            #this_graph.
+
         print("Creating Knows Graph\n")
         graph1.select_create_graph(1)
         self.driver.refresh()
@@ -419,45 +418,6 @@ class Test(BaseSelenium):
         print("Searching for 'circles' and 'edges' collections\n")
         graph2.check_required_collection(2)
 
-        print("Creating K Shortest Path Graph\n")
-        graph3.select_create_graph(3)
-        self.driver.refresh()
-        print("Checking required collections created for K Shortest Path Graph\n")
-        graph3.checking_collection_creation(3)
-        print("Searching for 'connections' and 'places' collections\n")
-        graph3.check_required_collection(3)
-
-        print("Creating Mps Graph\n")
-        graph4.select_create_graph(4)
-        self.driver.refresh()
-        print("Checking required collections created for Mps Graph\n")
-        graph4.checking_collection_creation(4)
-        print("Searching for 'mps_edges' and 'mps_verts' collections\n")
-        graph4.check_required_collection(4)
-
-        print("Creating World Graph\n")
-        graph5.select_create_graph(5)
-        self.driver.refresh()
-        print("Checking required collections created for World Graph\n")
-        graph5.checking_collection_creation(5)
-        print("Searching for 'worldEdges' and 'worldvertices' collections\n")
-        graph5.check_required_collection(5)
-
-        print("Creating Social Graph\n")
-        graph6.select_create_graph(6)
-        self.driver.refresh()
-        print("Checking required collections created for Social Graph\n")
-        graph6.checking_collection_creation(6)
-        print("Searching for 'female' , 'male' and 'relation' collections\n")
-        graph6.check_required_collection(6)
-
-        print("Creating City Graph\n")
-        graph7.select_create_graph(7)
-        self.driver.refresh()
-        print("Checking required collections created for City Graph\n")
-        graph7.checking_collection_creation(7)
-        print("Searching for 'frenchCity' , 'frenchHighway' 'germanCity', 'germanHighway' & 'internationalHighway'\n")
-        graph7.check_required_collection(7)
         print("Example Graphs creation Completed\n")
 
         print("Sorting all graphs as descending\n")
@@ -469,25 +429,25 @@ class Test(BaseSelenium):
         #print("Selecting Graphs settings menu\n")
         #graph.graph_setting()
 
-        print("Deleting created Graphs started\n")
-        graph1.delete_graph(1)
-        graph2.delete_graph(2)
-        graph3.delete_graph(3)
-        graph4.delete_graph(4)
-        graph5.delete_graph(5)
-        graph6.delete_graph(6)
-        graph7.delete_graph(7)
-
-        # print("Deleting created Graphs Completed\n")
-        del graph
-        del graph1
-        del graph2
-        del graph3
-        del graph4
-        del graph5
-        del graph6
-        del graph7
-        del graph8
+        # print("Deleting created Graphs started\n")
+        # graph1.delete_graph(1)
+        # graph2.delete_graph(2)
+        # graph3.delete_graph(3)
+        # graph4.delete_graph(4)
+        # graph5.delete_graph(5)
+        # graph6.delete_graph(6)
+        # graph7.delete_graph(7)
+        # 
+        # # print("Deleting created Graphs Completed\n")
+        # del graph
+        # del graph1
+        # del graph2
+        # del graph3
+        # del graph4
+        # del graph5
+        # del graph6
+        # del graph7
+        # del graph8
         #login.logout_button()
         #del login
         print("---------Checking Graphs completed--------- \n")

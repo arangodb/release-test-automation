@@ -1,13 +1,46 @@
+
 #!/usr/bin/env python
 """
 aardvark graphs page object
 """
-
 import time
+from enum import IntEnum
 
 from selenium_ui_test.base_selenium import BaseSelenium, Keys
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=C0302 disable=R0902 disable=R0915 disable=R0914
+
+
+class GraphExample(IntEnum):
+    KNOWS = 1
+    TRAVERSAL = 2
+    K_SHORTEST_PATH = 3
+    MAPS = 4
+    WORLD = 5
+    SOCIAL = 6
+    CITY = 7
+    CONNECTED = 8
+
+class GraphCreateSet():
+    def __init__(self, clear_name, btn_id, handler):
+        self.clear_name = clear_name
+        self.btn_id = btn_id
+        self.handler = handler
+
+GRAPH_SETS = [
+    GraphCreateSet(None, None, None),
+    GraphCreateSet("Knows", "knows_graph_settings", None),
+    GraphCreateSet("Traversal", "traversalGraph_settings", None),
+    GraphCreateSet("kShortestPaths", "kShortestPathsGraph_settings", None),
+    GraphCreateSet("Mps", "mps_graph_settings", None),
+    GraphCreateSet("World", "worldCountry_settings", None),
+    GraphCreateSet("Social", "social_settings", None),
+    GraphCreateSet("City", "routeplanner_settings", None),
+    GraphCreateSet("Connected Components", "connectedComponentsGraph_settings", None)
+]
+
+def get_graph_name(graph:GraphExample):
+    return GRAPH_SETS.clear_name
 
 class GraphPage(BaseSelenium):
     """class for Graph page"""
@@ -19,6 +52,8 @@ class GraphPage(BaseSelenium):
         self.select_graph_page_id = "graphs"
         self.select_create_graph_id = "createGraph"
         self.select_example_graph_btn_id = "tab-exampleGraphs"
+        self.select_ex_graph_format = "//*[@id='exampleGraphs']/table/tbody/tr[%d]/td[2]/button"
+        
         self.select_knows_graph_id = "//*[@id='exampleGraphs']/table/tbody/tr[1]/td[2]/button"
         self.select_traversal_graph_id = "//*[@id='exampleGraphs']/table/tbody/tr[2]/td[2]/button"
         self.select_k_shortest_path_id = "//*[@id='exampleGraphs']/table/tbody/tr[3]/td[2]/button"
@@ -522,7 +557,7 @@ class GraphPage(BaseSelenium):
             print('Disjoint Graph is not supported for the current package \n')
 
 
-    def select_create_graph(self, graph):
+    def select_create_graph(self, graph:GraphExample):
         """Creating new example graphs"""
         select_graph = self.select_create_graph_id
         select_graph = \
@@ -534,41 +569,11 @@ class GraphPage(BaseSelenium):
             BaseSelenium.locator_finder_by_id(self, self.select_example_graph_btn_id)
         self.select_example_graph_btn_id.click()
         time.sleep(1)
-
-        if graph == 1:
-            self.select_knows_graph_id = \
-                BaseSelenium.locator_finder_by_xpath(self, self.select_knows_graph_id)
-            self.select_knows_graph_id.click()
-        elif graph == 2:
-            self.select_traversal_graph_id = \
-                BaseSelenium.locator_finder_by_xpath(self, self.select_traversal_graph_id)
-            self.select_traversal_graph_id.click()
-        elif graph == 3:
-            self.select_k_shortest_path_id = \
-                BaseSelenium.locator_finder_by_xpath(self, self.select_k_shortest_path_id)
-            self.select_k_shortest_path_id.click()
-        elif graph == 4:
-            self.select_maps_graph_id = \
-                BaseSelenium.locator_finder_by_xpath(self, self.select_maps_graph_id)
-            self.select_maps_graph_id.click()
-        elif graph == 5:
-            self.select_world_graph_id = \
-                BaseSelenium.locator_finder_by_xpath(self, self.select_world_graph_id)
-            self.select_world_graph_id.click()
-        elif graph == 6:
-            self.select_social_graph_id = \
-                BaseSelenium.locator_finder_by_xpath(self, self.select_social_graph_id)
-            self.select_social_graph_id.click()
-        elif graph == 7:
-            self.select_city_graph_id = \
-                BaseSelenium.locator_finder_by_xpath(self, self.select_city_graph_id)
-            self.select_city_graph_id.click()
-        elif graph == 8:
-            self.select_connected_component_graph_id = \
-                BaseSelenium.locator_finder_by_xpath(self, self.select_connected_component_graph_id)
-            self.select_connected_component_graph_id.click()
-        else:
-            print("Invalid Graph\n")
+        create_graph = GRAPH_SETS[graph]
+        select_graph_button = BaseSelenium.locator_finder_by_xpath(
+            self,
+            self.select_ex_graph_format % (int(graph)))
+        select_graph_button.click()
         time.sleep(2)
 
     def check_required_collection(self, graph):
