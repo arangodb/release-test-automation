@@ -33,6 +33,11 @@ if test -n "$FORCE" -o "$TEST_BRANCH" != 'master'; then
   force_arg='--force'
 fi
 
+if test -n "$SOURCE"; then
+    force_arg="${force_arg} --old-source $SOURCE --new-source $SOURCE"
+else
+    force_arg="${force_arg} --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;")"
+fi
 trap "docker kill /$DOCKER_NAME; docker rm /$DOCKER_NAME;" EXIT
 docker build containers/docker_tar -t $DOCKER_TAG
 # we need --init since our upgrade leans on zombies not happening:
@@ -59,7 +64,6 @@ docker \
       --selenium Chrome \
       --selenium-driver-args headless \
       --selenium-driver-args no-sandbox \
-      --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;") \
       --alluredir /home/allure-results \
       $force_arg --git-version $GIT_VERSION $@
 result=$?

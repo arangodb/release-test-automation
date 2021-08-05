@@ -155,7 +155,8 @@ Supported Parameters:
  - `--enterprise-magic` specify your secret enterprise download key here.
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--package-dir` The directory where we will download the nsis .exe / deb / rpm [/ dmg WIP] to
- - `--source [public|[ftp|http]:stage1|[ftp|http]:stage2]`
+ - `--source [public|nightlypublic|[ftp|http]:stage1|[ftp|http]:stage2]`
+   - `nightlypublic` will download the packages from the nightly builds at downloads.arangodb.com
    - `public` (default) will download the packages from downloads.arangodb.com
    - `stage1` will download the files from the staging fileserver - level 1 - ftp: internal http external requires credentials
    - `stage2` will download the files from the staging fileserver - level 2 - ftp: internal http external requires credentials
@@ -188,14 +189,16 @@ and create a final report at the end of the run.
 The downloading of packages can be circumvented by specifying `--source local`.
 
 Supported Parameters:
- - `--old-version` which Arangodb Version you want to install to setup the old system
- - `--new-version` which Arangodb Version you want to upgrade the environment to
+ - `--[new|old]-version`
+   - old: which Arangodb Version you want to install to setup the old system
+   - new: which Arangodb Version you want to upgrade the environment to
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
  - `--[no-]encryption-at-rest` turn on encryption at rest for Enterprise packages
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--enterprise-magic` specify your secret enterprise download key here.
- - `--source [local|public|[ftp|http]:stage1|[ftp|http]:stage2]`
+ - `--[new|old]-source [public|nightlypublic|[ftp|http]:stage1|[ftp|http]:stage2]`
+   - `nightlypublic` will download the packages from the nightly builds at downloads.arangodb.com
    - `local` no packages will be downloaded at all, but rather are expected to be found in `package-dir`.
    - `public` (default) will download the packages from downloads.arangodb.com
    - `stage1` will download the files from the staging fileserver - level 1 - ftp: internal http external requires credentials

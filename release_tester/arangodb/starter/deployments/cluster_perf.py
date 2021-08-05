@@ -217,6 +217,8 @@ class ClusterPerf(Runner):
 
     def upgrade_arangod_version_impl(self):
         pass
+    def upgrade_arangod_version_manual_impl(self):
+        pass
 
     def jam_attempt_impl(self):
         self.makedata_instances = self.starter_instances[:]
