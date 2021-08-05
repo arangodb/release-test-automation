@@ -3,7 +3,6 @@
 from pathlib import Path
 
 import os
-import resource
 import sys
 
 import shutil
@@ -19,6 +18,16 @@ from acquire_packages import AcquirePackages
 from reporting.reporting_utils import AllureTestSuiteContext
 from upgrade import run_upgrade
 from cleanup import run_cleanup
+
+def set_r_limits():
+    """ on linux manipulate ulimit values """
+    import platform
+    WINVER = platform.win32_ver()
+    if not WINVER[0]:
+        import resource
+        resource.setrlimit(
+            resource.RLIMIT_CORE,
+            (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
 
 # pylint: disable=R0913 disable=R0914 disable=R0912, disable=R0915
 def upgrade_package_test(verbose,
@@ -40,12 +49,11 @@ def upgrade_package_test(verbose,
     old_version_content = None
     new_version_content = None
 
+    set_r_limits()
+
     lh.configure_logging(verbose)
 
     os.chdir(test_data_dir)
-    resource.setrlimit(
-        resource.RLIMIT_CORE,
-        (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
 
     results = []
     # do the actual work:
