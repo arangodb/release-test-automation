@@ -376,14 +376,24 @@ class Dc2Dc(Runner):
 
         self.progress(True, "step 2 - launch instances with the upgrade option set")
         for node in self.starter_instances:
-            print('launch')
+            print('launch agents for upgrade')
             node.manually_launch_instances([
-                InstanceType.AGENT,
+                InstanceType.AGENT
+            ], [
+                '--database.auto-upgrade', 'true',
+                '--log.foreground-tty', 'true',
+                '--server.rest-server', 'false',
+                '--console'
+            ])
+        for node in self.starter_instances:
+            print('launch dbservers for upgrade')
+            node.manually_launch_instances([
                 InstanceType.DBSERVER
             ], [
                 '--database.auto-upgrade', 'true',
                 '--log.foreground-tty', 'true',
-                '--server.rest-server', 'false'
+                '--server.rest-server', 'false',
+                '--console'
             ])
         self.progress(True, "step 3 - restart the full cluster ")
         for node in self.starter_instances:
@@ -401,7 +411,8 @@ class Dc2Dc(Runner):
             ], [
                 '--database.auto-upgrade', 'true',
                 '--log.foreground-tty', 'true',
-                '--server.rest-server', 'false'
+                '--server.rest-server', 'false',
+                '--console'
             ])
 
 
