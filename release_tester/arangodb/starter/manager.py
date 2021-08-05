@@ -460,7 +460,7 @@ class StarterManager():
             instance.rename_logfile()
             if not instance.detect_gone():
                 print("Manually terminating instance!")
-                instance.terminate_instance()
+                instance.terminate_instance(False)
         # Clear instances as they have been stopped and the logfiles
         # have been moved.
         if not keep_instances:
