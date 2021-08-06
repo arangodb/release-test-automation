@@ -128,7 +128,7 @@ class InstallerTAR(InstallerBase):
 
     @step
     def install_package(self):
-        logging.info("installing Arangodb debian Tar package")
+        logging.info("installing Arangodb " + self.installer_type + " package")
         logging.debug(
             "package dir: {0.cfg.package_dir}- "
             "server_package: {0.server_package}".format(self))
