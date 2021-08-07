@@ -501,12 +501,12 @@ class StarterManager():
                                   which_instances,
                                   moreargs,
                                   waitpid=True,
-                                  kill_nstance=False):
+                                  kill_instance=False):
         """ launch the instances of this starter with optional arguments """
         for instance_type in which_instances:
             for i in self.all_instances:
                 if i.instance_type == instance_type:
-                    if kill_nstance:
+                    if kill_instance:
                         i.kill_instance()
                     i.launch_manual_from_instance_control_file(
                         self.cfg.sbin_dir,
