@@ -94,7 +94,8 @@ class Runner(ABC):
             "system"] and cfg.have_system_service
         self.do_starter_test = cfg.mode in ["all", "tests"]
         self.do_upgrade = False
-        self.supports_rolling_upgrade = WINVER[0] is None
+        self.supports_rolling_upgrade = WINVER[0] == ''
+        self.supports_rolling_upgrade = False # TODO
 
         self.basecfg = copy.deepcopy(cfg)
         self.new_cfg = new_cfg
