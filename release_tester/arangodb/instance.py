@@ -151,7 +151,9 @@ class Instance(ABC):
         print("Manually launching: " + str(command))
         self.instance = psutil.Popen(command)
         if waitpid:
-            self.instance.wait()
+            exit_code = self.instance.wait()
+            if exit_code != 0:
+                raise Exception("Launch manual instance exited non zero - %d - '%s'"%(exit_code, str(command)))
 
     @step
     def rename_logfile(self, suffix='.old'):
