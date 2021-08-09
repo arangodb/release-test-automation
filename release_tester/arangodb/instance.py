@@ -143,7 +143,10 @@ class Instance(ABC):
                 self.analyze_starter_file_line(line)
                 self.instance_arguments.append(line)
 
-    def launch_manual_from_instance_control_file(self, sbin_dir, moreargs, waitpid=True):
+    def launch_manual_from_instance_control_file(self,
+                                                 sbin_dir,
+                                                 moreargs,
+                                                 waitpid=True):
         """ launch instance without starter with additional arguments """
         self.load_starter_instance_control_file()
         command = [str(sbin_dir / self.instance_string)] + \
@@ -152,8 +155,16 @@ class Instance(ABC):
         self.instance = psutil.Popen(command)
         if waitpid:
             exit_code = self.instance.wait()
+            try:
+                self.search_for_warnings()
+            except Exception as ex:
+                raise Exception(str(command) +
+                                " exited with code: " +
+                                str(exit_code)) from ex
             if exit_code != 0:
-                raise Exception("Launch manual instance exited non zero - %d - '%s'"%(exit_code, str(command)))
+                raise Exception(str(command) +
+                                " exited non zero: " +
+                                str(exit_code))
 
     @step
     def rename_logfile(self, suffix='.old'):
