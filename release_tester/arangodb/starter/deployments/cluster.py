@@ -169,7 +169,7 @@ db.testCollection.save({test: "document"})
         self.progress(True, "step 5 restart the full cluster ")
         for node in self.starter_instances:
             node.respawn_instance()
-        self.progress(True, "step 4 wait for the cluster to be up")
+        self.progress(True, "step 6 wait for the cluster to be up")
         for node in self.starter_instances:
             node.detect_instances()
             node.wait_for_version_reply()
