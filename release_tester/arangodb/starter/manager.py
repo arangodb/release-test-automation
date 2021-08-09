@@ -476,7 +476,7 @@ class StarterManager():
         logging.info("StarterManager: Instance now dead.")
 
     @step
-    def replace_binary_for_upgrade(self, new_install_cfg):
+    def replace_binary_for_upgrade(self, new_install_cfg, relaunch=True):
         """
           - replace the parts of the installation with information
             after an upgrade
@@ -492,9 +492,10 @@ class StarterManager():
                      str(self.instance.pid))
         self.kill_instance()
         self.detect_instance_pids_still_alive()
-        self.respawn_instance()
-        logging.info("StarterManager: respawned instance as [%s]",
-                     str(self.instance.pid))
+        if relaunch:
+            self.respawn_instance()
+            logging.info("StarterManager: respawned instance as [%s]",
+                         str(self.instance.pid))
 
     @step
     def manually_launch_instances(self,
@@ -512,6 +513,42 @@ class StarterManager():
                         self.cfg.sbin_dir,
                         moreargs,
                         waitpid)
+
+    @step
+    def manually_launch_instances_for_upgrade(self,
+                                              which_instances,
+                                              moreargs,
+                                              waitpid=True,
+                                              kill_instance=False):
+        """ launch the instances of this starter with optional arguments """
+        for instance_type in which_instances:
+            for i in self.all_instances:
+                if i.instance_type == instance_type:
+                    if kill_instance:
+                        i.kill_instance()
+                    i.launch_manual_from_instance_control_file(
+                        self.cfg.sbin_dir,
+                        moreargs,
+                        waitpid)
+
+    @step
+    def upgrade_instances(self,
+                          which_instances,
+                          moreargs,
+                          waitpid=True,):
+        """ kill, launch the instances of this starter with optional arguments and restart"""
+        for instance_type in which_instances:
+            for i in self.all_instances:
+                if i.instance_type == instance_type:
+                    i.terminate_instance()
+                    i.launch_manual_from_instance_control_file(
+                        self.cfg.sbin_dir,
+                        moreargs,
+                        True)
+                    i.launch_manual_from_instance_control_file(
+                        self.cfg.sbin_dir,
+                        [],
+                        False)
 
     @step
     def temporarily_replace_instances(self, which_instances, moreargs):
