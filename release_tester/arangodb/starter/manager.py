@@ -486,8 +486,7 @@ class StarterManager():
         """
         # On windows the install prefix may change,
         # since we can't overwrite open files:
-        with step("replace the parts of the installation with information after an upgrade"):
-            self.replace_binary_setup_for_upgrade(new_install_cfg)
+        self.replace_binary_setup_for_upgrade(new_install_cfg)
         with step("kill the starter processes of the old version"):
             logging.info("StarterManager: Killing my instance [%s]",
                          str(self.instance.pid))
@@ -526,14 +525,7 @@ class StarterManager():
 
     @step
     def replace_binary_setup_for_upgrade(self, new_install_cfg):
-        """
-          - replace the parts of the installation with information
-            after an upgrade
-          - kill the starter processes of the old version
-          - revalidate that the old arangods are still running and alive
-          - replace the starter binary with a new one.
-            this has not yet spawned any children
-        """
+        """ replace the parts of the installation with information after an upgrade """
         # On windows the install prefix may change,
         # since we can't overwrite open files:
         self.cfg.set_directories(new_install_cfg)
