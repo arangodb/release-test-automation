@@ -517,7 +517,7 @@ class StarterManager():
     def temporarily_replace_instances(self, which_instances, moreargs):
         """ halt starter, launch instance, wait for it to exit, continue starter """
         self.instance.suspend()
-        self.manually_launch_instances(which_instances, moreargs, waitpid=True, kill_nstance=True)
+        self.manually_launch_instances(which_instances, moreargs, waitpid=True, kill_instance=True)
         self.instance.resume()
         self.detect_instances()
 
