@@ -247,7 +247,7 @@ let v = db._connection.GET("/_api/version");
 const enterprise = v.license === "enterprise"
 
 if (options.disabledDbserverUUID !== "") {
-  count = 0;
+  let count = 0;
   print("waiting for all shards on " + options.disabledDbserverUUID + " to be moved");
   while (count < 500) {
     found = 0;
