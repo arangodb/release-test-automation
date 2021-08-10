@@ -125,7 +125,7 @@ class ActiveFailover(Runner):
         self.success = True
         replies = []
         url = self.leader.get_frontend().get_local_url('')
-        reply = requests.get(url, auth=HTTPBasicAuth('root', self.leader.passvoid))
+        reply = requests.get(url, auth=HTTPBasicAuth('root', self.leader.passvoid), verify=False)
         logging.info(str(reply))
         replies.append(reply)
         if reply.status_code != 200:
@@ -133,7 +133,7 @@ class ActiveFailover(Runner):
             self.success = False
 
         url = self.follower_nodes[0].get_frontend().get_local_url('')
-        reply = requests.get(url, auth=HTTPBasicAuth('root', self.leader.passvoid))
+        reply = requests.get(url, auth=HTTPBasicAuth('root', self.leader.passvoid), verify=False)
         logging.info(str(reply))
         logging.info(reply.text)
         replies.append(reply)
@@ -141,7 +141,7 @@ class ActiveFailover(Runner):
             self.success = False
 
         url = self.follower_nodes[1].get_frontend().get_local_url('')
-        reply = requests.get(url, auth=HTTPBasicAuth('root', self.leader.passvoid))
+        reply = requests.get(url, auth=HTTPBasicAuth('root', self.leader.passvoid), verify=False)
         logging.info(str(reply))
         logging.info(reply.text)
         replies.append(reply)
@@ -270,7 +270,7 @@ class ActiveFailover(Runner):
         logging.info("\n" + str(self.new_leader))
         url = '{host}/_db/_system/_admin/aardvark/index.html#replication'.format(
             host=self.new_leader.get_frontend().get_local_url(''))
-        reply = requests.get(url, auth=HTTPBasicAuth('root', self.leader.passvoid))
+        reply = requests.get(url, auth=HTTPBasicAuth('root', self.leader.passvoid), verify=False)
         logging.info(str(reply))
         if reply.status_code != 200:
             logging.info(reply.text)
@@ -296,7 +296,7 @@ please revalidate the UI states on the new leader; you should see *one* follower
 
         url = self.first_leader.get_frontend().get_local_url('')
 
-        reply = requests.get(url, auth=HTTPBasicAuth('root', self.leader.passvoid))
+        reply = requests.get(url, auth=HTTPBasicAuth('root', self.leader.passvoid), verify=False)
         logging.info(str(reply))
         logging.info(str(reply.text))
 

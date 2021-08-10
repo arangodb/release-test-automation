@@ -418,7 +418,7 @@ class ArangodInstance(Instance):
         while until < time.time():
             reply = None
             try:
-                reply = requests.get(self.get_local_url('')+'/_api/version')
+                reply = requests.get(self.get_local_url('')+'/_api/version', verify=False)
                 if reply.status_code == 200:
                     return
                 print('*')
@@ -431,7 +431,8 @@ class ArangodInstance(Instance):
         reply = None
         try:
             reply = requests.get(self.get_local_url('')+'/_api/version',
-                                 auth=HTTPBasicAuth('root', self.passvoid)
+                                 auth=HTTPBasicAuth('root', self.passvoid),
+                                 verify = False
                                  )
         except requests.exceptions.ConnectionError:
             return AfoServerState.NOT_CONNECTED

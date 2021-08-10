@@ -159,7 +159,7 @@ class Dc2Dc(Runner):
             url = 'http://{host}:{port}'.format(
                 host=self.cfg.publicip,
                 port=str(cluster['smport']))
-            reply = requests.get(url)
+            reply = requests.get(url, verify=False)
             logging.info(str(reply))
             logging.info(str(reply.raw))
 

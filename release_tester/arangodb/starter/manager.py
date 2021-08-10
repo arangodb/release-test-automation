@@ -332,7 +332,8 @@ class StarterManager():
                         data=data,
                         headers=headers,
                         allow_redirects=False,
-                        timeout=timeout
+                        timeout=timeout,
+                        verify = False
                     )
                     # print(reply.text)
                     results.append(reply)
@@ -928,7 +929,7 @@ class StarterManager():
         self.is_leader = (became_leader or took_over)
         if self.is_leader:
             url = self.get_frontend().get_local_url('')
-            reply = requests.get(url, auth=requests.auth.HTTPBasicAuth('root', self.passvoid))
+            reply = requests.get(url, auth=requests.auth.HTTPBasicAuth('root', self.passvoid), verify=False)
             print(str(reply))
             if reply.status_code == 503:
                 self.is_leader = False
