@@ -33,7 +33,7 @@ def upgrade_package_test(verbose,
                          remote_host, force,
                          starter_mode, stress_upgrade,
                          publicip, selenium, selenium_driver_args,
-                         alluredir, clean_alluredir):
+                         alluredir, clean_alluredir, ssl):
     """ process fetch & tests """
     old_version_state = None
     new_version_state = None
@@ -123,7 +123,7 @@ def upgrade_package_test(verbose,
                             zip_package, False,
                             starter_mode, stress_upgrade, False,
                             publicip, selenium, selenium_driver_args,
-                            testrun_name))
+                            testrun_name, ssl))
 
 
     print('V' * 80)
@@ -185,7 +185,7 @@ def main(
         #very_common_options
         new_version, verbose, enterprise, package_dir, zip_package,
         # common_options
-        old_version, test_data_dir, encryption_at_rest, alluredir, clean_alluredir,
+        old_version, test_data_dir, encryption_at_rest, alluredir, clean_alluredir, ssl,
         # no-interactive!
         starter_mode, stress_upgrade, abort_on_error, publicip,
         selenium, selenium_driver_args,
@@ -205,7 +205,7 @@ def main(
                                 remote_host, force,
                                 starter_mode, stress_upgrade,
                                 publicip, selenium, selenium_driver_args,
-                                alluredir, clean_alluredir)
+                                alluredir, clean_alluredir, ssl)
 
 if __name__ == "__main__":
 # pylint: disable=E1120 # fix clickiness.

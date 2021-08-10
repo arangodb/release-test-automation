@@ -11,11 +11,13 @@ class Cluster(SeleniumRunner):
     """ check the leader follower setup and its properties """
     def __init__(self, webdriver,
                  is_headless: bool,
-                 testrun_name: str):
+                 testrun_name: str,
+                 ssl: bool):
         # pylint: disable=W0235
         super().__init__(webdriver,
                          is_headless,
-                         testrun_name)
+                         testrun_name,
+                         ssl)
 
     @step
     def check_old(self, cfg, leader_follower=False, expect_follower_count=2, retry_count=10):

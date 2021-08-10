@@ -71,8 +71,7 @@ class Runner(ABC):
             properties: PunnerProperties,
             selenium_worker: str,
             selenium_driver_args: list,
-            testrun_name: str
-        ):
+            testrun_name: str):
         load_scenarios()
         assert runner_type, "no runner no cry? no!"
         logging.debug(runner_type)
@@ -103,6 +102,7 @@ class Runner(ABC):
         self.basecfg = copy.deepcopy(cfg)
         self.new_cfg = new_cfg
         self.cfg = self.basecfg
+        self.cfg.ssl = properties.ssl
         self.passvoid = None
         self.basecfg.passvoid = ""
         self.versionstr = ''
@@ -168,9 +168,9 @@ class Runner(ABC):
                 runner_type,
                 selenium_worker,
                 selenium_driver_args,
-                self.testrun_name)
+                self.testrun_name,
+                self.cfg.ssl)
             print("Browser online")
-        self.basecfg.ssl = properties.ssl
 
     def progress(self, is_sub, msg, separator='x'):
         """ report user message, record for error handling. """
