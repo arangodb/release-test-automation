@@ -247,8 +247,9 @@ let v = db._connection.GET("/_api/version");
 const enterprise = v.license === "enterprise"
 
 if (options.disabledDbserverUUID !== "") {
+  count = 0;
   print("waiting for all shards on " + options.disabledDbserverUUID + " to be moved");
-  while (true) {
+  while (count < 500) {
     found = 0;
     db._collections().map((c) => c.name()).forEach((c) => {
       let shards = db[c].shards(true);
@@ -261,8 +262,9 @@ if (options.disabledDbserverUUID !== "") {
       });
     });
     if (found > 0) {
-      print('Waiting');
+      print(found + ' found - Waiting');
       internal.sleep(1);
+      count += 1;
     } else {
       break;
     }
