@@ -52,11 +52,13 @@ class PunnerProperties():
                  short_name: str,
                  disk_usage_community: int,
                  disk_usage_enterprise: int,
-                 supports_hotbackup: bool):
+                 supports_hotbackup: bool,
+                 ssl: bool):
         self.short_name = short_name
         self.disk_usage_community = disk_usage_community
         self.disk_usage_enterprise = disk_usage_enterprise
         self.supports_hotbackup = supports_hotbackup
+        self.ssl = ssl
 
 class Runner(ABC):
     """abstract starter deployment runner"""
@@ -168,6 +170,7 @@ class Runner(ABC):
                 selenium_driver_args,
                 self.testrun_name)
             print("Browser online")
+        self.basecfg.ssl = properties.ssl
 
     def progress(self, is_sub, msg, separator='x'):
         """ report user message, record for error handling. """
@@ -557,7 +560,7 @@ class Runner(ABC):
         """ actualises the list of available frontends """
         self.basecfg.frontends = [] # reset the array...
         for frontend in self.get_frontend_instances():
-            self.basecfg.add_frontend('http',
+            self.basecfg.add_frontend(self.get_http_protocol(),
                                       self.basecfg.publicip,
                                       frontend.port)
 
@@ -926,6 +929,7 @@ class Runner(ABC):
                 '/_admin/log/level',
                 '{"agency":"debug", "requests":"trace", '
                 '"cluster":"debug", "maintenance":"debug"}')
+
     @step
     def get_collection_list(self):
         reply = self.starter_instances[0].send_request(
@@ -965,3 +969,18 @@ class Runner(ABC):
                             str(reply[0].status_code) +
                             " - " + str(reply[0].body))
         return body_json['results'][collection_name]
+
+    def get_protocol(self):
+        """ return protocol of this starter (ssl/tcp) """
+        if self.cfg.ssl:
+            return "ssl"
+        else:
+            return "tcp"
+
+    def get_http_protocol(self):
+        """ return protocol of this starter (http/https) """
+        if self.cfg.ssl:
+            return "https"
+        else:
+            return "http"
+

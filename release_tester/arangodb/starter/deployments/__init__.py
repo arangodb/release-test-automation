@@ -47,7 +47,8 @@ def make_runner(runner_type: RunnerType,
                 selenium_worker: str,
                 selenium_driver_args: list,
                 installer_set: list,
-                testrun_name: str = ""
+                testrun_name: str = "",
+                ssl: bool = False
                 ) -> Runner:
     """ get an instance of the arangod runner - as you specify """
     assert runner_type, "no runner no cry?"
@@ -61,7 +62,9 @@ def make_runner(runner_type: RunnerType,
             installer_set,
             selenium_worker,
             selenium_driver_args,
-            testrun_name)
+            testrun_name,
+            ssl
+            )
 
     if runner_type == RunnerType.LEADER_FOLLOWER:
         from arangodb.starter.deployments.leaderfollower import LeaderFollower

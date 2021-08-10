@@ -114,6 +114,9 @@ class StarterManager():
                 if '--starter.sync' in moreopts:
                     self.expect_instance_count += 2 # syncmaster + syncworker
 
+        if self.cfg.ssl:
+            self.moreopts += ["--ssl.auto-key"]
+
         self.username = 'root'
         self.passvoid = ''
 
@@ -589,7 +592,7 @@ class StarterManager():
             self.cfg.bin_dir / 'arangodb',
             'upgrade',
             '--starter.endpoint',
-            'http://127.0.0.1:' + str(self.get_my_port())
+            self.get_protocol() + '://127.0.0.1:' + str(self.get_my_port())
         ]
         logging.info("StarterManager: Commanding upgrade %s", str(args))
         self.upgradeprocess = psutil.Popen(args,
@@ -796,7 +799,8 @@ class StarterManager():
                                                   self.cfg.localhost,
                                                   self.cfg.publicip,
                                                   Path(root) / name,
-                                                  self.passvoid)
+                                                  self.passvoid,
+                                                  self.cfg.ssl)
                         instance.wait_for_logfile(tries)
                         instance.detect_pid(
                             ppid=self.instance.pid,
@@ -1005,6 +1009,12 @@ class StarterManager():
         logfile = str(self.log_file)
         attach.file(logfile, "Starter log file", AttachmentType.TEXT)
 
+    def get_protocol(self):
+        if self.cfg.ssl:
+            return "https"
+        else:
+            return "http"
+
 
 class StarterNonManager(StarterManager):
     """ this class is a dummy starter manager to work with similar interface """
@@ -1029,7 +1039,8 @@ class StarterNonManager(StarterManager):
                                      basecfg.frontends[basecfg.index].ip,
                                      basecfg.frontends[basecfg.index].ip,
                                      Path('/'),
-                                     self.cfg.passvoid)
+                                     self.cfg.passvoid,
+                                     self.cfg.ssl)
         self.all_instances.append(inst)
         basecfg.index += 1
 

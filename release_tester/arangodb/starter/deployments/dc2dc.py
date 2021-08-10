@@ -28,9 +28,9 @@ class Dc2Dc(Runner):
     # pylint: disable=R0913 disable=R0902
     def __init__(self, runner_type, abort_on_error, installer_set,
                  selenium, selenium_driver_args,
-                 testrun_name: str):
+                 testrun_name: str, ssl: bool):
         super().__init__(runner_type, abort_on_error, installer_set,
-                         PunnerProperties('DC2DC', 0, 4500, True),
+                         PunnerProperties('DC2DC', 0, 4500, True, ssl),
                          selenium, selenium_driver_args,
                          testrun_name)
         self.success = True

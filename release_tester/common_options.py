@@ -97,6 +97,11 @@ def common_options(support_old=True, interactive=True, test_data_dir='/tmp/'):
         function = click.option('--alluredir',
                                 default=Path('./allure-results'),
                                 help='directory to store allure results')(function)
+        function = click.option('--ssl/--no-ssl',
+                                is_flag=True,
+                                default=False,
+                                help='use SSL'
+                                )(function)
         return function
     return inner_func
 

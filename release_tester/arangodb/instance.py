@@ -74,7 +74,9 @@ class Instance(ABC):
                  localhost,
                  publicip,
                  passvoid,
-                 instance_string):
+                 instance_string,
+                 ssl
+                 ):
         self.instance_type = INSTANCE_TYPE_STRING_MAP[instance_type]
         self.is_system = False
         self.type_str = list(INSTANCE_TYPE_STRING_MAP.keys())[int(self.instance_type.value)]
@@ -92,6 +94,7 @@ class Instance(ABC):
         self.instance = None
         self.serving = datetime.datetime(1970, 1, 1, 0, 0, 0)
         self.instance_arguments = []
+        self.ssl = ssl
 
         logging.debug("creating {0.type_str} instance: {0.name}".format(self))
 
@@ -317,14 +320,15 @@ class Instance(ABC):
 class ArangodInstance(Instance):
     """ represent one arangodb instance """
     # pylint: disable=R0913
-    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, is_system=False):
+    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl, is_system=False):
         super().__init__(typ,
                          port,
                          basedir,
                          localhost,
                          publicip,
                          passvoid,
-                         'arangod')
+                         'arangod',
+                         ssl)
         self.is_system = is_system
 
     def __repr__(self):
@@ -349,23 +353,36 @@ class ArangodInstance(Instance):
             "url": self.get_public_login_url() if self.is_frontend() else ""
         }
 
+    def get_protocol(self):
+        if self.ssl:
+            return "https"
+        else:
+            return "http"
+
     def get_local_url(self, login):
         """ our public url """
-        return 'http://{login}{host}:{port}'.format(
+        return '{protocol}://{login}{host}:{port}'.format(
+            protocol=self.get_protocol(),
             login=login,
             host=self.localhost,
             port=self.port)
 
     def get_public_url(self, login):
         """ our public url """
-        return 'http://{login}{host}:{port}'.format(
+        return '{protocol}://{login}{host}:{port}'.format(
+            protocol=self.get_protocol(),
             login=login,
             host=self.publicip,
             port=self.port)
 
     def get_public_login_url(self):
         """ our public url with passvoid """
-        return 'http://root:{0.passvoid}@{0.publicip}:{0.port}'.format(self)
+        return '{protocol}://root:{passvoid}@{publicip}:{port}'.format(
+            protocol = self.get_protocol(),
+            passvoid = self.passvoid,
+            publicip=self.publicip,
+            port=self.port
+        )
 
     def get_public_plain_url(self):
         """ our public url """
@@ -375,7 +392,8 @@ class ArangodInstance(Instance):
 
     def get_endpoint(self):
         """ our endpoint """
-        return 'tcp://{host}:{port}'.format(
+        return '{protocol}://{host}:{port}'.format(
+            protocol=self.get_protocol(),
             host=self.localhost,
             port=self.port)
 
@@ -639,26 +657,28 @@ class ArangodInstance(Instance):
 class ArangodRemoteInstance(ArangodInstance):
     """ represent one arangodb instance """
     # pylint: disable=R0913
-    def __init__(self, typ, port, localhost, publicip, basedir, passvoid):
+    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl):
         super().__init__(typ,
                          port,
                          basedir,
                          localhost,
                          publicip,
                          passvoid,
-                         'arangod')
+                         'arangod',
+                         ssl)
 
 class SyncInstance(Instance):
     """ represent one arangosync instance """
     # pylint: disable=R0913
-    def __init__(self, typ, port, localhost, publicip, basedir, passvoid):
+    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl):
         super().__init__(typ,
                          port,
                          basedir,
                          localhost,
                          publicip,
                          passvoid,
-                         'arangosync')
+                         'arangosync',
+                          ssl)
         self.logfile_parameter = ''
 
     def __repr__(self):

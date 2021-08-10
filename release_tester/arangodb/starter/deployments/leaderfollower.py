@@ -20,9 +20,9 @@ class LeaderFollower(Runner):
     # pylint: disable=R0913 disable=R0902
     def __init__(self, runner_type, abort_on_error, installer_set,
                  selenium, selenium_driver_args,
-                 testrun_name: str):
+                 testrun_name: str, ssl: bool):
         super().__init__(runner_type, abort_on_error, installer_set,
-                         PunnerProperties('LeaderFollower', 400, 500, False),
+                         PunnerProperties('LeaderFollower', 400, 500, False, ssl),
                          selenium, selenium_driver_args,
                          testrun_name)
 
@@ -107,7 +107,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
             """
 print(
 require("@arangodb/replication").setupReplicationGlobal({
-    endpoint: "tcp://127.0.0.1:%s",
+    endpoint: "%s://127.0.0.1:%s",
     username: "root",
     password: "%s",
     verbose: false,
@@ -117,7 +117,8 @@ require("@arangodb/replication").setupReplicationGlobal({
     }));
 print("replication started")
 process.exit(0);
-""" % (str(self.leader_starter_instance.get_frontend_port()),
+""" % (self.get_protocol(),
+       str(self.leader_starter_instance.get_frontend_port()),
         self.leader_starter_instance.get_passvoid()))
         lh.subsubsection("prepare leader follower replication")
         arangosh_script = self.checks['beforeReplJS']

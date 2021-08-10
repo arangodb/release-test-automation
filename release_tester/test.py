@@ -31,7 +31,7 @@ def run_test(mode,
              #very_common_options
              new_version, verbose, enterprise, package_dir, zip_package,
              # common_options
-             alluredir, clean_alluredir,
+             alluredir, clean_alluredir, ssl,
              # old_version,
              test_data_dir, encryption_at_rest, interactive, starter_mode,
              # stress_upgrade,
@@ -75,7 +75,8 @@ def run_test(mode,
                                  abort_on_error,
                                  selenium,
                                  selenium_driver_args,
-                                 installers)
+                                 installers,
+                                 ssl=ssl)
             # install on first run:
             runner.do_install = (count == 1) and do_install
             # only uninstall after the last test:
