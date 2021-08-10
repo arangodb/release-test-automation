@@ -44,14 +44,16 @@ class SupportPage(BaseSelenium):
         click_on_link_id = link_id
         click_on_link_id = \
             BaseSelenium.locator_finder_by_xpath(self, click_on_link_id)
-        self.switch_tab(click_on_link_id)  # this method will call switch tab and close tab
+        title = self.switch_tab(click_on_link_id)  # this method will call switch tab and close tab
+        return title
 
-    def loop_through_link_traversal(self, print_statement, link_list):
+    def loop_through_link_traversal(self, print_statement, link_list, assertion_list):
         """this method will be loop through all the list links"""
         i = 0
         while i < len(link_list):
             print(print_statement[i])
-            self.click_on_link(link_list[i])
+            title = self.click_on_link(link_list[i])
+            assert title == assertion_list[i], f"Expected page title {assertion_list[i]} but got {title}"
             i = i + 1
 
     def click_on_btn(self, link_id):
@@ -94,7 +96,14 @@ class SupportPage(BaseSelenium):
         manual_link_list = [getting_started, data_models_and_modelling,
                             administration, scaling, graphs, go_to_manual_start_page]
 
-        self.loop_through_link_traversal(manual_link_list_print_statement, manual_link_list)
+        manual_link_assertion_check = ['Getting Started | Manual | ArangoDB Documentation',
+                                       'Modeling Data for ArangoDB | ArangoDB Documentation',
+                                       'Administration | Manual | ArangoDB Documentation',
+                                       'Scaling | Manual | ArangoDB Documentation',
+                                       'Graphs | Manual | ArangoDB Documentation',
+                                       'Introduction to ArangoDB Documentation | ArangoDB Documentation']
+
+        self.loop_through_link_traversal(manual_link_list_print_statement, manual_link_list, manual_link_assertion_check)
 
         print('Checking all arangodb manual link completed \n')
 
@@ -116,7 +125,13 @@ class SupportPage(BaseSelenium):
                                          'Checking Go to AQL start page link \n']
         aql_link_list = [fundamentals, data_queries, functions, usual_query_patterns, go_to_aql_query_page]
 
-        self.loop_through_link_traversal(aql_link_list_print_statement, aql_link_list)
+        fundamental_link_assertion_check = ['AQL Fundamentals | AQL | ArangoDB Documentation',
+                                            'AQL Data Queries | ArangoDB Documentation',
+                                            'ArangoDB Query Language AQL Functions | ArangoDB Documentation',
+                                            'AQL Query Patterns & Examples | ArangoDB Documentation',
+                                            'ArangoDB Query Language (AQL) Introduction | ArangoDB Documentation']
+
+        self.loop_through_link_traversal(aql_link_list_print_statement, aql_link_list, fundamental_link_assertion_check)
 
         print('Checking all arangodb AQL Query Language link completed\n')
 
@@ -139,7 +154,13 @@ class SupportPage(BaseSelenium):
 
         fox_framework_list = [micro_service, guides, reference, deployment, go_to_fox_start]
 
-        self.loop_through_link_traversal(fox_framework_print_statement, fox_framework_list)
+        fox_framework_assertion_Check = ['Getting started | Foxx Microservices | Manual | ArangoDB Documentation',
+                                         'Guides | Foxx Microservices | Manual | ArangoDB Documentation',
+                                         'Reference | Foxx Microservices | Manual | ArangoDB Documentation',
+                                         'Deployment | Foxx Microservices | Manual | ArangoDB Documentation',
+                                         'Foxx Microservices | ArangoDB Documentation']
+
+        self.loop_through_link_traversal(fox_framework_print_statement, fox_framework_list, fox_framework_assertion_Check)
 
         print('Checking all arangodb Fox Framework link completed\n')
 
@@ -166,8 +187,17 @@ class SupportPage(BaseSelenium):
 
         drivers_and_integration = [arangodb_java_driver, arangojs_java_script, arangodb_php, arangodb_go_driver,
                                    arangodb_spring_data, arangodb_spark_connector, driver_and_integration]
+        
+        driver_integration_assertion_check = ['Java Driver | Drivers | ArangoDB Documentation',
+                                              'ArangoDB JavaScript Driver | ArangoDB Documentation',
+                                              'ArangoDB-PHP | Drivers | ArangoDB Documentation',
+                                              'ArangoDB Go Driver | Drivers | ArangoDB Documentation',
+                                              'Spring Data ArangoDB | Drivers | ArangoDB Documentation',
+                                              'ArangoDB Spark Connector | Drivers | ArangoDB Documentation',
+                                              'Install Official Drivers, Integrations and Community Drivers | '
+                                              'ArangoDB Documentation']
 
-        self.loop_through_link_traversal(official_print_statement, drivers_and_integration)
+        self.loop_through_link_traversal(official_print_statement, drivers_and_integration, driver_integration_assertion_check)
 
         print('Checking all arangodb Drivers and Integration link completed\n')
 
@@ -207,7 +237,17 @@ class SupportPage(BaseSelenium):
         support_list = [paying_customer_support, github_issues, stack_overflow,
                         slack, google_groups, arangodb_contact_us]
 
-        self.loop_through_link_traversal(support_tab_print_statement, support_list)
+        support_link_assertion_check = ["ArangoDB - Jira Service Management",
+                                        "GitHub - arangodb/arangodb: 🥑 ArangoDB is a native multi-model database "
+                                        "with flexible data models for documents, graphs, and key-values. Build high "
+                                        "performance applications using a convenient SQL-like query language or "
+                                        "JavaScript extensions.",
+                                        "Newest 'arangodb' Questions - Stack Overflow",
+                                        "Join ArangoDB Community on Slack!",
+                                        "Redirecting to Google Groups",
+                                        "Contact - ArangoDB"]
+
+        self.loop_through_link_traversal(support_tab_print_statement, support_list, support_link_assertion_check)
 
         print('Checking all Support tab link completed \n')
 

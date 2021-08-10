@@ -128,22 +128,30 @@ class DashboardPage(BaseSelenium):
         """Clicking on twitter link on dashboard"""
         self.click_twitter_link_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.click_twitter_link_id)
-        self.switch_tab(self.click_twitter_link_id)  # this method will call switch tab and close tab
+        title = self.switch_tab(self.click_twitter_link_id)  # this method will call switch tab and close tab
+        expected_title = "arangodb (@arangodb) / Twitter"
+        assert title in expected_title, f"Expected page title {expected_title} but got {title}"
 
     def click_slack_link(self):
         """Clicking on twitter link on dashboard"""
         self.click_slack_link_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.click_slack_link_id)
-        self.switch_tab(self.click_slack_link_id)
+        title = self.switch_tab(self.click_slack_link_id)
+        expected_title = 'Join ArangoDB Community on Slack!'
+        assert title in expected_title, f"Expected page title {expected_title} but got {title}"
 
     def click_stackoverflow_link(self):
         """Clicking on stack overflow link on dashboard"""
         self.click_stackoverflow_link_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.click_stackoverflow_link_id)
-        self.switch_tab(self.click_stackoverflow_link_id)
+        title = self.switch_tab(self.click_stackoverflow_link_id)
+        expected_title = "Newest 'arangodb' Questions - Stack Overflow"
+        assert title in expected_title, f"Expected page title {expected_title} but got {title}"
 
     def click_google_group_link(self):
         """Clicking on Google group link on dashboard"""
         self.click_google_group_link_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.click_google_group_link_id)
-        self.switch_tab(self.click_google_group_link_id)
+        title = self.switch_tab(self.click_google_group_link_id)
+        expected_title = "ArangoDB - Google Groups"
+        assert title in expected_title, f"Expected page title {expected_title} but got {title}"

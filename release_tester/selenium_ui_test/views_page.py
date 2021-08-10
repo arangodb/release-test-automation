@@ -163,7 +163,9 @@ class ViewsPage(BaseSelenium):
         """Clicking on arangosearch documentation link"""
         self.click_arangosearch_documentation_link_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.click_arangosearch_documentation_link_id)
-        self.switch_tab(self.click_arangosearch_documentation_link_id)
+        title = self.switch_tab(self.click_arangosearch_documentation_link_id)
+        expected_title = 'Views Reference | ArangoSearch | Indexing | Manual | ArangoDB Documentation'
+        assert title in expected_title, f"Expected page title {expected_title} but got {title}"
 
     def select_inside_search(self, keyword):
         """Selecting search option inside views"""

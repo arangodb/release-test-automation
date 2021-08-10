@@ -224,9 +224,11 @@ class BaseSelenium:
         self.locator = locator
         self.locator.send_keys(Keys.CONTROL + Keys.RETURN)  # this will open new tab on top of current
         self.driver.switch_to.window(self.driver.window_handles[1])  # switch to new tab according to index value
-        time.sleep(10)
+        title = self.driver.title
+        time.sleep(15)
         self.driver.close()
         self.driver.switch_to.window(self.driver.window_handles[0])
+        return title
     
     def current_package_version(self):
         """checking current package version from the dashboard"""
