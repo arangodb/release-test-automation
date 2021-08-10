@@ -2,6 +2,7 @@
 """
 main entrance point for the UI tests
 """
+import time
 
 from selenium_ui_test.base_selenium import BaseSelenium
 from selenium_ui_test.dashboard_page import DashboardPage
@@ -369,38 +370,47 @@ class Test(BaseSelenium):
         #login.login('root', self.root_passvoid)
 
         # creating multiple graph obj
-        graph = GraphPage(self.driver)
+        #print('z'*80)
+        #graph = GraphPage(self.driver)
+        print('x'*80)
 
-        print("Manual Graph creation started \n")
-        graph.create_manual_graph(test_data_dir)
-        graph.select_graph_page()
-        graph.adding_knows_manual_graph()
-        print("Manual Graph creation completed \n")
-        graph.delete_graph(9)
-        self.driver.refresh()
+        # print("Manual Graph creation started \n")
+        # graph.create_manual_graph(test_data_dir)
+        # graph.select_graph_page()
+        # graph.adding_knows_manual_graph()
+        # print("Manual Graph creation completed \n")
+        # graph.delete_graph(9)
+        # self.driver.refresh()
 
-        if cfg.enterprise:
-            graph9 = GraphPage(self.driver)
-            graph01 = GraphPage(self.driver)
-            print("Adding Satellite Graph started \n")
-            graph9.adding_satellite_graph(importer, test_data_dir)
-            print("Adding Satellite Graph started \n")
-
-            print("Adding Smart Graph started \n")
-            graph01.adding_smart_graph(importer, test_data_dir)
-            print("Adding Smart Graph completed \n")
-
-            print("Adding Disjoint Smart Graph started \n")
-            graph01.adding_smart_graph(importer, test_data_dir, True)
-            print("Adding Disjoint Smart Graph completed \n")
+        # if cfg.enterprise:
+        #     graph9 = GraphPage(self.driver)
+        #     graph01 = GraphPage(self.driver)
+        #     print("Adding Satellite Graph started \n")
+        #     graph9.adding_satellite_graph(importer, test_data_dir)
+        #     print("Adding Satellite Graph started \n")
+        # 
+        #     print("Adding Smart Graph started \n")
+        #     graph01.adding_smart_graph(importer, test_data_dir)
+        #     print("Adding Smart Graph completed \n")
+        # 
+        #     print("Adding Disjoint Smart Graph started \n")
+        #     graph01.adding_smart_graph(importer, test_data_dir, True)
+        #     print("Adding Disjoint Smart Graph completed \n")
 
         print("Example Graphs creation started\n")
         graphs = []
+        this_graph = GraphPage(self.driver)
         for graph in GraphExample:
-            this_graph = GraphPage(self.driver)
-            print("Creating '%s' Graph"% get_graph_name(graph))
+            self.navbar_goto('graphs')
+            print(graph)
+            print("Creating '%s' Graph"%get_graph_name(graph))
             this_graph.select_create_graph(graph)
+            # graphs.append(this_graph)
             #this_graph.
+            time.sleep(3)
+            self.navbar_goto('collections')
+            time.sleep(1)
+            self.driver.refresh()
 
         print("Creating Knows Graph\n")
         graph1.select_create_graph(1)

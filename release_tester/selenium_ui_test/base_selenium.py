@@ -9,14 +9,19 @@ import time
 #from selenium import webdriver
 from pynput.keyboard import Key, Controller
 
-from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common.by import By
+from selenium.webdriver.common.by import By as BY
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support import expected_conditions as ec
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import (
+    InvalidSessionIdException,
+    StaleElementReferenceException,
+    TimeoutException,
+    NoSuchElementException
+)
 
 # from webdriver_manager.chrome import ChromeDriverManager
 # from webdriver_manager.firefox import GeckoDriverManager
@@ -98,7 +103,7 @@ class BaseSelenium:
         """This method will select all text and clean it"""
         if locator is not None:
             locator = locator
-            locator = BaseSelenium.locator_finder_by_xpath(self, locator)
+            locator = self.locator_finder_by_xpath(locator)
 
         print("Cleaning input field \n")
         actions = ActionChains(self.driver)
@@ -131,24 +136,24 @@ class BaseSelenium:
         print("\n")
         print("Clicking on Log tab \n")
         log = "logs"
-        log = BaseSelenium.locator_finder_by_id(self, log)
+        log = self.locator_finder_by_id(log)
         log.click()
 
         print("Try to tap on Log Level drop down button \n")
         log_level = 'logLevelSelection'
-        log_level = BaseSelenium.locator_finder_by_id(self, log_level)
+        log_level = self.locator_finder_by_id(log_level)
         log_level.click()
 
         time.sleep(3)
 
         print("Close the Log Level button \n")
         log_level01 = 'closeFilter'
-        log_level01 = BaseSelenium.locator_finder_by_id(self, log_level01)
+        log_level01 = self.locator_finder_by_id(log_level01)
         log_level01.click()
 
         print("Quickly tap on to Collection Tab")
         collection = "collections"
-        collection = BaseSelenium.locator_finder_by_id(self, collection)
+        collection = self.locator_finder_by_id(collection)
         collection.click()
 
         print("Waiting for few seconds \n")
@@ -156,13 +161,13 @@ class BaseSelenium:
 
         print("Return back to Log tab again \n")
         log01 = "logs"
-        log01 = BaseSelenium.locator_finder_by_id(self, log01)
+        log01 = self.locator_finder_by_id(log01)
         log01.click()
 
         print("Trying to tap on Log Level once again \n")
         try:
             log_level = 'logLevelSelection'
-            log_level = BaseSelenium.locator_finder_by_id(self, log_level)
+            log_level = self.locator_finder_by_id(log_level)
             log_level.click()
             assert "Level" in log_level.text, "********UI become unresponsive******"
             if log_level.text == 'Level':
@@ -175,7 +180,7 @@ class BaseSelenium:
         print("Back to Dashboard again \n")
         self.driver.refresh()
         dash = "dashboard"
-        dash = BaseSelenium.locator_finder_by_id(self, dash)
+        dash = self.locator_finder_by_id(dash)
         dash.click()
         time.sleep(2)
     
@@ -184,7 +189,7 @@ class BaseSelenium:
         try:
             query = '//*[@id="aqlEditor"]'
             query = \
-                BaseSelenium.locator_finder_by_xpath(self, query)
+                self.locator_finder_by_xpath(query)
             query.click()
             time.sleep(2)
         except TimeoutException:
@@ -194,7 +199,7 @@ class BaseSelenium:
         """Clicking execute query button"""
         execute = 'executeQuery'
         execute = \
-            BaseSelenium.locator_finder_by_id(self, execute)
+            self.locator_finder_by_id(execute)
         execute.click()
         time.sleep(2)
 
@@ -227,7 +232,7 @@ class BaseSelenium:
         """checking current package version from the dashboard"""
         package_version = "currentVersion"
         package_version = \
-            BaseSelenium.locator_finder_by_text_id(self, package_version)
+            self.locator_finder_by_text_id(package_version)
         print("Package Version: ", package_version)
         time.sleep(1)
 
@@ -249,8 +254,10 @@ class BaseSelenium:
 
     def locator_finder_by_id(self, locator_name):
         """This method will used for finding all the locators by their id"""
+        print(locator_name)
         self.locator = WebDriverWait(self.driver, 10).until(
-            ec.element_to_be_clickable((By.ID, locator_name))
+            EC.element_to_be_clickable((BY.ID, locator_name)),
+            message="UI-Test: " + locator_name + " locator was not found."
         )
         if self.locator is None:
             raise Exception(locator_name, " locator was not found.")
@@ -259,7 +266,8 @@ class BaseSelenium:
     def locator_finder_by_xpath(self, locator_name, timeout=10):
         """This method will used for finding all the locators by their xpath"""
         self.locator = WebDriverWait(self.driver, timeout).until(
-            ec.element_to_be_clickable((By.XPATH, locator_name))
+            EC.element_to_be_clickable((BY.XPATH, locator_name)),
+            message="UI-Test: " + locator_name + " locator was not found."
         )
         if self.locator is None:
             raise Exception("UI-Test: ", locator_name, " locator was not found.")
@@ -304,7 +312,8 @@ class BaseSelenium:
     def locator_finder_by_text_id(self, locator_name):
         """This method will used for finding all the locators text using ID"""
         self.locator = WebDriverWait(self.driver, 10).until(
-            ec.element_to_be_clickable((By.ID, locator_name))
+            EC.element_to_be_clickable((BY.ID, locator_name)),
+            message="UI-Test: " + locator_name + " locator was not found."
         )
         self.locator = self.locator.text
         if self.locator is None:
@@ -314,7 +323,8 @@ class BaseSelenium:
     def locator_finder_by_text_xpath(self, locator_name):
         """This method will used for finding all the locators text using xpath"""
         self.locator = WebDriverWait(self.driver, 10).until(
-            ec.element_to_be_clickable((By.XPATH, locator_name))
+            EC.element_to_be_clickable((BY.XPATH, locator_name)),
+            message="UI-Test: " + locator_name + " locator was not found."
         )
         self.locator = self.locator.text
         if self.locator is None:
@@ -324,9 +334,39 @@ class BaseSelenium:
     def locator_finder_by_css_selectors(self, locator_name):
         """This method will used for finding all the locators text using CSS Selector"""
         self.locator = WebDriverWait(self.driver, 10).until(
-            ec.element_to_be_clickable((By.CSS_SELECTOR, locator_name))
+            EC.element_to_be_clickable((BY.CSS_SELECTOR, locator_name)),
+            message="UI-Test: " + locator_name + " locator was not found."
         )
         self.locator = self.locator.text
         if self.locator is None:
             raise Exception("UI-Test: ", locator_name, " locator was not found.")
         return self.locator
+
+    def navbar_goto(self, tag):
+        """ click on any of the items in the 'navbar' """
+        count = 0
+        print("navbar goto %s"% tag)
+        while True:
+            try:
+                elem = self.driver.find_element_by_id(tag)
+                assert elem, "navbar goto failed?"
+                elem.click()
+                self.driver.find_element_by_class_name(tag + '-menu.active')
+                print("goto current URL: " + self.driver.current_url)
+                if not self.driver.current_url.endswith('#'+ tag):
+                    # retry...
+                    continue
+                return
+            except NoSuchElementException:
+                print('retrying to switch to ' + tag)
+                time.sleep(1)
+                count += 1
+                if count %15 == 0:
+                    print("reloading page!")
+                    self.driver.refresh()
+                    time.sleep(1)
+                continue
+            except TimeoutException as ex:
+                self.take_screenshot()
+                raise ex
+

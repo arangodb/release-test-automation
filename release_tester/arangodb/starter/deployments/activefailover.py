@@ -112,6 +112,10 @@ class ActiveFailover(Runner):
     def finish_setup_impl(self):
         logging.info("instances are ready, detecting leader")
         self._detect_leader()
+        self.selenium.set_instances(self.cfg, self.leader.arango_importer, self.leader.arango_restore)
+        self.selenium.connect_server(self.get_frontend_instances(), '_system', self.cfg)
+        
+        self.selenium.check_full_ui() # TODO: remove me
 
         #add data to leader
         self.makedata_instances.append(self.leader)
@@ -160,8 +164,7 @@ class ActiveFailover(Runner):
                 ])
         if not ret[0]:
             raise Exception("check data failed " + ret[1])
-        self.selenium.set_instances(self.cfg, self.leader.arango_importer, self.leader.arango_restore)
-        self.selenium.check_full_ui() # TODO: remove me
+
     def wait_for_restore_impl(self, backup_starter):
         backup_starter.wait_for_restore()
         self.leader = None
