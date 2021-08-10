@@ -370,40 +370,41 @@ class Dc2Dc(Runner):
         """ manual upgrade this installation """
         self._stop_sync(300)
         self.sync_manager.replace_binary_for_upgrade(self.new_cfg)
+        self.progress(True, "manual upgrade step 1 - stop instances")
+        self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
         for node in self.starter_instances:
-            node.replace_binary_for_upgrade(self.new_cfg)
-            node.terminate_instance(True)
+            node.replace_binary_for_upgrade(self.new_cfg, False)
+        for node in self.starter_instances:
+            node.detect_instance_pids_still_alive()
 
-        self.progress(True, "step 2 - launch instances with the upgrade option set")
+        self.progress(True, "step 2 - upgrade agents")
         for node in self.starter_instances:
-            print('launch')
-            node.manually_launch_instances([
-                InstanceType.AGENT,
+            node.upgrade_instances([
+                InstanceType.AGENT
+            ], ['--database.auto-upgrade', 'true',
+                '--log.foreground-tty', 'true'])
+        self.progress(True, "step 3 - upgrade db-servers")
+        for node in self.starter_instances:
+            node.upgrade_instances([
                 InstanceType.DBSERVER
-            ], [
-                '--database.auto-upgrade', 'true',
-                '--log.foreground-tty', 'true',
-                '--server.rest-server', 'false'
-            ])
-        self.progress(True, "step 3 - restart the full cluster ")
-        for node in self.starter_instances:
-            node.respawn_instance()
-        self.progress(True, "step 4 - wait for the cluster to be up")
-        for node in self.starter_instances:
-            node.detect_instances()
-            node.wait_for_version_reply()
-        self.progress(True, "step 5 - coordinator upgrade")
+            ], ['--database.auto-upgrade', 'true',
+                '--log.foreground-tty', 'true'])
+        self.progress(True, "step 4 - coordinator upgrade")
         # now the new cluster is running. we will now run the coordinator upgrades
         for node in self.starter_instances:
             logging.info("upgrading coordinator instances\n" + str(node))
-            node.temporarily_replace_instances([
+            node.upgrade_instances([
                 InstanceType.COORDINATOR
             ], [
-                '--database.auto-upgrade', 'true',
-                '--log.foreground-tty', 'true',
-                '--server.rest-server', 'false'
+                '--database.auto-upgrade', 'true'
             ])
-
+        self.progress(True, "step 5 restart the full cluster ")
+        for node in self.starter_instances:
+            node.respawn_instance()
+        self.progress(True, "step 6 wait for the cluster to be up")
+        for node in self.starter_instances:
+            node.detect_instances()
+            node.wait_for_version_reply()
 
         # self.sync_manager.start_sync()
 
