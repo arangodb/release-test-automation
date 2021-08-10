@@ -1,9 +1,13 @@
+import time
+from selenium import webdriver
+from selenium.webdriver.chrome.webdriver import WebDriver
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 from webdriver_manager.microsoft import EdgeChromiumDriverManager
 from webdriver_manager.utils import ChromeType
 
 """
+pip install selenium
 pip install webdriver-manager
 
 More info: https://pypi.org/project/webdriver-manager/
@@ -16,6 +20,8 @@ download the latest version of the driver.
 
 Browser need to be downloaded beforehand
 """
+
+
 class BaseSelenium:
     browser_name = None
     driver: WebDriver
@@ -46,7 +52,8 @@ class BaseSelenium:
                 profile = webdriver.FirefoxProfile()
                 profile.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/json, text/csv")  # mime
                 profile.set_preference("browser.download.manager.showWhenStarting", False)
-                profile.set_preference("browser.download.dir", "C:\\Users\\rearf\\Downloads") # need to be changed accordingly
+                profile.set_preference("browser.download.dir",
+                                       "C:\\Users\\rearf\\Downloads")  # need to be changed accordingly
                 profile.set_preference("browser.download.folderList", 2)
                 profile.set_preference("pdfjs.disabled", True)
 
