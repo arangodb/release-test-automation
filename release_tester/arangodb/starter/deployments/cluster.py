@@ -187,6 +187,8 @@ db.testCollection.save({test: "document"})
 
     @step
     def jam_attempt_impl(self):
+        # this is simply to slow to be worth wile:
+        # collections = self.get_collection_list()
         agency_leader = self.agency_get_leader()
         terminate_instance = 2
         if self.starter_instances[terminate_instance].have_this_instance(agency_leader):
@@ -194,22 +196,16 @@ db.testCollection.save({test: "document"})
             terminate_instance = 1
 
         logging.info("stopping instance %d" % terminate_instance)
-
+        uuid = self.starter_instances[terminate_instance].get_dbservers()[0].get_uuid()
         self.starter_instances[terminate_instance].terminate_instance()
         self.set_frontend_instances()
 
         prompt_user(self.basecfg, "instance stopped")
         if self.selenium:
             self.selenium.jam_step_1(self.new_cfg if self.new_cfg else self.cfg)
-        else:
-            print("sleeping 20s to make sure the cluster has failed over all shards etc.")
-            time.sleep(20)
 
-        # TODO: we should wait until all shards from the stopped DB-Server have a new leader.
-        # waiting for the UI first makes it probable that this has happened,
-        # but doesn't warant it.
         ret = self.starter_instances[0].arangosh.check_test_data(
-                "Cluster one node missing", True)
+                "Cluster one node missing", True, ['--disabledDbserverUUID', uuid] )
         if not ret[0]:
             raise Exception("check data failed " + ret[1])
 

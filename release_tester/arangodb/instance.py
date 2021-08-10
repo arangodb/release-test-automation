@@ -333,6 +333,11 @@ class ArangodInstance(Instance):
  {0.name}  |  {0.type_str}  | {0.pid} | {0.logfile}
 """.format(self)
 
+    def get_uuid(self):
+        """ try to load the instances UUID """
+        uuid_file = self.basedir / 'data' / 'UUID'
+        return uuid_file.read_text()
+
     def get_essentials(self):
         """ get the essential attributes of the class """
         return {
