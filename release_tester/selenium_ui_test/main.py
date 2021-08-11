@@ -407,31 +407,14 @@ class Test(BaseSelenium):
             this_graph.select_create_graph(graph)
             # graphs.append(this_graph)
             #this_graph.
-            time.sleep(3)
-            self.navbar_goto('collections')
-            time.sleep(1)
-            self.driver.refresh()
+            this_graph.check_required_collections(graph)
 
-        print("Creating Knows Graph\n")
-        graph1.select_create_graph(1)
-        self.driver.refresh()
-        print("Checking required collections created for Knows Graph\n")
-        graph1.checking_collection_creation(1)
-        print("Searching for 'knows' and 'persons' collections\n")
-        graph1.check_required_collection(1)
-
-        print("Creating Traversal Graph\n")
-        graph2.select_create_graph(2)
-        self.driver.refresh()
-        print("Checking required collections created for Traversal Graph\n")
-        graph2.checking_collection_creation(2)
-        print("Searching for 'circles' and 'edges' collections\n")
-        graph2.check_required_collection(2)
+        grahp.select_graph_page()
 
         print("Example Graphs creation Completed\n")
 
         print("Sorting all graphs as descending\n")
-        graph.select_sort_descend()
+        # graph.select_sort_descend()
 
         # TODO: seems unreliable?
         #print("Selecting Knows Graph for inspection\n")

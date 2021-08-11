@@ -20,23 +20,39 @@ class GraphExample(IntEnum):
     SOCIAL = 6
     CITY = 7
     # enterprise? CONNECTED = 8
-
+class vCol():
+    def __init__(self, name):
+        self.name = name
+        self.ctype = 'v'
+    
+class eCol(vCol):
+    def __init__(self, name):
+        self.name = name
+        self.ctype = 'e'
+    
 class GraphCreateSet():
-    def __init__(self, clear_name, btn_id, handler):
+    def __init__(self, clear_name, btn_id, collections, handler):
         self.clear_name = clear_name
         self.btn_id = btn_id
         self.handler = handler
+        self.collections = collections
 
 GRAPH_SETS = [
-    GraphCreateSet(None, None, None),
-    GraphCreateSet("Knows", "knows_graph_settings", None),
-    GraphCreateSet("Traversal", "traversalGraph_settings", None),
-    GraphCreateSet("kShortestPaths", "kShortestPathsGraph_settings", None),
-    GraphCreateSet("Mps", "mps_graph_settings", None),
-    GraphCreateSet("World", "worldCountry_settings", None),
-    GraphCreateSet("Social", "social_settings", None),
-    GraphCreateSet("City", "routeplanner_settings", None),
-    GraphCreateSet("Connected Components", "connectedComponentsGraph_settings", None)
+    GraphCreateSet(None, None, [], None),
+    GraphCreateSet("Knows", "knows_graph_settings", [ vCol('persons'), eCol('knows') ], None),
+    GraphCreateSet("Traversal", "traversalGraph_settings", [vCol('circles'), eCol('edges')], None),
+    GraphCreateSet("kShortestPaths", "kShortestPathsGraph_settings", [ vCol('places'), eCol('edges') ], None),
+    GraphCreateSet("Mps", "mps_graph_settings", [ vCol('mps_verts'), eCol('mps_edges') ], None),
+    GraphCreateSet("World", "worldCountry_settings", [ vCol('worldVertices'), eCol('worldEdges') ], None),
+    GraphCreateSet("Social", "social_settings", [ vCol('male'), vCol('female'), eCol('relation') ], None),
+    GraphCreateSet("City", "routeplanner_settings", [
+        vCol('frenchCity'),
+        vCol('germanCity'),
+        eCol('frenchHighway'),
+        eCol('germanHighway'),
+        eCol('internationalHighway')
+    ], None),
+    GraphCreateSet("Connected Components", "connectedComponentsGraph_settings", [], None) #TODO?
 ]
 
 def get_graph_name(graph:GraphExample):
@@ -527,270 +543,26 @@ class GraphPage(BaseSelenium):
         select_graph_button.click()
         time.sleep(10)
 
-    def check_required_collection(self, graph):
+    def check_required_collections(self, graph):
         """selecting collection tab and search for required collections"""
         collection_page = self.select_collection_page_id
         collection_page = self.locator_finder_by_id(collection_page)
         collection_page.click()
 
-        if graph == 1:
-            search1 = self.select_search_id
-            search2 = self.select_search_id
-            person = "//*[@id='collection_persons']/div/h5"
-            knows = "//*[@id='collection_knows']/div/h5"
-
-            knows = self.locator_finder_by_xpath(knows)
-            search1 = self.locator_finder_by_id(search1)
-            search1.click()
-            search1.clear()
-            search1.send_keys("knows")
-            if knows.text == 'knows':
-                print("knows collection creation has been validated.\n")
+        for collection in GRAPH_SETS[graph].collections:
+            search_collection_id = "//*[@id='collection_%s']/div/h5" % collection.name
+            collection_item = self.locator_finder_by_xpath(search_collection_id)
+            search_item = self.locator_finder_by_id(self.select_search_id)
+            search_item.click()
+            search_item.clear()
+            search_item.send_keys(collection.name)
+            if collection_item.text == collection.name:
+                print(collection.name + " collectionhas been validated")
             else:
-                print("knows collection not found\n")
+                print(collection.name + " collection wasn't found")
             time.sleep(3)
             self.driver.refresh()
 
-            person = self.locator_finder_by_xpath(person)
-            search2 = self.locator_finder_by_id(search2)
-            search2.click()
-            search2.clear()
-            search2.send_keys("persons")
-            if person.text == 'persons':
-                print("persons collection creation has been validated.\n")
-            else:
-                print("person collection not found\n")
-            time.sleep(3)
-
-        elif graph == 2:
-            search1 = self.select_search_id
-            search2 = self.select_search_id
-            circle = "//*[@id='collection_circles']/div/h5"
-            edges = "//*[@id='collection_edges']/div/h5"
-
-            circle = self.locator_finder_by_xpath(circle)
-            search1 = self.locator_finder_by_id(search1)
-            search1.click()
-            search1.clear()
-            search1.send_keys("circles")
-            if circle.text == 'circles':
-                print("circle collection creation has been validated.\n")
-            else:
-                print("circle collection not found\n")
-            time.sleep(3)
-            self.driver.refresh()
-
-            edges = self.locator_finder_by_xpath(edges)
-            search2 = self.locator_finder_by_id(search2)
-            search2.click()
-            search2.clear()
-            search2.send_keys("edges")
-            if edges.text == 'edges':
-                print("edges collection creation has been validated.\n")
-            else:
-                print("edges collection not found\n")
-            time.sleep(3)
-
-        elif graph == 3:
-            search1 = self.select_search_id
-            search2 = self.select_search_id
-            connections = "//*[@id='collection_connections']/div/h5"
-            places = "//*[@id='collection_places']/div/h5"
-
-            connections = self.locator_finder_by_xpath(connections)
-            search1 = self.locator_finder_by_id(search1)
-            search1.click()
-            search1.clear()
-            search1.send_keys("connections")
-            if connections.text == 'connections':
-                print("connections collection creation has been validated.\n")
-            else:
-                print("connections collection not found\n")
-            time.sleep(3)
-            self.driver.refresh()
-
-            places = self.locator_finder_by_xpath(places)
-            search2 = self.locator_finder_by_id(search2)
-            search2.click()
-            search2.clear()
-            search2.send_keys("places")
-            if places.text == 'places':
-                print("places collection creation has been validated.\n")
-            else:
-                print("places collection not found\n")
-            time.sleep(3)
-
-        elif graph == 4:
-            search1 = self.select_search_id
-            search2 = self.select_search_id
-            mps_edges = "//*[@id='collection_mps_edges']/div/h5"
-            mps_verts = "//*[@id='collection_mps_verts']/div/h5"
-
-            mps_edges = self.locator_finder_by_xpath(mps_edges)
-            search1 = self.locator_finder_by_id(search1)
-            search1.click()
-            search1.clear()
-            search1.send_keys("mps_edges")
-            if mps_edges.text == 'mps_edges':
-                print("mps_edges collection creation has been validated.\n")
-            else:
-                print("mps_edges collection not found\n")
-            time.sleep(3)
-            self.driver.refresh()
-
-            mps_verts = self.locator_finder_by_xpath(mps_verts)
-            search2 = self.locator_finder_by_id(search2)
-            search2.click()
-            search2.clear()
-            search2.send_keys("mps_verts")
-            if mps_verts.text == 'mps_verts':
-                print("mps_verts collection creation has been validated.\n")
-            else:
-                print("mps_verts collection not found\n")
-            time.sleep(3)
-
-        elif graph == 5:
-            search1 = self.select_search_id
-            search2 = self.select_search_id
-            world_edges = "//*[@id='collection_worldEdges']/div/h5"
-            world_vertices = "//*[@id='collection_worldVertices']/div/h5"
-
-            world_edges = self.locator_finder_by_xpath(world_edges)
-            search1 = self.locator_finder_by_id(search1)
-            search1.click()
-            search1.clear()
-            search1.send_keys("worldEdges")
-            if world_edges.text == 'worldEdges':
-                print("worldEdges collection creation has been validated.\n")
-            else:
-                print("worldEdges collection not found\n")
-            time.sleep(3)
-            self.driver.refresh()
-
-            world_vertices = self.locator_finder_by_xpath(world_vertices)
-            search2 = self.locator_finder_by_id(search2)
-            search2.click()
-            search2.clear()
-            search2.send_keys("worldVertices")
-            if world_vertices.text == 'worldVertices':
-                print("worldVertices collection creation has been validated.\n")
-            else:
-                print("worldVertices collection not found\n")
-            time.sleep(3)
-
-        elif graph == 6:
-            search1 = self.select_search_id
-            search2 = self.select_search_id
-            search3 = self.select_search_id
-            female = "//*[@id='collection_female']/div/h5"
-            male = "//*[@id='collection_male']/div/h5"
-            relation = "//*[@id='collection_relation']/div/h5"
-
-            female = self.locator_finder_by_xpath(female)
-            search1 = self.locator_finder_by_id(search1)
-            search1.click()
-            search1.clear()
-            search1.send_keys("female")
-            if female.text == 'female':
-                print("female collection creation has been validated.\n")
-            else:
-                print("female collection not found\n")
-            time.sleep(3)
-            self.driver.refresh()
-
-            male = self.locator_finder_by_xpath(male)
-            search2 = self.locator_finder_by_id(search2)
-            search2.click()
-            search2.clear()
-            search2.send_keys("male")
-            if male.text == 'male':
-                print("male collection creation has been validated.\n")
-            else:
-                print("male collection not found\n")
-            time.sleep(3)
-            self.driver.refresh()
-
-            relation = self.locator_finder_by_xpath(relation)
-            search3 = self.locator_finder_by_id(search3)
-            search3.click()
-            search3.clear()
-            search3.send_keys("relation")
-            if relation.text == 'relation':
-                print("relation collection creation has been validated.\n")
-            else:
-                print("relation collection not found\n")
-            time.sleep(3)
-
-        elif graph == 7:
-            search1 = self.select_search_id
-            search2 = self.select_search_id
-            search3 = self.select_search_id
-            search4 = self.select_search_id
-            search5 = self.select_search_id
-            french_city = "//*[@id='collection_frenchCity']/div/h5"
-            french_highway = '//*[@id="collection_frenchHighway"]/div/h5'
-            german_city = '//*[@id="collection_germanCity"]/div/h5'
-            german_highway = '//*[@id="collection_germanHighway"]/div/h5'
-            international_highway = '//*[@id="collection_internationalHighway"]/div/h5'
-
-            french_city = self.locator_finder_by_xpath(french_city)
-            search1 = self.locator_finder_by_id(search1)
-            search1.click()
-            search1.clear()
-            search1.send_keys("frenchCity")
-            if french_city.text == 'frenchCity':
-                print("frenchCity collection creation has been validated.\n")
-            else:
-                print("frenchCity collection not found\n")
-            time.sleep(3)
-            self.driver.refresh()
-
-            french_highway = self.locator_finder_by_xpath(french_highway)
-            search2 = self.locator_finder_by_id(search2)
-            search2.click()
-            search2.clear()
-            search2.send_keys("frenchHighway")
-            if french_highway.text == 'frenchHighway':
-                print("frenchHighway collection creation has been validated.\n")
-            else:
-                print("frenchHighway collection not found\n")
-            time.sleep(3)
-            self.driver.refresh()
-
-            german_city = self.locator_finder_by_xpath(german_city)
-            search3 = self.locator_finder_by_id(search3)
-            search3.click()
-            search3.clear()
-            search3.send_keys("germanCity")
-            if german_city.text == 'germanCity':
-                print("germanCity collection creation has been validated.\n")
-            else:
-                print("germanCity collection not found\n")
-            time.sleep(3)
-            self.driver.refresh()
-
-            german_highway = self.locator_finder_by_xpath(german_highway)
-            search4 = self.locator_finder_by_id(search4)
-            search4.click()
-            search4.clear()
-            search4.send_keys("germanHighway")
-            if german_highway.text == 'germanHighway':
-                print("germanHighway collection creation has been validated.\n")
-            else:
-                print("germanHighway collection not found\n")
-            time.sleep(3)
-            self.driver.refresh()
-
-            international_highway = self.locator_finder_by_xpath(international_highway)
-            search5 = self.locator_finder_by_id(search5)
-            search5.click()
-            search5.clear()
-            search5.send_keys("internationalHighway")
-            if international_highway.text == 'internationalHighway':
-                print("internationalHighway collection creation has been validated.\n")
-            else:
-                print("internationalHighway collection not found\n")
-            time.sleep(3)
 
         self.driver.back()
         self.driver.refresh()
