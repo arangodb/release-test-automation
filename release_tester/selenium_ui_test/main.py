@@ -495,7 +495,7 @@ class Test(BaseSelenium):
 
         # logout from the current user to get back to root
         login.logout_button()
-        del self.login
+        del login
         # login back with root user
         login = LoginPage(self.driver)
         login.login('root', self.root_passvoid)
@@ -516,22 +516,22 @@ class Test(BaseSelenium):
         print("Allow user Read/Write access to the _system DB test Completed \n")
 
         # logout from the current user to get back to root
-        self.login.logout_button()
-        del self.login
+        login.logout_button()
+        del login
         # login back with root user
-        self.login = LoginPage(self.driver)
-        self.login.login('root', self.root_passvoid)
+        login = LoginPage(self.driver)
+        login.login('root', self.root_passvoid)
 
-        del self.user
-        self.user = UserPage(self.driver)
-        self.user.user_tab()
-        self.user.selecting_new_user()
+        del user
+        user = UserPage(self.driver)
+        user.user_tab()
+        user.selecting_new_user()
         print("Deleting created user begins\n")
-        self.user.delete_user_btn()
-        self.user.confirm_delete_btn()
+        user.delete_user_btn()
+        user.confirm_delete_btn()
         print("Deleting created user completed \n")
-        self.login.logout_button()
-        del self.login
+        login.logout_button()
+        del login
         print("---------User Test Completed---------\n")
 
     def test_query(self, restore, testdata_path, is_cluster):
