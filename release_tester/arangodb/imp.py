@@ -9,11 +9,11 @@ from arangodb.async_client import (
 
 def get_type_args(filename):
     """ guess the format by the filename """
-    if filename.endswith('jsonl'):
+    if str(filename).endswith('jsonl'):
         return ['--type=jsonl']
-    if filename.endswith('json'):
+    if str(filename).endswith('json'):
         return ['--type=json']
-    if filename.endswith('csv'):
+    if str(filename).endswith('csv'):
         return ['--type=csv']
     raise NotImplementedError("no filename type encoding implemented for " + filename)
 
@@ -53,7 +53,7 @@ class ArangoImportExecutor(ArangoCLIprogressiveTimeoutExecutor):
     def import_smart_edge_collection(self, collection_name, filename, edge_relations, more_args=[]):
         """ import into smart edge collection """
         if len(edge_relations) == 1:
-            edge_relations[1] = edge_relations[0]
+            edge_relations.append(edge_relations[0])
         args = [
             '--from-collection-prefix', edge_relations[0],
             '--to-collection-prefix', edge_relations[1]
