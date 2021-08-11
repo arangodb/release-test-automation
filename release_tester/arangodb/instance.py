@@ -143,7 +143,10 @@ class Instance(ABC):
                 self.analyze_starter_file_line(line)
                 self.instance_arguments.append(line)
 
-    def launch_manual_from_instance_control_file(self, sbin_dir, moreargs, waitpid=True):
+    def launch_manual_from_instance_control_file(self,
+                                                 sbin_dir,
+                                                 moreargs,
+                                                 waitpid=True):
         """ launch instance without starter with additional arguments """
         self.load_starter_instance_control_file()
         command = [str(sbin_dir / self.instance_string)] + \
@@ -151,7 +154,17 @@ class Instance(ABC):
         print("Manually launching: " + str(command))
         self.instance = psutil.Popen(command)
         if waitpid:
-            self.instance.wait()
+            exit_code = self.instance.wait()
+            try:
+                self.search_for_warnings()
+            except Exception as ex:
+                raise Exception(str(command) +
+                                " exited with code: " +
+                                str(exit_code)) from ex
+            if exit_code != 0:
+                raise Exception(str(command) +
+                                " exited non zero: " +
+                                str(exit_code))
 
     @step
     def rename_logfile(self, suffix='.old'):
@@ -319,6 +332,11 @@ class ArangodInstance(Instance):
         return """
  {0.name}  |  {0.type_str}  | {0.pid} | {0.logfile}
 """.format(self)
+
+    def get_uuid(self):
+        """ try to load the instances UUID """
+        uuid_file = self.basedir / 'data' / 'UUID'
+        return uuid_file.read_text()
 
     def get_essentials(self):
         """ get the essential attributes of the class """

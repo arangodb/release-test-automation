@@ -4,6 +4,7 @@
 from abc import abstractmethod, ABC
 import copy
 import datetime
+import json
 import logging
 from pathlib import Path
 import os
@@ -94,7 +95,8 @@ class Runner(ABC):
             "system"] and cfg.have_system_service
         self.do_starter_test = cfg.mode in ["all", "tests"]
         self.do_upgrade = False
-        self.supports_rolling_upgrade = WINVER[0] is None
+        self.supports_rolling_upgrade = WINVER[0] == ''
+        #self.supports_rolling_upgrade = False # TODO
 
         self.basecfg = copy.deepcopy(cfg)
         self.new_cfg = new_cfg
@@ -928,3 +930,42 @@ class Runner(ABC):
                 '/_admin/log/level',
                 '{"agency":"debug", "requests":"trace", '
                 '"cluster":"debug", "maintenance":"debug"}')
+    @step
+    def get_collection_list(self):
+        reply = self.starter_instances[0].send_request(
+            InstanceType.COORDINATOR,
+            requests.get,
+            '/_api/collection',
+            None);
+        if reply[0].status_code != 200:
+            raise Exception("get Collections: Unsupported return code" +
+                            str(reply[0].status_code) +
+                            " - " + str(reply[0].body))
+        body_json = json.loads(reply[0].content)
+        if body_json['code'] != 200:
+            raise Exception("get Collections: Unsupported return code" +
+                            str(reply[0].status_code) +
+                            " - " + str(reply[0].body))
+        collections = body_json['result']
+        for collection in collections:
+            collection['details'] = self.get_collection_cluster_details(collection['name'])
+        return collections
+
+    def get_collection_cluster_details(self, collection_name):
+        reply = self.starter_instances[0].send_request(
+            InstanceType.COORDINATOR,
+            requests.put,
+            "/_db/_system/_admin/cluster/collectionShardDistribution",
+           '{"collection": "%s"}'%(collection_name))
+        if reply[0].status_code != 200:
+            raise Exception("get Collection detail " + collection_name +
+                            ": Unsupported return code" +
+                            str(reply[0].status_code) +
+                            " - " + str(reply[0].body))
+        body_json = json.loads(reply[0].content)
+        if body_json['code'] != 200:
+            raise Exception("get Collection detail " + collection_name +
+                            ": Unsupported return code" +
+                            str(reply[0].status_code) +
+                            " - " + str(reply[0].body))
+        return body_json['results'][collection_name]

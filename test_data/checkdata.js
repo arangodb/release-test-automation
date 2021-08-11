@@ -23,6 +23,7 @@ const { FeatureFlags } = require("./feature_flags");
 let database = "_system";
 
 const optionsDefaults = {
+  disabledDbserverUUID: "",
   minReplicationFactor: 1,
   maxReplicationFactor: 2,
   readonly: false,
@@ -245,6 +246,31 @@ function checkFoxxService() {
 let v = db._connection.GET("/_api/version");
 const enterprise = v.license === "enterprise"
 
+if (options.disabledDbserverUUID !== "") {
+  let count = 0;
+  print("waiting for all shards on " + options.disabledDbserverUUID + " to be moved");
+  while (count < 500) {
+    found = 0;
+    db._collections().map((c) => c.name()).forEach((c) => {
+      let shards = db[c].shards(true);
+      Object.values(shards).forEach((serverList) => {
+        serverList.forEach((server, index) => {
+          if (index === 0 && server === options.disabledDbserverUUID) {
+            ++found;
+          }
+        });
+      });
+    });
+    if (found > 0) {
+      print(found + ' found - Waiting');
+      internal.sleep(1);
+      count += 1;
+    } else {
+      break;
+    }
+  }
+  print("done - continuing test.")
+}
 
 if (options.testFoxx) {
   checkFoxxService()
