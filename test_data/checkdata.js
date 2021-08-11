@@ -259,7 +259,7 @@ if (options.disabledDbserverUUID !== "") {
         serverList.forEach((server, index) => {
           if (index === 0 && server === options.disabledDbserverUUID) {
             ++found;
-            collections.push(c.name);
+            collections.push(c);
           }
         });
       });
