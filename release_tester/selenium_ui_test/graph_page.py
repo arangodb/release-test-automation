@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 """
 aardvark graphs page object
@@ -24,12 +23,12 @@ class vCol():
     def __init__(self, name):
         self.name = name
         self.ctype = 'v'
-    
+
 class eCol(vCol):
     def __init__(self, name):
         self.name = name
         self.ctype = 'e'
-    
+
 class GraphCreateSet():
     def __init__(self, clear_name, btn_id, collections, handler):
         self.clear_name = clear_name
@@ -69,40 +68,6 @@ class GraphPage(BaseSelenium):
         self.select_create_graph_id = "createGraph"
         self.select_example_graph_btn_id = "tab-exampleGraphs"
         self.select_ex_graph_format = "//*[@id='exampleGraphs']/table/tbody/tr[%d]/td[2]/button"
-        
-        self.select_knows_graph_id = "//*[@id='exampleGraphs']/table/tbody/tr[1]/td[2]/button"
-        self.select_traversal_graph_id = "//*[@id='exampleGraphs']/table/tbody/tr[2]/td[2]/button"
-        self.select_k_shortest_path_id = "//*[@id='exampleGraphs']/table/tbody/tr[3]/td[2]/button"
-        self.select_maps_graph_id = "//*[@id='exampleGraphs']/table/tbody/tr[4]/td[2]/button"
-        self.select_world_graph_id = "//*[@id='exampleGraphs']/table/tbody/tr[5]/td[2]/button"
-        self.select_social_graph_id = "//*[@id='exampleGraphs']/table/tbody/tr[6]/td[2]/button"
-        self.select_city_graph_id = "//*[@id='exampleGraphs']/table/tbody/tr[7]/td[2]/button"
-        self.select_connected_component_graph_id = "//*[@id='exampleGraphs']/table/tbody/tr[8]/td[2]/button"
-
-        self.select_knows_graphs_setting_btn_id = "knows_graph_settings"
-        self.select_knows_graphs_setting_btn_id_check = "knows_graph_settings"
-
-        self.select_traversal_graphs_setting_btn_id = "traversalGraph_settings"
-        self.select_traversal_graphs_setting_btn_id_check = "traversalGraph_settings"
-
-        self.select_k_shortest_path_graphs_setting_btn_id = "kShortestPathsGraph_settings"
-        self.select_k_shortest_path_graphs_setting_btn_id_check = "kShortestPathsGraph_settings"
-
-        self.select_maps_graphs_setting_btn_id = "mps_graph_settings"
-        self.select_maps_graphs_setting_btn_id_check = "mps_graph_settings"
-
-        self.select_world_graphs_setting_btn_id = "worldCountry_settings"
-        self.select_world_graphs_setting_btn_id_check = "worldCountry_settings"
-
-        self.select_social_graphs_setting_btn_id = "social_settings"
-        self.select_social_graphs_setting_btn_id_check = "social_settings"
-
-        self.select_route_planner_graphs_setting_btn_id = "routeplanner_settings"
-        self.select_route_planner_graphs_setting_btn_id_check = "routeplanner_settings"
-
-        self.select_connected_graphs_setting_btn_id = "connectedComponentsGraph_settings"
-
-        self.select_knows_graph_manual_id = "knows_graph_manual_settings"
 
         self.confirm_delete_graph_id = "modalButton0"
         self.delete_with_collection_id = "dropGraphCollections"
@@ -387,7 +352,7 @@ class GraphPage(BaseSelenium):
     def adding_smart_graph(self, importer, testdata_path, disjointgraph=False):
         """Adding smart disjoint graph"""
         page_path = testdata_path / 'ui_data' / 'graph_page' / 'pregel_community'
-        
+
         if super().current_package_version() >= 3.6 and disjointgraph is False:
             select_graph_id = self.select_create_graph_id
             select_graph_id = self.locator_finder_by_id(select_graph_id)
@@ -567,38 +532,10 @@ class GraphPage(BaseSelenium):
         self.driver.back()
         self.driver.refresh()
 
-    def checking_collection_creation(self, graph):
+    def checking_collection_creation(self, graph:GraphExample):
         """Checking required collections creation for the particular example graph."""
-        if graph == 1:
-            select_knows_graphs_setting_btn_id_check = \
-                self.locator_finder_by_id(self.select_knows_graphs_setting_btn_id_check)
-            select_knows_graphs_setting_btn_id_check.click()
-        elif graph == 2:
-            select_traversal_graphs_setting_btn_id_check = \
-                self.locator_finder_by_id(self.select_traversal_graphs_setting_btn_id_check)
-            select_traversal_graphs_setting_btn_id_check.click()
-        elif graph == 3:
-            select_k_shortest_path_graphs_setting_btn_id_check = \
-                self.locator_finder_by_id(self.select_k_shortest_path_graphs_setting_btn_id_check)
-            select_k_shortest_path_graphs_setting_btn_id_check.click()
-        elif graph == 4:
-            select_maps_graphs_setting_btn_id_check = \
-                self.locator_finder_by_id(self.select_maps_graphs_setting_btn_id_check)
-            select_maps_graphs_setting_btn_id_check.click()
-        elif graph == 5:
-            select_world_graphs_setting_btn_id_check = \
-                self.locator_finder_by_id(self.select_world_graphs_setting_btn_id_check)
-            select_world_graphs_setting_btn_id_check.click()
-        elif graph == 6:
-            select_social_graphs_setting_btn_id_check = \
-                self.locator_finder_by_id(self.select_social_graphs_setting_btn_id_check)
-            select_social_graphs_setting_btn_id_check.click()
-        elif graph == 7:
-            select_route_planner_graphs_setting_btn_id_check = \
-                self.locator_finder_by_id(self.select_route_planner_graphs_setting_btn_id_check)
-            select_route_planner_graphs_setting_btn_id_check.click()
-        else:
-            print("Invalid Graph choice\n")
+        graph_item = self.locator_finder_by_id(GRAPH_SETS[graph].btn_id)
+        graph_item.click()
 
         time.sleep(3)
         select_graph_cancel_btn_id = \
@@ -822,77 +759,22 @@ class GraphPage(BaseSelenium):
         self.driver.back()
         time.sleep(3)
 
-    def delete_graph(self, graph):
+    def delete_graph(self, graph:GraphExample):
         """Deleting created graphs"""
-        if graph == 1:
-            select_knows_graphs_setting_btn_id = \
-                self.locator_finder_by_id(self.select_knows_graphs_setting_btn_id)
-            select_knows_graphs_setting_btn_id.click()
-            print("Deleting knows Graph\n")
-            time.sleep(1)
-        elif graph == 2:
-            select_traversal_graphs_setting_btn_id = \
-                self.locator_finder_by_id(self.select_traversal_graphs_setting_btn_id)
-            select_traversal_graphs_setting_btn_id.click()
-            print("Deleting Traversal Graph\n")
-            time.sleep(2)
-        elif graph == 3:
-            select_k_shortest_path_graphs_setting_btn_id = \
-                self.locator_finder_by_id(self.select_k_shortest_path_graphs_setting_btn_id)
-            select_k_shortest_path_graphs_setting_btn_id.click()
-            print("Deleting K Shortest Path Graph\n")
-            time.sleep(1)
-        elif graph == 4:
-            select_maps_graphs_setting_btn_id = \
-                self.locator_finder_by_id(self.select_maps_graphs_setting_btn_id)
-            select_maps_graphs_setting_btn_id.click()
-            print("Deleting Mps Graph\n")
-            time.sleep(1)
-        elif graph == 5:
-            select_world_graphs_setting_btn_id = \
-                self.locator_finder_by_id(self.select_world_graphs_setting_btn_id)
-            select_world_graphs_setting_btn_id.click()
-            print("Deleting World Graph\n")
-            time.sleep(1)
-        elif graph == 6:
-            select_social_graphs_setting_btn_id = \
-                self.locator_finder_by_id(self.select_social_graphs_setting_btn_id)
-            select_social_graphs_setting_btn_id.click()
-            print("Deleting Social Graph\n")
-            time.sleep(1)
-        elif graph == 7:
-            select_route_planner_graphs_setting_btn_id = \
-                self.locator_finder_by_id(self.select_route_planner_graphs_setting_btn_id)
-            select_route_planner_graphs_setting_btn_id.click()
-            print("Deleting City Graph\n")
-            time.sleep(1)
-        elif graph == 8:
-            select_connected_graphs_setting_btn_id = \
-                self.locator_finder_by_id(self.select_connected_graphs_setting_btn_id)
-            select_connected_graphs_setting_btn_id.click()
-            print("Deleting Connected Component Graph\n")
-            time.sleep(1)
-        # for manual graph
-        elif graph == 9:
-            select_knows_graph_manual_id = \
-                self.locator_finder_by_id(self.select_knows_graph_manual_id)
-            select_knows_graph_manual_id.click()
-            print("Deleting knows_graph_manual Graph\n")
-            time.sleep(1)
-        else:
-            print("Invalid Graph")
-
-        confirm_delete_graph_id = \
-            self.locator_finder_by_id(self.confirm_delete_graph_id)
-        confirm_delete_graph_id.click()
+        print("Deleting %s Graph" % GRAPH_SETS[graph].clear_name)
+        select_graph_setting_btn_sitem = self.locator_finder_by_id(GRAPH_SETS[graph].btn_id)
+        select_graph_setting_btn_sitem.click()
         time.sleep(1)
 
-        delete_with_collection_id = \
-            self.locator_finder_by_id(self.delete_with_collection_id)
-        delete_with_collection_id.click()
+        confirm_delete_graph_sitem = self.locator_finder_by_id(self.confirm_delete_graph_id)
+        confirm_delete_graph_sitem.click()
         time.sleep(1)
 
-        select_really_delete_btn_id = \
+        delete_with_collection_sitem = self.locator_finder_by_id(self.delete_with_collection_id)
+        delete_with_collection_sitem.click()
+        time.sleep(1)
+
+        select_really_delete_btn_sitem = \
             self.locator_finder_by_id(self.select_really_delete_btn_id)
-        select_really_delete_btn_id.click()
+        select_really_delete_btn_sitem.click()
         time.sleep(3)

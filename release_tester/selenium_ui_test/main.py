@@ -388,11 +388,11 @@ class Test(BaseSelenium):
         #     print("Adding Satellite Graph started \n")
         #     graph9.adding_satellite_graph(importer, test_data_dir)
         #     print("Adding Satellite Graph started \n")
-        # 
+        #
         #     print("Adding Smart Graph started \n")
         #     graph01.adding_smart_graph(importer, test_data_dir)
         #     print("Adding Smart Graph completed \n")
-        # 
+        #
         #     print("Adding Disjoint Smart Graph started \n")
         #     graph01.adding_smart_graph(importer, test_data_dir, True)
         #     print("Adding Disjoint Smart Graph completed \n")
@@ -409,12 +409,12 @@ class Test(BaseSelenium):
             #this_graph.
             this_graph.check_required_collections(graph)
 
-        grahp.select_graph_page()
+        this_graph.select_graph_page()
 
         print("Example Graphs creation Completed\n")
 
         print("Sorting all graphs as descending\n")
-        # graph.select_sort_descend()
+        this_graph.select_sort_descend()
 
         # TODO: seems unreliable?
         #print("Selecting Knows Graph for inspection\n")
@@ -422,25 +422,11 @@ class Test(BaseSelenium):
         #print("Selecting Graphs settings menu\n")
         #graph.graph_setting()
 
-        # print("Deleting created Graphs started\n")
-        # graph1.delete_graph(1)
-        # graph2.delete_graph(2)
-        # graph3.delete_graph(3)
-        # graph4.delete_graph(4)
-        # graph5.delete_graph(5)
-        # graph6.delete_graph(6)
-        # graph7.delete_graph(7)
-        # 
-        # # print("Deleting created Graphs Completed\n")
-        # del graph
-        # del graph1
-        # del graph2
-        # del graph3
-        # del graph4
-        # del graph5
-        # del graph6
-        # del graph7
-        # del graph8
+        print("Deleting created Graphs started\n")
+        for graph in GraphExample:
+            self.navbar_goto('graphs')
+            this_graph.delete_graph(graph)
+        print("Deleting created Graphs Completed\n")
         #login.logout_button()
         #del login
         print("---------Checking Graphs completed--------- \n")
@@ -547,10 +533,10 @@ class Test(BaseSelenium):
 
         # TODO: print("Executing spot light functionality \n")
         #query.spot_light_function('COUNT')  # can be used for search different keyword
-        
+
         print('Executing read query\n')
         query01.execute_read_query()
-        
+
         print('Updating documents\n')
         query.update_documents()
         print('Executing query with bind parameters \n')
