@@ -105,6 +105,10 @@ db.testCollection.save({test: "document"})
     def finish_setup_impl(self):
         self.makedata_instances = self.starter_instances[:]
         self.set_frontend_instances()
+        self.selenium.set_instances(self.cfg, self.starte_instances[0].arango_importer, self.starte_instances[0].arango_restore)
+        self.selenium.connect_server(self.get_frontend_instances(), '_system', self.cfg)
+        
+        self.selenium.check_full_ui() # TODO: remove me
 
     def test_setup_impl(self):
         pass

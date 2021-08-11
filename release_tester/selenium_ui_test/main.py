@@ -395,7 +395,6 @@ class Test(BaseSelenium):
             print("Adding Disjoint Smart Graph completed \n")
 
         print("Example Graphs creation started\n")
-        graphs = []
         for graph in GraphExample:
             if graph == GraphExample.MANUAL_KNOWS:
                 break
