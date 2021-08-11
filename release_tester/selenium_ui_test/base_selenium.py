@@ -5,9 +5,7 @@ base class for aardvark management
 
 import time
 
-# import pyautogui
 #from selenium import webdriver
-from pynput.keyboard import Key, Controller
 
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.action_chains import ActionChains

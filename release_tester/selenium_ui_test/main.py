@@ -469,46 +469,69 @@ class Test(BaseSelenium):
         login.login('root', self.root_passvoid)
         user = UserPage(self.driver)
         print("New user creation begins \n")
-        user.new_user_tab()
-        user.add_new_user()
-        user.new_user_name('tester')
-        user.naming_new_user('tester')
-        user.new_user_password('tester')
-        user.creating_new_user()
-        print("New user creation completed \n")
-        user.selecting_new_user()
+        user.user_tab()
+        user.add_new_user('tester')
+
+        print("Allow user Read Only access only to the _system DB test started \n")
+        user.selecting_user_tester()
         user.selecting_permission()
         print("Changing new user DB permission \n")
-        user.changing_db_permission()
+        user.changing_db_permission_read_only()
         self.driver.back()
         user.saving_user_cfg()
         print("Changing new user DB permission completed. \n")
         login.logout_button()
-
-        # creating login page object to reuse it's methods for login with newly created user
         print("Re-Login begins with new user\n")
         login = LoginPage(self.driver)
         login.login('tester', 'tester')
         print("Re-Login begins with new user completed\n")
 
+        print("trying to create collection")
+        user.create_sample_collection('access')
+        print("Allow user Read Only access only to the current DB test completed \n")
+
+        print("Allow user Read/Write access to the _system DB test started \n")
+        print('Return back to user tab \n')
+
         # logout from the current user to get back to root
         login.logout_button()
-        del login
+        del self.login
         # login back with root user
         login = LoginPage(self.driver)
         login.login('root', self.root_passvoid)
-        # fixme Deleting old user object
-        del user
-        user = UserPage(self.driver)
-        user.new_user_tab()
-        user.selecting_new_user()
-        print("Deleting created user begins\n")
-        user.delete_user_btn()
-        user.confirm_delete_btn()
-        print("Deleting created user completed \n")
+
+        user.user_tab()
+        user.selecting_user_tester()
+        user.selecting_permission()
+        user.changing_db_permission_read_write()
+        self.driver.back()
+        user.saving_user_cfg()
         login.logout_button()
-        # fixme Deleting old user object
-        del login
+        print("Re-Login begins with new user\n")
+        login = LoginPage(self.driver)
+        login.login('tester', 'tester')
+        print("Re-Login begins with new user completed\n")
+        print("trying to create collection")
+        user.create_sample_collection('read/write')
+        print("Allow user Read/Write access to the _system DB test Completed \n")
+
+        # logout from the current user to get back to root
+        self.login.logout_button()
+        del self.login
+        # login back with root user
+        self.login = LoginPage(self.driver)
+        self.login.login('root', self.root_passvoid)
+
+        del self.user
+        self.user = UserPage(self.driver)
+        self.user.user_tab()
+        self.user.selecting_new_user()
+        print("Deleting created user begins\n")
+        self.user.delete_user_btn()
+        self.user.confirm_delete_btn()
+        print("Deleting created user completed \n")
+        self.login.logout_button()
+        del self.login
         print("---------User Test Completed---------\n")
 
     def test_query(self, restore, testdata_path, is_cluster):
