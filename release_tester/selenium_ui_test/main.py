@@ -371,42 +371,38 @@ class Test(BaseSelenium):
 
         # creating multiple graph obj
         #print('z'*80)
-        #graph = GraphPage(self.driver)
-        print('x'*80)
+        this_graph = GraphPage(self.driver)
+        print("Manual Graph creation started \n")
 
-        # print("Manual Graph creation started \n")
-        # graph.create_manual_graph(test_data_dir)
-        # graph.select_graph_page()
-        # graph.adding_knows_manual_graph()
-        # print("Manual Graph creation completed \n")
-        # graph.delete_graph(9)
-        # self.driver.refresh()
+        this_graph.select_graph_page()
+        print("Creating '%s' Graph"%get_graph_name(GraphExample.MANUAL_KNOWS))
+        this_graph.create_graph(GraphExample.MANUAL_KNOWS, importer, test_data_dir)
+        print("Manual Graph creation completed \n")
+        this_graph.delete_graph(GraphExample.MANUAL_KNOWS)
+        self.driver.refresh()
 
-        # if cfg.enterprise:
-        #     graph9 = GraphPage(self.driver)
-        #     graph01 = GraphPage(self.driver)
-        #     print("Adding Satellite Graph started \n")
-        #     graph9.adding_satellite_graph(importer, test_data_dir)
-        #     print("Adding Satellite Graph started \n")
-        #
-        #     print("Adding Smart Graph started \n")
-        #     graph01.adding_smart_graph(importer, test_data_dir)
-        #     print("Adding Smart Graph completed \n")
-        #
-        #     print("Adding Disjoint Smart Graph started \n")
-        #     graph01.adding_smart_graph(importer, test_data_dir, True)
-        #     print("Adding Disjoint Smart Graph completed \n")
+        if cfg.enterprise:
+            print("Adding Satellite Graph started \n")
+            this_graph.create_graph(GraphExample.MANUAL_SATELITE_GRAPH, importer, test_data_dir)
+            print("Adding Satellite Graph started \n")
+
+            print("Adding Smart Graph started \n")
+            this_graph.create_graph(GraphExample.MANUAL_SMART_GRAHP, importer, test_data_dir)
+            print("Adding Smart Graph completed \n")
+
+            print("Adding Disjoint Smart Graph started \n")
+            this_graph.create_graph(GraphExample.MANUAL_DISJOINT_SMART_GRAHP, importer, test_data_dir)
+            print("Adding Disjoint Smart Graph completed \n")
 
         print("Example Graphs creation started\n")
         graphs = []
-        this_graph = GraphPage(self.driver)
         for graph in GraphExample:
+            if graph == GraphExample.MANUAL_KNOWS:
+                break
             self.navbar_goto('graphs')
             print(graph)
             print("Creating '%s' Graph"%get_graph_name(graph))
-            this_graph.select_create_graph(graph)
-            # graphs.append(this_graph)
-            #this_graph.
+            this_graph.create_graph(graph, importer, test_data_dir)
             this_graph.check_required_collections(graph)
 
         this_graph.select_graph_page()
@@ -417,13 +413,15 @@ class Test(BaseSelenium):
         this_graph.select_sort_descend()
 
         # TODO: seems unreliable?
-        #print("Selecting Knows Graph for inspection\n")
-        # graph.inspect_knows_graph()
-        #print("Selecting Graphs settings menu\n")
-        #graph.graph_setting()
+        print("Selecting Knows Graph for inspection\n")
+        this_graph.inspect_knows_graph()
+        print("Selecting Graphs settings menu\n")
+        this_graph.graph_setting()
 
         print("Deleting created Graphs started\n")
         for graph in GraphExample:
+            if graph == GraphExample.MANUAL_KNOWS:
+                break
             self.navbar_goto('graphs')
             this_graph.delete_graph(graph)
         print("Deleting created Graphs Completed\n")

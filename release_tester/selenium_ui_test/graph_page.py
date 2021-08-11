@@ -11,6 +11,7 @@ from selenium_ui_test.base_selenium import BaseSelenium, Keys
 
 
 class GraphExample(IntEnum):
+    """ identify example and manual graphs to be managed herein """
     KNOWS = 1
     TRAVERSAL = 2
     K_SHORTEST_PATH = 3
@@ -18,43 +19,35 @@ class GraphExample(IntEnum):
     WORLD = 5
     SOCIAL = 6
     CITY = 7
-    # enterprise? CONNECTED = 8
-class vCol():
+    MANUAL_KNOWS = 8
+    MANUAL_SATELITE_GRAPH = 9
+    MANUAL_SMART_GRAHP = 10
+    MANUAL_DISJOINT_SMART_GRAHP = 11
+    # TODO: 3.8 and newer only: CONNECTED = 12
+class VCol():
+    """ maps a vertex collection to a graph """
     def __init__(self, name):
         self.name = name
         self.ctype = 'v'
 
-class eCol(vCol):
+class ECol():
+    """ maps an edge collection to a graph """
     def __init__(self, name):
         self.name = name
         self.ctype = 'e'
 
 class GraphCreateSet():
-    def __init__(self, clear_name, btn_id, collections, handler):
+    """ this has all we need to know to create an example graph """
+    def __init__(self, clear_name, btn_id, collections, handler=None):
         self.clear_name = clear_name
         self.btn_id = btn_id
         self.handler = handler
         self.collections = collections
 
-GRAPH_SETS = [
-    GraphCreateSet(None, None, [], None),
-    GraphCreateSet("Knows", "knows_graph_settings", [ vCol('persons'), eCol('knows') ], None),
-    GraphCreateSet("Traversal", "traversalGraph_settings", [vCol('circles'), eCol('edges')], None),
-    GraphCreateSet("kShortestPaths", "kShortestPathsGraph_settings", [ vCol('places'), eCol('edges') ], None),
-    GraphCreateSet("Mps", "mps_graph_settings", [ vCol('mps_verts'), eCol('mps_edges') ], None),
-    GraphCreateSet("World", "worldCountry_settings", [ vCol('worldVertices'), eCol('worldEdges') ], None),
-    GraphCreateSet("Social", "social_settings", [ vCol('male'), vCol('female'), eCol('relation') ], None),
-    GraphCreateSet("City", "routeplanner_settings", [
-        vCol('frenchCity'),
-        vCol('germanCity'),
-        eCol('frenchHighway'),
-        eCol('germanHighway'),
-        eCol('internationalHighway')
-    ], None),
-    GraphCreateSet("Connected Components", "connectedComponentsGraph_settings", [], None) #TODO?
-]
+GRAPH_SETS = []
 
 def get_graph_name(graph:GraphExample):
+    """ resolves the enum to a printeable string """
     return GRAPH_SETS[graph].clear_name
 
 class GraphPage(BaseSelenium):
@@ -111,7 +104,7 @@ class GraphPage(BaseSelenium):
 
         self.select_new_graph_name_id = "createNewGraphName"
 
-    def create_manual_graph(self, testdata_path):
+    def create_manual_graph(self, importer, test_data_dir):
         """creating graph manually"""
         collection_page = self.locator_finder_by_id(self.select_collection_page_id)
         collection_page.click()
@@ -125,7 +118,7 @@ class GraphPage(BaseSelenium):
         col1_upload = self.select_upload_btn_id
         col1_file = self.select_choose_file_btn_id
         col1_import = self.select_confirm_upload_btn_id
-        path1 = testdata_path / 'ui_data' / 'graph_page' / 'knows' / 'knows_edge.json'
+        path1 = test_data_dir / 'ui_data' / 'graph_page' / 'knows' / 'knows_edge.json'
 
         print("Creating knows_edge collections for knows_graph_manual Graph\n")
         col1 = self.locator_finder_by_id(col1)
@@ -169,7 +162,7 @@ class GraphPage(BaseSelenium):
         col2_upload = self.select_upload_btn_id
         col2_file = self.select_choose_file_btn_id
         col2_import = self.select_confirm_upload_btn_id
-        path2 = testdata_path / 'ui_data' / 'graph_page' / 'knows' / 'persons.json'
+        path2 = test_data_dir / 'ui_data' / 'graph_page' / 'knows' / 'persons.json'
 
         print("Creating person_vertices collections for knows_graph_manual Graph\n")
         col2 = self.locator_finder_by_id(col2)
@@ -200,13 +193,15 @@ class GraphPage(BaseSelenium):
         col2_import.click()
         time.sleep(3)
         print("Importing person_vertices.json to the collection completed\n")
+        self.select_graph_page()
+        self.create_knows_manual_graph()
 
     def select_graph_page(self):
         """selecting Graph tab"""
         select_graph_page_id = self.locator_finder_by_id(self.select_graph_page_id)
         select_graph_page_id.click()
 
-    def adding_knows_manual_graph(self):
+    def create_knows_manual_graph(self):
         """adding knows_graph_manual graph"""
         select_graph_id = self.locator_finder_by_id(self.select_create_graph_id)
         select_graph_id.click()
@@ -256,11 +251,11 @@ class GraphPage(BaseSelenium):
         time.sleep(3)
         self.driver.back()
 
-    def adding_satellite_graph(self, importer, testdata_path):
+    def create_satellite_graph(self, importer, test_data_dir):
         """creating satellite graph"""
         if super().current_package_version() >= 3.8:
             self.select_graph_page()
-            knows_path = testdata_path / 'ui_data' / 'graph_page' / 'knows'
+            knows_path = test_data_dir / 'ui_data' / 'graph_page' / 'knows'
             select_graph = self.locator_finder_by_id(self.select_create_graph_id)
             select_graph.click()
 
@@ -349,9 +344,9 @@ class GraphPage(BaseSelenium):
         else:
             print('Satellite Graph is not supported for the current package \n')
 
-    def adding_smart_graph(self, importer, testdata_path, disjointgraph=False):
+    def create_smart_graph(self, importer, test_data_dir, disjointgraph=False):
         """Adding smart disjoint graph"""
-        page_path = testdata_path / 'ui_data' / 'graph_page' / 'pregel_community'
+        page_path = test_data_dir / 'ui_data' / 'graph_page' / 'pregel_community'
 
         if super().current_package_version() >= 3.6 and disjointgraph is False:
             select_graph_id = self.select_create_graph_id
@@ -491,9 +486,16 @@ class GraphPage(BaseSelenium):
         else:
             print('Disjoint Graph is not supported for the current package \n')
 
+    def create_disjoint_smart_graph(self, importer, test_data_dir):
+        """ wrap it with disjoint true """
+        self.create_smart_graph(importer, test_data_dir, disjointgraph=True)
 
-    def select_create_graph(self, graph:GraphExample):
+    def create_graph(self, graph:GraphExample, importer, test_data_dir):
         """Creating new example graphs"""
+        create_graph = GRAPH_SETS[graph]
+        if create_graph.handler is not None:
+            create_graph.handler(self, importer, test_data_dir)
+            return
         select_graph =  self.locator_finder_by_id(self.select_create_graph_id)
         select_graph.click()
         time.sleep(1)
@@ -502,7 +504,6 @@ class GraphPage(BaseSelenium):
             self.select_example_graph_btn_id)
         select_example_graph_elm.click()
         time.sleep(1)
-        create_graph = GRAPH_SETS[graph]
         select_graph_button = self.locator_finder_by_xpath(
             self.select_ex_graph_format % (int(graph)))
         select_graph_button.click()
@@ -762,7 +763,8 @@ class GraphPage(BaseSelenium):
     def delete_graph(self, graph:GraphExample):
         """Deleting created graphs"""
         print("Deleting %s Graph" % GRAPH_SETS[graph].clear_name)
-        select_graph_setting_btn_sitem = self.locator_finder_by_id(GRAPH_SETS[graph].btn_id)
+        btn_id = GRAPH_SETS[graph].btn_id
+        select_graph_setting_btn_sitem = self.locator_finder_by_id(btn_id)
         select_graph_setting_btn_sitem.click()
         time.sleep(1)
 
@@ -778,3 +780,31 @@ class GraphPage(BaseSelenium):
             self.locator_finder_by_id(self.select_really_delete_btn_id)
         select_really_delete_btn_sitem.click()
         time.sleep(3)
+
+GRAPH_SETS = [
+    GraphCreateSet(None, None, [], None),
+    GraphCreateSet("Knows", "knows_graph_settings", [ VCol('persons'), ECol('knows') ]),
+    GraphCreateSet("Traversal", "traversalGraph_settings", [VCol('circles'), ECol('edges')]),
+    GraphCreateSet("kShortestPaths", "kShortestPathsGraph_settings", [ VCol('places'), ECol('edges') ]),
+    GraphCreateSet("Mps", "mps_graph_settings", [ VCol('mps_verts'), ECol('mps_edges') ]),
+    GraphCreateSet("World", "worldCountry_settings", [ VCol('worldVertices'), ECol('worldEdges') ]),
+    GraphCreateSet("Social", "social_settings", [ VCol('male'), VCol('female'), ECol('relation') ]),
+    GraphCreateSet("City", "routeplanner_settings", [
+        VCol('frenchCity'),
+        VCol('germanCity'),
+        ECol('frenchHighway'),
+        ECol('germanHighway'),
+        ECol('internationalHighway')
+    ]),
+    GraphCreateSet("Manual Knows",
+                   "knows_graph_manual_settings", [
+                       VCol('persons'), ECol('knows_edge')
+                   ],
+                   GraphPage.create_manual_graph, ),
+
+
+    GraphCreateSet("Satelite Graph","satellite_graph_settings", [],  GraphPage.create_satellite_graph),
+    GraphCreateSet("Smartgraph","satellite_graph_settings", [],  GraphPage.create_smart_graph),
+    GraphCreateSet("disjoint Smartgraph","satellite_graph_settings", [],  GraphPage.create_disjoint_smart_graph),
+    GraphCreateSet("Connected Components", "connectedComponentsGraph_settings", [], None) #TODO?
+]
