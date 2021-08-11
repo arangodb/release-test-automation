@@ -411,7 +411,6 @@ class Test(BaseSelenium):
         print("Sorting all graphs as descending\n")
         this_graph.select_sort_descend()
 
-        # TODO: seems unreliable?
         print("Selecting Knows Graph for inspection\n")
         this_graph.inspect_knows_graph()
         print("Selecting Graphs settings menu\n")

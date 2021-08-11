@@ -198,13 +198,13 @@ class GraphPage(BaseSelenium):
 
     def select_graph_page(self):
         """selecting Graph tab"""
-        select_graph_page_id = self.locator_finder_by_id(self.select_graph_page_id)
-        select_graph_page_id.click()
+        select_graph_page_sitem = self.locator_finder_by_id(self.select_graph_page_id)
+        select_graph_page_sitem.click()
 
     def create_knows_manual_graph(self):
         """adding knows_graph_manual graph"""
-        select_graph_id = self.locator_finder_by_id(self.select_create_graph_id)
-        select_graph_id.click()
+        select_graph_sitem = self.locator_finder_by_id(self.select_create_graph_id)
+        select_graph_sitem.click()
 
         # list of id's for manual graph
         new_graph = self.select_new_graph_name_id
@@ -214,39 +214,39 @@ class GraphPage(BaseSelenium):
         create_btn_id = "modalButton1"
         knows_graph_id = '//*[@id="knows_graph_manual_tile"]/div/h5'
 
-        new_graph = self.locator_finder_by_id(new_graph)
-        new_graph.click()
-        new_graph.clear()
-        new_graph.send_keys("knows_graph_manual")
+        new_graph_sitem = self.locator_finder_by_id(new_graph)
+        new_graph_sitem.click()
+        new_graph_sitem.clear()
+        new_graph_sitem.send_keys("knows_graph_manual")
 
         # selecting edge definition from auto suggestion
-        edge_definition = self.locator_finder_by_id(edge_definition)
-        edge_definition.click()
+        edge_definition_sitem = self.locator_finder_by_id(edge_definition)
+        edge_definition_sitem.click()
         super().send_key_action(Keys.ENTER)
 
         # selecting from collection from auto suggestion
-        from_collection = self.locator_finder_by_id(from_collection)
-        from_collection.click()
+        from_collection_sitem = self.locator_finder_by_id(from_collection)
+        from_collection_sitem.click()
         super().send_key_action(Keys.ENTER)
 
         time.sleep(1)
 
         # selecting to collection from auto suggestion
-        to_collection = self.locator_finder_by_id(to_collection)
-        to_collection.click()
+        to_collection_sitem = self.locator_finder_by_id(to_collection)
+        to_collection_sitem.click()
         super().send_key_action(Keys.ENTER)
 
         time.sleep(1)
 
         # selecting create graph btn
-        create_btn_id = self.locator_finder_by_id(create_btn_id)
-        create_btn_id.click()
+        create_btn_sitem = self.locator_finder_by_id(create_btn_id)
+        create_btn_sitem.click()
 
         time.sleep(2)
 
         # selecting newly created graph btn
-        knows_graph_id = self.locator_finder_by_xpath(knows_graph_id)
-        knows_graph_id.click()
+        knows_graph_sitem = self.locator_finder_by_xpath(knows_graph_id)
+        knows_graph_sitem.click()
 
         time.sleep(3)
         self.driver.back()
@@ -256,8 +256,8 @@ class GraphPage(BaseSelenium):
         if super().current_package_version() >= 3.8:
             self.select_graph_page()
             knows_path = test_data_dir / 'ui_data' / 'graph_page' / 'knows'
-            select_graph = self.locator_finder_by_id(self.select_create_graph_id)
-            select_graph.click()
+            select_graph_sitem = self.locator_finder_by_id(self.select_create_graph_id)
+            select_graph_sitem.click()
 
             # list of id's for satellite graph
             select_satellite = 'tab-satelliteGraph'
@@ -268,39 +268,39 @@ class GraphPage(BaseSelenium):
             create_btn_id = "modalButton1"
 
             # selecting satellite graph tab
-            select_satellite = self.locator_finder_by_id(select_satellite)
-            select_satellite.click()
+            select_satellite_sitem = self.locator_finder_by_id(select_satellite)
+            select_satellite_sitem.click()
 
-            new_graph = self.locator_finder_by_id(new_graph)
-            new_graph.click()
-            new_graph.clear()
-            new_graph.send_keys("satellite_graph")
+            new_graph_sitem = self.locator_finder_by_id(new_graph)
+            new_graph_sitem.click()
+            new_graph_sitem.clear()
+            new_graph_sitem.send_keys("satellite_graph")
 
             # selecting edge definition from auto suggestion
-            edge_definition = self.locator_finder_by_id(edge_definition)
-            edge_definition.click()
+            edge_definition_sitem = self.locator_finder_by_id(edge_definition)
+            edge_definition_sitem.click()
             super().send_key_action('knows_edge')
             super().send_key_action(Keys.ENTER)
 
             # selecting from collection from auto suggestion
-            from_collection = self.locator_finder_by_id(from_collection)
-            from_collection.click()
+            from_collection_sitem = self.locator_finder_by_id(from_collection)
+            from_collection_sitem.click()
             super().send_key_action('persons')
             super().send_key_action(Keys.ENTER)
 
             time.sleep(1)
 
             # selecting to collection from auto suggestion
-            to_collection = self.locator_finder_by_id(to_collection)
-            to_collection.click()
+            to_collection_sitem = self.locator_finder_by_id(to_collection)
+            to_collection_sitem.click()
             super().send_key_action('persons')
             super().send_key_action(Keys.ENTER)
 
             time.sleep(1)
 
             # selecting create graph btn
-            create_btn_id = self.locator_finder_by_id(create_btn_id)
-            create_btn_id.click()
+            create_btn_sitem = self.locator_finder_by_id(create_btn_id)
+            create_btn_sitem.click()
 
             time.sleep(2)
 
@@ -313,8 +313,8 @@ class GraphPage(BaseSelenium):
 
             # Selecting satellite graph settings to view and delete
             satellite_settings_id = '//*[@id="satellite_graph_tile"]/div/h5'
-            satellite_settings_id = self.locator_finder_by_xpath(satellite_settings_id)
-            satellite_settings_id.click()
+            satellite_settings_sitem = self.locator_finder_by_xpath(satellite_settings_id)
+            satellite_settings_sitem.click()
 
             time.sleep(5)
             self.driver.back()
@@ -323,20 +323,20 @@ class GraphPage(BaseSelenium):
             print("\n")
             print("Smart Graph deleting started \n")
             satellite_settings_id = 'satellite_graph_settings'
-            satellite_settings_id = self.locator_finder_by_id(satellite_settings_id)
-            satellite_settings_id.click()
+            satellite_settings_sitem = self.locator_finder_by_id(satellite_settings_id)
+            satellite_settings_sitem.click()
 
-            delete_btn = 'modalButton0'
-            delete_btn = self.locator_finder_by_id(delete_btn)
-            delete_btn.click()
+            delete_btn_id = 'modalButton0'
+            delete_sitem = self.locator_finder_by_id(delete_btn_id)
+            delete_sitem.click()
 
             delete_check_id = 'dropGraphCollections'
-            delete_check_id = self.locator_finder_by_id(delete_check_id)
-            delete_check_id.click()
+            delete_check_sitem = self.locator_finder_by_id(delete_check_id)
+            delete_check_sitem.click()
 
-            delete_confirm_btn = 'modal-confirm-delete'
-            delete_confirm_btn = self.locator_finder_by_id(delete_confirm_btn)
-            delete_confirm_btn.click()
+            delete_confirm_btn_id = 'modal-confirm-delete'
+            delete_confirm_btn_sitem = self.locator_finder_by_id(delete_confirm_btn_id)
+            delete_confirm_btn_sitem.click()
 
             time.sleep(2)
             print("Satellite Graph deleted successfully \n")
@@ -350,8 +350,8 @@ class GraphPage(BaseSelenium):
 
         if super().current_package_version() >= 3.6 and disjointgraph is False:
             select_graph_id = self.select_create_graph_id
-            select_graph_id = self.locator_finder_by_id(select_graph_id)
-            select_graph_id.click()
+            select_graph_sitem = self.locator_finder_by_id(select_graph_id)
+            select_graph_sitem.click()
 
             # list of id's for smart graph
             select_smart = 'tab-smartGraph'
@@ -368,70 +368,70 @@ class GraphPage(BaseSelenium):
             create_btn_id = "modalButton1"
 
             # selecting smart graph tab
-            select_smart = self.locator_finder_by_id(select_smart)
-            select_smart.click()
+            select_smart_sitem = self.locator_finder_by_id(select_smart)
+            select_smart_sitem.click()
 
-            new_graph = self.locator_finder_by_id(new_graph)
-            new_graph.click()
-            new_graph.clear()
-            new_graph.send_keys("smart_graph")
+            new_graph_sitem = self.locator_finder_by_id(new_graph)
+            new_graph_sitem.click()
+            new_graph_sitem.clear()
+            new_graph_sitem.send_keys("smart_graph")
 
             # specifying number of shards
-            shard = self.locator_finder_by_id(shard)
-            shard.click()
-            shard.send_keys('3')
+            shard_sitem = self.locator_finder_by_id(shard)
+            shard_sitem.click()
+            shard_sitem.send_keys('3')
 
             # specifying replication of shards
-            replication = self.locator_finder_by_id(replication)
-            replication.click()
-            replication.send_keys('3')
+            replication_sitem = self.locator_finder_by_id(replication)
+            replication_sitem.click()
+            replication_sitem.send_keys('3')
 
             # specifying write concern of shards
-            write_concern = self.locator_finder_by_id(write_concern)
-            write_concern.click()
-            write_concern.send_keys('1')
+            write_concern_sitem = self.locator_finder_by_id(write_concern)
+            write_concern_sitem.click()
+            write_concern_sitem.send_keys('1')
 
             # specifying write disjoint graphs
             if disjointgraph:
-                disjoint = self.locator_finder_by_id(disjoint)
-                disjoint.click()
+                disjoint_sitem = self.locator_finder_by_id(disjoint)
+                disjoint_sitem.click()
             else:
                 print('Disjoint Graph not selected. \n')
 
             # specifying write concern of shards
-            smart_attribute = self.locator_finder_by_id(smart_attribute)
-            smart_attribute.click()
-            smart_attribute.send_keys('community')
+            smart_attribute_sitem = self.locator_finder_by_id(smart_attribute)
+            smart_attribute_sitem.click()
+            smart_attribute_sitem.send_keys('community')
 
             # scrolling down
             super().scroll(1)
             time.sleep(2)
 
             # selecting edge definition from auto suggestion
-            edge_definition = self.locator_finder_by_id(edge_definition)
-            edge_definition.click()
+            edge_definition_sitem = self.locator_finder_by_id(edge_definition)
+            edge_definition_sitem.click()
 
             super().send_key_action('relations')
             super().send_key_action(Keys.ENTER)
 
             # selecting from collection from auto suggestion
-            from_collection = self.locator_finder_by_id(from_collection)
-            from_collection.click()
+            from_collection_sitem = self.locator_finder_by_id(from_collection)
+            from_collection_sitem.click()
             super().send_key_action('profiles')
             super().send_key_action(Keys.ENTER)
 
             time.sleep(1)
 
             # selecting to collection from auto suggestion
-            to_collection = self.locator_finder_by_id(to_collection)
-            to_collection.click()
+            to_collection_sitem = self.locator_finder_by_id(to_collection)
+            to_collection_sitem.click()
             super().send_key_action('profiles')
             super().send_key_action(Keys.ENTER)
             time.sleep(1)
 
             # selecting create graph btn
-            create_btn_id = self.locator_finder_by_id(create_btn_id)
-            create_btn_id.click()
+            create_btn_sitem = self.locator_finder_by_id(create_btn_id)
+            create_btn_sitem.click()
             time.sleep(2)
 
             print("Importing profile collections \n")
@@ -441,20 +441,20 @@ class GraphPage(BaseSelenium):
             importer.import_smart_edge_collection('relations', page_path / 'relations.jsonl', ['profiles_smart'])
 
             # opening smart graph
-            smart_graph = 'smart_graph_tile'
-            smart_graph = self.locator_finder_by_id(smart_graph)
-            smart_graph.click()
+            smart_graph_id = 'smart_graph_tile'
+            smart_graph_sitem = self.locator_finder_by_id(smart_graph_id)
+            smart_graph_sitem.click()
             time.sleep(2)
 
             # loading full graph
-            load_graph = 'loadFullGraph'
-            load_graph = self.locator_finder_by_id(load_graph)
-            load_graph.click()
+            load_graph_id = 'loadFullGraph'
+            load_graph_sitem = self.locator_finder_by_id(load_graph_id)
+            load_graph_sitem.click()
             time.sleep(1)
 
-            load_full_graph = 'modalButton1'
-            load_full_graph = self.locator_finder_by_id(load_full_graph)
-            load_full_graph.click()
+            load_full_graph_id = 'modalButton1'
+            load_full_graph_sitem = self.locator_finder_by_id(load_full_graph_id)
+            load_full_graph_sitem.click()
             time.sleep(5)
 
             self.driver.back()
@@ -463,21 +463,21 @@ class GraphPage(BaseSelenium):
 
             print("\n")
             print("Smart Graph deleting started \n")
-            smart_settings = 'smart_graph_settings'
-            smart_settings = self.locator_finder_by_id(smart_settings)
-            smart_settings.click()
+            smart_settings_id = 'smart_graph_settings'
+            smart_settings_sitem = self.locator_finder_by_id(smart_settings_id)
+            smart_settings_sitem.click()
 
-            delete_btn = 'modalButton0'
-            delete_btn = self.locator_finder_by_id(delete_btn)
-            delete_btn.click()
+            delete_btn_id = 'modalButton0'
+            delete_btn_sitem = self.locator_finder_by_id(delete_btn_id)
+            delete_btn_sitem.click()
 
             delete_check_id = 'dropGraphCollections'
-            delete_check_id = self.locator_finder_by_id(delete_check_id)
-            delete_check_id.click()
+            delete_check_sitem = self.locator_finder_by_id(delete_check_id)
+            delete_check_sitem.click()
 
-            delete_confirm_btn = 'modal-confirm-delete'
-            delete_confirm_btn = self.locator_finder_by_id(delete_confirm_btn)
-            delete_confirm_btn.click()
+            delete_confirm_btn_id = 'modal-confirm-delete'
+            delete_confirm_btn_sitem = self.locator_finder_by_id(delete_confirm_btn_id)
+            delete_confirm_btn_sitem.click()
 
             time.sleep(2)
             print("Smart Graph deleted successfully \n")
@@ -496,92 +496,86 @@ class GraphPage(BaseSelenium):
         if create_graph.handler is not None:
             create_graph.handler(self, importer, test_data_dir)
             return
-        select_graph =  self.locator_finder_by_id(self.select_create_graph_id)
-        select_graph.click()
+        select_graph_sitem =  self.locator_finder_by_id(self.select_create_graph_id)
+        select_graph_sitem.click()
         time.sleep(1)
         # Selecting example graph button
-        select_example_graph_elm = self.locator_finder_by_id(
+        select_example_graph_sitem = self.locator_finder_by_id(
             self.select_example_graph_btn_id)
-        select_example_graph_elm.click()
+        select_example_graph_sitem.click()
         time.sleep(1)
-        select_graph_button = self.locator_finder_by_xpath(
+        select_graph_button_sitem = self.locator_finder_by_xpath(
             self.select_ex_graph_format % (int(graph)))
-        select_graph_button.click()
+        select_graph_button_sitem.click()
         time.sleep(10)
 
     def check_required_collections(self, graph):
         """selecting collection tab and search for required collections"""
-        collection_page = self.select_collection_page_id
-        collection_page = self.locator_finder_by_id(collection_page)
-        collection_page.click()
+        collection_page_sitem = self.locator_finder_by_id(self.select_collection_page_id)
+        collection_page_sitem.click()
 
         for collection in GRAPH_SETS[graph].collections:
             search_collection_id = "//*[@id='collection_%s']/div/h5" % collection.name
-            collection_item = self.locator_finder_by_xpath(search_collection_id)
-            search_item = self.locator_finder_by_id(self.select_search_id)
-            search_item.click()
-            search_item.clear()
-            search_item.send_keys(collection.name)
+            collection_sitem = self.locator_finder_by_xpath(search_collection_id)
+            search_sitem = self.locator_finder_by_id(self.select_search_id)
+            search_sitem.click()
+            search_sitem.clear()
+            search_sitem.send_keys(collection.name)
             if collection_item.text == collection.name:
                 print(collection.name + " collectionhas been validated")
             else:
                 print(collection.name + " collection wasn't found")
             time.sleep(3)
             self.driver.refresh()
-
-
         self.driver.back()
         self.driver.refresh()
 
     def checking_collection_creation(self, graph:GraphExample):
         """Checking required collections creation for the particular example graph."""
-        graph_item = self.locator_finder_by_id(GRAPH_SETS[graph].btn_id)
-        graph_item.click()
+        graph_sitem = self.locator_finder_by_id(GRAPH_SETS[graph].btn_id)
+        graph_sitem.click()
 
         time.sleep(3)
-        select_graph_cancel_btn_id = \
+        select_graph_cancel_btn_id_sitem = \
             self.locator_finder_by_id(self.select_graph_cancel_btn_id)
-        select_graph_cancel_btn_id.click()
+        select_graph_cancel_btn_sitem.click()
         time.sleep(3)
 
     def select_sort_descend(self):
         """Sorting all graphs to descending and then ascending again"""
-        select_sort_settings_id = \
+        select_sort_settings_sitem = \
             self.locator_finder_by_id(self.select_sort_settings_id)
-        select_sort_settings_id.click()
+        select_sort_settings_sitem.click()
         time.sleep(2)
 
         descend = self.select_sort_descend_id
         ascend = self.select_sort_descend_id
 
         print("Sorting Graphs to Descending\n")
-        descend = self.locator_finder_by_xpath(descend)
-        descend.click()
+        descend_sitem = self.locator_finder_by_xpath(descend)
+        descend_sitem.click()
         time.sleep(2)
 
         print("Sorting Graphs to Ascending\n")
-        ascend = self.locator_finder_by_xpath(ascend)
-        ascend.click()
+        ascend_sitem = self.locator_finder_by_xpath(ascend)
+        ascend_sitem.click()
         time.sleep(2)
 
     def inspect_knows_graph(self):
         """Selecting Knows Graph for checking graph functionality"""
         print("Selecting Knows Graph\n")
-        graph = self.knows_graph_id
-        graph = self.locator_finder_by_id(graph)
-        graph.click()
+        graph_sitem = self.locator_finder_by_id(self.knows_graph_id)
+        graph_sitem.click()
         time.sleep(4)
 
         print("Selecting Knows Graph share option\n")
-        share = self.select_share_id
-        share = self.locator_finder_by_xpath(share)
-        share.click()
+        share_sitem = self.locator_finder_by_xpath(self.select_share_id)
+        share_sitem.click()
         time.sleep(2)
 
         print("Selecting load full graph button\n")
-        full_graph = self.select_load_full_graph_id
-        full_graph = self.locator_finder_by_id(full_graph)
-        full_graph.click()
+        full_graph_sitem = self.locator_finder_by_id(self.select_load_full_graph_id)
+        full_graph_sitem.click()
         time.sleep(4)
 
         if self.driver.name == "chrome":  # this will check browser name
@@ -589,35 +583,36 @@ class GraphPage(BaseSelenium):
         else:
             print("Selecting Graph download button\n")
             camera = self.select_camera_download_icon
-            camera = self.locator_finder_by_xpath(camera)
-            camera.click()
+            camera_sitem = self.locator_finder_by_xpath(camera)
+            camera_sitem.click()
             time.sleep(3)
             # super().clear_download_bar()
 
-        print("Selecting full screen mode\n")
-        full_screen = self.select_full_screen_btn_id
-        full_screen = self.locator_finder_by_xpath(full_screen)
-        full_screen.click()
-        time.sleep(3)
-        print("Return to normal mode\n")
-        super().escape()
-        time.sleep(3)
+        # TODO: fullscreen may only work interactive with pynput
+        # print("Selecting full screen mode\n")
+        # full_screen_sitem = self.locator_finder_by_xpath(self.select_full_screen_btn_id)
+        # full_screen_sitem.click()
+        # time.sleep(3)
+        # print("Return to normal mode\n")
+        # super().escape()
+        # time.sleep(3)
 
         print("Selecting Resume layout button \n")
         resume = self.select_resume_layout_btn_id
         pause = self.select_resume_layout_btn_id
 
-        resume = self.locator_finder_by_xpath(resume)
-        resume.click()
+        resume_sitem = self.locator_finder_by_xpath(resume)
+        resume_sitem.click()
         time.sleep(3)
-        pause = self.locator_finder_by_xpath(pause)
-        pause.click()
+        pause_sitem = self.locator_finder_by_xpath(pause)
+        pause_sitem.click()
         time.sleep(3)
 
     def graph_setting(self):
         """Checking all the options inside graph settings"""
-        configure_graph_settings_id = self.locator_finder_by_id(self.configure_graph_settings_id)
-        configure_graph_settings_id.click()
+        self.driver.refresh()
+        configure_graph_settings_sitem = self.locator_finder_by_id(self.configure_graph_settings_id)
+        configure_graph_settings_sitem.click()
         time.sleep(2)
         print("Selecting different layouts for the graph\n")
         print("Selecting Fruchtermann layout\n")
