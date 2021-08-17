@@ -273,6 +273,14 @@ if (options.disabledDbserverUUID !== "") {
     }
   }
   if (count > 499) {
+    let collection_data = "Still have collections bound to the failed server: ";
+    collections.forEach(col => {
+      print(col)
+      collection_data += "\n" + JSON.stringify(col) + ":\n" +
+        JSON.stringify(db[col].shards(true)) + "\n" +
+        JSON.stringify(db[col].properties());
+    });
+    print(collection_data)
     throw("Still have collections bound to the failed server: " + JSON.stringify(collections));
   }
   print("done - continuing test.")
