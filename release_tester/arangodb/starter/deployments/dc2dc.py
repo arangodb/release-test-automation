@@ -21,7 +21,7 @@ SYNC_VERSIONS = {
     "220": semver.VersionInfo.parse('2.2.0'),
     "230": semver.VersionInfo.parse('2.3.0')
 }
-USERS_ERROR_RX = re.compile('.*\n*.*\n*.*(_users).*DIFFERENT.*', re.MULTILINE)
+USERS_ERROR_RX = re.compile('.*\n.*\n*.*\n*.*(_users).*DIFFERENT.*', re.MULTILINE)
 
 class Dc2Dc(Runner):
     """ this launches two clusters in dc2dc mode """
