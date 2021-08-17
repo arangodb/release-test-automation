@@ -494,7 +494,8 @@ class StarterManager():
         with step("revalidate that the old arangods are still running and alive"):
             self.detect_instance_pids_still_alive()
         if relaunch:
-            with step("replace the starter binary with a new one this has not yet spawned any children"):
+            with step("replace the starter binary with a new one," +
+                      " this has not yet spawned any children"):
                 self.respawn_instance()
                 logging.info("StarterManager: respawned instance as [%s]",
                          str(self.instance.pid))
@@ -537,7 +538,7 @@ class StarterManager():
     def upgrade_instances(self,
                           which_instances,
                           moreargs,
-                          waitpid=True,):
+                          waitpid=True):
         """ kill, launch the instances of this starter with optional arguments and restart"""
         for instance_type in which_instances:
             for i in self.all_instances:
