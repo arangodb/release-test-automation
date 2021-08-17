@@ -116,6 +116,8 @@ db.testCollection.save({test: "document"})
 
     def upgrade_arangod_version_impl(self):
         """ rolling upgrade this installation """
+        for node in self.starter_instances:
+            node.agency_set_debug_logging() # TODO: remove debug logging
         bench_instances = []
         if self.cfg.stress_upgrade:
             bench_instances.append(self.starter_instances[0].launch_arangobench(
@@ -135,6 +137,8 @@ db.testCollection.save({test: "document"})
         if self.cfg.stress_upgrade:
             bench_instances[0].wait()
             bench_instances[1].wait()
+        for node in self.starter_instances:
+            node.detect_instance_pids()
 
     def upgrade_arangod_version_manual_impl(self):
         """ manual upgrade this installation """
