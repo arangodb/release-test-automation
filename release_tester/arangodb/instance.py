@@ -694,6 +694,7 @@ class SyncInstance(Instance):
             logfile_parameter_raw = logfile_parameter
         else:
             logfile_parameter_raw = self.logfile_parameter.split('=')[1]
+            logfile_parameter = logfile_parameter_raw
         # wait till the process has startet writing its logfile:
         while not self.logfile.exists():
             progress('v')
@@ -714,7 +715,7 @@ class SyncInstance(Instance):
                     except ValueError:
                         try:
                             # this will throw if its not in there:
-                            proccmd.index(logfile_parameter_raw)
+                            proccmd.index("--log.file=" + logfile_parameter_raw)
                             possible_me_pid.append({
                                 'p': process.pid,
                                 'cmdline': proccmd

@@ -370,7 +370,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                 '--oldVersion', self.cfg.version,
                 '--testFoxx', 'true' if supports_foxx_tests else 'false'
             ],
-            timeout=25,
+            timeout=50,
             result_line=result_line,
             verbose=self.cfg.verbose)
         return ret

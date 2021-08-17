@@ -189,7 +189,7 @@ function checkFoxxService() {
       } catch (e) {
         print(route + " Caught - need to retry. " + JSON.stringify(e))
       }
-      internal.sleep(3);
+      internal.sleep(10);
     }
     throw ("foxx route '" + route + "' not ready on time!");
   });

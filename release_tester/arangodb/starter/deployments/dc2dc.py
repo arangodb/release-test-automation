@@ -164,7 +164,9 @@ class Dc2Dc(Runner):
             logging.info(str(reply.raw))
 
         launch(self.cluster1)
+        time.sleep(3)
         launch(self.cluster2)
+        time.sleep(3)
 
     def _launch_sync(self, direction):
         """ configure / start a sync """

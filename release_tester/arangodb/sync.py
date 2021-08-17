@@ -2,6 +2,7 @@
 """ Manage one instance of the arangodb starter
     to crontroll multiple arangods
 """
+import time
 import copy
 import logging
 from reporting.reporting_utils import step
@@ -129,7 +130,8 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         if self.version < semver.VersionInfo.parse('1.0.0'):
             logging.warning('SyncManager: checking sync consistency :'
                             ' available since 1.0.0 of arangosync')
-            return ("", "", True)
+            time.sleep(30)
+            return (True, "")
 
         args = [
             'check', 'sync',
