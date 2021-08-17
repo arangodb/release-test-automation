@@ -689,9 +689,9 @@ class SyncInstance(Instance):
         logfile_parameter_raw = ''
         if self.logfile_parameter == '--log.file':
             # newer starters will use '--foo bar' instead of '--foo=bar'
-            logfile_parameter = self.instance_arguments[
+            self.logfile_parameter = self.instance_arguments[
                 self.instance_arguments.index('--log.file') + 1]
-            logfile_parameter_raw = logfile_parameter
+            logfile_parameter_raw = self.logfile_parameter
         else:
             logfile_parameter_raw = self.logfile_parameter.split('=')[1]
         # wait till the process has startet writing its logfile:
@@ -706,7 +706,7 @@ class SyncInstance(Instance):
                     proccmd = process.cmdline()[1:]
                     try:
                         # this will throw if its not in there:
-                        proccmd.index(logfile_parameter)
+                        proccmd.index(self.logfile_parameter)
                         possible_me_pid.append({
                             'p': process.pid,
                             'cmdline': proccmd
