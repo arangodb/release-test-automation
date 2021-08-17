@@ -21,7 +21,7 @@ SYNC_VERSIONS = {
     "220": semver.VersionInfo.parse('2.2.0'),
     "230": semver.VersionInfo.parse('2.3.0')
 }
-USERS_ERROR_RX = re.compile('.*\n*.*\n*.*(_users).*DIFFERENT.*', re.MULTILINE)
+USERS_ERROR_RX = re.compile('.*\n*.*\n*.*\n*.*(_users).*DIFFERENT.*', re.MULTILINE)
 
 class Dc2Dc(Runner):
     """ this launches two clusters in dc2dc mode """
@@ -365,6 +365,8 @@ class Dc2Dc(Runner):
         self.sync_manager.check_sync_status(1)
         self.sync_manager.get_sync_tasks(0)
         self.sync_manager.get_sync_tasks(1)
+        for node in self.starter_instances:
+            node.detect_instance_pids()
 
     def upgrade_arangod_version_manual_impl(self):
         """ manual upgrade this installation """
