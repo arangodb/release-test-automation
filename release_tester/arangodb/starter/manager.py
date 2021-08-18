@@ -607,11 +607,11 @@ class StarterManager():
         try:
             ret = self.upgradeprocess.wait(timeout=timeout)
         except psutil.TimeoutExpired as timeout_ex:
-            logging.error("StarterManager: Upgrade command [%s] didn't finish in time: %d %s",
-                          str(self.basedir),
-                          timeout,
-                          str(timeout_ex))
-            raise timeout_ex
+            msg = "StarterManager: Upgrade command [%s] didn't finish in time: %d %s" % (
+                str(self.basedir),
+                timeout,
+                str(timeout_ex))
+            raise TimeoutError(msg)
         logging.info("StarterManager: Upgrade command [%s] exited: %s",
                      str(self.basedir),
                      str(ret))
