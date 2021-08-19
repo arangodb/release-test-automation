@@ -240,7 +240,12 @@ class Dc2Dc(Runner):
             success, output, _, _ = self.sync_manager.stop_sync(timeout, ['--ensure-in-sync=false'])
 
         if success:
-            return
+            count = 0
+            while count < 30:
+                success, output = self.sync_manager.check_sync_stopped()
+                if success:
+                    return
+                time.sleep(5)
 
         self.state += "\n" + output
         raise Exception("failed to stop the synchronization")
@@ -352,12 +357,10 @@ class Dc2Dc(Runner):
         self.cluster2["instance"].kill_sync_processes()
 
         self.cluster1["instance"].wait_for_upgrade(300)
-        self.cluster2["instance"].wait_for_upgrade(300)
-
-        # self.sync_manager.start_sync()
-
         self.cluster1["instance"].detect_instances()
+        self.cluster2["instance"].wait_for_upgrade(300)
         self.cluster2["instance"].detect_instances()
+        # self.sync_manager.start_sync()
         self.sync_manager.run_syncer()
 
         self.sync_version = self._get_sync_version()
