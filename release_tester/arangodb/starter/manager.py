@@ -482,8 +482,7 @@ class StarterManager():
 
         logging.info("StarterManager: Instance now dead.")
 
-    @step
-    def replace_binary_for_upgrade(self, new_install_cfg):
+    def replace_binary_for_upgrade(self, new_install_cfg, relaunch=True):
         """
           - replace the parts of the installation with information
             after an upgrade
@@ -495,25 +494,30 @@ class StarterManager():
         # On windows the install prefix may change,
         # since we can't overwrite open files:
         self.replace_binary_setup_for_upgrade(new_install_cfg)
-        logging.info("StarterManager: Killing my instance [%s]",
-                     str(self.instance.pid))
-        self.kill_instance()
-        self.detect_instance_pids_still_alive()
-        self.respawn_instance()
-        logging.info("StarterManager: respawned instance as [%s]",
-                     str(self.instance.pid))
+        with step("kill the starter processes of the old version"):
+            logging.info("StarterManager: Killing my instance [%s]",
+                         str(self.instance.pid))
+            self.kill_instance()
+        with step("revalidate that the old arangods are still running and alive"):
+            self.detect_instance_pids_still_alive()
+        if relaunch:
+            with step("replace the starter binary with a new one," +
+                      " this has not yet spawned any children"):
+                self.respawn_instance()
+                logging.info("StarterManager: respawned instance as [%s]",
+                         str(self.instance.pid))
 
     @step
     def manually_launch_instances(self,
                                   which_instances,
                                   moreargs,
                                   waitpid=True,
-                                  kill_nstance=False):
+                                  kill_instance=False):
         """ launch the instances of this starter with optional arguments """
         for instance_type in which_instances:
             for i in self.all_instances:
                 if i.instance_type == instance_type:
-                    if kill_nstance:
+                    if kill_instance:
                         i.kill_instance()
                     i.launch_manual_from_instance_control_file(
                         self.cfg.sbin_dir,
@@ -521,23 +525,52 @@ class StarterManager():
                         waitpid)
 
     @step
+    def manually_launch_instances_for_upgrade(self,
+                                              which_instances,
+                                              moreargs,
+                                              waitpid=True,
+                                              kill_instance=False):
+        """ launch the instances of this starter with optional arguments """
+        for instance_type in which_instances:
+            for i in self.all_instances:
+                if i.instance_type == instance_type:
+                    if kill_instance:
+                        i.kill_instance()
+                    i.launch_manual_from_instance_control_file(
+                        self.cfg.sbin_dir,
+                        moreargs,
+                        waitpid)
+
+    @step
+    def upgrade_instances(self,
+                          which_instances,
+                          moreargs,
+                          waitpid=True):
+        """ kill, launch the instances of this starter with optional arguments and restart"""
+        for instance_type in which_instances:
+            for i in self.all_instances:
+                if i.instance_type == instance_type:
+                    i.terminate_instance()
+                    i.launch_manual_from_instance_control_file(
+                        self.cfg.sbin_dir,
+                        moreargs,
+                        True)
+                    i.launch_manual_from_instance_control_file(
+                        self.cfg.sbin_dir,
+                        [],
+                        False)
+
+    @step
     def temporarily_replace_instances(self, which_instances, moreargs):
         """ halt starter, launch instance, wait for it to exit, continue starter """
         self.instance.suspend()
-        self.manually_launch_instances(which_instances, moreargs, waitpid=True, kill_nstance=True)
+        self.manually_launch_instances(which_instances, moreargs, waitpid=True, kill_instance=True)
         self.instance.resume()
         self.detect_instances()
 
     @step
     def replace_binary_setup_for_upgrade(self, new_install_cfg):
-        """
-          - replace the parts of the installation with information
-            after an upgrade
-          - kill the starter processes of the old version
-          - revalidate that the old arangods are still running and alive
-          - replace the starter binary with a new one.
-            this has not yet spawned any children
-        """
+        """ replace the parts of the installation with information after an upgrade """
         # On windows the install prefix may change,
         # since we can't overwrite open files:
         self.cfg.set_directories(new_install_cfg)
@@ -581,11 +614,10 @@ class StarterManager():
         try:
             ret = self.upgradeprocess.wait(timeout=timeout)
         except psutil.TimeoutExpired as timeout_ex:
-            logging.error("StarterManager: Upgrade command [%s] didn't finish in time: %d %s",
-                          str(self.basedir),
-                          timeout,
-                          str(timeout_ex))
-            raise timeout_ex
+            msg = "StarterManager: Upgrade command [%s] didn't finish in time: %d" % (
+                str(self.basedir),
+                timeout)
+            raise TimeoutError(msg) from timeout_ex
         logging.info("StarterManager: Upgrade command [%s] exited: %s",
                      str(self.basedir),
                      str(ret))
