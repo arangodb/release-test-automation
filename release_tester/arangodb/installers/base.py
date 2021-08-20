@@ -433,6 +433,7 @@ class InstallerBase(ABC):
                                        self.check_stripped,
                                        self.check_symlink)
         print("\nran file commands with PID:" + str(FILE_PIDS) + '\n')
+        FILE_PIDS = []
         logging.info("all files ok")
 
     @step
