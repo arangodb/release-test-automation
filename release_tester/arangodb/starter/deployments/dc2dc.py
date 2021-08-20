@@ -47,9 +47,11 @@ class Dc2Dc(Runner):
     def starter_prepare_env_impl(self):
         def cert_op(args):
             print(args)
-            psutil.Popen([self.cfg.bin_dir / 'arangodb',
-                          'create'] +
-                         args).wait()
+            create_cert = psutil.Popen([self.cfg.bin_dir / 'arangodb',
+                                        'create'] +
+                                       args)
+            print("creating cert with PID:" + str(create_cert.pid))
+            create_cert.wait()
         datadir = Path('data')
         cert_dir = self.cfg.base_test_dir / self.basedir / "certs"
         print(cert_dir)
@@ -240,7 +242,12 @@ class Dc2Dc(Runner):
             success, output, _, _ = self.sync_manager.stop_sync(timeout, ['--ensure-in-sync=false'])
 
         if success:
-            return
+            count = 0
+            while count < 30:
+                success, output = self.sync_manager.check_sync_stopped()
+                if success:
+                    return
+                time.sleep(5)
 
         self.state += "\n" + output
         raise Exception("failed to stop the synchronization")
@@ -352,12 +359,10 @@ class Dc2Dc(Runner):
         self.cluster2["instance"].kill_sync_processes()
 
         self.cluster1["instance"].wait_for_upgrade(300)
-        self.cluster2["instance"].wait_for_upgrade(300)
-
-        # self.sync_manager.start_sync()
-
         self.cluster1["instance"].detect_instances()
+        self.cluster2["instance"].wait_for_upgrade(300)
         self.cluster2["instance"].detect_instances()
+        # self.sync_manager.start_sync()
         self.sync_manager.run_syncer()
 
         self.sync_version = self._get_sync_version()

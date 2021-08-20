@@ -18,6 +18,7 @@ from tools.asciiprint import print_progress as progress
 from allure_commons._allure import attach
 from reporting.reporting_utils import step
 
+FILE_PIDS = []
 
 @step
 def run_file_command(file_to_check):
@@ -28,6 +29,7 @@ def run_file_command(file_to_check):
                             stderr=subprocess.PIPE,
                             universal_newlines=True)
     line = proc.stdout.readline()
+    FILE_PIDS.append(str(proc.pid))
     proc.wait()
     # print(line)
     return line
@@ -126,6 +128,7 @@ class BinaryDescription():
             proc = subprocess.Popen(cmd, bufsize=-1,
                                     stderr=subprocess.PIPE,
                                     stdin=subprocess.PIPE)
+            FILE_PIDS.append(str(proc.pid))
             proc.communicate()
             proc.wait()
             # check the size of copied file after stripped
@@ -340,7 +343,9 @@ class InstallerBase(ABC):
 
     def output_arangod_version(self):
         """ document the output of arangod --version """
-        psutil.Popen([self.cfg.sbin_dir / "arangod", '--version']).wait()
+        ver = psutil.Popen([self.cfg.sbin_dir / "arangod", '--version'])
+        print("arangod version ran with PID:" + (str(ver.pid)))
+        ver.wait()
 
     @step
     def caclulate_file_locations(self):
@@ -424,10 +429,10 @@ class InstallerBase(ABC):
             for binary in self.arango_binaries:
                 progress("S" if binary.stripped else "s")
                 binary.check_installed(self.cfg.version,
-                                    self.cfg.enterprise,
-                                    self.check_stripped,
-                                    self.check_symlink)
-        print('\n')
+                                       self.cfg.enterprise,
+                                       self.check_stripped,
+                                       self.check_symlink)
+        print("\nran file commands with PID:" + str(FILE_PIDS) + '\n')
         logging.info("all files ok")
 
     @step

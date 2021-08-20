@@ -10,7 +10,7 @@ from allure_commons.model2 import Status
 from allure_commons.types import AttachmentType
 from beautifultable import BeautifulTable
 
-from .helpers import AllureListener
+from reporting.helpers import AllureListener
 
 def attach_table(table, title="HTML table"):
     """ attach a BeautifulTable to allure report """

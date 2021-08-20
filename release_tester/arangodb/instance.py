@@ -153,6 +153,7 @@ class Instance(ABC):
             self.instance_arguments[1:] + moreargs
         print("Manually launching: " + str(command))
         self.instance = psutil.Popen(command)
+        print("instance launched with PID:" + str(self.instance.pid))
         if waitpid:
             exit_code = self.instance.wait()
             try:
@@ -182,7 +183,7 @@ class Instance(ABC):
         """ terminate the process represented by this wrapper class """
         if self.instance:
             try:
-                print('force-killing {0} instance PID [{1}]'.format(
+                print('force-killing {0} instance PID:[{1}]'.format(
                     self.type_str,
                     self.instance.pid))
                 self.instance.kill()
@@ -199,7 +200,7 @@ class Instance(ABC):
         """ terminate the process represented by this wrapper class """
         if self.instance:
             try:
-                print('terminating {0} instance PID [{1}]'.format(
+                print('terminating {0} instance PID:[{1}]'.format(
                     self.type_str,
                     self.instance.pid))
                 self.instance.terminate()
@@ -244,7 +245,9 @@ class Instance(ABC):
                 if (self.instance.status() == psutil.STATUS_RUNNING or
                     self.instance.status() == psutil.STATUS_SLEEPING):
                     print("generating coredump for " + str(self.instance))
-                    psutil.Popen(['gcore', str(self.instance.pid)], cwd=self.basedir).wait()
+                    gcore = psutil.Popen(['gcore', str(self.instance.pid)], cwd=self.basedir)
+                    print("generating core with PID:" + str(gcore.pid))
+                    gcore.wait()
                     print("Terminating " + str(self.instance))
                     self.instance.kill()
                     self.instance.wait()
@@ -309,7 +312,7 @@ class Instance(ABC):
         """ Add log to allure report"""
         logfile = str(self.logfile)
         attach.file(logfile,
-                    "Log file(name: {name}, PID: {pid}, port: {port}, type: {type})"
+                    "Log file(name: {name}, PID:{pid}, port: {port}, type: {type})"
                     .format(name=self.name, pid=self.pid, port=self.port, type=self.type_str),
                     AttachmentType.TEXT)
 
@@ -598,7 +601,7 @@ class ArangodInstance(Instance):
             try:
                 self.instance = psutil.Process(self.pid)
             except psutil.NoSuchProcess:
-                logging.info("process for PID %d already gone? retrying.",
+                logging.info("process for PID:%d already gone? retrying.",
                              self.pid)
                 time.sleep(1)
                 self.pid = 0  # a previous log run? retry.

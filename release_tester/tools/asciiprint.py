@@ -10,6 +10,10 @@ PROGRESS_COUNT=0
 # 7-bit C1 ANSI sequences
 ANSI_ESCAPE_B = re.compile(rb'''
     \x1B  # ESC
+    \xe2  # throbber...
+    \xa0  # throbber...
+    \xa7  # throbber
+    \r    # cariage return
     (?:   # 7-bit C1 Fe (except CSI)
         [@-Z\\-_]
     |     # or [ for CSI, followed by a control sequence
@@ -27,6 +31,10 @@ def ascii_convert(the_bytes:bytes):
 # 7-bit C1 ANSI sequences
 ANSI_ESCAPE = re.compile(r'''
     \x1B  # ESC
+    \xe2  # throbber...
+    \xa0  # throbber...
+    \xa7  # throbber
+    \r    # cariage return
     (?:   # 7-bit C1 Fe (except CSI)
         [@-Z\\-_]
     |     # or [ for CSI, followed by a control sequence
