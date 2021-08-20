@@ -257,7 +257,7 @@ class Dc2Dc(Runner):
         this function contains counter measures against known issues of arangosync
         """
         print(last_sync_output)
-        if len(last_sync_output) < 250 and re.match(USERS_ERROR_RX, last_sync_output):
+        if last_sync_output.find('_users') > 0 and re.match(USERS_ERROR_RX, last_sync_output):
             self.progress(True, 'arangosync: resetting users collection...')
             self.sync_manager.reset_failed_shard('_system', '_users')
         elif last_sync_output.find(
