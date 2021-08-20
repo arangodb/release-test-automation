@@ -107,11 +107,17 @@ class ArangoCLIprogressiveTimeoutExecutor():
         thread1.start()
         thread2.start()
 
-        print("me PID:%d launched PID:%d with LWPID:%d and LWPID:%d" % (
-            os.getpid(),
-            process.pid,
-            thread1.native_id,
-            thread2.native_id))
+        try:
+            print("me PID:%d launched PID:%d with LWPID:%d and LWPID:%d" % (
+                os.getpid(),
+                process.pid,
+                thread1.native_id,
+                thread2.native_id))
+        except AttributeError:
+            print("me PID:%d launched PID:%d with LWPID:N/A and LWPID:N/A" % (
+                os.getpid(),
+                process.pid))
+
         # ... do other things here
         # out = logfile.open('wb')
         # read line without blocking
