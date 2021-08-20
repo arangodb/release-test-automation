@@ -257,10 +257,7 @@ class Dc2Dc(Runner):
         this function contains counter measures against known issues of arangosync
         """
         print(last_sync_output)
-        if last_sync_output.find('_users') > 0 and re.match(USERS_ERROR_RX, last_sync_output):
-            self.progress(True, 'arangosync: resetting users collection...')
-            self.sync_manager.reset_failed_shard('_system', '_users')
-        elif last_sync_output.find(
+        if last_sync_output.find(
                 'temporary failure with http status code: 503: service unavailable') >= 0:
             if self._is_higher_sync_version(SYNC_VERSIONS['140'], SYNC_VERSIONS['220']):
                 self.progress(
@@ -275,9 +272,11 @@ class Dc2Dc(Runner):
                 time.sleep(3)
                 self.cluster1["instance"].detect_instances()
                 self.cluster2["instance"].detect_instances()
-
         elif last_sync_output.find('Shard is not turned on for synchronizing') >= 0:
             self.progress(True, 'arangosync: sync in progress.')
+        elif re.match(USERS_ERROR_RX, last_sync_output):
+            self.progress(True, 'arangosync: resetting users collection...')
+            self.sync_manager.reset_failed_shard('_system', '_users')
         else:
             self.progress(True, 'arangosync: unknown error condition, doing nothing.')
 
