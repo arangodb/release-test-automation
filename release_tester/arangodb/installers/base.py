@@ -423,6 +423,8 @@ class InstallerBase(ABC):
     @step
     def check_installed_files(self):
         """ check for the files whether they're installed """
+        # pylint: disable=W0603
+        global FILE_PIDS
         if IS_MAC:
             print('Strip checking is disabled on DMG packages.')
         else:

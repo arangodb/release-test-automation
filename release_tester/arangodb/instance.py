@@ -692,9 +692,9 @@ class SyncInstance(Instance):
         logfile_parameter_raw = ''
         if self.logfile_parameter == '--log.file':
             # newer starters will use '--foo bar' instead of '--foo=bar'
-            self.logfile_parameter = self.instance_arguments[
+            logfile_parameter_raw = self.instance_arguments[
                 self.instance_arguments.index('--log.file') + 1]
-            logfile_parameter_raw = self.logfile_parameter
+            self.logfile_parameter = "--log.file=" + logfile_parameter_raw
         else:
             logfile_parameter_raw = self.logfile_parameter.split('=')[1]
         # wait till the process has startet writing its logfile:
