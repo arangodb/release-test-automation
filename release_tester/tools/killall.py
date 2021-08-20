@@ -75,3 +75,11 @@ def kill_all_processes(kill_selenium=True):
                     process.kill()
                 except psutil.NoSuchProcess:
                     pass
+
+@step
+def list_all_processes():
+    """ list all processes for later reference """
+    pseaf = "PID  Process"
+    for process in psutil.process_iter(['pid', 'name']):
+        pseaf += "\n%d    %s" %(process.pid, process.name())
+    print(pseaf)

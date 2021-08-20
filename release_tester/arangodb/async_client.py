@@ -2,9 +2,10 @@
 """ Run a javascript command by spawning an arangosh
     to the configured connection """
 
+import os
 from queue import Queue, Empty
-from subprocess import PIPE, Popen
 import sys
+from subprocess import PIPE, Popen
 from threading  import Thread
 from tools.asciiprint import print_progress as progress
 import tools.loghelper as lh
@@ -93,15 +94,24 @@ class ArangoCLIprogressiveTimeoutExecutor():
                         stdout=PIPE, stderr=PIPE, close_fds=ON_POSIX,
                         cwd=self.cfg.test_data_dir.resolve())
         queue = Queue()
-        thread1 = Thread(target=enqueue_stdout, args=(process.stdout,
-                                                      queue,
-                                                      self.connect_instance))
-        thread2 = Thread(target=enqueue_stderr, args=(process.stderr,
-                                                      queue,
-                                                      self.connect_instance))
+        thread1 = Thread(name="readIO",
+                         target=enqueue_stdout,
+                         args=(process.stdout,
+                               queue,
+                               self.connect_instance))
+        thread2 = Thread(name="readErrIO",
+                         target=enqueue_stderr,
+                         args=(process.stderr,
+                               queue,
+                               self.connect_instance))
         thread1.start()
         thread2.start()
 
+        print("me PID:%d launched PID:%d with LWPID:%d and LWPID:%d" % (
+            os.getpid(),
+            process.pid,
+            thread1.native_id,
+            thread2.native_id))
         # ... do other things here
         # out = logfile.open('wb')
         # read line without blocking

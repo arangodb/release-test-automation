@@ -47,9 +47,11 @@ class Dc2Dc(Runner):
     def starter_prepare_env_impl(self):
         def cert_op(args):
             print(args)
-            psutil.Popen([self.cfg.bin_dir / 'arangodb',
-                          'create'] +
-                         args).wait()
+            create_cert = psutil.Popen([self.cfg.bin_dir / 'arangodb',
+                                        'create'] +
+                                       args)
+            print("creating cert with PID:" + str(create_cert.pid))
+            create_cert.wait()
         datadir = Path('data')
         cert_dir = self.cfg.base_test_dir / self.basedir / "certs"
         print(cert_dir)
