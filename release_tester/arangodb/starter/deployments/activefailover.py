@@ -250,6 +250,7 @@ class ActiveFailover(Runner):
         count = 0
         while self.new_leader is None:
             for node in self.follower_nodes:
+                node.detect_instance_pids_still_alive()
                 node.detect_leader()
                 if node.is_leader:
                     logging.info('have a new leader: %s', str(node.arguments))

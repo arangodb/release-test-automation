@@ -932,6 +932,7 @@ class Runner(ABC):
                 '"cluster":"debug", "maintenance":"debug"}')
     @step
     def get_collection_list(self):
+        """ get a list of collections and their shards """
         reply = self.starter_instances[0].send_request(
             InstanceType.COORDINATOR,
             requests.get,
@@ -952,6 +953,7 @@ class Runner(ABC):
         return collections
 
     def get_collection_cluster_details(self, collection_name):
+        """ get the shard details for a single collection """
         reply = self.starter_instances[0].send_request(
             InstanceType.COORDINATOR,
             requests.put,

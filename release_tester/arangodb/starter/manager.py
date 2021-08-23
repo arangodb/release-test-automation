@@ -239,6 +239,7 @@ class StarterManager():
         lh.log_cmd(args)
         self.instance = psutil.Popen(args)
         self.wait_for_logfile()
+        logging.info("my starter has PID:" + str(self.instance.pid))
 
     @step
     def attach_running_starter(self):
@@ -277,6 +278,8 @@ class StarterManager():
                '--auth.jwt-secret', str(filename)]
         print(cmd)
         jwt_proc = psutil.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        logging.info("JWT starter has PID:" + str(jwt_proc.pid))
+
         (header, err) = jwt_proc.communicate()
         jwt_proc.wait()
         if len(str(err)) > 3:
@@ -346,7 +349,9 @@ class StarterManager():
             if (self.instance.status() == psutil.STATUS_RUNNING or
                 self.instance.status() == psutil.STATUS_SLEEPING):
                 print("generating coredump for " + str(self.instance))
-                psutil.Popen(['gcore', str(self.instance.pid)], cwd=self.basedir).wait()
+                gcore = psutil.Popen(['gcore', str(self.instance.pid)], cwd=self.basedir)
+                print("launched GCORE with PID:" + str(gcore.pid))
+                gcore.wait()
                 self.kill_instance()
             else:
                 print("NOT generating coredump for " + str(self.instance))
@@ -441,6 +446,11 @@ class StarterManager():
         logging.info("StarterManager: waiting for process to exit")
         exit_code = self.instance.wait()
         self.add_logfile_to_report()
+        if ON_WINDOWS:
+            if exit_code == 15:
+                # TODO: remove wintendo starter bug workaround!
+                exit_code = 0
+            
         if exit_code != 0:
             raise Exception("Starter %s exited with %d" % (self.basedir, exit_code))
 
@@ -453,7 +463,9 @@ class StarterManager():
 
         for instance in self.all_instances:
             instance.rename_logfile()
-            instance.detect_gone()
+            if not instance.detect_gone():
+                print("Manually terminating instance!")
+                instance.terminate_instance(False)
         # Clear instances as they have been stopped and the logfiles
         # have been moved.
         if not keep_instances:
@@ -494,7 +506,8 @@ class StarterManager():
         with step("revalidate that the old arangods are still running and alive"):
             self.detect_instance_pids_still_alive()
         if relaunch:
-            with step("replace the starter binary with a new one this has not yet spawned any children"):
+            with step("replace the starter binary with a new one," +
+                      " this has not yet spawned any children"):
                 self.respawn_instance()
                 logging.info("StarterManager: respawned instance as [%s]",
                          str(self.instance.pid))
@@ -537,7 +550,7 @@ class StarterManager():
     def upgrade_instances(self,
                           which_instances,
                           moreargs,
-                          waitpid=True,):
+                          waitpid=True):
         """ kill, launch the instances of this starter with optional arguments and restart"""
         for instance_type in which_instances:
             for i in self.all_instances:
@@ -596,6 +609,7 @@ class StarterManager():
                                            #stdin=subprocess.PIPE,
                                            #stderr=subprocess.PIPE,
                                            universal_newlines=True)
+        print("Upgrade commander has PID:" + str(self.upgradeprocess.pid))
 
     @step
     def wait_for_upgrade(self, timeout=60):
@@ -606,11 +620,10 @@ class StarterManager():
         try:
             ret = self.upgradeprocess.wait(timeout=timeout)
         except psutil.TimeoutExpired as timeout_ex:
-            logging.error("StarterManager: Upgrade command [%s] didn't finish in time: %d %s",
-                          str(self.basedir),
-                          timeout,
-                          str(timeout_ex))
-            raise timeout_ex
+            msg = "StarterManager: Upgrade command [%s] didn't finish in time: %d" % (
+                str(self.basedir),
+                timeout)
+            raise TimeoutError(msg) from timeout_ex
         logging.info("StarterManager: Upgrade command [%s] exited: %s",
                      str(self.basedir),
                      str(ret))
@@ -653,6 +666,7 @@ class StarterManager():
 
         logging.info("StarterManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)
+        print("respawned with PID:" + str(self.instance.pid))
         if wait_for_logfile:
             self.wait_for_logfile()
         else:

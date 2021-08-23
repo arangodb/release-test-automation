@@ -58,7 +58,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             arangosh_run = psutil.Popen(run_cmd,
                                         stdout = DEVNULL,
                                         stderr = DEVNULL)
-
+        print("running arangosh with PID:" + str(arangosh_run.pid))
         exitcode = arangosh_run.wait(timeout=60)
         # logging.debug("exitcode {0}".format(exitcode))
         return exitcode == 0
@@ -117,6 +117,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                                         stdout = DEVNULL,
                                         stderr = DEVNULL)
 
+        print("running arangosh with PID:" + str(arangosh_run.pid))
         exitcode = arangosh_run.wait(timeout=30)
         logging.debug("exitcode {0}".format(exitcode))
         return exitcode == 0
