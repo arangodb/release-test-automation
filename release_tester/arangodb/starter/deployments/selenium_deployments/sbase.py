@@ -652,10 +652,14 @@ class SeleniumRunner(ABC):
             print(self.cfg.test_data_dir.resolve())
             print('g'*80)
             self.navbar_goto('graphs')
-            ui_test.test_graph(self.cfg, self.importer, self.cfg.test_data_dir.resolve())
+            # ui_test.test_graph(self.cfg, self.importer, self.cfg.test_data_dir.resolve())
             print('u'*80)
-            # ui_test.test_query(self.restorer, self.cfg.test_data_dir, self.is_cluster)
-            ui_test.test_support()
+            ui_test.test_query(self.cfg,
+                               self.is_cluster,
+                               self.restorer,
+                               self.importer,
+                               self.cfg.test_data_dir.resolve())
+            # ui_test.test_support()
         except Exception as ex:
             print('E.'*40)
             print(type(ex))

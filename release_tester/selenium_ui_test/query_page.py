@@ -25,7 +25,7 @@ class QueryPage(BaseSelenium):
         self.driver = driver
         self.selecting_query_page_id = "queries"
         self.query_execution_area = '//*[@id="aqlEditor"]'
-        # self.execute_query_btn_id = 'executeQuery'
+        self.execute_query_btn_id = 'executeQuery'
         self.profile_query_id = 'profileQuery'
         self.explain_query_id = 'explainQuery'
         self.create_debug_package_id = 'debugQuery'
@@ -270,10 +270,9 @@ class QueryPage(BaseSelenium):
         super().send_key_action('IN Characters')
 
         # selecting execute query button
-        execute = self.execute_query_btn_id
-        execute = \
-            BaseSelenium.locator_finder_by_id(self, execute)
-        execute.click()
+        execute_sitem =  self.locator_finder_by_id(
+            self.execute_query_btn_id)
+        execute_sitem.click()
 
         time.sleep(3)
 
@@ -604,31 +603,6 @@ class QueryPage(BaseSelenium):
 
     def world_country_graph_query(self):
         """Graph query"""
-        print('Creating worldCountry example graph \n')
-        graph = self.graph_page
-        graph = \
-            BaseSelenium.locator_finder_by_id(self, graph)
-        graph.click()
-        time.sleep(2)
-
-        select_graph = self.select_create_graph_id
-        select_graph = \
-            BaseSelenium.locator_finder_by_id(self, select_graph)
-        select_graph.click()
-        time.sleep(1)
-
-        # Selecting example graph button
-        example = self.select_example_graph_btn_id
-        example = \
-            BaseSelenium.locator_finder_by_id(self, example)
-        example.click()
-        time.sleep(1)
-
-        # select worldCountry graph
-        self.select_world_graph_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.select_world_graph_id)
-        self.select_world_graph_id.click()
-        time.sleep(4)
 
         # navigating back to query tab
         query = self.selecting_query_page_id
@@ -655,39 +629,11 @@ class QueryPage(BaseSelenium):
 
         super().scroll()
 
-        print('Deleting worldCountry graph \n')
-        graph_id = "worldCountry_settings"
-        self.delete_all_graph(graph_id)
         self.driver.refresh()
 
 
     def k_shortest_paths_graph_query(self):
         """K Shortest Paths Graph Query"""
-        print('Creating KShortestPaths example graph \n')
-        graph = self.graph_page
-        graph = \
-            BaseSelenium.locator_finder_by_id(self, graph)
-        graph.click()
-        time.sleep(2)
-
-        select_graph = self.select_create_graph_id
-        select_graph = \
-            BaseSelenium.locator_finder_by_id(self, select_graph)
-        select_graph.click()
-        time.sleep(1)
-
-        # Selecting example graph button
-        graph_example_id = self.select_example_graph_btn_id
-        graph_example_id = \
-            BaseSelenium.locator_finder_by_id(self, graph_example_id)
-        graph_example_id.click()
-        time.sleep(1)
-
-        # selecting kshortestpaths graph from example graph
-        self.select_k_shortest_path_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.select_k_shortest_path_id)
-        self.select_k_shortest_path_id.click()
-        time.sleep(1)
 
         # navigating back to query tab
         query = self.selecting_query_page_id
@@ -772,41 +718,10 @@ class QueryPage(BaseSelenium):
 
         super().query_execution_btn()
         super().scroll()
-
-        print('Deleting KShortestPath graph \n')
-        graph_id = "kShortestPathsGraph_settings"
-        self.delete_all_graph(graph_id)
         self.driver.refresh()
 
     def city_graph(self):
         """Example City Graph"""
-        print('Creating example City Graph \n')
-        graph = self.graph_page
-        graph = \
-            BaseSelenium.locator_finder_by_id(self, graph)
-        graph.click()
-        time.sleep(2)
-
-        select_graph = self.select_create_graph_id
-        select_graph = \
-            BaseSelenium.locator_finder_by_id(self, select_graph)
-        select_graph.click()
-        time.sleep(1)
-
-        # Selecting example graph button
-        graph_example_id = self.select_example_graph_btn_id
-        graph_example_id = \
-            BaseSelenium.locator_finder_by_id(self, graph_example_id)
-        graph_example_id.click()
-        time.sleep(1)
-
-        # selecting City Graph from example
-        route_planner = '//*[@id="exampleGraphs"]/table/tbody/tr[7]/td[2]/button'
-        route_planner = \
-            BaseSelenium.locator_finder_by_xpath(self, route_planner)
-        route_planner.click()
-        time.sleep(4)
-
         # navigating back to query tab
         query = self.selecting_query_page_id
         query = \
@@ -844,10 +759,6 @@ class QueryPage(BaseSelenium):
 
         super().select_query_execution_area()
         super().scroll(1)
-
-        print('Deleting City graph \n')
-        graph_id = "routeplanner_settings"
-        self.delete_all_graph(graph_id)
         self.driver.refresh()
 
     def number_of_results(self):

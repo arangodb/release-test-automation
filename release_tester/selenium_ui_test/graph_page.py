@@ -597,16 +597,16 @@ class GraphPage(BaseSelenium):
         # super().escape()
         # time.sleep(3)
 
-        print("Selecting Resume layout button \n")
-        resume = self.select_resume_layout_btn_id
-        pause = self.select_resume_layout_btn_id
-
-        resume_sitem = self.locator_finder_by_xpath(resume)
-        resume_sitem.click()
-        time.sleep(3)
-        pause_sitem = self.locator_finder_by_xpath(pause)
-        pause_sitem.click()
-        time.sleep(3)
+        # print("Selecting Resume layout button \n")
+        # resume = self.select_resume_layout_btn_id
+        # pause = self.select_resume_layout_btn_id
+        # 
+        # resume_sitem = self.locator_finder_by_xpath(resume)
+        # resume_sitem.click()
+        # time.sleep(3)
+        # pause_sitem = self.locator_finder_by_xpath(pause)
+        # pause_sitem.click()
+        # time.sleep(3)
 
     def graph_setting(self):
         """Checking all the options inside graph settings"""
@@ -780,7 +780,7 @@ GRAPH_SETS = [
     GraphCreateSet(None, None, [], None),
     GraphCreateSet("Knows", "knows_graph_settings", [ VCol('persons'), ECol('knows') ]),
     GraphCreateSet("Traversal", "traversalGraph_settings", [VCol('circles'), ECol('edges')]),
-    GraphCreateSet("kShortestPaths", "kShortestPathsGraph_settings", [ VCol('places'), ECol('edges') ]),
+    GraphCreateSet("kShortestPaths", "kShortestPathsGraph_settings", [ VCol('places'), ECol('connections') ]),
     GraphCreateSet("Mps", "mps_graph_settings", [ VCol('mps_verts'), ECol('mps_edges') ]),
     GraphCreateSet("World", "worldCountry_settings", [ VCol('worldVertices'), ECol('worldEdges') ]),
     GraphCreateSet("Social", "social_settings", [ VCol('male'), VCol('female'), ECol('relation') ]),

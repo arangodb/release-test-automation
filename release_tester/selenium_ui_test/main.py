@@ -413,8 +413,8 @@ class Test(BaseSelenium):
 
         print("Selecting Knows Graph for inspection\n")
         this_graph.inspect_knows_graph()
-        print("Selecting Graphs settings menu\n")
-        this_graph.graph_setting()
+        # print("Selecting Graphs settings menu\n")
+        #this_graph.graph_setting()
 
         print("Deleting created Graphs started\n")
         for graph in GraphExample:
@@ -499,7 +499,7 @@ class Test(BaseSelenium):
         del login
         print("---------User Test Completed---------\n")
 
-    def test_query(self, restore, testdata_path, is_cluster):
+    def test_query(self, cfg, is_cluster, restore, importer, test_data_dir):
         """testing query page"""
         print("---------Query Test Begin--------- \n")
         #login = LoginPage(self.driver)
@@ -508,9 +508,10 @@ class Test(BaseSelenium):
         # creating multiple query obj
         query = QueryPage(self.driver)
         query01 = QueryPage(self.driver)
+        this_graph = GraphPage(self.driver)
 
         print("Importing IMDB collections \n")
-        query.import_collections(restore, testdata_path, is_cluster)
+        query.import_collections(restore, test_data_dir, is_cluster)
 
         print("Selecting Query page for basic CRUD operation \n")
         query.selecting_query_page()
@@ -539,16 +540,39 @@ class Test(BaseSelenium):
         query.bind_parameters_query()
 
         print("Executing example graph query \n")
+        graph = GraphExample.WORLD
+        self.navbar_goto('graphs')
+        print("Creating '%s' Graph"%get_graph_name(graph))
+        this_graph.create_graph(graph, importer, test_data_dir)
+        this_graph.check_required_collections(graph)
         query.world_country_graph_query()
+        self.navbar_goto('graphs')
+        this_graph.delete_graph(graph)
+        self.driver.refresh()
 
-        print('Executing K_Shortest_Paths Graph query \n')
+        graph = GraphExample.K_SHORTEST_PATH
+        self.navbar_goto('graphs')
+        print("Creating '%s' Graph"%get_graph_name(graph))
+        this_graph.create_graph(graph, importer, test_data_dir)
+        this_graph.check_required_collections(graph)
         query.k_shortest_paths_graph_query()
+        self.navbar_goto('graphs')
+        this_graph.delete_graph(graph)
+        self.driver.refresh()
 
+        graph = GraphExample.CITY
+        self.navbar_goto('graphs')
+        print("Creating '%s' Graph"%get_graph_name(graph))
+        this_graph.create_graph(graph, importer, test_data_dir)
+        this_graph.check_required_collections(graph)
         print('Executing City Graph query \n')
         query.city_graph()
+        self.navbar_goto('graphs')
+        this_graph.delete_graph(graph)
+        self.driver.refresh()
 
         print('Importing new queries \n')
-        query.import_queries(str(testdata_path / 'query_page' / 'imported_query.json'))
+        query.import_queries(str(test_data_dir / 'query_page' / 'imported_query.json'))
         print("Saving Current query as custom query\n")
         query.custom_query()
         print('Changing the number of results from 1000 to 100\n')
