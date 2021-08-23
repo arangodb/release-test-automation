@@ -54,9 +54,9 @@ class QueryPage(BaseSelenium):
         print("Navigating to Collection page \n")
         # Selecting collections page
         collections = "collections"
-        collections = \
+        collections_sitem = \
             BaseSelenium.locator_finder_by_id(self, collections)
-        collections.click()
+        collections_sitem.click()
         time.sleep(1)
         data_path = testdata_path / 'ui_data' / 'query_page' / 'IMDB_DUMP'
         print(data_path)
@@ -67,38 +67,37 @@ class QueryPage(BaseSelenium):
 
         print('Creating a blank collection\n')
         create_collection = "createCollection"
-        create_collection = \
+        create_collection_sitem = \
             BaseSelenium.locator_finder_by_id(self, create_collection)
-        create_collection.click()
+        create_collection_sitem.click()
 
         new_collection_name = 'new-collection-name'
-        new_collection_name = \
+        new_collection_name_sitem = \
             BaseSelenium.locator_finder_by_id(self, new_collection_name)
-        new_collection_name.click()
-        new_collection_name.send_keys('Characters')
-        new_collection_name.send_keys(Keys.ENTER)
-
+        new_collection_name_sitem.click()
+        new_collection_name_sitem.send_keys('Characters')
         if is_cluster:
             new_collections_shards = 'new-collection-shards'
-            new_collections_shards = \
-                BaseSelenium.locator_finder_by_id(self, new_collections_shards)
-            new_collections_shards.click()
-            new_collections_shards.send_keys('9')
+            new_collections_shards_sitem = WebDriverWait(self.driver, 15).until(
+                EC.element_to_be_clickable((By.ID, new_collections_shards)),
+                message="failed to get shards input field")
+            new_collections_shards_sitem.click()
+            new_collections_shards_sitem.send_keys('9')
 
             new_replication_factor = 'new-replication-factor'
-            new_replication_factor = \
+            new_replication_factor_sitem = \
                 BaseSelenium.locator_finder_by_id(self, new_replication_factor)
-            new_replication_factor.click()
-            new_replication_factor.clear()
-            new_replication_factor.click()
-            new_replication_factor.send_keys('2')
-
-            modal_button1_str = 'modalButton1'
-            modal_button1 = \
-                WebDriverWait(self.driver, 15).until(
-                    EC.element_to_be_clickable((By.ID, modal_button1_str)),
-                    message="failed to wait for collection save button")
-            modal_button1.click()
+            new_replication_factor_sitem.click()
+            new_replication_factor_sitem.clear()
+            new_replication_factor_sitem.click()
+            new_replication_factor_sitem.send_keys('2')
+        modal_button1_str = 'modalButton1'
+        modal_button1_sitem = \
+            WebDriverWait(self.driver, 15).until(
+                EC.element_to_be_clickable((By.ID, modal_button1_str)),
+                message="failed to wait for collection save button")
+        modal_button1_sitem.click()
+        # new_collection_name_sitem.send_keys(Keys.ENTER)
 
         self.driver.refresh()
         time.sleep(5)
