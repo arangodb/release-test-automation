@@ -208,6 +208,29 @@ class Dc2Dc(Runner):
 
         return is_higher_version(self.sync_version, min_v2_version)
 
+    def _get_sync_status(self, target_cluster=True):
+        """
+            Check replication status of the cluster.
+        """
+        cluster_instance = self.cluster1['instance']
+        token = cluster_instance.get_jwt_token_from_secret_file(self.cluster1["SyncSecret"])
+        if target_cluster:
+            cluster_instance = self.cluster2['instance']
+            token = cluster_instance.get_jwt_token_from_secret_file(self.cluster2["SyncSecret"])
+
+        url = 'https://' + cluster_instance.get_sync_master().get_public_plain_url() + '/_api/sync'
+        response = requests.get(url,
+                                headers={'Authorization': 'Bearer ' + token},
+                                verify=False)
+
+        if response.status_code != 200:
+            raise Exception("could not fetch arangosync version from {0}".format(url))
+
+        status = response.json().get('status')
+        if not status:
+            raise Exception("missing status in reponse from {0}".format(url))
+        return status
+
     def _get_sync_version(self):
         """
         Check version of the arangosync master on the first cluster
@@ -241,16 +264,23 @@ class Dc2Dc(Runner):
             self.progress(True, "arangosync: stopping sync without checking if shards are in-sync")
             success, output, _, _ = self.sync_manager.stop_sync(timeout, ['--ensure-in-sync=false'])
 
-        if success:
-            count = 0
-            while count < 30:
-                success, output = self.sync_manager.check_sync_stopped()
-                if success:
-                    return
-                time.sleep(5)
+        if not success:
+            self.state += "\n" + output
+            raise Exception("failed to stop the synchronization")
 
-        self.state += "\n" + output
-        raise Exception("failed to stop the synchronization")
+        count = 0
+        status_source = ""
+        status_target = ""
+        while count < 30:
+            status_source = self._get_sync_status(False)
+            status_target = self._get_sync_status(True)
+            if status_source == "inactive" and status_target == "inactive":
+                return
+
+            count += 1
+            time.sleep(2)
+
+        raise Exception("failed to stop the synchronization, source status: "+status_source+", target status: "+status_target)
 
     def _mitigate_known_issues(self, last_sync_output):
         """
