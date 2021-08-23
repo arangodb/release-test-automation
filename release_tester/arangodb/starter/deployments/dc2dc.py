@@ -23,6 +23,34 @@ SYNC_VERSIONS = {
 }
 USERS_ERROR_RX = re.compile('.*\n*.*\n*.*\n*.*(_users).*DIFFERENT.*', re.MULTILINE)
 
+
+def _create_headers(token):
+    return {'Authorization': 'Bearer ' + token,
+            "X-Allow-Forward-To-Leader": "true"}
+
+
+def _get_sync_status(cluster):
+    """
+        Check replication status of the cluster.
+    """
+    cluster_instance = cluster['instance']
+    token = cluster_instance.get_jwt_token_from_secret_file(cluster["SyncSecret"])
+    url = 'https://' + cluster_instance.get_sync_master().get_public_plain_url() + '/_api/sync'
+    response = requests.get(url,
+                            headers=_create_headers(token),
+                            verify=False)
+
+    if response.status_code != 200:
+        raise Exception("could not fetch arangosync version from {url}, status code: {status_code}".
+                        format(url=url, status_code=response.status_code))
+
+    status = response.json().get('status')
+    if not status:
+        raise Exception("missing status in response from {url}".format(url=url))
+
+    return status
+
+
 class Dc2Dc(Runner):
     """ this launches two clusters in dc2dc mode """
     # pylint: disable=R0913 disable=R0902
@@ -218,7 +246,7 @@ class Dc2Dc(Runner):
         url = cluster_instance.get_sync_master().get_public_plain_url()
         url = 'https://' + url + '/_api/version'
         response = requests.get(url,
-                                headers={'Authorization': 'Bearer ' + token},
+                                headers=_create_headers(token),
                                 verify=False)
 
         if response.status_code != 200:
@@ -241,16 +269,23 @@ class Dc2Dc(Runner):
             self.progress(True, "arangosync: stopping sync without checking if shards are in-sync")
             success, output, _, _ = self.sync_manager.stop_sync(timeout, ['--ensure-in-sync=false'])
 
-        if success:
-            count = 0
-            while count < 30:
-                success, output = self.sync_manager.check_sync_stopped()
-                if success:
-                    return
-                time.sleep(5)
+        if not success:
+            self.state += "\n" + output
+            raise Exception("failed to stop the synchronization")
 
-        self.state += "\n" + output
-        raise Exception("failed to stop the synchronization")
+        count = 0
+        status_source = ""
+        status_target = ""
+        while count < 30:
+            status_source = _get_sync_status(self.cluster1)
+            status_target = _get_sync_status(self.cluster2)
+            if status_source == "inactive" and status_target == "inactive":
+                return
+
+            count += 1
+            time.sleep(2)
+
+        raise Exception("failed to stop the synchronization, source status: "+status_source+", target status: "+status_target)
 
     def _mitigate_known_issues(self, last_sync_output):
         """
