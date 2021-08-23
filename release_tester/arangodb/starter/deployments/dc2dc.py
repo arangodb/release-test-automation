@@ -41,7 +41,7 @@ def _get_sync_status(cluster):
                             verify=False)
 
     if response.status_code != 200:
-        raise Exception("could not fetch arangosync version from {url}, status code: {status_code}".
+        raise Exception("could not fetch arangosync status from {url}, status code: {status_code}".
                         format(url=url, status_code=response.status_code))
 
     status = response.json().get('status')
