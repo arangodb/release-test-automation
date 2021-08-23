@@ -521,7 +521,7 @@ class GraphPage(BaseSelenium):
             search_sitem.click()
             search_sitem.clear()
             search_sitem.send_keys(collection.name)
-            if collection_item.text == collection.name:
+            if collection_sitem.text == collection.name:
                 print(collection.name + " collectionhas been validated")
             else:
                 print(collection.name + " collection wasn't found")
