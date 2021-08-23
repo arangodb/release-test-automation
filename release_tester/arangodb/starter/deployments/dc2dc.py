@@ -23,6 +23,34 @@ SYNC_VERSIONS = {
 }
 USERS_ERROR_RX = re.compile('.*\n*.*\n*.*\n*.*(_users).*DIFFERENT.*', re.MULTILINE)
 
+
+def _create_headers(token):
+    return {'Authorization': 'Bearer ' + token,
+            "X-Allow-Forward-To-Leader": "true"}
+
+
+def _get_sync_status(cluster):
+    """
+        Check replication status of the cluster.
+    """
+    cluster_instance = cluster['instance']
+    token = cluster_instance.get_jwt_token_from_secret_file(cluster["SyncSecret"])
+    url = 'https://' + cluster_instance.get_sync_master().get_public_plain_url() + '/_api/sync'
+    response = requests.get(url,
+                            headers=_create_headers(token),
+                            verify=False)
+
+    if response.status_code != 200:
+        raise Exception("could not fetch arangosync version from {url}, status code: {status_code}".
+                        format(url=url, status_code=response.status_code))
+
+    status = response.json().get('status')
+    if not status:
+        raise Exception("missing status in response from {url}".format(url=url))
+
+    return status
+
+
 class Dc2Dc(Runner):
     """ this launches two clusters in dc2dc mode """
     # pylint: disable=R0913 disable=R0902
@@ -208,29 +236,6 @@ class Dc2Dc(Runner):
 
         return is_higher_version(self.sync_version, min_v2_version)
 
-    def _get_sync_status(self, target_cluster=True):
-        """
-            Check replication status of the cluster.
-        """
-        cluster_instance = self.cluster1['instance']
-        token = cluster_instance.get_jwt_token_from_secret_file(self.cluster1["SyncSecret"])
-        if target_cluster:
-            cluster_instance = self.cluster2['instance']
-            token = cluster_instance.get_jwt_token_from_secret_file(self.cluster2["SyncSecret"])
-
-        url = 'https://' + cluster_instance.get_sync_master().get_public_plain_url() + '/_api/sync'
-        response = requests.get(url,
-                                headers={'Authorization': 'Bearer ' + token},
-                                verify=False)
-
-        if response.status_code != 200:
-            raise Exception("could not fetch arangosync version from {0}".format(url))
-
-        status = response.json().get('status')
-        if not status:
-            raise Exception("missing status in reponse from {0}".format(url))
-        return status
-
     def _get_sync_version(self):
         """
         Check version of the arangosync master on the first cluster
@@ -241,7 +246,7 @@ class Dc2Dc(Runner):
         url = cluster_instance.get_sync_master().get_public_plain_url()
         url = 'https://' + url + '/_api/version'
         response = requests.get(url,
-                                headers={'Authorization': 'Bearer ' + token},
+                                headers=_create_headers(token),
                                 verify=False)
 
         if response.status_code != 200:
@@ -272,8 +277,8 @@ class Dc2Dc(Runner):
         status_source = ""
         status_target = ""
         while count < 30:
-            status_source = self._get_sync_status(False)
-            status_target = self._get_sync_status(True)
+            status_source = _get_sync_status(self.cluster1)
+            status_target = _get_sync_status(self.cluster2)
             if status_source == "inactive" and status_target == "inactive":
                 return
 
