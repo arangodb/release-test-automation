@@ -113,8 +113,8 @@ class Instance(ABC):
             # we expect it to be dead anyways!
             return self.instance.wait(3) is None
         except psutil.TimeoutExpired:
-            #logging.error("was supposed to be dead, but I'm still alive? "
-            #              + repr(self))
+            logging.error("was supposed to be dead, but I'm still alive? "
+                          + repr(self))
             return False
         except AttributeError:
             #logging.error("was supposed to be dead, but I don't have an instance? "
@@ -196,7 +196,7 @@ class Instance(ABC):
             logging.info("I'm already dead, jim!" + str(repr(self)))
 
     @step
-    def terminate_instance(self):
+    def terminate_instance(self, add_logfile_to_report=True):
         """ terminate the process represented by this wrapper class """
         if self.instance:
             try:
@@ -205,7 +205,8 @@ class Instance(ABC):
                     self.instance.pid))
                 self.instance.terminate()
                 self.instance.wait()
-                self.add_logfile_to_report()
+                if add_logfile_to_report:
+                    self.add_logfile_to_report()
             except psutil.NoSuchProcess:
                 logging.info("instance already dead: " + str(self.instance))
             self.instance = None

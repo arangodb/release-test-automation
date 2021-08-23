@@ -446,6 +446,11 @@ class StarterManager():
         logging.info("StarterManager: waiting for process to exit")
         exit_code = self.instance.wait()
         self.add_logfile_to_report()
+        if ON_WINDOWS:
+            if exit_code == 15:
+                # TODO: remove wintendo starter bug workaround!
+                exit_code = 0
+            
         if exit_code != 0:
             raise Exception("Starter %s exited with %d" % (self.basedir, exit_code))
 
@@ -458,7 +463,9 @@ class StarterManager():
 
         for instance in self.all_instances:
             instance.rename_logfile()
-            instance.detect_gone()
+            if not instance.detect_gone():
+                print("Manually terminating instance!")
+                instance.terminate_instance(False)
         # Clear instances as they have been stopped and the logfiles
         # have been moved.
         if not keep_instances:
