@@ -18,6 +18,7 @@ from acquire_packages import AcquirePackages
 from reporting.reporting_utils import AllureTestSuiteContext
 from upgrade import run_upgrade
 from cleanup import run_cleanup
+from tools.killall import list_all_processes
 
 def set_r_limits():
     """ on linux manipulate ulimit values """
@@ -52,7 +53,7 @@ def upgrade_package_test(verbose,
     set_r_limits()
 
     lh.configure_logging(verbose)
-
+    list_all_processes()
     os.chdir(test_data_dir)
 
     results = []

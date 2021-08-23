@@ -239,6 +239,7 @@ class StarterManager():
         lh.log_cmd(args)
         self.instance = psutil.Popen(args)
         self.wait_for_logfile()
+        logging.info("my starter has PID:" + str(self.instance.pid))
 
     @step
     def attach_running_starter(self):
@@ -277,6 +278,8 @@ class StarterManager():
                '--auth.jwt-secret', str(filename)]
         print(cmd)
         jwt_proc = psutil.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        logging.info("JWT starter has PID:" + str(jwt_proc.pid))
+
         (header, err) = jwt_proc.communicate()
         jwt_proc.wait()
         if len(str(err)) > 3:
@@ -346,7 +349,9 @@ class StarterManager():
             if (self.instance.status() == psutil.STATUS_RUNNING or
                 self.instance.status() == psutil.STATUS_SLEEPING):
                 print("generating coredump for " + str(self.instance))
-                psutil.Popen(['gcore', str(self.instance.pid)], cwd=self.basedir).wait()
+                gcore = psutil.Popen(['gcore', str(self.instance.pid)], cwd=self.basedir)
+                print("launched GCORE with PID:" + str(gcore.pid))
+                gcore.wait()
                 self.kill_instance()
             else:
                 print("NOT generating coredump for " + str(self.instance))
@@ -604,6 +609,7 @@ class StarterManager():
                                            #stdin=subprocess.PIPE,
                                            #stderr=subprocess.PIPE,
                                            universal_newlines=True)
+        print("Upgrade commander has PID:" + str(self.upgradeprocess.pid))
 
     @step
     def wait_for_upgrade(self, timeout=60):
@@ -660,6 +666,7 @@ class StarterManager():
 
         logging.info("StarterManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)
+        print("respawned with PID:" + str(self.instance.pid))
         if wait_for_logfile:
             self.wait_for_logfile()
         else:
