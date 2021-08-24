@@ -40,25 +40,28 @@ class Test(BaseSelenium):
         login.login('root', self.root_passvoid)
         login.logout_button()
 
-    def test_dashboard(self):
+    def test_dashboard(self, is_enterprise, is_cluster):
         """testing dashboard page"""
         print("---------Checking Dashboard started--------- \n")
-        login = LoginPage(self.driver)
-        login.login('root', self.root_passvoid)
+        #login = LoginPage(self.driver)
+        #login.login('root', self.root_passvoid)
         # creating object for dashboard
-        dash = DashboardPage(self.driver)
+        dash = DashboardPage(self.driver, is_enterprise)
         dash.check_server_package_name()
         dash.check_current_package_version()
         dash.check_current_username()
         dash.check_current_db()
         dash.check_db_status()
-        dash.check_db_engine()
-        dash.check_db_uptime()
-        dash.check_responsiveness_for_dashboard()
-        print("\nSwitch to System Resource tab\n")
-        dash.check_system_resource()
-        print("Switch to Metrics tab\n")
-        dash.check_system_metrics()
+        # only 3.6 & 3.7 only support mmfiles... dash.check_db_engine()
+        if not is_cluster:
+            dash.check_db_uptime()
+            # TODO: version dependend? cluster?
+            dash.check_responsiveness_for_dashboard()
+            print("\nSwitch to System Resource tab\n")
+            dash.check_system_resource()
+            print("Switch to Metrics tab\n")
+            dash.check_system_metrics()
+        self.navbar_goto('support')
         print("Opening Twitter link \n")
         dash.click_twitter_link()
         print("Opening Slack link \n")
@@ -68,7 +71,7 @@ class Test(BaseSelenium):
         print("Opening Google group link \n")
         dash.click_google_group_link()
         dash.click_google_group_link()
-        login.logout_button()
+        #login.logout_button()
         print("---------Checking Dashboard Completed--------- \n")
 
     def test_collection(self, testdata_path):
