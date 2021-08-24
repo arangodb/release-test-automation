@@ -571,8 +571,10 @@ class Test(BaseSelenium):
         this_graph.delete_graph(graph)
         self.driver.refresh()
 
+        self.navbar_goto('queries')
+
         print('Importing new queries \n')
-        query.import_queries(str(test_data_dir / 'query_page' / 'imported_query.json'))
+        query.import_queries(str(test_data_dir / 'ui_data' / 'query_page' / 'imported_query.json'))
         print("Saving Current query as custom query\n")
         query.custom_query()
         print('Changing the number of results from 1000 to 100\n')
