@@ -466,125 +466,89 @@ FOR doc IN Characters
         print("Executing Custom query\n")
         self.enter_query('return sleep(10)')
 
-        save_query = self.save_current_query_id
-        save_query = \
-            BaseSelenium.locator_finder_by_id(self, save_query)
-        save_query.click()
+        save_query_sitem = self.locator_finder_by_id(self.save_current_query_id)
+        save_query_sitem.click()
 
-        query_name = self.new_query_name_id
-        query_name = \
-            BaseSelenium.locator_finder_by_id(self, query_name)
-        query_name.click()
-        # pyautogui.typewrite('Custom query')
+        query_name_sitem = self.locator_finder_by_id(self.new_query_name_id)
+        query_name_sitem.click()
+        query_name_sitem.send_keys('Custom query')
 
-        btn = 'modalButton1'
-        btn = \
-            BaseSelenium.locator_finder_by_id(self, btn)
-        btn.click()
+        btn_sitem = self.locator_finder_by_id('modalButton1')
+        btn_sitem.click()
 
         # cleaning current query area
         self.clear_query_area()
 
         # checking saved query
-        saved_query = 'toggleQueries1'
-        saved_query = \
-            BaseSelenium.locator_finder_by_id(self, saved_query)
-        saved_query.click()
+        saved_query_sitem = self.locator_finder_by_id('toggleQueries1')
+        saved_query_sitem.click()
 
         print('Checking custom query in action \n')
-        explain_query = "explQuery"
-        explain_query = \
-            BaseSelenium.locator_finder_by_id(self, explain_query)
-        explain_query.click()
+        explain_query_sitem = self.locator_finder_by_id("explQuery")
+        explain_query_sitem.click()
         time.sleep(2)
 
         print('Clearing query results\n')
-        remove = self.remove_all_results_id
-        remove = \
-            BaseSelenium.locator_finder_by_id(self, remove)
-        remove.click()
+        remove_sitem = self.locator_finder_by_id(self.remove_all_results_id)
+        remove_sitem.click()
         time.sleep(2)
 
         print("Running query from saved query\n")
-        run_query = 'runQuery'
-        run_query = \
-            BaseSelenium.locator_finder_by_id(self, run_query)
-        run_query.click()
+        run_query_sitem = self.locator_finder_by_id('runQuery')
+        run_query_sitem.click()
         time.sleep(2)
 
         print('Copying query from saved query\n')
-        copy_query = 'copyQuery'
-        copy_query = \
-            BaseSelenium.locator_finder_by_id(self, copy_query)
-        copy_query.click()
+        copy_query_sitem = self.locator_finder_by_id('copyQuery')
+        copy_query_sitem.click()
         time.sleep(2)
 
         self.clear_query_area()
 
         print('Checking running query tab\n')
-        slow_query = '//*[@id="subNavigationBar"]/ul[2]/li[2]/a'
-        slow_query = \
-            BaseSelenium.locator_finder_by_xpath(self, slow_query)
-        slow_query.click()
+        slow_query_sitem = self.locator_finder_by_xpath('//*[@id="subNavigationBar"]/ul[2]/li[2]/a')
+        slow_query_sitem.click()
         time.sleep(2)
 
         print('Checking slow query history \n')
-        slow_query_history = '//*[@id="subNavigationBar"]/ul[2]/li[3]/a'
-        slow_query_history = \
-            BaseSelenium.locator_finder_by_xpath(self, slow_query_history)
-        slow_query_history.click()
+        slow_query_history_sitem = self.locator_finder_by_xpath('//*[@id="subNavigationBar"]/ul[2]/li[3]/a')
+        slow_query_history_sitem.click()
         time.sleep(5)
 
         print('Deleting slow query history \n')
-        del_slow_query_history = 'deleteSlowQueryHistory'
-        del_slow_query_history = \
-            BaseSelenium.locator_finder_by_id(self, del_slow_query_history)
-        del_slow_query_history.click()
+        del_slow_query_history_sitem = self.locator_finder_by_id('deleteSlowQueryHistory')
+        del_slow_query_history_sitem.click()
         time.sleep(1)
 
-        del_btn = 'modalButton1'
-        del_btn = \
-            BaseSelenium.locator_finder_by_id(self, del_btn)
-        del_btn.click()
+        del_btn_sitem = self.locator_finder_by_id('modalButton1')
+        del_btn_sitem.click()
         time.sleep(2)
 
-        confirm_del_btn = 'modal-confirm-delete'
-        confirm_del_btn = \
-            BaseSelenium.locator_finder_by_id(self, confirm_del_btn)
-        confirm_del_btn.click()
+        confirm_del_btn_sitem = self.locator_finder_by_id('modal-confirm-delete')
+        confirm_del_btn_sitem.click()
         time.sleep(2)
 
         self.driver.refresh()
 
         # return back to saved query
-        saved_query_01 = 'toggleQueries1'
-        saved_query_01 = \
-            BaseSelenium.locator_finder_by_id(self, saved_query_01)
-        saved_query_01.click()
+        saved_query_01_sitem = self.locator_finder_by_id('toggleQueries1')
+        saved_query_01_sitem.click()
         time.sleep(2)
 
         print('Deleting Saved query\n')
-        delete_query = 'deleteQuery'
-        delete_query = \
-            BaseSelenium.locator_finder_by_id(self, delete_query)
-        delete_query.click()
+        delete_query_sitem = self.locator_finder_by_id('deleteQuery')
+        delete_query_sitem.click()
         time.sleep(1)
-        del_btn = 'modalButton1'
-        del_btn = \
-            BaseSelenium.locator_finder_by_id(self, del_btn)
-        del_btn.click()
+        del_btn_sitem = self.locator_finder_by_id('modalButton1')
+        del_btn_sitem.click()
         time.sleep(1)
 
-        del_confirm_btn = 'modal-confirm-delete'
-        del_confirm_btn = \
-            BaseSelenium.locator_finder_by_id(self, del_confirm_btn)
-        del_confirm_btn.click()
+        del_confirm_btn_sitem = self.locator_finder_by_id('modal-confirm-delete')
+        del_confirm_btn_sitem.click()
         time.sleep(1)
 
-        toggle_queries = 'toggleQueries2'
-        toggle_queries = \
-            BaseSelenium.locator_finder_by_id(self, toggle_queries)
-        toggle_queries.click()
+        toggle_queries_sitem = self.locator_finder_by_id('toggleQueries2')
+        toggle_queries_sitem.click()
         time.sleep(1)
         print('Deleting Saved query completed\n')
         self.clear_query_area()

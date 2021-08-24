@@ -569,9 +569,9 @@ class Test(BaseSelenium):
         query.city_graph()
         self.navbar_goto('graphs')
         this_graph.delete_graph(graph)
-        self.driver.refresh()
 
         self.navbar_goto('queries')
+        self.driver.refresh()
 
         print('Importing new queries \n')
         query.import_queries(str(test_data_dir / 'ui_data' / 'query_page' / 'imported_query.json'))
