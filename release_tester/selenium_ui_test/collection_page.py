@@ -504,7 +504,7 @@ class CollectionPage(BaseSelenium):
 
     def select_info_tab(self):
         """Selecting info tab from the collection submenu"""
-        self.select_info_tab_sitem = \
+        select_info_tab_sitem = \
             self.locator_finder_by_xpath(self.select_info_tab_id)
         select_info_tab_sitem.click()
         time.sleep(2)
