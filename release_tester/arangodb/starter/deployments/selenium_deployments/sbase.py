@@ -645,7 +645,7 @@ class SeleniumRunner(ABC):
             # ui_test = UITest(frontend.get_passvoid(), frontend.get_endpoint(), self.web)
             ui_test = UITest(root_passvoid, '', self.web)
             ui_test.test_user()
-            # ui_test.test_collection(self.cfg.test_data_dir.resolve())
+            ui_test.test_collection(self.cfg.test_data_dir.resolve(), self.is_cluster)
             ui_test.test_dashboard(self.cfg.enterprise, self.is_cluster)
             ui_test.test_views(self.is_cluster)
             print('i'*80)
@@ -654,7 +654,7 @@ class SeleniumRunner(ABC):
             print(self.cfg.test_data_dir.resolve())
             print('g'*80)
             self.navbar_goto('graphs')
-            # ui_test.test_graph(self.cfg, self.importer, self.cfg.test_data_dir.resolve())
+            ui_test.test_graph(self.cfg, self.importer, self.cfg.test_data_dir.resolve())
             print('u'*80)
             ui_test.test_query(self.cfg,
                                self.is_cluster,

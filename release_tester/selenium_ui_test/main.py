@@ -74,7 +74,7 @@ class Test(BaseSelenium):
         #login.logout_button()
         print("---------Checking Dashboard Completed--------- \n")
 
-    def test_collection(self, testdata_path):
+    def test_collection(self, testdata_path, is_cluster):
         """testing collection page"""
         print("---------Checking Collection Begin--------- \n")
         #login = LoginPage(self.driver)
@@ -253,7 +253,7 @@ class Test(BaseSelenium):
         # col.select_schema_tab()
 
         print("Select Settings tab\n")
-        col.select_settings_tab()
+        col.select_settings_tab(is_cluster)
         self.driver.refresh()
         print("Loading and Unloading collection\n")
         col.select_settings_unload_btn()
