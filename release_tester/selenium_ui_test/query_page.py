@@ -24,7 +24,6 @@ class QueryPage(BaseSelenium):
         super().__init__()
         self.driver = driver
         self.selecting_query_page_id = "queries"
-        self.query_execution_area = '//*[@id="aqlEditor"]'
         self.execute_query_btn_id = 'executeQuery'
         self.profile_query_id = 'profileQuery'
         self.explain_query_id = 'explainQuery'
@@ -142,9 +141,6 @@ for i IN 1..10000
 
     def execute_read_query(self):
         """This method will run a read query"""
-
-        self.select_query_execution_area()
-
         self.enter_query('''
 FOR c IN imdb_vertices
     LIMIT 500
@@ -313,7 +309,6 @@ RETURN doc''')
     def bind_parameters_query(self):
         """executing query with bind parameters"""
         # selecting query execution area
-        self.select_query_execution_area()
         bind_alive = self.bind_param_input_id % '1'
         bind_name  = self.bind_param_input_id % '2'
         self.enter_query('''
@@ -325,25 +320,23 @@ FOR doc IN Characters
         while not bindv_block_sitem.is_displayed():
             time.sleep(1)
 
-        bindv_alive_sitem = bindv_block_sitem.find_element_by_name('alive')
-        while not bindv_alive_sitem.is_displayed():
-            time.sleep(1)
-        bindv_alive_sitem.click()
-        bindv_alive_sitem.send_keys('false')
-
-        bindv_name_sitem = bindv_block_sitem.find_element_by_name('name')
-        while not bindv_name_sitem.is_displayed():
-            time.sleep(1)
-        bindv_name_sitem.click()
-        bindv_name_sitem.send_keys('Ned')
-
-
-        #bindv_name_sitem = self.locator_finder_by_xpath(self.bind_param_input_id % '2')
-        #while not bindv_name_sitem.is_displayed():
-        #    time.sleep(1)
-        #bindv_name_sitem.click()
-        #bindv_name_sitem.send_keys('Ned')
-
+        # bindv_alive_sitem = bindv_block_sitem.find_element_by_name('alive')
+        # while not bindv_alive_sitem.is_displayed():
+        #     time.sleep(1)
+        # bindv_alive_sitem.click()
+        # bindv_alive_sitem.send_keys('false')
+        # BTS-559 workaround - don't use table editor
+        # bindv_name_sitem = bindv_block_sitem.find_element_by_name('name')
+        # while not bindv_name_sitem.is_displayed():
+        #     time.sleep(1)
+        # bindv_name_sitem.click()
+        # bindv_name_sitem.send_keys('Ned')
+        bindEditorButton = self.locator_finder_by_id('switchTypes')
+        bindEditorButton.click()
+        self.select_bindvalue_json_area()
+        self.clear_all_text(self.bindvalues_area)
+        self.send_key_action('''{ "alive": true, "name": "Ned" }''')
+        
         # execute query with bind parameters
         self.query_execution_btn()
 

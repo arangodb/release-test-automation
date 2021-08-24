@@ -35,6 +35,8 @@ class BaseSelenium:
 
     def __init__(self, ):
         """base initialization"""
+        self.query_execution_area = '//*[@id="aqlEditor"]'
+        self.bindvalues_area = '//*[@id="bindParamAceEditor"]'
         self.locator = None
         self.select = None
         self.current = None
@@ -185,10 +187,18 @@ class BaseSelenium:
     def select_query_execution_area(self):
         """This method will select the query execution area"""
         try:
-            query = '//*[@id="aqlEditor"]'
-            query = \
-                self.locator_finder_by_xpath(query)
-            query.click()
+            query_sitem = \
+                self.locator_finder_by_xpath(self.query_execution_area)
+            query_sitem.click()
+            time.sleep(2)
+        except TimeoutException:
+            print("Can't find the query execution area \n")
+        
+    def select_bindvalue_json_area(self):
+        """This method will select the query execution area"""
+        try:
+            query_sitem = self.locator_finder_by_xpath(self.bindvalues_area)
+            query_sitem.click()
             time.sleep(2)
         except TimeoutException:
             print("Can't find the query execution area \n")
