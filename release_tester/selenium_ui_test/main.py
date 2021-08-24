@@ -439,7 +439,7 @@ class Test(BaseSelenium):
         """testing user page"""
         print("---------User Test Begin--------- \n")
         login = LoginPage(self.driver)
-        login.login('root', self.root_passvoid)
+        # login.login('root', self.root_passvoid)
         user = UserPage(self.driver)
         print("New user creation begins \n")
         user.user_tab()
@@ -503,7 +503,7 @@ class Test(BaseSelenium):
         user.delete_user_btn()
         user.confirm_delete_btn()
         print("Deleting created user completed \n")
-        login.logout_button()
+        # login.logout_button()
         del login
         print("---------User Test Completed---------\n")
 

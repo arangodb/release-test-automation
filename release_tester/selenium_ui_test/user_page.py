@@ -133,7 +133,7 @@ class UserPage(BaseSelenium):
 
             try:
                 notification = 'noty_body'
-                notification = (BaseSelenium.locator_finder_by_class(self, notification))
+                notification = self.locator_finder_by_css_selectors(notification)
                 time.sleep(1)
                 expected_text = 'Collection: Collection "testDoc" successfully created.'
                 assert notification.text == expected_text, f"Expected text{expected_text} but got {notification.text}"

@@ -637,13 +637,14 @@ class SeleniumRunner(ABC):
     def check_empty_ui(self):
         """ run all tests that expect the server to be empty """
 
-    def check_full_ui(self): # , frontend_instance
+    def check_full_ui(self, root_passvoid): # , frontend_instance
         """ run all tests that work with data """
         # raise Exception("snateohu")
         try:
             # frontend = frontend_instance[0]
             # ui_test = UITest(frontend.get_passvoid(), frontend.get_endpoint(), self.web)
-            ui_test = UITest('', '', self.web)
+            ui_test = UITest(root_passvoid, '', self.web)
+            ui_test.test_user()
             # ui_test.test_collection(self.cfg.test_data_dir.resolve())
             ui_test.test_dashboard(self.cfg.enterprise, self.is_cluster)
             ui_test.test_views(self.is_cluster)
