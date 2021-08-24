@@ -3,6 +3,9 @@
 aardvark views page
 """
 import time
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
 from selenium_ui_test.base_selenium import BaseSelenium
 
 # can't circumvent long lines.. nAttr nLines
@@ -235,9 +238,9 @@ class ViewsPage(BaseSelenium):
 
     def delete_views_confirm_btn(self):
         """Confirm deletion of the current views"""
-        self.delete_views_confirm_btn_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.delete_views_confirm_btn_id)
-        self.delete_views_confirm_btn_id.click()
+        delete_views_confirm_btn_sitem = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable(BY.XPATH, self.delete_views_confirm_btn_id))
+        delete_views_confirm_btn_sitem.click()
 
     def final_delete_confirmation(self):
         """Final confirmation of deletion"""
