@@ -645,7 +645,7 @@ class SeleniumRunner(ABC):
             # ui_test = UITest(frontend.get_passvoid(), frontend.get_endpoint(), self.web)
             ui_test = UITest('', '', self.web)
             # ui_test.test_collection(self.cfg.test_data_dir.resolve())
-            # TODO ui_test.test_views()
+            ui_test.test_views(self.is_cluster)
             print('i'*80)
             print(self.cfg.test_data_dir)
             print(str(self.cfg.test_data_dir))

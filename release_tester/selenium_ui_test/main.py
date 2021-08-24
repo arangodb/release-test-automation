@@ -279,7 +279,7 @@ class Test(BaseSelenium):
         #del login
         print("---------Checking Collection Completed--------- \n")
 
-    def test_views(self):
+    def test_views(self, is_cluster):
         """testing Views page"""
         print("---------Checking Views Begin--------- \n")
         #login = LoginPage(self.driver)
@@ -340,14 +340,19 @@ class Test(BaseSelenium):
         views1.select_inside_search("")
         # ###print("Changing views consolidationPolicy id to 55555555 \n")
         # ###views1.change_consolidation_policy(55555555)
-        print("Rename firstViews to thirdViews started \n")
-        views.clicking_rename_views_btn()
-        views.rename_views_name("thirdView")
-        views.rename_views_name_confirm()
-        print("Rename the current Views completed \n")
-        self.driver.back()
-        print("Deleting views started \n")
-        views.select_renamed_view()
+        if not is_cluster:
+            print("Rename firstViews to thirdViews started \n")
+            views.clicking_rename_views_btn()
+            views.rename_views_name("thirdView")
+            views.rename_views_name_confirm()
+            print("Rename the current Views completed \n")
+            self.driver.back()
+            print("Deleting views started \n")
+            views.select_renamed_view()
+        else:
+            print("Deleting views started \n")
+            self.driver.back()
+            views.select_first_view()
         views.delete_views_btn()
         views.delete_views_confirm_btn()
         views.final_delete_confirmation()

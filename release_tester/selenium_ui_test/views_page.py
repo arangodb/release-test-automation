@@ -113,9 +113,9 @@ class ViewsPage(BaseSelenium):
 
     def select_first_view(self):
         """selecting first view"""
-        self.select_first_view_id = \
+        select_first_view_sitem = \
             BaseSelenium.locator_finder_by_xpath(self, self.select_first_view_id)
-        self.select_first_view_id.click()
+        select_first_view_sitem.click()
 
     def select_collapse_btn(self):
         """selecting collapse all btn"""
@@ -179,7 +179,7 @@ class ViewsPage(BaseSelenium):
         """traverse search results down"""
         self.search_result_traverse_down_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.search_result_traverse_down_id)
-        for () in range(8):
+        for (_) in range(8):
             self.search_result_traverse_down_id.click()
             time.sleep(1)
 
@@ -187,7 +187,7 @@ class ViewsPage(BaseSelenium):
         """traverse search results up"""
         self.search_result_traverse_up_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.search_result_traverse_up_id)
-        for () in range(8):
+        for (_) in range(8):
             self.search_result_traverse_up_id.click()
             time.sleep(1)
 
