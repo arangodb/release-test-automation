@@ -18,10 +18,13 @@ from tools.versionhelper import is_higher_version
 SYNC_VERSIONS = {
     "140": semver.VersionInfo.parse('1.4.0'),
     "150": semver.VersionInfo.parse('1.5.0'),
+    "180": semver.VersionInfo.parse('1.8.0'),
     "220": semver.VersionInfo.parse('2.2.0'),
-    "230": semver.VersionInfo.parse('2.3.0')
+    "230": semver.VersionInfo.parse('2.3.0'),
+    "260": semver.VersionInfo.parse('2.6.0')
 }
 USERS_ERROR_RX = re.compile('.*\n*.*\n*.*\n*.*(_users).*DIFFERENT.*', re.MULTILINE)
+STATUS_INACTIVE = "inactive"
 
 
 def _create_headers(token):
@@ -31,7 +34,7 @@ def _create_headers(token):
 
 def _get_sync_status(cluster):
     """
-        Check replication status of the cluster.
+        Get status of the replication.
     """
     cluster_instance = cluster['instance']
     token = cluster_instance.get_jwt_token_from_secret_file(cluster["SyncSecret"])
@@ -44,11 +47,35 @@ def _get_sync_status(cluster):
         raise Exception("could not fetch arangosync status from {url}, status code: {status_code}".
                         format(url=url, status_code=response.status_code))
 
-    status = response.json().get('status')
-    if not status:
-        raise Exception("missing status in response from {url}".format(url=url))
+    # Check the incoming status of the cluster.
+    incoming_status = STATUS_INACTIVE
+    resp_json = response.json()
+    shards = resp_json.get('shards')
+    if shards and len(shards) > 0:
+        # It is the response from the target or proxy cluster.
+        incoming_status = resp_json.get('status')
+        if not incoming_status:
+            raise Exception("missing incoming status in response from {url}, response: {response}".
+                            format(url=url, response=response))
 
-    return status
+    # Check the outgoing status of the cluster.
+    outgoing_status = STATUS_INACTIVE
+    outgoing = resp_json.get('outgoing')
+    if outgoing and len(outgoing) > 0:
+        # It is the response from the source or proxy cluster.
+        outgoing_status = outgoing[0].get('status')
+        if not outgoing_status:
+            raise Exception("missing outgoing status in response from {url}, response: {response}".
+                            format(url=url, response=response))
+
+    # Return status.
+    if outgoing_status == STATUS_INACTIVE and incoming_status == STATUS_INACTIVE:
+        return STATUS_INACTIVE
+
+    if outgoing_status == STATUS_INACTIVE:
+        return incoming_status
+
+    return outgoing_status
 
 
 class Dc2Dc(Runner):
@@ -262,6 +289,7 @@ class Dc2Dc(Runner):
         output = ""
         success = True
 
+        timeout_start = time.time()
         if self._is_higher_sync_version(SYNC_VERSIONS['150'], SYNC_VERSIONS['230']):
             success, output, _, _ = self.sync_manager.stop_sync(timeout)
         else:
@@ -273,17 +301,17 @@ class Dc2Dc(Runner):
             self.state += "\n" + output
             raise Exception("failed to stop the synchronization")
 
-        count = 0
-        status_source = ""
-        status_target = ""
-        while count < 30:
-            status_source = _get_sync_status(self.cluster1)
-            status_target = _get_sync_status(self.cluster2)
-            if status_source == "inactive" and status_target == "inactive":
-                return
+        if not self._is_higher_sync_version(SYNC_VERSIONS['180'], SYNC_VERSIONS['260']):
+            print("Wait for the inactive replication on all clusters")
+            status_source = ""
+            status_target = ""
+            while time.time() < timeout_start + timeout:
+                status_source = _get_sync_status(self.cluster1)
+                status_target = _get_sync_status(self.cluster2)
+                if status_source == STATUS_INACTIVE and status_target == STATUS_INACTIVE:
+                    return
 
-            count += 1
-            time.sleep(2)
+                time.sleep(2)
 
         raise Exception("failed to stop the synchronization, source status: "+status_source+", target status: "+status_target)
 
