@@ -36,8 +36,8 @@ class UserPage(BaseSelenium):
 
     def user_tab(self):
         """selecting user tab"""
-        user_tab = self.select_user_tab_id
-        user_tab = BaseSelenium.locator_finder_by_id(user_tab)
+        user_tab = 
+        user_tab = self.locator_finder_by_id(self.select_user_tab_id)
         user_tab.click()
 
     def add_new_user(self, tester):
