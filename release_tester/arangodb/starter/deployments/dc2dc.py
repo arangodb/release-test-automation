@@ -22,6 +22,7 @@ SYNC_VERSIONS = {
     "230": semver.VersionInfo.parse('2.3.0')
 }
 USERS_ERROR_RX = re.compile('.*\n*.*\n*.*\n*.*(_users).*DIFFERENT.*', re.MULTILINE)
+STATUS_INACTIVE = "inactive"
 
 
 def _create_headers(token):
@@ -31,7 +32,7 @@ def _create_headers(token):
 
 def _get_sync_status(cluster):
     """
-        Check replication status of the cluster.
+        Get status of the replication.
     """
     cluster_instance = cluster['instance']
     token = cluster_instance.get_jwt_token_from_secret_file(cluster["SyncSecret"])
@@ -44,11 +45,32 @@ def _get_sync_status(cluster):
         raise Exception("could not fetch arangosync version from {url}, status code: {status_code}".
                         format(url=url, status_code=response.status_code))
 
-    status = response.json().get('status')
-    if not status:
-        raise Exception("missing status in response from {url}".format(url=url))
+    # Check the incoming status of the cluster.
+    incoming_status = STATUS_INACTIVE
+    shards = response.json().get('shards')
+    if shards and len(shards) > 0:
+        # It is the response from the target or proxy cluster.
+        incoming_status = response.json().get('status')
+        if not incoming_status:
+            raise Exception("missing incoming status in response from {url}".format(url=url))
 
-    return status
+    # Check the outgoing status of the cluster.
+    outgoing_status = STATUS_INACTIVE
+    outgoing = response.json().get('outgoing')
+    if outgoing and len(outgoing) > 0:
+        # It is the response from the source or proxy cluster.
+        outgoing_status = outgoing[0].get('status')
+        if not outgoing_status:
+            raise Exception("missing outgoing status in response from {url}".format(url=url))
+
+    # Return status.
+    if outgoing_status == STATUS_INACTIVE and incoming_status == STATUS_INACTIVE:
+        return STATUS_INACTIVE
+
+    if outgoing_status == STATUS_INACTIVE:
+        return incoming_status
+
+    return outgoing_status
 
 
 class Dc2Dc(Runner):
@@ -279,7 +301,7 @@ class Dc2Dc(Runner):
         while count < 30:
             status_source = _get_sync_status(self.cluster1)
             status_target = _get_sync_status(self.cluster2)
-            if status_source == "inactive" and status_target == "inactive":
+            if status_source == STATUS_INACTIVE and status_target == STATUS_INACTIVE:
                 return
 
             count += 1
