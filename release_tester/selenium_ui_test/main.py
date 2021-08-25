@@ -383,29 +383,29 @@ class Test(BaseSelenium):
         print("Manual Graph creation started \n")
 
         this_graph.select_graph_page()
-        print("Creating '%s' Graph"%get_graph_name(GraphExample.MANUAL_KNOWS))
-        this_graph.create_graph(GraphExample.MANUAL_KNOWS, importer, test_data_dir)
-        print("Manual Graph creation completed \n")
-        this_graph.delete_graph(GraphExample.MANUAL_KNOWS)
-        self.driver.refresh()
-
-        if cfg.enterprise:
-            print("Adding Satellite Graph started \n")
-            this_graph.create_graph(GraphExample.MANUAL_SATELITE_GRAPH, importer, test_data_dir)
-            print("Adding Satellite Graph started \n")
-
-            print("Adding Smart Graph started \n")
-            this_graph.create_graph(GraphExample.MANUAL_SMART_GRAHP, importer, test_data_dir)
-            print("Adding Smart Graph completed \n")
-
-            print("Adding Disjoint Smart Graph started \n")
-            this_graph.create_graph(GraphExample.MANUAL_DISJOINT_SMART_GRAHP, importer, test_data_dir)
-            print("Adding Disjoint Smart Graph completed \n")
+        #print("Creating '%s' Graph"%get_graph_name(GraphExample.MANUAL_KNOWS))
+        #this_graph.create_graph(GraphExample.MANUAL_KNOWS, importer, test_data_dir)
+        #print("Manual Graph creation completed \n")
+        #this_graph.delete_graph(GraphExample.MANUAL_KNOWS)
+        #self.driver.refresh()
+        #
+        #if cfg.enterprise:
+        #    print("Adding Satellite Graph started \n")
+        #    this_graph.create_graph(GraphExample.MANUAL_SATELITE_GRAPH, importer, test_data_dir)
+        #    print("Adding Satellite Graph started \n")
+        #
+        #    print("Adding Smart Graph started \n")
+        #    this_graph.create_graph(GraphExample.MANUAL_SMART_GRAHP, importer, test_data_dir)
+        #    print("Adding Smart Graph completed \n")
+        #
+        #    print("Adding Disjoint Smart Graph started \n")
+        #    this_graph.create_graph(GraphExample.MANUAL_DISJOINT_SMART_GRAHP, importer, test_data_dir)
+        #    print("Adding Disjoint Smart Graph completed \n")
 
         print("Example Graphs creation started\n")
         for graph in GraphExample:
-            if graph == GraphExample.MANUAL_KNOWS:
-                break
+            #if graph == GraphExample.MANUAL_KNOWS:
+            #    break
             self.navbar_goto('graphs')
             print(graph)
             print("Creating '%s' Graph"%get_graph_name(graph))
@@ -426,8 +426,8 @@ class Test(BaseSelenium):
 
         print("Deleting created Graphs started\n")
         for graph in GraphExample:
-            if graph == GraphExample.MANUAL_KNOWS:
-                break
+            #if graph == GraphExample.MANUAL_KNOWS:
+            #    break
             self.navbar_goto('graphs')
             this_graph.delete_graph(graph)
         print("Deleting created Graphs Completed\n")
