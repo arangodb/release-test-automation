@@ -18,8 +18,10 @@ from tools.versionhelper import is_higher_version
 SYNC_VERSIONS = {
     "140": semver.VersionInfo.parse('1.4.0'),
     "150": semver.VersionInfo.parse('1.5.0'),
+    "180": semver.VersionInfo.parse('1.8.0'),
     "220": semver.VersionInfo.parse('2.2.0'),
-    "230": semver.VersionInfo.parse('2.3.0')
+    "230": semver.VersionInfo.parse('2.3.0'),
+    "260": semver.VersionInfo.parse('2.6.0')
 }
 USERS_ERROR_RX = re.compile('.*\n*.*\n*.*\n*.*(_users).*DIFFERENT.*', re.MULTILINE)
 STATUS_INACTIVE = "inactive"
@@ -299,7 +301,7 @@ class Dc2Dc(Runner):
             self.state += "\n" + output
             raise Exception("failed to stop the synchronization")
 
-        if not self._is_higher_sync_version(semver.VersionInfo.parse('1.8.0'), semver.VersionInfo.parse('2.6.0')):
+        if not self._is_higher_sync_version(SYNC_VERSIONS['180'], SYNC_VERSIONS['260']):
             print("Wait for the inactive replication on all clusters")
             status_source = ""
             status_target = ""
