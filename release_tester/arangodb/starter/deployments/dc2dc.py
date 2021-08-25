@@ -47,21 +47,24 @@ def _get_sync_status(cluster):
 
     # Check the incoming status of the cluster.
     incoming_status = STATUS_INACTIVE
-    shards = response.json().get('shards')
+    resp_json = response.json()
+    shards = resp_json.get('shards')
     if shards and len(shards) > 0:
         # It is the response from the target or proxy cluster.
-        incoming_status = response.json().get('status')
+        incoming_status = resp_json.get('status')
         if not incoming_status:
-            raise Exception("missing incoming status in response from {url}".format(url=url))
+            raise Exception("missing incoming status in response from {url}, response: {response}".
+                            format(url=url, response=response))
 
     # Check the outgoing status of the cluster.
     outgoing_status = STATUS_INACTIVE
-    outgoing = response.json().get('outgoing')
+    outgoing = resp_json.get('outgoing')
     if outgoing and len(outgoing) > 0:
         # It is the response from the source or proxy cluster.
         outgoing_status = outgoing[0].get('status')
         if not outgoing_status:
-            raise Exception("missing outgoing status in response from {url}".format(url=url))
+            raise Exception("missing outgoing status in response from {url}, response: {response}".
+                            format(url=url, response=response))
 
     # Return status.
     if outgoing_status == STATUS_INACTIVE and incoming_status == STATUS_INACTIVE:
@@ -296,15 +299,17 @@ class Dc2Dc(Runner):
             self.state += "\n" + output
             raise Exception("failed to stop the synchronization")
 
-        status_source = ""
-        status_target = ""
-        while time.time() < timeout_start + timeout:
-            status_source = _get_sync_status(self.cluster1)
-            status_target = _get_sync_status(self.cluster2)
-            if status_source == STATUS_INACTIVE and status_target == STATUS_INACTIVE:
-                return
+        if not self._is_higher_sync_version(semver.VersionInfo.parse('1.8.0'), semver.VersionInfo.parse('2.6.0')):
+            print("Wait for the inactive replication on all clusters")
+            status_source = ""
+            status_target = ""
+            while time.time() < timeout_start + timeout:
+                status_source = _get_sync_status(self.cluster1)
+                status_target = _get_sync_status(self.cluster2)
+                if status_source == STATUS_INACTIVE and status_target == STATUS_INACTIVE:
+                    return
 
-            time.sleep(2)
+                time.sleep(2)
 
         raise Exception("failed to stop the synchronization, source status: "+status_source+", target status: "+status_target)
 
