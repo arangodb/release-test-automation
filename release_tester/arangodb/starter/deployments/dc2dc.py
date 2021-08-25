@@ -284,6 +284,7 @@ class Dc2Dc(Runner):
         output = ""
         success = True
 
+        timeout_start = time.time()
         if self._is_higher_sync_version(SYNC_VERSIONS['150'], SYNC_VERSIONS['230']):
             success, output, _, _ = self.sync_manager.stop_sync(timeout)
         else:
@@ -295,16 +296,14 @@ class Dc2Dc(Runner):
             self.state += "\n" + output
             raise Exception("failed to stop the synchronization")
 
-        count = 0
         status_source = ""
         status_target = ""
-        while count < 30:
+        while time.time() < timeout_start + timeout:
             status_source = _get_sync_status(self.cluster1)
             status_target = _get_sync_status(self.cluster2)
             if status_source == STATUS_INACTIVE and status_target == STATUS_INACTIVE:
                 return
 
-            count += 1
             time.sleep(2)
 
         raise Exception("failed to stop the synchronization, source status: "+status_source+", target status: "+status_target)
