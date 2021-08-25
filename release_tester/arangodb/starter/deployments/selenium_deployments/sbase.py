@@ -644,6 +644,7 @@ class SeleniumRunner(ABC):
             # frontend = frontend_instance[0]
             # ui_test = UITest(frontend.get_passvoid(), frontend.get_endpoint(), self.web)
             ui_test = UITest(root_passvoid, '', self.web)
+            self.navbar_goto("users")
             ui_test.test_user()
             ui_test.test_collection(self.cfg.test_data_dir.resolve(), self.is_cluster)
             ui_test.test_dashboard(self.cfg.enterprise, self.is_cluster)
