@@ -24,6 +24,7 @@ class UserPage(BaseSelenium):
         self.create_user_btn_id = "modalButton1"
         self.selecting_user_tester_id = "tester"
         self.tester_id = '//*[@id="userManagementThumbnailsIn"]/div[3]/div/h5'
+        self.general_link_id = "//*[@id='subNavigationBar']/ul[2]/li[1]/a"
         self.permission_link_id = "//*[@id='subNavigationBar']/ul[2]/li[2]/a"
         self.db_permission_read_only = "//*[@id='*-db']/div[3]/input"
         self.db_permission_read_write = '//*[@id="*-db"]/div[2]/input'
@@ -72,9 +73,14 @@ class UserPage(BaseSelenium):
         new_user_sitem = self.locator_finder_by_id(self.selecting_user_tester_id)
         new_user_sitem.click()
 
-    def selecting_permission(self):
-        """selecting newly created user"""
+    def selecting_permission_tab(self):
+        """selecting the permissions tab of the newly created user"""
         permission_sitem = self.locator_finder_by_xpath(self.permission_link_id)
+        permission_sitem.click()
+
+    def selecting_general_tab(self):
+        """selecting the general tab of edited users """
+        permission_sitem = self.locator_finder_by_xpath(self.general_link_id)
         permission_sitem.click()
 
     def changing_db_permission_read_only(self):
