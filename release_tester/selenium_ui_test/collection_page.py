@@ -367,39 +367,39 @@ class CollectionPage(BaseSelenium):
     def move_doc_textbox(self, collection):
         """selecting Collection to move the selected data"""
         move_doc_textbox_sitem = \
-            self.locator_finder_by_id(self.move_doc_textbox_id)
+            self.locator_finder_by_text_id(self.move_doc_textbox_id, 20)
         move_doc_textbox_sitem.click()
         move_doc_textbox_sitem.send_keys(collection)
 
     def move_confirm_btn(self):
         """Confirming move data to the Collection"""
         move_confirm_btn_sitem = \
-            self.locator_finder_by_id(self.move_confirm_btn_id, 20)
+            self.locator_finder_by_text_id(self.move_confirm_btn_id, 20)
         move_confirm_btn_sitem.click()
 
     def select_collection_delete_btn(self):
         """Selecting delete button for selected data"""
         select_collection_delete_btn_sitem = \
-            self.locator_finder_by_id(self.select_collection_delete_btn_id)
+            self.locator_finder_by_text_id(self.select_collection_delete_btn_id)
         select_collection_delete_btn_sitem.click()
 
     def collection_delete_confirm_btn(self):
         """Selecting delete button for selected data"""
         collection_delete_confirm_btn_sitem = \
-            self.locator_finder_by_xpath(self.collection_delete_confirm_btn_id)
+            self.locator_finder_by_text_xpath(self.collection_delete_confirm_btn_id)
         collection_delete_confirm_btn_sitem.click()
 
     def collection_really_dlt_btn(self):
         """Selecting really delete button for selected data"""
         collection_really_dlt_btn_sitem = \
-            self.locator_finder_by_xpath(self.collection_really_dlt_btn_id)
+            self.locator_finder_by_text_xpath(self.collection_really_dlt_btn_id)
         collection_really_dlt_btn_sitem.click()
         self.driver.refresh()
 
     def select_index_menu(self):
         """Selecting index menu from collection"""
         select_index_menu_sitem = \
-            self.locator_finder_by_xpath(self.select_index_menu_id)
+            self.locator_finder_by_text_xpath(self.select_index_menu_id)
         select_index_menu_sitem.click()
 
     def create_new_index_btn(self):
@@ -416,7 +416,7 @@ class CollectionPage(BaseSelenium):
     def select_create_index_btn(self):
         """Selecting index menu from collection"""
         select_create_index_btn_sitem = \
-            self.locator_finder_by_id(self.select_create_index_btn_id)
+            self.locator_finder_by_text_id(self.select_create_index_btn_id)
         select_create_index_btn_sitem.click()
         time.sleep(2)
 
@@ -475,24 +475,24 @@ class CollectionPage(BaseSelenium):
     def delete_all_index(self):
         """this method will delete all the indexes one by one"""
         select_index_for_delete_sitem = \
-            self.locator_finder_by_xpath(self.select_index_for_delete_id)
+            self.locator_finder_by_text_xpath(self.select_index_for_delete_id)
         select_index_for_delete_sitem.click()
         select_index_confirm_delete_sitem = \
-            self.locator_finder_by_id(self.select_index_confirm_delete)
+            self.locator_finder_by_text_id(self.select_index_confirm_delete)
         select_index_confirm_delete_sitem.click()
         self.driver.refresh()
 
     def select_info_tab(self):
         """Selecting info tab from the collection submenu"""
         select_info_tab_sitem = \
-            self.locator_finder_by_xpath(self.select_info_tab_id)
+            self.locator_finder_by_text_xpath(self.select_info_tab_id)
         select_info_tab_sitem.click()
         time.sleep(2)
 
     def select_schema_tab(self):
         """Selecting Schema tab from the collection submenu"""
         if super().current_package_version() >= 3.8:
-            select_schema_tab_sitem = self.locator_finder_by_xpath(self.select_schema_tab_id)
+            select_schema_tab_sitem = self.locator_finder_by_text_xpath(self.select_schema_tab_id)
             select_schema_tab_sitem.click()
             time.sleep(2)
         else:
@@ -503,74 +503,74 @@ class CollectionPage(BaseSelenium):
     def select_settings_tab(self, is_cluster):
         """Selecting settings tab from the collection submenu"""
         select_settings_tab_sitem = \
-            self.locator_finder_by_xpath(self.select_settings_tab_id)
+            self.locator_finder_by_text_xpath(self.select_settings_tab_id)
         select_settings_tab_sitem.click()
         if not is_cluster:
             select_settings_name_textbox_sitem = \
-                self.locator_finder_by_id(self.select_settings_name_textbox_id)
+                self.locator_finder_by_text_id(self.select_settings_name_textbox_id)
             select_settings_name_textbox_sitem.click()
             select_settings_name_textbox_sitem.clear()
             select_settings_name_textbox_sitem.send_keys("testDocRenamed")
         #select_settings_wait_type_sitem = \
             self.locator_finder_by_select(self.select_settings_wait_type_id, 0)
         select_new_settings_save_btn_sitem = \
-            self.locator_finder_by_xpath(self.select_new_settings_save_btn_id)
+            self.locator_finder_by_text_xpath(self.select_new_settings_save_btn_id)
         select_new_settings_save_btn_sitem.click()
         time.sleep(2)
         print("Loading Index into memory\n")
         select_load_index_into_memory_sitem = \
-            self.locator_finder_by_xpath(self.select_load_index_into_memory_id)
+            self.locator_finder_by_text_xpath(self.select_load_index_into_memory_id)
         select_load_index_into_memory_sitem.click()
         time.sleep(2)
 
     def select_settings_unload_btn(self):
         """Loading and Unloading collection"""
         select_settings_unload_btn_sitem = \
-            self.locator_finder_by_xpath(self.select_settings_unload_btn_id)
+            self.locator_finder_by_text_xpath(self.select_settings_unload_btn_id)
         select_settings_unload_btn_sitem.click()
         time.sleep(2)
 
     def select_truncate_btn(self):
         """Loading and Unloading collection"""
         select_truncate_btn_sitem = \
-            self.locator_finder_by_xpath(self.select_truncate_btn_id)
+            self.locator_finder_by_text_xpath(self.select_truncate_btn_id)
         select_truncate_btn_sitem.click()
         time.sleep(1)
         select_truncate_confirm_btn_sitem = \
-            self.locator_finder_by_xpath(self.select_truncate_confirm_btn_id)
+            self.locator_finder_by_text_xpath(self.select_truncate_confirm_btn_id)
         select_truncate_confirm_btn_sitem.click()
         time.sleep(2)
 
     def delete_collection(self):
         """Deleting Collection from settings tab"""
         delete_collection_sitem = \
-            self.locator_finder_by_xpath(self.delete_collection_id)
+            self.locator_finder_by_text_xpath(self.delete_collection_id)
         delete_collection_sitem.click()
         time.sleep(1)
         delete_collection_confirm_sitem = \
-            self.locator_finder_by_xpath(self.delete_collection_confirm_id)
+            self.locator_finder_by_text_xpath(self.delete_collection_confirm_id)
         delete_collection_confirm_sitem.click()
 
     def select_edge_collection_upload(self):
         """selecting Edge collection for data uploading"""
         select_edge_collection_upload_sitem = \
-            self.locator_finder_by_xpath(self.select_edge_collection_upload_id)
+            self.locator_finder_by_text_xpath(self.select_edge_collection_upload_id)
         select_edge_collection_upload_sitem.click()
 
     def select_edge_collection(self):
         """selecting TestEdge Collection"""
         select_edge_collection_sitem = \
-            self.locator_finder_by_xpath(self.select_edge_collection_id)
+            self.locator_finder_by_text_xpath(self.select_edge_collection_id)
         select_edge_collection_sitem.click()
         select_edge_settings_sitem = \
-            self.locator_finder_by_xpath(self.select_edge_settings_id)
+            self.locator_finder_by_text_xpath(self.select_edge_settings_id)
         select_edge_settings_sitem.click()
 
     def select_test_doc_collection(self):
         """selecting TestEdge Collection"""
         select_test_doc_collection_sitem = \
-            self.locator_finder_by_xpath(self.select_test_doc_collection_id)
+            self.locator_finder_by_text_xpath(self.select_test_doc_collection_id)
         select_test_doc_collection_sitem.click()
         select_test_doc_settings_sitem = \
-            self.locator_finder_by_xpath(self.select_test_doc_settings_id)
+            self.locator_finder_by_text_xpath(self.select_test_doc_settings_id)
         select_test_doc_settings_sitem.click()
