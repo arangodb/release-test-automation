@@ -225,7 +225,7 @@ class CollectionPage(BaseSelenium):
     def sort_by_type(self):
         """Sorting collection by type"""
         sort_by_type_sitem = \
-            self.locator_finder_by_xpath(self.sort_by_type_id)
+            self.locator_finder_by_xpath(self.sort_by_type_id, 20)
         sort_by_type_sitem.click()
         time.sleep(2)
 

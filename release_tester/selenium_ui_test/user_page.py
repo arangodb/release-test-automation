@@ -4,8 +4,7 @@ aardvark ui object for users
 """
 import time
 from selenium_ui_test.base_selenium import BaseSelenium
-from selenium.common.exceptions import TimeoutException
-
+from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=R0902 disable=R0915
 
@@ -80,8 +79,13 @@ class UserPage(BaseSelenium):
 
     def selecting_general_tab(self):
         """selecting the general tab of edited users """
-        permission_sitem = self.locator_finder_by_xpath(self.general_link_id)
-        permission_sitem.click()
+        try:
+            permission_sitem = self.locator_finder_by_xpath(self.general_link_id)
+            permission_sitem.click()
+        except StaleElementReferenceException:
+            time.sleep(1)
+            permission_sitem = self.locator_finder_by_xpath(self.general_link_id)
+            permission_sitem.click()
 
     def changing_db_permission_read_only(self):
         """changing permission for the new user"""
