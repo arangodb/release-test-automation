@@ -152,8 +152,7 @@ class CollectionPage(BaseSelenium):
 
     def select_collection_type(self, value):
         """Selecting collection Document type where # '2' = Document, '3' = Edge"""
-        self.select_collection_type_sitem = \
-            self.locator_finder_by_select(self.select_collection_type_id, value)
+        self.locator_finder_by_select(self.select_collection_type_id, value)
 
     def select_advance_option(self):
         """Selecting collection advance options"""
@@ -163,8 +162,7 @@ class CollectionPage(BaseSelenium):
 
     def wait_for_sync(self, value):
         """Selecting collection wait type where value # 0 = YES, '1' = NO"""
-        self.wait_for_sync_sitem = \
-            self.locator_finder_by_select(self.wait_for_sync_id, value)
+        self.locator_finder_by_select(self.wait_for_sync_id, value)
 
     def create_new_collection_btn(self):
         """selecting collection tab"""
@@ -316,8 +314,7 @@ class CollectionPage(BaseSelenium):
         select_filter_input_sitem.send_keys("_id")
         time.sleep(1)
 
-        select_filter_operator_sitem = \
-            self.locator_finder_by_select(self.select_filter_operator_id, value)
+        self.locator_finder_by_select(self.select_filter_operator_id, value)
         time.sleep(1)
 
         select_filter_attribute_value_sitem = \
@@ -339,37 +336,32 @@ class CollectionPage(BaseSelenium):
 
     def display_document_size(self, value):
         """Choose how many rows of docs will be display"""
-        self.display_document_size_sitem = \
-            self.locator_finder_by_select(self.display_document_size_id, value)
+        self.locator_finder_by_select(self.display_document_size_id, value)
         time.sleep(2)
 
     def traverse_search_pages(self):
         """After changing the document display size checking everything loads"""
-        move_second_page_sitem = \
-            self.locator_finder_by_hover_item(self.move_second_page_id)
+        self.locator_finder_by_hover_item(self.move_second_page_id)
         time.sleep(2)
-        move_first_page_sitem = \
-            self.locator_finder_by_hover_item(self.move_first_page_id)
+        self.locator_finder_by_hover_item(self.move_first_page_id)
         time.sleep(2)
 
     def select_hand_pointer(self):
         """Selecting Hand selection button"""
-        self.select_hand_pointer_sitem = \
-            self.locator_finder_by_hover_item(self.select_hand_pointer_id)
+        self.locator_finder_by_hover_item(self.select_hand_pointer_id)
 
     def select_multiple_item(self):
         """selecting multiple document rows from the current collection"""
         time.sleep(2)
-        row1_sitem = self.locator_finder_by_hover_item(self.row1_id)
-        row2_sitem = self.locator_finder_by_hover_item(self.row2_id)
-        row3_sitem = self.locator_finder_by_hover_item(self.row3_id)
-        row4_sitem = self.locator_finder_by_hover_item(self.row4_id)
+        self.locator_finder_by_hover_item(self.row1_id)
+        self.locator_finder_by_hover_item(self.row2_id)
+        self.locator_finder_by_hover_item(self.row3_id)
+        self.locator_finder_by_hover_item(self.row4_id)
         time.sleep(1)
 
     def move_btn(self):
         """selecting collection move button after selecting"""
-        self.move_btn_sitem = \
-            self.locator_finder_by_hover_item(self.move_btn_id)
+        self.locator_finder_by_hover_item(self.move_btn_id)
         time.sleep(1)
 
     def move_doc_textbox(self, collection):
@@ -419,8 +411,7 @@ class CollectionPage(BaseSelenium):
 
     def select_index_type(self, value):
         """Selecting type of index here 1 = Geo, 2 = persistent, 3 = Fulltext, 4 = TTL type"""
-        self.select_index_type_sitem = \
-            self.locator_finder_by_select(self.select_index_type_id, value)
+        self.locator_finder_by_select(self.select_index_type_id, value)
 
     def select_create_index_btn(self):
         """Selecting index menu from collection"""
@@ -435,9 +426,8 @@ class CollectionPage(BaseSelenium):
         select_geo_fields_sitem.send_keys("gfields").perform()
         select_geo_name_sitem = self.locator_finder_by_hover_item_id(self.select_geo_name_id)
         select_geo_name_sitem.send_keys("gname").perform()
-        select_geo_json_sitem = self.locator_finder_by_hover_item_id(self.select_geo_json_id)
-        select_geo_background_sitem = \
-            self.locator_finder_by_hover_item_id(self.select_geo_background_id)
+        self.locator_finder_by_hover_item_id(self.select_geo_json_id)
+        self.locator_finder_by_hover_item_id(self.select_geo_background_id)
         time.sleep(1)
 
     def creating_persistent_index(self):
@@ -448,14 +438,10 @@ class CollectionPage(BaseSelenium):
         select_persistent_name_sitem = \
             self.locator_finder_by_hover_item_id(self.select_persistent_name_id)
         select_persistent_name_sitem.send_keys("pname").perform()
-        select_persistent_unique_sitem = \
-            self.locator_finder_by_hover_item_id(self.select_persistent_unique_id)
-        select_persistent_sparse_sitem = \
-            self.locator_finder_by_hover_item_id(self.select_persistent_sparse_id)
-        select_persistent_duplicate_sitem = \
-            self.locator_finder_by_hover_item_id(self.select_persistent_duplicate_id)
-        select_persistent_background_sitem = \
-            self.locator_finder_by_hover_item_id(self.select_persistent_background_id)
+        self.locator_finder_by_hover_item_id(self.select_persistent_unique_id)
+        self.locator_finder_by_hover_item_id(self.select_persistent_sparse_id)
+        self.locator_finder_by_hover_item_id(self.select_persistent_duplicate_id)
+        self.locator_finder_by_hover_item_id(self.select_persistent_background_id)
         time.sleep(1)
 
     def creating_fulltext_index(self):
@@ -469,8 +455,7 @@ class CollectionPage(BaseSelenium):
         select_fulltext_length_sitem = \
             self.locator_finder_by_hover_item_id(self.select_fulltext_length_id)
         select_fulltext_length_sitem.send_keys(100)
-        select_fulltext_background_sitem = \
-            self.locator_finder_by_hover_item_id(self.select_fulltext_background_id)
+        self.locator_finder_by_hover_item_id(self.select_fulltext_background_id)
         time.sleep(1)
 
     def creating_ttl_index(self):
@@ -484,8 +469,7 @@ class CollectionPage(BaseSelenium):
         select_ttl_expiry_sitem = \
             self.locator_finder_by_hover_item_id(self.select_ttl_expiry_id)
         select_ttl_expiry_sitem.send_keys(1000)
-        select_ttl_background_sitem = \
-            self.locator_finder_by_hover_item_id(self.select_ttl_background_id)
+        self.locator_finder_by_hover_item_id(self.select_ttl_background_id)
         time.sleep(1)
 
     def delete_all_index(self):
@@ -527,7 +511,7 @@ class CollectionPage(BaseSelenium):
             select_settings_name_textbox_sitem.click()
             select_settings_name_textbox_sitem.clear()
             select_settings_name_textbox_sitem.send_keys("testDocRenamed")
-        select_settings_wait_type_sitem = \
+        #select_settings_wait_type_sitem = \
             self.locator_finder_by_select(self.select_settings_wait_type_id, 0)
         select_new_settings_save_btn_sitem = \
             self.locator_finder_by_xpath(self.select_new_settings_save_btn_id)

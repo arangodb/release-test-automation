@@ -154,13 +154,13 @@ class SupportPage(BaseSelenium):
 
         fox_framework_list = [micro_service, guides, reference, deployment, go_to_fox_start]
 
-        fox_framework_assertion_Check = ['Getting started | Foxx Microservices | Manual | ArangoDB Documentation',
+        fox_framework_assertion_check = ['Getting started | Foxx Microservices | Manual | ArangoDB Documentation',
                                          'Guides | Foxx Microservices | Manual | ArangoDB Documentation',
                                          'Reference | Foxx Microservices | Manual | ArangoDB Documentation',
                                          'Deployment | Foxx Microservices | Manual | ArangoDB Documentation',
                                          'Foxx Microservices | ArangoDB Documentation']
 
-        self.loop_through_link_traversal(fox_framework_print_statement, fox_framework_list, fox_framework_assertion_Check)
+        self.loop_through_link_traversal(fox_framework_print_statement, fox_framework_list, fox_framework_assertion_check)
 
         print('Checking all arangodb Fox Framework link completed\n')
 
@@ -187,7 +187,7 @@ class SupportPage(BaseSelenium):
 
         drivers_and_integration = [arangodb_java_driver, arangojs_java_script, arangodb_php, arangodb_go_driver,
                                    arangodb_spring_data, arangodb_spark_connector, driver_and_integration]
-        
+
         driver_integration_assertion_check = ['Java Driver | Drivers | ArangoDB Documentation',
                                               'ArangoDB JavaScript Driver | ArangoDB Documentation',
                                               'ArangoDB-PHP | Drivers | ArangoDB Documentation',

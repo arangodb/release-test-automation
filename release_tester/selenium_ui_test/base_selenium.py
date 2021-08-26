@@ -15,8 +15,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import (
-    InvalidSessionIdException,
-    StaleElementReferenceException,
+    #InvalidSessionIdException,
+    #StaleElementReferenceException,
     TimeoutException,
     NoSuchElementException
 )
@@ -112,23 +112,6 @@ class BaseSelenium:
         actions.send_keys(Keys.DELETE)
         actions.key_up(Keys.CONTROL)
         actions.perform()
-
-
-    @staticmethod
-    def clear_download_bar():
-        """This method will close the download bar from the chrome browser"""
-        print("closing download banner from the bottom \n")
-        keyboard = Controller()
-        with keyboard.pressed(Key.ctrl):
-            keyboard.press('j')
-            keyboard.release('j')
-
-        time.sleep(2)
-
-        keyboard01 = Controller()
-        with keyboard01.pressed(Key.ctrl):
-            keyboard01.press('w')
-            keyboard01.release('w')
 
     def check_ui_responsiveness(self):
         """Checking LOG tab causes unresponsive UI (found in 3.8 server package"""
@@ -297,13 +280,6 @@ class BaseSelenium:
         time.sleep(1)
         return action
 
-    @staticmethod
-    def escape():
-        """This method will used for escape from a maximized to minimize window"""
-        keyboard = Controller()
-        keyboard.press(Key.f11)
-        keyboard.release(Key.f11)
-
     def zoom(self):
         """This method will used for zoom in/out on any perspective window"""
         print("zooming in now\n")
@@ -374,6 +350,6 @@ class BaseSelenium:
                     self.driver.refresh()
                     time.sleep(1)
                 continue
-            except TimeoutException as ex:
-                self.take_screenshot()
-                raise ex
+            #except TimeoutException as ex:
+                #self.take_screenshot()
+            #    raise ex
