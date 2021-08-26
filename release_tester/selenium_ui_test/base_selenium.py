@@ -293,31 +293,31 @@ class BaseSelenium:
         time.sleep(1)
         return action
 
-    def locator_finder_by_text_id(self, locator_name):
+    def locator_finder_by_text_id(self, locator_name, timeout=10):
         """This method will used for finding all the locators text using ID"""
-        self.locator = WebDriverWait(self.driver, 10).until(
+        self.locator = WebDriverWait(self.driver, timeout).until(
             EC.element_to_be_clickable((BY.ID, locator_name)),
             message="UI-Test: " + locator_name + " locator was not found."
         )
-        self.locator = self.locator.text
-        if self.locator is None:
+        # self.locator = self.locator.text
+        if self.locator.text is None:
             raise Exception("UI-Test: ", locator_name, " locator was not found.")
         return self.locator
 
-    def locator_finder_by_text_xpath(self, locator_name):
+    def locator_finder_by_text_xpath(self, locator_name, timeout=10):
         """This method will used for finding all the locators text using xpath"""
-        self.locator = WebDriverWait(self.driver, 10).until(
+        self.locator = WebDriverWait(self.driver, timeout).until(
             EC.element_to_be_clickable((BY.XPATH, locator_name)),
             message="UI-Test: " + locator_name + " locator was not found."
         )
-        self.locator = self.locator.text
-        if self.locator is None:
+        # self.locator = self.locator.text
+        if self.locator.text is None:
             raise Exception("UI-Test: ", locator_name, " locator was not found.")
         return self.locator
 
-    def locator_finder_by_css_selectors(self, locator_name):
+    def locator_finder_by_css_selectors(self, locator_name, timeout=10):
         """This method will used for finding all the locators text using CSS Selector"""
-        self.locator = WebDriverWait(self.driver, 10).until(
+        self.locator = WebDriverWait(self.driver, timeout).until(
             EC.element_to_be_clickable((BY.CSS_SELECTOR, locator_name)),
             message="UI-Test: " + locator_name + " locator was not found."
         )

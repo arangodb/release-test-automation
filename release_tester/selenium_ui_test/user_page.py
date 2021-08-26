@@ -46,23 +46,23 @@ class UserPage(BaseSelenium):
         add_new_user_sitem.click()
 
         # entering new user name
-        enter_new_user_name_sitem = self.locator_finder_by_id(self.enter_new_user_name_id)
+        enter_new_user_name_sitem = self.locator_finder_by_text_id(self.enter_new_user_name_id)
         enter_new_user_name_sitem.click()
         enter_new_user_name_sitem.send_keys(tester)
         time.sleep(3)
 
         # providing new user name
-        enter_new_name_sitem = self.locator_finder_by_id(self.enter_new_name_id)
+        enter_new_name_sitem = self.locator_finder_by_text_id(self.enter_new_name_id)
         enter_new_name_sitem.click()
         enter_new_name_sitem.send_keys(tester)
 
         # entering new user password
-        enter_new_password_sitem = self.locator_finder_by_id(self.enter_new_password_id)
+        enter_new_password_sitem = self.locator_finder_by_text_id(self.enter_new_password_id)
         enter_new_password_sitem.click()
         enter_new_password_sitem.send_keys(tester)
 
         # User page selecting add new user
-        create_user_btn_sitem = self.locator_finder_by_id(self.create_user_btn_id)
+        create_user_btn_sitem = self.locator_finder_by_text_id(self.create_user_btn_id)
         create_user_btn_sitem.click()
         time.sleep(3)
         print("New user creation completed \n")
