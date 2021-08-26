@@ -223,34 +223,34 @@ class CollectionPage(BaseSelenium):
     def sort_by_type(self):
         """Sorting collection by type"""
         sort_by_type_sitem = \
-            self.locator_finder_by_xpath(self.sort_by_type_id, 20)
+            self.locator_finder_by_text_xpath(self.sort_by_type_id, 20)
         sort_by_type_sitem.click()
         time.sleep(2)
 
     def sort_descending(self):
         """Sorting collection by descending"""
         sort_descending_sitem = \
-            self.locator_finder_by_xpath(self.sort_descending_id)
+            self.locator_finder_by_text_xpath(self.sort_descending_id)
         sort_descending_sitem.click()
         time.sleep(2)
 
     def sort_by_name(self):
         """Sorting collection by name"""
         sort_by_name_sitem = \
-            self.locator_finder_by_xpath(self.sort_by_name_id)
+            self.locator_finder_by_text_xpath(self.sort_by_name_id)
         sort_by_name_sitem.click()
         time.sleep(2)
 
     def select_doc_collection(self):
         """selecting TestDoc Collection"""
         select_doc_collection_sitem = \
-            self.locator_finder_by_xpath(self.select_doc_collection_id)
+            self.locator_finder_by_text_xpath(self.select_doc_collection_id)
         select_doc_collection_sitem.click()
 
     def select_upload_btn(self):
         """selecting collection upload btn"""
         select_upload_btn_sitem = \
-            self.locator_finder_by_xpath(self.select_upload_btn_id)
+            self.locator_finder_by_text_xpath(self.select_upload_btn_id)
         select_upload_btn_sitem.click()
         time.sleep(3)
 

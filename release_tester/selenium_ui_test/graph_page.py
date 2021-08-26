@@ -763,11 +763,11 @@ class GraphPage(BaseSelenium):
         select_graph_setting_btn_sitem.click()
         time.sleep(1)
 
-        confirm_delete_graph_sitem = self.locator_finder_by_id(self.confirm_delete_graph_id)
+        confirm_delete_graph_sitem = self.locator_finder_by_text_id(self.confirm_delete_graph_id)
         confirm_delete_graph_sitem.click()
         time.sleep(1)
 
-        delete_with_collection_sitem = self.locator_finder_by_id(self.delete_with_collection_id)
+        delete_with_collection_sitem = self.locator_finder_by_text_id(self.delete_with_collection_id)
         delete_with_collection_sitem.click()
         time.sleep(1)
 
