@@ -151,6 +151,7 @@ class Test(BaseSelenium):
         col1.select_status_unloaded()
         self.driver.refresh()
         print("Sorting collections by type\n")
+        col.select_collection_settings()        
         col.sort_by_type()
         print("Sorting collections by descending\n")
         col.sort_descending()

@@ -83,6 +83,7 @@ class UserPage(BaseSelenium):
             permission_sitem = self.locator_finder_by_xpath(self.general_link_id)
             permission_sitem.click()
         except StaleElementReferenceException:
+            # javascript may be doing stuff to the DOM so we retry once here...
             time.sleep(1)
             permission_sitem = self.locator_finder_by_xpath(self.general_link_id)
             permission_sitem.click()
