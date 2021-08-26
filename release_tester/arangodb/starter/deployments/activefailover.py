@@ -114,8 +114,8 @@ class ActiveFailover(Runner):
         self._detect_leader()
         self.selenium.set_instances(self.cfg, self.leader.arango_importer, self.leader.arango_restore)
         self.selenium.connect_server(self.get_frontend_instances(), '_system', self.cfg)
-        
-        self.selenium.check_full_ui() # TODO: remove me
+
+        self.selenium.check_full_ui('leader') # TODO: remove me
 
         #add data to leader
         self.makedata_instances.append(self.leader)

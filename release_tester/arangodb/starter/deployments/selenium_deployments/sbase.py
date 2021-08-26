@@ -68,6 +68,7 @@ class SeleniumRunner(ABC):
         self.is_cluster = False
 
     def set_instances(self, cfg, importer, restorer):
+        """ change the used frontend instance """
         self.cfg = cfg
         self.importer = importer
         self.restorer = restorer

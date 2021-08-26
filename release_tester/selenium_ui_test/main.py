@@ -2,7 +2,7 @@
 """
 main entrance point for the UI tests
 """
-import time
+#import time
 
 from selenium_ui_test.base_selenium import BaseSelenium
 from selenium_ui_test.dashboard_page import DashboardPage
@@ -151,7 +151,7 @@ class Test(BaseSelenium):
         col1.select_status_unloaded()
         self.driver.refresh()
         print("Sorting collections by type\n")
-        col.select_collection_settings()        
+        col.select_collection_settings()
         col.sort_by_type()
         print("Sorting collections by descending\n")
         col.sort_descending()

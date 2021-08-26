@@ -183,7 +183,7 @@ class ViewsPage(BaseSelenium):
         """traverse search results down"""
         self.search_result_traverse_down_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.search_result_traverse_down_id)
-        for (_) in range(8):
+        for _ in range(8):
             self.search_result_traverse_down_id.click()
             time.sleep(1)
 
@@ -191,7 +191,7 @@ class ViewsPage(BaseSelenium):
         """traverse search results up"""
         self.search_result_traverse_up_id = \
             BaseSelenium.locator_finder_by_xpath(self, self.search_result_traverse_up_id)
-        for (_) in range(8):
+        for _ in range(8):
             self.search_result_traverse_up_id.click()
             time.sleep(1)
 

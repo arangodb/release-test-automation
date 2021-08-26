@@ -536,7 +536,7 @@ class GraphPage(BaseSelenium):
         graph_sitem.click()
 
         time.sleep(3)
-        select_graph_cancel_btn_id_sitem = \
+        select_graph_cancel_btn_sitem = \
             self.locator_finder_by_id(self.select_graph_cancel_btn_id)
         select_graph_cancel_btn_sitem.click()
         time.sleep(3)
@@ -600,7 +600,7 @@ class GraphPage(BaseSelenium):
         # print("Selecting Resume layout button \n")
         # resume = self.select_resume_layout_btn_id
         # pause = self.select_resume_layout_btn_id
-        # 
+        #
         # resume_sitem = self.locator_finder_by_xpath(resume)
         # resume_sitem.click()
         # time.sleep(3)

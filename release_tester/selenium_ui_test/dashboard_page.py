@@ -87,8 +87,8 @@ class DashboardPage(BaseSelenium):
 
     def check_system_resource(self):
         """checking system resource tab from the dashboard"""
-        self.check_system_resource_sitem = self.locator_finder_by_id(self.check_system_resource_id)
-        self.check_system_resource_sitem.click()
+        check_system_resource_sitem = self.locator_finder_by_id(self.check_system_resource_id)
+        check_system_resource_sitem.click()
         time.sleep(1)
 
     def check_system_metrics(self):
@@ -107,7 +107,7 @@ class DashboardPage(BaseSelenium):
 
             # Downloading metrics from the dashboard
             if self.driver.name == "chrome":  # this will check browser name
-                 print("Downloading metrics has been disabled for the Chrome browser \n")
+                print("Downloading metrics has been disabled for the Chrome browser \n")
             else:
                 metrics_download_sitem = self.locator_finder_by_id(self.metrics_download_id)
                 metrics_download_sitem.click()

@@ -98,19 +98,20 @@ class UserPage(BaseSelenium):
         db_permission_sitem = self.locator_finder_by_xpath(self.db_permission_read_write)
         db_permission_sitem.click()
 
-    # saving new settings for new user
     def saving_user_cfg(self):
+        """ saving new settings for new user """
         save_button_sitem = self.locator_finder_by_id(self.saving_user_cfg_id)
         save_button_sitem.click()
         time.sleep(3)
 
     def selecting_new_user(self):
+        """ select a user """
         tester_sitem = self.locator_finder_by_xpath(self.tester_id)
         tester_sitem.click()
         time.sleep(4)
 
     def create_sample_collection(self, test_name):
-        # selecting collection tab
+        """ selecting collection tab """
         try:
             collection_page_sitem = self.locator_finder_by_id(self.select_collection_page_id)
             collection_page_sitem.click()
@@ -133,15 +134,15 @@ class UserPage(BaseSelenium):
                 notification_sitem = self.locator_finder_by_css_selectors('noty_body')
                 time.sleep(1)
                 expected_text = 'Collection: Collection "testDoc" successfully created.'
-                assert notification_sitem.text == expected_text, f"Expected text{expected_text} but got {notification.text}"
+                assert notification_sitem.text == expected_text, f"Expected text{expected_text} but got {notification_sitem.text}"
             except TimeoutException:
                 print('Unexpected error occurred!')
 
-        except TimeoutException:
+        except TimeoutException as ex:
             if test_name == 'access':
                 print("Collection creation failed, which is expected")
             if test_name == 'read/write':
-                raise Exception("Unexpected error occurred!")
+                raise Exception("Unexpected error occurred!") from ex
 
     def delete_user_btn(self):
         """deleting user"""

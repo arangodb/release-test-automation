@@ -99,10 +99,9 @@ class BaseSelenium:
         time.sleep(1)
 
     def clear_all_text(self, locator=None):
-        print("Cleaning input field \n")
         """This method will select all text and clean it"""
+        print("Cleaning input field \n")
         if locator is not None:
-            locator = locator
             locator = self.locator_finder_by_xpath(locator)
 
         print("Cleaning input field \n")
@@ -130,7 +129,7 @@ class BaseSelenium:
         with keyboard01.pressed(Key.ctrl):
             keyboard01.press('w')
             keyboard01.release('w')
-    
+
     def check_ui_responsiveness(self):
         """Checking LOG tab causes unresponsive UI (found in 3.8 server package"""
         print("\n")
@@ -183,7 +182,7 @@ class BaseSelenium:
         dash = self.locator_finder_by_id(dash)
         dash.click()
         time.sleep(2)
-    
+
     def select_query_execution_area(self):
         """This method will select the query execution area"""
         try:
@@ -193,7 +192,7 @@ class BaseSelenium:
             time.sleep(2)
         except TimeoutException:
             print("Can't find the query execution area \n")
-        
+
     def select_bindvalue_json_area(self):
         """This method will select the query execution area"""
         try:
@@ -202,7 +201,7 @@ class BaseSelenium:
             time.sleep(2)
         except TimeoutException:
             print("Can't find the query execution area \n")
-        
+
     def query_execution_btn(self):
         """Clicking execute query button"""
         execute = 'executeQuery'
@@ -211,7 +210,6 @@ class BaseSelenium:
         execute.click()
         time.sleep(2)
 
-    
     def send_key_action(self, key):
         """This method will send dummy data to the textfield as necessary"""
         actions = ActionChains(self.driver)
@@ -237,7 +235,7 @@ class BaseSelenium:
         self.driver.close()
         self.driver.switch_to.window(self.driver.window_handles[0])
         return title
-    
+
     def current_package_version(self):
         """checking current package version from the dashboard"""
         package_version = "currentVersion"
@@ -379,4 +377,3 @@ class BaseSelenium:
             except TimeoutException as ex:
                 self.take_screenshot()
                 raise ex
-

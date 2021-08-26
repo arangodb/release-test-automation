@@ -937,7 +937,7 @@ class Runner(ABC):
             InstanceType.COORDINATOR,
             requests.get,
             '/_api/collection',
-            None);
+            None)
         if reply[0].status_code != 200:
             raise Exception("get Collections: Unsupported return code" +
                             str(reply[0].status_code) +

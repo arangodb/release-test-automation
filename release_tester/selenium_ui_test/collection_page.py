@@ -360,14 +360,10 @@ class CollectionPage(BaseSelenium):
     def select_multiple_item(self):
         """selecting multiple document rows from the current collection"""
         time.sleep(2)
-        self.row1_sitem = \
-            self.locator_finder_by_hover_item(self.row1_id)
-        self.row2_sitem = \
-            self.locator_finder_by_hover_item(self.row2_id)
-        self.row3_sitem = \
-            self.locator_finder_by_hover_item(self.row3_id)
-        self.row4_sitem = \
-            self.locator_finder_by_hover_item(self.row4_id)
+        row1_sitem = self.locator_finder_by_hover_item(self.row1_id)
+        row2_sitem = self.locator_finder_by_hover_item(self.row2_id)
+        row3_sitem = self.locator_finder_by_hover_item(self.row3_id)
+        row4_sitem = self.locator_finder_by_hover_item(self.row4_id)
         time.sleep(1)
 
     def move_btn(self):

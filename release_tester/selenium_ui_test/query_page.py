@@ -65,6 +65,8 @@ class QueryPage(BaseSelenium):
             str(data_path.absolute()),
             ['--number-of-shards', '9', '--replication-factor', '2'],
             40)
+        if not ret[0]:
+            raise Exception("restoring failed: " + str(ret[1]))
 
         print('Creating a blank collection\n')
         create_collection = "createCollection"
@@ -106,6 +108,7 @@ class QueryPage(BaseSelenium):
         time.sleep(1)
 
     def enter_query(self, query_string):
+        """ type a query into the editor line by line """
         self.select_query_execution_area()
         self.clear_all_text(self.query_execution_area)
         for line in query_string.split('\n'):
@@ -113,7 +116,6 @@ class QueryPage(BaseSelenium):
                 self.send_key_action(line)
                 self.send_key_action(Keys.ENTER)
 
-        
     def selecting_query_page(self):
         """Selecting query page"""
         query_page = self.selecting_query_page_id
@@ -121,7 +123,7 @@ class QueryPage(BaseSelenium):
             BaseSelenium.locator_finder_by_id(self, query_page)
         self.current.click()
         time.sleep(1)
-    
+
     def execute_insert_query(self):
         """This method will run an insert query"""
 
@@ -201,8 +203,8 @@ RETURN c
         self.clear_all_text(self.query_execution_area)
         time.sleep(2)
 
-
     def spot_light_function(self, search):
+        """ trigger the spotlight function """
         spot_light = self.query_spot_light_id
         spot_light = \
             BaseSelenium.locator_finder_by_id(self, spot_light)
@@ -219,6 +221,7 @@ RETURN c
         time.sleep(2)
 
     def update_documents(self):
+        """ update some documents """
         print("Navigating to Collection page \n")
         # Selecting collections page
         collections = "collections"
@@ -305,7 +308,7 @@ RETURN doc''')
 
             # clear the execution area
             self.clear_query_area()
-    
+
     def bind_parameters_query(self):
         """executing query with bind parameters"""
         # selecting query execution area
@@ -315,7 +318,7 @@ RETURN doc''')
 FOR doc IN Characters
     FILTER doc.alive == @alive && doc.name == @name
     RETURN doc''')
-        
+
         bindv_block_sitem = self.locator_finder_by_xpath(self.bind_param_table_id)
         while not bindv_block_sitem.is_displayed():
             time.sleep(1)
@@ -331,12 +334,12 @@ FOR doc IN Characters
         #     time.sleep(1)
         # bindv_name_sitem.click()
         # bindv_name_sitem.send_keys('Ned')
-        bindEditorButton = self.locator_finder_by_id('switchTypes')
-        bindEditorButton.click()
+        bind_editor_button_sitem = self.locator_finder_by_id('switchTypes')
+        bind_editor_button_sitem.click()
         self.select_bindvalue_json_area()
         self.clear_all_text(self.bindvalues_area)
         self.send_key_action('''{ "alive": true, "name": "Ned" }''')
-        
+
         # execute query with bind parameters
         self.query_execution_btn()
 
@@ -564,7 +567,7 @@ FOR doc IN Characters
         time.sleep(1)
 
         self.clear_all_text(self.query_execution_area)
-        
+
         print('Executing sample graph query for worldCountry Graph \n')
         self.enter_query('''
 FOR v, e, p IN 1..1
@@ -600,7 +603,7 @@ FOR path IN OUTBOUND K_SHORTEST_PATHS
 GRAPH "kShortestPathsGraph"
 LIMIT 4
     RETURN path''')
-        
+
         time.sleep(2)
 
         self.query_execution_btn()
