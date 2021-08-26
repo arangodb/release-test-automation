@@ -221,9 +221,8 @@ class BaseSelenium:
 
     def current_package_version(self):
         """checking current package version from the dashboard"""
-        package_version = "currentVersion"
         package_version = \
-            self.locator_finder_by_text_id(package_version)
+            self.locator_finder_by_text_id("currentVersion").text
         print("Package Version: ", package_version)
         time.sleep(1)
 
