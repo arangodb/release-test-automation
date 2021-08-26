@@ -153,33 +153,6 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         return (success, output)
 
     @step
-    def check_sync_stopped(self):
-        """ run the check sync command to check for halted sync """
-        if self.version < semver.VersionInfo.parse('1.0.0'):
-            logging.warning('SyncManager: checking sync stopped :'
-                            ' available since 1.0.0 of arangosync')
-            return ("", "", True)
-
-        args = [
-            'check', 'sync',
-            '--master.cacert=' + str(self.certificate_auth["cert"]),
-            '--master.endpoint=https://{url}:{port}'.format(
-                url=self.cfg.publicip,
-                port=str(self.clusterports[0])),
-            '--auth.keyfile=' + str(self.certificate_auth["clientkeyfile"])
-        ]
-        logging.info('SyncManager: checking sync is halted: %s', str(args))
-        (success, output, _, _) = self.run_monitored(
-            self.cfg.bin_dir / 'arangosync',
-            args,
-            300,
-            dummy_line_result,
-            self.cfg.verbose)
-
-        success = output.find('Synchronization must be turned on') >= 0
-        return (success, output)
-
-    @step
     def reset_failed_shard(self, database, collection):
         """ run the check sync command """
         if self.version < semver.VersionInfo.parse('1.0.0'):
