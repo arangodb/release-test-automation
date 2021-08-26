@@ -149,6 +149,7 @@ class Test(BaseSelenium):
         print("Displaying status unloaded collection\n")
         col.select_status_unloaded()
         col1.select_status_unloaded()
+        self.driver.refresh()
         print("Sorting collections by type\n")
         col.sort_by_type()
         print("Sorting collections by descending\n")
