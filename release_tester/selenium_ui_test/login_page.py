@@ -24,29 +24,29 @@ class LoginPage(BaseSelenium):
 
     def enter_username(self, username):
         """login page entering username"""
-        self.username_textbox_id = BaseSelenium.locator_finder_by_id(self, self.username_textbox_id)
-        self.username_textbox_id.click()
-        self.username_textbox_id.send_keys(username)
+        username_textbox_sitem = self.locator_finder_by_id(self.username_textbox_id)
+        username_textbox_sitem.click()
+        username_textbox_sitem.send_keys(username)
 
     def enter_password(self, password):
         """login page entering password"""
-        self.password_textbox_id = BaseSelenium.locator_finder_by_id(self, self.password_textbox_id)
-        self.password_textbox_id.click()
-        self.password_textbox_id.send_keys(password)
+        password_textbox_sitem = self.locator_finder_by_id(self.password_textbox_id)
+        password_textbox_sitem.click()
+        password_textbox_sitem.send_keys(password)
 
     def login_btn(self):
         """login page click on login button"""
-        self.login_button_id = BaseSelenium.locator_finder_by_id(self, self.login_button_id)
-        self.login_button_id.click()
+        login_button_sitem = self.locator_finder_by_id(self.login_button_id)
+        login_button_sitem.click()
 
     def select_db_opt(self, index):
         """login page selecting database by default it's _system"""
-        self.select_db_opt_id = BaseSelenium.locator_finder_by_select(self, self.select_db_opt_id, index)
+        self.locator_finder_by_select(self.select_db_opt_id, index)
 
     def select_db(self):
         """select db"""
-        self.select_db_btn_id = BaseSelenium.locator_finder_by_id(self, self.select_db_btn_id)
-        self.select_db_btn_id.click()
+        select_db_btn_sitem = self.locator_finder_by_id(self.select_db_btn_id)
+        select_db_btn_sitem.click()
 
     def login(self, username, password, db_index=0):  # 0 = default database
         """This login method will call repeatedly before each tab test"""
@@ -61,6 +61,6 @@ class LoginPage(BaseSelenium):
 
     def logout_button(self):
         """selecting user logout button"""
-        self.logout_button_id = BaseSelenium.locator_finder_by_id(self, self.logout_button_id)
-        self.logout_button_id.click()
+        logout_button_sitem = self.locator_finder_by_text_id(self.logout_button_id)
+        logout_button_sitem.click()
         print("Logout from the current user\n")
