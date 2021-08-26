@@ -45,6 +45,9 @@ class UserPage(BaseSelenium):
         add_new_user_sitem = self.locator_finder_by_id(self.add_new_user_id)
         add_new_user_sitem.click()
 
+        # wait for the dialog box to be there:
+        self.locator_find_by_id("row_newUsername")
+
         # entering new user name
         enter_new_user_name_sitem = self.locator_finder_by_text_id(self.enter_new_user_name_id)
         enter_new_user_name_sitem.click()
