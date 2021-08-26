@@ -39,7 +39,7 @@ class DashboardPage(BaseSelenium):
     def check_server_package_name(self):
         """checking server package version name"""
         check_server_package_name_sitem = self.locator_finder_by_text_id(self.check_server_package_name_id)
-        print("Server Package: ", check_server_package_name_sitem)
+        print("Server Package: ", check_server_package_name_sitem.text)
         time.sleep(1)
 
     def check_current_package_version(self):
@@ -49,36 +49,36 @@ class DashboardPage(BaseSelenium):
     def check_current_username(self):
         """checking current username from the dashboard"""
         check_current_username_sitem = self.locator_finder_by_text_xpath(self.check_current_username_id)
-        print("Current User: ", check_current_username_sitem)
+        print("Current User: ", check_current_username_sitem.text)
         time.sleep(1)
 
     def check_current_db(self):
         """checking current database name from the dashboard"""
         check_current_db_sitem = self.locator_finder_by_text_xpath(self.check_current_db_id)
-        print("Current DB: ", check_current_db_sitem)
+        print("Current DB: ", check_current_db_sitem.text)
         time.sleep(1)
 
     def check_db_status(self):
         """checking current database status from the dashboard"""
         try:
             check_db_status_sitem = self.locator_finder_by_text_xpath(self.check_db_status_id)
-            print("Current Status: ", check_db_status_sitem)
+            print("Current Status: ", check_db_status_sitem.text)
             time.sleep(1)
         except TimeoutException:
             node_sitem = self.locator_finder_by_text_xpath(self.check_cluster_status_id)
-            print("Cluster Health: ", node_sitem)
+            print("Cluster Health: ", node_sitem.text)
             time.sleep(1)
 
     def check_db_engine(self):
         """checking current database status from the dashboard"""
         check_db_engine_sitem = self.locator_finder_by_text_id(self.check_db_engine_id)
-        print("Current Engine: ", check_db_engine_sitem)
+        print("Current Engine: ", check_db_engine_sitem.text)
         time.sleep(1)
 
     def check_db_uptime(self):
         """checking current database uptime status from the dashboard"""
         check_db_uptime_sitem = self.locator_finder_by_text_xpath(self.check_db_uptime_id)
-        print("DB Uptime: ", check_db_uptime_sitem)
+        print("DB Uptime: ", check_db_uptime_sitem.text)
         time.sleep(1)
 
     def check_responsiveness_for_dashboard(self):
@@ -87,14 +87,14 @@ class DashboardPage(BaseSelenium):
 
     def check_system_resource(self):
         """checking system resource tab from the dashboard"""
-        check_system_resource_sitem = self.locator_finder_by_id(self.check_system_resource_id)
+        check_system_resource_sitem = self.locator_finder_by_text_id(self.check_system_resource_id)
         check_system_resource_sitem.click()
         time.sleep(1)
 
     def check_system_metrics(self):
         """checking system metrics tab from the dashboard"""
         if self.check_current_package_version() >= 3.8:
-            check_system_metrics_sitem = self.locator_finder_by_id(self.check_system_metrics_id)
+            check_system_metrics_sitem = self.locator_finder_by_text_id(self.check_system_metrics_id)
             check_system_metrics_sitem.click()
             time.sleep(1)
 
@@ -102,14 +102,14 @@ class DashboardPage(BaseSelenium):
             super().scroll()
 
             # Reloading system metrics tab from the dashboard
-            select_reload_btn_sitem = self.locator_finder_by_id(self.select_reload_btn_id)
+            select_reload_btn_sitem = self.locator_finder_by_text_id(self.select_reload_btn_id)
             select_reload_btn_sitem.click()
 
             # Downloading metrics from the dashboard
             if self.driver.name == "chrome":  # this will check browser name
                 print("Downloading metrics has been disabled for the Chrome browser \n")
             else:
-                metrics_download_sitem = self.locator_finder_by_id(self.metrics_download_id)
+                metrics_download_sitem = self.locator_finder_by_text_id(self.metrics_download_id)
                 metrics_download_sitem.click()
                 time.sleep(3)
                 # self.clear_download_bar()
@@ -118,21 +118,21 @@ class DashboardPage(BaseSelenium):
 
     def click_twitter_link(self):
         """Clicking on twitter link on dashboard"""
-        click_twitter_link_sitem = self.locator_finder_by_xpath(self.click_twitter_link_id)
+        click_twitter_link_sitem = self.locator_finder_by_text_xpath(self.click_twitter_link_id)
         title = self.switch_tab(click_twitter_link_sitem)  # this method will call switch tab and close tab
         expected_title = "arangodb (@arangodb) / Twitter"
         assert title in expected_title, f"Expected page title {expected_title} but got {title}"
 
     def click_slack_link(self):
         """Clicking on twitter link on dashboard"""
-        click_slack_link_sitem = self.locator_finder_by_xpath(self.click_slack_link_id)
+        click_slack_link_sitem = self.locator_finder_by_text_xpath(self.click_slack_link_id)
         title = self.switch_tab(click_slack_link_sitem)
         expected_title = 'Join ArangoDB Community on Slack!'
         assert title in expected_title, f"Expected page title {expected_title} but got {title}"
 
     def click_stackoverflow_link(self):
         """Clicking on stack overflow link on dashboard"""
-        click_stackoverflow_link_sitem = self.locator_finder_by_xpath(self.click_stackoverflow_link_id)
+        click_stackoverflow_link_sitem = self.locator_finder_by_text_xpath(self.click_stackoverflow_link_id)
         title = self.switch_tab(click_stackoverflow_link_sitem)
         expected_title = "Newest 'arangodb' Questions - Stack Overflow"
         assert title in expected_title, f"Expected page title {expected_title} but got {title}"
