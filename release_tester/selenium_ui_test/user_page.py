@@ -84,7 +84,10 @@ class UserPage(BaseSelenium):
             permission_sitem.click()
         except StaleElementReferenceException:
             # javascript may be doing stuff to the DOM so we retry once here...
+            print("reloading...")
+            self.driver.refresh()
             time.sleep(1)
+            self.selecting_permission_tab()
             permission_sitem = self.locator_finder_by_xpath(self.general_link_id)
             permission_sitem.click()
 

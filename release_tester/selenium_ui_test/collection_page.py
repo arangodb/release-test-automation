@@ -374,7 +374,7 @@ class CollectionPage(BaseSelenium):
     def move_confirm_btn(self):
         """Confirming move data to the Collection"""
         move_confirm_btn_sitem = \
-            self.locator_finder_by_id(self.move_confirm_btn_id)
+            self.locator_finder_by_id(self.move_confirm_btn_id, 20)
         move_confirm_btn_sitem.click()
 
     def select_collection_delete_btn(self):
