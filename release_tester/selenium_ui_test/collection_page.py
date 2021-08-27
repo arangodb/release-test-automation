@@ -99,7 +99,7 @@ class CollectionPage(BaseSelenium):
         self.select_settings_tab_id = "//*[@id='subNavigationBar']/ul[2]/li[4]/a"
         self.select_settings_name_textbox_id = "change-collection-name"
         self.select_settings_wait_type_id = "change-collection-sync"
-        self.select_new_settings_save_btn_id = "//*[@id='modalButton5']"
+        self.select_new_settings_save_btn_id = "modalButton5"
 
         self.select_load_index_into_memory_id = "//*[@id='modalButton2']"
         self.select_settings_unload_btn_id = "//*[@id='modalButton3']"
@@ -511,10 +511,9 @@ class CollectionPage(BaseSelenium):
             select_settings_name_textbox_sitem.click()
             select_settings_name_textbox_sitem.clear()
             select_settings_name_textbox_sitem.send_keys("testDocRenamed")
-        #select_settings_wait_type_sitem = \
             self.locator_finder_by_select(self.select_settings_wait_type_id, 0)
         select_new_settings_save_btn_sitem = \
-            self.locator_finder_by_text_xpath(self.select_new_settings_save_btn_id)
+            self.locator_finder_by_text_id(self.select_new_settings_save_btn_id)
         select_new_settings_save_btn_sitem.click()
         time.sleep(2)
         print("Loading Index into memory\n")
