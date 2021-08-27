@@ -68,174 +68,170 @@ class ViewsPage(BaseSelenium):
 
     def select_views_tab(self):
         """selecting views tab"""
-        self.select_views_tab_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.select_views_tab_id)
-        self.select_views_tab_id.click()
+        select_views_tab_sitem = self.locator_finder_by_xpath(self.select_views_tab_id)
+        select_views_tab_sitem.click()
 
     def create_new_views(self):
         """creating new views tab"""
-        self.create_new_views_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.create_new_views_id)
-        self.create_new_views_id.click()
+        create_new_views_sitem = \
+            self.locator_finder_by_xpath(self.create_new_views_id)
+        create_new_views_sitem.click()
 
     def naming_new_view(self, name):
         """naming new views"""
-        self.naming_new_view_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.naming_new_view_id)
-        self.naming_new_view_id.click()
-        self.naming_new_view_id.send_keys(name)
+        naming_new_view_sitem = \
+            self.locator_finder_by_xpath(self.naming_new_view_id)
+        naming_new_view_sitem.click()
+        naming_new_view_sitem.send_keys(name)
 
     def select_create_btn(self):
         """creating new views tab"""
-        self.select_create_btn_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.select_create_btn_id)
-        self.select_create_btn_id.click()
+        select_create_btn_sitem = \
+            self.locator_finder_by_xpath(self.select_create_btn_id)
+        select_create_btn_sitem.click()
         time.sleep(2)
 
     def select_views_settings(self):
         """selecting view setting"""
-        self.select_views_settings_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.select_views_settings_id)
-        self.select_views_settings_id.click()
+        select_views_settings_sitem = \
+            self.locator_finder_by_xpath(self.select_views_settings_id)
+        select_views_settings_sitem.click()
         time.sleep(3)
 
     def select_sorting_views(self):
         """sorting multiple views into descending"""
-        self.select_sorting_views_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.select_sorting_views_id)
-        self.select_sorting_views_id.click()
+        select_sorting_views_sitem = \
+            self.locator_finder_by_xpath(self.select_sorting_views_id)
+        select_sorting_views_sitem.click()
         time.sleep(3)
 
     def search_views(self, search):
         """searching views"""
-        self.search_views_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.search_views_id)
-        self.search_views_id.click()
-        self.search_views_id.clear()
-        self.search_views_id.send_keys(search)
+        search_views_sitem = self.locator_finder_by_xpath(self.search_views_id)
+        search_views_sitem.click()
+        search_views_sitem.clear()
+        search_views_sitem.send_keys(search)
         time.sleep(3)
 
     def select_first_view(self):
         """selecting first view"""
         select_first_view_sitem = \
-            BaseSelenium.locator_finder_by_xpath(self, self.select_first_view_id)
+            self.locator_finder_by_xpath(self.select_first_view_id)
         select_first_view_sitem.click()
 
     def select_collapse_btn(self):
         """selecting collapse all btn"""
-        self.select_collapse_btn_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.select_collapse_btn_id)
-        self.select_collapse_btn_id.click()
+        select_collapse_btn_sitem = \
+            self.locator_finder_by_xpath(self.select_collapse_btn_id)
+        select_collapse_btn_sitem.click()
         time.sleep(3)
 
     def select_expand_btn(self):
         """selecting expand all btn"""
-        self.select_expand_btn_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.select_expand_btn_id)
-        self.select_expand_btn_id.click()
+        select_expand_btn_sitem = self.locator_finder_by_xpath(self.select_expand_btn_id)
+        select_expand_btn_sitem.click()
         time.sleep(3)
 
     def select_editor_mode_btn(self):
         """selecting object tabs"""
-        self.select_editor_mode_btn_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.select_editor_mode_btn_id)
-        self.select_editor_mode_btn_id.click()
+        select_editor_mode_btn_sitem = \
+            self.locator_finder_by_xpath(self.select_editor_mode_btn_id)
+        select_editor_mode_btn_sitem.click()
         time.sleep(3)
 
     def switch_to_code_editor_mode(self):
         """switching editor mode to Code"""
-        self.switch_to_code_editor_mode_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.switch_to_code_editor_mode_id)
-        self.switch_to_code_editor_mode_id.click()
+        switch_to_code_editor_mode_sitem = \
+            self.locator_finder_by_xpath(self.switch_to_code_editor_mode_id)
+        switch_to_code_editor_mode_sitem.click()
         time.sleep(3)
 
     def compact_json_data(self):
         """switching editor mode to Code compact view"""
         self.compact_json_data_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.compact_json_data_id)
+            self.locator_finder_by_xpath(self.compact_json_data_id)
         self.compact_json_data_id.click()
         time.sleep(3)
 
     def switch_to_tree_editor_mode(self):
         """switching editor mode to Tree"""
-        self.switch_to_tree_editor_mode_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.switch_to_tree_editor_mode_id)
-        self.switch_to_tree_editor_mode_id.click()
+        switch_to_tree_editor_mode_sitem = \
+            self.locator_finder_by_xpath(self.switch_to_tree_editor_mode_id)
+        switch_to_tree_editor_mode_sitem.click()
         time.sleep(3)
 
     def click_arangosearch_documentation_link(self):
         """Clicking on arangosearch documentation link"""
-        self.click_arangosearch_documentation_link_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.click_arangosearch_documentation_link_id)
-        title = self.switch_tab(self.click_arangosearch_documentation_link_id)
+        click_arangosearch_documentation_link_sitem = \
+            self.locator_finder_by_xpath(self.click_arangosearch_documentation_link_id)
+        title = self.switch_tab(click_arangosearch_documentation_link_sitem)
         expected_title = 'Views Reference | ArangoSearch | Indexing | Manual | ArangoDB Documentation'
         assert title in expected_title, f"Expected page title {expected_title} but got {title}"
 
     def select_inside_search(self, keyword):
         """Selecting search option inside views"""
-        self.select_inside_search_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.select_inside_search_id)
-        self.select_inside_search_id.click()
-        self.select_inside_search_id.clear()
-        self.select_inside_search_id.send_keys(keyword)
+        select_inside_search_sitem = self.locator_finder_by_xpath(self.select_inside_search_id)
+        select_inside_search_sitem.click()
+        select_inside_search_sitem.clear()
+        select_inside_search_sitem.send_keys(keyword)
 
     def search_result_traverse_down(self):
         """traverse search results down"""
-        self.search_result_traverse_down_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.search_result_traverse_down_id)
+        search_result_traverse_down_sitem = \
+            self.locator_finder_by_xpath(self.search_result_traverse_down_id)
         for _ in range(8):
-            self.search_result_traverse_down_id.click()
+            search_result_traverse_down_sitem.click()
             time.sleep(1)
 
     def search_result_traverse_up(self):
         """traverse search results up"""
-        self.search_result_traverse_up_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.search_result_traverse_up_id)
+        search_result_traverse_up_sitem = \
+            self.locator_finder_by_xpath(self.search_result_traverse_up_id)
         for _ in range(8):
-            self.search_result_traverse_up_id.click()
+            search_result_traverse_up_sitem.click()
             time.sleep(1)
 
     def change_consolidation_policy(self, number):
         """Changing views properties"""
-        self.change_consolidation_policy_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.change_consolidation_policy_id)
-        self.change_consolidation_policy_id.click()
-        self.change_consolidation_policy_id.clear()
-        self.change_consolidation_policy_id.send_keys(number)
+        change_consolidation_policy_sitem = \
+            self.locator_finder_by_xpath(self.change_consolidation_policy_id)
+        change_consolidation_policy_sitem.click()
+        change_consolidation_policy_sitem.clear()
+        change_consolidation_policy_sitem.send_keys(number)
         time.sleep(5)
 
     def clicking_rename_views_btn(self):
         """Select Views rename btn"""
-        self.clicking_rename_views_btn_id = \
-            BaseSelenium.locator_finder_by_id(self, self.clicking_rename_views_btn_id)
-        self.clicking_rename_views_btn_id.click()
+        clicking_rename_views_btn_sitem = \
+            self.locator_finder_by_id(self.clicking_rename_views_btn_id)
+        clicking_rename_views_btn_sitem.click()
 
     def rename_views_name(self, name):
         """changing view name"""
-        self.rename_views_name_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.rename_views_name_id)
-        self.rename_views_name_id.click()
-        self.rename_views_name_id.clear()
-        self.rename_views_name_id.send_keys(name)
+        rename_views_name_sitem = \
+            self.locator_finder_by_xpath(self.rename_views_name_id)
+        rename_views_name_sitem.click()
+        rename_views_name_sitem.clear()
+        rename_views_name_sitem.send_keys(name)
 
     def rename_views_name_confirm(self):
         """Confirm rename views"""
-        self.rename_views_name_confirm_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.rename_views_name_confirm_id)
-        self.rename_views_name_confirm_id.click()
+        rename_views_name_confirm_sitem = \
+            self.locator_finder_by_xpath(self.rename_views_name_confirm_id)
+        rename_views_name_confirm_sitem.click()
         time.sleep(3)
 
     def select_renamed_view(self):
         """select renamed view for deleting"""
-        self.select_renamed_view_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.select_renamed_view_id)
-        self.select_renamed_view_id.click()
+        select_renamed_view_sitem = \
+            self.locator_finder_by_xpath(self.select_renamed_view_id)
+        select_renamed_view_sitem.click()
 
     def delete_views_btn(self):
         """select delete button"""
-        self.delete_views_btn_id = \
-            BaseSelenium.locator_finder_by_id(self, self.delete_views_btn_id)
-        self.delete_views_btn_id.click()
+        delete_views_btn_sitem = \
+            self.locator_finder_by_id(self.delete_views_btn_id)
+        delete_views_btn_sitem.click()
 
     def delete_views_confirm_btn(self):
         """Confirm deletion of the current views"""
@@ -246,12 +242,12 @@ class ViewsPage(BaseSelenium):
 
     def final_delete_confirmation(self):
         """Final confirmation of deletion"""
-        self.final_delete_confirmation_id = \
-            BaseSelenium.locator_finder_by_id(self, self.final_delete_confirmation_id)
-        self.final_delete_confirmation_id.click()
+        final_delete_confirmation_sitem = \
+            self.locator_finder_by_id(self.final_delete_confirmation_id)
+        final_delete_confirmation_sitem.click()
 
     def select_second_view(self):
         """selecting second view"""
-        self.select_second_view_id = \
-            BaseSelenium.locator_finder_by_xpath(self, self.select_second_view_id)
-        self.select_second_view_id.click()
+        select_second_view_sitem = \
+            self.locator_finder_by_xpath(self.select_second_view_id)
+        select_second_view_sitem.click()

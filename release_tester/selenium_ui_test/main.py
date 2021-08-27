@@ -356,7 +356,7 @@ class Test(BaseSelenium):
             views.select_renamed_view()
         else:
             print("Deleting views started \n")
-            self.driver.refresh()
+            views.select_views_tab()
             views.select_first_view()
         views.delete_views_btn()
         views.delete_views_confirm_btn()
