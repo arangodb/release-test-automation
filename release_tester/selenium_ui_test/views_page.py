@@ -21,7 +21,7 @@ class ViewsPage(BaseSelenium):
         self.driver = driver
         self.select_views_tab_id = "/html//a[@id='views']"
         self.create_new_views_id = "/html//a[@id='createView']"
-        self.naming_new_view_id = "/html//input[@id='newName']"
+        self.naming_new_view_id = "newName"
         self.select_create_btn_id = "//div[@id='modal-dialog']//button[@class='button-success']"
         self.select_views_settings_id = "//a[@id='viewsToggle']/span[@title='Settings']"
         self.select_sorting_views_id = "//div[@id='viewsDropdown']/ul//label[@class='checkbox checkboxLabel']"
@@ -68,8 +68,7 @@ class ViewsPage(BaseSelenium):
 
     def select_views_tab(self):
         """selecting views tab"""
-        select_views_tab_sitem = self.locator_finder_by_xpath(self.select_views_tab_id)
-        select_views_tab_sitem.click()
+        self.navbar_goto('views')
 
     def create_new_views(self):
         """creating new views tab"""
@@ -80,7 +79,7 @@ class ViewsPage(BaseSelenium):
     def naming_new_view(self, name):
         """naming new views"""
         naming_new_view_sitem = \
-            self.locator_finder_by_xpath(self.naming_new_view_id)
+            self.locator_finder_by_id(self.naming_new_view_id)
         naming_new_view_sitem.click()
         naming_new_view_sitem.send_keys(name)
 
