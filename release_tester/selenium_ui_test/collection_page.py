@@ -35,8 +35,7 @@ class CollectionPage(BaseSelenium):
                                          "/ul[2]/li[3]/a[@href='#']/label[@class='checkbox checkboxLabel']"
         self.sort_by_name_id = "sortName"
         self.sort_by_type_id = "sortType"
-        self.sort_descending_id = "//div[@id='collectionsDropdown']" \
-                                  "/ul[3]/li[4]/a[@href='#']/label[@class='checkbox checkboxLabel']"
+        self.sort_descending_id = "sortOrder"
 
         self.select_doc_collection_id = "//div[@id='collection_TestDoc']//h5[@class='collectionName']"
 
@@ -237,7 +236,8 @@ class CollectionPage(BaseSelenium):
     def sort_descending(self):
         """Sorting collection by descending"""
         sort_descending_sitem = \
-            self.locator_finder_by_text_xpath(self.sort_descending_id)
+            self.locator_finder_by_idx(self.sort_descending_id)
+        sort_descending_sitem = sort_descending_sitem.find_element_by_xpath("./..")
         sort_descending_sitem.click()
         time.sleep(2)
 
