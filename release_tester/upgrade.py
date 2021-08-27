@@ -36,7 +36,7 @@ def run_upgrade(old_version, new_version, verbose,
     results = []
     for runner_type in STARTER_MODES[starter_mode]:
         with RtaTestcase(runner_strings[runner_type]) as testcase:
-            if not enterprise or is_windows and runner_type == RunnerType.DC2DC:
+            if (not enterprise or is_windows) and runner_type == RunnerType.DC2DC:
                 testcase.context.status = Status.SKIPPED
                 continue
             one_result = {
