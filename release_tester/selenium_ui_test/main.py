@@ -146,9 +146,10 @@ class Test(BaseSelenium):
         print("Displaying status loaded collection\n")
         col.select_status_loaded()
         col1.select_status_loaded()
-        print("Displaying status unloaded collection\n")
-        col.select_status_unloaded()
-        col1.select_status_unloaded()
+        # todo: some old bullshit.
+        #print("Displaying status unloaded collection\n")
+        #col.select_status_unloaded()
+        #col1.select_status_unloaded()
         self.driver.refresh()
         print("Sorting collections by type\n")
         col.select_collection_settings()
