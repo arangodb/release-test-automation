@@ -182,6 +182,7 @@ class CollectionPage(BaseSelenium):
         """selecting collection settings icon"""
         select_collection_settings_sitem = self.locator_finder_by_id(self.select_collection_settings_id)
         select_collection_settings_sitem.click()
+        time.sleep(2)
 
     def display_system_collection(self):
         """Displaying system's collection"""
@@ -223,16 +224,24 @@ class CollectionPage(BaseSelenium):
         sort_by_type_sitem = \
             self.locator_finder_by_idx(self.sort_by_type_id, 30)
         sort_by_type_sitem = sort_by_type_sitem.find_element_by_xpath("./..")
-        sort_by_type_sitem.click()
-        time.sleep(2)
+        while True:
+            try:
+                sort_by_type_sitem.click()
+                break
+            except ElementNotInteractableException:
+                time.sleep(1)
 
     def sort_by_name(self):
         """Sorting collection by name"""
         sort_by_name_sitem = \
             self.locator_finder_by_idx(self.sort_by_name_id)
         sort_by_name_sitem = sort_by_name_sitem.find_element_by_xpath("./..")
-        sort_by_name_sitem.click()
-        time.sleep(2)
+        while True:
+            try:
+                sort_by_name_sitem.click()
+                break
+            except ElementNotInteractableException:
+                time.sleep(1)
 
     def sort_descending(self):
         """Sorting collection by descending"""
