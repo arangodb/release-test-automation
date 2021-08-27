@@ -356,7 +356,7 @@ class Test(BaseSelenium):
             views.select_renamed_view()
         else:
             print("Deleting views started \n")
-            self.driver.back()
+            self.driver.refresh()
             views.select_first_view()
         views.delete_views_btn()
         views.delete_views_confirm_btn()
@@ -442,6 +442,7 @@ class Test(BaseSelenium):
         print("---------User Test Begin--------- \n")
         login = LoginPage(self.driver)
         # login.login('root', self.root_passvoid)
+        self.driver.refresh()
         user = UserPage(self.driver)
         print("New user creation begins \n")
         user.user_tab()
@@ -498,6 +499,7 @@ class Test(BaseSelenium):
         login.login('root', self.root_passvoid)
 
         del user
+        self.driver.refresh()
         user = UserPage(self.driver)
         user.user_tab()
         user.selecting_new_user()

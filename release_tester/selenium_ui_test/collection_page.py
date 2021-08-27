@@ -33,10 +33,8 @@ class CollectionPage(BaseSelenium):
                                        "/ul[2]/li[2]/a[@href='#']/label[@class='checkbox checkboxLabel']"
         self.select_status_unloaded_id = "//div[@id='collectionsDropdown']" \
                                          "/ul[2]/li[3]/a[@href='#']/label[@class='checkbox checkboxLabel']"
-        self.sort_by_name_id = "//div[@id='collectionsDropdown']" \
-                               "/ul[3]/li[2]/a[@href='#']/label[@class='checkbox checkboxLabel']"
-        self.sort_by_type_id = "//div[@id='collectionsDropdown']" \
-                               "/ul[3]/li[3]/a[@href='#']/label[@class='checkbox checkboxLabel']"
+        self.sort_by_name_id = "sortName"
+        self.sort_by_type_id = "sortType"
         self.sort_descending_id = "//div[@id='collectionsDropdown']" \
                                   "/ul[3]/li[4]/a[@href='#']/label[@class='checkbox checkboxLabel']"
 
@@ -223,8 +221,17 @@ class CollectionPage(BaseSelenium):
     def sort_by_type(self):
         """Sorting collection by type"""
         sort_by_type_sitem = \
-            self.locator_finder_by_text_xpath(self.sort_by_type_id, 30)
+            self.locator_finder_by_idx(self.sort_by_type_id, 30)
+        sort_by_type_sitem = sort_by_type_sitem.find_element_by_xpath("./..")
         sort_by_type_sitem.click()
+        time.sleep(2)
+
+    def sort_by_name(self):
+        """Sorting collection by name"""
+        sort_by_name_sitem = \
+            self.locator_finder_by_idx(self.sort_by_name_id)
+        sort_by_name_sitem = sort_by_name_sitem.find_element_by_xpath("./..")
+        sort_by_name_sitem.click()
         time.sleep(2)
 
     def sort_descending(self):
@@ -232,13 +239,6 @@ class CollectionPage(BaseSelenium):
         sort_descending_sitem = \
             self.locator_finder_by_text_xpath(self.sort_descending_id)
         sort_descending_sitem.click()
-        time.sleep(2)
-
-    def sort_by_name(self):
-        """Sorting collection by name"""
-        sort_by_name_sitem = \
-            self.locator_finder_by_text_xpath(self.sort_by_name_id)
-        sort_by_name_sitem.click()
         time.sleep(2)
 
     def select_doc_collection(self):

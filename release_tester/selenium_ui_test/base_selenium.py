@@ -242,6 +242,17 @@ class BaseSelenium:
             self.driver.find_element_by_tag_name('html').send_keys(Keys.HOME)
         # self.driver.execute_script("window.scrollTo(0,500)")
 
+    def locator_finder_by_idx(self, locator_name, timeout=10):
+        """This method will used for finding all the locators by their id"""
+        print(locator_name)
+        self.locator = WebDriverWait(self.driver, timeout).until(
+            EC.presence_of_element_located((BY.ID, locator_name)),
+            message="UI-Test: " + locator_name + " locator was not found."
+        )
+        if self.locator is None:
+            raise Exception(locator_name, " locator was not found.")
+        return self.locator
+
     def locator_finder_by_id(self, locator_name, timeout=10):
         """This method will used for finding all the locators by their id"""
         print(locator_name)
