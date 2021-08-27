@@ -523,7 +523,7 @@ class CollectionPage(BaseSelenium):
             select_settings_name_textbox_sitem.send_keys("testDocRenamed")
             self.locator_finder_by_select(self.select_settings_wait_type_id, 0)
         select_new_settings_save_btn_sitem = \
-            self.locator_finder_by_text_id(self.self.select_newer_settings_save_btn_id)
+            self.locator_finder_by_text_id(self.select_newer_settings_save_btn_id)
         if select_new_settings_save_btn_sitem.text != "Save":
             select_new_settings_save_btn_sitem = \
                 self.locator_finder_by_text_id(select_new_settings_save_btn_id)
