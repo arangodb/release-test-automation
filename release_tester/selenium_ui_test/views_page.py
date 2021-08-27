@@ -20,7 +20,7 @@ class ViewsPage(BaseSelenium):
         super().__init__()
         self.driver = driver
         self.select_views_tab_id = "/html//a[@id='views']"
-        self.create_new_views_id = "/html//a[@id='createView']"
+        self.create_new_views_id = "createView"
         self.naming_new_view_id = "newName"
         self.select_create_btn_id = "//div[@id='modal-dialog']//button[@class='button-success']"
         self.select_views_settings_id = "//a[@id='viewsToggle']/span[@title='Settings']"
@@ -73,7 +73,7 @@ class ViewsPage(BaseSelenium):
     def create_new_views(self):
         """creating new views tab"""
         create_new_views_sitem = \
-            self.locator_finder_by_xpath(self.create_new_views_id)
+            self.locator_finder_by_id(self.create_new_views_id)
         create_new_views_sitem.click()
 
     def naming_new_view(self, name):
