@@ -258,9 +258,10 @@ class Test(BaseSelenium):
         print("Select Settings tab\n")
         col.select_settings_tab(is_cluster)
         self.driver.refresh()
-        print("Loading and Unloading collection\n")
-        col.select_settings_unload_btn()
-        col1.select_settings_unload_btn()
+        # some old bullshit
+        #print("Loading and Unloading collection\n")
+        #col.select_settings_unload_btn()
+        #col1.select_settings_unload_btn()
         self.driver.refresh()
         print("Truncate collection\n")
         col.select_truncate_btn()
