@@ -27,7 +27,7 @@
   Ubuntu 16.40 pip3 system package is broken. Fix like this: 
   `dpkg -r python3-pip python3-pexpect` 
   `python3.8 -m easy_install pip`
-  `pip install distro semver pexpect psutil beautifultable allure_commons `
+  `pip install distro semver pexpect psutil beautifultable allure_python_commons `
   
 - **centos**:
    `yum update ; yum install python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect python3-pyftpdlib; pip3 install psutil semver beautifultable` 
