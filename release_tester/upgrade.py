@@ -5,6 +5,7 @@ from pathlib import Path
 import traceback
 
 import sys
+import platform
 import click
 from allure_commons.model2 import Status, Label
 from allure_commons.types import LabelType
@@ -20,6 +21,7 @@ from arangodb.starter.deployments import (
     STARTER_MODES
 )
 import tools.loghelper as lh
+is_windows = platform.win32_ver()[0] != ''
 
 # pylint: disable=R0913 disable=R0914, disable=W0703, disable=R0912, disable=R0915
 def run_upgrade(old_version, new_version, verbose,
@@ -34,7 +36,7 @@ def run_upgrade(old_version, new_version, verbose,
     results = []
     for runner_type in STARTER_MODES[starter_mode]:
         with RtaTestcase(runner_strings[runner_type]) as testcase:
-            if not enterprise and runner_type == RunnerType.DC2DC:
+            if (not enterprise or is_windows) and runner_type == RunnerType.DC2DC:
                 testcase.context.status = Status.SKIPPED
                 continue
             one_result = {

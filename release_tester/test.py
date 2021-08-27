@@ -70,7 +70,8 @@ def run_test(mode,
             if not enterprise and runner_type == RunnerType.DC2DC:
                 testcase.context.status = Status.SKIPPED
                 continue
-            testcase.add_label(Label(name=LabelType.SUB_SUITE, value=installers[0][1].installer_type))
+            testcase.add_label(Label(name=LabelType.SUB_SUITE,
+                                     value=installers[0][1].installer_type))
             runner = make_runner(runner_type,
                                  abort_on_error,
                                  selenium,

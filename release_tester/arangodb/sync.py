@@ -147,7 +147,9 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             dummy_line_result,
             self.cfg.verbose)
 
+        print("checking for magic ok string")
         success = output.find('The whole data is the same') >= 0
+        print("done")
         return (success, output)
 
     @step

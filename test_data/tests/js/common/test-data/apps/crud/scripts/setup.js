@@ -17,9 +17,9 @@ for (const localName of documentCollections) {
 }
 
 for (const localName of edgeCollections) {
-  const qualifiedName = module.context.collectionName(localName, { replicationFactor: 2 });
+  const qualifiedName = module.context.collectionName(localName);
   if (!db._collection(qualifiedName)) {
-    db._createEdgeCollection(qualifiedName);
+    db._createEdgeCollection(qualifiedName, { replicationFactor: 2 });
   } else if (module.context.isProduction) {
     console.debug(`collection ${qualifiedName} already exists. Leaving it untouched.`)
   }

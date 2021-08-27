@@ -6,13 +6,13 @@ fi
 if test -z "$NEW_VERSION"; then
     NEW_VERSION=3.9.0-nightly
 fi
-if test -n "$PACKAGE_CACHE"; then
-    PACKAGE_CACHE=$(pwd)/package_cache
+if test -z "${PACKAGE_CACHE}"; then
+    PACKAGE_CACHE="$(pwd)/package_cache/"
 fi
 
 VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_tar_version"
-mkdir -p package_cache
-mkdir -p ${VERSION_TAR_NAME}
+mkdir -p "${PACKAGE_CACHE}"
+mkdir -p "${VERSION_TAR_NAME}"
 mkdir -p test_dir
 mkdir -p allure-results
 tar -xvf ${VERSION_TAR_NAME}.tar || true
@@ -48,7 +48,7 @@ docker \
   -v $(pwd):/home/release-test-automation \
   -v $(pwd)/test_dir:/home/test_dir \
   -v $(pwd)/allure-results:/home/allure-results \
-  -v "$PACKAGE_CACHE":/home/package_cache \
+  -v "${PACKAGE_CACHE}":/home/package_cache \
   -v $(pwd)/${VERSION_TAR_NAME}:/home/versions \
   --env="BUILD_NUMBER=${BUILD_NUMBER}" \
   --pid=host \
@@ -67,7 +67,7 @@ docker \
       --alluredir /home/allure-results \
       $force_arg --git-version $GIT_VERSION $@
 result=$?
-
+exit
 # Cleanup ownership:
 docker run \
        -v $(pwd)/test_dir:/home/test_dir \
