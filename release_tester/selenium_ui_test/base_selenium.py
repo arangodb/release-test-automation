@@ -99,11 +99,12 @@ class BaseSelenium:
         time.sleep(1)
 
     def wait_for_ajax(self):
-        wait = WebDriverWait(driver, 15)
+        """ wait for jquery to finish... """
+        wait = WebDriverWait(self.driver, 15)
         try:
             wait.until(lambda driver: driver.execute_script('return jQuery.active') == 0)
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        except Exception as e:
+        except TimeoutException:
             pass
 
     def clear_all_text(self, locator=None):
