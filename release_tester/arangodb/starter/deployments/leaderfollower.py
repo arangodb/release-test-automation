@@ -173,6 +173,11 @@ process.exit(0);
         logging.info("Leader follower testing makedata on follower")
         self.makedata_instances.append(self.follower_starter_instance)
         self.make_data()
+        if self.selenium:
+            self.selenium.set_instances(self.cfg,
+                                        self.leader_starter_instance.arango_importer,
+                                        self.leader_starter_instance.arango_restore)
+            self.selenium.check_full_ui(self.passvoid)
 
         logging.info("Leader follower setup successfully finished!")
 
