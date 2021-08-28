@@ -228,6 +228,7 @@ class ViewsPage(BaseSelenium):
 
     def delete_views_btn(self):
         """select delete button"""
+        self.wait_for_ajax()
         delete_views_btn_sitem = \
             self.locator_finder_by_id(self.delete_views_btn_id)
         delete_views_btn_sitem.click()

@@ -98,6 +98,14 @@ class BaseSelenium:
         self.driver.switch_to.default_content()
         time.sleep(1)
 
+    def wait_for_ajax(self):
+        wait = WebDriverWait(driver, 15)
+        try:
+            wait.until(lambda driver: driver.execute_script('return jQuery.active') == 0)
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        except Exception as e:
+            pass
+
     def clear_all_text(self, locator=None):
         """This method will select all text and clean it"""
         print("Cleaning input field \n")

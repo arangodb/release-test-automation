@@ -4,6 +4,7 @@ aardvark collection tab ui object
 """
 import time
 from selenium_ui_test.base_selenium import BaseSelenium
+from selenium.common.exceptions import TimeoutException
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=R0902 disable=R0915 disable=R0904
@@ -522,11 +523,17 @@ class CollectionPage(BaseSelenium):
             select_settings_name_textbox_sitem.clear()
             select_settings_name_textbox_sitem.send_keys("testDocRenamed")
             self.locator_finder_by_select(self.select_settings_wait_type_id, 0)
-        select_new_settings_save_btn_sitem = \
-            self.locator_finder_by_text_id(self.select_newer_settings_save_btn_id)
-        if select_new_settings_save_btn_sitem.text != "Save":
+        select_new_settings_save_btn_sitem = None
+        try:
             select_new_settings_save_btn_sitem = \
-                self.locator_finder_by_text_id(select_new_settings_save_btn_id)
+                self.locator_finder_by_text_id(self.select_newer_settings_save_btn_id)
+            if select_new_settings_save_btn_sitem.text != "Save":
+                select_new_settings_save_btn_sitem = \
+                    self.locator_finder_by_text_id(self.select_new_settings_save_btn_id)
+        except TimeoutException:
+            select_new_settings_save_btn_sitem = \
+                self.locator_finder_by_text_id(self.select_new_settings_save_btn_id)
+
         select_new_settings_save_btn_sitem.click()
         time.sleep(2)
         print("Loading Index into memory\n")
