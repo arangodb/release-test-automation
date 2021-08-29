@@ -7,6 +7,8 @@ from typing import Optional
 from arangodb.starter.deployments.runner import Runner
 from arangodb.installers.base import InstallerBase
 from arangodb.installers import InstallerConfig
+from reporting.reporting_utils import step
+
 
 class RunnerType(Enum):
     """ dial which runner instance you want"""
@@ -42,6 +44,7 @@ STARTER_MODES = {
 }
 
 #pylint: disable=import-outside-toplevel disable=R0913
+@step
 def make_runner(runner_type: RunnerType,
                 abort_on_error: bool,
                 selenium_worker: str,
