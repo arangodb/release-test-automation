@@ -753,7 +753,7 @@ class GraphPage(BaseSelenium):
         print("Going Back to original window size \n")
         self.driver.set_window_size(1250, 1000)  # custom window size
         self.driver.back()
-        time.sleep(3)
+        self.wait_for_ajax()
 
     def delete_graph(self, graph:GraphExample):
         """Deleting created graphs"""
@@ -761,20 +761,20 @@ class GraphPage(BaseSelenium):
         btn_id = GRAPH_SETS[graph].btn_id
         select_graph_setting_btn_sitem = self.locator_finder_by_id(btn_id)
         select_graph_setting_btn_sitem.click()
-        time.sleep(1)
+        self.wait_for_ajax()
 
         confirm_delete_graph_sitem = self.locator_finder_by_text_id(self.confirm_delete_graph_id)
         confirm_delete_graph_sitem.click()
-        time.sleep(1)
+        self.wait_for_ajax()
 
         delete_with_collection_sitem = self.locator_finder_by_text_id(self.delete_with_collection_id)
         delete_with_collection_sitem.click()
-        time.sleep(1)
+        self.wait_for_ajax()
 
         select_really_delete_btn_sitem = \
             self.locator_finder_by_id(self.select_really_delete_btn_id)
         select_really_delete_btn_sitem.click()
-        time.sleep(3)
+        self.wait_for_ajax()
 
 GRAPH_SETS = [
     GraphCreateSet(None, None, [], None),

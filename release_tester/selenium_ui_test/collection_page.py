@@ -354,8 +354,10 @@ class CollectionPage(BaseSelenium):
         """After changing the document display size checking everything loads"""
         self.wait_for_ajax()
         self.locator_finder_by_hover_item(self.move_second_page_id)
+        time.sleep(2)
         self.wait_for_ajax()
         self.locator_finder_by_hover_item(self.move_first_page_id)
+        time.sleep(2)
 
     def select_hand_pointer(self):
         """Selecting Hand selection button"""
@@ -363,11 +365,13 @@ class CollectionPage(BaseSelenium):
 
     def select_multiple_item(self):
         """selecting multiple document rows from the current collection"""
+        time.sleep(2)
         self.wait_for_ajax()
         self.locator_finder_by_hover_item(self.row1_id)
         self.locator_finder_by_hover_item(self.row2_id)
         self.locator_finder_by_hover_item(self.row3_id)
         self.locator_finder_by_hover_item(self.row4_id)
+        time.sleep(1)
         self.wait_for_ajax()
 
     def move_btn(self):
@@ -420,6 +424,7 @@ class CollectionPage(BaseSelenium):
         create_new_index_btn_sitem = \
             self.locator_finder_by_id(self.create_new_index_btn_id)
         create_new_index_btn_sitem.click()
+        time.sleep(2)
         self.wait_for_ajax()
 
     def select_index_type(self, value):
@@ -431,6 +436,7 @@ class CollectionPage(BaseSelenium):
         select_create_index_btn_sitem = \
             self.locator_finder_by_text_id(self.select_create_index_btn_id)
         select_create_index_btn_sitem.click()
+        time.sleep(2)
         self.wait_for_ajax()
 
     def creating_geo_index(self):
@@ -441,6 +447,7 @@ class CollectionPage(BaseSelenium):
         select_geo_name_sitem.send_keys("gname").perform()
         self.locator_finder_by_hover_item_id(self.select_geo_json_id)
         self.locator_finder_by_hover_item_id(self.select_geo_background_id)
+        time.sleep(2)
         self.wait_for_ajax()
 
     def creating_persistent_index(self):
@@ -455,6 +462,7 @@ class CollectionPage(BaseSelenium):
         self.locator_finder_by_hover_item_id(self.select_persistent_sparse_id)
         self.locator_finder_by_hover_item_id(self.select_persistent_duplicate_id)
         self.locator_finder_by_hover_item_id(self.select_persistent_background_id)
+        time.sleep(2)
         self.wait_for_ajax()
 
     def creating_fulltext_index(self):
@@ -469,6 +477,7 @@ class CollectionPage(BaseSelenium):
             self.locator_finder_by_hover_item_id(self.select_fulltext_length_id)
         select_fulltext_length_sitem.send_keys(100)
         self.locator_finder_by_hover_item_id(self.select_fulltext_background_id)
+        time.sleep(2)
         self.wait_for_ajax()
 
     def creating_ttl_index(self):
@@ -483,6 +492,7 @@ class CollectionPage(BaseSelenium):
             self.locator_finder_by_hover_item_id(self.select_ttl_expiry_id)
         select_ttl_expiry_sitem.send_keys(1000)
         self.locator_finder_by_hover_item_id(self.select_ttl_background_id)
+        time.sleep(2)
         self.wait_for_ajax()
 
     def delete_all_index(self):
@@ -500,6 +510,7 @@ class CollectionPage(BaseSelenium):
         select_info_tab_sitem = \
             self.locator_finder_by_text_xpath(self.select_info_tab_id)
         select_info_tab_sitem.click()
+        time.sleep(2)
         self.wait_for_ajax()
 
     def select_schema_tab(self):
@@ -510,6 +521,7 @@ class CollectionPage(BaseSelenium):
             time.sleep(2)
         else:
             print('Schema check not supported for the current package \n')
+        time.sleep(2)
         self.wait_for_ajax()
 
 
@@ -542,6 +554,7 @@ class CollectionPage(BaseSelenium):
         select_load_index_into_memory_sitem = \
             self.locator_finder_by_text_xpath(self.select_load_index_into_memory_id)
         select_load_index_into_memory_sitem.click()
+        time.sleep(2)
         self.wait_for_ajax()
 
     def select_settings_unload_btn(self):
@@ -549,6 +562,7 @@ class CollectionPage(BaseSelenium):
         select_settings_unload_btn_sitem = \
             self.locator_finder_by_text_xpath(self.select_settings_unload_btn_id)
         select_settings_unload_btn_sitem.click()
+        time.sleep(2)
         self.wait_for_ajax()
 
     def select_truncate_btn(self):
@@ -560,6 +574,7 @@ class CollectionPage(BaseSelenium):
         select_truncate_confirm_btn_sitem = \
             self.locator_finder_by_text_xpath(self.select_truncate_confirm_btn_id)
         select_truncate_confirm_btn_sitem.click()
+        time.sleep(2)
         self.wait_for_ajax()
 
     def delete_collection(self):
