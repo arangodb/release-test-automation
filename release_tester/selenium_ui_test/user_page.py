@@ -15,7 +15,6 @@ class UserPage(BaseSelenium):
         """User page initialization"""
         super().__init__()
         self.driver = driver
-        self.select_user_tab_id = "users"
         self.add_new_user_id = "createUser"
         self.enter_new_user_name_id = "newUsername"
         self.enter_new_name_id = "newName"
@@ -36,8 +35,7 @@ class UserPage(BaseSelenium):
 
     def user_tab(self):
         """selecting user tab"""
-        user_tab = self.locator_finder_by_id(self.select_user_tab_id)
-        user_tab.click()
+        self.navbar_goto("users")
 
     def add_new_user(self, tester):
         """User page selecting add new user"""
@@ -83,6 +81,7 @@ class UserPage(BaseSelenium):
     def selecting_general_tab(self):
         """selecting the general tab of edited users """
         try:
+            self.wait_for_ajax()
             permission_sitem = self.locator_finder_by_xpath(self.general_link_id)
             permission_sitem.click()
         except StaleElementReferenceException:

@@ -54,11 +54,7 @@ class QueryPage(BaseSelenium):
         """importing collections for query"""
         print("Navigating to Collection page \n")
         # Selecting collections page
-        collections = "collections"
-        collections_sitem = \
-            BaseSelenium.locator_finder_by_id(self, collections)
-        collections_sitem.click()
-        time.sleep(1)
+        self.navbar_goto("collections")
         data_path = testdata_path / 'ui_data' / 'query_page' / 'IMDB_DUMP'
         print(data_path)
         ret = restore.run_restore_monitored(
