@@ -20,6 +20,7 @@ from selenium.common.exceptions import (
     TimeoutException,
     NoSuchElementException
 )
+import semver
 
 # from webdriver_manager.chrome import ChromeDriverManager
 # from webdriver_manager.firefox import GeckoDriverManager
@@ -227,6 +228,15 @@ class BaseSelenium:
         self.driver.close()
         self.driver.switch_to.window(self.driver.window_handles[0])
         return title
+
+    def check_version_is_newer(self, compare_version):
+        ui_version_str = \
+            self.locator_finder_by_text_id("currentVersion").text
+        print("Package Version: ", ui_version_str)
+        ui_version = semver.VersionInfo.parse(ui_version_str)
+        compare_version = semver.VersionInfo.parse(compare_version)
+        return ui_version >= compare_version
+
 
     def current_package_version(self):
         """checking current package version from the dashboard"""

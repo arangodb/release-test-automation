@@ -93,7 +93,7 @@ class DashboardPage(BaseSelenium):
 
     def check_system_metrics(self):
         """checking system metrics tab from the dashboard"""
-        if self.check_current_package_version() >= 3.8:
+        if self.check_version_is_newer('3.8.0'):
             check_system_metrics_sitem = self.locator_finder_by_text_id(self.check_system_metrics_id)
             check_system_metrics_sitem.click()
             time.sleep(1)
