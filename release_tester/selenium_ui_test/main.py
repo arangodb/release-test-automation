@@ -46,6 +46,7 @@ class Test(BaseSelenium):
         #login = LoginPage(self.driver)
         #login.login('root', self.root_passvoid)
         # creating object for dashboard
+        self.navbar_goto('dashboard')
         dash = DashboardPage(self.driver, is_enterprise)
         dash.check_server_package_name()
         dash.check_current_package_version()
