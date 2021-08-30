@@ -12,12 +12,15 @@ fi
 if test -z "$NEW_VERSION"; then
     NEW_VERSION=3.8.0-nightly
 fi
-if test -n "$PACKAGE_CACHE"; then
-    PACKAGE_CACHE=$(pwd)/package_cache
+if test -z "${PACKAGE_CACHE}"; then
+    PACKAGE_CACHE="$(pwd)/package_cache/"
 fi
 
 VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_rpm_version"
-mkdir -p ${VERSION_TAR_NAME}
+mkdir -p "${PACKAGE_CACHE}"
+mkdir -p "${VERSION_TAR_NAME}"
+mkdir -p test_dir
+mkdir -p allure-results
 tar -xvf ${VERSION_TAR_NAME}.tar || true
 
 DOCKER_RPM_NAME=release-test-automation-rpm-$(cat VERSION.json)
@@ -51,7 +54,7 @@ docker run \
        -v $(pwd):/home/release-test-automation \
        -v $(pwd)/test_dir:/home/test_dir \
        -v $(pwd)/allure-results:/home/allure-results \
-       -v "$PACKAGE_CACHE":/home/package_cache \
+       -v "${PACKAGE_CACHE}":/home/package_cache \
        -v $(pwd)/${VERSION_TAR_NAME}:/home/versions \
        -v /tmp/tmp:/tmp/ \
        -v /dev/shm:/dev/shm \
