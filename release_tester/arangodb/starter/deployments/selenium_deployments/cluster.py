@@ -101,7 +101,7 @@ class Cluster(SeleniumRunner):
         retry_count = 0
         while not done:
             # the wintendo is slow to notice that the hosts are gone.
-            timeout = 50 if WINVER[0] else 500
+            timeout = 500 if WINVER[0] else 50
             node_count = self.cluster_dashboard_get_count(timeout)
 
             done = ((node_count['dbservers'] == '2/3') and
