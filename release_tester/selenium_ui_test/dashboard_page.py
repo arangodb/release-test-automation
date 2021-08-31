@@ -29,6 +29,7 @@ class DashboardPage(BaseSelenium):
         self.check_db_uptime_id = "/html//div[@id='nodeattribute-Uptime']"
         self.check_system_resource_id = "system-statistics"
         self.check_system_metrics_id = "metrics-statistics"
+        self.show_text = 'toggleView'
         self.select_reload_btn_id = "reloadMetrics"
         self.metrics_download_id = "downloadAs"
         self.click_twitter_link_id = "//*[@id='navigationBar']/div[2]/p[1]/a"
@@ -100,6 +101,18 @@ class DashboardPage(BaseSelenium):
 
             print("scrolling the current page \n")
             super().scroll()
+
+            # toggle view text to table and vice-versa
+            print("Changing metrics tab to table view \n")
+            
+            text_view = BaseSelenium.locator_finder_by_id(self.show_text)
+            text_view.click()
+            time.sleep(3)
+
+            print("Changing metrics tab to text view \n")
+            table_view = BaseSelenium.locator_finder_by_id(self.show_text)
+            table_view.click()
+            time.sleep(3)
 
             # Reloading system metrics tab from the dashboard
             select_reload_btn_sitem = self.locator_finder_by_text_id(self.select_reload_btn_id)
