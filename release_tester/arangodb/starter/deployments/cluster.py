@@ -169,6 +169,7 @@ db.testCollection.save({test: "document"})
                 InstanceType.COORDINATOR
             ], [
                 '--database.auto-upgrade', 'true',
+                '--javascript.copy-installation', 'true',
                 '--server.rest-server', 'false'
             ])
         self.progress(True, "step 5 restart the full cluster ")

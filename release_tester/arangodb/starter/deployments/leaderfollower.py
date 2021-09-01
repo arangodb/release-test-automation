@@ -212,7 +212,8 @@ process.exit(0);
             print('launch')
             node.manually_launch_instances(
                 [ InstanceType.SINGLE ],
-                [ '--database.auto-upgrade', 'true' ] )
+                [ '--database.auto-upgrade', 'true',
+                  '--javascript.copy-installation', 'true'] )
         self.progress(True, "step 3 - launch instances again")
         for node in instances:
             node.respawn_instance()

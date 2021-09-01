@@ -16,7 +16,7 @@ class InstallerTAR(InstallerBase):
     def __init__(self, cfg):
         cfg.have_system_service = False
 
-        cfg.installPrefix = None
+        cfg.install_prefix = None
         cfg.bin_dir = None
         cfg.sbin_dir = None
         cfg.real_bin_dir = None
@@ -29,7 +29,7 @@ class InstallerTAR(InstallerBase):
 
         self.cfg = cfg
         self.dash = "-"
-        self.cfg.installPrefix = Path("/tmp")
+        self.cfg.install_prefix = Path("/tmp")
         self.extension = 'tar.gz'
         self.hot_backup = True
         self.architecture = None
@@ -44,7 +44,7 @@ class InstallerTAR(InstallerBase):
         elif winver[0]:
             self.dash = "_"
             cfg.localhost = 'localhost'
-            cfg.installPrefix = Path("C:/tmp")
+            cfg.install_prefix = Path("C:/tmp")
             self.remote_package_dir  = 'Windows'
             self.architecture = 'win64'
             self.extension = 'zip'
@@ -93,24 +93,24 @@ class InstallerTAR(InstallerBase):
         self.client_package = None
         if self.architecture == 'win64':
             self.server_package = 'ArangoDB3{ep}-{ver}{dashus}{arch}.{ext}'.format(**self.desc)
-            self.cfg.installPrefix = Path("c:/tmp") / \
+            self.cfg.install_prefix = Path("c:/tmp") / \
                 'arangodb3{ep}-{ver}{dashus}{arch}'.format(**self.desc)
-            self.cfg.bin_dir = self.cfg.installPrefix / "usr" / "bin"
-            self.cfg.sbin_dir = self.cfg.installPrefix / "usr" / "bin"
+            self.cfg.bin_dir = self.cfg.install_prefix / "usr" / "bin"
+            self.cfg.sbin_dir = self.cfg.install_prefix / "usr" / "bin"
             self.cfg.real_bin_dir = self.cfg.bin_dir
             self.cfg.real_sbin_dir = self.cfg.sbin_dir
         else:
             self.server_package = 'arangodb3{ep}-{arch}{dashus}{ver}.{ext}'.format(**self.desc)
-            self.cfg.installPrefix = Path("/tmp") / \
+            self.cfg.install_prefix = Path("/tmp") / \
                 'arangodb3{ep}-{arch}{dashus}{ver}'.format(**self.desc)
-            self.cfg.bin_dir = self.cfg.installPrefix / "bin"
-            self.cfg.sbin_dir = self.cfg.installPrefix / "usr" / "sbin"
-            self.cfg.real_bin_dir = self.cfg.installPrefix / "usr" / "bin"
+            self.cfg.bin_dir = self.cfg.install_prefix / "bin"
+            self.cfg.sbin_dir = self.cfg.install_prefix / "usr" / "sbin"
+            self.cfg.real_bin_dir = self.cfg.install_prefix / "usr" / "bin"
             self.cfg.real_sbin_dir = self.cfg.sbin_dir
-        self.cfg.cfgdir = self.cfg.installPrefix # n/A
-        self.cfg.appdir = self.cfg.installPrefix # n/A
-        self.cfg.dbdir = self.cfg.installPrefix # n/A
-        self.cfg.log_dir = self.cfg.installPrefix # n/A
+        self.cfg.cfgdir = self.cfg.install_prefix # n/A
+        self.cfg.appdir = self.cfg.install_prefix # n/A
+        self.cfg.dbdir = self.cfg.install_prefix # n/A
+        self.cfg.log_dir = self.cfg.install_prefix # n/A
 
     def check_service_up(self):
         """ nothing to see here """
@@ -133,16 +133,16 @@ class InstallerTAR(InstallerBase):
             "package dir: {0.cfg.package_dir}- "
             "server_package: {0.server_package}".format(self))
 
-        if not self.cfg.installPrefix.exists():
-            self.cfg.installPrefix.mkdir()
+        if not self.cfg.install_prefix.exists():
+            self.cfg.install_prefix.mkdir()
         shutil.unpack_archive(str(self.cfg.package_dir / self.server_package),
-                              str(self.cfg.installPrefix / '..'))
+                              str(self.cfg.install_prefix / '..'))
         logging.info('Installation successfull')
 
     @step
     def un_install_package(self):
-        if self.cfg.installPrefix.exists():
-            shutil.rmtree(self.cfg.installPrefix)
+        if self.cfg.install_prefix.exists():
+            shutil.rmtree(self.cfg.install_prefix)
 
     def broadcast_bind(self):
         """ nothing to see here """

@@ -465,7 +465,8 @@ class Dc2Dc(Runner):
             node.upgrade_instances([
                 InstanceType.COORDINATOR
             ], [
-                '--database.auto-upgrade', 'true'
+                '--database.auto-upgrade', 'true',
+                '--javascript.copy-installation', 'true'
             ])
         self.progress(True, "step 5 restart the full cluster ")
         for node in self.starter_instances:

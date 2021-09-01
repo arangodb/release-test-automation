@@ -81,12 +81,12 @@ class Runner(ABC):
         self.state = ""
         self.runner_type = runner_type
         self.name = str(self.runner_type).split('.')[1]
-        cfg = install_set[0][0]
+        cfg = install_set[0][1].cfg
         old_inst = install_set[0][1]
         new_cfg = None
         new_inst = None
         if len(install_set) > 1:
-            new_cfg = install_set[1][0]
+            new_cfg = install_set[1][1].cfg
             new_inst = install_set[1][1]
 
         self.do_install = cfg.mode == "all" or cfg.mode == "install"
@@ -97,7 +97,7 @@ class Runner(ABC):
         self.do_starter_test = cfg.mode in ["all", "tests"]
         self.do_upgrade = False
         self.supports_rolling_upgrade = WINVER[0] == ''
-        #self.supports_rolling_upgrade = False # TODO
+        # self.supports_rolling_upgrade = False # TODO
 
         self.basecfg = copy.deepcopy(cfg)
         self.new_cfg = new_cfg
@@ -146,6 +146,7 @@ class Runner(ABC):
         self.hot_backup = ( cfg.hot_backup and
                             properties.supports_hotbackup and
                             self.old_installer.supports_hot_backup() )
+        # self.hot_backup = False # TODO
         self.backup_instance_count = 3
         # starter instances that make_data wil run on
         # maybe it would be better to work directly on
@@ -837,6 +838,10 @@ class Runner(ABC):
                 break
             time.sleep(1)
         old_leader.resume_instance()
+        if WINVER[0]:
+            old_leader.kill_instance()
+            time.sleep(5) # wait for the starter to respawn it...
+            old_leader.detect_pid()
 
     @step
     def agency_get_leader(self):
