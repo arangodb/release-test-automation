@@ -63,6 +63,7 @@ class StarterManager():
 
         #directories
         self.raw_basedir = install_prefix
+        self.old_install_prefix = self.cfg.install_prefix
         self.name = str(install_prefix / instance_prefix) # this is magic with the name function.
         self.basedir = self.cfg.base_test_dir / install_prefix / instance_prefix
         self.basedir.mkdir(parents=True, exist_ok=True)
@@ -450,7 +451,7 @@ class StarterManager():
             if exit_code == 15:
                 # TODO: remove wintendo starter bug workaround!
                 exit_code = 0
-            
+
         if exit_code != 0:
             raise Exception("Starter %s exited with %d" % (self.basedir, exit_code))
 
@@ -526,6 +527,8 @@ class StarterManager():
                         i.kill_instance()
                     i.launch_manual_from_instance_control_file(
                         self.cfg.sbin_dir,
+                        self.old_install_prefix,
+                        self.cfg.install_prefix,
                         moreargs,
                         waitpid)
 
@@ -543,6 +546,8 @@ class StarterManager():
                         i.kill_instance()
                     i.launch_manual_from_instance_control_file(
                         self.cfg.sbin_dir,
+                        self.old_install_prefix,
+                        self.cfg.install_prefix,
                         moreargs,
                         waitpid)
 
@@ -558,10 +563,14 @@ class StarterManager():
                     i.terminate_instance()
                     i.launch_manual_from_instance_control_file(
                         self.cfg.sbin_dir,
+                        self.old_install_prefix,
+                        self.cfg.install_prefix,
                         moreargs,
                         True)
                     i.launch_manual_from_instance_control_file(
                         self.cfg.sbin_dir,
+                        self.old_install_prefix,
+                        self.cfg.install_prefix,
                         [],
                         False)
 

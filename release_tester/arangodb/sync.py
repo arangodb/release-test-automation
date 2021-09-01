@@ -50,7 +50,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
 
     def replace_binary_for_upgrade(self, new_install_cfg):
         """ set the new config properties """
-        self.cfg.installPrefix = new_install_cfg.installPrefix
+        self.cfg.install_prefix = new_install_cfg.install_prefix
 
     @step
     def check_sync_status(self, which):

@@ -262,10 +262,10 @@ class InstallerBase(ABC):
     def calc_config_file_name(self):
         """ store our config to disk - so we can be invoked partly """
         cfg_file = Path()
-        if self.cfg.install_prefix == Path('/'):
-            cfg_file = Path('/') / 'tmp' / 'config.yml'
-        else:
+        if IS_WINDOWS:
             cfg_file = Path('c:') / 'tmp' / 'config.yml'
+        else:
+            cfg_file = Path('/') / 'tmp' / 'config.yml'
         return cfg_file
 
     @step
@@ -444,10 +444,10 @@ class InstallerBase(ABC):
         success = True
 
         if self.cfg.have_system_service:
-            if (self.cfg.installPrefix != Path("/") and
-                    self.cfg.installPrefix.is_dir()):
+            if (self.cfg.install_prefix != Path("/") and
+                    self.cfg.install_prefix.is_dir()):
                 logging.info("Path not removed: %s",
-                             str(self.cfg.installPrefix))
+                             str(self.cfg.install_prefix))
                 success = False
             if os.path.exists(self.cfg.appdir):
                 logging.info("Path not removed: %s", str(self.cfg.appdir))
@@ -465,7 +465,7 @@ class InstallerBase(ABC):
                                         "8529",
                                         self.cfg.localhost,
                                         self.cfg.publicip,
-                                        (self.cfg.installPrefix /
+                                        (self.cfg.install_prefix /
                                          self.cfg.log_dir),
                                         self.cfg.passvoid,
                                         True)

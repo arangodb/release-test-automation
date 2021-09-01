@@ -213,9 +213,14 @@ class ActiveFailover(Runner):
         for node in self.starter_instances:
             print('launch')
             node.manually_launch_instances([
-                InstanceType.AGENT,
-                InstanceType.RESILIENT_SINGLE,
+                InstanceType.AGENT
             ], ['--database.auto-upgrade', 'true'])
+        for node in self.starter_instances:
+            print('launch')
+            node.manually_launch_instances([
+                InstanceType.RESILIENT_SINGLE,
+            ], ['--database.auto-upgrade', 'true',
+                '--javascript.copy-installation', 'true' ])
         self.progress(True, "step 3 - launch instances again")
         for node in self.starter_instances:
             node.respawn_instance()
