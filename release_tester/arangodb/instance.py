@@ -145,12 +145,24 @@ class Instance(ABC):
 
     def launch_manual_from_instance_control_file(self,
                                                  sbin_dir,
+                                                 old_install_prefix,
+                                                 new_install_prefix,
                                                  moreargs,
                                                  waitpid=True):
         """ launch instance without starter with additional arguments """
         self.load_starter_instance_control_file()
         command = [str(sbin_dir / self.instance_string)] + \
             self.instance_arguments[1:] + moreargs
+        dos_old_install_prefix_fwd = str(old_install_prefix).replace("\\", "/")
+        dos_new_install_prefix_fwd = str(new_install_prefix).replace("\\", "/")
+        for i in range(len(command)):
+            if command[i].find(str(old_install_prefix)) >= 0:
+                command[i] = command[i].replace(
+                    str(old_install_prefix), str(new_install_prefix))
+            # the wintendo may have both slash directions:
+            if command[i].find(dos_old_install_prefix_fwd) >= 0:
+                command[i] = command[i].replace(
+                    dos_old_install_prefix_fwd, dos_new_install_prefix_fwd)
         print("Manually launching: " + str(command))
         self.instance = psutil.Popen(command)
         print("instance launched with PID:" + str(self.instance.pid))
