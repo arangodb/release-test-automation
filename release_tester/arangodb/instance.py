@@ -155,13 +155,13 @@ class Instance(ABC):
             self.instance_arguments[1:] + moreargs
         dos_old_install_prefix_fwd = str(old_install_prefix).replace("\\", "/")
         dos_new_install_prefix_fwd = str(new_install_prefix).replace("\\", "/")
-        for i in range(len(command)):
-            if command[i].find(str(old_install_prefix)) >= 0:
-                command[i] = command[i].replace(
+        for i, cmd in enumerate(command):
+            if cmd.find(str(old_install_prefix)) >= 0:
+                command[i] = cmd.replace(
                     str(old_install_prefix), str(new_install_prefix))
             # the wintendo may have both slash directions:
-            if command[i].find(dos_old_install_prefix_fwd) >= 0:
-                command[i] = command[i].replace(
+            if cmd.find(dos_old_install_prefix_fwd) >= 0:
+                command[i] = cmd.replace(
                     dos_old_install_prefix_fwd, dos_new_install_prefix_fwd)
         print("Manually launching: " + str(command))
         self.instance = psutil.Popen(command)
