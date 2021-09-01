@@ -835,6 +835,10 @@ class Runner(ABC):
                 break
             time.sleep(1)
         old_leader.resume_instance()
+        if WINVER[0]:
+            old_leader.kill_instance()
+            time.sleep(5) # wait for the starter to respawn it...
+            old_leader.detect_pid()
 
     @step
     def agency_get_leader(self):
