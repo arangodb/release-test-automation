@@ -263,7 +263,7 @@ class InstallerBase(ABC):
         """ store our config to disk - so we can be invoked partly """
         cfg_file = Path()
         if IS_WINDOWS:
-            cfg_file = Path('c:') / 'tmp' / 'config.yml'
+            cfg_file = Path('c:/') / 'tmp' / 'config.yml'
         else:
             cfg_file = Path('/') / 'tmp' / 'config.yml'
         return cfg_file
