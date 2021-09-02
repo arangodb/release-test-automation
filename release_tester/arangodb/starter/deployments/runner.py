@@ -109,6 +109,9 @@ class Runner(ABC):
             self.versionstr = "OLD[" + self.cfg.version + "] "
 
         self.basedir = Path(properties.short_name)
+        tmpdir = self.basedir / "tmp"
+        tmpdir.mkdir()
+        os.environ["TMP"] = str(tmpdir)
         count = 1
         while True:
             try:
@@ -943,7 +946,7 @@ class Runner(ABC):
             InstanceType.COORDINATOR,
             requests.get,
             '/_api/collection',
-            None);
+            None)
         if reply[0].status_code != 200:
             raise Exception("get Collections: Unsupported return code" +
                             str(reply[0].status_code) +
