@@ -371,6 +371,14 @@ class ArangodInstance(Instance):
         }
 
     def get_protocol(self):
+        """ return protocol of this arangod instance (ssl/tcp) """
+        if self.ssl:
+            return "ssl"
+        else:
+            return "tcp"
+
+    def get_http_protocol(self):
+        """ return protocol of this arangod instance (http/https) """
         if self.ssl:
             return "https"
         else:
@@ -387,7 +395,7 @@ class ArangodInstance(Instance):
     def get_public_url(self, login):
         """ our public url """
         return '{protocol}://{login}{host}:{port}'.format(
-            protocol=self.get_protocol(),
+            protocol=self.get_http_protocol(),
             login=login,
             host=self.publicip,
             port=self.port)
@@ -395,7 +403,7 @@ class ArangodInstance(Instance):
     def get_public_login_url(self):
         """ our public url with passvoid """
         return '{protocol}://root:{passvoid}@{publicip}:{port}'.format(
-            protocol = self.get_protocol(),
+            protocol = self.get_http_protocol(),
             passvoid = self.passvoid,
             publicip=self.publicip,
             port=self.port
