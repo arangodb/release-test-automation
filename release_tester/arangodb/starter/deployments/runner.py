@@ -108,10 +108,6 @@ class Runner(ABC):
             self.new_cfg.passvoid = ""   # TODO
             self.versionstr = "OLD[" + self.cfg.version + "] "
 
-        tmpdir = cfg.base_test_dir / properties.short_name / "tmp"
-        tmpdir.mkdir()
-        os.environ["TMP"] = str(tmpdir)
-
         self.basedir = Path(properties.short_name)
         count = 1
         while True:
@@ -141,6 +137,12 @@ class Runner(ABC):
                           diskused, diskfree.free / (1024*1024),
                           str(self.basecfg.base_test_dir))
             raise Exception("not enough free disk space to execute test!")
+
+        tmpdir = cfg.base_test_dir / properties.short_name
+        tmpdir.mkdir()
+        tmpdir = tmpdir / "tmp"
+        tmpdir.mkdir()
+        os.environ["TMP"] = str(tmpdir)
 
         self.old_installer = old_inst
         self.new_installer = new_inst
