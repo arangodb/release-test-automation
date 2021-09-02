@@ -55,7 +55,12 @@ def kill_all_processes(kill_selenium=True):
     attach(str(processlist), "List of processes")
     for process in processlist:
         if process.is_running():
-            logging.info("cleanup killing ${proc}".format(proc=process.cmdline()))
+            cmdline = str(process)
+            try:
+                cmdline = process.cmdline()
+            except psutil.AccessDenied:
+                pass
+            logging.info("cleanup killing ${proc}".format(proc=cmdline))
             if process.is_running():
                 try:
                     process.terminate()
