@@ -157,7 +157,7 @@ class Runner(ABC):
         self.starter_instances = []
         self.remote = len(self.basecfg.frontends) > 0
         if not self.remote:
-            self.cleanup()
+            self.cleanup(False)
         if selenium_worker == "none":
             self.selenium = None
         else:
@@ -823,14 +823,15 @@ class Runner(ABC):
             print("test basedir doesn't exist, won't create report tar")
 
     @step
-    def cleanup(self):
+    def cleanup(self, reset_tmp=True):
         """ remove all directories created by this test """
         testdir = self.basecfg.base_test_dir / self.basedir
         print('cleaning up ' + str(testdir))
         if testdir.exists():
             shutil.rmtree(testdir)
-        os.environ["TMP"] = self.original_tmp
-        os.environ["TEMP"] = self.original_temp
+        if reset_tmp:
+            os.environ["TMP"] = self.original_tmp
+            os.environ["TEMP"] = self.original_temp
 
     @step
     def agency_trigger_leader_relection(self, old_leader):
