@@ -138,12 +138,6 @@ class Runner(ABC):
                           str(self.basecfg.base_test_dir))
             raise Exception("not enough free disk space to execute test!")
 
-        if not is_cleanup:
-            tmpdir = cfg.base_test_dir / properties.short_name / "tmp"
-            tmpdir.mkdir(mode=0o777, parents=True, exist_ok=True)
-            os.environ["TMP"] = str(tmpdir)
-            os.environ["TEMP"] = str(tmpdir)
-
         self.old_installer = old_inst
         self.new_installer = new_inst
         self.backup_name = None
@@ -175,6 +169,14 @@ class Runner(ABC):
                 selenium_driver_args,
                 self.testrun_name)
             print("Browser online")
+        self.original_tmp = os.environ["TMP"]
+        self.original_temp = os.environ["TEMP"]
+        if not is_cleanup:
+            tmpdir = cfg.base_test_dir / properties.short_name / "tmp"
+            tmpdir.mkdir(mode=0o777, parents=True, exist_ok=True)
+            os.environ["TMP"] = str(tmpdir)
+            os.environ["TEMP"] = str(tmpdir)
+
 
     def progress(self, is_sub, msg, separator='x'):
         """ report user message, record for error handling. """
@@ -827,6 +829,8 @@ class Runner(ABC):
         print('cleaning up ' + str(testdir))
         if testdir.exists():
             shutil.rmtree(testdir)
+        os.environ["TMP"] = self.original_tmp
+        os.environ["TEMP"] = self.original_temp
 
     @step
     def agency_trigger_leader_relection(self, old_leader):
