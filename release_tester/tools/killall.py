@@ -86,5 +86,10 @@ def list_all_processes():
     """ list all processes for later reference """
     pseaf = "PID  Process"
     for process in psutil.process_iter(['pid', 'name']):
-        pseaf += "\n%d    %s" %(process.pid, process.cmdline())
+            cmdline = str(process)
+            try:
+                cmdline = process.cmdline()
+            except psutil.AccessDenied:
+                pass
+            logging.info("\n${pid} ${proc}".format(pid = proc.pid, proc=cmdline))
     print(pseaf)
