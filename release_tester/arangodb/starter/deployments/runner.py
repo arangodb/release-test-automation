@@ -138,11 +138,14 @@ class Runner(ABC):
                           str(self.basecfg.base_test_dir))
             raise Exception("not enough free disk space to execute test!")
 
-        tmpdir = cfg.base_test_dir / properties.short_name
-        tmpdir.mkdir()
-        tmpdir = tmpdir / "tmp"
-        tmpdir.mkdir()
-        os.environ["TMP"] = str(tmpdir)
+        if not is_cleanup:
+            tmpdir = cfg.base_test_dir / properties.short_name
+            if not tmpdir.exists():
+                tmpdir.mkdir()
+            tmpdir = tmpdir / "tmp"
+            if not tmpdir.exists():
+                tmpdir.mkdir()
+            os.environ["TMP"] = str(tmpdir)
 
         self.old_installer = old_inst
         self.new_installer = new_inst
