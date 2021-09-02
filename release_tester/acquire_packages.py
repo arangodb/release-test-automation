@@ -216,6 +216,8 @@ class AcquirePackages():
                            Path(self.package_dir),
                            True)
         text = (self.package_dir / source_info_fn).read_text()
+        while text[0] != '{':
+            text = text[1:]
         val = json.loads(text)
         val['GIT_VERSION'] = git_version
         version = val['VERSION'].replace('-devel', '')

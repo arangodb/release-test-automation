@@ -234,6 +234,9 @@ class Instance(ABC):
         """ halt an instance using SIG_STOP """
         if self.instance:
             try:
+                print('suspending {0} instance PID:[{1}]'.format(
+                    self.type_str,
+                    self.instance.pid))
                 self.instance.suspend()
             except psutil.NoSuchProcess as ex:
                 logging.info("instance not available with this PID: " + str(self.instance))
@@ -246,6 +249,9 @@ class Instance(ABC):
         """ resume the instance using SIG_CONT """
         if self.instance:
             try:
+                print('resuming {0} instance PID:[{1}]'.format(
+                    self.type_str,
+                    self.instance.pid))
                 self.instance.resume()
             except psutil.NoSuchProcess:
                 logging.info("instance not available with this PID: " + str(self.instance))
@@ -265,7 +271,10 @@ class Instance(ABC):
                     gcore = psutil.Popen(['gcore', str(self.instance.pid)], cwd=self.basedir)
                     print("generating core with PID:" + str(gcore.pid))
                     gcore.wait()
-                    print("Terminating " + str(self.instance))
+                    print('Killing {0} instance PID:[{1}] {3}'.format(
+                        self.type_str,
+                        self.instance.pid,
+                        self.instance.cmdline()))
                     self.instance.kill()
                     self.instance.wait()
                     self.add_logfile_to_report()

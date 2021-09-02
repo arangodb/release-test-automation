@@ -9,6 +9,7 @@ from pathlib import PureWindowsPath
 
 from reporting.reporting_utils import step
 import psutil
+import tools.monkeypatch_psutil
 from arangodb.installers.base import InstallerBase
 
 class InstallerW(InstallerBase):
