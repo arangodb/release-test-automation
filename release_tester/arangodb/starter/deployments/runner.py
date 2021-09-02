@@ -108,10 +108,11 @@ class Runner(ABC):
             self.new_cfg.passvoid = ""   # TODO
             self.versionstr = "OLD[" + self.cfg.version + "] "
 
-        self.basedir = Path(properties.short_name)
         tmpdir = cfg.base_test_dir / properties.short_name / "tmp"
         tmpdir.mkdir()
         os.environ["TMP"] = str(tmpdir)
+
+        self.basedir = Path(properties.short_name)
         count = 1
         while True:
             try:
