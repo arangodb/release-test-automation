@@ -140,7 +140,7 @@ class Runner(ABC):
 
         if not is_cleanup:
             tmpdir = cfg.base_test_dir / properties.short_name / "tmp"
-            tmpdir.mkdir(mode=0o777, parents=True, exists_ok=True)
+            tmpdir.mkdir(mode=0o777, parents=True, exist_ok=True)
             os.environ["TMP"] = str(tmpdir)
             os.environ["TEMP"] = str(tmpdir)
 
