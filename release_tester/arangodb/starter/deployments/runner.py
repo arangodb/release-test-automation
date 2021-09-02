@@ -146,6 +146,7 @@ class Runner(ABC):
             if not tmpdir.exists():
                 tmpdir.mkdir()
             os.environ["TMP"] = str(tmpdir)
+            os.environ["TEMP"] = str(tmpdir)
 
         self.old_installer = old_inst
         self.new_installer = new_inst
