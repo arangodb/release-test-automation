@@ -91,5 +91,5 @@ def list_all_processes():
             cmdline = process.cmdline()
         except psutil.AccessDenied:
             pass
-        logging.info("\n${pid} ${proc}".format(pid = process.pid, proc=cmdline))
+        logging.info("${pid} ${proc}".format(pid = process.pid, proc=cmdline))
     print(pseaf)
