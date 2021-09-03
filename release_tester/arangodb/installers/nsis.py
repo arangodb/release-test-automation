@@ -236,4 +236,3 @@ class InstallerW(InstallerBase):
                 # done...
                 pass
             # winreg.DeleteValue(k, "ArangoDB")
-            
