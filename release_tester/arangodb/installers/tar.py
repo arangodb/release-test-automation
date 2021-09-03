@@ -18,7 +18,7 @@ if WINVER[0]:
     BASEDIR = Path("C:/tmp")
 print(os.environ)
 if "WORKSPACE" in os.environ:
-    prin("snatoheusanoetuh")
+    print("snatoheusanoetuh")
     BASEDIR=Path(os.environ["WORKSPACE"])
     print(BASEDIR)
 
