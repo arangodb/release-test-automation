@@ -18,7 +18,9 @@ if WINVER[0]:
     BASEDIR = Path("C:/tmp")
 print(os.environ)
 if "WORKSPACE" in os.environ:
+    prin("snatoheusanoetuh")
     BASEDIR=Path(os.environ["WORKSPACE"])
+    print(BASEDIR)
 
 class InstallerTAR(InstallerBase):
     """ install Tar.gz's on Linux/Mac hosts """
