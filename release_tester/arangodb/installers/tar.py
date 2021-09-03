@@ -21,15 +21,15 @@ class InstallerTAR(InstallerBase):
         if WINVER[0]:
             BASEDIR = Path("C:/tmp")
         print(os.environ)
-        if "WORKSPACE" in os.environ:
+        if "WORKSPACE_TMP" in os.environ:
             print("snatoheusanoetuh")
-            BASEDIR=Path(os.environ["WORKSPACE"])
+            BASEDIR=Path(os.environ["WORKSPACE_TMP"])
             print(BASEDIR)
         
-        BASEDIR=Path(os.environ["WORKSPACE"])
+        BASEDIR=Path(os.environ["WORKSPACE_TMP"])
         cfg.have_system_service = False
 
-        cfg.install_prefix = None
+        cfg.install_prefix = BASEDIR
         cfg.bin_dir = None
         cfg.sbin_dir = None
         cfg.real_bin_dir = None
@@ -103,7 +103,7 @@ class InstallerTAR(InstallerBase):
         self.client_package = None
         if self.architecture == 'win64':
             self.server_package = 'ArangoDB3{ep}-{ver}{dashus}{arch}.{ext}'.format(**self.desc)
-            self.cfg.install_prefix = Path(os.environ["WORKSPACE"]) / \
+            self.cfg.install_prefix = Path(os.environ["WORKSPACE_TMP"]) / \
                 'arangodb3{ep}-{ver}{dashus}{arch}'.format(**self.desc)
             self.cfg.bin_dir = self.cfg.install_prefix / "usr" / "bin"
             self.cfg.sbin_dir = self.cfg.install_prefix / "usr" / "bin"
@@ -142,7 +142,7 @@ class InstallerTAR(InstallerBase):
         logging.debug(
             "package dir: {0.cfg.package_dir}- "
             "server_package: {0.server_package}".format(self))
-        self.cfg.install_prefix = Path(os.environ["WORKSPACE"])
+        self.cfg.install_prefix = Path(os.environ["WORKSPACE_TMP"])
         if not self.cfg.install_prefix.exists():
             self.cfg.install_prefix.mkdir()
         shutil.unpack_archive(str(self.cfg.package_dir / self.server_package),
