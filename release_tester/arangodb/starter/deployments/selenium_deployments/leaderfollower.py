@@ -3,6 +3,9 @@
 import time
 from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunner
 
+from reporting.reporting_utils import step
+
+
 class LeaderFollower(SeleniumRunner):
     """ check the leader follower setup and its properties """
     def __init__(self, webdriver,
@@ -13,6 +16,7 @@ class LeaderFollower(SeleniumRunner):
                          is_headless,
                          testrun_name)
 
+    @step
     def check_old(self, cfg, leader_follower=True, expect_follower_count=2, retry_count=10):
         """ check the integrity of the old system before the upgrade """
         self.check_version(cfg)
@@ -36,6 +40,7 @@ class LeaderFollower(SeleniumRunner):
     def upgrade_deployment(self, old_cfg, new_cfg, timeout):
         """ nothing to see here """
 
+    @step
     def jam_step_1(self, cfg):
         """ check for one set of instances to go away """
         self.navbar_goto('replication')

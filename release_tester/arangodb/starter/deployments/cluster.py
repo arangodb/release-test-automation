@@ -4,6 +4,7 @@ import time
 import logging
 from pathlib import Path
 
+from reporting.reporting_utils import step
 from tools.timestamp import timestamp
 from tools.interact import prompt_user
 from arangodb.instance import InstanceType
@@ -27,6 +28,7 @@ class Cluster(Runner):
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
         self.create_test_collection = ""
+        self.min_replication_factor = 2
 
     def starter_prepare_env_impl(self):
         self.create_test_collection = ("""
@@ -113,6 +115,8 @@ db.testCollection.save({test: "document"})
                 dbserver.detect_restore_restart()
 
     def upgrade_arangod_version_impl(self):
+        """ rolling upgrade this installation """
+        self.agency_set_debug_logging() # TODO: remove debug logging
         bench_instances = []
         if self.cfg.stress_upgrade:
             bench_instances.append(self.starter_instances[0].launch_arangobench(
@@ -132,8 +136,64 @@ db.testCollection.save({test: "document"})
         if self.cfg.stress_upgrade:
             bench_instances[0].wait()
             bench_instances[1].wait()
+        for node in self.starter_instances:
+            node.detect_instance_pids()
 
+    def upgrade_arangod_version_manual_impl(self):
+        """ manual upgrade this installation """
+        self.progress(True, "manual upgrade step 1 - stop instances")
+        self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
+        for node in self.starter_instances:
+            node.replace_binary_for_upgrade(self.new_cfg, False)
+        for node in self.starter_instances:
+            node.detect_instance_pids_still_alive()
+
+        self.progress(True, "step 2 - upgrade agents")
+        for node in self.starter_instances:
+            node.upgrade_instances([
+                InstanceType.AGENT
+            ], ['--database.auto-upgrade', 'true',
+                '--log.foreground-tty', 'true'])
+        self.progress(True, "step 3 - upgrade db-servers")
+        for node in self.starter_instances:
+            node.upgrade_instances([
+                InstanceType.DBSERVER
+            ], ['--database.auto-upgrade', 'true',
+                '--log.foreground-tty', 'true'])
+        self.progress(True, "step 4 - coordinator upgrade")
+        # now the new cluster is running. we will now run the coordinator upgrades
+        for node in self.starter_instances:
+            logging.info("upgrading coordinator instances\n" + str(node))
+            node.upgrade_instances([
+                InstanceType.COORDINATOR
+            ], [
+                '--database.auto-upgrade', 'true',
+                '--javascript.copy-installation', 'true',
+                '--server.rest-server', 'false'
+            ])
+        self.progress(True, "step 5 restart the full cluster ")
+        for node in self.starter_instances:
+            node.respawn_instance()
+        self.progress(True, "step 6 wait for the cluster to be up")
+        for node in self.starter_instances:
+            node.detect_instances()
+            node.wait_for_version_reply()
+
+        # now the upgrade should be done.
+        for node in self.starter_instances:
+            node.detect_instances()
+            node.wait_for_version_reply()
+            node.probe_leader()
+        self.set_frontend_instances()
+        self.starter_instances[0].maintainance(True, InstanceType.COORDINATOR)
+
+        if self.selenium:
+            self.selenium.upgrade_deployment(self.cfg, self.new_cfg, timeout=30) # * 5s
+
+    @step
     def jam_attempt_impl(self):
+        # this is simply to slow to be worth wile:
+        # collections = self.get_collection_list()
         agency_leader = self.agency_get_leader()
         terminate_instance = 2
         if self.starter_instances[terminate_instance].have_this_instance(agency_leader):
@@ -141,13 +201,18 @@ db.testCollection.save({test: "document"})
             terminate_instance = 1
 
         logging.info("stopping instance %d" % terminate_instance)
-
+        uuid = self.starter_instances[terminate_instance].get_dbservers()[0].get_uuid()
         self.starter_instances[terminate_instance].terminate_instance()
         self.set_frontend_instances()
 
         prompt_user(self.basecfg, "instance stopped")
         if self.selenium:
             self.selenium.jam_step_1(self.new_cfg if self.new_cfg else self.cfg)
+
+        ret = self.starter_instances[0].arangosh.check_test_data(
+                "Cluster one node missing", True, ['--disabledDbserverUUID', uuid] )
+        if not ret[0]:
+            raise Exception("check data failed " + ret[1])
 
         # respawn instance, and get its state fixed
         self.starter_instances[terminate_instance].respawn_instance()

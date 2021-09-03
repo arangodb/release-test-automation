@@ -168,7 +168,7 @@ class ClusterPerf(Runner):
 
     def make_data_impl(self):
         pass # we do this later.
-    def check_data_impl_sh(self, arangosh):
+    def check_data_impl_sh(self, arangosh, supports_foxx_tests):
         pass # we don't care
     def check_data_impl(self):
         pass
@@ -216,6 +216,8 @@ class ClusterPerf(Runner):
         pass
 
     def upgrade_arangod_version_impl(self):
+        pass
+    def upgrade_arangod_version_manual_impl(self):
         pass
 
     def jam_attempt_impl(self):

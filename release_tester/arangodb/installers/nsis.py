@@ -6,7 +6,10 @@ import logging
 import multiprocessing
 from pathlib import Path
 from pathlib import PureWindowsPath
+
+from reporting.reporting_utils import step
 import psutil
+import tools.monkeypatch_psutil
 from arangodb.installers.base import InstallerBase
 
 class InstallerW(InstallerBase):
@@ -17,16 +20,17 @@ class InstallerW(InstallerBase):
         self.client_package = None
         self.service = None
         self.remote_package_dir  = 'Windows'
+        self.installer_type = "NSIS"
 
-        cfg.installPrefix = Path("C:/tmp")
-        cfg.log_dir = cfg.installPrefix / "LOG"
-        cfg.dbdir = cfg.installPrefix / "DB"
-        cfg.appdir = cfg.installPrefix / "APP"
-        cfg.installPrefix = cfg.installPrefix / ("PROG" + cfg.version)
-        cfg.cfgdir = cfg.installPrefix / 'etc/arangodb3'
+        cfg.install_prefix = Path("C:/tmp")
+        cfg.log_dir = cfg.install_prefix / "LOG"
+        cfg.dbdir = cfg.install_prefix / "DB"
+        cfg.appdir = cfg.install_prefix / "APP"
+        cfg.install_prefix = cfg.install_prefix / ("PROG" + cfg.version)
+        cfg.cfgdir = cfg.install_prefix / 'etc/arangodb3'
 
-        cfg.bin_dir = cfg.installPrefix / "usr" / "bin"
-        cfg.sbin_dir = cfg.installPrefix / "usr" / "bin"
+        cfg.bin_dir = cfg.install_prefix / "usr" / "bin"
+        cfg.sbin_dir = cfg.install_prefix / "usr" / "bin"
         cfg.real_bin_dir = cfg.bin_dir
         cfg.real_sbin_dir = cfg.sbin_dir
 
@@ -57,10 +61,11 @@ class InstallerW(InstallerBase):
             architecture)
         self.debug_package = None # TODO
 
+    @step
     def upgrade_package(self, old_installer):
         self.stop_service()
         cmd = [str(self.cfg.package_dir / self.server_package),
-               '/INSTDIR=' + str(PureWindowsPath(self.cfg.installPrefix)),
+               '/INSTDIR=' + str(PureWindowsPath(self.cfg.install_prefix)),
                '/DATABASEDIR=' + str(PureWindowsPath(self.cfg.dbdir)),
                '/APPDIR=' + str(PureWindowsPath(self.cfg.appdir)),
                '/PATH=0',
@@ -84,11 +89,11 @@ class InstallerW(InstallerBase):
         self.start_service()
         logging.info('Installation successfull')
 
-
+    @step
     def install_package(self):
         cmd = [str(self.cfg.package_dir / self.server_package),
                '/PASSWORD=' + self.cfg.passvoid,
-               '/INSTDIR=' + str(PureWindowsPath(self.cfg.installPrefix)),
+               '/INSTDIR=' + str(PureWindowsPath(self.cfg.install_prefix)),
                '/DATABASEDIR=' + str(PureWindowsPath(self.cfg.dbdir)),
                '/APPDIR=' + str(PureWindowsPath(self.cfg.appdir)),
                '/PATH=0',
@@ -122,13 +127,14 @@ class InstallerW(InstallerBase):
             logging.error("failed to get service! - %s", str(exc))
             return
 
+    @step
     def un_install_package(self):
         # once we modify it, the uninstaller will leave it there...
         if self.get_arangod_conf().exists():
             self.get_arangod_conf().unlink()
         uninstaller = "Uninstall.exe"
         tmp_uninstaller = Path("c:/tmp") / uninstaller
-        uninstaller = self.cfg.installPrefix / uninstaller
+        uninstaller = self.cfg.install_prefix / uninstaller
 
         if uninstaller.exists():
             # copy out the uninstaller as the windows facility would do:
@@ -137,7 +143,7 @@ class InstallerW(InstallerBase):
             cmd = [tmp_uninstaller,
                    '/PURGE_DB=1',
                    '/S',
-                   '_?=' + str(PureWindowsPath(self.cfg.installPrefix))]
+                   '_?=' + str(PureWindowsPath(self.cfg.install_prefix))]
             logging.info('running windows package uninstaller')
             logging.info(str(cmd))
             uninstall = psutil.Popen(cmd)
@@ -158,10 +164,12 @@ class InstallerW(InstallerBase):
         except Exception:
             pass
 
+    @step
     def check_service_up(self):
         self.get_service()
         return self.service and self.service.status() == 'running'
 
+    @step
     def start_service(self):
         self.get_service()
         if not self.service:
@@ -177,6 +185,7 @@ class InstallerW(InstallerBase):
         # should be owned by init TODO wintendo what do you do here?
         self.instance.detect_pid(1)
 
+    @step
     def stop_service(self):
         self.get_service()
         if not self.service:
@@ -188,6 +197,7 @@ class InstallerW(InstallerBase):
             logging.info(self.service.status())
             time.sleep(1)
 
+    @step
     def cleanup_system(self):
         # TODO: should this be cleaned by the nsis uninstall in first place?
         if self.cfg.log_dir.exists():

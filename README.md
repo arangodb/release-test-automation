@@ -19,26 +19,26 @@
 ## Linux
 
 - **debian** / **ubuntu**:
-  `apt-get install python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect python3-pyftpdlib python3-statsd python3-selenium gdb`
+  `apt-get install python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect python3-pyftpdlib python3-statsd python3-selenium python3-markdown python3-pip gdb`
   
   the `python3-semver` on debian is to old - need to use the pip version instead:
-  `pip3 install semver beautifultable`
+  `pip3 install semver beautifultable allure_python_commons`
   
   Ubuntu 16.40 pip3 system package is broken. Fix like this: 
   `dpkg -r python3-pip python3-pexpect` 
   `python3.8 -m easy_install pip`
-  `pip install distro semver pexpect psutil beautifultable`
+  `pip install distro semver pexpect psutil beautifultable allure_python_commons `
   
 - **centos**:
    `yum update ; yum install python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect python3-pyftpdlib; pip3 install psutil semver beautifultable` 
    `sudo yum install gdb`
 - **plain pip**:
-  `pip3 install psutil pyyaml pexpect requests click semver ftplib selenium beautifultable`
+  `pip3 install psutil pyyaml pexpect requests click semver ftplib selenium beautifultable markdown allure_python_commons `
 
 ## Mac OS
 :
     `brew install gnu-tar`
-    `pip3 install click psutil requests pyyaml semver pexpect selenium beautifultable`
+    `pip3 install click psutil requests pyyaml semver pexpect selenium beautifultable markdown allure_python_commons`
     `brew install gdb`
 if `python --version` is below 3.9 you also have to download ftplib:
     `pip3 install click ftplib`
@@ -101,6 +101,8 @@ Supported Parameters:
  - `--verbose` if specified more logging is done
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
+ - `--alluredir` - directory to save test results in allure format (default = allure-results)
+ - `--clean-alluredir` - clean allure directory before running tests (default = True)
  
 Example usage:
  - Windows: `python ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
@@ -135,6 +137,8 @@ Supported Parameters:
    - `DC` - setup 2 clusters, connect them with arangosync (enterprise only)
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
+ - `--alluredir` - directory to save test results in allure format (default = allure-results)
+ - `--clean-alluredir` - clean allure directory before running tests (default = True)
  
 Example usage:
  - Windows: `python ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
@@ -151,7 +155,8 @@ Supported Parameters:
  - `--enterprise-magic` specify your secret enterprise download key here.
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--package-dir` The directory where we will download the nsis .exe / deb / rpm [/ dmg WIP] to
- - `--source [public|[ftp|http]:stage1|[ftp|http]:stage2]`
+ - `--source [public|nightlypublic|[ftp|http]:stage1|[ftp|http]:stage2]`
+   - `nightlypublic` will download the packages from the nightly builds at downloads.arangodb.com
    - `public` (default) will download the packages from downloads.arangodb.com
    - `stage1` will download the files from the staging fileserver - level 1 - ftp: internal http external requires credentials
    - `stage2` will download the files from the staging fileserver - level 2 - ftp: internal http external requires credentials
@@ -184,14 +189,16 @@ and create a final report at the end of the run.
 The downloading of packages can be circumvented by specifying `--source local`.
 
 Supported Parameters:
- - `--old-version` which Arangodb Version you want to install to setup the old system
- - `--new-version` which Arangodb Version you want to upgrade the environment to
+ - `--[new|old]-version`
+   - old: which Arangodb Version you want to install to setup the old system
+   - new: which Arangodb Version you want to upgrade the environment to
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
  - `--[no-]encryption-at-rest` turn on encryption at rest for Enterprise packages
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--enterprise-magic` specify your secret enterprise download key here.
- - `--source [local|public|[ftp|http]:stage1|[ftp|http]:stage2]`
+ - `--[new|old]-source [public|nightlypublic|[ftp|http]:stage1|[ftp|http]:stage2]`
+   - `nightlypublic` will download the packages from the nightly builds at downloads.arangodb.com
    - `local` no packages will be downloaded at all, but rather are expected to be found in `package-dir`.
    - `public` (default) will download the packages from downloads.arangodb.com
    - `stage1` will download the files from the staging fileserver - level 1 - ftp: internal http external requires credentials
@@ -210,6 +217,8 @@ Supported Parameters:
    - `DC` - setup 2 clusters, connect them with arangosync (enterprise only)
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
+ - `--alluredir` - directory to save test results in allure format (default = allure-results)
+ - `--clean-alluredir` - clean allure directory before running tests (default = True)
 
 Example usage: 
 
@@ -477,4 +486,13 @@ These tests use the CSV data from the wikip
  http://home.apache.org/~mikemccand/enwiki-20120502-lines-1k.txt.lzma
 
 
+# Allure reporting
+To view allure report, you must have allure installed in your system. Download link(for Linux):
+https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/2.14.0/allure-commandline-2.14.0.zip
 
+After the test run is finished, run the following command:
+```bash
+allure serve [results_dir]
+```
+Default results dir: allure_results
+This will open a browser with the test report.

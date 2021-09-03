@@ -3,7 +3,6 @@
 from pathlib import Path
 
 import os
-import resource
 import sys
 
 import shutil
@@ -16,8 +15,20 @@ from beautifultable import BeautifulTable, ALIGN_LEFT
 
 import tools.loghelper as lh
 from acquire_packages import AcquirePackages
+from reporting.reporting_utils import AllureTestSuiteContext
 from upgrade import run_upgrade
 from cleanup import run_cleanup
+from tools.killall import list_all_processes
+
+def set_r_limits():
+    """ on linux manipulate ulimit values """
+    #pylint: disable=C0415
+    import platform
+    if not platform.win32_ver()[0]:
+        import resource
+        resource.setrlimit(
+            resource.RLIMIT_CORE,
+            (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
 
 # pylint: disable=R0913 disable=R0914 disable=R0912, disable=R0915
 def upgrade_package_test(verbose,
@@ -31,19 +42,19 @@ def upgrade_package_test(verbose,
                          test_data_dir, version_state_dir,
                          remote_host, force,
                          starter_mode, stress_upgrade,
-                         publicip, selenium, selenium_driver_args):
+                         publicip, selenium, selenium_driver_args,
+                         alluredir, clean_alluredir):
     """ process fetch & tests """
     old_version_state = None
     new_version_state = None
     old_version_content = None
     new_version_content = None
 
-    lh.configure_logging(verbose)
+    set_r_limits()
 
+    lh.configure_logging(verbose)
+    list_all_processes()
     os.chdir(test_data_dir)
-    resource.setrlimit(
-        resource.RLIMIT_CORE,
-        (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
 
     results = []
     # do the actual work:
@@ -59,7 +70,14 @@ def upgrade_package_test(verbose,
     print("Cleanup done")
 
     for enterprise, encryption_at_rest, directory_suffix, testrun_name in execution_plan:
-        if new_dlstage != "local" or old_dlstage != "local":
+        #pylint: disable=W0612
+        with AllureTestSuiteContext(alluredir,
+                                    clean_alluredir,
+                                    enterprise,
+                                    zip_package,
+                                    new_version,
+                                    old_version,
+                                    testrun_name) as suite_context:
             dl_old = None
             dl_new = None
             fresh_old_content = None
@@ -87,32 +105,35 @@ def upgrade_package_test(verbose,
                 old_changed = old_version_content != fresh_old_content
                 new_changed = new_version_content != fresh_new_content
 
-                if new_changed and old_changed and not force:
+                if not new_changed and not old_changed and not force:
                     print("we already tested this version. bye.")
                     return 0
 
             if dl_old:
                 dl_old.get_packages(old_changed, old_dlstage)
+                old_version = dl_old.cfg.version
             if dl_new:
                 dl_new.get_packages(new_changed, new_dlstage)
+                new_version = dl_new.cfg.version
 
-        test_dir = Path(test_data_dir) / directory_suffix
-        if test_dir.exists():
-            shutil.rmtree(test_dir)
-        test_dir.mkdir()
-        while not test_dir.exists():
-            time.sleep(1)
-        results.append(
-            run_upgrade(dl_old.cfg.version,
-                        dl_new.cfg.version,
-                        verbose,
-                        package_dir,
-                        test_dir,
-                        enterprise, encryption_at_rest,
-                        zip_package, False,
-                        starter_mode, stress_upgrade, False,
-                        publicip, selenium, selenium_driver_args,
-                        testrun_name))
+            test_dir = Path(test_data_dir) / directory_suffix
+            if test_dir.exists():
+                shutil.rmtree(test_dir)
+            test_dir.mkdir()
+            while not test_dir.exists():
+                time.sleep(1)
+            results.append(
+                run_upgrade(old_version,
+                            new_version,
+                            verbose,
+                            package_dir,
+                            test_dir,
+                            enterprise, encryption_at_rest,
+                            zip_package, False,
+                            starter_mode, stress_upgrade, False,
+                            publicip, selenium, selenium_driver_args,
+                            testrun_name))
+
 
     print('V' * 80)
     status = True
@@ -173,7 +194,7 @@ def main(
         #very_common_options
         new_version, verbose, enterprise, package_dir, zip_package,
         # common_options
-        old_version, test_data_dir, encryption_at_rest,
+        old_version, test_data_dir, encryption_at_rest, alluredir, clean_alluredir,
         # no-interactive!
         starter_mode, stress_upgrade, abort_on_error, publicip,
         selenium, selenium_driver_args,
@@ -192,7 +213,8 @@ def main(
                                 version_state_dir,
                                 remote_host, force,
                                 starter_mode, stress_upgrade,
-                                publicip, selenium, selenium_driver_args)
+                                publicip, selenium, selenium_driver_args,
+                                alluredir, clean_alluredir)
 
 if __name__ == "__main__":
 # pylint: disable=E1120 # fix clickiness.

@@ -3,6 +3,7 @@
 import platform
 import os
 from pathlib import Path
+from reporting.reporting_utils import step
 import semver
 
 # pylint: disable=R0903
@@ -93,19 +94,23 @@ verbose: {0.verbose}
         self.version = version
         self.semver = semver.VersionInfo.parse(version)
 
+    @step
     def add_frontend(self, proto, ip_address, port):
         """ add a frontend URL in components """
         self.frontends.append(InstallerFrontend(proto, ip_address, port))
 
+    @step
     def set_frontend(self, proto, ip_address, port):
         """ add a frontend URL in components """
         self.frontends = [InstallerFrontend(proto, ip_address, port)]
 
+    @step
     def generate_password(self):
         """ generate a new password """
         raise NotImplementedError()
         #self.passvoid = 'cde'
 
+    @step
     def set_directories(self, other):
         """ set all directories from the other object """
         if other.base_test_dir is None:
@@ -145,6 +150,9 @@ def make_installer(install_config: InstallerConfig):
     """ detect the OS and its distro,
         choose the proper installer
         and return it"""
+    if install_config.zip_package:
+        from arangodb.installers.tar import InstallerTAR
+        return InstallerTAR(install_config)
     winver = platform.win32_ver()
     if winver[0]:
         from arangodb.installers.nsis import InstallerW
@@ -152,18 +160,12 @@ def make_installer(install_config: InstallerConfig):
 
     macver = platform.mac_ver()
     if macver[0]:
-        if install_config.zip_package:
-            from arangodb.installers.tar import InstallerTAR
-            return InstallerTAR(install_config)
         from arangodb.installers.mac import InstallerMac
         return InstallerMac(install_config)
 
     if platform.system() in [ "linux", "Linux" ]:
         import distro
         distro = distro.linux_distribution(full_distribution_name=False)
-        if install_config.zip_package:
-            from arangodb.installers.tar import InstallerTAR
-            return InstallerTAR(install_config)
         if distro[0] in ['debian', 'ubuntu']:
             from arangodb.installers.deb import InstallerDeb
             return InstallerDeb(install_config)

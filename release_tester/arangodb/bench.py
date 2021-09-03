@@ -4,6 +4,7 @@
 
 import pathlib
 
+import allure
 import psutil
 import yaml
 
@@ -44,6 +45,7 @@ class ArangoBenchManager():
         self.passvoid = 'testpassvoid'
         self.instance = None
     # pylint: disable=W0102
+    @allure.step
     def launch(self, testcase_no, moreopts = []):
         """ run arangobench """
         testcase = BENCH_TODOS[testcase_no]

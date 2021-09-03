@@ -3,6 +3,7 @@
 import time
 import logging
 from pathlib import Path
+
 from tools.interact import prompt_user
 from tools.killall import get_all_processes
 from arangodb.starter.manager import StarterManager
@@ -10,6 +11,9 @@ from arangodb.instance import InstanceType
 from arangodb.starter.deployments.runner import Runner, PunnerProperties
 import tools.loghelper as lh
 from tools.asciiprint import print_progress as progress
+
+from reporting.reporting_utils import step
+
 
 class LeaderFollower(Runner):
     """ this runs a leader / Follower setup with synchronisation """
@@ -133,6 +137,8 @@ process.exit(0);
         logging.info(str(self.leader_starter_instance.execute_frontend(arangosh_script)))
         self.makedata_instances.append(self.leader_starter_instance)
 
+
+    @step
     def test_setup_impl(self):
         logging.info("testing the leader/follower setup")
         tries = 30
@@ -163,13 +169,16 @@ process.exit(0);
 
         #assert that data has been replicated
         self.follower_starter_instance.arangosh.read_only = True
+        self.follower_starter_instance.supports_foxx_tests = False
+        logging.info("Leader follower testing makedata on follower")
         self.makedata_instances.append(self.follower_starter_instance)
         self.make_data()
 
         logging.info("Leader follower setup successfully finished!")
 
+    @step
     def upgrade_arangod_version_impl(self):
-        """ upgrade this installation """
+        """ rolling upgrade this installation """
         for node in [self.leader_starter_instance, self.follower_starter_instance]:
             node.replace_binary_for_upgrade(self.new_cfg)
         for node in [self.leader_starter_instance, self.follower_starter_instance]:
@@ -189,6 +198,38 @@ process.exit(0);
             self.selenium.check_old(self.new_cfg, False)
             self.selenium.close_tab_again()
 
+    @step
+    def upgrade_arangod_version_manual_impl(self):
+        """ manual upgrade this installation """
+        self.progress(True, "step 1 - shut down instances")
+        instances = [self.leader_starter_instance, self.follower_starter_instance]
+        for node in instances:
+            node.replace_binary_setup_for_upgrade(self.new_cfg)
+            node.terminate_instance(True)
+        self.progress(True, "step 2 - launch instances with the upgrade options set")
+        for node in instances:
+            print('launch')
+            node.manually_launch_instances(
+                [ InstanceType.SINGLE ],
+                [ '--database.auto-upgrade', 'true',
+                  '--javascript.copy-installation', 'true'] )
+        self.progress(True, "step 3 - launch instances again")
+        for node in instances:
+            node.respawn_instance()
+        self.progress(True, "step 4 - detect system state")
+        for node in instances:
+            node.detect_instances()
+            node.wait_for_version_reply()
+        if self.selenium:
+            self.selenium.web.refresh()
+            self.selenium.check_old(self.new_cfg, True)
+            self.selenium.connect_server_new_tab(
+                self.follower_starter_instance.get_frontends(),
+                '_system', self.cfg)
+            self.selenium.check_old(self.new_cfg, False)
+            self.selenium.close_tab_again()
+
+    @step
     def jam_attempt_impl(self):
         """ run the replication fuzzing test """
         logging.info("running the replication fuzzing test")
@@ -212,7 +253,7 @@ process.exit(0);
         if self.selenium:
             self.selenium.jam_step_1(self.cfg if self.cfg else self.new_cfg)
 
-
+    @step
     def shutdown_impl(self):
         self.leader_starter_instance.terminate_instance()
         self.follower_starter_instance.terminate_instance()

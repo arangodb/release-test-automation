@@ -89,13 +89,15 @@ class AcquirePackages():
             "ftp:stage2": '/buildfiles/stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/'.format(**self.params),
             "http:stage1": 'stage1/{full_version}/release/packages/{enterprise}/{remote_package_dir}/'.format(**self.params),
             "http:stage2": 'stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/'.format(**self.params),
-            "public": '{enterprise_magic}{major_version}/{enterprise}/{remote_package_dir}/'.format(**self.params)
+            "nightlypublic": '{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/'.format(**self.params).replace('///', '/'),
+            "public": '{enterprise_magic}{major_version}/{enterprise}/{remote_package_dir}/'.format(**self.params).replace('///', '/')
         }
         self.funcs = {
             "http:stage1": self.acquire_stage1_http,
             "http:stage2": self.acquire_stage2_http,
             "ftp:stage1": self.acquire_stage1_ftp,
             "ftp:stage2": self.acquire_stage2_ftp,
+            "nightlypublic": self.acquire_live,
             "public": self.acquire_live
         }
 
@@ -109,11 +111,11 @@ class AcquirePackages():
             return
         ftp = FTP(self.remote_host)
         print(stage + ": " + ftp.login(user='anonymous', passwd='anonymous', acct='anonymous'))
-        print(directory)
+        print(stage + ": Downloading from " + directory)
         print(stage + ": " + ftp.cwd(directory))
         ftp.set_pasv(True)
         with out.open(mode='wb') as filedes:
-            print(stage + ": downloading to " + str(out))
+            print(stage + ": downloading from " + directory + " to " + str(out))
             print(stage + ": " + ftp.retrbinary('RETR ' + package, filedes.write))
 
     def acquire_stage_http(self, directory, package, local_dir, force, stage):
@@ -214,6 +216,8 @@ class AcquirePackages():
                            Path(self.package_dir),
                            True)
         text = (self.package_dir / source_info_fn).read_text()
+        while text[0] != '{':
+            text = text[1:]
         val = json.loads(text)
         val['GIT_VERSION'] = git_version
         version = val['VERSION'].replace('-devel', '')

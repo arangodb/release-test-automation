@@ -3,6 +3,8 @@
 # import subprocess
 import logging
 
+from allure_commons._allure import attach
+
 def configure_logging(verbose):
     """ set up logging """
     logging.basicConfig(
@@ -18,25 +20,27 @@ def configure_logging(verbose):
         logging.info("setting debug level to INFO")
         logging.getLogger().setLevel(logging.INFO)
 
-    requests_log = logging.getLogger("urllib3")
-    requests_log.setLevel(logging.WARNING)
-    requests_log.propagate = True
+    loggers = [
+        ["urllib3", logging.WARNING, True],
+        ["requests", logging.WARNING, True],
+        ["selenium.webdriver.remote.remote_connection", logging.WARNING, True],
+        ["MARKDOWN", logging.WARNING, True]
+    ]
 
-    requests_log = logging.getLogger("requests")
-    requests_log.setLevel(logging.WARNING)
-    requests_log.propagate = True
-
-    requests_log = logging.getLogger("selenium.webdriver.remote.remote_connection")
-    requests_log.setLevel(logging.WARNING)
-    requests_log.propagate = True
+    for l in loggers:
+        logger = logging.getLogger(l[0])
+        logger.setLevel(l[1])
+        logger.propagate = l[2]
 
 def get_term_width():
     """ eventually we should ask the term for the size """
     return 60
 
+
 def line(sym="-", length=get_term_width()):
     """ adjust line to terminal width """
     print(sym * int (length / len(sym)))
+
 
 def log_cmd(cmd):
     """ log string """
@@ -45,6 +49,7 @@ def log_cmd(cmd):
 
     line("<")
     print("executing: " + str(cmd))
+    attach(str(cmd), "Command")
     line("^")
 
 # def logged_command_wait():

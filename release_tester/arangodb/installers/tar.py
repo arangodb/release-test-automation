@@ -4,8 +4,8 @@ import platform
 import shutil
 import logging
 from pathlib import Path
-import psutil
-import tools.loghelper as lh
+
+from reporting.reporting_utils import step
 from arangodb.installers.base import InstallerBase
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
@@ -14,25 +14,9 @@ class InstallerTAR(InstallerBase):
     """ install Tar.gz's on Linux/Mac hosts """
 # pylint: disable=R0913 disable=R0902
     def __init__(self, cfg):
-        self.tar = 'tar'
-        macver = platform.mac_ver()
-        if macver[0]:
-            cfg.localhost = 'localhost'
-            self.remote_package_dir  = 'MacOSX'
-        else:
-            self.remote_package_dir  = 'Linux'
-            cfg.localhost = 'localhost'
-
-        self.hot_backup = True
-        self.server_package = None
-        self.client_package = None
-        self.debug_package = None
-        self.log_examiner = None
-        self.instance = None
-
         cfg.have_system_service = False
 
-        cfg.installPrefix = None
+        cfg.install_prefix = None
         cfg.bin_dir = None
         cfg.sbin_dir = None
         cfg.real_bin_dir = None
@@ -43,14 +27,53 @@ class InstallerTAR(InstallerBase):
         cfg.appdir = None
         cfg.cfgdir = None
 
+        self.cfg = cfg
+        self.dash = "-"
+        self.cfg.install_prefix = Path("/tmp")
+        self.extension = 'tar.gz'
+        self.hot_backup = True
+        self.architecture = None
+
+        macver = platform.mac_ver()
+        winver = platform.win32_ver()
+        if macver[0]:
+            cfg.localhost = 'localhost'
+            self.remote_package_dir  = 'MacOSX'
+            self.architecture = 'macos'
+            self.installer_type = ".tar.gz MacOS"
+        elif winver[0]:
+            self.dash = "_"
+            cfg.localhost = 'localhost'
+            cfg.install_prefix = Path("C:/tmp")
+            self.remote_package_dir  = 'Windows'
+            self.architecture = 'win64'
+            self.extension = 'zip'
+            self.hot_backup = False
+            self.installer_type = ".zip Windows"
+        else:
+            self.remote_package_dir  = 'Linux'
+            cfg.localhost = 'localhost'
+            self.architecture = 'linux'
+            self.installer_type = ".tar.gz Linux"
+
+        self.server_package = None
+        self.client_package = None
+        self.debug_package = None
+        self.log_examiner = None
+        self.instance = None
         super().__init__(cfg)
+        if winver[0]:
+            self.check_stripped = False
+            self.check_symlink = False
+
+    def supports_hot_backup(self):
+        """ no hot backup support on the wintendo. """
+        if not self.hot_backup:
+            return False
+        return super().supports_hot_backup()
 
     def calculate_package_names(self):
         enterprise = 'e' if self.cfg.enterprise else ''
-        architecture = 'linux'
-        macver = platform.mac_ver()
-        if macver[0]:
-            architecture = 'macos'
 
         semdict = dict(self.cfg.semver.to_dict())
         if semdict['prerelease']:
@@ -62,21 +85,32 @@ class InstallerTAR(InstallerBase):
         self.desc = {
             "ep"   : enterprise,
             "ver"  : version,
-            "arch" : architecture
+            "arch" : self.architecture,
+            "dashus" : self.dash,
+            "ext" : self.extension
         }
-
-        self.server_package = 'arangodb3{ep}-{arch}-{ver}.tar.gz'.format(**self.desc)
         self.debug_package = None
         self.client_package = None
-        self.cfg.installPrefix = Path("/tmp") / 'arangodb3{ep}-{ver}'.format(**self.desc)
-        self.cfg.bin_dir = self.cfg.installPrefix / "bin"
-        self.cfg.sbin_dir = self.cfg.installPrefix / "usr" / "sbin"
-        self.cfg.real_bin_dir = self.cfg.installPrefix / "usr" / "bin"
-        self.cfg.real_sbin_dir = self.cfg.sbin_dir
-        self.cfg.cfgdir = self.cfg.installPrefix # n/A
-        self.cfg.appdir = self.cfg.installPrefix # n/A
-        self.cfg.dbdir = self.cfg.installPrefix # n/A
-        self.cfg.log_dir = self.cfg.installPrefix # n/A
+        if self.architecture == 'win64':
+            self.server_package = 'ArangoDB3{ep}-{ver}{dashus}{arch}.{ext}'.format(**self.desc)
+            self.cfg.install_prefix = Path("c:/tmp") / \
+                'arangodb3{ep}-{ver}{dashus}{arch}'.format(**self.desc)
+            self.cfg.bin_dir = self.cfg.install_prefix / "usr" / "bin"
+            self.cfg.sbin_dir = self.cfg.install_prefix / "usr" / "bin"
+            self.cfg.real_bin_dir = self.cfg.bin_dir
+            self.cfg.real_sbin_dir = self.cfg.sbin_dir
+        else:
+            self.server_package = 'arangodb3{ep}-{arch}{dashus}{ver}.{ext}'.format(**self.desc)
+            self.cfg.install_prefix = Path("/tmp") / \
+                'arangodb3{ep}-{arch}{dashus}{ver}'.format(**self.desc)
+            self.cfg.bin_dir = self.cfg.install_prefix / "bin"
+            self.cfg.sbin_dir = self.cfg.install_prefix / "usr" / "sbin"
+            self.cfg.real_bin_dir = self.cfg.install_prefix / "usr" / "bin"
+            self.cfg.real_sbin_dir = self.cfg.sbin_dir
+        self.cfg.cfgdir = self.cfg.install_prefix # n/A
+        self.cfg.appdir = self.cfg.install_prefix # n/A
+        self.cfg.dbdir = self.cfg.install_prefix # n/A
+        self.cfg.log_dir = self.cfg.install_prefix # n/A
 
     def check_service_up(self):
         """ nothing to see here """
@@ -87,33 +121,28 @@ class InstallerTAR(InstallerBase):
     def stop_service(self):
         """ nothing to see here """
 
+    @step
     def upgrade_package(self, old_installer):
         """ Tar installer is the same way we did for installing."""
         self.install_package()
 
+    @step
     def install_package(self):
-        logging.info("installing Arangodb debian Tar package")
+        logging.info("installing Arangodb " + self.installer_type + " package")
         logging.debug(
             "package dir: {0.cfg.package_dir}- "
             "server_package: {0.server_package}".format(self))
 
-        if not self.cfg.installPrefix.exists():
-            self.cfg.installPrefix.mkdir()
-        cmd = [self.tar,
-                   '-xf', str(self.cfg.package_dir / self.server_package),
-                   '-C',  str(self.cfg.installPrefix),
-                   '--strip-components', '1'
-               ]
-        lh.log_cmd(cmd)
-        install = psutil.Popen(cmd)
-        if install.wait() != 0:
-            raise Exception("extracting the Archive failed!")
-        print()
+        if not self.cfg.install_prefix.exists():
+            self.cfg.install_prefix.mkdir()
+        shutil.unpack_archive(str(self.cfg.package_dir / self.server_package),
+                              str(self.cfg.install_prefix / '..'))
         logging.info('Installation successfull')
 
+    @step
     def un_install_package(self):
-        if self.cfg.installPrefix.exists():
-            shutil.rmtree(self.cfg.installPrefix)
+        if self.cfg.install_prefix.exists():
+            shutil.rmtree(self.cfg.install_prefix)
 
     def broadcast_bind(self):
         """ nothing to see here """
