@@ -220,6 +220,7 @@ class InstallerW(InstallerBase):
                                   "SYSTEM\\CurrentControlSet\\Services",
                                   access=winreg.KEY_WRITE) as k:
                 winreg.DeleteKey(k, "ArangoDB")
+                psutil.Popen(["sc", "delete", "arangodb"]).wait()
         except FileNotFoundError:
             print("No service installed.")
             pass
