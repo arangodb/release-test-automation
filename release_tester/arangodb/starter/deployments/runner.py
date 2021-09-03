@@ -835,6 +835,8 @@ class Runner(ABC):
         if reset_tmp and WINVER[0]:
             os.environ["TMP"] = self.original_tmp
             os.environ["TEMP"] = self.original_temp
+        elif "TMPDIR" in os.environ:
+            del os.environ["TMPDIR"]
 
     @step
     def agency_trigger_leader_relection(self, old_leader):
