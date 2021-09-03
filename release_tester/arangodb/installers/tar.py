@@ -22,6 +22,7 @@ if "WORKSPACE" in os.environ:
     BASEDIR=Path(os.environ["WORKSPACE"])
     print(BASEDIR)
 
+BASEDIR=Path(os.environ["WORKSPACE"])
 class InstallerTAR(InstallerBase):
     """ install Tar.gz's on Linux/Mac hosts """
 # pylint: disable=R0913 disable=R0902
