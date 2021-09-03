@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 
 BASEDIR = Path("/tmp")
-if "BASEDIR" in os.environ:
+if "WORKSPACE" in os.environ:
     BASEDIR=Path(os.environ["WORKSPACE"])
 
 class InstallerTAR(InstallerBase):
