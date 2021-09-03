@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 MACVER = platform.mac_ver()
 WINVER = platform.win32_ver()
-
+BASEDIR = Path()
 class InstallerTAR(InstallerBase):
     """ install Tar.gz's on Linux/Mac hosts """
 # pylint: disable=R0913 disable=R0902
@@ -24,9 +24,8 @@ class InstallerTAR(InstallerBase):
         if "WORKSPACE_TMP" in os.environ:
             print("snatoheusanoetuh")
             BASEDIR=Path(os.environ["WORKSPACE_TMP"])
-            print(BASEDIR)
+        print(BASEDIR)
         
-        BASEDIR=Path(os.environ["WORKSPACE_TMP"])
         cfg.have_system_service = False
 
         cfg.install_prefix = BASEDIR
@@ -103,7 +102,7 @@ class InstallerTAR(InstallerBase):
         self.client_package = None
         if self.architecture == 'win64':
             self.server_package = 'ArangoDB3{ep}-{ver}{dashus}{arch}.{ext}'.format(**self.desc)
-            self.cfg.install_prefix = Path(os.environ["WORKSPACE_TMP"]) / \
+            self.cfg.install_prefix = BASEDIR / \
                 'arangodb3{ep}-{ver}{dashus}{arch}'.format(**self.desc)
             self.cfg.bin_dir = self.cfg.install_prefix / "usr" / "bin"
             self.cfg.sbin_dir = self.cfg.install_prefix / "usr" / "bin"
@@ -142,7 +141,6 @@ class InstallerTAR(InstallerBase):
         logging.debug(
             "package dir: {0.cfg.package_dir}- "
             "server_package: {0.server_package}".format(self))
-        # self.cfg.install_prefix = Path(os.environ["WORKSPACE_TMP"])
         if not self.cfg.install_prefix.exists():
             self.cfg.install_prefix.mkdir(parents=True)
         shutil.unpack_archive(str(self.cfg.package_dir / self.server_package),
