@@ -103,7 +103,7 @@ class InstallerTAR(InstallerBase):
         self.client_package = None
         if self.architecture == 'win64':
             self.server_package = 'ArangoDB3{ep}-{ver}{dashus}{arch}.{ext}'.format(**self.desc)
-            self.cfg.install_prefix = Path("c:/tmp") / \
+            self.cfg.install_prefix = Path(os.environ["WORKSPACE"])) / \
                 'arangodb3{ep}-{ver}{dashus}{arch}'.format(**self.desc)
             self.cfg.bin_dir = self.cfg.install_prefix / "usr" / "bin"
             self.cfg.sbin_dir = self.cfg.install_prefix / "usr" / "bin"
