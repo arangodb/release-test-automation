@@ -144,7 +144,7 @@ class InstallerTAR(InstallerBase):
             "server_package: {0.server_package}".format(self))
         # self.cfg.install_prefix = Path(os.environ["WORKSPACE_TMP"])
         if not self.cfg.install_prefix.exists():
-            self.cfg.install_prefix.mkdir()
+            self.cfg.install_prefix.mkdir(parents=True)
         shutil.unpack_archive(str(self.cfg.package_dir / self.server_package),
                               str(self.cfg.install_prefix / '..'))
         logging.info('Installation successfull')
