@@ -4,11 +4,16 @@ import platform
 import shutil
 import logging
 from pathlib import Path
+import os
 
 from reporting.reporting_utils import step
 from arangodb.installers.base import InstallerBase
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
+
+BASEDIR = Path("/tmp")
+if "BASEDIR" in os.environ:
+    BASEDIR=Path(os.environ["BASEDIR"])
 
 class InstallerTAR(InstallerBase):
     """ install Tar.gz's on Linux/Mac hosts """
@@ -29,7 +34,7 @@ class InstallerTAR(InstallerBase):
 
         self.cfg = cfg
         self.dash = "-"
-        self.cfg.install_prefix = Path("/tmp")
+        self.cfg.install_prefix = BASEDIR
         self.extension = 'tar.gz'
         self.hot_backup = True
         self.architecture = None
