@@ -16,6 +16,7 @@ WINVER = platform.win32_ver()
 BASEDIR = Path("/tmp")
 if WINVER[0]:
     BASEDIR = Path("C:/tmp")
+print(os.environ)
 if "WORKSPACE" in os.environ:
     BASEDIR=Path(os.environ["WORKSPACE"])
 
