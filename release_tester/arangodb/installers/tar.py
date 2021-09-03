@@ -142,7 +142,7 @@ class InstallerTAR(InstallerBase):
         logging.debug(
             "package dir: {0.cfg.package_dir}- "
             "server_package: {0.server_package}".format(self))
-        self.cfg.install_prefix = Path(os.environ["WORKSPACE_TMP"])
+        # self.cfg.install_prefix = Path(os.environ["WORKSPACE_TMP"])
         if not self.cfg.install_prefix.exists():
             self.cfg.install_prefix.mkdir()
         shutil.unpack_archive(str(self.cfg.package_dir / self.server_package),
