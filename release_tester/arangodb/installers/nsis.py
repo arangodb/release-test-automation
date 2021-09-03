@@ -6,11 +6,13 @@ import logging
 import multiprocessing
 from pathlib import Path
 from pathlib import PureWindowsPath
+import winreg
 
 from reporting.reporting_utils import step
 import psutil
 import tools.monkeypatch_psutil
 from arangodb.installers.base import InstallerBase
+
 
 class InstallerW(InstallerBase):
     """ install the windows NSIS package """
@@ -208,3 +210,30 @@ class InstallerW(InstallerBase):
             shutil.rmtree(self.cfg.appdir)
         if self.cfg.cfgdir.exists():
             shutil.rmtree(self.cfg.cfgdir)
+        try:
+            k = winreg.OpenKeyEx(winreg.HKEY_LOCAL_MACHINE,
+                                 "SYSTEM\\CurrentControlSet\\Services\\ArangoDB")
+            winreg.CloseKey(k)
+
+            print("force deleting the arangodb service")
+            #with winreg.OpenKeyEx(winreg.HKEY_LOCAL_MACHINE,
+            #                      "SYSTEM\\CurrentControlSet\\Services") as k:
+            #    winreg.DeleteValue(k, "ArangoDB")
+            
+        except FileNotFoundError:
+            pass
+        with winreg.OpenKeyEx(winreg.HKEY_CURRENT_USER,
+                              "Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Compatibility Assistant\\Store") as k:
+            try:
+                index = 0;
+                while True:
+                    key, val, dtype = winreg.EnumValue(k, index)
+                    print("key: " + key)
+                    print("value: " + val)
+                    
+                    index + index + 1
+            except OSError:
+                # done...
+                pass
+            # winreg.DeleteValue(k, "ArangoDB")
+            
