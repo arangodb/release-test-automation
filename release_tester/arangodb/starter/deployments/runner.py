@@ -169,14 +169,17 @@ class Runner(ABC):
                 selenium_driver_args,
                 self.testrun_name)
             print("Browser online")
-        self.original_tmp = os.environ["TMP"]
-        self.original_temp = os.environ["TEMP"]
+        if WINVER[0]:
+            self.original_tmp = os.environ["TMP"]
+            self.original_temp = os.environ["TEMP"]
         if not is_cleanup:
             tmpdir = cfg.base_test_dir / properties.short_name / "tmp"
             tmpdir.mkdir(mode=0o777, parents=True, exist_ok=True)
-            os.environ["TMP"] = str(tmpdir)
-            os.environ["TEMP"] = str(tmpdir)
-
+            if WINVER[0]:
+                os.environ["TMP"] = str(tmpdir)
+                os.environ["TEMP"] = str(tmpdir)
+            else:
+                os.environ["TMPDIR"] = str(tmpdir)
 
     def progress(self, is_sub, msg, separator='x'):
         """ report user message, record for error handling. """
@@ -829,7 +832,7 @@ class Runner(ABC):
         print('cleaning up ' + str(testdir))
         if testdir.exists():
             shutil.rmtree(testdir)
-        if reset_tmp:
+        if reset_tmp and WINVER[0]:
             os.environ["TMP"] = self.original_tmp
             os.environ["TEMP"] = self.original_temp
 
