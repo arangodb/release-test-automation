@@ -12,6 +12,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 
 BASEDIR = Path("/tmp")
+if winver[0]:
+    BASEDIR = Path("C:/tmp")
 if "WORKSPACE" in os.environ:
     BASEDIR=Path(os.environ["WORKSPACE"])
 
@@ -49,7 +51,6 @@ class InstallerTAR(InstallerBase):
         elif winver[0]:
             self.dash = "_"
             cfg.localhost = 'localhost'
-            cfg.install_prefix = Path("C:/tmp")
             self.remote_package_dir  = 'Windows'
             self.architecture = 'win64'
             self.extension = 'zip'
