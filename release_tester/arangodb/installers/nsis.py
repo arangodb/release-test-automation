@@ -216,23 +216,39 @@ class InstallerW(InstallerBase):
             winreg.CloseKey(k)
 
             print("force deleting the arangodb service")
-            #with winreg.OpenKeyEx(winreg.HKEY_LOCAL_MACHINE,
-            #                      "SYSTEM\\CurrentControlSet\\Services") as k:
-            #    winreg.DeleteValue(k, "ArangoDB")
-            
+            with winreg.OpenKeyEx(winreg.HKEY_LOCAL_MACHINE,
+                                  "SYSTEM\\CurrentControlSet\\Services",
+                                  access=winreg.KEY_WRITE) as k:
+                winreg.DeleteKey(k, "ArangoDB")
         except FileNotFoundError:
+            print("No service installed.")
             pass
         with winreg.OpenKeyEx(winreg.HKEY_CURRENT_USER,
-                              "Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Compatibility Assistant\\Store") as k:
+                              "Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Compatibility Assistant\\Store",
+                              access=winreg.KEY_WRITE) as k:
             try:
                 index = 0;
                 while True:
                     key, val, dtype = winreg.EnumValue(k, index)
-                    print("key: " + key)
-                    print("value: " + val)
-                    
-                    index + index + 1
+                    if key.find("ArangoDB") >= 0:
+                        print("deleting v-key: " + key)
+                        winreg.DeleteValue(k, key)
+                    index = index + 1
             except OSError:
-                # done...
+                print("      done")
                 pass
-            # winreg.DeleteValue(k, "ArangoDB")
+        with winreg.OpenKeyEx(winreg.HKEY_CURRENT_CONFIG,
+                              "Software",
+                              access=winreg.KEY_WRITE) as k:
+            try:
+                index = 0;
+                while True:
+                    key = winreg.EnumKey(k, index)
+                    print("key: " + key)
+                    if key.find("ArangoDB") >= 0:
+                        print("deleting key: " + key)
+                        winreg.DeleteKey(k, key)
+                    index = index + 1
+            except OSError:
+                print("      done")
+                pass
