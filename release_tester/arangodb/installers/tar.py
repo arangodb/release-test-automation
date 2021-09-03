@@ -10,9 +10,11 @@ from reporting.reporting_utils import step
 from arangodb.installers.base import InstallerBase
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
+MACVER = platform.mac_ver()
+WINVER = platform.win32_ver()
 
 BASEDIR = Path("/tmp")
-if winver[0]:
+if WINVER[0]:
     BASEDIR = Path("C:/tmp")
 if "WORKSPACE" in os.environ:
     BASEDIR=Path(os.environ["WORKSPACE"])
@@ -41,14 +43,12 @@ class InstallerTAR(InstallerBase):
         self.hot_backup = True
         self.architecture = None
 
-        macver = platform.mac_ver()
-        winver = platform.win32_ver()
-        if macver[0]:
+        if MACVER[0]:
             cfg.localhost = 'localhost'
             self.remote_package_dir  = 'MacOSX'
             self.architecture = 'macos'
             self.installer_type = ".tar.gz MacOS"
-        elif winver[0]:
+        elif WINVER[0]:
             self.dash = "_"
             cfg.localhost = 'localhost'
             self.remote_package_dir  = 'Windows'
@@ -68,7 +68,7 @@ class InstallerTAR(InstallerBase):
         self.log_examiner = None
         self.instance = None
         super().__init__(cfg)
-        if winver[0]:
+        if WINVER[0]:
             self.check_stripped = False
             self.check_symlink = False
 
