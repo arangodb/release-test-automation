@@ -13,20 +13,20 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 MACVER = platform.mac_ver()
 WINVER = platform.win32_ver()
 
-BASEDIR = Path("/tmp")
-if WINVER[0]:
-    BASEDIR = Path("C:/tmp")
-print(os.environ)
-if "WORKSPACE" in os.environ:
-    print("snatoheusanoetuh")
-    BASEDIR=Path(os.environ["WORKSPACE"])
-    print(BASEDIR)
-
-BASEDIR=Path(os.environ["WORKSPACE"])
 class InstallerTAR(InstallerBase):
     """ install Tar.gz's on Linux/Mac hosts """
 # pylint: disable=R0913 disable=R0902
     def __init__(self, cfg):
+        BASEDIR = Path("/tmp")
+        if WINVER[0]:
+            BASEDIR = Path("C:/tmp")
+        print(os.environ)
+        if "WORKSPACE" in os.environ:
+            print("snatoheusanoetuh")
+            BASEDIR=Path(os.environ["WORKSPACE"])
+            print(BASEDIR)
+        
+        BASEDIR=Path(os.environ["WORKSPACE"])
         cfg.have_system_service = False
 
         cfg.install_prefix = None
