@@ -60,6 +60,8 @@ def kill_all_processes(kill_selenium=True):
                 cmdline = process.cmdline()
             except psutil.AccessDenied:
                 pass
+            except psutil.NoSuchProcess:
+                pass
             logging.info("cleanup killing ${proc}".format(proc=cmdline))
             if process.is_running():
                 try:
