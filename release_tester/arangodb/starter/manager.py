@@ -99,6 +99,10 @@ class StarterManager():
             self.get_jwt_header()
 
         self.passvoidfile = Path(str(self.basedir) + '_passvoid')
+
+        if self.cfg.ssl and self.cfg.use_auto_certs:
+            self.moreopts += ["--ssl.auto-key"]
+
         # arg mode
         self.mode = mode
         if self.mode:
@@ -114,9 +118,6 @@ class StarterManager():
                     self.expect_instance_count *= 3
                 if '--starter.sync' in moreopts:
                     self.expect_instance_count += 2 # syncmaster + syncworker
-
-        if self.cfg.ssl:
-            self.moreopts += ["--ssl.auto-key"]
 
         self.username = 'root'
         self.passvoid = ''
@@ -335,7 +336,7 @@ class StarterManager():
                     headers ['Authorization'] = 'Bearer ' + str(self.get_jwt_header())
                     base_url = instance.get_public_plain_url()
                     reply = verb_method(
-                        'http://' + base_url + url,
+                        self.get_http_protocol() + '://' + base_url + url,
                         data=data,
                         headers=headers,
                         allow_redirects=False,
@@ -614,7 +615,7 @@ class StarterManager():
             self.cfg.bin_dir / 'arangodb',
             'upgrade',
             '--starter.endpoint',
-            self.get_protocol() + '://127.0.0.1:' + str(self.get_my_port())
+            self.get_http_protocol() + '://127.0.0.1:' + str(self.get_my_port())
         ]
         logging.info("StarterManager: Commanding upgrade %s", str(args))
         self.upgradeprocess = psutil.Popen(args,
@@ -1032,7 +1033,7 @@ class StarterManager():
         logfile = str(self.log_file)
         attach.file(logfile, "Starter log file", AttachmentType.TEXT)
 
-    def get_protocol(self):
+    def get_http_protocol(self):
         if self.cfg.ssl:
             return "https"
         else:

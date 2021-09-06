@@ -51,7 +51,8 @@ def make_runner(runner_type: RunnerType,
                 selenium_driver_args: list,
                 installer_set: list,
                 testrun_name: str = "",
-                ssl: bool = False
+                ssl: bool = False,
+                use_auto_certs: bool = True
                 ) -> Runner:
     """ get an instance of the arangod runner - as you specify """
     assert runner_type, "no runner no cry?"
@@ -66,7 +67,8 @@ def make_runner(runner_type: RunnerType,
             selenium_worker,
             selenium_driver_args,
             testrun_name,
-            ssl
+            ssl,
+            use_auto_certs
             )
 
     if runner_type == RunnerType.LEADER_FOLLOWER:

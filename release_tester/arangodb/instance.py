@@ -394,9 +394,9 @@ class ArangodInstance(Instance):
             return "http"
 
     def get_local_url(self, login):
-        """ our public url """
+        """ our local url """
         return '{protocol}://{login}{host}:{port}'.format(
-            protocol=self.get_protocol(),
+            protocol=self.get_http_protocol(),
             login=login,
             host=self.localhost,
             port=self.port)

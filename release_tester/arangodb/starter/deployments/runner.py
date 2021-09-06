@@ -14,6 +14,7 @@ import shutil
 import sys
 import time
 
+import psutil
 from reporting.reporting_utils import step
 import requests
 
@@ -53,12 +54,14 @@ class PunnerProperties():
                  disk_usage_community: int,
                  disk_usage_enterprise: int,
                  supports_hotbackup: bool,
-                 ssl: bool):
+                 ssl: bool,
+                 use_auto_certs: bool):
         self.short_name = short_name
         self.disk_usage_community = disk_usage_community
         self.disk_usage_enterprise = disk_usage_enterprise
         self.supports_hotbackup = supports_hotbackup
         self.ssl = ssl
+        self.use_auto_certs = use_auto_certs
 
 class Runner(ABC):
     """abstract starter deployment runner"""
@@ -103,6 +106,9 @@ class Runner(ABC):
         self.new_cfg = new_cfg
         self.cfg = self.basecfg
         self.cfg.ssl = properties.ssl
+        self.cfg.use_auto_certs = properties.use_auto_certs
+        self.certificate_auth = {}
+        self.cert_dir = ""
         self.passvoid = None
         self.basecfg.passvoid = ""
         self.versionstr = ''
@@ -1012,3 +1018,23 @@ class Runner(ABC):
         else:
             return "http"
 
+    def cert_op(self, args):
+        print(args)
+        create_cert = psutil.Popen([self.cfg.bin_dir / 'arangodb',
+                                    'create'] +
+                                   args)
+        print("creating cert with PID:" + str(create_cert.pid))
+        create_cert.wait()
+
+    def create_cert_dir(self):
+        self.cert_dir = self.cfg.base_test_dir / self.basedir / "certs"
+        self.cert_dir.mkdir(parents=True, exist_ok=True)
+
+    def create_tls_ca_cert(self):
+        if not self.cert_dir:
+            self.create_cert_dir()
+        self.certificate_auth["cert"] = self.cert_dir / 'tls-ca.crt'
+        self.certificate_auth["key"] = self.cert_dir / 'tls-ca.key'
+        self.cert_op(['tls', 'ca',
+                 '--cert=' + str(self.certificate_auth["cert"]),
+                 '--key=' + str(self.certificate_auth["key"])])

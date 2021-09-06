@@ -102,6 +102,11 @@ def common_options(support_old=True, interactive=True, test_data_dir='/tmp/'):
                                 default=False,
                                 help='use SSL'
                                 )(function)
+        function = click.option('--use-auto-certs',
+                                is_flag=True,
+                                default=False,
+                                help='use self-signed SSL certs'
+                                )(function)
         return function
     return inner_func
 
