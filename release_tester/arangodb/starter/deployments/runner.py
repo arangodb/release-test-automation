@@ -159,7 +159,7 @@ class Runner(ABC):
         self.starter_instances = []
         self.remote = len(self.basecfg.frontends) > 0
         if not self.remote:
-            self.cleanup()
+            self.cleanup(False)
         if selenium_worker == "none":
             self.selenium = None
         else:
@@ -172,6 +172,17 @@ class Runner(ABC):
                 self.testrun_name,
                 self.cfg.ssl)
             print("Browser online")
+        if WINVER[0]:
+            self.original_tmp = os.environ["TMP"]
+            self.original_temp = os.environ["TEMP"]
+        if not is_cleanup:
+            tmpdir = cfg.base_test_dir / properties.short_name / "tmp"
+            tmpdir.mkdir(mode=0o777, parents=True, exist_ok=True)
+            if WINVER[0]:
+                os.environ["TMP"] = str(tmpdir)
+                os.environ["TEMP"] = str(tmpdir)
+            else:
+                os.environ["TMPDIR"] = str(tmpdir)
 
     def progress(self, is_sub, msg, separator='x'):
         """ report user message, record for error handling. """
@@ -818,12 +829,17 @@ class Runner(ABC):
             print("test basedir doesn't exist, won't create report tar")
 
     @step
-    def cleanup(self):
+    def cleanup(self, reset_tmp=True):
         """ remove all directories created by this test """
         testdir = self.basecfg.base_test_dir / self.basedir
         print('cleaning up ' + str(testdir))
         if testdir.exists():
             shutil.rmtree(testdir)
+        if reset_tmp and WINVER[0]:
+            os.environ["TMP"] = self.original_tmp
+            os.environ["TEMP"] = self.original_temp
+        elif "TMPDIR" in os.environ:
+            del os.environ["TMPDIR"]
 
     @step
     def agency_trigger_leader_relection(self, old_leader):
@@ -947,7 +963,7 @@ class Runner(ABC):
             InstanceType.COORDINATOR,
             requests.get,
             '/_api/collection',
-            None);
+            None)
         if reply[0].status_code != 200:
             raise Exception("get Collections: Unsupported return code" +
                             str(reply[0].status_code) +

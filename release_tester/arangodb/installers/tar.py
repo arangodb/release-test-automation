@@ -4,19 +4,31 @@ import platform
 import shutil
 import logging
 from pathlib import Path
+import os
 
 from reporting.reporting_utils import step
 from arangodb.installers.base import InstallerBase
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
-
+MACVER = platform.mac_ver()
+WINVER = platform.win32_ver()
+BASEDIR = Path()
 class InstallerTAR(InstallerBase):
     """ install Tar.gz's on Linux/Mac hosts """
 # pylint: disable=R0913 disable=R0902
     def __init__(self, cfg):
+        BASEDIR = Path("/tmp")
+        if WINVER[0]:
+            BASEDIR = Path("C:/tmp")
+        print(os.environ)
+        if "WORKSPACE_TMP" in os.environ:
+            print("snatoheusanoetuh")
+            BASEDIR=Path(os.environ["WORKSPACE_TMP"])
+        print(BASEDIR)
+        
         cfg.have_system_service = False
 
-        cfg.install_prefix = None
+        cfg.install_prefix = BASEDIR
         cfg.bin_dir = None
         cfg.sbin_dir = None
         cfg.real_bin_dir = None
@@ -29,22 +41,19 @@ class InstallerTAR(InstallerBase):
 
         self.cfg = cfg
         self.dash = "-"
-        self.cfg.install_prefix = Path("/tmp")
+        self.cfg.install_prefix = BASEDIR
         self.extension = 'tar.gz'
         self.hot_backup = True
         self.architecture = None
 
-        macver = platform.mac_ver()
-        winver = platform.win32_ver()
-        if macver[0]:
+        if MACVER[0]:
             cfg.localhost = 'localhost'
             self.remote_package_dir  = 'MacOSX'
             self.architecture = 'macos'
             self.installer_type = ".tar.gz MacOS"
-        elif winver[0]:
+        elif WINVER[0]:
             self.dash = "_"
             cfg.localhost = 'localhost'
-            cfg.install_prefix = Path("C:/tmp")
             self.remote_package_dir  = 'Windows'
             self.architecture = 'win64'
             self.extension = 'zip'
@@ -62,7 +71,7 @@ class InstallerTAR(InstallerBase):
         self.log_examiner = None
         self.instance = None
         super().__init__(cfg)
-        if winver[0]:
+        if WINVER[0]:
             self.check_stripped = False
             self.check_symlink = False
 
@@ -93,7 +102,7 @@ class InstallerTAR(InstallerBase):
         self.client_package = None
         if self.architecture == 'win64':
             self.server_package = 'ArangoDB3{ep}-{ver}{dashus}{arch}.{ext}'.format(**self.desc)
-            self.cfg.install_prefix = Path("c:/tmp") / \
+            self.cfg.install_prefix = BASEDIR / \
                 'arangodb3{ep}-{ver}{dashus}{arch}'.format(**self.desc)
             self.cfg.bin_dir = self.cfg.install_prefix / "usr" / "bin"
             self.cfg.sbin_dir = self.cfg.install_prefix / "usr" / "bin"
@@ -132,9 +141,8 @@ class InstallerTAR(InstallerBase):
         logging.debug(
             "package dir: {0.cfg.package_dir}- "
             "server_package: {0.server_package}".format(self))
-
         if not self.cfg.install_prefix.exists():
-            self.cfg.install_prefix.mkdir()
+            self.cfg.install_prefix.mkdir(parents=True)
         shutil.unpack_archive(str(self.cfg.package_dir / self.server_package),
                               str(self.cfg.install_prefix / '..'))
         logging.info('Installation successfull')

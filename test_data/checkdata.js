@@ -102,10 +102,6 @@ function validateDocumentWorksInOneShard(db, baseName, count) {
 }
 
 function testSmartGraphValidator(ccount) {
-  // Temporarily disable Validator Tests.
-  // Due to our missconfigured jenkins it was impossible to test
-  // this before merge, now it is all broken and needs time to be fixed.
-  return {fail : false};
   if (!isCluster || !flags.hasSmartGraphValidator()) {
     // Feature does not exist, no need to test:
     return {fail: false};
