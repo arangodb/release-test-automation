@@ -65,42 +65,24 @@ db.testCollection.save({test: "document"})
             node2_opts.append(f"--ssl.keyfile={node2_tls_keyfile}")
             node3_opts.append(f"--ssl.keyfile={node2_tls_keyfile}")
 
-        self.starter_instances.append(
-            StarterManager(self.basecfg,
-                           self.basedir, 'node1',
-                           mode='cluster',
-                           jwtStr=self.jwtdatastr,
-                           port=9528,
-                           expect_instances=[
-                               InstanceType.AGENT,
-                               InstanceType.COORDINATOR,
-                               InstanceType.DBSERVER
-                           ],
-                           moreopts=node1_opts))
-        self.starter_instances.append(
-            StarterManager(self.basecfg,
-                           self.basedir, 'node2',
-                           mode='cluster',
-                           jwtStr=self.jwtdatastr,
-                           port=9628,
-                           expect_instances=[
-                               InstanceType.AGENT,
-                               InstanceType.COORDINATOR,
-                               InstanceType.DBSERVER
-                           ],
-                           moreopts=node2_opts))
-        self.starter_instances.append(
-            StarterManager(self.basecfg,
-                           self.basedir, 'node3',
-                           mode='cluster',
-                           jwtStr=self.jwtdatastr,
-                           port=9728,
-                           expect_instances=[
-                               InstanceType.AGENT,
-                               InstanceType.COORDINATOR,
-                               InstanceType.DBSERVER
-                           ],
-                           moreopts=node3_opts))
+        def add_starter(name, port, opts):
+            self.starter_instances.append(
+                StarterManager(self.basecfg,
+                               self.basedir, name,
+                               mode='cluster',
+                               jwtStr=self.jwtdatastr,
+                               port=port,
+                               expect_instances=[
+                                   InstanceType.AGENT,
+                                   InstanceType.COORDINATOR,
+                                   InstanceType.DBSERVER
+                               ],
+                               moreopts=opts))
+
+        add_starter('node1', 9528, node1_opts)
+        add_starter('node2', 9628, node2_opts)
+        add_starter('node3', 9728, node3_opts)
+
         for instance in self.starter_instances:
             instance.is_leader = True
 

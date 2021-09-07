@@ -79,39 +79,23 @@ class ActiveFailover(Runner):
             node1_opts.append(f"--ssl.keyfile={node1_tls_keyfile}")
             node2_opts.append(f"--ssl.keyfile={node2_tls_keyfile}")
             node3_opts.append(f"--ssl.keyfile={node3_tls_keyfile}")
-        self.starter_instances.append(
-            StarterManager(self.basecfg,
-                           self.basedir, 'node1',
-                           mode='activefailover',
-                           port=9528,
-                           expect_instances=[
-                               InstanceType.AGENT,
-                               InstanceType.RESILIENT_SINGLE
-                           ],
-                           jwtStr="afo",
-                           moreopts=node1_opts))
-        self.starter_instances.append(
-            StarterManager(self.basecfg,
-                           self.basedir, 'node2',
-                           mode='activefailover',
-                           port=9628,
-                           expect_instances=[
-                               InstanceType.AGENT,
-                               InstanceType.RESILIENT_SINGLE
-                           ],
-                           jwtStr="afo",
-                           moreopts=node2_opts))
-        self.starter_instances.append(
-            StarterManager(self.basecfg,
-                           self.basedir, 'node3',
-                           mode='activefailover',
-                           port=9728,
-                           expect_instances=[
-                               InstanceType.AGENT,
-                               InstanceType.RESILIENT_SINGLE
-                           ],
-                           jwtStr="afo",
-                           moreopts=node3_opts))
+
+        def add_starter(name, port, opts):
+            self.starter_instances.append(
+                StarterManager(self.basecfg,
+                               self.basedir, name,
+                               mode='activefailover',
+                               port=port,
+                               expect_instances=[
+                                   InstanceType.AGENT,
+                                   InstanceType.RESILIENT_SINGLE
+                               ],
+                               jwtStr="afo",
+                               moreopts=opts))
+
+        add_starter('node1', 9528, node1_opts)
+        add_starter('node2', 9628, node2_opts)
+        add_starter('node3', 9728, node3_opts)
 
     def starter_run_impl(self):
         logging.info("Spawning starter instances")
