@@ -69,6 +69,11 @@ def upgrade_package_test(verbose,
 
     print("Cleanup done")
 
+    # Configure Chrome to accept self-signed SSL certs and certs signed by unknown CA.
+    # FIXME: Add custom CA to Chrome to properly validate server cert.
+    if ssl:
+        selenium_driver_args += ("ignore-certificate-errors",)
+
     for enterprise, encryption_at_rest, directory_suffix, testrun_name in execution_plan:
         #pylint: disable=W0612
         with AllureTestSuiteContext(alluredir,
