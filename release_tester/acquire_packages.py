@@ -181,7 +181,7 @@ class AcquirePackages():
             }))
             return
         print("LIVE: downloading " + str(url))
-        res = requests.get(url, verify=False)
+        res = requests.get(url)
         if res.status_code == 200:
             print("LIVE: writing {size} kbytes to {file}".format(**{
                 "size": str(len(res.content) / 1024),

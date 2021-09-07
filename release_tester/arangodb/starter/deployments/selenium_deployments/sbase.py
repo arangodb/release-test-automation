@@ -614,7 +614,9 @@ class SeleniumRunner(ABC):
         else:
             assert ver['enterprise'] == 'COMMUNITY EDITION', "UI-Test: expected community"
 
+    # pylint: disable=R1705
     def get_protocol(self):
+        """get HTTP protocol for this runner(http/https)"""
         if self.ssl:
             return "https"
         else:

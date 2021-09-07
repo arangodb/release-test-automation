@@ -379,6 +379,7 @@ class ArangodInstance(Instance):
             "url": self.get_public_login_url() if self.is_frontend() else ""
         }
 
+    # pylint: disable=R1705
     def get_protocol(self):
         """ return protocol of this arangod instance (ssl/tcp) """
         if self.ssl:
@@ -386,6 +387,7 @@ class ArangodInstance(Instance):
         else:
             return "tcp"
 
+    # pylint: disable=R1705
     def get_http_protocol(self):
         """ return protocol of this arangod instance (http/https) """
         if self.ssl:
@@ -470,7 +472,7 @@ class ArangodInstance(Instance):
         while until < time.time():
             reply = None
             try:
-                reply = requests.get(self.get_local_url('')+'/_api/version', verify=False)
+                reply = requests.get(self.get_local_url('')+'/_api/version')
                 if reply.status_code == 200:
                     return
                 print('*')

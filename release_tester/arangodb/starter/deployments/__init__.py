@@ -43,7 +43,7 @@ STARTER_MODES = {
     'none': [RunnerType.NONE],
 }
 
-#pylint: disable=import-outside-toplevel disable=R0913
+#pylint: disable=import-outside-toplevel disable=R0913 disable=R0914 disable=E1121
 @step
 def make_runner(runner_type: RunnerType,
                 abort_on_error: bool,

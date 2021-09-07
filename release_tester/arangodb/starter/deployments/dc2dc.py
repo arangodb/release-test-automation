@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
-import time
 import logging
-from pathlib import Path
 import re
+import time
+from pathlib import Path
 
-import psutil
 import requests
 import semver
+from arangodb.instance import InstanceType
+from arangodb.starter.deployments.runner import Runner, PunnerProperties
 from arangodb.starter.manager import StarterManager
 from arangodb.sync import SyncManager
-from arangodb.starter.deployments.runner import Runner, PunnerProperties
-from arangodb.instance import InstanceType
 from tools.asciiprint import print_progress as progress
 from tools.versionhelper import is_higher_version
 
@@ -40,8 +39,7 @@ def _get_sync_status(cluster):
     token = cluster_instance.get_jwt_token_from_secret_file(cluster["SyncSecret"])
     url = 'https://' + cluster_instance.get_sync_master().get_public_plain_url() + '/_api/sync'
     response = requests.get(url,
-                            headers=_create_headers(token),
-                            verify=False)
+                            headers=_create_headers(token))
 
     if response.status_code != 200:
         raise Exception("could not fetch arangosync status from {url}, status code: {status_code}".
@@ -202,7 +200,7 @@ class Dc2Dc(Runner):
             url = 'http://{host}:{port}'.format(
                 host=self.cfg.publicip,
                 port=str(cluster['smport']))
-            reply = requests.get(url, verify=False)
+            reply = requests.get(url)
             logging.info(str(reply))
             logging.info(str(reply.raw))
 
@@ -259,8 +257,7 @@ class Dc2Dc(Runner):
         url = cluster_instance.get_sync_master().get_public_plain_url()
         url = 'https://' + url + '/_api/version'
         response = requests.get(url,
-                                headers=_create_headers(token),
-                                verify=False)
+                                headers=_create_headers(token))
 
         if response.status_code != 200:
             raise Exception("could not fetch arangosync version from {0}".format(url))
@@ -299,7 +296,8 @@ class Dc2Dc(Runner):
 
                 time.sleep(2)
 
-        raise Exception("failed to stop the synchronization, source status: "+status_source+", target status: "+status_target)
+        raise Exception("failed to stop the synchronization, source status: "
+                        +status_source+", target status: "+status_target)
 
     def _mitigate_known_issues(self, last_sync_output):
         """

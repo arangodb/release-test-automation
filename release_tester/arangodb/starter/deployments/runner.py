@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """ baseclass to manage a starter based installation """
-
+# pylint: disable=C0302
 from abc import abstractmethod, ABC
 import copy
 import datetime
@@ -14,6 +14,7 @@ import shutil
 import sys
 import time
 
+import certifi
 import psutil
 from reporting.reporting_utils import step
 import requests
@@ -48,7 +49,7 @@ def detect_file_ulimit():
 
 class PunnerProperties():
     """ runner properties management class """
-    #pylint: disable=R0903
+    #pylint: disable=R0903 disable=R0913 disable=R0912
     def __init__(self,
                  short_name: str,
                  disk_usage_community: int,
@@ -1004,6 +1005,7 @@ class Runner(ABC):
                             " - " + str(reply[0].body))
         return body_json['results'][collection_name]
 
+    # pylint: disable=R1705
     def get_protocol(self):
         """ return protocol of this starter (ssl/tcp) """
         if self.cfg.ssl:
@@ -1011,6 +1013,7 @@ class Runner(ABC):
         else:
             return "tcp"
 
+    # pylint: disable=R1705
     def get_http_protocol(self):
         """ return protocol of this starter (http/https) """
         if self.cfg.ssl:
@@ -1019,6 +1022,7 @@ class Runner(ABC):
             return "http"
 
     def cert_op(self, args):
+        """create a certificate"""
         print(args)
         create_cert = psutil.Popen([self.cfg.bin_dir / 'arangodb',
                                     'create'] +
@@ -1027,10 +1031,12 @@ class Runner(ABC):
         create_cert.wait()
 
     def create_cert_dir(self):
+        """create certificate directory"""
         self.cert_dir = self.cfg.base_test_dir / self.basedir / "certs"
         self.cert_dir.mkdir(parents=True, exist_ok=True)
 
     def create_tls_ca_cert(self):
+        """create a CA certificate"""
         if not self.cert_dir:
             self.create_cert_dir()
         self.certificate_auth["cert"] = self.cert_dir / 'tls-ca.crt'
@@ -1038,3 +1044,20 @@ class Runner(ABC):
         self.cert_op(['tls', 'ca',
                  '--cert=' + str(self.certificate_auth["cert"]),
                  '--key=' + str(self.certificate_auth["key"])])
+        self.register_ca_cert()
+
+    def register_ca_cert(self):
+        """configure requests lib to accept our custom CA certificate"""
+        old_file = certifi.where()
+        with open(old_file, 'rb') as file:
+            old_certs = file.read()
+
+        with open(self.certificate_auth["cert"], 'rb') as file:
+            new_cert = file.read()
+
+        new_file = self.cert_dir / 'ca_cert_storage.crt'
+        with open(new_file, 'ab') as file:
+            file.write(old_certs)
+            file.write(new_cert)
+
+        os.environ['REQUESTS_CA_BUNDLE'] = str(new_file)

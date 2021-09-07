@@ -41,7 +41,7 @@ from reporting.reporting_utils import attach_table, step
 
 ON_WINDOWS = (sys.platform == 'win32')
 
-
+# pylint: disable=C0302
 class StarterManager():
     """ manages one starter instance"""
     # pylint: disable=R0913 disable=R0902 disable=W0102 disable=R0915 disable=R0904 disable=E0202
@@ -957,7 +957,7 @@ class StarterManager():
         self.is_leader = (became_leader or took_over)
         if self.is_leader:
             url = self.get_frontend().get_local_url('')
-            reply = requests.get(url, auth=requests.auth.HTTPBasicAuth('root', self.passvoid), verify=False)
+            reply = requests.get(url, auth=requests.auth.HTTPBasicAuth('root', self.passvoid))
             print(str(reply))
             if reply.status_code == 503:
                 self.is_leader = False
@@ -1033,7 +1033,9 @@ class StarterManager():
         logfile = str(self.log_file)
         attach.file(logfile, "Starter log file", AttachmentType.TEXT)
 
+    # pylint: disable=R1705
     def get_http_protocol(self):
+        """get HTTP protocol for this starter(http/https)"""
         if self.cfg.ssl:
             return "https"
         else:
