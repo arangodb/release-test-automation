@@ -15,9 +15,8 @@ class Dc2DcEndurance(Dc2Dc):
                  use_auto_certs: bool
                  ):
         super().__init__(runner_type, abort_on_error, installer_set,
-                         PunnerProperties('DC2DC_endurance', 0, 3500, True, ssl, use_auto_certs),
                          selenium, selenium_driver_args,
-                         testrun_name)
+                         testrun_name, ssl, use_auto_certs)
         self.hot_backup = False
 
     def test_setup_impl(self):
