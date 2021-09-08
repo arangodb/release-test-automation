@@ -22,6 +22,10 @@ SYNC_VERSIONS = {
     "230": semver.VersionInfo.parse('2.3.0'),
     "260": semver.VersionInfo.parse('2.6.0')
 }
+
+STARTER_VERSIONS = {
+    "152": semver.VersionInfo.parse('0.15.2')
+}
 USERS_ERROR_RX = re.compile('.*\n*.*\n*.*\n*.*(_users).*DIFFERENT.*', re.MULTILINE)
 STATUS_INACTIVE = "inactive"
 
@@ -396,18 +400,32 @@ class Dc2Dc(Runner):
         self.sync_manager.replace_binary_for_upgrade(self.new_cfg)
         self.cluster1["instance"].replace_binary_for_upgrade(self.new_cfg)
         self.cluster2["instance"].replace_binary_for_upgrade(self.new_cfg)
-        self.cluster1["instance"].command_upgrade()
-        self.cluster2["instance"].command_upgrade()
+        if self.new_inst.get_starter_version() >= STARTER_VERSIONS["152"]:
+            self.cluster1["instance"].command_upgrade()
+            self.cluster2["instance"].command_upgrade()
+            
+            # workaround: kill the sync'ers by hand, the starter doesn't
+            # self._stop_sync()
+            self.cluster1["instance"].kill_sync_processes()
+            self.cluster2["instance"].kill_sync_processes()
 
-        # workaround: kill the sync'ers by hand, the starter doesn't
-        # self._stop_sync()
-        self.cluster1["instance"].kill_sync_processes()
-        self.cluster2["instance"].kill_sync_processes()
+            self.cluster1["instance"].wait_for_upgrade(300)
+            self.cluster1["instance"].detect_instances()
+            self.cluster2["instance"].wait_for_upgrade(300)
+            self.cluster2["instance"].detect_instances()
+        else:
+            self.cluster1["instance"].command_upgrade()
+            self.cluster1["instance"].kill_sync_processes()
+            self.cluster1["instance"].wait_for_upgrade(300)
+            self.cluster1["instance"].detect_instances()
 
-        self.cluster1["instance"].wait_for_upgrade(300)
-        self.cluster1["instance"].detect_instances()
-        self.cluster2["instance"].wait_for_upgrade(300)
-        self.cluster2["instance"].detect_instances()
+            self.cluster2["instance"].command_upgrade()
+            self.cluster2["instance"].kill_sync_processes()
+            self.cluster2["instance"].wait_for_upgrade(300)
+            self.cluster2["instance"].detect_instances()
+        # self.sync_manager.start_sync()
+        self.sync_manager.run_syncer()
+
         # self.sync_manager.start_sync()
         self.sync_manager.run_syncer()
 
