@@ -758,6 +758,7 @@ class GraphPage(BaseSelenium):
     def delete_graph(self, graph:GraphExample):
         """Deleting created graphs"""
         print("Deleting %s Graph" % GRAPH_SETS[graph].clear_name)
+        self.wait_for_ajax()
         btn_id = GRAPH_SETS[graph].btn_id
         select_graph_setting_btn_sitem = self.locator_finder_by_id(btn_id)
         select_graph_setting_btn_sitem.click()
