@@ -60,6 +60,7 @@ class StarterManager():
         #self.moreopts += ["--all.log.level=arangosearch=trace"]
         #self.moreopts += ["--all.log.level=startup=trace"]
         #self.moreopts += ["--all.log.level=engines=trace"]
+        self.moreopts += ["--all.log.level=backup=trace"]
 
         #directories
         self.raw_basedir = install_prefix
@@ -526,16 +527,17 @@ class StarterManager():
                                   kill_instance=False):
         """ launch the instances of this starter with optional arguments """
         for instance_type in which_instances:
-            for i in self.all_instances:
-                if i.instance_type == instance_type:
+            for instance in self.all_instances:
+                if instance.instance_type == instance_type:
                     if kill_instance:
-                        i.kill_instance()
-                    i.launch_manual_from_instance_control_file(
+                        instance.kill_instance()
+                    instance.launch_manual_from_instance_control_file(
                         self.cfg.sbin_dir,
                         self.old_install_prefix,
                         self.cfg.install_prefix,
                         moreargs,
                         waitpid)
+
 
     @step
     def manually_launch_instances_for_upgrade(self,

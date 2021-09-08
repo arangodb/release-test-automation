@@ -99,6 +99,7 @@ class InstallerTAR(InstallerBase):
         }
         self.debug_package = None
         self.client_package = None
+
         if self.architecture == 'win64':
             self.server_package = 'ArangoDB3{ep}-{ver}{dashus}{arch}.{ext}'.format(**self.desc)
             self.cfg.install_prefix = self.cfg.install_prefix / \
@@ -142,6 +143,8 @@ class InstallerTAR(InstallerBase):
             "server_package: {0.server_package}".format(self))
         if not self.cfg.install_prefix.exists():
             self.cfg.install_prefix.mkdir(parents=True)
+        print(str(self.cfg.package_dir / self.server_package))
+        print(str(self.cfg.install_prefix / '..'))
         shutil.unpack_archive(str(self.cfg.package_dir / self.server_package),
                               str(self.cfg.install_prefix / '..'))
         logging.info('Installation successfull')
