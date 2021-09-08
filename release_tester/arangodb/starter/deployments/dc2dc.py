@@ -147,6 +147,19 @@ class Dc2Dc(Runner):
             self.cert_op(['jwt-secret', '--secret=' + str(node["JWTSecret"])])
 
         def add_starter(val, port):
+            opts = [
+                    '--all.log.level=backup=trace',
+                    '--all.log.level=requests=debug',
+                    '--starter.sync',
+                    '--starter.local',
+                    '--auth.jwt-secret=' +           str(val["JWTSecret"]),
+                    '--sync.server.keyfile=' +       str(val["tlsKeyfile"]),
+                    '--sync.server.client-cafile=' + str(client_cert),
+                    '--sync.master.jwt-secret=' +    str(val["SyncSecret"]),
+                    '--starter.address=' +           self.cfg.publicip
+                ]
+            if self.cfg.ssl and not self.cfg.use_auto_certs:
+                opts.append('--ssl.keyfile=' + str(val["tlsKeyfile"]))
             val["instance"] = StarterManager(
                 self.cfg,
                 val["dir"], val["instance_dir"],
@@ -169,18 +182,7 @@ class Dc2Dc(Runner):
                     InstanceType.SYNCWORKER,
                     InstanceType.SYNCWORKER
                 ],
-                moreopts=[
-                    '--all.log.level=backup=trace',
-                    '--all.log.level=requests=debug',
-                    '--starter.sync',
-                    '--starter.local',
-                    '--auth.jwt-secret=' +           str(val["JWTSecret"]),
-                    '--sync.server.keyfile=' +       str(val["tlsKeyfile"]),
-                    '--ssl.keyfile=' +               str(val["tlsKeyfile"]),
-                    '--sync.server.client-cafile=' + str(client_cert),
-                    '--sync.master.jwt-secret=' +    str(val["SyncSecret"]),
-                    '--starter.address=' +           self.cfg.publicip
-                ])
+                moreopts=opts)
             val["instance"].set_jwt_file(val["JWTSecret"])
             if port is None:
                 val["instance"].is_leader = True
