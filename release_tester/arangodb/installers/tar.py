@@ -12,13 +12,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 MACVER = platform.mac_ver()
 WINVER = platform.win32_ver()
-<<<<<<< HEAD
-BASEDIR = Path()
-if "WORKSPACE_TMP" in os.environ:
-    print("snatoheusanoetuh")
-    BASEDIR=Path(os.environ["WORKSPACE_TMP"])
-=======
->>>>>>> bfd2b62 (don't use global var)
 class InstallerTAR(InstallerBase):
     """ install Tar.gz's on Linux/Mac hosts """
 # pylint: disable=R0913 disable=R0902
@@ -117,11 +110,7 @@ class InstallerTAR(InstallerBase):
             self.cfg.real_sbin_dir = self.cfg.sbin_dir
         else:
             self.server_package = 'arangodb3{ep}-{arch}{dashus}{ver}.{ext}'.format(**self.desc)
-<<<<<<< HEAD
-            self.cfg.install_prefix = BASEDIR / \
-=======
             self.cfg.install_prefix = self.cfg.install_prefix / \
->>>>>>> bfd2b62 (don't use global var)
                 'arangodb3{ep}-{arch}{dashus}{ver}'.format(**self.desc)
             self.cfg.bin_dir = self.cfg.install_prefix / "bin"
             self.cfg.sbin_dir = self.cfg.install_prefix / "usr" / "sbin"
