@@ -12,26 +12,29 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 MACVER = platform.mac_ver()
 WINVER = platform.win32_ver()
+<<<<<<< HEAD
 BASEDIR = Path()
 if "WORKSPACE_TMP" in os.environ:
     print("snatoheusanoetuh")
     BASEDIR=Path(os.environ["WORKSPACE_TMP"])
+=======
+>>>>>>> bfd2b62 (don't use global var)
 class InstallerTAR(InstallerBase):
     """ install Tar.gz's on Linux/Mac hosts """
 # pylint: disable=R0913 disable=R0902
     def __init__(self, cfg):
-        BASEDIR = Path("/tmp")
+        basedir = Path("/tmp")
         if WINVER[0]:
-            BASEDIR = Path("C:/tmp")
+            basedir = Path("C:/tmp")
         print(os.environ)
         if "WORKSPACE_TMP" in os.environ:
             print("snatoheusanoetuh")
-            BASEDIR=Path(os.environ["WORKSPACE_TMP"])
-        print(BASEDIR)
+            basedir=Path(os.environ["WORKSPACE_TMP"])
+        print(basedir)
         
         cfg.have_system_service = False
 
-        cfg.install_prefix = BASEDIR
+        cfg.install_prefix = basedir
         cfg.bin_dir = None
         cfg.sbin_dir = None
         cfg.real_bin_dir = None
@@ -44,7 +47,7 @@ class InstallerTAR(InstallerBase):
 
         self.cfg = cfg
         self.dash = "-"
-        self.cfg.install_prefix = BASEDIR
+        self.cfg.install_prefix = basedir
         self.extension = 'tar.gz'
         self.hot_backup = True
         self.architecture = None
@@ -106,7 +109,7 @@ class InstallerTAR(InstallerBase):
 
         if self.architecture == 'win64':
             self.server_package = 'ArangoDB3{ep}-{ver}{dashus}{arch}.{ext}'.format(**self.desc)
-            self.cfg.install_prefix = BASEDIR / \
+            self.cfg.install_prefix = self.cfg.install_prefix / \
                 'arangodb3{ep}-{ver}{dashus}{arch}'.format(**self.desc)
             self.cfg.bin_dir = self.cfg.install_prefix / "usr" / "bin"
             self.cfg.sbin_dir = self.cfg.install_prefix / "usr" / "bin"
@@ -114,7 +117,11 @@ class InstallerTAR(InstallerBase):
             self.cfg.real_sbin_dir = self.cfg.sbin_dir
         else:
             self.server_package = 'arangodb3{ep}-{arch}{dashus}{ver}.{ext}'.format(**self.desc)
+<<<<<<< HEAD
             self.cfg.install_prefix = BASEDIR / \
+=======
+            self.cfg.install_prefix = self.cfg.install_prefix / \
+>>>>>>> bfd2b62 (don't use global var)
                 'arangodb3{ep}-{arch}{dashus}{ver}'.format(**self.desc)
             self.cfg.bin_dir = self.cfg.install_prefix / "bin"
             self.cfg.sbin_dir = self.cfg.install_prefix / "usr" / "sbin"
