@@ -103,7 +103,9 @@ Supported Parameters:
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
  - `--clean-alluredir` - clean allure directory before running tests (default = True)
- 
+ - `--[no-]ssl` use SSL (default = False)
+ - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl) 
+
 Example usage:
  - Windows: `python ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
  - Linux (ubuntu|debian) `python3 ./release_tester/test.py --new-version 3.6.2 --no-enterprise --package-dir /home/willi/Downloads`
@@ -139,6 +141,8 @@ Supported Parameters:
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
  - `--clean-alluredir` - clean allure directory before running tests (default = True)
+ - `--[no-]ssl` use SSL (default = False)
+ - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl)
  
 Example usage:
  - Windows: `python ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
@@ -219,6 +223,8 @@ Supported Parameters:
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
  - `--clean-alluredir` - clean allure directory before running tests (default = True)
+ - `--[no-]ssl` use SSL (default = False)
+ - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl)
 
 Example usage: 
 

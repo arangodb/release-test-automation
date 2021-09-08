@@ -31,7 +31,7 @@ class InstallerDocker(InstallerBase):
 
         cfg.have_system_service = False
         cfg.base_test_dir = Path('/home/testdata')
-        cfg.installPrefix = None
+        cfg.install_prefix = None
         cfg.bin_dir = Path('/usr/bin')
         cfg.sbin_dir = Path('/usr/sbin')
         cfg.real_bin_dir = Path('/usr/bin')
@@ -63,10 +63,10 @@ class InstallerDocker(InstallerBase):
         self.server_package = None
         self.debug_package = None
         self.client_package = None
-        self.cfg.cfgdir = self.cfg.installPrefix # n/A
-        self.cfg.appdir = self.cfg.installPrefix # n/A
-        self.cfg.dbdir = self.cfg.installPrefix # n/A
-        self.cfg.log_dir = self.cfg.installPrefix # n/A
+        self.cfg.cfgdir = self.cfg.install_prefix # n/A
+        self.cfg.appdir = self.cfg.install_prefix # n/A
+        self.cfg.dbdir = self.cfg.install_prefix # n/A
+        self.cfg.log_dir = self.cfg.install_prefix # n/A
 
     def check_service_up(self):
         pass

@@ -9,11 +9,12 @@ from selenium.common.exceptions import SessionNotCreatedException
 from arangodb.starter.deployments import RunnerType
 from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunner
 
-#pylint: disable=import-outside-toplevel disable=R0914 disable=R0912
+#pylint: disable=import-outside-toplevel disable=R0914 disable=R0912 disable=R0915
 def init(runner_type: RunnerType,
          selenium_worker: str,
          selenium_driver_args: list,
-         testrun_name: str) -> SeleniumRunner:
+         testrun_name: str,
+         ssl: bool) -> SeleniumRunner:
     """ build selenium testcase for runner_type """
     driver_func = getattr(webdriver, selenium_worker)
     if driver_func is None:
@@ -61,36 +62,42 @@ def init(runner_type: RunnerType,
         from arangodb.starter.deployments.selenium_deployments.leaderfollower import LeaderFollower
         return LeaderFollower(driver,
                               is_headless,
-                              testrun_name)
+                              testrun_name,
+                              ssl)
 
     if runner_type == RunnerType.ACTIVE_FAILOVER:
         from arangodb.starter.deployments.selenium_deployments.activefailover import ActiveFailover
         return ActiveFailover(driver,
                               is_headless,
-                              testrun_name)
+                              testrun_name,
+                              ssl)
 
     if runner_type == RunnerType.CLUSTER:
         from arangodb.starter.deployments.selenium_deployments.cluster import Cluster
         return Cluster(driver,
                        is_headless,
-                       testrun_name)
+                       testrun_name,
+                              ssl)
 
     if runner_type == RunnerType.DC2DC:
         from arangodb.starter.deployments.selenium_deployments.dc2dc import Dc2Dc
         return Dc2Dc(driver,
                      is_headless,
-                     testrun_name)
+                     testrun_name,
+                              ssl)
 
     if runner_type == RunnerType.DC2DCENDURANCE:
         from arangodb.starter.deployments.selenium_deployments.dc2dc_endurance import Dc2DcEndurance
         return Dc2DcEndurance(driver,
                               is_headless,
-                              testrun_name)
+                              testrun_name,
+                              ssl)
 
     if runner_type == RunnerType.NONE:
         from arangodb.starter.deployments.selenium_deployments.none import NoStarter
         return NoStarter(driver,
                          is_headless,
-                         testrun_name)
+                         testrun_name,
+                              ssl)
 
     raise Exception("unknown starter type")

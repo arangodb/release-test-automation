@@ -19,9 +19,11 @@ class Cluster(Runner):
     # pylint: disable=R0913 disable=R0902
     def __init__(self, runner_type, abort_on_error, installer_set,
                  selenium, selenium_driver_args,
-                 testrun_name: str):
+                 testrun_name: str,
+                 ssl: bool,
+                 use_auto_certs: bool):
         super().__init__(runner_type, abort_on_error, installer_set,
-                         PunnerProperties('CLUSTER', 400, 600, True),
+                         PunnerProperties('CLUSTER', 400, 600, True, ssl, use_auto_certs),
                          selenium, selenium_driver_args,
                          testrun_name)
         #self.basecfg.frontends = []
@@ -35,43 +37,52 @@ class Cluster(Runner):
 db._create("testCollection",  { numberOfShards: 6, replicationFactor: 2});
 db.testCollection.save({test: "document"})
 """, "create test collection")
+        node1_opts = []
+        node2_opts = ['--starter.join', '127.0.0.1:9528']
+        node3_opts = ['--starter.join', '127.0.0.1:9528']
+        if self.cfg.ssl and not self.cfg.use_auto_certs:
+            self.create_tls_ca_cert()
+            node1_tls_keyfile = self.cert_dir / Path("node1") / "tls.keyfile"
+            node2_tls_keyfile = self.cert_dir / Path("node2") / "tls.keyfile"
+            node3_tls_keyfile = self.cert_dir / Path("node3") / "tls.keyfile"
 
-        self.starter_instances.append(
-            StarterManager(self.basecfg,
-                           self.basedir, 'node1',
-                           mode='cluster',
-                           jwtStr=self.jwtdatastr,
-                           port=9528,
-                           expect_instances=[
-                               InstanceType.AGENT,
-                               InstanceType.COORDINATOR,
-                               InstanceType.DBSERVER
-                           ],
-                           moreopts=[]))
-        self.starter_instances.append(
-            StarterManager(self.basecfg,
-                           self.basedir, 'node2',
-                           mode='cluster',
-                           jwtStr=self.jwtdatastr,
-                           port=9628,
-                           expect_instances=[
-                               InstanceType.AGENT,
-                               InstanceType.COORDINATOR,
-                               InstanceType.DBSERVER
-                           ],
-                           moreopts=['--starter.join', '127.0.0.1:9528']))
-        self.starter_instances.append(
-            StarterManager(self.basecfg,
-                           self.basedir, 'node3',
-                           mode='cluster',
-                           jwtStr=self.jwtdatastr,
-                           port=9728,
-                           expect_instances=[
-                               InstanceType.AGENT,
-                               InstanceType.COORDINATOR,
-                               InstanceType.DBSERVER
-                           ],
-                           moreopts=['--starter.join', '127.0.0.1:9528']))
+            self.cert_op(['tls', 'keyfile',
+                          '--cacert=' + str(self.certificate_auth["cert"]),
+                          '--cakey=' + str(self.certificate_auth["key"]),
+                          '--keyfile=' + str(node1_tls_keyfile),
+                          '--host=' + self.cfg.publicip, '--host=localhost'])
+            self.cert_op(['tls', 'keyfile',
+                          '--cacert=' + str(self.certificate_auth["cert"]),
+                          '--cakey=' + str(self.certificate_auth["key"]),
+                          '--keyfile=' + str(node2_tls_keyfile),
+                          '--host=' + self.cfg.publicip, '--host=localhost'])
+            self.cert_op(['tls', 'keyfile',
+                          '--cacert=' + str(self.certificate_auth["cert"]),
+                          '--cakey=' + str(self.certificate_auth["key"]),
+                          '--keyfile=' + str(node3_tls_keyfile),
+                          '--host=' + self.cfg.publicip, '--host=localhost'])
+            node1_opts.append(f"--ssl.keyfile={node1_tls_keyfile}")
+            node2_opts.append(f"--ssl.keyfile={node2_tls_keyfile}")
+            node3_opts.append(f"--ssl.keyfile={node2_tls_keyfile}")
+
+        def add_starter(name, port, opts):
+            self.starter_instances.append(
+                StarterManager(self.basecfg,
+                               self.basedir, name,
+                               mode='cluster',
+                               jwtStr=self.jwtdatastr,
+                               port=port,
+                               expect_instances=[
+                                   InstanceType.AGENT,
+                                   InstanceType.COORDINATOR,
+                                   InstanceType.DBSERVER
+                               ],
+                               moreopts=opts))
+
+        add_starter('node1', 9528, node1_opts)
+        add_starter('node2', 9628, node2_opts)
+        add_starter('node3', 9728, node3_opts)
+
         for instance in self.starter_instances:
             instance.is_leader = True
 
@@ -172,6 +183,7 @@ db.testCollection.save({test: "document"})
                 InstanceType.COORDINATOR
             ], [
                 '--database.auto-upgrade', 'true',
+                '--javascript.copy-installation', 'true',
                 '--server.rest-server', 'false'
             ])
         self.progress(True, "step 5 restart the full cluster ")

@@ -9,9 +9,11 @@ class NoStarter(Runner):
 # pylint: disable=R0913 disable=R0902
     def __init__(self, runner_type, abort_on_error, installer_set,
                  selenium, selenium_driver_args,
-                 testrun_name: str):
+                 testrun_name: str,
+                 ssl: bool,
+                 use_auto_certs: bool):
         super().__init__(runner_type, abort_on_error, installer_set,
-                         PunnerProperties('none', 0, 0, False),
+                         PunnerProperties('none', 0, 0, False, ssl, use_auto_certs),
                          selenium, selenium_driver_args,
                          testrun_name)
 

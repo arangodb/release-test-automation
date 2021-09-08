@@ -74,7 +74,9 @@ class Instance(ABC):
                  localhost,
                  publicip,
                  passvoid,
-                 instance_string):
+                 instance_string,
+                 ssl
+                 ):
         self.instance_type = INSTANCE_TYPE_STRING_MAP[instance_type]
         self.is_system = False
         self.type_str = list(INSTANCE_TYPE_STRING_MAP.keys())[int(self.instance_type.value)]
@@ -92,6 +94,7 @@ class Instance(ABC):
         self.instance = None
         self.serving = datetime.datetime(1970, 1, 1, 0, 0, 0)
         self.instance_arguments = []
+        self.ssl = ssl
 
         logging.debug("creating {0.type_str} instance: {0.name}".format(self))
 
@@ -107,14 +110,15 @@ class Instance(ABC):
         """ retrieve the pw to connect to this instance """
         return self.passvoid
 
-    def detect_gone(self):
+    def detect_gone(self, verbose=True):
         """ revalidate that the managed process is actualy dead """
         try:
             # we expect it to be dead anyways!
             return self.instance.wait(3) is None
         except psutil.TimeoutExpired:
-            logging.error("was supposed to be dead, but I'm still alive? "
-                          + repr(self))
+            if not verbose:
+                logging.error("was supposed to be dead, but I'm still alive? "
+                              + repr(self))
             return False
         except AttributeError:
             #logging.error("was supposed to be dead, but I don't have an instance? "
@@ -145,12 +149,24 @@ class Instance(ABC):
 
     def launch_manual_from_instance_control_file(self,
                                                  sbin_dir,
+                                                 old_install_prefix,
+                                                 new_install_prefix,
                                                  moreargs,
                                                  waitpid=True):
         """ launch instance without starter with additional arguments """
         self.load_starter_instance_control_file()
         command = [str(sbin_dir / self.instance_string)] + \
             self.instance_arguments[1:] + moreargs
+        dos_old_install_prefix_fwd = str(old_install_prefix).replace("\\", "/")
+        dos_new_install_prefix_fwd = str(new_install_prefix).replace("\\", "/")
+        for i, cmd in enumerate(command):
+            if cmd.find(str(old_install_prefix)) >= 0:
+                command[i] = cmd.replace(
+                    str(old_install_prefix), str(new_install_prefix))
+            # the wintendo may have both slash directions:
+            if cmd.find(dos_old_install_prefix_fwd) >= 0:
+                command[i] = cmd.replace(
+                    dos_old_install_prefix_fwd, dos_new_install_prefix_fwd)
         print("Manually launching: " + str(command))
         self.instance = psutil.Popen(command)
         print("instance launched with PID:" + str(self.instance.pid))
@@ -218,6 +234,9 @@ class Instance(ABC):
         """ halt an instance using SIG_STOP """
         if self.instance:
             try:
+                print('suspending {0} instance PID:[{1}]'.format(
+                    self.type_str,
+                    self.instance.pid))
                 self.instance.suspend()
             except psutil.NoSuchProcess as ex:
                 logging.info("instance not available with this PID: " + str(self.instance))
@@ -230,6 +249,9 @@ class Instance(ABC):
         """ resume the instance using SIG_CONT """
         if self.instance:
             try:
+                print('resuming {0} instance PID:[{1}]'.format(
+                    self.type_str,
+                    self.instance.pid))
                 self.instance.resume()
             except psutil.NoSuchProcess:
                 logging.info("instance not available with this PID: " + str(self.instance))
@@ -249,7 +271,10 @@ class Instance(ABC):
                     gcore = psutil.Popen(['gcore', str(self.instance.pid)], cwd=self.basedir)
                     print("generating core with PID:" + str(gcore.pid))
                     gcore.wait()
-                    print("Terminating " + str(self.instance))
+                    print('Killing {0} instance PID:[{1}] {3}'.format(
+                        self.type_str,
+                        self.instance.pid,
+                        self.instance.cmdline()))
                     self.instance.kill()
                     self.instance.wait()
                     self.add_logfile_to_report()
@@ -321,14 +346,15 @@ class Instance(ABC):
 class ArangodInstance(Instance):
     """ represent one arangodb instance """
     # pylint: disable=R0913
-    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, is_system=False):
+    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl, is_system=False):
         super().__init__(typ,
                          port,
                          basedir,
                          localhost,
                          publicip,
                          passvoid,
-                         'arangod')
+                         'arangod',
+                         ssl)
         self.is_system = is_system
 
     def __repr__(self):
@@ -353,23 +379,46 @@ class ArangodInstance(Instance):
             "url": self.get_public_login_url() if self.is_frontend() else ""
         }
 
+    # pylint: disable=R1705
+    def get_protocol(self):
+        """ return protocol of this arangod instance (ssl/tcp) """
+        if self.ssl:
+            return "ssl"
+        else:
+            return "tcp"
+
+    # pylint: disable=R1705
+    def get_http_protocol(self):
+        """ return protocol of this arangod instance (http/https) """
+        if self.ssl:
+            return "https"
+        else:
+            return "http"
+
     def get_local_url(self, login):
-        """ our public url """
-        return 'http://{login}{host}:{port}'.format(
+        """ our local url """
+        return '{protocol}://{login}{host}:{port}'.format(
+            protocol=self.get_http_protocol(),
             login=login,
             host=self.localhost,
             port=self.port)
 
     def get_public_url(self, login):
         """ our public url """
-        return 'http://{login}{host}:{port}'.format(
+        return '{protocol}://{login}{host}:{port}'.format(
+            protocol=self.get_http_protocol(),
             login=login,
             host=self.publicip,
             port=self.port)
 
     def get_public_login_url(self):
         """ our public url with passvoid """
-        return 'http://root:{0.passvoid}@{0.publicip}:{0.port}'.format(self)
+        return '{protocol}://root:{passvoid}@{publicip}:{port}'.format(
+            protocol = self.get_http_protocol(),
+            passvoid = self.passvoid,
+            publicip=self.publicip,
+            port=self.port
+        )
 
     def get_public_plain_url(self):
         """ our public url """
@@ -379,7 +428,8 @@ class ArangodInstance(Instance):
 
     def get_endpoint(self):
         """ our endpoint """
-        return 'tcp://{host}:{port}'.format(
+        return '{protocol}://{host}:{port}'.format(
+            protocol=self.get_protocol(),
             host=self.localhost,
             port=self.port)
 
@@ -435,7 +485,8 @@ class ArangodInstance(Instance):
         reply = None
         try:
             reply = requests.get(self.get_local_url('')+'/_api/version',
-                                 auth=HTTPBasicAuth('root', self.passvoid)
+                                 auth=HTTPBasicAuth('root', self.passvoid),
+                                 verify = False
                                  )
         except requests.exceptions.ConnectionError:
             return AfoServerState.NOT_CONNECTED
@@ -642,26 +693,28 @@ class ArangodInstance(Instance):
 class ArangodRemoteInstance(ArangodInstance):
     """ represent one arangodb instance """
     # pylint: disable=R0913
-    def __init__(self, typ, port, localhost, publicip, basedir, passvoid):
+    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl):
         super().__init__(typ,
                          port,
                          basedir,
                          localhost,
                          publicip,
                          passvoid,
-                         'arangod')
+                         'arangod',
+                         ssl)
 
 class SyncInstance(Instance):
     """ represent one arangosync instance """
     # pylint: disable=R0913
-    def __init__(self, typ, port, localhost, publicip, basedir, passvoid):
+    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl):
         super().__init__(typ,
                          port,
                          basedir,
                          localhost,
                          publicip,
                          passvoid,
-                         'arangosync')
+                         'arangosync',
+                          ssl)
         self.logfile_parameter = ''
 
     def __repr__(self):

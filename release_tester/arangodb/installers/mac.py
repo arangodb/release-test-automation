@@ -124,7 +124,7 @@ class InstallerMac(InstallerBase):
         self.baseetcdir = Path.home() / 'Library' / 'ArangoDB-etc'
         self.installer_type = "DMG"
 
-        cfg.installPrefix = None
+        cfg.install_prefix = None
         cfg.localhost = 'localhost'
         cfg.passvoid = '' # default mac install doesn't set passvoid
 
@@ -215,15 +215,15 @@ class InstallerMac(InstallerBase):
                                     self.server_package)
         print(self.mountpoint)
         enterprise = 'e' if self.cfg.enterprise else ''
-        self.cfg.installPrefix = ( Path(self.mountpoint) /
+        self.cfg.install_prefix = ( Path(self.mountpoint) /
                                    'ArangoDB3{}-CLI.app'.format(enterprise) /
                                    'Contents' /
                                    'Resources')
-        self.cfg.bin_dir = self.cfg.installPrefix
-        self.cfg.sbin_dir = self.cfg.installPrefix
-        self.cfg.real_bin_dir = ( self.cfg.installPrefix
+        self.cfg.bin_dir = self.cfg.install_prefix
+        self.cfg.sbin_dir = self.cfg.install_prefix
+        self.cfg.real_bin_dir = ( self.cfg.install_prefix
                                   / 'opt' / 'arangodb' / 'bin' )
-        self.cfg.real_sbin_dir = ( self.cfg.installPrefix
+        self.cfg.real_sbin_dir = ( self.cfg.install_prefix
                                    / 'opt' / 'arangodb' / 'sbin')
         self.cfg.all_instances = {
             'single': {
