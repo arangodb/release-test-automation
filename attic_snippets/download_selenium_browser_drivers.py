@@ -7,8 +7,9 @@ from webdriver_manager.microsoft import EdgeChromiumDriverManager
 from webdriver_manager.utils import ChromeType
 
 """
-pip install selenium
-pip install webdriver-manager
+-> pip install selenium
+-> pip install webdriver-manager
+-> browsers which are Chrome, Chromium, Firefox, Edge need to installed beforehand
 
 More info: https://pypi.org/project/webdriver-manager/
            https://github.com/bonigarcia/webdrivermanager/blob/master/README.md
@@ -41,9 +42,9 @@ class BaseSelenium:
 
             if cls.browser_name == 1:
 
-                chrome_options = webdriver.ChromeOptions()
-                chrome_options.add_argument("--disable-notifications")
-                cls.driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
+                options = webdriver.ChromeOptions()
+                options.add_argument("--disable-notifications")
+                cls.driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
 
             elif cls.browser_name == 2:
                 print("You have chosen: Firefox browser \n")
@@ -75,3 +76,11 @@ class BaseSelenium:
         cls.driver.close()
         print("\n--------Now Quiting--------\n")
         cls.driver.quit()
+
+# if __name__ == "__main__":
+#     selenium = BaseSelenium()
+#     selenium.set_up_class()
+#     selenium.tear_down()
+
+BaseSelenium.set_up_class()
+BaseSelenium.tear_down()

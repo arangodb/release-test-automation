@@ -67,7 +67,7 @@ docker \
       --alluredir /home/allure-results \
       $force_arg --git-version $GIT_VERSION $@
 result=$?
-exit
+
 # Cleanup ownership:
 docker run \
        -v $(pwd)/test_dir:/home/test_dir \

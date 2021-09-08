@@ -1,21 +1,27 @@
 #!/usr/bin/env python3
 """ test the UI of a leader follower setup """
 import time
+import platform
+
 from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunner
 from selenium.common.exceptions import StaleElementReferenceException
 
 from reporting.reporting_utils import step
+
+WINVER = platform.win32_ver()
 
 
 class Cluster(SeleniumRunner):
     """ check the leader follower setup and its properties """
     def __init__(self, webdriver,
                  is_headless: bool,
-                 testrun_name: str):
+                 testrun_name: str,
+                 ssl: bool):
         # pylint: disable=W0235
         super().__init__(webdriver,
                          is_headless,
-                         testrun_name)
+                         testrun_name,
+                         ssl)
         self.is_cluster = True
 
     @step
@@ -98,7 +104,9 @@ class Cluster(SeleniumRunner):
         done = False
         retry_count = 0
         while not done:
-            node_count = self.cluster_dashboard_get_count(timeout=50)
+            # the wintendo is slow to notice that the hosts are gone.
+            timeout = 500 if WINVER[0] else 50
+            node_count = self.cluster_dashboard_get_count(timeout)
 
             done = ((node_count['dbservers'] == '2/3') and
                     (node_count['coordinators'] == '2/3') and

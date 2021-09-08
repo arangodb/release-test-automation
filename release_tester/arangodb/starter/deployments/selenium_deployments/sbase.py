@@ -52,8 +52,10 @@ class SeleniumRunner(ABC):
     # pylint: disable=C0301 disable=R0904
     def __init__(self, webdriver,
                  is_headless: bool,
-                 testrun_name: str):
+                 testrun_name: str,
+                 ssl: bool):
         """ hi """
+        self.ssl = ssl
         self.is_headless = is_headless
         self.testrun_name = testrun_name
         self.web = webdriver
@@ -185,7 +187,7 @@ class SeleniumRunner(ABC):
         # Open a new window
         self.web.execute_script("window.open('');")
         self.web.switch_to.window(self.web.window_handles[1])
-        self.web.get("http://" +
+        self.web.get(self.get_protocol() + "://" +
                      frontend_instance[0].get_public_plain_url() +
                      "/_db/_system/_admin/aardvark/index.html")
 
@@ -213,7 +215,7 @@ class SeleniumRunner(ABC):
         """ login... """
         self.progress("Opening page")
         print(frontend_instance[0].get_public_plain_url())
-        self.web.get("http://" +
+        self.web.get(self.get_protocol() + "://" +
                      frontend_instance[0].get_public_plain_url() +
                      "/_db/_system/_admin/aardvark/index.html")
         self.login_webif(frontend_instance, database, cfg)
@@ -621,6 +623,14 @@ class SeleniumRunner(ABC):
             assert ver['enterprise'] == 'ENTERPRISE EDITION', "UI-Test: expected enterprise"
         else:
             assert ver['enterprise'] == 'COMMUNITY EDITION', "UI-Test: expected community"
+
+    # pylint: disable=R1705
+    def get_protocol(self):
+        """get HTTP protocol for this runner(http/https)"""
+        if self.ssl:
+            return "https"
+        else:
+            return "http"
 
     @abstractmethod
     def check_old(self, cfg, leader_follower=False, expect_follower_count=2, retry_count=10):

@@ -20,9 +20,9 @@ class LeaderFollower(Runner):
     # pylint: disable=R0913 disable=R0902
     def __init__(self, runner_type, abort_on_error, installer_set,
                  selenium, selenium_driver_args,
-                 testrun_name: str):
+                 testrun_name: str, ssl: bool, use_auto_certs: bool):
         super().__init__(runner_type, abort_on_error, installer_set,
-                         PunnerProperties('LeaderFollower', 400, 500, False),
+                         PunnerProperties('LeaderFollower', 400, 500, False, ssl, use_auto_certs),
                          selenium, selenium_driver_args,
                          testrun_name)
 
@@ -61,6 +61,25 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
 """)}
 
     def starter_prepare_env_impl(self):
+        leader_opts = []
+        follower_opts = []
+        if self.cfg.ssl and not self.cfg.use_auto_certs:
+            self.create_tls_ca_cert()
+            leader_tls_keyfile = self.cert_dir / Path("leader") / "tls.keyfile"
+            follower_tls_keyfile = self.cert_dir / Path("follower") / "tls.keyfile"
+            self.cert_op(['tls', 'keyfile',
+                          '--cacert=' + str(self.certificate_auth["cert"]),
+                          '--cakey=' + str(self.certificate_auth["key"]),
+                          '--keyfile=' + str(leader_tls_keyfile),
+                          '--host=' + self.cfg.publicip, '--host=localhost'])
+            self.cert_op(['tls', 'keyfile',
+                          '--cacert=' + str(self.certificate_auth["cert"]),
+                          '--cakey=' + str(self.certificate_auth["key"]),
+                          '--keyfile=' + str(follower_tls_keyfile),
+                          '--host=' + self.cfg.publicip, '--host=localhost'])
+            leader_opts.append(f"--ssl.keyfile={leader_tls_keyfile}")
+            follower_opts.append(f"--ssl.keyfile={follower_tls_keyfile}")
+
         self.leader_starter_instance = StarterManager(
             self.basecfg, self.basedir, 'leader',
             mode='single', port=1234,
@@ -68,7 +87,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
                 InstanceType.SINGLE
             ],
             jwtStr="leader",
-            moreopts=[])
+            moreopts=leader_opts)
         self.leader_starter_instance.is_leader = True
 
         self.follower_starter_instance = StarterManager(
@@ -78,7 +97,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
                 InstanceType.SINGLE
             ],
             jwtStr="follower",
-            moreopts=[])
+            moreopts=follower_opts)
 
     def starter_run_impl(self):
         self.leader_starter_instance.run_starter()
@@ -107,7 +126,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
             """
 print(
 require("@arangodb/replication").setupReplicationGlobal({
-    endpoint: "tcp://127.0.0.1:%s",
+    endpoint: "%s://127.0.0.1:%s",
     username: "root",
     password: "%s",
     verbose: false,
@@ -117,7 +136,8 @@ require("@arangodb/replication").setupReplicationGlobal({
     }));
 print("replication started")
 process.exit(0);
-""" % (str(self.leader_starter_instance.get_frontend_port()),
+""" % (self.get_protocol(),
+       str(self.leader_starter_instance.get_frontend_port()),
         self.leader_starter_instance.get_passvoid()))
         lh.subsubsection("prepare leader follower replication")
         arangosh_script = self.checks['beforeReplJS']
@@ -216,7 +236,8 @@ process.exit(0);
             print('launch')
             node.manually_launch_instances(
                 [ InstanceType.SINGLE ],
-                [ '--database.auto-upgrade', 'true' ] )
+                [ '--database.auto-upgrade', 'true',
+                  '--javascript.copy-installation', 'true'] )
         self.progress(True, "step 3 - launch instances again")
         for node in instances:
             node.respawn_instance()
