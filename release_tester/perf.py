@@ -31,9 +31,11 @@ def run_test(mode, scenario, frontends,
              #very_common_options
              new_version, verbose, enterprise, package_dir, zip_package,
              # common_options
+             alluredir, clean_alluredir, ssl, use_auto_certs,
              # old_version,
              test_data_dir, encryption_at_rest, interactive, starter_mode,
-             stress_upgrade, abort_on_error, publicip,
+             # stress_upgrade,
+             abort_on_error, publicip,
              selenium, selenium_driver_args):
     """ main """
     lh.configure_logging(verbose)
@@ -79,7 +81,9 @@ def run_test(mode, scenario, frontends,
                          installers,
                          selenium,
                          selenium_driver_args,
-                         "perf")
+                         "perf",
+                         ssl,
+                         use_auto_certs)
     runner.do_install = do_install
     runner.do_uninstall = do_uninstall
     failed = False

@@ -30,7 +30,7 @@ def run_upgrade(old_version, new_version, verbose,
                 zip_package, interactive,
                 starter_mode, stress_upgrade, abort_on_error,
                 publicip, selenium, selenium_driver_args,
-                testrun_name):
+                testrun_name, ssl, use_auto_certs):
     """ execute upgrade tests """
     lh.section("startup")
     results = []
@@ -78,7 +78,9 @@ def run_upgrade(old_version, new_version, verbose,
                                          selenium,
                                          selenium_driver_args,
                                          installers,
-                                         testrun_name)
+                                         testrun_name,
+                                         ssl=ssl,
+                                         use_auto_certs=use_auto_certs)
                     if runner:
                         try:
                             runner.run()
@@ -172,7 +174,7 @@ def main(
         # common_options
         old_version, test_data_dir, encryption_at_rest, interactive,
         starter_mode, stress_upgrade, abort_on_error, publicip,
-        selenium, selenium_driver_args, alluredir, clean_alluredir):
+        selenium, selenium_driver_args, alluredir, clean_alluredir, ssl, use_auto_certs):
     """ main trampoline """
     lh.configure_logging(verbose)
     configure_allure(alluredir, clean_alluredir, enterprise, zip_package, new_version, old_version)
@@ -181,7 +183,7 @@ def main(
                           enterprise, encryption_at_rest,
                           zip_package, interactive,
                           starter_mode, stress_upgrade, abort_on_error,
-                          publicip, selenium, selenium_driver_args, "")
+                          publicip, selenium, selenium_driver_args, "", ssl, use_auto_certs)
     print('V' * 80)
     status = True
     for one_result in results:

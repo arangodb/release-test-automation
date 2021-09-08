@@ -84,7 +84,9 @@ class ClusterPerf(Runner):
     # pylint: disable=R0913 disable=R0902
     def __init__(self, runner_type, abort_on_error, installer_set,
                  selenium, selenium_driver_args,
-                 testrun_name: str):
+                 testrun_name: str,
+                 ssl: bool,
+                 use_auto_certs: bool):
         global OTHER_SH_OUTPUT, RESULTS_TXT
         cfg = installer_set[0][0]
         if not cfg.scenario.exists():
@@ -95,7 +97,7 @@ class ClusterPerf(Runner):
             self.scenario = yaml.load(fileh, Loader=yaml.Loader)
 
         super().__init__(runner_type, abort_on_error, installer_set,
-                         PunnerProperties('CLUSTER', 9999999, 99999999, False),
+                         PunnerProperties('CLUSTER', 9999999, 99999999, False, ssl, use_auto_certs),
                          selenium, selenium_driver_args,
                          testrun_name)
         self.success = False
@@ -116,6 +118,35 @@ class ClusterPerf(Runner):
                 StarterNonManager as StarterManager)
         else:
             from arangodb.starter.manager import StarterManager
+
+        node1_opts = []
+        node2_opts = ['--starter.join', '127.0.0.1:9528']
+        node3_opts = ['--starter.join', '127.0.0.1:9528']
+        if self.cfg.ssl and not self.cfg.use_auto_certs:
+            self.create_tls_ca_cert()
+            node1_tls_keyfile = self.cert_dir / Path("node1") / "tls.keyfile"
+            node2_tls_keyfile = self.cert_dir / Path("node2") / "tls.keyfile"
+            node3_tls_keyfile = self.cert_dir / Path("node3") / "tls.keyfile"
+
+            self.cert_op(['tls', 'keyfile',
+                          '--cacert=' + str(self.certificate_auth["cert"]),
+                          '--cakey=' + str(self.certificate_auth["key"]),
+                          '--keyfile=' + str(node1_tls_keyfile),
+                          '--host=' + self.cfg.publicip, '--host=localhost'])
+            self.cert_op(['tls', 'keyfile',
+                          '--cacert=' + str(self.certificate_auth["cert"]),
+                          '--cakey=' + str(self.certificate_auth["key"]),
+                          '--keyfile=' + str(node2_tls_keyfile),
+                          '--host=' + self.cfg.publicip, '--host=localhost'])
+            self.cert_op(['tls', 'keyfile',
+                          '--cacert=' + str(self.certificate_auth["cert"]),
+                          '--cakey=' + str(self.certificate_auth["key"]),
+                          '--keyfile=' + str(node3_tls_keyfile),
+                          '--host=' + self.cfg.publicip, '--host=localhost'])
+            node1_opts.append(f"--ssl.keyfile={node1_tls_keyfile}")
+            node2_opts.append(f"--ssl.keyfile={node2_tls_keyfile}")
+            node3_opts.append(f"--ssl.keyfile={node2_tls_keyfile}")
+
         self.starter_instances.append(
             StarterManager(self.basecfg,
                            self.basedir, 'node1',
@@ -127,10 +158,9 @@ class ClusterPerf(Runner):
                                InstanceType.COORDINATOR,
                                InstanceType.DBSERVER
                            ],
-                           moreopts=[
-                               #    '--agents.agency.election-timeout-min=5',
-                               #    '--agents.agency.election-timeout-max=10',
-                           ]))
+                           moreopts=node1_opts  # += ['--agents.agency.election-timeout-min=5',
+                                                #     '--agents.agency.election-timeout-max=10',]
+                           ))
         self.starter_instances.append(
             StarterManager(self.basecfg,
                            self.basedir, 'node2',
@@ -142,11 +172,9 @@ class ClusterPerf(Runner):
                                InstanceType.COORDINATOR,
                                InstanceType.DBSERVER
                            ],
-                           moreopts=[
-                               '--starter.join', '127.0.0.1:9528',
-                               #    '--agents.agency.election-timeout-min=5',
-                               #    '--agents.agency.election-timeout-max=10',
-                        ]))
+                           moreopts=node2_opts  # += ['--agents.agency.election-timeout-min=5',
+                                                #     '--agents.agency.election-timeout-max=10',]
+                        ))
         self.starter_instances.append(
             StarterManager(self.basecfg,
                            self.basedir, 'node3',
@@ -158,11 +186,9 @@ class ClusterPerf(Runner):
                                InstanceType.COORDINATOR,
                                InstanceType.DBSERVER
                            ],
-                           moreopts=[
-                               '--starter.join', '127.0.0.1:9528',
-                               #    '--agents.agency.election-timeout-min=5',
-                               #    '--agents.agency.election-timeout-max=10',
-                        ]))
+                           moreopts=node3_opts  # += ['--agents.agency.election-timeout-min=5',
+                                                #     '--agents.agency.election-timeout-max=10',]
+                        ))
         for instance in self.starter_instances:
             instance.is_leader = True
 

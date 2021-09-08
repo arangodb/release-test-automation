@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """ baseclass to manage a starter based installation """
-
+# pylint: disable=C0302
 from abc import abstractmethod, ABC
 import copy
 import datetime
@@ -14,6 +14,8 @@ import shutil
 import sys
 import time
 
+import certifi
+import psutil
 from reporting.reporting_utils import step
 import requests
 
@@ -47,16 +49,20 @@ def detect_file_ulimit():
 
 class PunnerProperties():
     """ runner properties management class """
-    #pylint: disable=R0903
+    #pylint: disable=R0903 disable=R0913 disable=R0912
     def __init__(self,
                  short_name: str,
                  disk_usage_community: int,
                  disk_usage_enterprise: int,
-                 supports_hotbackup: bool):
+                 supports_hotbackup: bool,
+                 ssl: bool,
+                 use_auto_certs: bool):
         self.short_name = short_name
         self.disk_usage_community = disk_usage_community
         self.disk_usage_enterprise = disk_usage_enterprise
         self.supports_hotbackup = supports_hotbackup
+        self.ssl = ssl
+        self.use_auto_certs = use_auto_certs
 
 class Runner(ABC):
     """abstract starter deployment runner"""
@@ -69,8 +75,7 @@ class Runner(ABC):
             properties: PunnerProperties,
             selenium_worker: str,
             selenium_driver_args: list,
-            testrun_name: str
-        ):
+            testrun_name: str):
         load_scenarios()
         assert runner_type, "no runner no cry? no!"
         logging.debug(runner_type)
@@ -101,6 +106,10 @@ class Runner(ABC):
         self.basecfg = copy.deepcopy(cfg)
         self.new_cfg = new_cfg
         self.cfg = self.basecfg
+        self.cfg.ssl = properties.ssl
+        self.cfg.use_auto_certs = properties.use_auto_certs
+        self.certificate_auth = {}
+        self.cert_dir = ""
         self.passvoid = None
         self.basecfg.passvoid = ""
         self.versionstr = ''
@@ -167,7 +176,8 @@ class Runner(ABC):
                 runner_type,
                 selenium_worker,
                 selenium_driver_args,
-                self.testrun_name)
+                self.testrun_name,
+                self.cfg.ssl)
             print("Browser online")
         if WINVER[0]:
             self.original_tmp = os.environ["TMP"]
@@ -569,7 +579,7 @@ class Runner(ABC):
         """ actualises the list of available frontends """
         self.basecfg.frontends = [] # reset the array...
         for frontend in self.get_frontend_instances():
-            self.basecfg.add_frontend('http',
+            self.basecfg.add_frontend(self.get_http_protocol(),
                                       self.basecfg.publicip,
                                       frontend.port)
 
@@ -952,6 +962,7 @@ class Runner(ABC):
                 '/_admin/log/level',
                 '{"agency":"debug", "requests":"trace", '
                 '"cluster":"debug", "maintenance":"debug"}')
+
     @step
     def get_collection_list(self):
         """ get a list of collections and their shards """
@@ -993,3 +1004,60 @@ class Runner(ABC):
                             str(reply[0].status_code) +
                             " - " + str(reply[0].body))
         return body_json['results'][collection_name]
+
+    # pylint: disable=R1705
+    def get_protocol(self):
+        """ return protocol of this starter (ssl/tcp) """
+        if self.cfg.ssl:
+            return "ssl"
+        else:
+            return "tcp"
+
+    # pylint: disable=R1705
+    def get_http_protocol(self):
+        """ return protocol of this starter (http/https) """
+        if self.cfg.ssl:
+            return "https"
+        else:
+            return "http"
+
+    def cert_op(self, args):
+        """create a certificate"""
+        print(args)
+        create_cert = psutil.Popen([self.cfg.bin_dir / 'arangodb',
+                                    'create'] +
+                                   args)
+        print("creating cert with PID:" + str(create_cert.pid))
+        create_cert.wait()
+
+    def create_cert_dir(self):
+        """create certificate directory"""
+        self.cert_dir = self.cfg.base_test_dir / self.basedir / "certs"
+        self.cert_dir.mkdir(parents=True, exist_ok=True)
+
+    def create_tls_ca_cert(self):
+        """create a CA certificate"""
+        if not self.cert_dir:
+            self.create_cert_dir()
+        self.certificate_auth["cert"] = self.cert_dir / 'tls-ca.crt'
+        self.certificate_auth["key"] = self.cert_dir / 'tls-ca.key'
+        self.cert_op(['tls', 'ca',
+                 '--cert=' + str(self.certificate_auth["cert"]),
+                 '--key=' + str(self.certificate_auth["key"])])
+        self.register_ca_cert()
+
+    def register_ca_cert(self):
+        """configure requests lib to accept our custom CA certificate"""
+        old_file = certifi.where()
+        with open(old_file, 'rb') as file:
+            old_certs = file.read()
+
+        with open(self.certificate_auth["cert"], 'rb') as file:
+            new_cert = file.read()
+
+        new_file = self.cert_dir / 'ca_cert_storage.crt'
+        with open(new_file, 'ab') as file:
+            file.write(old_certs)
+            file.write(new_cert)
+
+        os.environ['REQUESTS_CA_BUNDLE'] = str(new_file)
