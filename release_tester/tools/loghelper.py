@@ -42,15 +42,15 @@ def line(sym="-", length=get_term_width()):
     print(sym * int (length / len(sym)))
 
 
-def log_cmd(cmd):
+def log_cmd(cmd, print_cmd=True):
     """ log string """
     if not isinstance(cmd, str):
-        cmd = " ".join([str(x) for x in cmd])
-
-    line("<")
-    print("executing: " + str(cmd))
-    attach(str(cmd), "Command")
-    line("^")
+        cmd = str(" ".join([str(x) for x in cmd]))
+    attach(cmd, "Command")
+    if print_cmd:
+        line("<")
+        print("executing: " + cmd)
+        line("^")
 
 # def logged_command_wait():
 #     """ run a command, redirect its output
