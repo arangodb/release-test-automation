@@ -51,8 +51,8 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             run_cmd += cmd[2:]
 
         arangosh_run = None
+        lh.log_cmd(run_cmd, verbose)
         if verbose:
-            lh.log_cmd(run_cmd)
             arangosh_run = psutil.Popen(run_cmd)
         else:
             arangosh_run = psutil.Popen(run_cmd,
@@ -109,8 +109,8 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             run_cmd += cmd[2:]
 
         arangosh_run = None
+        lh.log_cmd(run_cmd, verbose)
         if verbose:
-            lh.log_cmd(run_cmd)
             arangosh_run = psutil.Popen(run_cmd)
         else:
             arangosh_run = psutil.Popen(run_cmd,
