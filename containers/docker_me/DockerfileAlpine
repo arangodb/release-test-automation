@@ -1,7 +1,7 @@
 FROM arangodb/enterprise:latest
 MAINTAINER Wilfried Goesgens <willi@arangodb.com>
 
-RUN apk add python3 bash py3-psutil py3-yaml py3-requests py3-click py3-distro py3-pexpect py3-pip
+RUN apk add python3 bash py3-psutil py3-yaml py3-requests py3-click py3-distro py3-pexpect py3-pip py3-certifi
 RUN pip3 install --upgrade pip
 RUN pip3 install pyftpdlib statsd semver
 
