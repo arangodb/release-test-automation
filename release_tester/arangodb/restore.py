@@ -11,7 +11,7 @@ class ArangoRestoreExecutor(ArangoCLIprogressiveTimeoutExecutor):
     """ configuration """
     # pylint: disable=W0102
 
-    def run_restore_monitored(self, basepath, args, timeout, verbose=True):
+    def run_restore_monitored(self, basepath, args, timeout, verbose=True, expect_to_fail=False):
        # pylint: disable=R0913 disable=R0902 disable=R0915 disable=R0912 disable=R0914
         """
         runs an import in background tracing with
@@ -26,4 +26,5 @@ class ArangoRestoreExecutor(ArangoCLIprogressiveTimeoutExecutor):
                                               run_cmd,
                                               timeout,
                                               dummy_line_result,
-                                              verbose)
+                                              verbose,
+                                              expect_to_fail)

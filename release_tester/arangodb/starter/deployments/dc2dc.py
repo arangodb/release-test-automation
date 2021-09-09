@@ -14,6 +14,8 @@ from arangodb.sync import SyncManager
 from tools.asciiprint import print_progress as progress
 from tools.versionhelper import is_higher_version
 
+from arangodb.async_client import CliExecutionException
+
 SYNC_VERSIONS = {
     "140": semver.VersionInfo.parse('1.4.0'),
     "150": semver.VersionInfo.parse('1.5.0'),
@@ -228,9 +230,10 @@ class Dc2Dc(Runner):
                                         self.certificate_auth,
                                         from_to_dc,
                                         self.sync_version)
-        (success, output, _, _) = self.sync_manager.run_syncer()
-        if not success:
-            raise Exception("starting the synchronisation failed!" + str(output))
+        try:
+            (success, output, _, _) = self.sync_manager.run_syncer()
+        except CliExecutionException as e:
+            raise Exception("starting the synchronisation failed!" + str(e.execution_result[1]))
         self.progress(True, "SyncManager: up %s", output)
 
     def finish_setup_impl(self):
@@ -278,16 +281,16 @@ class Dc2Dc(Runner):
         output = ""
         success = True
 
-        timeout_start = time.time()
-        if self._is_higher_sync_version(SYNC_VERSIONS['150'], SYNC_VERSIONS['230']):
-            success, output, _, _ = self.sync_manager.stop_sync(timeout)
-        else:
-            # Arangosync with the bug for checking in-sync status.
-            self.progress(True, "arangosync: stopping sync without checking if shards are in-sync")
-            success, output, _, _ = self.sync_manager.stop_sync(timeout, ['--ensure-in-sync=false'])
-
-        if not success:
-            self.state += "\n" + output
+        try:
+            timeout_start = time.time()
+            if self._is_higher_sync_version(SYNC_VERSIONS['150'], SYNC_VERSIONS['230']):
+                success, output, _, _ = self.sync_manager.stop_sync(timeout)
+            else:
+                # Arangosync with the bug for checking in-sync status.
+                self.progress(True, "arangosync: stopping sync without checking if shards are in-sync")
+                success, output, _, _ = self.sync_manager.stop_sync(timeout, ['--ensure-in-sync=false'])
+        except CliExecutionException as e:
+            self.state += "\n" + e.execution_result[1]
             raise Exception("failed to stop the synchronization")
 
         if not self._is_higher_sync_version(SYNC_VERSIONS['180'], SYNC_VERSIONS['260']):
