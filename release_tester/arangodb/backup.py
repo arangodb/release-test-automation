@@ -80,7 +80,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
             self.backup_dir.mkdir(parents=True)
 
     @step
-    def run_backup(self, arguments, name, silent=False):
+    def run_backup(self, arguments, name, silent=False, expect_to_fail=False):
         """ launch the starter for this instance"""
         if not silent:
             logging.info("running hot backup " + name)
@@ -88,8 +88,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         if self.cfg.verbose:
             run_cmd += ["--log.level=debug"]
         run_cmd += arguments
-        if not silent:
-            lh.log_cmd(arguments)
+        lh.log_cmd(arguments, not silent)
 
         def inspect_line_result(line):
             strline = str(line)
@@ -102,7 +101,8 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
             run_cmd,
             20,
             inspect_line_result,
-            self.cfg.verbose and not silent)
+            self.cfg.verbose and not silent,
+            expect_to_fail)
 
         if not success:
             raise Exception("arangobackup exited " + str(output))
