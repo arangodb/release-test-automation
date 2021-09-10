@@ -233,7 +233,7 @@ class Dc2Dc(Runner):
         try:
             (success, output, _, _) = self.sync_manager.run_syncer()
         except CliExecutionException as e:
-            raise Exception("starting the synchronisation failed!" + str(e.execution_result[1]))
+            raise Exception("starting the synchronisation failed!" + str(e.execution_result[1])) from e
         self.progress(True, "SyncManager: up %s", output)
 
     def finish_setup_impl(self):
@@ -291,7 +291,7 @@ class Dc2Dc(Runner):
                 success, output, _, _ = self.sync_manager.stop_sync(timeout, ['--ensure-in-sync=false'])
         except CliExecutionException as e:
             self.state += "\n" + e.execution_result[1]
-            raise Exception("failed to stop the synchronization")
+            raise Exception("failed to stop the synchronization") from e
 
         if not self._is_higher_sync_version(SYNC_VERSIONS['180'], SYNC_VERSIONS['260']):
             print("Wait for the inactive replication on all clusters")
