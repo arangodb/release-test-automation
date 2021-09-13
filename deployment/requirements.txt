@@ -4,3 +4,4 @@ distro
 pexpect
 allure_python_commons
 markdown
+certifi

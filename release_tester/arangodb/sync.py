@@ -12,6 +12,9 @@ from arangodb.async_client import (
     dummy_line_result
     )
 
+from arangodb.async_client import CliExecutionException
+
+
 class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
     """ manage arangosync """
     def __init__(self,
@@ -140,13 +143,17 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             '--auth.keyfile=' + str(self.certificate_auth["clientkeyfile"])
         ]
         logging.info('SyncManager: checking sync consistency : %s', str(args))
-        (success, output, _, _) = self.run_monitored(
-            self.cfg.bin_dir / 'arangosync',
-            args,
-            300,
-            dummy_line_result,
-            self.cfg.verbose)
+        try:
+            result = self.run_monitored(
+                self.cfg.bin_dir / 'arangosync',
+                args,
+                300,
+                dummy_line_result,
+                self.cfg.verbose)
+        except CliExecutionException as e:
+            result = e.execution_result
 
+        (success, output, _, _) = result
         print("checking for magic ok string")
         success = output.find('The whole data is the same') >= 0
         print("done")
@@ -170,10 +177,13 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             '--database', database, '--collection', collection
         ]
         logging.info('SyncManager: resetting failed shard : %s', str(args))
-        success = self.run_monitored(
-            self.cfg.bin_dir / 'arangosync',
-            args,
-            300,
-            dummy_line_result,
-            self.cfg.verbose)[0]
-        return success
+        try:
+            self.run_monitored(
+                self.cfg.bin_dir / 'arangosync',
+                args,
+                300,
+                dummy_line_result,
+                self.cfg.verbose)
+            return True
+        except CliExecutionException as e:
+            return False

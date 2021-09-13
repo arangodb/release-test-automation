@@ -30,6 +30,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         self.read_only = False
         super().__init__(config, connect_instance)
 
+    @step
     def run_command(self, cmd, verbose=True):
         """ launch a command, print its name """
         run_cmd = [
@@ -51,8 +52,8 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             run_cmd += cmd[2:]
 
         arangosh_run = None
+        lh.log_cmd(run_cmd, verbose)
         if verbose:
-            lh.log_cmd(run_cmd)
             arangosh_run = psutil.Popen(run_cmd)
         else:
             arangosh_run = psutil.Popen(run_cmd,
@@ -109,8 +110,8 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             run_cmd += cmd[2:]
 
         arangosh_run = None
+        lh.log_cmd(run_cmd, verbose)
         if verbose:
-            lh.log_cmd(run_cmd)
             arangosh_run = psutil.Popen(run_cmd)
         else:
             arangosh_run = psutil.Popen(run_cmd,
@@ -124,7 +125,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
 
     @step
     def run_script_monitored(self, cmd, args, timeout, result_line,
-                             process_control=False, verbose=True):
+                             process_control=False, verbose=True, expect_to_fail=False):
        # pylint: disable=R0913 disable=R0902 disable=R0915 disable=R0912 disable=R0914
         """
         runs a script in background tracing with
@@ -149,7 +150,8 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                                               run_cmd,
                                               timeout,
                                               result_line,
-                                              verbose)
+                                              verbose,
+                                              expect_to_fail)
 
     @step
     def run_testing(self,

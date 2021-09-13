@@ -54,8 +54,7 @@ class ArangoBenchManager():
             arguments.append('--' + key)
             arguments.append(str(testcase[key]))
 
-        if self.cfg.verbose:
-            lh.log_cmd(arguments)
+        lh.log_cmd(arguments, self.cfg.verbose)
         self.arguments = arguments
         self.instance = psutil.Popen(arguments)
         print("az"*40)

@@ -14,6 +14,8 @@ from arangodb.sync import SyncManager
 from tools.asciiprint import print_progress as progress
 from tools.versionhelper import is_higher_version
 
+from arangodb.async_client import CliExecutionException
+
 SYNC_VERSIONS = {
     "140": semver.VersionInfo.parse('1.4.0'),
     "150": semver.VersionInfo.parse('1.5.0'),
@@ -21,6 +23,10 @@ SYNC_VERSIONS = {
     "220": semver.VersionInfo.parse('2.2.0'),
     "230": semver.VersionInfo.parse('2.3.0'),
     "260": semver.VersionInfo.parse('2.6.0')
+}
+
+STARTER_VERSIONS = {
+    "152": semver.VersionInfo.parse('0.15.2')
 }
 USERS_ERROR_RX = re.compile('.*\n*.*\n*.*\n*.*(_users).*DIFFERENT.*', re.MULTILINE)
 STATUS_INACTIVE = "inactive"
@@ -143,6 +149,19 @@ class Dc2Dc(Runner):
             self.cert_op(['jwt-secret', '--secret=' + str(node["JWTSecret"])])
 
         def add_starter(val, port):
+            opts = [
+                    '--all.log.level=backup=trace',
+                    '--all.log.level=requests=debug',
+                    '--starter.sync',
+                    '--starter.local',
+                    '--auth.jwt-secret=' +           str(val["JWTSecret"]),
+                    '--sync.server.keyfile=' +       str(val["tlsKeyfile"]),
+                    '--sync.server.client-cafile=' + str(client_cert),
+                    '--sync.master.jwt-secret=' +    str(val["SyncSecret"]),
+                    '--starter.address=' +           self.cfg.publicip
+                ]
+            if self.cfg.ssl and not self.cfg.use_auto_certs:
+                opts.append('--ssl.keyfile=' + str(val["tlsKeyfile"]))
             val["instance"] = StarterManager(
                 self.cfg,
                 val["dir"], val["instance_dir"],
@@ -165,18 +184,7 @@ class Dc2Dc(Runner):
                     InstanceType.SYNCWORKER,
                     InstanceType.SYNCWORKER
                 ],
-                moreopts=[
-                    '--all.log.level=backup=trace',
-                    '--all.log.level=requests=debug',
-                    '--starter.sync',
-                    '--starter.local',
-                    '--auth.jwt-secret=' +           str(val["JWTSecret"]),
-                    '--sync.server.keyfile=' +       str(val["tlsKeyfile"]),
-                    '--ssl.keyfile=' +               str(val["tlsKeyfile"]),
-                    '--sync.server.client-cafile=' + str(client_cert),
-                    '--sync.master.jwt-secret=' +    str(val["SyncSecret"]),
-                    '--starter.address=' +           self.cfg.publicip
-                ])
+                moreopts=opts)
             val["instance"].set_jwt_file(val["JWTSecret"])
             if port is None:
                 val["instance"].is_leader = True
@@ -222,9 +230,10 @@ class Dc2Dc(Runner):
                                         self.certificate_auth,
                                         from_to_dc,
                                         self.sync_version)
-        (success, output, _, _) = self.sync_manager.run_syncer()
-        if not success:
-            raise Exception("starting the synchronisation failed!" + str(output))
+        try:
+            (success, output, _, _) = self.sync_manager.run_syncer()
+        except CliExecutionException as e:
+            raise Exception("starting the synchronisation failed!" + str(e.execution_result[1])) from e
         self.progress(True, "SyncManager: up %s", output)
 
     def finish_setup_impl(self):
@@ -272,17 +281,17 @@ class Dc2Dc(Runner):
         output = ""
         success = True
 
-        timeout_start = time.time()
-        if self._is_higher_sync_version(SYNC_VERSIONS['150'], SYNC_VERSIONS['230']):
-            success, output, _, _ = self.sync_manager.stop_sync(timeout)
-        else:
-            # Arangosync with the bug for checking in-sync status.
-            self.progress(True, "arangosync: stopping sync without checking if shards are in-sync")
-            success, output, _, _ = self.sync_manager.stop_sync(timeout, ['--ensure-in-sync=false'])
-
-        if not success:
-            self.state += "\n" + output
-            raise Exception("failed to stop the synchronization")
+        try:
+            timeout_start = time.time()
+            if self._is_higher_sync_version(SYNC_VERSIONS['150'], SYNC_VERSIONS['230']):
+                success, output, _, _ = self.sync_manager.stop_sync(timeout)
+            else:
+                # Arangosync with the bug for checking in-sync status.
+                self.progress(True, "arangosync: stopping sync without checking if shards are in-sync")
+                success, output, _, _ = self.sync_manager.stop_sync(timeout, ['--ensure-in-sync=false'])
+        except CliExecutionException as e:
+            self.state += "\n" + e.execution_result[1]
+            raise Exception("failed to stop the synchronization") from e
 
         if not self._is_higher_sync_version(SYNC_VERSIONS['180'], SYNC_VERSIONS['260']):
             print("Wait for the inactive replication on all clusters")
@@ -396,18 +405,32 @@ class Dc2Dc(Runner):
         self.sync_manager.replace_binary_for_upgrade(self.new_cfg)
         self.cluster1["instance"].replace_binary_for_upgrade(self.new_cfg)
         self.cluster2["instance"].replace_binary_for_upgrade(self.new_cfg)
-        self.cluster1["instance"].command_upgrade()
-        self.cluster2["instance"].command_upgrade()
+        if self.new_installer.get_starter_version() >= STARTER_VERSIONS["152"]:
+            print("Attempting parallel upgrade")
+            self.cluster1["instance"].command_upgrade()
+            self.cluster2["instance"].command_upgrade()
+            # workaround: kill the sync'ers by hand, the starter doesn't
+            # self._stop_sync()
+            self.cluster1["instance"].kill_sync_processes()
+            self.cluster2["instance"].kill_sync_processes()
+            self.cluster1["instance"].wait_for_upgrade(300)
+            self.cluster1["instance"].detect_instances()
+            self.cluster2["instance"].wait_for_upgrade(300)
+            self.cluster2["instance"].detect_instances()
+        else:
+            print("Attempting sequential upgrade")
+            self.cluster1["instance"].command_upgrade()
+            self.cluster1["instance"].kill_sync_processes()
+            self.cluster1["instance"].wait_for_upgrade(300)
+            self.cluster1["instance"].detect_instances()
 
-        # workaround: kill the sync'ers by hand, the starter doesn't
-        # self._stop_sync()
-        self.cluster1["instance"].kill_sync_processes()
-        self.cluster2["instance"].kill_sync_processes()
+            self.cluster2["instance"].command_upgrade()
+            self.cluster2["instance"].kill_sync_processes()
+            self.cluster2["instance"].wait_for_upgrade(300)
+            self.cluster2["instance"].detect_instances()
+        # self.sync_manager.start_sync()
+        self.sync_manager.run_syncer()
 
-        self.cluster1["instance"].wait_for_upgrade(300)
-        self.cluster1["instance"].detect_instances()
-        self.cluster2["instance"].wait_for_upgrade(300)
-        self.cluster2["instance"].detect_instances()
         # self.sync_manager.start_sync()
         self.sync_manager.run_syncer()
 

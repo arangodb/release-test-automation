@@ -21,7 +21,7 @@ class ArangoImportExecutor(ArangoCLIprogressiveTimeoutExecutor):
     """ configuration """
     # pylint: disable=W0102
 
-    def run_import_monitored(self, args, timeout, verbose=True):
+    def run_import_monitored(self, args, timeout, verbose=True, expect_to_fail=False):
        # pylint: disable=R0913 disable=R0902 disable=R0915 disable=R0912 disable=R0914
         """
         runs an import in background tracing with
@@ -36,7 +36,8 @@ class ArangoImportExecutor(ArangoCLIprogressiveTimeoutExecutor):
                                               run_cmd,
                                               timeout,
                                               dummy_line_result,
-                                              verbose)
+                                              verbose,
+                                              expect_to_fail)
 
     def import_collection(self, collection_name, filename, more_args=[]):
         """ import into any collection """

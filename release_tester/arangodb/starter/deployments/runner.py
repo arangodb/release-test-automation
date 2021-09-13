@@ -29,6 +29,8 @@ from arangodb.instance import InstanceType, print_instances_table
 from arangodb.sh import ArangoshExecutor
 from tools.killall import kill_all_processes
 
+from arangodb.async_client import CliExecutionException
+
 FNRX = re.compile("[\n@ ]*")
 WINVER = platform.win32_ver()
 
@@ -306,6 +308,7 @@ class Runner(ABC):
             self.new_installer.upgrade_package(self.old_installer)
             lh.subsection("outputting version")
             self.new_installer.output_arangod_version()
+            self.new_installer.get_starter_version()
             # only install debug package for new package.
             self.progress(True, 'installing debug package:')
             self.cfg.have_debug_package = self.new_installer.install_debug_package()
@@ -420,6 +423,7 @@ class Runner(ABC):
             inst.broadcast_bind()
             lh.subsubsection("outputting version")
             inst.output_arangod_version()
+            inst.get_starter_version()
 
             lh.subsubsection("starting service")
 
@@ -646,13 +650,14 @@ class Runner(ABC):
 
             #must be writabe that the setup may not have already data
             if not arangosh.read_only and not self.has_makedata_data:
-                success = arangosh.create_test_data(self.name, args=args)
-                if not success[0]:
-                    if not self.cfg.verbose:
-                        print(success[1])
+                try:
+                    arangosh.create_test_data(self.name, args=args)
+                except CliExecutionException as e:
+                    if self.cfg.verbose:
+                        print(e.execution_result[1])
                     self.ask_continue_or_exit(
                         "make_data failed for {0.name}".format(self),
-                        success[1],
+                        e.execution_result[1],
                         False)
                 self.has_makedata_data = True
             self.check_data_impl_sh(arangosh, starter.supports_foxx_tests)
@@ -664,13 +669,14 @@ class Runner(ABC):
     def check_data_impl_sh(self, arangosh, supports_foxx_tests):
         """ check for data on the installation """
         if self.has_makedata_data:
-            success = arangosh.check_test_data(self.name, supports_foxx_tests)
-            if not success[0]:
+            try:
+                arangosh.check_test_data(self.name, supports_foxx_tests)
+            except CliExecutionException as e:
                 if not self.cfg.verbose:
-                    print(success[1])
+                    print(e.execution_result[1])
                 self.ask_continue_or_exit(
                     "check_data has data failed for {0.name}".format(self),
-                    success[1],
+                    e.execution_result[1],
                     False)
 
     @step
@@ -847,6 +853,8 @@ class Runner(ABC):
         print('cleaning up ' + str(testdir))
         if testdir.exists():
             shutil.rmtree(testdir)
+            if "REQUESTS_CA_BUNDLE" in os.environ:
+                del os.environ["REQUESTS_CA_BUNDLE"]
         if reset_tmp and WINVER[0]:
             os.environ["TMP"] = self.original_tmp
             os.environ["TEMP"] = self.original_temp
