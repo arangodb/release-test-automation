@@ -124,7 +124,8 @@ def upgrade_package_test(verbose,
             test_dir = Path(test_data_dir) / directory_suffix
             if test_dir.exists():
                 shutil.rmtree(test_dir)
-                if "REQUESTS_CA_BUNDLE" in os.environ: del os.environ["REQUESTS_CA_BUNDLE"]
+                if "REQUESTS_CA_BUNDLE" in os.environ:
+                    del os.environ["REQUESTS_CA_BUNDLE"]
             test_dir.mkdir()
             while not test_dir.exists():
                 time.sleep(1)
