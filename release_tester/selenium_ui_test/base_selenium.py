@@ -300,6 +300,14 @@ class BaseSelenium:
         if self.select is None:
             raise Exception("UI-Test: ", locator_name, " locator was not found.")
         return self.select
+
+    def select_value(self, locator_name, value):
+        """Select given value in drop down menu"""
+        self.select = Select(self.driver.find_element_by_id(locator_name))
+        if self.select is None:
+            raise Exception("UI-Test: ", locator_name, " locator was not found.")
+        self.select.select_by_value(value)
+
     
     def locator_finder_by_select_using_xpath(self, locator_name, value):
         """This method will used for finding all the locators in drop down menu with options using xpath"""

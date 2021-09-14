@@ -428,8 +428,8 @@ class CollectionPage(BaseSelenium):
         self.wait_for_ajax()
 
     def select_index_type(self, value):
-        """Selecting type of index here 1 = Geo, 2 = persistent, 3 = Fulltext, 4 = TTL type"""
-        self.locator_finder_by_select(self.select_index_type_id, value)
+        """Selecting type of index here: Geo, Persistent, Fulltext or TTL"""
+        self.select_value(self.select_index_type_id, value)
 
     def select_create_index_btn(self):
         """Selecting index menu from collection"""

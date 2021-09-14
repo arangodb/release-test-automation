@@ -17,6 +17,7 @@ from analyzersPage import AnalyzerPage
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=R0902 disable=R0915
+from selenium_ui_test.models import IndexType
 
 class Test(BaseSelenium):
     """initial base class setup"""
@@ -215,7 +216,7 @@ class Test(BaseSelenium):
         col.create_new_index_btn()
 
         print("Creating Geo Index Started\n")
-        col.select_index_type(1)
+        col.select_index_type(IndexType.GEO.value)
         print("filling up all necessary info for geo index\n")
         col.creating_geo_index()
         print("Creating new geo index\n")
@@ -224,7 +225,7 @@ class Test(BaseSelenium):
 
         print("Creating Persistent Index Started\n")
         col1.create_new_index_btn()
-        col1.select_index_type(2)
+        col1.select_index_type(IndexType.PERSISTENT.value)
         print("filling up all necessary info for  persistent index\n")
         col1.creating_persistent_index()
         print("Creating new persistent index\n")
@@ -233,14 +234,14 @@ class Test(BaseSelenium):
 
         print("Creating Fulltext Index Started\n")
         col2.create_new_index_btn()
-        col2.select_index_type(3)
+        col2.select_index_type(IndexType.FULLTEXT.value)
         col2.creating_fulltext_index()
         col2.select_create_index_btn()
         print("Creating Fulltext Index Completed\n")
 
         print("Creating TTL Index Started\n")
         col3.create_new_index_btn()
-        col3.select_index_type(4)
+        col3.select_index_type(IndexType.TTL.value)
         col3.creating_ttl_index()
         col3.select_create_index_btn()
         print("Creating TTL Index Completed\n")
