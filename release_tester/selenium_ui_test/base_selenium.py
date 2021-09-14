@@ -300,6 +300,14 @@ class BaseSelenium:
         if self.select is None:
             raise Exception("UI-Test: ", locator_name, " locator was not found.")
         return self.select
+    
+    def locator_finder_by_select_using_xpath(self, locator_name, value):
+        """This method will used for finding all the locators in drop down menu with options using xpath"""
+        self.select = Select(self.driver.find_element_by_xpath(locator_name))
+        self.select.select_by_index(value)
+        if self.select is None:
+            print("UI-Test: ", locator_name, " locator has not found.")
+        return self.select
 
     def locator_finder_by_hover_item_id(self, locator):
         """This method will used for finding all the locators and hover the mouse by id"""
