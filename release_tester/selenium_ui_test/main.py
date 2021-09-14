@@ -13,6 +13,7 @@ from selenium_ui_test.collection_page import CollectionPage
 from selenium_ui_test.graph_page import GraphPage, GraphExample, get_graph_name
 from selenium_ui_test.query_page import QueryPage
 from selenium_ui_test.support_page import SupportPage
+from selenium_ui_test.databasePage import DatabasePage
 from selenium_ui_test.analyzersPage import AnalyzerPage
 
 # can't circumvent long lines.. nAttr nLines
@@ -288,6 +289,39 @@ class Test(BaseSelenium):
         #login.logout_button()
         #del login
         print("---------Checking Collection Completed--------- \n")
+    
+    def test_database(self):
+        """testing database page"""
+        print("---------DataBase Page Test Begin--------- \n")
+        # login = LoginPage(self.driver)
+        # login.login('root', '')
+
+        user = UserPage(self.driver)
+        user.user_tab()
+        user.add_new_user('tester')
+        user.add_new_user('tester01')
+
+        db = DatabasePage(self.driver)
+        db.select_database_page()
+        db.create_new_db('Sharded', 0)  # 0 = sharded DB
+        db.create_new_db('OneShard', 1)  # 1 = one shard DB
+
+        db.test_database_name()
+
+        print('Checking sorting databases to ascending and descending \n')
+        db.sorting_db()
+
+        print('Checking search database functionality \n')
+        db.searching_db('Sharded')
+        db.searching_db('OneShard')
+
+        db.Deleting_database('Sharded')
+        db.Deleting_database('OneShard')
+
+        # login.logout_button()
+        del user
+        del db
+        print("---------DataBase Page Test Completed--------- \n")
 
     def test_analyzers(self):
         print("---------Analyzers Page Test Begin--------- \n")
@@ -727,6 +761,7 @@ class Test(BaseSelenium):
 # ui.test_query()  # testing query functionality **needs cluster deployment
 # ui.test_graph()  # testing graph functionality **needs cluster deployment
 # ui.test_support()
+# ui.test_database()  # testing database page
 # ui.test_user()  # testing User functionality
 #ui.teardown()  # close the driver and quit
 
