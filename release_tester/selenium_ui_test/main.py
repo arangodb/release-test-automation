@@ -13,7 +13,7 @@ from selenium_ui_test.collection_page import CollectionPage
 from selenium_ui_test.graph_page import GraphPage, GraphExample, get_graph_name
 from selenium_ui_test.query_page import QueryPage
 from selenium_ui_test.support_page import SupportPage
-from analyzersPage import AnalyzerPage
+from selenium_ui_test.analyzersPage import AnalyzerPage
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=R0902 disable=R0915

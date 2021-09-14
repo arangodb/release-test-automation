@@ -1,6 +1,6 @@
 import time
 
-from baseSelenium import BaseSelenium
+from selenium_ui_test.base_selenium import BaseSelenium
 from selenium.webdriver.common.keys import Keys
 
 
