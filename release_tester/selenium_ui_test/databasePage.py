@@ -12,7 +12,7 @@ class DatabasePage(BaseSelenium):
         self.driver = driver
         self.database_page = 'databases'
         self.create_new_db_btn = 'createDatabase'
-        self.sort_db_sitem = '//*[@id="databaseDropdown"]/ul/li[2]/a/label/i'
+        self.sort_db = '//*[@id="databaseDropdown"]/ul/li[2]/a/label/i'
         self.select_db_opt_id_sitem = "loginDatabase"
 
     def select_database_page(self):
@@ -167,12 +167,12 @@ class DatabasePage(BaseSelenium):
         db_settings_sitem.click()
         time.sleep(1)
 
-        ascending = self.sort_db_sitem
+        ascending = self.sort_db
         ascending_sitem = self.locator_finder_by_xpath(self, ascending)
         ascending_sitem.click()
         time.sleep(2)
 
-        descending = self.sort_db_sitem
+        descending = self.sort_db
         descending_sitem = self.locator_finder_by_xpath(self, descending)
         descending_sitem.click()
         time.sleep(2)
