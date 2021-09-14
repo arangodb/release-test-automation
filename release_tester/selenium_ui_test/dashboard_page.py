@@ -105,12 +105,12 @@ class DashboardPage(BaseSelenium):
             # toggle view text to table and vice-versa
             print("Changing metrics tab to table view \n")
             
-            text_view = BaseSelenium.locator_finder_by_id(self.show_text)
+            text_view = self.locator_finder_by_id(self.show_text)
             text_view.click()
             time.sleep(3)
 
             print("Changing metrics tab to text view \n")
-            table_view = BaseSelenium.locator_finder_by_id(self.show_text)
+            table_view = self.locator_finder_by_id(self.show_text)
             table_view.click()
             time.sleep(3)
 
