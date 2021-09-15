@@ -325,13 +325,14 @@ class Test(BaseSelenium):
 
     def test_analyzers(self):
         print("---------Analyzers Page Test Begin--------- \n")
-        login = LoginPage(self.driver)
-        login.login('root', '')
+        # login = LoginPage(self.driver)
+        # login.login('root', '')
         analyzers = AnalyzerPage(self.driver)
         analyzers.select_analyzers_page()
         analyzers.select_help_filter_btn()
+
         print('Showing in-built Analyzers list \n')
-        analyzers.select_built_in_analyzers()
+        analyzers.select_built_in_analyzers_open()
 
         print('Checking in-built identity analyzer \n')
         analyzers.select_analyzer_to_check(analyzers.identity_analyzer, analyzers.identity_analyzer_switch_view,
@@ -374,7 +375,7 @@ class Test(BaseSelenium):
                                            analyzers.close_text_zh_btn)
 
         print('Hiding in-built Analyzers list \n')
-        analyzers.select_built_in_analyzers()
+        analyzers.select_built_in_analyzers_close()
 
         print('Adding Identity analyzer \n')
         analyzers.add_new_analyzer('My_Identity_Analyzer', 0)
@@ -394,8 +395,8 @@ class Test(BaseSelenium):
         print('Adding Text analyzer \n')
         analyzers.add_new_analyzer('My_Text_Analyzer', 5)
 
-        login.logout_button()
-        del login
+        # login.logout_button()
+        # del login
         del analyzers
         print("---------Analyzers Page Test Completed--------- \n")
 

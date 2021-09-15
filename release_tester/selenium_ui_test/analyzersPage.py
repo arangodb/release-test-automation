@@ -1,7 +1,6 @@
 import time
 
-from selenium_ui_test.base_selenium import BaseSelenium
-from selenium.webdriver.common.keys import Keys
+from selenium_ui_test.base_selenium import BaseSelenium, Keys
 
 
 class AnalyzerPage(BaseSelenium):
@@ -10,8 +9,8 @@ class AnalyzerPage(BaseSelenium):
         super().__init__()
         self.driver = driver
         self.analyzers_page = 'analyzers'  # list of in-built analyzers
-        self.in_built_analyzer = "inbuilt-analyzers"
-        self.add_new_analyzer_btn = '//*[@id="analyzersContent"]/div/div/div/div[1]/div/button/i'
+        self.in_built_analyzer = "icon_arangodb_settings2"
+        self.add_new_analyzer_btn = '//*[@id="analyzersContent"]/div/div/div/div/button/i'
         self.identity_analyzer = '//*[@id="analyzersContent"]/div/div/table/tbody/tr[1]/td[4]/button/i'
         self.identity_analyzer_switch_view = '/html/body/div[14]/div/div[1]/div/div[2]/button'
         self.close_identity_btn = '/html/body/div[14]/div/div[3]/button'
@@ -68,28 +67,45 @@ class AnalyzerPage(BaseSelenium):
         """Selecting analyzers page"""
         print("Selecting Analyzers page \n")
         analyzer = self.analyzers_page
-        analyzer_sitem = BaseSelenium.locator_finder_by_id(self, analyzer)
+        analyzer_sitem = self.locator_finder_by_id(self, analyzer)
         analyzer_sitem.click()
         time.sleep(2)
 
     def select_help_filter_btn(self):
         """Selecting help button"""
         print("Selecting Analyzers help filter button \n")
-        help_filter = '//*[@id="analyzersContent"]/div/div/div/div[2]/a/i'
-        help_sitem = BaseSelenium.locator_finder_by_xpath(self, help_filter)
+        help_filter = '//*[@id="content"]/div[1]/div[2]/ul/li[1]/a/i'
+        help_sitem = self.locator_finder_by_xpath(self, help_filter)
         help_sitem.click()
         time.sleep(3)
 
-        print("Closing Analyzers help filter1 \n")
-        help_filter_close = '//*[@id="modal-content-3"]/div[3]/button'
-        help_close_sitem = BaseSelenium.locator_finder_by_xpath(self, help_filter_close)
+        print("Closing Analyzers help filter \n")
+        help_filter_close = 'button-close'
+        help_close_sitem = self.locator_finder_by_class(self, help_filter_close)
         help_close_sitem.click()
         time.sleep(2)
 
-    def select_built_in_analyzers(self):
+    def select_built_in_analyzers_open(self):
         """Checking in-built analyzers list and description"""
         show_built_in_analyzers = self.in_built_analyzer
-        show_built_in_analyzers_sitem = BaseSelenium.locator_finder_by_id(self, show_built_in_analyzers)
+        show_built_in_analyzers_sitem = self.locator_finder_by_class(self, show_built_in_analyzers)
+        show_built_in_analyzers_sitem.click()
+        time.sleep(2)
+
+        built_in = '//*[@id="analyzersDropdown"]/ul/li[2]/a/label/i'
+        built_in_sitem = self.locator_finder_by_xpath(self, built_in)
+        built_in_sitem.click()
+        time.sleep(2)
+
+    def select_built_in_analyzers_close(self):
+        """Checking in-built analyzers list and description"""
+        built_in = '//*[@id="analyzersDropdown"]/ul/li[2]/a/label/i'
+        built_in_sitem = self.locator_finder_by_xpath(self, built_in)
+        built_in_sitem.click()
+        time.sleep(2)
+
+        show_built_in_analyzers = self.in_built_analyzer
+        show_built_in_analyzers_sitem = self.locator_finder_by_class(self, show_built_in_analyzers)
         show_built_in_analyzers_sitem.click()
         time.sleep(2)
 
@@ -97,34 +113,35 @@ class AnalyzerPage(BaseSelenium):
         """Checking in-built analyzers one by one"""
         print('Selecting analyzer from the in-built analyzers list \n')
         analyzer_name = analyzer_name
-        identity_sitem = BaseSelenium.locator_finder_by_xpath(self, analyzer_name)
+        identity_sitem = self.locator_finder_by_xpath(self, analyzer_name)
         identity_sitem.click()
         time.sleep(2)
 
         print('Switch to Code view \n')
         switch_to_code_view = analyzer_view
-        code_view_sitem = BaseSelenium.locator_finder_by_xpath(self, switch_to_code_view)
+        code_view_sitem = self.locator_finder_by_xpath(self, switch_to_code_view)
         code_view_sitem.click()
         time.sleep(2)
 
         print('Switch to form view \n')
         switch_to_form_view = analyzer_view
-        form_view_sitem = BaseSelenium.locator_finder_by_xpath(self, switch_to_form_view)
+        form_view_sitem = self.locator_finder_by_xpath(self, switch_to_form_view)
         form_view_sitem.click()
         time.sleep(2)
 
         print('Closing the analyzer \n')
         close_button = close_btn
-        close_sitem = BaseSelenium.locator_finder_by_xpath(self, close_button)
+        close_sitem = self.locator_finder_by_xpath(self, close_button)
         close_sitem.click()
         time.sleep(2)
 
     def add_new_analyzer(self, name, index):
         """Adding analyzer type delimiter with necessary features"""
-        print('Selecting add new analyzer button \n')
         self.select_analyzers_page()
+
+        print('Selecting add new analyzer button \n')
         add_analyzer = self.add_new_analyzer_btn
-        add_analyzer_sitem = BaseSelenium.locator_finder_by_xpath(self, add_analyzer)
+        add_analyzer_sitem = self.locator_finder_by_xpath(self, add_analyzer)
         add_analyzer_sitem.click()
         time.sleep(2)
 
@@ -191,28 +208,28 @@ class AnalyzerPage(BaseSelenium):
             switch_view_btn = '/html/body/div[32]/div/div[1]/div/div[2]/div/div[2]/button'
             create = '/html/body/div[32]/div/div[3]/button[2]'
 
-        analyzer_name_sitem = BaseSelenium.locator_finder_by_xpath(self, analyzer_name)
+        analyzer_name_sitem = self.locator_finder_by_xpath(self, analyzer_name)
         analyzer_name_sitem.click()
         analyzer_name_sitem.clear()
         analyzer_name_sitem.send_keys(name)
         time.sleep(2)
 
         print('Selecting analyzer type \n')
-        BaseSelenium.locator_finder_by_select_using_xpath(self, analyzer_type, index)
+        self.locator_finder_by_select_using_xpath(self, analyzer_type, index)
         time.sleep(2)
 
         print('selecting frequency \n')
-        frequency_sitem = BaseSelenium.locator_finder_by_xpath(self, frequency)
+        frequency_sitem = self.locator_finder_by_xpath(self, frequency)
         frequency_sitem.click()
         time.sleep(2)
 
         print('selecting norm \n')
-        norm_sitem = BaseSelenium.locator_finder_by_xpath(self, norm)
+        norm_sitem = self.locator_finder_by_xpath(self, norm)
         norm_sitem.click()
         time.sleep(2)
 
         print('selecting position \n')
-        position_sitem = BaseSelenium.locator_finder_by_xpath(self, position)
+        position_sitem = self.locator_finder_by_xpath(self, position)
         position_sitem.click()
         time.sleep(2)
 
@@ -222,7 +239,7 @@ class AnalyzerPage(BaseSelenium):
         if index == 1:
             delimiter = '/html/body/div[16]/div/div[2]/div/div[4]/fieldset/div/div/input'
             value = '_'
-            delimiter_sitem = BaseSelenium.locator_finder_by_xpath(self, delimiter)
+            delimiter_sitem = self.locator_finder_by_xpath(self, delimiter)
             delimiter_sitem.click()
             delimiter_sitem.clear()
             delimiter_sitem.send_keys(value)
@@ -230,7 +247,7 @@ class AnalyzerPage(BaseSelenium):
         elif index == 2:
             locale = '/html/body/div[20]/div/div[2]/div/div[4]/fieldset/div/div/input'
             value = 'en_US.utf-8'
-            locale_sitem = BaseSelenium.locator_finder_by_xpath(self, locale)
+            locale_sitem = self.locator_finder_by_xpath(self, locale)
             locale_sitem.click()
             locale_sitem.clear()
             locale_sitem.send_keys(value)
@@ -238,7 +255,7 @@ class AnalyzerPage(BaseSelenium):
         elif index == 3:
             locale = '/html/body/div[24]/div/div[2]/div/div[4]/fieldset/div/div[1]/input'
             value = 'en_US.utf-8'
-            locale_sitem = BaseSelenium.locator_finder_by_xpath(self, locale)
+            locale_sitem = self.locator_finder_by_xpath(self, locale)
             locale_sitem.click()
             locale_sitem.clear()
             locale_sitem.send_keys(value)
@@ -249,7 +266,7 @@ class AnalyzerPage(BaseSelenium):
         elif index == 5:
             locale = '/html/body/div[32]/div/div[2]/div/div[4]/fieldset/div/div[1]/div/div[1]/input'
             value = 'en_US.utf-8'
-            locale_sitem = BaseSelenium.locator_finder_by_xpath(self, locale)
+            locale_sitem = self.locator_finder_by_xpath(self, locale)
             locale_sitem.click()
             locale_sitem.clear()
             locale_sitem.send_keys(value)
@@ -259,18 +276,18 @@ class AnalyzerPage(BaseSelenium):
         if index == 3:
             print('Selecting case for norm analyzer using index value \n')
             case = '/html/body/div[24]/div/div[2]/div/div[4]/fieldset/div/div[2]/select'
-            BaseSelenium.locator_finder_by_select_using_xpath(self, case, 0)
+            self.locator_finder_by_select_using_xpath(self, case, 0)
 
             print('Selecting accent for norm analyzer \n')
             accent = '/html/body/div[24]/div/div[2]/div/div[4]/fieldset/div/div[3]/input'
-            accent_sitem = BaseSelenium.locator_finder_by_xpath(self, accent)
+            accent_sitem = self.locator_finder_by_xpath(self, accent)
             accent_sitem.click()
             time.sleep(2)
 
         if index == 4:
             print('Adding minimum n-gram length \n')
             min_length = '/html/body/div[28]/div/div[2]/div/div[4]/fieldset/div/div[1]/div/div[1]/input'
-            min_length_sitem = BaseSelenium.locator_finder_by_xpath(self, min_length)
+            min_length_sitem = self.locator_finder_by_xpath(self, min_length)
             min_length_sitem.click()
             min_length_sitem.clear()
             min_length_sitem.send_keys('2')
@@ -278,7 +295,7 @@ class AnalyzerPage(BaseSelenium):
 
             print('Adding minimum n-gram length \n')
             max_length = '/html/body/div[28]/div/div[2]/div/div[4]/fieldset/div/div[1]/div/div[1]/input'
-            max_length_sitem = BaseSelenium.locator_finder_by_xpath(self, max_length)
+            max_length_sitem = self.locator_finder_by_xpath(self, max_length)
             max_length_sitem.click()
             max_length_sitem.clear()
             max_length_sitem.send_keys('3')
@@ -286,13 +303,13 @@ class AnalyzerPage(BaseSelenium):
 
             print('Preserve original value \n')
             preserve = '/html/body/div[28]/div/div[2]/div/div[4]/fieldset/div/div[1]/div/div[3]/input'
-            preserve_sitem = BaseSelenium.locator_finder_by_xpath(self, preserve)
+            preserve_sitem = self.locator_finder_by_xpath(self, preserve)
             preserve_sitem.click()
             time.sleep(2)
 
             print('Start marker value \n')
             start_marker = '/html/body/div[28]/div/div[2]/div/div[4]/fieldset/div/div[2]/input'
-            start_marker_sitem = BaseSelenium.locator_finder_by_xpath(self, start_marker)
+            start_marker_sitem = self.locator_finder_by_xpath(self, start_marker)
             start_marker_sitem.click()
             start_marker_sitem.clear()
             start_marker_sitem.send_keys('^')
@@ -300,7 +317,7 @@ class AnalyzerPage(BaseSelenium):
 
             print('End marker value \n')
             end_marker = '/html/body/div[28]/div/div[2]/div/div[4]/fieldset/div/div[3]/input'
-            end_marker_sitem = BaseSelenium.locator_finder_by_xpath(self, end_marker)
+            end_marker_sitem = self.locator_finder_by_xpath(self, end_marker)
             end_marker_sitem.click()
             end_marker_sitem.clear()
             end_marker_sitem.send_keys('$')
@@ -308,20 +325,21 @@ class AnalyzerPage(BaseSelenium):
 
             print('Stream type selection using index value \n')
             stream_type = '/html/body/div[28]/div/div[2]/div/div[4]/fieldset/div/div[4]/select'
-            BaseSelenium.locator_finder_by_select_using_xpath(self, stream_type, 1)
+            self.locator_finder_by_select_using_xpath(self, stream_type, 1)
             time.sleep(2)
         # for text analyzer
         if index == 5:
+            # fixme
             # print('Selecting path for stopwords \n')
             # stopwords_path = '/html/body/div[32]/div/div[2]/div/div[4]/fieldset/div/div[2]/div/div[1]/input'
-            # stopwords_path_sitem = BaseSelenium.locator_finder_by_xpath(self, stopwords_path)
+            # stopwords_path_sitem = self.locator_finder_by_xpath(self, stopwords_path)
             # stopwords_path_sitem.click()
             # stopwords_path_sitem.clear()
             # stopwords_path_sitem.send_keys('/home/username/Desktop/')
 
             print('Selecting stopwords for the analyzer \n')
             stopwords = '/html/body/div[32]/div/div[2]/div/div[4]/fieldset/div/div[1]/div/div[2]/textarea'
-            stopwords_sitem = BaseSelenium.locator_finder_by_xpath(self, stopwords)
+            stopwords_sitem = self.locator_finder_by_xpath(self, stopwords)
             stopwords_sitem.clear()
             stopwords_sitem.send_keys('the')
             stopwords_sitem.send_keys(Keys.ENTER)
@@ -331,17 +349,17 @@ class AnalyzerPage(BaseSelenium):
 
             print('Selecting case for the analyzer from the dropdown menu \n')
             case = '/html/body/div[32]/div/div[2]/div/div[4]/fieldset/div/div[2]/div/div[2]/select'
-            BaseSelenium.locator_finder_by_select_using_xpath(self, case, 1)
+            self.locator_finder_by_select_using_xpath(self, case, 1)
 
             print('Selecting stem for the analyzer \n')
             stem = '/html/body/div[32]/div/div[2]/div/div[4]/fieldset/div/div[2]/div/div[3]/input'
-            stem_sitem = BaseSelenium.locator_finder_by_xpath(self, stem)
+            stem_sitem = self.locator_finder_by_xpath(self, stem)
             stem_sitem.click()
             time.sleep(2)
 
             print('Selecting accent for the analyzer \n')
             accent = '/html/body/div[32]/div/div[2]/div/div[4]/fieldset/div/div[2]/div/div[4]/input'
-            accent_sitem = BaseSelenium.locator_finder_by_xpath(self, accent)
+            accent_sitem = self.locator_finder_by_xpath(self, accent)
             accent_sitem.click()
             time.sleep(2)
 
@@ -350,19 +368,19 @@ class AnalyzerPage(BaseSelenium):
 
         print('Switching current view to form view \n')
         code_view = switch_view
-        code_view_sitem = BaseSelenium.locator_finder_by_xpath(self, code_view)
+        code_view_sitem = self.locator_finder_by_xpath(self, code_view)
         code_view_sitem.click()
         time.sleep(3)
 
         print('Switching current view to code view \n')
         form_view = switch_view
-        form_view_sitem = BaseSelenium.locator_finder_by_xpath(self, form_view)
+        form_view_sitem = self.locator_finder_by_xpath(self, form_view)
         form_view_sitem.click()
         time.sleep(3)
 
         print('Creating the analyzer \n')
         create_btn = create
-        create_btn_sitem = BaseSelenium.locator_finder_by_xpath(self, create_btn)
+        create_btn_sitem = self.locator_finder_by_xpath(self, create_btn)
         create_btn_sitem.click()
         time.sleep(4)
 
