@@ -24,6 +24,24 @@ from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor
 #                }
 #            })
 
+MINIO_CFG = """
+{
+  "config": {
+    "S3": { 
+      "type": "s3",
+      "provider": "minio",
+      "env_auth": "false",
+      "access_key_id": "minio",
+      "secret_access_key": "minio123",
+      "endpoint": "http://127.0.0.1:9000",
+      "region": "us-east-1"
+    }
+  },
+  "id": "2021-09-16T02.29.58Z_test",
+  "remoteRepository": "S3://arango/"
+}
+"""
+
 class HotBackupConfig():
     """ manage rclone setup """
     def __init__(self,
@@ -44,16 +62,17 @@ class HotBackupConfig():
     def save_config(self, filename):
         """ writes a hotbackup rclone configuration file """
         fhandle = self.install_prefix / filename
-        fhandle.write_text(
-            json.dumps({
-                self.name: {
-                    "type": self.cfg_type,
-                    "copy-links": "false",
-                    "links": "false",
-                    "one_file_system": "true"
-                }
-            })
-        )
+        # fhandle.write_text(
+        #     json.dumps({
+        #         self.name: {
+        #             "type": self.cfg_type,
+        #             "copy-links": "false",
+        #             "links": "false",
+        #             "one_file_system": "true"
+        #         }
+        #     })
+        # )
+        fhandle.write_text(MINIO_CFG)
         return str(fhandle)
 
     def get_rclone_config_file(self):
