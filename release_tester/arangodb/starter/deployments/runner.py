@@ -848,6 +848,8 @@ class Runner(ABC):
         print('cleaning up ' + str(testdir))
         if testdir.exists():
             shutil.rmtree(testdir)
+            if "REQUESTS_CA_BUNDLE" in os.environ:
+                del os.environ["REQUESTS_CA_BUNDLE"]
         if reset_tmp and WINVER[0]:
             os.environ["TMP"] = self.original_tmp
             os.environ["TEMP"] = self.original_temp
