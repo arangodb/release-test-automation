@@ -19,12 +19,9 @@ class InstallerTAR(InstallerBase):
         basedir = Path("/tmp")
         if WINVER[0]:
             basedir = Path("C:/tmp")
-        print(os.environ)
         if "WORKSPACE_TMP" in os.environ:
-            print("snatoheusanoetuh")
             basedir=Path(os.environ["WORKSPACE_TMP"])
-        print(basedir)
-        
+
         cfg.have_system_service = False
 
         cfg.install_prefix = basedir
@@ -143,8 +140,8 @@ class InstallerTAR(InstallerBase):
             "server_package: {0.server_package}".format(self))
         if not self.cfg.install_prefix.exists():
             self.cfg.install_prefix.mkdir(parents=True)
-        print(str(self.cfg.package_dir / self.server_package))
-        print(str(self.cfg.install_prefix / '..'))
+        print("extracting: " + str(self.cfg.package_dir / self.server_package) + " to " +
+              str(self.cfg.install_prefix / '..'))
         shutil.unpack_archive(str(self.cfg.package_dir / self.server_package),
                               str(self.cfg.install_prefix / '..'))
         logging.info('Installation successfull')
