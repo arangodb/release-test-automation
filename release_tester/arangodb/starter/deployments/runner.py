@@ -16,6 +16,7 @@ import time
 
 import certifi
 import psutil
+from beautifultable import BeautifulTable
 from reporting.reporting_utils import step
 import requests
 
@@ -364,6 +365,24 @@ class Runner(ABC):
         if self.selenium:
             self.selenium.clear_ui()
             self.selenium.disconnect()
+            success = True
+            ui_test_results_table = BeautifulTable(maxwidth=160)
+            for result in self.selenium.test_results:
+                ui_test_results_table.rows.append([
+                    result.name,
+                    "PASSED" if result.success else "FAILED",
+                    result.message,
+                    result.tb
+                ])
+                if not result.success:
+                    success = False
+            ui_test_results_table.columns.header = [
+                "Name", "Result", "Message", "Traceback"]
+            self.progress(False, "UI test results table:")
+            self.progress(False, '\n' + str(ui_test_results_table))
+
+            if not success:
+                raise Exception("There are failed UI tests")
         self.progress(False, "Runner of type {0} - Finished!".format(str(self.name)))
 
     def run_selenium(self):

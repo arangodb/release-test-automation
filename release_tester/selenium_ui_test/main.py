@@ -4,6 +4,7 @@ main entrance point for the UI tests
 """
 #import time
 
+import traceback
 from selenium_ui_test.base_selenium import BaseSelenium
 from selenium_ui_test.dashboard_page import DashboardPage
 from selenium_ui_test.login_page import LoginPage
@@ -20,6 +21,9 @@ from selenium_ui_test.analyzersPage import AnalyzerPage
 # pylint: disable=C0301 disable=R0902 disable=R0915
 from selenium_ui_test.models import IndexType
 
+from selenium_ui_test.models import RtaUiTestResult
+
+
 class Test(BaseSelenium):
     """initial base class setup"""
     BaseSelenium.set_up_class()
@@ -29,6 +33,7 @@ class Test(BaseSelenium):
         self.driver = selenium_driver
         self.root_passvoid = root_passvoid
         self.url = url
+        self.test_results = []
         super().__init__()
 
     @staticmethod
@@ -36,6 +41,39 @@ class Test(BaseSelenium):
         """tear down class and quit driver instance"""
         BaseSelenium.tear_down()
 
+    def testcase(title):
+        def decorator(func):
+            def wrapper(self, *args, **kwargs):
+                name = None
+                success = None
+                message = None
+                tb = None
+                if not callable(title):
+                    name = title
+                elif title.__doc__:
+                    name = title.__doc__
+                else:
+                    name = title.__name__
+                try:
+                    print("Running test case \"%s\"..." % name)
+                    func(self, *args, **kwargs)
+                    success = True
+                    print("Test case \"%s\" passed!" % name)
+                except Exception as e:
+                    success = False
+                    print("Test failed!")
+                    message = str(e)
+                    tb = "".join(traceback.TracebackException.from_exception(e).format())
+                test_result = RtaUiTestResult(name, success, message, tb)
+                self.test_results.append(test_result)
+            return wrapper
+        if callable(title):
+            return decorator(title)
+        else:
+            return decorator
+
+
+    @testcase
     def test_login(self):
         """testing login page"""
         print("Starting ", self.driver.title, "\n")
@@ -43,6 +81,8 @@ class Test(BaseSelenium):
         login.login('root', self.root_passvoid)
         login.logout_button()
 
+
+    @testcase
     def test_dashboard(self, is_enterprise, is_cluster):
         """testing dashboard page"""
         print("---------Checking Dashboard started--------- \n")
@@ -78,6 +118,8 @@ class Test(BaseSelenium):
         #login.logout_button()
         print("---------Checking Dashboard Completed--------- \n")
 
+
+    @testcase
     def test_collection(self, testdata_path, is_cluster):
         """testing collection page"""
         print("---------Checking Collection Begin--------- \n")
@@ -289,7 +331,9 @@ class Test(BaseSelenium):
         #login.logout_button()
         #del login
         print("---------Checking Collection Completed--------- \n")
-    
+
+
+    @testcase
     def test_database(self):
         """testing database page"""
         print("---------DataBase Page Test Begin--------- \n")
@@ -323,6 +367,8 @@ class Test(BaseSelenium):
         del db
         print("---------DataBase Page Test Completed--------- \n")
 
+
+    @testcase
     def test_analyzers(self):
         print("---------Analyzers Page Test Begin--------- \n")
         # login = LoginPage(self.driver)
@@ -400,6 +446,8 @@ class Test(BaseSelenium):
         del analyzers
         print("---------Analyzers Page Test Completed--------- \n")
 
+
+    @testcase
     def test_views(self, is_cluster):
         """testing Views page"""
         print("---------Checking Views Begin--------- \n")
@@ -489,6 +537,8 @@ class Test(BaseSelenium):
         del views1
         print("---------Checking Views completed--------- \n")
 
+
+    @testcase
     def test_graph(self, cfg, importer, test_data_dir):
         """testing graph page"""
         print("---------Checking Graphs started--------- \n")
@@ -553,6 +603,8 @@ class Test(BaseSelenium):
         #del login
         print("---------Checking Graphs completed--------- \n")
 
+
+    @testcase
     def test_user(self):
         """testing user page"""
         print("---------User Test Begin--------- \n")
@@ -627,6 +679,8 @@ class Test(BaseSelenium):
         del login
         print("---------User Test Completed---------\n")
 
+
+    @testcase
     def test_query(self, cfg, is_cluster, restore, importer, test_data_dir):
         """testing query page"""
         print("---------Query Test Begin--------- \n")
@@ -719,6 +773,8 @@ class Test(BaseSelenium):
         del query01
         print("---------Checking Query completed--------- \n")
 
+
+    @testcase
     def test_support(self):
         """testing support page"""
         print("---------Checking Support page started--------- \n")

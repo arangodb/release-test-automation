@@ -68,6 +68,7 @@ class SeleniumRunner(ABC):
         self.restorer = None
         self.cfg = None
         self.is_cluster = False
+        self.test_results = []
 
     def set_instances(self, cfg, importer, restorer):
         """ change the used frontend instance """
@@ -650,36 +651,30 @@ class SeleniumRunner(ABC):
 
     def check_full_ui(self, root_passvoid): # , frontend_instance
         """ run all tests that work with data """
-        # raise Exception("snateohu")
-        try:
-            # frontend = frontend_instance[0]
-            # ui_test = UITest(frontend.get_passvoid(), frontend.get_endpoint(), self.web)
-            ui_test = UITest(root_passvoid, '', self.web)
-            self.navbar_goto("users")
-            ui_test.test_user()
-            ui_test.test_collection(self.cfg.test_data_dir.resolve(), self.is_cluster)
-            ui_test.test_dashboard(self.cfg.enterprise, self.is_cluster)
-            ui_test.test_views(self.is_cluster)
-            print('i'*80)
-            print(self.cfg.test_data_dir)
-            print(str(self.cfg.test_data_dir))
-            print(self.cfg.test_data_dir.resolve())
-            print('g'*80)
-            self.navbar_goto('graphs')
-            ui_test.test_graph(self.cfg, self.importer, self.cfg.test_data_dir.resolve())
-            print('u'*80)
-            ui_test.test_query(self.cfg,
-                               self.is_cluster,
-                               self.restorer,
-                               self.importer,
-                               self.cfg.test_data_dir.resolve())
-            # ui_test.test_support()
-        except Exception as ex:
-            print('E.'*40)
-            print(type(ex))
-            print(ex)
-            raise ex
-            # self.take_screenshot()
+        # frontend = frontend_instance[0]
+        # ui_test = UITest(frontend.get_passvoid(), frontend.get_endpoint(), self.web)
+        ui_test = UITest(root_passvoid, '', self.web)
+        self.navbar_goto("users")
+        ui_test.test_user()
+        ui_test.test_collection(self.cfg.test_data_dir.resolve(), self.is_cluster)
+        ui_test.test_dashboard(self.cfg.enterprise, self.is_cluster)
+        ui_test.test_views(self.is_cluster)
+        print('i'*80)
+        print(self.cfg.test_data_dir)
+        print(str(self.cfg.test_data_dir))
+        print(self.cfg.test_data_dir.resolve())
+        print('g'*80)
+        self.navbar_goto('graphs')
+        ui_test.test_graph(self.cfg, self.importer, self.cfg.test_data_dir.resolve())
+        print('u'*80)
+        ui_test.test_query(self.cfg,
+                           self.is_cluster,
+                           self.restorer,
+                           self.importer,
+                           self.cfg.test_data_dir.resolve())
+        # ui_test.test_support()
+        self.test_results += ui_test.test_results
+
 
     def clear_ui (self):
         """ go all through the ui, flush all data (graphs, users, databases, collections) """
