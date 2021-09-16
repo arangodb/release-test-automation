@@ -26,8 +26,7 @@ from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor
 
 MINIO_CFG = """
 {
-  "config": {
-    "S3": { 
+    "S3": {
       "type": "s3",
       "provider": "minio",
       "env_auth": "false",
@@ -36,9 +35,6 @@ MINIO_CFG = """
       "endpoint": "http://127.0.0.1:9000",
       "region": "us-east-1"
     }
-  },
-  "id": "2021-09-16T02.29.58Z_test",
-  "remoteRepository": "S3://arango/"
 }
 """
 
@@ -50,8 +46,10 @@ class HotBackupConfig():
                  raw_install_prefix):
         self.cfg = basecfg
         self.install_prefix = raw_install_prefix
-        self.cfg_type = "local"
-        self.name = str(name).replace('/', '_')
+        #self.cfg_type = "local"
+        self.cfg_type = "S3"
+        # self.name = str(name).replace('/', '_')
+        self.name = "S3"
         #self.provider = None
         #self.env_auth = False
         #self.access_key_id = None
