@@ -1,5 +1,5 @@
 
-
+docker rm minio1
 mkdir miniodata
 docker run -d \
   -p 9000:9000 \
