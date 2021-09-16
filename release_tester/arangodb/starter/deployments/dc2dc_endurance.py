@@ -3,7 +3,7 @@
 import time
 
 from arangodb.starter.deployments.dc2dc import Dc2Dc
-from arangodb.starter.deployments.runner import PunnerProperties
+from arangodb.starter.deployments.runner import RunnerProperties
 
 class Dc2DcEndurance(Dc2Dc):
     """ this launches two clusters in dc2dc mode """

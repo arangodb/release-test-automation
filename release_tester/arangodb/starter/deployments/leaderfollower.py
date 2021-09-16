@@ -8,7 +8,7 @@ from tools.interact import prompt_user
 from tools.killall import get_all_processes
 from arangodb.starter.manager import StarterManager
 from arangodb.instance import InstanceType
-from arangodb.starter.deployments.runner import Runner, PunnerProperties
+from arangodb.starter.deployments.runner import Runner, RunnerProperties
 import tools.loghelper as lh
 from tools.asciiprint import print_progress as progress
 
@@ -22,7 +22,7 @@ class LeaderFollower(Runner):
                  selenium, selenium_driver_args,
                  testrun_name: str, ssl: bool, use_auto_certs: bool):
         super().__init__(runner_type, abort_on_error, installer_set,
-                         PunnerProperties('LeaderFollower', 400, 500, False, ssl, use_auto_certs),
+                         RunnerProperties('LeaderFollower', 400, 500, False, ssl, use_auto_certs),
                          selenium, selenium_driver_args,
                          testrun_name)
 

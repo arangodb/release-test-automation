@@ -49,7 +49,7 @@ def detect_file_ulimit():
         giga_byte = 2**30
         resource.setrlimit(resource.RLIMIT_CORE, (giga_byte,giga_byte))
 
-class PunnerProperties():
+class RunnerProperties():
     """ runner properties management class """
     #pylint: disable=R0903 disable=R0913 disable=R0912
     def __init__(self,
@@ -74,7 +74,7 @@ class Runner(ABC):
             runner_type,
             abort_on_error: bool,
             install_set: list,
-            properties: PunnerProperties,
+            properties: RunnerProperties,
             selenium_worker: str,
             selenium_driver_args: list,
             testrun_name: str):

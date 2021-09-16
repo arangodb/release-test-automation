@@ -12,7 +12,7 @@ import statsd
 import yaml
 
 from arangodb.instance import InstanceType
-from arangodb.starter.deployments.runner import Runner, PunnerProperties
+from arangodb.starter.deployments.runner import Runner, RunnerProperties
 
 from tools.asciiprint import print_progress as progress
 import tools.interact as ti
@@ -97,7 +97,7 @@ class ClusterPerf(Runner):
             self.scenario = yaml.load(fileh, Loader=yaml.Loader)
 
         super().__init__(runner_type, abort_on_error, installer_set,
-                         PunnerProperties('CLUSTER', 9999999, 99999999, False, ssl, use_auto_certs),
+                         RunnerProperties('CLUSTER', 9999999, 99999999, False, ssl, use_auto_certs),
                          selenium, selenium_driver_args,
                          testrun_name)
         self.success = False

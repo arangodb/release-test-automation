@@ -10,7 +10,7 @@ from requests.auth import HTTPBasicAuth
 
 from arangodb.instance import InstanceType
 from arangodb.starter.manager import StarterManager
-from arangodb.starter.deployments.runner import Runner, PunnerProperties
+from arangodb.starter.deployments.runner import Runner, RunnerProperties
 
 from tools.asciiprint import print_progress as progress
 from tools.interact import prompt_user
@@ -24,7 +24,7 @@ class ActiveFailover(Runner):
                  testrun_name: str, ssl: bool,
                  use_auto_certs: bool):
         super().__init__(runner_type, abort_on_error, installer_set,
-                         PunnerProperties('ActiveFailOver', 500, 600, True, ssl, use_auto_certs),
+                         RunnerProperties('ActiveFailOver', 500, 600, True, ssl, use_auto_certs),
                          selenium, selenium_driver_args,
                          testrun_name)
         self.starter_instances = []

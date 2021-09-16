@@ -8,7 +8,7 @@ from pathlib import Path
 import requests
 import semver
 from arangodb.instance import InstanceType
-from arangodb.starter.deployments.runner import Runner, PunnerProperties
+from arangodb.starter.deployments.runner import Runner, RunnerProperties
 from arangodb.starter.manager import StarterManager
 from arangodb.sync import SyncManager
 from tools.asciiprint import print_progress as progress
@@ -90,7 +90,7 @@ class Dc2Dc(Runner):
                  testrun_name: str, ssl: bool,
                  use_auto_certs: bool):
         super().__init__(runner_type, abort_on_error, installer_set,
-                         PunnerProperties('DC2DC', 0, 4500, True, ssl, use_auto_certs),
+                         RunnerProperties('DC2DC', 0, 4500, True, ssl, use_auto_certs),
                          selenium, selenium_driver_args,
                          testrun_name)
         self.success = True

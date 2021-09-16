@@ -2,7 +2,7 @@
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
 
-from arangodb.starter.deployments.runner import Runner, PunnerProperties
+from arangodb.starter.deployments.runner import Runner, RunnerProperties
 
 class NoStarter(Runner):
     """ This runner does not use the starter """
@@ -13,7 +13,7 @@ class NoStarter(Runner):
                  ssl: bool,
                  use_auto_certs: bool):
         super().__init__(runner_type, abort_on_error, installer_set,
-                         PunnerProperties('none', 0, 0, False, ssl, use_auto_certs),
+                         RunnerProperties('none', 0, 0, False, ssl, use_auto_certs),
                          selenium, selenium_driver_args,
                          testrun_name)
 
