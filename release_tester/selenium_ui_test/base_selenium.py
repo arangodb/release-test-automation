@@ -370,6 +370,37 @@ class BaseSelenium:
         if self.locator is None:
             raise Exception("UI-Test: ", locator_name, " locator was not found.")
         return self.locator
+    
+    def check_expected_error_messages(self, error_input, print_statement, error_message, locators_id, error_message_id):
+        """This method will take three lists and check for expected error condition against user's inputs"""
+        i = 0
+        # looping through all the error scenario for db name
+        # print('len: ', len(name_error))
+        while i < len(error_input):  # error_input list will hold a list of error inputs from the users
+            print(print_statement[i])  # print_statement will hold a list of all general print statements for the test
+            locators = locators_id  # locator id of the input placeholder where testing will take place
+            locator_sitem = BaseSelenium.locator_finder_by_id(self, locators)
+            locator_sitem.click()
+            locator_sitem.clear()
+            locator_sitem.send_keys(error_input[i])
+            time.sleep(1)
+            locator_sitem.send_keys(Keys.TAB)
+            time.sleep(1)
+
+            try:
+                # placeholder's error message id
+                error_sitem = BaseSelenium.locator_finder_by_xpath(self, error_message_id).text
+                print('Expected error found: ', error_sitem, '\n')
+                time.sleep(2)
+
+                # error_message list will hold expected error messages
+                assert error_sitem == error_message[i], \
+                    f"Expected error message {error_message[i]} but got {error_sitem}"
+
+            except TimeoutException:
+                raise Exception('*****-->Error occurred. Manual inspection required<--***** \n')
+
+            i = i + 1
 
     def navbar_goto(self, tag):
         """ click on any of the items in the 'navbar' """

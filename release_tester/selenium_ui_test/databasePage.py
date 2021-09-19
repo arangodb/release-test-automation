@@ -2,7 +2,7 @@ import time
 
 from selenium.common.exceptions import TimeoutException
 
-from selenium_ui_test.base_selenium import BaseSelenium, Keys
+from selenium_ui_test.base_selenium import BaseSelenium
 
 
 class DatabasePage(BaseSelenium):
@@ -115,49 +115,72 @@ class DatabasePage(BaseSelenium):
 
         self.select_database_page()
     
-    def test_database_name(self):
+    def test_database_expected_error(self):
         """This method will test all negative scenario"""
+        self.select_database_page()
         print('Expected error scenario for the Database name Started. \n')
         create_new_db_btn = self.create_new_db_btn
         create_new_db_btn_sitem = self.locator_finder_by_id(self, create_new_db_btn)
         create_new_db_btn_sitem.click()
         time.sleep(2)
 
-        # proper database name convention test
-        # 1. keep db name blank
+        # ---------------------------------------database name convention test---------------------------------------
+        print('Expected error scenario for the Database name Started \n')
+        db_name_error_input = ['', '@', '1', 'שלום']  # name must be 64 bit thus 65 character won't work too.
+        db_name_print_statement = ['Checking blank DB name with " "', 'Checking Db name with symbol " @ "',
+                                   'Checking numeric value for DB name " 1 "',
+                                   'Checking Non-ASCII Hebrew Characters "שלום"']
+        db_name_error_message = ['No database name given.', 'Only Symbols "_" and "-" are allowed.',
+                                 'Database name must start with a letter.', 'Only Symbols "_" and "-" are allowed.']
+        db_name = 'newDatabaseName'
+        db_name_error_id = '//*[@id="row_newDatabaseName"]/th[2]/p'
 
-        print_statement = ['Checking blank DB name with " "', 'Checking Db name with symbol " @ "',
-                           'Checking numeric value for DB name " 1 "']
-        name_error = ['', '@', '1']     # name must be 64 bit thus 65 character won't work too.
-        error_message = ['No database name given.', 'Only Symbols "_" and "-" are allowed.',
-                         'Database name must start with a letter.']
-        i = 0
-        # looping through all the error scenario for db name
-        while i < len(name_error):
-            print(print_statement[i])
-            new_db_name = 'newDatabaseName'
-            new_db_name_sitem = self.locator_finder_by_id(self, new_db_name)
-            new_db_name_sitem.click()
-            new_db_name_sitem.clear()
-            new_db_name_sitem.send_keys(name_error[i])
-            time.sleep(1)
-            new_db_name_sitem.send_keys(Keys.TAB)
-            time.sleep(1)
-
-            try:
-                error = 'errorMessage'
-                error_sitem = self.locator_finder_by_class(self, error).text
-                print('Expected error found: ', error_sitem, '\n')
-                time.sleep(2)
-
-                assert error_sitem == error_message[i], \
-                    f"Expected error message {error_message[i]} but got {error_sitem}"
-
-            except TimeoutException:
-                raise Exception('*****-->Error occurred. Manual inspection required<--***** \n')
-
-            i = i + 1
+        # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
+        self.check_expected_error_messages(self, db_name_error_input, db_name_print_statement,
+                                                   db_name_error_message, db_name, db_name_error_id)
         print('Expected error scenario for the Database name Completed \n')
+
+        # -------------------------------database Replication Factor convention test----------------------------------
+        print('Expected error scenario for the Database Replication Factor Started \n')
+        rf_error_input = ['@', 'a', '11', 'שלום']
+        rf_print_statement = ['Checking RF with "@"', 'Checking RF with "a"',
+                              'Checking RF with "11"', 'Checking RF with "שלום"']
+        rf_error_message = ['Must be a number between 1 and 10.', 'Must be a number between 1 and 10.',
+                            'Must be a number between 1 and 10.', 'Must be a number between 1 and 10.']
+        rf_name = 'new-replication-factor'
+        db_name_error_id = '//*[@id="row_new-replication-factor"]/th[2]/p'
+
+        # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
+        self.check_expected_error_messages(self, rf_error_input, rf_print_statement, rf_error_message,
+                                                   rf_name, db_name_error_id)
+        print('Expected error scenario for the Database Replication Factor Completed \n')
+
+        # -------------------------------database Write Concern convention test----------------------------------
+        print('Expected error scenario for the Database Write Concern Started \n')
+        wc_error_input = ['@', 'a', '11', 'שלום']
+        wc_print_statement = ['Checking Write Concern with "@"', 'Checking Write Concern with "a"',
+                              'Checking Write Concern with "11"', 'Checking Write Concern with "שלום"']
+        wc_error_message = ['Must be a number between 1 and 10. Has to be smaller or equal compared to the '
+                            'replicationFactor.',
+                            'Must be a number between 1 and 10. Has to be smaller or equal compared to the '
+                            'replicationFactor.',
+                            'Must be a number between 1 and 10. Has to be smaller or equal compared to the '
+                            'replicationFactor.',
+                            'Must be a number between 1 and 10. Has to be smaller or equal compared to the '
+                            'replicationFactor.']
+        wc_name = 'new-write-concern'
+        wc_name_error_id = '//*[@id="row_new-write-concern"]/th[2]/p'
+
+        # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
+        self.check_expected_error_messages(self, wc_error_input, wc_print_statement, wc_error_message,
+                                                   wc_name, wc_name_error_id)
+        print('Expected error scenario for the Database Write Concern Completed \n')
+
+        print('Closing the database creation \n')
+        close_btn = 'modalButton0'
+        close_btn_sitem = self.locator_finder_by_id(self, close_btn)
+        close_btn_sitem.click()
+        time.sleep(3)
 
 
     def sorting_db(self):
