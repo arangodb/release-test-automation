@@ -352,7 +352,7 @@ class Test(BaseSelenium):
         db.create_new_db('Sharded', 0)  # 0 = sharded DB
         db.create_new_db('OneShard', 1)  # 1 = one shard DB
 
-        db.test_database_name()
+        db.test_database_expected_error()  # testing expected error condition for database creation
 
         print('Checking sorting databases to ascending and descending \n')
         db.sorting_db()
