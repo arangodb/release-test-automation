@@ -64,6 +64,8 @@ class Test(BaseSelenium):
                     print("Test failed!")
                     message = str(e)
                     tb = "".join(traceback.TracebackException.from_exception(e).format())
+                    print("Message: %s" % message)
+                    print("Traceback: %s" % tb)
                 test_result = RtaUiTestResult(name, success, message, tb)
                 self.test_results.append(test_result)
             return wrapper
@@ -89,8 +91,8 @@ class Test(BaseSelenium):
         #login = LoginPage(self.driver)
         #login.login('root', self.root_passvoid)
         # creating object for dashboard
-        self.navbar_goto('dashboard')
         dash = DashboardPage(self.driver, is_enterprise)
+        dash.navbar_goto('dashboard')
         dash.check_server_package_name()
         dash.check_current_package_version()
         dash.check_current_username()

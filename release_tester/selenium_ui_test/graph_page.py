@@ -19,10 +19,10 @@ class GraphExample(IntEnum):
     WORLD = 5
     SOCIAL = 6
     CITY = 7
-    #MANUAL_KNOWS = 8
-    #MANUAL_SATELITE_GRAPH = 9
-    #MANUAL_SMART_GRAHP = 10
-    #MANUAL_DISJOINT_SMART_GRAHP = 11
+    MANUAL_KNOWS = 8
+    # MANUAL_SATELITE_GRAPH = 9
+    # MANUAL_SMART_GRAHP = 10
+    # MANUAL_DISJOINT_SMART_GRAHP = 11
     # TODO: 3.8 and newer only: CONNECTED = 12
 class VCol():
     """ maps a vertex collection to a graph """
@@ -209,6 +209,7 @@ class GraphPage(BaseSelenium):
         # list of id's for manual graph
         new_graph = self.select_new_graph_name_id
         edge_definition = "row_newEdgeDefinitions0"
+        edge_collection_list_item = """//ul[@class="select2-results"]/li/div[text()='knows_edge']"""
         from_collection = "s2id_fromCollections0"
         to_collection = "s2id_toCollections0"
         create_btn_id = "modalButton1"
@@ -222,7 +223,8 @@ class GraphPage(BaseSelenium):
         # selecting edge definition from auto suggestion
         edge_definition_sitem = self.locator_finder_by_id(edge_definition)
         edge_definition_sitem.click()
-        super().send_key_action(Keys.ENTER)
+        edge_collection = self.locator_finder_by_xpath(edge_collection_list_item)
+        edge_collection.click()
 
         # selecting from collection from auto suggestion
         from_collection_sitem = self.locator_finder_by_id(from_collection)
