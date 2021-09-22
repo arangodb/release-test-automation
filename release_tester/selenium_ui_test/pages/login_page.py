@@ -4,7 +4,7 @@ login to the UI
 """
 import time
 
-from selenium_ui_test.base_selenium import BaseSelenium
+from selenium_ui_test.pages.base_page import BasePage
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -17,13 +17,12 @@ from selenium.common.exceptions import (
 # can't circumvent long lines..
 # pylint: disable=C0301
 
-class LoginPage(BaseSelenium):
+class LoginPage(BasePage):
     """Login class for selenium UI testing"""
 
     def __init__(self, driver):
         """Login page initialization"""
-        super().__init__()
-        self.driver = driver
+        super().__init__(driver)
         self.username_textbox_id = "loginUsername"
         self.password_textbox_id = "loginPassword"
         self.login_button_id = "submitLogin"

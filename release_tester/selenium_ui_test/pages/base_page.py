@@ -31,12 +31,13 @@ import semver
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=R0902 disable=R0904 disable=R0915
 
-class BaseSelenium:
-    """Base class for selenium"""
+class BasePage:
+    """Base class for page objects"""
     driver: WebDriver
 
-    def __init__(self, ):
+    def __init__(self, driver):
         """base initialization"""
+        self.driver = driver
         self.query_execution_area = '//*[@id="aqlEditor"]'
         self.bindvalues_area = '//*[@id="bindParamAceEditor"]'
         self.locator = None
@@ -380,7 +381,7 @@ class BaseSelenium:
         while i < len(error_input):  # error_input list will hold a list of error inputs from the users
             print(print_statement[i])  # print_statement will hold a list of all general print statements for the test
             locators = locators_id  # locator id of the input placeholder where testing will take place
-            locator_sitem = BaseSelenium.locator_finder_by_id(self, locators)
+            locator_sitem = BasePage.locator_finder_by_id(self, locators)
             locator_sitem.click()
             locator_sitem.clear()
             locator_sitem.send_keys(error_input[i])
@@ -390,7 +391,7 @@ class BaseSelenium:
 
             try:
                 # placeholder's error message id
-                error_sitem = BaseSelenium.locator_finder_by_xpath(self, error_message_id).text
+                error_sitem = BasePage.locator_finder_by_xpath(self, error_message_id).text
                 print('Expected error found: ', error_sitem, '\n')
                 time.sleep(2)
 
@@ -403,36 +404,6 @@ class BaseSelenium:
 
             i = i + 1
 
-    def navbar_goto(self, tag):
-        """ click on any of the items in the 'navbar' """
-        count = 0
-        print("navbar goto %s"% tag)
-        self.wait_for_ajax()
-        while True:
-            try:
-                elem = self.driver.find_element_by_id(tag)
-                assert elem, "navbar goto failed?"
-                elem.click()
-                self.driver.find_element_by_class_name(tag + '-menu.active')
-                print("goto current URL: " + self.driver.current_url)
-                if not self.driver.current_url.endswith('#'+ tag):
-                    # retry...
-                    continue
-                self.wait_for_ajax()
-                return
-            except NoSuchElementException:
-                print('retrying to switch to ' + tag)
-                time.sleep(1)
-                count += 1
-                if count %15 == 0:
-                    print("reloading page!")
-                    self.driver.refresh()
-                    time.sleep(1)
-                continue
-            #except TimeoutException as ex:
-                #self.take_screenshot()
-            #    raise ex
-
     def choose_item_from_a_dropdown_menu(self, element: WebElement, item_text: str):
         """Given a drop-down menu element,
         click on it to open the menu and then click on an item with given text."""
@@ -440,3 +411,7 @@ class BaseSelenium:
         item_locator = """//ul[@class="select2-results"]/li/div[text()='%s']""" % item_text
         item_element = self.locator_finder_by_xpath(item_locator)
         item_element.click()
+
+    def click_submenu_entry(self, text):
+        locator = """//li[contains(@class, 'subMenuEntry')]/a[text()='%s']""" % text
+        self.locator_finder_by_xpath(locator).click()

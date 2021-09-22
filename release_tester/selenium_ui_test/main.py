@@ -5,17 +5,16 @@ main entrance point for the UI tests
 #import time
 
 import traceback
-from selenium_ui_test.base_selenium import BaseSelenium
-from selenium_ui_test.dashboard_page import DashboardPage
-from selenium_ui_test.login_page import LoginPage
-from selenium_ui_test.user_page import UserPage
-from selenium_ui_test.views_page import ViewsPage
-from selenium_ui_test.collection_page import CollectionPage
-from selenium_ui_test.graph_page import GraphPage, GraphExample, get_graph_name
-from selenium_ui_test.query_page import QueryPage
-from selenium_ui_test.support_page import SupportPage
-from selenium_ui_test.databasePage import DatabasePage
-from selenium_ui_test.analyzersPage import AnalyzerPage
+from selenium_ui_test.pages.dashboard_page import DashboardPage
+from selenium_ui_test.pages.login_page import LoginPage
+from selenium_ui_test.pages.user_page import UserPage
+from selenium_ui_test.pages.views_page import ViewsPage
+from selenium_ui_test.pages.collection_page import CollectionPage
+from selenium_ui_test.pages.graph_page import GraphPage, GraphExample, get_graph_name
+from selenium_ui_test.pages.query_page import QueryPage
+from selenium_ui_test.pages.support_page import SupportPage
+from selenium_ui_test.pages.databasePage import DatabasePage
+from selenium_ui_test.pages.analyzersPage import AnalyzerPage
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=R0902 disable=R0915
@@ -24,22 +23,14 @@ from selenium_ui_test.models import IndexType
 from selenium_ui_test.models import RtaUiTestResult
 
 
-class Test(BaseSelenium):
-    """initial base class setup"""
-    BaseSelenium.set_up_class()
-
+class BaseTest():
+    """base class for UI tests"""
     def __init__(self, root_passvoid, url, selenium_driver):
         """initial web driver setup"""
         self.driver = selenium_driver
         self.root_passvoid = root_passvoid
         self.url = url
         self.test_results = []
-        super().__init__()
-
-    @staticmethod
-    def teardown():
-        """tear down class and quit driver instance"""
-        BaseSelenium.tear_down()
 
     def testcase(title):
         def decorator(func):
@@ -107,7 +98,7 @@ class Test(BaseSelenium):
             dash.check_system_resource()
             print("Switch to Metrics tab\n")
             dash.check_system_metrics()
-        self.navbar_goto('support')
+        dash.navbar_goto('support')
         print("Opening Twitter link \n")
         dash.click_twitter_link()
         print("Opening Slack link \n")
@@ -220,7 +211,7 @@ class Test(BaseSelenium):
 
         self.driver.back()
 
-        col.select_doc_collection()
+        col.select_collection("TestDoc")
         print("Uploading file to the collection started\n")
         col.select_upload_btn()
         print("Uploading json file\n")
@@ -575,7 +566,7 @@ class Test(BaseSelenium):
         for graph in GraphExample:
             #if graph == GraphExample.MANUAL_KNOWS:
             #    break
-            self.navbar_goto('graphs')
+            this_graph.navbar_goto('graphs')
             print(graph)
             print("Creating '%s' Graph"%get_graph_name(graph))
             this_graph.create_graph(graph, importer, test_data_dir)
@@ -597,7 +588,7 @@ class Test(BaseSelenium):
         for graph in GraphExample:
             #if graph == GraphExample.MANUAL_KNOWS:
             #    break
-            self.navbar_goto('graphs')
+            this_graph.navbar_goto('graphs')
             this_graph.delete_graph(graph)
         print("Deleting created Graphs Completed\n")
         #login.logout_button()
@@ -715,36 +706,36 @@ class Test(BaseSelenium):
 
         print("Executing example graph query \n")
         graph = GraphExample.WORLD
-        self.navbar_goto('graphs')
+        query.navbar_goto('graphs')
         print("Creating '%s' Graph"%get_graph_name(graph))
         this_graph.create_graph(graph, importer, test_data_dir)
         this_graph.check_required_collections(graph)
         query.world_country_graph_query()
-        self.navbar_goto('graphs')
+        query.navbar_goto('graphs')
         this_graph.delete_graph(graph)
         self.driver.refresh()
 
         graph = GraphExample.K_SHORTEST_PATH
-        self.navbar_goto('graphs')
+        query.navbar_goto('graphs')
         print("Creating '%s' Graph"%get_graph_name(graph))
         this_graph.create_graph(graph, importer, test_data_dir)
         this_graph.check_required_collections(graph)
         query.k_shortest_paths_graph_query()
-        self.navbar_goto('graphs')
+        query.navbar_goto('graphs')
         this_graph.delete_graph(graph)
         self.driver.refresh()
 
         graph = GraphExample.CITY
-        self.navbar_goto('graphs')
+        this_graph.navbar_goto('graphs')
         print("Creating '%s' Graph"%get_graph_name(graph))
         this_graph.create_graph(graph, importer, test_data_dir)
         this_graph.check_required_collections(graph)
         print('Executing City Graph query \n')
         query.city_graph()
-        self.navbar_goto('graphs')
+        query.navbar_goto('graphs')
         this_graph.delete_graph(graph)
 
-        self.navbar_goto('queries')
+        this_graph.navbar_goto('queries')
         self.driver.refresh()
 
         print('Importing new queries \n')

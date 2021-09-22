@@ -211,7 +211,7 @@ class ActiveFailover(Runner):
             node.detect_instance_pids()
         self.print_all_instances_table()
         if self.selenium:
-            self.selenium.web.refresh() # version doesn't upgrade if we don't do this...
+            self.selenium.webdriver.refresh() # version doesn't upgrade if we don't do this...
             self.selenium.check_old(self.new_cfg,
                                     expect_follower_count=2, retry_count=10)
 
@@ -245,7 +245,7 @@ class ActiveFailover(Runner):
         self.leader.maintainance(False, InstanceType.RESILIENT_SINGLE)
         self.print_all_instances_table()
         if self.selenium:
-            self.selenium.web.refresh() # version doesn't upgrade if we don't do this...
+            self.selenium.webdriver.refresh() # version doesn't upgrade if we don't do this...
             self.selenium.check_old(self.new_cfg,
                                     expect_follower_count=2,
                                     retry_count=10)

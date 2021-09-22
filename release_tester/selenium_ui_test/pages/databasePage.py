@@ -2,14 +2,13 @@ import time
 
 from selenium.common.exceptions import TimeoutException
 
-from selenium_ui_test.base_selenium import BaseSelenium
+from selenium_ui_test.pages.navbar import NavigationBarPage
 
 
-class DatabasePage(BaseSelenium):
+class DatabasePage(NavigationBarPage):
 
     def __init__(self, driver):
-        super().__init__()
-        self.driver = driver
+        super().__init__(driver)
         self.database_page = 'databases'
         self.create_new_db_btn = 'createDatabase'
         self.sort_db = '//*[@id="databaseDropdown"]/ul/li[2]/a/label/i'

@@ -215,7 +215,7 @@ process.exit(0);
             node.detect_instances()
             node.wait_for_version_reply()
         if self.selenium:
-            self.selenium.web.refresh()
+            self.selenium.webdriver.refresh()
             self.selenium.check_old(self.new_cfg, True)
             self.selenium.connect_server_new_tab(
                 self.follower_starter_instance.get_frontends(),
@@ -246,7 +246,7 @@ process.exit(0);
             node.detect_instances()
             node.wait_for_version_reply()
         if self.selenium:
-            self.selenium.web.refresh()
+            self.selenium.webdriver.refresh()
             self.selenium.check_old(self.new_cfg, True)
             self.selenium.connect_server_new_tab(
                 self.follower_starter_instance.get_frontends(),

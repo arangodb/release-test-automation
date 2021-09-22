@@ -5,6 +5,8 @@ from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunn
 
 from reporting.reporting_utils import step
 
+from release_tester.selenium_ui_test.pages.navbar import NavigationBarPage
+
 
 class LeaderFollower(SeleniumRunner):
     """ check the leader follower setup and its properties """
@@ -26,13 +28,13 @@ class LeaderFollower(SeleniumRunner):
         count = 0
         replication_table = None
         while True:
-            self.navbar_goto('replication')
+            NavigationBarPage(self.webdriver).navbar_goto('replication')
             replication_table = self.get_replication_screen(leader_follower, 120)
             self.progress(' ' + str(replication_table))
             if len(replication_table['follower_table']) == 2:
                 break
             if count % 5 == 0:
-                self.web.refresh()
+                self.webdriver.refresh()
             count +=1
             time.sleep(5)
         # head and one follower should be there:
@@ -46,7 +48,7 @@ class LeaderFollower(SeleniumRunner):
     def jam_step_1(self, cfg):
         """ check for one set of instances to go away """
         # TODO self.check_full_ui(cfg)
-        self.navbar_goto('replication')
+        NavigationBarPage(self.webdriver).navbar_goto('replication')
         replication_table = self.get_replication_screen(True)
         print(replication_table)
         # head and one follower should be there:

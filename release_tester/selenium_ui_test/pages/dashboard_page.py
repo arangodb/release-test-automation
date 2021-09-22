@@ -7,18 +7,17 @@ import time
 
 from selenium.common.exceptions import TimeoutException
 
-from selenium_ui_test.base_selenium import BaseSelenium
+from selenium_ui_test.pages.navbar import NavigationBarPage
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=R0902 disable=R0915
 
-class DashboardPage(BaseSelenium):
+class DashboardPage(NavigationBarPage):
     """Class for Dashboard page"""
 
     def __init__(self, driver, enterprise):
         """ dashboardPage class initialization"""
-        super().__init__()
-        self.driver = driver
+        super().__init__(driver)
         self.check_server_package_name_id = "enterpriseLabel" if enterprise else "communityLabel"
         self.check_current_package_version_id = "currentVersion"
         self.check_current_username_id = "//li[@id='userBar']//span[@class='toggle']"

@@ -7,22 +7,23 @@ import time
 
 # import pyautogui
 
-from selenium_ui_test.base_selenium import BaseSelenium
+from selenium_ui_test.pages.base_page import BasePage
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium_ui_test.pages.navbar import NavigationBarPage
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=R0902 disable=R0915 disable=R0914
 
-class QueryPage(BaseSelenium):
+
+class QueryPage(NavigationBarPage):
     """Class for Query page"""
 
     def __init__(self, driver):
         """Query page initialization"""
-        super().__init__()
-        self.driver = driver
+        super().__init__(driver)
         self.selecting_query_page_id = "queries"
         self.execute_query_btn_id = 'executeQuery'
         self.profile_query_id = 'profileQuery'
@@ -34,7 +35,7 @@ class QueryPage(BaseSelenium):
         self.new_query_name_id = 'new-query-name'
         self.select_query_size_id = 'querySize'
         self.json_to_table_span_it = 'switchTypes'
-        self.collection_settings_id = "//*[@id='subNavigationBar']/ul[2]/li[4]/a"
+        self.collection_settings_id = "//*[@id='subNavigationBarPage']/ul[2]/li[4]/a"
         self.graph_page = 'graphs'
         self.select_create_graph_id = "createGraph"
         self.select_world_graph_id = "//*[@id='exampleGraphs']/table/tbody/tr[5]/td[2]/button"
@@ -67,12 +68,12 @@ class QueryPage(BaseSelenium):
         print('Creating a blank collection\n')
         create_collection = "createCollection"
         create_collection_sitem = \
-            BaseSelenium.locator_finder_by_id(self, create_collection)
+            BasePage.locator_finder_by_id(self, create_collection)
         create_collection_sitem.click()
 
         new_collection_name = 'new-collection-name'
         new_collection_name_sitem = \
-            BaseSelenium.locator_finder_by_id(self, new_collection_name)
+            BasePage.locator_finder_by_id(self, new_collection_name)
         new_collection_name_sitem.click()
         new_collection_name_sitem.send_keys('Characters')
         if is_cluster:
@@ -85,7 +86,7 @@ class QueryPage(BaseSelenium):
 
             new_replication_factor = 'new-replication-factor'
             new_replication_factor_sitem = \
-                BaseSelenium.locator_finder_by_id(self, new_replication_factor)
+                BasePage.locator_finder_by_id(self, new_replication_factor)
             new_replication_factor_sitem.click()
             new_replication_factor_sitem.clear()
             new_replication_factor_sitem.click()
@@ -116,7 +117,7 @@ class QueryPage(BaseSelenium):
         """Selecting query page"""
         query_page = self.selecting_query_page_id
         self.current = \
-            BaseSelenium.locator_finder_by_id(self, query_page)
+            BasePage.locator_finder_by_id(self, query_page)
         self.current.click()
         time.sleep(1)
 
@@ -155,7 +156,7 @@ RETURN c
         """profiling query"""
         profile = self.profile_query_id
         profile = \
-            BaseSelenium.locator_finder_by_id(self, profile)
+            BasePage.locator_finder_by_id(self, profile)
         profile.click()
         time.sleep(2)
 
@@ -165,7 +166,7 @@ RETURN c
         """Explaining query"""
         explain_query = self.explain_query_id
         explain_query = \
-            BaseSelenium.locator_finder_by_id(self, explain_query)
+            BasePage.locator_finder_by_id(self, explain_query)
         explain_query.click()
         time.sleep(2)
 
@@ -176,12 +177,12 @@ RETURN c
         else:
             debug = self.create_debug_package_id
             debug = \
-                BaseSelenium.locator_finder_by_id(self, debug)
+                BasePage.locator_finder_by_id(self, debug)
             debug.click()
             time.sleep(2)
             debug_btn = 'modalButton1'
             debug_btn = \
-                BaseSelenium.locator_finder_by_id(self, debug_btn)
+                BasePage.locator_finder_by_id(self, debug_btn)
             debug_btn.click()
             time.sleep(2)
             # self.clear_download_bar()
@@ -190,7 +191,7 @@ RETURN c
         """Removing all query results"""
         remove_results = self.remove_all_results_id
         remove_results = \
-            BaseSelenium.locator_finder_by_id(self, remove_results)
+            BasePage.locator_finder_by_id(self, remove_results)
         remove_results.click()
         time.sleep(2)
 
@@ -203,7 +204,7 @@ RETURN c
         """ trigger the spotlight function """
         spot_light = self.query_spot_light_id
         spot_light = \
-            BaseSelenium.locator_finder_by_id(self, spot_light)
+            BasePage.locator_finder_by_id(self, spot_light)
         spot_light.click()
         time.sleep(2)
 
@@ -222,33 +223,33 @@ RETURN c
         # Selecting collections page
         collections = "collections"
         collections = \
-            BaseSelenium.locator_finder_by_id(self, collections)
+            BasePage.locator_finder_by_id(self, collections)
         collections.click()
         time.sleep(1)
 
         col_name = '//*[@id="collection_Characters"]/div/h5'
         col_name = \
-            BaseSelenium.locator_finder_by_xpath(self, col_name)
+            BasePage.locator_finder_by_xpath(self, col_name)
         col_name.click()
         time.sleep(1)
 
         # get key text from the first row
         row_id = "//div[@id='docPureTable']/div[2]/div[1]"
         row_id = \
-            BaseSelenium.locator_finder_by_xpath(self, row_id)
+            BasePage.locator_finder_by_xpath(self, row_id)
         row_id.click()
         time.sleep(1)
 
         doc_key = 'document-key'
         doc_key = \
-            BaseSelenium.locator_finder_by_id(self, doc_key)
+            BasePage.locator_finder_by_id(self, doc_key)
         key = doc_key.text
         time.sleep(2)
 
         # selecting query page
         query_page = self.selecting_query_page_id
         query_page = \
-            BaseSelenium.locator_finder_by_id(self, query_page)
+            BasePage.locator_finder_by_id(self, query_page)
         query_page.click()
 
         time.sleep(1)
@@ -287,7 +288,7 @@ RETURN doc''')
             # downloading query results
             download_query_results = 'downloadQueryResult'
             download_query_results = \
-                BaseSelenium.locator_finder_by_id(self, download_query_results)
+                BasePage.locator_finder_by_id(self, download_query_results)
             download_query_results.click()
             time.sleep(3)
 
@@ -297,7 +298,7 @@ RETURN doc''')
             # downloading CSV query results
             csv = 'downloadCsvResult'
             csv = \
-                BaseSelenium.locator_finder_by_id(self, csv)
+                BasePage.locator_finder_by_id(self, csv)
             csv.click()
             time.sleep(3)
             # self.clear_download_bar()
@@ -346,27 +347,27 @@ FOR doc IN Characters
 
         print('Changing execution format JSON format to Table format\n')
         json = \
-            BaseSelenium.locator_finder_by_id(self, json)
+            BasePage.locator_finder_by_id(self, json)
         json.click()
         time.sleep(3)
 
         print('Changing execution format Table format to JSON format\n')
         table = \
-            BaseSelenium.locator_finder_by_id(self, table)
+            BasePage.locator_finder_by_id(self, table)
         table.click()
         time.sleep(3)
 
         print('Switch output to JSON format \n')
         output_switch_json = 'json-switch'
         output_switch_json = \
-            BaseSelenium.locator_finder_by_id(self, output_switch_json)
+            BasePage.locator_finder_by_id(self, output_switch_json)
         output_switch_json.click()
         time.sleep(3)
 
         print('Switch output to Table format \n')
         output_switch_table = 'table-switch'
         output_switch_table = \
-            BaseSelenium.locator_finder_by_id(self, output_switch_table)
+            BasePage.locator_finder_by_id(self, output_switch_table)
         output_switch_table.click()
         time.sleep(3)
 
@@ -377,7 +378,7 @@ FOR doc IN Characters
         """importing new queries"""
         toggle_query = 'toggleQueries1'
         toggle_query = \
-            BaseSelenium.locator_finder_by_id(self, toggle_query)
+            BasePage.locator_finder_by_id(self, toggle_query)
         toggle_query.click()
         time.sleep(1)
 
@@ -385,13 +386,13 @@ FOR doc IN Characters
         # import query
         imp_query = 'importQuery'
         imp_query = \
-            BaseSelenium.locator_finder_by_id(self, imp_query)
+            BasePage.locator_finder_by_id(self, imp_query)
         imp_query.click()
         time.sleep(1)
 
         imp_queries = 'importQueries'
         imp_queries = \
-            BaseSelenium.locator_finder_by_id(self, imp_queries)
+            BasePage.locator_finder_by_id(self, imp_queries)
         time.sleep(2)
         imp_queries.send_keys(path)
         time.sleep(2)
@@ -399,7 +400,7 @@ FOR doc IN Characters
         # confirm importing queries
         confirm_query = 'confirmQueryImport'
         confirm_query = \
-            BaseSelenium.locator_finder_by_id(self, confirm_query)
+            BasePage.locator_finder_by_id(self, confirm_query)
         confirm_query.click()
         time.sleep(1)
         print('Importing query completed \n')
@@ -407,7 +408,7 @@ FOR doc IN Characters
         print("Checking imported query \n")
         run_query = 'runQuery'
         run_query = \
-            BaseSelenium.locator_finder_by_id(self, run_query)
+            BasePage.locator_finder_by_id(self, run_query)
         run_query.click()
         time.sleep(3)
 
@@ -417,13 +418,13 @@ FOR doc IN Characters
             print('Exporting newly imported query\n')
             select_imp_query = '//*[@id="arangoMyQueriesTable"]/tbody/tr[1]/td[1]'
             select_imp_query = \
-                BaseSelenium.locator_finder_by_xpath(self, select_imp_query)
+                BasePage.locator_finder_by_xpath(self, select_imp_query)
             select_imp_query.click()
             time.sleep(1)
 
             export_query = 'exportQuery'
             export_query = \
-                BaseSelenium.locator_finder_by_id(self, export_query)
+                BasePage.locator_finder_by_id(self, export_query)
             export_query.click()
             # self.clear_download_bar()
         time.sleep(5)
@@ -431,33 +432,30 @@ FOR doc IN Characters
         print('Deleting imported query \n')
         query = '//*[@id="arangoMyQueriesTable"]/tbody/tr[1]/td[1]'
         query = \
-            BaseSelenium.locator_finder_by_xpath(self, query)
+            BasePage.locator_finder_by_xpath(self, query)
         query.click()
         time.sleep(1)
 
         delete_query = 'deleteQuery'
         delete_query = \
-            BaseSelenium.locator_finder_by_id(self, delete_query)
+            BasePage.locator_finder_by_id(self, delete_query)
         delete_query.click()
         time.sleep(1)
 
         del_btn = 'modalButton1'
         del_btn = \
-            BaseSelenium.locator_finder_by_id(self, del_btn)
+            BasePage.locator_finder_by_id(self, del_btn)
         del_btn.click()
         time.sleep(1)
 
         del_confirm_btn = 'modal-confirm-delete'
         del_confirm_btn = \
-            BaseSelenium.locator_finder_by_id(self, del_confirm_btn)
+            BasePage.locator_finder_by_id(self, del_confirm_btn)
         del_confirm_btn.click()
         time.sleep(1)
 
         print('Return back to query execution area \n')
-        editor_btn = '//*[@id="subNavigationBar"]/ul[2]/li[1]'
-        editor_btn = \
-            BaseSelenium.locator_finder_by_xpath(self, editor_btn)
-        editor_btn.click()
+        self.click_submenu_entry("Editor")
         time.sleep(1)
 
     def custom_query(self):
@@ -505,13 +503,11 @@ FOR doc IN Characters
         self.clear_query_area()
 
         print('Checking running query tab\n')
-        slow_query_sitem = self.locator_finder_by_xpath('//*[@id="subNavigationBar"]/ul[2]/li[2]/a')
-        slow_query_sitem.click()
+        self.click_submenu_entry("Running Queries")
         time.sleep(2)
 
         print('Checking slow query history \n')
-        slow_query_history_sitem = self.locator_finder_by_xpath('//*[@id="subNavigationBar"]/ul[2]/li[3]/a')
-        slow_query_history_sitem.click()
+        self.click_submenu_entry("Slow Query History")
         time.sleep(5)
 
         print('Deleting slow query history \n')
@@ -558,7 +554,7 @@ FOR doc IN Characters
         # navigating back to query tab
         query = self.selecting_query_page_id
         query = \
-            BaseSelenium.locator_finder_by_id(self, query)
+            BasePage.locator_finder_by_id(self, query)
         query.click()
         time.sleep(1)
 
@@ -586,7 +582,7 @@ GRAPH "worldCountry"
         # navigating back to query tab
         query = self.selecting_query_page_id
         query = \
-            BaseSelenium.locator_finder_by_id(self, query)
+            BasePage.locator_finder_by_id(self, query)
         query.click()
         time.sleep(1)
 
@@ -611,7 +607,7 @@ LIMIT 4
         print('Switch output to JSON format')
         output_switch_json = 'json-switch'
         output_switch_json = \
-            BaseSelenium.locator_finder_by_id(self, output_switch_json)
+            BasePage.locator_finder_by_id(self, output_switch_json)
         output_switch_json.click()
 
         self.select_query_execution_area()
@@ -622,12 +618,12 @@ LIMIT 4
         print('Switch output to Graph')
         output_switch_graph = 'graph-switch'
         output_switch_graph = \
-            BaseSelenium.locator_finder_by_id(self, output_switch_graph)
+            BasePage.locator_finder_by_id(self, output_switch_graph)
         output_switch_graph.click()
 
         execution_area1 = self.query_execution_area
         execution_area1 = \
-            BaseSelenium.locator_finder_by_xpath(self, execution_area1)
+            BasePage.locator_finder_by_xpath(self, execution_area1)
         execution_area1.click()
         time.sleep(1)
 
@@ -637,14 +633,14 @@ LIMIT 4
         print('Observe current query on Graph viewer \n')
         graph_page_btn = 'copy2gV'
         graph_page_btn = \
-            BaseSelenium.locator_finder_by_id(self, graph_page_btn)
+            BasePage.locator_finder_by_id(self, graph_page_btn)
         graph_page_btn.click()
         time.sleep(5)
 
         print('Navigate back to query page\n')
         query_page = self.selecting_query_page_id
         query_page = \
-            BaseSelenium.locator_finder_by_id(self, query_page)
+            BasePage.locator_finder_by_id(self, query_page)
         query_page.click()
         time.sleep(2)
 
@@ -667,7 +663,7 @@ FOR v, e IN OUTBOUND SHORTEST_PATH "places/Aberdeen" TO "places/London"
         # navigating back to query tab
         query = self.selecting_query_page_id
         query = \
-            BaseSelenium.locator_finder_by_id(self, query)
+            BasePage.locator_finder_by_id(self, query)
         query.click()
         time.sleep(1)
 
@@ -684,7 +680,7 @@ FOR v, e IN OUTBOUND SHORTEST_PATH "places/Aberdeen" TO "places/London"
         print('Switch output to JSON format')
         output_switch_json = 'json-switch'
         output_switch_json = \
-            BaseSelenium.locator_finder_by_id(self, output_switch_json)
+            BasePage.locator_finder_by_id(self, output_switch_json)
         output_switch_json.click()
 
         self.select_query_execution_area()
@@ -693,7 +689,7 @@ FOR v, e IN OUTBOUND SHORTEST_PATH "places/Aberdeen" TO "places/London"
         print('Switch output to Table format')
         output_switch_table = 'table-switch'
         output_switch_table = \
-            BaseSelenium.locator_finder_by_id(self, output_switch_table)
+            BasePage.locator_finder_by_id(self, output_switch_table)
         output_switch_table.click()
 
         self.select_query_execution_area()
@@ -706,7 +702,7 @@ FOR v, e IN OUTBOUND SHORTEST_PATH "places/Aberdeen" TO "places/London"
 
         print('Changing query results size 1000 to 100 \n')
         query_size = self.select_query_size_id
-        BaseSelenium.locator_finder_by_select(self, query_size, 0)
+        BasePage.locator_finder_by_select(self, query_size, 0)
         time.sleep(1)
 
         self.select_query_execution_area()
@@ -727,29 +723,27 @@ RETURN c''')
     def delete_collection(self, collection):
         """Deleting Collection using any collections locator id"""
         collection = \
-            BaseSelenium.locator_finder_by_xpath(self, collection)
+            BasePage.locator_finder_by_xpath(self, collection)
         collection.click()
         settings = self.collection_settings_id
-        settings = \
-            BaseSelenium.locator_finder_by_xpath(self, settings)
-        settings.click()
+        self.click_submenu_entry("Settings")
 
         delete_collection_id = "//*[@id='modalButton0']"
         delete_collection_id = \
-            BaseSelenium.locator_finder_by_xpath(self, delete_collection_id)
+            BasePage.locator_finder_by_xpath(self, delete_collection_id)
         delete_collection_id.click()
         time.sleep(2)
 
         delete_collection_confirm_id = "//*[@id='modal-confirm-delete']"
         delete_collection_confirm_id = \
-            BaseSelenium.locator_finder_by_xpath(self, delete_collection_confirm_id)
+            BasePage.locator_finder_by_xpath(self, delete_collection_confirm_id)
         delete_collection_confirm_id.click()
 
     def delete_all_collections(self):
         """deleting all the collections"""
         collection_page = 'collections'
         collection_page = \
-            BaseSelenium.locator_finder_by_id(self, collection_page)
+            BasePage.locator_finder_by_id(self, collection_page)
         collection_page.click()
         time.sleep(2)
 
@@ -770,37 +764,37 @@ RETURN c''')
         print('Navigating back to graph page \n')
         graph = self.graph_page
         graph = \
-            BaseSelenium.locator_finder_by_id(self, graph)
+            BasePage.locator_finder_by_id(self, graph)
         graph.click()
         time.sleep(2)
 
         graphs_setting_btn_id = \
-            BaseSelenium.locator_finder_by_id(self, graph_id)
+            BasePage.locator_finder_by_id(self, graph_id)
         graphs_setting_btn_id.click()
         time.sleep(1)
 
         confirm = self.confirm_delete_graph_id
         confirm = \
-            BaseSelenium.locator_finder_by_id(self, confirm)
+            BasePage.locator_finder_by_id(self, confirm)
         confirm.click()
         time.sleep(1)
 
         drop = self.drop_graph_collection
         drop = \
-            BaseSelenium.locator_finder_by_id(self, drop)
+            BasePage.locator_finder_by_id(self, drop)
         drop.click()
         time.sleep(1)
 
         really = self.select_really_delete_btn_id
         really = \
-            BaseSelenium.locator_finder_by_id(self, really)
+            BasePage.locator_finder_by_id(self, really)
         really.click()
         time.sleep(3)
 
         # navigate back to query page
         query_page = self.selecting_query_page_id
         query_page = \
-            BaseSelenium.locator_finder_by_id(self, query_page)
+            BasePage.locator_finder_by_id(self, query_page)
         query_page.click()
         time.sleep(3)
 

@@ -3,7 +3,7 @@
 import time
 import pprint
 from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunner
-
+from release_tester.selenium_ui_test.pages.navbar import NavigationBarPage
 from reporting.reporting_utils import step
 
 
@@ -25,7 +25,7 @@ class ActiveFailover(SeleniumRunner):
         self.check_version(cfg)
 
         while retry_count > 0:
-            self.navbar_goto('replication')
+            NavigationBarPage(self.webdriver).navbar_goto('replication')
             replication_table = self.get_replication_screen(True)
             print(replication_table)
             if len(replication_table['follower_table']) != expect_follower_count + 1:
@@ -47,7 +47,7 @@ class ActiveFailover(SeleniumRunner):
     @step
     def jam_step_1(self, cfg, frontend_instance):
         """ check for one set of instances to go away """
-        self.navbar_goto('replication')
+        NavigationBarPage(self.webdriver).navbar_goto('replication')
         replication_table = self.get_replication_screen(True)
         print(replication_table)
         # head and one follower should be there:

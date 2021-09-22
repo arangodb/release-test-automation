@@ -5,6 +5,7 @@ import platform
 
 from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunner
 from selenium.common.exceptions import StaleElementReferenceException
+from release_tester.selenium_ui_test.pages.navbar import NavigationBarPage
 
 from reporting.reporting_utils import step
 
@@ -29,7 +30,7 @@ class Cluster(SeleniumRunner):
         """ check the integrity of the old system before the upgrade """
         self.check_version(cfg)
 
-        self.navbar_goto('nodes')
+        NavigationBarPage(self.webdriver).navbar_goto('nodes')
         table = self.cluster_get_nodes_table()
         row_count = 0
         for row in table:
@@ -39,7 +40,7 @@ class Cluster(SeleniumRunner):
         self.progress('serving instances 6 / %d' % row_count)
         self.ui_assert(row_count == 6, "UI-Test: expected 6 instances")
 
-        self.navbar_goto('cluster')
+        NavigationBarPage(self.webdriver).navbar_goto('cluster')
         node_count = self.cluster_dashboard_get_count()
         self.ui_assert(node_count['dbservers'] == '3',
                        "UI-Test: expected 3 dbservers, got: " + node_count['dbservers'])
@@ -59,7 +60,7 @@ class Cluster(SeleniumRunner):
     def upgrade_deployment(self, old_cfg, new_cfg, timeout):
         old_ver = str(old_cfg.semver)
         new_ver = str(new_cfg.semver)
-        self.navbar_goto('nodes')
+        NavigationBarPage(self.webdriver).navbar_goto('nodes')
         print(old_ver)
         print(new_ver)
         upgrade_done = False
@@ -87,7 +88,7 @@ class Cluster(SeleniumRunner):
             if timeout <= 0:
                 raise TimeoutError("UI-Test: the cluster UI didn't show the new version in time")
         # the version doesn't update automatically, force refresh:
-        self.web.refresh()
+        self.webdriver.refresh()
         ver = self.detect_version()
         self.progress(" ver %s is %s?" % (str(ver), new_ver))
         self.ui_assert(ver['version'].lower().startswith(new_ver),
@@ -97,9 +98,9 @@ class Cluster(SeleniumRunner):
     @step
     def jam_step_1(self, cfg, frontend_instance):
         """ check for one set of instances to go away """
-        self.web.refresh()
+        self.webdriver.refresh()
         time.sleep(2)
-        self.navbar_goto('cluster')
+        NavigationBarPage(self.webdriver).navbar_goto('cluster')
         node_count = None
         done = False
         retry_count = 0
@@ -127,7 +128,7 @@ class Cluster(SeleniumRunner):
         self.ui_assert(health_state != 'NODES OK',
                        "UI-Test: expected health to be NODES OK, have: " + health_state)
 
-        self.navbar_goto('nodes')
+        NavigationBarPage(self.webdriver).navbar_goto('nodes')
         row_count = 0
         retry_count = 0
         while row_count != 4 and retry_count < 10:
@@ -137,7 +138,7 @@ class Cluster(SeleniumRunner):
                     row_count += 1
             retry_count += 1
             if row_count != 4:
-                self.web.refresh()
+                self.webdriver.refresh()
                 time.sleep(2)
                 row_count = 0
 
@@ -159,7 +160,7 @@ class Cluster(SeleniumRunner):
 
     @step
     def jam_step_2(self, cfg):
-        self.navbar_goto('cluster')
+        NavigationBarPage(self.webdriver).navbar_goto('cluster')
         node_count = None
         done = False
         retry_count = 0
