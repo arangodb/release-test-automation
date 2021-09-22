@@ -113,20 +113,20 @@ class GraphPage(BaseSelenium):
         col1 = self.create_new_collection_id
         col1_name = self.new_collection_name_id
         col1_save = self.save_collection_btn_id
-        col1_select = "//*[@id='collection_knows_edge']/div/h5"
+        col1_select = "//*[@id='collection_manual_edge']/div/h5"
         col1_edge_id = "new-collection-type"
         col1_upload = self.select_upload_btn_id
         col1_file = self.select_choose_file_btn_id
         col1_import = self.select_confirm_upload_btn_id
-        path1 = test_data_dir / 'ui_data' / 'graph_page' / 'knows' / 'knows_edge.json'
+        path1 = test_data_dir / 'ui_data' / 'graph_page' / 'knows' / 'manual_edge.json'
 
-        print("Creating knows_edge collections for knows_graph_manual Graph\n")
+        print("Creating manual_edge collections for knows_graph_manual Graph\n")
         col1 = self.locator_finder_by_id(col1)
         col1.click()
 
         col1_name = self.locator_finder_by_id(col1_name)
         col1_name.click()
-        col1_name.send_keys("knows_edge")
+        col1_name.send_keys("manual_edge")
 
         self.locator_finder_by_select(col1_edge_id, 1)
 
@@ -146,11 +146,11 @@ class GraphPage(BaseSelenium):
         time.sleep(2)
         col1_file.send_keys(str(path1.absolute()))
 
-        print("Importing knows_edge.json to the collection\n")
+        print("Importing manual_edge.json to the collection\n")
         col1_import = self.locator_finder_by_id(col1_import)
         col1_import.click()
         time.sleep(2)
-        print("Importing knows_edge.json to the collection completed\n")
+        print("Importing manual_edge.json to the collection completed\n")
 
         self.driver.back()
 
@@ -158,19 +158,19 @@ class GraphPage(BaseSelenium):
         col2 = self.create_new_collection_id
         col2_name = self.new_collection_name_id
         col2_save = self.save_collection_btn_id
-        col2_select = "//*[@id='collection_persons']/div/h5"
+        col2_select = "//*[@id='collection_manual_vertices']/div/h5"
         col2_upload = self.select_upload_btn_id
         col2_file = self.select_choose_file_btn_id
         col2_import = self.select_confirm_upload_btn_id
-        path2 = test_data_dir / 'ui_data' / 'graph_page' / 'knows' / 'persons.json'
+        path2 = test_data_dir / 'ui_data' / 'graph_page' / 'knows' / 'manual_vertices.json'
 
-        print("Creating person_vertices collections for knows_graph_manual Graph\n")
+        print("Creating manual_vertices collections for knows_graph_manual Graph\n")
         col2 = self.locator_finder_by_id(col2)
         col2.click()
 
         col2_name = self.locator_finder_by_id(col2_name)
         col2_name.click()
-        col2_name.send_keys("persons")
+        col2_name.send_keys("manual_vertices")
 
         col2_save = self.locator_finder_by_xpath(col2_save)
         col2_save.click()
@@ -188,11 +188,11 @@ class GraphPage(BaseSelenium):
         time.sleep(2)
         col2_file.send_keys(str(path2.absolute()))
 
-        print("Importing person_vertices.json to the collection\n")
+        print("Importing manual_vertices.json to the collection\n")
         col2_import = self.locator_finder_by_id(col2_import)
         col2_import.click()
         time.sleep(3)
-        print("Importing person_vertices.json to the collection completed\n")
+        print("Importing manual_vertices.json to the collection completed\n")
         self.select_graph_page()
         self.create_knows_manual_graph()
 

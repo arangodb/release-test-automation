@@ -348,7 +348,6 @@ class Test(BaseSelenium):
         user.add_new_user('tester01')
 
         db = DatabasePage(self.driver)
-        db.select_database_page()
         db.create_new_db('Sharded', 0)  # 0 = sharded DB
         db.create_new_db('OneShard', 1)  # 1 = one shard DB
 

@@ -24,6 +24,7 @@ class DatabasePage(BaseSelenium):
 
     def create_new_db(self, db_name, index):
         """Creating new database"""
+        self.select_database_page()
         print(f'Creating {db_name} database started \n')
         create_new_db_btn = self.create_new_db_btn
         create_new_db_btn_sitem = self.locator_finder_by_id(self, create_new_db_btn)
@@ -112,8 +113,6 @@ class DatabasePage(BaseSelenium):
         select_db_btn_id_sitem = self.locator_finder_by_id(self, select_db_btn_id)
         select_db_btn_id_sitem.click()
         time.sleep(3)
-
-        self.select_database_page()
     
     def test_database_expected_error(self):
         """This method will test all negative scenario"""
