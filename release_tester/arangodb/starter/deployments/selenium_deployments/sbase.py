@@ -8,9 +8,8 @@ import time
 from allure_commons._allure import attach
 from allure_commons.types import AttachmentType
 from beautifultable import BeautifulTable
-from selenium.webdriver.common.by import By
 
-from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import (
@@ -20,6 +19,7 @@ from selenium.common.exceptions import (
     NoSuchElementException
 )
 
+from selenium_ui_test.login_page import LoginPage
 from selenium_ui_test.main import Test as UITest
 from reporting.reporting_utils import step, attach_table
 FNRX = re.compile("[\n@]*")
@@ -191,8 +191,8 @@ class SeleniumRunner(ABC):
         self.web.get(self.get_protocol() + "://" +
                      frontend_instance[0].get_public_plain_url() +
                      "/_db/_system/_admin/aardvark/index.html")
-
-        self.login_webif(frontend_instance, database, cfg)
+        login_page = LoginPage(self.web)
+        login_page.login_webif(cfg, "root", frontend_instance[0].get_passvoid())
 
     def xpath(self, path):
         """ shortcut xpath """
@@ -219,142 +219,9 @@ class SeleniumRunner(ABC):
         self.web.get(self.get_protocol() + "://" +
                      frontend_instance[0].get_public_plain_url() +
                      "/_db/_system/_admin/aardvark/index.html")
-        self.login_webif(frontend_instance, database, cfg)
-
-    @step
-    def _login_wait_for_screen(self):
-        """ wait for the browser to show the login screen """
-        try:
-            count = 0
-            while True:
-                count += 1
-                elem = WebDriverWait(self.web, 10).until(
-                    EC.presence_of_element_located((By.TAG_NAME, "html")),
-                    message="UI-Test: page didn't load after 10s"
-                )
-                data = elem.text
-                if len(data) < 0:
-                    self.progress(
-                        'ArangoDB Web Interface not loaded yet, retrying')
-                    time.sleep(2)
-                if count == 10:
-                    if elem is None:
-                        self.progress(" locator has not been found.")
-                        self.web.refresh()
-                        time.sleep(5)
-                    else:
-                        assert "ArangoDB Web Interface" in self.web.title, \
-                            "webif title not found"
-                        break
-        except TimeoutException as ex:
-            self.take_screenshot()
-            raise ex
-        return True
-
-    @step
-    def _login_fill_username(self, frontend_instance, database, cfg, recurse=0):
-        """ fill in the username column """
-        try:
-            logname = WebDriverWait(self.web, 10).until(
-                EC.element_to_be_clickable((By.ID, "loginUsername")),
-                message="UI-Test: loginUsername didn't become clickeable on time. 10s"
-            )
-            logname.click()
-            logname.clear()
-            logname.send_keys("root")
-
-            if logname is None:
-                self.progress("locator loginUsername has not found.")
-                return False
-
-        except StaleElementReferenceException as ex:
-            self.progress("stale element, force reloading with sleep: " +
-                          str(ex))
-            self.web.refresh()
-            time.sleep(5)
-            return self.login_webif(frontend_instance,
-                                    database,
-                                    cfg,
-                                    recurse + 1)
-        return True
-
-    @step
-    def _login_fill_passvoid(self, frontend_instance):
-        """ fill the passvoid and click login """
-        while True:
-            passvoid = self.web.find_element_by_id("loginPassword")
-            txt = passvoid.text
-            print("UI-Test: xxxx [" + txt + "]")
-            if len(txt) > 0:
-                self.progress(
-                    'something was in the passvoid field. retrying. ' +
-                    txt)
-                time.sleep(2)
-                continue
-            passvoid.click()
-            passvoid.clear()
-            passvoid.send_keys(frontend_instance[0].get_passvoid())
-            self.progress("logging in")
-            passvoid.send_keys(Keys.RETURN)
-            break
-        return True
-
-    @step
-    def _login_choose_database(self, frontend_instance, database, cfg, recurse=0):
-        """ choose the database from the second login screen """
-        count = 0
-        while True:
-            count += 1
-            elem = WebDriverWait(self.web, 15).until(
-                EC.presence_of_element_located((By.ID, "loginDatabase")),
-                message="UI-Test: loginDatabase didn't become clickeable on time 15s"
-            )
-            txt = elem.text
-            if txt.find('_system') < 0:
-                if count < 9:
-                    self.take_screenshot()
-                self.progress('_system not found in ' +
-                              txt +
-                              ' ; retrying!')
-                if count == 10:
-                    self.progress('refreshing webpage and retrying...')
-                    self.web.refresh()
-                    time.sleep(5)
-                    return self.login_webif(frontend_instance,
-                                            database,
-                                            cfg,
-                                            recurse + 1)
-                time.sleep(2)
-            else:
-                break
-        elem = WebDriverWait(self.web, 15).until(
-            EC.element_to_be_clickable((By.ID, "goToDatabase")),
-            message="UI-Test: choosing database didn't become clickeable on time 15s"
-        )
-        elem.click()
-        return True
-
-    @step
-    def login_webif(self, frontend_instance, database, cfg, recurse=0):
-        """ log into an arangodb webinterface """
-        if recurse > 10:
-            raise Exception("UI-Test: 10 successless login attempts")
-        try:
-            self._login_wait_for_screen()
-            if not self._login_fill_username(frontend_instance, database, cfg, recurse):
-                return False
-            if not self._login_fill_passvoid(frontend_instance):
-                return False
-            if not self._login_choose_database(frontend_instance, database, cfg, recurse):
-                return False
-            self.progress("we're in!")
-
-            assert "No results found." not in self.web.page_source, \
-                "no results found?"
-        except TimeoutException as ex:
-            self.take_screenshot()
-            raise ex
-        return False
+        
+        login_page = LoginPage(self.web)
+        login_page.login_webif(cfg, 'root', frontend_instance[0].get_passvoid())
 
     @step
     def detect_version(self):
@@ -640,22 +507,22 @@ class SeleniumRunner(ABC):
     def upgrade_deployment(self, old_cfg, new_cfg, timeout):
         """ check the upgrade whether the versions in the table switch etc. """
     @abstractmethod
-    def jam_step_1(self, cfg):
-        """ check the integrity of the old system before the upgrade """
+    def jam_step_1(self, cfg, frontend_instance):
+        """ check the integrity of the system before testing the resillience """
     @abstractmethod
     def jam_step_2(self, cfg):
-        """ check the integrity of the old system before the upgrade """
+        """ check the integrity of the system after testing the resillience """
 
     def check_empty_ui(self):
         """ run all tests that expect the server to be empty """
 
-    def check_full_ui(self, root_passvoid): # , frontend_instance
+    def check_full_ui(self, root_passvoid, frontend_instance):
         """ run all tests that work with data """
         # frontend = frontend_instance[0]
         # ui_test = UITest(frontend.get_passvoid(), frontend.get_endpoint(), self.web)
         ui_test = UITest(root_passvoid, '', self.web)
         self.navbar_goto("users")
-        ui_test.test_user()
+        ui_test.test_user(self.cfg, frontend_instance[0].get_passvoid())
         ui_test.test_collection(self.cfg.test_data_dir.resolve(), self.is_cluster)
         ui_test.test_dashboard(self.cfg.enterprise, self.is_cluster)
         ui_test.test_views(self.is_cluster)

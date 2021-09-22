@@ -25,12 +25,12 @@ import tools.errorhelper as eh
 import tools.interact as ti
 from allure_commons._allure import attach
 
+from arangodb.async_client import CliExecutionException
 from arangodb.bench import load_scenarios
 from arangodb.instance import InstanceType, print_instances_table
 from arangodb.sh import ArangoshExecutor
-from tools.killall import kill_all_processes
 
-from arangodb.async_client import CliExecutionException
+from tools.killall import kill_all_processes
 
 FNRX = re.compile("[\n@ ]*")
 WINVER = platform.win32_ver()

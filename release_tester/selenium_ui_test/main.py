@@ -606,7 +606,7 @@ class Test(BaseSelenium):
 
 
     @testcase
-    def test_user(self):
+    def test_user(self, cfg, root_passvoid):
         """testing user page"""
         print("---------User Test Begin--------- \n")
         login = LoginPage(self.driver)
@@ -627,8 +627,7 @@ class Test(BaseSelenium):
         print("Changing new user DB permission completed. \n")
         login.logout_button()
         print("Re-Login begins with new user\n")
-        login = LoginPage(self.driver)
-        login.login('tester', 'tester')
+        login.login_webif(cfg, 'tester', 'tester')
         print("Re-Login begins with new user completed\n")
 
         print("trying to create collection")
@@ -640,10 +639,8 @@ class Test(BaseSelenium):
 
         # logout from the current user to get back to root
         login.logout_button()
-        del login
         # login back with root user
-        login = LoginPage(self.driver)
-        login.login('root', self.root_passvoid)
+        login.login_webif(cfg, 'root', root_passvoid)
 
         user.user_tab()
         user.selecting_user_tester()
@@ -653,8 +650,7 @@ class Test(BaseSelenium):
         user.saving_user_cfg()
         login.logout_button()
         print("Re-Login begins with new user\n")
-        login = LoginPage(self.driver)
-        login.login('tester', 'tester')
+        login.login_webif(cfg, 'tester', 'tester')
         print("Re-Login begins with new user completed\n")
         print("trying to create collection")
         user.create_sample_collection('read/write')
@@ -662,10 +658,7 @@ class Test(BaseSelenium):
 
         # logout from the current user to get back to root
         login.logout_button()
-        del login
-        # login back with root user
-        login = LoginPage(self.driver)
-        login.login('root', self.root_passvoid)
+        login.login_webif(cfg, 'root', root_passvoid)
 
         del user
         self.driver.refresh()
@@ -676,8 +669,6 @@ class Test(BaseSelenium):
         user.delete_user_btn()
         user.confirm_delete_btn()
         print("Deleting created user completed \n")
-        # login.logout_button()
-        del login
         print("---------User Test Completed---------\n")
 
 

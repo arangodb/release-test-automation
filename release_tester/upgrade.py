@@ -96,7 +96,7 @@ def run_upgrade(old_version, new_version, verbose,
                                 }
                             results.append(one_result)
                             runner.take_screenshot()
-                            runner.agency_acquire_dump()
+                            # TODO runner.agency_acquire_dump()
                             runner.search_for_warnings()
                             kill_all_processes()
                             runner.zip_test_dir()

@@ -118,8 +118,7 @@ class UserPage(BaseSelenium):
     def create_sample_collection(self, test_name):
         """ selecting collection tab """
         try:
-            collection_page_sitem = self.locator_finder_by_id(self.select_collection_page_id)
-            collection_page_sitem.click()
+            self.navbar_goto('collections')
 
             # Clicking on create new collection box
             create_collection_sitem = self.locator_finder_by_id(self.select_create_collection_id)

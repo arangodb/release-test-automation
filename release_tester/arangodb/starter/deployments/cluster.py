@@ -122,7 +122,7 @@ db.testCollection.save({test: "document"})
             self.selenium.set_instances(self.cfg,
                                         self.starter_instances[0].arango_importer,
                                         self.starter_instances[0].arango_restore)
-            self.selenium.check_full_ui(self.passvoid)
+            self.selenium.check_full_ui(self.passvoid, self.starter_instances)
 
     def wait_for_restore_impl(self, backup_starter):
         for starter in self.starter_instances:

@@ -2,8 +2,17 @@
 """
 login to the UI
 """
+import time
 
 from selenium_ui_test.base_selenium import BaseSelenium
+
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import (
+    StaleElementReferenceException
+)
 
 # can't circumvent long lines..
 # pylint: disable=C0301
@@ -22,45 +31,136 @@ class LoginPage(BaseSelenium):
         self.select_db_btn_id = "goToDatabase"
         self.logout_button_id = "userLogoutIcon"
 
-    def enter_username(self, username):
-        """login page entering username"""
-        username_textbox_sitem = self.locator_finder_by_id(self.username_textbox_id)
-        username_textbox_sitem.click()
-        username_textbox_sitem.send_keys(username)
+    def progress(self, arg):
+        """ state print todo """
+        print(arg)
 
-    def enter_password(self, password):
-        """login page entering password"""
-        password_textbox_sitem = self.locator_finder_by_id(self.password_textbox_id)
-        password_textbox_sitem.click()
-        password_textbox_sitem.send_keys(password)
+    def _login_wait_for_screen(self):
+        """ wait for the browser to show the login screen """
+        count = 0
+        while True:
+            count += 1
+            elem = WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.TAG_NAME, "html")),
+                message="UI-Test: page didn't load after 10s"
+            )
+            data = elem.text
+            if len(data) < 0:
+                self.progress(
+                    'ArangoDB Web Interface not loaded yet, retrying')
+                time.sleep(2)
+            if count == 10:
+                if elem is None:
+                    self.progress(" locator has not been found.")
+                    self.driver.refresh()
+                    time.sleep(5)
+                else:
+                    assert "ArangoDB Web Interface" in self.driver.title, \
+                        "webif title not found"
+                    break
+        return True
 
-    def login_btn(self):
-        """login page click on login button"""
-        login_button_sitem = self.locator_finder_by_id(self.login_button_id)
-        login_button_sitem.click()
+    def _login_fill_username(self, cfg, user, passvoid, database, recurse=0):
+        """ fill in the username column """
+        try:
+            logname = WebDriverWait(self.driver, 10).until(
+                EC.element_to_be_clickable((By.ID, "loginUsername")),
+                message="UI-Test: loginUsername didn't become clickeable on time. 10s"
+            )
+            logname.click()
+            logname.clear()
+            logname.send_keys(user)
 
-    def select_db_opt(self, index):
-        """login page selecting database by default it's _system"""
-        self.locator_finder_by_select(self.select_db_opt_id, index)
+            if logname is None:
+                self.progress("locator loginUsername has not found.")
+                return False
 
-    def select_db(self):
-        """select db"""
-        select_db_btn_sitem = self.locator_finder_by_id(self.select_db_btn_id)
-        select_db_btn_sitem.click()
+        except StaleElementReferenceException as ex:
+            self.progress("stale element, force reloading with sleep: " +
+                          str(ex))
+            self.driver.refresh()
+            time.sleep(5)
+            return self.login_webif(cfg,
+                                    user,
+                                    passvoid,
+                                    database, 
+                                    recurse + 1)
+        return True
 
-    def login(self, username, password, db_index=0):  # 0 = default database
-        """This login method will call repeatedly before each tab test"""
-        print("Login begin with root user\n")
-        self.enter_username(username)
-        self.enter_password(password)
-        self.login_btn()
-        print("Selecting DB \n")
-        self.select_db_opt(db_index)  # selecting default database _system
-        self.select_db()
-        print("Login completed with root user\n")
+    def _login_fill_passvoid(self, passvoid):
+        """ fill the passvoid and click login """
+        while True:
+            passvoid_elm = self.driver.find_element_by_id("loginPassword")
+            txt = passvoid_elm.text
+            print("UI-Test: xxxx [" + txt + "]")
+            if len(txt) > 0:
+                self.progress(
+                    'something was in the passvoid field. retrying. ' +
+                    txt)
+                time.sleep(2)
+                continue
+            passvoid_elm.click()
+            passvoid_elm.clear()
+            passvoid_elm.send_keys(passvoid)
+            self.progress("logging in")
+            passvoid_elm.send_keys(Keys.RETURN)
+            break
+        return True
+
+    def _login_choose_database(self, cfg, user, passvoid, database, recurse=0):
+        """ choose the database from the second login screen """
+        count = 0
+        while True:
+            count += 1
+            elem = WebDriverWait(self.driver, 15).until(
+                EC.presence_of_element_located((By.ID, "loginDatabase")),
+                message="UI-Test: loginDatabase didn't become clickeable on time 15s"
+            )
+            txt = elem.text
+            if txt.find(database) < 0:
+                self.progress(database + ' not found in ' +
+                              txt +
+                              ' ; retrying!')
+                if count == 10:
+                    self.progress('refreshing webpage and retrying...')
+                    self.driver.refresh()
+                    time.sleep(5)
+                    return self.login_webif(cfg,
+                                            user,
+                                            passvoid,
+                                            database,
+                                            recurse + 1)
+                time.sleep(2)
+            else:
+                break
+        elem = WebDriverWait(self.driver, 15).until(
+            EC.element_to_be_clickable((By.ID, "goToDatabase")),
+            message="UI-Test: choosing database didn't become clickeable on time 15s"
+        )
+        elem.click()
+        return True
+
+    def login_webif(self, cfg, user, passvoid, database="_system", recurse=0):
+        """ log into an arangodb webinterface """
+        print("Logging %s into %s with passvoid %s" %(user, database, passvoid))
+        if recurse > 10:
+            raise Exception("UI-Test: 10 successless login attempts")
+        self._login_wait_for_screen()
+        if not self._login_fill_username(cfg, user, passvoid, database, recurse):
+            return False
+        if not self._login_fill_passvoid(passvoid):
+            return False
+        if not self._login_choose_database(cfg, user, passvoid, database, recurse):
+            return False
+        self.progress("we're in!")
+
+        assert "No results found." not in self.driver.page_source, \
+            "no results found?"
+        return False
 
     def logout_button(self):
         """selecting user logout button"""
         logout_button_sitem = self.locator_finder_by_text_id(self.logout_button_id)
         logout_button_sitem.click()
         print("Logout from the current user\n")
+        self.wait_for_ajax()

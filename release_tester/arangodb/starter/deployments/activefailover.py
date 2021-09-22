@@ -119,7 +119,7 @@ class ActiveFailover(Runner):
         logging.info("instances are ready, detecting leader")
         self._detect_leader()
         self.selenium.set_instances(self.cfg, self.leader.arango_importer, self.leader.arango_restore)
-        self.selenium.connect_server(self.get_frontend_instances(), '_system', self.cfg)
+        # self.selenium.connect_server(self.get_frontend_instances(), '_system', self.cfg)
 
         #add data to leader
         self.makedata_instances.append(self.leader)
@@ -172,7 +172,7 @@ class ActiveFailover(Runner):
             self.selenium.set_instances(self.cfg,
                                         self.leader.arango_importer,
                                         self.leader.arango_restore)
-            self.selenium.check_full_ui(self.passvoid)
+            self.selenium.check_full_ui(self.passvoid, [self.leader])
 
     def wait_for_restore_impl(self, backup_starter):
         backup_starter.wait_for_restore()

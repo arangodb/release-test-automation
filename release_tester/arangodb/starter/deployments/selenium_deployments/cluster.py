@@ -95,7 +95,7 @@ class Cluster(SeleniumRunner):
         # TODO self.check_full_ui(new_cfg)
 
     @step
-    def jam_step_1(self, cfg):
+    def jam_step_1(self, cfg, frontend_instance):
         """ check for one set of instances to go away """
         self.web.refresh()
         time.sleep(2)

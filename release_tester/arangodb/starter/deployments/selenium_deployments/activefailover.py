@@ -45,7 +45,7 @@ class ActiveFailover(SeleniumRunner):
         """ nothing to see here """
 
     @step
-    def jam_step_1(self, cfg):
+    def jam_step_1(self, cfg, frontend_instance):
         """ check for one set of instances to go away """
         self.navbar_goto('replication')
         replication_table = self.get_replication_screen(True)
@@ -54,7 +54,7 @@ class ActiveFailover(SeleniumRunner):
         self.ui_assert(len(replication_table['follower_table']) == 2,
                        "UI-Test:\nexpect 2 followers in:\n %s" % pprint.pformat(
                            replication_table))
-        self.check_full_ui(cfg)
+        self.check_full_ui(cfg, frontend_instance)
 
     def jam_step_2(self, cfg):
         pass

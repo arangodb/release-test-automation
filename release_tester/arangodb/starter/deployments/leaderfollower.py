@@ -197,7 +197,7 @@ process.exit(0);
             self.selenium.set_instances(self.cfg,
                                         self.leader_starter_instance.arango_importer,
                                         self.leader_starter_instance.arango_restore)
-            self.selenium.check_full_ui(self.passvoid)
+            self.selenium.check_full_ui(self.passvoid, [self.leader_starter_instance])
 
         logging.info("Leader follower setup successfully finished!")
 
