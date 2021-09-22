@@ -153,6 +153,7 @@ class LoginPage(BaseSelenium):
         if not self._login_choose_database(cfg, user, passvoid, database, recurse):
             return False
         self.progress("we're in!")
+        self.wait_for_ajax()
 
         assert "No results found." not in self.driver.page_source, \
             "no results found?"

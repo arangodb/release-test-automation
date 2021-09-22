@@ -407,6 +407,7 @@ class BaseSelenium:
         """ click on any of the items in the 'navbar' """
         count = 0
         print("navbar goto %s"% tag)
+        self.wait_for_ajax()
         while True:
             try:
                 elem = self.driver.find_element_by_id(tag)
@@ -417,6 +418,7 @@ class BaseSelenium:
                 if not self.driver.current_url.endswith('#'+ tag):
                     # retry...
                     continue
+                self.wait_for_ajax()
                 return
             except NoSuchElementException:
                 print('retrying to switch to ' + tag)
