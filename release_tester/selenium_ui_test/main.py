@@ -92,7 +92,7 @@ class Test(BaseSelenium):
         #login.login('root', self.root_passvoid)
         # creating object for dashboard
         dash = DashboardPage(self.driver, is_enterprise)
-        dash.navbar_goto('dashboard')
+        dash.navbar_goto('cluster' if is_cluster else 'dashboard')
         dash.check_server_package_name()
         dash.check_current_package_version()
         dash.check_current_username()
