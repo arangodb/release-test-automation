@@ -65,7 +65,7 @@ class SeleniumRunner(ABC):
         self.original_window_handle = None
         self.state = ""
         time.sleep(3)
-        self.web.set_window_size(1920, 1080)
+        self.webdriver.set_window_size(1920, 1080)
         time.sleep(3)
         self.importer = None
         self.restorer = None
