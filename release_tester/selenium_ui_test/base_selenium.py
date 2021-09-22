@@ -11,6 +11,7 @@ from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By as BY
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
@@ -429,3 +430,11 @@ class BaseSelenium:
             #except TimeoutException as ex:
                 #self.take_screenshot()
             #    raise ex
+
+    def choose_item_from_a_dropdown_menu(self, element: WebElement, item_text: str):
+        """Given a drop-down menu element,
+        click on it to open the menu and then click on an item with given text."""
+        element.click()
+        item_locator = """//ul[@class="select2-results"]/li/div[text()='%s']""" % item_text
+        item_element = self.locator_finder_by_xpath(item_locator)
+        item_element.click()

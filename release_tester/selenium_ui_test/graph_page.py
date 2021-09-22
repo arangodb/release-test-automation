@@ -209,7 +209,6 @@ class GraphPage(BaseSelenium):
         # list of id's for manual graph
         new_graph = self.select_new_graph_name_id
         edge_definition = "row_newEdgeDefinitions0"
-        edge_collection_list_item = """//ul[@class="select2-results"]/li/div[text()='knows_edge']"""
         from_collection = "s2id_fromCollections0"
         to_collection = "s2id_toCollections0"
         create_btn_id = "modalButton1"
@@ -222,9 +221,7 @@ class GraphPage(BaseSelenium):
 
         # selecting edge definition from auto suggestion
         edge_definition_sitem = self.locator_finder_by_id(edge_definition)
-        edge_definition_sitem.click()
-        edge_collection = self.locator_finder_by_xpath(edge_collection_list_item)
-        edge_collection.click()
+        self.choose_item_from_a_dropdown_menu(edge_definition_sitem, "manual_edge")
 
         # selecting from collection from auto suggestion
         from_collection_sitem = self.locator_finder_by_id(from_collection)
@@ -796,7 +793,7 @@ GRAPH_SETS = [
     ]),
     GraphCreateSet("Manual Knows",
                    "knows_graph_manual_settings", [
-                       VCol('persons'), ECol('knows_edge')
+                       VCol('persons'), ECol('manual_edge')
                    ],
                    GraphPage.create_manual_graph, ),
 
