@@ -43,7 +43,7 @@ def upgrade_package_test(verbose,
                          remote_host, force,
                          starter_mode, stress_upgrade,
                          publicip, selenium, selenium_driver_args,
-                         alluredir, clean_alluredir):
+                         alluredir, clean_alluredir, ssl, use_auto_certs):
     """ process fetch & tests """
     old_version_state = None
     new_version_state = None
@@ -68,6 +68,11 @@ def upgrade_package_test(verbose,
         run_cleanup(zip_package, testrun_name)
 
     print("Cleanup done")
+
+    # Configure Chrome to accept self-signed SSL certs and certs signed by unknown CA.
+    # FIXME: Add custom CA to Chrome to properly validate server cert.
+    if ssl:
+        selenium_driver_args += ("ignore-certificate-errors",)
 
     for enterprise, encryption_at_rest, directory_suffix, testrun_name in execution_plan:
         #pylint: disable=W0612
@@ -119,6 +124,8 @@ def upgrade_package_test(verbose,
             test_dir = Path(test_data_dir) / directory_suffix
             if test_dir.exists():
                 shutil.rmtree(test_dir)
+                if "REQUESTS_CA_BUNDLE" in os.environ:
+                    del os.environ["REQUESTS_CA_BUNDLE"]
             test_dir.mkdir()
             while not test_dir.exists():
                 time.sleep(1)
@@ -132,7 +139,7 @@ def upgrade_package_test(verbose,
                             zip_package, False,
                             starter_mode, stress_upgrade, False,
                             publicip, selenium, selenium_driver_args,
-                            testrun_name))
+                            testrun_name, ssl, use_auto_certs))
 
 
     print('V' * 80)
@@ -194,7 +201,7 @@ def main(
         #very_common_options
         new_version, verbose, enterprise, package_dir, zip_package,
         # common_options
-        old_version, test_data_dir, encryption_at_rest, alluredir, clean_alluredir,
+        old_version, test_data_dir, encryption_at_rest, alluredir, clean_alluredir, ssl, use_auto_certs,
         # no-interactive!
         starter_mode, stress_upgrade, abort_on_error, publicip,
         selenium, selenium_driver_args,
@@ -214,7 +221,7 @@ def main(
                                 remote_host, force,
                                 starter_mode, stress_upgrade,
                                 publicip, selenium, selenium_driver_args,
-                                alluredir, clean_alluredir)
+                                alluredir, clean_alluredir, ssl, use_auto_certs)
 
 if __name__ == "__main__":
 # pylint: disable=E1120 # fix clickiness.

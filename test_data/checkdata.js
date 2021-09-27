@@ -102,10 +102,6 @@ function validateDocumentWorksInOneShard(db, baseName, count) {
 }
 
 function testSmartGraphValidator(ccount) {
-  // Temporarily disable Validator Tests.
-  // Due to our missconfigured jenkins it was impossible to test
-  // this before merge, now it is all broken and needs time to be fixed.
-  return {fail : false};
   if (!isCluster || !flags.hasSmartGraphValidator()) {
     // Feature does not exist, no need to test:
     return {fail: false};
@@ -174,20 +170,20 @@ function checkFoxxService() {
     '/_db/_system/itz/index',
     '/_db/_system/crud/xxx'
   ].forEach(route => {
-    for (i=0; i < 200; i++) {
+    for (let i=0; i < 200; i++) {
       try {
         reply = arango.GET_RAW(route, onlyJson);
-        if (reply.code == "200") {
+        if (reply.code === 200) {
           print(route + " OK");
           return;
         }
-        msg = JSON.stringify(reply);
+        let msg = JSON.stringify(reply);
         if (reply.hasOwnProperty('parsedBody')) {
           msg = " '" + reply.parsedBody.errorNum + "' - " + reply.parsedBody.errorMessage;
         }
-        print(route + " Not yet ready, retrying: " + msg)
+        print(route + " Not yet ready, retrying: " + msg);
       } catch (e) {
-        print(route + " Caught - need to retry. " + JSON.stringify(e))
+        print(route + " Caught - need to retry. " + JSON.stringify(e));
       }
       internal.sleep(3);
     }
@@ -217,7 +213,7 @@ function checkFoxxService() {
 
   print("Foxx: crud testing POST xxx");
   
-  reply = arango.POST_RAW('/_db/_system/crud/xxx', {_key: "test"})
+  reply = arango.POST_RAW('/_db/_system/crud/xxx', {_key: "test"});
   if (options.readOnly) {
     assertEqual(reply.code, "400");
   } else {
@@ -234,7 +230,7 @@ function checkFoxxService() {
     assertEqual(parsedBody.length, 1);
   }
 
-  print('Foxx: crud testing delete document')
+  print('Foxx: crud testing delete document');
   reply = arango.DELETE_RAW('/_db/_system/crud/xxx/' + 'test');
   if (options.readOnly) {
     assertEqual(reply.code, "400");

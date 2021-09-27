@@ -41,7 +41,7 @@ from reporting.reporting_utils import attach_table, step
 
 ON_WINDOWS = (sys.platform == 'win32')
 
-
+# pylint: disable=C0302
 class StarterManager():
     """ manages one starter instance"""
     # pylint: disable=R0913 disable=R0902 disable=W0102 disable=R0915 disable=R0904 disable=E0202
@@ -60,6 +60,7 @@ class StarterManager():
         #self.moreopts += ["--all.log.level=arangosearch=trace"]
         #self.moreopts += ["--all.log.level=startup=trace"]
         #self.moreopts += ["--all.log.level=engines=trace"]
+        self.moreopts += ["--all.log.level=backup=trace"]
 
         #directories
         self.raw_basedir = install_prefix
@@ -99,6 +100,10 @@ class StarterManager():
             self.get_jwt_header()
 
         self.passvoidfile = Path(str(self.basedir) + '_passvoid')
+
+        if self.cfg.ssl and self.cfg.use_auto_certs:
+            self.moreopts += ["--ssl.auto-key"]
+
         # arg mode
         self.mode = mode
         if self.mode:
@@ -332,11 +337,12 @@ class StarterManager():
                     headers ['Authorization'] = 'Bearer ' + str(self.get_jwt_header())
                     base_url = instance.get_public_plain_url()
                     reply = verb_method(
-                        'http://' + base_url + url,
+                        self.get_http_protocol() + '://' + base_url + url,
                         data=data,
                         headers=headers,
                         allow_redirects=False,
-                        timeout=timeout
+                        timeout=timeout,
+                        verify = False
                     )
                     # print(reply.text)
                     results.append(reply)
@@ -521,16 +527,17 @@ class StarterManager():
                                   kill_instance=False):
         """ launch the instances of this starter with optional arguments """
         for instance_type in which_instances:
-            for i in self.all_instances:
-                if i.instance_type == instance_type:
+            for instance in self.all_instances:
+                if instance.instance_type == instance_type:
                     if kill_instance:
-                        i.kill_instance()
-                    i.launch_manual_from_instance_control_file(
+                        instance.kill_instance()
+                    instance.launch_manual_from_instance_control_file(
                         self.cfg.sbin_dir,
                         self.old_install_prefix,
                         self.cfg.install_prefix,
                         moreargs,
                         waitpid)
+
 
     @step
     def manually_launch_instances_for_upgrade(self,
@@ -610,7 +617,7 @@ class StarterManager():
             self.cfg.bin_dir / 'arangodb',
             'upgrade',
             '--starter.endpoint',
-            'http://127.0.0.1:' + str(self.get_my_port())
+            self.get_http_protocol() + '://127.0.0.1:' + str(self.get_my_port())
         ]
         logging.info("StarterManager: Commanding upgrade %s", str(args))
         self.upgradeprocess = psutil.Popen(args,
@@ -818,7 +825,8 @@ class StarterManager():
                                                   self.cfg.localhost,
                                                   self.cfg.publicip,
                                                   Path(root) / name,
-                                                  self.passvoid)
+                                                  self.passvoid,
+                                                  self.cfg.ssl)
                         instance.wait_for_logfile(tries)
                         instance.detect_pid(
                             ppid=self.instance.pid,
@@ -1027,6 +1035,14 @@ class StarterManager():
         logfile = str(self.log_file)
         attach.file(logfile, "Starter log file", AttachmentType.TEXT)
 
+    # pylint: disable=R1705
+    def get_http_protocol(self):
+        """get HTTP protocol for this starter(http/https)"""
+        if self.cfg.ssl:
+            return "https"
+        else:
+            return "http"
+
 
 class StarterNonManager(StarterManager):
     """ this class is a dummy starter manager to work with similar interface """
@@ -1051,7 +1067,8 @@ class StarterNonManager(StarterManager):
                                      basecfg.frontends[basecfg.index].ip,
                                      basecfg.frontends[basecfg.index].ip,
                                      Path('/'),
-                                     self.cfg.passvoid)
+                                     self.cfg.passvoid,
+                                     self.cfg.ssl)
         self.all_instances.append(inst)
         basecfg.index += 1
 

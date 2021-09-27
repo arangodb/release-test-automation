@@ -201,6 +201,7 @@ class InstallerBase(ABC):
         self.check_stripped = True
         self.check_symlink = True
         self.instance = None
+        self.starter_versions = {}
 
     def reset_version(self, version):
         """ re-configure the version we work with """
@@ -263,7 +264,7 @@ class InstallerBase(ABC):
         """ store our config to disk - so we can be invoked partly """
         cfg_file = Path()
         if IS_WINDOWS:
-            cfg_file = Path('c:/') / 'tmp' / 'config.yml'
+            cfg_file = Path(os.environ["WORKSPACE_TMP"]) / 'config.yml'
         else:
             cfg_file = Path('/') / 'tmp' / 'config.yml'
         return cfg_file
@@ -469,3 +470,22 @@ class InstallerBase(ABC):
                                          self.cfg.log_dir),
                                         self.cfg.passvoid,
                                         True)
+
+    def get_starter_version(self):
+        """ find out the version of the starter in this package """
+        if self.starter_versions == {}:
+            starter_version_proc = psutil.Popen([
+                str(self.cfg.bin_dir / 'arangodb'),
+                '--version'
+            ],
+                                                stdout=subprocess.PIPE,
+                                                stderr=subprocess.PIPE)
+            (version_b, err) = starter_version_proc.communicate()
+            starter_version_proc.wait()
+            version_str = version_b.decode("utf-8")
+            string_array = version_str.split(", ")
+            for one_str in string_array:
+                splitted = one_str.split(" ")
+                self.starter_versions[splitted[0]] = splitted[1]
+            print("Starter version: " + str(self.starter_versions))
+        return semver.VersionInfo.parse(self.starter_versions['Version'])

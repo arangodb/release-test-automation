@@ -1,19 +1,20 @@
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
-import time
 import logging
-from pathlib import Path
 import re
+import time
+from pathlib import Path
 
-import psutil
 import requests
 import semver
+from arangodb.instance import InstanceType
+from arangodb.starter.deployments.runner import Runner, RunnerProperties
 from arangodb.starter.manager import StarterManager
 from arangodb.sync import SyncManager
-from arangodb.starter.deployments.runner import Runner, PunnerProperties
-from arangodb.instance import InstanceType
 from tools.asciiprint import print_progress as progress
 from tools.versionhelper import is_higher_version
+
+from arangodb.async_client import CliExecutionException
 
 SYNC_VERSIONS = {
     "140": semver.VersionInfo.parse('1.4.0'),
@@ -22,6 +23,10 @@ SYNC_VERSIONS = {
     "220": semver.VersionInfo.parse('2.2.0'),
     "230": semver.VersionInfo.parse('2.3.0'),
     "260": semver.VersionInfo.parse('2.6.0')
+}
+
+STARTER_VERSIONS = {
+    "152": semver.VersionInfo.parse('0.15.2')
 }
 USERS_ERROR_RX = re.compile('.*\n*.*\n*.*\n*.*(_users).*DIFFERENT.*', re.MULTILINE)
 STATUS_INACTIVE = "inactive"
@@ -40,8 +45,7 @@ def _get_sync_status(cluster):
     token = cluster_instance.get_jwt_token_from_secret_file(cluster["SyncSecret"])
     url = 'https://' + cluster_instance.get_sync_master().get_public_plain_url() + '/_api/sync'
     response = requests.get(url,
-                            headers=_create_headers(token),
-                            verify=False)
+                            headers=_create_headers(token))
 
     if response.status_code != 200:
         raise Exception("could not fetch arangosync status from {url}, status code: {status_code}".
@@ -83,9 +87,10 @@ class Dc2Dc(Runner):
     # pylint: disable=R0913 disable=R0902
     def __init__(self, runner_type, abort_on_error, installer_set,
                  selenium, selenium_driver_args,
-                 testrun_name: str):
+                 testrun_name: str, ssl: bool,
+                 use_auto_certs: bool):
         super().__init__(runner_type, abort_on_error, installer_set,
-                         PunnerProperties('DC2DC', 0, 4500, True),
+                         RunnerProperties('DC2DC', 0, 4500, True, ssl, use_auto_certs),
                          selenium, selenium_driver_args,
                          testrun_name)
         self.success = True
@@ -94,72 +99,69 @@ class Dc2Dc(Runner):
         self.sync_version = None
         self.cluster1 = {}
         self.cluster2 = {}
-        self.certificate_auth = {}
         self.source_dc = None
         self.min_replication_factor = 2
         # self.hot_backup = False
 
     def starter_prepare_env_impl(self):
-        def cert_op(args):
-            print(args)
-            create_cert = psutil.Popen([self.cfg.bin_dir / 'arangodb',
-                                        'create'] +
-                                       args)
-            print("creating cert with PID:" + str(create_cert.pid))
-            create_cert.wait()
         datadir = Path('data')
-        cert_dir = self.cfg.base_test_dir / self.basedir / "certs"
-        print(cert_dir)
-        cert_dir.mkdir(parents=True, exist_ok=True)
-        cert_dir.mkdir(parents=True, exist_ok=True)
+        self.create_cert_dir()
         def getdirs(subdir):
             return {
                 "dir": self.basedir /
                        self.cfg.base_test_dir /
                        self.basedir / datadir,
                 "instance_dir": subdir,
-                "SyncSecret": cert_dir / subdir / 'syncmaster.jwtsecret',
-                "JWTSecret": cert_dir / subdir / 'arangodb.jwtsecret',
-                "tlsKeyfile": cert_dir / subdir / 'tls.keyfile',
+                "SyncSecret": self.cert_dir / subdir / 'syncmaster.jwtsecret',
+                "JWTSecret": self.cert_dir / subdir / 'arangodb.jwtsecret',
+                "tlsKeyfile": self.cert_dir / subdir / 'tls.keyfile',
             }
 
         self.cluster1 = getdirs(Path('cluster1'))
         self.cluster2 = getdirs(Path('cluster2'))
-        client_cert = cert_dir / 'client-auth-ca.crt'
-        self.certificate_auth = {
-            "cert": cert_dir / 'tls-ca.crt',
-            "key": cert_dir / 'tls-ca.key',
-            "clientauth_key": cert_dir / 'client-auth-ca.key',
-            "clientkeyfile": cert_dir / 'client-auth-ca.keyfile'
-        }
+        client_cert = self.cert_dir / 'client-auth-ca.crt'
+        self.certificate_auth["clientauth_key"] = self.cert_dir / 'client-auth-ca.key'
+        self.certificate_auth["clientkeyfile"] = self.cert_dir / 'client-auth.keyfile'
+
         logging.info('Create TLS certificates')
-        cert_op(['tls', 'ca',
-                 '--cert=' + str(self.certificate_auth["cert"]),
-                 '--key=' + str(self.certificate_auth["key"])])
-        cert_op(['tls', 'keyfile',
+        self.create_tls_ca_cert()
+        self.cert_op(['tls', 'keyfile',
                  '--cacert=' + str(self.certificate_auth["cert"]),
                  '--cakey=' + str(self.certificate_auth["key"]),
                  '--keyfile=' + str(self.cluster1["tlsKeyfile"]),
                  '--host=' + self.cfg.publicip, '--host=localhost'])
-        cert_op(['tls', 'keyfile',
+        self.cert_op(['tls', 'keyfile',
                  '--cacert=' + str(self.certificate_auth["cert"]),
                  '--cakey=' + str(self.certificate_auth["key"]),
                  '--keyfile=' + str(self.cluster2["tlsKeyfile"]),
                  '--host=' + self.cfg.publicip, '--host=localhost'])
         logging.info('Create client authentication certificates')
-        cert_op(['client-auth', 'ca',
+        self.cert_op(['client-auth', 'ca',
                  '--cert=' + str(client_cert),
                  '--key=' + str(self.certificate_auth["clientauth_key"])])
-        cert_op(['client-auth', 'keyfile',
+        self.cert_op(['client-auth', 'keyfile',
                  '--cacert=' + str(client_cert),
                  '--cakey=' + str(self.certificate_auth["clientauth_key"]),
                  '--keyfile=' + str(self.certificate_auth["clientkeyfile"])])
         logging.info('Create JWT secrets')
         for node in [self.cluster1, self.cluster2]:
-            cert_op(['jwt-secret', '--secret=' + str(node["SyncSecret"])])
-            cert_op(['jwt-secret', '--secret=' + str(node["JWTSecret"])])
+            self.cert_op(['jwt-secret', '--secret=' + str(node["SyncSecret"])])
+            self.cert_op(['jwt-secret', '--secret=' + str(node["JWTSecret"])])
 
         def add_starter(val, port):
+            opts = [
+                    '--all.log.level=backup=trace',
+                    '--all.log.level=requests=debug',
+                    '--starter.sync',
+                    '--starter.local',
+                    '--auth.jwt-secret=' +           str(val["JWTSecret"]),
+                    '--sync.server.keyfile=' +       str(val["tlsKeyfile"]),
+                    '--sync.server.client-cafile=' + str(client_cert),
+                    '--sync.master.jwt-secret=' +    str(val["SyncSecret"]),
+                    '--starter.address=' +           self.cfg.publicip
+                ]
+            if self.cfg.ssl and not self.cfg.use_auto_certs:
+                opts.append('--ssl.keyfile=' + str(val["tlsKeyfile"]))
             val["instance"] = StarterManager(
                 self.cfg,
                 val["dir"], val["instance_dir"],
@@ -182,17 +184,7 @@ class Dc2Dc(Runner):
                     InstanceType.SYNCWORKER,
                     InstanceType.SYNCWORKER
                 ],
-                moreopts=[
-                    '--all.log.level=backup=trace',
-                    '--all.log.level=requests=debug',
-                    '--starter.sync',
-                    '--starter.local',
-                    '--auth.jwt-secret=' +           str(val["JWTSecret"]),
-                    '--sync.server.keyfile=' +       str(val["tlsKeyfile"]),
-                    '--sync.server.client-cafile=' + str(client_cert),
-                    '--sync.master.jwt-secret=' +    str(val["SyncSecret"]),
-                    '--starter.address=' +           self.cfg.publicip
-                ])
+                moreopts=opts)
             val["instance"].set_jwt_file(val["JWTSecret"])
             if port is None:
                 val["instance"].is_leader = True
@@ -238,9 +230,10 @@ class Dc2Dc(Runner):
                                         self.certificate_auth,
                                         from_to_dc,
                                         self.sync_version)
-        (success, output, _, _) = self.sync_manager.run_syncer()
-        if not success:
-            raise Exception("starting the synchronisation failed!" + str(output))
+        try:
+            (success, output, _, _) = self.sync_manager.run_syncer()
+        except CliExecutionException as e:
+            raise Exception("starting the synchronisation failed!" + str(e.execution_result[1])) from e
         self.progress(True, "SyncManager: up %s", output)
 
     def finish_setup_impl(self):
@@ -273,8 +266,7 @@ class Dc2Dc(Runner):
         url = cluster_instance.get_sync_master().get_public_plain_url()
         url = 'https://' + url + '/_api/version'
         response = requests.get(url,
-                                headers=_create_headers(token),
-                                verify=False)
+                                headers=_create_headers(token))
 
         if response.status_code != 200:
             raise Exception("could not fetch arangosync version from {0}".format(url))
@@ -289,17 +281,17 @@ class Dc2Dc(Runner):
         output = ""
         success = True
 
-        timeout_start = time.time()
-        if self._is_higher_sync_version(SYNC_VERSIONS['150'], SYNC_VERSIONS['230']):
-            success, output, _, _ = self.sync_manager.stop_sync(timeout)
-        else:
-            # Arangosync with the bug for checking in-sync status.
-            self.progress(True, "arangosync: stopping sync without checking if shards are in-sync")
-            success, output, _, _ = self.sync_manager.stop_sync(timeout, ['--ensure-in-sync=false'])
-
-        if not success:
-            self.state += "\n" + output
-            raise Exception("failed to stop the synchronization")
+        try:
+            timeout_start = time.time()
+            if self._is_higher_sync_version(SYNC_VERSIONS['150'], SYNC_VERSIONS['230']):
+                success, output, _, _ = self.sync_manager.stop_sync(timeout)
+            else:
+                # Arangosync with the bug for checking in-sync status.
+                self.progress(True, "arangosync: stopping sync without checking if shards are in-sync")
+                success, output, _, _ = self.sync_manager.stop_sync(timeout, ['--ensure-in-sync=false'])
+        except CliExecutionException as e:
+            self.state += "\n" + e.execution_result[1]
+            raise Exception("failed to stop the synchronization") from e
 
         if not self._is_higher_sync_version(SYNC_VERSIONS['180'], SYNC_VERSIONS['260']):
             print("Wait for the inactive replication on all clusters")
@@ -313,7 +305,8 @@ class Dc2Dc(Runner):
 
                 time.sleep(2)
 
-        raise Exception("failed to stop the synchronization, source status: "+status_source+", target status: "+status_target)
+        raise Exception("failed to stop the synchronization, source status: "
+                        +status_source+", target status: "+status_target)
 
     def _mitigate_known_issues(self, last_sync_output):
         """
@@ -412,18 +405,32 @@ class Dc2Dc(Runner):
         self.sync_manager.replace_binary_for_upgrade(self.new_cfg)
         self.cluster1["instance"].replace_binary_for_upgrade(self.new_cfg)
         self.cluster2["instance"].replace_binary_for_upgrade(self.new_cfg)
-        self.cluster1["instance"].command_upgrade()
-        self.cluster2["instance"].command_upgrade()
+        if self.new_installer.get_starter_version() >= STARTER_VERSIONS["152"]:
+            print("Attempting parallel upgrade")
+            self.cluster1["instance"].command_upgrade()
+            self.cluster2["instance"].command_upgrade()
+            # workaround: kill the sync'ers by hand, the starter doesn't
+            # self._stop_sync()
+            self.cluster1["instance"].kill_sync_processes()
+            self.cluster2["instance"].kill_sync_processes()
+            self.cluster1["instance"].wait_for_upgrade(300)
+            self.cluster1["instance"].detect_instances()
+            self.cluster2["instance"].wait_for_upgrade(300)
+            self.cluster2["instance"].detect_instances()
+        else:
+            print("Attempting sequential upgrade")
+            self.cluster1["instance"].command_upgrade()
+            self.cluster1["instance"].kill_sync_processes()
+            self.cluster1["instance"].wait_for_upgrade(300)
+            self.cluster1["instance"].detect_instances()
 
-        # workaround: kill the sync'ers by hand, the starter doesn't
-        # self._stop_sync()
-        self.cluster1["instance"].kill_sync_processes()
-        self.cluster2["instance"].kill_sync_processes()
+            self.cluster2["instance"].command_upgrade()
+            self.cluster2["instance"].kill_sync_processes()
+            self.cluster2["instance"].wait_for_upgrade(300)
+            self.cluster2["instance"].detect_instances()
+        # self.sync_manager.start_sync()
+        self.sync_manager.run_syncer()
 
-        self.cluster1["instance"].wait_for_upgrade(300)
-        self.cluster1["instance"].detect_instances()
-        self.cluster2["instance"].wait_for_upgrade(300)
-        self.cluster2["instance"].detect_instances()
         # self.sync_manager.start_sync()
         self.sync_manager.run_syncer()
 
