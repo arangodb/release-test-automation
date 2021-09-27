@@ -175,7 +175,11 @@ class InstallerW(InstallerBase):
         if not self.service:
             logging.error("no service registered, not starting")
             return
-        self.service.start()
+        # TODO: re-enable once https://github.com/giampaolo/psutil/pull/1990 is in a release
+        # self.service.start()
+        ret = psutil.Popen(["sc", "start", "ArangoDB"]).wait()
+        if ret != 0:
+            raise Exception("sc exited non-zero! : %d" % ret)
         while self.service.status() != "running":
             logging.info(self.service.status())
             time.sleep(1)
