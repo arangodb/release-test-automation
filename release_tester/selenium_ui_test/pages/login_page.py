@@ -28,7 +28,6 @@ class LoginPage(BasePage):
         self.login_button_id = "submitLogin"
         self.select_db_opt_id = "loginDatabase"
         self.select_db_btn_id = "goToDatabase"
-        self.logout_button_id = "userLogoutIcon"
 
     def progress(self, arg):
         """ state print todo """
@@ -157,10 +156,3 @@ class LoginPage(BasePage):
         assert "No results found." not in self.driver.page_source, \
             "no results found?"
         return False
-
-    def logout_button(self):
-        """selecting user logout button"""
-        logout_button_sitem = self.locator_finder_by_text_id(self.logout_button_id)
-        logout_button_sitem.click()
-        print("Logout from the current user\n")
-        self.wait_for_ajax()

@@ -70,9 +70,10 @@ class BaseTest():
     def test_login(self):
         """testing login page"""
         print("Starting ", self.driver.title, "\n")
-        login = LoginPage(self.driver)
-        login.login('root', self.root_passvoid)
-        login.logout_button()
+        login_page = LoginPage(self.driver)
+        login_page.login('root', self.root_passvoid)
+        collections_page = CollectionPage(self.driver)
+        collections_page.log_out()
 
 
     @testcase
@@ -616,7 +617,7 @@ class BaseTest():
         user.selecting_general_tab()
         user.saving_user_cfg()
         print("Changing new user DB permission completed. \n")
-        login.logout_button()
+        user.log_out()
         print("Re-Login begins with new user\n")
         login.login_webif(cfg, 'tester', 'tester')
         print("Re-Login begins with new user completed\n")
@@ -629,7 +630,7 @@ class BaseTest():
         print('Return back to user tab \n')
 
         # logout from the current user to get back to root
-        login.logout_button()
+        user.log_out()
         # login back with root user
         login.login_webif(cfg, 'root', root_passvoid)
 
@@ -639,7 +640,7 @@ class BaseTest():
         user.changing_db_permission_read_write()
         user.selecting_general_tab()
         user.saving_user_cfg()
-        login.logout_button()
+        user.log_out()
         print("Re-Login begins with new user\n")
         login.login_webif(cfg, 'tester', 'tester')
         print("Re-Login begins with new user completed\n")
@@ -648,7 +649,7 @@ class BaseTest():
         print("Allow user Read/Write access to the _system DB test Completed \n")
 
         # logout from the current user to get back to root
-        login.logout_button()
+        user.log_out()
         login.login_webif(cfg, 'root', root_passvoid)
 
         del user
