@@ -6,11 +6,13 @@ import logging
 import multiprocessing
 from pathlib import Path
 from pathlib import PureWindowsPath
+import winreg
 
 from reporting.reporting_utils import step
 import psutil
 import tools.monkeypatch_psutil
 from arangodb.installers.base import InstallerBase
+
 
 class InstallerW(InstallerBase):
     """ install the windows NSIS package """
@@ -212,3 +214,38 @@ class InstallerW(InstallerBase):
             shutil.rmtree(self.cfg.appdir)
         if self.cfg.cfgdir.exists():
             shutil.rmtree(self.cfg.cfgdir)
+        try:
+            print("force deleting the arangodb service")
+            psutil.Popen(["sc", "delete", "arangodb"]).wait()
+        except FileNotFoundError:
+            print("No service installed.")
+            pass
+        with winreg.OpenKeyEx(winreg.HKEY_CURRENT_USER,
+                              "Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Compatibility Assistant\\Store",
+                              access=winreg.KEY_WRITE) as k:
+            try:
+                index = 0;
+                while True:
+                    key, val, dtype = winreg.EnumValue(k, index)
+                    if key.find("ArangoDB") >= 0:
+                        print("deleting v-key: " + key)
+                        winreg.DeleteValue(k, key)
+                    index = index + 1
+            except OSError:
+                print("      done")
+                pass
+        with winreg.OpenKeyEx(winreg.HKEY_CURRENT_CONFIG,
+                              "Software",
+                              access=winreg.KEY_WRITE) as k:
+            try:
+                index = 0;
+                while True:
+                    key = winreg.EnumKey(k, index)
+                    print("key: " + key)
+                    if key.find("ArangoDB") >= 0:
+                        print("deleting key: " + key)
+                        winreg.DeleteKey(k, key)
+                    index = index + 1
+            except OSError:
+                print("      done")
+                pass
