@@ -215,16 +215,8 @@ class InstallerW(InstallerBase):
         if self.cfg.cfgdir.exists():
             shutil.rmtree(self.cfg.cfgdir)
         try:
-            k = winreg.OpenKeyEx(winreg.HKEY_LOCAL_MACHINE,
-                                 "SYSTEM\\CurrentControlSet\\Services\\ArangoDB")
-            winreg.CloseKey(k)
-
             print("force deleting the arangodb service")
-            with winreg.OpenKeyEx(winreg.HKEY_LOCAL_MACHINE,
-                                  "SYSTEM\\CurrentControlSet\\Services",
-                                  access=winreg.KEY_WRITE) as k:
-                winreg.DeleteKey(k, "ArangoDB")
-                psutil.Popen(["sc", "delete", "arangodb"]).wait()
+            psutil.Popen(["sc", "delete", "arangodb"]).wait()
         except FileNotFoundError:
             print("No service installed.")
             pass
