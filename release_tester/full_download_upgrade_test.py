@@ -30,6 +30,10 @@ def set_r_limits():
             resource.RLIMIT_CORE,
             (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
 
+def workaround_nightly_versioning(ver):
+    """ adjust package names of nightlies to be semver parseable """
+    return ver.replace("-nightly", ".9999999-nightly")
+
 # pylint: disable=R0913 disable=R0914 disable=R0912, disable=R0915
 def upgrade_package_test(verbose,
                          new_version, old_version,
@@ -91,20 +95,21 @@ def upgrade_package_test(verbose,
                 dl_old = AcquirePackages(old_version, verbose, package_dir, enterprise,
                                          enterprise_magic, zip_package, old_dlstage,
                                          httpusername, httppassvoid, remote_host)
-                old_version_state = version_state_dir / Path(dl_old.cfg.version + "_sourceInfo.log")
-                if old_version_state.exists():
-                    old_version_content = old_version_state.read_text()
-                fresh_old_content = dl_old.get_version_info(old_dlstage, git_version)
+                if old_version.find('-nightly') >= 0:
+                    old_version_state = version_state_dir / Path(dl_old.cfg.version + "_sourceInfo.log")
+                    if old_version_state.exists():
+                        old_version_content = old_version_state.read_text()
+                    fresh_old_content = dl_old.get_version_info(old_dlstage, git_version)
 
             if new_dlstage != "local":
                 dl_new = AcquirePackages(new_version, verbose, package_dir, enterprise,
                                          enterprise_magic, zip_package, new_dlstage,
                                          httpusername, httppassvoid, remote_host)
-
-                new_version_state = version_state_dir / Path(dl_new.cfg.version + "_sourceInfo.log")
-                if new_version_state.exists():
-                    new_version_content = new_version_state.read_text()
-                fresh_new_content = dl_new.get_version_info(new_dlstage, git_version)
+                if new_version.find('-nightly') >= 0:
+                    new_version_state = version_state_dir / Path(dl_new.cfg.version + "_sourceInfo.log")
+                    if new_version_state.exists():
+                        new_version_content = new_version_state.read_text()
+                    fresh_new_content = dl_new.get_version_info(new_dlstage, git_version)
 
             if new_dlstage != "local" and old_dlstage != "local":
                 old_changed = old_version_content != fresh_old_content
@@ -140,7 +145,6 @@ def upgrade_package_test(verbose,
                             starter_mode, stress_upgrade, False,
                             publicip, selenium, selenium_driver_args,
                             testrun_name, ssl, use_auto_certs))
-
 
     print('V' * 80)
     status = True
@@ -210,7 +214,8 @@ def main(
         httpuser, httppassvoid, remote_host):
     """ main """
     return upgrade_package_test(verbose,
-                                new_version, old_version,
+                                workaround_nightly_versioning(new_version),
+                                workaround_nightly_versioning(old_version),
                                 package_dir, enterprise_magic,
                                 zip_package,
                                 new_source, old_source,
