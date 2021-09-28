@@ -1,6 +1,5 @@
 #!/bin/bash
 
-VERSION=$(cat VERSION.json)
 GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
 if test -z "$GIT_VERSION"; then
     GIT_VERSION=$VERSION
@@ -32,9 +31,9 @@ mkdir -p test_dir
 mkdir -p allure-results
 tar -xvf ${VERSION_TAR_NAME}.tar || true
 
-DOCKER_DEB_NAME=release-test-automation-deb-$(cat VERSION.json)
+DOCKER_DEB_NAME=release-test-automation-deb
 
-DOCKER_DEB_TAG=arangodb/release-test-automation-deb:$(cat VERSION.json)
+DOCKER_DEB_TAG="${DOCKER_DEB_NAME}:$(cat containers/this_version.txt)"
 
 docker kill $DOCKER_DEB_NAME || true
 docker rm $DOCKER_DEB_NAME || true
@@ -45,13 +44,13 @@ trap "docker kill $DOCKER_DEB_NAME; \
 
 version=$(git rev-parse --verify HEAD)
 
-if docker pull $DOCKER_DEB_TAG; then
+if docker pull arangodb/$DOCKER_DEB_TAG; then
     echo "using ready built container"
 else
     docker build containers/docker_deb -t $DOCKER_DEB_TAG || exit
 fi
 
-docker run -itd \
+docker run \
        --ulimit core=-1 \
        -v $(pwd):/home/release-test-automation \
        -v $(pwd)/test_dir:/home/test_dir \
@@ -66,6 +65,7 @@ docker run -itd \
        --name=$DOCKER_DEB_NAME \
        --rm \
        --privileged \
+       -itd \
        \
        $DOCKER_DEB_TAG \
        \

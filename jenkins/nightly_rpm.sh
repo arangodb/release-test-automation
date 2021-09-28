@@ -1,6 +1,5 @@
 #!/bin/bash
 
-VERSION=$(cat VERSION.json)
 GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
 if test -z "$GIT_VERSION"; then
     GIT_VERSION=$VERSION
@@ -32,9 +31,9 @@ mkdir -p test_dir
 mkdir -p allure-results
 tar -xvf ${VERSION_TAR_NAME}.tar || true
 
-DOCKER_RPM_NAME=release-test-automation-rpm-$(cat VERSION.json)
+DOCKER_RPM_NAME=release-test-automation-rpm
 
-DOCKER_RPM_TAG=arangodb/release-test-automation-rpm:$(cat VERSION.json)
+DOCKER_RPM_TAG="${DOCKER_RPM_NAME}:$(cat containers/this_version.txt)"
 
 docker kill $DOCKER_RPM_NAME || true
 docker rm $DOCKER_RPM_NAME || true
@@ -45,7 +44,7 @@ trap "docker kill $DOCKER_RPM_NAME; \
 
 version=$(git rev-parse --verify HEAD)
 
-if docker pull $DOCKER_RPM_TAG; then
+if docker pull arangodb/$DOCKER_RPM_TAG; then
     echo "using ready built container"
 else
     docker build containers/docker_rpm -t $DOCKER_RPM_TAG || exit

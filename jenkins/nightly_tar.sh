@@ -32,22 +32,22 @@ mkdir -p test_dir
 mkdir -p allure-results
 tar -xvf ${VERSION_TAR_NAME}.tar || true
 
-DOCKER_TAR_NAME=release-test-automation-tar-${VERSION}
+DOCKER_TAR_NAME=release-test-automation-tar
 
-DOCKER_TAR_TAG=${DOCKER_TAG}:$(cat containers/this_version.txt)
+DOCKER_TAR_TAG="${DOCKER_TAR_NAME}:$(cat containers/this_version.txt)"
 
 docker kill $DOCKER_TAR_NAME || true
 docker rm $DOCKER_TAR_NAME || true
 
-trap "docker kill /$DOCKER_NAME; \
-     docker rm /$DOCKER_NAME; \
+trap "docker kill /$DOCKER_TAR_NAME; \
+     docker rm /$DOCKER_TAR_NAME; \
      " EXIT
 
 version=$(git rev-parse --verify HEAD)
-if docker pull $DOCKER_TAR_TAG; then
+if docker pull arangodb/$DOCKER_TAR_TAG; then
     echo "using ready built container"
 else
-    docker build containers/docker_tar -t $DOCKER_TAG || exit
+    docker build containers/docker_tar -t $DOCKER_TAR_TAG || exit
 fi
 
 # we need --init since our upgrade leans on zombies not happening:
