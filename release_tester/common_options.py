@@ -18,37 +18,50 @@ def zip_common_options(function):
                             ' of default OS package')(function)
     return function
 
-def very_common_options(function):
+def very_common_options(support_multi_version=False):
     """ These options are in all scripts """
     package_dir = Path('/home/package_cache/')
+
     if not package_dir.exists():
         package_dir = Path('/tmp/')
-    function = click.option('--new-version',
-                            help='ArangoDB version number.',
-                            default="3.9-nightly")(function)
-    function = click.option('--verbose/--no-verbose',
-                            is_flag=True,
-                            default=False,
-                            help='switch starter to verbose logging mode.'
-                            )(function)
-    function = click.option('--enterprise/--no-enterprise',
-                            is_flag=True,
-                            default=False,
-                            help='Enterprise or community?')(function)
-    function = click.option('--package-dir',
-                            default=package_dir,
-                            help='directory to load the packages from.'
-                            )(function)
-    function = zip_common_options(function)
-    return function
 
-def common_options(support_old=True, interactive=True, test_data_dir='/tmp/'):
+    defver = "3.9-nightly"
+    if support_multi_version:
+        defver = [ defver ]
+    def inner_func(function):
+         function = click.option('--new-version',
+                                 multiple=support_multi_version,
+                                 help='ArangoDB version number.',
+                                 default=defver)(function)
+         function = click.option('--verbose/--no-verbose',
+                                 is_flag=True,
+                                 default=False,
+                                 help='switch starter to verbose logging mode.'
+                                 )(function)
+         function = click.option('--enterprise/--no-enterprise',
+                                 is_flag=True,
+                                 default=False,
+                                 help='Enterprise or community?')(function)
+         function = click.option('--package-dir',
+                                 default=package_dir,
+                                 help='directory to load the packages from.'
+                                 )(function)
+         function = zip_common_options(function)
+         return function
+    return inner_func
+
+def common_options(support_old=True, interactive=True, test_data_dir='/tmp/', support_multi_version=False):
     """ these options are common to most scripts """
     def inner_func(function):
+        
         if support_old:
+            defver = "3.8-nightly"
+            if support_multi_version:
+                defver = [ defver ]
             function = click.option('--old-version',
+                                    multiple=support_multi_version,
                                     help='old ArangoDB version number.',
-                                    default="3.8-nightly")(function)
+                                    default=defver)(function)
         function = click.option('--test-data-dir',
                                 default=test_data_dir,
                                 help='directory create databases etc. in.'
@@ -132,12 +145,14 @@ def download_options(default_source="public", double_source=False):
                                 )(function)
         if double_source:
             function = click.option('--new-source',
-                                    default=default_source,
+                                    multiple=True,
+                                    default=[default_source],
                                     type=click.Choice(download_sources_local),
                                     help='where to download the package from'
                                     )(function)
             function = click.option('--old-source',
-                                    default=default_source,
+                                    multiple=True,
+                                    default=[default_source],
                                     type=click.Choice(download_sources_local),
                                     help='where to download the package from'
                                     )(function)
