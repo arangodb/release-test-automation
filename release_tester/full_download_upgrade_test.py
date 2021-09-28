@@ -32,7 +32,8 @@ def set_r_limits():
 
 def workaround_nightly_versioning(ver):
     """ adjust package names of nightlies to be semver parseable """
-    return ver.replace("-nightly", ".9999999-nightly")
+    # return ver.replace("-nightly", ".9999999-nightly")
+    return ver
 
 # pylint: disable=R0913 disable=R0914 disable=R0912, disable=R0915
 def upgrade_package_test(verbose,
