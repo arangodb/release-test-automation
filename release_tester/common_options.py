@@ -25,7 +25,7 @@ def very_common_options(function):
         package_dir = Path('/tmp/')
     function = click.option('--new-version',
                             help='ArangoDB version number.',
-                            default="3.8.0-nightly")(function)
+                            default="3.9-nightly")(function)
     function = click.option('--verbose/--no-verbose',
                             is_flag=True,
                             default=False,
@@ -48,7 +48,7 @@ def common_options(support_old=True, interactive=True, test_data_dir='/tmp/'):
         if support_old:
             function = click.option('--old-version',
                                     help='old ArangoDB version number.',
-                                    default="3.7.0-nightly")(function)
+                                    default="3.8-nightly")(function)
         function = click.option('--test-data-dir',
                                 default=test_data_dir,
                                 help='directory create databases etc. in.'
@@ -97,6 +97,16 @@ def common_options(support_old=True, interactive=True, test_data_dir='/tmp/'):
         function = click.option('--alluredir',
                                 default=Path('./allure-results'),
                                 help='directory to store allure results')(function)
+        function = click.option('--ssl/--no-ssl',
+                                is_flag=True,
+                                default=False,
+                                help='use SSL'
+                                )(function)
+        function = click.option('--use-auto-certs',
+                                is_flag=True,
+                                default=False,
+                                help='use self-signed SSL certs'
+                                )(function)
         return function
     return inner_func
 

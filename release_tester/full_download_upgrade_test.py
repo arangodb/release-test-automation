@@ -3,7 +3,6 @@
 from pathlib import Path
 
 import os
-import resource
 import sys
 
 import shutil
@@ -19,6 +18,21 @@ from acquire_packages import AcquirePackages
 from reporting.reporting_utils import AllureTestSuiteContext
 from upgrade import run_upgrade
 from cleanup import run_cleanup
+from tools.killall import list_all_processes
+
+def set_r_limits():
+    """ on linux manipulate ulimit values """
+    #pylint: disable=C0415
+    import platform
+    if not platform.win32_ver()[0]:
+        import resource
+        resource.setrlimit(
+            resource.RLIMIT_CORE,
+            (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
+
+def workaround_nightly_versioning(ver):
+    """ adjust package names of nightlies to be semver parseable """
+    return ver.replace("-nightly", ".9999999-nightly")
 
 # pylint: disable=R0913 disable=R0914 disable=R0912, disable=R0915
 def upgrade_package_test(verbose,
@@ -33,19 +47,18 @@ def upgrade_package_test(verbose,
                          remote_host, force,
                          starter_mode, stress_upgrade,
                          publicip, selenium, selenium_driver_args,
-                         alluredir, clean_alluredir):
+                         alluredir, clean_alluredir, ssl, use_auto_certs):
     """ process fetch & tests """
     old_version_state = None
     new_version_state = None
     old_version_content = None
     new_version_content = None
 
-    lh.configure_logging(verbose)
+    set_r_limits()
 
+    lh.configure_logging(verbose)
+    list_all_processes()
     os.chdir(test_data_dir)
-    resource.setrlimit(
-        resource.RLIMIT_CORE,
-        (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
 
     results = []
     # do the actual work:
@@ -59,6 +72,11 @@ def upgrade_package_test(verbose,
         run_cleanup(zip_package, testrun_name)
 
     print("Cleanup done")
+
+    # Configure Chrome to accept self-signed SSL certs and certs signed by unknown CA.
+    # FIXME: Add custom CA to Chrome to properly validate server cert.
+    if ssl:
+        selenium_driver_args += ("ignore-certificate-errors",)
 
     for enterprise, encryption_at_rest, directory_suffix, testrun_name in execution_plan:
         #pylint: disable=W0612
@@ -77,20 +95,21 @@ def upgrade_package_test(verbose,
                 dl_old = AcquirePackages(old_version, verbose, package_dir, enterprise,
                                          enterprise_magic, zip_package, old_dlstage,
                                          httpusername, httppassvoid, remote_host)
-                old_version_state = version_state_dir / Path(dl_old.cfg.version + "_sourceInfo.log")
-                if old_version_state.exists():
-                    old_version_content = old_version_state.read_text()
-                fresh_old_content = dl_old.get_version_info(old_dlstage, git_version)
+                if old_version.find('-nightly') >= 0:
+                    old_version_state = version_state_dir / Path(dl_old.cfg.version + "_sourceInfo.log")
+                    if old_version_state.exists():
+                        old_version_content = old_version_state.read_text()
+                    fresh_old_content = dl_old.get_version_info(old_dlstage, git_version)
 
             if new_dlstage != "local":
                 dl_new = AcquirePackages(new_version, verbose, package_dir, enterprise,
                                          enterprise_magic, zip_package, new_dlstage,
                                          httpusername, httppassvoid, remote_host)
-
-                new_version_state = version_state_dir / Path(dl_new.cfg.version + "_sourceInfo.log")
-                if new_version_state.exists():
-                    new_version_content = new_version_state.read_text()
-                fresh_new_content = dl_new.get_version_info(new_dlstage, git_version)
+                if new_version.find('-nightly') >= 0:
+                    new_version_state = version_state_dir / Path(dl_new.cfg.version + "_sourceInfo.log")
+                    if new_version_state.exists():
+                        new_version_content = new_version_state.read_text()
+                    fresh_new_content = dl_new.get_version_info(new_dlstage, git_version)
 
             if new_dlstage != "local" and old_dlstage != "local":
                 old_changed = old_version_content != fresh_old_content
@@ -110,6 +129,8 @@ def upgrade_package_test(verbose,
             test_dir = Path(test_data_dir) / directory_suffix
             if test_dir.exists():
                 shutil.rmtree(test_dir)
+                if "REQUESTS_CA_BUNDLE" in os.environ:
+                    del os.environ["REQUESTS_CA_BUNDLE"]
             test_dir.mkdir()
             while not test_dir.exists():
                 time.sleep(1)
@@ -123,8 +144,7 @@ def upgrade_package_test(verbose,
                             zip_package, False,
                             starter_mode, stress_upgrade, False,
                             publicip, selenium, selenium_driver_args,
-                            testrun_name))
-
+                            testrun_name, ssl, use_auto_certs))
 
     print('V' * 80)
     status = True
@@ -185,7 +205,7 @@ def main(
         #very_common_options
         new_version, verbose, enterprise, package_dir, zip_package,
         # common_options
-        old_version, test_data_dir, encryption_at_rest, alluredir, clean_alluredir,
+        old_version, test_data_dir, encryption_at_rest, alluredir, clean_alluredir, ssl, use_auto_certs,
         # no-interactive!
         starter_mode, stress_upgrade, abort_on_error, publicip,
         selenium, selenium_driver_args,
@@ -194,7 +214,8 @@ def main(
         httpuser, httppassvoid, remote_host):
     """ main """
     return upgrade_package_test(verbose,
-                                new_version, old_version,
+                                workaround_nightly_versioning(new_version),
+                                workaround_nightly_versioning(old_version),
                                 package_dir, enterprise_magic,
                                 zip_package,
                                 new_source, old_source,
@@ -205,7 +226,7 @@ def main(
                                 remote_host, force,
                                 starter_mode, stress_upgrade,
                                 publicip, selenium, selenium_driver_args,
-                                alluredir, clean_alluredir)
+                                alluredir, clean_alluredir, ssl, use_auto_certs)
 
 if __name__ == "__main__":
 # pylint: disable=E1120 # fix clickiness.

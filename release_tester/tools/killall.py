@@ -55,7 +55,14 @@ def kill_all_processes(kill_selenium=True):
     attach(str(processlist), "List of processes")
     for process in processlist:
         if process.is_running():
-            logging.info("cleanup killing ${proc}".format(proc=process))
+            cmdline = str(process)
+            try:
+                cmdline = process.cmdline()
+            except psutil.AccessDenied:
+                pass
+            except psutil.NoSuchProcess:
+                pass
+            logging.info("cleanup killing ${proc}".format(proc=cmdline))
             if process.is_running():
                 try:
                     process.terminate()
@@ -75,3 +82,18 @@ def kill_all_processes(kill_selenium=True):
                     process.kill()
                 except psutil.NoSuchProcess:
                     pass
+
+@step
+def list_all_processes():
+    """ list all processes for later reference """
+    pseaf = "PID  Process"
+    for process in psutil.process_iter(['pid', 'name']):
+        cmdline = process.name
+        try:
+            cmdline = str(process.cmdline())
+            if cmdline == '[]':
+                cmdline = '[' + process.name() + ']'
+        except psutil.AccessDenied:
+            pass
+        logging.info("{pid} {proc}".format(pid = process.pid, proc=cmdline))
+    print(pseaf)

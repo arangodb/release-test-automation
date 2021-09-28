@@ -5,6 +5,7 @@ from pathlib import Path
 import traceback
 
 import sys
+import platform
 import click
 from allure_commons.model2 import Status, Label
 from allure_commons.types import LabelType
@@ -20,6 +21,7 @@ from arangodb.starter.deployments import (
     STARTER_MODES
 )
 import tools.loghelper as lh
+is_windows = platform.win32_ver()[0] != ''
 
 # pylint: disable=R0913 disable=R0914, disable=W0703, disable=R0912, disable=R0915
 def run_upgrade(old_version, new_version, verbose,
@@ -28,13 +30,13 @@ def run_upgrade(old_version, new_version, verbose,
                 zip_package, interactive,
                 starter_mode, stress_upgrade, abort_on_error,
                 publicip, selenium, selenium_driver_args,
-                testrun_name):
+                testrun_name, ssl, use_auto_certs):
     """ execute upgrade tests """
     lh.section("startup")
     results = []
     for runner_type in STARTER_MODES[starter_mode]:
         with RtaTestcase(runner_strings[runner_type]) as testcase:
-            if not enterprise and runner_type == RunnerType.DC2DC:
+            if (not enterprise or is_windows) and runner_type == RunnerType.DC2DC:
                 testcase.context.status = Status.SKIPPED
                 continue
             one_result = {
@@ -76,7 +78,9 @@ def run_upgrade(old_version, new_version, verbose,
                                          selenium,
                                          selenium_driver_args,
                                          installers,
-                                         testrun_name)
+                                         testrun_name,
+                                         ssl=ssl,
+                                         use_auto_certs=use_auto_certs)
                     if runner:
                         try:
                             runner.run()
@@ -93,13 +97,13 @@ def run_upgrade(old_version, new_version, verbose,
                             results.append(one_result)
                             runner.take_screenshot()
                             runner.agency_acquire_dump()
-                            runner.zip_test_dir()
                             runner.search_for_warnings()
+                            kill_all_processes()
+                            runner.zip_test_dir()
                             testcase.context.status = Status.FAILED
                             if abort_on_error:
                                 raise ex
                             traceback.print_exc()
-                            kill_all_processes()
                             lh.section("uninstall on error")
                             old_inst.un_install_debug_package()
                             old_inst.un_install_package()
@@ -170,7 +174,7 @@ def main(
         # common_options
         old_version, test_data_dir, encryption_at_rest, interactive,
         starter_mode, stress_upgrade, abort_on_error, publicip,
-        selenium, selenium_driver_args, alluredir, clean_alluredir):
+        selenium, selenium_driver_args, alluredir, clean_alluredir, ssl, use_auto_certs):
     """ main trampoline """
     lh.configure_logging(verbose)
     configure_allure(alluredir, clean_alluredir, enterprise, zip_package, new_version, old_version)
@@ -179,7 +183,7 @@ def main(
                           enterprise, encryption_at_rest,
                           zip_package, interactive,
                           starter_mode, stress_upgrade, abort_on_error,
-                          publicip, selenium, selenium_driver_args, "")
+                          publicip, selenium, selenium_driver_args, "", ssl, use_auto_certs)
     print('V' * 80)
     status = True
     for one_result in results:

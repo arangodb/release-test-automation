@@ -8,7 +8,7 @@ from tools.interact import prompt_user
 from tools.killall import get_all_processes
 from arangodb.starter.manager import StarterManager
 from arangodb.instance import InstanceType
-from arangodb.starter.deployments.runner import Runner, PunnerProperties
+from arangodb.starter.deployments.runner import Runner, RunnerProperties
 import tools.loghelper as lh
 from tools.asciiprint import print_progress as progress
 
@@ -20,9 +20,9 @@ class LeaderFollower(Runner):
     # pylint: disable=R0913 disable=R0902
     def __init__(self, runner_type, abort_on_error, installer_set,
                  selenium, selenium_driver_args,
-                 testrun_name: str):
+                 testrun_name: str, ssl: bool, use_auto_certs: bool):
         super().__init__(runner_type, abort_on_error, installer_set,
-                         PunnerProperties('LeaderFollower', 400, 500, False),
+                         RunnerProperties('LeaderFollower', 400, 500, False, ssl, use_auto_certs),
                          selenium, selenium_driver_args,
                          testrun_name)
 
@@ -61,6 +61,25 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
 """)}
 
     def starter_prepare_env_impl(self):
+        leader_opts = []
+        follower_opts = []
+        if self.cfg.ssl and not self.cfg.use_auto_certs:
+            self.create_tls_ca_cert()
+            leader_tls_keyfile = self.cert_dir / Path("leader") / "tls.keyfile"
+            follower_tls_keyfile = self.cert_dir / Path("follower") / "tls.keyfile"
+            self.cert_op(['tls', 'keyfile',
+                          '--cacert=' + str(self.certificate_auth["cert"]),
+                          '--cakey=' + str(self.certificate_auth["key"]),
+                          '--keyfile=' + str(leader_tls_keyfile),
+                          '--host=' + self.cfg.publicip, '--host=localhost'])
+            self.cert_op(['tls', 'keyfile',
+                          '--cacert=' + str(self.certificate_auth["cert"]),
+                          '--cakey=' + str(self.certificate_auth["key"]),
+                          '--keyfile=' + str(follower_tls_keyfile),
+                          '--host=' + self.cfg.publicip, '--host=localhost'])
+            leader_opts.append(f"--ssl.keyfile={leader_tls_keyfile}")
+            follower_opts.append(f"--ssl.keyfile={follower_tls_keyfile}")
+
         self.leader_starter_instance = StarterManager(
             self.basecfg, self.basedir, 'leader',
             mode='single', port=1234,
@@ -68,7 +87,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
                 InstanceType.SINGLE
             ],
             jwtStr="leader",
-            moreopts=[])
+            moreopts=leader_opts)
         self.leader_starter_instance.is_leader = True
 
         self.follower_starter_instance = StarterManager(
@@ -78,7 +97,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
                 InstanceType.SINGLE
             ],
             jwtStr="follower",
-            moreopts=[])
+            moreopts=follower_opts)
 
     def starter_run_impl(self):
         self.leader_starter_instance.run_starter()
@@ -107,7 +126,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
             """
 print(
 require("@arangodb/replication").setupReplicationGlobal({
-    endpoint: "tcp://127.0.0.1:%s",
+    endpoint: "%s://127.0.0.1:%s",
     username: "root",
     password: "%s",
     verbose: false,
@@ -117,7 +136,8 @@ require("@arangodb/replication").setupReplicationGlobal({
     }));
 print("replication started")
 process.exit(0);
-""" % (str(self.leader_starter_instance.get_frontend_port()),
+""" % (self.get_protocol(),
+       str(self.leader_starter_instance.get_frontend_port()),
         self.leader_starter_instance.get_passvoid()))
         lh.subsubsection("prepare leader follower replication")
         arangosh_script = self.checks['beforeReplJS']
@@ -178,7 +198,7 @@ process.exit(0);
 
     @step
     def upgrade_arangod_version_impl(self):
-        """ upgrade this installation """
+        """ rolling upgrade this installation """
         for node in [self.leader_starter_instance, self.follower_starter_instance]:
             node.replace_binary_for_upgrade(self.new_cfg)
         for node in [self.leader_starter_instance, self.follower_starter_instance]:
@@ -187,6 +207,37 @@ process.exit(0);
             node.wait_for_upgrade_done_in_log()
 
         for node in [self.leader_starter_instance, self.follower_starter_instance]:
+            node.detect_instances()
+            node.wait_for_version_reply()
+        if self.selenium:
+            self.selenium.web.refresh()
+            self.selenium.check_old(self.new_cfg, True)
+            self.selenium.connect_server_new_tab(
+                self.follower_starter_instance.get_frontends(),
+                '_system', self.cfg)
+            self.selenium.check_old(self.new_cfg, False)
+            self.selenium.close_tab_again()
+
+    @step
+    def upgrade_arangod_version_manual_impl(self):
+        """ manual upgrade this installation """
+        self.progress(True, "step 1 - shut down instances")
+        instances = [self.leader_starter_instance, self.follower_starter_instance]
+        for node in instances:
+            node.replace_binary_setup_for_upgrade(self.new_cfg)
+            node.terminate_instance(True)
+        self.progress(True, "step 2 - launch instances with the upgrade options set")
+        for node in instances:
+            print('launch')
+            node.manually_launch_instances(
+                [ InstanceType.SINGLE ],
+                [ '--database.auto-upgrade', 'true',
+                  '--javascript.copy-installation', 'true'] )
+        self.progress(True, "step 3 - launch instances again")
+        for node in instances:
+            node.respawn_instance()
+        self.progress(True, "step 4 - detect system state")
+        for node in instances:
             node.detect_instances()
             node.wait_for_version_reply()
         if self.selenium:

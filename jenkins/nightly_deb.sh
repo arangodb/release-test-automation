@@ -1,19 +1,18 @@
 #!/bin/bash
 
-
 VERSION=$(cat VERSION.json)
-GIT_VERSION=$(git rev-parse --verify HEAD)
+GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
 if test -z "$GIT_VERSION"; then
     GIT_VERSION=$VERSION
 fi
 if test -z "$OLD_VERSION"; then
-    OLD_VERSION=3.7.0-nightly
+    OLD_VERSION=3.8-nightly
 fi
 if test -z "$NEW_VERSION"; then
-    NEW_VERSION=3.8.0-nightly
+    NEW_VERSION=3.9-nightly
 fi
-if test -n "$PACKAGE_CACHE"; then
-    PACKAGE_CACHE=$(pwd)/package_cache
+if test -z "${PACKAGE_CACHE}"; then
+    PACKAGE_CACHE="$(pwd)/package_cache/"
 fi
 
 if test -n "$FORCE" -o "$TEST_BRANCH" != 'master'; then
@@ -27,12 +26,15 @@ else
 fi
 
 VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_deb_version"
-mkdir -p ${VERSION_TAR_NAME}
+mkdir -p "${PACKAGE_CACHE}"
+mkdir -p "${VERSION_TAR_NAME}"
+mkdir -p test_dir
+mkdir -p allure-results
 tar -xvf ${VERSION_TAR_NAME}.tar || true
 
 DOCKER_DEB_NAME=release-test-automation-deb-$(cat VERSION.json)
 
-DOCKER_DEB_TAG=arangodb/release-test-automation-deb:$(cat containers/this_version.txt)
+DOCKER_DEB_TAG=arangodb/release-test-automation-deb:$(cat VERSION.json)
 
 docker kill $DOCKER_DEB_NAME || true
 docker rm $DOCKER_DEB_NAME || true
@@ -51,18 +53,19 @@ fi
 
 docker run -itd \
        --ulimit core=-1 \
-       --privileged \
-       --name=$DOCKER_DEB_NAME \
-       -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
        -v $(pwd):/home/release-test-automation \
        -v $(pwd)/test_dir:/home/test_dir \
        -v $(pwd)/allure-results:/home/allure-results \
-       -v "$PACKAGE_CACHE":/home/package_cache \
+       -v "${PACKAGE_CACHE}":/home/package_cache \
        -v $(pwd)/${VERSION_TAR_NAME}:/home/versions \
        -v /tmp/tmp:/tmp/ \
        -v /dev/shm:/dev/shm \
+       -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
        --env="BUILD_NUMBER=${BUILD_NUMBER}" \
-        --rm \
+       \
+       --name=$DOCKER_DEB_NAME \
+       --rm \
+       --privileged \
        \
        $DOCKER_DEB_TAG \
        \
@@ -72,20 +75,25 @@ docker exec $DOCKER_DEB_NAME \
           /home/release-test-automation/release_tester/full_download_upgrade_test.py \
           --old-version "${OLD_VERSION}" \
           --new-version "${NEW_VERSION}" \
+          --no-zip \
           --verbose \
           --selenium Chrome \
           --selenium-driver-args headless \
           --selenium-driver-args no-sandbox \
           --alluredir /home/allure-results \
-          --no-zip $force_arg $@
+          --git-version $GIT_VERSION \
+          $force_arg $@
 result=$?
+
+docker stop $DOCKER_TAR_NAME
 
 # Cleanup ownership:
 docker run \
        -v $(pwd)/test_dir:/home/test_dir \
        -v $(pwd)/allure-results:/home/allure-results \
        --rm \
-       $DOCKER_DEB_TAG chown -R $(id -u):$(id -g) /home/test_dir /home/allure-results
+       $DOCKER_DEB_TAG \
+       chown -R $(id -u):$(id -g) /home/test_dir /home/allure-results
 
 if test "$result" -eq "0"; then
     echo "OK"

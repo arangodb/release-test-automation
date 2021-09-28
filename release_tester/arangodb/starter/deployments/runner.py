@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """ baseclass to manage a starter based installation """
-
+# pylint: disable=C0302
 from abc import abstractmethod, ABC
 import copy
 import datetime
+import json
 import logging
 from pathlib import Path
 import os
@@ -13,6 +14,8 @@ import shutil
 import sys
 import time
 
+import certifi
+import psutil
 from reporting.reporting_utils import step
 import requests
 
@@ -26,12 +29,14 @@ from arangodb.instance import InstanceType, print_instances_table
 from arangodb.sh import ArangoshExecutor
 from tools.killall import kill_all_processes
 
+from arangodb.async_client import CliExecutionException
+
 FNRX = re.compile("[\n@ ]*")
+WINVER = platform.win32_ver()
 
 def detect_file_ulimit():
     """ check whether the ulimit for files is to low """
-    winver = platform.win32_ver()
-    if not winver[0]:
+    if not WINVER[0]:
         # pylint: disable=C0415
         import resource
         nofd = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
@@ -44,18 +49,22 @@ def detect_file_ulimit():
         giga_byte = 2**30
         resource.setrlimit(resource.RLIMIT_CORE, (giga_byte,giga_byte))
 
-class PunnerProperties():
+class RunnerProperties():
     """ runner properties management class """
-    #pylint: disable=R0903
+    #pylint: disable=R0903 disable=R0913 disable=R0912
     def __init__(self,
                  short_name: str,
                  disk_usage_community: int,
                  disk_usage_enterprise: int,
-                 supports_hotbackup: bool):
+                 supports_hotbackup: bool,
+                 ssl: bool,
+                 use_auto_certs: bool):
         self.short_name = short_name
         self.disk_usage_community = disk_usage_community
         self.disk_usage_enterprise = disk_usage_enterprise
         self.supports_hotbackup = supports_hotbackup
+        self.ssl = ssl
+        self.use_auto_certs = use_auto_certs
 
 class Runner(ABC):
     """abstract starter deployment runner"""
@@ -65,11 +74,10 @@ class Runner(ABC):
             runner_type,
             abort_on_error: bool,
             install_set: list,
-            properties: PunnerProperties,
+            properties: RunnerProperties,
             selenium_worker: str,
             selenium_driver_args: list,
-            testrun_name: str
-        ):
+            testrun_name: str):
         load_scenarios()
         assert runner_type, "no runner no cry? no!"
         logging.debug(runner_type)
@@ -79,12 +87,12 @@ class Runner(ABC):
         self.state = ""
         self.runner_type = runner_type
         self.name = str(self.runner_type).split('.')[1]
-        cfg = install_set[0][0]
+        cfg = install_set[0][1].cfg
         old_inst = install_set[0][1]
         new_cfg = None
         new_inst = None
         if len(install_set) > 1:
-            new_cfg = install_set[1][0]
+            new_cfg = install_set[1][1].cfg
             new_inst = install_set[1][1]
 
         self.do_install = cfg.mode == "all" or cfg.mode == "install"
@@ -94,10 +102,16 @@ class Runner(ABC):
             "system"] and cfg.have_system_service
         self.do_starter_test = cfg.mode in ["all", "tests"]
         self.do_upgrade = False
+        self.supports_rolling_upgrade = WINVER[0] == ''
+        # self.supports_rolling_upgrade = False # TODO
 
         self.basecfg = copy.deepcopy(cfg)
         self.new_cfg = new_cfg
         self.cfg = self.basecfg
+        self.cfg.ssl = properties.ssl
+        self.cfg.use_auto_certs = properties.use_auto_certs
+        self.certificate_auth = {}
+        self.cert_dir = ""
         self.passvoid = None
         self.basecfg.passvoid = ""
         self.versionstr = ''
@@ -141,6 +155,7 @@ class Runner(ABC):
         self.hot_backup = ( cfg.hot_backup and
                             properties.supports_hotbackup and
                             self.old_installer.supports_hot_backup() )
+        # self.hot_backup = False # TODO
         self.backup_instance_count = 3
         # starter instances that make_data wil run on
         # maybe it would be better to work directly on
@@ -153,7 +168,7 @@ class Runner(ABC):
         self.starter_instances = []
         self.remote = len(self.basecfg.frontends) > 0
         if not self.remote:
-            self.cleanup()
+            self.cleanup(False)
         if selenium_worker == "none":
             self.selenium = None
         else:
@@ -163,8 +178,20 @@ class Runner(ABC):
                 runner_type,
                 selenium_worker,
                 selenium_driver_args,
-                self.testrun_name)
+                self.testrun_name,
+                self.cfg.ssl)
             print("Browser online")
+        if WINVER[0]:
+            self.original_tmp = os.environ["TMP"]
+            self.original_temp = os.environ["TEMP"]
+        if not is_cleanup:
+            tmpdir = cfg.base_test_dir / properties.short_name / "tmp"
+            tmpdir.mkdir(mode=0o777, parents=True, exist_ok=True)
+            if WINVER[0]:
+                os.environ["TMP"] = str(tmpdir)
+                os.environ["TEMP"] = str(tmpdir)
+            else:
+                os.environ["TMPDIR"] = str(tmpdir)
 
     def progress(self, is_sub, msg, separator='x'):
         """ report user message, record for error handling. """
@@ -277,6 +304,7 @@ class Runner(ABC):
             self.new_installer.upgrade_package(self.old_installer)
             lh.subsection("outputting version")
             self.new_installer.output_arangod_version()
+            self.new_installer.get_starter_version()
             # only install debug package for new package.
             self.progress(True, 'installing debug package:')
             self.cfg.have_debug_package = self.new_installer.install_debug_package()
@@ -390,6 +418,7 @@ class Runner(ABC):
             inst.broadcast_bind()
             lh.subsubsection("outputting version")
             inst.output_arangod_version()
+            inst.get_starter_version()
 
             lh.subsubsection("starting service")
 
@@ -478,8 +507,11 @@ class Runner(ABC):
     @step
     def upgrade_arangod_version(self):
         """ upgrade this installation """
-        self.progress(True, "{0} - upgrade setup to newer version".format(
-            str(self.name)))
+        mode = "rolling" if self.supports_rolling_upgrade else "manual"
+        self.progress(True, "{0} - {1} upgrade setup to newer version".format(
+            str(self.name),
+            mode
+        ))
         logging.info("{1} -> {0}".format(
             self.new_installer.cfg.version,
             self.old_installer.cfg.version
@@ -488,8 +520,12 @@ class Runner(ABC):
         print("deinstall")
         print("install")
         print("replace starter")
-        print("upgrade instances")
-        self.upgrade_arangod_version_impl()
+        if self.supports_rolling_upgrade:
+            print("upgrading instances in roling mode")
+            self.upgrade_arangod_version_impl()
+        else:
+            print("upgrading instances in manual mode")
+            self.upgrade_arangod_version_manual_impl()
         print("check data in instaces")
 
     @step
@@ -531,7 +567,11 @@ class Runner(ABC):
 
     @abstractmethod
     def upgrade_arangod_version_impl(self):
-        """ upgrade this deployment """
+        """ rolling upgrade this deployment """
+
+    @abstractmethod
+    def upgrade_arangod_version_manual_impl(self):
+        """ start/stop upgrade this deployment """
 
     @abstractmethod
     def jam_attempt_impl(self):
@@ -543,7 +583,7 @@ class Runner(ABC):
         """ actualises the list of available frontends """
         self.basecfg.frontends = [] # reset the array...
         for frontend in self.get_frontend_instances():
-            self.basecfg.add_frontend('http',
+            self.basecfg.add_frontend(self.get_http_protocol(),
                                       self.basecfg.publicip,
                                       frontend.port)
 
@@ -605,13 +645,14 @@ class Runner(ABC):
 
             #must be writabe that the setup may not have already data
             if not arangosh.read_only and not self.has_makedata_data:
-                success = arangosh.create_test_data(self.name, args=args)
-                if not success[0]:
-                    if not self.cfg.verbose:
-                        print(success[1])
+                try:
+                    arangosh.create_test_data(self.name, args=args)
+                except CliExecutionException as e:
+                    if self.cfg.verbose:
+                        print(e.execution_result[1])
                     self.ask_continue_or_exit(
                         "make_data failed for {0.name}".format(self),
-                        success[1],
+                        e.execution_result[1],
                         False)
                 self.has_makedata_data = True
             self.check_data_impl_sh(arangosh, starter.supports_foxx_tests)
@@ -623,13 +664,14 @@ class Runner(ABC):
     def check_data_impl_sh(self, arangosh, supports_foxx_tests):
         """ check for data on the installation """
         if self.has_makedata_data:
-            success = arangosh.check_test_data(self.name, supports_foxx_tests)
-            if not success[0]:
+            try:
+                arangosh.check_test_data(self.name, supports_foxx_tests)
+            except CliExecutionException as e:
                 if not self.cfg.verbose:
-                    print(success[1])
+                    print(e.execution_result[1])
                 self.ask_continue_or_exit(
                     "check_data has data failed for {0.name}".format(self),
-                    success[1],
+                    e.execution_result[1],
                     False)
 
     @step
@@ -800,12 +842,19 @@ class Runner(ABC):
             print("test basedir doesn't exist, won't create report tar")
 
     @step
-    def cleanup(self):
+    def cleanup(self, reset_tmp=True):
         """ remove all directories created by this test """
         testdir = self.basecfg.base_test_dir / self.basedir
         print('cleaning up ' + str(testdir))
         if testdir.exists():
             shutil.rmtree(testdir)
+            if "REQUESTS_CA_BUNDLE" in os.environ:
+                del os.environ["REQUESTS_CA_BUNDLE"]
+        if reset_tmp and WINVER[0]:
+            os.environ["TMP"] = self.original_tmp
+            os.environ["TEMP"] = self.original_temp
+        elif "TMPDIR" in os.environ:
+            del os.environ["TMPDIR"]
 
     @step
     def agency_trigger_leader_relection(self, old_leader):
@@ -820,6 +869,15 @@ class Runner(ABC):
                 break
             time.sleep(1)
         old_leader.resume_instance()
+        if WINVER[0]:
+            leader_mgr = None
+            for starter_mgr in self.starter_instances:
+                if starter_mgr.have_this_instance(old_leader):
+                    leader_mgr = starter_mgr
+
+            old_leader.kill_instance()
+            time.sleep(5) # wait for the starter to respawn it...
+            old_leader.detect_pid(leader_mgr.instance.pid)
 
     @step
     def agency_get_leader(self):
@@ -912,3 +970,102 @@ class Runner(ABC):
                 '/_admin/log/level',
                 '{"agency":"debug", "requests":"trace", '
                 '"cluster":"debug", "maintenance":"debug"}')
+
+    @step
+    def get_collection_list(self):
+        """ get a list of collections and their shards """
+        reply = self.starter_instances[0].send_request(
+            InstanceType.COORDINATOR,
+            requests.get,
+            '/_api/collection',
+            None)
+        if reply[0].status_code != 200:
+            raise Exception("get Collections: Unsupported return code" +
+                            str(reply[0].status_code) +
+                            " - " + str(reply[0].body))
+        body_json = json.loads(reply[0].content)
+        if body_json['code'] != 200:
+            raise Exception("get Collections: Unsupported return code" +
+                            str(reply[0].status_code) +
+                            " - " + str(reply[0].body))
+        collections = body_json['result']
+        for collection in collections:
+            collection['details'] = self.get_collection_cluster_details(collection['name'])
+        return collections
+
+    def get_collection_cluster_details(self, collection_name):
+        """ get the shard details for a single collection """
+        reply = self.starter_instances[0].send_request(
+            InstanceType.COORDINATOR,
+            requests.put,
+            "/_db/_system/_admin/cluster/collectionShardDistribution",
+           '{"collection": "%s"}'%(collection_name))
+        if reply[0].status_code != 200:
+            raise Exception("get Collection detail " + collection_name +
+                            ": Unsupported return code" +
+                            str(reply[0].status_code) +
+                            " - " + str(reply[0].body))
+        body_json = json.loads(reply[0].content)
+        if body_json['code'] != 200:
+            raise Exception("get Collection detail " + collection_name +
+                            ": Unsupported return code" +
+                            str(reply[0].status_code) +
+                            " - " + str(reply[0].body))
+        return body_json['results'][collection_name]
+
+    # pylint: disable=R1705
+    def get_protocol(self):
+        """ return protocol of this starter (ssl/tcp) """
+        if self.cfg.ssl:
+            return "ssl"
+        else:
+            return "tcp"
+
+    # pylint: disable=R1705
+    def get_http_protocol(self):
+        """ return protocol of this starter (http/https) """
+        if self.cfg.ssl:
+            return "https"
+        else:
+            return "http"
+
+    def cert_op(self, args):
+        """create a certificate"""
+        print(args)
+        create_cert = psutil.Popen([self.cfg.bin_dir / 'arangodb',
+                                    'create'] +
+                                   args)
+        print("creating cert with PID:" + str(create_cert.pid))
+        create_cert.wait()
+
+    def create_cert_dir(self):
+        """create certificate directory"""
+        self.cert_dir = self.cfg.base_test_dir / self.basedir / "certs"
+        self.cert_dir.mkdir(parents=True, exist_ok=True)
+
+    def create_tls_ca_cert(self):
+        """create a CA certificate"""
+        if not self.cert_dir:
+            self.create_cert_dir()
+        self.certificate_auth["cert"] = self.cert_dir / 'tls-ca.crt'
+        self.certificate_auth["key"] = self.cert_dir / 'tls-ca.key'
+        self.cert_op(['tls', 'ca',
+                 '--cert=' + str(self.certificate_auth["cert"]),
+                 '--key=' + str(self.certificate_auth["key"])])
+        self.register_ca_cert()
+
+    def register_ca_cert(self):
+        """configure requests lib to accept our custom CA certificate"""
+        old_file = certifi.where()
+        with open(old_file, 'rb') as file:
+            old_certs = file.read()
+
+        with open(self.certificate_auth["cert"], 'rb') as file:
+            new_cert = file.read()
+
+        new_file = self.cert_dir / 'ca_cert_storage.crt'
+        with open(new_file, 'ab') as file:
+            file.write(old_certs)
+            file.write(new_cert)
+
+        os.environ['REQUESTS_CA_BUNDLE'] = str(new_file)

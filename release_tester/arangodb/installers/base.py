@@ -18,6 +18,7 @@ from tools.asciiprint import print_progress as progress
 from allure_commons._allure import attach
 from reporting.reporting_utils import step
 
+FILE_PIDS = []
 
 @step
 def run_file_command(file_to_check):
@@ -28,6 +29,7 @@ def run_file_command(file_to_check):
                             stderr=subprocess.PIPE,
                             universal_newlines=True)
     line = proc.stdout.readline()
+    FILE_PIDS.append(str(proc.pid))
     proc.wait()
     # print(line)
     return line
@@ -126,6 +128,7 @@ class BinaryDescription():
             proc = subprocess.Popen(cmd, bufsize=-1,
                                     stderr=subprocess.PIPE,
                                     stdin=subprocess.PIPE)
+            FILE_PIDS.append(str(proc.pid))
             proc.communicate()
             proc.wait()
             # check the size of copied file after stripped
@@ -198,6 +201,7 @@ class InstallerBase(ABC):
         self.check_stripped = True
         self.check_symlink = True
         self.instance = None
+        self.starter_versions = {}
 
     def reset_version(self, version):
         """ re-configure the version we work with """
@@ -259,10 +263,10 @@ class InstallerBase(ABC):
     def calc_config_file_name(self):
         """ store our config to disk - so we can be invoked partly """
         cfg_file = Path()
-        if self.cfg.install_prefix == Path('/'):
-            cfg_file = Path('/') / 'tmp' / 'config.yml'
+        if IS_WINDOWS:
+            cfg_file = Path(os.environ["WORKSPACE_TMP"]) / 'config.yml'
         else:
-            cfg_file = Path('c:') / 'tmp' / 'config.yml'
+            cfg_file = Path('/') / 'tmp' / 'config.yml'
         return cfg_file
 
     @step
@@ -340,7 +344,9 @@ class InstallerBase(ABC):
 
     def output_arangod_version(self):
         """ document the output of arangod --version """
-        psutil.Popen([self.cfg.sbin_dir / "arangod", '--version']).wait()
+        ver = psutil.Popen([self.cfg.sbin_dir / "arangod", '--version'])
+        print("arangod version ran with PID:" + (str(ver.pid)))
+        ver.wait()
 
     @step
     def caclulate_file_locations(self):
@@ -418,16 +424,19 @@ class InstallerBase(ABC):
     @step
     def check_installed_files(self):
         """ check for the files whether they're installed """
+        # pylint: disable=W0603
+        global FILE_PIDS
         if IS_MAC:
             print('Strip checking is disabled on DMG packages.')
         else:
             for binary in self.arango_binaries:
                 progress("S" if binary.stripped else "s")
                 binary.check_installed(self.cfg.version,
-                                    self.cfg.enterprise,
-                                    self.check_stripped,
-                                    self.check_symlink)
-        print('\n')
+                                       self.cfg.enterprise,
+                                       self.check_stripped,
+                                       self.check_symlink)
+        print("\nran file commands with PID:" + str(FILE_PIDS) + '\n')
+        FILE_PIDS = []
         logging.info("all files ok")
 
     @step
@@ -436,10 +445,10 @@ class InstallerBase(ABC):
         success = True
 
         if self.cfg.have_system_service:
-            if (self.cfg.installPrefix != Path("/") and
-                    self.cfg.installPrefix.is_dir()):
+            if (self.cfg.install_prefix != Path("/") and
+                    self.cfg.install_prefix.is_dir()):
                 logging.info("Path not removed: %s",
-                             str(self.cfg.installPrefix))
+                             str(self.cfg.install_prefix))
                 success = False
             if os.path.exists(self.cfg.appdir):
                 logging.info("Path not removed: %s", str(self.cfg.appdir))
@@ -457,7 +466,26 @@ class InstallerBase(ABC):
                                         "8529",
                                         self.cfg.localhost,
                                         self.cfg.publicip,
-                                        (self.cfg.installPrefix /
+                                        (self.cfg.install_prefix /
                                          self.cfg.log_dir),
                                         self.cfg.passvoid,
                                         True)
+
+    def get_starter_version(self):
+        """ find out the version of the starter in this package """
+        if self.starter_versions == {}:
+            starter_version_proc = psutil.Popen([
+                str(self.cfg.bin_dir / 'arangodb'),
+                '--version'
+            ],
+                                                stdout=subprocess.PIPE,
+                                                stderr=subprocess.PIPE)
+            (version_b, err) = starter_version_proc.communicate()
+            starter_version_proc.wait()
+            version_str = version_b.decode("utf-8")
+            string_array = version_str.split(", ")
+            for one_str in string_array:
+                splitted = one_str.split(" ")
+                self.starter_versions[splitted[0]] = splitted[1]
+            print("Starter version: " + str(self.starter_versions))
+        return semver.VersionInfo.parse(self.starter_versions['Version'])

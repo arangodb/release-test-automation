@@ -3,12 +3,14 @@
 import time
 import logging
 import sys
+from pathlib import Path
+
 import requests
 from requests.auth import HTTPBasicAuth
 
 from arangodb.instance import InstanceType
 from arangodb.starter.manager import StarterManager
-from arangodb.starter.deployments.runner import Runner, PunnerProperties
+from arangodb.starter.deployments.runner import Runner, RunnerProperties
 
 from tools.asciiprint import print_progress as progress
 from tools.interact import prompt_user
@@ -19,9 +21,10 @@ class ActiveFailover(Runner):
     # pylint: disable=R0913 disable=R0902
     def __init__(self, runner_type, abort_on_error, installer_set,
                  selenium, selenium_driver_args,
-                 testrun_name: str):
+                 testrun_name: str, ssl: bool,
+                 use_auto_certs: bool):
         super().__init__(runner_type, abort_on_error, installer_set,
-                         PunnerProperties('ActiveFailOver', 500, 600, True),
+                         RunnerProperties('ActiveFailOver', 500, 600, True, ssl, use_auto_certs),
                          selenium, selenium_driver_args,
                          testrun_name)
         self.starter_instances = []
@@ -32,48 +35,67 @@ class ActiveFailover(Runner):
         self.success = True
         self.backup_instance_count = 1
 
+    def _detect_leader(self):
+        """ find out the leader node """
+        self.leader = None
+        while self.leader is None:
+            for node in self.starter_instances:
+                if node.detect_leader():
+                    self.leader = node
+                    self.first_leader = node
+        self.first_leader.wait_for_version_reply()
+        self.follower_nodes = []
+        for node in self.starter_instances:
+            node.detect_instance_pids()
+            if not node.is_leader:
+                self.follower_nodes.append(node)
+            node.set_passvoid('leader', node.is_leader)
+
     def starter_prepare_env_impl(self):
-        self.starter_instances.append(
-            StarterManager(self.basecfg,
-                           self.basedir, 'node1',
-                           mode='activefailover',
-                           port=9528,
-                           expect_instances=[
-                               InstanceType.AGENT,
-                               InstanceType.RESILIENT_SINGLE
-                           ],
-                           jwtStr="afo",
-                           moreopts=['--all.log.level=replication=debug']))
-        self.starter_instances.append(
-            StarterManager(self.basecfg,
-                           self.basedir, 'node2',
-                           mode='activefailover',
-                           port=9628,
-                           expect_instances=[
-                               InstanceType.AGENT,
-                               InstanceType.RESILIENT_SINGLE
-                           ],
-                           jwtStr="afo",
-                           moreopts=[
-                               '--starter.join',
-                               '127.0.0.1:9528',
-                               '--all.log.level=replication=debug'
-                           ]))
-        self.starter_instances.append(
-            StarterManager(self.basecfg,
-                           self.basedir, 'node3',
-                           mode='activefailover',
-                           port=9728,
-                           expect_instances=[
-                               InstanceType.AGENT,
-                               InstanceType.RESILIENT_SINGLE
-                           ],
-                           jwtStr="afo",
-                           moreopts=[
-                               '--starter.join',
-                               '127.0.0.1:9528',
-                               '--all.log.level=replication=debug'
-                           ]))
+        node1_opts = ['--all.log.level=replication=debug']
+        node2_opts = ['--all.log.level=replication=debug', '--starter.join', '127.0.0.1:9528']
+        node3_opts = ['--all.log.level=replication=debug', '--starter.join', '127.0.0.1:9528']
+        if self.cfg.ssl and not self.cfg.use_auto_certs:
+            self.create_tls_ca_cert()
+            node1_tls_keyfile = self.cert_dir / Path("node1") / "tls.keyfile"
+            node2_tls_keyfile = self.cert_dir / Path("node2") / "tls.keyfile"
+            node3_tls_keyfile = self.cert_dir / Path("node3") / "tls.keyfile"
+
+            self.cert_op(['tls', 'keyfile',
+                          '--cacert=' + str(self.certificate_auth["cert"]),
+                          '--cakey=' + str(self.certificate_auth["key"]),
+                          '--keyfile=' + str(node1_tls_keyfile),
+                          '--host=' + self.cfg.publicip, '--host=localhost'])
+            self.cert_op(['tls', 'keyfile',
+                          '--cacert=' + str(self.certificate_auth["cert"]),
+                          '--cakey=' + str(self.certificate_auth["key"]),
+                          '--keyfile=' + str(node2_tls_keyfile),
+                          '--host=' + self.cfg.publicip, '--host=localhost'])
+            self.cert_op(['tls', 'keyfile',
+                          '--cacert=' + str(self.certificate_auth["cert"]),
+                          '--cakey=' + str(self.certificate_auth["key"]),
+                          '--keyfile=' + str(node3_tls_keyfile),
+                          '--host=' + self.cfg.publicip, '--host=localhost'])
+            node1_opts.append(f"--ssl.keyfile={node1_tls_keyfile}")
+            node2_opts.append(f"--ssl.keyfile={node2_tls_keyfile}")
+            node3_opts.append(f"--ssl.keyfile={node3_tls_keyfile}")
+
+        def add_starter(name, port, opts):
+            self.starter_instances.append(
+                StarterManager(self.basecfg,
+                               self.basedir, name,
+                               mode='activefailover',
+                               port=port,
+                               expect_instances=[
+                                   InstanceType.AGENT,
+                                   InstanceType.RESILIENT_SINGLE
+                               ],
+                               jwtStr="afo",
+                               moreopts=opts))
+
+        add_starter('node1', 9528, node1_opts)
+        add_starter('node2', 9628, node2_opts)
+        add_starter('node3', 9728, node3_opts)
 
     def starter_run_impl(self):
         logging.info("Spawning starter instances")
@@ -95,19 +117,7 @@ class ActiveFailover(Runner):
 
     def finish_setup_impl(self):
         logging.info("instances are ready, detecting leader")
-        self.follower_nodes = []
-        while self.leader is None:
-            for node in self.starter_instances:
-                if node.detect_leader():
-                    self.leader = node
-                    self.first_leader = node
-
-        for node in self.starter_instances:
-            node.detect_instance_pids()
-            if not node.is_leader:
-                self.follower_nodes.append(node)
-            node.set_passvoid('leader', node.is_leader)
-
+        self._detect_leader()
 
         #add data to leader
         self.makedata_instances.append(self.leader)
@@ -183,7 +193,7 @@ class ActiveFailover(Runner):
         self.leader.maintainance(False, InstanceType.RESILIENT_SINGLE)
 
     def upgrade_arangod_version_impl(self):
-        """ upgrade this installation """
+        """ rolling upgrade this installation """
         for node in self.starter_instances:
             node.replace_binary_for_upgrade(self.new_cfg)
         for node in self.starter_instances:
@@ -197,6 +207,41 @@ class ActiveFailover(Runner):
             self.selenium.web.refresh() # version doesn't upgrade if we don't do this...
             self.selenium.check_old(self.new_cfg,
                                     expect_follower_count=2, retry_count=10)
+
+    def upgrade_arangod_version_manual_impl(self):
+        """ manual upgrade this installation """
+        self.progress(True, "manual upgrade step 1 - stop system")
+        self.leader.maintainance(True, InstanceType.RESILIENT_SINGLE)
+        for node in self.starter_instances:
+            node.replace_binary_for_upgrade(self.new_cfg)
+            node.terminate_instance(True)
+        self.progress(True, "step 2 - upgrade database directories")
+        for node in self.starter_instances:
+            print('launch')
+            node.manually_launch_instances([
+                InstanceType.AGENT
+            ], ['--database.auto-upgrade', 'true'])
+        for node in self.starter_instances:
+            print('launch')
+            node.manually_launch_instances([
+                InstanceType.RESILIENT_SINGLE,
+            ], ['--database.auto-upgrade', 'true',
+                '--javascript.copy-installation', 'true' ])
+        self.progress(True, "step 3 - launch instances again")
+        for node in self.starter_instances:
+            node.respawn_instance()
+        self.progress(True, "step 4 - check alive status")
+        for node in self.starter_instances:
+            node.detect_instances()
+            node.wait_for_version_reply()
+        self._detect_leader()
+        self.leader.maintainance(False, InstanceType.RESILIENT_SINGLE)
+        self.print_all_instances_table()
+        if self.selenium:
+            self.selenium.web.refresh() # version doesn't upgrade if we don't do this...
+            self.selenium.check_old(self.new_cfg,
+                                    expect_follower_count=2,
+                                    retry_count=10)
 
     def jam_attempt_impl(self):
         # pylint: disable=R0915
@@ -212,6 +257,7 @@ class ActiveFailover(Runner):
         count = 0
         while self.new_leader is None:
             for node in self.follower_nodes:
+                node.detect_instance_pids_still_alive()
                 node.detect_leader()
                 if node.is_leader:
                     logging.info('have a new leader: %s', str(node.arguments))

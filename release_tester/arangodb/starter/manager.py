@@ -41,7 +41,7 @@ from reporting.reporting_utils import attach_table, step
 
 ON_WINDOWS = (sys.platform == 'win32')
 
-
+# pylint: disable=C0302
 class StarterManager():
     """ manages one starter instance"""
     # pylint: disable=R0913 disable=R0902 disable=W0102 disable=R0915 disable=R0904 disable=E0202
@@ -60,9 +60,11 @@ class StarterManager():
         #self.moreopts += ["--all.log.level=arangosearch=trace"]
         #self.moreopts += ["--all.log.level=startup=trace"]
         #self.moreopts += ["--all.log.level=engines=trace"]
+        self.moreopts += ["--all.log.level=backup=trace"]
 
         #directories
         self.raw_basedir = install_prefix
+        self.old_install_prefix = self.cfg.install_prefix
         self.name = str(install_prefix / instance_prefix) # this is magic with the name function.
         self.basedir = self.cfg.base_test_dir / install_prefix / instance_prefix
         self.basedir.mkdir(parents=True, exist_ok=True)
@@ -98,6 +100,10 @@ class StarterManager():
             self.get_jwt_header()
 
         self.passvoidfile = Path(str(self.basedir) + '_passvoid')
+
+        if self.cfg.ssl and self.cfg.use_auto_certs:
+            self.moreopts += ["--ssl.auto-key"]
+
         # arg mode
         self.mode = mode
         if self.mode:
@@ -239,6 +245,7 @@ class StarterManager():
         lh.log_cmd(args)
         self.instance = psutil.Popen(args)
         self.wait_for_logfile()
+        logging.info("my starter has PID:" + str(self.instance.pid))
 
     @step
     def attach_running_starter(self):
@@ -277,6 +284,8 @@ class StarterManager():
                '--auth.jwt-secret', str(filename)]
         print(cmd)
         jwt_proc = psutil.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        logging.info("JWT starter has PID:" + str(jwt_proc.pid))
+
         (header, err) = jwt_proc.communicate()
         jwt_proc.wait()
         if len(str(err)) > 3:
@@ -322,17 +331,18 @@ class StarterManager():
         results = []
         for instance in self.all_instances:
             if instance.instance_type == instance_type:
-                if instance.detect_gone():
+                if instance.detect_gone(verbose=False):
                     print("Instance to send request to already gone: " + repr(instance))
                 else:
                     headers ['Authorization'] = 'Bearer ' + str(self.get_jwt_header())
                     base_url = instance.get_public_plain_url()
                     reply = verb_method(
-                        'http://' + base_url + url,
+                        self.get_http_protocol() + '://' + base_url + url,
                         data=data,
                         headers=headers,
                         allow_redirects=False,
-                        timeout=timeout
+                        timeout=timeout,
+                        verify = False
                     )
                     # print(reply.text)
                     results.append(reply)
@@ -346,7 +356,9 @@ class StarterManager():
             if (self.instance.status() == psutil.STATUS_RUNNING or
                 self.instance.status() == psutil.STATUS_SLEEPING):
                 print("generating coredump for " + str(self.instance))
-                psutil.Popen(['gcore', str(self.instance.pid)], cwd=self.basedir).wait()
+                gcore = psutil.Popen(['gcore', str(self.instance.pid)], cwd=self.basedir)
+                print("launched GCORE with PID:" + str(gcore.pid))
+                gcore.wait()
                 self.kill_instance()
             else:
                 print("NOT generating coredump for " + str(self.instance))
@@ -427,7 +439,7 @@ class StarterManager():
         return False
 
     @step
-    def terminate_instance(self):
+    def terminate_instance(self, keep_instances=False):
         """ terminate the instance of this starter
             (it should kill all its managed services)"""
 
@@ -441,6 +453,11 @@ class StarterManager():
         logging.info("StarterManager: waiting for process to exit")
         exit_code = self.instance.wait()
         self.add_logfile_to_report()
+        if ON_WINDOWS:
+            if exit_code == 15:
+                # TODO: remove wintendo starter bug workaround!
+                exit_code = 0
+
         if exit_code != 0:
             raise Exception("Starter %s exited with %d" % (self.basedir, exit_code))
 
@@ -453,11 +470,14 @@ class StarterManager():
 
         for instance in self.all_instances:
             instance.rename_logfile()
-            instance.detect_gone()
+            if not instance.detect_gone(verbose=False):
+                print("Manually terminating instance!")
+                instance.terminate_instance(False)
         # Clear instances as they have been stopped and the logfiles
         # have been moved.
-        self.is_leader = False
-        self.all_instances = []
+        if not keep_instances:
+            self.is_leader = False
+            self.all_instances = []
 
     @step
     def kill_instance(self):
@@ -474,8 +494,7 @@ class StarterManager():
 
         logging.info("StarterManager: Instance now dead.")
 
-    @step
-    def replace_binary_for_upgrade(self, new_install_cfg):
+    def replace_binary_for_upgrade(self, new_install_cfg, relaunch=True):
         """
           - replace the parts of the installation with information
             after an upgrade
@@ -486,18 +505,100 @@ class StarterManager():
         """
         # On windows the install prefix may change,
         # since we can't overwrite open files:
+        self.replace_binary_setup_for_upgrade(new_install_cfg)
+        with step("kill the starter processes of the old version"):
+            logging.info("StarterManager: Killing my instance [%s]",
+                         str(self.instance.pid))
+            self.kill_instance()
+        with step("revalidate that the old arangods are still running and alive"):
+            self.detect_instance_pids_still_alive()
+        if relaunch:
+            with step("replace the starter binary with a new one," +
+                      " this has not yet spawned any children"):
+                self.respawn_instance()
+                logging.info("StarterManager: respawned instance as [%s]",
+                         str(self.instance.pid))
+
+    @step
+    def manually_launch_instances(self,
+                                  which_instances,
+                                  moreargs,
+                                  waitpid=True,
+                                  kill_instance=False):
+        """ launch the instances of this starter with optional arguments """
+        for instance_type in which_instances:
+            for instance in self.all_instances:
+                if instance.instance_type == instance_type:
+                    if kill_instance:
+                        instance.kill_instance()
+                    instance.launch_manual_from_instance_control_file(
+                        self.cfg.sbin_dir,
+                        self.old_install_prefix,
+                        self.cfg.install_prefix,
+                        moreargs,
+                        waitpid)
+
+
+    @step
+    def manually_launch_instances_for_upgrade(self,
+                                              which_instances,
+                                              moreargs,
+                                              waitpid=True,
+                                              kill_instance=False):
+        """ launch the instances of this starter with optional arguments """
+        for instance_type in which_instances:
+            for i in self.all_instances:
+                if i.instance_type == instance_type:
+                    if kill_instance:
+                        i.kill_instance()
+                    i.launch_manual_from_instance_control_file(
+                        self.cfg.sbin_dir,
+                        self.old_install_prefix,
+                        self.cfg.install_prefix,
+                        moreargs,
+                        waitpid)
+
+    @step
+    def upgrade_instances(self,
+                          which_instances,
+                          moreargs,
+                          waitpid=True):
+        """ kill, launch the instances of this starter with optional arguments and restart"""
+        for instance_type in which_instances:
+            for i in self.all_instances:
+                if i.instance_type == instance_type:
+                    i.terminate_instance()
+                    i.launch_manual_from_instance_control_file(
+                        self.cfg.sbin_dir,
+                        self.old_install_prefix,
+                        self.cfg.install_prefix,
+                        moreargs,
+                        True)
+                    i.launch_manual_from_instance_control_file(
+                        self.cfg.sbin_dir,
+                        self.old_install_prefix,
+                        self.cfg.install_prefix,
+                        [],
+                        False)
+
+    @step
+    def temporarily_replace_instances(self, which_instances, moreargs):
+        """ halt starter, launch instance, wait for it to exit, continue starter """
+        self.instance.suspend()
+        self.manually_launch_instances(which_instances, moreargs, waitpid=True, kill_instance=True)
+        self.instance.resume()
+        self.detect_instances()
+
+    @step
+    def replace_binary_setup_for_upgrade(self, new_install_cfg):
+        """ replace the parts of the installation with information after an upgrade """
+        # On windows the install prefix may change,
+        # since we can't overwrite open files:
         self.cfg.set_directories(new_install_cfg)
         if self.cfg.hot_backup:
             self.hotbackup = [
                 '--all.rclone.executable',
                 self.cfg.real_sbin_dir / 'rclone-arangodb']
-        logging.info("StarterManager: Killing my instance [%s]",
-                     str(self.instance.pid))
-        self.kill_instance()
-        self.detect_instance_pids_still_alive()
-        self.respawn_instance()
-        logging.info("StarterManager: respawned instance as [%s]",
-                     str(self.instance.pid))
 
     @step
     def kill_sync_processes(self):
@@ -516,7 +617,7 @@ class StarterManager():
             self.cfg.bin_dir / 'arangodb',
             'upgrade',
             '--starter.endpoint',
-            'http://127.0.0.1:' + str(self.get_my_port())
+            self.get_http_protocol() + '://127.0.0.1:' + str(self.get_my_port())
         ]
         logging.info("StarterManager: Commanding upgrade %s", str(args))
         self.upgradeprocess = psutil.Popen(args,
@@ -524,6 +625,7 @@ class StarterManager():
                                            #stdin=subprocess.PIPE,
                                            #stderr=subprocess.PIPE,
                                            universal_newlines=True)
+        print("Upgrade commander has PID:" + str(self.upgradeprocess.pid))
 
     @step
     def wait_for_upgrade(self, timeout=60):
@@ -534,11 +636,10 @@ class StarterManager():
         try:
             ret = self.upgradeprocess.wait(timeout=timeout)
         except psutil.TimeoutExpired as timeout_ex:
-            logging.error("StarterManager: Upgrade command [%s] didn't finish in time: %d %s",
-                          str(self.basedir),
-                          timeout,
-                          str(timeout_ex))
-            raise timeout_ex
+            msg = "StarterManager: Upgrade command [%s] didn't finish in time: %d" % (
+                str(self.basedir),
+                timeout)
+            raise TimeoutError(msg) from timeout_ex
         logging.info("StarterManager: Upgrade command [%s] exited: %s",
                      str(self.basedir),
                      str(ret))
@@ -570,15 +671,23 @@ class StarterManager():
                 node.check_version_request(20.0)
 
     @step
-    def respawn_instance(self):
-        """ restart the starter instance after we killed it eventually """
+    def respawn_instance(self, moreargs=[], wait_for_logfile=True):
+        """
+        restart the starter instance after we killed it eventually,
+        maybe command manual upgrade (and wait for exit)
+        """
         args = [
             self.cfg.bin_dir / 'arangodb'
-        ] + self.hotbackup + self.arguments
+        ] + self.hotbackup + self.arguments + moreargs
 
         logging.info("StarterManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)
-        self.wait_for_logfile()
+        print("respawned with PID:" + str(self.instance.pid))
+        if wait_for_logfile:
+            self.wait_for_logfile()
+        else:
+            print("Waiting for starter to exit")
+            print("Starter exited %d" % self.instance.wait())
 
     @step
     def wait_for_version_reply(self):
@@ -716,7 +825,8 @@ class StarterManager():
                                                   self.cfg.localhost,
                                                   self.cfg.publicip,
                                                   Path(root) / name,
-                                                  self.passvoid)
+                                                  self.passvoid,
+                                                  self.cfg.ssl)
                         instance.wait_for_logfile(tries)
                         instance.detect_pid(
                             ppid=self.instance.pid,
@@ -925,6 +1035,14 @@ class StarterManager():
         logfile = str(self.log_file)
         attach.file(logfile, "Starter log file", AttachmentType.TEXT)
 
+    # pylint: disable=R1705
+    def get_http_protocol(self):
+        """get HTTP protocol for this starter(http/https)"""
+        if self.cfg.ssl:
+            return "https"
+        else:
+            return "http"
+
 
 class StarterNonManager(StarterManager):
     """ this class is a dummy starter manager to work with similar interface """
@@ -949,7 +1067,8 @@ class StarterNonManager(StarterManager):
                                      basecfg.frontends[basecfg.index].ip,
                                      basecfg.frontends[basecfg.index].ip,
                                      Path('/'),
-                                     self.cfg.passvoid)
+                                     self.cfg.passvoid,
+                                     self.cfg.ssl)
         self.all_instances.append(inst)
         basecfg.index += 1
 

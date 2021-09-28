@@ -23,6 +23,7 @@ const { FeatureFlags } = require("./feature_flags");
 let database = "_system";
 
 const optionsDefaults = {
+  disabledDbserverUUID: "",
   minReplicationFactor: 1,
   maxReplicationFactor: 2,
   readonly: false,
@@ -101,10 +102,6 @@ function validateDocumentWorksInOneShard(db, baseName, count) {
 }
 
 function testSmartGraphValidator(ccount) {
-  // Temporarily disable Validator Tests.
-  // Due to our missconfigured jenkins it was impossible to test
-  // this before merge, now it is all broken and needs time to be fixed.
-  return {fail : false};
   if (!isCluster || !flags.hasSmartGraphValidator()) {
     // Feature does not exist, no need to test:
     return {fail: false};
@@ -173,20 +170,20 @@ function checkFoxxService() {
     '/_db/_system/itz/index',
     '/_db/_system/crud/xxx'
   ].forEach(route => {
-    for (i=0; i < 200; i++) {
+    for (let i=0; i < 200; i++) {
       try {
         reply = arango.GET_RAW(route, onlyJson);
-        if (reply.code == "200") {
+        if (reply.code === 200) {
           print(route + " OK");
           return;
         }
-        msg = JSON.stringify(reply);
+        let msg = JSON.stringify(reply);
         if (reply.hasOwnProperty('parsedBody')) {
           msg = " '" + reply.parsedBody.errorNum + "' - " + reply.parsedBody.errorMessage;
         }
-        print(route + " Not yet ready, retrying: " + msg)
+        print(route + " Not yet ready, retrying: " + msg);
       } catch (e) {
-        print(route + " Caught - need to retry. " + JSON.stringify(e))
+        print(route + " Caught - need to retry. " + JSON.stringify(e));
       }
       internal.sleep(3);
     }
@@ -216,7 +213,7 @@ function checkFoxxService() {
 
   print("Foxx: crud testing POST xxx");
   
-  reply = arango.POST_RAW('/_db/_system/crud/xxx', {_key: "test"})
+  reply = arango.POST_RAW('/_db/_system/crud/xxx', {_key: "test"});
   if (options.readOnly) {
     assertEqual(reply.code, "400");
   } else {
@@ -233,7 +230,7 @@ function checkFoxxService() {
     assertEqual(parsedBody.length, 1);
   }
 
-  print('Foxx: crud testing delete document')
+  print('Foxx: crud testing delete document');
   reply = arango.DELETE_RAW('/_db/_system/crud/xxx/' + 'test');
   if (options.readOnly) {
     assertEqual(reply.code, "400");
@@ -245,6 +242,90 @@ function checkFoxxService() {
 let v = db._connection.GET("/_api/version");
 const enterprise = v.license === "enterprise"
 
+if (options.disabledDbserverUUID !== "") {
+  let count = 0;
+  let collections = [];
+  print("waiting for all shards on " + options.disabledDbserverUUID + " to be moved");
+  while (count < 500) {
+    collections = [];
+    found = 0;
+    db._collections().map((c) => c.name()).forEach((c) => {
+      let shards = db[c].shards(true);
+      Object.values(shards).forEach((serverList) => {
+        if (serverList.length > 0 && serverList[0] === options.disabledDbserverUUID) {
+          ++found;
+          collections.push(c);
+        }
+      });
+    });
+    if (found > 0) {
+      print(found + ' found - Waiting - ' + JSON.stringify(collections));
+      internal.sleep(1);
+      count += 1;
+    } else {
+      break;
+    }
+  }
+  if (count > 499) {
+    let collection_data = "Still have collections bound to the failed server: ";
+    collections.forEach(col => {
+      print(col)
+      collection_data += "\n" + JSON.stringify(col) + ":\n" +
+        JSON.stringify(db[col].shards(true)) + "\n" +
+        JSON.stringify(db[col].properties());
+    });
+    print(collection_data)
+    throw("Still have collections bound to the failed server: " + JSON.stringify(collections));
+  }
+  let shardDist = {};
+  count = 0;
+  print("waiting for all new leaders to assume leadership");
+  while (count < 500) {
+    collections = [];
+    found = 0;
+    let shardDist = arango.GET("/_admin/cluster/shardDistribution");
+    if (shardDist.code !== 200 || typeof shardDist.results !== "object") {
+      continue;
+    }
+    let cols = Object.keys(shardDist.results);
+    cols.forEach( (c) => {
+      let col = shardDist.results[c];
+      let shards = Object.keys(col.Plan);
+      shards.forEach( (s) => {
+        if (col.Plan[s].leader !== col.Current[s].leader) {
+          ++found;
+          collections.push([c, s]);
+        }
+      });
+    });
+    if (found > 0) {
+      print(found + ' found - Waiting - ' + JSON.stringify(collections));
+      internal.sleep(1);
+      count += 1;
+    } else {
+      break;
+    }
+  }
+  if (count > 499) {
+    let collection_data = "Still have collections with incomplete failover: ";
+    collections.forEach(col => {
+      print(col)
+      let shardDistInfoForCol = "";
+      if (shardDist.hasOwnProperty("results") &&
+          shardDist.results.hasOwnProperty(col)) {
+        shardDistInfoForCol = JSON.stringify(shardDist.results[col]);
+      }
+      collection_data += "\n" + JSON.stringify(col) + ":\n" +
+        JSON.stringify(db[col].shards(true)) + "\n" +
+        JSON.stringify(db[col].properties()) + "\n" +
+        shardDistInfoForCol;
+    });
+    print(collection_data)
+    throw("Still have collections with incomplete failover: " + JSON.stringify(collections));
+  }
+
+  print("done - continuing test.")
+}
 
 if (options.testFoxx) {
   checkFoxxService()

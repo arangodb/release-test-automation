@@ -31,7 +31,7 @@ def run_test(mode,
              #very_common_options
              new_version, verbose, enterprise, package_dir, zip_package,
              # common_options
-             alluredir, clean_alluredir,
+             alluredir, clean_alluredir, ssl, use_auto_certs,
              # old_version,
              test_data_dir, encryption_at_rest, interactive, starter_mode,
              # stress_upgrade,
@@ -67,15 +67,18 @@ def run_test(mode,
     failed = False
     for runner_type in STARTER_MODES[starter_mode]:
         with RtaTestcase(runner_strings[runner_type]) as testcase:
+            testcase.add_label(Label(name=LabelType.SUB_SUITE,
+                                     value=installers[0][1].installer_type))
             if not enterprise and runner_type == RunnerType.DC2DC:
                 testcase.context.status = Status.SKIPPED
                 continue
-            testcase.add_label(Label(name=LabelType.SUB_SUITE, value=installers[0][1].installer_type))
             runner = make_runner(runner_type,
                                  abort_on_error,
                                  selenium,
                                  selenium_driver_args,
-                                 installers)
+                                 installers,
+                                 ssl=ssl,
+                                 use_auto_certs=use_auto_certs)
             # install on first run:
             runner.do_install = (count == 1) and do_install
             # only uninstall after the last test:

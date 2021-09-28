@@ -3,18 +3,20 @@
 import time
 
 from arangodb.starter.deployments.dc2dc import Dc2Dc
-from arangodb.starter.deployments.runner import PunnerProperties
+from arangodb.starter.deployments.runner import RunnerProperties
 
 class Dc2DcEndurance(Dc2Dc):
     """ this launches two clusters in dc2dc mode """
     # pylint: disable=R0913 disable=R0902 disable=E1121
     def __init__(self, runner_type, abort_on_error, installer_set,
                  selenium, selenium_driver_args,
-                 testrun_name: str):
+                 testrun_name: str,
+                 ssl: bool,
+                 use_auto_certs: bool
+                 ):
         super().__init__(runner_type, abort_on_error, installer_set,
-                         PunnerProperties('DC2DC_endurance', 0, 3500, True),
                          selenium, selenium_driver_args,
-                         testrun_name)
+                         testrun_name, ssl, use_auto_certs)
         self.hot_backup = False
 
     def test_setup_impl(self):

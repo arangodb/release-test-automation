@@ -1,19 +1,18 @@
 #!/bin/bash
 
 VERSION=$(cat VERSION.json)
-GIT_VERSION=$(git rev-parse --verify HEAD)
+GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
 if test -z "$GIT_VERSION"; then
     GIT_VERSION=$VERSION
 fi
-
 if test -z "$OLD_VERSION"; then
-    OLD_VERSION=3.7.0-nightly
+    OLD_VERSION=3.8-nightly
 fi
 if test -z "$NEW_VERSION"; then
-    NEW_VERSION=3.8.0-nightly
+    NEW_VERSION=3.9-nightly
 fi
-if test -n "$PACKAGE_CACHE"; then
-    PACKAGE_CACHE=$(pwd)/package_cache
+if test -z "${PACKAGE_CACHE}"; then
+    PACKAGE_CACHE="$(pwd)/package_cache/"
 fi
 
 if test -n "$FORCE" -o "$TEST_BRANCH" != 'master'; then
@@ -27,12 +26,15 @@ else
 fi
 
 VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_rpm_version"
-mkdir -p ${VERSION_TAR_NAME}
+mkdir -p "${PACKAGE_CACHE}"
+mkdir -p "${VERSION_TAR_NAME}"
+mkdir -p test_dir
+mkdir -p allure-results
 tar -xvf ${VERSION_TAR_NAME}.tar || true
 
 DOCKER_RPM_NAME=release-test-automation-rpm-$(cat VERSION.json)
 
-DOCKER_RPM_TAG=arangodb/release-test-automation-rpm:$(cat containers/this_version.txt)
+DOCKER_RPM_TAG=arangodb/release-test-automation-rpm:$(cat VERSION.json)
 
 docker kill $DOCKER_RPM_NAME || true
 docker rm $DOCKER_RPM_NAME || true
@@ -51,19 +53,19 @@ fi
 
 docker run \
        --ulimit core=-1 \
-       -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
        -v $(pwd):/home/release-test-automation \
        -v $(pwd)/test_dir:/home/test_dir \
        -v $(pwd)/allure-results:/home/allure-results \
-       -v "$PACKAGE_CACHE":/home/package_cache \
+       -v "${PACKAGE_CACHE}":/home/package_cache \
        -v $(pwd)/${VERSION_TAR_NAME}:/home/versions \
        -v /tmp/tmp:/tmp/ \
        -v /dev/shm:/dev/shm \
+       -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
        --env="BUILD_NUMBER=${BUILD_NUMBER}" \
        \
+       --name=$DOCKER_RPM_NAME \
        --rm \
        --privileged \
-       --name=$DOCKER_RPM_NAME \
        -itd \
        \
        $DOCKER_RPM_TAG \
@@ -83,6 +85,7 @@ docker exec $DOCKER_RPM_NAME \
           --selenium-driver-args remote-debugging-port=9222 \
           --selenium-driver-args start-maximized \
           --alluredir /home/allure-results \
+          --git-version $GIT_VERSION \
           $force_arg $@
 result=$?
 
@@ -93,7 +96,8 @@ docker run \
        -v $(pwd)/test_dir:/home/test_dir \
        -v $(pwd)/allure-results:/home/allure-results \
        --rm \
-       $DOCKER_RPM_TAG chown -R $(id -u):$(id -g) /home/test_dir /home/allure-results
+       $DOCKER_RPM_TAG \
+       chown -R $(id -u):$(id -g) /home/test_dir /home/allure-results
 
 if test "$result" -eq "0"; then
     echo "OK"

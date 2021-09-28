@@ -2,9 +2,10 @@
 """ Run a javascript command by spawning an arangosh
     to the configured connection """
 
+import os
 from queue import Queue, Empty
-from subprocess import PIPE, Popen
 import sys
+from subprocess import PIPE, Popen
 from threading  import Thread
 from tools.asciiprint import print_progress as progress
 import tools.loghelper as lh
@@ -43,6 +44,12 @@ def convert_result(result_array):
     return result
 
 
+class CliExecutionException(Exception):
+    def __init__(self, message, execution_result):
+        self.execution_result = execution_result
+        self.message = message
+
+
 class ArangoCLIprogressiveTimeoutExecutor():
     """
     Abstract base class to run arangodb cli tools
@@ -59,7 +66,8 @@ class ArangoCLIprogressiveTimeoutExecutor():
                                   more_args,
                                   timeout,
                                   result_line,
-                                  verbose):
+                                  verbose,
+                                  expect_to_fail=False):
         """
         runs a script in background tracing with
         a dynamic timeout that its got output
@@ -72,35 +80,48 @@ class ArangoCLIprogressiveTimeoutExecutor():
             "--server.username", str(self.cfg.username),
             "--server.password", str(self.connect_instance.get_passvoid())
         ] + more_args
-        return self.run_monitored(executeable, run_cmd, timeout, result_line, verbose)
+        return self.run_monitored(executeable, run_cmd, timeout, result_line, verbose, expect_to_fail)
 
     def run_monitored(self,
                       executeable,
                       args,
                       timeout,
                       result_line,
-                      verbose):
+                      verbose,
+                      expect_to_fail=False):
         """
-        runs a script in background tracing with
-        a dynamic timeout that its got output
-        (is still alive...)
+        run a script in background tracing with a dynamic timeout that its got output (is still alive...)
         """
 
         run_cmd = [executeable] + args
-        if verbose:
-            lh.log_cmd(run_cmd)
+        lh.log_cmd(run_cmd, verbose)
         process = Popen(run_cmd,
                         stdout=PIPE, stderr=PIPE, close_fds=ON_POSIX,
                         cwd=self.cfg.test_data_dir.resolve())
         queue = Queue()
-        thread1 = Thread(target=enqueue_stdout, args=(process.stdout,
-                                                      queue,
-                                                      self.connect_instance))
-        thread2 = Thread(target=enqueue_stderr, args=(process.stderr,
-                                                      queue,
-                                                      self.connect_instance))
+        thread1 = Thread(name="readIO",
+                         target=enqueue_stdout,
+                         args=(process.stdout,
+                               queue,
+                               self.connect_instance))
+        thread2 = Thread(name="readErrIO",
+                         target=enqueue_stderr,
+                         args=(process.stderr,
+                               queue,
+                               self.connect_instance))
         thread1.start()
         thread2.start()
+
+        try:
+            print("me PID:%d launched PID:%d with LWPID:%d and LWPID:%d" % (
+                os.getpid(),
+                process.pid,
+                thread1.native_id,
+                thread2.native_id))
+        except AttributeError:
+            print("me PID:%d launched PID:%d with LWPID:N/A and LWPID:N/A" % (
+                os.getpid(),
+                process.pid))
 
         # ... do other things here
         # out = logfile.open('wb')
@@ -144,7 +165,22 @@ class ArangoCLIprogressiveTimeoutExecutor():
         thread1.join()
         thread2.join()
         if have_timeout or rc_exit != 0:
-            return (False, timeout_str + convert_result(result), rc_exit, line_filter)
-        if len(result) == 0:
-            return (True, "", 0, line_filter)
-        return (True, convert_result(result), 0, line_filter)
+            res = (False, timeout_str + convert_result(result), rc_exit, line_filter)
+            if expect_to_fail:
+                return res
+            else:
+                raise CliExecutionException("Execution failed.", res)
+        else:
+            if not expect_to_fail:
+                if len(result) == 0:
+                    res = (True, "", 0, line_filter)
+                else:
+                    res = (True, convert_result(result), 0, line_filter)
+                return res
+            else:
+                if len(result) == 0:
+                    res = (True, "", 0, line_filter)
+                else:
+                    res = (True, convert_result(result), 0, line_filter)
+                raise CliExecutionException(
+                    "Execution was expected to fail, but exited successfully.", res)

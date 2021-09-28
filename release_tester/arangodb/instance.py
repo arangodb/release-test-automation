@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 """ class to manage an arangod or arangosync instance """
 import datetime
@@ -68,7 +67,16 @@ class AfoServerState(IntEnum):
 class Instance(ABC):
     """abstract instance manager"""
     # pylint: disable=R0913 disable=R0902
-    def __init__(self, instance_type, port, basedir, localhost, publicip, passvoid, logfile):
+    def __init__(self,
+                 instance_type,
+                 port,
+                 basedir,
+                 localhost,
+                 publicip,
+                 passvoid,
+                 instance_string,
+                 ssl
+                 ):
         self.instance_type = INSTANCE_TYPE_STRING_MAP[instance_type]
         self.is_system = False
         self.type_str = list(INSTANCE_TYPE_STRING_MAP.keys())[int(self.instance_type.value)]
@@ -76,13 +84,17 @@ class Instance(ABC):
         self.pid = None
         self.ppid = None
         self.basedir = basedir
-        self.logfile = logfile
+        self.instance_string = instance_string
+        self.logfile = basedir / (instance_string + '.log')
+        self.instance_control_file = basedir / (instance_string + '_command.txt')
         self.localhost = localhost
         self.publicip = publicip
         self.passvoid = passvoid
         self.name = self.instance_type.name + str(self.port)
         self.instance = None
         self.serving = datetime.datetime(1970, 1, 1, 0, 0, 0)
+        self.instance_arguments = []
+        self.ssl = ssl
 
         logging.debug("creating {0.type_str} instance: {0.name}".format(self))
 
@@ -98,14 +110,15 @@ class Instance(ABC):
         """ retrieve the pw to connect to this instance """
         return self.passvoid
 
-    def detect_gone(self):
+    def detect_gone(self, verbose=True):
         """ revalidate that the managed process is actualy dead """
         try:
             # we expect it to be dead anyways!
             return self.instance.wait(3) is None
         except psutil.TimeoutExpired:
-            #logging.error("was supposed to be dead, but I'm still alive? "
-            #              + repr(self))
+            if not verbose:
+                logging.error("was supposed to be dead, but I'm still alive? "
+                              + repr(self))
             return False
         except AttributeError:
             #logging.error("was supposed to be dead, but I don't have an instance? "
@@ -116,6 +129,59 @@ class Instance(ABC):
     @abstractmethod
     def get_essentials(self):
         """ get the essential attributes of the class """
+
+    def analyze_starter_file_line(self, line):
+        """ instance specific analyzer function """
+        #pylint: disable=W0107
+        pass
+
+    def load_starter_instance_control_file(self):
+        """ load & parse the <instance_string>_command.txt file of the starter """
+        if not self.instance_control_file.exists():
+            raise FileNotFoundError("Instance control file not found! " +
+                                    str(self.instance_control_file))
+        self.instance_arguments = []
+        with self.instance_control_file.open(errors='backslashreplace') as filedesc:
+            for line in filedesc.readlines():
+                line = line.rstrip().rstrip(' \\')
+                self.analyze_starter_file_line(line)
+                self.instance_arguments.append(line)
+
+    def launch_manual_from_instance_control_file(self,
+                                                 sbin_dir,
+                                                 old_install_prefix,
+                                                 new_install_prefix,
+                                                 moreargs,
+                                                 waitpid=True):
+        """ launch instance without starter with additional arguments """
+        self.load_starter_instance_control_file()
+        command = [str(sbin_dir / self.instance_string)] + \
+            self.instance_arguments[1:] + moreargs
+        dos_old_install_prefix_fwd = str(old_install_prefix).replace("\\", "/")
+        dos_new_install_prefix_fwd = str(new_install_prefix).replace("\\", "/")
+        for i, cmd in enumerate(command):
+            if cmd.find(str(old_install_prefix)) >= 0:
+                command[i] = cmd.replace(
+                    str(old_install_prefix), str(new_install_prefix))
+            # the wintendo may have both slash directions:
+            if cmd.find(dos_old_install_prefix_fwd) >= 0:
+                command[i] = cmd.replace(
+                    dos_old_install_prefix_fwd, dos_new_install_prefix_fwd)
+        print("Manually launching: " + str(command))
+        self.instance = psutil.Popen(command)
+        print("instance launched with PID:" + str(self.instance.pid))
+        if waitpid:
+            exit_code = self.instance.wait()
+            try:
+                self.search_for_warnings()
+            except Exception as ex:
+                raise Exception(str(command) +
+                                " exited with code: " +
+                                str(exit_code)) from ex
+            if exit_code != 0:
+                raise Exception(str(command) +
+                                " exited non zero: " +
+                                str(exit_code))
 
     @step
     def rename_logfile(self, suffix='.old'):
@@ -129,16 +195,34 @@ class Instance(ABC):
         self.logfile.rename(new_logfile)
 
     @step
-    def terminate_instance(self):
+    def kill_instance(self):
         """ terminate the process represented by this wrapper class """
         if self.instance:
             try:
-                print('terminating {0} instance PID [{1}]'.format(
+                print('force-killing {0} instance PID:[{1}]'.format(
+                    self.type_str,
+                    self.instance.pid))
+                self.instance.kill()
+                # if the starter is stopped, will never end:
+                # self.instance.wait()
+            except psutil.NoSuchProcess:
+                logging.info("instance already dead: " + str(self.instance))
+            self.instance = None
+        else:
+            logging.info("I'm already dead, jim!" + str(repr(self)))
+
+    @step
+    def terminate_instance(self, add_logfile_to_report=True):
+        """ terminate the process represented by this wrapper class """
+        if self.instance:
+            try:
+                print('terminating {0} instance PID:[{1}]'.format(
                     self.type_str,
                     self.instance.pid))
                 self.instance.terminate()
                 self.instance.wait()
-                self.add_logfile_to_report()
+                if add_logfile_to_report:
+                    self.add_logfile_to_report()
             except psutil.NoSuchProcess:
                 logging.info("instance already dead: " + str(self.instance))
             self.instance = None
@@ -150,6 +234,9 @@ class Instance(ABC):
         """ halt an instance using SIG_STOP """
         if self.instance:
             try:
+                print('suspending {0} instance PID:[{1}]'.format(
+                    self.type_str,
+                    self.instance.pid))
                 self.instance.suspend()
             except psutil.NoSuchProcess as ex:
                 logging.info("instance not available with this PID: " + str(self.instance))
@@ -162,6 +249,9 @@ class Instance(ABC):
         """ resume the instance using SIG_CONT """
         if self.instance:
             try:
+                print('resuming {0} instance PID:[{1}]'.format(
+                    self.type_str,
+                    self.instance.pid))
                 self.instance.resume()
             except psutil.NoSuchProcess:
                 logging.info("instance not available with this PID: " + str(self.instance))
@@ -178,8 +268,13 @@ class Instance(ABC):
                 if (self.instance.status() == psutil.STATUS_RUNNING or
                     self.instance.status() == psutil.STATUS_SLEEPING):
                     print("generating coredump for " + str(self.instance))
-                    psutil.Popen(['gcore', str(self.instance.pid)], cwd=self.basedir).wait()
-                    print("Terminating " + str(self.instance))
+                    gcore = psutil.Popen(['gcore', str(self.instance.pid)], cwd=self.basedir)
+                    print("generating core with PID:" + str(gcore.pid))
+                    gcore.wait()
+                    print('Killing {0} instance PID:[{1}] {3}'.format(
+                        self.type_str,
+                        self.instance.pid,
+                        self.instance.cmdline()))
                     self.instance.kill()
                     self.instance.wait()
                     self.add_logfile_to_report()
@@ -243,7 +338,7 @@ class Instance(ABC):
         """ Add log to allure report"""
         logfile = str(self.logfile)
         attach.file(logfile,
-                    "Log file(name: {name}, PID: {pid}, port: {port}, type: {type})"
+                    "Log file(name: {name}, PID:{pid}, port: {port}, type: {type})"
                     .format(name=self.name, pid=self.pid, port=self.port, type=self.type_str),
                     AttachmentType.TEXT)
 
@@ -251,14 +346,15 @@ class Instance(ABC):
 class ArangodInstance(Instance):
     """ represent one arangodb instance """
     # pylint: disable=R0913
-    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, is_system=False):
+    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl, is_system=False):
         super().__init__(typ,
                          port,
                          basedir,
                          localhost,
                          publicip,
                          passvoid,
-                         basedir / 'arangod.log')
+                         'arangod',
+                         ssl)
         self.is_system = is_system
 
     def __repr__(self):
@@ -266,6 +362,11 @@ class ArangodInstance(Instance):
         return """
  {0.name}  |  {0.type_str}  | {0.pid} | {0.logfile}
 """.format(self)
+
+    def get_uuid(self):
+        """ try to load the instances UUID """
+        uuid_file = self.basedir / 'data' / 'UUID'
+        return uuid_file.read_text()
 
     def get_essentials(self):
         """ get the essential attributes of the class """
@@ -278,23 +379,46 @@ class ArangodInstance(Instance):
             "url": self.get_public_login_url() if self.is_frontend() else ""
         }
 
+    # pylint: disable=R1705
+    def get_protocol(self):
+        """ return protocol of this arangod instance (ssl/tcp) """
+        if self.ssl:
+            return "ssl"
+        else:
+            return "tcp"
+
+    # pylint: disable=R1705
+    def get_http_protocol(self):
+        """ return protocol of this arangod instance (http/https) """
+        if self.ssl:
+            return "https"
+        else:
+            return "http"
+
     def get_local_url(self, login):
-        """ our public url """
-        return 'http://{login}{host}:{port}'.format(
+        """ our local url """
+        return '{protocol}://{login}{host}:{port}'.format(
+            protocol=self.get_http_protocol(),
             login=login,
             host=self.localhost,
             port=self.port)
 
     def get_public_url(self, login):
         """ our public url """
-        return 'http://{login}{host}:{port}'.format(
+        return '{protocol}://{login}{host}:{port}'.format(
+            protocol=self.get_http_protocol(),
             login=login,
             host=self.publicip,
             port=self.port)
 
     def get_public_login_url(self):
         """ our public url with passvoid """
-        return 'http://root:{0.passvoid}@{0.publicip}:{0.port}'.format(self)
+        return '{protocol}://root:{passvoid}@{publicip}:{port}'.format(
+            protocol = self.get_http_protocol(),
+            passvoid = self.passvoid,
+            publicip=self.publicip,
+            port=self.port
+        )
 
     def get_public_plain_url(self):
         """ our public url """
@@ -304,7 +428,8 @@ class ArangodInstance(Instance):
 
     def get_endpoint(self):
         """ our endpoint """
-        return 'tcp://{host}:{port}'.format(
+        return '{protocol}://{host}:{port}'.format(
+            protocol=self.get_protocol(),
             host=self.localhost,
             port=self.port)
 
@@ -360,7 +485,8 @@ class ArangodInstance(Instance):
         reply = None
         try:
             reply = requests.get(self.get_local_url('')+'/_api/version',
-                                 auth=HTTPBasicAuth('root', self.passvoid)
+                                 auth=HTTPBasicAuth('root', self.passvoid),
+                                 verify = False
                                  )
         except requests.exceptions.ConnectionError:
             return AfoServerState.NOT_CONNECTED
@@ -473,7 +599,9 @@ class ArangodInstance(Instance):
                         continue
                     if "] FATAL [" in line and not self.is_suppressed_log_line(line):
                         print('Error: ', line)
-                        raise Exception("FATAL error found in arangod.log: " + line)
+                        raise Exception("FATAL error found in " +
+                                        str(self.logfile) +
+                                        ": " + line)
                     # save last line and append to string
                     # (why not slurp the whole file?)
                     last_line = line
@@ -525,7 +653,7 @@ class ArangodInstance(Instance):
             try:
                 self.instance = psutil.Process(self.pid)
             except psutil.NoSuchProcess:
-                logging.info("process for PID %d already gone? retrying.",
+                logging.info("process for PID:%d already gone? retrying.",
                              self.pid)
                 time.sleep(1)
                 self.pid = 0  # a previous log run? retry.
@@ -565,26 +693,29 @@ class ArangodInstance(Instance):
 class ArangodRemoteInstance(ArangodInstance):
     """ represent one arangodb instance """
     # pylint: disable=R0913
-    def __init__(self, typ, port, localhost, publicip, basedir, passvoid):
+    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl):
         super().__init__(typ,
                          port,
                          basedir,
                          localhost,
                          publicip,
                          passvoid,
-                         basedir / 'arangod.log')
+                         'arangod',
+                         ssl)
 
 class SyncInstance(Instance):
     """ represent one arangosync instance """
     # pylint: disable=R0913
-    def __init__(self, typ, port, localhost, publicip, basedir, passvoid):
+    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl):
         super().__init__(typ,
                          port,
                          basedir,
                          localhost,
                          publicip,
                          passvoid,
-                         basedir / 'arangosync.log')
+                         'arangosync',
+                          ssl)
+        self.logfile_parameter = ''
 
     def __repr__(self):
         """ dump us """
@@ -604,27 +735,22 @@ class SyncInstance(Instance):
             "is_frontend": False,
             "url": ""
         }
+    def analyze_starter_file_line(self, line):
+        if line.find('--log.file') >=0:
+            self.logfile_parameter = line
 
     def detect_pid(self, ppid, offset, full_binary_path):
         # first get the starter provided commandline:
         self.ppid = ppid
-        command = self.basedir / 'arangosync_command.txt'
-        cmd = []
-        # we search for the logfile parameter, since its unique to our instance.
-        logfile_parameter = ''
-        with open(command, errors='backslashreplace') as filedesc:
-            for line in filedesc.readlines():
-                line = line.rstrip().rstrip(' \\')
-                if line.find('--log.file') >=0:
-                    logfile_parameter = line
-                cmd.append(line)
+        self.load_starter_instance_control_file()
         logfile_parameter_raw = ''
-        if logfile_parameter == '--log.file':
+        if self.logfile_parameter == '--log.file':
             # newer starters will use '--foo bar' instead of '--foo=bar'
-            logfile_parameter = cmd[cmd.index('--log.file') + 1]
-            logfile_parameter_raw = logfile_parameter
+            logfile_parameter_raw = self.instance_arguments[
+                self.instance_arguments.index('--log.file') + 1]
+            self.logfile_parameter = "--log.file=" + logfile_parameter_raw
         else:
-            logfile_parameter_raw = logfile_parameter.split('=')[1]
+            logfile_parameter_raw = self.logfile_parameter.split('=')[1]
         # wait till the process has startet writing its logfile:
         while not self.logfile.exists():
             progress('v')
@@ -637,7 +763,7 @@ class SyncInstance(Instance):
                     proccmd = process.cmdline()[1:]
                     try:
                         # this will throw if its not in there:
-                        proccmd.index(logfile_parameter)
+                        proccmd.index(self.logfile_parameter)
                         possible_me_pid.append({
                             'p': process.pid,
                             'cmdline': proccmd
