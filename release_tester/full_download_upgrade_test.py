@@ -69,7 +69,7 @@ def upgrade_package_test(verbose,
         (False, False, 'C', 'Community')
     ]
 
-    for j in range(len(new_version) - 1):
+    for j in range(len(new_version)):
         for enterprise, encryption_at_rest, directory_suffix, testrun_name in execution_plan:
             run_cleanup(zip_package, testrun_name)
     
@@ -219,7 +219,7 @@ def main(
     if ((len(new_source) != len(new_version)) or
         (len(old_source) != len(old_version)) or
         (len(old_source) != len(new_source))):
-        print("""
+        raise Exception("""
 Cannot have different numbers of versions / sources: 
 old_version:  {len_old_version} {old_version}
 old_source:   {len_old_source} {old_source}
@@ -230,7 +230,6 @@ old_source:   {len_new_source} {new_source}
     len_old_source= len(old_source),   old_source= str(old_source),
     len_new_version= len(new_version), new_version= str(new_version),
     len_new_source= len(new_source),   new_source= str(new_source)))
-        sys.exit(1)
 
     return upgrade_package_test(verbose,
                                 workaround_nightly_versioning(new_version),
