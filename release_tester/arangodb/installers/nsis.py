@@ -71,6 +71,7 @@ class InstallerW(InstallerBase):
                '/DATABASEDIR=' + str(PureWindowsPath(self.cfg.dbdir)),
                '/APPDIR=' + str(PureWindowsPath(self.cfg.appdir)),
                '/PATH=0',
+               '/UPGRADE=1',
                '/S',
                '/INSTALL_SCOPE_ALL=1']
         logging.info('running windows package installer:')
@@ -128,6 +129,10 @@ class InstallerW(InstallerBase):
         except Exception as exc:
             logging.error("failed to get service! - %s", str(exc))
             return
+
+    def un_install_package_for_upgrade(self):
+        """ hook to uninstall old package for upgrade """
+        self.un_install_package()
 
     @step
     def un_install_package(self):
