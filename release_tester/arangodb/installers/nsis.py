@@ -132,7 +132,25 @@ class InstallerW(InstallerBase):
 
     def un_install_package_for_upgrade(self):
         """ hook to uninstall old package for upgrade """
-        self.un_install_package()
+        # once we modify it, the uninstaller will leave it there...
+        if self.get_arangod_conf().exists():
+            self.get_arangod_conf().unlink()
+        uninstaller = "Uninstall.exe"
+        tmp_uninstaller = Path("c:/tmp") / uninstaller
+        uninstaller = self.cfg.install_prefix / uninstaller
+
+        if uninstaller.exists():
+            # copy out the uninstaller as the windows facility would do:
+            shutil.copyfile(uninstaller, tmp_uninstaller)
+
+            cmd = [tmp_uninstaller,
+                   '/PURGE_DB=0',
+                   '/S',
+                   '_?=' + str(PureWindowsPath(self.cfg.install_prefix))]
+            logging.info('running windows package uninstaller')
+            logging.info(str(cmd))
+            uninstall = psutil.Popen(cmd)
+            uninstall.wait()
 
     @step
     def un_install_package(self):
