@@ -66,7 +66,7 @@ docker run \
        --privileged \
        -itd \
        \
-       "${DOCKER_DEB_TAG}" \
+       "arangodb/${DOCKER_DEB_TAG}" \
        \
        /lib/systemd/systemd --system --unit=multiuser.target 
 

@@ -68,7 +68,7 @@ docker run \
        --ulimit core=-1 \
        --init \
        \
-       "${DOCKER_TAR_TAG}" \
+       "arangodb/${DOCKER_TAR_TAG}" \
        \
           /home/release-test-automation/release_tester/full_download_upgrade_test.py \
           --old-version "${OLD_VERSION}" \

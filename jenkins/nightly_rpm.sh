@@ -66,7 +66,7 @@ docker run \
        --privileged \
        -itd \
        \
-       "${DOCKER_RPM_TAG}" \
+       "arangodb/${DOCKER_RPM_TAG}" \
        \
        /lib/systemd/systemd --system --unit=multiuser.target 
 
