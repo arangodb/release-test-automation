@@ -319,6 +319,7 @@ class Runner(ABC):
 
             self.make_data_after_upgrade()
             if self.hot_backup:
+                self.check_data_impl()
                 self.progress(False, "TESTING HOTBACKUP AFTER UPGRADE")
                 backups = self.list_backup()
                 print(backups)
