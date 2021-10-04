@@ -6,11 +6,13 @@ import logging
 import multiprocessing
 from pathlib import Path
 from pathlib import PureWindowsPath
+import winreg
 
 from reporting.reporting_utils import step
 import psutil
 import tools.monkeypatch_psutil
 from arangodb.installers.base import InstallerBase
+
 
 class InstallerW(InstallerBase):
     """ install the windows NSIS package """
@@ -69,6 +71,7 @@ class InstallerW(InstallerBase):
                '/DATABASEDIR=' + str(PureWindowsPath(self.cfg.dbdir)),
                '/APPDIR=' + str(PureWindowsPath(self.cfg.appdir)),
                '/PATH=0',
+               '/UPGRADE=1',
                '/S',
                '/INSTALL_SCOPE_ALL=1']
         logging.info('running windows package installer:')
@@ -127,6 +130,28 @@ class InstallerW(InstallerBase):
             logging.error("failed to get service! - %s", str(exc))
             return
 
+    def un_install_package_for_upgrade(self):
+        """ hook to uninstall old package for upgrade """
+        # once we modify it, the uninstaller will leave it there...
+        if self.get_arangod_conf().exists():
+            self.get_arangod_conf().unlink()
+        uninstaller = "Uninstall.exe"
+        tmp_uninstaller = Path("c:/tmp") / uninstaller
+        uninstaller = self.cfg.install_prefix / uninstaller
+
+        if uninstaller.exists():
+            # copy out the uninstaller as the windows facility would do:
+            shutil.copyfile(uninstaller, tmp_uninstaller)
+
+            cmd = [tmp_uninstaller,
+                   '/PURGE_DB=0',
+                   '/S',
+                   '_?=' + str(PureWindowsPath(self.cfg.install_prefix))]
+            logging.info('running windows package uninstaller')
+            logging.info(str(cmd))
+            uninstall = psutil.Popen(cmd)
+            uninstall.wait()
+
     @step
     def un_install_package(self):
         # once we modify it, the uninstaller will leave it there...
@@ -175,7 +200,11 @@ class InstallerW(InstallerBase):
         if not self.service:
             logging.error("no service registered, not starting")
             return
-        self.service.start()
+        # TODO: re-enable once https://github.com/giampaolo/psutil/pull/1990 is in a release
+        # self.service.start()
+        ret = psutil.Popen(["sc", "start", "ArangoDB"]).wait()
+        if ret != 0:
+            raise Exception("sc exited non-zero! : %d" % ret)
         while self.service.status() != "running":
             logging.info(self.service.status())
             time.sleep(1)
@@ -208,3 +237,38 @@ class InstallerW(InstallerBase):
             shutil.rmtree(self.cfg.appdir)
         if self.cfg.cfgdir.exists():
             shutil.rmtree(self.cfg.cfgdir)
+        try:
+            print("force deleting the arangodb service")
+            psutil.Popen(["sc", "delete", "arangodb"]).wait()
+        except FileNotFoundError:
+            print("No service installed.")
+            pass
+        with winreg.OpenKeyEx(winreg.HKEY_CURRENT_USER,
+                              "Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Compatibility Assistant\\Store",
+                              access=winreg.KEY_WRITE) as k:
+            try:
+                index = 0;
+                while True:
+                    key, val, dtype = winreg.EnumValue(k, index)
+                    if key.find("ArangoDB") >= 0:
+                        print("deleting v-key: " + key)
+                        winreg.DeleteValue(k, key)
+                    index = index + 1
+            except OSError:
+                print("      done")
+                pass
+        with winreg.OpenKeyEx(winreg.HKEY_CURRENT_CONFIG,
+                              "Software",
+                              access=winreg.KEY_WRITE) as k:
+            try:
+                index = 0;
+                while True:
+                    key = winreg.EnumKey(k, index)
+                    print("key: " + key)
+                    if key.find("ArangoDB") >= 0:
+                        print("deleting key: " + key)
+                        winreg.DeleteKey(k, key)
+                    index = index + 1
+            except OSError:
+                print("      done")
+                pass

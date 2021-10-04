@@ -318,11 +318,13 @@ class Runner(ABC):
             self.new_installer.stop_service()
             self.cfg.set_directories(self.new_installer.cfg)
             self.new_cfg.set_directories(self.new_installer.cfg)
-            self.old_installer.un_install_package_for_upgrade()
 
             self.upgrade_arangod_version() #make sure to pass new version
+            self.old_installer.un_install_package_for_upgrade()
+
             self.make_data_after_upgrade()
             if self.hot_backup:
+                self.check_data_impl()
                 self.progress(False, "TESTING HOTBACKUP AFTER UPGRADE")
                 backups = self.list_backup()
                 print(backups)

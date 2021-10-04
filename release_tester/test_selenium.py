@@ -63,7 +63,7 @@ def run_upgrade(old_version, new_version, verbose,
 
 
 @click.command()
-@very_common_options
+@very_common_options()
 @common_options(support_old=True)
 # pylint: disable=R0913 disable=W0613
 def main(

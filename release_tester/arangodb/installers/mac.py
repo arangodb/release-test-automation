@@ -203,10 +203,6 @@ class InstallerMac(InstallerBase):
         self.install_package()
 
     @step
-    def un_install_package_for_upgrade(self):
-        """ hook to uninstall old package for upgrade """
-
-    @step
     def install_package(self):
         if self.cfg.pidfile.exists():
             self.cfg.pidfile.unlink()
