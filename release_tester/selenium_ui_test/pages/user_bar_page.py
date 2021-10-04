@@ -1,6 +1,5 @@
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import TimeoutException
 from selenium_ui_test.pages.base_page import BasePage
-import time
 
 
 class UserBarPage(BasePage):
@@ -17,3 +16,15 @@ class UserBarPage(BasePage):
         logout_button_sitem.click()
         print("Logout from the current user\n")
         self.wait_for_ajax()
+
+    def get_health_state(self):
+        """ extract the health state in the upper right corner """
+        try:
+            elem = self.locator_finder_by_text_xpath(
+                '/html/body/div[2]/div/div[1]/div/ul[1]/li[2]/a[2]')
+        except TimeoutException as ex:
+            self.take_screenshot()
+            raise ex
+        # self.webdriver.find_element_by_class_name("state health-state") WTF? Y not?
+        self.progress("Health state:" + elem.text)
+        return elem.text

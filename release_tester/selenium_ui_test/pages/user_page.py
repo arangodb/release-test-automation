@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-"""
-aardvark ui object for users
-"""
 import time
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
@@ -84,7 +80,7 @@ class UserPage(NavigationBarPage):
         except StaleElementReferenceException:
             # javascript may be doing stuff to the DOM so we retry once here...
             print("reloading...")
-            self.driver.refresh()
+            self.webdriver.refresh()
             time.sleep(1)
             self.selecting_permission_tab()
             self.click_submenu_entry("General")
@@ -110,39 +106,6 @@ class UserPage(NavigationBarPage):
         tester_sitem = self.locator_finder_by_xpath(self.tester_id)
         tester_sitem.click()
         time.sleep(4)
-
-    def create_sample_collection(self, test_name):
-        """ selecting collection tab """
-        try:
-            self.navbar_goto('collections')
-
-            # Clicking on create new collection box
-            create_collection_sitem = self.locator_finder_by_id(self.select_create_collection_id)
-            create_collection_sitem.click()
-            time.sleep(2)
-
-            # Providing new collection name
-            collection_name_sitem = self.locator_finder_by_id(self.select_new_collection_name_id)
-            collection_name_sitem.click()
-            collection_name_sitem.send_keys("testDoc")
-
-            # creating collection by tapping on save button
-            save_sitem = self.locator_finder_by_id('modalButton1')
-            save_sitem.click()
-
-            try:
-                notification_sitem = self.locator_finder_by_css_selectors('noty_body')
-                time.sleep(1)
-                expected_text = 'Collection: Collection "testDoc" successfully created.'
-                assert notification_sitem.text == expected_text, f"Expected text{expected_text} but got {notification_sitem.text}"
-            except TimeoutException:
-                print('Unexpected error occurred!')
-
-        except TimeoutException as ex:
-            if test_name == 'access':
-                print("Collection creation failed, which is expected")
-            if test_name == 'read/write':
-                raise Exception("Unexpected error occurred!") from ex
 
     def delete_user_btn(self):
         """deleting user"""

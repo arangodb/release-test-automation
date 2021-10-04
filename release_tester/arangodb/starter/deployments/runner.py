@@ -254,13 +254,10 @@ class Runner(ABC):
             self.starter_prepare_env()
             self.starter_run()
             self.finish_setup()
-            if self.selenium:
-                self.selenium.connect_server(self.get_frontend_instances(), '_system', self.cfg)
-                self.selenium.check_empty_ui()
             self.make_data()
             if self.selenium:
-                self.selenium.check_old(self.old_installer.cfg)
-                self.selenium.check_empty_ui()
+                self.set_selenium_instances()
+                self.selenium.test_empty_ui()
             ti.prompt_user(
                 self.basecfg,
                 "{0}{1} Deployment started. Please test the UI!".format(
@@ -363,7 +360,6 @@ class Runner(ABC):
             self.uninstall(self.old_installer
                            if not self.new_installer else self.new_installer)
         if self.selenium:
-            self.selenium.clear_ui()
             self.selenium.disconnect()
             success = True
             ui_test_results_table = BeautifulTable(maxwidth=160)
@@ -402,8 +398,7 @@ class Runner(ABC):
                 # find out about its processes:
                 starter.detect_instances()
             print(self.starter_instances)
-            self.selenium.connect_server(self.get_frontend_instances(), '_system', self.cfg)
-            self.selenium.check_old(self.old_installer.cfg)
+            self.selenium.test_before_upgrade()
         if self.new_installer:
             self.versionstr = "NEW[" + self.new_cfg.version + "] "
 
@@ -1093,3 +1088,7 @@ class Runner(ABC):
             file.write(new_cert)
 
         os.environ['REQUESTS_CA_BUNDLE'] = str(new_file)
+
+    def set_selenium_instances(self):
+        """ set instances in selenium runner """
+        pass

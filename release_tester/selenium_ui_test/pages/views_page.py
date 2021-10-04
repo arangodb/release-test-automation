@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-"""
-aardvark views page
-"""
 import time
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -236,7 +232,7 @@ class ViewsPage(NavigationBarPage):
     def delete_views_confirm_btn(self):
         """Confirm deletion of the current views"""
         # delete_views_confirm_btn_sitem = self.locator_finder_by_xpath(self.delete_views_confirm_btn_id)
-        delete_views_confirm_btn_sitem = WebDriverWait(self.driver, 10).until(
+        delete_views_confirm_btn_sitem = WebDriverWait(self.webdriver, 10).until(
             EC.element_to_be_clickable((BY.XPATH, self.delete_views_confirm_btn_id)))
         delete_views_confirm_btn_sitem.click()
 

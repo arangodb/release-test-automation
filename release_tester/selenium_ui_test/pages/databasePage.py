@@ -1,7 +1,5 @@
 import time
-
 from selenium.common.exceptions import TimeoutException
-
 from selenium_ui_test.pages.navbar import NavigationBarPage
 
 
@@ -228,7 +226,7 @@ class DatabasePage(NavigationBarPage):
 
     def Deleting_database(self, db_name):
         """Deleting Database"""
-        self.driver.refresh()
+        self.webdriver.refresh()
 
         print(f'{db_name} deleting started \n')
 
@@ -252,6 +250,6 @@ class DatabasePage(NavigationBarPage):
         delete_confirm_btn_sitem.click()
         time.sleep(1)
 
-        self.driver.refresh()
+        self.webdriver.refresh()
 
         print(f'{db_name} deleting completed \n')

@@ -1,12 +1,5 @@
-#!/usr/bin/env python
-"""
-aardvark dashboard page object
-"""
-
 import time
-
 from selenium.common.exceptions import TimeoutException
-
 from selenium_ui_test.pages.navbar import NavigationBarPage
 
 # can't circumvent long lines.. nAttr nLines
@@ -114,7 +107,7 @@ class DashboardPage(NavigationBarPage):
             select_reload_btn_sitem.click()
 
             # Downloading metrics from the dashboard
-            if self.driver.name == "chrome":  # this will check browser name
+            if self.webdriver.name == "chrome":  # this will check browser name
                 print("Downloading metrics has been disabled for the Chrome browser \n")
             else:
                 metrics_download_sitem = self.locator_finder_by_text_id(self.metrics_download_id)

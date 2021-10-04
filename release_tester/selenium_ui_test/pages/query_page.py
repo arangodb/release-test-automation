@@ -1,11 +1,4 @@
-#!/usr/bin/env python
-"""
-test the QUERY tab in the UI
-"""
-
 import time
-
-# import pyautogui
 
 from selenium_ui_test.pages.base_page import BasePage
 from selenium.webdriver.common.by import By
@@ -68,17 +61,16 @@ class QueryPage(NavigationBarPage):
         print('Creating a blank collection\n')
         create_collection = "createCollection"
         create_collection_sitem = \
-            BasePage.locator_finder_by_id(self, create_collection)
+            self.locator_finder_by_id(create_collection)
         create_collection_sitem.click()
 
         new_collection_name = 'new-collection-name'
-        new_collection_name_sitem = \
-            BasePage.locator_finder_by_id(self, new_collection_name)
+        new_collection_name_sitem = self.locator_finder_by_id(new_collection_name)
         new_collection_name_sitem.click()
         new_collection_name_sitem.send_keys('Characters')
         if is_cluster:
             new_collections_shards = 'new-collection-shards'
-            new_collections_shards_sitem = WebDriverWait(self.driver, 15).until(
+            new_collections_shards_sitem = WebDriverWait(self.webdriver, 15).until(
                 EC.element_to_be_clickable((By.ID, new_collections_shards)),
                 message="failed to get shards input field")
             new_collections_shards_sitem.click()
@@ -93,15 +85,15 @@ class QueryPage(NavigationBarPage):
             new_replication_factor_sitem.send_keys('2')
         modal_button1_str = 'modalButton1'
         modal_button1_sitem = \
-            WebDriverWait(self.driver, 15).until(
+            WebDriverWait(self.webdriver, 15).until(
                 EC.element_to_be_clickable((By.ID, modal_button1_str)),
                 message="failed to wait for collection save button")
         modal_button1_sitem.click()
         # new_collection_name_sitem.send_keys(Keys.ENTER)
 
-        self.driver.refresh()
+        self.webdriver.refresh()
         time.sleep(5)
-        self.driver.back()
+        self.webdriver.back()
         time.sleep(1)
 
     def enter_query(self, query_string):
@@ -115,11 +107,7 @@ class QueryPage(NavigationBarPage):
 
     def selecting_query_page(self):
         """Selecting query page"""
-        query_page = self.selecting_query_page_id
-        self.current = \
-            BasePage.locator_finder_by_id(self, query_page)
-        self.current.click()
-        time.sleep(1)
+        self.navbar_goto("queries")
 
     def execute_insert_query(self):
         """This method will run an insert query"""
@@ -172,7 +160,7 @@ RETURN c
 
     def debug_package_download(self):
         """Downloading debug package"""
-        if self.driver.name == "chrome":  # this will check browser name
+        if self.webdriver.name == "chrome":  # this will check browser name
             print("Download has been disabled for the Chrome browser \n")
         else:
             debug = self.create_debug_package_id
@@ -246,11 +234,7 @@ RETURN c
         key = doc_key.text
         time.sleep(2)
 
-        # selecting query page
-        query_page = self.selecting_query_page_id
-        query_page = \
-            BasePage.locator_finder_by_id(self, query_page)
-        query_page.click()
+        self.selecting_query_page()
 
         time.sleep(1)
         self.enter_query('''
@@ -281,7 +265,7 @@ RETURN doc''')
 
         self.scroll()
 
-        if self.driver.name == "chrome":  # this will check browser name
+        if self.webdriver.name == "chrome":  # this will check browser name
             print("Download has been disabled for the Chrome browser \n")
         else:
             print('Downloading query results \n')
@@ -412,7 +396,7 @@ FOR doc IN Characters
         run_query.click()
         time.sleep(3)
 
-        if self.driver.name == "chrome":  # this will check browser name
+        if self.webdriver.name == "chrome":  # this will check browser name
             print("Download has been disabled for the Chrome browser \n")
         else:
             print('Exporting newly imported query\n')
@@ -523,7 +507,7 @@ FOR doc IN Characters
         confirm_del_btn_sitem.click()
         time.sleep(2)
 
-        self.driver.refresh()
+        self.webdriver.refresh()
 
         # return back to saved query
         saved_query_01_sitem = self.locator_finder_by_id('toggleQueries1')
@@ -551,13 +535,7 @@ FOR doc IN Characters
     def world_country_graph_query(self):
         """Graph query"""
 
-        # navigating back to query tab
-        query = self.selecting_query_page_id
-        query = \
-            BasePage.locator_finder_by_id(self, query)
-        query.click()
-        time.sleep(1)
-
+        self.selecting_query_page()
         self.clear_all_text(self.query_execution_area)
 
         print('Executing sample graph query for worldCountry Graph \n')
@@ -573,18 +551,14 @@ GRAPH "worldCountry"
 
         self.scroll()
 
-        self.driver.refresh()
+        self.webdriver.refresh()
 
 
     def k_shortest_paths_graph_query(self):
         """K Shortest Paths Graph Query"""
 
         # navigating back to query tab
-        query = self.selecting_query_page_id
-        query = \
-            BasePage.locator_finder_by_id(self, query)
-        query.click()
-        time.sleep(1)
+        self.selecting_query_page()
 
         self.clear_all_text(self.query_execution_area)
 
@@ -638,11 +612,7 @@ LIMIT 4
         time.sleep(5)
 
         print('Navigate back to query page\n')
-        query_page = self.selecting_query_page_id
-        query_page = \
-            BasePage.locator_finder_by_id(self, query_page)
-        query_page.click()
-        time.sleep(2)
+        self.selecting_query_page()
 
         print('Clear query execution area \n')
         self.clear_all_text(self.query_execution_area)
@@ -656,16 +626,11 @@ FOR v, e IN OUTBOUND SHORTEST_PATH "places/Aberdeen" TO "places/London"
 
         self.query_execution_btn()
         self.scroll()
-        self.driver.refresh()
+        self.webdriver.refresh()
 
     def city_graph(self):
         """Example City Graph"""
-        # navigating back to query tab
-        query = self.selecting_query_page_id
-        query = \
-            BasePage.locator_finder_by_id(self, query)
-        query.click()
-        time.sleep(1)
+        self.selecting_query_page()
 
         self.enter_query('for u in germanCity return u')
         time.sleep(1)
@@ -694,7 +659,7 @@ FOR v, e IN OUTBOUND SHORTEST_PATH "places/Aberdeen" TO "places/London"
 
         self.select_query_execution_area()
         self.scroll(1)
-        self.driver.refresh()
+        self.webdriver.refresh()
 
     def number_of_results(self):
         """changing the number of output"""
@@ -718,7 +683,7 @@ RETURN c''')
 
         self.scroll()
 
-        self.driver.refresh()
+        self.webdriver.refresh()
 
     def delete_collection(self, collection):
         """Deleting Collection using any collections locator id"""
@@ -792,11 +757,7 @@ RETURN c''')
         time.sleep(3)
 
         # navigate back to query page
-        query_page = self.selecting_query_page_id
-        query_page = \
-            BasePage.locator_finder_by_id(self, query_page)
-        query_page.click()
-        time.sleep(3)
+        self.selecting_query_page()
 
         # selecting query execution area
         self.select_query_execution_area()

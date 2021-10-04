@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-"""
-aardvark collection tab ui object
-"""
 import time
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import TimeoutException
@@ -59,7 +55,7 @@ class CollectionPage(NavigationBarPage):
         self.move_doc_textbox_id = "move-documents-to"
         self.move_confirm_btn_id = "modalButton1"
         self.select_collection_delete_btn_id = "deleteSelected"
-        self.collection_delete_confirm_btn_id = "//*[@id='modalButton1']"
+        self.collection_delete_confirm_btn_id = """//div[@id="modalPlaceholder"]//button[text()="Delete"]"""
         self.collection_really_dlt_btn_id = "/html//button[@id='modal-confirm-delete']"
         self.select_index_menu_id = "//*[@id='subNavigationBarPage']/ul[2]/li[2]/a"
         self.create_new_index_btn_id = "addIndex"
@@ -280,7 +276,7 @@ class CollectionPage(NavigationBarPage):
 
     def download_doc_as_json(self):
         """Exporting documents as JSON file from the collection"""
-        if self.driver.name == "chrome":  # this will check browser name
+        if self.webdriver.name == "chrome":  # this will check browser name
             print("Download has been disabled for the Chrome browser \n")
         else:
             select_export_doc_as_jason_sitem = \
@@ -308,7 +304,7 @@ class CollectionPage(NavigationBarPage):
             self.locator_finder_by_id(self.document_id)
         string = document_sitem.text
         # print(string[8:])
-        self.driver.back()
+        self.webdriver.back()
         time.sleep(1)
 
         select_filter_input_sitem = \
@@ -404,7 +400,7 @@ class CollectionPage(NavigationBarPage):
         collection_really_dlt_btn_sitem = \
             self.locator_finder_by_text_xpath(self.collection_really_dlt_btn_id)
         collection_really_dlt_btn_sitem.click()
-        self.driver.refresh()
+        self.webdriver.refresh()
 
     def select_index_menu(self):
         """Selecting index menu from collection"""
@@ -494,7 +490,7 @@ class CollectionPage(NavigationBarPage):
         select_index_confirm_delete_sitem = \
             self.locator_finder_by_text_id(self.select_index_confirm_delete)
         select_index_confirm_delete_sitem.click()
-        self.driver.refresh()
+        self.webdriver.refresh()
 
     def select_info_tab(self):
         """Selecting info tab from the collection submenu"""
@@ -591,3 +587,34 @@ class CollectionPage(NavigationBarPage):
     def select_collection(self, collection_name):
         selector = """//div[contains(@class, 'tile')][@id='collection_%s']""" % collection_name
         self.locator_finder_by_text_xpath(selector).click()
+
+    def create_sample_collection(self, test_name):
+        """ selecting collection tab """
+        try:
+            # Clicking on create new collection box
+            create_collection_sitem = self.locator_finder_by_id(self.select_create_collection_id)
+            create_collection_sitem.click()
+            time.sleep(2)
+
+            # Providing new collection name
+            collection_name_sitem = self.locator_finder_by_id(self.select_new_collection_name_id)
+            collection_name_sitem.click()
+            collection_name_sitem.send_keys("testDoc")
+
+            # creating collection by tapping on save button
+            save_sitem = self.locator_finder_by_id('modalButton1')
+            save_sitem.click()
+
+            try:
+                notification_sitem = self.locator_finder_by_css_selectors('noty_body')
+                time.sleep(1)
+                expected_text = 'Collection: Collection "testDoc" successfully created.'
+                assert notification_sitem.text == expected_text, f"Expected text{expected_text} but got {notification_sitem.text}"
+            except TimeoutException:
+                print('Unexpected error occurred!')
+
+        except TimeoutException as ex:
+            if test_name == 'access':
+                print("Collection creation failed, which is expected")
+            if test_name == 'read/write':
+                raise Exception("Unexpected error occurred!") from ex

@@ -1,8 +1,3 @@
-#!/usr/bin/env python
-"""
-test the QUERY tab in the UI
-"""
-
 import time
 
 from selenium_ui_test.pages.navbar import NavigationBarPage

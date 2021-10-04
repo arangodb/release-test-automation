@@ -18,6 +18,7 @@ from tools.interact import prompt_user
 
 class ActiveFailover(Runner):
     """ This launches an active failover setup """
+
     # pylint: disable=R0913 disable=R0902
     def __init__(self, runner_type, abort_on_error, installer_set,
                  selenium, selenium_driver_args,
@@ -118,10 +119,11 @@ class ActiveFailover(Runner):
     def finish_setup_impl(self):
         logging.info("instances are ready, detecting leader")
         self._detect_leader()
-        self.selenium.set_instances(self.cfg, self.leader.arango_importer, self.leader.arango_restore)
-        # self.selenium.connect_server(self.get_frontend_instances(), '_system', self.cfg)
+        self.selenium.set_instances(self.cfg, self.leader.arango_importer,
+                                    self.leader.arango_restore,
+                                    [x for x in self.leader.all_instances if x.instance_type==InstanceType.RESILIENT_SINGLE][0])
 
-        #add data to leader
+        # add data to leader
         self.makedata_instances.append(self.leader)
 
         logging.info('leader can be reached at: %s',
@@ -162,23 +164,24 @@ class ActiveFailover(Runner):
         logging.info('leader can be reached at: %s',
                      self.leader.get_frontend().get_public_url(''))
         ret = self.leader.arangosh.check_test_data(
-                "checking active failover follower node",
-                True, [
-                    "--readOnly", "false"
-                ])
+            "checking active failover follower node",
+            True, [
+                "--readOnly", "false"
+            ])
         if not ret[0]:
             raise Exception("check data failed " + ret[1])
         if self.selenium:
             self.selenium.set_instances(self.cfg,
                                         self.leader.arango_importer,
-                                        self.leader.arango_restore)
-            self.selenium.check_full_ui(self.passvoid, [self.leader])
+                                        self.leader.arango_restore,
+                                        [x for x in self.leader.all_instances if x.instance_type==InstanceType.RESILIENT_SINGLE][0])
+            self.selenium.test_setup()
 
     def wait_for_restore_impl(self, backup_starter):
         backup_starter.wait_for_restore()
         self.leader = None
         retry = True
-        time.sleep(5) # Make shaky leader less viable.
+        time.sleep(5)  # Make shaky leader less viable.
         while retry:
             for node in self.starter_instances:
                 if node.detect_leader():
@@ -211,9 +214,7 @@ class ActiveFailover(Runner):
             node.detect_instance_pids()
         self.print_all_instances_table()
         if self.selenium:
-            self.selenium.webdriver.refresh() # version doesn't upgrade if we don't do this...
-            self.selenium.check_old(self.new_cfg,
-                                    expect_follower_count=2, retry_count=10)
+            self.selenium.test_before_upgrade()
 
     def upgrade_arangod_version_manual_impl(self):
         """ manual upgrade this installation """
@@ -233,7 +234,7 @@ class ActiveFailover(Runner):
             node.manually_launch_instances([
                 InstanceType.RESILIENT_SINGLE,
             ], ['--database.auto-upgrade', 'true',
-                '--javascript.copy-installation', 'true' ])
+                '--javascript.copy-installation', 'true'])
         self.progress(True, "step 3 - launch instances again")
         for node in self.starter_instances:
             node.respawn_instance()
@@ -245,10 +246,7 @@ class ActiveFailover(Runner):
         self.leader.maintainance(False, InstanceType.RESILIENT_SINGLE)
         self.print_all_instances_table()
         if self.selenium:
-            self.selenium.webdriver.refresh() # version doesn't upgrade if we don't do this...
-            self.selenium.check_old(self.new_cfg,
-                                    expect_follower_count=2,
-                                    retry_count=10)
+            self.selenium.test_before_upgrade()
 
     def jam_attempt_impl(self):
         # pylint: disable=R0915
@@ -274,8 +272,8 @@ class ActiveFailover(Runner):
                 progress('.')
             time.sleep(1)
             if count > 360:
-                #self.progress(False, "Timeout waiting for new leader - crashing!")
-                #for node in self.starter_instances:
+                # self.progress(False, "Timeout waiting for new leader - crashing!")
+                # for node in self.starter_instances:
                 #    node.crash_instances()
                 raise TimeoutError("Timeout waiting for new leader!")
             count += 1
@@ -297,11 +295,12 @@ class ActiveFailover(Runner):
         self.set_frontend_instances()
 
         if self.selenium:
-            self.selenium.connect_server(self.leader.get_frontends(), '_system',
-                                         self.new_cfg if self.new_cfg else self.cfg)
-            cfg = self.new_cfg if self.new_cfg else self.cfg
-            self.selenium.check_old(cfg=cfg, expect_follower_count=1, retry_count=10)
-            self.selenium.jam_step_1(cfg, [self.leader])
+            # cfg = self.new_cfg if self.new_cfg else self.cfg
+            self.selenium.set_instances(self.cfg, self.leader.arango_importer,
+                                        self.leader.arango_restore,
+                                        [x for x in self.leader.all_instances if x.instance_type==InstanceType.RESILIENT_SINGLE][0])
+            self.selenium.test_before_upgrade()
+            self.selenium.jam_step_1()
 
         prompt_user(self.basecfg,
                     '''The leader failover has happened.
@@ -326,14 +325,16 @@ please revalidate the UI states on the new leader; you should see *one* follower
         prompt_user(self.basecfg,
                     'The old leader has been respawned as follower (%s),'
                     ' so there should be two followers again.'
-                    % self.first_leader.get_frontend().get_public_url('root@') )
+                    % self.first_leader.get_frontend().get_public_url('root@'))
 
         logging.info("state of this test is: %s",
                      "Success" if self.success else "Failed")
         if self.selenium:
-            cfg = self.new_cfg if self.new_cfg else self.cfg
-            self.selenium.set_instances(cfg, self.leader.arango_importer, self.leader.arango_restore)
-            self.selenium.check_old(cfg=cfg, expect_follower_count=2, retry_count=10)
+            # cfg = self.new_cfg if self.new_cfg else self.cfg
+            self.selenium.set_instances(self.cfg, self.leader.arango_importer,
+                                        self.leader.arango_restore,
+                                        [x for x in self.leader.all_instances if x.instance_type==InstanceType.RESILIENT_SINGLE][0])
+            self.selenium.test_before_upgrade()
 
     def shutdown_impl(self):
         for node in self.starter_instances:
@@ -349,3 +350,10 @@ please revalidate the UI states on the new leader; you should see *one* follower
 
     def after_backup_impl(self):
         pass
+
+    def set_selenium_instances(self):
+        """ set instances in selenium runner """
+        self.selenium.set_instances(self.cfg, self.leader.arango_importer,
+                                    self.leader.arango_restore,
+                                    [x for x in self.leader.all_instances if x.instance_type==InstanceType.RESILIENT_SINGLE][0]
+                                    )

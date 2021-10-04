@@ -1,8 +1,6 @@
-from selenium.common.exceptions import NoSuchElementException
-from selenium_ui_test.pages.base_page import BasePage
-import time
-
 from selenium_ui_test.pages.user_bar_page import UserBarPage
+from selenium.common.exceptions import TimeoutException
+import time
 
 
 class NavigationBarPage(UserBarPage):
@@ -12,37 +10,18 @@ class NavigationBarPage(UserBarPage):
     click_slack_link_id = "//*[@id='navigationBar']/div[2]/p[2]/a"
     click_stackoverflow_link_id = "//*[@id='navigationBar']/div[2]/p[3]/a"
     click_google_group_link_id = "//*[@id='navigationBar']/div[2]/p[4]/a"
+    navbar_id = "navigationBar"
 
     def __init__(self, driver):
         super().__init__(driver)
 
     def navbar_goto(self, tag):
         """ click on any of the items in the 'navbar' """
-        count = 0
-        print("navbar goto %s" % tag)
-        while True:
-            try:
-                elem = self.driver.find_element_by_id(tag)
-                assert elem, "navbar goto failed?"
-                elem.click()
-                self.driver.find_element_by_class_name(tag + '-menu.active')
-                print("goto current URL: " + self.driver.current_url)
-                if not self.driver.current_url.endswith('#' + tag):
-                    # retry...
-                    continue
-                return
-            except NoSuchElementException:
-                print('retrying to switch to ' + tag)
-                time.sleep(1)
-                count += 1
-                if count % 15 == 0:
-                    print("reloading page!")
-                    self.driver.refresh()
-                    time.sleep(1)
-                continue
-            # except TimeoutException as ex:
-            # self.take_screenshot()
-            #    raise ex
+        self.wait_for_ajax()
+        bar = self.webdriver.find_element_by_id(self.navbar_id)
+        item = bar.find_element_by_id(tag)
+        item.click()
+        self.wait_for_ajax()
 
     def click_twitter_link(self):
         """Clicking on twitter link on dashboard"""
@@ -74,3 +53,30 @@ class NavigationBarPage(UserBarPage):
         title = self.switch_tab(click_google_group_link_sitem)
         expected_title = "ArangoDB - Google Groups"
         assert title in expected_title, f"Expected page title {expected_title} but got {title}"
+
+    def detect_version(self):
+        """
+        extracts the version in the lower right and
+         compares it to a given version
+        """
+        count = 0
+        while True:
+            try:
+                elem = self.webdriver.find_element_by_id("currentVersion")
+                enterprise_elem = self.webdriver.find_element_by_class_name(
+                    "logo.big")
+                ret = {
+                    'version': elem.text,
+                    'enterprise': enterprise_elem.text
+                }
+                self.progress("check_version (%s) (%s)" % (
+                    ret['version'], ret['enterprise']))
+                if (len(ret['version']) > 0) and (len(ret['enterprise']) > 0):
+                    return ret
+                self.progress('retry version.')
+                time.sleep(1)
+                if count > 200:
+                    raise TimeoutException("canot detect version, found: %s " %str(ret))
+                count += 1
+            except TimeoutException as ex:
+                raise ex
