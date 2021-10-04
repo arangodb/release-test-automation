@@ -227,7 +227,7 @@ class AcquirePackages():
         return json.dumps(val)
 
 @click.command()
-@very_common_options
+@very_common_options()
 @download_options()
 # pylint: disable=R0913
 def main(
