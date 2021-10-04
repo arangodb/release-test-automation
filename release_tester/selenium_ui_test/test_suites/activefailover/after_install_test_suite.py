@@ -3,13 +3,13 @@ import time
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium_ui_test.test_suites.base_classes.before_upgrade_test_suite import \
-    BeforeUpgradeTestSuite
+    AfterInstallTestSuite
 
 from selenium_ui_test.pages.replication_page import ReplicationPage
 
 
-class ActiveFailoverBeforeUpgradeTestSuite(BeforeUpgradeTestSuite):
-    """ test cases to check the integrity of the old system before the upgrade (Cluster) """
+class ActiveFailoverAfterInstallTestSuite(AfterInstallTestSuite):
+    """ test cases to check the integrity of the old system before the install (Active Failover) """
 
     @testcase
     def check_old(self, expect_follower_count=2, retry_count=10):

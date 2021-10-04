@@ -38,10 +38,7 @@ class SeleniumRunner(ABC):
         self.is_cluster = False
         self.test_results = []
         self.main_test_suite_list = []
-        self.before_upgrade_test_suite_list = []
-        self.after_upgrade_test_suite_list = []
-        self.jam_step_1_test_suite_list = []
-        self.jam_step_2_test_suite_list = []
+        self.after_install_test_suite_list = []
 
     def set_instances(self, cfg, importer, restorer, ui_entrypoint_instance, new_cfg=None):
         """ change the used frontend instance """
@@ -152,12 +149,6 @@ class SeleniumRunner(ABC):
         else:
             return "http"
 
-    def test_setup(self):
-        for test_suite_class in self.main_test_suite_list:
-            test_suite = test_suite_class(self)
-            results = test_suite.run()
-            self.test_results += results
-
     def test_after_jam_step_two(self):
         """ check the integrity of the old system after jamming setup (first step) """
         for test_suite_class in self.jam_step_2_test_suite_list:
@@ -176,20 +167,9 @@ class SeleniumRunner(ABC):
             results = test_suite.run()
             self.test_results += results
 
-    def test_before_upgrade(self):
+    def test_setup(self):
+        self.run_test_suites(self.main_test_suite_list)
+
+    def test_after_install(self):
         """ check the integrity of the old system before the upgrade """
-        self.run_test_suites(self.before_upgrade_test_suite_list)
-
-    def upgrade_deployment(self):
-        """ perform tests after upgrade (check whether the versions in the table switch etc.) """
-        self.run_test_suites(self.after_upgrade_test_suite_list)
-
-    @step
-    def jam_step_1(self):
-        """ check the integrity of the old system after jamming setup (first step) """
-        self.run_test_suites(self.jam_step_1_test_suite_list)
-
-    @step
-    def jam_step_2(self):
-        """ check the integrity of the old system after jamming setup (second step) """
-        self.run_test_suites(self.jam_step_2_test_suite_list)
+        self.run_test_suites(self.after_install_test_suite_list)

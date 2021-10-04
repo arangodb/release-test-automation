@@ -143,7 +143,7 @@ db.testCollection.save({test: "document"})
 
         self.starter_instances[1].command_upgrade()
         if self.selenium:
-            self.selenium.upgrade_deployment(self.cfg, self.new_cfg, timeout=30) # * 5s
+            self.selenium.test_wait_for_upgrade(self.cfg, self.new_cfg, timeout=30) # * 5s
         self.starter_instances[1].wait_for_upgrade(300)
         if self.cfg.stress_upgrade:
             bench_instances[0].wait()
@@ -200,7 +200,7 @@ db.testCollection.save({test: "document"})
         self.starter_instances[0].maintainance(True, InstanceType.COORDINATOR)
 
         if self.selenium:
-            self.selenium.upgrade_deployment(self.cfg, self.new_cfg, timeout=30) # * 5s
+            self.selenium.test_wait_for_upgrade(self.cfg, self.new_cfg, timeout=30) # * 5s
 
     @step
     def jam_attempt_impl(self):
@@ -268,7 +268,7 @@ db.testCollection.save({test: "document"})
         prompt_user(self.basecfg, "cluster should be up")
         if self.selenium:
             self.selenium.jam_step_2()
-            self.selenium.test_before_upgrade()
+            self.selenium.test_after_install()
 
     def shutdown_impl(self):
         for node in self.starter_instances:

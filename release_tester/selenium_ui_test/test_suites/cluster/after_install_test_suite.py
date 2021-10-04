@@ -5,12 +5,12 @@ from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium_ui_test.pages.nodes_page import NodesPage
 from selenium_ui_test.test_suites.base_classes.before_upgrade_test_suite import \
-    BeforeUpgradeTestSuite
+    AfterInstallTestSuite
 from selenium_ui_test.pages.cluster_page import ClusterPage
 
 
-class ClusterBeforeUpgradeTestSuite(BeforeUpgradeTestSuite):
-    """ test cases to check the integrity of the old system before the upgrade (Cluster) """
+class ClusterAfterInstallTestSuite(AfterInstallTestSuite):
+    """ test cases to check the integrity of the old system before the install (Cluster) """
 
     @testcase
     def check_old(self):

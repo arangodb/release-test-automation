@@ -400,7 +400,7 @@ class Runner(ABC):
                 # find out about its processes:
                 starter.detect_instances()
             print(self.starter_instances)
-            self.selenium.test_before_upgrade()
+            self.selenium.test_after_install()
         if self.new_installer:
             self.versionstr = "NEW[" + self.new_cfg.version + "] "
 
@@ -517,7 +517,7 @@ class Runner(ABC):
     def make_data_after_upgrade(self):
         """ check if setup is functional """
         self.progress(True, "{0} - make data after upgrade".format(str(self.name)))
-        self.make_data_after_upgrade_impl()
+        self.make_data_wait_for_upgrade_impl()
 
     @step
     def test_setup(self):
@@ -727,7 +727,7 @@ class Runner(ABC):
         raise Exception("no frontend found.")
 
     #TODO test make data after upgrade@abstractmethod
-    def make_data_after_upgrade_impl(self):
+    def make_data_wait_for_upgrade_impl(self):
         """ check the data after the upgrade """
 
     @step

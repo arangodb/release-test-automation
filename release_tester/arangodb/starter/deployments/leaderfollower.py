@@ -180,7 +180,7 @@ process.exit(0);
         lh.subsection("leader/follower - check test data", "-")
 
         if self.selenium:
-            self.selenium.test_before_upgrade()
+            self.selenium.test_after_install()
         #assert that data has been replicated
         self.follower_starter_instance.arangosh.read_only = True
         self.follower_starter_instance.supports_foxx_tests = False
@@ -267,7 +267,7 @@ process.exit(0);
 
         prompt_user(self.basecfg, "please test the installation.")
         if self.selenium:
-            self.selenium.jam_step_1()
+            self.selenium.test_jam_attempt()
 
     @step
     def shutdown_impl(self):

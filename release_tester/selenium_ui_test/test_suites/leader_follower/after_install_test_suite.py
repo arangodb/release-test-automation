@@ -4,11 +4,11 @@ from selenium_ui_test.pages.dashboard_page import DashboardPage
 from release_tester.selenium_ui_test.pages.navbar import NavigationBarPage
 from release_tester.selenium_ui_test.pages.replication_page import ReplicationPage
 from selenium_ui_test.test_suites.base_classes.before_upgrade_test_suite import \
-    BeforeUpgradeTestSuite
+    AfterInstallTestSuite
 
 
-class LeaderFollowerBeforeUpgradeTestSuite(BeforeUpgradeTestSuite):
-    """ test cases to check the integrity of the old system before the upgrade (Leader Follower)"""
+class LeaderFollowerAfterInstallTestSuite(AfterInstallTestSuite):
+    """ test cases to check the integrity of the old system before the install (Leader Follower)"""
 
     @testcase
     def test(self, leader_follower=True):

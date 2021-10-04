@@ -214,7 +214,7 @@ class ActiveFailover(Runner):
             node.detect_instance_pids()
         self.print_all_instances_table()
         if self.selenium:
-            self.selenium.test_before_upgrade()
+            self.selenium.test_after_install()
 
     def upgrade_arangod_version_manual_impl(self):
         """ manual upgrade this installation """
@@ -246,7 +246,7 @@ class ActiveFailover(Runner):
         self.leader.maintainance(False, InstanceType.RESILIENT_SINGLE)
         self.print_all_instances_table()
         if self.selenium:
-            self.selenium.test_before_upgrade()
+            self.selenium.test_after_install()
 
     def jam_attempt_impl(self):
         # pylint: disable=R0915
@@ -299,8 +299,7 @@ class ActiveFailover(Runner):
             self.selenium.set_instances(self.cfg, self.leader.arango_importer,
                                         self.leader.arango_restore,
                                         [x for x in self.leader.all_instances if x.instance_type==InstanceType.RESILIENT_SINGLE][0])
-            self.selenium.test_before_upgrade()
-            self.selenium.jam_step_1()
+            self.selenium.test_jam_attempt()
 
         prompt_user(self.basecfg,
                     '''The leader failover has happened.
@@ -334,7 +333,7 @@ please revalidate the UI states on the new leader; you should see *one* follower
             self.selenium.set_instances(self.cfg, self.leader.arango_importer,
                                         self.leader.arango_restore,
                                         [x for x in self.leader.all_instances if x.instance_type==InstanceType.RESILIENT_SINGLE][0])
-            self.selenium.test_before_upgrade()
+            self.selenium.test_after_install()
 
     def shutdown_impl(self):
         for node in self.starter_instances:

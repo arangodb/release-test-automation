@@ -34,12 +34,14 @@ class BaseTestSuite(ABC):
             self.children.append(suite(selenium_runner))
 
     def run(self):
-        self.setup()
-        for suite in self.children:
-            self.test_results += suite.run()
-        self.test_results += self.run_own_testscases()
-        self.tear_down()
-        return self.test_results
+        name = self.__doc__ if self.__doc__ else self.__class__.__name__
+        with step("Run UI test suite \"%s\"" % name):
+            self.setup()
+            for suite in self.children:
+                self.test_results += suite.run()
+            self.test_results += self.run_own_testscases()
+            self.tear_down()
+            return self.test_results
 
     def run_own_testscases(self):
         testcases = [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "is_testcase")]
