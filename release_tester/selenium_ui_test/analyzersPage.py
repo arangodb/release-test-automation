@@ -640,3 +640,79 @@ class AnalyzerPage(BaseSelenium):
             time.sleep(2)
         except Exception:
             raise Exception('Error occurred!! required manual inspection.\n')
+
+    def test_analyzer_expected_error(self, name, index, div_id):
+        """testing analyzers negative scenarios"""
+        self.select_analyzers_page()
+        self.driver.refresh()
+
+        print('Selecting add new analyzer button \n')
+        add_analyzer = self.add_new_analyzer_btn
+        add_analyzer_sitem = self.locator_finder_by_xpath(self, add_analyzer)
+        add_analyzer_sitem.click()
+        time.sleep(2)
+
+        print(f'checking {name} started \n')
+        # common attributes for all the analyzers
+        analyzer_type = f'/html/body/div[{div_id}]/div/div[2]/div/div[1]/fieldset/div/div[2]/select'
+        analyzer_name_error_id = "//div[@class='noty_body']"
+
+        print('Selecting analyzer type \n')
+        self.locator_finder_by_select_using_xpath(self, analyzer_type, index)
+        time.sleep(2)
+
+        if index == 0:
+            print(f'Expected error scenario for the {name} Started \n')
+            analyzer_name_error_input = ['', '@', '1', 'שלום']
+            analyzer_name_print_statement = [f'Checking blank {name} with " "', f'Checking {name} with symbol " @ "',
+                                             f'Checking numeric value for {name} " 1 "',
+                                             'Checking Non-ASCII Hebrew Characters "שלום"']
+            analyzer_name_error_message = [
+                'Failure: Got unexpected server response: invalid characters in analyzer name \'\'',
+                'Failure: Got unexpected server response: invalid characters in analyzer name \'@\'',
+                'Failure: Got unexpected server response: invalid characters in analyzer name \'1\'',
+                'Failure: Got unexpected server response: invalid characters in analyzer name \'שלום\'']
+
+            # for identity analyzer name placeholder
+            analyzer_name_id = f'/html/body/div[{div_id}]/div/div[2]/div/div[1]/fieldset/div/div[1]/input'
+
+            # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
+            self.check_expected_error_messages(self, analyzer_name_error_input, analyzer_name_print_statement,
+                                                       analyzer_name_error_message, analyzer_name_id,
+                                                       analyzer_name_error_id,
+                                                       div_id)
+
+        # ------------------------------------Stem analyzer's Locale value test------------------------------------
+        if index == 2:
+            print(f'Expected error scenario for the {name} Started \n')
+
+            # filling out the name placeholder first
+            stem_analyzer = '/html/body/div[64]/div/div[2]/div/div[1]/fieldset/div/div[1]/input'
+            stem_analyzer_sitem = self.locator_finder_by_xpath(self, stem_analyzer)
+            stem_analyzer_sitem.click()
+            stem_analyzer_sitem.clear()
+            stem_analyzer_sitem.send_keys(name)
+
+            analyzer_name_error_input = ['aaaaaaaaaa12']
+            analyzer_name_print_statement = [f'Checking {name} with input "aaaaaaaaaa12"']
+            analyzer_name_error_message = ["Failure: Got unexpected server response: Failure initializing an "
+                                           "arangosearch analyzer instance for name '_system::stem_analyzer' type "
+                                           "'stem'. Properties '{ \"locale\" : \"aaaaaaaaaa12\" }' was rejected by "
+                                           "analyzer. Please check documentation for corresponding analyzer type."]
+
+            # for stem analyzer locale placeholder
+            analyzer_locale_id = f'/html/body/div[{div_id}]/div/div[2]/div/div[4]/fieldset/div/div/input'
+
+            # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
+            self.check_expected_error_messages(self, analyzer_name_error_input, analyzer_name_print_statement,
+                                                       analyzer_name_error_message, analyzer_locale_id,
+                                                       analyzer_name_error_id,
+                                                       div_id)
+
+        print(f"Closing the {name} check \n")
+        close_btn = '//*[@id="modal-content-add-analyzer"]/div[3]/button[1]'
+        close_btn_sitem = self.locator_finder_by_xpath(self, close_btn)
+        close_btn_sitem.click()
+        time.sleep(2)
+
+        print(f'Expected error scenario for the {name} Completed \n')

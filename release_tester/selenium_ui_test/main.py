@@ -463,6 +463,11 @@ class Test(BaseSelenium):
         print('Adding GeoJSON analyzer \n')
         analyzers.add_new_analyzer('My_GeoPoint_Analyzer', 12, 60)
 
+        print('Checking negative scenario for the identity analyzers name \n')
+        analyzers.test_analyzer_expected_error('identity_analyzer', 0, 64)
+        print('Checking negative scenario for the stem analyzers locale value \n')
+        analyzers.test_analyzer_expected_error('stem_analyzer', 2, 64)
+
         print('Checking analyzer search filter options started \n')
         analyzers.checking_search_filter_option('de')
         analyzers.checking_search_filter_option('geo', False)  # false indicating builtIn option will be disabled
