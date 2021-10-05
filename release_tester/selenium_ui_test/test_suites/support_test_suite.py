@@ -13,22 +13,22 @@ class SupportTestSuite(BaseTestSuite):
         # creating multiple support page obj
         support = SupportPage(self.webdriver)
 
-        print('Selecting Support Page \n')
+        print("Selecting Support Page \n")
         support.select_support_page()
 
-        print('Selecting documentation tab \n')
+        print("Selecting documentation tab \n")
         support.select_documentation_support()
-        print('Checking all arangodb manual link\n')
+        print("Checking all arangodb manual link\n")
         support.manual_link()
-        print('Checking all AQL Query Language link\n')
+        print("Checking all AQL Query Language link\n")
         support.aql_query_language_link()
-        print('Checking all Fox Framework link \n')
+        print("Checking all Fox Framework link \n")
         support.fox_framework_link()
-        print('Checking all Drivers and Integration links\n')
+        print("Checking all Drivers and Integration links\n")
         support.driver_and_integration_link()
-        print('Checking Community Support tab \n')
+        print("Checking Community Support tab \n")
         support.community_support_link()
-        print('Checking Rest API tab \n')
+        print("Checking Rest API tab \n")
         support.rest_api()
 
         # logging out from the current user

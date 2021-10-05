@@ -15,73 +15,110 @@ from tools.asciiprint import print_progress as progress
 
 
 class Cluster(Runner):
-    """ this launches a cluster setup """
+    """this launches a cluster setup"""
+
     # pylint: disable=R0913 disable=R0902
-    def __init__(self, runner_type, abort_on_error, installer_set,
-                 selenium, selenium_driver_args,
-                 testrun_name: str,
-                 ssl: bool,
-                 use_auto_certs: bool):
-        super().__init__(runner_type, abort_on_error, installer_set,
-                         RunnerProperties('CLUSTER', 400, 600, True, ssl, use_auto_certs),
-                         selenium, selenium_driver_args,
-                         testrun_name)
-        #self.basecfg.frontends = []
+    def __init__(
+        self,
+        runner_type,
+        abort_on_error,
+        installer_set,
+        selenium,
+        selenium_driver_args,
+        testrun_name: str,
+        ssl: bool,
+        use_auto_certs: bool,
+    ):
+        super().__init__(
+            runner_type,
+            abort_on_error,
+            installer_set,
+            RunnerProperties("CLUSTER", 400, 600, True, ssl, use_auto_certs),
+            selenium,
+            selenium_driver_args,
+            testrun_name,
+        )
+        # self.basecfg.frontends = []
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
         self.create_test_collection = ""
         self.min_replication_factor = 2
 
     def starter_prepare_env_impl(self):
-        self.create_test_collection = ("""
+        self.create_test_collection = (
+            """
 db._create("testCollection",  { numberOfShards: 6, replicationFactor: 2});
 db.testCollection.save({test: "document"})
-""", "create test collection")
+""",
+            "create test collection",
+        )
         node1_opts = []
-        node2_opts = ['--starter.join', '127.0.0.1:9528']
-        node3_opts = ['--starter.join', '127.0.0.1:9528']
+        node2_opts = ["--starter.join", "127.0.0.1:9528"]
+        node3_opts = ["--starter.join", "127.0.0.1:9528"]
         if self.cfg.ssl and not self.cfg.use_auto_certs:
             self.create_tls_ca_cert()
             node1_tls_keyfile = self.cert_dir / Path("node1") / "tls.keyfile"
             node2_tls_keyfile = self.cert_dir / Path("node2") / "tls.keyfile"
             node3_tls_keyfile = self.cert_dir / Path("node3") / "tls.keyfile"
 
-            self.cert_op(['tls', 'keyfile',
-                          '--cacert=' + str(self.certificate_auth["cert"]),
-                          '--cakey=' + str(self.certificate_auth["key"]),
-                          '--keyfile=' + str(node1_tls_keyfile),
-                          '--host=' + self.cfg.publicip, '--host=localhost'])
-            self.cert_op(['tls', 'keyfile',
-                          '--cacert=' + str(self.certificate_auth["cert"]),
-                          '--cakey=' + str(self.certificate_auth["key"]),
-                          '--keyfile=' + str(node2_tls_keyfile),
-                          '--host=' + self.cfg.publicip, '--host=localhost'])
-            self.cert_op(['tls', 'keyfile',
-                          '--cacert=' + str(self.certificate_auth["cert"]),
-                          '--cakey=' + str(self.certificate_auth["key"]),
-                          '--keyfile=' + str(node3_tls_keyfile),
-                          '--host=' + self.cfg.publicip, '--host=localhost'])
+            self.cert_op(
+                [
+                    "tls",
+                    "keyfile",
+                    "--cacert=" + str(self.certificate_auth["cert"]),
+                    "--cakey=" + str(self.certificate_auth["key"]),
+                    "--keyfile=" + str(node1_tls_keyfile),
+                    "--host=" + self.cfg.publicip,
+                    "--host=localhost",
+                ]
+            )
+            self.cert_op(
+                [
+                    "tls",
+                    "keyfile",
+                    "--cacert=" + str(self.certificate_auth["cert"]),
+                    "--cakey=" + str(self.certificate_auth["key"]),
+                    "--keyfile=" + str(node2_tls_keyfile),
+                    "--host=" + self.cfg.publicip,
+                    "--host=localhost",
+                ]
+            )
+            self.cert_op(
+                [
+                    "tls",
+                    "keyfile",
+                    "--cacert=" + str(self.certificate_auth["cert"]),
+                    "--cakey=" + str(self.certificate_auth["key"]),
+                    "--keyfile=" + str(node3_tls_keyfile),
+                    "--host=" + self.cfg.publicip,
+                    "--host=localhost",
+                ]
+            )
             node1_opts.append(f"--ssl.keyfile={node1_tls_keyfile}")
             node2_opts.append(f"--ssl.keyfile={node2_tls_keyfile}")
             node3_opts.append(f"--ssl.keyfile={node2_tls_keyfile}")
 
         def add_starter(name, port, opts):
             self.starter_instances.append(
-                StarterManager(self.basecfg,
-                               self.basedir, name,
-                               mode='cluster',
-                               jwtStr=self.jwtdatastr,
-                               port=port,
-                               expect_instances=[
-                                   InstanceType.AGENT,
-                                   InstanceType.COORDINATOR,
-                                   InstanceType.DBSERVER
-                               ],
-                               moreopts=opts))
+                StarterManager(
+                    self.basecfg,
+                    self.basedir,
+                    name,
+                    mode="cluster",
+                    jwtStr=self.jwtdatastr,
+                    port=port,
+                    expect_instances=[
+                        InstanceType.AGENT,
+                        InstanceType.COORDINATOR,
+                        InstanceType.DBSERVER,
+                    ],
+                    moreopts=opts,
+                )
+            )
 
-        add_starter('node1', 9528, node1_opts)
-        add_starter('node2', 9628, node2_opts)
-        add_starter('node3', 9728, node3_opts)
+        add_starter("node1", 9528, node1_opts)
+        add_starter("node2", 9628, node2_opts)
+        add_starter("node3", 9728, node3_opts)
 
         for instance in self.starter_instances:
             instance.is_leader = True
@@ -93,25 +130,25 @@ db.testCollection.save({test: "document"})
             manager.run_starter()
 
         logging.info("waiting for the starters to become alive")
-        not_started = self.starter_instances[:] #This is a explicit copy
+        not_started = self.starter_instances[:]  # This is a explicit copy
         while not_started:
             logging.debug("waiting for mananger with logfile:" + str(not_started[-1].log_file))
             if not_started[-1].is_instance_up():
                 not_started.pop()
-            progress('.')
+            progress(".")
             time.sleep(1)
 
         logging.info("waiting for the cluster instances to become alive")
         for node in self.starter_instances:
             node.detect_instances()
             node.detect_instance_pids()
-            #self.basecfg.add_frontend('http', self.basecfg.publicip, str(node.get_frontend_port()))
+            # self.basecfg.add_frontend('http', self.basecfg.publicip, str(node.get_frontend_port()))
         logging.info("instances are ready")
         count = 0
         for node in self.starter_instances:
-            node.set_passvoid('cluster', count == 0)
+            node.set_passvoid("cluster", count == 0)
             count += 1
-        self.passvoid = 'cluster'
+        self.passvoid = "cluster"
 
     def finish_setup_impl(self):
         self.makedata_instances = self.starter_instances[:]
@@ -127,14 +164,12 @@ db.testCollection.save({test: "document"})
                 dbserver.detect_restore_restart()
 
     def upgrade_arangod_version_impl(self):
-        """ rolling upgrade this installation """
-        self.agency_set_debug_logging() # TODO: remove debug logging
+        """rolling upgrade this installation"""
+        self.agency_set_debug_logging()  # TODO: remove debug logging
         bench_instances = []
         if self.cfg.stress_upgrade:
-            bench_instances.append(self.starter_instances[0].launch_arangobench(
-                'cluster_upgrade_scenario_1'))
-            bench_instances.append(self.starter_instances[1].launch_arangobench(
-                'cluster_upgrade_scenario_2'))
+            bench_instances.append(self.starter_instances[0].launch_arangobench("cluster_upgrade_scenario_1"))
+            bench_instances.append(self.starter_instances[1].launch_arangobench("cluster_upgrade_scenario_2"))
         for node in self.starter_instances:
             node.replace_binary_for_upgrade(self.new_cfg)
 
@@ -143,7 +178,7 @@ db.testCollection.save({test: "document"})
 
         self.starter_instances[1].command_upgrade()
         if self.selenium:
-            self.selenium.test_wait_for_upgrade(self.cfg, self.new_cfg, timeout=30) # * 5s
+            self.selenium.test_wait_for_upgrade(self.cfg, self.new_cfg, timeout=30)  # * 5s
         self.starter_instances[1].wait_for_upgrade(300)
         if self.cfg.stress_upgrade:
             bench_instances[0].wait()
@@ -152,7 +187,7 @@ db.testCollection.save({test: "document"})
             node.detect_instance_pids()
 
     def upgrade_arangod_version_manual_impl(self):
-        """ manual upgrade this installation """
+        """manual upgrade this installation"""
         self.progress(True, "manual upgrade step 1 - stop instances")
         self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
         for node in self.starter_instances:
@@ -160,6 +195,7 @@ db.testCollection.save({test: "document"})
         for node in self.starter_instances:
             node.detect_instance_pids_still_alive()
 
+        # fmt: off
         self.progress(True, "step 2 - upgrade agents")
         for node in self.starter_instances:
             node.upgrade_instances([
@@ -183,6 +219,7 @@ db.testCollection.save({test: "document"})
                 '--javascript.copy-installation', 'true',
                 '--server.rest-server', 'false'
             ])
+        # fmt: on
         self.progress(True, "step 5 restart the full cluster ")
         for node in self.starter_instances:
             node.respawn_instance()
@@ -200,7 +237,7 @@ db.testCollection.save({test: "document"})
         self.starter_instances[0].maintainance(True, InstanceType.COORDINATOR)
 
         if self.selenium:
-            self.selenium.test_wait_for_upgrade(self.cfg, self.new_cfg, timeout=30) # * 5s
+            self.selenium.test_wait_for_upgrade(self.cfg, self.new_cfg, timeout=30)  # * 5s
 
     @step
     def jam_attempt_impl(self):
@@ -222,7 +259,8 @@ db.testCollection.save({test: "document"})
             self.selenium.jam_step_1()
 
         ret = self.starter_instances[0].arangosh.check_test_data(
-                "Cluster one node missing", True, ['--disabledDbserverUUID', uuid] )
+            "Cluster one node missing", True, ["--disabledDbserverUUID", uuid]
+        )
         if not ret[0]:
             raise Exception("check data failed " + ret[1])
 
@@ -230,7 +268,7 @@ db.testCollection.save({test: "document"})
         self.starter_instances[terminate_instance].respawn_instance()
         self.set_frontend_instances()
         while not self.starter_instances[terminate_instance].is_instance_up():
-            progress('.')
+            progress(".")
             time.sleep(1)
         print()
         self.starter_instances[terminate_instance].detect_instances()
@@ -238,18 +276,20 @@ db.testCollection.save({test: "document"})
         self.starter_instances[terminate_instance].detect_instance_pids_still_alive()
         self.set_frontend_instances()
 
-        logging.info('jamming: Starting instance without jwt')
+        logging.info("jamming: Starting instance without jwt")
         dead_instance = StarterManager(
             self.basecfg,
-            Path('CLUSTER'), 'nodeX',
-            mode='cluster',
+            Path("CLUSTER"),
+            "nodeX",
+            mode="cluster",
             jwtStr=None,
             expect_instances=[
                 InstanceType.AGENT,
                 InstanceType.COORDINATOR,
-                InstanceType.DBSERVER
+                InstanceType.DBSERVER,
             ],
-            moreopts=['--starter.join', '127.0.0.1:9528'])
+            moreopts=["--starter.join", "127.0.0.1:9528"],
+        )
         dead_instance.run_starter()
 
         i = 0
@@ -258,12 +298,12 @@ db.testCollection.save({test: "document"})
             if not dead_instance.is_instance_running():
                 break
             if i > 40:
-                logging.info('Giving up wating for the starter to exit')
+                logging.info("Giving up wating for the starter to exit")
                 raise Exception("non-jwt-ed starter won't exit")
             i += 1
             time.sleep(10)
         logging.info(str(dead_instance.instance.wait(timeout=320)))
-        logging.info('dead instance is dead?')
+        logging.info("dead instance is dead?")
 
         prompt_user(self.basecfg, "cluster should be up")
         if self.selenium:
@@ -273,7 +313,7 @@ db.testCollection.save({test: "document"})
     def shutdown_impl(self):
         for node in self.starter_instances:
             node.terminate_instance()
-        logging.info('test ended')
+        logging.info("test ended")
 
     def before_backup_impl(self):
         pass
@@ -282,10 +322,11 @@ db.testCollection.save({test: "document"})
         pass
 
     def set_selenium_instances(self):
-        """ set instances in selenium runner """
-        self.selenium.set_instances(self.cfg,
-                                    self.starter_instances[0].arango_importer,
-                                    self.starter_instances[0].arango_restore,
-                                    [x for x in self.starter_instances[0].all_instances \
-                                     if x.instance_type == InstanceType.COORDINATOR][0],
-                                    self.new_cfg)
+        """set instances in selenium runner"""
+        self.selenium.set_instances(
+            self.cfg,
+            self.starter_instances[0].arango_importer,
+            self.starter_instances[0].arango_restore,
+            [x for x in self.starter_instances[0].all_instances if x.instance_type == InstanceType.COORDINATOR][0],
+            self.new_cfg,
+        )

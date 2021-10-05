@@ -4,11 +4,10 @@ from selenium_ui_test.pages.navbar import NavigationBarPage
 
 
 class DatabasePage(NavigationBarPage):
-
     def __init__(self, driver):
         super().__init__(driver)
-        self.database_page = 'databases'
-        self.create_new_db_btn = 'createDatabase'
+        self.database_page = "databases"
+        self.create_new_db_btn = "createDatabase"
         self.sort_db = '//*[@id="databaseDropdown"]/ul/li[2]/a/label/i'
         self.select_db_opt_id_sitem = "loginDatabase"
 
@@ -22,65 +21,65 @@ class DatabasePage(NavigationBarPage):
     def create_new_db(self, db_name, index):
         """Creating new database"""
         self.select_database_page()
-        print(f'Creating {db_name} database started \n')
+        print(f"Creating {db_name} database started \n")
         create_new_db_btn = self.create_new_db_btn
         create_new_db_btn_sitem = self.locator_finder_by_id(self, create_new_db_btn)
         create_new_db_btn_sitem.click()
         time.sleep(2)
 
         # fill up all the database details
-        new_db_name = 'newDatabaseName'
+        new_db_name = "newDatabaseName"
         new_db_name_sitem = self.locator_finder_by_id(self, new_db_name)
         new_db_name_sitem.click()
         new_db_name_sitem.send_keys(db_name)
         time.sleep(1)
 
-        replication_factor = 'new-replication-factor'
+        replication_factor = "new-replication-factor"
         replication_factor_sitem = self.locator_finder_by_id(self, replication_factor)
         replication_factor_sitem.click()
         replication_factor_sitem.clear()
-        replication_factor_sitem.send_keys('3')
+        replication_factor_sitem.send_keys("3")
         time.sleep(1)
 
-        write_concern = 'new-write-concern'
+        write_concern = "new-write-concern"
         write_concern_sitem = self.locator_finder_by_id(self, write_concern)
         write_concern_sitem.click()
         write_concern_sitem.clear()
-        write_concern_sitem.send_keys('3')
+        write_concern_sitem.send_keys("3")
         time.sleep(1)
 
         # selecting sharded option from drop down using index
-        select_sharded_db = 'newSharding'
+        select_sharded_db = "newSharding"
         self.locator_finder_by_select(self, select_sharded_db, index)
         time.sleep(1)
 
         # selecting user option from drop down using index for choosing root user.
-        select_user = 'newUser'
-        self.locator_finder_by_select(self, select_user, 0)   # 0 for root user
+        select_user = "newUser"
+        self.locator_finder_by_select(self, select_user, 0)  # 0 for root user
         time.sleep(1)
 
         # clicking create button
-        create_db = 'modalButton1'
+        create_db = "modalButton1"
         create_db_sitem = self.locator_finder_by_id(self, create_db)
         create_db_sitem.click()
         time.sleep(4)
 
-        print(f'Creating {db_name} database completed \n')
+        print(f"Creating {db_name} database completed \n")
 
-        print(f'Logging into newly created {db_name} database \n')
+        print(f"Logging into newly created {db_name} database \n")
         change = '//*[@id="dbStatus"]/a[3]/i'
         change_db_sitem = self.locator_finder_by_xpath(self, change)
         change_db_sitem.click()
         time.sleep(5)
 
         db_opt = self.select_db_opt_id_sitem
-        print('Database checked and found: ', db_name, '\n')
+        print("Database checked and found: ", db_name, "\n")
         time.sleep(4)
 
-        if db_name == 'Sharded':
+        if db_name == "Sharded":
             # selecting newly created db for login from the dropdown menu
             self.locator_finder_by_select(self, db_opt, 1)
-        if db_name == 'OneShard':
+        if db_name == "OneShard":
             # OneShard took place over Sharded database thus used index value 1
             self.locator_finder_by_select(self, db_opt, 1)
 
@@ -93,95 +92,114 @@ class DatabasePage(NavigationBarPage):
         db_name_sitem = self.locator_finder_by_xpath(self, db_name).text
 
         if index == 0:
-            assert db_name_sitem == 'SHARDED', f"Expected SHARDED but got {db_name_sitem}"
+            assert db_name_sitem == "SHARDED", f"Expected SHARDED but got {db_name_sitem}"
         if index == 1:
-            assert db_name_sitem == 'ONESHARD', f"Expected ONESHARD but got {db_name_sitem}"
+            assert db_name_sitem == "ONESHARD", f"Expected ONESHARD but got {db_name_sitem}"
 
-        print(f'Logging out from {db_name} database \n')
+        print(f"Logging out from {db_name} database \n")
         db = '//*[@id="dbStatus"]/a[3]/i'
         change_db_sitem = self.locator_finder_by_xpath(self, db)
         change_db_sitem.click()
         time.sleep(4)
 
-        print('Re-Login to _system database \n')
+        print("Re-Login to _system database \n")
         db_option = self.select_db_opt_id_sitem
         self.locator_finder_by_select(self, db_option, 0)
         select_db_btn_id = "goToDatabase"
         select_db_btn_id_sitem = self.locator_finder_by_id(self, select_db_btn_id)
         select_db_btn_id_sitem.click()
         time.sleep(3)
-    
+
     def test_database_expected_error(self):
         """This method will test all negative scenario"""
         self.select_database_page()
-        print('Expected error scenario for the Database name Started. \n')
+        print("Expected error scenario for the Database name Started. \n")
         create_new_db_btn = self.create_new_db_btn
         create_new_db_btn_sitem = self.locator_finder_by_id(self, create_new_db_btn)
         create_new_db_btn_sitem.click()
         time.sleep(2)
 
         # ---------------------------------------database name convention test---------------------------------------
-        print('Expected error scenario for the Database name Started \n')
-        db_name_error_input = ['', '@', '1', 'שלום']  # name must be 64 bit thus 65 character won't work too.
-        db_name_print_statement = ['Checking blank DB name with " "', 'Checking Db name with symbol " @ "',
-                                   'Checking numeric value for DB name " 1 "',
-                                   'Checking Non-ASCII Hebrew Characters "שלום"']
-        db_name_error_message = ['No database name given.', 'Only Symbols "_" and "-" are allowed.',
-                                 'Database name must start with a letter.', 'Only Symbols "_" and "-" are allowed.']
-        db_name = 'newDatabaseName'
+        print("Expected error scenario for the Database name Started \n")
+        db_name_error_input = ["", "@", "1", "שלום"]  # name must be 64 bit thus 65 character won't work too.
+        db_name_print_statement = [
+            'Checking blank DB name with " "',
+            'Checking Db name with symbol " @ "',
+            'Checking numeric value for DB name " 1 "',
+            'Checking Non-ASCII Hebrew Characters "שלום"',
+        ]
+        db_name_error_message = [
+            "No database name given.",
+            'Only Symbols "_" and "-" are allowed.',
+            "Database name must start with a letter.",
+            'Only Symbols "_" and "-" are allowed.',
+        ]
+        db_name = "newDatabaseName"
         db_name_error_id = '//*[@id="row_newDatabaseName"]/th[2]/p'
 
         # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
-        self.check_expected_error_messages(self, db_name_error_input, db_name_print_statement,
-                                                   db_name_error_message, db_name, db_name_error_id)
-        print('Expected error scenario for the Database name Completed \n')
+        self.check_expected_error_messages(
+            self, db_name_error_input, db_name_print_statement, db_name_error_message, db_name, db_name_error_id
+        )
+        print("Expected error scenario for the Database name Completed \n")
 
         # -------------------------------database Replication Factor convention test----------------------------------
-        print('Expected error scenario for the Database Replication Factor Started \n')
-        rf_error_input = ['@', 'a', '11', 'שלום']
-        rf_print_statement = ['Checking RF with "@"', 'Checking RF with "a"',
-                              'Checking RF with "11"', 'Checking RF with "שלום"']
-        rf_error_message = ['Must be a number between 1 and 10.', 'Must be a number between 1 and 10.',
-                            'Must be a number between 1 and 10.', 'Must be a number between 1 and 10.']
-        rf_name = 'new-replication-factor'
+        print("Expected error scenario for the Database Replication Factor Started \n")
+        rf_error_input = ["@", "a", "11", "שלום"]
+        rf_print_statement = [
+            'Checking RF with "@"',
+            'Checking RF with "a"',
+            'Checking RF with "11"',
+            'Checking RF with "שלום"',
+        ]
+        rf_error_message = [
+            "Must be a number between 1 and 10.",
+            "Must be a number between 1 and 10.",
+            "Must be a number between 1 and 10.",
+            "Must be a number between 1 and 10.",
+        ]
+        rf_name = "new-replication-factor"
         db_name_error_id = '//*[@id="row_new-replication-factor"]/th[2]/p'
 
         # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
-        self.check_expected_error_messages(self, rf_error_input, rf_print_statement, rf_error_message,
-                                                   rf_name, db_name_error_id)
-        print('Expected error scenario for the Database Replication Factor Completed \n')
+        self.check_expected_error_messages(
+            self, rf_error_input, rf_print_statement, rf_error_message, rf_name, db_name_error_id
+        )
+        print("Expected error scenario for the Database Replication Factor Completed \n")
 
         # -------------------------------database Write Concern convention test----------------------------------
-        print('Expected error scenario for the Database Write Concern Started \n')
-        wc_error_input = ['@', 'a', '11', 'שלום']
-        wc_print_statement = ['Checking Write Concern with "@"', 'Checking Write Concern with "a"',
-                              'Checking Write Concern with "11"', 'Checking Write Concern with "שלום"']
-        wc_error_message = ['Must be a number between 1 and 10. Has to be smaller or equal compared to the '
-                            'replicationFactor.',
-                            'Must be a number between 1 and 10. Has to be smaller or equal compared to the '
-                            'replicationFactor.',
-                            'Must be a number between 1 and 10. Has to be smaller or equal compared to the '
-                            'replicationFactor.',
-                            'Must be a number between 1 and 10. Has to be smaller or equal compared to the '
-                            'replicationFactor.']
-        wc_name = 'new-write-concern'
+        print("Expected error scenario for the Database Write Concern Started \n")
+        wc_error_input = ["@", "a", "11", "שלום"]
+        wc_print_statement = [
+            'Checking Write Concern with "@"',
+            'Checking Write Concern with "a"',
+            'Checking Write Concern with "11"',
+            'Checking Write Concern with "שלום"',
+        ]
+        wc_error_message = [
+            "Must be a number between 1 and 10. Has to be smaller or equal compared to the " "replicationFactor.",
+            "Must be a number between 1 and 10. Has to be smaller or equal compared to the " "replicationFactor.",
+            "Must be a number between 1 and 10. Has to be smaller or equal compared to the " "replicationFactor.",
+            "Must be a number between 1 and 10. Has to be smaller or equal compared to the " "replicationFactor.",
+        ]
+        wc_name = "new-write-concern"
         wc_name_error_id = '//*[@id="row_new-write-concern"]/th[2]/p'
 
         # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
-        self.check_expected_error_messages(self, wc_error_input, wc_print_statement, wc_error_message,
-                                                   wc_name, wc_name_error_id)
-        print('Expected error scenario for the Database Write Concern Completed \n')
+        self.check_expected_error_messages(
+            self, wc_error_input, wc_print_statement, wc_error_message, wc_name, wc_name_error_id
+        )
+        print("Expected error scenario for the Database Write Concern Completed \n")
 
-        print('Closing the database creation \n')
-        close_btn = 'modalButton0'
+        print("Closing the database creation \n")
+        close_btn = "modalButton0"
         close_btn_sitem = self.locator_finder_by_id(self, close_btn)
         close_btn_sitem.click()
         time.sleep(3)
 
-
     def sorting_db(self):
         """Sorting database"""
-        db_settings = 'databaseToggle'
+        db_settings = "databaseToggle"
         db_settings_sitem = self.locator_finder_by_id(self, db_settings)
         db_settings_sitem.click()
         time.sleep(1)
@@ -198,7 +216,7 @@ class DatabasePage(NavigationBarPage):
 
     def searching_db(self, db_name):
         """Searching database"""
-        db_search = 'databaseSearchInput'
+        db_search = "databaseSearchInput"
         db_search_sitem = self.locator_finder_by_id(self, db_search)
         db_search_sitem.click()
         db_search_sitem.clear()
@@ -209,16 +227,16 @@ class DatabasePage(NavigationBarPage):
             collection_name = '//*[@id="userManagementView"]/div/div[2]/div/h5'
             collection_name_sitem = self.locator_finder_by_xpath(self, collection_name).text
 
-            if db_name == 'Sharded':
-                assert 'Sharded' == collection_name_sitem, f"Expected {db_name} but got {collection_name_sitem}"
-            elif db_name == 'OneShard':
-                assert 'OneShard' == collection_name_sitem, f"Expected {db_name} but got {collection_name_sitem}"
+            if db_name == "Sharded":
+                assert "Sharded" == collection_name_sitem, f"Expected {db_name} but got {collection_name_sitem}"
+            elif db_name == "OneShard":
+                assert "OneShard" == collection_name_sitem, f"Expected {db_name} but got {collection_name_sitem}"
 
         except TimeoutException():
-            print('Error Occurred! \n')
+            print("Error Occurred! \n")
 
-        print('Clearing the search text area \n')
-        clear_search = 'databaseSearchInput'
+        print("Clearing the search text area \n")
+        clear_search = "databaseSearchInput"
         clear_search_sitem = self.locator_finder_by_id(self, clear_search)
         clear_search_sitem.click()
         clear_search_sitem.clear()
@@ -228,28 +246,28 @@ class DatabasePage(NavigationBarPage):
         """Deleting Database"""
         self.webdriver.refresh()
 
-        print(f'{db_name} deleting started \n')
+        print(f"{db_name} deleting started \n")
 
-        if db_name == 'OneShard':
-            db_search = 'OneShard_edit-database'
+        if db_name == "OneShard":
+            db_search = "OneShard_edit-database"
             db_sitem = self.locator_finder_by_id(self, db_search)
             db_sitem.click()
 
-        if db_name == 'Sharded':
-            db_search = 'Sharded_edit-database'
+        if db_name == "Sharded":
+            db_search = "Sharded_edit-database"
             db_sitem = self.locator_finder_by_id(self, db_search)
             db_sitem.click()
 
-        delete_btn = 'modalButton1'
+        delete_btn = "modalButton1"
         delete_btn_sitem = self.locator_finder_by_id(self, delete_btn)
         delete_btn_sitem.click()
         time.sleep(1)
 
-        delete_confirm_btn = 'modal-confirm-delete'
+        delete_confirm_btn = "modal-confirm-delete"
         delete_confirm_btn_sitem = self.locator_finder_by_id(self, delete_confirm_btn)
         delete_confirm_btn_sitem.click()
         time.sleep(1)
 
         self.webdriver.refresh()
 
-        print(f'{db_name} deleting completed \n')
+        print(f"{db_name} deleting completed \n")

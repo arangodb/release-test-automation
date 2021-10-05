@@ -35,7 +35,7 @@ class BaseTestSuite(ABC):
 
     def run(self):
         name = self.__doc__ if self.__doc__ else self.__class__.__name__
-        with step("Run UI test suite \"%s\"" % name):
+        with step('Run UI test suite "%s"' % name):
             self.setup()
             for suite in self.children:
                 self.test_results += suite.run()
@@ -51,14 +51,14 @@ class BaseTestSuite(ABC):
         return results
 
     def ui_assert(self, conditionstate, message):
-        """ python assert sucks. fuckit. """
+        """python assert sucks. fuckit."""
         if not conditionstate:
             logging.error(message)
             self.take_screenshot()
             assert False, message
 
     def connect_server_new_tab(self, cfg):
-        """ login... """
+        """login..."""
         self.progress("Opening page")
         print(frontend_instance[0].get_public_plain_url())
         self.original_window_handle = self.webdriver.current_window_handle
@@ -66,15 +66,18 @@ class BaseTestSuite(ABC):
         # Open a new window
         self.webdriver.execute_script("window.open('');")
         self.webdriver.switch_to.window(self.webdriver.window_handles[1])
-        self.webdriver.get(self.get_protocol() + "://" +
-                           self.frontend.get_public_plain_url() +
-                     "/_db/_system/_admin/aardvark/index.html")
+        self.webdriver.get(
+            self.get_protocol()
+            + "://"
+            + self.frontend.get_public_plain_url()
+            + "/_db/_system/_admin/aardvark/index.html"
+        )
         login_page = LoginPage(self.webdriver)
         login_page.login_webif("root", frontend_instance[0].get_passvoid())
 
     def close_tab_again(self):
-        """ close a tab, and return to main window """
-        self.webdriver.close()# Switch back to the first tab with URL A
+        """close a tab, and return to main window"""
+        self.webdriver.close()  # Switch back to the first tab with URL A
         # self.webdriver.switch_to.window(self.webdriver.window_handles[0])
         # print("Current Page Title is : %s" %self.webdriver.title)
         # self.webdriver.close()
@@ -82,17 +85,20 @@ class BaseTestSuite(ABC):
         self.original_window_handle = None
 
     def connect_server(self, frontend_instance, database, cfg):
-        """ login... """
+        """login..."""
         self.progress("Opening page")
         print(frontend_instance[0].get_public_plain_url())
-        self.webdriver.get(self.get_protocol() + "://" +
-                           frontend_instance[0].get_public_plain_url() +
-                     "/_db/_system/_admin/aardvark/index.html")
+        self.webdriver.get(
+            self.get_protocol()
+            + "://"
+            + frontend_instance[0].get_public_plain_url()
+            + "/_db/_system/_admin/aardvark/index.html"
+        )
         login_page = LoginPage(self.webdriver)
-        login_page.login_webif('root', frontend_instance[0].get_passvoid())
+        login_page.login_webif("root", frontend_instance[0].get_passvoid())
 
     def go_to_index_page(self):
-        """ Open index.html """
+        """Open index.html"""
         self.progress("Open index.html")
         path = "/_db/_system/_admin/aardvark/index.html"
         self.goto_url_and_wait_until_loaded(path)
@@ -113,28 +119,26 @@ class BaseTestSuite(ABC):
         self.webdriver.get(self.url + path)
         BasePage(self.webdriver).wait_for_ajax()
 
-
     def setup(self):
-        """ prepare to run test cases """
+        """prepare to run test cases"""
         self.go_to_index_page()
 
     def tear_down(self):
-        """ clean up after test suite """
+        """clean up after test suite"""
         self.webdriver.delete_all_cookies()
 
     def progress(self, arg):
-        """ state print todo """
+        """state print todo"""
         print(arg)
 
     def take_screenshot(self):
-        """ *snap* """
+        """*snap*"""
         filename = datetime.now().strftime("%d-%m-%Y_%H:%M:%S.%f") + ".png"
-        self.progress("Taking screenshot from: %s " %
-                      self.webdriver.current_url)
+        self.progress("Taking screenshot from: %s " % self.webdriver.current_url)
         try:
             if self.is_headless:
                 self.progress("taking full screenshot")
-                elmnt = self.webdriver.find_element_by_tag_name('body')
+                elmnt = self.webdriver.find_element_by_tag_name("body")
                 screenshot = elmnt.screenshot_as_png()
             else:
                 self.progress("taking screenshot")
@@ -161,12 +165,12 @@ def testcase(title):
                 name = title.__doc__
             else:
                 name = title.__name__
-            with step("Running UI test case \"%s\"" % name):
+            with step('Running UI test case "%s"' % name):
                 try:
-                    print("Running test case \"%s\"..." % name)
+                    print('Running test case "%s"...' % name)
                     func(self, *args, **kwargs)
                     success = True
-                    print("Test case \"%s\" passed!" % name)
+                    print('Test case "%s" passed!' % name)
                 except Exception as e:
                     success = False
                     print("Test failed!")
@@ -177,8 +181,10 @@ def testcase(title):
                     self.take_screenshot()
                 test_result = RtaUiTestResult(name, success, message, tb)
                 return test_result
+
         wrapper.is_testcase = True
         return wrapper
+
     if callable(title):
         return decorator(title)
     else:

@@ -7,12 +7,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import (
-    StaleElementReferenceException
-)
+from selenium.common.exceptions import StaleElementReferenceException
 
 # can't circumvent long lines..
 # pylint: disable=C0301
+
 
 class LoginPage(BasePage):
     """Login class for selenium UI testing"""
@@ -28,18 +27,16 @@ class LoginPage(BasePage):
         self.select_db_btn_id = "goToDatabase"
 
     def _login_wait_for_screen(self):
-        """ wait for the browser to show the login screen """
+        """wait for the browser to show the login screen"""
         count = 0
         while True:
             count += 1
             elem = WebDriverWait(self.webdriver, 10).until(
-                EC.presence_of_element_located((By.TAG_NAME, "html")),
-                message="UI-Test: page didn't load after 10s"
+                EC.presence_of_element_located((By.TAG_NAME, "html")), message="UI-Test: page didn't load after 10s"
             )
             data = elem.text
             if len(data) < 0:
-                self.progress(
-                    'ArangoDB Web Interface not loaded yet, retrying')
+                self.progress("ArangoDB Web Interface not loaded yet, retrying")
                 time.sleep(2)
             if count == 10:
                 if elem is None:
@@ -47,16 +44,15 @@ class LoginPage(BasePage):
                     self.webdriver.refresh()
                     time.sleep(5)
                 else:
-                    assert "ArangoDB Web Interface" in self.webdriver.title, \
-                        "webif title not found"
+                    assert "ArangoDB Web Interface" in self.webdriver.title, "webif title not found"
                     break
         return True
 
     def _login_fill_username(self, user):
-        """ fill in the username column """
+        """fill in the username column"""
         logname = WebDriverWait(self.webdriver, 10).until(
             EC.element_to_be_clickable((By.ID, "loginUsername")),
-            message="UI-Test: loginUsername didn't become clickeable on time. 10s"
+            message="UI-Test: loginUsername didn't become clickeable on time. 10s",
         )
         logname.click()
         logname.clear()
@@ -67,15 +63,13 @@ class LoginPage(BasePage):
         return True
 
     def _login_fill_passvoid(self, passvoid):
-        """ fill the passvoid and click login """
+        """fill the passvoid and click login"""
         while True:
             passvoid_elm = self.webdriver.find_element_by_id("loginPassword")
             txt = passvoid_elm.text
             print("UI-Test: xxxx [" + txt + "]")
             if len(txt) > 0:
-                self.progress(
-                    'something was in the passvoid field. retrying. ' +
-                    txt)
+                self.progress("something was in the passvoid field. retrying. " + txt)
                 time.sleep(2)
                 continue
             passvoid_elm.click()
@@ -87,14 +81,14 @@ class LoginPage(BasePage):
         return True
 
     def _login_choose_database(self, database_name):
-        """ choose the database from the second login screen """
+        """choose the database from the second login screen"""
         select = Select(self.locator_finder_by_xpath(self.database_select))
         select.select_by_visible_text(database_name)
         return True
 
     def login_webif(self, user, passvoid, database="_system", recurse=0):
-        """ log into an arangodb webinterface """
-        print("Logging %s into %s with passvoid %s" %(user, database, passvoid))
+        """log into an arangodb webinterface"""
+        print("Logging %s into %s with passvoid %s" % (user, database, passvoid))
         if recurse > 10:
             raise Exception("UI-Test: 10 successless login attempts")
         self._login_wait_for_screen()
@@ -108,6 +102,5 @@ class LoginPage(BasePage):
         self.progress("we're in!")
         self.wait_for_ajax()
 
-        assert "No results found." not in self.webdriver.page_source, \
-            "no results found?"
+        assert "No results found." not in self.webdriver.page_source, "no results found?"
         return False

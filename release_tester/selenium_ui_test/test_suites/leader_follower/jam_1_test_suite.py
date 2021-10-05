@@ -9,11 +9,10 @@ class LeaderFollowerJamStepOneSuite(BaseTestSuite):
     def test(self):
         """check for one set of instances to go away"""
         self.go_to_index_page()
-        NavigationBarPage(self.webdriver).navbar_goto('replication')
+        NavigationBarPage(self.webdriver).navbar_goto("replication")
         replication_page = ReplicationPage(self.webdriver)
         replication_table = replication_page.get_replication_screen(True)
         print(replication_table)
         # head and one follower should be there:
-        self.ui_assert(len(replication_table['follower_table']) == 2,
-                       "UI-Test: expected to have 1 follower!")
+        self.ui_assert(len(replication_table["follower_table"]) == 2, "UI-Test: expected to have 1 follower!")
         # TODO self.check_full_ui(cfg)

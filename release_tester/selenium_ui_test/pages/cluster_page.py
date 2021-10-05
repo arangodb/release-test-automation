@@ -16,7 +16,7 @@ class ClusterPage(NavigationBarPage):
 
     def cluster_dashboard_get_count(self, timeout=15):
         """
-         extract the coordinator / dbserver count from the 'cluster' page
+        extract the coordinator / dbserver count from the 'cluster' page
         """
         ret = {}
         while True:
@@ -25,22 +25,20 @@ class ClusterPage(NavigationBarPage):
                 elm_accepted = False
                 while not elm_accepted:
                     elm = WebDriverWait(self.webdriver, timeout).until(
-                        EC.presence_of_element_located((
-                            By.XPATH,
-                            '//*[@id="clusterCoordinators"]')),
-                        message="UI-Test: [CLUSTER tab] coordinators path didn't arive " +
-                        "on time %ds inspect screenshot!" % timeout
+                        EC.presence_of_element_located((By.XPATH, '//*[@id="clusterCoordinators"]')),
+                        message="UI-Test: [CLUSTER tab] coordinators path didn't arive "
+                        + "on time %ds inspect screenshot!" % timeout,
                     )
                     elm_accepted = len(elm.text) > 0
                 # elm = self.webdriver.find_element_by_xpath(
                 #   '//*[@id="clusterCoordinators"]')
-                ret['coordinators'] = elm.text
+                ret["coordinators"] = elm.text
                 elm = self.locator_finder_by_xpath('//*[@id="clusterDBServers"]')
-                ret['dbservers'] = elm.text
-                self.progress("health state: %s"% str(ret))
+                ret["dbservers"] = elm.text
+                self.progress("health state: %s" % str(ret))
                 return ret
             except StaleElementReferenceException:
-                self.progress('retrying after stale element')
+                self.progress("retrying after stale element")
                 time.sleep(1)
                 continue
             except TimeoutException as ex:

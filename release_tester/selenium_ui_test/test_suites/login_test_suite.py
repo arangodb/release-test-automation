@@ -8,6 +8,6 @@ class LogInTestSuite(BaseTestSuite):
         """testing login page"""
         print("Starting ", self.webdriver.title, "\n")
         login_page = LoginPage(self.webdriver)
-        login_page.login('root', self.root_passvoid)
+        login_page.login("root", self.root_passvoid)
         collections_page = CollectionPage(self.webdriver)
         collections_page.log_out()

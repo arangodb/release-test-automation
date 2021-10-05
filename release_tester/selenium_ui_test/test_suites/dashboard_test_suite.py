@@ -11,7 +11,7 @@ class DashboardTestSuite(BaseTestSuite):
         # login.login('root', self.root_passvoid)
         # creating object for dashboard
         dash = DashboardPage(self.webdriver, self.is_enterprise)
-        dash.navbar_goto('cluster' if self.is_cluster else 'dashboard')
+        dash.navbar_goto("cluster" if self.is_cluster else "dashboard")
         dash.check_server_package_name()
         dash.check_current_package_version()
         dash.check_current_username()
@@ -26,7 +26,7 @@ class DashboardTestSuite(BaseTestSuite):
             dash.check_system_resource()
             print("Switch to Metrics tab\n")
             dash.check_system_metrics()
-        dash.navbar_goto('support')
+        dash.navbar_goto("support")
         print("Opening Twitter link \n")
         dash.click_twitter_link()
         print("Opening Slack link \n")

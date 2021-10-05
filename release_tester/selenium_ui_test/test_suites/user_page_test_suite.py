@@ -16,7 +16,7 @@ class UserPageTestSuite(BaseTestSuite):
         user = UserPage(self.webdriver)
         print("New user creation begins \n")
         user.user_tab()
-        user.add_new_user('tester')
+        user.add_new_user("tester")
 
         print("Allow user Read Only access only to the _system DB test started \n")
         user.selecting_user_tester()
@@ -28,22 +28,22 @@ class UserPageTestSuite(BaseTestSuite):
         print("Changing new user DB permission completed. \n")
         user.log_out()
         print("Re-Login begins with new user\n")
-        login.login_webif('tester', 'tester')
+        login.login_webif("tester", "tester")
         print("Re-Login begins with new user completed\n")
 
         print("trying to create collection")
         collection_page = CollectionPage(self.webdriver)
-        collection_page.navbar_goto('collections')
-        collection_page.create_sample_collection('access')
+        collection_page.navbar_goto("collections")
+        collection_page.create_sample_collection("access")
         print("Allow user Read Only access only to the current DB test completed \n")
 
         print("Allow user Read/Write access to the _system DB test started \n")
-        print('Return back to user tab \n')
+        print("Return back to user tab \n")
 
         # logout from the current user to get back to root
         user.log_out()
         # login back with root user
-        login.login_webif('root', self.root_passvoid)
+        login.login_webif("root", self.root_passvoid)
 
         user.user_tab()
         user.selecting_user_tester()
@@ -53,16 +53,16 @@ class UserPageTestSuite(BaseTestSuite):
         user.saving_user_cfg()
         user.log_out()
         print("Re-Login begins with new user\n")
-        login.login_webif('tester', 'tester')
+        login.login_webif("tester", "tester")
         print("Re-Login begins with new user completed\n")
         print("trying to create collection")
-        collection_page.navbar_goto('collections')
-        collection_page.create_sample_collection('read/write')
+        collection_page.navbar_goto("collections")
+        collection_page.create_sample_collection("read/write")
         print("Allow user Read/Write access to the _system DB test Completed \n")
 
         # logout from the current user to get back to root
         user.log_out()
-        login.login_webif('root', self.root_passvoid)
+        login.login_webif("root", self.root_passvoid)
 
         del user
         self.webdriver.refresh()

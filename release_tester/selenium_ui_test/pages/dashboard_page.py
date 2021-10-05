@@ -5,11 +5,12 @@ from selenium_ui_test.pages.navbar import NavigationBarPage
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=R0902 disable=R0915
 
+
 class DashboardPage(NavigationBarPage):
     """Class for Dashboard page"""
 
     def __init__(self, driver, enterprise):
-        """ dashboardPage class initialization"""
+        """dashboardPage class initialization"""
         super().__init__(driver)
         self.check_server_package_name_id = "enterpriseLabel" if enterprise else "communityLabel"
         self.check_current_package_version_id = "currentVersion"
@@ -21,7 +22,7 @@ class DashboardPage(NavigationBarPage):
         self.check_db_uptime_id = "/html//div[@id='nodeattribute-Uptime']"
         self.check_system_resource_id = "system-statistics"
         self.check_system_metrics_id = "metrics-statistics"
-        self.show_text = 'toggleView'
+        self.show_text = "toggleView"
         self.select_reload_btn_id = "reloadMetrics"
         self.metrics_download_id = "downloadAs"
 
@@ -82,7 +83,7 @@ class DashboardPage(NavigationBarPage):
 
     def check_system_metrics(self):
         """checking system metrics tab from the dashboard"""
-        if self.check_version_is_newer('3.8.0'):
+        if self.check_version_is_newer("3.8.0"):
             check_system_metrics_sitem = self.locator_finder_by_text_id(self.check_system_metrics_id)
             check_system_metrics_sitem.click()
             time.sleep(1)
@@ -92,7 +93,7 @@ class DashboardPage(NavigationBarPage):
 
             # toggle view text to table and vice-versa
             print("Changing metrics tab to table view \n")
-            
+
             text_view = self.locator_finder_by_id(self.show_text)
             text_view.click()
             time.sleep(3)
@@ -115,4 +116,4 @@ class DashboardPage(NavigationBarPage):
                 time.sleep(3)
                 # self.clear_download_bar()
         else:
-            print('Metrics Tab not supported for the current package \n')
+            print("Metrics Tab not supported for the current package \n")

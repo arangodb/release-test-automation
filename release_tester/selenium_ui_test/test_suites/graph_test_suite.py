@@ -39,7 +39,7 @@ class GraphTestSuite(BaseTestSuite):
         for graph in GraphExample:
             # if graph == GraphExample.MANUAL_KNOWS:
             #    break
-            this_graph.navbar_goto('graphs')
+            this_graph.navbar_goto("graphs")
             print(graph)
             print("Creating '%s' Graph" % get_graph_name(graph))
             this_graph.create_graph(graph, self.importer, self.test_data_dir)
@@ -61,7 +61,7 @@ class GraphTestSuite(BaseTestSuite):
         for graph in GraphExample:
             # if graph == GraphExample.MANUAL_KNOWS:
             #    break
-            this_graph.navbar_goto('graphs')
+            this_graph.navbar_goto("graphs")
             this_graph.delete_graph(graph)
         print("Deleting created Graphs Completed\n")
         # login.logout_button()

@@ -95,7 +95,7 @@ class CollectionsTestSuite(BaseTestSuite):
         print("Uploading file to the collection started\n")
         col1.select_upload_btn()
         print("Uploading json file\n")
-        col1.select_choose_file_btn(str(self.test_data_dir / 'ui_data' / 'edges.json'))
+        col1.select_choose_file_btn(str(self.test_data_dir / "ui_data" / "edges.json"))
         col1.select_confirm_upload_btn()
         self.webdriver.refresh()  # in order to clear the screen before fetching data
         print("Uploading " + col1.getting_total_row_count() + " to the collection Completed\n")
@@ -107,7 +107,7 @@ class CollectionsTestSuite(BaseTestSuite):
         print("Uploading file to the collection started\n")
         col.select_upload_btn()
         print("Uploading json file\n")
-        col.select_choose_file_btn(str(self.test_data_dir / 'ui_data' / 'names_100.json'))
+        col.select_choose_file_btn(str(self.test_data_dir / "ui_data" / "names_100.json"))
         col.select_confirm_upload_btn()
         self.webdriver.refresh()  # in order to clear the screen before fetching data
         print("Uploading " + col.getting_total_row_count() + " to the collection Completed\n")
@@ -128,7 +128,7 @@ class CollectionsTestSuite(BaseTestSuite):
         col.select_multiple_item()
         col.move_btn()
         print("Multiple data moving into test collection\n")
-        col.move_doc_textbox('Test')
+        col.move_doc_textbox("Test")
         col.move_confirm_btn()
 
         print("Deleting multiple data started\n")

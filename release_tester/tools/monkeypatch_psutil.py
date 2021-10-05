@@ -45,7 +45,7 @@ if winver[0]:
         """
 
         def start(self, timeout=None):
-            """ start a windows service """
+            """start a windows service"""
             with self._wrap_exceptions():
                 cext.winservice_start(self.name())
                 if timeout:
@@ -55,10 +55,10 @@ if winver[0]:
                             return
                         if time.time() > giveup_at:
                             raise TimeoutExpired(timeout)
-                        time.sleep(.1)
+                        time.sleep(0.1)
 
         def stop(self):
-            """ stop windows service """
+            """stop windows service"""
             # Note: timeout is not implemented because it's just not
             # possible, see:
             # http://stackoverflow.com/questions/11973228/
@@ -68,9 +68,9 @@ if winver[0]:
     WindowsService.start = WindowsServiceMonkey.start
     WindowsService.stop = WindowsServiceMonkey.stop
 
-
     class ProcessMonkey(Process):
-        """ overload this function """
+        """overload this function"""
+
         def terminate(self):
             """Terminate the process with SIGTERM pre-emptively checking
             whether PID has been reused.
@@ -81,13 +81,15 @@ if winver[0]:
             if POSIX:
                 self._send_signal(signal.SIGTERM)
             else:  # pragma: no cover
+
                 def sigint_boomerang_handler(signum, frame):
-                    """ do the right thing to behave like linux does """
+                    """do the right thing to behave like linux does"""
                     # pylint: disable=W0613
                     if signum != signal.SIGINT:
                         sys.exit(1)
                     # pylint: disable=W0107
                     pass
+
                 original_sigint_handler = signal.getsignal(signal.SIGINT)
                 signal.signal(signal.SIGINT, sigint_boomerang_handler)
                 # only here on the wintendo:
@@ -100,10 +102,13 @@ if winver[0]:
     Process.terminate = ProcessMonkey.terminate
     # pylint: disable=W0231
     class Popen(Process):
-        """ overload this function """
+        """overload this function"""
+
         def __init__(self, *args, **kwargs):
-            kwargs['creationflags'] = subprocess.CREATE_NEW_PROCESS_GROUP
+            kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
             self.__subproc = subprocess.Popen(*args, **kwargs)
             self._init(self.__subproc.pid, _ignore_nsp=True)
+
     from psutil import Popen as patchme_popen
+
     patchme_popen.__init__ = Popen.__init__

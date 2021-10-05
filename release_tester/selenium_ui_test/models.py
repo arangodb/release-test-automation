@@ -8,7 +8,7 @@ class IndexType(Enum):
     TTL = "Ttl"
 
 
-class RtaUiTestResult():
+class RtaUiTestResult:
     def __init__(self, name, success, message, tb):
         self.name = name
         self.success = success

@@ -18,20 +18,34 @@ from arangodb.starter.deployments import (
     RunnerType,
     make_runner,
     runner_strings,
-    STARTER_MODES
+    STARTER_MODES,
 )
 import tools.loghelper as lh
-is_windows = platform.win32_ver()[0] != ''
+
+is_windows = platform.win32_ver()[0] != ""
 
 # pylint: disable=R0913 disable=R0914, disable=W0703, disable=R0912, disable=R0915
-def run_upgrade(old_version, new_version, verbose,
-                package_dir, test_data_dir,
-                enterprise, encryption_at_rest,
-                zip_package, interactive,
-                starter_mode, stress_upgrade, abort_on_error,
-                publicip, selenium, selenium_driver_args,
-                testrun_name, ssl, use_auto_certs):
-    """ execute upgrade tests """
+def run_upgrade(
+    old_version,
+    new_version,
+    verbose,
+    package_dir,
+    test_data_dir,
+    enterprise,
+    encryption_at_rest,
+    zip_package,
+    interactive,
+    starter_mode,
+    stress_upgrade,
+    abort_on_error,
+    publicip,
+    selenium,
+    selenium_driver_args,
+    testrun_name,
+    ssl,
+    use_auto_certs,
+):
+    """execute upgrade tests"""
     lh.section("startup")
     results = []
     for runner_type in STARTER_MODES[starter_mode]:
@@ -40,47 +54,56 @@ def run_upgrade(old_version, new_version, verbose,
                 testcase.context.status = Status.SKIPPED
                 continue
             one_result = {
-                'testrun name': testrun_name,
-                'testscenario': runner_strings[runner_type],
-                'success': True,
-                'message': 'success',
-                'progress': 'success',
+                "testrun name": testrun_name,
+                "testscenario": runner_strings[runner_type],
+                "success": True,
+                "message": "success",
+                "progress": "success",
             }
             try:
                 kill_all_processes()
-                installers = create_config_installer_set([old_version, new_version],
-                                                         verbose,
-                                                         enterprise,
-                                                         encryption_at_rest,
-                                                         zip_package,
-                                                         Path(package_dir),
-                                                         Path(test_data_dir),
-                                                         'all',
-                                                         publicip,
-                                                         interactive,
-                                                         stress_upgrade)
+                installers = create_config_installer_set(
+                    [old_version, new_version],
+                    verbose,
+                    enterprise,
+                    encryption_at_rest,
+                    zip_package,
+                    Path(package_dir),
+                    Path(test_data_dir),
+                    "all",
+                    publicip,
+                    interactive,
+                    stress_upgrade,
+                )
                 runner = None
                 old_inst = installers[0][1]
                 new_inst = installers[1][1]
                 lh.section("configuration")
-                print("""
+                print(
+                    """
                 starter mode: {starter_mode}
                 old version: {old_version}
                 {cfg_repr}
-                """.format(**{
-                    "starter_mode": str(starter_mode),
-                    "old_version": old_version,
-                    "cfg_repr": repr(installers[1][0])}))
+                """.format(
+                        **{
+                            "starter_mode": str(starter_mode),
+                            "old_version": old_version,
+                            "cfg_repr": repr(installers[1][0]),
+                        }
+                    )
+                )
                 testcase.add_label(Label(name=LabelType.SUB_SUITE, value=new_inst.installer_type))
                 if runner_type:
-                    runner = make_runner(runner_type,
-                                         abort_on_error,
-                                         selenium,
-                                         selenium_driver_args,
-                                         installers,
-                                         testrun_name,
-                                         ssl=ssl,
-                                         use_auto_certs=use_auto_certs)
+                    runner = make_runner(
+                        runner_type,
+                        abort_on_error,
+                        selenium,
+                        selenium_driver_args,
+                        installers,
+                        testrun_name,
+                        ssl=ssl,
+                        use_auto_certs=use_auto_certs,
+                    )
                     if runner:
                         try:
                             runner.run()
@@ -88,12 +111,12 @@ def run_upgrade(old_version, new_version, verbose,
                             testcase.context.status = Status.PASSED
                         except Exception as ex:
                             one_result = {
-                                'testrun name': testrun_name,
-                                'testscenario': runner_strings[runner_type],
-                                'success': False,
-                                'message': str(ex),
-                                'progress': runner.get_progress()
-                                }
+                                "testrun name": testrun_name,
+                                "testscenario": runner_strings[runner_type],
+                                "success": False,
+                                "message": str(ex),
+                                "progress": runner.get_progress(),
+                            }
                             results.append(one_result)
                             runner.take_screenshot()
                             # TODO runner.agency_acquire_dump()
@@ -131,11 +154,11 @@ def run_upgrade(old_version, new_version, verbose,
             except Exception as ex:
                 print("Caught. " + str(ex))
                 one_result = {
-                    'testrun name': testrun_name,
-                    'testscenario': runner_strings[runner_type],
-                    'success': False,
-                    'message': str(ex),
-                    'progress': "aborted outside of testcodes"
+                    "testrun name": testrun_name,
+                    "testscenario": runner_strings[runner_type],
+                    "success": False,
+                    "message": str(ex),
+                    "progress": "aborted outside of testcodes",
                 }
                 if abort_on_error:
                     print("re-throwing.")
@@ -164,10 +187,12 @@ def run_upgrade(old_version, new_version, verbose,
             results.append(one_result)
     return results
 
+
 @click.command()
 # pylint: disable=R0913
 @very_common_options()
 @common_options(support_old=True, interactive=True)
+# fmt: off
 def main(
         #very_common_options
         new_version, verbose, enterprise, package_dir, zip_package,
@@ -175,24 +200,40 @@ def main(
         old_version, test_data_dir, encryption_at_rest, interactive,
         starter_mode, stress_upgrade, abort_on_error, publicip,
         selenium, selenium_driver_args, alluredir, clean_alluredir, ssl, use_auto_certs):
+    # fmt: on
     """ main trampoline """
     lh.configure_logging(verbose)
     configure_allure(alluredir, clean_alluredir, enterprise, zip_package, new_version, old_version)
-    results = run_upgrade(old_version, new_version, verbose,
-                          package_dir, test_data_dir,
-                          enterprise, encryption_at_rest,
-                          zip_package, interactive,
-                          starter_mode, stress_upgrade, abort_on_error,
-                          publicip, selenium, selenium_driver_args, "", ssl, use_auto_certs)
-    print('V' * 80)
+    results = run_upgrade(
+        old_version,
+        new_version,
+        verbose,
+        package_dir,
+        test_data_dir,
+        enterprise,
+        encryption_at_rest,
+        zip_package,
+        interactive,
+        starter_mode,
+        stress_upgrade,
+        abort_on_error,
+        publicip,
+        selenium,
+        selenium_driver_args,
+        "",
+        ssl,
+        use_auto_certs,
+    )
+    print("V" * 80)
     status = True
     for one_result in results:
         print(one_result)
-        status = status and one_result['success']
+        status = status and one_result["success"]
     if not status:
-        print('exiting with failure')
+        print("exiting with failure")
         sys.exit(1)
 
+
 if __name__ == "__main__":
-# pylint: disable=E1120 # fix clickiness.
+    # pylint: disable=E1120 # fix clickiness.
     main()

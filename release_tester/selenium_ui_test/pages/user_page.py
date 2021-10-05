@@ -1,6 +1,7 @@
 import time
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
+
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=R0902 disable=R0915
 
@@ -73,7 +74,7 @@ class UserPage(NavigationBarPage):
         self.click_submenu_entry("Permissions")
 
     def selecting_general_tab(self):
-        """selecting the general tab of edited users """
+        """selecting the general tab of edited users"""
         try:
             self.wait_for_ajax()
             self.click_submenu_entry("General")
@@ -96,13 +97,13 @@ class UserPage(NavigationBarPage):
         db_permission_sitem.click()
 
     def saving_user_cfg(self):
-        """ saving new settings for new user """
+        """saving new settings for new user"""
         save_button_sitem = self.locator_finder_by_id(self.saving_user_cfg_id)
         save_button_sitem.click()
         time.sleep(3)
 
     def selecting_new_user(self):
-        """ select a user """
+        """select a user"""
         tester_sitem = self.locator_finder_by_xpath(self.tester_id)
         tester_sitem.click()
         time.sleep(4)

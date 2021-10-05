@@ -16,7 +16,7 @@ class NavigationBarPage(UserBarPage):
         super().__init__(driver)
 
     def navbar_goto(self, tag):
-        """ click on any of the items in the 'navbar' """
+        """click on any of the items in the 'navbar'"""
         self.wait_for_ajax()
         bar = self.webdriver.find_element_by_id(self.navbar_id)
         item = bar.find_element_by_id(tag)
@@ -26,8 +26,7 @@ class NavigationBarPage(UserBarPage):
     def click_twitter_link(self):
         """Clicking on twitter link on dashboard"""
         click_twitter_link_sitem = self.locator_finder_by_text_xpath(self.click_twitter_link_id)
-        title = self.switch_tab(
-            click_twitter_link_sitem)  # this method will call switch tab and close tab
+        title = self.switch_tab(click_twitter_link_sitem)  # this method will call switch tab and close tab
         expected_title = "arangodb (@arangodb) / Twitter"
         assert title in expected_title, f"Expected page title {expected_title} but got {title}"
 
@@ -35,21 +34,19 @@ class NavigationBarPage(UserBarPage):
         """Clicking on twitter link on dashboard"""
         click_slack_link_sitem = self.locator_finder_by_text_xpath(self.click_slack_link_id)
         title = self.switch_tab(click_slack_link_sitem)
-        expected_title = 'Join ArangoDB Community on Slack!'
+        expected_title = "Join ArangoDB Community on Slack!"
         assert title in expected_title, f"Expected page title {expected_title} but got {title}"
 
     def click_stackoverflow_link(self):
         """Clicking on stack overflow link on dashboard"""
-        click_stackoverflow_link_sitem = self.locator_finder_by_text_xpath(
-            self.click_stackoverflow_link_id)
+        click_stackoverflow_link_sitem = self.locator_finder_by_text_xpath(self.click_stackoverflow_link_id)
         title = self.switch_tab(click_stackoverflow_link_sitem)
         expected_title = "Newest 'arangodb' Questions - Stack Overflow"
         assert title in expected_title, f"Expected page title {expected_title} but got {title}"
 
     def click_google_group_link(self):
         """Clicking on Google group link on dashboard"""
-        click_google_group_link_sitem = self.locator_finder_by_xpath(
-            self.click_google_group_link_id)
+        click_google_group_link_sitem = self.locator_finder_by_xpath(self.click_google_group_link_id)
         title = self.switch_tab(click_google_group_link_sitem)
         expected_title = "ArangoDB - Google Groups"
         assert title in expected_title, f"Expected page title {expected_title} but got {title}"
@@ -63,20 +60,15 @@ class NavigationBarPage(UserBarPage):
         while True:
             try:
                 elem = self.webdriver.find_element_by_id("currentVersion")
-                enterprise_elem = self.webdriver.find_element_by_class_name(
-                    "logo.big")
-                ret = {
-                    'version': elem.text,
-                    'enterprise': enterprise_elem.text
-                }
-                self.progress("check_version (%s) (%s)" % (
-                    ret['version'], ret['enterprise']))
-                if (len(ret['version']) > 0) and (len(ret['enterprise']) > 0):
+                enterprise_elem = self.webdriver.find_element_by_class_name("logo.big")
+                ret = {"version": elem.text, "enterprise": enterprise_elem.text}
+                self.progress("check_version (%s) (%s)" % (ret["version"], ret["enterprise"]))
+                if (len(ret["version"]) > 0) and (len(ret["enterprise"]) > 0):
                     return ret
-                self.progress('retry version.')
+                self.progress("retry version.")
                 time.sleep(1)
                 if count > 200:
-                    raise TimeoutException("canot detect version, found: %s " %str(ret))
+                    raise TimeoutException("canot detect version, found: %s " % str(ret))
                 count += 1
             except TimeoutException as ex:
                 raise ex

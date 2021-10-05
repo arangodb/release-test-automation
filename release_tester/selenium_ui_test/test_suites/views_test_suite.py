@@ -7,8 +7,8 @@ class ViewsTestSuite(BaseTestSuite):
     def test_views(self):
         """testing Views page"""
         print("---------Checking Views Begin--------- \n")
-        #login = LoginPage(self.webdriver)
-        #login.login('root', self.root_passvoid)
+        # login = LoginPage(self.webdriver)
+        # login.login('root', self.root_passvoid)
         views = ViewsPage(self.webdriver)  # creating obj for viewPage
         views1 = ViewsPage(self.webdriver)  # creating 2nd obj for viewPage to do counter part of the testing
 
@@ -87,8 +87,8 @@ class ViewsTestSuite(BaseTestSuite):
         views1.delete_views_confirm_btn()
         views1.final_delete_confirmation()
         print("Deleting views completed\n")
-        #login.logout_button()
-        #del login
+        # login.logout_button()
+        # del login
         del views
         del views1
         print("---------Checking Views completed--------- \n")
