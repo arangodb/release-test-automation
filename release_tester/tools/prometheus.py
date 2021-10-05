@@ -9,8 +9,8 @@ from reporting.reporting_utils import step
 
 @step
 def set_prometheus_jwt(jwtstr):
-    """ alter the prometheus config to patch our current JWT into it """
-    cf_file = Path('/etc/prometheus/prometheus.token')
+    """alter the prometheus config to patch our current JWT into it"""
+    cf_file = Path("/etc/prometheus/prometheus.token")
     cf_file.write_text(jwtstr)
-    restart = psutil.Popen(['/etc/init.d/prometheus-node-exporter', 'restart'])
+    restart = psutil.Popen(["/etc/init.d/prometheus-node-exporter", "restart"])
     restart.wait()
