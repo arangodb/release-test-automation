@@ -13,6 +13,7 @@ import semver
 from arangodb.installers.linux import InstallerLinux
 from tools.asciiprint import ascii_print, print_progress as progress
 import tools.loghelper as lh
+import glob
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
@@ -26,6 +27,7 @@ class InstallerDeb(InstallerLinux):
         self.debug_package = None
         self.log_examiner = None
         self.installer_type = "DEB"
+        self.backup_dirs_number_before_upgrade = None
 
         # Are those required to be stored in the cfg?
         cfg.install_prefix = Path("/")
@@ -93,6 +95,7 @@ class InstallerDeb(InstallerLinux):
     @step
     def upgrade_package(self, old_installer):
         logging.info("upgrading Arangodb debian package")
+        self.backup_dirs_number_before_upgrade = self.count_backup_dirs()
         os.environ["DEBIAN_FRONTEND"] = "readline"
         cmd = "dpkg -i " + str(self.cfg.package_dir / self.server_package)
         lh.log_cmd(cmd)
@@ -180,7 +183,7 @@ class InstallerDeb(InstallerLinux):
             logging.debug("expect: backup selection")
             server_install.expect("Backup database files before upgrading")
             ascii_print(server_install.before)
-            server_install.sendline("no")
+            server_install.sendline("yes")
         except pexpect.exceptions.EOF:
             lh.line("X")
             ascii_print(server_install.before)
@@ -278,3 +281,14 @@ class InstallerDeb(InstallerLinux):
             shutil.rmtree(self.cfg.appdir)
         if self.cfg.cfgdir.exists():
             shutil.rmtree(self.cfg.cfgdir)
+
+    def count_backup_dirs(self):
+        regex = "/var/lib/arangodb3-[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]"
+        return len(glob.glob(regex))
+
+    @step
+    def check_backup_is_created(self):
+        """Check that backup was created after package upgrade"""
+        assert (
+            self.count_backup_dirs() == self.backup_dirs_number_before_upgrade + 1
+        ), "Database files were not backed up during package upgrade"
