@@ -32,6 +32,8 @@ from arangodb.sh import ArangoshExecutor
 
 from tools.killall import kill_all_processes
 
+from arangodb.installers.deb import InstallerDeb
+
 FNRX = re.compile("[\n@ ]*")
 WINVER = platform.win32_ver()
 
@@ -103,9 +105,12 @@ class Runner(ABC):
         old_inst = install_set[0][1]
         new_cfg = None
         new_inst = None
+        self.must_create_backup = False
         if len(install_set) > 1:
             new_cfg = install_set[1][1].cfg
             new_inst = install_set[1][1]
+            if type(new_inst) == InstallerDeb or WINVER[0]:
+                self.must_create_backup = True
 
         self.do_install = cfg.mode == "all" or cfg.mode == "install"
         self.do_uninstall = cfg.mode == "all" or cfg.mode == "uninstall"
@@ -332,7 +337,8 @@ class Runner(ABC):
 
             self.upgrade_arangod_version()  # make sure to pass new version
             self.old_installer.un_install_package_for_upgrade()
-
+            if self.must_create_backup:
+                self.new_installer.check_backup_is_created()
             self.make_data_after_upgrade()
             if self.hot_backup:
                 self.check_data_impl()
