@@ -12,8 +12,9 @@ from beautifultable import BeautifulTable
 
 from reporting.helpers import AllureListener
 
+
 def attach_table(table, title="HTML table"):
-    """ attach a BeautifulTable to allure report """
+    """attach a BeautifulTable to allure report"""
     template_str = """
     <html>
     <style>
@@ -52,12 +53,12 @@ def attach_table(table, title="HTML table"):
     # pylint: disable=E1101
     table.set_style(BeautifulTable.STYLE_MARKDOWN)
     template = Template(template_str)
-    html_table = markdown.markdown(str(table), extensions=['markdown.extensions.tables'])
+    html_table = markdown.markdown(str(table), extensions=["markdown.extensions.tables"])
     attach(template.substitute(html_table=html_table), title, AttachmentType.HTML)
 
 
 def step(title):
-    """ init allure step """
+    """init allure step"""
     if callable(title):
         if title.__doc__:
             return StepContext(title.__doc__, {})(title)
@@ -65,38 +66,44 @@ def step(title):
     return StepContext(title, {})
 
 
-class RtaTestcase():
-    """ test case class for allure reporting """
+class RtaTestcase:
+    """test case class for allure reporting"""
+
     def __init__(self, name):
         self.name = name
         self._uuid = str(uuid4())
         self.context = TestcaseContext()
 
     def __enter__(self):
-        allure_commons.plugin_manager.hook.start_test(parent_uuid=None,
-                                       uuid=self._uuid,
-                                       name=self.name,
-                                       parameters=None,
-                                       context=self.context)
+        allure_commons.plugin_manager.hook.start_test(
+            parent_uuid=None,
+            uuid=self._uuid,
+            name=self.name,
+            parameters=None,
+            context=self.context,
+        )
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        allure_commons.plugin_manager.hook.stop_test(parent_uuid=None,
-                                      uuid=self._uuid,
-                                      name=self.name,
-                                      context=self.context,
-                                      exc_type=exc_type,
-                                      exc_val=exc_val,
-                                      exc_tb=exc_tb)
+        allure_commons.plugin_manager.hook.stop_test(
+            parent_uuid=None,
+            uuid=self._uuid,
+            name=self.name,
+            context=self.context,
+            exc_type=exc_type,
+            exc_val=exc_val,
+            exc_tb=exc_tb,
+        )
 
     def add_label(self, label):
-        """ add label to allure test case """
+        """add label to allure test case"""
         self.context.labels.append(label)
 
 
 # pylint: disable=R0903
 class TestcaseContext:
-    """ a class to store test case context """
+    """a class to store test case context"""
+
     def __init__(self, status=None):
         if status:
             self.status = status
@@ -106,17 +113,20 @@ class TestcaseContext:
 
 
 class AllureTestSuiteContext:
-    """ test suite class for allure reporting """
+    """test suite class for allure reporting"""
+
     test_suite_count = 0
     # pylint: disable=R0913
-    def __init__(self,
-                 results_dir,
-                 clean,
-                 enterprise,
-                 zip_package,
-                 new_version,
-                 old_version=None,
-                 suite_name=None):
+    def __init__(
+        self,
+        results_dir,
+        clean,
+        enterprise,
+        zip_package,
+        new_version,
+        old_version=None,
+        suite_name=None,
+    ):
         if suite_name:
             self.test_suite_name = suite_name
         else:
@@ -130,18 +140,17 @@ class AllureTestSuiteContext:
             else:
                 package_type = "deb/rpm/nsis/dmg"
             if not old_version:
-                self.test_suite_name =\
-                    """
+                self.test_suite_name = """
 Release Test Suite for ArangoDB v.{} ({}) {} package (clean install)
-                    """.format(new_version,
-                               edition,
-                               package_type)
+                    """.format(
+                    new_version, edition, package_type
+                )
             else:
                 self.test_suite_name = """
                 Release Test Suite for ArangoDB v.{} ({}) {} package (upgrade from {})
                 """.format(
-                    new_version, edition,
-                    package_type, old_version)
+                    new_version, edition, package_type, old_version
+                )
 
         self.test_listener = AllureListener(self.test_suite_name)
         allure_commons.plugin_manager.register(self.test_listener)
@@ -163,7 +172,6 @@ Release Test Suite for ArangoDB v.{} ({}) {} package (clean install)
 
 
 def configure_allure(results_dir, clean, enterprise, zip_package, new_version, old_version=None):
-    """ configure allure reporting """
+    """configure allure reporting"""
     # pylint: disable=R0913
-    return AllureTestSuiteContext(results_dir, clean, enterprise,
-                                  zip_package, new_version, old_version)
+    return AllureTestSuiteContext(results_dir, clean, enterprise, zip_package, new_version, old_version)

@@ -15,18 +15,29 @@ from arangodb.starter.deployments import (
     RunnerType,
     make_runner,
     STARTER_MODES,
-    runner_strings
+    runner_strings,
 )
 import tools.loghelper as lh
 
+
 @click.command()
-@click.option('--mode',
-              type=click.Choice(["all", "install", "uninstall", "tests", ]),
-              default='all',
-              help='operation mode.')
+@click.option(
+    "--mode",
+    type=click.Choice(
+        [
+            "all",
+            "install",
+            "uninstall",
+            "tests",
+        ]
+    ),
+    default="all",
+    help="operation mode.",
+)
 @very_common_options()
 @common_options(support_old=False)
 # pylint: disable=R0913 disable=R0914, disable=W0703
+# fmt: off
 def run_test(mode,
              #very_common_options
              new_version, verbose, enterprise, package_dir, zip_package,
@@ -36,6 +47,7 @@ def run_test(mode,
              test_data_dir, encryption_at_rest, interactive, starter_mode,
              # stress_upgrade,
              abort_on_error, publicip, selenium, selenium_driver_args):
+# fmt: on
     """ main """
     lh.configure_logging(verbose)
 
@@ -44,41 +56,46 @@ def run_test(mode,
     do_install = mode in ["all", "install"]
     do_uninstall = mode in ["all", "uninstall"]
 
-    installers = create_config_installer_set([new_version],
-                                             verbose,
-                                             enterprise,
-                                             encryption_at_rest,
-                                             zip_package,
-                                             Path(package_dir),
-                                             Path(test_data_dir),
-                                             mode,
-                                             publicip,
-                                             interactive,
-                                             False)
+    installers = create_config_installer_set(
+        [new_version],
+        verbose,
+        enterprise,
+        encryption_at_rest,
+        zip_package,
+        Path(package_dir),
+        Path(test_data_dir),
+        mode,
+        publicip,
+        interactive,
+        False,
+    )
     lh.section("configuration")
-    print("""
+    print(
+        """
     mode: {mode}
     {cfg_repr}
-    """.format(**{
-        "mode": str(mode),
-        "cfg_repr": repr(installers[0][0])}))
+    """.format(
+            **{"mode": str(mode), "cfg_repr": repr(installers[0][0])}
+        )
+    )
 
     count = 1
     failed = False
     for runner_type in STARTER_MODES[starter_mode]:
         with RtaTestcase(runner_strings[runner_type]) as testcase:
-            testcase.add_label(Label(name=LabelType.SUB_SUITE,
-                                     value=installers[0][1].installer_type))
+            testcase.add_label(Label(name=LabelType.SUB_SUITE, value=installers[0][1].installer_type))
             if not enterprise and runner_type == RunnerType.DC2DC:
                 testcase.context.status = Status.SKIPPED
                 continue
-            runner = make_runner(runner_type,
-                                 abort_on_error,
-                                 selenium,
-                                 selenium_driver_args,
-                                 installers,
-                                 ssl=ssl,
-                                 use_auto_certs=use_auto_certs)
+            runner = make_runner(
+                runner_type,
+                abort_on_error,
+                selenium,
+                selenium_driver_args,
+                installers,
+                ssl=ssl,
+                use_auto_certs=use_auto_certs,
+            )
             # install on first run:
             runner.do_install = (count == 1) and do_install
             # only uninstall after the last test:
@@ -103,5 +120,5 @@ def run_test(mode,
 
 
 if __name__ == "__main__":
-# pylint: disable=E1120 # fix clickiness.
+    # pylint: disable=E1120 # fix clickiness.
     sys.exit(run_test())

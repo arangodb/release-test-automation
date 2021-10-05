@@ -17,7 +17,7 @@ from selenium.common.exceptions import (
     InvalidSessionIdException,
     StaleElementReferenceException,
     TimeoutException,
-    NoSuchElementException
+    NoSuchElementException,
 )
 
 from reporting.reporting_utils import step, attach_table
@@ -29,32 +29,31 @@ REPL_TABLE_LOC = {
     # TODO: is it a bug that this id is info-mode-id?
     #'state': 'div[1][@id="info-mode-id"]',
     # 'mode' : 'div[1][@id="info-mode-id"]',
-    'state': 'div[1]/div[1]/div[1]',
-    'mode': 'div[2]/div[1]/div[1]',
-    'role': '//*[@id="info-role-id"]',
-    'level': '//*[@id="info-level-id"]',
-    'health': '//*[@id="info-msg-id"]',
-    'tick':'//*[@id="logger-lastLogTick-id"]'
+    "state": "div[1]/div[1]/div[1]",
+    "mode": "div[2]/div[1]/div[1]",
+    "role": '//*[@id="info-role-id"]',
+    "level": '//*[@id="info-level-id"]',
+    "health": '//*[@id="info-msg-id"]',
+    "tick": '//*[@id="logger-lastLogTick-id"]',
 }
 
 REPL_LF_TABLES = {
-    'leader': [
+    "leader": [
         '//*[@id="repl-logger-clients"]//thead//th[%d]',
-        '//*[@id="repl-logger-clients"]//tr[%d]//td[%d]'
+        '//*[@id="repl-logger-clients"]//tr[%d]//td[%d]',
     ],
-    'follower': [
+    "follower": [
         '//*[@id="repl-follower-table"]//thead//th[%d]',
-        '//*[@id="repl-follower-table"]//tr[%d]//td[%d]'
-    ]
+        '//*[@id="repl-follower-table"]//tr[%d]//td[%d]',
+    ],
 }
+
+
 class SeleniumRunner(ABC):
     "abstract base class for selenium UI testing"
     # pylint: disable=C0301 disable=R0904
-    def __init__(self, webdriver,
-                 is_headless: bool,
-                 testrun_name: str,
-                 ssl: bool):
-        """ hi """
+    def __init__(self, webdriver, is_headless: bool, testrun_name: str, ssl: bool):
+        """hi"""
         self.ssl = ssl
         self.is_headless = is_headless
         self.testrun_name = testrun_name
@@ -65,9 +64,8 @@ class SeleniumRunner(ABC):
         self.web.set_window_size(1920, 2048)
         time.sleep(3)
 
-
     def progress(self, msg):
-        """ add something to the state... """
+        """add something to the state..."""
         logging.info("UI-Test: " + msg)
         with step("UI test progress: " + msg):
             pass
@@ -76,73 +74,74 @@ class SeleniumRunner(ABC):
         self.state += "UI: " + msg
 
     def reset_progress(self):
-        """ done with one test. Flush status buffer. """
+        """done with one test. Flush status buffer."""
         self.state = ""
 
     def get_progress(self):
-        """ extract the current progress buffer """
+        """extract the current progress buffer"""
         ret = self.state + "\n"
         self.reset_progress()
         return ret
 
     @step
     def disconnect(self):
-        """ byebye """
+        """byebye"""
         self.progress("Close!")
         self.web.close()
 
     @step
     def get_browser_log_entries(self):
         """get log entreies from selenium and add to python logger before returning"""
-        print('B'*80)
-        loglevels = { 'NOTSET':   0,
-                      'DEBUG':   10,
-                      'INFO':    20,
-                      'WARNING': 30,
-                      'ERROR':   40,
-                      'SEVERE':  40,
-                      'CRITICAL':50}
-        slurped_logs = self.web.get_log('browser')
-        browserlog = logging.getLogger('browser')
+        print("B" * 80)
+        loglevels = {
+            "NOTSET": 0,
+            "DEBUG": 10,
+            "INFO": 20,
+            "WARNING": 30,
+            "ERROR": 40,
+            "SEVERE": 40,
+            "CRITICAL": 50,
+        }
+        slurped_logs = self.web.get_log("browser")
+        browserlog = logging.getLogger("browser")
         for entry in slurped_logs:
-            print(entry['message'])
-            #convert broswer log to python log format
-            rec = browserlog.makeRecord("%s.%s"%(
-                browserlog.name,entry['source']
-            ),
-                                        loglevels.get('WARNING'), # always log it as warn...
-                                        # loglevels.get(entry['level']),
-                                        '.',
-                                        0,
-                                        entry['message'],
-                                        None,
-                                        None)
-            rec.created = entry['timestamp'] /1000 # log using original timestamp.. us -> ms
+            print(entry["message"])
+            # convert broswer log to python log format
+            rec = browserlog.makeRecord(
+                "%s.%s" % (browserlog.name, entry["source"]),
+                loglevels.get("WARNING"),  # always log it as warn...
+                # loglevels.get(entry['level']),
+                ".",
+                0,
+                entry["message"],
+                None,
+                None,
+            )
+            rec.created = entry["timestamp"] / 1000  # log using original timestamp.. us -> ms
             # pylint: disable=W0703
             try:
-                #add browser log to python log
+                # add browser log to python log
                 browserlog.handle(rec)
-                self.progress(entry['message'])
+                self.progress(entry["message"])
             except Exception as ex:
                 print("caught exception during transfering browser logs: " + str(ex))
                 print(entry)
 
     @step
     def take_screenshot(self, filename=None):
-        """ *snap* """
+        """*snap*"""
         if filename is None:
-            filename = '%s_%s_exception_screenshot.png' % (
-                FNRX.sub('', self.testrun_name),
-                self.__class__.__name__
+            filename = "%s_%s_exception_screenshot.png" % (
+                FNRX.sub("", self.testrun_name),
+                self.__class__.__name__,
             )
 
-        self.progress("Taking screenshot from: %s " %
-                      self.web.current_url)
+        self.progress("Taking screenshot from: %s " % self.web.current_url)
         # pylint: disable=W0703
         try:
             if self.is_headless:
                 self.progress("taking full screenshot")
-                elmnt = self.web.find_element_by_tag_name('body')
+                elmnt = self.web.find_element_by_tag_name("body")
                 screenshot = elmnt.screenshot_as_png()
             else:
                 self.progress("taking screenshot")
@@ -157,11 +156,15 @@ class SeleniumRunner(ABC):
         with open(filename, "wb") as file:
             file.write(screenshot)
 
-        attach(screenshot, name="Screenshot ({fn})".format(fn=filename), attachment_type=AttachmentType.PNG)
+        attach(
+            screenshot,
+            name="Screenshot ({fn})".format(fn=filename),
+            attachment_type=AttachmentType.PNG,
+        )
 
     @step
     def ui_assert(self, conditionstate, message):
-        """ python assert sucks. fuckit. """
+        """python assert sucks. fuckit."""
         if not conditionstate:
             logging.error(message)
             self.take_screenshot()
@@ -169,7 +172,7 @@ class SeleniumRunner(ABC):
 
     @step
     def connect_server_new_tab(self, frontend_instance, database, cfg):
-        """ login... """
+        """login..."""
         self.progress("Opening page")
         print(frontend_instance[0].get_public_plain_url())
         self.original_window_handle = self.web.current_window_handle
@@ -177,23 +180,27 @@ class SeleniumRunner(ABC):
         # Open a new window
         self.web.execute_script("window.open('');")
         self.web.switch_to.window(self.web.window_handles[1])
-        self.web.get(self.get_protocol() + "://" +
-                     frontend_instance[0].get_public_plain_url() +
-                     "/_db/_system/_admin/aardvark/index.html")
+        self.web.get(
+            self.get_protocol()
+            + "://"
+            + frontend_instance[0].get_public_plain_url()
+            + "/_db/_system/_admin/aardvark/index.html"
+        )
 
         self.login_webif(frontend_instance, database, cfg)
 
     def xpath(self, path):
-        """ shortcut xpath """
+        """shortcut xpath"""
         return self.web.find_element_by_xpath(path)
 
     def by_class(self, classname):
-        """ shortcut class-id """
+        """shortcut class-id"""
         return self.web.find_element_by_class_name(classname)
+
     @step
     def close_tab_again(self):
-        """ close a tab, and return to main window """
-        self.web.close()# Switch back to the first tab with URL A
+        """close a tab, and return to main window"""
+        self.web.close()  # Switch back to the first tab with URL A
         # self.web.switch_to.window(self.web.window_handles[0])
         # print("Current Page Title is : %s" %self.web.title)
         # self.web.close()
@@ -202,29 +209,31 @@ class SeleniumRunner(ABC):
 
     @step
     def connect_server(self, frontend_instance, database, cfg):
-        """ login... """
+        """login..."""
         self.progress("Opening page")
         print(frontend_instance[0].get_public_plain_url())
-        self.web.get(self.get_protocol() + "://" +
-                     frontend_instance[0].get_public_plain_url() +
-                     "/_db/_system/_admin/aardvark/index.html")
+        self.web.get(
+            self.get_protocol()
+            + "://"
+            + frontend_instance[0].get_public_plain_url()
+            + "/_db/_system/_admin/aardvark/index.html"
+        )
         self.login_webif(frontend_instance, database, cfg)
 
     @step
     def _login_wait_for_screen(self):
-        """ wait for the browser to show the login screen """
+        """wait for the browser to show the login screen"""
         try:
             count = 0
             while True:
                 count += 1
                 elem = WebDriverWait(self.web, 10).until(
                     EC.presence_of_element_located((By.TAG_NAME, "html")),
-                    message="UI-Test: page didn't load after 10s"
+                    message="UI-Test: page didn't load after 10s",
                 )
                 data = elem.text
                 if len(data) < 0:
-                    self.progress(
-                        'ArangoDB Web Interface not loaded yet, retrying')
+                    self.progress("ArangoDB Web Interface not loaded yet, retrying")
                     time.sleep(2)
                 if count == 10:
                     if elem is None:
@@ -232,8 +241,7 @@ class SeleniumRunner(ABC):
                         self.web.refresh()
                         time.sleep(5)
                     else:
-                        assert "ArangoDB Web Interface" in self.web.title, \
-                            "webif title not found"
+                        assert "ArangoDB Web Interface" in self.web.title, "webif title not found"
                         break
         except TimeoutException as ex:
             self.take_screenshot()
@@ -242,11 +250,11 @@ class SeleniumRunner(ABC):
 
     @step
     def _login_fill_username(self, frontend_instance, database, cfg, recurse=0):
-        """ fill in the username column """
+        """fill in the username column"""
         try:
             logname = WebDriverWait(self.web, 10).until(
                 EC.element_to_be_clickable((By.ID, "loginUsername")),
-                message="UI-Test: loginUsername didn't become clickeable on time. 10s"
+                message="UI-Test: loginUsername didn't become clickeable on time. 10s",
             )
             logname.click()
             logname.clear()
@@ -257,27 +265,21 @@ class SeleniumRunner(ABC):
                 return False
 
         except StaleElementReferenceException as ex:
-            self.progress("stale element, force reloading with sleep: " +
-                          str(ex))
+            self.progress("stale element, force reloading with sleep: " + str(ex))
             self.web.refresh()
             time.sleep(5)
-            return self.login_webif(frontend_instance,
-                                    database,
-                                    cfg,
-                                    recurse + 1)
+            return self.login_webif(frontend_instance, database, cfg, recurse + 1)
         return True
 
     @step
     def _login_fill_passvoid(self, frontend_instance):
-        """ fill the passvoid and click login """
+        """fill the passvoid and click login"""
         while True:
             passvoid = self.web.find_element_by_id("loginPassword")
             txt = passvoid.text
             print("UI-Test: xxxx [" + txt + "]")
             if len(txt) > 0:
-                self.progress(
-                    'something was in the passvoid field. retrying. ' +
-                    txt)
+                self.progress("something was in the passvoid field. retrying. " + txt)
                 time.sleep(2)
                 continue
             passvoid.click()
@@ -290,42 +292,37 @@ class SeleniumRunner(ABC):
 
     @step
     def _login_choose_database(self, frontend_instance, database, cfg, recurse=0):
-        """ choose the database from the second login screen """
+        """choose the database from the second login screen"""
         count = 0
         while True:
             count += 1
             elem = WebDriverWait(self.web, 15).until(
                 EC.presence_of_element_located((By.ID, "loginDatabase")),
-                message="UI-Test: loginDatabase didn't become clickeable on time 15s"
+                message="UI-Test: loginDatabase didn't become clickeable on time 15s",
             )
             txt = elem.text
-            if txt.find('_system') < 0:
+            if txt.find("_system") < 0:
                 if count < 9:
                     self.take_screenshot()
-                self.progress('_system not found in ' +
-                              txt +
-                              ' ; retrying!')
+                self.progress("_system not found in " + txt + " ; retrying!")
                 if count == 10:
-                    self.progress('refreshing webpage and retrying...')
+                    self.progress("refreshing webpage and retrying...")
                     self.web.refresh()
                     time.sleep(5)
-                    return self.login_webif(frontend_instance,
-                                            database,
-                                            cfg,
-                                            recurse + 1)
+                    return self.login_webif(frontend_instance, database, cfg, recurse + 1)
                 time.sleep(2)
             else:
                 break
         elem = WebDriverWait(self.web, 15).until(
             EC.element_to_be_clickable((By.ID, "goToDatabase")),
-            message="UI-Test: choosing database didn't become clickeable on time 15s"
+            message="UI-Test: choosing database didn't become clickeable on time 15s",
         )
         elem.click()
         return True
 
     @step
     def login_webif(self, frontend_instance, database, cfg, recurse=0):
-        """ log into an arangodb webinterface """
+        """log into an arangodb webinterface"""
         if recurse > 10:
             raise Exception("UI-Test: 10 successless login attempts")
         try:
@@ -338,8 +335,7 @@ class SeleniumRunner(ABC):
                 return False
             self.progress("we're in!")
 
-            assert "No results found." not in self.web.page_source, \
-                "no results found?"
+            assert "No results found." not in self.web.page_source, "no results found?"
         except TimeoutException as ex:
             self.take_screenshot()
             raise ex
@@ -355,20 +351,15 @@ class SeleniumRunner(ABC):
         while True:
             try:
                 elem = self.web.find_element_by_id("currentVersion")
-                enterprise_elem = self.web.find_element_by_class_name(
-                    "logo.big")
-                ret = {
-                    'version': elem.text,
-                    'enterprise': enterprise_elem.text
-                }
-                self.progress("check_version (%s) (%s)" % (
-                    ret['version'], ret['enterprise']))
-                if (len(ret['version']) > 0) and (len(ret['enterprise']) > 0):
+                enterprise_elem = self.web.find_element_by_class_name("logo.big")
+                ret = {"version": elem.text, "enterprise": enterprise_elem.text}
+                self.progress("check_version (%s) (%s)" % (ret["version"], ret["enterprise"]))
+                if (len(ret["version"]) > 0) and (len(ret["enterprise"]) > 0):
                     return ret
-                self.progress('retry version.')
+                self.progress("retry version.")
                 time.sleep(1)
                 if count > 200:
-                    raise TimeoutException("canot detect version, found: %s " %str(ret))
+                    raise TimeoutException("canot detect version, found: %s " % str(ret))
                 count += 1
             except TimeoutException as ex:
                 self.take_screenshot()
@@ -376,25 +367,25 @@ class SeleniumRunner(ABC):
 
     @step
     def navbar_goto(self, tag):
-        """ click on any of the items in the 'navbar' """
+        """click on any of the items in the 'navbar'"""
         count = 0
-        self.progress("navbar goto %s"% tag)
+        self.progress("navbar goto %s" % tag)
         while True:
             try:
                 elem = self.web.find_element_by_id(tag)
                 assert elem, "navbar goto failed?"
                 elem.click()
-                self.web.find_element_by_class_name(tag + '-menu.active')
+                self.web.find_element_by_class_name(tag + "-menu.active")
                 self.progress("goto current URL: " + self.web.current_url)
-                if not self.web.current_url.endswith('#'+ tag):
+                if not self.web.current_url.endswith("#" + tag):
                     # retry...
                     continue
                 return
             except NoSuchElementException:
-                self.progress('retrying to switch to ' + tag)
+                self.progress("retrying to switch to " + tag)
                 time.sleep(1)
                 count += 1
-                if count %15 == 0:
+                if count % 15 == 0:
                     self.progress("reloading page!")
                     self.web.refresh()
                     time.sleep(1)
@@ -405,10 +396,9 @@ class SeleniumRunner(ABC):
 
     @step
     def get_health_state(self):
-        """ extract the health state in the upper right corner """
+        """extract the health state in the upper right corner"""
         try:
-            elem = self.xpath(
-                '/html/body/div[2]/div/div[1]/div/ul[1]/li[2]/a[2]')
+            elem = self.xpath("/html/body/div[2]/div/div[1]/div/ul[1]/li[2]/a[2]")
         except TimeoutException as ex:
             self.take_screenshot()
             raise ex
@@ -419,7 +409,7 @@ class SeleniumRunner(ABC):
     @step
     def cluster_dashboard_get_count(self, timeout=15):
         """
-         extract the coordinator / dbserver count from the 'cluster' page
+        extract the coordinator / dbserver count from the 'cluster' page
         """
         ret = {}
         while True:
@@ -428,22 +418,20 @@ class SeleniumRunner(ABC):
                 elm_accepted = False
                 while not elm_accepted:
                     elm = WebDriverWait(self.web, timeout).until(
-                        EC.presence_of_element_located((
-                            By.XPATH,
-                            '//*[@id="clusterCoordinators"]')),
-                        message="UI-Test: [CLUSTER tab] coordinators path didn't arive " +
-                        "on time %ds inspect screenshot!" % timeout
+                        EC.presence_of_element_located((By.XPATH, '//*[@id="clusterCoordinators"]')),
+                        message="UI-Test: [CLUSTER tab] coordinators path didn't arive "
+                        + "on time %ds inspect screenshot!" % timeout,
                     )
                     elm_accepted = len(elm.text) > 0
                 # elm = self.web.find_element_by_xpath(
                 #   '//*[@id="clusterCoordinators"]')
-                ret['coordinators'] = elm.text
+                ret["coordinators"] = elm.text
                 elm = self.xpath('//*[@id="clusterDBServers"]')
-                ret['dbservers'] = elm.text
-                self.progress("health state: %s"% str(ret))
+                ret["dbservers"] = elm.text
+                self.progress("health state: %s" % str(ret))
                 return ret
             except StaleElementReferenceException:
-                self.progress('retrying after stale element')
+                self.progress("retrying after stale element")
                 time.sleep(1)
                 continue
             except TimeoutException as ex:
@@ -451,58 +439,41 @@ class SeleniumRunner(ABC):
                 raise ex
 
     def _cluster_get_nodes_table(self, timeout):
-        """ repeatable inner func """
-        table_coord_elm = WebDriverWait(
-            self.web,
-            timeout).until(
-                EC.presence_of_element_located((
+        """repeatable inner func"""
+        table_coord_elm = WebDriverWait(self.web, timeout).until(
+            EC.presence_of_element_located(
+                (
                     By.CLASS_NAME,
-                    'pure-g.cluster-nodes.coords-nodes.pure-table.pure-table-body')),
-                message="UI-Test: Cluster nodes table didn't become available on time %s" % timeout
+                    "pure-g.cluster-nodes.coords-nodes.pure-table.pure-table-body",
+                )
+            ),
+            message="UI-Test: Cluster nodes table didn't become available on time %s" % timeout,
         )
-        table_dbsrv_elm = self.by_class(
-            'pure-g.cluster-nodes.dbs-nodes.pure-table.pure-table-body')
-        column_names = ['name', 'url', 'version', 'date', 'state']
+        table_dbsrv_elm = self.by_class("pure-g.cluster-nodes.dbs-nodes.pure-table.pure-table-body")
+        column_names = ["name", "url", "version", "date", "state"]
         table = []
         for elm in [table_coord_elm, table_dbsrv_elm]:
             for table_row_num in [1, 2, 3]:
-                row ={}
+                row = {}
                 table.append(row)
                 for table_column in [1, 2, 3, 4, 5]:
                     table_cell_elm = None
                     if table_column == 5:
-                        table_cell_elm = elm.find_element_by_xpath(
-                            'div[%d]/div[%d]/i'%(
-                                table_row_num,
-                                table_column))
+                        table_cell_elm = elm.find_element_by_xpath("div[%d]/div[%d]/i" % (table_row_num, table_column))
                         try:
-                            row[column_names[table_column - 1]
-                                ] = table_cell_elm.get_attribute(
-                                    'data-original-title')
+                            row[column_names[table_column - 1]] = table_cell_elm.get_attribute("data-original-title")
                         except NoSuchElementException:
                             row[column_names[table_column - 1]] = None
                         if row[column_names[table_column - 1]] is None:
-                            row[column_names[table_column - 1]
-                                ] = table_cell_elm.get_property(
-                                    'title')
+                            row[column_names[table_column - 1]] = table_cell_elm.get_property("title")
                     else:
-                        table_cell_elm = elm.find_element_by_xpath(
-                            'div[%d]/div[%d]'%(
-                                table_row_num,
-                                table_column))
+                        table_cell_elm = elm.find_element_by_xpath("div[%d]/div[%d]" % (table_row_num, table_column))
                         row[column_names[table_column - 1]] = table_cell_elm.text
         pretty_table = BeautifulTable(maxwidth=160)
         for row in table:
-            pretty_table.rows.append([
-                row['name'],
-                row['url'],
-                row['version'],
-                row['date'],
-                row['state']
-                ])
-        pretty_table.columns.header = [
-            "Name", "URL", "Ver", "Date", "State"]
-        self.progress('\n' + str(pretty_table))
+            pretty_table.rows.append([row["name"], row["url"], row["version"], row["date"], row["state"]])
+        pretty_table.columns.header = ["Name", "URL", "Ver", "Date", "State"]
+        self.progress("\n" + str(pretty_table))
         attach_table(pretty_table, "Cluster nodes table")
         return table
 
@@ -516,11 +487,11 @@ class SeleniumRunner(ABC):
                 table = self._cluster_get_nodes_table(timeout)
                 return table
             except StaleElementReferenceException:
-                self.progress('retrying after stale element')
+                self.progress("retrying after stale element")
                 time.sleep(1)
                 continue
             except NoSuchElementException:
-                self.progress('retrying after no such element')
+                self.progress("retrying after no such element")
                 time.sleep(1)
                 continue
             except TimeoutException as ex:
@@ -528,73 +499,65 @@ class SeleniumRunner(ABC):
                 raise ex
 
     def get_state_table(self, timeout):
-        """ extract the replication state table """
+        """extract the replication state table"""
         table_elm = WebDriverWait(self.web, timeout).until(
-            EC.presence_of_element_located((By.CLASS_NAME,
-                                            'pure-g.cluster-values')),
-            message="UI-Test: replication state table didn't arive on time %s " % timeout
+            EC.presence_of_element_located((By.CLASS_NAME, "pure-g.cluster-values")),
+            message="UI-Test: replication state table didn't arive on time %s " % timeout,
         )
         state_table = {}
         for key in REPL_TABLE_LOC:
-            state_table[key] = table_elm.find_element_by_xpath(
-                REPL_TABLE_LOC[key]).text
+            state_table[key] = table_elm.find_element_by_xpath(REPL_TABLE_LOC[key]).text
         return state_table
 
     def _get_repl_page(self, which, timeout):
-        """ parse the complete replication state table """
+        """parse the complete replication state table"""
         state_table = self.get_state_table(timeout)
 
         follower_table = []
-        column_indices = [1,2,3,4,5]
+        column_indices = [1, 2, 3, 4, 5]
         more_lines = True
         table_head = []
         for i in column_indices:
-            table_head.append(
-                self.web.find_element_by_xpath(
-                REPL_LF_TABLES[which][0] % i).text)
+            table_head.append(self.web.find_element_by_xpath(REPL_LF_TABLES[which][0] % i).text)
         follower_table.append(table_head)
         count = 1
         while more_lines:
             try:
                 row_data = []
                 for i in column_indices:
-                    cell = self.web.find_element_by_xpath(
-                        REPL_LF_TABLES[which][1]%(
-                        count, i))
+                    cell = self.web.find_element_by_xpath(REPL_LF_TABLES[which][1] % (count, i))
                     row_data.append(cell.text)
                 follower_table.append(row_data)
             except NoSuchElementException:
-                print('UI-Test: no more lines.')
+                print("UI-Test: no more lines.")
                 more_lines = False
             count += 1
         return {
-            'state_table': state_table,
-            'follower_table': follower_table,
+            "state_table": state_table,
+            "follower_table": follower_table,
         }
 
     def get_replication_screen(self, is_leader, timeout=20):
-        """ fetch & parse the replication tab """
+        """fetch & parse the replication tab"""
         retry_count = 0
         while True:
             try:
-                return self._get_repl_page(
-                    'leader' if is_leader else 'follower',
-                    timeout)
+                return self._get_repl_page("leader" if is_leader else "follower", timeout)
             except NoSuchElementException:
-                self.progress('retrying after element not found')
+                self.progress("retrying after element not found")
                 time.sleep(1)
                 retry_count += 1
                 continue
             except StaleElementReferenceException:
-                self.progress('retrying after stale element')
+                self.progress("retrying after stale element")
                 time.sleep(1)
                 retry_count += 1
                 continue
             except TimeoutException as ex:
                 retry_count += 1
                 if retry_count < 5:
-                    self.progress('re-trying goto replication')
-                    self.navbar_goto('replication')
+                    self.progress("re-trying goto replication")
+                    self.navbar_goto("replication")
                 elif retry_count > 20:
                     self.take_screenshot()
                     raise ex
@@ -603,16 +566,16 @@ class SeleniumRunner(ABC):
                     time.sleep(1)
 
     def check_version(self, cfg):
-        """ checks whether the UI has the version that cfg dictates """
+        """checks whether the UI has the version that cfg dictates"""
         ver = self.detect_version()
-        self.progress(' %s ~= %s?'% (ver['version'].lower(), str(cfg.semver)))
+        self.progress(" %s ~= %s?" % (ver["version"].lower(), str(cfg.semver)))
 
-        assert ver['version'].lower().startswith(str(cfg.semver)), "UI-Test: wrong version"
+        assert ver["version"].lower().startswith(str(cfg.semver)), "UI-Test: wrong version"
 
         if cfg.enterprise:
-            assert ver['enterprise'] == 'ENTERPRISE EDITION', "UI-Test: expected enterprise"
+            assert ver["enterprise"] == "ENTERPRISE EDITION", "UI-Test: expected enterprise"
         else:
-            assert ver['enterprise'] == 'COMMUNITY EDITION', "UI-Test: expected community"
+            assert ver["enterprise"] == "COMMUNITY EDITION", "UI-Test: expected community"
 
     # pylint: disable=R1705
     def get_protocol(self):
@@ -624,13 +587,16 @@ class SeleniumRunner(ABC):
 
     @abstractmethod
     def check_old(self, cfg, leader_follower=False, expect_follower_count=2, retry_count=10):
-        """ check the integrity of the old system before the upgrade """
+        """check the integrity of the old system before the upgrade"""
+
     @abstractmethod
     def upgrade_deployment(self, old_cfg, new_cfg, timeout):
-        """ check the upgrade whether the versions in the table switch etc. """
+        """check the upgrade whether the versions in the table switch etc."""
+
     @abstractmethod
     def jam_step_1(self, cfg):
-        """ check the integrity of the old system before the upgrade """
+        """check the integrity of the old system before the upgrade"""
+
     @abstractmethod
     def jam_step_2(self, cfg):
-        """ check the integrity of the old system before the upgrade """
+        """check the integrity of the old system before the upgrade"""

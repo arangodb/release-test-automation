@@ -2,8 +2,10 @@
 import collections
 import io
 
+
 class IoDuplicator(io.TextIOBase):
     """save text stream in memory and pass data to another stream"""
+
     def __init__(self, downstream, *args):
         self.downstream = downstream
         io.TextIOBase.__init__(self, *args)
@@ -11,7 +13,7 @@ class IoDuplicator(io.TextIOBase):
 
     def getvalue(self):
         """return saved text data"""
-        return ''.join(self.deque)
+        return "".join(self.deque)
 
     def write(self, x):
         self.downstream.write(x)
