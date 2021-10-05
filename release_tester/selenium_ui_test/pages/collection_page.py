@@ -1,21 +1,16 @@
-#!/usr/bin/env python
-"""
-aardvark collection tab ui object
-"""
 import time
-from selenium_ui_test.base_selenium import BaseSelenium
+from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import TimeoutException
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=R0902 disable=R0915 disable=R0904
 
-class CollectionPage(BaseSelenium):
+class CollectionPage(NavigationBarPage):
     """Collection page class"""
 
     def __init__(self, driver):
         """class initialization"""
-        super().__init__()
-        self.driver = driver
+        super().__init__(driver)
         self.select_collection_page_id = "collections"
         self.select_create_collection_id = "createCollection"
         self.select_new_collection_name_id = "new-collection-name"
@@ -49,7 +44,7 @@ class CollectionPage(BaseSelenium):
         self.move_first_page_id = "//div[@id='documentsToolbarF']/ul[@class='arango-pagination']//a[.='1']"
         self.move_second_page_id = "//div[@id='documentsToolbarF']/ul[@class='arango-pagination']//a[.='2']"
 
-        self.select_collection_setting_id = "//div[@id='subNavigationBar']/ul[2]//a[.='Settings']"
+        self.select_collection_setting_id = "//div[@id='subNavigationBarPage']/ul[2]//a[.='Settings']"
         self.select_hand_pointer_id = "/html//a[@id='markDocuments']"
 
         self.row1_id = "//div[@id='docPureTable']/div[2]/div[1]"
@@ -60,9 +55,9 @@ class CollectionPage(BaseSelenium):
         self.move_doc_textbox_id = "move-documents-to"
         self.move_confirm_btn_id = "modalButton1"
         self.select_collection_delete_btn_id = "deleteSelected"
-        self.collection_delete_confirm_btn_id = "//*[@id='modalButton1']"
+        self.collection_delete_confirm_btn_id = """//div[@id="modalPlaceholder"]//button[text()="Delete"]"""
         self.collection_really_dlt_btn_id = "/html//button[@id='modal-confirm-delete']"
-        self.select_index_menu_id = "//*[@id='subNavigationBar']/ul[2]/li[2]/a"
+        self.select_index_menu_id = "//*[@id='subNavigationBarPage']/ul[2]/li[2]/a"
         self.create_new_index_btn_id = "addIndex"
         self.select_index_type_id = "newIndexType"
 
@@ -93,11 +88,11 @@ class CollectionPage(BaseSelenium):
         self.select_index_for_delete_id = "/html//table[@id='collectionEditIndexTable']" \
                                           "/tbody/tr[2]/th[9]/span[@title='Delete index']"
         self.select_index_confirm_delete = "indexConfirmDelete"
-        self.select_info_tab_id = "//*[@id='subNavigationBar']/ul[2]/li[3]/a"
+        self.select_info_tab_id = "//*[@id='subNavigationBarPage']/ul[2]/li[3]/a"
 
-        self.select_schema_tab_id = "//*[@id='subNavigationBar']/ul[2]/li[5]/a"
+        self.select_schema_tab_id = "//*[@id='subNavigationBarPage']/ul[2]/li[5]/a"
 
-        self.select_settings_tab_id = "//*[@id='subNavigationBar']/ul[2]/li[4]/a"
+        self.select_settings_tab_id = "//*[@id='subNavigationBarPage']/ul[2]/li[4]/a"
         self.select_settings_name_textbox_id = "change-collection-name"
         self.select_settings_wait_type_id = "change-collection-sync"
         self.select_newer_settings_save_btn_id = "modalButton4"
@@ -112,8 +107,8 @@ class CollectionPage(BaseSelenium):
 
         self.select_edge_collection_upload_id = "//*[@id='collection_TestEdge']/div/h5"
         self.select_edge_collection_id = "//*[@id='collection_TestEdge']/div/h5"
-        self.select_edge_settings_id = "//*[@id='subNavigationBar']/ul[2]/li[4]/a"
-        self.select_test_doc_settings_id = "//*[@id='subNavigationBar']/ul[2]/li[4]/a"
+        self.select_edge_settings_id = "//*[@id='subNavigationBarPage']/ul[2]/li[4]/a"
+        self.select_test_doc_settings_id = "//*[@id='subNavigationBarPage']/ul[2]/li[4]/a"
 
         self.select_test_doc_collection_id = "//div[@id='collection_Test']//h5[@class='collectionName']"
         self.select_collection_search_id = "//*[@id='searchInput']"
@@ -252,12 +247,6 @@ class CollectionPage(BaseSelenium):
         sort_descending_sitem.click()
         time.sleep(2)
 
-    def select_doc_collection(self):
-        """selecting TestDoc Collection"""
-        select_doc_collection_sitem = \
-            self.locator_finder_by_text_xpath(self.select_doc_collection_id)
-        select_doc_collection_sitem.click()
-
     def select_upload_btn(self):
         """selecting collection upload btn"""
         select_upload_btn_sitem = \
@@ -287,7 +276,7 @@ class CollectionPage(BaseSelenium):
 
     def download_doc_as_json(self):
         """Exporting documents as JSON file from the collection"""
-        if self.driver.name == "chrome":  # this will check browser name
+        if self.webdriver.name == "chrome":  # this will check browser name
             print("Download has been disabled for the Chrome browser \n")
         else:
             select_export_doc_as_jason_sitem = \
@@ -315,7 +304,7 @@ class CollectionPage(BaseSelenium):
             self.locator_finder_by_id(self.document_id)
         string = document_sitem.text
         # print(string[8:])
-        self.driver.back()
+        self.webdriver.back()
         time.sleep(1)
 
         select_filter_input_sitem = \
@@ -411,13 +400,11 @@ class CollectionPage(BaseSelenium):
         collection_really_dlt_btn_sitem = \
             self.locator_finder_by_text_xpath(self.collection_really_dlt_btn_id)
         collection_really_dlt_btn_sitem.click()
-        self.driver.refresh()
+        self.webdriver.refresh()
 
     def select_index_menu(self):
         """Selecting index menu from collection"""
-        select_index_menu_sitem = \
-            self.locator_finder_by_text_xpath(self.select_index_menu_id)
-        select_index_menu_sitem.click()
+        self.click_submenu_entry("Indexes")
 
     def create_new_index_btn(self):
         """Selecting index menu from collection"""
@@ -503,13 +490,11 @@ class CollectionPage(BaseSelenium):
         select_index_confirm_delete_sitem = \
             self.locator_finder_by_text_id(self.select_index_confirm_delete)
         select_index_confirm_delete_sitem.click()
-        self.driver.refresh()
+        self.webdriver.refresh()
 
     def select_info_tab(self):
         """Selecting info tab from the collection submenu"""
-        select_info_tab_sitem = \
-            self.locator_finder_by_text_xpath(self.select_info_tab_id)
-        select_info_tab_sitem.click()
+        self.click_submenu_entry("Info")
         time.sleep(2)
         self.wait_for_ajax()
 
@@ -527,9 +512,7 @@ class CollectionPage(BaseSelenium):
 
     def select_settings_tab(self, is_cluster):
         """Selecting settings tab from the collection submenu"""
-        select_settings_tab_sitem = \
-            self.locator_finder_by_text_xpath(self.select_settings_tab_id)
-        select_settings_tab_sitem.click()
+        self.click_submenu_entry("Settings")
         if not is_cluster:
             select_settings_name_textbox_sitem = \
                 self.locator_finder_by_text_id(self.select_settings_name_textbox_id)
@@ -589,24 +572,49 @@ class CollectionPage(BaseSelenium):
 
     def select_edge_collection_upload(self):
         """selecting Edge collection for data uploading"""
-        select_edge_collection_upload_sitem = \
-            self.locator_finder_by_text_xpath(self.select_edge_collection_upload_id)
-        select_edge_collection_upload_sitem.click()
+        self.select_collection("TestEdge")
 
     def select_edge_collection(self):
         """selecting TestEdge Collection"""
-        select_edge_collection_sitem = \
-            self.locator_finder_by_text_xpath(self.select_edge_collection_id)
-        select_edge_collection_sitem.click()
-        select_edge_settings_sitem = \
-            self.locator_finder_by_text_xpath(self.select_edge_settings_id)
-        select_edge_settings_sitem.click()
+        self.select_collection("TestEdge")
+        self.click_submenu_entry("Settings")
 
     def select_test_doc_collection(self):
         """selecting TestEdge Collection"""
-        select_test_doc_collection_sitem = \
-            self.locator_finder_by_text_xpath(self.select_test_doc_collection_id)
-        select_test_doc_collection_sitem.click()
-        select_test_doc_settings_sitem = \
-            self.locator_finder_by_text_xpath(self.select_test_doc_settings_id)
-        select_test_doc_settings_sitem.click()
+        self.select_collection("Test")
+        self.click_submenu_entry("Settings")
+
+    def select_collection(self, collection_name):
+        selector = """//div[contains(@class, 'tile')][@id='collection_%s']""" % collection_name
+        self.locator_finder_by_text_xpath(selector).click()
+
+    def create_sample_collection(self, test_name):
+        """ selecting collection tab """
+        try:
+            # Clicking on create new collection box
+            create_collection_sitem = self.locator_finder_by_id(self.select_create_collection_id)
+            create_collection_sitem.click()
+            time.sleep(2)
+
+            # Providing new collection name
+            collection_name_sitem = self.locator_finder_by_id(self.select_new_collection_name_id)
+            collection_name_sitem.click()
+            collection_name_sitem.send_keys("testDoc")
+
+            # creating collection by tapping on save button
+            save_sitem = self.locator_finder_by_id('modalButton1')
+            save_sitem.click()
+
+            try:
+                notification_sitem = self.locator_finder_by_css_selectors('noty_body')
+                time.sleep(1)
+                expected_text = 'Collection: Collection "testDoc" successfully created.'
+                assert notification_sitem.text == expected_text, f"Expected text{expected_text} but got {notification_sitem.text}"
+            except TimeoutException:
+                print('Unexpected error occurred!')
+
+        except TimeoutException as ex:
+            if test_name == 'access':
+                print("Collection creation failed, which is expected")
+            if test_name == 'read/write':
+                raise Exception("Unexpected error occurred!") from ex

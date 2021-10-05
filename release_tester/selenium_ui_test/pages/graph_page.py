@@ -1,11 +1,7 @@
-#!/usr/bin/env python
-"""
-aardvark graphs page object
-"""
 import time
 from enum import IntEnum
-
-from selenium_ui_test.base_selenium import BaseSelenium, Keys
+from selenium_ui_test.pages.base_page import Keys
+from selenium_ui_test.pages.navbar import NavigationBarPage
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=C0302 disable=R0902 disable=R0915 disable=R0914
 
@@ -46,17 +42,18 @@ class GraphCreateSet():
 
 GRAPH_SETS = []
 
+
 def get_graph_name(graph:GraphExample):
     """ resolves the enum to a printeable string """
     return GRAPH_SETS[graph].clear_name
 
-class GraphPage(BaseSelenium):
+
+class GraphPage(NavigationBarPage):
     """class for Graph page"""
 
     def __init__(self, driver):
         """Graph page initialization"""
-        super().__init__()
-        self.driver = driver
+        super().__init__(driver)
         self.select_graph_page_id = "graphs"
         self.select_create_graph_id = "createGraph"
         self.select_example_graph_btn_id = "tab-exampleGraphs"
@@ -152,7 +149,7 @@ class GraphPage(BaseSelenium):
         time.sleep(2)
         print("Importing manual_edge.json to the collection completed\n")
 
-        self.driver.back()
+        self.webdriver.back()
 
         # second collection for the knows_graph_manual begins
         col2 = self.create_new_collection_id
@@ -248,7 +245,7 @@ class GraphPage(BaseSelenium):
         knows_graph_sitem.click()
 
         time.sleep(3)
-        self.driver.back()
+        self.webdriver.back()
 
     def create_satellite_graph(self, importer, test_data_dir):
         """creating satellite graph"""
@@ -316,7 +313,7 @@ class GraphPage(BaseSelenium):
             satellite_settings_sitem.click()
 
             time.sleep(5)
-            self.driver.back()
+            self.webdriver.back()
             time.sleep(1)
 
             print("\n")
@@ -339,7 +336,7 @@ class GraphPage(BaseSelenium):
 
             time.sleep(2)
             print("Satellite Graph deleted successfully \n")
-            self.driver.refresh()
+            self.webdriver.refresh()
         else:
             print('Satellite Graph is not supported for the current package \n')
 
@@ -456,7 +453,7 @@ class GraphPage(BaseSelenium):
             load_full_graph_sitem.click()
             time.sleep(5)
 
-            self.driver.back()
+            self.webdriver.back()
 
             time.sleep(2)
 
@@ -481,7 +478,7 @@ class GraphPage(BaseSelenium):
             time.sleep(2)
             print("Smart Graph deleted successfully \n")
 
-            self.driver.refresh()
+            self.webdriver.refresh()
         else:
             print('Disjoint Graph is not supported for the current package \n')
 
@@ -525,9 +522,9 @@ class GraphPage(BaseSelenium):
             else:
                 print(collection.name + " collection wasn't found")
             time.sleep(3)
-            self.driver.refresh()
-        self.driver.back()
-        self.driver.refresh()
+            self.webdriver.refresh()
+        self.webdriver.back()
+        self.webdriver.refresh()
 
     def checking_collection_creation(self, graph:GraphExample):
         """Checking required collections creation for the particular example graph."""
@@ -577,7 +574,7 @@ class GraphPage(BaseSelenium):
         full_graph_sitem.click()
         time.sleep(4)
 
-        if self.driver.name == "chrome":  # this will check browser name
+        if self.webdriver.name == "chrome":  # this will check browser name
             print("Download has been disabled for the Chrome browser \n")
         else:
             print("Selecting Graph download button\n")
@@ -609,7 +606,7 @@ class GraphPage(BaseSelenium):
 
     def graph_setting(self):
         """Checking all the options inside graph settings"""
-        self.driver.refresh()
+        self.webdriver.refresh()
         configure_graph_settings_sitem = self.locator_finder_by_id(self.configure_graph_settings_id)
         configure_graph_settings_sitem.click()
         time.sleep(2)
@@ -673,7 +670,7 @@ class GraphPage(BaseSelenium):
 
         print("Selecting different representation of relation between nodes\n")
         print("Maximizing the window")
-        self.driver.maximize_window()
+        self.webdriver.maximize_window()
         time.sleep(2)
 
         tip1 = self.select_depth_id
@@ -694,7 +691,7 @@ class GraphPage(BaseSelenium):
         type5 = self.select_edge_type_id
         type6 = self.select_edge_type_id
 
-        self.driver.find_element_by_xpath(tip1).click()
+        self.webdriver.find_element_by_xpath(tip1).click()
         super().scroll(1)
         time.sleep(2)
         restore1 = self.locator_finder_by_xpath(restore1)
@@ -705,7 +702,7 @@ class GraphPage(BaseSelenium):
         self.locator_finder_by_select(type1, 0)
         time.sleep(5)
 
-        self.driver.find_element_by_xpath(tip2).click()
+        self.webdriver.find_element_by_xpath(tip2).click()
         super().scroll(1)
         time.sleep(2)
         restore2 = self.locator_finder_by_xpath(restore2)
@@ -716,7 +713,7 @@ class GraphPage(BaseSelenium):
         self.locator_finder_by_select(type3, 2)
         time.sleep(5)
 
-        self.driver.find_element_by_xpath(tip4).click()
+        self.webdriver.find_element_by_xpath(tip4).click()
         super().scroll(1)
         time.sleep(2)
         restore4 = self.locator_finder_by_xpath(restore4)
@@ -727,7 +724,7 @@ class GraphPage(BaseSelenium):
         self.locator_finder_by_select(type4, 3)
         time.sleep(5)
 
-        self.driver.find_element_by_xpath(tip5).click()
+        self.webdriver.find_element_by_xpath(tip5).click()
         super().scroll(1)
         time.sleep(2)
         restore5 = self.locator_finder_by_xpath(restore5)
@@ -738,7 +735,7 @@ class GraphPage(BaseSelenium):
         self.locator_finder_by_select(type5, 4)
         time.sleep(5)
 
-        self.driver.find_element_by_xpath(tip6).click()
+        self.webdriver.find_element_by_xpath(tip6).click()
         super().scroll(1)
         time.sleep(2)
         restore6 = self.locator_finder_by_xpath(restore6)
@@ -750,8 +747,8 @@ class GraphPage(BaseSelenium):
         time.sleep(5)
 
         print("Going Back to original window size \n")
-        self.driver.set_window_size(1250, 1000)  # custom window size
-        self.driver.back()
+        self.webdriver.set_window_size(1250, 1000)  # custom window size
+        self.webdriver.back()
         self.wait_for_ajax()
 
     def delete_graph(self, graph:GraphExample):

@@ -1,20 +1,16 @@
-#!/usr/bin/env python
-"""
-aardvark ui object for users
-"""
 import time
-from selenium_ui_test.base_selenium import BaseSelenium
+from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=R0902 disable=R0915
 
-class UserPage(BaseSelenium):
+
+class UserPage(NavigationBarPage):
     """Class for User page"""
 
     def __init__(self, driver):
         """User page initialization"""
-        super().__init__()
-        self.driver = driver
+        super().__init__(driver)
         self.add_new_user_id = "createUser"
         self.enter_new_user_name_id = "newUsername"
         self.enter_new_name_id = "newName"
@@ -22,8 +18,7 @@ class UserPage(BaseSelenium):
         self.create_user_btn_id = "modalButton1"
         self.selecting_user_tester_id = "tester"
         self.tester_id = '//*[@id="userManagementThumbnailsIn"]/div[3]/div/h5'
-        self.general_link_id = "//*[@id='subNavigationBar']/ul[2]/li[1]/a"
-        self.permission_link_id = "//*[@id='subNavigationBar']/ul[2]/li[2]/a"
+        self.permission_link_id = "//*[@id='subNavigationBarPage']/ul[2]/li[2]/a"
         self.db_permission_read_only = "//*[@id='*-db']/div[3]/input"
         self.db_permission_read_write = '//*[@id="*-db"]/div[2]/input'
         self.saving_user_cfg_id = "modalButton3"
@@ -75,23 +70,20 @@ class UserPage(BaseSelenium):
 
     def selecting_permission_tab(self):
         """selecting the permissions tab of the newly created user"""
-        permission_sitem = self.locator_finder_by_xpath(self.permission_link_id)
-        permission_sitem.click()
+        self.click_submenu_entry("Permissions")
 
     def selecting_general_tab(self):
         """selecting the general tab of edited users """
         try:
             self.wait_for_ajax()
-            permission_sitem = self.locator_finder_by_xpath(self.general_link_id)
-            permission_sitem.click()
+            self.click_submenu_entry("General")
         except StaleElementReferenceException:
             # javascript may be doing stuff to the DOM so we retry once here...
             print("reloading...")
-            self.driver.refresh()
+            self.webdriver.refresh()
             time.sleep(1)
             self.selecting_permission_tab()
-            permission_sitem = self.locator_finder_by_xpath(self.general_link_id)
-            permission_sitem.click()
+            self.click_submenu_entry("General")
 
     def changing_db_permission_read_only(self):
         """changing permission for the new user"""
@@ -114,39 +106,6 @@ class UserPage(BaseSelenium):
         tester_sitem = self.locator_finder_by_xpath(self.tester_id)
         tester_sitem.click()
         time.sleep(4)
-
-    def create_sample_collection(self, test_name):
-        """ selecting collection tab """
-        try:
-            self.navbar_goto('collections')
-
-            # Clicking on create new collection box
-            create_collection_sitem = self.locator_finder_by_id(self.select_create_collection_id)
-            create_collection_sitem.click()
-            time.sleep(2)
-
-            # Providing new collection name
-            collection_name_sitem = self.locator_finder_by_id(self.select_new_collection_name_id)
-            collection_name_sitem.click()
-            collection_name_sitem.send_keys("testDoc")
-
-            # creating collection by tapping on save button
-            save_sitem = self.locator_finder_by_id('modalButton1')
-            save_sitem.click()
-
-            try:
-                notification_sitem = self.locator_finder_by_css_selectors('noty_body')
-                time.sleep(1)
-                expected_text = 'Collection: Collection "testDoc" successfully created.'
-                assert notification_sitem.text == expected_text, f"Expected text{expected_text} but got {notification_sitem.text}"
-            except TimeoutException:
-                print('Unexpected error occurred!')
-
-        except TimeoutException as ex:
-            if test_name == 'access':
-                print("Collection creation failed, which is expected")
-            if test_name == 'read/write':
-                raise Exception("Unexpected error occurred!") from ex
 
     def delete_user_btn(self):
         """deleting user"""

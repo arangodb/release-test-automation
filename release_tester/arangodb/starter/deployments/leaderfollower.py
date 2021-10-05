@@ -180,13 +180,7 @@ process.exit(0);
         lh.subsection("leader/follower - check test data", "-")
 
         if self.selenium:
-            self.selenium.connect_server_new_tab(
-                self.follower_starter_instance.get_frontends(),
-                '_system', self.cfg)
-            self.selenium.check_old(self.new_cfg if self.new_cfg else self.cfg,
-                                    False)
-            self.selenium.close_tab_again()
-
+            self.selenium.test_after_install()
         #assert that data has been replicated
         self.follower_starter_instance.arangosh.read_only = True
         self.follower_starter_instance.supports_foxx_tests = False
@@ -194,10 +188,7 @@ process.exit(0);
         self.makedata_instances.append(self.follower_starter_instance)
         self.make_data()
         if self.selenium:
-            self.selenium.set_instances(self.cfg,
-                                        self.leader_starter_instance.arango_importer,
-                                        self.leader_starter_instance.arango_restore)
-            self.selenium.check_full_ui(self.passvoid, [self.leader_starter_instance])
+            self.selenium.test_setup()
 
         logging.info("Leader follower setup successfully finished!")
 
@@ -215,7 +206,7 @@ process.exit(0);
             node.detect_instances()
             node.wait_for_version_reply()
         if self.selenium:
-            self.selenium.web.refresh()
+            self.selenium.webdriver.refresh()
             self.selenium.check_old(self.new_cfg, True)
             self.selenium.connect_server_new_tab(
                 self.follower_starter_instance.get_frontends(),
@@ -246,7 +237,7 @@ process.exit(0);
             node.detect_instances()
             node.wait_for_version_reply()
         if self.selenium:
-            self.selenium.web.refresh()
+            self.selenium.webdriver.refresh()
             self.selenium.check_old(self.new_cfg, True)
             self.selenium.connect_server_new_tab(
                 self.follower_starter_instance.get_frontends(),
@@ -276,7 +267,7 @@ process.exit(0);
 
         prompt_user(self.basecfg, "please test the installation.")
         if self.selenium:
-            self.selenium.jam_step_1(self.cfg if self.cfg else self.new_cfg)
+            self.selenium.test_jam_attempt()
 
     @step
     def shutdown_impl(self):
@@ -292,3 +283,10 @@ process.exit(0);
 
     def after_backup_impl(self):
         """ nothing to see here """
+
+    def set_selenium_instances(self):
+        """ set instances in selenium runner """
+        self.selenium.set_instances(self.cfg,
+                                    self.leader_starter_instance.arango_importer,
+                                    self.leader_starter_instance.arango_restore,
+                                    self.leader_starter_instance.all_instances[0])

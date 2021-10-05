@@ -1,24 +1,16 @@
-#!/usr/bin/env python
-"""
-aardvark dashboard page object
-"""
-
 import time
-
 from selenium.common.exceptions import TimeoutException
-
-from selenium_ui_test.base_selenium import BaseSelenium
+from selenium_ui_test.pages.navbar import NavigationBarPage
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=R0902 disable=R0915
 
-class DashboardPage(BaseSelenium):
+class DashboardPage(NavigationBarPage):
     """Class for Dashboard page"""
 
     def __init__(self, driver, enterprise):
         """ dashboardPage class initialization"""
-        super().__init__()
-        self.driver = driver
+        super().__init__(driver)
         self.check_server_package_name_id = "enterpriseLabel" if enterprise else "communityLabel"
         self.check_current_package_version_id = "currentVersion"
         self.check_current_username_id = "//li[@id='userBar']//span[@class='toggle']"
@@ -32,10 +24,6 @@ class DashboardPage(BaseSelenium):
         self.show_text = 'toggleView'
         self.select_reload_btn_id = "reloadMetrics"
         self.metrics_download_id = "downloadAs"
-        self.click_twitter_link_id = "//*[@id='navigationBar']/div[2]/p[1]/a"
-        self.click_slack_link_id = "//*[@id='navigationBar']/div[2]/p[2]/a"
-        self.click_stackoverflow_link_id = "//*[@id='navigationBar']/div[2]/p[3]/a"
-        self.click_google_group_link_id = "//*[@id='navigationBar']/div[2]/p[4]/a"
 
     def check_server_package_name(self):
         """checking server package version name"""
@@ -119,7 +107,7 @@ class DashboardPage(BaseSelenium):
             select_reload_btn_sitem.click()
 
             # Downloading metrics from the dashboard
-            if self.driver.name == "chrome":  # this will check browser name
+            if self.webdriver.name == "chrome":  # this will check browser name
                 print("Downloading metrics has been disabled for the Chrome browser \n")
             else:
                 metrics_download_sitem = self.locator_finder_by_text_id(self.metrics_download_id)
@@ -128,31 +116,3 @@ class DashboardPage(BaseSelenium):
                 # self.clear_download_bar()
         else:
             print('Metrics Tab not supported for the current package \n')
-
-    def click_twitter_link(self):
-        """Clicking on twitter link on dashboard"""
-        click_twitter_link_sitem = self.locator_finder_by_text_xpath(self.click_twitter_link_id)
-        title = self.switch_tab(click_twitter_link_sitem)  # this method will call switch tab and close tab
-        expected_title = "arangodb (@arangodb) / Twitter"
-        assert title in expected_title, f"Expected page title {expected_title} but got {title}"
-
-    def click_slack_link(self):
-        """Clicking on twitter link on dashboard"""
-        click_slack_link_sitem = self.locator_finder_by_text_xpath(self.click_slack_link_id)
-        title = self.switch_tab(click_slack_link_sitem)
-        expected_title = 'Join ArangoDB Community on Slack!'
-        assert title in expected_title, f"Expected page title {expected_title} but got {title}"
-
-    def click_stackoverflow_link(self):
-        """Clicking on stack overflow link on dashboard"""
-        click_stackoverflow_link_sitem = self.locator_finder_by_text_xpath(self.click_stackoverflow_link_id)
-        title = self.switch_tab(click_stackoverflow_link_sitem)
-        expected_title = "Newest 'arangodb' Questions - Stack Overflow"
-        assert title in expected_title, f"Expected page title {expected_title} but got {title}"
-
-    def click_google_group_link(self):
-        """Clicking on Google group link on dashboard"""
-        click_google_group_link_sitem = self.locator_finder_by_xpath(self.click_google_group_link_id)
-        title = self.switch_tab(click_google_group_link_sitem)
-        expected_title = "ArangoDB - Google Groups"
-        assert title in expected_title, f"Expected page title {expected_title} but got {title}"

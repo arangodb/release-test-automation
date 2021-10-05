@@ -1,22 +1,16 @@
-#!/usr/bin/env python
-"""
-test the QUERY tab in the UI
-"""
-
 import time
 
-from selenium_ui_test.base_selenium import BaseSelenium
+from selenium_ui_test.pages.navbar import NavigationBarPage
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=R0902 disable=R0915 disable=R0914
 
 
-class SupportPage(BaseSelenium):
+class SupportPage(NavigationBarPage):
     """Class for Support page"""
 
     def __init__(self, driver):
         """Support page initialization"""
-        super().__init__()
-        self.driver = driver
+        super().__init__(driver)
         self.select_support_page_id = "support"
         self.select_documentation_support_id = 'documentation-support'
         self.select_community_support_id = 'community-support'
@@ -27,7 +21,7 @@ class SupportPage(BaseSelenium):
         """creating graph manually"""
         support = self.select_support_page_id
         support = \
-            BaseSelenium.locator_finder_by_id(self, support)
+            BasePage.locator_finder_by_id(self, support)
         support.click()
         time.sleep(1)
 
@@ -35,7 +29,7 @@ class SupportPage(BaseSelenium):
         """selecting documentation support"""
         documentation = self.select_documentation_support_id
         documentation = \
-            BaseSelenium.locator_finder_by_id(self, documentation)
+            BasePage.locator_finder_by_id(self, documentation)
         documentation.click()
         time.sleep(1)
 
@@ -43,7 +37,7 @@ class SupportPage(BaseSelenium):
         """Clicking on link on any page and switch to that tab and return to origin tab"""
         click_on_link_id = link_id
         click_on_link_id = \
-            BaseSelenium.locator_finder_by_xpath(self, click_on_link_id)
+            BasePage.locator_finder_by_xpath(self, click_on_link_id)
         title = self.switch_tab(click_on_link_id)  # this method will call switch tab and close tab
         return title
 
@@ -60,7 +54,7 @@ class SupportPage(BaseSelenium):
         """this method will execute multiple backup restore tab documentation"""
         click_on_btn = link_id
         click_on_btn = \
-            BaseSelenium.locator_finder_by_xpath(self, click_on_btn)
+            BasePage.locator_finder_by_xpath(self, click_on_btn)
         click_on_btn.click()
 
     def loop_through_btn_traversal(self, print_statement, btn_list):
@@ -207,14 +201,14 @@ class SupportPage(BaseSelenium):
 
         support = self.select_support_page_id
         support = \
-            BaseSelenium.locator_finder_by_id(self, support)
+            BasePage.locator_finder_by_id(self, support)
         support.click()
         time.sleep(1)
 
         # selecting community support tab
         com_support = self.select_community_support_id
         com_support = \
-            BaseSelenium.locator_finder_by_id(self, com_support)
+            BasePage.locator_finder_by_id(self, com_support)
         com_support.click()
         time.sleep(1)
 
@@ -257,14 +251,14 @@ class SupportPage(BaseSelenium):
 
         support = self.select_support_page_id
         support = \
-            BaseSelenium.locator_finder_by_id(self, support)
+            BasePage.locator_finder_by_id(self, support)
         support.click()
         time.sleep(1)
 
         # selecting community support tab
         rest_api = self.select_rest_api_swagger_id
         rest_api = \
-            BaseSelenium.locator_finder_by_id(self, rest_api)
+            BasePage.locator_finder_by_id(self, rest_api)
         rest_api.click()
         time.sleep(1)
 
@@ -278,7 +272,7 @@ class SupportPage(BaseSelenium):
             print('Checking Backup Restore option started\n')
             backup_restore = '//*[@id="operations-tag-BackupRestore"]'
             backup_restore = \
-                BaseSelenium.locator_finder_by_xpath(self, backup_restore)
+                BasePage.locator_finder_by_xpath(self, backup_restore)
             backup_restore.click()
             time.sleep(1)
 

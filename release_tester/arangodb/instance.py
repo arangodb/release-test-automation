@@ -403,7 +403,7 @@ class ArangodInstance(Instance):
             host=self.localhost,
             port=self.port)
 
-    def get_public_url(self, login):
+    def get_public_url(self, login=""):
         """ our public url """
         return '{protocol}://{login}{host}:{port}'.format(
             protocol=self.get_http_protocol(),

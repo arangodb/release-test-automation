@@ -23,7 +23,7 @@ Browser need to be downloaded beforehand
 """
 
 
-class BaseSelenium:
+class BasePage:
     browser_name = None
     driver: WebDriver
 
@@ -78,9 +78,9 @@ class BaseSelenium:
         cls.driver.quit()
 
 # if __name__ == "__main__":
-#     selenium = BaseSelenium()
+#     selenium = BasePage()
 #     selenium.set_up_class()
 #     selenium.tear_down()
 
-BaseSelenium.set_up_class()
-BaseSelenium.tear_down()
+BasePage.set_up_class()
+BasePage.tear_down()

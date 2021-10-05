@@ -1,24 +1,20 @@
-#!/usr/bin/env python
-"""
-aardvark views page
-"""
 import time
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By as BY
 
-from selenium_ui_test.base_selenium import BaseSelenium
+from selenium_ui_test.pages.navbar import NavigationBarPage
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=R0902 disable=R0915 disable=R0904
 
-class ViewsPage(BaseSelenium):
+
+class ViewsPage(NavigationBarPage):
     """Class for View Page"""
 
     def __init__(self, driver):
         """View page initialization"""
-        super().__init__()
-        self.driver = driver
+        super().__init__(driver)
         self.select_views_tab_id = "/html//a[@id='views']"
         self.create_new_views_id = "createView"
         self.naming_new_view_id = "newName"
@@ -236,7 +232,7 @@ class ViewsPage(BaseSelenium):
     def delete_views_confirm_btn(self):
         """Confirm deletion of the current views"""
         # delete_views_confirm_btn_sitem = self.locator_finder_by_xpath(self.delete_views_confirm_btn_id)
-        delete_views_confirm_btn_sitem = WebDriverWait(self.driver, 10).until(
+        delete_views_confirm_btn_sitem = WebDriverWait(self.webdriver, 10).until(
             EC.element_to_be_clickable((BY.XPATH, self.delete_views_confirm_btn_id)))
         delete_views_confirm_btn_sitem.click()
 

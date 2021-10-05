@@ -1,14 +1,13 @@
 import time
 
-from selenium_ui_test.base_selenium import BaseSelenium, Keys
+from selenium_ui_test.pages.base_page import Keys
+from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import TimeoutException
 
-
-class AnalyzerPage(BaseSelenium):
+class AnalyzerPage(NavigationBarPage):
 
     def __init__(self, driver):
-        super().__init__()
-        self.driver = driver
+        super().__init__(driver)
         self.analyzers_page = 'analyzers'  # list of in-built analyzers
         self.in_built_analyzer = "icon_arangodb_settings2"
         self.add_new_analyzer_btn = '//*[@id="analyzersContent"]/div/div/div/div/button/i'
