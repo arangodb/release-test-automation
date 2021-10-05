@@ -503,3 +503,13 @@ allure serve [results_dir]
 ```
 Default results dir: allure_results
 This will open a browser with the test report.
+
+# Maintaining code quality
+## Formatter
+We use [Black Formatter](https://github.com/psf/black). To apply formatting to the code simply run `black .` in the project root dir.  
+Formatter settings are stored in `pyproject.toml` file.
+To switch formatting off for a code block, start it with `# fmt: off` and end with `# fmt: on`.  
+To disable formatting for single line, end it with `# fmt: on`. 
+
+## Linter
+We use [pylint](https://pylint.org/). Command to run it: `pylint release_tester`
