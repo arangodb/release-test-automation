@@ -59,22 +59,53 @@ class AnalyzersTestSuite(BaseTestSuite):
         analyzers.select_built_in_analyzers_close()
 
         print('Adding Identity analyzer \n')
-        analyzers.add_new_analyzer('My_Identity_Analyzer', 0)
+        analyzers.add_new_analyzer('My_Identity_Analyzer', 0, 12)  # 12 represents the required div_id in the method
 
         print('Adding Delimiter analyzer \n')
-        analyzers.add_new_analyzer('My_Delimiter_Analyzer', 1)
+        analyzers.add_new_analyzer('My_Delimiter_Analyzer', 1, 16)
 
         print('Adding Stem analyzer \n')
-        analyzers.add_new_analyzer('My_Stem_Analyzer', 2)
+        analyzers.add_new_analyzer('My_Stem_Analyzer', 2, 20)
 
         print('Adding Norm analyzer \n')
-        analyzers.add_new_analyzer('My_Norm_Analyzer', 3)
+        analyzers.add_new_analyzer('My_Norm_Analyzer', 3, 24)
 
         print('Adding N-Gram analyzer \n')
-        analyzers.add_new_analyzer('My_N-Gram_Analyzer', 4)
+        analyzers.add_new_analyzer('My_N-Gram_Analyzer', 4, 28)
 
         print('Adding Text analyzer \n')
-        analyzers.add_new_analyzer('My_Text_Analyzer', 5)
+        analyzers.add_new_analyzer('My_Text_Analyzer', 5, 32)
+
+        print('Adding AQL analyzer \n')
+        analyzers.add_new_analyzer('My_AQL_Analyzer', 6, 36)
+
+        print('Adding Stopwords analyzer \n')
+        analyzers.add_new_analyzer('My_Stopwords_Analyzer', 7, 40)
+
+        print('Adding Collation analyzer \n')
+        analyzers.add_new_analyzer('My_Collation_Analyzer', 8, 44)
+
+        print('Adding Segmentation analyzer \n')
+        analyzers.add_new_analyzer('My_segmentation_Alpha_Analyzer', 9, 48)
+
+        print('Adding Pipeline analyzer \n')
+        analyzers.add_new_analyzer('My_Pipeline_Analyzer', 10, 52)
+
+        print('Adding GeoJSON analyzer \n')
+        analyzers.add_new_analyzer('My_GeoJSON_Analyzer', 11, 56)
+
+        print('Adding GeoJSON analyzer \n')
+        analyzers.add_new_analyzer('My_GeoPoint_Analyzer', 12, 60)
+
+        print('Checking negative scenario for the identity analyzers name \n')
+        analyzers.test_analyzer_expected_error('identity_analyzer', 0, 64)
+        print('Checking negative scenario for the stem analyzers locale value \n')
+        analyzers.test_analyzer_expected_error('stem_analyzer', 2, 64)
+
+        print('Checking analyzer search filter options started \n')
+        analyzers.checking_search_filter_option('de')
+        analyzers.checking_search_filter_option('geo', False)  # false indicating builtIn option will be disabled
+        print('Checking analyzer search filter options completed \n')
 
         # login.logout_button()
         # del login
