@@ -283,11 +283,12 @@ class InstallerDeb(InstallerLinux):
             shutil.rmtree(self.cfg.cfgdir)
 
     def count_backup_dirs(self):
-        regex = '/var/lib/arangodb3-[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]'
+        regex = "/var/lib/arangodb3-[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]"
         return len(glob.glob(regex))
 
     @step
     def check_backup_is_created(self):
-        """ Check that backup was created after package upgrade """
-        assert self.count_backup_dirs() == self.backup_dirs_number_before_upgrade + 1,\
-            "Database files were not backed up during package upgrade"
+        """Check that backup was created after package upgrade"""
+        assert (
+            self.count_backup_dirs() == self.backup_dirs_number_before_upgrade + 1
+        ), "Database files were not backed up during package upgrade"

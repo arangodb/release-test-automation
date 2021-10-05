@@ -111,7 +111,6 @@ class Runner(ABC):
             if type(new_inst) == InstallerDeb or WINVER[0]:
                 self.must_create_backup = True
 
-
         self.do_install = cfg.mode == "all" or cfg.mode == "install"
         self.do_uninstall = cfg.mode == "all" or cfg.mode == "uninstall"
         self.do_system_test = cfg.mode in ["all", "system"] and cfg.have_system_service
