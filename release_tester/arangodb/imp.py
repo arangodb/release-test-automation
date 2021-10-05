@@ -43,7 +43,7 @@ class ArangoImportExecutor(ArangoCLIprogressiveTimeoutExecutor):
         )
 
     def import_collection(self, collection_name, filename, more_args=[]):
-        """ import into any collection """
+        """import into any collection"""
         # fmt: off
         args = [
             '--collection', collection_name,

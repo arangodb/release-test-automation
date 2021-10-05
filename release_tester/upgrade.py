@@ -189,10 +189,10 @@ def run_upgrade(
 
 
 @click.command()
-# fmt: off
 # pylint: disable=R0913
 @very_common_options()
 @common_options(support_old=True, interactive=True)
+# fmt: off
 def main(
         #very_common_options
         new_version, verbose, enterprise, package_dir, zip_package,
@@ -200,7 +200,7 @@ def main(
         old_version, test_data_dir, encryption_at_rest, interactive,
         starter_mode, stress_upgrade, abort_on_error, publicip,
         selenium, selenium_driver_args, alluredir, clean_alluredir, ssl, use_auto_certs):
-# fmt: on
+    # fmt: on
     """ main trampoline """
     lh.configure_logging(verbose)
     configure_allure(alluredir, clean_alluredir, enterprise, zip_package, new_version, old_version)

@@ -356,9 +356,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             logging.info("checking test data")
 
         ret = self.run_script_monitored(
-            cmd=[
-            'checking test data integrity',
-            self.cfg.test_data_dir.resolve() / 'checkdata.js'],
+            cmd=["checking test data integrity", self.cfg.test_data_dir.resolve() / "checkdata.js"],
             # fmt: off
             args=args + [
                 '--progress', 'true',
