@@ -106,7 +106,10 @@ class Runner(ABC):
         if len(install_set) > 1:
             new_cfg = install_set[1][1].cfg
             new_inst = install_set[1][1]
-            if new_inst.__class__.__name__ in ["InstallerDeb", "InstallerW"]:
+            if new_inst.semver.minor - old_inst.semver.minor > 0 and new_inst.__class__.__name__ in [
+                "InstallerDeb",
+                "InstallerW",
+            ]:
                 self.must_create_backup = True
 
         self.do_install = cfg.mode == "all" or cfg.mode == "install"
