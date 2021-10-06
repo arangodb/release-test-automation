@@ -261,7 +261,10 @@ class InstallerBase(ABC):
         """store our config to disk - so we can be invoked partly"""
         cfg_file = Path()
         if IS_WINDOWS:
-            cfg_file = Path(os.environ["WORKSPACE_TMP"]) / "config.yml"
+            if "WORKSPACE_TMP" in os.environ:
+                cfg_file = Path(os.environ["WORKSPACE_TMP"]) / "config.yml"
+            else:
+                cfg_file = Path("c:") / "tmp/" / "config.yml"
         else:
             cfg_file = Path("/") / "tmp" / "config.yml"
         return cfg_file
