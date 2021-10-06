@@ -264,7 +264,7 @@ class InstallerBase(ABC):
             if "WORKSPACE_TMP" in os.environ:
                 cfg_file = Path(os.environ["WORKSPACE_TMP"]) / "config.yml"
             else:
-                cfg_file = Path("c:") / "tmp/" / "config.yml"
+                cfg_file = Path("c:/") / "tmp/" / "config.yml"
         else:
             cfg_file = Path("/") / "tmp" / "config.yml"
         return cfg_file
