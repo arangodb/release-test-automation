@@ -31,8 +31,6 @@ from tools.killall import kill_all_processes
 
 from arangodb.async_client import CliExecutionException
 
-from arangodb.installers.deb import InstallerDeb
-
 FNRX = re.compile("[\n@ ]*")
 WINVER = platform.win32_ver()
 
@@ -108,7 +106,7 @@ class Runner(ABC):
         if len(install_set) > 1:
             new_cfg = install_set[1][1].cfg
             new_inst = install_set[1][1]
-            if type(new_inst) == InstallerDeb or WINVER[0]:
+            if new_inst.__class__.__name__ in ["InstallerDeb", "InstallerW"]:
                 self.must_create_backup = True
 
         self.do_install = cfg.mode == "all" or cfg.mode == "install"
