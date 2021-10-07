@@ -64,6 +64,12 @@ class SeleniumRunner(ABC):
         self.web.set_window_size(1920, 2048)
         time.sleep(3)
 
+    def quit(self):
+        """terminate the web driver"""
+        if self.web != None:
+            self.web.quit()
+            self.web = None
+
     def progress(self, msg):
         """add something to the state..."""
         logging.info("UI-Test: " + msg)

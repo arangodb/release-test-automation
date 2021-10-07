@@ -374,8 +374,7 @@ class Runner(ABC):
                 starter.detect_fatal_errors()
         if self.do_uninstall:
             self.uninstall(self.old_installer if not self.new_installer else self.new_installer)
-        if self.selenium:
-            self.selenium.disconnect()
+        self.quit_selenium()
         self.progress(False, "Runner of type {0} - Finished!".format(str(self.name)))
 
     def run_selenium(self):
@@ -478,6 +477,13 @@ class Runner(ABC):
 
             logging.debug("stop system service " "to make ports available for starter")
             inst.stop_service()
+
+    @step
+    def quit_selenium(self):
+        """if we have a selenium open, close it."""
+        if self.selenium:
+            self.selenium.quit()
+            self.selenium = None
 
     @step
     def uninstall(self, inst):
