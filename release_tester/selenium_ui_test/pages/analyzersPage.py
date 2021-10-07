@@ -8,61 +8,54 @@ from selenium.common.exceptions import TimeoutException
 class AnalyzerPage(NavigationBarPage):
     def __init__(self, driver):
         super().__init__(driver)
+        self.driver = driver
         self.analyzers_page = "analyzers"  # list of in-built analyzers
         self.in_built_analyzer = "icon_arangodb_settings2"
         self.add_new_analyzer_btn = '//*[@id="analyzersContent"]/div/div/div/div/button/i'
 
+        self.close_analyzer_btn = (
+            "//button[text()='Close' and not(ancestor::div[contains(@style,'display:none')]) "
+            "and not(ancestor::div[contains(@style,'display: none')])] "
+        )
+
         self.identity_analyzer = '//*[@id="analyzersContent"]/div/div/table/tbody/tr[1]/td[4]/button/i'
         self.identity_analyzer_switch_view = '//*[@id="modal-content-view-0"]/div[1]/div/div[2]/button'
-        self.close_identity_btn = '//*[@id="modal-content-view-0"]/div[3]/button'
 
         self.text_de = '//*[@id="analyzersContent"]/div/div/table/tbody/tr[2]/td[4]/button/i'
         self.text_de_switch_view = '//*[@id="modal-content-view-1"]/div[1]/div/div[2]/button'
-        self.close_text_de_btn = '//*[@id="modal-content-view-1"]/div[3]/button'
 
         self.text_en = '//*[@id="analyzersContent"]/div/div/table/tbody/tr[3]/td[4]/button/i'
         self.text_en_switch_view = '//*[@id="modal-content-view-2"]/div[1]/div/div[2]/button'
-        self.close_text_en_btn = '//*[@id="modal-content-view-2"]/div[3]/button'
 
         self.text_es = '//*[@id="analyzersContent"]/div/div/table/tbody/tr[4]/td[4]/button/i'
         self.text_es_switch_view = '//*[@id="modal-content-view-3"]/div[1]/div/div[2]/button'
-        self.close_text_es_btn = '//*[@id="modal-content-view-3"]/div[3]/button'
 
         self.text_fi = '//*[@id="analyzersContent"]/div/div/table/tbody/tr[5]/td[4]/button/i'
         self.text_fi_switch_view = '//*[@id="modal-content-view-4"]/div[1]/div/div[2]/button'
-        self.close_text_fi_btn = '//*[@id="modal-content-view-4"]/div[3]/button'
 
         self.text_fr = '//*[@id="analyzersContent"]/div/div/table/tbody/tr[6]/td[4]/button/i'
         self.text_fr_switch_view = '//*[@id="modal-content-view-5"]/div[1]/div/div[2]/button'
-        self.close_text_fr_btn = '//*[@id="modal-content-view-5"]/div[3]/button'
 
         self.text_it = '//*[@id="analyzersContent"]/div/div/table/tbody/tr[7]/td[4]/button/i'
         self.text_it_switch_view = '//*[@id="modal-content-view-6"]/div[1]/div/div[2]/button'
-        self.close_text_it_btn = '//*[@id="modal-content-view-6"]/div[3]/button'
 
         self.text_nl = '//*[@id="analyzersContent"]/div/div/table/tbody/tr[8]/td[4]/button/i'
         self.text_nl_switch_view = '//*[@id="modal-content-view-7"]/div[1]/div/div[2]/button'
-        self.close_text_nl_btn = '//*[@id="modal-content-view-7"]/div[3]/button'
 
         self.text_no = '//*[@id="analyzersContent"]/div/div/table/tbody/tr[9]/td[4]/button/i'
         self.text_no_switch_view = '//*[@id="modal-content-view-8"]/div[1]/div/div[2]/button'
-        self.close_text_no_btn = '//*[@id="modal-content-view-8"]/div[3]/button'
 
         self.text_pt = '//*[@id="analyzersContent"]/div/div/table/tbody/tr[10]/td[4]/button/i'
         self.text_pt_switch_view = '//*[@id="modal-content-view-9"]/div[1]/div/div[2]/button'
-        self.close_text_pt_btn = '//*[@id="modal-content-view-9"]/div[3]/button'
 
         self.text_ru = '//*[@id="analyzersContent"]/div/div/table/tbody/tr[11]/td[4]/button/i'
         self.text_ru_switch_view = '//*[@id="modal-content-view-10"]/div[1]/div/div[2]/button'
-        self.close_text_ru_btn = '//*[@id="modal-content-view-10"]/div[3]/button'
 
         self.text_sv = '//*[@id="analyzersContent"]/div/div/table/tbody/tr[12]/td[4]/button/i'
         self.text_sv_switch_view = '//*[@id="modal-content-view-11"]/div[1]/div/div[2]/button'
-        self.close_text_sv_btn = '//*[@id="modal-content-view-11"]/div[3]/button'
 
         self.text_zh = '//*[@id="analyzersContent"]/div/div/table/tbody/tr[13]/td[4]/button/i'
         self.text_zh_switch_view = '//*[@id="modal-content-view-12"]/div[1]/div/div[2]/button'
-        self.close_text_zh_btn = '//*[@id="modal-content-view-12"]/div[3]/button'
 
     def select_analyzers_page(self):
         """Selecting analyzers page"""
@@ -110,7 +103,7 @@ class AnalyzerPage(NavigationBarPage):
         show_built_in_analyzers_sitem.click()
         time.sleep(2)
 
-    def select_analyzer_to_check(self, analyzer_name, analyzer_view, close_btn):
+    def select_analyzer_to_check(self, analyzer_name, analyzer_view):
         """Checking in-built analyzers one by one"""
         print("Selecting analyzer from the in-built analyzers list \n")
         analyzer_name = analyzer_name
@@ -131,8 +124,7 @@ class AnalyzerPage(NavigationBarPage):
         time.sleep(2)
 
         print("Closing the analyzer \n")
-        close_button = close_btn
-        close_sitem = self.locator_finder_by_xpath(self, close_button)
+        close_sitem = self.locator_finder_by_xpath(self, self.close_analyzer_btn)
         close_sitem.click()
         time.sleep(2)
 
@@ -148,6 +140,7 @@ class AnalyzerPage(NavigationBarPage):
         time.sleep(2)
 
         print(f"Creating {name} started \n")
+        # common attributes for all the analyzers
         analyzer_name = f"/html/body/div[{div_id}]/div/div[2]/div/div[1]/fieldset/div/div[1]/input"
         analyzer_type = f"/html/body/div[{div_id}]/div/div[2]/div/div[1]/fieldset/div/div[2]/select"
         frequency = f"/html/body/div[{div_id}]/div/div[2]/div/div[3]/fieldset/div/div[1]/input"
@@ -532,21 +525,23 @@ class AnalyzerPage(NavigationBarPage):
             max_s2_cells = "/html/body/div[56]/div/div[2]/div/div[4]/fieldset/div/div[2]/fieldset/div/div[1]/input"
             max_s2_cells_sitem = self.locator_finder_by_xpath(self, max_s2_cells)
             max_s2_cells_sitem.click()
+            max_s2_cells_sitem.clear()
             max_s2_cells_sitem.send_keys("20")
             time.sleep(2)
 
             print(f"Selecting least precise S2 levels for {name} \n")
-            least_precise = "/html/body/div[56]/div/div[2]/div/div[4]/fieldset/div/div[2]/fieldset/div/div[1]/input"
+            least_precise = "/html/body/div[56]/div/div[2]/div/div[4]/fieldset/div/div[2]/fieldset/div/div[2]/input"
             least_precise_sitem = self.locator_finder_by_xpath(self, least_precise)
             least_precise_sitem.click()
-            least_precise_sitem.send_keys("4")
+            least_precise_sitem.clear()
+            least_precise_sitem.send_keys("10")
             time.sleep(2)
 
             print(f"Selecting most precise S2 levels for {name} \n")
             most_precise = "/html/body/div[56]/div/div[2]/div/div[4]/fieldset/div/div[2]/fieldset/div/div[3]/input"
             most_precise_sitem = self.locator_finder_by_xpath(self, most_precise)
             most_precise_sitem.click()
-            most_precise_sitem.send_keys("23")
+            most_precise_sitem.send_keys("30")
             time.sleep(2)
             # GeoJson
         elif index == 12:
@@ -584,8 +579,6 @@ class AnalyzerPage(NavigationBarPage):
             most_precise_sitem.click()
             most_precise_sitem.send_keys("23")
             time.sleep(2)
-        else:
-            raise Exception("Wrong choice!! required manual inspection.")
 
         # finalizing analyzer creation
         switch_view = switch_view_btn
@@ -732,13 +725,119 @@ class AnalyzerPage(NavigationBarPage):
             # for stem analyzer locale placeholder
             analyzer_locale_id = f"/html/body/div[{div_id}]/div/div[2]/div/div[4]/fieldset/div/div/input"
 
-            # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
+            # method template (self, error_input, print_statement, error_message, locators_id, error_message_id, div_id)
             self.check_expected_error_messages(
                 self,
                 analyzer_name_error_input,
                 analyzer_name_print_statement,
                 analyzer_name_error_message,
                 analyzer_locale_id,
+                analyzer_name_error_id,
+                div_id,
+            )
+
+        # ------------------------------------Stem analyzer's Locale value test------------------------------------
+        if index == 4:
+            print(f"Expected error scenario for the {name} Started \n")
+
+            # filling out the name placeholder first
+            ngram_analyzer = f"/html/body/div[{div_id}]/div/div[2]/div/div[1]/fieldset/div/div[1]/input"
+            ngram_analyzer_sitem = self.locator_finder_by_xpath(self, ngram_analyzer)
+            ngram_analyzer_sitem.click()
+            ngram_analyzer_sitem.clear()
+            ngram_analyzer_sitem.send_keys(name)
+
+            # fill up the max_ngram value beforehand
+            max_ngram_length = f"/html/body/div[{div_id}]/div/div[2]/div/div[4]/fieldset/div/div[1]/div/div[2]/input"
+            max_ngram_length_sitem = self.locator_finder_by_xpath(self, max_ngram_length)
+            max_ngram_length_sitem.click()
+            max_ngram_length_sitem.clear()
+            max_ngram_length_sitem.send_keys("4")
+
+            analyzer_name_error_input = ["-1", "100000000000000000000000"]
+            analyzer_name_print_statement = [
+                f'Checking {name} with input "-1"',
+                f'Checking {name} with input "100000000000000000000000"',
+            ]
+            analyzer_name_error_message = [
+                "Failure: Got unexpected server response: Failure initializing "
+                "an arangosearch analyzer instance for "
+                "name '_system::n-gram_analyzer' type 'ngram'. Properties "
+                '\'{ "min" : -1, "max" : 4, "preserveOriginal" : false }\' '
+                "was rejected by analyzer. Please check documentation for "
+                "corresponding analyzer type.",
+                "Failure: Got unexpected server response: Failure initializing an "
+                "arangosearch analyzer instance for name '_system::n-gram_analyzer' type "
+                '\'ngram\'. Properties \'{ "min" : 99999999999999990000000, "max" : 4, '
+                '"preserveOriginal" : false }\' was rejected by analyzer. Please check '
+                "documentation for corresponding analyzer type.",
+            ]
+
+            # for stem analyzer locale placeholder
+            min_ngram_length_id = f"/html/body/div[{div_id}]/div/div[2]/div/div[4]/fieldset/div/div[1]/div/div[1]/input"
+
+            # method template (self, error_input, print_statement, error_message, locators_id, error_message_id, div_id)
+            self.check_expected_error_messages(
+                self,
+                analyzer_name_error_input,
+                analyzer_name_print_statement,
+                analyzer_name_error_message,
+                min_ngram_length_id,
+                analyzer_name_error_id,
+                div_id,
+            )
+
+        # ---------------------------------------------AQL analyzer's---------------------------------------------
+        if index == 6:
+            print(f"Expected error scenario for the {name} Started \n")
+            # filling out the name placeholder first
+            aql_analyzer = f"/html/body/div[{div_id}]/div/div[2]/div/div[1]/fieldset/div/div[1]/input"
+            aql_analyzer_sitem = self.locator_finder_by_xpath(self, aql_analyzer)
+            aql_analyzer_sitem.click()
+            aql_analyzer_sitem.clear()
+            aql_analyzer_sitem.send_keys(name)
+
+            print(f"Selecting query string for {name} \n")
+            query_string = f"/html/body/div[{div_id}]/div/div[2]/div/div[4]/fieldset/div/div[1]/textarea"
+            query_string_sitem = self.locator_finder_by_xpath(self, query_string)
+            query_string_sitem.send_keys("FOR year IN 2010..2015 RETURN year")
+            time.sleep(2)
+
+            print(f"Selecting memory limit for {name} \n")
+            memory_limit = f"/html/body/div[{div_id}]/div/div[2]/div/div[4]/fieldset/div/div[2]/div/div[2]/input"
+            memory_limit_sitem = self.locator_finder_by_xpath(self, memory_limit)
+            memory_limit_sitem.click()
+            memory_limit_sitem.clear()
+            memory_limit_sitem.send_keys("200")
+            time.sleep(2)
+
+            print(f"Selecting greater number for batch size {name} \n")
+
+            analyzer_name_error_input = ["1001", "-1"]
+            analyzer_name_print_statement = [f'Checking {name} with input "1001"', f'Checking {name} with input "-1"']
+            analyzer_name_error_message = [
+                "Failure: Got unexpected server response: Failure initializing an "
+                "arangosearch analyzer instance for name '_system::AQL_analyzer' type "
+                "'aql'. Properties '{ \"queryString\" : \"FOR year IN 2010..2015 RETURN "
+                'year", "memoryLimit" : 200, "batchSize" : 1001 }\' was rejected by '
+                "analyzer. Please check documentation for corresponding analyzer type.",
+                "Failure: Got unexpected server response: Failure initializing an "
+                "arangosearch analyzer instance for name '_system::AQL_analyzer' type "
+                "'aql'. Properties '{ \"queryString\" : \"FOR year IN 2010..2015 RETURN "
+                'year", "memoryLimit" : 200, "batchSize" : -1 }\' was rejected by '
+                "analyzer. Please check documentation for corresponding analyzer type.",
+            ]
+
+            # for AQL analyzer batch size placeholder
+            batch_size_id = f"/html/body/div[{div_id}]/div/div[2]/div/div[4]/fieldset/div/div[2]/div/div[1]/input"
+
+            # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
+            self.check_expected_error_messages(
+                self,
+                analyzer_name_error_input,
+                analyzer_name_print_statement,
+                analyzer_name_error_message,
+                batch_size_id,
                 analyzer_name_error_id,
                 div_id,
             )
@@ -750,3 +849,26 @@ class AnalyzerPage(NavigationBarPage):
         time.sleep(2)
 
         print(f"Expected error scenario for the {name} Completed \n")
+
+    def delete_analyzer(self, analyzer_name):
+        """Deleting all the analyzer using their ID"""
+        self.select_analyzers_page()
+        self.driver.refresh()
+
+        print(f"Deletion of {analyzer_name} started \n")
+        analyzer_delete_icon = '//*[@id="analyzersContent"]/div/div/table/tbody/tr[1]/td[4]/button[2]/i'
+
+        analyzer_delete_icon_sitem = self.locator_finder_by_xpath(self, analyzer_delete_icon)
+        analyzer_delete_icon_sitem.click()
+        time.sleep(2)
+
+        # force_delete = '//*[@id="force-delete"]'
+        # force_delete.sitem = self.locator_finder_by_xpath(self, force_delete)
+        # force_delete.sitem.click()
+
+        delete_btn = f'//*[@id="modal-content-delete-0"]/div[3]/button[2]'
+        delete_btn_sitem = self.locator_finder_by_xpath(self, delete_btn)
+        delete_btn_sitem.click()
+        time.sleep(2)
+
+        print(f"Deletion of {analyzer_name} completed \n")

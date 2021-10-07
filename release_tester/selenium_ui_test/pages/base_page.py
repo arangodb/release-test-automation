@@ -205,7 +205,6 @@ class BasePage:
         actions = ActionChains(self.webdriver)
         actions.send_keys(key)
         actions.perform()
-        # self.current.send_keys(key)
 
     def clear_text_field(self, locator):
         """This method will be used for clear all the text in single text field if .clear() does not work"""
@@ -310,6 +309,14 @@ class BasePage:
             print("UI-Test: ", locator_name, " locator has not found.")
         return self.select
 
+    def locator_finder_by_class(self, locator_name):
+        """This method will used for finding all the locators by their id"""
+        self.locator = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((BY.CLASS_NAME, locator_name)))
+        if self.locator is None:
+            print(locator_name, " locator has not found.")
+        else:
+            return self.locator
+
     def locator_finder_by_hover_item_id(self, locator):
         """This method will used for finding all the locators and hover the mouse by id"""
         item = self.webdriver.find_element_by_id(locator)
@@ -387,7 +394,7 @@ class BasePage:
 
             if div_id is not None:
                 create_btn = f"/html/body/div[{div_id}]/div/div[3]/button[2]"
-                create_btn_sitem = BaseSelenium.locator_finder_by_xpath(self, create_btn)
+                create_btn_sitem = self.locator_finder_by_xpath(self, create_btn)
                 create_btn_sitem.click()
                 time.sleep(2)
 

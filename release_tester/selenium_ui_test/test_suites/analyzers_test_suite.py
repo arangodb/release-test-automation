@@ -16,57 +16,31 @@ class AnalyzersTestSuite(BaseTestSuite):
         analyzers.select_built_in_analyzers_open()
 
         print("Checking in-built identity analyzer \n")
-        analyzers.select_analyzer_to_check(
-            analyzers.identity_analyzer, analyzers.identity_analyzer_switch_view, analyzers.close_identity_btn
-        )
+        analyzers.select_analyzer_to_check(analyzers.identity_analyzer, analyzers.identity_analyzer_switch_view)
         print("Checking in-built text_de analyzer \n")
-        analyzers.select_analyzer_to_check(
-            analyzers.text_de, analyzers.text_de_switch_view, analyzers.close_text_de_btn
-        )
+        analyzers.select_analyzer_to_check(analyzers.text_de, analyzers.text_de_switch_view)
         print("Checking in-built text_en analyzer \n")
-        analyzers.select_analyzer_to_check(
-            analyzers.text_en, analyzers.text_en_switch_view, analyzers.close_text_en_btn
-        )
+        analyzers.select_analyzer_to_check(analyzers.text_en, analyzers.text_en_switch_view)
         print("Checking in-built text_es analyzer \n")
-        analyzers.select_analyzer_to_check(
-            analyzers.text_es, analyzers.text_es_switch_view, analyzers.close_text_es_btn
-        )
+        analyzers.select_analyzer_to_check(analyzers.text_es, analyzers.text_es_switch_view)
         print("Checking in-built text_fi analyzer \n")
-        analyzers.select_analyzer_to_check(
-            analyzers.text_fi, analyzers.text_fi_switch_view, analyzers.close_text_fi_btn
-        )
+        analyzers.select_analyzer_to_check(analyzers.text_fi, analyzers.text_fi_switch_view)
         print("Checking in-built text_fr analyzer \n")
-        analyzers.select_analyzer_to_check(
-            analyzers.text_fr, analyzers.text_fr_switch_view, analyzers.close_text_fr_btn
-        )
+        analyzers.select_analyzer_to_check(analyzers.text_fr, analyzers.text_fr_switch_view)
         print("Checking in-built text_it analyzer \n")
-        analyzers.select_analyzer_to_check(
-            analyzers.text_it, analyzers.text_it_switch_view, analyzers.close_text_it_btn
-        )
+        analyzers.select_analyzer_to_check(analyzers.text_it, analyzers.text_it_switch_view)
         print("Checking in-built text_nl analyzer \n")
-        analyzers.select_analyzer_to_check(
-            analyzers.text_nl, analyzers.text_nl_switch_view, analyzers.close_text_nl_btn
-        )
+        analyzers.select_analyzer_to_check(analyzers.text_nl, analyzers.text_nl_switch_view)
         print("Checking in-built text_no analyzer \n")
-        analyzers.select_analyzer_to_check(
-            analyzers.text_no, analyzers.text_no_switch_view, analyzers.close_text_no_btn
-        )
+        analyzers.select_analyzer_to_check(analyzers.text_no, analyzers.text_no_switch_view)
         print("Checking in-built text_pt analyzer \n")
-        analyzers.select_analyzer_to_check(
-            analyzers.text_pt, analyzers.text_pt_switch_view, analyzers.close_text_pt_btn
-        )
+        analyzers.select_analyzer_to_check(analyzers.text_pt, analyzers.text_pt_switch_view)
         print("Checking in-built text_ru analyzer \n")
-        analyzers.select_analyzer_to_check(
-            analyzers.text_ru, analyzers.text_ru_switch_view, analyzers.close_text_ru_btn
-        )
+        analyzers.select_analyzer_to_check(analyzers.text_ru, analyzers.text_ru_switch_view)
         print("Checking in-built text_sv analyzer \n")
-        analyzers.select_analyzer_to_check(
-            analyzers.text_sv, analyzers.text_sv_switch_view, analyzers.close_text_sv_btn
-        )
+        analyzers.select_analyzer_to_check(analyzers.text_sv, analyzers.text_sv_switch_view)
         print("Checking in-built text_zh analyzer \n")
-        analyzers.select_analyzer_to_check(
-            analyzers.text_zh, analyzers.text_zh_switch_view, analyzers.close_text_zh_btn
-        )
+        analyzers.select_analyzer_to_check(analyzers.text_zh, analyzers.text_zh_switch_view)
 
         print("Hiding in-built Analyzers list \n")
         analyzers.select_built_in_analyzers_close()
@@ -99,7 +73,7 @@ class AnalyzersTestSuite(BaseTestSuite):
         analyzers.add_new_analyzer("My_Collation_Analyzer", 8, 44)
 
         print("Adding Segmentation analyzer \n")
-        analyzers.add_new_analyzer("My_segmentation_Alpha_Analyzer", 9, 48)
+        analyzers.add_new_analyzer("My_Segmentation_Alpha_Analyzer", 9, 48)
 
         print("Adding Pipeline analyzer \n")
         analyzers.add_new_analyzer("My_Pipeline_Analyzer", 10, 52)
@@ -110,15 +84,35 @@ class AnalyzersTestSuite(BaseTestSuite):
         print("Adding GeoJSON analyzer \n")
         analyzers.add_new_analyzer("My_GeoPoint_Analyzer", 12, 60)
 
+        # only going to work if and only all the possible type of analyzers are done creating
         print("Checking negative scenario for the identity analyzers name \n")
         analyzers.test_analyzer_expected_error("identity_analyzer", 0, 64)
         print("Checking negative scenario for the stem analyzers locale value \n")
         analyzers.test_analyzer_expected_error("stem_analyzer", 2, 64)
+        print("Checking negative scenario for the stem analyzers locale value \n")
+        analyzers.test_analyzer_expected_error("n-gram_analyzer", 4, 64)
+        print("Checking negative scenario for the AQL analyzers \n")
+        analyzers.test_analyzer_expected_error("AQL_analyzer", 6, 64)
 
         print("Checking analyzer search filter options started \n")
         analyzers.checking_search_filter_option("de")
         analyzers.checking_search_filter_option("geo", False)  # false indicating builtIn option will be disabled
         print("Checking analyzer search filter options completed \n")
+
+        # analyzers deletion start
+        analyzers.delete_analyzer("My_AQL_Analyzer")
+        analyzers.delete_analyzer("My_Collation_Analyzer")
+        analyzers.delete_analyzer("My_Delimiter_Analyzer")
+        analyzers.delete_analyzer("My_GeoJSON_Analyzer")
+        analyzers.delete_analyzer("My_GeoPoint_Analyzer")
+        analyzers.delete_analyzer("My_Identity_Analyzer")
+        analyzers.delete_analyzer("My_N-Gram_Analyzer")
+        analyzers.delete_analyzer("My_Norm_Analyzer")
+        analyzers.delete_analyzer("My_Pipeline_Analyzer")
+        analyzers.delete_analyzer("My_Segmentation_Alpha_Analyzer")
+        analyzers.delete_analyzer("My_Stem_Analyzer")
+        analyzers.delete_analyzer("My_Stopwords_Analyzer")
+        analyzers.delete_analyzer("My_Text_Analyzer")
 
         # login.logout_button()
         # del login
