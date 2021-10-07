@@ -262,7 +262,9 @@ class InstallerBase(ABC):
         cfg_file = Path()
         if IS_WINDOWS:
             if "WORKSPACE_TMP" in os.environ:
-                cfg_file = Path(os.environ["WORKSPACE_TMP"]) / "config.yml"
+                wdtmp = Path(os.environ["WORKSPACE_TMP"])
+                wdtmp.mkdir(parents=True, exist_ok=True)
+                cfg_file =  wdtmp / "config.yml"
             else:
                 cfg_file = Path("c:/") / "tmp/" / "config.yml"
         else:
