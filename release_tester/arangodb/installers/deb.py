@@ -292,3 +292,7 @@ class InstallerDeb(InstallerLinux):
         assert (
             self.count_backup_dirs() == self.backup_dirs_number_before_upgrade + 1
         ), "Database files were not backed up during package upgrade"
+
+    def supports_backup(self):
+        """Does this installer support automatic backup during minor upgrade?"""
+        return True

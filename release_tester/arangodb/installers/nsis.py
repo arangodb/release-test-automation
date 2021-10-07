@@ -11,6 +11,7 @@ import winreg
 from reporting.reporting_utils import step
 import psutil
 import tools.monkeypatch_psutil
+import glob
 from arangodb.installers.base import InstallerBase
 
 
@@ -24,6 +25,7 @@ class InstallerW(InstallerBase):
         self.service = None
         self.remote_package_dir = "Windows"
         self.installer_type = "NSIS"
+        self.backup_dirs_number_before_upgrade = None
 
         cfg.install_prefix = Path("C:/tmp")
         cfg.log_dir = cfg.install_prefix / "LOG"
@@ -68,6 +70,7 @@ class InstallerW(InstallerBase):
 
     @step
     def upgrade_package(self, old_installer):
+        self.backup_dirs_number_before_upgrade = self.count_backup_dirs()
         self.stop_service()
         cmd = [
             str(self.cfg.package_dir / self.server_package),
@@ -76,6 +79,7 @@ class InstallerW(InstallerBase):
             "/APPDIR=" + str(PureWindowsPath(self.cfg.appdir)),
             "/PATH=0",
             "/UPGRADE=1",
+            "/BACKUP_ON_UPGRADE=1",
             "/S",
             "/INSTALL_SCOPE_ALL=1",
         ]
@@ -104,6 +108,7 @@ class InstallerW(InstallerBase):
             "/PASSWORD=" + self.cfg.passvoid,
             "/INSTDIR=" + str(PureWindowsPath(self.cfg.install_prefix)),
             "/DATABASEDIR=" + str(PureWindowsPath(self.cfg.dbdir)),
+            "/BACKUP_ON_UPGRADE=1",
             "/APPDIR=" + str(PureWindowsPath(self.cfg.appdir)),
             "/PATH=0",
             "/S",
@@ -282,3 +287,21 @@ class InstallerW(InstallerBase):
             except OSError:
                 print("      done")
                 pass
+
+    def count_backup_dirs(self):
+        regex = (
+            str(PureWindowsPath(self.cfg.dbdir))
+            + "_[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_[0-9][0-9]_[0-9][0-9]_[0-9][0-9]"
+        )
+        return len(glob.glob(regex))
+
+    @step
+    def check_backup_is_created(self):
+        """Check that backup was created after package upgrade"""
+        assert (
+            self.count_backup_dirs() == self.backup_dirs_number_before_upgrade + 1
+        ), "Database files were not backed up during package upgrade"
+
+    def supports_backup(self):
+        """Does this installer support automatic backup during minor upgrade?"""
+        return True
