@@ -5,7 +5,7 @@ from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium_ui_test.pages.replication_page import ReplicationPage
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
 
-from release_tester.selenium_ui_test.test_suites.activefailover.after_install_test_suite import (
+from selenium_ui_test.test_suites.activefailover.after_install_test_suite import (
     ActiveFailoverAfterInstallTestSuite,
 )
 
