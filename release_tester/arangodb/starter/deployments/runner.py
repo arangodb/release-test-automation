@@ -32,8 +32,6 @@ from arangodb.sh import ArangoshExecutor
 
 from tools.killall import kill_all_processes
 
-from arangodb.installers.deb import InstallerDeb
-
 FNRX = re.compile("[\n@ ]*")
 WINVER = platform.win32_ver()
 
@@ -109,8 +107,6 @@ class Runner(ABC):
         if len(install_set) > 1:
             new_cfg = install_set[1][1].cfg
             new_inst = install_set[1][1]
-            if type(new_inst) == InstallerDeb or WINVER[0]:
-                self.must_create_backup = True
 
         self.do_install = cfg.mode == "all" or cfg.mode == "install"
         self.do_uninstall = cfg.mode == "all" or cfg.mode == "uninstall"
@@ -337,7 +333,7 @@ class Runner(ABC):
 
             self.upgrade_arangod_version()  # make sure to pass new version
             self.old_installer.un_install_package_for_upgrade()
-            if self.must_create_backup:
+            if self.is_minor_upgrade() and self.new_installer.supports_backup():
                 self.new_installer.check_backup_is_created()
             self.make_data_after_upgrade()
             if self.hot_backup:
@@ -381,7 +377,6 @@ class Runner(ABC):
         if self.do_uninstall:
             self.uninstall(self.old_installer if not self.new_installer else self.new_installer)
         if self.selenium:
-            self.selenium.disconnect()
             success = True
             ui_test_results_table = BeautifulTable(maxwidth=160)
             for result in self.selenium.test_results:
@@ -394,8 +389,10 @@ class Runner(ABC):
             self.progress(False, "UI test results table:")
             self.progress(False, "\n" + str(ui_test_results_table))
 
+            self.quit_selenium()
             if not success:
                 raise Exception("There are failed UI tests")
+
         self.progress(False, "Runner of type {0} - Finished!".format(str(self.name)))
 
     def run_selenium(self):
@@ -497,6 +494,13 @@ class Runner(ABC):
 
             logging.debug("stop system service " "to make ports available for starter")
             inst.stop_service()
+
+    @step
+    def quit_selenium(self):
+        """if we have a selenium open, close it."""
+        if self.selenium:
+            self.selenium.quit()
+            self.selenium = None
 
     @step
     def uninstall(self, inst):
@@ -1106,6 +1110,10 @@ class Runner(ABC):
 
         os.environ["REQUESTS_CA_BUNDLE"] = str(new_file)
 
+    def is_minor_upgrade(self):
+        return self.new_installer.semver.minor > self.old_installer.semver.minor
+
     def set_selenium_instances(self):
         """set instances in selenium runner"""
         pass
+

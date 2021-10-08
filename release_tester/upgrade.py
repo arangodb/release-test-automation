@@ -121,6 +121,7 @@ def run_upgrade(
                             runner.take_screenshot()
                             # TODO runner.agency_acquire_dump()
                             runner.search_for_warnings()
+                            runner.quit_selenium()
                             kill_all_processes()
                             runner.zip_test_dir()
                             testcase.context.status = Status.FAILED

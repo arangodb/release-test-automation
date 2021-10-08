@@ -234,7 +234,7 @@ db.testCollection.save({test: "document"})
             node.wait_for_version_reply()
             node.probe_leader()
         self.set_frontend_instances()
-        self.starter_instances[0].maintainance(True, InstanceType.COORDINATOR)
+        self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
 
         if self.selenium:
             self.selenium.test_wait_for_upgrade(self.cfg, self.new_cfg, timeout=30)  # * 5s

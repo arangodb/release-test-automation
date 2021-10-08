@@ -45,6 +45,12 @@ class SeleniumRunner(ABC):
         self.ui_entrypoint_instance = ui_entrypoint_instance
         self.new_cfg = new_cfg
 
+    def quit(self):
+        """terminate the web driver"""
+        if self.web != None:
+            self.web.quit()
+            self.web = None
+
     def progress(self, msg):
         """add something to the state..."""
         logging.info("UI-Test: " + msg)

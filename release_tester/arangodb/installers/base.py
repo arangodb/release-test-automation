@@ -261,7 +261,12 @@ class InstallerBase(ABC):
         """store our config to disk - so we can be invoked partly"""
         cfg_file = Path()
         if IS_WINDOWS:
-            cfg_file = Path(os.environ["WORKSPACE_TMP"]) / "config.yml"
+            if "WORKSPACE_TMP" in os.environ:
+                wdtmp = Path(os.environ["WORKSPACE_TMP"])
+                wdtmp.mkdir(parents=True, exist_ok=True)
+                cfg_file =  wdtmp / "config.yml"
+            else:
+                cfg_file = Path("c:/") / "tmp/" / "config.yml"
         else:
             cfg_file = Path("/") / "tmp" / "config.yml"
         return cfg_file
@@ -588,3 +593,11 @@ class InstallerBase(ABC):
                 self.starter_versions[splitted[0]] = splitted[1]
             print("Starter version: " + str(self.starter_versions))
         return semver.VersionInfo.parse(self.starter_versions["Version"])
+
+    def check_backup_is_created(self):
+        """Check that backup was created after package upgrade"""
+        pass
+
+    def supports_backup(self):
+        """Does this installer support automatic backup during minor upgrade?"""
+        return False
