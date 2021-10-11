@@ -157,12 +157,13 @@ class ActiveFailover(Runner):
     def finish_setup_impl(self):
         logging.info("instances are ready, detecting leader")
         self._detect_leader()
-        self.selenium.set_instances(
-            self.cfg,
-            self.leader.arango_importer,
-            self.leader.arango_restore,
-            [x for x in self.leader.all_instances if x.instance_type == InstanceType.RESILIENT_SINGLE][0],
-        )
+        if self.selenium:
+            self.selenium.set_instances(
+                self.cfg,
+                self.leader.arango_importer,
+                self.leader.arango_restore,
+                [x for x in self.leader.all_instances if x.instance_type == InstanceType.RESILIENT_SINGLE][0],
+            )
 
         # add data to leader
         self.makedata_instances.append(self.leader)

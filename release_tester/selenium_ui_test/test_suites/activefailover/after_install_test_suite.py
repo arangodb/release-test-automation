@@ -2,7 +2,7 @@ import pprint
 import time
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
 from selenium_ui_test.pages.navbar import NavigationBarPage
-from selenium_ui_test.test_suites.base_classes.before_upgrade_test_suite import AfterInstallTestSuite
+from selenium_ui_test.test_suites.base_classes.after_install_test_suite import AfterInstallTestSuite
 
 from selenium_ui_test.pages.replication_page import ReplicationPage
 

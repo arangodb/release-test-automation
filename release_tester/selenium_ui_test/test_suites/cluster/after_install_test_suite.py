@@ -4,7 +4,7 @@ from selenium.common.exceptions import StaleElementReferenceException
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium_ui_test.pages.nodes_page import NodesPage
-from selenium_ui_test.test_suites.base_classes.before_upgrade_test_suite import AfterInstallTestSuite
+from selenium_ui_test.test_suites.base_classes.after_install_test_suite import AfterInstallTestSuite
 from selenium_ui_test.pages.cluster_page import ClusterPage
 
 
