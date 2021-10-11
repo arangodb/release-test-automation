@@ -1,4 +1,3 @@
-from release_tester.selenium_ui_test.pages.base_page import BasePage
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
 from selenium_ui_test.pages.views_page import ViewsPage
 
@@ -11,79 +10,85 @@ class ViewsTestSuite(BaseTestSuite):
         # login = LoginPage(self.webdriver)
         # login.login('root', self.root_passvoid)
         views = ViewsPage(self.webdriver)  # creating obj for viewPage
+        views1 = ViewsPage(self.webdriver)  # creating 2nd obj for viewPage to do counter part of the testing
 
         print("Selecting Views tab\n")
-        self.views.select_views_tab()
+        views.select_views_tab()
+        print("Creating first views\n")
+        views.create_new_views()
+        views.naming_new_view("firstView")
+        views.select_create_btn()
+        print("Creating first views completed\n")
 
-        # checking 3.9 for improved views
-        version = BasePage.current_package_version(self)
+        print("Creating second views\n")
+        views1.create_new_views()
+        views1.naming_new_view("secondView")
+        views1.select_create_btn()
+        print("Creating second views completed\n")
 
-        if version == 3.9:
-            print('Creating improved views start here \n')
-            views.create_improved_views('improved_arangosearch_view', 0)
-            views.create_improved_views('improved_arangosearch_view_01', 1)
-            print('Creating improved views completed \n')
+        views.select_views_settings()
+        print("Sorting views to descending\n")
+        views.select_sorting_views()
 
-            # Checking improved views
-            views.checking_views('improved_arangosearch_view', self.views.select_improved_arangosearch_view)
+        print("Sorting views to ascending\n")
+        views1.select_sorting_views()
 
-            print('Deleting views started \n')
-            views.delete_views('improved_arangosearch_view', self.views.select_modified_views_name)
-            views.delete_views('improved_arangosearch_view01', self.views.select_improved_arangosearch_view_01)
-            print('Deleting views completed \n')
+        print("search views option testing\n")
+        views1.search_views("se")
+        views.search_views("fi")
 
-        # for package version less than 3.9e
-        elif version <= 3.9:
-            views.create_new_views('firstView')
-            views.create_new_views('secondView')
+        print("Selecting first Views \n")
+        views.select_first_view()
+        print("Selecting collapse button \n")
+        views.select_collapse_btn()
+        print("Selecting expand button \n")
+        views.select_expand_btn()
+        print("Selecting editor mode \n")
+        views.select_editor_mode_btn()
+        print("Switch editor mode to Code \n")
+        views.switch_to_code_editor_mode()
+        print("Switch editor mode to Compact mode Code \n")
+        views.compact_json_data()
 
-            views.select_views_settings()
+        print("Selecting editor mode \n")
+        views1.select_editor_mode_btn()
+        print("Switch editor mode to Tree \n")
+        views1.switch_to_tree_editor_mode()
 
-            print("Sorting views to descending\n")
-            views.select_sorting_views()
-            print("Sorting views to ascending\n")
-            views.select_sorting_views()
-
-            print("search views option testing\n")
-            views.search_views("secondView")
-            views.search_views("firstView")
-
-            print("Selecting first Views \n")
-            views.select_first_view()
-            print("Selecting collapse button \n")
-            views.select_collapse_btn()
-            print("Selecting expand button \n")
-            views.select_expand_btn()
-            print("Selecting editor mode \n")
-            views.select_editor_mode_btn()
-            print("Switch editor mode to Code \n")
-            views.switch_to_code_editor_mode()
-            print("Switch editor mode to Compact mode Code \n")
-            views.compact_json_data()
-
-            print("Selecting editor mode \n")
-            views.select_editor_mode_btn()
-            print("Switch editor mode to Tree \n")
-            views.switch_to_tree_editor_mode()
-
-            print("Clicking on ArangoSearch documentation link \n")
-            views.click_arangosearch_documentation_link()
-            print("Selecting search option\n")
-            views.select_inside_search("i")
-            print("Traversing all results up and down \n")
-            views.search_result_traverse_down()
-            views.search_result_traverse_up()
+        print("Clicking on ArangoSearch documentation link \n")
+        views.click_arangosearch_documentation_link()
+        print("Selecting search option\n")
+        views.select_inside_search("i")
+        print("Traversing all results up and down \n")
+        views.search_result_traverse_down()
+        views.search_result_traverse_up()
+        views1.select_inside_search("")
+        # ###print("Changing views consolidationPolicy id to 55555555 \n")
+        # ###views1.change_consolidation_policy(55555555)
+        if not self.is_cluster:
             print("Rename firstViews to thirdViews started \n")
             views.clicking_rename_views_btn()
             views.rename_views_name("thirdView")
             views.rename_views_name_confirm()
             print("Rename the current Views completed \n")
-
+            self.webdriver.back()
             print("Deleting views started \n")
-            views.delete_views('renamed_view', views.select_renamed_view_id)
-            views.delete_views('second_view', views.select_second_view_id)
+            views.select_renamed_view()
+        else:
+            print("Deleting views started \n")
+            views.select_views_tab()
+            views.select_first_view()
+        views.delete_views_btn()
+        views.delete_views_confirm_btn()
+        views.final_delete_confirmation()
 
-        # print("Deleting views completed\n")
-        del self.login
-        del self.views
+        views1.select_second_view()
+        views1.delete_views_btn()
+        views1.delete_views_confirm_btn()
+        views1.final_delete_confirmation()
+        print("Deleting views completed\n")
+        # login.logout_button()
+        # del login
+        del views
+        del views1
         print("---------Checking Views completed--------- \n")
