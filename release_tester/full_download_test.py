@@ -16,7 +16,7 @@ from beautifultable import BeautifulTable, ALIGN_LEFT
 import tools.loghelper as lh
 from acquire_packages import AcquirePackages
 from reporting.reporting_utils import AllureTestSuiteContext
-from upgrade import run_upgrade
+from test import run_test
 from cleanup import run_cleanup
 from tools.killall import list_all_processes
 
@@ -42,12 +42,10 @@ def workaround_nightly_versioning(ver):
 def upgrade_package_test(
     verbose,
     new_version,
-    old_version,
     package_dir,
     enterprise_magic,
     zip_package,
     new_dlstage,
-    old_dlstage,
     git_version,
     httpusername,
     httppassvoid,
@@ -56,7 +54,6 @@ def upgrade_package_test(
     remote_host,
     force,
     starter_mode,
-    stress_upgrade,
     publicip,
     selenium,
     selenium_driver_args,
@@ -66,9 +63,7 @@ def upgrade_package_test(
     use_auto_certs,
 ):
     """process fetch & tests"""
-    old_version_state = None
     new_version_state = None
-    old_version_content = None
     new_version_content = None
 
     set_r_limits()
@@ -114,32 +109,11 @@ def upgrade_package_test(
                 enterprise,
                 zip_package,
                 new_version[j],
-                old_version[j],
+                None, # was: old version
                 testrun_name,
             ) as suite_context:
-                dl_old = None
                 dl_new = None
-                fresh_old_content = None
                 fresh_new_content = None
-                if old_dlstage[j] != "local":
-                    dl_old = AcquirePackages(
-                        old_version[j],
-                        verbose,
-                        package_dir,
-                        enterprise,
-                        enterprise_magic,
-                        zip_package,
-                        old_dlstage[j],
-                        httpusername,
-                        httppassvoid,
-                        remote_host,
-                    )
-                    if old_version[j].find("-nightly") >= 0:
-                        old_version_state = version_state_dir / Path(dl_old.cfg.version + "_sourceInfo.log")
-                        if old_version_state.exists():
-                            old_version_content = old_version_state.read_text()
-                        fresh_old_content = dl_old.get_version_info(old_dlstage[j], git_version)
-
                 if new_dlstage[j] != "local":
                     dl_new = AcquirePackages(
                         new_version[j],
@@ -159,18 +133,13 @@ def upgrade_package_test(
                             new_version_content = new_version_state.read_text()
                         fresh_new_content = dl_new.get_version_info(new_dlstage[j], git_version)
 
-                if new_dlstage[j] != "local" and old_dlstage[j] != "local":
-                    old_changed = old_version_content != fresh_old_content
+                if new_dlstage[j] != "local":
                     new_changed = new_version_content != fresh_new_content
 
-                    if not new_changed and not old_changed and not force:
+                    if not new_changed and not force:
                         print("we already tested this version. bye.")
                         return 0
-                old = old_version[j]
                 new = new_version[j]
-                if dl_old:
-                    dl_old.get_packages(old_changed, old_dlstage[j])
-                    old = dl_old.cfg.version
                 if dl_new:
                     dl_new.get_packages(new_changed, new_dlstage[j])
                     new = dl_new.cfg.version
@@ -184,25 +153,24 @@ def upgrade_package_test(
                 while not test_dir.exists():
                     time.sleep(1)
                 results.append(
-                    run_upgrade(
-                        old,
+                    run_test(
+                        "all"
                         new,
                         verbose,
+                        enterprise,
                         package_dir,
                         test_dir,
-                        enterprise,
                         encryption_at_rest,
                         zip_package,
-                        False,
+                        False, #interactive
                         starter_mode,
-                        stress_upgrade,
-                        False,
+                        False, # abort_on_error
                         publicip,
                         selenium,
                         selenium_driver_args,
                         testrun_name,
                         ssl,
-                        use_auto_certs,
+                        use_auto_certs
                     )
                 )
 
@@ -280,7 +248,7 @@ def main(
         new_version, verbose, enterprise, package_dir, zip_package,
         # common_options
         old_version, test_data_dir, encryption_at_rest, alluredir, clean_alluredir, ssl, use_auto_certs,
-        # no-interactive!
+        # no-interactive! VV not used
         starter_mode, stress_upgrade, abort_on_error, publicip,
         selenium, selenium_driver_args,
         # download options:
@@ -326,7 +294,6 @@ old_source:   {len_new_source} {new_source}
         remote_host,
         force,
         starter_mode,
-        stress_upgrade,
         publicip,
         selenium,
         selenium_driver_args,
