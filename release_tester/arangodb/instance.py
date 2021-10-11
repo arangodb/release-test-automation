@@ -204,17 +204,23 @@ class Instance(ABC):
             logging.info("I'm already dead, jim!" + str(repr(self)))
 
     @step
-    def terminate_instance(self, add_logfile_to_report=True):
+    def terminate_instance(self, add_logfile_to_report=True, force_kill_fatal=True):
         """terminate the process represented by this wrapper class"""
         if self.instance:
             try:
                 print("terminating {0} instance PID:[{1}]".format(self.type_str, self.instance.pid))
                 self.instance.terminate()
-                self.instance.wait()
+                self.instance.wait(600)
                 if add_logfile_to_report:
                     self.add_logfile_to_report()
             except psutil.NoSuchProcess:
                 logging.info("instance already dead: " + str(self.instance))
+            except psutil.TimeoutExpired as exc:
+                print("friendly terminating timed out, force killing:" + repr(self))
+                self.kill_instance()
+                if force_kill_fatal:
+                    raise Exception("friendly shutdown of instance failed, did force kill") from exc
+
             self.instance = None
         else:
             logging.info("I'm already dead, jim!" + str(repr(self)))
