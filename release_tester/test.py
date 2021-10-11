@@ -2,6 +2,8 @@
 
 """ Release testing script"""
 from pathlib import Path
+import traceback
+
 import sys
 import click
 from allure_commons.model2 import Status, Label
@@ -19,39 +21,31 @@ from arangodb.starter.deployments import (
 )
 import tools.loghelper as lh
 
-
-@click.command()
-@click.option(
-    "--mode",
-    type=click.Choice(
-        [
-            "all",
-            "install",
-            "uninstall",
-            "tests",
-        ]
-    ),
-    default="all",
-    help="operation mode.",
-)
-@very_common_options()
-@common_options(support_old=False)
-# pylint: disable=R0913 disable=R0914, disable=W0703
 # fmt: off
 def run_test(mode,
-             #very_common_options
-             new_version, verbose, enterprise, package_dir, zip_package,
-             # common_options
-             alluredir, clean_alluredir, ssl, use_auto_certs,
-             # old_version,
-             test_data_dir, encryption_at_rest, interactive, starter_mode,
-             # stress_upgrade,
-             abort_on_error, publicip, selenium, selenium_driver_args):
+             new_version,
+             verbose,
+             package_dir,
+             test_data_dir,
+             enterprise,
+             encryption_at_rest,
+             zip_package,
+             interactive,
+             starter_mode,
+             abort_on_error,
+             publicip,
+             selenium,
+             selenium_driver_args,
+             testrun_name,
+             ssl,
+             use_auto_certs,
+):
 # fmt: on
     """ main """
     lh.configure_logging(verbose)
-
-    configure_allure(alluredir, clean_alluredir, enterprise, zip_package, new_version)
+    results = []
+    print('santoehu')
+    print(package_dir)
 
     do_install = mode in ["all", "install"]
     do_uninstall = mode in ["all", "uninstall"]
@@ -80,7 +74,6 @@ def run_test(mode,
     )
 
     count = 1
-    failed = False
     for runner_type in STARTER_MODES[starter_mode]:
         with RtaTestcase(runner_strings[runner_type]) as testcase:
             testcase.add_label(Label(name=LabelType.SUB_SUITE, value=installers[0][1].installer_type))
@@ -100,25 +93,107 @@ def run_test(mode,
             runner.do_install = (count == 1) and do_install
             # only uninstall after the last test:
             runner.do_uninstall = (count == len(STARTER_MODES[starter_mode])) and do_uninstall
+            one_result = {
+                "testrun name": testrun_name,
+                "testscenario": runner_strings[runner_type],
+                "success": True,
+                "message": "success",
+                "progress": "success",
+            }
             try:
-                if not runner.run():
-                    failed = True
-                    testcase.context.status = Status.FAILED
+                runner.run()
+                runner.cleanup()
+                testcase.context.status = Status.PASSED
             except Exception as ex:
-                failed = True
+                one_result = {
+                    "testrun name": testrun_name,
+                    "testscenario": runner_strings[runner_type],
+                    "success": False,
+                    "message": str(ex),
+                    "progress": runner.get_progress(),
+                }
+                results.append(one_result)
+                runner.take_screenshot()
+                runner.agency_acquire_dump()
+                runner.search_for_warnings()
+                runner.quit_selenium()
+                kill_all_processes()
+                runner.zip_test_dir()
                 testcase.context.status = Status.FAILED
                 if abort_on_error:
                     raise ex
-                print(ex)
+                traceback.print_exc()
+                lh.section("uninstall on error")
+                try:
+                    runner.cleanup()
+                finally:
+                    pass
+                continue
 
             kill_all_processes()
             count += 1
 
             testcase.context.status = Status.PASSED
 
-    return 0 if not failed else 1
+    return results
 
+@click.command()
+@click.option(
+    "--mode",
+    type=click.Choice(
+        [
+            "all",
+            "install",
+            "uninstall",
+            "tests",
+        ]
+    ),
+    default="all",
+    help="operation mode.",
+)
+@very_common_options()
+@common_options(support_old=False)
+# pylint: disable=R0913 disable=R0914, disable=W0703
+# fmt: off
+def main(mode,
+         #very_common_options
+         new_version, verbose, enterprise, package_dir, zip_package,
+         # common_options
+         alluredir, clean_alluredir, ssl, use_auto_certs,
+         # old_version,
+         test_data_dir, encryption_at_rest, interactive, starter_mode,
+         # stress_upgrade,
+         abort_on_error, publicip, selenium, selenium_driver_args):
+    # fmt: on
+    """ main trampoline """
+    lh.configure_logging(verbose)
+    configure_allure(alluredir, clean_alluredir, enterprise, zip_package, new_version, None)
+    results = run_test(mode,
+                       new_version,
+                       verbose,
+                       Path(package_dir),
+                       Path(test_data_dir),
+                       enterprise,
+                       encryption_at_rest,
+                       zip_package,
+                       interactive,
+                       starter_mode,
+                       abort_on_error,
+                       publicip,
+                       selenium,
+                       selenium_driver_args,
+                       "",
+                       ssl,
+                       use_auto_certs)
+    print("V" * 80)
+    status = True
+    for one_result in results:
+        print(one_result)
+        status = status and one_result["success"]
+    if not status:
+        print("exiting with failure")
+        sys.exit(1)
 
 if __name__ == "__main__":
     # pylint: disable=E1120 # fix clickiness.
-    sys.exit(run_test())
+    sys.exit(main())

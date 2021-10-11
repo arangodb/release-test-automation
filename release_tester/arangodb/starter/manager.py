@@ -554,7 +554,7 @@ class StarterManager:
                     )
 
     @step
-    def upgrade_instances(self, which_instances, moreargs, waitpid=True):
+    def upgrade_instances(self, which_instances, moreargs, waitpid=True, force_kill_fatal=True):
         """kill, launch the instances of this starter with optional arguments and restart"""
         for instance_type in which_instances:
             for i in self.all_instances:
