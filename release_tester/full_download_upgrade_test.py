@@ -193,10 +193,10 @@ def upgrade_package_test(
                         enterprise,
                         encryption_at_rest,
                         zip_package,
-                        False,
+                        False, # interactive
                         starter_mode,
                         stress_upgrade,
-                        False,
+                        False, # abort on error
                         publicip,
                         selenium,
                         selenium_driver_args,
@@ -296,7 +296,7 @@ Cannot have different numbers of versions / sources:
 old_version:  {len_old_version} {old_version}
 old_source:   {len_old_source} {old_source}
 new_version:  {len_new_version} {new_version}
-old_source:   {len_new_source} {new_source}
+new_source:   {len_new_source} {new_source}
 """.format(
                 len_old_version=len(old_version),
                 old_version=str(old_version),

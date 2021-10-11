@@ -1,4 +1,4 @@
-from release_tester.selenium_ui_test.pages.base_page import BasePage
+from selenium_ui_test.pages.base_page import BasePage
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
 from selenium_ui_test.pages.views_page import ViewsPage
 
