@@ -90,7 +90,7 @@ class InstallerW(InstallerBase):
         logging.info(str(cmd))
         install = psutil.Popen(cmd)
         try:
-            install.wait(10)
+            install.wait(600)
         except psutil.TimeoutExpired as exc:
             print("upgrading timed out, taking screenshot, re-raising!")
             filename = "windows_upgrade_screenshot.png"
@@ -135,7 +135,7 @@ class InstallerW(InstallerBase):
         logging.info(str(cmd))
         install = psutil.Popen(cmd)
         try:
-            install.wait(10)
+            install.wait(600)
         except psutil.TimeoutExpired as exc:
             print("installing timed out, taking screenshot, re-raising!")
             filename = "windows_upgrade_screenshot.png"
@@ -195,7 +195,7 @@ class InstallerW(InstallerBase):
             logging.info(str(cmd))
             uninstall = psutil.Popen(cmd)
             try:
-                uninstall.wait(10)
+                uninstall.wait(600)
             except psutil.TimeoutExpired as exc:
                 print("upgrade uninstall timed out, taking screenshot, re-raising!")
                 filename = "windows_upgrade_screenshot.png"
@@ -232,7 +232,7 @@ class InstallerW(InstallerBase):
             logging.info(str(cmd))
             uninstall = psutil.Popen(cmd)
             try:
-                uninstall.wait(10)
+                uninstall.wait(600)
             except psutil.TimeoutExpired as exc:
                 print("uninstall timed out, taking screenshot, re-raising!")
                 filename = "windows_upgrade_screenshot.png"
