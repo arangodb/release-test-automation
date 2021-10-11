@@ -10,8 +10,10 @@ class AfterInstallTestSuite(BaseTestSuite):
     def check_version(self):
         """checks whether the UI has the version that cfg dictates"""
         ver = NavigationBarPage(self.webdriver).detect_version()
-        self.progress(" %s ~= %s?" % (ver["version"].lower(), str(self.cfg.semver)))
-        assert ver["version"].lower().startswith(str(self.cfg.semver)), "UI-Test: wrong version"
+        self.progress(" %s ~= %s?" % (ver["version"].lower(), str(self.cfg.semver).lower()))
+        assert str(self.cfg.semver).lower().startswith(ver["version"].lower()), (
+            "UI-Test: wrong version: " + str(ver["version"]).lower() +
+            " vs " + str(self.cfg.semver).lower())
         if self.is_enterprise:
             assert ver["enterprise"] == "ENTERPRISE EDITION", "UI-Test: expected enterprise"
         else:
