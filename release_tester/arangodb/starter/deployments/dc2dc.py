@@ -393,6 +393,10 @@ class Dc2Dc(Runner):
             raise Exception("check data on source cluster failed " + ret[1])
         self._get_in_sync(20)
 
+        self.cluster2["instance"].send_request(InstanceType.COORDINATOR,
+                                               requests.post,
+                                               "/_admin/routing/reload",
+                                               "")
         ret = self.cluster2["instance"].arangosh.check_test_data(
             "dc2dc (post setup - dc2)", True, ["--readOnly", "true"]
         )
