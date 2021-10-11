@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 """ run an installer for the debian based operating system """
-import time
-import shutil
+import glob
 import logging
 import multiprocessing
 from pathlib import Path
 from pathlib import PureWindowsPath
+import shutil
+import time
 import winreg
 
-from reporting.reporting_utils import step
+from allure_commons._allure import attach
+from allure_commons.types import AttachmentType
+from mss import mss
 import psutil
+from reporting.reporting_utils import step
 import tools.monkeypatch_psutil
-import glob
 from arangodb.installers.base import InstallerBase
 
 
@@ -86,7 +89,21 @@ class InstallerW(InstallerBase):
         logging.info("running windows package installer:")
         logging.info(str(cmd))
         install = psutil.Popen(cmd)
-        install.wait()
+        try:
+            install.wait(600)
+        except psutil.TimeoutExpired as exc:
+            print("upgrading timed out, taking screenshot, re-raising!")
+            filename = "windows_upgrade_screenshot.png"
+            with mss() as sct:
+                sct.shot(output=filename)
+                attach(
+                    filename,
+                    name="Screenshot ({fn})".format(fn=filename),
+                    attachment_type=AttachmentType.PNG,
+                )
+            install.kill()
+            raise Exception("Upgrade install failed to complete on time") from exc
+
         self.service = psutil.win_service_get("ArangoDB")
         while not self.check_service_up():
             logging.info("starting...")
@@ -117,7 +134,20 @@ class InstallerW(InstallerBase):
         logging.info("running windows package installer:")
         logging.info(str(cmd))
         install = psutil.Popen(cmd)
-        install.wait()
+        try:
+            install.wait(600)
+        except psutil.TimeoutExpired as exc:
+            print("installing timed out, taking screenshot, re-raising!")
+            filename = "windows_upgrade_screenshot.png"
+            with mss() as sct:
+                sct.shot(output=filename)
+                attach(
+                    filename,
+                    name="Screenshot ({fn})".format(fn=filename),
+                    attachment_type=AttachmentType.PNG,
+                )
+            install.kill()
+            raise Exception("Installing failed to complete on time") from exc
         self.service = psutil.win_service_get("ArangoDB")
         while not self.check_service_up():
             logging.info("starting...")
@@ -164,7 +194,20 @@ class InstallerW(InstallerBase):
             logging.info("running windows package uninstaller")
             logging.info(str(cmd))
             uninstall = psutil.Popen(cmd)
-            uninstall.wait()
+            try:
+                uninstall.wait(600)
+            except psutil.TimeoutExpired as exc:
+                print("upgrade uninstall timed out, taking screenshot, re-raising!")
+                filename = "windows_upgrade_screenshot.png"
+                with mss() as sct:
+                    sct.shot(output=filename)
+                    attach(
+                        filename,
+                        name="Screenshot ({fn})".format(fn=filename),
+                        attachment_type=AttachmentType.PNG,
+                    )
+                uninstall.kill()
+                raise Exception("upgrade uninstall failed to complete on time") from exc
 
     @step
     def un_install_package(self):
@@ -188,7 +231,20 @@ class InstallerW(InstallerBase):
             logging.info("running windows package uninstaller")
             logging.info(str(cmd))
             uninstall = psutil.Popen(cmd)
-            uninstall.wait()
+            try:
+                uninstall.wait(600)
+            except psutil.TimeoutExpired as exc:
+                print("uninstall timed out, taking screenshot, re-raising!")
+                filename = "windows_upgrade_screenshot.png"
+                with mss() as sct:
+                    sct.shot(output=filename)
+                    attach(
+                        filename,
+                        name="Screenshot ({fn})".format(fn=filename),
+                        attachment_type=AttachmentType.PNG,
+                    )
+                uninstall.kill()
+                raise Exception("uninstall failed to complete on time") from exc
         if self.cfg.log_dir.exists():
             shutil.rmtree(self.cfg.log_dir)
         if tmp_uninstaller.exists():
@@ -217,6 +273,7 @@ class InstallerW(InstallerBase):
             logging.error("no service registered, not starting")
             return
         # TODO: re-enable once https://github.com/giampaolo/psutil/pull/1990 is in a release
+        # post psutil 5.8.0
         # self.service.start()
         ret = psutil.Popen(["sc", "start", "ArangoDB"]).wait()
         if ret != 0:
@@ -266,7 +323,7 @@ class InstallerW(InstallerBase):
             try:
                 index = 0
                 while True:
-                    key, val, dtype = winreg.EnumValue(k, index)
+                    key, _, _ = winreg.EnumValue(k, index)
                     if key.find("ArangoDB") >= 0:
                         print("deleting v-key: " + key)
                         winreg.DeleteValue(k, key)
@@ -289,6 +346,7 @@ class InstallerW(InstallerBase):
                 pass
 
     def count_backup_dirs(self):
+        """get the number of backup paths on disk"""
         regex = (
             str(PureWindowsPath(self.cfg.dbdir))
             + "_[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_[0-9][0-9]_[0-9][0-9]_[0-9][0-9]"
