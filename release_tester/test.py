@@ -44,6 +44,8 @@ def run_test(mode,
     """ main """
     lh.configure_logging(verbose)
     results = []
+    print('santoehu')
+    print(package_dir)
 
     do_install = mode in ["all", "install"]
     do_uninstall = mode in ["all", "uninstall"]
@@ -169,8 +171,8 @@ def main(mode,
     results = run_test(mode,
                        new_version,
                        verbose,
-                       package_dir,
-                       test_data_dir,
+                       Path(package_dir),
+                       Path(test_data_dir),
                        enterprise,
                        encryption_at_rest,
                        zip_package,

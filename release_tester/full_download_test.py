@@ -39,7 +39,7 @@ def workaround_nightly_versioning(ver):
 
 
 # pylint: disable=R0913 disable=R0914 disable=R0912, disable=R0915
-def upgrade_package_test(
+def package_test(
     verbose,
     new_version,
     package_dir,
@@ -154,12 +154,12 @@ def upgrade_package_test(
                     time.sleep(1)
                 results.append(
                     run_test(
-                        "all"
+                        "all",
                         new,
                         verbose,
-                        enterprise,
                         package_dir,
                         test_dir,
+                        enterprise,
                         encryption_at_rest,
                         zip_package,
                         False, #interactive
@@ -234,7 +234,7 @@ def upgrade_package_test(
 @very_common_options(support_multi_version=True)
 @common_options(
     support_multi_version=True,
-    support_old=True,
+    support_old=False,
     interactive=False,
     test_data_dir="/home/test_dir",
 )
@@ -246,46 +246,40 @@ def main(
         git_version,
         #very_common_options
         new_version, verbose, enterprise, package_dir, zip_package,
-        # common_options
-        old_version, test_data_dir, encryption_at_rest, alluredir, clean_alluredir, ssl, use_auto_certs,
+        # common_options,
+        # old_version,
+        test_data_dir, encryption_at_rest, alluredir, clean_alluredir, ssl, use_auto_certs,
         # no-interactive! VV not used
-        starter_mode, stress_upgrade, abort_on_error, publicip,
+        starter_mode, #stress_upgrade,
+        abort_on_error, publicip,
         selenium, selenium_driver_args,
         # download options:
         enterprise_magic, force, new_source, old_source,
         httpuser, httppassvoid, remote_host):
 # fmt: on
     """ main """
-    if ((len(new_source) != len(new_version)) or
-        (len(old_source) != len(old_version)) or
-        (len(old_source) != len(new_source))):
+    if (len(new_source) != len(new_version)):
         raise Exception("""
 Cannot have different numbers of versions / sources: 
-old_version:  {len_old_version} {old_version}
-old_source:   {len_old_source} {old_source}
 new_version:  {len_new_version} {new_version}
-old_source:   {len_new_source} {new_source}
+new_source:   {len_new_source} {new_source}
 """.format(
-                len_old_version=len(old_version),
-                old_version=str(old_version),
-                len_old_source=len(old_source),
-                old_source=str(old_source),
                 len_new_version=len(new_version),
                 new_version=str(new_version),
                 len_new_source=len(new_source),
                 new_source=str(new_source),
             )
         )
-
-    return upgrade_package_test(
+    print('santoehu')
+    print(package_dir)
+    
+    return package_test(
         verbose,
         workaround_nightly_versioning(new_version),
-        workaround_nightly_versioning(old_version),
         package_dir,
         enterprise_magic,
         zip_package,
         new_source,
-        old_source,
         git_version,
         httpuser,
         httppassvoid,
