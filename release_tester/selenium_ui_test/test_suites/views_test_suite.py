@@ -13,7 +13,7 @@ class ViewsTestSuite(BaseTestSuite):
         views = ViewsPage(self.webdriver)  # creating obj for viewPage
 
         print("Selecting Views tab\n")
-        self.views.select_views_tab()
+        views.select_views_tab()
 
         # checking 3.9 for improved views
         version = BasePage.current_package_version(self)
@@ -25,11 +25,11 @@ class ViewsTestSuite(BaseTestSuite):
             print('Creating improved views completed \n')
 
             # Checking improved views
-            views.checking_views('improved_arangosearch_view', self.views.select_improved_arangosearch_view)
+            views.checking_views('improved_arangosearch_view', views.select_improved_arangosearch_view)
 
             print('Deleting views started \n')
-            views.delete_views('improved_arangosearch_view', self.views.select_modified_views_name)
-            views.delete_views('improved_arangosearch_view01', self.views.select_improved_arangosearch_view_01)
+            views.delete_views('improved_arangosearch_view', views.select_modified_views_name)
+            views.delete_views('improved_arangosearch_view01', views.select_improved_arangosearch_view_01)
             print('Deleting views completed \n')
 
         # for package version less than 3.9e
@@ -84,6 +84,5 @@ class ViewsTestSuite(BaseTestSuite):
             views.delete_views('second_view', views.select_second_view_id)
 
         # print("Deleting views completed\n")
-        del self.login
         del self.views
         print("---------Checking Views completed--------- \n")

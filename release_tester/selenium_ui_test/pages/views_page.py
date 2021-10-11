@@ -1,4 +1,5 @@
 import time
+
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By as BY
@@ -21,6 +22,7 @@ class ViewsPage(NavigationBarPage):
     
     def __init__(self, driver):
         """View page initialization"""
+        super().__init__(driver)
         self.driver = driver
         self.select_views_tab_id = "/html//a[@id='views']"
         self.create_new_views_id = "/html//a[@id='createView']"
