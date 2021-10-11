@@ -3,6 +3,7 @@
 import time
 import logging
 from pathlib import Path
+import semver
 
 from reporting.reporting_utils import step
 from tools.timestamp import timestamp
@@ -13,7 +14,9 @@ from arangodb.starter.deployments.runner import Runner, RunnerProperties
 import tools.loghelper as lh
 from tools.asciiprint import print_progress as progress
 
-
+arangoversions = {
+    "370": semver.VersionInfo.parse("3.7.0"),
+}
 class Cluster(Runner):
     """this launches a cluster setup"""
 
@@ -197,10 +200,15 @@ db.testCollection.save({test: "document"})
         # fmt: off
         self.progress(True, "step 2 - upgrade agents")
         for node in self.starter_instances:
-            node.upgrade_instances([
-                InstanceType.AGENT
-            ], ['--database.auto-upgrade', 'true',
-                '--log.foreground-tty', 'true'])
+            node.upgrade_instances(
+                [
+                    InstanceType.AGENT
+                ], [
+                    '--database.auto-upgrade', 'true',
+                    '--log.foreground-tty', 'true'
+                ],
+                # mitigate 3.6x agency shutdown issues:
+                self.cfg.version >= arangoversions['370'])
         self.progress(True, "step 3 - upgrade db-servers")
         for node in self.starter_instances:
             node.upgrade_instances([
