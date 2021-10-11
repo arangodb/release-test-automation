@@ -47,9 +47,9 @@ class SeleniumRunner(ABC):
 
     def quit(self):
         """terminate the web driver"""
-        if self.web != None:
-            self.web.quit()
-            self.web = None
+        if self.webdriver != None:
+            self.webdriver.quit()
+            self.webdriver = None
 
     def progress(self, msg):
         """add something to the state..."""
