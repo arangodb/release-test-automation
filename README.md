@@ -178,9 +178,9 @@ example usage:
                                             --force \
                                             --source ftp:stage2`
 
-# Using `full_download_upgrade_test.py` for automated upgrade testing
+# Using `full_download_upgrade.py` for automated upgrade testing
 
-`full_download_upgrade_test.py` integrates `upgrade.py` and `acquire_packages.py`.
+`full_download_upgrade.py` integrates `upgrade.py` and `acquire_packages.py`.
 It will download `Enterprise` and `Community` packages, while `-nightly` will first attempt
 to resolve the proper version of the nightly package, since `-nightly` allways is a suffix to the latest released version + 1.
 
