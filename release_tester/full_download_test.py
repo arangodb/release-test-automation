@@ -83,7 +83,7 @@ def package_test(
                 versions[member.name] = tar.extractfile(
                     member).read().decode(encoding='utf-8')
         tar.close()
-    fdesc.close()
+        fdesc.close()
     except FileNotFoundError:
         pass
     print(versions)
