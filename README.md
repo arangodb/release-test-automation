@@ -150,9 +150,9 @@ Example usage:
  - Linux (ubuntu|debian) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
  - Linux (centos|fedora|sles) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
 
-# using `acquire_packages.py` to download packages from stage1/stage2/live
+# using `download.py` to download packages from stage1/stage2/live
 
-`acquire_packages.py` can fetch a set of packages for later use with `upgrade.py`/`test.py`. It will detect the platform its working on.
+`download.py` can fetch a set of packages for later use with `upgrade.py`/`test.py`. It will detect the platform its working on.
 
 Supported Parameters:
  - `--new-version` which Arangodb Version you want to run the test on
@@ -171,16 +171,16 @@ Supported Parameters:
  - `--force` overwrite readily existing downloaded packages
 
 example usage:
-`python3 release_tester/acquire_packages.py --enterprise \
-                                            --new-version '3.7.1-rc.1+0.501' \
-                                            --enterprise-magic <enterprisekey> \
-                                            --package-dir /home/willi/Downloads/ \
-                                            --force \
-                                            --source ftp:stage2`
+`python3 release_tester/download.py --enterprise \
+                                    --new-version '3.7.1-rc.1+0.501' \
+                                    --enterprise-magic <enterprisekey> \
+                                    --package-dir /home/willi/Downloads/ \
+                                    --force \
+                                    --source ftp:stage2`
 
 # Using `full_download_upgrade.py` for automated upgrade testing
 
-`full_download_upgrade.py` integrates `upgrade.py` and `acquire_packages.py`.
+`full_download_upgrade.py` integrates `upgrade.py` and `download_packages.py`.
 It will download `Enterprise` and `Community` packages, while `-nightly` will first attempt
 to resolve the proper version of the nightly package, since `-nightly` allways is a suffix to the latest released version + 1.
 
@@ -255,7 +255,7 @@ The scripts in the `deployment` directory will try to install all the required p
 
  - `release_tester/test.py` - main process flow, install, run test, uninstall
  - `release_tester/upgrade.py` - main upgrade process flow, install, run test, upgrade, test again, uninstall
- - `release_tester/acquire_packages.py` - download packages via our various distribution routes
+ - `release_tester/download.py` - download packages via our various distribution routes
  - `release_tester/cleanup.py` - remove files and installed packages etc.
  - `release_tester/installers/[base|nsis|tar|linux|deb|rpm|mac].py` distribution / OS specific [un]installation/upgrade automation
  - `release_tester/arangodb/instance.py` wraps one process of arangod / arangosync; detects its operation mode

@@ -4,9 +4,11 @@ from pathlib import Path
 
 import os
 import sys
+from io import BytesIO
 
 import shutil
 import time
+import tarfile
 
 import click
 from common_options import very_common_options, common_options, download_options
@@ -14,7 +16,7 @@ from common_options import very_common_options, common_options, download_options
 from beautifultable import BeautifulTable, ALIGN_LEFT
 
 import tools.loghelper as lh
-from acquire_packages import AcquirePackages
+from download import Download
 from reporting.reporting_utils import AllureTestSuiteContext
 from test import run_test
 from cleanup import run_cleanup
@@ -131,7 +133,7 @@ def package_test(
                 dl_new = None
                 fresh_new_content = None
                 if new_dlstage[j] != "local":
-                    dl_new = AcquirePackages(
+                    dl_new = Download(
                         new_version[j],
                         verbose,
                         package_dir,
@@ -283,7 +285,7 @@ def main(
         httpuser, httppassvoid, remote_host):
 # fmt: on
     """ main """
-    if (len(new_source) != len(new_version)):
+    if len(new_source) != len(new_version):
         raise Exception("""
 Cannot have different numbers of versions / sources: 
 new_version:  {len_new_version} {new_version}
@@ -295,9 +297,7 @@ new_source:   {len_new_source} {new_source}
                 new_source=str(new_source),
             )
         )
-    print('santoehu')
-    print(package_dir)
-    
+
     return package_test(
         verbose,
         workaround_nightly_versioning(new_version),

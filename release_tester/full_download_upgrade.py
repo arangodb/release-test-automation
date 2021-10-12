@@ -16,7 +16,7 @@ from common_options import very_common_options, common_options, download_options
 from beautifultable import BeautifulTable, ALIGN_LEFT
 
 import tools.loghelper as lh
-from acquire_packages import AcquirePackages
+from download import Download
 from reporting.reporting_utils import AllureTestSuiteContext
 from upgrade import run_upgrade
 from cleanup import run_cleanup
@@ -140,7 +140,7 @@ def upgrade_package_test(
                 fresh_old_content = None
                 fresh_new_content = None
                 if old_dlstage[j] != "local":
-                    dl_old = AcquirePackages(
+                    dl_old = Download(
                         old_version[j],
                         verbose,
                         package_dir,
@@ -159,7 +159,7 @@ def upgrade_package_test(
                         fresh_old_content = dl_old.get_version_info(old_dlstage[j], git_version)
 
                 if new_dlstage[j] != "local":
-                    dl_new = AcquirePackages(
+                    dl_new = Download(
                         new_version[j],
                         verbose,
                         package_dir,
