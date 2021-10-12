@@ -4,9 +4,11 @@ from pathlib import Path
 
 import os
 import sys
+from io import BytesIO
 
 import shutil
 import time
+import tarfile
 
 import click
 from common_options import very_common_options, common_options, download_options
@@ -14,7 +16,7 @@ from common_options import very_common_options, common_options, download_options
 from beautifultable import BeautifulTable, ALIGN_LEFT
 
 import tools.loghelper as lh
-from acquire_packages import AcquirePackages
+from download import Download
 from reporting.reporting_utils import AllureTestSuiteContext
 from test import run_test
 from cleanup import run_cleanup
@@ -50,7 +52,7 @@ def package_test(
     httpusername,
     httppassvoid,
     test_data_dir,
-    version_state_dir,
+    version_state_tar,
     remote_host,
     force,
     starter_mode,
@@ -71,6 +73,22 @@ def package_test(
     lh.configure_logging(verbose)
     list_all_processes()
     os.chdir(test_data_dir)
+
+    versions = {}
+    try:
+        fdesc = version_state_tar.open('rb')
+        tar = tarfile.open(fileobj=fdesc, mode='r:')
+        for member in tar:
+            print(member.name)
+            print(member.isfile())
+            if member.isfile():
+                versions[member.name] = tar.extractfile(
+                    member).read().decode(encoding='utf-8')
+        tar.close()
+        fdesc.close()
+    except FileNotFoundError:
+        pass
+    print(versions)
 
     results = []
     # do the actual work:
@@ -115,7 +133,7 @@ def package_test(
                 dl_new = None
                 fresh_new_content = None
                 if new_dlstage[j] != "local":
-                    dl_new = AcquirePackages(
+                    dl_new = Download(
                         new_version[j],
                         verbose,
                         package_dir,
@@ -128,9 +146,9 @@ def package_test(
                         remote_host,
                     )
                     if new_version[j].find("-nightly") >= 0:
-                        new_version_state = version_state_dir / Path(dl_new.cfg.version + "_sourceInfo.log")
-                        if new_version_state.exists():
-                            new_version_content = new_version_state.read_text()
+                        new_version_state = Path(dl_new.cfg.version + "_sourceInfo.log")
+                        if str(new_version_state) in versions:
+                            new_version_content = versions[str(new_version_state)]
                         fresh_new_content = dl_new.get_version_info(new_dlstage[j], git_version)
 
                 if new_dlstage[j] != "local":
@@ -215,16 +233,25 @@ def package_test(
         sys.exit(1)
 
     if not force:
-        old_version_state.write_text(fresh_old_content)
-        new_version_state.write_text(fresh_new_content)
+        fdesc = version_state_tar.open('wb')
+        tar = tarfile.open(fileobj=fdesc, mode='w:')
+
+        data = fresh_new_content.encode('utf-8')
+        file_obj = BytesIO(data)
+        info = tarfile.TarInfo(name=str(new_version_state))
+        info.size = len(data)
+        tar.addfile(tarinfo=info, fileobj=file_obj)
+
+        tar.close()
+        fdesc.close()
     return 0
 
 
 @click.command()
 @click.option(
-    "--version-state-dir",
-    default="/home/versions",
-    help="directory to remember the tested version combination in.",
+    "--version-state-tar",
+    default="/home/release-test-automation/versions.tar",
+    help="tar file with the version combination in.",
 )
 @click.option(
     "--git-version",
@@ -242,7 +269,7 @@ def package_test(
 # fmt: off
 # pylint: disable=R0913, disable=W0613
 def main(
-        version_state_dir,
+        version_state_tar,
         git_version,
         #very_common_options
         new_version, verbose, enterprise, package_dir, zip_package,
@@ -258,7 +285,7 @@ def main(
         httpuser, httppassvoid, remote_host):
 # fmt: on
     """ main """
-    if (len(new_source) != len(new_version)):
+    if len(new_source) != len(new_version):
         raise Exception("""
 Cannot have different numbers of versions / sources: 
 new_version:  {len_new_version} {new_version}
@@ -270,9 +297,7 @@ new_source:   {len_new_source} {new_source}
                 new_source=str(new_source),
             )
         )
-    print('santoehu')
-    print(package_dir)
-    
+
     return package_test(
         verbose,
         workaround_nightly_versioning(new_version),
@@ -284,7 +309,7 @@ new_source:   {len_new_source} {new_source}
         httpuser,
         httppassvoid,
         test_data_dir,
-        version_state_dir,
+        version_state_tar,
         remote_host,
         force,
         starter_mode,
