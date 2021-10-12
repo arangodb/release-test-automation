@@ -25,9 +25,9 @@ if [ ! "${TEST_FLOW}" -eq "test" ]; then
       old_version=${testset[0]}
       new_version=${testset[1]}
       ./release_tester/full_download_upgrade.py \
-        --old-version "${TEST_VERSION}" \
+        --old-version "${old_version}" \
         --old-source "${TEST_SOURCE}" \
-        --new-version "${TEST_VERSION}" \
+        --new-version "${new_version}" \
         --new-source "${TEST_SOURCE}"
         ${ARGS}
   done
