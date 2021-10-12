@@ -70,7 +70,7 @@ docker run \
        \
        "arangodb/${DOCKER_TAR_TAG}" \
        \
-          /home/release-test-automation/release_tester/full_download_upgrade_test.py \
+          /home/release-test-automation/release_tester/full_download_upgrade.py \
           --old-version "${OLD_VERSION}" \
           --new-version "${NEW_VERSION}" \
           --zip \
