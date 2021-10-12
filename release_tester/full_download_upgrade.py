@@ -265,6 +265,7 @@ def upgrade_package_test(
         sys.exit(1)
 
     if not force:
+        print("writing " + str(version_state_tar))
         fdesc = version_state_tar.open('wb')
         tar = tarfile.open(fileobj=fdesc, mode='w:')
 
