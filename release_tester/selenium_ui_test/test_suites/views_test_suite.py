@@ -16,7 +16,7 @@ class ViewsTestSuite(BaseTestSuite):
         views.select_views_tab()
 
         # checking 3.9 for improved views
-        version = BasePage.current_package_version(self)
+        version = super.current_package_version()
 
         if version == 3.9:
             print('Creating improved views start here \n')
