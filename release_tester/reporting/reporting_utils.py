@@ -8,8 +8,7 @@ from allure_commons._allure import attach, StepContext
 from allure_commons.logger import AllureFileLogger
 from allure_commons.model2 import Status
 from allure_commons.types import AttachmentType
-from beautifultable import BeautifulTable
-
+from tabulate import tabulate
 from reporting.helpers import AllureListener
 
 
@@ -19,6 +18,7 @@ def attach_table(table, title="HTML table"):
     <html>
     <style>
         table {
+          white-space: pre-line;
           border-collapse: collapse;
           font-family: Helvetica,Arial,sans-serif;
           font-size: 14px;
@@ -51,9 +51,8 @@ def attach_table(table, title="HTML table"):
     </html>
     """
     # pylint: disable=E1101
-    table.set_style(BeautifulTable.STYLE_MARKDOWN)
     template = Template(template_str)
-    html_table = markdown.markdown(str(table), extensions=["markdown.extensions.tables"])
+    html_table = tabulate(table, headers=table.column_headers, tablefmt='html')
     attach(template.substitute(html_table=html_table), title, AttachmentType.HTML)
 
 

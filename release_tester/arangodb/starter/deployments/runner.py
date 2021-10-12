@@ -32,6 +32,8 @@ from arangodb.sh import ArangoshExecutor
 
 from tools.killall import kill_all_processes
 
+from reporting.reporting_utils import attach_table
+
 FNRX = re.compile("[\n@ ]*")
 WINVER = platform.win32_ver()
 
@@ -206,7 +208,7 @@ class Runner(ABC):
             else:
                 os.environ["TMPDIR"] = str(tmpdir)
 
-    def progress(self, is_sub, msg, separator="x"):
+    def progress(self, is_sub, msg, separator="x", supress_allure=False):
         """report user message, record for error handling."""
         if self.selenium:
             self.state += self.selenium.get_progress()
@@ -221,8 +223,9 @@ class Runner(ABC):
             lh.section(msg, separator)
             self.state += "*** " + msg
 
-        with step("Progress: " + msg):
-            pass
+        if not supress_allure:
+            with step("Progress: " + msg):
+                pass
 
     def ask_continue_or_exit(self, msg, output, default=True, status=1):
         """ask the user whether to abort the execution or continue anyways"""
@@ -386,12 +389,14 @@ class Runner(ABC):
                 if not result.success:
                     success = False
             ui_test_results_table.columns.header = ["Name", "Result", "Message", "Traceback"]
-            self.progress(False, "UI test results table:")
-            self.progress(False, "\n" + str(ui_test_results_table))
+            self.progress(False, "UI test results table:", supress_allure=True)
+            self.progress(False, "\n" + str(ui_test_results_table), supress_allure=True)
 
             self.quit_selenium()
-            if not success:
-                raise Exception("There are failed UI tests")
+            with step("Inspect UI test results"):
+                attach_table(ui_test_results_table, "UI test results")
+                if not success:
+                    raise Exception("There are failed UI tests")
 
         self.progress(False, "Runner of type {0} - Finished!".format(str(self.name)))
 
