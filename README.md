@@ -35,6 +35,8 @@
    `sudo yum install gdb`
 - **plain pip**:
   `pip3 install psutil pyyaml pexpect requests click semver ftplib selenium beautifultable tabulate allure_python_commons certifi`
+  or:
+  `pip install -r requirements.txt`
 
 ## Mac OS
 :
