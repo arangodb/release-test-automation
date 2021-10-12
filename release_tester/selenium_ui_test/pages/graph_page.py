@@ -766,14 +766,17 @@ class GraphPage(NavigationBarPage):
         select_graph_setting_btn_sitem.click()
         self.wait_for_ajax()
 
+        time.sleep(0.1)
         confirm_delete_graph_sitem = self.locator_finder_by_text_id(self.confirm_delete_graph_id)
         confirm_delete_graph_sitem.click()
         self.wait_for_ajax()
 
+        time.sleep(0.1)
         delete_with_collection_sitem = self.locator_finder_by_text_id(self.delete_with_collection_id)
         delete_with_collection_sitem.click()
         self.wait_for_ajax()
 
+        time.sleep(0.1)
         select_really_delete_btn_sitem = self.locator_finder_by_id(self.select_really_delete_btn_id)
         select_really_delete_btn_sitem.click()
         self.wait_for_ajax()

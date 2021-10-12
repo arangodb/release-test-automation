@@ -319,7 +319,7 @@ class ViewsPage(NavigationBarPage):
     def checking_views(self, name, locator):
         """This method will check improved views"""
         print(f'Checking {name} started \n')
-        version = self.current_package_version(self)
+        version = self.current_package_version()
         self.driver.refresh()
 
         print(f"Selecting {name}'s settings button\n")
