@@ -75,41 +75,41 @@ class ViewsPage(NavigationBarPage):
 
     # selecting views tab
     def select_views_tab(self):
-        select_views_tab_sitem = self.locator_finder_by_xpath(self, self.select_views_tab_id)
+        select_views_tab_sitem = self.locator_finder_by_xpath(self.select_views_tab_id)
         select_views_tab_sitem.click()
 
     # creating new views tab
     def create_new_views(self, name):
         print(f'Creating {name} started \n')
-        create_new_views_sitem = self.locator_finder_by_xpath(self, self.create_new_views_id)
+        create_new_views_sitem = self.locator_finder_by_xpath(self.create_new_views_id)
         create_new_views_sitem.click()
 
         print('Naming new views \n')
-        naming_new_view_sitem = self.locator_finder_by_xpath(self, self.naming_new_view_id)
+        naming_new_view_sitem = self.locator_finder_by_xpath(self.naming_new_view_id)
         naming_new_view_sitem.click()
         naming_new_view_sitem.send_keys(name)
 
         print('Creating new views tab \n')
-        select_create_btn_sitem = self.locator_finder_by_xpath(self, self.select_create_btn_id)
+        select_create_btn_sitem = self.locator_finder_by_xpath(self.select_create_btn_id)
         select_create_btn_sitem.click()
         time.sleep(2)
         print(f'Creating {name} completed \n')
 
     # selecting view setting
     def select_views_settings(self):
-        select_views_settings_sitem = self.locator_finder_by_xpath(self, self.select_views_settings_id)
+        select_views_settings_sitem = self.locator_finder_by_xpath(self.select_views_settings_id)
         select_views_settings_sitem.click()
         time.sleep(3)
 
     # sorting multiple views into descending
     def select_sorting_views(self):
-        select_sorting_views_sitem = self.locator_finder_by_xpath(self, self.select_sorting_views_id)
+        select_sorting_views_sitem = self.locator_finder_by_xpath( self.select_sorting_views_id)
         select_sorting_views_sitem.click()
         time.sleep(3)
 
     # searching views
     def search_views(self, expected_text):
-        search_views_sitem = self.locator_finder_by_xpath(self, self.search_views_id)
+        search_views_sitem = self.locator_finder_by_xpath(self.search_views_id)
         search_views_sitem.click()
         search_views_sitem.clear()
         search_views_sitem.send_keys(expected_text)
@@ -118,67 +118,67 @@ class ViewsPage(NavigationBarPage):
         print(f'Checking that we get the right results for {expected_text}\n')
 
         if expected_text == 'firstView':
-            found = self.locator_finder_by_xpath(self, '//*[@id="firstView"]/div/h5').text
+            found = self.locator_finder_by_xpath('//*[@id="firstView"]/div/h5').text
             assert found == expected_text, f"Expected views title {expected_text} but got {found}"
 
         elif expected_text == 'secondView':
-            found = self.locator_finder_by_xpath(self, '//*[@id="secondView"]/div/h5').text
+            found = self.locator_finder_by_xpath('//*[@id="secondView"]/div/h5').text
             assert found == expected_text, f"Expected views title {expected_text} but got {found}"
 
     # selecting first view
     def select_first_view(self):
-        select_first_view_sitem = self.locator_finder_by_xpath(self, self.select_first_view_id)
+        select_first_view_sitem = self.locator_finder_by_xpath(self.select_first_view_id)
         select_first_view_sitem.click()
 
     # selecting collapse all btn
     def select_collapse_btn(self):
-        select_collapse_btn_sitem = self.locator_finder_by_xpath(self, self.select_collapse_btn_id)
+        select_collapse_btn_sitem = self.locator_finder_by_xpath(self.select_collapse_btn_id)
         select_collapse_btn_sitem.click()
         time.sleep(3)
 
     # selecting expand all btn
     def select_expand_btn(self):
-        select_expand_btn_sitem = self.locator_finder_by_xpath(self, self.select_expand_btn_id)
+        select_expand_btn_sitem = self.locator_finder_by_xpath(self.select_expand_btn_id)
         select_expand_btn_sitem.click()
         time.sleep(3)
 
     # selecting object tabs
     def select_editor_mode_btn(self):
-        select_editor_btn_sitem = self.locator_finder_by_xpath(self, self.select_editor_mode_btn_id)
+        select_editor_btn_sitem = self.locator_finder_by_xpath(self.select_editor_mode_btn_id)
         select_editor_btn_sitem.click()
         time.sleep(3)
 
     # switching editor mode to Code
     def switch_to_code_editor_mode(self):
         switch_to_code_editor_mode_sitem = \
-            self.locator_finder_by_xpath(self, self.switch_to_code_editor_mode_id)
+            self.locator_finder_by_xpath(self.switch_to_code_editor_mode_id)
         switch_to_code_editor_mode_sitem.click()
         time.sleep(3)
 
     # switching editor mode to Code compact view
     def compact_json_data(self):
-        compact_json_data_sitem = self.locator_finder_by_xpath(self, self.compact_json_data_id)
+        compact_json_data_sitem = self.locator_finder_by_xpath(self.compact_json_data_id)
         compact_json_data_sitem.click()
         time.sleep(3)
 
     # switching editor mode to Tree
     def switch_to_tree_editor_mode(self):
         switch_to_tree_editor_mode_sitem = \
-            self.locator_finder_by_xpath(self, self.switch_to_tree_editor_mode_id)
+            self.locator_finder_by_xpath(self.switch_to_tree_editor_mode_id)
         switch_to_tree_editor_mode_sitem.click()
         time.sleep(3)
 
     # Clicking on arangosearch documentation link
     def click_arangosearch_documentation_link(self):
         self.click_arangosearch_documentation_link_id = \
-            self.locator_finder_by_xpath(self, self.click_arangosearch_documentation_link_id)
+            self.locator_finder_by_xpath(self.click_arangosearch_documentation_link_id)
         title = self.switch_tab(self.click_arangosearch_documentation_link_id)
         expected_title = 'Views Reference | ArangoSearch | Indexing | Manual | ArangoDB Documentation'
         assert title in expected_title, f"Expected page title {expected_title} but got {title}"
 
     # Selecting search option inside views
     def select_inside_search(self, keyword):
-        select_inside_search_sitem = self.locator_finder_by_xpath(self, self.select_inside_search_id)
+        select_inside_search_sitem = self.locator_finder_by_xpath(self.select_inside_search_id)
         select_inside_search_sitem.click()
         select_inside_search_sitem.clear()
         select_inside_search_sitem.send_keys(keyword)
@@ -186,33 +186,33 @@ class ViewsPage(NavigationBarPage):
     # traverse search results down
     def search_result_traverse_down(self):
         search_result_traverse_down_sitem = \
-            self.locator_finder_by_xpath(self, self.search_result_traverse_down_id)
+            self.locator_finder_by_xpath(self.search_result_traverse_down_id)
         for x in range(8):
             search_result_traverse_down_sitem.click()
             time.sleep(1)
 
     # traverse search results up
     def search_result_traverse_up(self):
-        search_result_traverse_up_sitem = self.locator_finder_by_xpath(self, self.search_result_traverse_up_id)
+        search_result_traverse_up_sitem = self.locator_finder_by_xpath(self.search_result_traverse_up_id)
         for x in range(8):
             search_result_traverse_up_sitem.click()
             time.sleep(1)
 
     # Select Views rename btn
     def clicking_rename_views_btn(self):
-        clicking_rename_btn_sitem = self.locator_finder_by_id(self, self.clicking_rename_views_btn_id)
+        clicking_rename_btn_sitem = self.locator_finder_by_id(self.clicking_rename_views_btn_id)
         clicking_rename_btn_sitem.click()
 
     # changing view name
     def rename_views_name(self, name):
-        rename_views_name_sitem = self.locator_finder_by_xpath(self, self.rename_views_name_id)
+        rename_views_name_sitem = self.locator_finder_by_xpath(self.rename_views_name_id)
         rename_views_name_sitem.click()
         rename_views_name_sitem.clear()
         rename_views_name_sitem.send_keys(name)
 
     # Confirm rename views
     def rename_views_name_confirm(self):
-        rename_views_name_confirm_sitem = self.locator_finder_by_xpath(self, self.rename_views_name_confirm_id)
+        rename_views_name_confirm_sitem = self.locator_finder_by_xpath(self.rename_views_name_confirm_id)
         rename_views_name_confirm_sitem.click()
         time.sleep(2)
         self.driver.back()
@@ -221,13 +221,13 @@ class ViewsPage(NavigationBarPage):
     def create_improved_views(self, view_name, types):
         """This method will create the improved views for v3.9+"""
         print('Selecting views create button \n')
-        create_new_views_id = self.locator_finder_by_xpath(self, self.create_new_views_id)
+        create_new_views_id = self.locator_finder_by_xpath(self.create_new_views_id)
         create_new_views_id.click()
         time.sleep(2)
 
         print(f'Select name for the {view_name} \n')
         name_id = 'newName'
-        name_id_sitem = self.locator_finder_by_id(self, name_id)
+        name_id_sitem = self.locator_finder_by_id(name_id)
         name_id_sitem.click()
         name_id_sitem.clear()
         name_id_sitem.send_keys(view_name)
@@ -235,18 +235,18 @@ class ViewsPage(NavigationBarPage):
 
         print(f'Selecting primary compression for {view_name} \n')
         primary_compression = 'newPrimarySortCompression'
-        self.locator_finder_by_select(self, primary_compression, types)  # keep it default choice
+        self.locator_finder_by_select(primary_compression, types)  # keep it default choice
         time.sleep(2)
 
         print(f'Select primary sort for {view_name} \n')
         primary_sort = '//*[@id="accordion2"]/div/div[1]/a/span[2]/b'
-        primary_sort_sitem = self.locator_finder_by_xpath(self, primary_sort)
+        primary_sort_sitem = self.locator_finder_by_xpath(primary_sort)
         primary_sort_sitem.click()
         time.sleep(2)
 
         print(f'Select primary field for {view_name} \n')
         primary_field = '//*[@id="newPrimarySort-row-0"]/td[1]/input'
-        primary_field_sitem = self.locator_finder_by_xpath(self, primary_field)
+        primary_field_sitem = self.locator_finder_by_xpath(primary_field)
         primary_field_sitem.click()
         primary_field_sitem.clear()
         primary_field_sitem.send_keys('attr')
@@ -254,11 +254,11 @@ class ViewsPage(NavigationBarPage):
 
         print(f'Selecting direction for {view_name} \n')
         direction = '/html/body/div[1]/div/div[2]/div[1]/div/div[2]/div/table/tbody/tr/th/table/tbody/tr/td[2]/select'
-        self.locator_finder_by_select_using_xpath(self, direction, types)  # keep it default choice
+        self.locator_finder_by_select_using_xpath(direction, types)  # keep it default choice
 
         print(f'Select stored value for {view_name} \n')
         sorted_value = '//*[@id="accordion3"]/div/div[1]/a/span[2]/b'
-        sorted_value_sitem = self.locator_finder_by_xpath(self, sorted_value)
+        sorted_value_sitem = self.locator_finder_by_xpath(sorted_value)
         sorted_value_sitem.click()
         time.sleep(2)
 
@@ -266,7 +266,7 @@ class ViewsPage(NavigationBarPage):
         # # stored_field = "//div[contains(@id,'s2id_field')]"
         # stored_field = "/html/body/div[1]/div/div[2]/div[2]/div/div[2]/div/table/tbody/tr/th/table/tbody/tr/td[1]/div"
         #
-        # stored_field_sitem = self.locator_finder_by_xpath(self, stored_field)
+        # stored_field_sitem = self.locator_finder_by_xpath(stored_field)
         # stored_field_sitem.click()
         # stored_field_sitem.clear()
         # stored_field_sitem.send_keys('attr')
@@ -276,18 +276,18 @@ class ViewsPage(NavigationBarPage):
         print(f'Selecting stored direction for {view_name} \n')
         stored_direction = '/html/body/div[1]/div/div[2]/div[2]/div/div[2]/div/table/tbody' \
                            '/tr/th/table/tbody/tr/td[2]/select'
-        self.locator_finder_by_select_using_xpath(self, stored_direction, types)  # keep it default choice
+        self.locator_finder_by_select_using_xpath(stored_direction, types)  # keep it default choice
         time.sleep(2)
 
         print(f'Select advance options for {view_name} \n')
         advance_option = '//*[@id="accordion4"]/div/div[1]/a/span[2]/b'
-        advance_option_sitem = self.locator_finder_by_xpath(self, advance_option)
+        advance_option_sitem = self.locator_finder_by_xpath(advance_option)
         advance_option_sitem.click()
         time.sleep(2)
 
         print(f'Select write buffer value for {view_name} \n')
         write_buffer = 'newWriteBufferIdle'
-        write_buffer_sitem = self.locator_finder_by_id(self, write_buffer)
+        write_buffer_sitem = self.locator_finder_by_id(write_buffer)
         write_buffer_sitem.click()
         write_buffer_sitem.clear()
         write_buffer_sitem.send_keys('50')
@@ -295,7 +295,7 @@ class ViewsPage(NavigationBarPage):
 
         print(f'Select write buffer value for {view_name} \n')
         write_buffer_active = 'newWriteBufferActive'
-        write_buffer_active_sitem = self.locator_finder_by_id(self, write_buffer_active)
+        write_buffer_active_sitem = self.locator_finder_by_id(write_buffer_active)
         write_buffer_active_sitem.click()
         write_buffer_active_sitem.clear()
         write_buffer_active_sitem.send_keys('8')
@@ -303,14 +303,14 @@ class ViewsPage(NavigationBarPage):
 
         print(f'Select max write buffer value for {view_name} \n')
         max_buffer_size = 'newWriteBufferSizeMax'
-        max_buffer_size_sitem = self.locator_finder_by_id(self, max_buffer_size)
+        max_buffer_size_sitem = self.locator_finder_by_id(max_buffer_size)
         max_buffer_size_sitem.click()
         max_buffer_size_sitem.send_keys('33554434')
         time.sleep(2)
 
         print(f'Selecting creation button for {view_name} \n')
         max_buffer_size = 'modalButton1'
-        max_buffer_size_sitem = self.locator_finder_by_id(self, max_buffer_size)
+        max_buffer_size_sitem = self.locator_finder_by_id(max_buffer_size)
         max_buffer_size_sitem.click()
         max_buffer_size_sitem.send_keys('33554434')
         time.sleep(2)
@@ -336,7 +336,7 @@ class ViewsPage(NavigationBarPage):
             self.search_views("secondview")
 
         print(f'Selecting {name} for checking \n')
-        select_view_sitem = self.locator_finder_by_xpath(self, locator)
+        select_view_sitem = self.locator_finder_by_xpath(locator)
         select_view_sitem.click()
 
         self.select_collapse_btn()
@@ -375,19 +375,19 @@ class ViewsPage(NavigationBarPage):
         """This method will delete views"""
         self.driver.refresh()
         print(f'Selecting {name} for deleting \n')
-        select_view_sitem = self.locator_finder_by_xpath(self, locator)
+        select_view_sitem = self.locator_finder_by_xpath(locator)
         select_view_sitem.click()
         time.sleep(1)
 
-        delete_views_btn_sitem = self.locator_finder_by_id(self, self.delete_views_btn_id)
+        delete_views_btn_sitem = self.locator_finder_by_id(self.delete_views_btn_id)
         delete_views_btn_sitem.click()
         time.sleep(1)
 
-        delete_views_confirm_btn_sitem = self.locator_finder_by_xpath(self, self.delete_views_confirm_btn_id)
+        delete_views_confirm_btn_sitem = self.locator_finder_by_xpath(self.delete_views_confirm_btn_id)
         delete_views_confirm_btn_sitem.click()
         time.sleep(1)
 
-        final_delete_confirmation_sitem = self.locator_finder_by_id(self, self.final_delete_confirmation_id)
+        final_delete_confirmation_sitem = self.locator_finder_by_id(self.final_delete_confirmation_id)
         final_delete_confirmation_sitem.click()
         print(f'Selecting {name} for deleting completed \n')
         time.sleep(1)
