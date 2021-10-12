@@ -6,8 +6,10 @@ from selenium_ui_test.pages.nodes_page import NodesPage
 from selenium_ui_test.test_suites.base_classes.after_install_test_suite import AfterInstallTestSuite
 from selenium_ui_test.test_suites.base_test_suite import testcase
 
+from release_tester.selenium_ui_test.test_suites.base_test_suite import BaseTestSuite
 
-class ClusterWaitForUpgradeTestSuite(AfterInstallTestSuite):
+
+class ClusterWaitForUpgradeTestSuite(BaseTestSuite):
     """test cases to check the integrity of the old system after the upgrade (Cluster)"""
 
     @testcase
@@ -22,7 +24,7 @@ class ClusterWaitForUpgradeTestSuite(AfterInstallTestSuite):
         upgrade_done = False
         while not upgrade_done:
             try:
-                table = NodesPage().cluster_get_nodes_table(300)
+                table = NodesPage(self.webdriver).cluster_get_nodes_table(300)
             except StaleElementReferenceException:
                 self.progress(" skip once")
 
@@ -45,7 +47,7 @@ class ClusterWaitForUpgradeTestSuite(AfterInstallTestSuite):
                 raise TimeoutError("UI-Test: the cluster UI didn't show the new version in time")
         # the version doesn't update automatically, force refresh:
         self.webdriver.refresh()
-        ver = self.detect_version()
+        ver = NavigationBarPage(self.webdriver).detect_version()
         self.progress(" ver %s is %s?" % (str(ver), new_ver))
         self.ui_assert(ver["version"].lower().startswith(new_ver), "UI-Test: wrong version after upgrade")
         # TODO self.check_full_ui(new_cfg)

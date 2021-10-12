@@ -19,10 +19,6 @@ class Cluster(SeleniumRunner):
         self.jam_step_1_test_suite_list = [ClusterJamStepOneSuite]
         self.jam_step_2_test_suite_list = [ClusterJamStepTwoSuite]
 
-    def test_wait_for_upgrade(self):
-        """perform tests after upgrade (check whether the versions in the table switch etc.)"""
-        self.run_test_suites(self.wait_for_upgrade_test_suite_list)
-
     def jam_step_1(self):
         """check the integrity of the old system after jamming setup (first step)"""
         self.run_test_suites(self.jam_step_1_test_suite_list)

@@ -382,7 +382,7 @@ class BasePage:
             print(print_statement[i])  # print_statement will hold a list of all general print statements for the test
             locators = locators_id  # locator id of the input placeholder where testing will take place
             if div_id is not None:
-                locator_sitem = self.locator_finder_by_xpath(self, locators)
+                locator_sitem = self.locator_finder_by_xpath(locators)
             else:
                 locator_sitem = self.locator_finder_by_id(self, locators)
             locator_sitem.click()
@@ -394,7 +394,7 @@ class BasePage:
 
             if div_id is not None:
                 create_btn = f"/html/body/div[{div_id}]/div/div[3]/button[2]"
-                create_btn_sitem = self.locator_finder_by_xpath(self, create_btn)
+                create_btn_sitem = self.locator_finder_by_xpath(create_btn)
                 create_btn_sitem.click()
                 time.sleep(2)
 
@@ -403,7 +403,7 @@ class BasePage:
                 error_sitem = BasePage.locator_finder_by_xpath(self, error_message_id).text
                 print("Expected error found: ", error_sitem, "\n")
                 time.sleep(2)
-                error_sitem = self.locator_finder_by_xpath(self, error_message_id).text
+                error_sitem = self.locator_finder_by_xpath(error_message_id).text
                 # error_message list will hold expected error messages
                 assert (
                     error_sitem == error_message[i]

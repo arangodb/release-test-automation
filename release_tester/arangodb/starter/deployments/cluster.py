@@ -181,7 +181,7 @@ db.testCollection.save({test: "document"})
 
         self.starter_instances[1].command_upgrade()
         if self.selenium:
-            self.selenium.test_wait_for_upgrade(self.cfg, self.new_cfg, timeout=30)  # * 5s
+            self.selenium.test_wait_for_upgrade()  # * 5s
         self.starter_instances[1].wait_for_upgrade(300)
         if self.cfg.stress_upgrade:
             bench_instances[0].wait()
@@ -245,7 +245,7 @@ db.testCollection.save({test: "document"})
         self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
 
         if self.selenium:
-            self.selenium.test_wait_for_upgrade(self.cfg, self.new_cfg, timeout=30)  # * 5s
+            self.selenium.test_wait_for_upgrade()  # * 5s
 
     @step
     def jam_attempt_impl(self):

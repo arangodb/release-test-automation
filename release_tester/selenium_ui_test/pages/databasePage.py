@@ -68,7 +68,7 @@ class DatabasePage(NavigationBarPage):
 
         print(f"Logging into newly created {db_name} database \n")
         change = '//*[@id="dbStatus"]/a[3]/i'
-        change_db_sitem = self.locator_finder_by_xpath(self, change)
+        change_db_sitem = self.locator_finder_by_xpath(change)
         change_db_sitem.click()
         time.sleep(5)
 
@@ -89,7 +89,7 @@ class DatabasePage(NavigationBarPage):
         time.sleep(2)
 
         db_name = '//*[@id="dbStatus"]/a[2]/span'
-        db_name_sitem = self.locator_finder_by_xpath(self, db_name).text
+        db_name_sitem = self.locator_finder_by_xpath(db_name).text
 
         if index == 0:
             assert db_name_sitem == "SHARDED", f"Expected SHARDED but got {db_name_sitem}"
@@ -98,7 +98,7 @@ class DatabasePage(NavigationBarPage):
 
         print(f"Logging out from {db_name} database \n")
         db = '//*[@id="dbStatus"]/a[3]/i'
-        change_db_sitem = self.locator_finder_by_xpath(self, db)
+        change_db_sitem = self.locator_finder_by_xpath(db)
         change_db_sitem.click()
         time.sleep(4)
 
@@ -205,12 +205,12 @@ class DatabasePage(NavigationBarPage):
         time.sleep(1)
 
         ascending = self.sort_db
-        ascending_sitem = self.locator_finder_by_xpath(self, ascending)
+        ascending_sitem = self.locator_finder_by_xpath(ascending)
         ascending_sitem.click()
         time.sleep(2)
 
         descending = self.sort_db
-        descending_sitem = self.locator_finder_by_xpath(self, descending)
+        descending_sitem = self.locator_finder_by_xpath(descending)
         descending_sitem.click()
         time.sleep(2)
 
@@ -225,7 +225,7 @@ class DatabasePage(NavigationBarPage):
 
         try:
             collection_name = '//*[@id="userManagementView"]/div/div[2]/div/h5'
-            collection_name_sitem = self.locator_finder_by_xpath(self, collection_name).text
+            collection_name_sitem = self.locator_finder_by_xpath(collection_name).text
 
             if db_name == "Sharded":
                 assert "Sharded" == collection_name_sitem, f"Expected {db_name} but got {collection_name_sitem}"

@@ -5,6 +5,9 @@ from selenium_ui_test.test_suites.activefailover.after_install_test_suite import
 from selenium_ui_test.test_suites.activefailover.jam_1_test_suite import ActiveFailoverJamStepOneSuite
 from selenium_ui_test.test_suites.basic_test_suite import BasicTestSuite
 
+from selenium_ui_test.test_suites.activefailover.wait_for_upgrade_test_suite import \
+    ActiveFailoverWaitForUpgradeTestSuite
+
 
 class ActiveFailover(SeleniumRunner):
     """check the active failover setup and its properties"""
@@ -14,6 +17,7 @@ class ActiveFailover(SeleniumRunner):
         super().__init__(webdriver, is_headless, testrun_name, ssl)
         self.main_test_suite_list = [BasicTestSuite]
         self.after_install_test_suite_list = [ActiveFailoverAfterInstallTestSuite]
+        self.wait_for_upgrade_test_suite_list = [ActiveFailoverWaitForUpgradeTestSuite]
         self.jam_test_suite_list = [ActiveFailoverJamStepOneSuite]
 
     def test_jam_attempt(self):

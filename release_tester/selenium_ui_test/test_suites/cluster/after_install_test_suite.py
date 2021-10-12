@@ -14,7 +14,7 @@ class ClusterAfterInstallTestSuite(AfterInstallTestSuite):
     @testcase
     def check_old(self):
         """check the integrity of the old system before the upgrade"""
-        self.check_version()
+        self.check_version(self.cfg.version, self.is_enterprise)
 
         NavigationBarPage(self.webdriver).navbar_goto("nodes")
         nodes_page = NodesPage(self.webdriver)

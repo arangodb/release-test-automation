@@ -173,3 +173,7 @@ class SeleniumRunner(ABC):
     def test_after_install(self):
         """check the integrity of the old system before the upgrade"""
         self.run_test_suites(self.after_install_test_suite_list)
+
+    def test_wait_for_upgrade(self):
+        """perform tests after upgrade (check whether the versions in the table switch etc.)"""
+        self.run_test_suites(self.wait_for_upgrade_test_suite_list)

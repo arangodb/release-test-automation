@@ -158,12 +158,7 @@ class ActiveFailover(Runner):
         logging.info("instances are ready, detecting leader")
         self._detect_leader()
         if self.selenium:
-            self.selenium.set_instances(
-                self.cfg,
-                self.leader.arango_importer,
-                self.leader.arango_restore,
-                [x for x in self.leader.all_instances if x.instance_type == InstanceType.RESILIENT_SINGLE][0],
-            )
+            self.set_selenium_instances()
 
         # add data to leader
         self.makedata_instances.append(self.leader)
@@ -214,12 +209,7 @@ class ActiveFailover(Runner):
         if not ret[0]:
             raise Exception("check data failed " + ret[1])
         if self.selenium:
-            self.selenium.set_instances(
-                self.cfg,
-                self.leader.arango_importer,
-                self.leader.arango_restore,
-                [x for x in self.leader.all_instances if x.instance_type == InstanceType.RESILIENT_SINGLE][0],
-            )
+            self.set_selenium_instances()
             self.selenium.test_setup()
 
     def wait_for_restore_impl(self, backup_starter):
@@ -259,7 +249,7 @@ class ActiveFailover(Runner):
             node.detect_instance_pids()
         self.print_all_instances_table()
         if self.selenium:
-            self.selenium.test_after_install()
+            self.selenium.test_wait_for_upgrade()
 
     def upgrade_arangod_version_manual_impl(self):
         """manual upgrade this installation"""
@@ -291,7 +281,7 @@ class ActiveFailover(Runner):
         self.leader.maintainance(False, InstanceType.RESILIENT_SINGLE)
         self.print_all_instances_table()
         if self.selenium:
-            self.selenium.test_after_install()
+            self.selenium.test_wait_for_upgrade()
 
     def jam_attempt_impl(self):
         # pylint: disable=R0915
@@ -341,12 +331,7 @@ class ActiveFailover(Runner):
 
         if self.selenium:
             # cfg = self.new_cfg if self.new_cfg else self.cfg
-            self.selenium.set_instances(
-                self.cfg,
-                self.leader.arango_importer,
-                self.leader.arango_restore,
-                [x for x in self.leader.all_instances if x.instance_type == InstanceType.RESILIENT_SINGLE][0],
-            )
+            self.set_selenium_instances()
             self.selenium.test_jam_attempt()
 
         prompt_user(
@@ -380,13 +365,8 @@ please revalidate the UI states on the new leader; you should see *one* follower
         logging.info("state of this test is: %s", "Success" if self.success else "Failed")
         if self.selenium:
             # cfg = self.new_cfg if self.new_cfg else self.cfg
-            self.selenium.set_instances(
-                self.cfg,
-                self.leader.arango_importer,
-                self.leader.arango_restore,
-                [x for x in self.leader.all_instances if x.instance_type == InstanceType.RESILIENT_SINGLE][0],
-            )
-            self.selenium.test_after_install()
+            self.set_selenium_instances()
+            self.selenium.test_wait_for_upgrade()
 
     def shutdown_impl(self):
         for node in self.starter_instances:
@@ -410,4 +390,5 @@ please revalidate the UI states on the new leader; you should see *one* follower
             self.leader.arango_importer,
             self.leader.arango_restore,
             [x for x in self.leader.all_instances if x.instance_type == InstanceType.RESILIENT_SINGLE][0],
+            self.new_cfg,
         )

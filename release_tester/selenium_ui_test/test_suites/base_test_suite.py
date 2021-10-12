@@ -12,6 +12,9 @@ from datetime import datetime
 
 from reporting.reporting_utils import step
 
+from selenium_ui_test.pages.navbar import NavigationBarPage
+from semver import VersionInfo
+
 
 class BaseTestSuite(ABC):
     def __init__(self, selenium_runner, child_classes=[]):
@@ -150,6 +153,18 @@ class BaseTestSuite(ABC):
             screenshot = self.webdriver.get_screenshot_as_png()
         self.progress("Saving screenshot to file: %s" % filename)
         attach(screenshot, name="Screenshot ({fn})".format(fn=filename), attachment_type=AttachmentType.PNG)
+
+    def check_version(self, expected_version: VersionInfo, is_enterprise: bool):
+        """validate the version displayed in the UI"""
+        ver = NavigationBarPage(self.webdriver).detect_version()
+        self.progress(" %s ~= %s?" % (ver["version"].lower(), str(expected_version).lower()))
+        assert ver["version"].lower().lower().startswith(str(expected_version)), (
+                "UI-Test: wrong version: '" + str(ver["version"]).lower() +
+                "' vs '" + str(expected_version).lower() + "'")
+        if is_enterprise:
+            assert ver["enterprise"] == "ENTERPRISE EDITION", "UI-Test: expected enterprise"
+        else:
+            assert ver["enterprise"] == "COMMUNITY EDITION", "UI-Test: expected community"
 
 
 def testcase(title):
