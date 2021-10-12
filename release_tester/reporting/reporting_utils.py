@@ -3,7 +3,6 @@ from string import Template
 from uuid import uuid4
 
 import allure_commons
-import markdown
 from allure_commons._allure import attach, StepContext
 from allure_commons.logger import AllureFileLogger
 from allure_commons.model2 import Status
