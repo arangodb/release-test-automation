@@ -381,79 +381,171 @@ class CollectionPage(NavigationBarPage):
         """Selecting index menu from collection"""
         self.click_submenu_entry("Indexes")
 
-    def create_new_index_btn(self):
-        """Selecting index menu from collection"""
-        create_new_index_btn_sitem = self.locator_finder_by_id(self.create_new_index_btn_id)
+    # def create_new_index_btn(self):
+    #     """Selecting index menu from collection"""
+    #     create_new_index_btn_sitem = self.locator_finder_by_id(self.create_new_index_btn_id)
+    #     create_new_index_btn_sitem.click()
+    #     time.sleep(2)
+    #     self.wait_for_ajax()
+
+    # def select_index_type(self, value):
+    #     """Selecting type of index here: Geo, Persistent, Fulltext or TTL"""
+    #     self.select_value(self.select_index_type_id, value)
+
+    # def select_create_index_btn(self):
+    #     """Selecting index menu from collection"""
+    #     select_create_index_btn_sitem = self.locator_finder_by_text_id(self.select_create_index_btn_id)
+    #     select_create_index_btn_sitem.click()
+    #     time.sleep(2)
+    #     self.wait_for_ajax()
+
+    # def creating_geo_index(self):
+    #     """Filling up all the information for geo index"""
+    #     select_geo_fields_sitem = self.locator_finder_by_hover_item_id(self.select_geo_fields_id)
+    #     select_geo_fields_sitem.send_keys("gfields").perform()
+    #     select_geo_name_sitem = self.locator_finder_by_hover_item_id(self.select_geo_name_id)
+    #     select_geo_name_sitem.send_keys("gname").perform()
+    #     self.locator_finder_by_hover_item_id(self.select_geo_json_id)
+    #     self.locator_finder_by_hover_item_id(self.select_geo_background_id)
+    #     time.sleep(2)
+    #     self.wait_for_ajax()
+
+    # def creating_persistent_index(self):
+    #     """Filling up all the information for persistent index"""
+    #     select_persistent_fields_sitem = self.locator_finder_by_hover_item_id(self.select_persistent_fields_id)
+    #     select_persistent_fields_sitem.send_keys("pfields").perform()
+    #     select_persistent_name_sitem = self.locator_finder_by_hover_item_id(self.select_persistent_name_id)
+    #     select_persistent_name_sitem.send_keys("pname").perform()
+    #     self.locator_finder_by_hover_item_id(self.select_persistent_unique_id)
+    #     self.locator_finder_by_hover_item_id(self.select_persistent_sparse_id)
+    #     self.locator_finder_by_hover_item_id(self.select_persistent_duplicate_id)
+    #     self.locator_finder_by_hover_item_id(self.select_persistent_background_id)
+    #     time.sleep(2)
+    #     self.wait_for_ajax()
+
+    # def creating_fulltext_index(self):
+    #     """Filling up all the information for Fulltext index"""
+    #     select_fulltext_field_sitem = self.locator_finder_by_hover_item_id(self.select_fulltext_field_id)
+    #     select_fulltext_field_sitem.send_keys("ffields").perform()
+    #     select_fulltext_name_sitem = self.locator_finder_by_hover_item_id(self.select_fulltext_name_id)
+    #     select_fulltext_name_sitem.send_keys("fname").perform()
+    #     select_fulltext_length_sitem = self.locator_finder_by_hover_item_id(self.select_fulltext_length_id)
+    #     select_fulltext_length_sitem.send_keys(100)
+    #     self.locator_finder_by_hover_item_id(self.select_fulltext_background_id)
+    #     time.sleep(2)
+    #     self.wait_for_ajax()
+
+    # def creating_ttl_index(self):
+    #     """Filling up all the information for TTL index"""
+    #     select_ttl_field_sitem = self.locator_finder_by_hover_item_id(self.select_ttl_field_id)
+    #     select_ttl_field_sitem.send_keys("tfields").perform()
+    #     select_ttl_name_sitem = self.locator_finder_by_hover_item_id(self.select_ttl_name_id)
+    #     select_ttl_name_sitem.send_keys("tname").perform()
+    #     select_ttl_expiry_sitem = self.locator_finder_by_hover_item_id(self.select_ttl_expiry_id)
+    #     select_ttl_expiry_sitem.send_keys(1000)
+    #     self.locator_finder_by_hover_item_id(self.select_ttl_background_id)
+    #     time.sleep(2)
+    #     self.wait_for_ajax()
+
+    def create_new_index(self, index_name, value):
+        print(f"Creating {index_name} index started \n")
+        create_new_index_btn_sitem = self.locator_finder_by_id(self, self.create_new_index_btn_id)
         create_new_index_btn_sitem.click()
         time.sleep(2)
-        self.wait_for_ajax()
 
-    def select_index_type(self, value):
-        """Selecting type of index here: Geo, Persistent, Fulltext or TTL"""
-        self.select_value(self.select_index_type_id, value)
+        print(f"selecting {index_name} from the list\n")
+        self.locator_finder_by_select(self, self.select_index_type_id, value)
 
-    def select_create_index_btn(self):
-        """Selecting index menu from collection"""
-        select_create_index_btn_sitem = self.locator_finder_by_text_id(self.select_create_index_btn_id)
+        if index_name == "Persistent":
+            self.select_persistent_fields_id = self.locator_finder_by_hover_item_id(
+                self, self.select_persistent_fields_id
+            )
+            time.sleep(1)
+            self.select_persistent_fields_id.send_keys("pfields").perform()
+            self.select_persistent_name_id = self.locator_finder_by_hover_item_id(self, self.select_persistent_name_id)
+            self.select_persistent_name_id.send_keys("pname").perform()
+            time.sleep(1)
+            self.select_persistent_unique_id = self.locator_finder_by_hover_item_id(
+                self, self.select_persistent_unique_id
+            )
+            self.select_persistent_sparse_id = self.locator_finder_by_hover_item_id(
+                self, self.select_persistent_sparse_id
+            )
+            self.select_persistent_duplicate_id = self.locator_finder_by_hover_item_id(
+                self, self.select_persistent_duplicate_id
+            )
+            self.select_persistent_background_id = self.locator_finder_by_hover_item_id(
+                self, self.select_persistent_background_id
+            )
+            time.sleep(1)
+
+        elif index_name == "Geo":
+            self.select_geo_fields_id = self.locator_finder_by_hover_item_id(self, self.select_geo_fields_id)
+            self.select_geo_fields_id.send_keys("gfields").perform()
+            time.sleep(1)
+            self.select_geo_name_id = self.locator_finder_by_hover_item_id(self, self.select_geo_name_id)
+            self.select_geo_name_id.send_keys("gname").perform()
+            time.sleep(1)
+            self.select_geo_json_id = self.locator_finder_by_hover_item_id(self, self.select_geo_json_id)
+            self.select_geo_background_id = self.locator_finder_by_hover_item_id(self, self.select_geo_background_id)
+            time.sleep(1)
+            self.wait_for_ajax()
+
+        elif index_name == "Fulltext":
+            self.select_fulltext_field_id = self.locator_finder_by_hover_item_id(self, self.select_fulltext_field_id)
+            self.select_fulltext_field_id.send_keys("ffields").perform()
+            time.sleep(1)
+            self.select_fulltext_name_id = self.locator_finder_by_hover_item_id(self, self.select_fulltext_name_id)
+            self.select_fulltext_name_id.send_keys("fname").perform()
+            time.sleep(1)
+            self.select_fulltext_length_id = self.locator_finder_by_hover_item_id(self, self.select_fulltext_length_id)
+            self.select_fulltext_length_id.send_keys(100)
+            self.select_fulltext_background_id = self.locator_finder_by_hover_item_id(
+                self, self.select_fulltext_background_id
+            )
+            time.sleep(1)
+            self.wait_for_ajax()
+
+        elif index_name == "TTL":
+            self.select_ttl_field_id = self.locator_finder_by_hover_item_id(self, self.select_ttl_field_id)
+            self.select_ttl_field_id.send_keys("tfields").perform()
+            time.sleep(1)
+            self.select_ttl_name_id = self.locator_finder_by_hover_item_id(self, self.select_ttl_name_id)
+            self.select_ttl_name_id.send_keys("tname").perform()
+            time.sleep(1)
+            self.select_ttl_expiry_id = self.locator_finder_by_hover_item_id(self, self.select_ttl_expiry_id)
+            self.select_ttl_expiry_id.send_keys(1000)
+            self.select_ttl_background_id = self.locator_finder_by_hover_item_id(self, self.select_ttl_background_id)
+            time.sleep(1)
+            self.wait_for_ajax()
+
+        # experimental feature
+        elif index_name == "ZKD":
+            select_zkd_field_sitem = self.locator_finder_by_id(self, "newZkdFields")
+            select_zkd_field_sitem.click()
+            select_zkd_field_sitem.clear()
+            select_zkd_field_sitem.send_keys("zkdfileds")
+
+            select_zkd_name_sitem = self.locator_finder_by_id(self, "newZkdName")
+            select_zkd_name_sitem.click()
+            select_zkd_name_sitem.clear()
+            select_zkd_name_sitem.send_keys("zkdname")
+
+        select_create_index_btn_sitem = self.locator_finder_by_id(self, self.select_create_index_btn_id)
         select_create_index_btn_sitem.click()
         time.sleep(2)
         self.wait_for_ajax()
 
-    def creating_geo_index(self):
-        """Filling up all the information for geo index"""
-        select_geo_fields_sitem = self.locator_finder_by_hover_item_id(self.select_geo_fields_id)
-        select_geo_fields_sitem.send_keys("gfields").perform()
-        select_geo_name_sitem = self.locator_finder_by_hover_item_id(self.select_geo_name_id)
-        select_geo_name_sitem.send_keys("gname").perform()
-        self.locator_finder_by_hover_item_id(self.select_geo_json_id)
-        self.locator_finder_by_hover_item_id(self.select_geo_background_id)
-        time.sleep(2)
-        self.wait_for_ajax()
+        print(f"Creating {index_name} index completed \n")
 
-    def creating_persistent_index(self):
-        """Filling up all the information for persistent index"""
-        select_persistent_fields_sitem = self.locator_finder_by_hover_item_id(self.select_persistent_fields_id)
-        select_persistent_fields_sitem.send_keys("pfields").perform()
-        select_persistent_name_sitem = self.locator_finder_by_hover_item_id(self.select_persistent_name_id)
-        select_persistent_name_sitem.send_keys("pname").perform()
-        self.locator_finder_by_hover_item_id(self.select_persistent_unique_id)
-        self.locator_finder_by_hover_item_id(self.select_persistent_sparse_id)
-        self.locator_finder_by_hover_item_id(self.select_persistent_duplicate_id)
-        self.locator_finder_by_hover_item_id(self.select_persistent_background_id)
-        time.sleep(2)
-        self.wait_for_ajax()
-
-    def creating_fulltext_index(self):
-        """Filling up all the information for Fulltext index"""
-        select_fulltext_field_sitem = self.locator_finder_by_hover_item_id(self.select_fulltext_field_id)
-        select_fulltext_field_sitem.send_keys("ffields").perform()
-        select_fulltext_name_sitem = self.locator_finder_by_hover_item_id(self.select_fulltext_name_id)
-        select_fulltext_name_sitem.send_keys("fname").perform()
-        select_fulltext_length_sitem = self.locator_finder_by_hover_item_id(self.select_fulltext_length_id)
-        select_fulltext_length_sitem.send_keys(100)
-        self.locator_finder_by_hover_item_id(self.select_fulltext_background_id)
-        time.sleep(2)
-        self.wait_for_ajax()
-
-    def creating_ttl_index(self):
-        """Filling up all the information for TTL index"""
-        select_ttl_field_sitem = self.locator_finder_by_hover_item_id(self.select_ttl_field_id)
-        select_ttl_field_sitem.send_keys("tfields").perform()
-        select_ttl_name_sitem = self.locator_finder_by_hover_item_id(self.select_ttl_name_id)
-        select_ttl_name_sitem.send_keys("tname").perform()
-        select_ttl_expiry_sitem = self.locator_finder_by_hover_item_id(self.select_ttl_expiry_id)
-        select_ttl_expiry_sitem.send_keys(1000)
-        self.locator_finder_by_hover_item_id(self.select_ttl_background_id)
-        time.sleep(2)
-        self.wait_for_ajax()
-
+    # this method will delete all the indexes one by one
     def delete_all_index(self):
-        """this method will delete all the indexes one by one"""
-        select_index_for_delete_sitem = self.locator_finder_by_text_xpath(self.select_index_for_delete_id)
+        select_index_for_delete_sitem = self.locator_finder_by_xpath(self, self.select_index_for_delete_id)
         select_index_for_delete_sitem.click()
-        select_index_confirm_delete_sitem = self.locator_finder_by_text_id(self.select_index_confirm_delete)
+
+        select_index_confirm_delete_sitem = self.locator_finder_by_id(self, self.select_index_confirm_delete)
         select_index_confirm_delete_sitem.click()
-        self.webdriver.refresh()
+        self.driver.refresh()
 
     def select_info_tab(self):
         """Selecting info tab from the collection submenu"""
