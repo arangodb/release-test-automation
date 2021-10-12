@@ -28,7 +28,10 @@ class ViewsTestSuite(BaseTestSuite):
             views.checking_views('improved_arangosearch_view', views.select_improved_arangosearch_view)
 
             print('Deleting views started \n')
-            views.delete_views('improved_arangosearch_view', views.select_modified_views_name)
+            if not self.is_cluster:
+                views.delete_views('improved_arangosearch_view', views.select_improved_arangosearch_view)
+            else:
+                views.delete_views('improved_arangosearch_view', views.select_modified_views_name)
             views.delete_views('improved_arangosearch_view01', views.select_improved_arangosearch_view_01)
             print('Deleting views completed \n')
 
