@@ -25,12 +25,10 @@ else
     force_arg+=(--remote-host "$(host nas02.arangodb.biz |sed "s;.* ;;")")
 fi
 
-VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_deb_version"
+VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_deb_version.tar"
 mkdir -p "${PACKAGE_CACHE}"
-mkdir -p "${VERSION_TAR_NAME}"
 mkdir -p test_dir
 mkdir -p allure-results
-tar -xvf ${VERSION_TAR_NAME}.tar || true
 
 DOCKER_DEB_NAME=release-test-automation-deb
 
@@ -55,7 +53,6 @@ docker run \
        -v "$(pwd)/test_dir:/home/test_dir" \
        -v "$(pwd)/allure-results:/home/allure-results" \
        -v "${PACKAGE_CACHE}:/home/package_cache" \
-       -v "$(pwd)/${VERSION_TAR_NAME}:/home/versions" \
        -v /tmp/tmp:/tmp/ \
        -v /dev/shm:/dev/shm \
        -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
@@ -72,7 +69,8 @@ docker run \
 
 docker exec \
           "${DOCKER_DEB_NAME}" \
-          /home/release-test-automation/release_tester/full_download_upgrade_test.py \
+          /home/release-test-automation/release_tester/full_download_upgrade.py \
+          --version-state-tar "/home/release-test-automation/${VERSION_TAR_NAME}" \
           --old-version "${OLD_VERSION}" \
           --new-version "${NEW_VERSION}" \
           --no-zip \
@@ -98,7 +96,6 @@ docker run \
 
 if test "${result}" -eq "0"; then
     echo "OK"
-    tar -cvf "${VERSION_TAR_NAME}.tar" "${VERSION_TAR_NAME}"
 else
     echo "FAILED DEB!"
     exit 1

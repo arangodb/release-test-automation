@@ -14,7 +14,7 @@ import requests
 from common_options import very_common_options, download_options
 
 
-class AcquirePackages:
+class Download:
     """manage package downloading from any known arango package source"""
 
     # pylint: disable=R0913 disable=R0902
@@ -250,7 +250,7 @@ def main(
 # fmt: on
     """ main wrapper """
     lh.configure_logging(verbose)
-    downloader = AcquirePackages(
+    downloader = Download(
         new_version,
         verbose,
         package_dir,

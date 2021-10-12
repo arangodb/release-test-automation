@@ -8,6 +8,8 @@ from pathlib import PureWindowsPath
 import shutil
 import time
 import winreg
+import os
+import re
 
 from allure_commons._allure import attach
 from allure_commons.types import AttachmentType
@@ -347,11 +349,12 @@ class InstallerW(InstallerBase):
 
     def count_backup_dirs(self):
         """get the number of backup paths on disk"""
-        regex = (
-            str(PureWindowsPath(self.cfg.dbdir))
-            + "_[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_[0-9][0-9]_[0-9][0-9]_[0-9][0-9]"
-        )
-        return len(glob.glob(regex))
+        backups_dir_path = str((self.cfg.dbdir / "..").resolve())
+        regex = os.path.basename(self.cfg.dbdir) + "_\d{4}-\d{1,2}-\d{1,2}_\d{1,2}_\d{1,2}_\d{1,2}"
+        backups_dir_contents = os.listdir(backups_dir_path)
+        backups = [d for d in backups_dir_contents if re.match(regex, d)]
+        print("Found %d backup dirs:\n %s" % (len(backups), str(backups)))
+        return len(backups)
 
     @step
     def check_backup_is_created(self):

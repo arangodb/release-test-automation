@@ -13,7 +13,7 @@ import semver
 from arangodb.installers.linux import InstallerLinux
 from tools.asciiprint import ascii_print, print_progress as progress
 import tools.loghelper as lh
-import glob
+import re
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
@@ -283,8 +283,12 @@ class InstallerDeb(InstallerLinux):
             shutil.rmtree(self.cfg.cfgdir)
 
     def count_backup_dirs(self):
-        regex = "/var/lib/arangodb3-[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]"
-        return len(glob.glob(regex))
+        backups_dir_path = str((self.cfg.dbdir / "..").resolve())
+        regex = os.path.basename(self.cfg.dbdir) + "-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}"
+        backups_dir_contents = os.listdir(backups_dir_path)
+        backups = [d for d in backups_dir_contents if re.match(regex, d)]
+        print("Found %d backup dirs:\n %s" % (len(backups), str(backups)))
+        return len(backups)
 
     @step
     def check_backup_is_created(self):
