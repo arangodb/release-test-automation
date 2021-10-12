@@ -71,17 +71,21 @@ def package_test(
     lh.configure_logging(verbose)
     list_all_processes()
     os.chdir(test_data_dir)
-    versions = {}
-    fdesc = version_state_tar.open('rb')
-    tar = tarfile.open(fileobj=fdesc, mode='r:')
-    for member in tar:
-        print(member.name)
-        print(member.isfile())
-        if member.isfile():
-            versions[member.name] = tar.extractfile(member).read().decode(encoding='utf-8')
-    tar.close()
-    fdesc.close()
 
+    versions = {}
+    try:
+        fdesc = version_state_tar.open('rb')
+        tar = tarfile.open(fileobj=fdesc, mode='r:')
+        for member in tar:
+            print(member.name)
+            print(member.isfile())
+            if member.isfile():
+                versions[member.name] = tar.extractfile(
+                    member).read().decode(encoding='utf-8')
+        tar.close()
+    fdesc.close()
+    except FileNotFoundError:
+        pass
     print(versions)
 
     results = []
