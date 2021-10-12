@@ -1,34 +1,34 @@
 #!/bin/bash
 
-# ./jenkins/qa-tester.sh 3.7.15 "3.6.15:3.7.15;3.7.14:3.7.15;3.7.15:3.8.1" ftp:stage2 --zip
+# ./jenkins/qa-tester.sh upgrade 3.7.15 "3.6.15:3.7.15;3.7.14:3.7.15;3.7.15:3.8.1" ftp:stage2 --zip
 
+TEST_FLOW=$1
+shift
 TEST_VERSION=$1
 shift
-ALL_TESTCASES=$1
-shift
+if [ "${TEST_FLOW}" -eq "upgrade" ] || [ "${TEST_FLOW}" -eq "all" ]; then
+  ALL_UPGRADES=$1
+  shift
+fi
 TEST_SOURCE=$1
 shift
 
 ARGS=("${@}")
 
-for testpair in ${ALL_TESTCASES//;/ }; do
-    testset=("${testpair//:/ }")
-    old_version=${testset[0]}
-    new_version=${testset[1]}
-    if test "${old_version}" == "${TEST_VERSION}"; then
-        ARGS+=('--old-version' "${TEST_VERSION}" --old-source "${TEST_SOURCE}")
-    else
-        ARGS+=('--old-version' "${old_version}" --old-source "public")
-    fi
+if [ "${TEST_FLOW}" -eq "all" ] || [ "${TEST_FLOW}" -eq "test" ]; then
+  ./release_rester/full_download_test.py --new-version ${TEST_VERSION} --source ${TEST_SOURCE} ${ARGS}  
+fi
 
-    if test "${new_version}" == "${TEST_VERSION}"; then
-        ARGS+=('--new-version' "${TEST_VERSION}" --new-source "${TEST_SOURCE}")
-    else
-        ARGS+=('--new-version' "${new_version}" --new-source "public")
-    fi
-
-done
-
-echo "${ARGS[@]}"
-
-./release_tester/full_download_upgrade_test.py "${ARGS[@]}"
+if [ ! "${TEST_FLOW}" -eq "test" ]; then
+  for testpair in ${ALL_UPGRADES//;/ }; do
+      testset=("${testpair//:/ }")
+      old_version=${testset[0]}
+      new_version=${testset[1]}
+      ./release_tester/full_download_upgrade.py \
+        --old-version "${TEST_VERSION}" \
+        --old-source "${TEST_SOURCE}" \
+        --new-version "${TEST_VERSION}" \
+        --new-source "${TEST_SOURCE}"
+        ${ARGS}
+  done
+fi
