@@ -781,7 +781,7 @@ class GraphPage(NavigationBarPage):
         select_really_delete_btn_sitem.click()
         self.wait_for_ajax()
 
-        self.driver.refresh()
+        self.webdriver.refresh()
 
 
 GRAPH_SETS = [

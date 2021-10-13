@@ -131,7 +131,7 @@ class AnalyzerPage(NavigationBarPage):
     def add_new_analyzer(self, name, index, div_id):
         """Adding analyzer type delimiter with necessary features"""
         self.select_analyzers_page()
-        self.driver.refresh()
+        self.webdriver.refresh()
 
         print("Selecting add new analyzer button \n")
         add_analyzer = self.add_new_analyzer_btn
@@ -617,7 +617,7 @@ class AnalyzerPage(NavigationBarPage):
         """checking the filter option on Analyzer tab"""
         self.select_analyzers_page()
         # select the built in analyzer list for checking filter option if builtIn tik enabled
-        self.driver.refresh()
+        self.webdriver.refresh()
         if builtin:
             self.select_built_in_analyzers_open()
         # select filter placeholder for input search term
@@ -655,7 +655,7 @@ class AnalyzerPage(NavigationBarPage):
     def test_analyzer_expected_error(self, name, index, div_id):
         """testing analyzers negative scenarios"""
         self.select_analyzers_page()
-        self.driver.refresh()
+        self.webdriver.refresh()
 
         print("Selecting add new analyzer button \n")
         add_analyzer = self.add_new_analyzer_btn
@@ -853,7 +853,7 @@ class AnalyzerPage(NavigationBarPage):
     def delete_analyzer(self, analyzer_name):
         """Deleting all the analyzer using their ID"""
         self.select_analyzers_page()
-        self.driver.refresh()
+        self.webdriver.refresh()
 
         print(f"Deletion of {analyzer_name} started \n")
         analyzer_delete_icon = '//*[@id="analyzersContent"]/div/div/table/tbody/tr[1]/td[4]/button[2]/i'

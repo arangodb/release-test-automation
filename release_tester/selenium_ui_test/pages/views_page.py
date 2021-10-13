@@ -314,13 +314,13 @@ class ViewsPage(NavigationBarPage):
         max_buffer_size_sitem.click()
         max_buffer_size_sitem.send_keys('33554434')
         time.sleep(2)
-        self.driver.refresh()
+        self.webdriver.refresh()
 
     def checking_views(self, name, locator):
         """This method will check improved views"""
         print(f'Checking {name} started \n')
         version = self.current_package_version()
-        self.driver.refresh()
+        self.webdriver.refresh()
 
         print(f"Selecting {name}'s settings button\n")
         self.select_views_settings()
@@ -373,7 +373,7 @@ class ViewsPage(NavigationBarPage):
 
     def delete_views(self, name, locator):
         """This method will delete views"""
-        self.driver.refresh()
+        self.webdriver.refresh()
         print(f'Selecting {name} for deleting \n')
         select_view_sitem = self.locator_finder_by_xpath(locator)
         select_view_sitem.click()

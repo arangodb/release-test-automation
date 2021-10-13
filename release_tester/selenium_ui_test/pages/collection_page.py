@@ -547,7 +547,7 @@ class CollectionPage(NavigationBarPage):
 
         select_index_confirm_delete_sitem = self.locator_finder_by_id(self, self.select_index_confirm_delete)
         select_index_confirm_delete_sitem.click()
-        self.driver.refresh()
+        self.webdriver.refresh()
 
     def select_info_tab(self):
         """Selecting info tab from the collection submenu"""
