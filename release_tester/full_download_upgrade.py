@@ -139,43 +139,41 @@ def upgrade_package_test(
                 dl_new = None
                 fresh_old_content = None
                 fresh_new_content = None
-                if old_dlstage[j] != "local":
-                    dl_old = Download(
-                        old_version[j],
-                        verbose,
-                        package_dir,
-                        enterprise,
-                        enterprise_magic,
-                        zip_package,
-                        old_dlstage[j],
-                        httpusername,
-                        httppassvoid,
-                        remote_host,
-                    )
-                    if old_version[j].find("-nightly") >= 0:
-                        old_version_state = Path(dl_old.cfg.version + "_sourceInfo.log")
-                        if str(old_version_state) in versions:
-                            old_version_content = versions[str(old_version_state)]
-                        fresh_old_content = dl_old.get_version_info(old_dlstage[j], git_version)
+                dl_old = Download(
+                    old_version[j],
+                    verbose,
+                    package_dir,
+                    enterprise,
+                    enterprise_magic,
+                    zip_package,
+                    old_dlstage[j],
+                    httpusername,
+                    httppassvoid,
+                    remote_host,
+                )
+                if old_version[j].find("-nightly") >= 0:
+                    old_version_state = Path(dl_old.cfg.version + "_sourceInfo.log")
+                    if str(old_version_state) in versions:
+                        old_version_content = versions[str(old_version_state)]
+                    fresh_old_content = dl_old.get_version_info(git_version)
 
-                if new_dlstage[j] != "local":
-                    dl_new = Download(
-                        new_version[j],
-                        verbose,
-                        package_dir,
-                        enterprise,
-                        enterprise_magic,
-                        zip_package,
-                        new_dlstage[j],
-                        httpusername,
-                        httppassvoid,
-                        remote_host,
-                    )
-                    if new_version[j].find("-nightly") >= 0:
-                        new_version_state = Path(dl_new.cfg.version + "_sourceInfo.log")
-                        if str(new_version_state) in versions:
-                            new_version_content = versions[str(new_version_state)]
-                        fresh_new_content = dl_new.get_version_info(new_dlstage[j], git_version)
+                dl_new = Download(
+                    new_version[j],
+                    verbose,
+                    package_dir,
+                    enterprise,
+                    enterprise_magic,
+                    zip_package,
+                    new_dlstage[j],
+                    httpusername,
+                    httppassvoid,
+                    remote_host,
+                )
+                if new_version[j].find("-nightly") >= 0:
+                    new_version_state = Path(dl_new.cfg.version + "_sourceInfo.log")
+                    if str(new_version_state) in versions:
+                        new_version_content = versions[str(new_version_state)]
+                    fresh_new_content = dl_new.get_version_info(git_version)
 
                 if new_dlstage[j] != "local" and old_dlstage[j] != "local":
                     old_changed = old_version_content != fresh_old_content
@@ -187,10 +185,10 @@ def upgrade_package_test(
                 old = old_version[j]
                 new = new_version[j]
                 if dl_old:
-                    dl_old.get_packages(old_changed, old_dlstage[j])
+                    dl_old.get_packages(old_changed)
                     old = dl_old.cfg.version
                 if dl_new:
-                    dl_new.get_packages(new_changed, new_dlstage[j])
+                    dl_new.get_packages(new_changed)
                     new = dl_new.cfg.version
 
                 test_dir = Path(test_data_dir) / directory_suffix

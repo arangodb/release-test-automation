@@ -162,8 +162,8 @@ def download_options(default_source="public", double_source=False):
         "http:stage2",
         "nightlypublic",
         "public",
+        "local"
     ]
-    download_sources_local = download_sources + ["local"]
 
     def inner_func(function):
         function = click.option("--enterprise-magic", default="", help="Enterprise or community?")(function)
@@ -178,14 +178,14 @@ def download_options(default_source="public", double_source=False):
                 "--new-source",
                 multiple=True,
                 default=[default_source],
-                type=click.Choice(download_sources_local),
+                type=click.Choice(download_sources),
                 help="where to download the package from",
             )(function)
             function = click.option(
                 "--old-source",
                 multiple=True,
                 default=[default_source],
-                type=click.Choice(download_sources_local),
+                type=click.Choice(download_sources),
                 help="where to download the package from",
             )(function)
         else:
