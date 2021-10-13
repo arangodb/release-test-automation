@@ -16,7 +16,7 @@ from common_options import very_common_options, common_options, download_options
 from beautifultable import BeautifulTable, ALIGN_LEFT
 
 import tools.loghelper as lh
-from download import Download
+from download import Download,read_version_tar
 from reporting.reporting_utils import AllureTestSuiteContext
 from upgrade import run_upgrade
 from cleanup import run_cleanup
@@ -80,19 +80,8 @@ def upgrade_package_test(
     os.chdir(test_data_dir)
 
     versions = {}
-    try:
-        fdesc = version_state_tar.open('rb')
-        tar = tarfile.open(fileobj=fdesc, mode='r:')
-        for member in tar:
-            print(member.name)
-            print(member.isfile())
-            if member.isfile():
-                versions[member.name] = tar.extractfile(
-                    member).read().decode(encoding='utf-8')
-        tar.close()
-        fdesc.close()
-    except FileNotFoundError:
-        pass
+    fresh_versions = {}
+    read_version_tar(version_state_tar, versions)
     print(versions)
     #raise Exception('snaotehu')
     results = []
@@ -150,13 +139,10 @@ def upgrade_package_test(
                     httpusername,
                     httppassvoid,
                     remote_host,
+                    versions,
+                    fresh_versions,
+                    git_version
                 )
-                if old_version[j].find("-nightly") >= 0:
-                    old_version_state = Path(dl_old.cfg.version + "_sourceInfo.log")
-                    if str(old_version_state) in versions:
-                        old_version_content = versions[str(old_version_state)]
-                    fresh_old_content = dl_old.get_version_info(git_version)
-
                 dl_new = Download(
                     new_version[j],
                     verbose,
@@ -168,28 +154,16 @@ def upgrade_package_test(
                     httpusername,
                     httppassvoid,
                     remote_host,
+                    versions,
+                    fresh_versions,
+                    git_version
                 )
-                if new_version[j].find("-nightly") >= 0:
-                    new_version_state = Path(dl_new.cfg.version + "_sourceInfo.log")
-                    if str(new_version_state) in versions:
-                        new_version_content = versions[str(new_version_state)]
-                    fresh_new_content = dl_new.get_version_info(git_version)
 
-                if new_dlstage[j] != "local" and old_dlstage[j] != "local":
-                    old_changed = old_version_content != fresh_old_content
-                    new_changed = new_version_content != fresh_new_content
-
-                    if not new_changed and not old_changed and not force:
-                        print("we already tested this version. bye.")
-                        return 0
-                old = old_version[j]
-                new = new_version[j]
-                if dl_old:
-                    dl_old.get_packages(old_changed)
-                    old = dl_old.cfg.version
-                if dl_new:
-                    dl_new.get_packages(new_changed)
-                    new = dl_new.cfg.version
+                if not dl_new.is_different() or not dl_old.is_different():
+                    print("we already tested this version. bye.")
+                    return 0
+                dl_old.get_packages(old_changed)
+                dl_new.get_packages(new_changed)
 
                 test_dir = Path(test_data_dir) / directory_suffix
                 if test_dir.exists():
@@ -201,8 +175,8 @@ def upgrade_package_test(
                     time.sleep(1)
                 results.append(
                     run_upgrade(
-                        old,
-                        new,
+                        dl_old.version,
+                        dl_new.version,
                         verbose,
                         package_dir,
                         test_dir,
@@ -263,24 +237,8 @@ def upgrade_package_test(
         sys.exit(1)
 
     if not force:
-        print("writing " + str(version_state_tar))
-        fdesc = version_state_tar.open('wb')
-        tar = tarfile.open(fileobj=fdesc, mode='w:')
+        write_version_tar(version_state_tar, fresh_versions)
 
-        data = fresh_old_content.encode('utf-8')
-        file_obj = BytesIO(data)
-        info = tarfile.TarInfo(name=str(old_version_state))
-        info.size = len(data)
-        tar.addfile(tarinfo=info, fileobj=file_obj)
-
-        data = fresh_new_content.encode('utf-8')
-        file_obj = BytesIO(data)
-        info = tarfile.TarInfo(name=str(new_version_state))
-        info.size = len(data)
-        tar.addfile(tarinfo=info, fileobj=file_obj)
-
-        tar.close()
-        fdesc.close()
     return 0
 
 
