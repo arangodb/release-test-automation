@@ -16,7 +16,9 @@ class CollectionPage(NavigationBarPage):
         self.select_create_collection_id = "createCollection"
         self.select_new_collection_name_id = "new-collection-name"
         self.select_collection_type_id = "new-collection-type"
-        self.select_advance_option_id = "/html//div[@id='accordion2']//a[@href='#collapseOne']"
+        # fixme
+        # self.select_advance_option_id = "/html//div[@id='accordion2']//a[@href='#collapseOne']"
+        self.select_advance_option_id = '//*[@id="accordion2"]/div/div[1]/a/span[2]/b'
         self.wait_for_sync_id = "new-collection-sync"
         self.create_new_collection_btn_id = "modalButton1"
         self.select_collection_settings_id = "collectionsToggle"
@@ -242,7 +244,7 @@ class CollectionPage(NavigationBarPage):
 
     def select_upload_btn(self):
         """selecting collection upload btn"""
-        select_upload_btn_sitem = self.locator_finder_by_text_xpath(self.select_upload_btn_id)
+        select_upload_btn_sitem = self.locator_finder_by_xpath(self.select_upload_btn_id)
         select_upload_btn_sitem.click()
         time.sleep(3)
 
@@ -351,29 +353,29 @@ class CollectionPage(NavigationBarPage):
     def move_doc_textbox(self, collection):
         """selecting Collection to move the selected data"""
         self.wait_for_ajax()
-        move_doc_textbox_sitem = self.locator_finder_by_text_id(self.move_doc_textbox_id, 20)
+        move_doc_textbox_sitem = self.locator_finder_by_id(self.move_doc_textbox_id, 20)
         move_doc_textbox_sitem.click()
         move_doc_textbox_sitem.send_keys(collection)
 
     def move_confirm_btn(self):
         """Confirming move data to the Collection"""
         self.wait_for_ajax()
-        move_confirm_btn_sitem = self.locator_finder_by_text_id(self.move_confirm_btn_id, 20)
+        move_confirm_btn_sitem = self.locator_finder_by_id(self.move_confirm_btn_id, 20)
         move_confirm_btn_sitem.click()
 
     def select_collection_delete_btn(self):
         """Selecting delete button for selected data"""
-        select_collection_delete_btn_sitem = self.locator_finder_by_text_id(self.select_collection_delete_btn_id)
+        select_collection_delete_btn_sitem = self.locator_finder_by_id(self.select_collection_delete_btn_id)
         select_collection_delete_btn_sitem.click()
 
     def collection_delete_confirm_btn(self):
         """Selecting delete button for selected data"""
-        collection_delete_confirm_btn_sitem = self.locator_finder_by_text_xpath(self.collection_delete_confirm_btn_id)
+        collection_delete_confirm_btn_sitem = self.locator_finder_by_xpath(self.collection_delete_confirm_btn_id)
         collection_delete_confirm_btn_sitem.click()
 
     def collection_really_dlt_btn(self):
         """Selecting really delete button for selected data"""
-        collection_really_dlt_btn_sitem = self.locator_finder_by_text_xpath(self.collection_really_dlt_btn_id)
+        collection_really_dlt_btn_sitem = self.locator_finder_by_xpath(self.collection_really_dlt_btn_id)
         collection_really_dlt_btn_sitem.click()
         self.webdriver.refresh()
 
@@ -394,7 +396,7 @@ class CollectionPage(NavigationBarPage):
 
     # def select_create_index_btn(self):
     #     """Selecting index menu from collection"""
-    #     select_create_index_btn_sitem = self.locator_finder_by_text_id(self.select_create_index_btn_id)
+    #     select_create_index_btn_sitem = self.locator_finder_by_id(self.select_create_index_btn_id)
     #     select_create_index_btn_sitem.click()
     #     time.sleep(2)
     #     self.wait_for_ajax()
@@ -556,7 +558,7 @@ class CollectionPage(NavigationBarPage):
     def select_schema_tab(self):
         """Selecting Schema tab from the collection submenu"""
         if super().current_package_version() >= 3.8:
-            select_schema_tab_sitem = self.locator_finder_by_text_xpath(self.select_schema_tab_id)
+            select_schema_tab_sitem = self.locator_finder_by_xpath(self.select_schema_tab_id)
             select_schema_tab_sitem.click()
             time.sleep(2)
         else:
@@ -568,52 +570,52 @@ class CollectionPage(NavigationBarPage):
         """Selecting settings tab from the collection submenu"""
         self.click_submenu_entry("Settings")
         if not is_cluster:
-            select_settings_name_textbox_sitem = self.locator_finder_by_text_id(self.select_settings_name_textbox_id)
+            select_settings_name_textbox_sitem = self.locator_finder_by_id(self.select_settings_name_textbox_id)
             select_settings_name_textbox_sitem.click()
             select_settings_name_textbox_sitem.clear()
             select_settings_name_textbox_sitem.send_keys("testDocRenamed")
             self.locator_finder_by_select(self.select_settings_wait_type_id, 0)
         select_new_settings_save_btn_sitem = None
         try:
-            select_new_settings_save_btn_sitem = self.locator_finder_by_text_id(self.select_newer_settings_save_btn_id)
+            select_new_settings_save_btn_sitem = self.locator_finder_by_id(self.select_newer_settings_save_btn_id)
             if select_new_settings_save_btn_sitem.text != "Save":
-                select_new_settings_save_btn_sitem = self.locator_finder_by_text_id(
+                select_new_settings_save_btn_sitem = self.locator_finder_by_id(
                     self.select_new_settings_save_btn_id
                 )
         except TimeoutException:
-            select_new_settings_save_btn_sitem = self.locator_finder_by_text_id(self.select_new_settings_save_btn_id)
+            select_new_settings_save_btn_sitem = self.locator_finder_by_id(self.select_new_settings_save_btn_id)
 
         select_new_settings_save_btn_sitem.click()
         time.sleep(2)
         print("Loading Index into memory\n")
-        select_load_index_into_memory_sitem = self.locator_finder_by_text_xpath(self.select_load_index_into_memory_id)
+        select_load_index_into_memory_sitem = self.locator_finder_by_xpath(self.select_load_index_into_memory_id)
         select_load_index_into_memory_sitem.click()
         time.sleep(2)
         self.wait_for_ajax()
 
     def select_settings_unload_btn(self):
         """Loading and Unloading collection"""
-        select_settings_unload_btn_sitem = self.locator_finder_by_text_xpath(self.select_settings_unload_btn_id)
+        select_settings_unload_btn_sitem = self.locator_finder_by_xpath(self.select_settings_unload_btn_id)
         select_settings_unload_btn_sitem.click()
         time.sleep(2)
         self.wait_for_ajax()
 
     def select_truncate_btn(self):
         """Loading and Unloading collection"""
-        select_truncate_btn_sitem = self.locator_finder_by_text_xpath(self.select_truncate_btn_id)
+        select_truncate_btn_sitem = self.locator_finder_by_xpath(self.select_truncate_btn_id)
         select_truncate_btn_sitem.click()
         time.sleep(1)
-        select_truncate_confirm_btn_sitem = self.locator_finder_by_text_xpath(self.select_truncate_confirm_btn_id)
+        select_truncate_confirm_btn_sitem = self.locator_finder_by_xpath(self.select_truncate_confirm_btn_id)
         select_truncate_confirm_btn_sitem.click()
         time.sleep(2)
         self.wait_for_ajax()
 
     def delete_collection(self):
         """Deleting Collection from settings tab"""
-        delete_collection_sitem = self.locator_finder_by_text_xpath(self.delete_collection_id)
+        delete_collection_sitem = self.locator_finder_by_xpath(self.delete_collection_id)
         delete_collection_sitem.click()
         time.sleep(1)
-        delete_collection_confirm_sitem = self.locator_finder_by_text_xpath(self.delete_collection_confirm_id)
+        delete_collection_confirm_sitem = self.locator_finder_by_xpath(self.delete_collection_confirm_id)
         delete_collection_confirm_sitem.click()
 
     def select_edge_collection_upload(self):
@@ -632,7 +634,7 @@ class CollectionPage(NavigationBarPage):
 
     def select_collection(self, collection_name):
         selector = """//div[contains(@class, 'tile')][@id='collection_%s']""" % collection_name
-        self.locator_finder_by_text_xpath(selector).click()
+        self.locator_finder_by_xpath(selector).click()
 
     def create_sample_collection(self, test_name):
         """selecting collection tab"""

@@ -226,7 +226,7 @@ class BasePage:
         return title
 
     def check_version_is_newer(self, compare_version):
-        ui_version_str = self.locator_finder_by_text_id("currentVersion").text
+        ui_version_str = self.locator_finder_by_id("currentVersion").text
         print("Package Version: ", ui_version_str)
         ui_version = semver.VersionInfo.parse(ui_version_str)
         compare_version = semver.VersionInfo.parse(compare_version)
@@ -234,7 +234,7 @@ class BasePage:
 
     def current_package_version(self):
         """checking current package version from the dashboard"""
-        package_version = self.locator_finder_by_text_id("currentVersion").text
+        package_version = self.locator_finder_by_id("currentVersion").text
         print("Package Version: ", package_version)
         time.sleep(1)
 
@@ -337,28 +337,6 @@ class BasePage:
         action.move_to_element(item).click().perform()
         time.sleep(1)
         return action
-
-    def locator_finder_by_text_id(self, locator_name, timeout=10):
-        """This method will used for finding all the locators text using ID"""
-        self.locator = WebDriverWait(self.webdriver, timeout).until(
-            EC.element_to_be_clickable((BY.ID, locator_name)),
-            message="UI-Test: " + locator_name + " locator was not found.",
-        )
-        # self.locator = self.locator.text
-        if self.locator.text is None:
-            raise Exception("UI-Test: ", locator_name, " locator was not found.")
-        return self.locator
-
-    def locator_finder_by_text_xpath(self, locator_name, timeout=10):
-        """This method will used for finding all the locators text using xpath"""
-        self.locator = WebDriverWait(self.webdriver, timeout).until(
-            EC.element_to_be_clickable((BY.XPATH, locator_name)),
-            message="UI-Test: " + locator_name + " locator was not found.",
-        )
-        # self.locator = self.locator.text
-        if self.locator.text is None:
-            raise Exception("UI-Test: ", locator_name, " locator was not found.")
-        return self.locator
 
     def locator_finder_by_css_selectors(self, locator_name, timeout=10):
         """This method will used for finding all the locators text using CSS Selector"""

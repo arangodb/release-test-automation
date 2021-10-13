@@ -26,6 +26,13 @@ class DashboardTestSuite(BaseTestSuite):
             dash.check_system_resource()
             print("Switch to Metrics tab\n")
             dash.check_system_metrics()
+
+        if self.is_cluster and super().current_package_version() >= 3.8:
+            print('Checking distribution tab \n')
+            dash.check_distribution_tab()
+            print('Checking maintenance tab \n')
+            dash.check_maintenance_tab()
+
         dash.navbar_goto("support")
         print("Opening Twitter link \n")
         dash.click_twitter_link()

@@ -28,7 +28,7 @@ class DashboardPage(NavigationBarPage):
 
     def check_server_package_name(self):
         """checking server package version name"""
-        check_server_package_name_sitem = self.locator_finder_by_text_id(self.check_server_package_name_id)
+        check_server_package_name_sitem = self.locator_finder_by_id(self.check_server_package_name_id)
         print("Server Package: ", check_server_package_name_sitem.text)
         time.sleep(1)
 
@@ -38,36 +38,36 @@ class DashboardPage(NavigationBarPage):
 
     def check_current_username(self):
         """checking current username from the dashboard"""
-        check_current_username_sitem = self.locator_finder_by_text_xpath(self.check_current_username_id)
+        check_current_username_sitem = self.locator_finder_by_xpath(self.check_current_username_id)
         print("Current User: ", check_current_username_sitem.text)
         time.sleep(1)
 
     def check_current_db(self):
         """checking current database name from the dashboard"""
-        check_current_db_sitem = self.locator_finder_by_text_xpath(self.check_current_db_id)
+        check_current_db_sitem = self.locator_finder_by_xpath(self.check_current_db_id)
         print("Current DB: ", check_current_db_sitem.text)
         time.sleep(1)
 
     def check_db_status(self):
         """checking current database status from the dashboard"""
         try:
-            check_db_status_sitem = self.locator_finder_by_text_xpath(self.check_db_status_id)
+            check_db_status_sitem = self.locator_finder_by_xpath(self.check_db_status_id)
             print("Current Status: ", check_db_status_sitem.text)
             time.sleep(1)
         except TimeoutException:
-            node_sitem = self.locator_finder_by_text_xpath(self.check_cluster_status_id)
+            node_sitem = self.locator_finder_by_xpath(self.check_cluster_status_id)
             print("Cluster Health: ", node_sitem.text)
             time.sleep(1)
 
     def check_db_engine(self):
         """checking current database status from the dashboard"""
-        check_db_engine_sitem = self.locator_finder_by_text_id(self.check_db_engine_id)
+        check_db_engine_sitem = self.locator_finder_by_id(self.check_db_engine_id)
         print("Current Engine: ", check_db_engine_sitem.text)
         time.sleep(1)
 
     def check_db_uptime(self):
         """checking current database uptime status from the dashboard"""
-        check_db_uptime_sitem = self.locator_finder_by_text_xpath(self.check_db_uptime_id)
+        check_db_uptime_sitem = self.locator_finder_by_xpath(self.check_db_uptime_id)
         print("DB Uptime: ", check_db_uptime_sitem.text)
         time.sleep(1)
 
@@ -77,14 +77,28 @@ class DashboardPage(NavigationBarPage):
 
     def check_system_resource(self):
         """checking system resource tab from the dashboard"""
-        check_system_resource_sitem = self.locator_finder_by_text_id(self.check_system_resource_id)
+        check_system_resource_sitem = self.locator_finder_by_id(self.check_system_resource_id)
         check_system_resource_sitem.click()
         time.sleep(1)
+
+    def check_distribution_tab(self):
+        """Checking distribution tab"""
+        distribution = '//*[@id="subNavigationBar"]/ul[2]/li[2]/a'
+        distribution_sitem = self.locator_finder_by_xpath(self, distribution)
+        distribution_sitem.click()
+        time.sleep(3)
+
+    def check_maintenance_tab(self):
+        """Checking maintenance tab"""
+        maintenance = '//*[@id="subNavigationBar"]/ul[2]/li[3]/a'
+        maintenance_sitem = self.locator_finder_by_xpath(self, maintenance)
+        maintenance_sitem.click()
+        time.sleep(3)
 
     def check_system_metrics(self):
         """checking system metrics tab from the dashboard"""
         if self.check_version_is_newer("3.8.0"):
-            check_system_metrics_sitem = self.locator_finder_by_text_id(self.check_system_metrics_id)
+            check_system_metrics_sitem = self.locator_finder_by_id(self.check_system_metrics_id)
             check_system_metrics_sitem.click()
             time.sleep(1)
 
@@ -104,14 +118,14 @@ class DashboardPage(NavigationBarPage):
             time.sleep(3)
 
             # Reloading system metrics tab from the dashboard
-            select_reload_btn_sitem = self.locator_finder_by_text_id(self.select_reload_btn_id)
+            select_reload_btn_sitem = self.locator_finder_by_id(self.select_reload_btn_id)
             select_reload_btn_sitem.click()
 
             # Downloading metrics from the dashboard
             if self.webdriver.name == "chrome":  # this will check browser name
                 print("Downloading metrics has been disabled for the Chrome browser \n")
             else:
-                metrics_download_sitem = self.locator_finder_by_text_id(self.metrics_download_id)
+                metrics_download_sitem = self.locator_finder_by_id(self.metrics_download_id)
                 metrics_download_sitem.click()
                 time.sleep(3)
                 # self.clear_download_bar()
