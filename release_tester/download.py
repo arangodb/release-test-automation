@@ -3,9 +3,12 @@
 # have long strings, need long lines.
 """ Release testing script"""
 from ftplib import FTP
+from io import BytesIO
 from pathlib import Path
 import json
 import sys
+import tarfile
+
 import click
 from arangodb.installers import make_installer, InstallerConfig
 import tools.loghelper as lh
@@ -13,23 +16,55 @@ import tools.loghelper as lh
 import requests
 from common_options import very_common_options, download_options
 
+def read_versions_tar(tar_file, versions):
+    """reads the versions tar"""
+    try:
+        fdesc = tar_file.open('rb')
+        tar = tarfile.open(fileobj=fdesc, mode='r:')
+        for member in tar:
+            print(member.name)
+            print(member.isfile())
+            if member.isfile():
+                versions[member.name] = tar.extractfile(
+                    member).read().decode(encoding='utf-8')
+        tar.close()
+        fdesc.close()
+    except FileNotFoundError:
+        pass
+
+def write_version_tar(tar_file, versions):
+    """write the versions tar"""
+    print("writing " + str(tar_file))
+    fdesc = tar_file.open('wb')
+    tar = tarfile.open(fileobj=fdesc, mode='w:')
+    for version_name in versions:
+        data = versions[version_name].encode('utf-8')
+        file_obj = BytesIO(data)
+        info = tarfile.TarInfo(name=version_name)
+        info.size = len(data)
+        tar.addfile(tarinfo=info, fileobj=file_obj)
+    tar.close()
+    fdesc.close()
 
 class Download:
     """manage package downloading from any known arango package source"""
 
     # pylint: disable=R0913 disable=R0902
     def __init__(
-        self,
-        version,
-        verbose,
-        package_dir,
-        enterprise,
-        enterprise_magic,
-        zip_package,
-        source,
-        httpuser,
-        httppassvoid,
-        remote_host,
+            self,
+            version,
+            verbose,
+            package_dir,
+            enterprise,
+            enterprise_magic,
+            zip_package,
+            source,
+            httpuser,
+            httppassvoid,
+            remote_host,
+            existing_version_states,
+            new_version_states,
+            git_version
     ):
         """main"""
         lh.section("configuration")
@@ -73,6 +108,26 @@ class Download:
         self.is_nightly = self.inst.semver.prerelease == "nightly"
         self.calculate_package_names()
         self.packages = []
+
+        self.existing_version_states = existing_version_states
+        self.new_version_states = new_version_states
+        self.version_content = None
+        self.version_content = None
+        if version.find("-nightly") >= 0:
+            self.version_state_id = version + "_sourceInfo.log"
+            if self.version_state_id in self.existing_version_states:
+                self.version_content = self.existing_version_states[self.version_state_id]
+            self.fresh_content = self.get_version_info(git_version)
+            self.new_version_states[self.version_state_id] = self.fresh_content
+
+    def is_different(self):
+        """whether we would download a new package or not"""
+        return (
+            self.source == "local" or
+            not self.version_content or
+            not self.fresh_content or
+            self.version_content != self.fresh_content
+        )
 
     def calculate_package_names(self):
         """guess where to locate the packages"""
@@ -234,6 +289,8 @@ class Download:
 
     def get_version_info(self, git_version):
         """download the nightly sourceInfo.json file, calculate more precise version of the packages"""
+        if self.source == "local":
+            return ""
         source_info_fn = "sourceInfo.json"
         self.funcs[self.source](
             self.directories[self.source],
@@ -277,6 +334,7 @@ def main(
         httpuser,
         httppassvoid,
         remote_host,
+        {}, {}, ""
     )
     return downloader.get_packages(force)
 

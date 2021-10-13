@@ -11,10 +11,10 @@ from arangodb.instance import InstanceType
 from arangodb.starter.deployments.runner import Runner, RunnerProperties
 from arangodb.starter.manager import StarterManager
 from arangodb.sync import SyncManager
+from arangodb.async_client import CliExecutionException
+
 from tools.asciiprint import print_progress as progress
 from tools.versionhelper import is_higher_version
-
-from arangodb.async_client import CliExecutionException
 
 SYNC_VERSIONS = {
     "140": semver.VersionInfo.parse("1.4.0"),
@@ -258,6 +258,7 @@ class Dc2Dc(Runner):
     def _launch_sync(self, direction):
         """configure / start a sync"""
         from_to_dc = None
+        output = ""
         if direction:
             from_to_dc = [self.cluster2["smport"], self.cluster1["smport"]]
             self.source_dc = from_to_dc[0]
@@ -266,9 +267,9 @@ class Dc2Dc(Runner):
             self.source_dc = from_to_dc[1]
         self.sync_manager = SyncManager(self.cfg, self.certificate_auth, from_to_dc, self.sync_version)
         try:
-            (success, output, _, _) = self.sync_manager.run_syncer()
-        except CliExecutionException as e:
-            raise Exception("starting the synchronisation failed!" + str(e.execution_result[1])) from e
+            (_, output, _, _) = self.sync_manager.run_syncer()
+        except CliExecutionException as exc:
+            raise Exception("starting the synchronisation failed!" + str(exc.execution_result[1])) from exc
         self.progress(True, "SyncManager: up %s", output)
 
     def finish_setup_impl(self):
@@ -312,23 +313,20 @@ class Dc2Dc(Runner):
         return semver.VersionInfo.parse(version)
 
     def _stop_sync(self, timeout=120):
-        output = ""
-        success = True
-
         try:
             timeout_start = time.time()
             if self._is_higher_sync_version(SYNC_VERSIONS["150"], SYNC_VERSIONS["230"]):
-                success, output, _, _ = self.sync_manager.stop_sync(timeout)
+                _, _, _, _ = self.sync_manager.stop_sync(timeout)
             else:
                 # Arangosync with the bug for checking in-sync status.
                 self.progress(
                     True,
                     "arangosync: stopping sync without checking if shards are in-sync",
                 )
-                success, output, _, _ = self.sync_manager.stop_sync(timeout, ["--ensure-in-sync=false"])
-        except CliExecutionException as e:
-            self.state += "\n" + e.execution_result[1]
-            raise Exception("failed to stop the synchronization") from e
+                _, _, _, _ = self.sync_manager.stop_sync(timeout, ["--ensure-in-sync=false"])
+        except CliExecutionException as exc:
+            self.state += "\n" + exc.execution_result[1]
+            raise Exception("failed to stop the synchronization") from exc
 
         if not self._is_higher_sync_version(SYNC_VERSIONS["180"], SYNC_VERSIONS["260"]):
             print("Wait for the inactive replication on all clusters")
