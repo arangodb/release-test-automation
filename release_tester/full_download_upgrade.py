@@ -114,11 +114,6 @@ def upgrade_package_test(
 
         print("Cleanup done")
 
-        # Configure Chrome to accept self-signed SSL certs and certs signed by unknown CA.
-        # FIXME: Add custom CA to Chrome to properly validate server cert.
-        if ssl:
-            selenium_driver_args += ("ignore-certificate-errors",)
-
         for (
             enterprise,
             encryption_at_rest,
