@@ -6,7 +6,7 @@ from selenium_ui_test.pages.nodes_page import NodesPage
 from selenium_ui_test.test_suites.base_classes.after_install_test_suite import AfterInstallTestSuite
 from selenium_ui_test.test_suites.base_test_suite import testcase
 
-from release_tester.selenium_ui_test.test_suites.base_test_suite import BaseTestSuite
+from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite
 
 
 class ClusterWaitForUpgradeTestSuite(BaseTestSuite):
