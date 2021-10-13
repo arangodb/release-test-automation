@@ -155,7 +155,7 @@ function ReplicationSuite() {
     if (isCluster) {
       while (allDatabases.length !== db._databases().length) {
         print('D ' + allDatabases.length + " !== " + db._databases().length);
-        sleep(1);
+        internal.sleep(1);
       }
       let count = 0;
       let lastLogTick = 0;

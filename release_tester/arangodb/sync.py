@@ -148,8 +148,8 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
                 dummy_line_result,
                 self.cfg.verbose,
             )
-        except CliExecutionException as e:
-            result = e.execution_result
+        except CliExecutionException as exc:
+            result = exc.execution_result
 
         (success, output, _, _) = result
         print("checking for magic ok string")
@@ -186,5 +186,5 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
                 self.cfg.verbose,
             )
             return True
-        except CliExecutionException as e:
+        except CliExecutionException:
             return False

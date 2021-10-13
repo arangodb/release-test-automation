@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 """ run an installer for the debian based operating system """
-import glob
 import logging
 import multiprocessing
-from pathlib import Path
-from pathlib import PureWindowsPath
+from pathlib import Path, PureWindowsPath
 import shutil
 import time
 import winreg
@@ -16,8 +14,12 @@ from allure_commons.types import AttachmentType
 from mss import mss
 import psutil
 from reporting.reporting_utils import step
-import tools.monkeypatch_psutil
+
 from arangodb.installers.base import InstallerBase
+
+# pylint: disable=W0611
+# this will patch psutil for us:
+import tools.monkeypatch_psutil
 
 
 class InstallerW(InstallerBase):
@@ -168,6 +170,7 @@ class InstallerW(InstallerBase):
         """get a service handle"""
         if self.service:
             return
+        # pylint: disable=W0703
         try:
             self.service = psutil.win_service_get("ArangoDB")
         except Exception as exc:
@@ -255,6 +258,7 @@ class InstallerW(InstallerBase):
         # since it needs to look at all these files we
         # just unloaded into it to make sure no harm originates from them.
         time.sleep(30 / multiprocessing.cpu_count())
+        # pylint: disable=W0703, disable=W0107
         try:
             logging.info(psutil.win_service_get("ArangoDB"))
             self.get_service()
@@ -316,7 +320,6 @@ class InstallerW(InstallerBase):
             psutil.Popen(["sc", "delete", "arangodb"]).wait()
         except FileNotFoundError:
             print("No service installed.")
-            pass
         with winreg.OpenKeyEx(
             winreg.HKEY_CURRENT_USER,
             "Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Compatibility Assistant\\Store",
@@ -332,7 +335,6 @@ class InstallerW(InstallerBase):
                     index = index + 1
             except OSError:
                 print("      done")
-                pass
         with winreg.OpenKeyEx(winreg.HKEY_CURRENT_CONFIG, "Software", access=winreg.KEY_WRITE) as k:
             try:
                 index = 0
@@ -345,12 +347,11 @@ class InstallerW(InstallerBase):
                     index = index + 1
             except OSError:
                 print("      done")
-                pass
 
     def count_backup_dirs(self):
         """get the number of backup paths on disk"""
         backups_dir_path = str((self.cfg.dbdir / "..").resolve())
-        regex = os.path.basename(self.cfg.dbdir) + "_\d{4}-\d{1,2}-\d{1,2}_\d{1,2}_\d{1,2}_\d{1,2}"
+        regex = os.path.basename(self.cfg.dbdir) + r"_\d{4}-\d{1,2}-\d{1,2}_\d{1,2}_\d{1,2}_\d{1,2}"
         backups_dir_contents = os.listdir(backups_dir_path)
         backups = [d for d in backups_dir_contents if re.match(regex, d)]
         print("Found %d backup dirs:\n %s" % (len(backups), str(backups)))
