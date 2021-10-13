@@ -132,24 +132,23 @@ def package_test(
             ) as suite_context:
                 dl_new = None
                 fresh_new_content = None
-                if new_dlstage[j] != "local":
-                    dl_new = Download(
-                        new_version[j],
-                        verbose,
-                        package_dir,
-                        enterprise,
-                        enterprise_magic,
-                        zip_package,
-                        new_dlstage[j],
-                        httpusername,
-                        httppassvoid,
-                        remote_host,
-                    )
-                    if new_version[j].find("-nightly") >= 0:
-                        new_version_state = Path(dl_new.cfg.version + "_sourceInfo.log")
-                        if str(new_version_state) in versions:
-                            new_version_content = versions[str(new_version_state)]
-                        fresh_new_content = dl_new.get_version_info(new_dlstage[j], git_version)
+                dl_new = Download(
+                    new_version[j],
+                    verbose,
+                    package_dir,
+                    enterprise,
+                    enterprise_magic,
+                    zip_package,
+                    new_dlstage[j],
+                    httpusername,
+                    httppassvoid,
+                    remote_host,
+                )
+                if new_version[j].find("-nightly") >= 0:
+                    new_version_state = Path(dl_new.cfg.version + "_sourceInfo.log")
+                    if str(new_version_state) in versions:
+                        new_version_content = versions[str(new_version_state)]
+                    fresh_new_content = dl_new.get_version_info(git_version)
 
                 if new_dlstage[j] != "local":
                     new_changed = new_version_content != fresh_new_content
@@ -159,7 +158,7 @@ def package_test(
                         return 0
                 new = new_version[j]
                 if dl_new:
-                    dl_new.get_packages(new_changed, new_dlstage[j])
+                    dl_new.get_packages(new_changed)
                     new = dl_new.cfg.version
 
                 test_dir = Path(test_data_dir) / directory_suffix
@@ -309,7 +308,7 @@ new_source:   {len_new_source} {new_source}
         httpuser,
         httppassvoid,
         test_data_dir,
-        version_state_tar,
+        Path(version_state_tar),
         remote_host,
         force,
         starter_mode,

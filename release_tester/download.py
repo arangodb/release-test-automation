@@ -41,6 +41,7 @@ class Download:
         self.user = httpuser
         self.passvoid = httppassvoid
         self.enterprise_magic = enterprise_magic
+        self.source = source
         if remote_host != "":
             # external DNS to wuerg around docker dns issues...
             self.remote_host = remote_host
@@ -109,6 +110,7 @@ class Download:
             "public": "{enterprise_magic}{major_version}/{enterprise}/{remote_package_dir}/".format(
                 **self.params
             ).replace("///", "/"),
+            "local": None
         }
         self.funcs = {
             "http:stage1": self.acquire_stage1_http,
@@ -117,7 +119,13 @@ class Download:
             "ftp:stage2": self.acquire_stage2_ftp,
             "nightlypublic": self.acquire_live,
             "public": self.acquire_live,
+            "local": self.acquire_none
         }
+
+    # pylint: disable=W0613 disable=R0201
+    def acquire_none(self, directory, package, local_dir, force, stage):
+        """use the copy that we already have, hence do nothing"""
+        print("skipping download")
 
     def acquire_stage_ftp(self, directory, package, local_dir, force, stage):
         """download one file from the ftp server"""
@@ -209,7 +217,7 @@ class Download:
                 )
             )
 
-    def get_packages(self, force, source):
+    def get_packages(self, force):
         """download all packages for this version from the specified package source"""
         self.packages = [self.inst.server_package]
         if self.inst.client_package:
@@ -218,12 +226,20 @@ class Download:
             self.packages.append(self.inst.debug_package)
 
         for package in self.packages:
-            self.funcs[source](self.directories[source], package, Path(self.package_dir), force)
+            self.funcs[self.source](
+                self.directories[self.source],
+                package,
+                Path(self.package_dir),
+                force)
 
-    def get_version_info(self, source, git_version):
+    def get_version_info(self, git_version):
         """download the nightly sourceInfo.json file, calculate more precise version of the packages"""
         source_info_fn = "sourceInfo.json"
-        self.funcs[source](self.directories[source], source_info_fn, Path(self.package_dir), True)
+        self.funcs[self.source](
+            self.directories[self.source],
+            source_info_fn,
+            Path(self.package_dir),
+            True)
         text = (self.package_dir / source_info_fn).read_text()
         while text[0] != "{":
             text = text[1:]
@@ -262,7 +278,7 @@ def main(
         httppassvoid,
         remote_host,
     )
-    return downloader.get_packages(force, source)
+    return downloader.get_packages(force)
 
 
 if __name__ == "__main__":
