@@ -17,6 +17,7 @@ import tools.loghelper as lh
 from download import read_versions_tar, write_version_tar, Download
 from reporting.reporting_utils import AllureTestSuiteContext
 from upgrade import run_upgrade
+from test import run_test
 from cleanup import run_cleanup
 from tools.killall import list_all_processes
 
@@ -85,7 +86,7 @@ def upgrade_package_test(
         (True, False, "EP", "Enterprise"),
         (False, False, "C", "Community"),
     ]
-
+    primary_downloader = {}
     for j in range(len(new_version)):
         for (
             enterprise,
@@ -148,6 +149,11 @@ def upgrade_package_test(
                     fresh_versions,
                     git_version
                 )
+                if directory_suffix not in primary_downloader:
+                    if dl_old.is_primary:
+                        primary_downloader[directory_suffix] = dl_old
+                    elif dl_new.is_primary:
+                        primary_downloader[directory_suffix] = dl_new
 
                 if not dl_new.is_different() or not dl_old.is_different():
                     print("we already tested this version. bye.")
@@ -185,6 +191,56 @@ def upgrade_package_test(
                         use_auto_certs,
                     )
                 )
+
+    for (
+            enterprise,
+            encryption_at_rest,
+            directory_suffix,
+            testrun_name,
+    ) in execution_plan:
+        run_cleanup(zip_package, "test_" + testrun_name)
+        print("Cleanup done")
+        # pylint: disable=W0612
+        with AllureTestSuiteContext(
+            alluredir,
+            clean_alluredir,
+            enterprise,
+            zip_package,
+            new_version[j],
+            None, # was: old version
+            testrun_name,
+        ) as suite_context:
+
+            dl_new = primary_downloader[directory_suffix]
+            test_dir = Path(test_data_dir) / directory_suffix +"_t"
+            if test_dir.exists():
+                shutil.rmtree(test_dir)
+                if "REQUESTS_CA_BUNDLE" in os.environ:
+                    del os.environ["REQUESTS_CA_BUNDLE"]
+            test_dir.mkdir()
+            while not test_dir.exists():
+                time.sleep(1)
+            results.append(
+                run_test(
+                    "all",
+                    str(dl_new.cfg.version),
+                    verbose,
+                    package_dir,
+                    test_dir,
+                    enterprise,
+                    encryption_at_rest,
+                    zip_package,
+                    False, #interactive
+                    starter_mode,
+                    False, # abort_on_error
+                    publicip,
+                    selenium,
+                    selenium_driver_args,
+                    testrun_name,
+                    ssl,
+                    use_auto_certs
+                )
+            )
 
     print("V" * 80)
     status = True
