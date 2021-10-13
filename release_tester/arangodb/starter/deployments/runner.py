@@ -6,30 +6,31 @@ import copy
 import datetime
 import json
 import logging
-from pathlib import Path
 import os
+from pathlib import Path
 import platform
 import re
 import shutil
 import sys
 import time
 
+from allure_commons._allure import attach
 import certifi
 import psutil
-from reporting.reporting_utils import step
 import requests
+from reporting.reporting_utils import step
 
-import tools.loghelper as lh
 import tools.errorhelper as eh
 import tools.interact as ti
-from allure_commons._allure import attach
+from tools.killall import kill_all_processes
+import tools.loghelper as lh
 
+from arangodb.async_client import CliExecutionException
 from arangodb.bench import load_scenarios
 from arangodb.instance import InstanceType, print_instances_table
 from arangodb.sh import ArangoshExecutor
-from tools.killall import kill_all_processes
 
-from arangodb.async_client import CliExecutionException
+
 
 FNRX = re.compile("[\n@ ]*")
 WINVER = platform.win32_ver()
@@ -668,12 +669,12 @@ class Runner(ABC):
             if not arangosh.read_only and not self.has_makedata_data:
                 try:
                     arangosh.create_test_data(self.name, args=args)
-                except CliExecutionException as e:
+                except CliExecutionException as exc:
                     if self.cfg.verbose:
-                        print(e.execution_result[1])
+                        print(exc.execution_result[1])
                     self.ask_continue_or_exit(
                         "make_data failed for {0.name}".format(self),
-                        e.execution_result[1],
+                        exc.execution_result[1],
                         False,
                     )
                 self.has_makedata_data = True
@@ -687,12 +688,12 @@ class Runner(ABC):
         if self.has_makedata_data:
             try:
                 arangosh.check_test_data(self.name, supports_foxx_tests)
-            except CliExecutionException as e:
+            except CliExecutionException as exc:
                 if not self.cfg.verbose:
-                    print(e.execution_result[1])
+                    print(exc.execution_result[1])
                 self.ask_continue_or_exit(
                     "check_data has data failed for {0.name}".format(self),
-                    e.execution_result[1],
+                    exc.execution_result[1],
                     False,
                 )
 
@@ -1094,4 +1095,5 @@ class Runner(ABC):
         os.environ["REQUESTS_CA_BUNDLE"] = str(new_file)
 
     def is_minor_upgrade(self):
+        """do we only alter the third version digits?"""
         return self.new_installer.semver.minor > self.old_installer.semver.minor

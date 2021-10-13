@@ -28,10 +28,10 @@ def configure_logging(verbose):
         ["MARKDOWN", logging.WARNING, True],
     ]
 
-    for l in loggers:
-        logger = logging.getLogger(l[0])
-        logger.setLevel(l[1])
-        logger.propagate = l[2]
+    for one_logger in loggers:
+        logger = logging.getLogger(one_logger[0])
+        logger.setLevel(one_logger[1])
+        logger.propagate = one_logger[2]
 
 
 def get_term_width():
