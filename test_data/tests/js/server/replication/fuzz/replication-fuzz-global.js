@@ -537,7 +537,7 @@ function ReplicationSuite() {
                   if (checksumCount > 20) {
                     throw Exception("_users collection isn't getting in sync!")
                   }
-                  sleep(1);
+                  internal.wait(1);
                   checksumCount += 1;
                 }
               }
