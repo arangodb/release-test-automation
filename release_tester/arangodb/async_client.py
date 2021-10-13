@@ -49,6 +49,7 @@ def convert_result(result_array):
 
 
 class CliExecutionException(Exception):
+    """transport CLI error texts"""
     def __init__(self, message, execution_result):
         self.execution_result = execution_result
         self.message = message
@@ -63,6 +64,7 @@ class ArangoCLIprogressiveTimeoutExecutor:
 
     # pylint: disable=R0903 R0913 disable=R0902 disable=R0915 disable=R0912 disable=R0914
     def __init__(self, config, connect_instance):
+        """launcher class for cli tools"""
         self.connect_instance = connect_instance
         self.cfg = config
 
@@ -168,22 +170,22 @@ class ArangoCLIprogressiveTimeoutExecutor:
         rc_exit = process.wait()
         thread1.join()
         thread2.join()
+
         if have_timeout or rc_exit != 0:
             res = (False, timeout_str + convert_result(result), rc_exit, line_filter)
             if expect_to_fail:
                 return res
+            raise CliExecutionException("Execution failed.", res)
+
+        if not expect_to_fail:
+            if len(result) == 0:
+                res = (True, "", 0, line_filter)
             else:
-                raise CliExecutionException("Execution failed.", res)
+                res = (True, convert_result(result), 0, line_filter)
+            return res
+
+        if len(result) == 0:
+            res = (True, "", 0, line_filter)
         else:
-            if not expect_to_fail:
-                if len(result) == 0:
-                    res = (True, "", 0, line_filter)
-                else:
-                    res = (True, convert_result(result), 0, line_filter)
-                return res
-            else:
-                if len(result) == 0:
-                    res = (True, "", 0, line_filter)
-                else:
-                    res = (True, convert_result(result), 0, line_filter)
-                raise CliExecutionException("Execution was expected to fail, but exited successfully.", res)
+            res = (True, convert_result(result), 0, line_filter)
+        raise CliExecutionException("Execution was expected to fail, but exited successfully.", res)

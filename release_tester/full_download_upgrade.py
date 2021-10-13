@@ -4,11 +4,9 @@ from pathlib import Path
 
 import os
 import sys
-from io import BytesIO
 
 import shutil
 import time
-import tarfile
 
 import click
 from common_options import very_common_options, common_options, download_options
@@ -16,7 +14,7 @@ from common_options import very_common_options, common_options, download_options
 from beautifultable import BeautifulTable, ALIGN_LEFT
 
 import tools.loghelper as lh
-from download import Download,read_version_tar
+from download import read_versions_tar, write_version_tar, Download
 from reporting.reporting_utils import AllureTestSuiteContext
 from upgrade import run_upgrade
 from cleanup import run_cleanup
@@ -68,10 +66,6 @@ def upgrade_package_test(
     use_auto_certs,
 ):
     """process fetch & tests"""
-    old_version_state = None
-    new_version_state = None
-    old_version_content = None
-    new_version_content = None
 
     set_r_limits()
 
@@ -81,9 +75,9 @@ def upgrade_package_test(
 
     versions = {}
     fresh_versions = {}
-    read_version_tar(version_state_tar, versions)
+    read_versions_tar(version_state_tar, versions)
     print(versions)
-    #raise Exception('snaotehu')
+
     results = []
     # do the actual work:
     execution_plan = [
@@ -124,10 +118,6 @@ def upgrade_package_test(
                 old_version[j],
                 testrun_name,
             ) as suite_context:
-                dl_old = None
-                dl_new = None
-                fresh_old_content = None
-                fresh_new_content = None
                 dl_old = Download(
                     old_version[j],
                     verbose,
@@ -162,8 +152,8 @@ def upgrade_package_test(
                 if not dl_new.is_different() or not dl_old.is_different():
                     print("we already tested this version. bye.")
                     return 0
-                dl_old.get_packages(old_changed)
-                dl_new.get_packages(new_changed)
+                dl_old.get_packages(dl_old.is_different())
+                dl_new.get_packages(dl_new.is_different())
 
                 test_dir = Path(test_data_dir) / directory_suffix
                 if test_dir.exists():
@@ -175,8 +165,8 @@ def upgrade_package_test(
                     time.sleep(1)
                 results.append(
                     run_upgrade(
-                        dl_old.version,
-                        dl_new.version,
+                        str(dl_old.cfg.version),
+                        str(dl_new.cfg.version),
                         verbose,
                         package_dir,
                         test_dir,

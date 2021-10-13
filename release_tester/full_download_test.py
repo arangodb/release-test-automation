@@ -4,11 +4,9 @@ from pathlib import Path
 
 import os
 import sys
-from io import BytesIO
 
 import shutil
 import time
-import tarfile
 
 import click
 from common_options import very_common_options, common_options, download_options
@@ -16,7 +14,7 @@ from common_options import very_common_options, common_options, download_options
 from beautifultable import BeautifulTable, ALIGN_LEFT
 
 import tools.loghelper as lh
-from download import Download
+from download import read_versions_tar, write_version_tar, Download
 from reporting.reporting_utils import AllureTestSuiteContext
 from test import run_test
 from cleanup import run_cleanup
@@ -65,8 +63,6 @@ def package_test(
     use_auto_certs,
 ):
     """process fetch & tests"""
-    new_version_state = None
-    new_version_content = None
 
     set_r_limits()
 
@@ -75,19 +71,8 @@ def package_test(
     os.chdir(test_data_dir)
 
     versions = {}
-    try:
-        fdesc = version_state_tar.open('rb')
-        tar = tarfile.open(fileobj=fdesc, mode='r:')
-        for member in tar:
-            print(member.name)
-            print(member.isfile())
-            if member.isfile():
-                versions[member.name] = tar.extractfile(
-                    member).read().decode(encoding='utf-8')
-        tar.close()
-        fdesc.close()
-    except FileNotFoundError:
-        pass
+    fresh_versions = {}
+    read_versions_tar(version_state_tar, versions)
     print(versions)
 
     results = []
@@ -130,8 +115,6 @@ def package_test(
                 None, # was: old version
                 testrun_name,
             ) as suite_context:
-                dl_new = None
-                fresh_new_content = None
                 dl_new = Download(
                     new_version[j],
                     verbose,
@@ -143,23 +126,15 @@ def package_test(
                     httpusername,
                     httppassvoid,
                     remote_host,
+                    versions,
+                    fresh_versions,
+                    git_version
                 )
-                if new_version[j].find("-nightly") >= 0:
-                    new_version_state = Path(dl_new.cfg.version + "_sourceInfo.log")
-                    if str(new_version_state) in versions:
-                        new_version_content = versions[str(new_version_state)]
-                    fresh_new_content = dl_new.get_version_info(git_version)
 
-                if new_dlstage[j] != "local":
-                    new_changed = new_version_content != fresh_new_content
-
-                    if not new_changed and not force:
-                        print("we already tested this version. bye.")
-                        return 0
-                new = new_version[j]
-                if dl_new:
-                    dl_new.get_packages(new_changed)
-                    new = dl_new.cfg.version
+                if not dl_new.is_different() and not force:
+                    print("we already tested this version. bye.")
+                    return 0
+                dl_new.get_packages(dl_new.is_different())
 
                 test_dir = Path(test_data_dir) / directory_suffix
                 if test_dir.exists():
@@ -172,7 +147,7 @@ def package_test(
                 results.append(
                     run_test(
                         "all",
-                        new,
+                        str(dl_new.cfg.version),
                         verbose,
                         package_dir,
                         test_dir,
@@ -232,19 +207,7 @@ def package_test(
         sys.exit(1)
 
     if not force:
-        fdesc = version_state_tar.open('wb')
-        tar = tarfile.open(fileobj=fdesc, mode='w:')
-
-        data = fresh_new_content.encode('utf-8')
-        file_obj = BytesIO(data)
-        info = tarfile.TarInfo(name=str(new_version_state))
-        info.size = len(data)
-        tar.addfile(tarinfo=info, fileobj=file_obj)
-
-        tar.close()
-        fdesc.close()
-    return 0
-
+        write_version_tar(version_state_tar, fresh_versions)
 
 @click.command()
 @click.option(

@@ -3,6 +3,7 @@
 # have long strings, need long lines.
 """ Release testing script"""
 from ftplib import FTP
+from io import BytesIO
 from pathlib import Path
 import json
 import sys
@@ -33,8 +34,8 @@ def read_versions_tar(tar_file, versions):
 
 def write_version_tar(tar_file, versions):
     """write the versions tar"""
-    print("writing " + str(version_state_tar))
-    fdesc = version_state_tar.open('wb')
+    print("writing " + str(tar_file))
+    fdesc = tar_file.open('wb')
     tar = tarfile.open(fileobj=fdesc, mode='w:')
     for version_name in versions:
         data = versions[version_name].encode('utf-8')
@@ -107,18 +108,26 @@ class Download:
         self.is_nightly = self.inst.semver.prerelease == "nightly"
         self.calculate_package_names()
         self.packages = []
+
         self.existing_version_states = existing_version_states
         self.new_version_states = new_version_states
+        self.version_content = None
+        self.version_content = None
         if version.find("-nightly") >= 0:
             self.version_state_id = version + "_sourceInfo.log"
-            if self.version_state_id in version_states:
-                self.version_content = self.version_states[self.version_state_id]
+            if self.version_state_id in self.existing_version_states:
+                self.version_content = self.existing_version_states[self.version_state_id]
             self.fresh_content = self.get_version_info(git_version)
             self.new_version_states[self.version_state_id] = self.fresh_content
 
     def is_different(self):
         """whether we would download a new package or not"""
-        return self.source == "local" or self.version_content != self.fresh_content
+        return (
+            self.source == "local" or
+            not self.version_content or
+            not self.fresh_content or
+            self.version_content != self.fresh_content
+        )
 
     def calculate_package_names(self):
         """guess where to locate the packages"""
