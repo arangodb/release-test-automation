@@ -67,6 +67,7 @@ class ArangoCLIprogressiveTimeoutExecutor:
         """launcher class for cli tools"""
         self.connect_instance = connect_instance
         self.cfg = config
+        self.process = None
 
     def run_arango_tool_monitored(
         self,
@@ -93,15 +94,18 @@ class ArangoCLIprogressiveTimeoutExecutor:
         return self.run_monitored(executeable, run_cmd, timeout, result_line, verbose, expect_to_fail)
         # fmt: on
 
-    def run_monitored(self, executeable, args, timeout, result_line, verbose, expect_to_fail=False):
+    def run_monitored(self, executeable, args, timeout, result_line, verbose, expect_to_fail=False, write=None):
         """
         run a script in background tracing with a dynamic timeout that its got output (is still alive...)
         """
-
+        write_pipe = None
+        if write != None:
+            write_pipe = PIPE
         run_cmd = [executeable] + args
         lh.log_cmd(run_cmd, verbose)
-        process = Popen(
+        self.process = Popen(
             run_cmd,
+            stdin=write_pipe,
             stdout=PIPE,
             stderr=PIPE,
             close_fds=ON_POSIX,
@@ -111,23 +115,31 @@ class ArangoCLIprogressiveTimeoutExecutor:
         thread1 = Thread(
             name="readIO",
             target=enqueue_stdout,
-            args=(process.stdout, queue, self.connect_instance),
+            args=(self.process.stdout, queue, self.connect_instance),
         )
         thread2 = Thread(
             name="readErrIO",
             target=enqueue_stderr,
-            args=(process.stderr, queue, self.connect_instance),
+            args=(self.process.stderr, queue, self.connect_instance),
         )
         thread1.start()
         thread2.start()
+        thread3 = None
+        if write != None:
+            thread3 = Thread(
+                name="readIO",
+                target=write,
+                args=(self),
+            )
+            thread3.start()
 
         try:
             print(
                 "me PID:%d launched PID:%d with LWPID:%d and LWPID:%d"
-                % (os.getpid(), process.pid, thread1.native_id, thread2.native_id)
+                % (os.getpid(), self.process.pid, thread1.native_id, thread2.native_id)
             )
         except AttributeError:
-            print("me PID:%d launched PID:%d with LWPID:N/A and LWPID:N/A" % (os.getpid(), process.pid))
+            print("me PID:%d launched PID:%d with LWPID:N/A and LWPID:N/A" % (os.getpid(), self.process.pid))
 
         # ... do other things here
         # out = logfile.open('wb')
@@ -166,10 +178,12 @@ class ArangoCLIprogressiveTimeoutExecutor:
             timeout_str = "TIMEOUT OCCURED!"
             print(timeout_str)
             timeout_str += "\n"
-            process.kill()
-        rc_exit = process.wait()
+            self.process.kill()
+        rc_exit = self.process.wait()
         thread1.join()
         thread2.join()
+        if write:
+            thread3.join()
 
         if have_timeout or rc_exit != 0:
             res = (False, timeout_str + convert_result(result), rc_exit, line_filter)
