@@ -187,7 +187,7 @@ def upgrade_package_test(
             # pylint: disable=W0612
             with AllureTestSuiteContext(
                 alluredir,
-                clean_alluredir,
+                False, # we want to keep the previous ones.. clean_alluredir,
                 enterprise,
                 zip_package,
                 new_versions[j],
