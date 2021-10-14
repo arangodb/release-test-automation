@@ -89,12 +89,8 @@ class Download:
             else:
                 self.remote_host = "download.arangodb.com"
         lh.section("startup")
-
+        print(version)
         self.package_dir = Path(package_dir)
-        self.is_primary = version.startswith(":")
-        if self.is_primary:
-            # strip off primary marker:
-            version = version[1:]
         self.cfg = InstallerConfig(
             version,
             verbose,

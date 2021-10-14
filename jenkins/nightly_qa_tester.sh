@@ -1,33 +1,5 @@
 #!/bin/bash
 
-TEST_VERSION=$1
-shift
-ALL_TESTCASES=$1
-shift
-TEST_SOURCE=$1
-shift
-
-ARGS=("${@}")
-
-for testpair in ${ALL_TESTCASES//;/ }; do
-    echo $testpair
-    testset=(${testpair//:/ })
-    old_version=${testset[0]}
-    new_version=${testset[1]}
-    if test "${old_version}" == "${TEST_VERSION}"; then
-        ARGS+=('--old-version' ":${TEST_VERSION}" --old-source "${TEST_SOURCE}")
-    else
-        ARGS+=('--old-version' "${old_version}" --old-source "public")
-    fi
-
-    if test "${new_version}" == "${TEST_VERSION}"; then
-        ARGS+=('--new-version' ":${TEST_VERSION}" --new-source "${TEST_SOURCE}")
-    else
-        ARGS+=('--new-version' "${new_version}" --new-source "public")
-    fi
-
-done
-
 VERSION=$(cat VERSION.json)
 GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
 if test -z "$GIT_VERSION"; then
@@ -85,8 +57,7 @@ docker run \
        \
        "arangodb/${DOCKER_TAR_TAG}" \
        \
-          /home/release-test-automation/release_tester/full_download_upgrade.py \
-          --version-state-tar "/home/release-test-automation/${VERSION_TAR_NAME}" \
+          /home/release-test-automation/release_tester/full_download_upgrade_test.py \
           --zip \
           --verbose \
           --selenium Chrome \
@@ -95,7 +66,7 @@ docker run \
           --alluredir /home/allure-results \
           --git-version "$GIT_VERSION" \
           "${force_arg[@]}" \
-          "${ARGS[@]}"
+          "${@}"
 result=$?
 
 # don't need docker stop $DOCKER_TAR_NAME
