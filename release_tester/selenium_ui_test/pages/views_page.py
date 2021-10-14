@@ -14,11 +14,15 @@ class ViewsPage(NavigationBarPage):
     """Class for View Page"""
     
     # views id after creation
+    select_improved_arangosearch_view_01 = "//h5[contains(text(),'improved_arangosearch_view_01')]"
+    select_improved_arangosearch_view_02 = "//h5[contains(text(),'improved_arangosearch_view_02')]"
+    select_modified_views_name = "//h5[contains(text(),'modified_views_name')]"
+
+    search_first_view = '//*[@id="firstView"]/div/h5'
+    search_second_view = '//*[@id="secondView"]/div/h5'
+
     select_renamed_view_id = "/html//div[@id='thirdView']"
     select_second_view_id = "//div[@id='secondView']//h5[@class='collectionName']"
-    select_improved_arangosearch_view = '//*[@id="improved_arangosearch_view"]/div/h5'
-    select_improved_arangosearch_view_01 = '//*[@id="improved_arangosearch_view_01"]/div/h5'
-    select_modified_views_name = '//*[@id="modified_views_name"]/div/h5'
     
     def __init__(self, driver):
         """View page initialization"""
@@ -108,22 +112,29 @@ class ViewsPage(NavigationBarPage):
         time.sleep(3)
 
     # searching views
-    def search_views(self, expected_text):
-        search_views_sitem = self.locator_finder_by_xpath(self.search_views_id)
+    def search_views(self, expected_text, search_locator):
+        search_views_sitem = self.locator_finder_by_xpath(self, self.search_views_id)
         search_views_sitem.click()
         search_views_sitem.clear()
         search_views_sitem.send_keys(expected_text)
         time.sleep(2)
 
         print(f'Checking that we get the right results for {expected_text}\n')
-
-        if expected_text == 'firstView':
-            found = self.locator_finder_by_xpath('//*[@id="firstView"]/div/h5').text
-            assert found == expected_text, f"Expected views title {expected_text} but got {found}"
-
-        elif expected_text == 'secondView':
-            found = self.locator_finder_by_xpath('//*[@id="secondView"]/div/h5').text
-            assert found == expected_text, f"Expected views title {expected_text} but got {found}"
+        if super().current_package_version() <= 3.8:
+            if expected_text == 'firstView':
+                found = self.locator_finder_by_xpath(search_locator).text
+                assert found == expected_text, f"Expected views title {expected_text} but got {found}"
+            elif expected_text == 'secondView':
+                found = self.locator_finder_by_xpath(search_locator).text
+                assert found == expected_text, f"Expected views title {expected_text} but got {found}"
+        else:
+            if expected_text == 'improved_arangosearch_view_01':
+                found = self.locator_finder_by_xpath(search_locator).text
+                assert found == expected_text, f"Expected views title {expected_text} but got {found}"
+            elif expected_text == 'improved_arangosearch_view_02':
+                found = self.locator_finder_by_xpath(search_locator).text
+                assert found == expected_text, f"Expected views title {expected_text} but got {found}"
+        self.driver.refresh()
 
     # selecting first view
     def select_first_view(self):
@@ -316,12 +327,10 @@ class ViewsPage(NavigationBarPage):
         time.sleep(2)
         self.webdriver.refresh()
 
-    def checking_views(self, name, locator):
+    def checking_improved_views(self, name, locator, deployment):
         """This method will check improved views"""
         print(f'Checking {name} started \n')
-        version = self.current_package_version()
-        self.webdriver.refresh()
-
+        
         print(f"Selecting {name}'s settings button\n")
         self.select_views_settings()
 
@@ -330,13 +339,12 @@ class ViewsPage(NavigationBarPage):
         print("Sorting views to ascending\n")
         self.select_sorting_views()
 
-        if version <= 3.8:
-            print("search views option testing\n")
-            self.search_views("firstview")
-            self.search_views("secondview")
+        print("Views search option testing\n")
+        self.search_views("improved_arangosearch_view_01", self.select_improved_arangosearch_view_01)
+        self.search_views("improved_arangosearch_view_02", self.select_improved_arangosearch_view_02)
 
         print(f'Selecting {name} for checking \n')
-        select_view_sitem = self.locator_finder_by_xpath(locator)
+        select_view_sitem = self.locator_finder_by_xpath(self, locator)
         select_view_sitem.click()
 
         self.select_collapse_btn()
@@ -362,18 +370,21 @@ class ViewsPage(NavigationBarPage):
         self.search_result_traverse_down()
         self.search_result_traverse_up()
 
-        print(f"Rename {name} to modified_name started \n")
-        self.clicking_rename_views_btn()
-        self.rename_views_name("modified_views_name")
-        self.rename_views_name_confirm()
-        print("Rename the current Views completed \n")
-
-        print(f'Checking {name} completed \n')
-        self.driver.back()
+        if deployment:
+            print('Current Deployment ->', deployment)  # will delete later
+            print('Renaming views are disabled for the Cluster deployment')
+        else:
+            print(f"Rename {name} to modified_name started \n")
+            self.clicking_rename_views_btn()
+            self.rename_views_name("modified_views_name")
+            self.rename_views_name_confirm()
+            print("Rename the current Views completed \n")
+        print(f'Checking {name} Completed \n')
+    
 
     def delete_views(self, name, locator):
         """This method will delete views"""
-        self.webdriver.refresh()
+        self.select_views_tab()
         print(f'Selecting {name} for deleting \n')
         select_view_sitem = self.locator_finder_by_xpath(locator)
         select_view_sitem.click()

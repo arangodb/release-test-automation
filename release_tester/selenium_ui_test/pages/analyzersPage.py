@@ -68,14 +68,14 @@ class AnalyzerPage(NavigationBarPage):
     def select_help_filter_btn(self):
         """Selecting help button"""
         print("Selecting Analyzers help filter button \n")
-        help_filter = '//*[@id="content"]/div[1]/div[2]/ul/li[1]/a/i'
-        help_sitem = self.locator_finder_by_xpath(help_filter)
+        help_filter = '/html/body/div[2]/div/div[2]/div[2]/div[1]/div[2]/ul/li[1]/a/i'
+        help_sitem = self.locator_finder_by_xpath(self, help_filter)
         help_sitem.click()
         time.sleep(3)
 
         print("Closing Analyzers help filter \n")
-        help_filter_close = "button-close"
-        help_close_sitem = self.locator_finder_by_class(self, help_filter_close)
+        help_filter_close = '/html/body/div[10]/div/div[3]/button'
+        help_close_sitem = self.locator_finder_by_xpath(self, help_filter_close)
         help_close_sitem.click()
         time.sleep(2)
 

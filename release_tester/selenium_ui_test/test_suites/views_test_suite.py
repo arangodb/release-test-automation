@@ -20,20 +20,21 @@ class ViewsTestSuite(BaseTestSuite):
 
         if version == 3.9:
             print('Creating improved views start here \n')
-            views.create_improved_views('improved_arangosearch_view', 0)
-            views.create_improved_views('improved_arangosearch_view_01', 1)
+            views.create_improved_views('improved_arangosearch_view_01', 0)
+            views.create_improved_views('improved_arangosearch_view_02', 1)
             print('Creating improved views completed \n')
 
             # Checking improved views
-            views.checking_views('improved_arangosearch_view', views.select_improved_arangosearch_view)
+            views.checking_improved_views('improved_arangosearch_view',
+                                               views.select_improved_arangosearch_view_01, self.is_cluster)
 
             print('Deleting views started \n')
-            print('cluster running status-> ', self.is_cluster)  # will delete this later on
             if self.is_cluster:
-                views.delete_views('improved_arangosearch_view', views.select_improved_arangosearch_view)
+                views.delete_views('improved_arangosearch_view_01',
+                                        views.select_improved_arangosearch_view_01)
             else:
-                views.delete_views('improved_arangosearch_view', views.select_modified_views_name)
-            views.delete_views('improved_arangosearch_view01', views.select_improved_arangosearch_view_01)
+                views.delete_views('modified_views_name', views.select_modified_views_name)
+            views.delete_views('improved_arangosearch_view_02', views.select_improved_arangosearch_view_02)
             print('Deleting views completed \n')
 
         # for package version less than 3.9e
@@ -49,8 +50,8 @@ class ViewsTestSuite(BaseTestSuite):
             views.select_sorting_views()
 
             print("search views option testing\n")
-            views.search_views("secondView")
-            views.search_views("firstView")
+            views.search_views("secondView", views.search_second_view)
+            views.search_views("firstView", views.search_first_view)
 
             print("Selecting first Views \n")
             views.select_first_view()
@@ -88,5 +89,5 @@ class ViewsTestSuite(BaseTestSuite):
             views.delete_views('second_view', views.select_second_view_id)
 
         # print("Deleting views completed\n")
-        del self.views
+        del views
         print("---------Checking Views completed--------- \n")

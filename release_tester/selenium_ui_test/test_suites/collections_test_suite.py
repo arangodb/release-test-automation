@@ -1,7 +1,7 @@
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
 from selenium_ui_test.models import IndexType
 from selenium_ui_test.pages.collection_page import CollectionPage
-
+from selenium_ui_test.pages.base_page import BasePage
 
 class CollectionsTestSuite(BaseTestSuite):
     @testcase
@@ -182,12 +182,12 @@ class CollectionsTestSuite(BaseTestSuite):
         # col3.delete_all_index()
         # print("Deleting all index completed\n")
 
-        version = self.current_package_version(self)
+        version = col1.current_package_version()
         col.create_new_index("Persistent", 1)
         col.create_new_index("Geo", 2)
         col.create_new_index("Fulltext", 3)
         col.create_new_index("TTL", 4)
-        if version == 3.9:
+        if version >= 3.9:
             col.create_new_index("ZKD", 5)
             print("Deleting all index started\n")
             for i in range(4):

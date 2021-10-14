@@ -13,7 +13,7 @@ class DashboardTestSuite(BaseTestSuite):
         dash = DashboardPage(self.webdriver, self.is_enterprise)
         dash.navbar_goto("cluster" if self.is_cluster else "dashboard")
         dash.check_server_package_name()
-        dash.check_current_package_version()
+        dash.current_package_version()
         dash.check_current_username()
         dash.check_current_db()
         dash.check_db_status()
@@ -27,7 +27,7 @@ class DashboardTestSuite(BaseTestSuite):
             print("Switch to Metrics tab\n")
             dash.check_system_metrics()
 
-        if self.is_cluster and super().current_package_version() >= 3.8:
+        if self.is_cluster and dash.current_package_version() >= 3.8:
             print('Checking distribution tab \n')
             dash.check_distribution_tab()
             print('Checking maintenance tab \n')
