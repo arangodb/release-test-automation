@@ -2,6 +2,7 @@
 """ Run a javascript command by spawning an arangosh
     to the configured connection """
 
+import json
 import csv
 import ctypes
 
@@ -19,30 +20,44 @@ def get_type_args(filename):
     raise NotImplementedError("no filename type encoding implemented for " + filename)
 
 month_decode = {
-  "JAN":"01", "FEB":"02", "MAR":"03", "APR":"04",
-  "MAY":"05", "JUN":"06", "JUL":"07", "AUG":"08",
-  "SEP":"09", "OCT":"10", "NOV":"11", "DEC":"12"
-} 
+    "JAN":"01",
+    "FEB":"02",
+    "MAR":"03",
+    "APR":"04",
+    "MAY":"05",
+    "JUN":"06",
+    "JUL":"07",
+    "AUG":"08",
+    "SEP":"09",
+    "OCT":"10",
+    "NOV":"11",
+    "DEC":"12"
+}
 
 def decode_date(date):
- if len(date) == 24:
-   month = date[3:6]
-   day = date[0:2]
-   year = date[7:11]
-   time = date[12:24]
-   year += "-";
-   year += month_decode.get(month, "01")
-   year += "-"
-   year += day
-   year += "T"
-   year += time
-   return year
- return date
+    """convert date to something more arango'ish"""
+    if len(date) == 24:
+        month = date[3:6]
+        day = date[0:2]
+        year = date[7:11]
+        time = date[12:24]
+        year += "-"
+        year += month_decode.get(month, "01")
+        year += "-"
+        year += day
+        year += "T"
+        year += time
+        return year
+    return date
 
 class ArangoImportExecutor(ArangoCLIprogressiveTimeoutExecutor):
     """configuration"""
 
     # pylint: disable=W0102
+    def __init__(self, config, connect_instance):
+        super().__init__(config, connect_instance)
+        self.wikidata_reader = None
+        self.wikidata_nlines = 0
 
     def run_import_monitored(self, args, timeout, verbose=True, expect_to_fail=False, writer=None):
         # pylint: disable=R0913 disable=R0902 disable=R0915 disable=R0912 disable=R0914
@@ -63,10 +78,10 @@ class ArangoImportExecutor(ArangoCLIprogressiveTimeoutExecutor):
             dummy_line_result,
             verbose,
             expect_to_fail,
-            writer
+            writer=writer
         )
 
-    def import_collection(self, collection_name, filename, more_args=[]):
+    def import_collection(self, collection_name, filename, more_args=[], writer=None):
         """import into any collection"""
         # fmt: off
         args = [
@@ -75,7 +90,7 @@ class ArangoImportExecutor(ArangoCLIprogressiveTimeoutExecutor):
         ] + get_type_args(filename) + more_args
         # fmt: on
 
-        ret = self.run_import_monitored(args, timeout=20, verbose=self.cfg.verbose)
+        ret = self.run_import_monitored(args, timeout=20, verbose=self.cfg.verbose, writer=writer)
         return ret
 
     def import_smart_edge_collection(self, collection_name, filename, edge_relations, more_args=[]):
@@ -93,7 +108,8 @@ class ArangoImportExecutor(ArangoCLIprogressiveTimeoutExecutor):
         return ret
 
     def wikidata_writer(self):
-        count = 0;
+        """pipe wikidata file into improter while translating it"""
+        count = 0
         for row in self.wikidata_reader:
             count += 1
             if count > self.wikidata_nlines:
@@ -105,9 +121,8 @@ class ArangoImportExecutor(ArangoCLIprogressiveTimeoutExecutor):
                     'title': row[0],
                     'body': row[2],
                     'count': count,
-                    'created':decodeDate(row[1])}) + "\n")
+                    'created':decode_date(row[1])}) + "\n")
 
-        
     def import_wikidata(self, collection_name, nlines, filename, more_args=[]):
         """import by write piping"""
         filedes = filename.open("r", encoding='utf-8', errors='replace')
@@ -116,12 +131,11 @@ class ArangoImportExecutor(ArangoCLIprogressiveTimeoutExecutor):
         # Override csv default 128k field size
         csv.field_size_limit(int(ctypes.c_ulong(-1).value // 2))
 
-        # fmt: off
-        args = [
-            '--file', '-', # STDIN...
-            '--collection', collection_name,
-         ] + get_type_args('foo.json') + more_args
-        # fmt: on
-        ret = self.import_collection(collection_name, more_args=args, writer=ArangoImportExecutor.wikidata_writer)
+        args = get_type_args('foo.json') + more_args
+
+        ret = self.import_collection(
+            collection_name,
+            filename="-",
+            more_args=args,
+            writer=ArangoImportExecutor.wikidata_writer)
         return ret
-        

@@ -77,6 +77,7 @@ class ArangoCLIprogressiveTimeoutExecutor:
         result_line,
         verbose,
         expect_to_fail=False,
+        writer=None
     ):
         """
         runs a script in background tracing with
@@ -91,15 +92,15 @@ class ArangoCLIprogressiveTimeoutExecutor:
             "--server.username", str(self.cfg.username),
             "--server.password", str(self.connect_instance.get_passvoid())
         ] + more_args
-        return self.run_monitored(executeable, run_cmd, timeout, result_line, verbose, expect_to_fail)
+        return self.run_monitored(executeable, run_cmd, timeout, result_line, verbose, expect_to_fail, writer=writer)
         # fmt: on
 
-    def run_monitored(self, executeable, args, timeout, result_line, verbose, expect_to_fail=False, write=None):
+    def run_monitored(self, executeable, args, timeout, result_line, verbose, expect_to_fail=False, writer=None):
         """
         run a script in background tracing with a dynamic timeout that its got output (is still alive...)
         """
         write_pipe = None
-        if write != None:
+        if writer is not None:
             write_pipe = PIPE
         run_cmd = [executeable] + args
         lh.log_cmd(run_cmd, verbose)
@@ -125,10 +126,10 @@ class ArangoCLIprogressiveTimeoutExecutor:
         thread1.start()
         thread2.start()
         thread3 = None
-        if write != None:
+        if writer is not None:
             thread3 = Thread(
                 name="readIO",
-                target=write,
+                target=writer,
                 args=(self),
             )
             thread3.start()
@@ -182,7 +183,7 @@ class ArangoCLIprogressiveTimeoutExecutor:
         rc_exit = self.process.wait()
         thread1.join()
         thread2.join()
-        if write:
+        if writer:
             thread3.join()
 
         if have_timeout or rc_exit != 0:
