@@ -95,6 +95,11 @@ class ArangoImportExecutor(ArangoCLIprogressiveTimeoutExecutor):
     def wikidata_writer(self):
         count = 0;
         for row in self.wikidata_reader:
+            count += 1
+            if count > self.wikidata_nlines:
+                print("imported enough, aborting.")
+                self.process.stdin.close()
+                break
             self.process.stdin.write(
                 json.dumps({
                     'title': row[0],
