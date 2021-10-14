@@ -328,7 +328,7 @@ def main(
         (len(old_source) != len(old_version)) or
         (len(old_source) != len(new_source))):
         raise Exception("""
-Cannot have different numbers of versions / sources: 
+Cannot have different numbers of versions / sources
 old_version:  {len_old_version} {old_version}
 old_source:   {len_old_source} {old_source}
 new_version:  {len_new_version} {new_version}

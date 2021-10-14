@@ -42,12 +42,7 @@ force_arg=()
 if test -n "$FORCE" -o "$TEST_BRANCH" != 'master'; then
   force_arg=(--force)
 fi
-
-if test -n "$SOURCE"; then
-    force_arg+=(--old-source "$SOURCE" --new-source "$SOURCE")
-else
-    force_arg+=(--remote-host "$(host nas02.arangodb.biz |sed "s;.* ;;")")
-fi
+# force_arg+=(--remote-host "$(host nas02.arangodb.biz |sed "s;.* ;;")")
 
 VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_tar_version.tar"
 mkdir -p "${PACKAGE_CACHE}"
@@ -92,8 +87,6 @@ docker run \
        \
           /home/release-test-automation/release_tester/full_download_upgrade.py \
           --version-state-tar "/home/release-test-automation/${VERSION_TAR_NAME}" \
-          --old-version "${OLD_VERSION}" \
-          --new-version "${NEW_VERSION}" \
           --zip \
           --verbose \
           --selenium Chrome \

@@ -92,8 +92,9 @@ class Download:
 
         self.package_dir = Path(package_dir)
         self.is_primary = version.startswith(":")
-        # strip off primary marker:
-        version = version[1:]
+        if self.is_primary:
+            # strip off primary marker:
+            version = version[1:]
         self.cfg = InstallerConfig(
             version,
             verbose,
