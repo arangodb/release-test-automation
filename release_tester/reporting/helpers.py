@@ -116,6 +116,8 @@ class AllureListener:
         test_result.labels.append(Label(name=LabelType.FRAMEWORK, value="ArangoDB Release Test Automation"))
         self.allure_logger.schedule_test(uuid, test_result)
         self._cache.push(test_result, uuid)
+        for label in context.labels:
+            test_result.labels.append(label)
 
     @allure_commons.hookimpl
     def stop_test(self, uuid, context):
@@ -130,7 +132,8 @@ class AllureListener:
                 test_result.statusDetails = step.statusDetails
 
         for label in context.labels:
-            test_result.labels.append(label)
+            if label not in test_result.labels:
+                test_result.labels.append(label)
         self.allure_logger.close_test(uuid)
 
 

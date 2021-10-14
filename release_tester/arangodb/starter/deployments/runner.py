@@ -131,6 +131,7 @@ class Runner(ABC):
             self.versionstr = "OLD[" + self.cfg.version + "] "
 
         self.basedir = Path(properties.short_name)
+        self.ui_tests_failed = False
         count = 1
         while True:
             try:
@@ -378,23 +379,18 @@ class Runner(ABC):
         if self.do_uninstall:
             self.uninstall(self.old_installer if not self.new_installer else self.new_installer)
         if self.selenium:
-            success = True
             ui_test_results_table = BeautifulTable(maxwidth=160)
             for result in self.selenium.test_results:
                 ui_test_results_table.rows.append(
                     [result.name, "PASSED" if result.success else "FAILED", result.message, result.tb]
                 )
                 if not result.success:
-                    success = False
+                    self.ui_tests_failed = True
             ui_test_results_table.columns.header = ["Name", "Result", "Message", "Traceback"]
             self.progress(False, "UI test results table:", supress_allure=True)
             self.progress(False, "\n" + str(ui_test_results_table), supress_allure=True)
 
             self.quit_selenium()
-            with step("Inspect UI test results"):
-                attach_table(ui_test_results_table, "UI test results")
-                if not success:
-                    raise Exception("There are failed UI tests")
 
         self.progress(False, "Runner of type {0} - Finished!".format(str(self.name)))
 

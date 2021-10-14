@@ -3,14 +3,15 @@ import logging
 from abc import ABC
 
 from allure_commons._allure import attach
-from allure_commons.types import AttachmentType
+from allure_commons.model2 import Status, Label
+from allure_commons.types import AttachmentType, LabelType
 from selenium.common.exceptions import InvalidSessionIdException
 from selenium_ui_test.models import RtaUiTestResult
 from selenium_ui_test.pages.login_page import LoginPage
 from selenium_ui_test.pages.base_page import BasePage
 from datetime import datetime
 
-from reporting.reporting_utils import step
+from reporting.reporting_utils import step, AllureTestSuiteContext, RtaTestcase
 
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from semver import VersionInfo
@@ -37,21 +38,33 @@ class BaseTestSuite(ABC):
             self.children.append(suite(selenium_runner))
 
     def run(self):
-        name = self.__doc__ if self.__doc__ else self.__class__.__name__
-        with step('Run UI test suite "%s"' % name):
-            self.setup()
-            for suite in self.children:
-                self.test_results += suite.run()
-            self.test_results += self.run_own_testscases()
-            self.tear_down()
-            return self.test_results
+        self.setup()
+        for suite in self.children:
+            self.test_results += suite.run()
+        if self.has_own_testcases():
+            with AllureTestSuiteContext(
+                    None,
+                    False,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+            ):
+                self.test_results += self.run_own_testscases()
+        self.tear_down()
+        return self.test_results
 
     def run_own_testscases(self):
         testcases = [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "is_testcase")]
         results = []
         for testcase in testcases:
-            results.append(testcase())
+            results.append(testcase(self))
         return results
+
+    def has_own_testcases(self):
+        testcases = [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "is_testcase")]
+        return len(testcases) > 0
 
     def ui_assert(self, conditionstate, message):
         """python assert sucks. fuckit."""
@@ -180,12 +193,14 @@ def testcase(title):
                 name = title.__doc__
             else:
                 name = title.__name__
-            with step('Running UI test case "%s"' % name):
+            sub_suite_name = self.__doc__ if self.__doc__ else self.__class__.__name__
+            with RtaTestcase(name, labels = [Label(name=LabelType.SUB_SUITE, value=sub_suite_name)]) as testcase:
                 try:
                     print('Running test case "%s"...' % name)
-                    func(self, *args, **kwargs)
+                    func(*args, **kwargs)
                     success = True
                     print('Test case "%s" passed!' % name)
+                    testcase.context.status = Status.PASSED
                 except Exception as e:
                     success = False
                     print("Test failed!")
@@ -194,6 +209,7 @@ def testcase(title):
                     print(message)
                     print(tb)
                     self.take_screenshot()
+                    testcase.context.status = Status.FAILED
                 test_result = RtaUiTestResult(name, success, message, tb)
                 return test_result
 

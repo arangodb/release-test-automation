@@ -5,8 +5,8 @@ from uuid import uuid4
 import allure_commons
 from allure_commons._allure import attach, StepContext
 from allure_commons.logger import AllureFileLogger
-from allure_commons.model2 import Status
-from allure_commons.types import AttachmentType
+from allure_commons.model2 import Status, TestResult
+from allure_commons.types import AttachmentType, LabelType
 from tabulate import tabulate
 from reporting.helpers import AllureListener
 
@@ -67,10 +67,12 @@ def step(title):
 class RtaTestcase:
     """test case class for allure reporting"""
 
-    def __init__(self, name):
+    def __init__(self, name, labels=[]):
         self.name = name
         self._uuid = str(uuid4())
         self.context = TestcaseContext()
+        for l in labels:
+            self.add_label(l)
 
     def __enter__(self):
         allure_commons.plugin_manager.hook.start_test(
@@ -124,6 +126,7 @@ class AllureTestSuiteContext:
         new_version,
         old_version=None,
         suite_name=None,
+        runner_type=None
     ):
         if suite_name:
             self.test_suite_name = suite_name
@@ -139,37 +142,53 @@ class AllureTestSuiteContext:
                 package_type = "deb/rpm/nsis/dmg"
             if not old_version:
                 self.test_suite_name = """
-Release Test Suite for ArangoDB v.{} ({}) {} package (clean install)
+ArangoDB v.{} ({}) {} package (clean install)
                     """.format(
                     new_version, edition, package_type
                 )
             else:
                 self.test_suite_name = """
-                Release Test Suite for ArangoDB v.{} ({}) {} package (upgrade from {})
+                ArangoDB v.{} ({}) {} package (upgrade from {})
                 """.format(
                     new_version, edition, package_type, old_version
                 )
+            if runner_type:
+                self.test_suite_name = "[" + str(runner_type) + "] " + self.test_suite_name
 
-        self.test_listener = AllureListener(self.test_suite_name)
-        allure_commons.plugin_manager.register(self.test_listener)
+        test_listeners = [p for p in allure_commons.plugin_manager.get_plugins() if type(p) == AllureListener]
+        self.previous_test_listener = None if len(test_listeners)==0 else test_listeners[0]
 
-        if AllureTestSuiteContext.test_suite_count == 0:
-            self.file_logger = AllureFileLogger(results_dir, clean)
+        if self.previous_test_listener:
+            labels = {k: v for k, v in self.previous_test_listener._cache._items.items() if type(v) == TestResult}.popitem()[1].labels
+            suite_label = [l for l in labels if l.name==LabelType.SUITE][0]
+            self.test_suite_name = suite_label.value
+            self.test_listener = AllureListener(self.test_suite_name)
+            allure_commons.plugin_manager.unregister(self.previous_test_listener)
+            allure_commons.plugin_manager.register(self.test_listener)
         else:
-            self.file_logger = AllureFileLogger(results_dir, False)
+            if AllureTestSuiteContext.test_suite_count == 0:
+                self.file_logger = AllureFileLogger(results_dir, clean)
+            else:
+                self.file_logger = AllureFileLogger(results_dir, False)
+            self.test_listener = AllureListener(self.test_suite_name)
+            allure_commons.plugin_manager.register(self.test_listener)
+            allure_commons.plugin_manager.register(self.file_logger)
 
-        allure_commons.plugin_manager.register(self.file_logger)
         AllureTestSuiteContext.test_suite_count += 1
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        allure_commons.plugin_manager.unregister(self.test_listener)
-        allure_commons.plugin_manager.unregister(self.file_logger)
+        if self.previous_test_listener:
+            allure_commons.plugin_manager.unregister(self.test_listener)
+            allure_commons.plugin_manager.register(self.previous_test_listener)
+        else:
+            allure_commons.plugin_manager.unregister(self.test_listener)
+            allure_commons.plugin_manager.unregister(self.file_logger)
 
 
-def configure_allure(results_dir, clean, enterprise, zip_package, new_version, old_version=None):
+def configure_allure(results_dir, clean, enterprise, zip_package, new_version, old_version=None, runner_type=None):
     """configure allure reporting"""
     # pylint: disable=R0913
-    return AllureTestSuiteContext(results_dir, clean, enterprise, zip_package, new_version, old_version)
+    return AllureTestSuiteContext(results_dir, clean, enterprise, zip_package, new_version, old_version, runner_type)
