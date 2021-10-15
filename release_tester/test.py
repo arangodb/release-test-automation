@@ -167,7 +167,7 @@ def main(mode,
     # fmt: on
     """ main trampoline """
     lh.configure_logging(verbose)
-    configure_allure(alluredir, clean_alluredir, enterprise, zip_package, new_version, None)
+    configure_allure(alluredir, clean_alluredir, enterprise, zip_package, new_version, encryption_at_rest, None)
     results = run_test(mode,
                        new_version,
                        verbose,

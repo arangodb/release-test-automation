@@ -204,7 +204,7 @@ def main(
     # fmt: on
     """ main trampoline """
     lh.configure_logging(verbose)
-    configure_allure(alluredir, clean_alluredir, enterprise, zip_package, new_version, old_version)
+    configure_allure(alluredir, clean_alluredir, enterprise, zip_package, new_version, encryption_at_rest, old_version)
     results = run_upgrade(
         old_version,
         new_version,

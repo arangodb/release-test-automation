@@ -97,8 +97,9 @@ def upgrade_package_test(
             enterprise,
             zip_package,
             primary_version,
+            encryption_at_rest,
             None, # was: old version
-            testrun_name,
+            None,
         ) as suite_context:
             dl_new = Download(
                 primary_version,
@@ -191,8 +192,9 @@ def upgrade_package_test(
                 enterprise,
                 zip_package,
                 new_versions[j],
+                encryption_at_rest,
                 old_versions[j],
-                testrun_name,
+                None,
             ) as suite_context:
                 dl_old = Download(
                     old_versions[j],

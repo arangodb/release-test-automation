@@ -115,8 +115,9 @@ def upgrade_package_test(
                 enterprise,
                 zip_package,
                 new_version[j],
+                encryption_at_rest,
                 old_version[j],
-                testrun_name,
+                None,
             ) as suite_context:
                 dl_old = Download(
                     old_version[j],

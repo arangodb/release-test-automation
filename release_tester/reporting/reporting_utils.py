@@ -124,6 +124,7 @@ class AllureTestSuiteContext:
         enterprise,
         zip_package,
         new_version,
+        enc_at_rest,
         old_version=None,
         suite_name=None,
     ):
@@ -141,15 +142,15 @@ class AllureTestSuiteContext:
                 package_type = "deb/rpm/nsis/dmg"
             if not old_version:
                 self.test_suite_name = """
-Release Test Suite for ArangoDB v.{} ({}) {} package (clean install)
+Release Test Suite for ArangoDB v.{} ({}) {} package (Enc@REST: {}) (clean install)
                     """.format(
-                    new_version, edition, package_type
+                    new_version, edition, package_type, "ON" if enc_at_rest else "OFF"
                 )
             else:
                 self.test_suite_name = """
-                Release Test Suite for ArangoDB v.{} ({}) {} package (upgrade from {})
+                Release Test Suite for ArangoDB v.{} ({}) {} package (upgrade from {}) (Enc@REST: {}) 
                 """.format(
-                    new_version, edition, package_type, old_version
+                    new_version, edition, package_type, old_version, "ON" if enc_at_rest else "OFF"
                 )
 
         self.test_listener = AllureListener(self.test_suite_name)
@@ -171,7 +172,7 @@ Release Test Suite for ArangoDB v.{} ({}) {} package (clean install)
         allure_commons.plugin_manager.unregister(self.file_logger)
 
 
-def configure_allure(results_dir, clean, enterprise, zip_package, new_version, old_version=None):
+def configure_allure(results_dir, clean, enterprise, zip_package, new_version, enc_at_rest, old_version=None):
     """configure allure reporting"""
     # pylint: disable=R0913
-    return AllureTestSuiteContext(results_dir, clean, enterprise, zip_package, new_version, old_version)
+    return AllureTestSuiteContext(results_dir, clean, enterprise, zip_package, new_version, enc_at_rest, old_version)
