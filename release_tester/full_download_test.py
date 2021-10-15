@@ -100,68 +100,58 @@ def package_test(
             directory_suffix,
             testrun_name,
         ) in execution_plan:
-            # pylint: disable=W0612
-            with AllureTestSuiteContext(
-                alluredir,
-                clean_alluredir,
-                enterprise,
-                zip_package,
+            dl_new = Download(
                 new_version[j],
-                None,  # was: old version
-                testrun_name,
-            ) as suite_context:
-                dl_new = Download(
-                    new_version[j],
+                verbose,
+                package_dir,
+                enterprise,
+                enterprise_magic,
+                zip_package,
+                new_dlstage[j],
+                httpusername,
+                httppassvoid,
+                remote_host,
+                versions,
+                fresh_versions,
+                git_version,
+            )
+
+            if not dl_new.is_different() and not force:
+                print("we already tested this version. bye.")
+                return 0
+            dl_new.get_packages(dl_new.is_different())
+
+            test_dir = Path(test_data_dir) / directory_suffix
+            if test_dir.exists():
+                shutil.rmtree(test_dir)
+                if "REQUESTS_CA_BUNDLE" in os.environ:
+                    del os.environ["REQUESTS_CA_BUNDLE"]
+            test_dir.mkdir()
+            while not test_dir.exists():
+                time.sleep(1)
+            results.append(
+                run_test(
+                    "all",
+                    str(dl_new.cfg.version),
                     verbose,
                     package_dir,
+                    test_dir,
+                    alluredir,
+                    clean_alluredir,
                     enterprise,
-                    enterprise_magic,
+                    encryption_at_rest,
                     zip_package,
-                    new_dlstage[j],
-                    httpusername,
-                    httppassvoid,
-                    remote_host,
-                    versions,
-                    fresh_versions,
-                    git_version,
+                    False,  # interactive
+                    starter_mode,
+                    False,  # abort_on_error
+                    publicip,
+                    selenium,
+                    selenium_driver_args,
+                    testrun_name,
+                    ssl,
+                    use_auto_certs,
                 )
-
-                if not dl_new.is_different() and not force:
-                    print("we already tested this version. bye.")
-                    return 0
-                dl_new.get_packages(dl_new.is_different())
-
-                test_dir = Path(test_data_dir) / directory_suffix
-                if test_dir.exists():
-                    shutil.rmtree(test_dir)
-                    if "REQUESTS_CA_BUNDLE" in os.environ:
-                        del os.environ["REQUESTS_CA_BUNDLE"]
-                test_dir.mkdir()
-                while not test_dir.exists():
-                    time.sleep(1)
-                results.append(
-                    run_test(
-                        "all",
-                        str(dl_new.cfg.version),
-                        verbose,
-                        package_dir,
-                        test_dir,
-                        alluredir,
-                        clean_alluredir,
-                        enterprise,
-                        encryption_at_rest,
-                        zip_package,
-                        False,  # interactive
-                        starter_mode,
-                        False,  # abort_on_error
-                        publicip,
-                        selenium,
-                        selenium_driver_args,
-                        testrun_name,
-                        ssl,
-                        use_auto_certs,
-                    )
-                )
+            )
 
     print("V" * 80)
     status = True
