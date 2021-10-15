@@ -11,3 +11,4 @@ markdown
 allure_python_commons
 certifi
 mss
+csv
