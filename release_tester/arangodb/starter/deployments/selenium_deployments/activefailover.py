@@ -5,8 +5,9 @@ from selenium_ui_test.test_suites.activefailover.after_install_test_suite import
 from selenium_ui_test.test_suites.activefailover.jam_1_test_suite import ActiveFailoverJamStepOneSuite
 from selenium_ui_test.test_suites.basic_test_suite import BasicTestSuite
 
-from selenium_ui_test.test_suites.activefailover.wait_for_upgrade_test_suite import \
-    ActiveFailoverWaitForUpgradeTestSuite
+from selenium_ui_test.test_suites.activefailover.wait_for_upgrade_test_suite import (
+    ActiveFailoverWaitForUpgradeTestSuite,
+)
 
 
 class ActiveFailover(SeleniumRunner):

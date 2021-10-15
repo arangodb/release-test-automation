@@ -13,12 +13,15 @@ from selenium_ui_test.test_suites.analyzers_test_suite import AnalyzersTestSuite
 
 class BasicTestSuite(BaseTestSuite):
     def __init__(self, selenium_runner):
-        super().__init__(selenium_runner, child_classes=[
-            UserPageTestSuite,
-            # CollectionsTestSuite,
-            # DashboardTestSuite,
-            # ViewsTestSuite,
-            # GraphTestSuite,
-            # QueryTestSuite,
-            # AnalyzersTestSuite,
-        ])
+        super().__init__(
+            selenium_runner,
+            child_classes=[
+                UserPageTestSuite,
+                # CollectionsTestSuite,
+                # DashboardTestSuite,
+                # ViewsTestSuite,
+                # GraphTestSuite,
+                # QueryTestSuite,
+                # AnalyzersTestSuite,
+            ],
+        )

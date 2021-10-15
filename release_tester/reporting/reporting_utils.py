@@ -51,7 +51,7 @@ def attach_table(table, title="HTML table"):
     """
     # pylint: disable=E1101
     template = Template(template_str)
-    html_table = tabulate(table, headers=table.column_headers, tablefmt='html')
+    html_table = tabulate(table, headers=table.column_headers, tablefmt="html")
     attach(template.substitute(html_table=html_table), title, AttachmentType.HTML)
 
 
@@ -127,7 +127,7 @@ class AllureTestSuiteContext:
         new_version,
         old_version=None,
         suite_name=None,
-        runner_type=None
+        runner_type=None,
     ):
         if suite_name:
             self.test_suite_name = suite_name
@@ -157,11 +157,15 @@ ArangoDB v.{} ({}) {} package (clean install)
                 self.test_suite_name = "[" + str(runner_type) + "] " + self.test_suite_name
 
         test_listeners = [p for p in allure_commons.plugin_manager.get_plugins() if type(p) == AllureListener]
-        self.previous_test_listener = None if len(test_listeners)==0 else test_listeners[0]
+        self.previous_test_listener = None if len(test_listeners) == 0 else test_listeners[0]
 
         if self.previous_test_listener:
-            labels = {k: v for k, v in self.previous_test_listener._cache._items.items() if type(v) == TestResult}.popitem()[1].labels
-            suite_label = [l for l in labels if l.name==LabelType.SUITE][0]
+            labels = (
+                {k: v for k, v in self.previous_test_listener._cache._items.items() if type(v) == TestResult}
+                .popitem()[1]
+                .labels
+            )
+            suite_label = [l for l in labels if l.name == LabelType.SUITE][0]
             self.test_suite_name = suite_label.value
             self.test_listener = AllureListener(self.test_suite_name)
             allure_commons.plugin_manager.unregister(self.previous_test_listener)

@@ -16,29 +16,30 @@ import tools.loghelper as lh
 import requests
 from common_options import very_common_options, download_options
 
+
 def read_versions_tar(tar_file, versions):
     """reads the versions tar"""
     try:
-        fdesc = tar_file.open('rb')
-        tar = tarfile.open(fileobj=fdesc, mode='r:')
+        fdesc = tar_file.open("rb")
+        tar = tarfile.open(fileobj=fdesc, mode="r:")
         for member in tar:
             print(member.name)
             print(member.isfile())
             if member.isfile():
-                versions[member.name] = tar.extractfile(
-                    member).read().decode(encoding='utf-8')
+                versions[member.name] = tar.extractfile(member).read().decode(encoding="utf-8")
         tar.close()
         fdesc.close()
     except FileNotFoundError:
         pass
 
+
 def write_version_tar(tar_file, versions):
     """write the versions tar"""
     print("writing " + str(tar_file))
-    fdesc = tar_file.open('wb')
-    tar = tarfile.open(fileobj=fdesc, mode='w:')
+    fdesc = tar_file.open("wb")
+    tar = tarfile.open(fileobj=fdesc, mode="w:")
     for version_name in versions:
-        data = versions[version_name].encode('utf-8')
+        data = versions[version_name].encode("utf-8")
         file_obj = BytesIO(data)
         info = tarfile.TarInfo(name=version_name)
         info.size = len(data)
@@ -46,25 +47,26 @@ def write_version_tar(tar_file, versions):
     tar.close()
     fdesc.close()
 
+
 class Download:
     """manage package downloading from any known arango package source"""
 
     # pylint: disable=R0913 disable=R0902
     def __init__(
-            self,
-            version,
-            verbose,
-            package_dir,
-            enterprise,
-            enterprise_magic,
-            zip_package,
-            source,
-            httpuser,
-            httppassvoid,
-            remote_host,
-            existing_version_states,
-            new_version_states,
-            git_version
+        self,
+        version,
+        verbose,
+        package_dir,
+        enterprise,
+        enterprise_magic,
+        zip_package,
+        source,
+        httpuser,
+        httppassvoid,
+        remote_host,
+        existing_version_states,
+        new_version_states,
+        git_version,
     ):
         """main"""
         lh.section("configuration")
@@ -123,10 +125,10 @@ class Download:
     def is_different(self):
         """whether we would download a new package or not"""
         return (
-            self.source == "local" or
-            not self.version_content or
-            not self.fresh_content or
-            self.version_content != self.fresh_content
+            self.source == "local"
+            or not self.version_content
+            or not self.fresh_content
+            or self.version_content != self.fresh_content
         )
 
     def calculate_package_names(self):
@@ -165,7 +167,7 @@ class Download:
             "public": "{enterprise_magic}{major_version}/{enterprise}/{remote_package_dir}/".format(
                 **self.params
             ).replace("///", "/"),
-            "local": None
+            "local": None,
         }
         self.funcs = {
             "http:stage1": self.acquire_stage1_http,
@@ -174,7 +176,7 @@ class Download:
             "ftp:stage2": self.acquire_stage2_ftp,
             "nightlypublic": self.acquire_live,
             "public": self.acquire_live,
-            "local": self.acquire_none
+            "local": self.acquire_none,
         }
 
     # pylint: disable=W0613 disable=R0201
@@ -281,22 +283,14 @@ class Download:
             self.packages.append(self.inst.debug_package)
 
         for package in self.packages:
-            self.funcs[self.source](
-                self.directories[self.source],
-                package,
-                Path(self.package_dir),
-                force)
+            self.funcs[self.source](self.directories[self.source], package, Path(self.package_dir), force)
 
     def get_version_info(self, git_version):
         """download the nightly sourceInfo.json file, calculate more precise version of the packages"""
         if self.source == "local":
             return ""
         source_info_fn = "sourceInfo.json"
-        self.funcs[self.source](
-            self.directories[self.source],
-            source_info_fn,
-            Path(self.package_dir),
-            True)
+        self.funcs[self.source](self.directories[self.source], source_info_fn, Path(self.package_dir), True)
         text = (self.package_dir / source_info_fn).read_text()
         while text[0] != "{":
             text = text[1:]

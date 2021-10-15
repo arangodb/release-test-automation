@@ -107,7 +107,7 @@ def package_test(
                 enterprise,
                 zip_package,
                 new_version[j],
-                None, # was: old version
+                None,  # was: old version
                 testrun_name,
             ) as suite_context:
                 dl_new = Download(
@@ -123,7 +123,7 @@ def package_test(
                     remote_host,
                     versions,
                     fresh_versions,
-                    git_version
+                    git_version,
                 )
 
                 if not dl_new.is_different() and not force:
@@ -149,15 +149,15 @@ def package_test(
                         enterprise,
                         encryption_at_rest,
                         zip_package,
-                        False, #interactive
+                        False,  # interactive
                         starter_mode,
-                        False, # abort_on_error
+                        False,  # abort_on_error
                         publicip,
                         selenium,
                         selenium_driver_args,
                         testrun_name,
                         ssl,
-                        use_auto_certs
+                        use_auto_certs,
                     )
                 )
 
@@ -203,6 +203,7 @@ def package_test(
 
     if not force:
         write_version_tar(version_state_tar, fresh_versions)
+
 
 @click.command()
 @click.option(

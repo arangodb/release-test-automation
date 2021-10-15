@@ -3,6 +3,7 @@ from selenium_ui_test.models import IndexType
 from selenium_ui_test.pages.collection_page import CollectionPage
 from selenium_ui_test.pages.base_page import BasePage
 
+
 class CollectionsTestSuite(BaseTestSuite):
     @testcase
     def test_collection(self):

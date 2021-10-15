@@ -579,9 +579,7 @@ class CollectionPage(NavigationBarPage):
         try:
             select_new_settings_save_btn_sitem = self.locator_finder_by_id(self.select_newer_settings_save_btn_id)
             if select_new_settings_save_btn_sitem.text != "Save":
-                select_new_settings_save_btn_sitem = self.locator_finder_by_id(
-                    self.select_new_settings_save_btn_id
-                )
+                select_new_settings_save_btn_sitem = self.locator_finder_by_id(self.select_new_settings_save_btn_id)
         except TimeoutException:
             select_new_settings_save_btn_sitem = self.locator_finder_by_id(self.select_new_settings_save_btn_id)
 

@@ -264,7 +264,7 @@ class InstallerBase(ABC):
             if "WORKSPACE_TMP" in os.environ:
                 wdtmp = Path(os.environ["WORKSPACE_TMP"])
                 wdtmp.mkdir(parents=True, exist_ok=True)
-                cfg_file =  wdtmp / "config.yml"
+                cfg_file = wdtmp / "config.yml"
             else:
                 cfg_file = Path("c:/") / "tmp/" / "config.yml"
         else:

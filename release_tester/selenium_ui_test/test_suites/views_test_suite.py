@@ -19,28 +19,28 @@ class ViewsTestSuite(BaseTestSuite):
         version = views.current_package_version()
 
         if version == 3.9:
-            print('Creating improved views start here \n')
-            views.create_improved_views('improved_arangosearch_view_01', 0)
-            views.create_improved_views('improved_arangosearch_view_02', 1)
-            print('Creating improved views completed \n')
+            print("Creating improved views start here \n")
+            views.create_improved_views("improved_arangosearch_view_01", 0)
+            views.create_improved_views("improved_arangosearch_view_02", 1)
+            print("Creating improved views completed \n")
 
             # Checking improved views
-            views.checking_improved_views('improved_arangosearch_view',
-                                               views.select_improved_arangosearch_view_01, self.is_cluster)
+            views.checking_improved_views(
+                "improved_arangosearch_view", views.select_improved_arangosearch_view_01, self.is_cluster
+            )
 
-            print('Deleting views started \n')
+            print("Deleting views started \n")
             if self.is_cluster:
-                views.delete_views('improved_arangosearch_view_01',
-                                        views.select_improved_arangosearch_view_01)
+                views.delete_views("improved_arangosearch_view_01", views.select_improved_arangosearch_view_01)
             else:
-                views.delete_views('modified_views_name', views.select_modified_views_name)
-            views.delete_views('improved_arangosearch_view_02', views.select_improved_arangosearch_view_02)
-            print('Deleting views completed \n')
+                views.delete_views("modified_views_name", views.select_modified_views_name)
+            views.delete_views("improved_arangosearch_view_02", views.select_improved_arangosearch_view_02)
+            print("Deleting views completed \n")
 
         # for package version less than 3.9e
         elif version <= 3.9:
-            views.create_new_views('firstView')
-            views.create_new_views('secondView')
+            views.create_new_views("firstView")
+            views.create_new_views("secondView")
 
             views.select_views_settings()
 
@@ -85,8 +85,8 @@ class ViewsTestSuite(BaseTestSuite):
             print("Rename the current Views completed \n")
 
             print("Deleting views started \n")
-            views.delete_views('renamed_view', views.select_renamed_view_id)
-            views.delete_views('second_view', views.select_second_view_id)
+            views.delete_views("renamed_view", views.select_renamed_view_id)
+            views.delete_views("second_view", views.select_second_view_id)
 
         # print("Deleting views completed\n")
         del views

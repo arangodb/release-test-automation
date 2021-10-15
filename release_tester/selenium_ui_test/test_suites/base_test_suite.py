@@ -43,13 +43,13 @@ class BaseTestSuite(ABC):
             self.test_results += suite.run()
         if self.has_own_testcases():
             with AllureTestSuiteContext(
-                    None,
-                    False,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
+                None,
+                False,
+                None,
+                None,
+                None,
+                None,
+                None,
             ):
                 self.test_results += self.run_own_testscases()
         self.tear_down()
@@ -172,8 +172,8 @@ class BaseTestSuite(ABC):
         ver = NavigationBarPage(self.webdriver).detect_version()
         self.progress(" %s ~= %s?" % (ver["version"].lower(), str(expected_version).lower()))
         assert ver["version"].lower().lower().startswith(str(expected_version)), (
-                "UI-Test: wrong version: '" + str(ver["version"]).lower() +
-                "' vs '" + str(expected_version).lower() + "'")
+            "UI-Test: wrong version: '" + str(ver["version"]).lower() + "' vs '" + str(expected_version).lower() + "'"
+        )
         if is_enterprise:
             assert ver["enterprise"] == "ENTERPRISE EDITION", "UI-Test: expected enterprise"
         else:
@@ -194,7 +194,7 @@ def testcase(title):
             else:
                 name = title.__name__
             sub_suite_name = self.__doc__ if self.__doc__ else self.__class__.__name__
-            with RtaTestcase(name, labels = [Label(name=LabelType.SUB_SUITE, value=sub_suite_name)]) as testcase:
+            with RtaTestcase(name, labels=[Label(name=LabelType.SUB_SUITE, value=sub_suite_name)]) as testcase:
                 try:
                     print('Running test case "%s"...' % name)
                     func(*args, **kwargs)

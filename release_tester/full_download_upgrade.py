@@ -126,7 +126,7 @@ def upgrade_package_test(
                     remote_host,
                     versions,
                     fresh_versions,
-                    git_version
+                    git_version,
                 )
                 dl_new = Download(
                     new_version[j],
@@ -141,7 +141,7 @@ def upgrade_package_test(
                     remote_host,
                     versions,
                     fresh_versions,
-                    git_version
+                    git_version,
                 )
 
                 if not dl_new.is_different() or not dl_old.is_different():
@@ -168,10 +168,10 @@ def upgrade_package_test(
                         enterprise,
                         encryption_at_rest,
                         zip_package,
-                        False, # interactive
+                        False,  # interactive
                         starter_mode,
                         stress_upgrade,
-                        False, # abort on error
+                        False,  # abort on error
                         publicip,
                         selenium,
                         selenium_driver_args,

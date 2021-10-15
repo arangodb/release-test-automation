@@ -9,7 +9,7 @@ class AnalyzersTestSuite(BaseTestSuite):
         # login = LoginPage(self.webdriver)
         # login.login('root', '')
         analyzers = AnalyzerPage(self.webdriver)
-        
+
         version = analyzers.current_package_version()
         if version >= 3.9:
             analyzers.select_analyzers_page()
@@ -121,7 +121,6 @@ class AnalyzersTestSuite(BaseTestSuite):
             # del login
             del analyzers
             print("---------Analyzers Page Test Completed--------- \n")
-    
-        else:
-            print('Analyzer UI test is not supported for the package version below 3.9.0 \n')
 
+        else:
+            print("Analyzer UI test is not supported for the package version below 3.9.0 \n")

@@ -17,6 +17,8 @@ from tools.asciiprint import print_progress as progress
 arangoversions = {
     "370": semver.VersionInfo.parse("3.7.0"),
 }
+
+
 class Cluster(Runner):
     """this launches a cluster setup"""
 
