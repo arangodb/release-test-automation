@@ -6,7 +6,7 @@ import traceback
 
 import sys
 import click
-from allure_commons.model2 import Status, Label
+from allure_commons.model2 import Status, Label, StatusDetails
 from allure_commons.types import LabelType
 
 from common_options import very_common_options, common_options
@@ -83,6 +83,7 @@ def run_test(mode,
             ]) as testcase:
                 if not enterprise and runner_type == RunnerType.DC2DC:
                     testcase.context.status = Status.SKIPPED
+                    testcase.context.statusDetails = StatusDetails(message="DC2DC is not applicable to Community packages.")
                     continue
                 runner = make_runner(
                     runner_type,

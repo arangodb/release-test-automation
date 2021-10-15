@@ -124,6 +124,8 @@ class AllureListener:
         """stop test"""
         test_result = self._cache.get(uuid)
         test_result.status = context.status
+        if context.statusDetails:
+            test_result.statusDetails = context.statusDetails
         test_result.stop = now()
         # context.log_captor.save_logs()
         for step in test_result.steps:

@@ -104,11 +104,12 @@ class RtaTestcase:
 class TestcaseContext:
     """a class to store test case context"""
 
-    def __init__(self, status=None):
+    def __init__(self, status=None, statusDetails=None):
         if status:
             self.status = status
         else:
             self.status = Status.UNKNOWN
+        self.statusDetails = statusDetails
         self.labels = []
 
 

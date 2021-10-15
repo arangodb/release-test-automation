@@ -7,7 +7,7 @@ import traceback
 import sys
 import platform
 import click
-from allure_commons.model2 import Status, Label
+from allure_commons.model2 import Status, Label, StatusDetails
 from allure_commons.types import LabelType
 
 from common_options import very_common_options, common_options
@@ -51,11 +51,15 @@ def run_upgrade(
     lh.section("startup")
     results = []
     for runner_type in STARTER_MODES[starter_mode]:
-        with AllureTestSuiteContext(alluredir, clean_alluredir, enterprise, zip_package,
-                                    new_version, old_version, None, runner_type.name):
+        with AllureTestSuiteContext(
+            alluredir, clean_alluredir, enterprise, zip_package, new_version, old_version, None, runner_type.name
+        ):
             with RtaTestcase(runner_strings[runner_type]) as testcase:
                 if (not enterprise or is_windows) and runner_type == RunnerType.DC2DC:
                     testcase.context.status = Status.SKIPPED
+                    testcase.context.statusDetails = StatusDetails(
+                        message="DC2DC is not applicable to Community packages."
+                    )
                     continue
                 one_result = {
                     "testrun name": testrun_name,
