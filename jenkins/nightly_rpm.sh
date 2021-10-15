@@ -15,7 +15,7 @@ if test -z "${PACKAGE_CACHE}"; then
 fi
 
 force_arg=()
-if test -n "$FORCE" -o "$TEST_BRANCH" != 'master'; then
+if test -n "$FORCE" -o "$TEST_BRANCH" != 'main'; then
   force_arg=(--force)
 fi
 

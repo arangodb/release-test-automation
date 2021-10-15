@@ -5,25 +5,18 @@ GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
 if test -z "$GIT_VERSION"; then
     GIT_VERSION=$VERSION
 fi
-if test -z "$NEW_VERSION"; then
-    NEW_VERSION=3.9.0-nightly
-fi
+
 if test -z "${PACKAGE_CACHE}"; then
     PACKAGE_CACHE="$(pwd)/package_cache/"
 fi
 
 force_arg=()
-if test -n "$FORCE" -o "$TEST_BRANCH" != 'main'; then
+if test -n "$FORCE" -o "$TEST_BRANCH" != 'master'; then
   force_arg=(--force)
 fi
+# force_arg+=(--remote-host "$(host nas02.arangodb.biz |sed "s;.* ;;")")
 
-if test -n "$SOURCE"; then
-    force_arg+=(--new-source "$SOURCE")
-else
-    force_arg+=(--remote-host "$(host nas02.arangodb.biz |sed "s;.* ;;")")
-fi
-
-VERSION_TAR_NAME="${NEW_VERSION}_tar_version.tar"
+VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_tar_version.tar"
 mkdir -p "${PACKAGE_CACHE}"
 mkdir -p test_dir
 mkdir -p allure-results
@@ -64,9 +57,7 @@ docker run \
        \
        "arangodb/${DOCKER_TAR_TAG}" \
        \
-          /home/release-test-automation/release_tester/full_download_test.py \
-          --version-state-tar "/home/release-test-automation/${VERSION_TAR_NAME}" \
-          --new-version "${NEW_VERSION}" \
+          /home/release-test-automation/release_tester/full_download_upgrade_test.py \
           --zip \
           --verbose \
           --selenium Chrome \
