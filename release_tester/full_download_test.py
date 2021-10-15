@@ -146,6 +146,8 @@ def package_test(
                         verbose,
                         package_dir,
                         test_dir,
+                        alluredir,
+                        clean_alluredir,
                         enterprise,
                         encryption_at_rest,
                         zip_package,
