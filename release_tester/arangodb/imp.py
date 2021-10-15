@@ -17,6 +17,8 @@ def get_type_args(filename):
         return ["--type=json"]
     if filename.endswith("csv"):
         return ["--type=csv"]
+    if filename == "-":
+        return ["--type=jsonl"]
     raise NotImplementedError("no filename type encoding implemented for " + filename)
 
 month_decode = {
@@ -114,14 +116,16 @@ class ArangoImportExecutor(ArangoCLIprogressiveTimeoutExecutor):
             count += 1
             if count > self.wikidata_nlines:
                 print("imported enough, aborting.")
-                self.process.stdin.close()
                 break
-            self.process.stdin.write(
-                json.dumps({
+            if count > 1: # headline, we don't care...
+                line = json.dumps({
                     'title': row[0],
                     'body': row[2],
                     'count': count,
-                    'created':decode_date(row[1])}) + "\n")
+                    'created':decode_date(row[1])}) + "\n"
+                print(line)
+                self.process.stdin.write(line.encode())
+        self.process.stdin.close()
 
     def import_wikidata(self, collection_name, nlines, filename, more_args=[]):
         """import by write piping"""
@@ -131,8 +135,8 @@ class ArangoImportExecutor(ArangoCLIprogressiveTimeoutExecutor):
         # Override csv default 128k field size
         csv.field_size_limit(int(ctypes.c_ulong(-1).value // 2))
 
-        args = get_type_args('foo.json') + more_args
-
+        # args = get_type_args('foo.json') + more_args
+        args = ['--create-collection', 'true' ] + more_args
         ret = self.import_collection(
             collection_name,
             filename="-",

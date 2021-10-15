@@ -195,7 +195,9 @@ process.exit(0);
         arangosh_script = self.checks["afterReplJS"]
         logging.info(str(self.leader_starter_instance.execute_frontend(arangosh_script)))
         self.makedata_instances.append(self.leader_starter_instance)
-        self.leader_starter_instance.arango_importer.import_wikidata('test_wiki_data', 100, Path('/home/willi/src/benchmark.data'))
+        self.leader_starter_instance.arango_importer.import_wikidata('test_wiki_data', 100, Path('/home/willi/wiki.csv'))
+        prompt_user(self.basecfg, "please test the installation.")
+        raise Exception('saontehu')
     @step
     def test_setup_impl(self):
         logging.info("testing the leader/follower setup")

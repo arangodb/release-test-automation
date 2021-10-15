@@ -47,6 +47,8 @@ def convert_result(result_array):
         result += "\n" + one_line[0].decode("utf-8").rstrip()
     return result
 
+def custom_writer(ArangoCLIprogressiveTimeoutExecutorInstance, writer):
+    writer(ArangoCLIprogressiveTimeoutExecutorInstance)
 
 class CliExecutionException(Exception):
     """transport CLI error texts"""
@@ -128,9 +130,9 @@ class ArangoCLIprogressiveTimeoutExecutor:
         thread3 = None
         if writer is not None:
             thread3 = Thread(
-                name="readIO",
-                target=writer,
-                args=(self),
+                name="WriteIO",
+                target=custom_writer,
+                args=(self, writer),
             )
             thread3.start()
 
