@@ -53,7 +53,7 @@ def very_common_options(support_multi_version=False):
         function = click.option(
             "--package-dir",
             default=package_dir,
-            help="directory to load the packages from.",
+            help="directory to down/load the packages from/to.",
         )(function)
         function = zip_common_options(function)
         return function
@@ -153,7 +153,7 @@ def common_options(
     return inner_func
 
 
-def download_options(default_source="public", double_source=False):
+def download_options(default_source="public", double_source=False, other_source=False):
     """these are options available in scripts downloading packages"""
     download_sources = [
         "ftp:stage1",
@@ -194,6 +194,13 @@ def download_options(default_source="public", double_source=False):
                 default=default_source,
                 type=click.Choice(download_sources),
                 help="where to download the package from",
+            )(function)
+        if other_source:
+            function = click.option(
+                "--other-source",
+                default=default_source,
+                type=click.Choice(download_sources),
+                help="where to download the secondary package from",
             )(function)
         function = click.option("--httpuser", default="", help="user for external http download")(function)
         function = click.option("--httppassvoid", default="", help="passvoid for external http download")(function)
