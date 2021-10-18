@@ -1,6 +1,7 @@
 import time
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import ElementNotInteractableException, TimeoutException
+import traceback
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=R0902 disable=R0915 disable=R0904
@@ -133,35 +134,42 @@ class CollectionPage(NavigationBarPage):
         self.select_row4_id = "//div[@id='docPureTable']/div[2]/div[5]"
         self.document_id = "document-id"
         self.select_filter_reset_btn_id = "/html//button[@id='resetView']"
+        self.select_renamed_doc_collection_id = '//*[@id="collection_testDocRenamed"]/div/h5'
 
     def select_collection_page(self):
         """selecting collection tab"""
         select_collection_page_sitem = self.locator_finder_by_id(self.select_collection_page_id)
         select_collection_page_sitem.click()
+        time.sleep(1)
 
     def select_create_collection(self):
         """Clicking on create new collection box"""
         select_create_collection_sitem = self.locator_finder_by_id(self.select_create_collection_id)
         select_create_collection_sitem.click()
+        time.sleep(1)
 
     def select_new_collection_name(self, name):
         """Providing new collection name"""
         select_new_collection_name_sitem = self.locator_finder_by_id(self.select_new_collection_name_id)
         select_new_collection_name_sitem.click()
         select_new_collection_name_sitem.send_keys(name)
+        time.sleep(1)
 
     def select_collection_type(self, value):
         """Selecting collection Document type where # '2' = Document, '3' = Edge"""
         self.locator_finder_by_select(self.select_collection_type_id, value)
+        time.sleep(1)
 
     def select_advance_option(self):
         """Selecting collection advance options"""
         select_advance_option_sitem = self.locator_finder_by_xpath(self.select_advance_option_id)
         select_advance_option_sitem.click()
+        time.sleep(1)
 
     def wait_for_sync(self, value):
         """Selecting collection wait type where value # 0 = YES, '1' = NO"""
         self.locator_finder_by_select(self.wait_for_sync_id, value)
+        time.sleep(1)
 
     def create_new_collection_btn(self):
         """selecting collection tab"""
@@ -260,7 +268,7 @@ class CollectionPage(NavigationBarPage):
         select_confirm_upload_btn_sitem.click()
 
     def getting_total_row_count(self):
-        """Confirm file upload btn"""
+        """getting_total_row_count"""
         # ATTENTION: this will only be visible & successfull if the browser window is wide enough!
         getting_total_row_count_sitem = self.locator_finder_by_xpath(self.getting_total_row_count_id, 20)
         return getting_total_row_count_sitem.text
@@ -333,6 +341,7 @@ class CollectionPage(NavigationBarPage):
     def select_hand_pointer(self):
         """Selecting Hand selection button"""
         self.locator_finder_by_hover_item(self.select_hand_pointer_id)
+        time.sleep(1)
 
     def select_multiple_item(self):
         """selecting multiple document rows from the current collection"""
@@ -356,28 +365,33 @@ class CollectionPage(NavigationBarPage):
         move_doc_textbox_sitem = self.locator_finder_by_id(self.move_doc_textbox_id, 20)
         move_doc_textbox_sitem.click()
         move_doc_textbox_sitem.send_keys(collection)
+        time.sleep(1)
 
     def move_confirm_btn(self):
         """Confirming move data to the Collection"""
         self.wait_for_ajax()
         move_confirm_btn_sitem = self.locator_finder_by_id(self.move_confirm_btn_id, 20)
         move_confirm_btn_sitem.click()
+        time.sleep(1)
 
     def select_collection_delete_btn(self):
         """Selecting delete button for selected data"""
         select_collection_delete_btn_sitem = self.locator_finder_by_id(self.select_collection_delete_btn_id)
         select_collection_delete_btn_sitem.click()
+        time.sleep(1)
 
     def collection_delete_confirm_btn(self):
         """Selecting delete button for selected data"""
         collection_delete_confirm_btn_sitem = self.locator_finder_by_xpath(self.collection_delete_confirm_btn_id)
         collection_delete_confirm_btn_sitem.click()
+        time.sleep(1)
 
     def collection_really_dlt_btn(self):
         """Selecting really delete button for selected data"""
         collection_really_dlt_btn_sitem = self.locator_finder_by_xpath(self.collection_really_dlt_btn_id)
         collection_really_dlt_btn_sitem.click()
         self.webdriver.refresh()
+        time.sleep(1)
 
     def select_index_menu(self):
         """Selecting index menu from collection"""
@@ -542,6 +556,7 @@ class CollectionPage(NavigationBarPage):
 
     # this method will delete all the indexes one by one
     def delete_all_index(self):
+        """this method will delete all the indexes one by one"""
         select_index_for_delete_sitem = self.locator_finder_by_xpath(self, self.select_index_for_delete_id)
         select_index_for_delete_sitem.click()
 
@@ -608,7 +623,7 @@ class CollectionPage(NavigationBarPage):
         time.sleep(2)
         self.wait_for_ajax()
 
-    def delete_collection(self):
+    def select_delete_collection(self):
         """Deleting Collection from settings tab"""
         delete_collection_sitem = self.locator_finder_by_xpath(self.delete_collection_id)
         delete_collection_sitem.click()
@@ -633,6 +648,27 @@ class CollectionPage(NavigationBarPage):
     def select_collection(self, collection_name):
         selector = """//div[contains(@class, 'tile')][@id='collection_%s']""" % collection_name
         self.locator_finder_by_xpath(selector).click()
+
+    def delete_collection(self, collection_name, collection_locator):
+        """This method will delete all the collection"""
+        print(f'Deleting {collection_name} collection started \n')
+        self.select_collection_page()
+
+        try:
+            self.locator_finder_by_xpath(self, collection_locator).click()
+
+            self.select_settings_tab()
+            self.select_delete_collection()
+
+            print(f'Deleting {collection_name} collection Completed \n')
+            self.driver.refresh()
+        except TimeoutException:
+            print('TimeoutException occurred! \n')
+            print('Info: Collection has already been deleted or never created. \n')
+        except Exception:
+            traceback.print_exc()
+            raise Exception('Critical Error occurred and need manual inspection!! \n')
+
 
     def create_sample_collection(self, test_name):
         """selecting collection tab"""
