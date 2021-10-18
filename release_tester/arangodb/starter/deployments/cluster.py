@@ -253,9 +253,11 @@ db.testCollection.save({test: "document"})
         # collections = self.get_collection_list()
         agency_leader = self.agency_get_leader()
         terminate_instance = 2
+        survive_instance = 1
         if self.starter_instances[terminate_instance].have_this_instance(agency_leader):
             print("Cluster instance 2 has the agency leader; killing 1 instead")
             terminate_instance = 1
+            survive_instance = 2
 
         logging.info("stopping instance %d" % terminate_instance)
         uuid = self.starter_instances[terminate_instance].get_dbservers()[0].get_uuid()
@@ -267,6 +269,12 @@ db.testCollection.save({test: "document"})
             self.selenium.jam_step_1(self.new_cfg if self.new_cfg else self.cfg)
 
         ret = self.starter_instances[0].arangosh.check_test_data(
+            "Cluster one node missing", True, ["--disabledDbserverUUID", uuid]
+        )
+        if not ret[0]:
+            raise Exception("check data failed " + ret[1])
+
+        ret = self.starter_instances[survive_instance].arangosh.check_test_data(
             "Cluster one node missing", True, ["--disabledDbserverUUID", uuid]
         )
         if not ret[0]:
