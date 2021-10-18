@@ -214,6 +214,7 @@ db.testCollection.save({test: "document"})
             node.upgrade_instances([
                 InstanceType.DBSERVER
             ], ['--database.auto-upgrade', 'true',
+                '--log.level', 'startup=trace', # TODO: remove me again.
                 '--log.foreground-tty', 'true'])
         self.progress(True, "step 4 - coordinator upgrade")
         # now the new cluster is running. we will now run the coordinator upgrades
@@ -224,7 +225,7 @@ db.testCollection.save({test: "document"})
             ], [
                 '--database.auto-upgrade', 'true',
                 '--javascript.copy-installation', 'true',
-                '--server.rest-server', 'false'
+                '--server.rest-server', 'false',
             ])
         # fmt: on
         self.progress(True, "step 5 restart the full cluster ")
