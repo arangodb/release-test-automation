@@ -7,6 +7,7 @@ import csv
 import ctypes
 
 from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor, dummy_line_result
+from tools.asciiprint import print_progress as progress
 
 
 def get_type_args(filename):
@@ -123,7 +124,8 @@ class ArangoImportExecutor(ArangoCLIprogressiveTimeoutExecutor):
                     'body': row[2],
                     'count': count,
                     'created':decode_date(row[1])}) + "\n"
-                print(line)
+                # print(line)
+                progress("I")
                 self.process.stdin.write(line.encode())
         self.process.stdin.close()
 

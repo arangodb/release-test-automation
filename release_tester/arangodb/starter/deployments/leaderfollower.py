@@ -1,19 +1,20 @@
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
 import time
+import os
 import logging
 from pathlib import Path
 
-from tools.interact import prompt_user
-from tools.killall import get_all_processes
+from arangodb.async_client import dummy_line_result
 from arangodb.starter.manager import StarterManager
 from arangodb.instance import InstanceType
 from arangodb.starter.deployments.runner import Runner, RunnerProperties
 import tools.loghelper as lh
+from tools.interact import prompt_user
+from tools.killall import get_all_processes
 from tools.asciiprint import print_progress as progress
 
 from reporting.reporting_utils import step
-
 
 class LeaderFollower(Runner):
     """this runs a leader / Follower setup with synchronisation"""
@@ -195,8 +196,54 @@ process.exit(0);
         arangosh_script = self.checks["afterReplJS"]
         logging.info(str(self.leader_starter_instance.execute_frontend(arangosh_script)))
         self.makedata_instances.append(self.leader_starter_instance)
-        self.leader_starter_instance.arango_importer.import_wikidata('test_wiki_data', 100, Path('/home/willi/wiki.csv'))
+        self.leader_starter_instance.arango_importer.import_wikidata(
+            'wikipedia',
+            nlines=10000,
+            filename=Path(os.environ["WIKI_DATA"]))
         prompt_user(self.basecfg, "please test the installation.")
+
+        all_arangosearch_tests = [
+            "arangosearch-ngram_match-test-setup.js",
+            "arangosearch-ngram_match-test.js",
+            
+            "arangosearch-phrase-test-setup.js",
+            "arangosearch-phrase-test.js",
+
+            "arangosearch-stemming-languages-test.js",
+
+            "arangosearch-stored-values-test-setup.js",
+            "arangosearch-stored-values-test.js",
+            "arangosearch-stored-values-compression-test.js",
+
+            "arangosearch-wildcard-levenshtein-starts-test.js",
+        ]
+
+        ret_failed = []
+        for one_test in all_arangosearch_tests:
+            this_test = self.cfg.test_data_dir / "tests" / "arangosearch" / one_test
+            if one_test.endswith("setup.js"):
+                ret = self.leader_starter_instance.arangosh.run_script_monitored(
+                    cmd=["setting up test data", this_test],
+                    args=[],
+                    timeout=50,
+                    verbose=self.cfg.verbose,
+                    result_line=dummy_line_result
+                )
+                if not ret[0]:
+                    ret_failed.append(
+                        {(one_test + " failed") : ret})
+            else:
+                ret = self.leader_starter_instance.arangosh.run_in_arangosh(
+                    this_test,
+                    [],
+                    [self.follower_starter_instance.get_frontend().get_public_url("root:%s@" % self.passvoid)],
+                )
+                if not ret[0]:
+                    ret_failed.append(
+                        {(one_test + " failed") : ret})
+        if len(ret_failed) is not 0:
+            print(ret_failed)
+            raise Exception('tests failed!')
         raise Exception('saontehu')
     @step
     def test_setup_impl(self):
