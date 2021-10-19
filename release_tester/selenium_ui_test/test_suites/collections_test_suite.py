@@ -60,7 +60,7 @@ class CollectionsTestSuite(BaseTestSuite):
         col.select_new_collection_name("Test")
         print("Creating Document type collection started \n")
         col.select_collection_type(0)  # 0 for Doc type document
-        
+
         if self.is_cluster:
             print("Selecting number of shards for the current collection \n")
             col.select_number_of_shards(9)  # it takes number of shards as an argument
@@ -205,10 +205,10 @@ class CollectionsTestSuite(BaseTestSuite):
         # print("Deleting all index completed\n")
 
         version = col.current_package_version()
-        col.create_new_index("Persistent", 1)
-        col.create_new_index("Geo", 2)
-        col.create_new_index("Fulltext", 3)
-        col.create_new_index("TTL", 4)
+        col.create_new_index("Persistent", 1, self.is_cluster)
+        col.create_new_index("Geo", 2, self.is_cluster)
+        col.create_new_index("Fulltext", 3, self.is_cluster)
+        col.create_new_index("TTL", 4, self.is_cluster)
         if version >= 3.9:
             col.create_new_index("ZKD", 5)
             print("Deleting all index started\n")

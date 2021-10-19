@@ -482,7 +482,7 @@ class CollectionPage(NavigationBarPage):
     #     time.sleep(2)
     #     self.wait_for_ajax()
 
-    def create_new_index(self, index_name, value):
+    def create_new_index(self, index_name, value, cluster_status):
         print(f"Creating {index_name} index started \n")
         create_new_index_btn_sitem = self.locator_finder_by_id(self, self.create_new_index_btn_id)
         create_new_index_btn_sitem.click()
@@ -500,9 +500,12 @@ class CollectionPage(NavigationBarPage):
             self.select_persistent_name_id = self.locator_finder_by_hover_item_id(self, self.select_persistent_name_id)
             self.select_persistent_name_id.send_keys("pname").perform()
             time.sleep(1)
-            self.select_persistent_unique_id = self.locator_finder_by_hover_item_id(
+
+            if cluster_status:
+                self.select_persistent_unique_id = self.locator_finder_by_hover_item_id(
                 self, self.select_persistent_unique_id
             )
+
             self.select_persistent_sparse_id = self.locator_finder_by_hover_item_id(
                 self, self.select_persistent_sparse_id
             )
