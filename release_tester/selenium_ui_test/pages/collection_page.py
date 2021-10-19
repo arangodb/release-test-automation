@@ -159,10 +159,10 @@ class CollectionPage(NavigationBarPage):
         """Selecting collection Document type where # '2' = Document, '3' = Edge"""
         self.locator_finder_by_select(self.select_collection_type_id, value)
         time.sleep(1)
-    
+
     def select_number_of_shards(self, shard_value):
         """selecting number of shards for the collection"""
-        shards = 'new-collection-shards'
+        shards = "new-collection-shards"
         shards_sitem = self.locator_finder_by_id(self, shards)
         shards_sitem.click()
         shards_sitem.clear()
@@ -171,13 +171,12 @@ class CollectionPage(NavigationBarPage):
 
     def select_replication_factor(self, rf_value):
         """selecting number of replication factor for the collection"""
-        rf = 'new-replication-factor'
+        rf = "new-replication-factor"
         rf_sitem = self.locator_finder_by_id(self, rf)
         rf_sitem.click()
         rf_sitem.clear()
         rf_sitem.send_keys(rf_value)
         time.sleep(2)
-
 
     def select_advance_option(self):
         """Selecting collection advance options"""
@@ -503,8 +502,8 @@ class CollectionPage(NavigationBarPage):
 
             if cluster_status:
                 self.select_persistent_unique_id = self.locator_finder_by_hover_item_id(
-                self, self.select_persistent_unique_id
-            )
+                    self, self.select_persistent_unique_id
+                )
 
             self.select_persistent_sparse_id = self.locator_finder_by_hover_item_id(
                 self, self.select_persistent_sparse_id
@@ -673,7 +672,7 @@ class CollectionPage(NavigationBarPage):
 
     def delete_collection(self, collection_name, collection_locator):
         """This method will delete all the collection"""
-        print(f'Deleting {collection_name} collection started \n')
+        print(f"Deleting {collection_name} collection started \n")
         self.select_collection_page()
 
         try:
@@ -682,15 +681,14 @@ class CollectionPage(NavigationBarPage):
             self.select_settings_tab()
             self.select_delete_collection()
 
-            print(f'Deleting {collection_name} collection Completed \n')
+            print(f"Deleting {collection_name} collection Completed \n")
             self.driver.refresh()
         except TimeoutException:
-            print('TimeoutException occurred! \n')
-            print('Info: Collection has already been deleted or never created. \n')
+            print("TimeoutException occurred! \n")
+            print("Info: Collection has already been deleted or never created. \n")
         except Exception:
             traceback.print_exc()
-            raise Exception('Critical Error occurred and need manual inspection!! \n')
-
+            raise Exception("Critical Error occurred and need manual inspection!! \n")
 
     def create_sample_collection(self, test_name):
         """selecting collection tab"""

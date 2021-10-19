@@ -15,7 +15,6 @@ from beautifultable import BeautifulTable, ALIGN_LEFT
 
 import tools.loghelper as lh
 from download import Download
-from reporting.reporting_utils import AllureTestSuiteContext
 from upgrade import run_upgrade
 from test import run_test
 from cleanup import run_cleanup
@@ -41,28 +40,28 @@ def workaround_nightly_versioning(ver):
 
 # pylint: disable=R0913 disable=R0914 disable=R0912, disable=R0915
 def upgrade_package_test(
-        verbose,
-        primary_version,
-        primary_dlstage,
-        upgrade_matrix,
-        package_dir,
-        enterprise_magic,
-        zip_package,
-        other_source,
-        git_version,
-        httpusername,
-        httppassvoid,
-        test_data_dir,
-        remote_host,
-        force,
-        starter_mode,
-        publicip,
-        selenium,
-        selenium_driver_args,
-        alluredir,
-        clean_alluredir,
-        ssl,
-        use_auto_certs,
+    verbose,
+    primary_version,
+    primary_dlstage,
+    upgrade_matrix,
+    package_dir,
+    enterprise_magic,
+    zip_package,
+    other_source,
+    git_version,
+    httpusername,
+    httppassvoid,
+    test_data_dir,
+    remote_host,
+    force,
+    starter_mode,
+    publicip,
+    selenium,
+    selenium_driver_args,
+    alluredir,
+    clean_alluredir,
+    ssl,
+    use_auto_certs,
 ):
     """process fetch & tests"""
 
@@ -83,77 +82,67 @@ def upgrade_package_test(
         (False, False, "C", "Community"),
     ]
     for (
-            enterprise,
-            encryption_at_rest,
-            directory_suffix,
-            testrun_name,
+        enterprise,
+        encryption_at_rest,
+        directory_suffix,
+        testrun_name,
     ) in execution_plan:
         run_cleanup(zip_package, "test_" + testrun_name)
         print("Cleanup done")
         # pylint: disable=W0612
-        with AllureTestSuiteContext(
-            alluredir,
-            clean_alluredir,
-            enterprise,
-            zip_package,
+        dl_new = Download(
             primary_version,
-            encryption_at_rest,
-            None, # was: old version
-            None,
-        ) as suite_context:
-            dl_new = Download(
-                primary_version,
+            verbose,
+            package_dir,
+            enterprise,
+            enterprise_magic,
+            zip_package,
+            primary_dlstage,
+            httpusername,
+            httppassvoid,
+            remote_host,
+            versions,
+            fresh_versions,
+            git_version,
+        )
+        dl_new.get_packages(force)
+        test_dir = Path(test_data_dir) / (directory_suffix + "_t")
+        if test_dir.exists():
+            shutil.rmtree(test_dir)
+            if "REQUESTS_CA_BUNDLE" in os.environ:
+                del os.environ["REQUESTS_CA_BUNDLE"]
+        test_dir.mkdir()
+        while not test_dir.exists():
+            time.sleep(1)
+        results.append(
+            run_test(
+                "all",
+                str(dl_new.cfg.version),
                 verbose,
                 package_dir,
+                test_dir,
                 enterprise,
-                enterprise_magic,
+                encryption_at_rest,
                 zip_package,
-                primary_dlstage,
-                httpusername,
-                httppassvoid,
-                remote_host,
-                versions,
-                fresh_versions,
-                git_version
+                False,  # interactive
+                starter_mode,
+                False,  # abort_on_error
+                publicip,
+                selenium,
+                selenium_driver_args,
+                testrun_name,
+                ssl,
+                use_auto_certs,
             )
-            dl_new.get_packages(force)
-            test_dir = Path(test_data_dir) / (directory_suffix +"_t")
-            if test_dir.exists():
-                shutil.rmtree(test_dir)
-                if "REQUESTS_CA_BUNDLE" in os.environ:
-                    del os.environ["REQUESTS_CA_BUNDLE"]
-            test_dir.mkdir()
-            while not test_dir.exists():
-                time.sleep(1)
-            results.append(
-                run_test(
-                    "all",
-                    str(dl_new.cfg.version),
-                    verbose,
-                    package_dir,
-                    test_dir,
-                    enterprise,
-                    encryption_at_rest,
-                    zip_package,
-                    False, #interactive
-                    starter_mode,
-                    False, # abort_on_error
-                    publicip,
-                    selenium,
-                    selenium_driver_args,
-                    testrun_name,
-                    ssl,
-                    use_auto_certs
-                )
-            )
+        )
 
     new_versions = []
     old_versions = []
     old_dlstages = []
     new_dlstages = []
 
-    for version_pair in upgrade_matrix.split(';'):
-        old, new = version_pair.split(':')
+    for version_pair in upgrade_matrix.split(";"):
+        old, new = version_pair.split(":")
         old_versions.append(old)
         new_versions.append(new)
         if old == primary_version:
@@ -186,80 +175,68 @@ def upgrade_package_test(
             testrun_name,
         ) in execution_plan:
             # pylint: disable=W0612
-            with AllureTestSuiteContext(
-                alluredir,
-                False, # we want to keep the previous ones.. clean_alluredir,
-                enterprise,
-                zip_package,
-                new_versions[j],
-                encryption_at_rest,
+            dl_old = Download(
                 old_versions[j],
-                None,
-            ) as suite_context:
-                dl_old = Download(
-                    old_versions[j],
+                verbose,
+                package_dir,
+                enterprise,
+                enterprise_magic,
+                zip_package,
+                old_dlstages[j],
+                httpusername,
+                httppassvoid,
+                remote_host,
+                versions,
+                fresh_versions,
+                git_version,
+            )
+            dl_new = Download(
+                new_versions[j],
+                verbose,
+                package_dir,
+                enterprise,
+                enterprise_magic,
+                zip_package,
+                new_dlstages[j],
+                httpusername,
+                httppassvoid,
+                remote_host,
+                versions,
+                fresh_versions,
+                git_version,
+            )
+            dl_old.get_packages(force)
+            dl_new.get_packages(force)
+            test_dir = Path(test_data_dir) / directory_suffix
+            if test_dir.exists():
+                shutil.rmtree(test_dir)
+                if "REQUESTS_CA_BUNDLE" in os.environ:
+                    del os.environ["REQUESTS_CA_BUNDLE"]
+            test_dir.mkdir()
+            while not test_dir.exists():
+                time.sleep(1)
+            results.append(
+                run_upgrade(
+                    str(dl_old.cfg.version),
+                    str(dl_new.cfg.version),
                     verbose,
                     package_dir,
+                    test_dir,
                     enterprise,
-                    enterprise_magic,
+                    encryption_at_rest,
                     zip_package,
-                    old_dlstages[j],
-                    httpusername,
-                    httppassvoid,
-                    remote_host,
-                    versions,
-                    fresh_versions,
-                    git_version
+                    False,
+                    starter_mode,
+                    False,  # stress_upgrade,
+                    False,
+                    publicip,
+                    selenium,
+                    selenium_driver_args,
+                    testrun_name,
+                    ssl,
+                    use_auto_certs,
                 )
-                dl_new = Download(
-                    new_versions[j],
-                    verbose,
-                    package_dir,
-                    enterprise,
-                    enterprise_magic,
-                    zip_package,
-                    new_dlstages[j],
-                    httpusername,
-                    httppassvoid,
-                    remote_host,
-                    versions,
-                    fresh_versions,
-                    git_version
-                )
-
-                dl_old.get_packages(force)
-                dl_new.get_packages(force)
-
-                test_dir = Path(test_data_dir) / directory_suffix
-                if test_dir.exists():
-                    shutil.rmtree(test_dir)
-                    if "REQUESTS_CA_BUNDLE" in os.environ:
-                        del os.environ["REQUESTS_CA_BUNDLE"]
-                test_dir.mkdir()
-                while not test_dir.exists():
-                    time.sleep(1)
-                results.append(
-                    run_upgrade(
-                        str(dl_old.cfg.version),
-                        str(dl_new.cfg.version),
-                        verbose,
-                        package_dir,
-                        test_dir,
-                        enterprise,
-                        encryption_at_rest,
-                        zip_package,
-                        False,
-                        starter_mode,
-                        False, # stress_upgrade,
-                        False,
-                        publicip,
-                        selenium,
-                        selenium_driver_args,
-                        testrun_name,
-                        ssl,
-                        use_auto_certs,
-                    )
-                )
+            )
 
     print("V" * 80)
     status = True
@@ -311,9 +288,7 @@ def upgrade_package_test(
     help="specify the output of: git rev-parse --verify HEAD",
 )
 @click.option(
-    "--upgrade-matrix",
-    default="",
-    help="list of upgrade operations ala '3.6.15:3.7.15;3.7.14:3.7.15;3.7.15:3.8.1'"
+    "--upgrade-matrix", default="", help="list of upgrade operations ala '3.6.15:3.7.15;3.7.14:3.7.15;3.7.15:3.8.1'"
 )
 @very_common_options()
 @common_options(

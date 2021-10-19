@@ -10,7 +10,7 @@ from allure_commons.model2 import Status, Label, StatusDetails
 from allure_commons.types import LabelType
 
 from common_options import very_common_options, common_options
-from reporting.reporting_utils import RtaTestcase, configure_allure, AllureTestSuiteContext
+from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext
 from tools.killall import kill_all_processes
 from arangodb.installers import create_config_installer_set
 from arangodb.starter.deployments import (
@@ -77,10 +77,8 @@ def run_test(mode,
 
     count = 1
     for runner_type in STARTER_MODES[starter_mode]:
-        with AllureTestSuiteContext(alluredir, clean_alluredir, enterprise, zip_package, new_version, None, None, runner_type.name):
-            with RtaTestcase(runner_strings[runner_type] + " main flow", labels = [
-                Label(name=LabelType.SUB_SUITE, value="[" + installers[0][1].installer_type + "] " + runner_strings[runner_type] + " main flow")
-            ]) as testcase:
+        with AllureTestSuiteContext(alluredir, clean_alluredir, enterprise, zip_package, new_version, encryption_at_rest, None, None,runner_strings[runner_type], None):
+            with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
                 if not enterprise and runner_type == RunnerType.DC2DC:
                     testcase.context.status = Status.SKIPPED
                     testcase.context.statusDetails = StatusDetails(message="DC2DC is not applicable to Community packages.")

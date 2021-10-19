@@ -127,12 +127,11 @@ class AllureTestSuiteContext:
         new_version,
         enc_at_rest,
         old_version=None,
+        parent_test_suite_name=None,
         suite_name=None,
         runner_type=None,
     ):
-        if suite_name:
-            self.test_suite_name = suite_name
-        else:
+        def generate_suite_name():
             if enterprise:
                 edition = "Enterprise"
             else:
@@ -143,19 +142,21 @@ class AllureTestSuiteContext:
             else:
                 package_type = "deb/rpm/nsis/dmg"
             if not old_version:
-                self.test_suite_name = """
-ArangoDB v.{} ({}) {} package (Enc@REST: {}) (clean install)
-                    """.format(
+                test_suite_name = """
+            ArangoDB v.{} ({}) {} package (enc@rest: {}) (clean install)
+                                """.format(
                     new_version, edition, package_type, "ON" if enc_at_rest else "OFF"
                 )
             else:
-                self.test_suite_name = """
-                ArangoDB v.{} ({}) {} package (upgrade from {}) (Enc@REST: {}) 
-                """.format(
+                test_suite_name = """
+                            ArangoDB v.{} ({}) {} package (upgrade from {}) (enc@rest: {}) 
+                            """.format(
                     new_version, edition, package_type, old_version, "ON" if enc_at_rest else "OFF"
                 )
             if runner_type:
-                self.test_suite_name = "[" + str(runner_type) + "] " + self.test_suite_name
+                test_suite_name = "[" + str(runner_type) + "] " + test_suite_name
+
+            return test_suite_name
 
         test_listeners = [p for p in allure_commons.plugin_manager.get_plugins() if type(p) == AllureListener]
         self.previous_test_listener = None if len(test_listeners) == 0 else test_listeners[0]
@@ -166,17 +167,33 @@ ArangoDB v.{} ({}) {} package (Enc@REST: {}) (clean install)
                 .popitem()[1]
                 .labels
             )
+            parent_suite_label = [l for l in labels if l.name == LabelType.PARENT_SUITE][0]
             suite_label = [l for l in labels if l.name == LabelType.SUITE][0]
+            self.parent_test_suite_name = parent_suite_label.value
             self.test_suite_name = suite_label.value
-            self.test_listener = AllureListener(self.test_suite_name)
+            self.test_listener = AllureListener(
+                default_test_suite_name=self.test_suite_name, default_parent_test_suite_name=self.parent_test_suite_name
+            )
             allure_commons.plugin_manager.unregister(self.previous_test_listener)
             allure_commons.plugin_manager.register(self.test_listener)
         else:
+            if suite_name:
+                self.test_suite_name = suite_name
+            else:
+                self.test_suite_name = generate_suite_name()
+            if parent_test_suite_name:
+                self.parent_test_suite_name = parent_test_suite_name
+            elif suite_name:
+                self.parent_test_suite_name = generate_suite_name()
+            else:
+                self.parent_test_suite_name = None
             if AllureTestSuiteContext.test_suite_count == 0:
                 self.file_logger = AllureFileLogger(results_dir, clean)
             else:
                 self.file_logger = AllureFileLogger(results_dir, False)
-            self.test_listener = AllureListener(self.test_suite_name)
+            self.test_listener = AllureListener(
+                default_test_suite_name=self.test_suite_name, default_parent_test_suite_name=self.parent_test_suite_name
+            )
             allure_commons.plugin_manager.register(self.test_listener)
             allure_commons.plugin_manager.register(self.file_logger)
 
@@ -192,9 +209,3 @@ ArangoDB v.{} ({}) {} package (Enc@REST: {}) (clean install)
         else:
             allure_commons.plugin_manager.unregister(self.test_listener)
             allure_commons.plugin_manager.unregister(self.file_logger)
-
-
-def configure_allure(results_dir, clean, enterprise, zip_package, new_version, enc_at_rest, old_version=None, runner_type=None):
-    """configure allure reporting"""
-    # pylint: disable=R0913
-    return AllureTestSuiteContext(results_dir, clean, enterprise, zip_package, new_version, enc_at_rest, old_version, runner_type)

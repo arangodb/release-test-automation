@@ -241,11 +241,7 @@ process.exit(0);
             node.detect_instances()
             node.wait_for_version_reply()
         if self.selenium:
-            self.selenium.webdriver.refresh()
-            self.selenium.check_old(self.new_cfg, True)
-            self.selenium.connect_server_new_tab(self.follower_starter_instance.get_frontends(), "_system", self.cfg)
-            self.selenium.check_old(self.new_cfg, False)
-            self.selenium.close_tab_again()
+            self.selenium.test_after_install()
 
     @step
     def upgrade_arangod_version_manual_impl(self):
@@ -275,11 +271,7 @@ process.exit(0);
             node.detect_instances()
             node.wait_for_version_reply()
         if self.selenium:
-            self.selenium.webdriver.refresh()
-            self.selenium.check_old(self.new_cfg, True)
-            self.selenium.connect_server_new_tab(self.follower_starter_instance.get_frontends(), "_system", self.cfg)
-            self.selenium.check_old(self.new_cfg, False)
-            self.selenium.close_tab_again()
+            self.selenium.test_after_install()
 
     @step
     def jam_attempt_impl(self):

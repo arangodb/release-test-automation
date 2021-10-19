@@ -180,7 +180,7 @@ class Download:
         }
 
     # pylint: disable=W0613 disable=R0201
-    def acquire_none(self, directory, package, local_dir, force, stage):
+    def acquire_none(self, directory, package, local_dir, force):
         """use the copy that we already have, hence do nothing"""
         print("skipping download")
 

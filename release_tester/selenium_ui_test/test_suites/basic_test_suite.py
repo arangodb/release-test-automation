@@ -16,7 +16,7 @@ class BasicTestSuite(BaseTestSuite):
         super().__init__(
             selenium_runner,
             child_classes=[
-                UserPageTestSuite,
+                # UserPageTestSuite,
                 # CollectionsTestSuite,
                 # DashboardTestSuite,
                 # ViewsTestSuite,

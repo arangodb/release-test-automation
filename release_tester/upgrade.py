@@ -11,7 +11,7 @@ from allure_commons.model2 import Status, Label, StatusDetails
 from allure_commons.types import LabelType
 
 from common_options import very_common_options, common_options
-from reporting.reporting_utils import configure_allure, RtaTestcase, AllureTestSuiteContext
+from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext
 from tools.killall import kill_all_processes
 from arangodb.installers import create_config_installer_set
 from arangodb.starter.deployments import (
@@ -52,9 +52,18 @@ def run_upgrade(
     results = []
     for runner_type in STARTER_MODES[starter_mode]:
         with AllureTestSuiteContext(
-            alluredir, clean_alluredir, enterprise, zip_package, new_version, old_version, None, runner_type.name
+            alluredir,
+            clean_alluredir,
+            enterprise,
+            zip_package,
+            new_version,
+            encryption_at_rest,
+            old_version,
+            None,
+            runner_strings[runner_type],
+            None,
         ):
-            with RtaTestcase(runner_strings[runner_type]) as testcase:
+            with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
                 if (not enterprise or is_windows) and runner_type == RunnerType.DC2DC:
                     testcase.context.status = Status.SKIPPED
                     testcase.context.statusDetails = StatusDetails(
@@ -100,7 +109,6 @@ def run_upgrade(
                             }
                         )
                     )
-                    testcase.add_label(Label(name=LabelType.SUB_SUITE, value=new_inst.installer_type))
                     if runner_type:
                         runner = make_runner(
                             runner_type,

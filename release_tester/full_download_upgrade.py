@@ -15,7 +15,6 @@ from beautifultable import BeautifulTable, ALIGN_LEFT
 
 import tools.loghelper as lh
 from download import read_versions_tar, write_version_tar, Download
-from reporting.reporting_utils import AllureTestSuiteContext
 from upgrade import run_upgrade
 from cleanup import run_cleanup
 from tools.killall import list_all_processes
@@ -104,85 +103,73 @@ def upgrade_package_test(
             testrun_name,
         ) in execution_plan:
             # pylint: disable=W0612
-            with AllureTestSuiteContext(
-                alluredir,
-                clean_alluredir,
-                enterprise,
-                zip_package,
-                new_version[j],
-                encryption_at_rest,
+            dl_old = Download(
                 old_version[j],
-                None,
-            ) as suite_context:
-                dl_old = Download(
-                    old_version[j],
+                verbose,
+                package_dir,
+                enterprise,
+                enterprise_magic,
+                zip_package,
+                old_dlstage[j],
+                httpusername,
+                httppassvoid,
+                remote_host,
+                versions,
+                fresh_versions,
+                git_version,
+            )
+            dl_new = Download(
+                new_version[j],
+                verbose,
+                package_dir,
+                enterprise,
+                enterprise_magic,
+                zip_package,
+                new_dlstage[j],
+                httpusername,
+                httppassvoid,
+                remote_host,
+                versions,
+                fresh_versions,
+                git_version,
+            )
+            if not dl_new.is_different() or not dl_old.is_different():
+                print("we already tested this version. bye.")
+                return 0
+            dl_old.get_packages(dl_old.is_different())
+            dl_new.get_packages(dl_new.is_different())
+            test_dir = Path(test_data_dir) / directory_suffix
+            if test_dir.exists():
+                shutil.rmtree(test_dir)
+                if "REQUESTS_CA_BUNDLE" in os.environ:
+                    del os.environ["REQUESTS_CA_BUNDLE"]
+            test_dir.mkdir()
+            while not test_dir.exists():
+                time.sleep(1)
+            results.append(
+                run_upgrade(
+                    str(dl_old.cfg.version),
+                    str(dl_new.cfg.version),
                     verbose,
                     package_dir,
+                    test_dir,
+                    alluredir,
+                    clean_alluredir,
                     enterprise,
-                    enterprise_magic,
+                    encryption_at_rest,
                     zip_package,
-                    old_dlstage[j],
-                    httpusername,
-                    httppassvoid,
-                    remote_host,
-                    versions,
-                    fresh_versions,
-                    git_version,
+                    False,  # interactive
+                    starter_mode,
+                    stress_upgrade,
+                    False,  # abort on error
+                    publicip,
+                    selenium,
+                    selenium_driver_args,
+                    testrun_name,
+                    ssl,
+                    use_auto_certs,
                 )
-                dl_new = Download(
-                    new_version[j],
-                    verbose,
-                    package_dir,
-                    enterprise,
-                    enterprise_magic,
-                    zip_package,
-                    new_dlstage[j],
-                    httpusername,
-                    httppassvoid,
-                    remote_host,
-                    versions,
-                    fresh_versions,
-                    git_version,
-                )
-
-                if not dl_new.is_different() or not dl_old.is_different():
-                    print("we already tested this version. bye.")
-                    return 0
-                dl_old.get_packages(dl_old.is_different())
-                dl_new.get_packages(dl_new.is_different())
-
-                test_dir = Path(test_data_dir) / directory_suffix
-                if test_dir.exists():
-                    shutil.rmtree(test_dir)
-                    if "REQUESTS_CA_BUNDLE" in os.environ:
-                        del os.environ["REQUESTS_CA_BUNDLE"]
-                test_dir.mkdir()
-                while not test_dir.exists():
-                    time.sleep(1)
-                results.append(
-                    run_upgrade(
-                        str(dl_old.cfg.version),
-                        str(dl_new.cfg.version),
-                        verbose,
-                        package_dir,
-                        test_dir,
-                        alluredir,
-                        clean_alluredir,
-                        enterprise,
-                        encryption_at_rest,
-                        zip_package,
-                        False,  # interactive
-                        starter_mode,
-                        stress_upgrade,
-                        False,  # abort on error
-                        publicip,
-                        selenium,
-                        selenium_driver_args,
-                        testrun_name,
-                        ssl,
-                        use_auto_certs,
-                    )
-                )
+            )
 
     print("V" * 80)
     status = True
