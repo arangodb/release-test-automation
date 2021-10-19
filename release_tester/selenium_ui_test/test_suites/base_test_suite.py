@@ -50,6 +50,7 @@ class BaseTestSuite(ABC):
                 None,
                 None,
                 None,
+                None,
             ):
                 self.test_results += self.run_own_testscases()
         self.tear_down()

@@ -130,20 +130,23 @@ class AllureTestSuiteContext:
         parent_test_suite_name=None,
         suite_name=None,
         runner_type=None,
+        installer_type=None,
     ):
         def generate_suite_name():
             if enterprise:
                 edition = "Enterprise"
             else:
                 edition = "Community"
-
-            if zip_package:
-                package_type = "universal binary archive"
+            if installer_type:
+                package_type = installer_type
             else:
-                package_type = "deb/rpm/nsis/dmg"
+                if zip_package:
+                    package_type = "universal binary archive"
+                else:
+                    package_type = "deb/rpm/nsis/dmg"
             if not old_version:
                 test_suite_name = """
-            ArangoDB v.{} ({}) {} package (enc@rest: {}) (clean install)
+            ArangoDB v.{} ({}) ({} package) (enc@rest: {}) (clean install)
                                 """.format(
                     new_version, edition, package_type, "ON" if enc_at_rest else "OFF"
                 )

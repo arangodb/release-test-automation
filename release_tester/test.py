@@ -77,7 +77,17 @@ def run_test(mode,
 
     count = 1
     for runner_type in STARTER_MODES[starter_mode]:
-        with AllureTestSuiteContext(alluredir, clean_alluredir, enterprise, zip_package, new_version, encryption_at_rest, None, None,runner_strings[runner_type], None):
+        with AllureTestSuiteContext(alluredir,
+                                    clean_alluredir,
+                                    enterprise,
+                                    zip_package,
+                                    new_version,
+                                    encryption_at_rest,
+                                    None,
+                                    None,
+                                    runner_strings[runner_type],
+                                    None,
+                                    installers[0][0].installer_type):
             with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
                 if not enterprise and runner_type == RunnerType.DC2DC:
                     testcase.context.status = Status.SKIPPED

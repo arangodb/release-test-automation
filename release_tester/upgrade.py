@@ -51,6 +51,22 @@ def run_upgrade(
     lh.section("startup")
     results = []
     for runner_type in STARTER_MODES[starter_mode]:
+        installers = create_config_installer_set(
+            [old_version, new_version],
+            verbose,
+            enterprise,
+            encryption_at_rest,
+            zip_package,
+            Path(package_dir),
+            Path(test_data_dir),
+            "all",
+            publicip,
+            interactive,
+            stress_upgrade,
+        )
+        old_inst = installers[0][1]
+        new_inst = installers[1][1]
+
         with AllureTestSuiteContext(
             alluredir,
             clean_alluredir,
@@ -62,6 +78,7 @@ def run_upgrade(
             None,
             runner_strings[runner_type],
             None,
+            new_inst.installer_type,
         ):
             with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
                 if (not enterprise or is_windows) and runner_type == RunnerType.DC2DC:
@@ -79,22 +96,7 @@ def run_upgrade(
                 }
                 try:
                     kill_all_processes()
-                    installers = create_config_installer_set(
-                        [old_version, new_version],
-                        verbose,
-                        enterprise,
-                        encryption_at_rest,
-                        zip_package,
-                        Path(package_dir),
-                        Path(test_data_dir),
-                        "all",
-                        publicip,
-                        interactive,
-                        stress_upgrade,
-                    )
                     runner = None
-                    old_inst = installers[0][1]
-                    new_inst = installers[1][1]
                     lh.section("configuration")
                     print(
                         """

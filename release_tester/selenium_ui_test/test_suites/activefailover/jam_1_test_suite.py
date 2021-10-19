@@ -1,17 +1,12 @@
-import platform
 import pprint
 
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium_ui_test.pages.replication_page import ReplicationPage
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
-from selenium_ui_test.test_suites.activefailover.wait_for_upgrade_test_suite import (
-    ActiveFailoverWaitForUpgradeTestSuite,
-)
+from selenium_ui_test.test_suites.activefailover.active_failover_base_suite import ActiveFailoverBaseTestSuite
+from selenium_ui_test.test_suites.base_test_suite import testcase
 
 
-class ActiveFailoverJamStepOneSuite(BaseTestSuite):
-    WINVER = platform.win32_ver()
-
+class ActiveFailoverJamStepOneSuite(ActiveFailoverBaseTestSuite):
     @testcase
     def jam_step_1(self):
         """check for one set of instances to go away"""
@@ -26,6 +21,6 @@ class ActiveFailoverJamStepOneSuite(BaseTestSuite):
         )
 
     @testcase
-    def check_follower_count(self):
+    def check_follower_count_testcase(self):
         """check the integrity of the system"""
-        ActiveFailoverWaitForUpgradeTestSuite.check_follower_count(self, expect_follower_count=1)
+        self.check_follower_count(expect_follower_count=1)
