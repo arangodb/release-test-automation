@@ -764,7 +764,7 @@ class Runner(ABC):
         for one_test in all_arangosearch_tests:
             this_test = self.cfg.test_data_dir / "tests" / "arangosearch" / one_test
             if one_test.endswith("setup.js"):
-                ret = self.leader_starter_instance.arangosh.run_script_monitored(
+                ret = self.makedata_instances[0].arangosh.run_script_monitored(
                     cmd=["setting up test data", this_test],
                     args=[],
                     timeout=50,
@@ -775,7 +775,7 @@ class Runner(ABC):
                     ret_failed.append(
                         {(one_test + " failed") : ret})
             else:
-                ret = self.leader_starter_instance.arangosh.run_in_arangosh(
+                ret = self.makedata_instances[0].arangosh.run_in_arangosh(
                     this_test,
                     [],
                     [self.follower_starter_instance.get_frontend().get_public_url("root:%s@" % self.passvoid)],
