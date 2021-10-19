@@ -1,0 +1,67 @@
+{
+  "_from": "damerau-levenshtein-js",
+  "_id": "damerau-levenshtein-js@1.1.6",
+  "_inBundle": false,
+  "_integrity": "sha512-D/ZPDdlxY9yWzH9WZHATDoaeafqWi+EEK0kFfHdumxXKneNLVBhplETxIYPv3yIWGISpICdOruV8f9eMTA4nrA==",
+  "_location": "/damerau-levenshtein-js",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "tag",
+    "registry": true,
+    "raw": "damerau-levenshtein-js",
+    "name": "damerau-levenshtein-js",
+    "escapedName": "damerau-levenshtein-js",
+    "rawSpec": "",
+    "saveSpec": null,
+    "fetchSpec": "latest"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/damerau-levenshtein-js/-/damerau-levenshtein-js-1.1.6.tgz",
+  "_shasum": "b49d09fd3dd75cbf993669c254e2c6ed9a19f39b",
+  "_spec": "damerau-levenshtein-js",
+  "_where": "C:\\Working\\release-qa\\arangosearch",
+  "author": {
+    "name": "Fabvalaaah"
+  },
+  "bugs": {
+    "url": "https://github.com/fabvalaaah/damerau-levenshtein-js/issues"
+  },
+  "bundleDependencies": false,
+  "contributors": [
+    {
+      "name": "Fabvalaaah"
+    }
+  ],
+  "deprecated": false,
+  "description": "NPM package that calculates synchronously or asynchronously the Damerau-Levenshtein distance between strings",
+  "devDependencies": {
+    "jest": "26.0.1"
+  },
+  "email": "fabvalaaah@laposte.net",
+  "homepage": "https://github.com/fabvalaaah/damerau-levenshtein-js#readme",
+  "jest": {
+    "testEnvironment": "node"
+  },
+  "keywords": [
+    "damerau",
+    "levenshtein",
+    "damerau-levenshtein",
+    "levenshtein-damerau",
+    "string",
+    "distance"
+  ],
+  "license": "MIT",
+  "main": "app.js",
+  "name": "damerau-levenshtein-js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fabvalaaah/damerau-levenshtein-js.git"
+  },
+  "scripts": {
+    "test": "jest --coverage"
+  },
+  "version": "1.1.6"
+}

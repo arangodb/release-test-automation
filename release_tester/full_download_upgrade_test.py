@@ -87,7 +87,7 @@ def upgrade_package_test(
             encryption_at_rest,
             directory_suffix,
             testrun_name,
-    ) in execution_plan:
+    ) in [execution_plan[1], execution_plan[2]]:
         run_cleanup(zip_package, "test_" + testrun_name)
         print("Cleanup done")
         # pylint: disable=W0612
