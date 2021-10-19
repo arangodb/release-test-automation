@@ -25,7 +25,10 @@ import tools.interact as ti
 from tools.killall import kill_all_processes
 import tools.loghelper as lh
 
-from arangodb.async_client import CliExecutionException
+from arangodb.async_client import (
+    CliExecutionException,
+    dummy_line_result
+)
 from arangodb.bench import load_scenarios
 from arangodb.instance import InstanceType, print_instances_table
 from arangodb.sh import ArangoshExecutor
@@ -778,7 +781,7 @@ class Runner(ABC):
                 ret = self.makedata_instances[0].arangosh.run_in_arangosh(
                     this_test,
                     [],
-                    [self.follower_starter_instance.get_frontend().get_public_url("root:%s@" % self.passvoid)],
+                    [self.makedata_instances[0].get_frontend().get_public_url("root:%s@" % self.passvoid)],
                 )
                 if not ret[0]:
                     ret_failed.append(
