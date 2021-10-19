@@ -196,55 +196,7 @@ process.exit(0);
         arangosh_script = self.checks["afterReplJS"]
         logging.info(str(self.leader_starter_instance.execute_frontend(arangosh_script)))
         self.makedata_instances.append(self.leader_starter_instance)
-        self.leader_starter_instance.arango_importer.import_wikidata(
-            'wikipedia',
-            nlines=10000,
-            filename=Path(os.environ["WIKI_DATA"]))
-        prompt_user(self.basecfg, "please test the installation.")
 
-        all_arangosearch_tests = [
-            "arangosearch-ngram_match-test-setup.js",
-            "arangosearch-ngram_match-test.js",
-            
-            "arangosearch-phrase-test-setup.js",
-            "arangosearch-phrase-test.js",
-
-            "arangosearch-stemming-languages-test.js",
-
-            "arangosearch-stored-values-test-setup.js",
-            "arangosearch-stored-values-test.js",
-            "arangosearch-stored-values-compression-test.js",
-
-            "arangosearch-wildcard-levenshtein-starts-test.js",
-        ]
-
-        ret_failed = []
-        for one_test in all_arangosearch_tests:
-            this_test = self.cfg.test_data_dir / "tests" / "arangosearch" / one_test
-            if one_test.endswith("setup.js"):
-                ret = self.leader_starter_instance.arangosh.run_script_monitored(
-                    cmd=["setting up test data", this_test],
-                    args=[],
-                    timeout=50,
-                    verbose=self.cfg.verbose,
-                    result_line=dummy_line_result
-                )
-                if not ret[0]:
-                    ret_failed.append(
-                        {(one_test + " failed") : ret})
-            else:
-                ret = self.leader_starter_instance.arangosh.run_in_arangosh(
-                    this_test,
-                    [],
-                    [self.follower_starter_instance.get_frontend().get_public_url("root:%s@" % self.passvoid)],
-                )
-                if not ret[0]:
-                    ret_failed.append(
-                        {(one_test + " failed") : ret})
-        if len(ret_failed) is not 0:
-            print(ret_failed)
-            raise Exception('tests failed!')
-        raise Exception('saontehu')
     @step
     def test_setup_impl(self):
         logging.info("testing the leader/follower setup")
@@ -274,7 +226,8 @@ process.exit(0);
         logging.info("Leader follower testing makedata on follower")
         self.makedata_instances.append(self.follower_starter_instance)
         self.make_data()
-
+        self.wikidata_import_impl()
+        self.execute_views_tests_impl()
         logging.info("Leader follower setup successfully finished!")
 
     @step

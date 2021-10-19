@@ -158,6 +158,8 @@ db.testCollection.save({test: "document"})
         self.set_frontend_instances()
 
     def test_setup_impl(self):
+        self.wikidata_import_impl()
+        self.execute_views_tests_impl()
         pass
 
     def wait_for_restore_impl(self, backup_starter):

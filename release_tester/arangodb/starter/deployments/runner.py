@@ -732,6 +732,61 @@ class Runner(ABC):
     def make_data_after_upgrade_impl(self):
         """check the data after the upgrade"""
 
+
+    @step
+    def wikidata_import_impl(self, collection_name='wikipedia'):
+        """upload wikipedia from specified CSV file"""
+        self.makedata_instances[0].arango_importer.import_wikidata(
+            collection_name,
+            nlines=10000,
+            filename=Path(os.environ["WIKI_DATA"]))
+
+    @step
+    def execute_views_tests_impl(self):
+        """execute the views tests on the wikidata"""
+        all_arangosearch_tests = [
+            "arangosearch-ngram_match-test-setup.js",
+            "arangosearch-ngram_match-test.js",
+
+            "arangosearch-phrase-test-setup.js",
+            "arangosearch-phrase-test.js",
+
+            "arangosearch-stemming-languages-test.js",
+
+            "arangosearch-stored-values-test-setup.js",
+            "arangosearch-stored-values-test.js",
+            "arangosearch-stored-values-compression-test.js",
+
+            "arangosearch-wildcard-levenshtein-starts-test.js",
+        ]
+
+        ret_failed = []
+        for one_test in all_arangosearch_tests:
+            this_test = self.cfg.test_data_dir / "tests" / "arangosearch" / one_test
+            if one_test.endswith("setup.js"):
+                ret = self.leader_starter_instance.arangosh.run_script_monitored(
+                    cmd=["setting up test data", this_test],
+                    args=[],
+                    timeout=50,
+                    verbose=self.cfg.verbose,
+                    result_line=dummy_line_result
+                )
+                if not ret[0]:
+                    ret_failed.append(
+                        {(one_test + " failed") : ret})
+            else:
+                ret = self.leader_starter_instance.arangosh.run_in_arangosh(
+                    this_test,
+                    [],
+                    [self.follower_starter_instance.get_frontend().get_public_url("root:%s@" % self.passvoid)],
+                )
+                if not ret[0]:
+                    ret_failed.append(
+                        {(one_test + " failed") : ret})
+        if len(ret_failed) is not 0:
+            print(ret_failed)
+            raise Exception('tests failed!')
+
     @step
     def before_backup(self):
         """preparing SUT for the execution of the backup steps"""

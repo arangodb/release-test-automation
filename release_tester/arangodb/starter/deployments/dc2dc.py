@@ -422,6 +422,9 @@ class Dc2Dc(Runner):
                 print(res[1])
             raise Exception("replication fuzzing test failed")
         self._get_in_sync(12)
+        self.wikidata_import_impl()
+        self.execute_views_tests_impl()
+        self._get_in_sync(12)
 
     def wait_for_restore_impl(self, backup_starter):
         for dbserver in self.cluster1["instance"].get_dbservers():

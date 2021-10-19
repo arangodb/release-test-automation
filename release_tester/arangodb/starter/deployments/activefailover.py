@@ -206,6 +206,8 @@ class ActiveFailover(Runner):
         )
         if not ret[0]:
             raise Exception("check data failed " + ret[1])
+        self.wikidata_import_impl()
+        self.execute_views_tests_impl()
 
     def wait_for_restore_impl(self, backup_starter):
         backup_starter.wait_for_restore()
