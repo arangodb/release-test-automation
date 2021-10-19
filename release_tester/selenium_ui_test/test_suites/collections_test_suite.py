@@ -22,6 +22,14 @@ class CollectionsTestSuite(BaseTestSuite):
         col.select_new_collection_name("TestDoc")
         print("Creating Document type collection started \n")
         col.select_collection_type(0)  # 0 for Doc type document
+
+        if self.is_cluster:
+            print("Selecting number of shards for the current collection \n")
+            col.select_number_of_shards(9)  # it takes number of shards as an argument
+
+            print("Selecting number of shards for the current collection \n")
+            col.select_replication_factor(3)  # it takes number of replication factor as an argument
+
         col.select_advance_option()
         print("Choosing wait type to YES \n")
         col.wait_for_sync(1)
@@ -32,6 +40,14 @@ class CollectionsTestSuite(BaseTestSuite):
         col.select_create_collection()
         col.select_new_collection_name("TestEdge")
         col.select_collection_type(1)  # 1 for Edge type document
+
+        if self.is_cluster:
+            print("Selecting number of shards for the current collection \n")
+            col.select_number_of_shards(9)  # it takes number of shards as an argument
+
+            print("Selecting number of shards for the current collection \n")
+            col.select_replication_factor(3)  # it takes number of replication factor as an argument
+
         col.select_advance_option()
         print("Choosing wait type to YES \n")
         col.wait_for_sync(1)
@@ -44,6 +60,14 @@ class CollectionsTestSuite(BaseTestSuite):
         col.select_new_collection_name("Test")
         print("Creating Document type collection started \n")
         col.select_collection_type(0)  # 0 for Doc type document
+        
+        if self.is_cluster:
+            print("Selecting number of shards for the current collection \n")
+            col.select_number_of_shards(9)  # it takes number of shards as an argument
+
+            print("Selecting number of shards for the current collection \n")
+            col.select_replication_factor(3)  # it takes number of replication factor as an argument
+
         col.select_advance_option()
         print("Choosing wait type to YES \n")
         col.wait_for_sync(1)

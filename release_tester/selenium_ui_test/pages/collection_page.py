@@ -159,6 +159,25 @@ class CollectionPage(NavigationBarPage):
         """Selecting collection Document type where # '2' = Document, '3' = Edge"""
         self.locator_finder_by_select(self.select_collection_type_id, value)
         time.sleep(1)
+    
+    def select_number_of_shards(self, shard_value):
+        """selecting number of shards for the collection"""
+        shards = 'new-collection-shards'
+        shards_sitem = self.locator_finder_by_id(self, shards)
+        shards_sitem.click()
+        shards_sitem.clear()
+        shards_sitem.send_keys(shard_value)
+        time.sleep(2)
+
+    def select_replication_factor(self, rf_value):
+        """selecting number of replication factor for the collection"""
+        rf = 'new-replication-factor'
+        rf_sitem = self.locator_finder_by_id(self, rf)
+        rf_sitem.click()
+        rf_sitem.clear()
+        rf_sitem.send_keys(rf_value)
+        time.sleep(2)
+
 
     def select_advance_option(self):
         """Selecting collection advance options"""
