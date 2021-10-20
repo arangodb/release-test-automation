@@ -190,7 +190,7 @@ class CollectionPage(NavigationBarPage):
         time.sleep(1)
 
     def create_new_collection_btn(self):
-        """selecting collection tab"""
+        """Select create new collection button"""
         create_new_collection_btn_sitem = self.locator_finder_by_id(self.create_new_collection_btn_id)
         create_new_collection_btn_sitem.click()
         time.sleep(3)

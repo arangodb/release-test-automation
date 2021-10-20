@@ -27,7 +27,7 @@ class CollectionsTestSuite(BaseTestSuite):
             print("Selecting number of shards for the current collection \n")
             col.select_number_of_shards(9)  # it takes number of shards as an argument
 
-            print("Selecting number of shards for the current collection \n")
+            print("Selecting replication factor for the current collection \n")
             col.select_replication_factor(3)  # it takes number of replication factor as an argument
 
         col.select_advance_option()
@@ -45,7 +45,7 @@ class CollectionsTestSuite(BaseTestSuite):
             print("Selecting number of shards for the current collection \n")
             col.select_number_of_shards(9)  # it takes number of shards as an argument
 
-            print("Selecting number of shards for the current collection \n")
+            print("Selecting replication factor for the current collection \n")
             col.select_replication_factor(3)  # it takes number of replication factor as an argument
 
         col.select_advance_option()
@@ -65,7 +65,7 @@ class CollectionsTestSuite(BaseTestSuite):
             print("Selecting number of shards for the current collection \n")
             col.select_number_of_shards(9)  # it takes number of shards as an argument
 
-            print("Selecting number of shards for the current collection \n")
+            print("Selecting replication factor for the current collection \n")
             col.select_replication_factor(3)  # it takes number of replication factor as an argument
 
         col.select_advance_option()
