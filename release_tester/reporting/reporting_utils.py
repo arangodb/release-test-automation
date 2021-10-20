@@ -3,13 +3,11 @@ from string import Template
 from uuid import uuid4
 
 import allure_commons
-import markdown
 from allure_commons._allure import attach, StepContext
 from allure_commons.logger import AllureFileLogger
-from allure_commons.model2 import Status
-from allure_commons.types import AttachmentType
-from beautifultable import BeautifulTable
-
+from allure_commons.model2 import Status, TestResult
+from allure_commons.types import AttachmentType, LabelType
+from tabulate import tabulate
 from reporting.helpers import AllureListener
 
 
@@ -19,6 +17,7 @@ def attach_table(table, title="HTML table"):
     <html>
     <style>
         table {
+          white-space: pre-line;
           border-collapse: collapse;
           font-family: Helvetica,Arial,sans-serif;
           font-size: 14px;
@@ -51,9 +50,8 @@ def attach_table(table, title="HTML table"):
     </html>
     """
     # pylint: disable=E1101
-    table.set_style(BeautifulTable.STYLE_MARKDOWN)
     template = Template(template_str)
-    html_table = markdown.markdown(str(table), extensions=["markdown.extensions.tables"])
+    html_table = tabulate(table, headers=table.column_headers, tablefmt="html")
     attach(template.substitute(html_table=html_table), title, AttachmentType.HTML)
 
 
@@ -69,10 +67,12 @@ def step(title):
 class RtaTestcase:
     """test case class for allure reporting"""
 
-    def __init__(self, name):
+    def __init__(self, name, labels=[]):
         self.name = name
         self._uuid = str(uuid4())
         self.context = TestcaseContext()
+        for l in labels:
+            self.add_label(l)
 
     def __enter__(self):
         allure_commons.plugin_manager.hook.start_test(
@@ -104,11 +104,12 @@ class RtaTestcase:
 class TestcaseContext:
     """a class to store test case context"""
 
-    def __init__(self, status=None):
+    def __init__(self, status=None, statusDetails=None):
         if status:
             self.status = status
         else:
             self.status = Status.UNKNOWN
+        self.statusDetails = statusDetails
         self.labels = []
 
 
@@ -126,53 +127,88 @@ class AllureTestSuiteContext:
         new_version,
         enc_at_rest,
         old_version=None,
+        parent_test_suite_name=None,
         suite_name=None,
+        runner_type=None,
+        installer_type=None,
     ):
-        if suite_name:
-            self.test_suite_name = suite_name
-        else:
+        def generate_suite_name():
             if enterprise:
                 edition = "Enterprise"
             else:
                 edition = "Community"
-
-            if zip_package:
-                package_type = "universal binary archive"
+            if installer_type:
+                package_type = installer_type
             else:
-                package_type = "deb/rpm/nsis/dmg"
+                if zip_package:
+                    package_type = "universal binary archive"
+                else:
+                    package_type = "deb/rpm/nsis/dmg"
             if not old_version:
-                self.test_suite_name = """
-Release Test Suite for ArangoDB v.{} ({}) {} package (Enc@REST: {}) (clean install)
-                    """.format(
+                test_suite_name = """
+            ArangoDB v.{} ({}) ({} package) (enc@rest: {}) (clean install)
+                                """.format(
                     new_version, edition, package_type, "ON" if enc_at_rest else "OFF"
                 )
             else:
-                self.test_suite_name = """
-                Release Test Suite for ArangoDB v.{} ({}) {} package (upgrade from {}) (Enc@REST: {}) 
-                """.format(
+                test_suite_name = """
+                            ArangoDB v.{} ({}) {} package (upgrade from {}) (enc@rest: {}) 
+                            """.format(
                     new_version, edition, package_type, old_version, "ON" if enc_at_rest else "OFF"
                 )
+            if runner_type:
+                test_suite_name = "[" + str(runner_type) + "] " + test_suite_name
 
-        self.test_listener = AllureListener(self.test_suite_name)
-        allure_commons.plugin_manager.register(self.test_listener)
+            return test_suite_name
 
-        if AllureTestSuiteContext.test_suite_count == 0:
-            self.file_logger = AllureFileLogger(results_dir, clean)
+        test_listeners = [p for p in allure_commons.plugin_manager.get_plugins() if type(p) == AllureListener]
+        self.previous_test_listener = None if len(test_listeners) == 0 else test_listeners[0]
+
+        if self.previous_test_listener:
+            labels = (
+                {k: v for k, v in self.previous_test_listener._cache._items.items() if type(v) == TestResult}
+                .popitem()[1]
+                .labels
+            )
+            parent_suite_label = [l for l in labels if l.name == LabelType.PARENT_SUITE][0]
+            suite_label = [l for l in labels if l.name == LabelType.SUITE][0]
+            self.parent_test_suite_name = parent_suite_label.value
+            self.test_suite_name = suite_label.value
+            self.test_listener = AllureListener(
+                default_test_suite_name=self.test_suite_name, default_parent_test_suite_name=self.parent_test_suite_name
+            )
+            allure_commons.plugin_manager.unregister(self.previous_test_listener)
+            allure_commons.plugin_manager.register(self.test_listener)
         else:
-            self.file_logger = AllureFileLogger(results_dir, False)
+            if suite_name:
+                self.test_suite_name = suite_name
+            else:
+                self.test_suite_name = generate_suite_name()
+            if parent_test_suite_name:
+                self.parent_test_suite_name = parent_test_suite_name
+            elif suite_name:
+                self.parent_test_suite_name = generate_suite_name()
+            else:
+                self.parent_test_suite_name = None
+            if AllureTestSuiteContext.test_suite_count == 0:
+                self.file_logger = AllureFileLogger(results_dir, clean)
+            else:
+                self.file_logger = AllureFileLogger(results_dir, False)
+            self.test_listener = AllureListener(
+                default_test_suite_name=self.test_suite_name, default_parent_test_suite_name=self.parent_test_suite_name
+            )
+            allure_commons.plugin_manager.register(self.test_listener)
+            allure_commons.plugin_manager.register(self.file_logger)
 
-        allure_commons.plugin_manager.register(self.file_logger)
         AllureTestSuiteContext.test_suite_count += 1
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        allure_commons.plugin_manager.unregister(self.test_listener)
-        allure_commons.plugin_manager.unregister(self.file_logger)
-
-
-def configure_allure(results_dir, clean, enterprise, zip_package, new_version, enc_at_rest, old_version=None):
-    """configure allure reporting"""
-    # pylint: disable=R0913
-    return AllureTestSuiteContext(results_dir, clean, enterprise, zip_package, new_version, enc_at_rest, old_version)
+        if self.previous_test_listener:
+            allure_commons.plugin_manager.unregister(self.test_listener)
+            allure_commons.plugin_manager.register(self.previous_test_listener)
+        else:
+            allure_commons.plugin_manager.unregister(self.test_listener)
+            allure_commons.plugin_manager.unregister(self.file_logger)

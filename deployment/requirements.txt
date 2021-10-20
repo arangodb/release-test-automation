@@ -3,5 +3,6 @@ semver
 distro
 pexpect
 allure_python_commons
-markdown
+tabulate
 certifi
+markdown

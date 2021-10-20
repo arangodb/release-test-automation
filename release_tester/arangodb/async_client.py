@@ -50,6 +50,7 @@ def convert_result(result_array):
 
 class CliExecutionException(Exception):
     """transport CLI error texts"""
+
     def __init__(self, message, execution_result):
         self.execution_result = execution_result
         self.message = message

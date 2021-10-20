@@ -17,6 +17,8 @@ from tools.asciiprint import print_progress as progress
 arangoversions = {
     "370": semver.VersionInfo.parse("3.7.0"),
 }
+
+
 class Cluster(Runner):
     """this launches a cluster setup"""
 
@@ -158,7 +160,8 @@ db.testCollection.save({test: "document"})
         self.set_frontend_instances()
 
     def test_setup_impl(self):
-        pass
+        if self.selenium:
+            self.selenium.test_setup()
 
     def wait_for_restore_impl(self, backup_starter):
         for starter in self.starter_instances:
@@ -180,7 +183,7 @@ db.testCollection.save({test: "document"})
 
         self.starter_instances[1].command_upgrade()
         if self.selenium:
-            self.selenium.upgrade_deployment(self.cfg, self.new_cfg, timeout=30)  # * 5s
+            self.selenium.test_wait_for_upgrade()  # * 5s
         self.starter_instances[1].wait_for_upgrade(300)
         if self.cfg.stress_upgrade:
             bench_instances[0].wait()
@@ -245,7 +248,7 @@ db.testCollection.save({test: "document"})
         self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
 
         if self.selenium:
-            self.selenium.upgrade_deployment(self.cfg, self.new_cfg, timeout=30)  # * 5s
+            self.selenium.test_wait_for_upgrade()  # * 5s
 
     @step
     def jam_attempt_impl(self):
@@ -266,7 +269,7 @@ db.testCollection.save({test: "document"})
 
         prompt_user(self.basecfg, "instance stopped")
         if self.selenium:
-            self.selenium.jam_step_1(self.new_cfg if self.new_cfg else self.cfg)
+            self.selenium.jam_step_1()
 
         ret = self.starter_instances[0].arangosh.check_test_data(
             "Cluster one node missing", True, ["--disabledDbserverUUID", uuid]
@@ -323,7 +326,7 @@ db.testCollection.save({test: "document"})
 
         prompt_user(self.basecfg, "cluster should be up")
         if self.selenium:
-            self.selenium.jam_step_2(self.new_cfg if self.new_cfg else self.cfg)
+            self.selenium.jam_step_2()
 
     def shutdown_impl(self):
         for node in self.starter_instances:
@@ -335,3 +338,13 @@ db.testCollection.save({test: "document"})
 
     def after_backup_impl(self):
         pass
+
+    def set_selenium_instances(self):
+        """set instances in selenium runner"""
+        self.selenium.set_instances(
+            self.cfg,
+            self.starter_instances[0].arango_importer,
+            self.starter_instances[0].arango_restore,
+            [x for x in self.starter_instances[0].all_instances if x.instance_type == InstanceType.COORDINATOR][0],
+            self.new_cfg,
+        )

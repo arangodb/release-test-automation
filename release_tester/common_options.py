@@ -155,15 +155,7 @@ def common_options(
 
 def download_options(default_source="public", double_source=False, other_source=False):
     """these are options available in scripts downloading packages"""
-    download_sources = [
-        "ftp:stage1",
-        "http:stage1",
-        "ftp:stage2",
-        "http:stage2",
-        "nightlypublic",
-        "public",
-        "local"
-    ]
+    download_sources = ["ftp:stage1", "http:stage1", "ftp:stage2", "http:stage2", "nightlypublic", "public", "local"]
 
     def inner_func(function):
         function = click.option("--enterprise-magic", default="", help="Enterprise or community?")(function)
