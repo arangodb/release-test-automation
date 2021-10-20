@@ -151,6 +151,64 @@ function ArangoSearch_PHRASE() {
         actual.forEach((rhs, i) => assertTrue(_.isEqual(expected[i], rhs)));
       }
 
+      // variadic arguments
+      {
+        let actual = db._query(`
+          FOR d IN v_wiki_phrase
+            SEARCH PHRASE(d.title, "Lord", 0, "of", 0, "The", 0, "Rings", "tokenizer")
+          SORT d._id
+          RETURN d`).toArray();
+
+        assertEqual(expected.length, actual.length);
+        actual.forEach((rhs, i) => assertTrue(_.isEqual(expected[i], rhs)));
+      }
+
+      // variadic arguments + object notation
+      {
+        let actual = db._query(`
+          FOR d IN v_wiki_phrase
+            SEARCH PHRASE(d.title, { TERM : "lord" }, 0, "of", 0, "The", 0, "Rings", "tokenizer")
+          SORT d._id
+          RETURN d`).toArray();
+
+        assertEqual(expected.length, actual.length);
+        actual.forEach((rhs, i) => assertTrue(_.isEqual(expected[i], rhs)));
+      }
+
+      // variadic arguments + object notation
+      {
+        let actual = db._query(`
+          FOR d IN v_wiki_phrase
+            SEARCH PHRASE(d.title, { TERM : ["lord"] }, 0, "of", 0, "The", 0, "Rings", "tokenizer")
+          SORT d._id
+          RETURN d`).toArray();
+
+        assertEqual(expected.length, actual.length);
+        actual.forEach((rhs, i) => assertTrue(_.isEqual(expected[i], rhs)));
+      }
+
+      // variadic arguments + object notation, analyzer is not applied to object notation
+      {
+        let actual = db._query(`
+          FOR d IN v_wiki_phrase
+            SEARCH PHRASE(d.title, { TERM : "Lord" }, 0, "of", 0, "The", 0, "Rings", "tokenizer")
+          SORT d._id
+          RETURN d`).toArray();
+
+        assertEqual(0, actual.length);
+      }
+
+      // variadic arguments + object notation, analyzer is not applied to object notation
+      {
+        let actual = db._query(`
+          FOR d IN v_wiki_phrase
+            SEARCH PHRASE(d.title, { TERM : ["Lord"] }, 0, "of", 0, "The", 0, "Rings", "tokenizer")
+          SORT d._id
+          RETURN d`).toArray();
+
+        assertEqual(0, actual.length);
+      }
+
       // arguments as bind variables
       {
         let actual = db._query(`
@@ -186,7 +244,7 @@ function ArangoSearch_PHRASE() {
             SEARCH PHRASE(d.title, [input], analyzer)
           SORT d._id
           RETURN d`).toArray();
-  
+
         assertEqual(expected.length, actual.length);
         actual.forEach((rhs, i) => assertTrue(_.isEqual(expected[i], rhs)));
       }
@@ -202,6 +260,44 @@ function ArangoSearch_PHRASE() {
 
         assertEqual(expected.length, actual.length);
         actual.forEach((rhs, i) => assertTrue(_.isEqual(expected[i], rhs)));
+      }
+
+      // arguments as an array, object notation
+      {
+        let actual = db._query(`
+          LET analyzer = "tokenizer"
+          FOR d IN v_wiki_phrase
+            SEARCH PHRASE(d.title, [{TERM:"lord"}, 0, "of", "The", "Rings"], analyzer)
+          SORT d._id
+          RETURN d`).toArray();
+
+        assertEqual(expected.length, actual.length);
+        actual.forEach((rhs, i) => assertTrue(_.isEqual(expected[i], rhs)));
+      }
+
+      // arguments as an array, object notation
+      {
+        let actual = db._query(`
+          LET analyzer = "tokenizer"
+          FOR d IN v_wiki_phrase
+            SEARCH PHRASE(d.title, [{TERM:["lord"]}, 0, "of", "The", "Rings"], analyzer)
+          SORT d._id
+          RETURN d`).toArray();
+
+        assertEqual(expected.length, actual.length);
+        actual.forEach((rhs, i) => assertTrue(_.isEqual(expected[i], rhs)));
+      }
+
+      // arguments as an array, object notation, analyzer isn't applied
+      {
+        let actual = db._query(`
+          LET analyzer = "tokenizer"
+          FOR d IN v_wiki_phrase
+            SEARCH PHRASE(d.title, [{TERM:["Lord"]}, 0, "of", "The", "Rings"], analyzer)
+          SORT d._id
+          RETURN d`).toArray();
+
+        assertEqual(0, actual.length);
       }
 
       // arguments as an array
@@ -225,6 +321,38 @@ function ArangoSearch_PHRASE() {
           LET phraseStruct = NOOPT(["Lord", 0, "of", "The", "Rings"])
           FOR d IN v_wiki_phrase
             SEARCH PHRASE(d.title, phraseStruct, analyzer)
+          SORT d._id
+          RETURN d`).toArray();
+
+        assertEqual(expected.length, actual.length);
+        actual.forEach((rhs, i) => assertTrue(_.isEqual(expected[i], rhs)));
+      }
+    },
+
+    testProximityPhrase: function () {
+      let expected = db._query(`
+        LET input = "Lord Rings"
+        LET phrase = TOKENS(input, "tokenizer")
+        LET offsets = [ 0, 2 ]
+        FOR d IN wikipedia 
+          FILTER LENGTH(d.title) >= LENGTH(input)
+          LET tokens = TOKENS(d.title, "tokenizer")
+          FILTER phrase ALL IN tokens
+          FILTER LENGTH(
+            FOR leadPos IN 0..LENGTH(tokens)-1
+              FILTER tokens[leadPos] == phrase[0]
+              FILTER LENGTH(FOR i IN 0..LENGTH(phrase)-1
+                      FILTER phrase[i] == tokens[leadPos+offsets[i]]
+                      RETURN 1) == LENGTH(phrase)
+              RETURN 1) > 0
+        SORT d._id
+        RETURN d`).toArray();
+      assertNotEqual(expected.length, 0);
+
+      {
+        let actual = db._query(`
+          FOR d IN v_wiki_phrase
+            SEARCH PHRASE(d.title, "Lord", 2, "Rings", "tokenizer")
           SORT d._id
           RETURN d`).toArray();
 
