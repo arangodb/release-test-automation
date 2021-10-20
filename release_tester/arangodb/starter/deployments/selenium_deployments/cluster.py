@@ -1,6 +1,5 @@
 from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunner
 from selenium_ui_test.test_suites.basic_test_suite import BasicTestSuite
-from selenium_ui_test.test_suites.cluster.after_install_test_suite import ClusterAfterInstallTestSuite
 from selenium_ui_test.test_suites.cluster.wait_for_upgrade_test_suite import ClusterWaitForUpgradeTestSuite
 from selenium_ui_test.test_suites.cluster.jam_1_test_suite import ClusterJamStepOneSuite
 from selenium_ui_test.test_suites.cluster.jam_2_test_suite import ClusterJamStepTwoSuite
@@ -14,7 +13,6 @@ class Cluster(SeleniumRunner):
         super().__init__(webdriver, is_headless, testrun_name, ssl)
         self.is_cluster = True
         self.main_test_suite_list = [BasicTestSuite]
-        self.after_install_test_suite_list = [ClusterAfterInstallTestSuite]
         self.wait_for_upgrade_test_suite_list = [ClusterWaitForUpgradeTestSuite]
         self.jam_step_1_test_suite_list = [ClusterJamStepOneSuite]
         self.jam_step_2_test_suite_list = [ClusterJamStepTwoSuite]

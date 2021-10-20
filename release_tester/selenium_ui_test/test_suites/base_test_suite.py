@@ -3,7 +3,7 @@ import logging
 from abc import ABC
 
 from allure_commons._allure import attach
-from allure_commons.model2 import Status, Label
+from allure_commons.model2 import Status, Label, StatusDetails
 from allure_commons.types import AttachmentType, LabelType
 from selenium.common.exceptions import InvalidSessionIdException
 from selenium_ui_test.models import RtaUiTestResult
@@ -211,6 +211,7 @@ def testcase(title):
                     print(tb)
                     self.take_screenshot()
                     testcase.context.status = Status.FAILED
+                    testcase.context.statusDetails = StatusDetails(message=message, trace=tb)
                 test_result = RtaUiTestResult(name, success, message, tb)
                 return test_result
 

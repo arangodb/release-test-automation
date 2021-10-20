@@ -327,7 +327,6 @@ db.testCollection.save({test: "document"})
         prompt_user(self.basecfg, "cluster should be up")
         if self.selenium:
             self.selenium.jam_step_2()
-            self.selenium.test_after_install()
 
     def shutdown_impl(self):
         for node in self.starter_instances:

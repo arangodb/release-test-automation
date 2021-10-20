@@ -11,7 +11,7 @@ class LeaderFollowerAfterInstallTestSuite(AfterInstallTestSuite):
 
     @testcase
     def test(self, leader_follower=True):
-        """check the integrity of the old system before the upgrade"""
+        """check the integrity of the old system after install (Leader Follower)"""
         count = 0
         replication_table = None
         while True:
