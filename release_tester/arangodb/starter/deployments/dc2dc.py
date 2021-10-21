@@ -387,7 +387,7 @@ class Dc2Dc(Runner):
 
     def test_setup_impl(self):
         ret = self.cluster1["instance"].arangosh.check_test_data("dc2dc (post setup - dc1)", True)
-        if not [0]:
+        if not ret[0]:
             raise Exception("check data on source cluster failed " + ret[1])
         self._get_in_sync(20)
 
