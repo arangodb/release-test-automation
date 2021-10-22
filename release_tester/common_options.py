@@ -147,7 +147,6 @@ def common_options(
             is_flag=True,
             default=False,
             help="use self-signed SSL certs",
-        
         )(function)
         return function
 

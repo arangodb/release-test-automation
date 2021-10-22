@@ -55,6 +55,7 @@ def upgrade_package_test(
     remote_host,
     force,
     starter_mode,
+    editions,
     publicip,
     selenium,
     selenium_driver_args,
@@ -118,11 +119,13 @@ def upgrade_package_test(
             time.sleep(1)
         results.append(
             run_test(
-                "all",
+                starter_mode,
                 str(dl_new.cfg.version),
                 verbose,
                 package_dir,
                 test_dir,
+                alluredir,
+                clean_alluredir,
                 enterprise,
                 encryption_at_rest,
                 zip_package,
@@ -226,6 +229,8 @@ def upgrade_package_test(
                     verbose,
                     package_dir,
                     test_dir,
+                    alluredir,
+                    clean_alluredir,
                     enterprise,
                     encryption_at_rest,
                     zip_package,

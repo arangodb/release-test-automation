@@ -15,7 +15,6 @@ from beautifultable import BeautifulTable, ALIGN_LEFT
 
 import tools.loghelper as lh
 from download import read_versions_tar, write_version_tar, Download, touch_all_tars_in_dir
-from reporting.reporting_utils import AllureTestSuiteContext
 from test import run_test
 from cleanup import run_cleanup
 from tools.killall import list_all_processes
