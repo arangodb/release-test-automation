@@ -9,7 +9,7 @@ import shutil
 import time
 
 import click
-from common_options import very_common_options, common_options, download_options
+from common_options import very_common_options, common_options, download_options, full_common_options
 
 from beautifultable import BeautifulTable, ALIGN_LEFT
 
@@ -89,6 +89,8 @@ def upgrade_package_test(
     ) in execution_plan:
         run_cleanup(zip_package, "test_" + testrun_name)
         print("Cleanup done")
+        if directory_suffix not in editions:
+            continue
         # pylint: disable=W0612
         dl_new = Download(
             primary_version,
@@ -174,6 +176,8 @@ def upgrade_package_test(
             directory_suffix,
             testrun_name,
         ) in execution_plan:
+            if directory_suffix not in editions:
+                continue
             # pylint: disable=W0612
             dl_old = Download(
                 old_versions[j],
@@ -282,11 +286,7 @@ def upgrade_package_test(
 
 
 @click.command()
-@click.option(
-    "--git-version",
-    default="",
-    help="specify the output of: git rev-parse --verify HEAD",
-)
+@full_common_options
 @click.option(
     "--upgrade-matrix", default="", help="list of upgrade operations ala '3.6.15:3.7.15;3.7.14:3.7.15;3.7.15:3.8.1'"
 )
@@ -302,6 +302,7 @@ def upgrade_package_test(
 # pylint: disable=R0913, disable=W0613
 def main(
         git_version,
+        editions,
         upgrade_matrix,
         #very_common_options
         new_version, verbose, enterprise, package_dir, zip_package,
@@ -335,6 +336,7 @@ def main(
         remote_host,
         force,
         starter_mode,
+        editions,
         publicip,
         selenium,
         selenium_driver_args,
