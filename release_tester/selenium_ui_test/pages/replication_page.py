@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+"""selenium code for testing the replication page"""
 import time
 from selenium.common.exceptions import StaleElementReferenceException, TimeoutException, NoSuchElementException
 from selenium.webdriver.common.by import By
