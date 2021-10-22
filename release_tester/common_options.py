@@ -147,7 +147,6 @@ def common_options(
             is_flag=True,
             default=False,
             help="use self-signed SSL certs",
-        
         )(function)
         return function
 
@@ -213,7 +212,7 @@ def full_common_options(function):
     function = click.option(
         "--edition",
         "editions",
-        default=['EE', 'EP', 'C'],
+        default=["EE", "EP", "C"],
         multiple=True,
         help="which editions to run EE => enterprise Encryption@rest, EP => enterprise, C => community",
     )(function)

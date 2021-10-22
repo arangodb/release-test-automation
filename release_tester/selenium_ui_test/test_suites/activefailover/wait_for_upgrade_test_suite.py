@@ -7,7 +7,9 @@ class ActiveFailoverWaitForUpgradeTestSuite(ActiveFailoverBaseTestSuite):
 
     @testcase
     def check_version_before_upgrade(self):
-        version = self.selenium_runner.new_cfg.version if self.selenium_runner.new_cfg else self.selenium_runner.cfg.version
+        version = (
+            self.selenium_runner.new_cfg.version if self.selenium_runner.new_cfg else self.selenium_runner.cfg.version
+        )
         self.check_version(version, self.is_enterprise)
 
     @testcase
