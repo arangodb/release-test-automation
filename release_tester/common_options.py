@@ -209,7 +209,7 @@ def full_common_options(function):
         "--git-version",
         default="",
         help="specify the output of: git rev-parse --verify HEAD",
-    )
+    )(function)
     function = click.option(
         "--edition",
         "editions",
