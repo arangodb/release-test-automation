@@ -36,6 +36,8 @@ class SeleniumRunner(ABC):
         self.test_results = []
         self.main_test_suite_list = []
         self.after_install_test_suite_list = []
+        self.jam_step_2_test_suite_list = []
+        self.wait_for_upgrade_test_suite_list = []
 
     def set_instances(self, cfg, importer, restorer, ui_entrypoint_instance, new_cfg=None):
         """change the used frontend instance"""
