@@ -196,7 +196,9 @@ def package_test(
         print("exiting with failure")
         sys.exit(1)
 
-    if not force:
+    if force:
+        version_state_tar.touch()
+    else:
         write_version_tar(version_state_tar, fresh_versions)
 
 
