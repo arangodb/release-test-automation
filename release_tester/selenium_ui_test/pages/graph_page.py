@@ -69,7 +69,7 @@ class GraphPage(NavigationBarPage):
         self.select_example_graph_btn_id = "tab-exampleGraphs"
         self.select_ex_graph_format = "//*[@id='exampleGraphs']/table/tbody/tr[%d]/td[2]/button"
 
-        self.confirm_delete_graph_id = "modalButton0"
+        self.confirm_delete_graph_selector = "//button[text()='Delete'] and not(ancestor::div[contains(@style,'display:none')]) and not(ancestor::div[contains(@style,'display: none')])]"
         self.delete_with_collection_id = "dropGraphCollections"
         self.select_really_delete_btn_id = "modal-confirm-delete"
 
@@ -767,7 +767,7 @@ class GraphPage(NavigationBarPage):
         self.wait_for_ajax()
 
         time.sleep(0.1)
-        confirm_delete_graph_sitem = self.locator_finder_by_id(self.confirm_delete_graph_id)
+        confirm_delete_graph_sitem = self.locator_finder_by_xpath(self.confirm_delete_graph_selector)
         confirm_delete_graph_sitem.click()
         self.wait_for_ajax()
 
