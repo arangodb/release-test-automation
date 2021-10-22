@@ -9,7 +9,7 @@ import shutil
 import time
 
 import click
-from common_options import very_common_options, common_options, download_options
+from common_options import very_common_options, common_options, download_options, full_common_options
 
 from beautifultable import BeautifulTable, ALIGN_LEFT
 
@@ -54,6 +54,7 @@ def package_test(
     remote_host,
     force,
     starter_mode,
+    editions,
     publicip,
     selenium,
     selenium_driver_args,
@@ -100,6 +101,8 @@ def package_test(
             directory_suffix,
             testrun_name,
         ) in execution_plan:
+            if directory_suffix not in editions:
+                continue
             dl_new = Download(
                 new_version[j],
                 verbose,
@@ -203,11 +206,7 @@ def package_test(
     default="/home/release-test-automation/versions.tar",
     help="tar file with the version combination in.",
 )
-@click.option(
-    "--git-version",
-    default="",
-    help="specify the output of: git rev-parse --verify HEAD",
-)
+@full_common_options
 @very_common_options(support_multi_version=True)
 @common_options(
     support_multi_version=True,
@@ -221,6 +220,7 @@ def package_test(
 def main(
         version_state_tar,
         git_version,
+        editions,
         #very_common_options
         new_version, verbose, enterprise, package_dir, zip_package,
         # common_options,
@@ -263,6 +263,7 @@ new_source:   {len_new_source} {new_source}
         remote_host,
         force,
         starter_mode,
+        editions,
         publicip,
         selenium,
         selenium_driver_args,

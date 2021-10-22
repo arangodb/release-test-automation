@@ -147,6 +147,7 @@ def common_options(
             is_flag=True,
             default=False,
             help="use self-signed SSL certs",
+        
         )(function)
         return function
 
@@ -200,3 +201,20 @@ def download_options(default_source="public", double_source=False, other_source=
         return function
 
     return inner_func
+
+
+def full_common_options(function):
+    """full test/& upgrade options"""
+    function = click.option(
+        "--git-version",
+        default="",
+        help="specify the output of: git rev-parse --verify HEAD",
+    )
+    function = click.option(
+        "--edition",
+        "editions",
+        default=['EE', 'EP', 'C'],
+        multiple=True,
+        help="which editions to run EE => enterprise Encryption@rest, EP => enterprise, C => community",
+    )(function)
+    return function
