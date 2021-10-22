@@ -1,6 +1,6 @@
 import time
 from selenium_ui_test.pages.navbar import NavigationBarPage
-from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
+from selenium.common.exceptions import StaleElementReferenceException
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=R0902 disable=R0915

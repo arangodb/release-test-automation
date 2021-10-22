@@ -1,8 +1,10 @@
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
-from selenium_ui_test.pages.dashboard_page import DashboardPage
+#!/usr/bin/python3
+""" test the leader follower right after the installation"""
+import time
 
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium_ui_test.pages.replication_page import ReplicationPage
+from selenium_ui_test.test_suites.base_test_suite import testcase
 from selenium_ui_test.test_suites.base_classes.after_install_test_suite import AfterInstallTestSuite
 
 

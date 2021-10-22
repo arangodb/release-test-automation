@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-""" abstract a ui result """
+"""abstract base models"""
 from enum import Enum
 
 
 class IndexType(Enum):
+    """which type of index"""
     PERSISTENT = "Persistent"
     GEO = "Geo"
     FULLTEXT = "Fulltext"

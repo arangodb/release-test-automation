@@ -1,11 +1,13 @@
+#!/usr/bin/python3
+"""the cluster pgae object"""
 import time
 
 from selenium.common.exceptions import StaleElementReferenceException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.webdriver.support import expected_conditions as EC
 
+from selenium_ui_test.pages.navbar import NavigationBarPage
 
 class ClusterPage(NavigationBarPage):
     """Class for Cluster page"""

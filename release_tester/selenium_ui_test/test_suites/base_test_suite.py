@@ -1,20 +1,22 @@
-import traceback
-import logging
 from abc import ABC
+from datetime import datetime
+import logging
+import traceback
+from semver import VersionInfo
 
 from allure_commons._allure import attach
 from allure_commons.model2 import Status, Label, StatusDetails
 from allure_commons.types import AttachmentType, LabelType
+from reporting.reporting_utils import AllureTestSuiteContext, RtaTestcase
+
 from selenium.common.exceptions import InvalidSessionIdException
+
 from selenium_ui_test.models import RtaUiTestResult
 from selenium_ui_test.pages.login_page import LoginPage
 from selenium_ui_test.pages.base_page import BasePage
-from datetime import datetime
-
-from reporting.reporting_utils import step, AllureTestSuiteContext, RtaTestcase
-
 from selenium_ui_test.pages.navbar import NavigationBarPage
-from semver import VersionInfo
+
+
 
 
 class BaseTestSuite(ABC):
