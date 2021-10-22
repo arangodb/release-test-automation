@@ -14,7 +14,7 @@ class DatabasePage(NavigationBarPage):
     def select_database_page(self):
         """Navigate to Database page"""
         db_sitem = self.database_page
-        db_sitem = self.locator_finder_by_id(self, db_sitem)
+        db_sitem = self.locator_finder_by_id(db_sitem)
         db_sitem.click()
         time.sleep(1)
 
@@ -23,26 +23,26 @@ class DatabasePage(NavigationBarPage):
         self.select_database_page()
         print(f"Creating {db_name} database started \n")
         create_new_db_btn = self.create_new_db_btn
-        create_new_db_btn_sitem = self.locator_finder_by_id(self, create_new_db_btn)
+        create_new_db_btn_sitem = self.locator_finder_by_id(create_new_db_btn)
         create_new_db_btn_sitem.click()
         time.sleep(2)
 
         # fill up all the database details
         new_db_name = "newDatabaseName"
-        new_db_name_sitem = self.locator_finder_by_id(self, new_db_name)
+        new_db_name_sitem = self.locator_finder_by_id(new_db_name)
         new_db_name_sitem.click()
         new_db_name_sitem.send_keys(db_name)
         time.sleep(1)
 
         replication_factor = "new-replication-factor"
-        replication_factor_sitem = self.locator_finder_by_id(self, replication_factor)
+        replication_factor_sitem = self.locator_finder_by_id(replication_factor)
         replication_factor_sitem.click()
         replication_factor_sitem.clear()
         replication_factor_sitem.send_keys("3")
         time.sleep(1)
 
         write_concern = "new-write-concern"
-        write_concern_sitem = self.locator_finder_by_id(self, write_concern)
+        write_concern_sitem = self.locator_finder_by_id(write_concern)
         write_concern_sitem.click()
         write_concern_sitem.clear()
         write_concern_sitem.send_keys("3")
@@ -60,7 +60,7 @@ class DatabasePage(NavigationBarPage):
 
         # clicking create button
         create_db = "modalButton1"
-        create_db_sitem = self.locator_finder_by_id(self, create_db)
+        create_db_sitem = self.locator_finder_by_id(create_db)
         create_db_sitem.click()
         time.sleep(4)
 
@@ -84,7 +84,7 @@ class DatabasePage(NavigationBarPage):
             self.locator_finder_by_select(self, db_opt, 1)
 
         select_db_btn_id = "goToDatabase"
-        select_db_btn_id_sitem = self.locator_finder_by_id(self, select_db_btn_id)
+        select_db_btn_id_sitem = self.locator_finder_by_id(select_db_btn_id)
         select_db_btn_id_sitem.click()
         time.sleep(2)
 
@@ -106,7 +106,7 @@ class DatabasePage(NavigationBarPage):
         db_option = self.select_db_opt_id_sitem
         self.locator_finder_by_select(self, db_option, 0)
         select_db_btn_id = "goToDatabase"
-        select_db_btn_id_sitem = self.locator_finder_by_id(self, select_db_btn_id)
+        select_db_btn_id_sitem = self.locator_finder_by_id(select_db_btn_id)
         select_db_btn_id_sitem.click()
         time.sleep(3)
 
@@ -115,7 +115,7 @@ class DatabasePage(NavigationBarPage):
         self.select_database_page()
         print("Expected error scenario for the Database name Started. \n")
         create_new_db_btn = self.create_new_db_btn
-        create_new_db_btn_sitem = self.locator_finder_by_id(self, create_new_db_btn)
+        create_new_db_btn_sitem = self.locator_finder_by_id(create_new_db_btn)
         create_new_db_btn_sitem.click()
         time.sleep(2)
 
@@ -193,14 +193,14 @@ class DatabasePage(NavigationBarPage):
 
         print("Closing the database creation \n")
         close_btn = "modalButton0"
-        close_btn_sitem = self.locator_finder_by_id(self, close_btn)
+        close_btn_sitem = self.locator_finder_by_id(close_btn)
         close_btn_sitem.click()
         time.sleep(3)
 
     def sorting_db(self):
         """Sorting database"""
         db_settings = "databaseToggle"
-        db_settings_sitem = self.locator_finder_by_id(self, db_settings)
+        db_settings_sitem = self.locator_finder_by_id(db_settings)
         db_settings_sitem.click()
         time.sleep(1)
 
@@ -217,7 +217,7 @@ class DatabasePage(NavigationBarPage):
     def searching_db(self, db_name):
         """Searching database"""
         db_search = "databaseSearchInput"
-        db_search_sitem = self.locator_finder_by_id(self, db_search)
+        db_search_sitem = self.locator_finder_by_id(db_search)
         db_search_sitem.click()
         db_search_sitem.clear()
         db_search_sitem.send_keys(db_name)
@@ -237,7 +237,7 @@ class DatabasePage(NavigationBarPage):
 
         print("Clearing the search text area \n")
         clear_search = "databaseSearchInput"
-        clear_search_sitem = self.locator_finder_by_id(self, clear_search)
+        clear_search_sitem = self.locator_finder_by_id(clear_search)
         clear_search_sitem.click()
         clear_search_sitem.clear()
         time.sleep(2)
@@ -250,21 +250,21 @@ class DatabasePage(NavigationBarPage):
 
         if db_name == "OneShard":
             db_search = "OneShard_edit-database"
-            db_sitem = self.locator_finder_by_id(self, db_search)
+            db_sitem = self.locator_finder_by_id(db_search)
             db_sitem.click()
 
         if db_name == "Sharded":
             db_search = "Sharded_edit-database"
-            db_sitem = self.locator_finder_by_id(self, db_search)
+            db_sitem = self.locator_finder_by_id(db_search)
             db_sitem.click()
 
         delete_btn = "modalButton1"
-        delete_btn_sitem = self.locator_finder_by_id(self, delete_btn)
+        delete_btn_sitem = self.locator_finder_by_id(delete_btn)
         delete_btn_sitem.click()
         time.sleep(1)
 
         delete_confirm_btn = "modal-confirm-delete"
-        delete_confirm_btn_sitem = self.locator_finder_by_id(self, delete_confirm_btn)
+        delete_confirm_btn_sitem = self.locator_finder_by_id(delete_confirm_btn)
         delete_confirm_btn_sitem.click()
         time.sleep(1)
 

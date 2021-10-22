@@ -270,10 +270,10 @@ class BasePage:
         print(locator_name)
         self.locator = WebDriverWait(self.webdriver, timeout).until(
             EC.element_to_be_clickable((BY.ID, locator_name)),
-            message="UI-Test: " + locator_name + " locator was not found.",
+            message="UI-Test: " + str(locator_name) + " locator was not found.",
         )
         if self.locator is None:
-            raise Exception(locator_name, " locator was not found.")
+            raise Exception(str(locator_name), " locator was not found.")
         return self.locator
 
     def locator_finder_by_xpath(self, locator_name, timeout=10):
@@ -362,7 +362,7 @@ class BasePage:
             if div_id is not None:
                 locator_sitem = self.locator_finder_by_xpath(locators)
             else:
-                locator_sitem = self.locator_finder_by_id(self, locators)
+                locator_sitem = self.locator_finder_by_id(locators)
             locator_sitem.click()
             locator_sitem.clear()
             locator_sitem.send_keys(error_input[i])

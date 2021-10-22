@@ -163,7 +163,7 @@ class CollectionPage(NavigationBarPage):
     def select_number_of_shards(self, shard_value):
         """selecting number of shards for the collection"""
         shards = "new-collection-shards"
-        shards_sitem = self.locator_finder_by_id(self, shards)
+        shards_sitem = self.locator_finder_by_id(shards)
         shards_sitem.click()
         shards_sitem.clear()
         shards_sitem.send_keys(shard_value)
@@ -172,7 +172,7 @@ class CollectionPage(NavigationBarPage):
     def select_replication_factor(self, rf_value):
         """selecting number of replication factor for the collection"""
         rf = "new-replication-factor"
-        rf_sitem = self.locator_finder_by_id(self, rf)
+        rf_sitem = self.locator_finder_by_id(rf)
         rf_sitem.click()
         rf_sitem.clear()
         rf_sitem.send_keys(rf_value)
@@ -483,7 +483,7 @@ class CollectionPage(NavigationBarPage):
 
     def create_new_index(self, index_name, value, cluster_status):
         print(f"Creating {index_name} index started \n")
-        create_new_index_btn_sitem = self.locator_finder_by_id(self, self.create_new_index_btn_id)
+        create_new_index_btn_sitem = self.locator_finder_by_id(self.create_new_index_btn_id)
         create_new_index_btn_sitem.click()
         time.sleep(2)
 
@@ -558,17 +558,17 @@ class CollectionPage(NavigationBarPage):
 
         # experimental feature
         elif index_name == "ZKD":
-            select_zkd_field_sitem = self.locator_finder_by_id(self, "newZkdFields")
+            select_zkd_field_sitem = self.locator_finder_by_id("newZkdFields")
             select_zkd_field_sitem.click()
             select_zkd_field_sitem.clear()
             select_zkd_field_sitem.send_keys("zkdfileds")
 
-            select_zkd_name_sitem = self.locator_finder_by_id(self, "newZkdName")
+            select_zkd_name_sitem = self.locator_finder_by_id("newZkdName")
             select_zkd_name_sitem.click()
             select_zkd_name_sitem.clear()
             select_zkd_name_sitem.send_keys("zkdname")
 
-        select_create_index_btn_sitem = self.locator_finder_by_id(self, self.select_create_index_btn_id)
+        select_create_index_btn_sitem = self.locator_finder_by_id(self.select_create_index_btn_id)
         select_create_index_btn_sitem.click()
         time.sleep(2)
         self.wait_for_ajax()
@@ -581,7 +581,7 @@ class CollectionPage(NavigationBarPage):
         select_index_for_delete_sitem = self.locator_finder_by_xpath(self, self.select_index_for_delete_id)
         select_index_for_delete_sitem.click()
 
-        select_index_confirm_delete_sitem = self.locator_finder_by_id(self, self.select_index_confirm_delete)
+        select_index_confirm_delete_sitem = self.locator_finder_by_id(self.select_index_confirm_delete)
         select_index_confirm_delete_sitem.click()
         self.webdriver.refresh()
 

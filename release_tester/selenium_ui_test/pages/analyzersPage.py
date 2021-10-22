@@ -622,7 +622,7 @@ class AnalyzerPage(NavigationBarPage):
             self.select_built_in_analyzers_open()
         # select filter placeholder for input search term
         filter_input = "filterInput"
-        filter_input_sitem = self.locator_finder_by_id(self, filter_input)
+        filter_input_sitem = self.locator_finder_by_id(filter_input)
         filter_input_sitem.click()
         filter_input_sitem.clear()
         filter_input_sitem.send_keys(value)

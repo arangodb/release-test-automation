@@ -21,14 +21,14 @@ class SupportPage(NavigationBarPage):
     def select_support_page(self):
         """Selecting support page"""
         support = self.select_support_page_id
-        support = self.locator_finder_by_id(self, support)
+        support = self.locator_finder_by_id(support)
         support.click()
         time.sleep(1)
 
     def select_documentation_support(self):
         """selecting documentation support"""
         documentation = self.select_documentation_support_id
-        documentation = self.locator_finder_by_id(self, documentation)
+        documentation = self.locator_finder_by_id(documentation)
         documentation.click()
         time.sleep(1)
 
@@ -231,13 +231,13 @@ class SupportPage(NavigationBarPage):
         print("Checking all Support tab link started\n")
 
         support = self.select_support_page_id
-        support = self.locator_finder_by_id(self, support)
+        support = self.locator_finder_by_id(support)
         support.click()
         time.sleep(1)
 
         # selecting community support tab
         com_support = self.select_community_support_id
-        com_support = self.locator_finder_by_id(self, com_support)
+        com_support = self.locator_finder_by_id(com_support)
         com_support.click()
         time.sleep(1)
 
@@ -289,13 +289,13 @@ class SupportPage(NavigationBarPage):
         print("Checking all Rest api tab link started\n")
 
         support = self.select_support_page_id
-        support = self.locator_finder_by_id(self, support)
+        support = self.locator_finder_by_id(support)
         support.click()
         time.sleep(1)
 
         # selecting community support tab
         rest_api = self.select_rest_api_swagger_id
-        rest_api = self.locator_finder_by_id(self, rest_api)
+        rest_api = self.locator_finder_by_id(rest_api)
         rest_api.click()
         time.sleep(1)
 
