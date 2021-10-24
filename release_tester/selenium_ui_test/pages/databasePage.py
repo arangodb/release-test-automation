@@ -50,12 +50,12 @@ class DatabasePage(NavigationBarPage):
 
         # selecting sharded option from drop down using index
         select_sharded_db = "newSharding"
-        self.locator_finder_by_select(self, select_sharded_db, index)
+        self.locator_finder_by_select(select_sharded_db, index)
         time.sleep(1)
 
         # selecting user option from drop down using index for choosing root user.
         select_user = "newUser"
-        self.locator_finder_by_select(self, select_user, 0)  # 0 for root user
+        self.locator_finder_by_select(select_user, 0)  # 0 for root user
         time.sleep(1)
 
         # clicking create button
@@ -78,10 +78,10 @@ class DatabasePage(NavigationBarPage):
 
         if db_name == "Sharded":
             # selecting newly created db for login from the dropdown menu
-            self.locator_finder_by_select(self, db_opt, 1)
+            self.locator_finder_by_select(db_opt, 1)
         if db_name == "OneShard":
             # OneShard took place over Sharded database thus used index value 1
-            self.locator_finder_by_select(self, db_opt, 1)
+            self.locator_finder_by_select(db_opt, 1)
 
         select_db_btn_id = "goToDatabase"
         select_db_btn_id_sitem = self.locator_finder_by_id(select_db_btn_id)
@@ -104,7 +104,7 @@ class DatabasePage(NavigationBarPage):
 
         print("Re-Login to _system database \n")
         db_option = self.select_db_opt_id_sitem
-        self.locator_finder_by_select(self, db_option, 0)
+        self.locator_finder_by_select(db_option, 0)
         select_db_btn_id = "goToDatabase"
         select_db_btn_id_sitem = self.locator_finder_by_id(select_db_btn_id)
         select_db_btn_id_sitem.click()

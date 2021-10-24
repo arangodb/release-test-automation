@@ -69,20 +69,20 @@ class AnalyzerPage(NavigationBarPage):
         """Selecting help button"""
         print("Selecting Analyzers help filter button \n")
         help_filter = "/html/body/div[2]/div/div[2]/div[2]/div[1]/div[2]/ul/li[1]/a/i"
-        help_sitem = self.locator_finder_by_xpath(self, help_filter)
+        help_sitem = self.locator_finder_by_xpath(help_filter)
         help_sitem.click()
         time.sleep(3)
 
         print("Closing Analyzers help filter \n")
         help_filter_close = "/html/body/div[10]/div/div[3]/button"
-        help_close_sitem = self.locator_finder_by_xpath(self, help_filter_close)
+        help_close_sitem = self.locator_finder_by_xpath(help_filter_close)
         help_close_sitem.click()
         time.sleep(2)
 
     def select_built_in_analyzers_open(self):
         """Checking in-built analyzers list and description"""
         show_built_in_analyzers = self.in_built_analyzer
-        show_built_in_analyzers_sitem = self.locator_finder_by_class(self, show_built_in_analyzers)
+        show_built_in_analyzers_sitem = self.locator_finder_by_class(show_built_in_analyzers)
         show_built_in_analyzers_sitem.click()
         time.sleep(2)
 
@@ -99,7 +99,7 @@ class AnalyzerPage(NavigationBarPage):
         time.sleep(2)
 
         show_built_in_analyzers = self.in_built_analyzer
-        show_built_in_analyzers_sitem = self.locator_finder_by_class(self, show_built_in_analyzers)
+        show_built_in_analyzers_sitem = self.locator_finder_by_class(show_built_in_analyzers)
         show_built_in_analyzers_sitem.click()
         time.sleep(2)
 
@@ -156,7 +156,7 @@ class AnalyzerPage(NavigationBarPage):
         time.sleep(2)
 
         print("Selecting analyzer type \n")
-        self.locator_finder_by_select_using_xpath(self, analyzer_type, index)
+        self.locator_finder_by_select_using_xpath(analyzer_type, index)
         time.sleep(2)
 
         print(f"selecting frequency for {name} \n")
@@ -203,7 +203,7 @@ class AnalyzerPage(NavigationBarPage):
 
             print("Selecting case for norm analyzer using index value \n")
             case = "/html/body/div[24]/div/div[2]/div/div[4]/fieldset/div/div[2]/select"
-            self.locator_finder_by_select_using_xpath(self, case, 0)
+            self.locator_finder_by_select_using_xpath(case, 0)
 
             print("Selecting accent for norm analyzer \n")
             accent = "/html/body/div[24]/div/div[2]/div/div[4]/fieldset/div/div[3]/input"
@@ -253,7 +253,7 @@ class AnalyzerPage(NavigationBarPage):
 
             print(f"Stream type selection using index value for {name}\n")
             stream_type = "/html/body/div[28]/div/div[2]/div/div[4]/fieldset/div/div[4]/select"
-            self.locator_finder_by_select_using_xpath(self, stream_type, 1)
+            self.locator_finder_by_select_using_xpath(stream_type, 1)
             time.sleep(2)
         # for text
         elif index == 5:
@@ -289,7 +289,7 @@ class AnalyzerPage(NavigationBarPage):
 
             print(f"Selecting case for the analyzer from the dropdown menu for {name} \n")
             case = "/html/body/div[32]/div/div[2]/div/div[4]/fieldset/div/div[2]/div/div[2]/select"
-            self.locator_finder_by_select_using_xpath(self, case, 1)
+            self.locator_finder_by_select_using_xpath(case, 1)
 
             print("Selecting stem for the analyzer \n")
             stem = "/html/body/div[32]/div/div[2]/div/div[4]/fieldset/div/div[2]/div/div[3]/input"
@@ -363,7 +363,7 @@ class AnalyzerPage(NavigationBarPage):
 
             print(f"Selecting Return type for {name} \n")
             return_type = "/html/body/div[36]/div/div[2]/div/div[4]/fieldset/div/div[3]/div/div[3]/select"
-            self.locator_finder_by_select_using_xpath(self, return_type, 1)
+            self.locator_finder_by_select_using_xpath(return_type, 1)
             time.sleep(2)
         # for stopwords
         elif index == 7:
@@ -398,12 +398,12 @@ class AnalyzerPage(NavigationBarPage):
         elif index == 9:
             print(f"Selecting segmentation break as alpha for {name} \n")
             alpha_break = "/html/body/div[48]/div/div[2]/div/div[4]/fieldset/div/div[1]/select"
-            self.locator_finder_by_select_using_xpath(self, alpha_break, 1)
+            self.locator_finder_by_select_using_xpath(alpha_break, 1)
             time.sleep(2)
 
             print(f"Selecting segmentation case as lower for {name} \n")
             case_lower = "/html/body/div[48]/div/div[2]/div/div[4]/fieldset/div/div[2]/select"
-            self.locator_finder_by_select_using_xpath(self, case_lower, 0)
+            self.locator_finder_by_select_using_xpath(case_lower, 0)
             time.sleep(2)
 
         # Pipeline
@@ -420,7 +420,7 @@ class AnalyzerPage(NavigationBarPage):
                 "/html/body/div[52]/div/div[2]/div/div[4]/fieldset/div/div[2]/table/tbody/tr/td[2]"
                 "/div/div[1]/label/select"
             )
-            self.locator_finder_by_select_using_xpath(self, norm, 2)  # 2 for norm from the drop down list
+            self.locator_finder_by_select_using_xpath(norm, 2)  # 2 for norm from the drop down list
             time.sleep(2)
 
             print(f"Selecting locale value for Norm analyzer of {name} \n")
@@ -439,7 +439,7 @@ class AnalyzerPage(NavigationBarPage):
                 "/html/body/div[52]/div/div[2]/div/div[4]/fieldset/div"
                 "/div[2]/table/tbody/tr/td[2]/div/div[3]/div/div[2]/select"
             )
-            self.locator_finder_by_select_using_xpath(self, case, 1)  # 1 represents upper from the dropdown
+            self.locator_finder_by_select_using_xpath(case, 1)  # 1 represents upper from the dropdown
             time.sleep(2)
 
             # ----------------------adding second pipeline analyzer as N-Gram analyzer--------------------------
@@ -454,7 +454,7 @@ class AnalyzerPage(NavigationBarPage):
                 "/html/body/div[52]/div/div[2]/div/div[4]/fieldset/div"
                 "/div[2]/table/tbody/tr[2]/td[2]/div/div[1]/label/select"
             )
-            self.locator_finder_by_select_using_xpath(self, ngram, 3)  # 3 represents N-Gram from the dropdown
+            self.locator_finder_by_select_using_xpath(ngram, 3)  # 3 represents N-Gram from the dropdown
             time.sleep(2)
 
             print(f"Selecting N-Gram minimum length for {name} \n")
@@ -511,7 +511,7 @@ class AnalyzerPage(NavigationBarPage):
 
             print(f"Stream type selection using index value for {name}\n")
             stream_type = "/html/body/div[28]/div/div[2]/div/div[4]/fieldset/div/div[4]/select"
-            self.locator_finder_by_select_using_xpath(self, stream_type, 1)
+            self.locator_finder_by_select_using_xpath(stream_type, 1)
             time.sleep(2)
         # GeoJson
         elif index == 11:
@@ -605,7 +605,7 @@ class AnalyzerPage(NavigationBarPage):
         try:
             print(f"Checking successful creation of the {name} \n")
             success_message = "noty_body"
-            success_message_sitem = self.locator_finder_by_class(self, success_message).text
+            success_message_sitem = self.locator_finder_by_class(success_message).text
             print("Notification: ", success_message_sitem, "\n")
             expected_msg = f"Success: Created Analyzer: _system::{name}"
             assert expected_msg == success_message_sitem, f"Expected {expected_msg} but got {success_message_sitem}"
@@ -669,7 +669,7 @@ class AnalyzerPage(NavigationBarPage):
         analyzer_name_error_id = "//div[@class='noty_body']"
 
         print("Selecting analyzer type \n")
-        self.locator_finder_by_select_using_xpath(self, analyzer_type, index)
+        self.locator_finder_by_select_using_xpath(analyzer_type, index)
         time.sleep(2)
 
         if index == 0:

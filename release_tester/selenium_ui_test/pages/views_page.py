@@ -129,7 +129,7 @@ class ViewsPage(NavigationBarPage):
 
     # searching views
     def search_views(self, expected_text, search_locator):
-        search_views_sitem = self.locator_finder_by_xpath(self, self.search_views_id)
+        search_views_sitem = self.locator_finder_by_xpath(self.search_views_id)
         search_views_sitem.click()
         search_views_sitem.clear()
         search_views_sitem.send_keys(expected_text)
@@ -359,7 +359,7 @@ class ViewsPage(NavigationBarPage):
         self.search_views("improved_arangosearch_view_02", self.select_improved_arangosearch_view_02)
 
         print(f"Selecting {name} for checking \n")
-        select_view_sitem = self.locator_finder_by_xpath(self, locator)
+        select_view_sitem = self.locator_finder_by_xpath(locator)
         select_view_sitem.click()
 
         self.select_collapse_btn()

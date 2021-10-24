@@ -35,7 +35,7 @@ class SupportPage(NavigationBarPage):
     def click_on_link(self, link_id):
         """Clicking on link on any page and switch to that tab and return to origin tab"""
         click_on_link_id = link_id
-        click_on_link_id = self.locator_finder_by_xpath(self, click_on_link_id)
+        click_on_link_id = self.locator_finder_by_xpath(click_on_link_id)
         title = self.switch_tab(click_on_link_id)  # this method will call switch tab and close tab
         return title
 
@@ -51,7 +51,7 @@ class SupportPage(NavigationBarPage):
     def click_on_btn(self, link_id):
         """this method will execute multiple backup restore tab documentation"""
         click_on_btn = link_id
-        click_on_btn = self.locator_finder_by_xpath(self, click_on_btn)
+        click_on_btn = self.locator_finder_by_xpath(click_on_btn)
         click_on_btn.click()
 
     def loop_through_btn_traversal(self, print_statement, btn_list):
@@ -308,7 +308,7 @@ class SupportPage(NavigationBarPage):
         if version >= 3.7:
             print("Checking Backup Restore option started\n")
             backup_restore = '//*[@id="operations-tag-BackupRestore"]'
-            backup_restore = self.locator_finder_by_xpath(self, backup_restore)
+            backup_restore = self.locator_finder_by_xpath(backup_restore)
             backup_restore.click()
             time.sleep(1)
 

@@ -488,7 +488,7 @@ class CollectionPage(NavigationBarPage):
         time.sleep(2)
 
         print(f"selecting {index_name} from the list\n")
-        self.locator_finder_by_select(self, self.select_index_type_id, value)
+        self.locator_finder_by_select(self.select_index_type_id, value)
 
         if index_name == "Persistent":
             self.select_persistent_fields_id = self.locator_finder_by_hover_item_id(
@@ -496,7 +496,7 @@ class CollectionPage(NavigationBarPage):
             )
             time.sleep(1)
             self.select_persistent_fields_id.send_keys("pfields").perform()
-            self.select_persistent_name_id = self.locator_finder_by_hover_item_id(self, self.select_persistent_name_id)
+            self.select_persistent_name_id = self.locator_finder_by_hover_item_id(self.select_persistent_name_id)
             self.select_persistent_name_id.send_keys("pname").perform()
             time.sleep(1)
 
@@ -517,25 +517,25 @@ class CollectionPage(NavigationBarPage):
             time.sleep(1)
 
         elif index_name == "Geo":
-            self.select_geo_fields_id = self.locator_finder_by_hover_item_id(self, self.select_geo_fields_id)
+            self.select_geo_fields_id = self.locator_finder_by_hover_item_id(self.select_geo_fields_id)
             self.select_geo_fields_id.send_keys("gfields").perform()
             time.sleep(1)
-            self.select_geo_name_id = self.locator_finder_by_hover_item_id(self, self.select_geo_name_id)
+            self.select_geo_name_id = self.locator_finder_by_hover_item_id(self.select_geo_name_id)
             self.select_geo_name_id.send_keys("gname").perform()
             time.sleep(1)
-            self.select_geo_json_id = self.locator_finder_by_hover_item_id(self, self.select_geo_json_id)
-            self.select_geo_background_id = self.locator_finder_by_hover_item_id(self, self.select_geo_background_id)
+            self.select_geo_json_id = self.locator_finder_by_hover_item_id(self.select_geo_json_id)
+            self.select_geo_background_id = self.locator_finder_by_hover_item_id(self.select_geo_background_id)
             time.sleep(1)
             self.wait_for_ajax()
 
         elif index_name == "Fulltext":
-            self.select_fulltext_field_id = self.locator_finder_by_hover_item_id(self, self.select_fulltext_field_id)
+            self.select_fulltext_field_id = self.locator_finder_by_hover_item_id(self.select_fulltext_field_id)
             self.select_fulltext_field_id.send_keys("ffields").perform()
             time.sleep(1)
-            self.select_fulltext_name_id = self.locator_finder_by_hover_item_id(self, self.select_fulltext_name_id)
+            self.select_fulltext_name_id = self.locator_finder_by_hover_item_id(self.select_fulltext_name_id)
             self.select_fulltext_name_id.send_keys("fname").perform()
             time.sleep(1)
-            self.select_fulltext_length_id = self.locator_finder_by_hover_item_id(self, self.select_fulltext_length_id)
+            self.select_fulltext_length_id = self.locator_finder_by_hover_item_id(self.select_fulltext_length_id)
             self.select_fulltext_length_id.send_keys(100)
             self.select_fulltext_background_id = self.locator_finder_by_hover_item_id(
                 self, self.select_fulltext_background_id
@@ -544,15 +544,15 @@ class CollectionPage(NavigationBarPage):
             self.wait_for_ajax()
 
         elif index_name == "TTL":
-            self.select_ttl_field_id = self.locator_finder_by_hover_item_id(self, self.select_ttl_field_id)
+            self.select_ttl_field_id = self.locator_finder_by_hover_item_id(self.select_ttl_field_id)
             self.select_ttl_field_id.send_keys("tfields").perform()
             time.sleep(1)
-            self.select_ttl_name_id = self.locator_finder_by_hover_item_id(self, self.select_ttl_name_id)
+            self.select_ttl_name_id = self.locator_finder_by_hover_item_id(self.select_ttl_name_id)
             self.select_ttl_name_id.send_keys("tname").perform()
             time.sleep(1)
-            self.select_ttl_expiry_id = self.locator_finder_by_hover_item_id(self, self.select_ttl_expiry_id)
+            self.select_ttl_expiry_id = self.locator_finder_by_hover_item_id(self.select_ttl_expiry_id)
             self.select_ttl_expiry_id.send_keys(1000)
-            self.select_ttl_background_id = self.locator_finder_by_hover_item_id(self, self.select_ttl_background_id)
+            self.select_ttl_background_id = self.locator_finder_by_hover_item_id(self.select_ttl_background_id)
             time.sleep(1)
             self.wait_for_ajax()
 
@@ -578,7 +578,7 @@ class CollectionPage(NavigationBarPage):
     # this method will delete all the indexes one by one
     def delete_all_index(self):
         """this method will delete all the indexes one by one"""
-        select_index_for_delete_sitem = self.locator_finder_by_xpath(self, self.select_index_for_delete_id)
+        select_index_for_delete_sitem = self.locator_finder_by_xpath(self.select_index_for_delete_id)
         select_index_for_delete_sitem.click()
 
         select_index_confirm_delete_sitem = self.locator_finder_by_id(self.select_index_confirm_delete)
@@ -676,7 +676,7 @@ class CollectionPage(NavigationBarPage):
         self.select_collection_page()
 
         try:
-            self.locator_finder_by_xpath(self, collection_locator).click()
+            self.locator_finder_by_xpath(collection_locator).click()
 
             self.select_settings_tab()
             self.select_delete_collection()
