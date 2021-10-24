@@ -210,7 +210,7 @@ class CollectionsTestSuite(BaseTestSuite):
         col.create_new_index("Fulltext", 3, self.is_cluster)
         col.create_new_index("TTL", 4, self.is_cluster)
         if version >= 3.9:
-            col.create_new_index("ZKD", 5)
+            col.create_new_index("ZKD", 5, self.is_cluster)
             print("Deleting all index started\n")
             for i in range(4):
                 col.delete_all_index()
