@@ -139,7 +139,7 @@ class DatabasePage(NavigationBarPage):
 
         # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
         self.check_expected_error_messages(
-            self, db_name_error_input, db_name_print_statement, db_name_error_message, db_name, db_name_error_id
+            db_name_error_input, db_name_print_statement, db_name_error_message, db_name, db_name_error_id
         )
         print("Expected error scenario for the Database name Completed \n")
 
@@ -163,7 +163,7 @@ class DatabasePage(NavigationBarPage):
 
         # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
         self.check_expected_error_messages(
-            self, rf_error_input, rf_print_statement, rf_error_message, rf_name, db_name_error_id
+            rf_error_input, rf_print_statement, rf_error_message, rf_name, db_name_error_id
         )
         print("Expected error scenario for the Database Replication Factor Completed \n")
 
@@ -187,7 +187,7 @@ class DatabasePage(NavigationBarPage):
 
         # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
         self.check_expected_error_messages(
-            self, wc_error_input, wc_print_statement, wc_error_message, wc_name, wc_name_error_id
+            wc_error_input, wc_print_statement, wc_error_message, wc_name, wc_name_error_id
         )
         print("Expected error scenario for the Database Write Concern Completed \n")
 

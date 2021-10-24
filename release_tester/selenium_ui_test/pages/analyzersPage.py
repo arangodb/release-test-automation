@@ -693,7 +693,6 @@ class AnalyzerPage(NavigationBarPage):
 
             # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
             self.check_expected_error_messages(
-                self,
                 analyzer_name_error_input,
                 analyzer_name_print_statement,
                 analyzer_name_error_message,
@@ -727,7 +726,6 @@ class AnalyzerPage(NavigationBarPage):
 
             # method template (self, error_input, print_statement, error_message, locators_id, error_message_id, div_id)
             self.check_expected_error_messages(
-                self,
                 analyzer_name_error_input,
                 analyzer_name_print_statement,
                 analyzer_name_error_message,
@@ -778,7 +776,6 @@ class AnalyzerPage(NavigationBarPage):
 
             # method template (self, error_input, print_statement, error_message, locators_id, error_message_id, div_id)
             self.check_expected_error_messages(
-                self,
                 analyzer_name_error_input,
                 analyzer_name_print_statement,
                 analyzer_name_error_message,
@@ -833,7 +830,6 @@ class AnalyzerPage(NavigationBarPage):
 
             # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
             self.check_expected_error_messages(
-                self,
                 analyzer_name_error_input,
                 analyzer_name_print_statement,
                 analyzer_name_error_message,

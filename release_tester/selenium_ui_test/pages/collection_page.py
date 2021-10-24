@@ -492,7 +492,7 @@ class CollectionPage(NavigationBarPage):
 
         if index_name == "Persistent":
             self.select_persistent_fields_id = self.locator_finder_by_hover_item_id(
-                self, self.select_persistent_fields_id
+                self.select_persistent_fields_id
             )
             time.sleep(1)
             self.select_persistent_fields_id.send_keys("pfields").perform()
@@ -502,17 +502,17 @@ class CollectionPage(NavigationBarPage):
 
             if cluster_status:
                 self.select_persistent_unique_id = self.locator_finder_by_hover_item_id(
-                    self, self.select_persistent_unique_id
+                    self.select_persistent_unique_id
                 )
 
             self.select_persistent_sparse_id = self.locator_finder_by_hover_item_id(
-                self, self.select_persistent_sparse_id
+                self.select_persistent_sparse_id
             )
             self.select_persistent_duplicate_id = self.locator_finder_by_hover_item_id(
-                self, self.select_persistent_duplicate_id
+                self.select_persistent_duplicate_id
             )
             self.select_persistent_background_id = self.locator_finder_by_hover_item_id(
-                self, self.select_persistent_background_id
+                self.select_persistent_background_id
             )
             time.sleep(1)
 
@@ -538,7 +538,7 @@ class CollectionPage(NavigationBarPage):
             self.select_fulltext_length_id = self.locator_finder_by_hover_item_id(self.select_fulltext_length_id)
             self.select_fulltext_length_id.send_keys(100)
             self.select_fulltext_background_id = self.locator_finder_by_hover_item_id(
-                self, self.select_fulltext_background_id
+                self.select_fulltext_background_id
             )
             time.sleep(1)
             self.wait_for_ajax()
