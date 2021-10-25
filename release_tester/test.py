@@ -45,8 +45,6 @@ def run_test(mode,
     """ main """
     lh.configure_logging(verbose)
     results = []
-    print('santoehu')
-    print(package_dir)
 
     do_install = mode in ["all", "install"]
     do_uninstall = mode in ["all", "uninstall"]
