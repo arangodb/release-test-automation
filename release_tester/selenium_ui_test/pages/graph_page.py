@@ -2,7 +2,7 @@ import time
 from enum import IntEnum
 from selenium_ui_test.pages.base_page import Keys
 from selenium_ui_test.pages.navbar import NavigationBarPage
-
+from selenium.common.exceptions import ElementClickInterceptedException, TimeoutException
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=C0302 disable=R0902 disable=R0915 disable=R0914
 
@@ -760,28 +760,42 @@ class GraphPage(NavigationBarPage):
     def delete_graph(self, graph: GraphExample):
         """Deleting created graphs"""
         print("Deleting %s Graph" % GRAPH_SETS[graph].clear_name)
-        self.wait_for_ajax()
-        btn_id = GRAPH_SETS[graph].btn_id
-        select_graph_setting_btn_sitem = self.locator_finder_by_id(btn_id)
-        select_graph_setting_btn_sitem.click()
-        self.wait_for_ajax()
+        retry = 0;
+        while True:
+            try:
+                self.webdriver.refresh()
+                self.wait_for_ajax()
+                btn_id = GRAPH_SETS[graph].btn_id
+                select_graph_setting_btn_sitem = self.locator_finder_by_id(btn_id)
+                self.wait_for_ajax()
+                select_graph_setting_btn_sitem.click()
+                self.wait_for_ajax()
 
-        time.sleep(0.1)
-        confirm_delete_graph_sitem = self.locator_finder_by_xpath(self.confirm_delete_graph_selector)
-        confirm_delete_graph_sitem.click()
-        self.wait_for_ajax()
+                time.sleep(0.1)
+                confirm_delete_graph_sitem = self.locator_finder_by_xpath(self.confirm_delete_graph_selector)
+                confirm_delete_graph_sitem.click()
+                self.wait_for_ajax()
 
-        time.sleep(0.1)
-        delete_with_collection_sitem = self.locator_finder_by_id(self.delete_with_collection_id)
-        delete_with_collection_sitem.click()
-        self.wait_for_ajax()
+                time.sleep(0.1)
+                delete_with_collection_sitem = self.locator_finder_by_id(self.delete_with_collection_id)
+                delete_with_collection_sitem.click()
+                self.wait_for_ajax()
 
-        time.sleep(0.1)
-        select_really_delete_btn_sitem = self.locator_finder_by_id(self.select_really_delete_btn_id)
-        select_really_delete_btn_sitem.click()
-        self.wait_for_ajax()
-
-        self.webdriver.refresh()
+                time.sleep(0.1)
+                select_really_delete_btn_sitem = self.locator_finder_by_id(self.select_really_delete_btn_id)
+                select_really_delete_btn_sitem.click()
+                self.wait_for_ajax()
+                break
+            except TimeoutException as exc:
+                retry +=1
+                if retry > 10:
+                    raise exc
+                print("retrying delete " + str(retry))
+            except ElementClickInterceptedException as exc:
+                retry +=1
+                if retry > 10:
+                    raise exc
+                print("retrying delete " + str(retry))
 
 
 GRAPH_SETS = [
