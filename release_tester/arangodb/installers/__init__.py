@@ -46,7 +46,9 @@ class InstallerConfig:
         self.verbose = verbose
         self.package_dir = package_dir
         self.have_system_service = True
-        self.have_debug_package = False
+        self.debug_package_is_installed = False
+        self.client_package_is_installed = False
+        self.server_package_is_installed = False
         self.stress_upgrade = stress_upgrade
 
         self.install_prefix = Path("/")
