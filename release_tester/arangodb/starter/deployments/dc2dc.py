@@ -187,7 +187,7 @@ class Dc2Dc(Runner):
             self.cert_op(["jwt-secret", "--secret=" + str(node["SyncSecret"])])
             self.cert_op(["jwt-secret", "--secret=" + str(node["JWTSecret"])])
 
-        def add_starter(val, port):
+        def add_starter(val, port, moreopts=[]):
             # fmt: off
             opts = [
                     '--all.log.level=backup=trace',
@@ -199,7 +199,7 @@ class Dc2Dc(Runner):
                     '--sync.server.client-cafile=' + str(client_cert),
                     '--sync.master.jwt-secret=' +    str(val["SyncSecret"]),
                     '--starter.address=' +           self.cfg.publicip
-                ]
+                ] + moreopts
             # fmt: on
             if self.cfg.ssl and not self.cfg.use_auto_certs:
                 opts.append("--ssl.keyfile=" + str(val["tlsKeyfile"]))
@@ -233,7 +233,7 @@ class Dc2Dc(Runner):
                 val["instance"].is_leader = True
 
         add_starter(self.cluster1, None)
-        add_starter(self.cluster2, port=9528)
+        add_starter(self.cluster2, port=9528, ['--args.dbservers.log', 'request=trace'])
         self.starter_instances = [self.cluster1["instance"], self.cluster2["instance"]]
 
     def starter_run_impl(self):
@@ -364,9 +364,10 @@ class Dc2Dc(Runner):
                 self.cluster2["instance"].detect_instances()
         elif last_sync_output.find("Shard is not turned on for synchronizing") >= 0:
             self.progress(True, "arangosync: sync in progress.")
-        elif re.match(USERS_ERROR_RX, last_sync_output):
-            self.progress(True, "arangosync: resetting users collection...")
-            self.sync_manager.reset_failed_shard("_system", "_users")
+        # we want to research this to find an actual cure, so we want to see these errors:
+        #elif re.match(USERS_ERROR_RX, last_sync_output):
+        #    self.progress(True, "arangosync: resetting users collection...")
+        #    self.sync_manager.reset_failed_shard("_system", "_users")
         else:
             self.progress(True, "arangosync: unknown error condition, doing nothing.")
 
