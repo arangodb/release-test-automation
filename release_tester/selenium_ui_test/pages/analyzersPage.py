@@ -58,6 +58,7 @@ class AnalyzerPage(NavigationBarPage):
 
     def select_analyzers_page(self):
         """Selecting analyzers page"""
+        self.webdriver.refresh()
         print("Selecting Analyzers page \n")
         analyzer = self.analyzers_page
         analyzer_sitem = self.locator_finder_by_id(analyzer)
@@ -66,6 +67,7 @@ class AnalyzerPage(NavigationBarPage):
 
     def select_help_filter_btn(self):
         """Selecting help button"""
+        self.webdriver.refresh()
         print("Selecting Analyzers help filter button \n")
         help_filter = "/html/body/div[2]/div/div[2]/div[2]/div[1]/div[2]/ul/li[1]/a/i"
         help_sitem = self.locator_finder_by_xpath(help_filter)
@@ -691,7 +693,7 @@ class AnalyzerPage(NavigationBarPage):
             analyzer_name_id = f"/html/body/div[{div_id}]/div/div[2]/div/div[1]/fieldset/div/div[1]/input"
 
             # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
-            self.check_expected_error_messages(
+            self.check_expected_error_messages_for_analyzer(
                 analyzer_name_error_input,
                 analyzer_name_print_statement,
                 analyzer_name_error_message,
@@ -724,7 +726,7 @@ class AnalyzerPage(NavigationBarPage):
             analyzer_locale_id = f"/html/body/div[{div_id}]/div/div[2]/div/div[4]/fieldset/div/div/input"
 
             # method template (self, error_input, print_statement, error_message, locators_id, error_message_id, div_id)
-            self.check_expected_error_messages(
+            self.check_expected_error_messages_for_analyzer(
                 analyzer_name_error_input,
                 analyzer_name_print_statement,
                 analyzer_name_error_message,
@@ -774,7 +776,7 @@ class AnalyzerPage(NavigationBarPage):
             min_ngram_length_id = f"/html/body/div[{div_id}]/div/div[2]/div/div[4]/fieldset/div/div[1]/div/div[1]/input"
 
             # method template (self, error_input, print_statement, error_message, locators_id, error_message_id, div_id)
-            self.check_expected_error_messages(
+            self.check_expected_error_messages_for_analyzer(
                 analyzer_name_error_input,
                 analyzer_name_print_statement,
                 analyzer_name_error_message,
@@ -828,7 +830,7 @@ class AnalyzerPage(NavigationBarPage):
             batch_size_id = f"/html/body/div[{div_id}]/div/div[2]/div/div[4]/fieldset/div/div[2]/div/div[1]/input"
 
             # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
-            self.check_expected_error_messages(
+            self.check_expected_error_messages_for_analyzer(
                 analyzer_name_error_input,
                 analyzer_name_print_statement,
                 analyzer_name_error_message,

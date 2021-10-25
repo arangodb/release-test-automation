@@ -17,10 +17,10 @@ class DatabaseTestSuite(BaseTestSuite):
         user.add_new_user("tester01")
 
         db = DatabasePage(self.webdriver)
-        db.create_new_db("Sharded", 0)  # 0 = sharded DB
-        db.create_new_db("OneShard", 1)  # 1 = one shard DB
+        db.create_new_db("Sharded", 0, self.is_cluster)  # 0 = sharded DB
+        db.create_new_db("OneShard", 1, self.is_cluster)  # 1 = one shard DB
 
-        db.test_database_expected_error()  # testing expected error condition for database creation
+        db.test_database_expected_error(self.is_cluster)  # testing expected error condition for database creation
 
         print("Checking sorting databases to ascending and descending \n")
         db.sorting_db()
@@ -31,6 +31,11 @@ class DatabaseTestSuite(BaseTestSuite):
 
         db.Deleting_database("Sharded")
         db.Deleting_database("OneShard")
+
+        # need to add delete created user here
+        user.user_tab()
+        db.deleting_user('tester')
+        db.deleting_user('tester01')
 
         # login.logout_button()
         del user

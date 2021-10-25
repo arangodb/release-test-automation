@@ -24,10 +24,9 @@ class ViewsPage(NavigationBarPage):
     select_renamed_view_id = "/html//div[@id='thirdView']"
     select_second_view_id = "//div[@id='secondView']//h5[@class='collectionName']"
 
-    def __init__(self, driver):
+    def __init__(self, webdriver):
+        super().__init__(webdriver)
         """View page initialization"""
-        super().__init__(driver)
-        self.driver = driver
         self.select_views_tab_id = "/html//a[@id='views']"
         self.create_new_views_id = "/html//a[@id='createView']"
         self.naming_new_view_id = "/html//input[@id='newName']"
@@ -150,7 +149,7 @@ class ViewsPage(NavigationBarPage):
             elif expected_text == "improved_arangosearch_view_02":
                 found = self.locator_finder_by_xpath(search_locator).text
                 assert found == expected_text, f"Expected views title {expected_text} but got {found}"
-        self.driver.refresh()
+        self.webdriver.refresh()
 
     # selecting first view
     def select_first_view(self):
@@ -240,7 +239,7 @@ class ViewsPage(NavigationBarPage):
         rename_views_name_confirm_sitem = self.locator_finder_by_xpath(self.rename_views_name_confirm_id)
         rename_views_name_confirm_sitem.click()
         time.sleep(2)
-        self.driver.back()
+        self.webdriver.back()
 
     # creating improved views tab
     def create_improved_views(self, view_name, types):
