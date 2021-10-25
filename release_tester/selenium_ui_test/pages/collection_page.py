@@ -679,7 +679,7 @@ class CollectionPage(NavigationBarPage):
             self.locator_finder_by_xpath(collection_locator).click()
 
             # we don't care about the cluster specific things:
-            self.select_settings_tab(false)
+            self.select_settings_tab(False)
             self.select_delete_collection()
 
             print(f"Deleting {collection_name} collection Completed \n")
