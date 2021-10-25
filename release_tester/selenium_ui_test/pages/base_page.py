@@ -311,7 +311,7 @@ class BasePage:
 
     def locator_finder_by_class(self, locator_name):
         """This method will used for finding all the locators by their id"""
-        self.locator = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((BY.CLASS_NAME, locator_name)))
+        self.locator = WebDriverWait(self.webdriver, 10).until(EC.element_to_be_clickable((BY.CLASS_NAME, locator_name)))
         if self.locator is None:
             print(locator_name, " locator has not found.")
         else:

@@ -6,9 +6,8 @@ from selenium.common.exceptions import TimeoutException
 
 
 class AnalyzerPage(NavigationBarPage):
-    def __init__(self, driver):
-        super().__init__(driver)
-        self.driver = driver
+    def __init__(self, webdriver):
+        super().__init__(webdriver)
         self.analyzers_page = "analyzers"  # list of in-built analyzers
         self.in_built_analyzer = "icon_arangodb_settings2"
         self.add_new_analyzer_btn = '//*[@id="analyzersContent"]/div/div/div/div/button/i'

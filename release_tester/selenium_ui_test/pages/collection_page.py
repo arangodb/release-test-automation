@@ -10,9 +10,9 @@ import traceback
 class CollectionPage(NavigationBarPage):
     """Collection page class"""
 
-    def __init__(self, driver):
+    def __init__(self, webdriver):
         """class initialization"""
-        super().__init__(driver)
+        super().__init__(webdriver)
         self.select_collection_page_id = "collections"
         self.select_create_collection_id = "createCollection"
         self.select_new_collection_name_id = "new-collection-name"
@@ -683,7 +683,7 @@ class CollectionPage(NavigationBarPage):
             self.select_delete_collection()
 
             print(f"Deleting {collection_name} collection Completed \n")
-            self.driver.refresh()
+            self.webdriver.refresh()
         except TimeoutException:
             print("TimeoutException occurred! \n")
             print("Info: Collection has already been deleted or never created. \n")
