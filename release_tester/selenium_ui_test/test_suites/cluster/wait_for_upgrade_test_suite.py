@@ -22,10 +22,12 @@ class ClusterWaitForUpgradeTestSuite(BaseTestSuite):
         print(new_ver)
         upgrade_done = False
         while not upgrade_done:
+            table = []
             try:
                 table = NodesPage(self.webdriver).cluster_get_nodes_table(300)
             except StaleElementReferenceException:
                 self.progress(" skip once")
+                continue
 
             old_count = 0
             new_count = 0
