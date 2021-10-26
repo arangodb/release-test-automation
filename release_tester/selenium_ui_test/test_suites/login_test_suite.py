@@ -9,7 +9,7 @@ class LogInTestSuite(BaseTestSuite):
         """testing login page"""
         print("Starting ", self.webdriver.title, "\n")
         login_page = LoginPage(self.webdriver)
-        collections_page.log_out()
+        login_page.log_out()
 
         login_page.login_webif("root", self.root_passvoid)
         login_page.log_out()
