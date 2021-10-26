@@ -97,12 +97,12 @@ class SupportPage(NavigationBarPage):
         ]
 
         manual_link_assertion_check = [
-            "Getting Started | Manual | ArangoDB Documentation",
-            "Modeling Data for ArangoDB | ArangoDB Documentation",
-            "Administration | Manual | ArangoDB Documentation",
-            "Scaling | Manual | ArangoDB Documentation",
-            "Graphs | Manual | ArangoDB Documentation",
-            "Introduction to ArangoDB Documentation | ArangoDB Documentation",
+            'Getting Started | Manual | ArangoDB Documentation',
+            'Modeling Data for ArangoDB | ArangoDB Documentation',
+            'Administration | Manual | ArangoDB Documentation',
+            'Scaling | Manual | ArangoDB Documentation',
+            'Graphs | Manual | ArangoDB Documentation',
+            'Introduction to ArangoDB Documentation | ArangoDB Documentation'
         ]
 
         self.loop_through_link_traversal(
