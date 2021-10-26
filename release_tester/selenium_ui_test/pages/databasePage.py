@@ -139,12 +139,11 @@ class DatabasePage(NavigationBarPage):
         db_name_error = '/html/body/div[10]/div/div[1]'
 
         # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
-        self.check_expected_error_messages_for_database(self,
-                                                                db_name_error_input,
-                                                                db_name_print_statement,
-                                                                db_name_error_message,
-                                                                db_name,
-                                                                db_name_error)
+        self.check_expected_error_messages_for_database(db_name_error_input,
+                                                        db_name_print_statement,
+                                                        db_name_error_message,
+                                                        db_name,
+                                                        db_name_error)
         print('Expected error scenario for the Database name Completed \n')
 
         if cluster:
@@ -165,13 +164,12 @@ class DatabasePage(NavigationBarPage):
             db_name_error_id = '//*[@id="row_new-replication-factor"]/th[2]/p'
 
             # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
-            self.check_expected_error_messages_for_database(self,
-                                                                    rf_error_input,
-                                                                    rf_print_statement,
-                                                                    rf_error_message,
-                                                                    rf_name,
-                                                                    db_name_error_id,
-                                                                    True)
+            self.check_expected_error_messages_for_database(rf_error_input,
+                                                            rf_print_statement,
+                                                            rf_error_message,
+                                                            rf_name,
+                                                            db_name_error_id,
+                                                            True)
             print('Expected error scenario for the Database Replication Factor Completed \n')
 
             # -------------------------------database Write Concern convention test----------------------------------
@@ -191,10 +189,10 @@ class DatabasePage(NavigationBarPage):
             wc_name_error_id = '//*[@id="row_new-write-concern"]/th[2]/p'
 
             # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
-            self.check_expected_error_messages_for_database(self, wc_error_input, wc_print_statement,
-                                                                    wc_error_message,
-                                                                    wc_name, wc_name_error_id,
-                                                                    True)
+            self.check_expected_error_messages_for_database(wc_error_input, wc_print_statement,
+                                                            wc_error_message,
+                                                            wc_name, wc_name_error_id,
+                                                            True)
             print('Expected error scenario for the Database Write Concern Completed \n')
 
         print('Closing the database creation \n')
