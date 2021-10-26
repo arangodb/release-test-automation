@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+"""graph testsuite"""
 import time
 from enum import IntEnum
 from selenium_ui_test.pages.base_page import Keys
@@ -9,7 +11,7 @@ from selenium.common.exceptions import ElementClickInterceptedException, Timeout
 
 class GraphExample(IntEnum):
     """identify example and manual graphs to be managed herein"""
-
+    #pylint: disable=R0903
     KNOWS = 1
     TRAVERSAL = 2
     K_SHORTEST_PATH = 3
@@ -26,7 +28,7 @@ class GraphExample(IntEnum):
 
 class VCol:
     """maps a vertex collection to a graph"""
-
+    #pylint: disable=R0903
     def __init__(self, name):
         self.name = name
         self.ctype = "v"
@@ -34,7 +36,7 @@ class VCol:
 
 class ECol:
     """maps an edge collection to a graph"""
-
+    #pylint: disable=R0903
     def __init__(self, name):
         self.name = name
         self.ctype = "e"
@@ -42,7 +44,7 @@ class ECol:
 
 class GraphCreateSet:
     """this has all we need to know to create an example graph"""
-
+    #pylint: disable=R0903
     def __init__(self, clear_name, btn_id, collections, handler=None):
         self.clear_name = clear_name
         self.btn_id = btn_id
@@ -111,6 +113,7 @@ class GraphPage(NavigationBarPage):
 
         self.select_new_graph_name_id = "createNewGraphName"
 
+    #pylint: disable=W0613
     def create_manual_graph(self, importer, test_data_dir):
         """creating graph manually"""
         collection_page = self.locator_finder_by_id(self.select_collection_page_id)
@@ -760,7 +763,7 @@ class GraphPage(NavigationBarPage):
     def delete_graph(self, graph: GraphExample):
         """Deleting created graphs"""
         print("Deleting %s Graph" % GRAPH_SETS[graph].clear_name)
-        retry = 0;
+        retry = 0
         while True:
             try:
                 self.webdriver.refresh()
