@@ -258,29 +258,33 @@ class InstallerRPM(InstallerLinux):
         uninstall.wait()
 
     @step
-    def install_debug_package_impl(self):
-        """installing debug package"""
-        print("installing rpm package")
-        cmd = "rpm -i " + str(self.cfg.package_dir / self.debug_package)
+    def install_rpm_package(self, package: str):
+        """installing rpm package"""
+        print("installing rpm package: %s" % package)
+        cmd = "rpm -i " + package
         lh.log_cmd(cmd)
-        debug_install = pexpect.spawnu(cmd)
+        install = pexpect.spawnu(cmd)
         try:
             logging.info("waiting for the installation to finish")
-            debug_install.expect(pexpect.EOF, timeout=90)
-        except pexpect.exceptions.EOF:
+            install.expect(pexpect.EOF, timeout=90)
+            output = install.before
+            install.wait()
+        except pexpect.exceptions.TIMEOUT:
             logging.info("TIMEOUT!")
-            debug_install.close(force=True)
-            ascii_print(debug_install.before)
-        print()
-        logging.info(str(self.debug_package) + " Installation successfull")
-        self.cfg.debug_package_is_installed = True
+            install.close(force=True)
+            output = install.before
+            raise Exception("Installation of the package {} didn't finish within 90 seconds! Output:\n{}".format(str(package), output))
+        if install.exitstatus != 0:
+            install.close(force=True)
+            raise Exception("Installation of the package {} didn't finish successfully! Output:\n{}".format(str(package), output))
+        else:
+            logging.info(str(self.debug_package) + " Installation successfull")
 
-        while debug_install.isalive():
-            progress(".")
-            if debug_install.exitstatus != 0:
-                debug_install.close(force=True)
-                ascii_print(debug_install.before)
-                raise Exception(str(self.debug_package) + " debug installation didn't finish successfully!")
+    @step
+    def install_debug_package_impl(self):
+        """installing debug package"""
+        self.install_rpm_package(str(self.cfg.package_dir / self.debug_package))
+        self.cfg.debug_package_is_installed = True
 
     @step
     def un_install_package(self, package_name: str):
@@ -306,26 +310,8 @@ class InstallerRPM(InstallerLinux):
     @step
     def install_client_package_impl(self):
         """installing client package"""
-        print("installing rpm package")
-        cmd = "rpm -i " + str(self.cfg.package_dir / self.client_package)
-        lh.log_cmd(cmd)
-        client_install = pexpect.spawnu(cmd)
-        try:
-            logging.info("waiting for the installation to finish")
-            client_install.expect(pexpect.EOF, timeout=90)
-        except pexpect.exceptions.EOF:
-            logging.info("TIMEOUT!")
-            client_install.close(force=True)
-            ascii_print(client_install.before)
-        print()
-        logging.info(str(self.client_package) + " Installation successfull")
-
-        while client_install.isalive():
-            progress(".")
-            if client_install.exitstatus != 0:
-                client_install.close(force=True)
-                ascii_print(client_install.before)
-                raise Exception(str(self.client_package) + " client package installation didn't finish successfully!")
+        self.install_rpm_package(str(self.cfg.package_dir / self.client_package))
+        self.cfg.client_package_is_installed = True
 
     def un_install_client_package_impl(self):
         """Uninstall client package"""
