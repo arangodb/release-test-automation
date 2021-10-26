@@ -1,3 +1,4 @@
+"""support page model"""
 import time
 
 from selenium_ui_test.pages.navbar import NavigationBarPage
@@ -217,7 +218,7 @@ class SupportPage(NavigationBarPage):
             "ArangoDB Go Driver | Drivers | ArangoDB Documentation",
             "Spring Data ArangoDB | Drivers | ArangoDB Documentation",
             "ArangoDB Spark Connector | Drivers | ArangoDB Documentation",
-            "Install Official Drivers, Integrations and Community Drivers | " "ArangoDB Documentation",
+            "Install Official Drivers, Integrations and Community Drivers | ArangoDB Documentation",
         ]
 
         self.loop_through_link_traversal(

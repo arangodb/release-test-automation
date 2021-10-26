@@ -312,7 +312,7 @@ class Dc2Dc(Runner):
         print("Arangosync v%s detected" % version)
         return semver.VersionInfo.parse(version)
 
-    def _stop_sync(self, timeout=120):
+    def _stop_sync(self, timeout=130):
         try:
             timeout_start = time.time()
             if self._is_higher_sync_version(SYNC_VERSIONS["150"], SYNC_VERSIONS["230"]):
@@ -326,7 +326,12 @@ class Dc2Dc(Runner):
                 _, _, _, _ = self.sync_manager.stop_sync(timeout, ["--ensure-in-sync=false"])
         except CliExecutionException as exc:
             self.state += "\n" + exc.execution_result[1]
-            raise Exception("failed to stop the synchronization") from exc
+            output = ""
+            if exc.have_timeout:
+                (result, output) = self.sync_manager.check_sync()
+                if result:
+                    print("CHECK SYNC OK!")
+            raise Exception("failed to stop the synchronization; check sync:" + output) from exc
 
         if not self._is_higher_sync_version(SYNC_VERSIONS["180"], SYNC_VERSIONS["260"]):
             print("Wait for the inactive replication on all clusters")

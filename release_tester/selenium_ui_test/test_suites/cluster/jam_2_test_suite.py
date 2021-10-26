@@ -1,11 +1,14 @@
+#!/usr/bin/python3
+"""cluster jamming steps"""
+import time
 from selenium_ui_test.pages.nodes_page import NodesPage
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
 from selenium_ui_test.pages.cluster_page import ClusterPage
 from selenium_ui_test.pages.navbar import NavigationBarPage
-import time
+from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
 
 
 class ClusterJamStepTwoSuite(BaseTestSuite):
+    """cluster jamming steps"""
     @testcase
     def jam_step_2(self):
         NavigationBarPage(self.webdriver).navbar_goto("cluster")

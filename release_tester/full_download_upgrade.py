@@ -14,7 +14,7 @@ from common_options import very_common_options, common_options, download_options
 from beautifultable import BeautifulTable, ALIGN_LEFT
 
 import tools.loghelper as lh
-from download import read_versions_tar, write_version_tar, Download
+from download import read_versions_tar, write_version_tar, Download, touch_all_tars_in_dir
 from upgrade import run_upgrade
 from cleanup import run_cleanup
 from tools.killall import list_all_processes
@@ -214,7 +214,9 @@ def upgrade_package_test(
         print("exiting with failure")
         sys.exit(1)
 
-    if not force:
+    if force:
+        touch_all_tars_in_dir(version_state_tar)
+    else:
         write_version_tar(version_state_tar, fresh_versions)
 
     return 0

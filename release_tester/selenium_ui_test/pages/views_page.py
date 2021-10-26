@@ -1,8 +1,6 @@
+#!/usr/bin/python3
+"""page object for views editing"""
 import time
-
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By as BY
 
 from selenium_ui_test.pages.navbar import NavigationBarPage
 

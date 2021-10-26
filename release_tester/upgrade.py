@@ -7,8 +7,7 @@ import traceback
 import sys
 import platform
 import click
-from allure_commons.model2 import Status, Label, StatusDetails
-from allure_commons.types import LabelType
+from allure_commons.model2 import Status, StatusDetails
 
 from common_options import very_common_options, common_options
 from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext

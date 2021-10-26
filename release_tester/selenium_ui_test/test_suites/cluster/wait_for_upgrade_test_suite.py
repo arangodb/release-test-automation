@@ -3,7 +3,6 @@ import time
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium_ui_test.pages.nodes_page import NodesPage
-from selenium_ui_test.test_suites.base_classes.after_install_test_suite import AfterInstallTestSuite
 from selenium_ui_test.test_suites.base_test_suite import testcase
 
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite
@@ -23,10 +22,12 @@ class ClusterWaitForUpgradeTestSuite(BaseTestSuite):
         print(new_ver)
         upgrade_done = False
         while not upgrade_done:
+            table = []
             try:
                 table = NodesPage(self.webdriver).cluster_get_nodes_table(300)
             except StaleElementReferenceException:
                 self.progress(" skip once")
+                continue
 
             old_count = 0
             new_count = 0

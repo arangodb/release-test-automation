@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium_ui_test.pages.base_page import BasePage
 from selenium_ui_test.pages.navbar import NavigationBarPage
 
 # can't circumvent long lines.. nAttr nLines
@@ -280,10 +281,11 @@ RETURN doc"""
     def bind_parameters_query(self):
         """executing query with bind parameters"""
         # selecting query execution area
-        bind_alive = self.bind_param_input_id % "1"
+        # TODO: re-add or delete bind values
+        #bind_alive = self.bind_param_input_id % "1"
         bind_name = self.bind_param_input_id % "2"
         self.enter_query(
-            """
+        """
 FOR doc IN Characters
     FILTER doc.alive == @alive && doc.name == @name
     RETURN doc"""
@@ -664,7 +666,7 @@ RETURN c"""
         """Deleting Collection using any collections locator id"""
         collection = self.locator_finder_by_xpath(collection)
         collection.click()
-        settings = self.collection_settings_id
+        # TODO: delete? settings = self.collection_settings_id
         self.click_submenu_entry("Settings")
 
         delete_collection_id = "//*[@id='modalButton0']"

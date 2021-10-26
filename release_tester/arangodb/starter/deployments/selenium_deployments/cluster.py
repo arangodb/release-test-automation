@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+""" test the UI of a cluster setup """
 from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunner
 from selenium_ui_test.test_suites.basic_test_suite import BasicTestSuite
 from selenium_ui_test.test_suites.cluster.wait_for_upgrade_test_suite import ClusterWaitForUpgradeTestSuite

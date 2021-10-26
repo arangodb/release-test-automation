@@ -1,11 +1,13 @@
 from datetime import time
 
 from beautifultable import BeautifulTable
+
 from selenium.common.exceptions import StaleElementReferenceException, NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.webdriver.support import expected_conditions as EC
+
+from selenium_ui_test.pages.navbar import NavigationBarPage
 
 from reporting.reporting_utils import attach_table
 

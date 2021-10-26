@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """ test the UI of a leader follower setup """
-import time
 from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunner
 
 from selenium_ui_test.test_suites.basic_test_suite import BasicTestSuite

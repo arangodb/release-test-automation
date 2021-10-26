@@ -1,7 +1,9 @@
 import time
-from selenium_ui_test.pages.navbar import NavigationBarPage
-from selenium.common.exceptions import ElementNotInteractableException, TimeoutException
 import traceback
+
+from selenium.common.exceptions import ElementNotInteractableException, TimeoutException
+
+from selenium_ui_test.pages.navbar import NavigationBarPage
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=R0902 disable=R0915 disable=R0904

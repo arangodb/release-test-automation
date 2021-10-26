@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """ base class for arangodb starter deployment selenium frontend tests """
-from abc import abstractmethod, ABC
+from abc import ABC
 import logging
 import re
 import time
 
 from allure_commons._allure import attach
 from allure_commons.types import AttachmentType
-from reporting.reporting_utils import step, attach_table
+from reporting.reporting_utils import step
 from selenium.common.exceptions import InvalidSessionIdException
 
 FNRX = re.compile("[\n@]*")
@@ -36,6 +36,8 @@ class SeleniumRunner(ABC):
         self.test_results = []
         self.main_test_suite_list = []
         self.after_install_test_suite_list = []
+        self.jam_step_2_test_suite_list = []
+        self.wait_for_upgrade_test_suite_list = []
 
     def set_instances(self, cfg, importer, restorer, ui_entrypoint_instance, new_cfg=None):
         """change the used frontend instance"""
@@ -47,7 +49,7 @@ class SeleniumRunner(ABC):
 
     def quit(self):
         """terminate the web driver"""
-        if self.webdriver != None:
+        if self.webdriver is not None:
             self.webdriver.quit()
             self.webdriver = None
 
@@ -168,6 +170,7 @@ class SeleniumRunner(ABC):
             self.test_results += results
 
     def test_setup(self):
+        """setup the testcases"""
         self.run_test_suites(self.main_test_suite_list)
 
     def test_after_install(self):

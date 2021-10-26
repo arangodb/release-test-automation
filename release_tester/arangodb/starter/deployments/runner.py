@@ -25,7 +25,7 @@ import tools.interact as ti
 from tools.killall import kill_all_processes
 import tools.loghelper as lh
 
-from reporting.reporting_utils import step, attach_table
+from reporting.reporting_utils import step
 
 from arangodb.async_client import CliExecutionException
 from arangodb.bench import load_scenarios

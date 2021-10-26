@@ -14,8 +14,7 @@ from common_options import very_common_options, common_options, download_options
 from beautifultable import BeautifulTable, ALIGN_LEFT
 
 import tools.loghelper as lh
-from download import read_versions_tar, write_version_tar, Download
-from reporting.reporting_utils import AllureTestSuiteContext
+from download import read_versions_tar, write_version_tar, Download, touch_all_tars_in_dir
 from test import run_test
 from cleanup import run_cleanup
 from tools.killall import list_all_processes
@@ -196,7 +195,9 @@ def package_test(
         print("exiting with failure")
         sys.exit(1)
 
-    if not force:
+    if force:
+        touch_all_tars_in_dir(version_state_tar)
+    else:
         write_version_tar(version_state_tar, fresh_versions)
 
 

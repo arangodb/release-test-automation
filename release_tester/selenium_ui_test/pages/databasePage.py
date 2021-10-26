@@ -232,9 +232,9 @@ class DatabasePage(NavigationBarPage):
             collection_name_sitem = self.locator_finder_by_xpath(collection_name).text
 
             if db_name == "Sharded":
-                assert "Sharded" == collection_name_sitem, f"Expected {db_name} but got {collection_name_sitem}"
+                assert collection_name_sitem == "Sharded", f"Expected {db_name} but got {collection_name_sitem}"
             elif db_name == "OneShard":
-                assert "OneShard" == collection_name_sitem, f"Expected {db_name} but got {collection_name_sitem}"
+                assert collection_name_sitem == "OneShard", f"Expected {db_name} but got {collection_name_sitem}"
 
         except TimeoutException():
             print("Error Occurred! \n")

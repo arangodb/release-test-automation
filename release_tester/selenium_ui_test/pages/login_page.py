@@ -1,14 +1,14 @@
+#!/usr/bin/python3
+"""page module for the login screen"""
 import time
-
-from selenium.webdriver.support.select import Select
-from selenium_ui_test.pages.base_page import BasePage
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import StaleElementReferenceException
+from selenium.webdriver.support.select import Select
+from selenium.webdriver.support.ui import WebDriverWait
 
+from selenium_ui_test.pages.base_page import BasePage
 # can't circumvent long lines..
 # pylint: disable=C0301
 
