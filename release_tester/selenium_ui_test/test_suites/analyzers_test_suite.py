@@ -89,13 +89,13 @@ class AnalyzersTestSuite(BaseTestSuite):
 
             # only going to work if and only all the possible type of analyzers are done creating
             print("Checking negative scenario for the identity analyzers name \n")
-            analyzers.check_expected_error_messages_for_analyzer("identity_analyzer", 0, 64)
+            analyzers.test_analyzer_expected_error("identity_analyzer", 0, 64)
             print("Checking negative scenario for the stem analyzers locale value \n")
-            analyzers.check_expected_error_messages_for_analyzer("stem_analyzer", 2, 64)
+            analyzers.test_analyzer_expected_error("stem_analyzer", 2, 64)
             print("Checking negative scenario for the stem analyzers locale value \n")
-            analyzers.check_expected_error_messages_for_analyzer("n-gram_analyzer", 4, 64)
+            analyzers.test_analyzer_expected_error("n-gram_analyzer", 4, 64)
             print("Checking negative scenario for the AQL analyzers \n")
-            analyzers.check_expected_error_messages_for_analyzer("AQL_analyzer", 6, 64)
+            analyzers.test_analyzer_expected_error("AQL_analyzer", 6, 64)
 
             print("Checking analyzer search filter options started \n")
             analyzers.checking_search_filter_option("de")
