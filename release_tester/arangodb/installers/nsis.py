@@ -309,7 +309,6 @@ class InstallerW(InstallerBase):
 
             cmd = [
                 tmp_uninstaller,
-                "/PURGE_DB=1",
                 "/S",
                 "_?=" + str(PureWindowsPath(self.cfg.install_prefix)),
             ]
