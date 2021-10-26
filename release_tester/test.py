@@ -84,7 +84,8 @@ def run_test(mode,
                                     None,
                                     runner_strings[runner_type],
                                     None,
-                                    installers[0][1].installer_type):
+                                    installers[0][1].installer_type,
+                                    ssl):
             with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
                 if not enterprise and runner_type == RunnerType.DC2DC:
                     testcase.context.status = Status.SKIPPED
