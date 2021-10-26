@@ -20,13 +20,14 @@ class BasicTestSuite(BaseTestSuite):
             child_classes=[
                 UserPageTestSuite,
                 CollectionsTestSuite,
-                DashboardTestSuite,
                 ViewsTestSuite,
                 GraphTestSuite,
                 QueryTestSuite,
                 AnalyzersTestSuite,
                 DatabaseTestSuite,
                 LogInTestSuite,
+
+                DashboardTestSuite,
                 SupportTestSuite,
             ],
         )
