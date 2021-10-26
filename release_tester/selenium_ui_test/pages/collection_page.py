@@ -577,7 +577,6 @@ class CollectionPage(NavigationBarPage):
 
         print(f"Creating {index_name} index completed \n")
 
-    # this method will delete all the indexes one by one
     def delete_all_index(self):
         """this method will delete all the indexes one by one"""
         select_index_for_delete_sitem = self.locator_finder_by_xpath(self.select_index_for_delete_id)
