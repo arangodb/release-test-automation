@@ -61,7 +61,6 @@ def upgrade_package_test(
     selenium_driver_args,
     alluredir,
     clean_alluredir,
-    ssl,
     use_auto_certs,
 ):
     """process fetch & tests"""
@@ -78,13 +77,14 @@ def upgrade_package_test(
     results = []
     # do the actual work:
     execution_plan = [
-        (True, True, "EE", "Enterprise\nEnc@REST"),
-        (True, False, "EP", "Enterprise"),
-        (False, False, "C", "Community"),
+        (True, True, True, "EE", "Enterprise\nEnc@REST"),
+        (True, False, False, "EP", "Enterprise"),
+        (False, False, False, "C", "Community"),
     ]
     for (
         enterprise,
         encryption_at_rest,
+        ssl,
         directory_suffix,
         testrun_name,
     ) in execution_plan:
@@ -347,7 +347,6 @@ def main(
         selenium_driver_args,
         alluredir,
         clean_alluredir,
-        ssl,
         use_auto_certs,
     )
 
