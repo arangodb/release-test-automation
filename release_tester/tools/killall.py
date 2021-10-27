@@ -96,5 +96,7 @@ def list_all_processes():
                 cmdline = "[" + process.name() + "]"
         except psutil.AccessDenied:
             pass
+        except psutil.ProcessLookupError:
+            pass
         logging.info("{pid} {proc}".format(pid=process.pid, proc=cmdline))
     print(pseaf)
