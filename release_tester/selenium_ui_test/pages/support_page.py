@@ -35,9 +35,8 @@ class SupportPage(NavigationBarPage):
 
     def click_on_link(self, link_id):
         """Clicking on link on any page and switch to that tab and return to origin tab"""
-        click_on_link_id = link_id
-        click_on_link_id = self.locator_finder_by_xpath(click_on_link_id)
-        title = self.switch_tab(click_on_link_id)  # this method will call switch tab and close tab
+        click_on_link_id_sitem = self.locator_finder_by_xpath(link_id)
+        title = self.switch_tab(click_on_link_id_sitem)  # this method will call switch tab and close tab
         return title
 
     def loop_through_link_traversal(self, print_statement, link_list, assertion_list):
@@ -46,7 +45,10 @@ class SupportPage(NavigationBarPage):
         while i < len(link_list):
             print(print_statement[i])
             title = self.click_on_link(link_list[i])
-            assert title == assertion_list[i], f"Expected page title {assertion_list[i]} but got {title}"
+            try:
+                assert title == assertion_list[i], f"Expected page title {assertion_list[i]} but got {title}"
+            except AssertionError:
+                print(f'Assertion Error occurred! for {assertion_list[i]}\n')
             i = i + 1
 
     def click_on_btn(self, link_id):

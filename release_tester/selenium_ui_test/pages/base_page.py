@@ -217,12 +217,14 @@ class BasePage:
 
     def switch_tab(self, locator):
         """This method will change tab and close it and finally return to origin tab"""
+        print("switching tab method \n")
         self.locator = locator
         self.locator.send_keys(Keys.CONTROL + Keys.RETURN)  # this will open new tab on top of current
         self.webdriver.switch_to.window(self.webdriver.window_handles[1])  # switch to new tab according to index value
         title = self.webdriver.title
+        print('Current page title: ', title,'\n')
         time.sleep(15)
-        self.webdriver.close()
+        self.webdriver.close()  # closes the browser active window
         self.webdriver.switch_to.window(self.webdriver.window_handles[0])
         return title
 
