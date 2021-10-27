@@ -77,8 +77,8 @@ def package_test(
     results = []
     # do the actual work:
     execution_plan = [
-        # Don't need this (True, True, "EE", "Enterprise\nEnc@REST"),
-        (True, False, True, "EP", "Enterprise"),
+        (True, True, True, "EE", "Enterprise\nEnc@REST"),
+        (True, False, False, "EP", "Enterprise"),
         (False, False, False, "C", "Community"),
     ]
 

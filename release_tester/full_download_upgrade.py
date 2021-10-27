@@ -81,7 +81,7 @@ def upgrade_package_test(
     # do the actual work:
     execution_plan = [
         (True, True, True, "EE", "Enterprise\nEnc@REST"),
-        (True, False, True, "EP", "Enterprise"),
+        (True, False, False, "EP", "Enterprise"),
         (False, False, False, "C", "Community"),
     ]
 
