@@ -68,11 +68,12 @@ class InstallerW(InstallerBase):
             version,
             architecture,
         )
-        self.client_package = "ArangoDB3%s-client-%s_%s.exe" % (
-            enterprise,
-            version,
-            architecture,
-        )
+        # self.client_package = "ArangoDB3%s-client-%s_%s.exe" % (
+        #     enterprise,
+        #     version,
+        #     architecture,
+        # )
+        self.client_package = None  # FIXME: Enable client package tests for NSIS when issue QA-182 is fixed
         self.debug_package = None  # TODO
 
     @step
