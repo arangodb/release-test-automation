@@ -1,3 +1,4 @@
+
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite
 
 from selenium_ui_test.test_suites.dashboard_test_suite import DashboardTestSuite
@@ -18,16 +19,15 @@ class BasicTestSuite(BaseTestSuite):
         super().__init__(
             selenium_runner,
             child_classes=[
-                #UserPageTestSuite,
-                #CollectionsTestSuite,
-                #ViewsTestSuite,
+                UserPageTestSuite,
+                CollectionsTestSuite,
+                ViewsTestSuite,
                 GraphTestSuite,
-                #QueryTestSuite,
-                #AnalyzersTestSuite,
-                #DatabaseTestSuite,
-                #LogInTestSuite,
-                #
-                #DashboardTestSuite,
-                #SupportTestSuite,
+                QueryTestSuite,
+                AnalyzersTestSuite,
+                DatabaseTestSuite,
+                LogInTestSuite,
+                DashboardTestSuite,
+                SupportTestSuite,
             ],
         )
