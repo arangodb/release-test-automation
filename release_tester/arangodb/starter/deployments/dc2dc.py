@@ -190,16 +190,16 @@ class Dc2Dc(Runner):
         def add_starter(val, port):
             # fmt: off
             opts = [
-                    '--all.log.level=backup=trace',
-                    '--all.log.level=requests=debug',
-                    '--starter.sync',
-                    '--starter.local',
-                    '--auth.jwt-secret=' +           str(val["JWTSecret"]),
-                    '--sync.server.keyfile=' +       str(val["tlsKeyfile"]),
-                    '--sync.server.client-cafile=' + str(client_cert),
-                    '--sync.master.jwt-secret=' +    str(val["SyncSecret"]),
-                    '--starter.address=' +           self.cfg.publicip
-                ]
+                '--all.log.level=backup=trace',
+                '--all.log.level=requests=debug',
+                '--starter.sync',
+                '--starter.local',
+                '--auth.jwt-secret=' + str(val["JWTSecret"]),
+                '--sync.server.keyfile=' + str(val["tlsKeyfile"]),
+                '--sync.server.client-cafile=' + str(client_cert),
+                '--sync.master.jwt-secret=' + str(val["SyncSecret"]),
+                '--starter.address=' + self.cfg.publicip
+            ]
             # fmt: on
             if self.cfg.ssl and not self.cfg.use_auto_certs:
                 opts.append("--ssl.keyfile=" + str(val["tlsKeyfile"]))
@@ -333,17 +333,20 @@ class Dc2Dc(Runner):
                     print("CHECK SYNC OK!")
             raise Exception("failed to stop the synchronization; check sync:" + output) from exc
 
-        if not self._is_higher_sync_version(SYNC_VERSIONS["180"], SYNC_VERSIONS["260"]):
-            print("Wait for the inactive replication on all clusters")
-            status_source = ""
-            status_target = ""
-            while time.time() < timeout_start + timeout:
-                status_source = _get_sync_status(self.cluster1)
-                status_target = _get_sync_status(self.cluster2)
-                if status_source == STATUS_INACTIVE and status_target == STATUS_INACTIVE:
-                    return
+        if self._is_higher_sync_version(SYNC_VERSIONS["180"], SYNC_VERSIONS["260"]):
+            raise Exception("failed to stop the synchronization")
 
-                time.sleep(2)
+        # Workaround for older versions where stopping synchronization did not work well.
+        status_source = ""
+        status_target = ""
+        print("Wait for the inactive replication on all clusters")
+        while time.time() < timeout_start + timeout:
+            status_source = _get_sync_status(self.cluster1)
+            status_target = _get_sync_status(self.cluster2)
+            if status_source == STATUS_INACTIVE and status_target == STATUS_INACTIVE:
+                return
+
+            time.sleep(2)
 
         raise Exception(
             "failed to stop the synchronization, source status: " + status_source + ", target status: " + status_target
