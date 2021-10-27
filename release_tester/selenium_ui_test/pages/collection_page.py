@@ -502,7 +502,7 @@ class CollectionPage(NavigationBarPage):
             self.select_persistent_name_id.send_keys("pname").perform()
             time.sleep(1)
 
-            if cluster_status:
+            if not cluster_status:
                 self.select_persistent_unique_id = self.locator_finder_by_hover_item_id(
                     self.select_persistent_unique_id
                 )
@@ -564,27 +564,32 @@ class CollectionPage(NavigationBarPage):
             select_zkd_field_sitem.click()
             select_zkd_field_sitem.clear()
             select_zkd_field_sitem.send_keys("zkdfileds")
+            time.sleep(1)
 
             select_zkd_name_sitem = self.locator_finder_by_id("newZkdName")
             select_zkd_name_sitem.click()
             select_zkd_name_sitem.clear()
             select_zkd_name_sitem.send_keys("zkdname")
+            time.sleep(1)
 
         select_create_index_btn_sitem = self.locator_finder_by_id(self.select_create_index_btn_id)
         select_create_index_btn_sitem.click()
-        time.sleep(2)
+        time.sleep(5)  # it takes a bit of time to create
         self.wait_for_ajax()
 
         print(f"Creating {index_name} index completed \n")
 
     def delete_all_index(self):
         """this method will delete all the indexes one by one"""
-        select_index_for_delete_sitem = self.locator_finder_by_xpath(self.select_index_for_delete_id)
-        select_index_for_delete_sitem.click()
-
-        select_index_confirm_delete_sitem = self.locator_finder_by_id(self.select_index_confirm_delete)
-        select_index_confirm_delete_sitem.click()
-        self.webdriver.refresh()
+        try:
+            select_index_for_delete_sitem = self.locator_finder_by_xpath(self.select_index_for_delete_id)
+            select_index_for_delete_sitem.click()
+            time.sleep(2)
+            select_index_confirm_delete_sitem = self.locator_finder_by_id(self.select_index_confirm_delete)
+            select_index_confirm_delete_sitem.click()
+            self.webdriver.refresh()
+        except TimeoutException as e:
+            print('Something went wrong ', e, '\n')
 
     def select_info_tab(self):
         """Selecting info tab from the collection submenu"""

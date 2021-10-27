@@ -204,6 +204,8 @@ class CollectionsTestSuite(BaseTestSuite):
         # print("Deleting all index completed\n")
 
         version = col.current_package_version()
+        print(version,'\n')
+        print('Cluster status: ', self.is_cluster)
         col.create_new_index("Persistent", 1, self.is_cluster)
         col.create_new_index("Geo", 2, self.is_cluster)
         col.create_new_index("Fulltext", 3, self.is_cluster)
