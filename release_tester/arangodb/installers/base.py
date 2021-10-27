@@ -91,6 +91,7 @@ class BinaryDescription:
     @step
     def check_installed(self, version, enterprise, check_stripped, check_symlink):
         """check all attributes of this file in reality"""
+        attach(str(self), "file info")
         if semver.compare(self.version_min, version) == 1:
             self.check_path(enterprise, False)
             return
@@ -103,7 +104,6 @@ class BinaryDescription:
             self.check_stripped()
         if check_symlink:
             self.check_symlink()
-        attach(str(self), "file info")
 
     def check_path(self, enterprise, in_version=True):
         """check whether the file rightfully exists or not"""
