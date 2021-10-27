@@ -19,7 +19,7 @@ class GraphExample(IntEnum):
     WORLD = 5
     SOCIAL = 6
     CITY = 7
-    # MANUAL_KNOWS = 8
+    MANUAL_KNOWS = 8
     # MANUAL_SATELITE_GRAPH = 9
     # MANUAL_SMART_GRAHP = 10
     # MANUAL_DISJOINT_SMART_GRAHP = 11
@@ -99,6 +99,7 @@ class GraphPage(NavigationBarPage):
         self.select_edge_type_id = "g_edgeType"
         self.select_restore_settings_id = "/html//button[@id='restoreGraphSettings']"
         self.select_tooltips_id = "//*[@id='graphSettingsView']/div/div[2]/div[1]/div[5]/i"
+        self.selected_dropdown_class = "select2-results-dept-0.select2-result.select2-result-selectable.select2-highlighted"
 
         self.select_sort_settings_id = "graphManagementToggle"
         self.select_sort_descend_id = "//*[@id='graphManagementDropdown']/ul/li[2]/a/label/i"
@@ -235,26 +236,20 @@ class GraphPage(NavigationBarPage):
 
         # selecting from collection from auto suggestion
         from_collection_sitem = self.locator_finder_by_id(from_collection)
+        self.choose_item_from_a_dropdown_menu(from_collection_sitem, "manual_vertices")
         time.sleep(10)
-        from_collection_sitem.click()
-        time.sleep(10)
-        super().send_key_action(Keys.ENTER)
-        time.sleep(10)
-
-        time.sleep(1)
 
         # selecting to collection from auto suggestion
         to_collection_sitem = self.locator_finder_by_id(to_collection)
-        to_collection_sitem.click()
-        super().send_key_action(Keys.ENTER)
+        self.choose_item_from_a_dropdown_menu(to_collection_sitem, "manual_vertices")
 
-        time.sleep(1)
+        time.sleep(10)
 
         # selecting create graph btn
         create_btn_sitem = self.locator_finder_by_id(create_btn_id)
         create_btn_sitem.click()
 
-        time.sleep(2)
+        time.sleep(20)
 
         # selecting newly created graph btn
         knows_graph_sitem = self.locator_finder_by_xpath(knows_graph_id)
