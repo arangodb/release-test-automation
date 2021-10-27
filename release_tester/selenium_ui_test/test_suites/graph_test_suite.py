@@ -36,15 +36,15 @@ class GraphTestSuite(BaseTestSuite):
         #    print("Adding Disjoint Smart Graph completed \n")
 
         print("Example Graphs creation started\n")
-        # for graph in GraphExample:
-        graph = GraphExample.MANUAL_KNOWS
-        this_graph.navbar_goto("graphs")
-        print(graph)
-        print("Creating '%s' Graph" % get_graph_name(graph))
-        this_graph.create_graph(graph, self.importer, self.test_data_dir)
-        this_graph.check_required_collections(graph)
+        for graph in GraphExample:
+            #graph = GraphExample.MANUAL_KNOWS
+            #this_graph.navbar_goto("graphs")
+            print(graph)
+            print("Creating '%s' Graph" % get_graph_name(graph))
+            this_graph.create_graph(graph, self.importer, self.test_data_dir)
+            this_graph.check_required_collections(graph)
 
-        this_graph.select_graph_page()
+            this_graph.select_graph_page()
 
         print("Example Graphs creation Completed\n")
 
