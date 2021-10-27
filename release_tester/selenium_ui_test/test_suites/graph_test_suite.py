@@ -1,6 +1,5 @@
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
 from selenium_ui_test.pages.graph_page import GraphPage, GraphExample, get_graph_name
-import sys
 
 class GraphTestSuite(BaseTestSuite):
     @testcase
@@ -55,7 +54,6 @@ class GraphTestSuite(BaseTestSuite):
         this_graph.inspect_knows_graph()
         # print("Selecting Graphs settings menu\n")
         # this_graph.graph_setting()
-        sys.exit(1)
         print("Deleting created Graphs started\n")
         for graph in GraphExample:
             # if graph == GraphExample.MANUAL_KNOWS:
