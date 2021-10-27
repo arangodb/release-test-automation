@@ -19,7 +19,7 @@ class GraphExample(IntEnum):
     WORLD = 5
     SOCIAL = 6
     CITY = 7
-    MANUAL_KNOWS = 8
+    # MANUAL_KNOWS = 8
     # MANUAL_SATELITE_GRAPH = 9
     # MANUAL_SMART_GRAHP = 10
     # MANUAL_DISJOINT_SMART_GRAHP = 11
