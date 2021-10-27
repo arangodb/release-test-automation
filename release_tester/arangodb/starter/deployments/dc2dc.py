@@ -333,10 +333,13 @@ class Dc2Dc(Runner):
                     print("CHECK SYNC OK!")
             raise Exception("failed to stop the synchronization; check sync:" + output) from exc
 
+        # From here on it is known that `arangosync stop sync` succeeded (exit code == 0).
         if self._is_higher_sync_version(SYNC_VERSIONS["180"], SYNC_VERSIONS["260"]):
-            raise Exception("failed to stop the synchronization")
+            # The replication should be really stopped.
+            return
 
         # Workaround for older versions where stopping synchronization did not work well.
+        # It could return success, but it has not been stopped yet. It must be checked manually.
         status_source = ""
         status_target = ""
         print("Wait for the inactive replication on all clusters")
