@@ -235,8 +235,11 @@ class GraphPage(NavigationBarPage):
 
         # selecting from collection from auto suggestion
         from_collection_sitem = self.locator_finder_by_id(from_collection)
+        time.sleep(10)
         from_collection_sitem.click()
+        time.sleep(10)
         super().send_key_action(Keys.ENTER)
+        time.sleep(10)
 
         time.sleep(1)
 
@@ -529,7 +532,7 @@ class GraphPage(NavigationBarPage):
             search_sitem.clear()
             search_sitem.send_keys(collection.name)
             if collection_sitem.text == collection.name:
-                print(collection.name + " collectionhas been validated")
+                print(collection.name + " collection has been validated")
             else:
                 print(collection.name + " collection wasn't found")
             time.sleep(3)

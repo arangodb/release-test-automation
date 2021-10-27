@@ -1,6 +1,6 @@
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
 from selenium_ui_test.pages.graph_page import GraphPage, GraphExample, get_graph_name
-
+import sys
 
 class GraphTestSuite(BaseTestSuite):
     @testcase
@@ -36,14 +36,13 @@ class GraphTestSuite(BaseTestSuite):
         #    print("Adding Disjoint Smart Graph completed \n")
 
         print("Example Graphs creation started\n")
-        for graph in GraphExample:
-            # if graph == GraphExample.MANUAL_KNOWS:
-            #    break
-            this_graph.navbar_goto("graphs")
-            print(graph)
-            print("Creating '%s' Graph" % get_graph_name(graph))
-            this_graph.create_graph(graph, self.importer, self.test_data_dir)
-            this_graph.check_required_collections(graph)
+        # for graph in GraphExample:
+        graph = GraphExample.MANUAL_KNOWS
+        this_graph.navbar_goto("graphs")
+        print(graph)
+        print("Creating '%s' Graph" % get_graph_name(graph))
+        this_graph.create_graph(graph, self.importer, self.test_data_dir)
+        this_graph.check_required_collections(graph)
 
         this_graph.select_graph_page()
 
@@ -56,7 +55,7 @@ class GraphTestSuite(BaseTestSuite):
         this_graph.inspect_knows_graph()
         # print("Selecting Graphs settings menu\n")
         # this_graph.graph_setting()
-
+        sys.exit(1)
         print("Deleting created Graphs started\n")
         for graph in GraphExample:
             # if graph == GraphExample.MANUAL_KNOWS:
