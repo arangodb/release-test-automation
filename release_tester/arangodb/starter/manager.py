@@ -391,7 +391,7 @@ class StarterManager:
         logging.info("Looking for log file.\n")
         while keep_going:
             if not self.instance.is_running():
-                raise Exception(timestamp() + "my instance is gone!" + self.basedir)
+                raise Exception(timestamp() + "my instance is gone!" + str(self.basedir))
             if counter == 20:
                 raise Exception("logfile did not appear: " + str(self.log_file))
             counter += 1
