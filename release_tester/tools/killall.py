@@ -98,5 +98,7 @@ def list_all_processes():
             pass
         except psutil.ProcessLookupError:
             pass
+        except psutil.NoSuchProcess:
+            pass
         logging.info("{pid} {proc}".format(pid=process.pid, proc=cmdline))
     print(pseaf)
