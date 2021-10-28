@@ -3,6 +3,7 @@
 import time
 
 from selenium_ui_test.pages.navbar import NavigationBarPage
+from selenium.common.exceptions import TimeoutException
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=R0902 disable=R0915 disable=R0904
@@ -397,19 +398,22 @@ class ViewsPage(NavigationBarPage):
         """This method will delete views"""
         self.select_views_tab()
         print(f"Selecting {name} for deleting \n")
-        select_view_sitem = self.locator_finder_by_xpath(locator)
-        select_view_sitem.click()
-        time.sleep(1)
+        try:
+            select_view_sitem = self.locator_finder_by_xpath(locator)
+            select_view_sitem.click()
+            time.sleep(1)
 
-        delete_views_btn_sitem = self.locator_finder_by_id(self.delete_views_btn_id)
-        delete_views_btn_sitem.click()
-        time.sleep(1)
+            delete_views_btn_sitem = self.locator_finder_by_id(self.delete_views_btn_id)
+            delete_views_btn_sitem.click()
+            time.sleep(1)
 
-        delete_views_confirm_btn_sitem = self.locator_finder_by_xpath(self.delete_views_confirm_btn_id)
-        delete_views_confirm_btn_sitem.click()
-        time.sleep(1)
+            delete_views_confirm_btn_sitem = self.locator_finder_by_xpath(self.delete_views_confirm_btn_id)
+            delete_views_confirm_btn_sitem.click()
+            time.sleep(1)
 
-        final_delete_confirmation_sitem = self.locator_finder_by_id(self.final_delete_confirmation_id)
-        final_delete_confirmation_sitem.click()
-        print(f"Selecting {name} for deleting completed \n")
-        time.sleep(1)
+            final_delete_confirmation_sitem = self.locator_finder_by_id(self.final_delete_confirmation_id)
+            final_delete_confirmation_sitem.click()
+            print(f"Selecting {name} for deleting completed \n")
+            time.sleep(1)
+        except TimeoutException as e:
+            print('FAIL: could not delete views properly', e, '\n')

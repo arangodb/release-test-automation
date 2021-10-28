@@ -1,4 +1,3 @@
-
 import time
 
 # from selenium import webdriver
@@ -18,6 +17,7 @@ from selenium.common.exceptions import (
     # NoSuchElementException,
 )
 import semver
+
 
 # from webdriver_manager.chrome import ChromeDriverManager
 # from webdriver_manager.firefox import GeckoDriverManager
@@ -222,7 +222,7 @@ class BasePage:
         self.locator.send_keys(Keys.CONTROL + Keys.RETURN)  # this will open new tab on top of current
         self.webdriver.switch_to.window(self.webdriver.window_handles[1])  # switch to new tab according to index value
         title = self.webdriver.title
-        print('Current page title: ', title,'\n')
+        print('Current page title: ', title, '\n')
         time.sleep(15)
         self.webdriver.close()  # closes the browser active window
         self.webdriver.switch_to.window(self.webdriver.window_handles[0])
@@ -314,7 +314,8 @@ class BasePage:
 
     def locator_finder_by_class(self, locator_name):
         """This method will used for finding all the locators by their id"""
-        self.locator = WebDriverWait(self.webdriver, 10).until(EC.element_to_be_clickable((BY.CLASS_NAME, locator_name)))
+        self.locator = WebDriverWait(self.webdriver, 10).until(
+            EC.element_to_be_clickable((BY.CLASS_NAME, locator_name)))
         if self.locator is None:
             print(locator_name, " locator has not found.")
         else:
@@ -353,7 +354,7 @@ class BasePage:
         return self.locator
 
     def check_expected_error_messages_for_analyzer(
-        self, error_input, print_statement, error_message, locators_id, error_message_id, div_id=None
+            self, error_input, print_statement, error_message, locators_id, error_message_id, div_id=None
     ):
         """This method will take three lists and check for expected error condition against user's inputs"""
         i = 0
@@ -387,7 +388,7 @@ class BasePage:
                 error_sitem = self.locator_finder_by_xpath(error_message_id).text
                 # error_message list will hold expected error messages
                 assert (
-                    error_sitem == error_message[i]
+                        error_sitem == error_message[i]
                 ), f"FAIL: Expected error message {error_message[i]} but got {error_sitem}"
 
                 print("x" * (len(error_sitem) + 29))
