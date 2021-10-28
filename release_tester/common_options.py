@@ -131,7 +131,7 @@ def common_options(
             help="options to the selenium web driver",
         )(function)
         function = click.option(
-            "--clean-alluredir",
+            "--clean-alluredir/--do-not-clean-alluredir",
             is_flag=True,
             default=True,
             help="clean allure results dir before running tests",

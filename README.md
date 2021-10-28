@@ -105,7 +105,7 @@ Supported Parameters:
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
- - `--clean-alluredir` - clean allure directory before running tests (default = True)
+ - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
  - `--[no-]ssl` use SSL (default = False)
  - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl) 
 
@@ -143,7 +143,7 @@ Supported Parameters:
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
- - `--clean-alluredir` - clean allure directory before running tests (default = True)
+ - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
  - `--[no-]ssl` use SSL (default = False)
  - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl)
  
@@ -225,7 +225,7 @@ Supported Parameters:
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
- - `--clean-alluredir` - clean allure directory before running tests (default = True)
+ - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
  - `--[no-]ssl` use SSL (default = False)
  - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl)
 
