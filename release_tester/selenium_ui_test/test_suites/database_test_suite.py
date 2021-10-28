@@ -29,8 +29,8 @@ class DatabaseTestSuite(BaseTestSuite):
         db.searching_db("Sharded")
         db.searching_db("OneShard")
 
-        db.Deleting_database("Sharded")
-        db.Deleting_database("OneShard")
+        db.deleting_database("Sharded")
+        db.deleting_database("OneShard")
 
         # need to add delete created user here
         user.user_tab()

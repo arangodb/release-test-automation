@@ -127,16 +127,29 @@ class DatabasePage(NavigationBarPage):
 
         # ---------------------------------------database name convention test---------------------------------------
         print('Expected error scenario for the Database name Started \n')
-        db_name_error_input = ['@', '1', 'שלום']  # name must be 64 bit thus 65 character won't work too.
-        db_name_print_statement = ['Checking Db name with symbol " @ "',
-                                   'Checking numeric value for DB name " 1 "',
-                                   'Checking Non-ASCII Hebrew Characters "שלום"']
-        db_name_error_message = ['DB: Invalid Parameters: database name invalid',
-                                 'DB: Invalid Parameters: database name invalid',
-                                 'DB: Invalid Parameters: database name invalid']
-        db_name = 'newDatabaseName'
-        # db_name_error_id = '//*[@id="row_newDatabaseName"]/th[2]/p'
-        db_name_error = '/html/body/div[10]/div/div[1]'
+        version = super().current_package_version()
+        if version == 3.9:
+            db_name_error_input = ['@', '1', 'שלום']  # name must be 64 bit thus 65 character won't work too.
+            db_name_print_statement = ['Checking Db name with symbol " @ "',
+                                       'Checking numeric value for DB name " 1 "',
+                                       'Checking Non-ASCII Hebrew Characters "שלום"']
+            db_name_error_message = ['DB: Invalid Parameters: database name invalid',
+                                     'DB: Invalid Parameters: database name invalid',
+                                     'DB: Invalid Parameters: database name invalid']
+            db_name = 'newDatabaseName'
+            db_name_error = '/html/body/div[10]/div/div[1]'
+        else:
+            db_name_error_input = ['', '@', '1', 'שלום']  # name must be 64 bit thus 65 character won't work too.
+            db_name_print_statement = ['Checking blank DB name with " "',
+                                       'Checking Db name with symbol " @ "',
+                                       'Checking numeric value for DB name " 1 "',
+                                       'Checking Non-ASCII Hebrew Characters "שלום"']
+            db_name_error_message = ['No database name given.',
+                                     'Only Symbols "_" and "-" are allowed.',
+                                     'Database name must start with a letter.',
+                                     'Only Symbols "_" and "-" are allowed.']
+            db_name = 'newDatabaseName'
+            db_name_error = '//*[@id="row_newDatabaseName"]/th[2]/p'
 
         # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
         self.check_expected_error_messages_for_database(db_name_error_input,
@@ -146,7 +159,7 @@ class DatabasePage(NavigationBarPage):
                                                         db_name_error)
         print('Expected error scenario for the Database name Completed \n')
 
-        if cluster:
+        if cluster and version == 3.9:
             db = self.locator_finder_by_id('newDatabaseName')
             db.click()
             db.clear()
@@ -157,19 +170,69 @@ class DatabasePage(NavigationBarPage):
             rf_error_input = ['@', 'a', '11', 'שלום']
             rf_print_statement = ['Checking RF with "@"', 'Checking RF with "a"',
                                   'Checking RF with "11"', 'Checking RF with "שלום"']
-            rf_error_message = ['Must be a number between 1 and 10.', 'Must be a number between 1 and 10.',
-                                'Must be a number between 1 and 10.', 'Must be a number between 1 and 10.']
+            rf_error_message = ['Must be a number between 1 and 10.',
+                                'Must be a number between 1 and 10.',
+                                'Must be a number between 1 and 10.',
+                                'Must be a number between 1 and 10.']
             rf_name = 'new-replication-factor'
-
             db_name_error_id = '//*[@id="row_new-replication-factor"]/th[2]/p'
 
             # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
-            self.check_expected_error_messages_for_database(rf_error_input,
+            self.check_expected_error_messages_for_database(self,
+                                                            rf_error_input,
                                                             rf_print_statement,
                                                             rf_error_message,
                                                             rf_name,
                                                             db_name_error_id,
+                                                            True)  # True defines cluster deployment
+            print('Expected error scenario for the Database Replication Factor Completed \n')
+
+            # -------------------------------database Write Concern convention test----------------------------------
+            print('Expected error scenario for the Database Write Concern Started \n')
+            wc_error_input = ['@', 'a', '11', 'שלום']
+            wc_print_statement = ['Checking Write Concern with "@"',
+                                  'Checking Write Concern with "a"',
+                                  'Checking Write Concern with "11"',
+                                  'Checking Write Concern with "שלום"']
+            wc_error_message = ['Must be a number between 1 and 10. Has to be smaller or equal compared to the '
+                                'replicationFactor.',
+                                'Must be a number between 1 and 10. Has to be smaller or equal compared to the '
+                                'replicationFactor.',
+                                'Must be a number between 1 and 10. Has to be smaller or equal compared to the '
+                                'replicationFactor.',
+                                'Must be a number between 1 and 10. Has to be smaller or equal compared to the '
+                                'replicationFactor.']
+            wc_name = 'new-write-concern'
+            wc_name_error_id = '//*[@id="row_new-write-concern"]/th[2]/p'
+
+            # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
+            self.check_expected_error_messages_for_database(self, wc_error_input,
+                                                            wc_print_statement,
+                                                            wc_error_message,
+                                                            wc_name, wc_name_error_id,
                                                             True)
+            print('Expected error scenario for the Database Write Concern Completed \n')
+
+        if cluster and version == 3.8:
+            # -------------------------------database Replication Factor convention test------------------------------
+            print('Expected error scenario for the Database Replication Factor Started \n')
+            rf_error_input = ['@', 'a', '11', 'שלום']
+            rf_print_statement = ['Checking RF with "@"',
+                                  'Checking RF with "a"',
+                                  'Checking RF with "11"',
+                                  'Checking RF with "שלום"']
+            rf_error_message = ['Must be a number between 1 and 10.',
+                                'Must be a number between 1 and 10.',
+                                'Must be a number between 1 and 10.',
+                                'Must be a number between 1 and 10.']
+            rf_name = 'new-replication-factor'
+            db_name_error = '//*[@id="row_new-replication-factor"]/th[2]/p'
+
+            # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
+            self.check_expected_error_messages_for_database(self, rf_error_input,
+                                                            rf_print_statement,
+                                                            rf_error_message,
+                                                            rf_name, db_name_error)
             print('Expected error scenario for the Database Replication Factor Completed \n')
 
             # -------------------------------database Write Concern convention test----------------------------------
@@ -186,13 +249,14 @@ class DatabasePage(NavigationBarPage):
                                 'Must be a number between 1 and 10. Has to be smaller or equal compared to the '
                                 'replicationFactor.']
             wc_name = 'new-write-concern'
-            wc_name_error_id = '//*[@id="row_new-write-concern"]/th[2]/p'
+            wc_name_error = '//*[@id="row_new-write-concern"]/th[2]/p'
 
             # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
-            self.check_expected_error_messages_for_database(wc_error_input, wc_print_statement,
+            self.check_expected_error_messages_for_database(self,
+                                                            wc_error_input,
+                                                            wc_print_statement,
                                                             wc_error_message,
-                                                            wc_name, wc_name_error_id,
-                                                            True)
+                                                            wc_name, wc_name_error)
             print('Expected error scenario for the Database Write Concern Completed \n')
 
         print('Closing the database creation \n')
@@ -246,7 +310,7 @@ class DatabasePage(NavigationBarPage):
         clear_search_sitem.clear()
         time.sleep(2)
 
-    def Deleting_database(self, db_name):
+    def deleting_database(self, db_name):
         """Deleting Database"""
         self.webdriver.refresh()
 
@@ -299,4 +363,3 @@ class DatabasePage(NavigationBarPage):
         self.locator_finder_by_id(confirm_btn).click()
         print(f'Deleting {username} completed \n')
         time.sleep(2)
-

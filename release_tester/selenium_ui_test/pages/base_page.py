@@ -390,9 +390,9 @@ class BasePage:
                     error_sitem == error_message[i]
                 ), f"FAIL: Expected error message {error_message[i]} but got {error_sitem}"
 
-                print("x" * (len(error_sitem) + 23))
+                print("x" * (len(error_sitem) + 29))
                 print("OK: Expected error found: ", error_sitem)
-                print("x" * (len(error_sitem) + 23), "\n")
+                print("x" * (len(error_sitem) + 29), "\n")
                 time.sleep(2)
 
             except TimeoutException:
@@ -420,28 +420,35 @@ class BasePage:
             locator_sitem.clear()
             locator_sitem.send_keys(error_input[i])
             time.sleep(2)
-            # locator_sitem.send_keys(Keys.TAB)
-            # time.sleep(2)
 
+            version = self.current_package_version()
+            if version == 3.8:
+                locator_sitem.send_keys(Keys.TAB)
+                time.sleep(2)
             try:
                 # trying to create the db
-                if value is False:
+                if value is False and version == 3.9:
                     self.locator_finder_by_xpath('//*[@id="modalButton1"]').click()
                     time.sleep(2)
-                # placeholder's error message id
-                error_sitem = self.locator_finder_by_xpath(error_message_id).text
+                    # placeholder's error message id
+                    error_sitem = self.locator_finder_by_xpath(error_message_id).text
+                elif value is False and version == 3.8:
+                    error_sitem = self.locator_finder_by_xpath(error_message_id).text
+                else:
+                    error_sitem = self.locator_finder_by_xpath(error_message_id).text
+
                 # error_message list will hold expected error messages
                 assert error_sitem == error_message[i], \
                     f"FAIL: Expected error message {error_message[i]} but got {error_sitem}"
 
-                print('x' * (len(error_sitem) + 23))
+                print('x' * (len(error_sitem) + 29))
                 print('OK: Expected error found: ', error_sitem)
-                print('x' * (len(error_sitem) + 23), '\n')
+                print('x' * (len(error_sitem) + 29), '\n')
                 time.sleep(2)
 
                 # getting out from the db creation for the next check
-                if value is False:
-                    self.webdriver.refresh()
+                if value is False and version == 3.9:
+                    self.driver.refresh()
                     self.locator_finder_by_id('createDatabase').click()
                     time.sleep(1)
 

@@ -77,9 +77,12 @@ class DashboardPage(NavigationBarPage):
 
     def check_system_resource(self):
         """checking system resource tab from the dashboard"""
-        check_system_resource_sitem = self.locator_finder_by_id(self.check_system_resource_id)
-        check_system_resource_sitem.click()
-        time.sleep(1)
+        try:
+            check_system_resource_sitem = self.locator_finder_by_id(self.check_system_resource_id)
+            check_system_resource_sitem.click()
+            time.sleep(3)
+        except TimeoutException as ex:
+            print('FAIL: cound not find the system-statistics locator! \n')
 
     def check_distribution_tab(self):
         """Checking distribution tab"""
