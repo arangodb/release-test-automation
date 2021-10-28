@@ -388,10 +388,10 @@ class BasePage:
                 # error_message list will hold expected error messages
                 assert (
                     error_sitem == error_message[i]
-                ), f"Expected error message {error_message[i]} but got {error_sitem}"
+                ), f"FAIL: Expected error message {error_message[i]} but got {error_sitem}"
 
                 print("x" * (len(error_sitem) + 23))
-                print("Expected error found: ", error_sitem)
+                print("OK: Expected error found: ", error_sitem)
                 print("x" * (len(error_sitem) + 23), "\n")
                 time.sleep(2)
 
@@ -432,10 +432,10 @@ class BasePage:
                 error_sitem = self.locator_finder_by_xpath(error_message_id).text
                 # error_message list will hold expected error messages
                 assert error_sitem == error_message[i], \
-                    f"Expected error message {error_message[i]} but got {error_sitem}"
+                    f"FAIL: Expected error message {error_message[i]} but got {error_sitem}"
 
                 print('x' * (len(error_sitem) + 23))
-                print('Expected error found: ', error_sitem)
+                print('OK: Expected error found: ', error_sitem)
                 print('x' * (len(error_sitem) + 23), '\n')
                 time.sleep(2)
 

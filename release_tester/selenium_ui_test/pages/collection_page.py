@@ -722,10 +722,10 @@ class CollectionPage(NavigationBarPage):
                     notification_sitem.text == expected_text
                 ), f"Expected text{expected_text} but got {notification_sitem.text}"
             except TimeoutException:
-                print("Unexpected error occurred!")
+                print("FAIL: Unexpected error occurred!")
 
         except TimeoutException as ex:
             if test_name == "access":
                 print("Collection creation failed, which is expected")
             if test_name == "read/write":
-                raise Exception("Unexpected error occurred!") from ex
+                raise Exception("FAIL: Unexpected error occurred!") from ex
