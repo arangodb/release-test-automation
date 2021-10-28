@@ -131,6 +131,7 @@ class AllureTestSuiteContext:
         suite_name=None,
         runner_type=None,
         installer_type=None,
+        ssl=False,
     ):
         def generate_suite_name():
             if enterprise:
@@ -146,15 +147,15 @@ class AllureTestSuiteContext:
                     package_type = "deb/rpm/nsis/dmg"
             if not old_version:
                 test_suite_name = """
-            ArangoDB v.{} ({}) ({} package) (enc@rest: {}) (clean install)
+            ArangoDB v.{} ({}) ({} package) (enc@rest: {}) (SSL: {}) (clean install)
                                 """.format(
-                    new_version, edition, package_type, "ON" if enc_at_rest else "OFF"
+                    new_version, edition, package_type, "ON" if enc_at_rest else "OFF", "ON" if ssl else "OFF"
                 )
             else:
                 test_suite_name = """
-                            ArangoDB v.{} ({}) {} package (upgrade from {}) (enc@rest: {}) 
+                            ArangoDB v.{} ({}) {} package (upgrade from {}) (enc@rest: {}) (SSL: {})
                             """.format(
-                    new_version, edition, package_type, old_version, "ON" if enc_at_rest else "OFF"
+                    new_version, edition, package_type, old_version, "ON" if enc_at_rest else "OFF", "ON" if ssl else "OFF"
                 )
             if runner_type:
                 test_suite_name = "[" + str(runner_type) + "] " + test_suite_name

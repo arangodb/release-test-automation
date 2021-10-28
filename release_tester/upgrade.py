@@ -78,6 +78,7 @@ def run_upgrade(
             runner_strings[runner_type],
             None,
             new_inst.installer_type,
+            ssl
         ):
             with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
                 if (not enterprise or is_windows) and runner_type == RunnerType.DC2DC:
