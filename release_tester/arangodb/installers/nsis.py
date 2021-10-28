@@ -209,7 +209,7 @@ class InstallerW(InstallerBase):
             logging.error("failed to get service! - %s", str(exc))
             return
 
-    def un_install_server_package_impl_for_upgrade(self):
+    def un_install_server_package_for_upgrade(self):
         """hook to uninstall old package for upgrade"""
         # once we modify it, the uninstaller will leave it there...
         if self.get_arangod_conf().exists():
