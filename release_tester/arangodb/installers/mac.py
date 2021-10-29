@@ -204,10 +204,10 @@ class InstallerMac(InstallerBase):
     @step
     def upgrade_package(self, old_installer):
         os.environ["UPGRADE_DB"] = "No"
-        self.install_package()
+        self.install_server_package()
 
     @step
-    def install_package(self):
+    def install_server_package_impl(self):
         if self.cfg.pidfile.exists():
             self.cfg.pidfile.unlink()
         logging.info("Mounting DMG")
@@ -223,13 +223,13 @@ class InstallerMac(InstallerBase):
         self.cfg.real_sbin_dir = self.cfg.install_prefix / "opt" / "arangodb" / "sbin"
         self.cfg.all_instances = {"single": {"logfile": self.cfg.log_dir / "arangod.log"}}
         logging.info("Installation successfull")
-        self.caclulate_file_locations()
+        self.calculate_file_locations()
         self.run_installer_script()
         self.set_system_instance()
         self.instance.detect_pid(1)  # should be owned by init - TODO
 
     @step
-    def un_install_package(self):
+    def un_install_server_package_impl(self):
         self.stop_service()
         if not self.mountpoint:
             mpts = _detect_dmg_mountpoints(self.cfg.package_dir / self.server_package)

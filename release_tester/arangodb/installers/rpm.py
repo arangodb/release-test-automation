@@ -19,7 +19,7 @@ import tools.loghelper as lh
 
 
 class InstallerRPM(InstallerLinux):
-    """install .rpm's on RedHat, Centos or SuSe systems"""
+    """install .rpm's on RedHat, CentOS, Rocky Linux or SuSe systems"""
 
     def __init__(self, cfg):
         self.server_package = None
@@ -152,7 +152,7 @@ class InstallerRPM(InstallerLinux):
         logging.debug("upgrade successfully finished")
 
     @step
-    def install_package(self):
+    def install_server_package_impl(self):
         # pylint: disable=too-many-statements
         self.cfg.log_dir = Path("/var/log/arangodb3")
         self.cfg.dbdir = Path("/var/lib/arangodb3")
@@ -250,7 +250,7 @@ class InstallerRPM(InstallerLinux):
         self.instance.detect_pid(1)  # should be owned by init
 
     @step
-    def un_install_package(self):
+    def un_install_server_package_impl(self):
         self.stop_service()
         cmd = ["rpm", "-e", "arangodb3" + ("e" if self.cfg.enterprise else "")]
         lh.log_cmd(cmd)
@@ -258,36 +258,40 @@ class InstallerRPM(InstallerLinux):
         uninstall.wait()
 
     @step
-    def install_debug_package(self):
-        """installing debug package"""
-        print("uninstalling rpm package")
-        cmd = "rpm -i " + str(self.cfg.package_dir / self.debug_package)
+    def install_rpm_package(self, package: str):
+        """installing rpm package"""
+        print("installing rpm package: %s" % package)
+        cmd = "rpm -i " + package
         lh.log_cmd(cmd)
-        debug_install = pexpect.spawnu(cmd)
+        install = pexpect.spawnu(cmd)
         try:
             logging.info("waiting for the installation to finish")
-            debug_install.expect(pexpect.EOF, timeout=90)
-        except pexpect.exceptions.EOF:
+            install.expect(pexpect.EOF, timeout=90)
+            output = install.before
+            install.wait()
+        except pexpect.exceptions.TIMEOUT:
             logging.info("TIMEOUT!")
-            debug_install.close(force=True)
-            ascii_print(debug_install.before)
-        print()
-        logging.info(str(self.debug_package) + " Installation successfull")
-        self.cfg.have_debug_package = True
-
-        while debug_install.isalive():
-            progress(".")
-            if debug_install.exitstatus != 0:
-                debug_install.close(force=True)
-                ascii_print(debug_install.before)
-                raise Exception(str(self.debug_package) + " debug installation didn't finish successfully!")
-        return self.cfg.have_debug_package
+            install.close(force=True)
+            output = install.before
+            raise Exception("Installation of the package {} didn't finish within 90 seconds! Output:\n{}".format(str(package), output))
+        if install.exitstatus != 0:
+            install.close(force=True)
+            raise Exception("Installation of the package {} didn't finish successfully! Output:\n{}".format(str(package), output))
+        else:
+            logging.info(str(self.debug_package) + " Installation successfull")
 
     @step
-    def un_install_debug_package(self):
-        print("uninstalling rpm debug package")
+    def install_debug_package_impl(self):
+        """installing debug package"""
+        self.install_rpm_package(str(self.cfg.package_dir / self.debug_package))
+        self.cfg.debug_package_is_installed = True
+
+    @step
+    def un_install_package(self, package_name: str):
+        """Uninstall package"""
+        print("uninstalling rpm package \"%s\"" % package_name)
         uninstall = pexpect.spawnu(
-            "rpm -e " + "arangodb3" + ("e-debuginfo.x86_64" if self.cfg.enterprise else "-debuginfo.x86_64")
+            "rpm -e " + package_name
         )
         try:
             uninstall.expect(pexpect.EOF, timeout=30)
@@ -301,7 +305,25 @@ class InstallerRPM(InstallerLinux):
             if uninstall.exitstatus != 0:
                 uninstall.close(force=True)
                 ascii_print(uninstall.before)
-                raise Exception("Debug package uninstallation" " didn't finish successfully!")
+                raise Exception("Uninstallation of packages %s failed. " % package_name)
+
+    @step
+    def install_client_package_impl(self):
+        """installing client package"""
+        self.install_rpm_package(str(self.cfg.package_dir / self.client_package))
+        self.cfg.client_package_is_installed = True
+
+    def un_install_client_package_impl(self):
+        """Uninstall client package"""
+        print("uninstalling rpm client package")
+        package_name = "arangodb3" + ("e-client.x86_64" if self.cfg.enterprise else "-client.x86_64")
+        self.un_install_package(package_name)
+
+    def un_install_debug_package_impl(self):
+        """Uninstall debug package"""
+        print("uninstalling rpm debug package")
+        package_name = "arangodb3" + ("e-debuginfo.x86_64" if self.cfg.enterprise else "-debuginfo.x86_64")
+        self.un_install_package(package_name)
 
     @step
     def cleanup_system(self):
