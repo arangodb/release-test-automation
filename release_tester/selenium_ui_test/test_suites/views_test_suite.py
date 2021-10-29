@@ -82,9 +82,9 @@ class ViewsTestSuite(BaseTestSuite):
                 print('View rename is disabled in Cluster mode \n')
             else:
                 print("Rename firstViews to thirdViews started \n")
-                self.views.clicking_rename_views_btn()
-                self.views.rename_views_name("thirdView")
-                self.views.rename_views_name_confirm()
+                views.clicking_rename_views_btn()
+                views.rename_views_name("thirdView")
+                views.rename_views_name_confirm()
                 print("Rename the current Views completed \n")
 
             print("Deleting views started \n")
