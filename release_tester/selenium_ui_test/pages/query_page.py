@@ -49,6 +49,7 @@ class QueryPage(NavigationBarPage):
         print("Navigating to Collection page \n")
         # Selecting collections page
         self.navbar_goto("collections")
+        self.webdriver.refresh()
         data_path = testdata_path / "ui_data" / "query_page" / "IMDB_DUMP"
         print(data_path)
         ret = restore.run_restore_monitored(
@@ -104,6 +105,7 @@ class QueryPage(NavigationBarPage):
     def selecting_query_page(self):
         """Selecting query page"""
         self.navbar_goto("queries")
+        self.webdriver.refresh()
 
     def execute_insert_query(self):
         """This method will run an insert query"""
