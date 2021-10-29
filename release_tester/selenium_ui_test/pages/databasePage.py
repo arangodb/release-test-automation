@@ -178,8 +178,7 @@ class DatabasePage(NavigationBarPage):
             db_name_error_id = '//*[@id="row_new-replication-factor"]/th[2]/p'
 
             # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
-            self.check_expected_error_messages_for_database(self,
-                                                            rf_error_input,
+            self.check_expected_error_messages_for_database(rf_error_input,
                                                             rf_print_statement,
                                                             rf_error_message,
                                                             rf_name,
@@ -206,10 +205,11 @@ class DatabasePage(NavigationBarPage):
             wc_name_error_id = '//*[@id="row_new-write-concern"]/th[2]/p'
 
             # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
-            self.check_expected_error_messages_for_database(self, wc_error_input,
+            self.check_expected_error_messages_for_database(wc_error_input,
                                                             wc_print_statement,
                                                             wc_error_message,
-                                                            wc_name, wc_name_error_id,
+                                                            wc_name,
+                                                            wc_name_error_id,
                                                             True)
             print('Expected error scenario for the Database Write Concern Completed \n')
 
@@ -229,10 +229,11 @@ class DatabasePage(NavigationBarPage):
             db_name_error = '//*[@id="row_new-replication-factor"]/th[2]/p'
 
             # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
-            self.check_expected_error_messages_for_database(self, rf_error_input,
+            self.check_expected_error_messages_for_database(rf_error_input,
                                                             rf_print_statement,
                                                             rf_error_message,
-                                                            rf_name, db_name_error)
+                                                            rf_name,
+                                                            db_name_error)
             print('Expected error scenario for the Database Replication Factor Completed \n')
 
             # -------------------------------database Write Concern convention test----------------------------------
@@ -252,11 +253,11 @@ class DatabasePage(NavigationBarPage):
             wc_name_error = '//*[@id="row_new-write-concern"]/th[2]/p'
 
             # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
-            self.check_expected_error_messages_for_database(self,
-                                                            wc_error_input,
+            self.check_expected_error_messages_for_database(wc_error_input,
                                                             wc_print_statement,
                                                             wc_error_message,
-                                                            wc_name, wc_name_error)
+                                                            wc_name,
+                                                            wc_name_error)
             print('Expected error scenario for the Database Write Concern Completed \n')
 
         print('Closing the database creation \n')
@@ -313,53 +314,58 @@ class DatabasePage(NavigationBarPage):
     def deleting_database(self, db_name):
         """Deleting Database"""
         self.webdriver.refresh()
+        try:
+            print(f"{db_name} deleting started \n")
 
-        print(f"{db_name} deleting started \n")
+            if db_name == "OneShard":
+                db_search = "OneShard_edit-database"
+                db_sitem = self.locator_finder_by_id(db_search)
+                db_sitem.click()
 
-        if db_name == "OneShard":
-            db_search = "OneShard_edit-database"
-            db_sitem = self.locator_finder_by_id(db_search)
-            db_sitem.click()
+            if db_name == "Sharded":
+                db_search = "Sharded_edit-database"
+                db_sitem = self.locator_finder_by_id(db_search)
+                db_sitem.click()
 
-        if db_name == "Sharded":
-            db_search = "Sharded_edit-database"
-            db_sitem = self.locator_finder_by_id(db_search)
-            db_sitem.click()
+            delete_btn = "modalButton1"
+            delete_btn_sitem = self.locator_finder_by_id(delete_btn)
+            delete_btn_sitem.click()
+            time.sleep(1)
 
-        delete_btn = "modalButton1"
-        delete_btn_sitem = self.locator_finder_by_id(delete_btn)
-        delete_btn_sitem.click()
-        time.sleep(1)
+            delete_confirm_btn = "modal-confirm-delete"
+            delete_confirm_btn_sitem = self.locator_finder_by_id(delete_confirm_btn)
+            delete_confirm_btn_sitem.click()
+            time.sleep(1)
 
-        delete_confirm_btn = "modal-confirm-delete"
-        delete_confirm_btn_sitem = self.locator_finder_by_id(delete_confirm_btn)
-        delete_confirm_btn_sitem.click()
-        time.sleep(1)
+            self.webdriver.refresh()
 
-        self.webdriver.refresh()
-
-        print(f"{db_name} deleting completed \n")
+            print(f"{db_name} deleting completed \n")
+        except TimeoutException as ex:
+            print("FAIL: Error occurred during DB deletion \n")
 
     def deleting_user(self, username):
         """Deleting users created for the Database test"""
         self.webdriver.refresh()
-        print('Selecting user for deletion \n')
-        tester = "//h5[text()='tester (tester)']"
-        tester01 = "//h5[text()='tester01 (tester01)']"
-        if username == 'tester':
-            self.locator_finder_by_xpath(tester).click()
-        elif username == 'tester01':
-            self.locator_finder_by_xpath(tester01).click()
-        else:
-            raise Exception('Wrong user has been chosen for deletion!!! \n')
-        time.sleep(2)
+        try:
+            print('Selecting user for deletion \n')
+            tester = "//h5[text()='tester (tester)']"
+            tester01 = "//h5[text()='tester01 (tester01)']"
+            if username == 'tester':
+                self.locator_finder_by_xpath(tester).click()
+            elif username == 'tester01':
+                self.locator_finder_by_xpath(tester01).click()
+            else:
+                raise Exception('Wrong user has been chosen for deletion!!! \n')
+            time.sleep(2)
 
-        print(f'Deleting {username} begins \n')
-        del_button = 'modalButton0'
-        self.locator_finder_by_id(del_button).click()
+            print(f'Deleting {username} begins \n')
+            del_button = 'modalButton0'
+            self.locator_finder_by_id(del_button).click()
 
-        # confirming delete user
-        confirm_btn = 'modal-confirm-delete'
-        self.locator_finder_by_id(confirm_btn).click()
-        print(f'Deleting {username} completed \n')
-        time.sleep(2)
+            # confirming delete user
+            confirm_btn = 'modal-confirm-delete'
+            self.locator_finder_by_id(confirm_btn).click()
+            print(f'Deleting {username} completed \n')
+            time.sleep(2)
+        except TimeoutException:
+            print("FAIL: Error occurred during USER deletion \n")
