@@ -219,8 +219,8 @@ RETURN c
         time.sleep(1)
 
         doc_key = "document-key"
-        doc_key = self.locator_finder_by_id(doc_key)
-        key = doc_key.text
+        doc_key_sitem = self.locator_finder_by_id(doc_key)
+        key = doc_key_sitem.text
         time.sleep(2)
 
         self.selecting_query_page()
@@ -284,10 +284,10 @@ RETURN doc"""
         """executing query with bind parameters"""
         # selecting query execution area
         # TODO: re-add or delete bind values
-        #bind_alive = self.bind_param_input_id % "1"
+        # bind_alive = self.bind_param_input_id % "1"
         bind_name = self.bind_param_input_id % "2"
         self.enter_query(
-        """
+            """
 FOR doc IN Characters
     FILTER doc.alive == @alive && doc.name == @name
     RETURN doc"""

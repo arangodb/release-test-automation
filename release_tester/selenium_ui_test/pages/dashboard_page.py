@@ -82,7 +82,7 @@ class DashboardPage(NavigationBarPage):
             check_system_resource_sitem.click()
             time.sleep(3)
         except TimeoutException as ex:
-            print('FAIL: cound not find the system-statistics locator! \n')
+            print("FAIL: cound not find the system-statistics locator! \n")
 
     def check_distribution_tab(self):
         """Checking distribution tab"""

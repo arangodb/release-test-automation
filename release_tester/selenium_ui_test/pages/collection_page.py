@@ -493,9 +493,7 @@ class CollectionPage(NavigationBarPage):
         self.locator_finder_by_select(self.select_index_type_id, value)
 
         if index_name == "Persistent":
-            self.select_persistent_fields_id = self.locator_finder_by_hover_item_id(
-                self.select_persistent_fields_id
-            )
+            self.select_persistent_fields_id = self.locator_finder_by_hover_item_id(self.select_persistent_fields_id)
             time.sleep(1)
             self.select_persistent_fields_id.send_keys("pfields").perform()
             self.select_persistent_name_id = self.locator_finder_by_hover_item_id(self.select_persistent_name_id)
@@ -507,9 +505,7 @@ class CollectionPage(NavigationBarPage):
                     self.select_persistent_unique_id
                 )
 
-            self.select_persistent_sparse_id = self.locator_finder_by_hover_item_id(
-                self.select_persistent_sparse_id
-            )
+            self.select_persistent_sparse_id = self.locator_finder_by_hover_item_id(self.select_persistent_sparse_id)
             self.select_persistent_duplicate_id = self.locator_finder_by_hover_item_id(
                 self.select_persistent_duplicate_id
             )
@@ -589,7 +585,7 @@ class CollectionPage(NavigationBarPage):
             select_index_confirm_delete_sitem.click()
             self.webdriver.refresh()
         except TimeoutException as e:
-            print('Something went wrong ', e, '\n')
+            print("Something went wrong ", e, "\n")
 
     def select_info_tab(self):
         """Selecting info tab from the collection submenu"""

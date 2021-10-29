@@ -222,7 +222,7 @@ class BasePage:
         self.locator.send_keys(Keys.CONTROL + Keys.RETURN)  # this will open new tab on top of current
         self.webdriver.switch_to.window(self.webdriver.window_handles[1])  # switch to new tab according to index value
         title = self.webdriver.title
-        print('Current page title: ', title, '\n')
+        print("Current page title: ", title, "\n")
         time.sleep(15)
         self.webdriver.close()  # closes the browser active window
         self.webdriver.switch_to.window(self.webdriver.window_handles[0])
@@ -315,7 +315,8 @@ class BasePage:
     def locator_finder_by_class(self, locator_name):
         """This method will used for finding all the locators by their id"""
         self.locator = WebDriverWait(self.webdriver, 10).until(
-            EC.element_to_be_clickable((BY.CLASS_NAME, locator_name)))
+            EC.element_to_be_clickable((BY.CLASS_NAME, locator_name))
+        )
         if self.locator is None:
             print(locator_name, " locator has not found.")
         else:
@@ -354,7 +355,7 @@ class BasePage:
         return self.locator
 
     def check_expected_error_messages_for_analyzer(
-            self, error_input, print_statement, error_message, locators_id, error_message_id, div_id=None
+        self, error_input, print_statement, error_message, locators_id, error_message_id, div_id=None
     ):
         """This method will take three lists and check for expected error condition against user's inputs"""
         i = 0
@@ -388,7 +389,7 @@ class BasePage:
                 error_sitem = self.locator_finder_by_xpath(error_message_id).text
                 # error_message list will hold expected error messages
                 assert (
-                        error_sitem == error_message[i]
+                    error_sitem == error_message[i]
                 ), f"FAIL: Expected error message {error_message[i]} but got {error_sitem}"
 
                 print("x" * (len(error_sitem) + 29))
@@ -401,13 +402,9 @@ class BasePage:
 
             i = i + 1
 
-    def check_expected_error_messages_for_database(self,
-                                                   error_input,
-                                                   print_statement,
-                                                   error_message,
-                                                   locators_id,
-                                                   error_message_id,
-                                                   value=False):
+    def check_expected_error_messages_for_database(
+        self, error_input, print_statement, error_message, locators_id, error_message_id, value=False
+    ):
         """This method will take three lists and check for expected error condition against user's inputs"""
         # value represent true because cluster rf and write concern has different wat to catch the error
         i = 0
@@ -439,38 +436,39 @@ class BasePage:
                     error_sitem = self.locator_finder_by_xpath(error_message_id).text
 
                 # error_message list will hold expected error messages
-                assert error_sitem == error_message[i], \
-                    f"FAIL: Expected error message {error_message[i]} but got {error_sitem}"
+                assert (
+                    error_sitem == error_message[i]
+                ), f"FAIL: Expected error message {error_message[i]} but got {error_sitem}"
 
-                print('x' * (len(error_sitem) + 29))
-                print('OK: Expected error found: ', error_sitem)
-                print('x' * (len(error_sitem) + 29), '\n')
+                print("x" * (len(error_sitem) + 29))
+                print("OK: Expected error found: ", error_sitem)
+                print("x" * (len(error_sitem) + 29), "\n")
                 time.sleep(2)
 
                 # getting out from the db creation for the next check
                 if value is False and version == 3.9:
                     self.driver.refresh()
-                    self.locator_finder_by_id('createDatabase').click()
+                    self.locator_finder_by_id("createDatabase").click()
                     time.sleep(1)
 
             except TimeoutException:
-                raise Exception('*****-->Error occurred. Manual inspection required<--***** \n')
+                raise Exception("*****-->Error occurred. Manual inspection required<--***** \n")
 
             i = i + 1
 
     def check_server_package(self):
         """This will determine the current server package type"""
         try:
-            package = self.locator_finder_by_id('communityLabel').text
+            package = self.locator_finder_by_id("communityLabel").text
             return package
         except TimeoutException:
-            print('This is not a Community server package.\n')
+            print("This is not a Community server package.\n")
 
         try:
-            package = self.locator_finder_by_id('enterpriseLabel').text
+            package = self.locator_finder_by_id("enterpriseLabel").text
             return package
         except TimeoutException:
-            print('This is not a Enterprise server package.\n')
+            print("This is not a Enterprise server package.\n")
 
     def choose_item_from_a_dropdown_menu(self, element: WebElement, item_text: str):
         """Given a drop-down menu element,

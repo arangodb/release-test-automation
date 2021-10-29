@@ -416,4 +416,4 @@ class ViewsPage(NavigationBarPage):
             print(f"Selecting {name} for deleting completed \n")
             time.sleep(1)
         except TimeoutException as e:
-            print('FAIL: could not delete views properly', e, '\n')
+            print("FAIL: could not delete views properly", e, "\n")

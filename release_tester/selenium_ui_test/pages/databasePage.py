@@ -341,7 +341,7 @@ class DatabasePage(NavigationBarPage):
 
             print(f"{db_name} deleting completed \n")
         except TimeoutException as ex:
-            print("FAIL: Error occurred during DB deletion \n")
+            print("FAIL: Error occurred during DB deletion", ex, "\n")
 
     def deleting_user(self, username):
         """Deleting users created for the Database test"""
@@ -367,5 +367,5 @@ class DatabasePage(NavigationBarPage):
             self.locator_finder_by_id(confirm_btn).click()
             print(f'Deleting {username} completed \n')
             time.sleep(2)
-        except TimeoutException:
-            print("FAIL: Error occurred during USER deletion \n")
+        except TimeoutException as ex:
+            print("FAIL: Error occurred during USER deletion", ex, "\n")
