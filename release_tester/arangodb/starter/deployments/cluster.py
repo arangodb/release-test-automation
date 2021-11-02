@@ -66,39 +66,9 @@ db.testCollection.save({test: "document"})
             node2_tls_keyfile = self.cert_dir / Path("node2") / "tls.keyfile"
             node3_tls_keyfile = self.cert_dir / Path("node3") / "tls.keyfile"
 
-            self.cert_op(
-                [
-                    "tls",
-                    "keyfile",
-                    "--cacert=" + str(self.certificate_auth["cert"]),
-                    "--cakey=" + str(self.certificate_auth["key"]),
-                    "--keyfile=" + str(node1_tls_keyfile),
-                    "--host=" + self.cfg.publicip,
-                    "--host=localhost",
-                ]
-            )
-            self.cert_op(
-                [
-                    "tls",
-                    "keyfile",
-                    "--cacert=" + str(self.certificate_auth["cert"]),
-                    "--cakey=" + str(self.certificate_auth["key"]),
-                    "--keyfile=" + str(node2_tls_keyfile),
-                    "--host=" + self.cfg.publicip,
-                    "--host=localhost",
-                ]
-            )
-            self.cert_op(
-                [
-                    "tls",
-                    "keyfile",
-                    "--cacert=" + str(self.certificate_auth["cert"]),
-                    "--cakey=" + str(self.certificate_auth["key"]),
-                    "--keyfile=" + str(node3_tls_keyfile),
-                    "--host=" + self.cfg.publicip,
-                    "--host=localhost",
-                ]
-            )
+            for keyfile in [node1_tls_keyfile, node2_tls_keyfile, node3_tls_keyfile]:
+                self.generate_keyfile(keyfile)
+
             node1_opts.append(f"--ssl.keyfile={node1_tls_keyfile}")
             node2_opts.append(f"--ssl.keyfile={node2_tls_keyfile}")
             node3_opts.append(f"--ssl.keyfile={node2_tls_keyfile}")
@@ -296,6 +266,11 @@ db.testCollection.save({test: "document"})
         self.set_frontend_instances()
 
         logging.info("jamming: Starting instance without jwt")
+        moreopts = ["--starter.join", "127.0.0.1:9528"]
+        if self.cfg.ssl and not self.cfg.use_auto_certs:
+            keyfile = self.cert_dir / Path("nodeX") / "tls.keyfile"
+            self.generate_keyfile(keyfile)
+            moreopts.append(f"--ssl.keyfile={keyfile}")
         dead_instance = StarterManager(
             self.basecfg,
             Path("CLUSTER"),
@@ -307,7 +282,7 @@ db.testCollection.save({test: "document"})
                 InstanceType.COORDINATOR,
                 InstanceType.DBSERVER,
             ],
-            moreopts=["--starter.join", "127.0.0.1:9528"],
+            moreopts=moreopts,
         )
         dead_instance.run_starter()
 
@@ -347,4 +322,17 @@ db.testCollection.save({test: "document"})
             self.starter_instances[0].arango_restore,
             [x for x in self.starter_instances[0].all_instances if x.instance_type == InstanceType.COORDINATOR][0],
             self.new_cfg,
+        )
+
+    def generate_keyfile(self, keyfile):
+        self.cert_op(
+            [
+                "tls",
+                "keyfile",
+                "--cacert=" + str(self.certificate_auth["cert"]),
+                "--cakey=" + str(self.certificate_auth["key"]),
+                "--keyfile=" + str(keyfile),
+                "--host=" + self.cfg.publicip,
+                "--host=localhost",
+            ]
         )
