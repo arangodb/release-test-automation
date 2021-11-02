@@ -91,6 +91,7 @@ class BinaryDescription:
     @step
     def check_installed(self, version, enterprise, check_stripped, check_symlink):
         """check all attributes of this file in reality"""
+        attach(str(self), "file info")
         if semver.compare(self.version_min, version) == 1:
             self.check_path(enterprise, False)
             return
@@ -177,10 +178,6 @@ class BinaryDescription:
             if not link.is_symlink():
                 Exception("{0} is not a symlink".format(str(link)))
 
-    @step
-    def un_install_package_for_upgrade(self):
-        """hook to uninstall old package for upgrade"""
-
 
 ### main class
 # pylint: disable=attribute-defined-outside-init disable=too-many-public-methods
@@ -191,9 +188,10 @@ class InstallerBase(ABC):
         self.arango_binaries = []
         self.cfg = copy.deepcopy(cfg)
         self.calculate_package_names()
-        self.caclulate_file_locations()
 
-        self.cfg.have_debug_package = False
+        self.cfg.debug_package_is_installed = False
+        self.cfg.client_package_is_installed = False
+        self.cfg.server_package_is_installed = False
         self.reset_version(cfg.version)
         self.check_stripped = True
         self.check_symlink = True
@@ -207,21 +205,60 @@ class InstallerBase(ABC):
         self.semver = semver.VersionInfo.parse(version)
         self.cfg.reset_version(version)
 
+    @step
+    def install_server_package(self):
+        """install the server package to the system"""
+        self.install_server_package_impl()
+        self.cfg.server_package_is_installed = True
+        self.calculate_file_locations()
+
+    @step
+    def un_install_server_package(self):
+        self.un_install_server_package_impl()
+        self.cfg.server_package_is_installed = False
+
+    @step
+    def install_client_package(self):
+        """install the client package to the system"""
+        self.install_client_package_impl()
+        self.cfg.client_package_is_installed = True
+        self.calculate_file_locations()
+
+    @step
+    def un_install_client_package(self):
+        """Uninstall client package"""
+        self.un_install_client_package_impl()
+        self.cfg.client_package_is_installed = False
+
+    @step
+    def install_debug_package(self):
+        """install the debug package to the system"""
+        self.install_debug_package_impl()
+        self.cfg.debug_package_is_installed = True
+
+    @step
+    def un_install_debug_package(self):
+        """Uninstall debug package"""
+        self.un_install_debug_package_impl()
+        self.cfg.debug_package_is_installed = False
+
+    def install_debug_package_impl(self):
+        pass
+
+    def un_install_debug_package_impl(self):
+        pass
+
     @abstractmethod
     def calculate_package_names(self):
         """which filenames will we be able to handle"""
 
     @abstractmethod
-    def install_package(self):
+    def install_server_package_impl(self):
         """install the packages to the system"""
 
     @abstractmethod
     def upgrade_package(self, old_installer):
         """install a new version of the packages to the system"""
-
-    @abstractmethod
-    def un_install_package(self):
-        """remove the installed packages from the system"""
 
     @abstractmethod
     def check_service_up(self):
@@ -245,7 +282,7 @@ class InstallerBase(ABC):
     def install_debug_package(self):
         """installing debug package"""
 
-    def un_install_package_for_upgrade(self):
+    def un_install_server_package_for_upgrade(self):
         """hook to uninstall old package for upgrade"""
 
     def get_arangod_conf(self):
@@ -339,191 +376,201 @@ class InstallerBase(ABC):
         if not Path(self.cfg.dbdir / "ENGINE").is_file():
             raise Exception("database engine file not there!")
 
+    @step
     def output_arangod_version(self):
         """document the output of arangod --version"""
-        ver = psutil.Popen([self.cfg.sbin_dir / "arangod", "--version"])
+        cmd = [self.cfg.sbin_dir / "arangod", "--version"]
+        attach(str(cmd), "Command")
+        ver = psutil.Popen(cmd)
         print("arangod version ran with PID:" + (str(ver.pid)))
         ver.wait()
 
     @step
-    def caclulate_file_locations(self):
+    def calculate_file_locations(self):
         """set the global location of files"""
-        self.arango_binaries = []
-        stripped_arangod = semver.compare(self.cfg.version, "3.7.999") < 0
-        self.arango_binaries.append(
-            BinaryDescription(
-                self.cfg.real_sbin_dir,
-                "arangod",
-                False,
-                stripped_arangod,
-                "1.0.0",
-                "4.0.0",
-                [
-                    self.cfg.real_sbin_dir / "arango-init-database",
-                    self.cfg.real_sbin_dir / "arango-secure-installation",
-                ],
-                "c++",
-            )
-        )
+        # files present in both server and client packages
+        self.calculate_package_names()
+        if self.cfg.client_package_is_installed or self.cfg.server_package_is_installed:
+            self.arango_binaries = []
+            stripped_arangod = semver.compare(self.cfg.version, "3.7.999") < 0
 
-        # symlink only for MMFILES
-        self.arango_binaries.append(
-            BinaryDescription(
-                self.cfg.real_sbin_dir,
-                "arangod",
-                False,
-                stripped_arangod,
-                "1.0.0",
-                "3.6.0",
-                [self.cfg.real_bin_dir / ("arango-dfdb" + FILE_EXTENSION)],
-                "c++",
+            self.arango_binaries.append(
+                BinaryDescription(
+                    self.cfg.real_bin_dir,
+                    "arangosh",
+                    False,
+                    True,
+                    "1.0.0",
+                    "4.0.0",
+                    [self.cfg.real_bin_dir / ("arangoinspect" + FILE_EXTENSION)],
+                    "c++",
+                )
             )
-        )
 
-        self.arango_binaries.append(
-            BinaryDescription(
-                self.cfg.real_bin_dir,
-                "arangosh",
-                False,
-                True,
-                "1.0.0",
-                "4.0.0",
-                [self.cfg.real_bin_dir / ("arangoinspect" + FILE_EXTENSION)],
-                "c++",
+            self.arango_binaries.append(
+                BinaryDescription(
+                    self.cfg.real_bin_dir,
+                    "arangoexport",
+                    False,
+                    True,
+                    "1.0.0",
+                    "4.0.0",
+                    [],
+                    "c++",
+                )
             )
-        )
 
-        self.arango_binaries.append(
-            BinaryDescription(
-                self.cfg.real_bin_dir,
-                "arangoexport",
-                False,
-                True,
-                "1.0.0",
-                "4.0.0",
-                [],
-                "c++",
+            self.arango_binaries.append(
+                BinaryDescription(
+                    self.cfg.real_bin_dir,
+                    "arangoimport",
+                    False,
+                    True,
+                    "1.0.0",
+                    "4.0.0",
+                    [self.cfg.real_bin_dir / ("arangoimp" + FILE_EXTENSION)],
+                    "c++",
+                )
             )
-        )
 
-        self.arango_binaries.append(
-            BinaryDescription(
-                self.cfg.real_bin_dir,
-                "arangoimport",
-                False,
-                True,
-                "1.0.0",
-                "4.0.0",
-                [self.cfg.real_bin_dir / ("arangoimp" + FILE_EXTENSION)],
-                "c++",
+            self.arango_binaries.append(
+                BinaryDescription(
+                    self.cfg.real_bin_dir,
+                    "arangodump",
+                    False,
+                    True,
+                    "1.0.0",
+                    "4.0.0",
+                    [],
+                    "c++",
+                )
             )
-        )
 
-        self.arango_binaries.append(
-            BinaryDescription(
-                self.cfg.real_bin_dir,
-                "arangodump",
-                False,
-                True,
-                "1.0.0",
-                "4.0.0",
-                [],
-                "c++",
+            self.arango_binaries.append(
+                BinaryDescription(
+                    self.cfg.real_bin_dir,
+                    "arangorestore",
+                    False,
+                    True,
+                    "1.0.0",
+                    "4.0.0",
+                    [],
+                    "c++",
+                )
             )
-        )
 
-        self.arango_binaries.append(
-            BinaryDescription(
-                self.cfg.real_bin_dir,
-                "arangorestore",
-                False,
-                True,
-                "1.0.0",
-                "4.0.0",
-                [],
-                "c++",
+            self.arango_binaries.append(
+                BinaryDescription(
+                    self.cfg.real_bin_dir,
+                    "arangobench",
+                    False,
+                    True,
+                    "1.0.0",
+                    "4.0.0",
+                    [],
+                    "c++",
+                )
             )
-        )
 
-        self.arango_binaries.append(
-            BinaryDescription(
-                self.cfg.real_bin_dir,
-                "arangobench",
-                False,
-                True,
-                "1.0.0",
-                "4.0.0",
-                [],
-                "c++",
+            self.arango_binaries.append(
+                BinaryDescription(
+                    self.cfg.real_bin_dir,
+                    "arangovpack",
+                    False,
+                    True,
+                    "1.0.0",
+                    "4.0.0",
+                    [],
+                    "c++",
+                )
             )
-        )
 
-        self.arango_binaries.append(
-            BinaryDescription(
-                self.cfg.real_bin_dir,
-                "arangovpack",
-                False,
-                True,
-                "1.0.0",
-                "4.0.0",
-                [],
-                "c++",
+            # enterprise
+            self.arango_binaries.append(
+                BinaryDescription(
+                    self.cfg.real_bin_dir,
+                    "arangobackup",
+                    True,
+                    True,
+                    "3.5.1",
+                    "4.0.0",
+                    [],
+                    "c++",
+                )
             )
-        )
 
-        # starter
-        self.arango_binaries.append(
-            BinaryDescription(
-                self.cfg.real_bin_dir,
-                "arangodb",
-                False,
-                False,
-                "1.0.0",
-                "4.0.0",
-                [],
-                "go",
+        # files only present in server package
+        if self.cfg.server_package_is_installed:
+            self.arango_binaries.append(
+                BinaryDescription(
+                    self.cfg.real_sbin_dir,
+                    "arangod",
+                    False,
+                    stripped_arangod,
+                    "1.0.0",
+                    "4.0.0",
+                    [
+                        self.cfg.real_sbin_dir / "arango-init-database",
+                        self.cfg.real_sbin_dir / "arango-secure-installation",
+                    ],
+                    "c++",
+                )
             )
-        )
 
-        # enterprise
-        self.arango_binaries.append(
-            BinaryDescription(
-                self.cfg.real_bin_dir,
-                "arangobackup",
-                True,
-                True,
-                "3.5.1",
-                "4.0.0",
-                [],
-                "c++",
+            # symlink only for MMFILES
+            self.arango_binaries.append(
+                BinaryDescription(
+                    self.cfg.real_sbin_dir,
+                    "arangod",
+                    False,
+                    stripped_arangod,
+                    "1.0.0",
+                    "3.6.0",
+                    [self.cfg.real_bin_dir / ("arango-dfdb" + FILE_EXTENSION)],
+                    "c++",
+                )
             )
-        )
 
-        self.arango_binaries.append(
-            BinaryDescription(
-                self.cfg.real_sbin_dir,
-                "arangosync",
-                True,
-                False,
-                "1.0.0",
-                "4.0.0",
-                [self.cfg.real_bin_dir / ("arangosync" + FILE_EXTENSION)],
-                "go",
+            # starter
+            self.arango_binaries.append(
+                BinaryDescription(
+                    self.cfg.real_bin_dir,
+                    "arangodb",
+                    False,
+                    False,
+                    "1.0.0",
+                    "4.0.0",
+                    [],
+                    "go",
+                )
             )
-        )
 
-        self.arango_binaries.append(
-            BinaryDescription(
-                self.cfg.real_sbin_dir,
-                "rclone-arangodb",
-                True,
-                True,
-                "3.5.1",
-                "4.0.0",
-                [],
-                "go",
+            # enterprise
+            self.arango_binaries.append(
+                BinaryDescription(
+                    self.cfg.real_sbin_dir,
+                    "arangosync",
+                    True,
+                    False,
+                    "1.0.0",
+                    "4.0.0",
+                    [self.cfg.real_bin_dir / ("arangosync" + FILE_EXTENSION)],
+                    "go",
+                )
             )
-        )
+
+            self.arango_binaries.append(
+                BinaryDescription(
+                    self.cfg.real_sbin_dir,
+                    "rclone-arangodb",
+                    True,
+                    True,
+                    "3.5.1",
+                    "4.0.0",
+                    [],
+                    "go",
+                )
+            )
 
     @step
     def check_installed_files(self):

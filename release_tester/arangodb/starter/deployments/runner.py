@@ -317,7 +317,7 @@ class Runner(ABC):
                 False,
                 "UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),
             )
-            if self.cfg.have_debug_package:
+            if self.cfg.debug_package_is_installed:
                 print("removing *old* debug package in advance")
                 self.old_installer.un_install_debug_package()
 
@@ -327,15 +327,15 @@ class Runner(ABC):
             self.new_installer.get_starter_version()
             # only install debug package for new package.
             self.progress(True, "installing debug package:")
-            self.cfg.have_debug_package = self.new_installer.install_debug_package()
-            if self.cfg.have_debug_package:
+            self.cfg.debug_package_is_installed = self.new_installer.install_debug_package()
+            if self.cfg.debug_package_is_installed:
                 self.new_installer.gdb_test()
             self.new_installer.stop_service()
             self.cfg.set_directories(self.new_installer.cfg)
             self.new_cfg.set_directories(self.new_installer.cfg)
 
             self.upgrade_arangod_version()  # make sure to pass new version
-            self.old_installer.un_install_package_for_upgrade()
+            self.old_installer.un_install_server_package_for_upgrade()
             if self.is_minor_upgrade() and self.new_installer.supports_backup():
                 self.new_installer.check_backup_is_created()
             self.make_data_after_upgrade()
@@ -401,7 +401,7 @@ class Runner(ABC):
 
         self.progress(False, "Runner of type {0}".format(str(self.name)), "<3")
         self.old_installer.load_config()
-        self.old_installer.caclulate_file_locations()
+        self.old_installer.calculate_file_locations()
         self.basecfg.set_directories(self.old_installer.cfg)
         if self.do_starter_test:
             self.progress(
@@ -446,8 +446,15 @@ class Runner(ABC):
 
         kill_all_processes(False)
         if self.do_install:
-            lh.subsubsection("installing package")
-            inst.install_package()
+            if inst.client_package:
+                lh.subsubsection("installing client package")
+                inst.install_client_package()
+                lh.subsubsection("checking files")
+                inst.check_installed_files()
+                lh.subsubsection("uninstalling client package")
+                inst.un_install_client_package()
+            lh.subsubsection("installing server package")
+            inst.install_server_package()
             self.cfg.set_directories(inst.cfg)
             lh.subsubsection("checking files")
             inst.check_installed_files()
@@ -473,8 +480,8 @@ class Runner(ABC):
             if not self.new_installer:
                 # only install debug package for new package.
                 self.progress(True, "installing debug package:")
-                self.cfg.have_debug_package = inst.install_debug_package()
-                if self.cfg.have_debug_package:
+                self.cfg.debug_package_is_installed = inst.install_debug_package()
+                if self.cfg.debug_package_is_installed:
                     self.progress(True, "testing debug symbols")
                     inst.gdb_test()
 
@@ -507,11 +514,11 @@ class Runner(ABC):
     def uninstall(self, inst):
         """uninstall the package from the system"""
         self.progress(True, "{0} - uninstall package".format(str(self.name)))
-        if self.cfg.have_debug_package:
+        if self.cfg.debug_package_is_installed:
             print("uninstalling debug package")
             inst.un_install_debug_package()
         print("uninstalling server package")
-        inst.un_install_package()
+        inst.un_install_server_package()
         inst.check_uninstall_cleanup()
         inst.cleanup_system()
 
