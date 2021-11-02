@@ -168,15 +168,13 @@ def download_options(default_source="public", double_source=False, other_source=
         if double_source:
             function = click.option(
                 "--new-source",
-                multiple=False,
-                default=[default_source],
+                default=default_source,
                 type=click.Choice(download_sources),
                 help="where to download the package from",
             )(function)
             function = click.option(
                 "--old-source",
-                multiple=False,
-                default=[default_source],
+                default=default_source,
                 type=click.Choice(download_sources),
                 help="where to download the package from",
             )(function)
