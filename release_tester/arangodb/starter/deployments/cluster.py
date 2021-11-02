@@ -71,7 +71,7 @@ db.testCollection.save({test: "document"})
 
             node1_opts.append(f"--ssl.keyfile={node1_tls_keyfile}")
             node2_opts.append(f"--ssl.keyfile={node2_tls_keyfile}")
-            node3_opts.append(f"--ssl.keyfile={node2_tls_keyfile}")
+            node3_opts.append(f"--ssl.keyfile={node3_tls_keyfile}")
 
         def add_starter(name, port, opts):
             self.starter_instances.append(
