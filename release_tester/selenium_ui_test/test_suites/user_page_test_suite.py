@@ -35,6 +35,7 @@ class UserPageTestSuite(BaseTestSuite):
         collection_page = CollectionPage(self.webdriver)
         collection_page.navbar_goto("collections")
         collection_page.create_sample_collection("access")
+        collection_page.select_delete_collection()
         print("Allow user Read Only access only to the current DB test completed \n")
 
         print("Allow user Read/Write access to the _system DB test started \n")
@@ -58,6 +59,7 @@ class UserPageTestSuite(BaseTestSuite):
         print("trying to create collection")
         collection_page.navbar_goto("collections")
         collection_page.create_sample_collection("read/write")
+        collection_page.select_delete_collection()
         print("Allow user Read/Write access to the _system DB test Completed \n")
 
         # logout from the current user to get back to root
