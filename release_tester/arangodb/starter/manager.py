@@ -245,14 +245,15 @@ class StarterManager:
         logging.info("arangod instances for starter: %s - %s", self.name, instances)
 
     @step
-    def run_starter(self):
+    def run_starter(self, expect_to_fail=False):
         """launch the starter for this instance"""
         logging.info("running starter " + self.name)
         args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup + self.arguments
         lh.log_cmd(args)
         self.instance = psutil.Popen(args)
-        self.wait_for_logfile()
         logging.info("my starter has PID:" + str(self.instance.pid))
+        if not expect_to_fail:
+            self.wait_for_logfile()
 
     @step
     def attach_running_starter(self):
@@ -390,8 +391,7 @@ class StarterManager:
         keep_going = True
         logging.info("Looking for log file.\n")
         while keep_going:
-            if not self.instance.is_running():
-                raise Exception(timestamp() + "my instance is gone!" + str(self.basedir))
+            self.check_that_instance_is_alive()
             if counter == 20:
                 raise Exception("logfile did not appear: " + str(self.log_file))
             counter += 1
@@ -984,8 +984,7 @@ class StarterManager:
     @step
     def active_failover_detect_hosts(self):
         """detect hosts for the active failover"""
-        if not self.instance.is_running():
-            raise Exception(timestamp() + "my instance is gone! " + self.basedir)
+        self.check_that_instance_is_alive()
         # this is the way to detect the master starter...
         lfs = self.get_log_file()
         if lfs.find("Just became master") >= 0:
@@ -1003,8 +1002,7 @@ class StarterManager:
     def active_failover_detect_host_now_follower(self):
         """detect whether we successfully respawned the instance,
         and it became a follower"""
-        if not self.instance.is_running():
-            raise Exception(timestamp() + "my instance is gone! " + self.basedir)
+        self.check_that_instance_is_alive()
         lfs = self.get_log_file()
         if lfs.find("resilientsingle up and running as follower") >= 0:
             self.is_master = False
@@ -1041,6 +1039,28 @@ class StarterManager:
         else:
             return "http"
 
+    @step
+    def check_that_instance_is_alive(self):
+        """Check that starter instance is alive"""
+        if not self.instance.is_running():
+            raise Exception(f"Starter instance is not running. Base directory: {str(self.basedir)}")
+        elif self.instance.status() == psutil.STATUS_ZOMBIE:
+            raise Exception(f"Starter instance is a zombie. Base directory: {str(self.basedir)}")
+        else:
+            return
+
+    @step
+    def check_that_starter_log_contains(self, substring: str):
+        """check whether substring is present in the starter log"""
+        if self.count_occurances_in_starter_log(substring) > 0:
+            return
+        else:
+            raise Exception(f"Expected to find the following string: {substring}\n in this log file:\n{str(self.log_file)}")
+
+    def count_occurances_in_starter_log(self, substring: str):
+        """count occurrences of a substring in the starter log"""
+        number_of_occurances = self.get_log_file().count(substring)
+        return number_of_occurances
 
 class StarterNonManager(StarterManager):
     """this class is a dummy starter manager to work with similar interface"""
