@@ -209,9 +209,8 @@ def package_test(
     help="tar file with the version combination in.",
 )
 @full_common_options
-@very_common_options(support_multi_version=True)
+@very_common_options()
 @common_options(
-    support_multi_version=True,
     support_old=False,
     interactive=False,
     test_data_dir="/home/test_dir",
@@ -237,18 +236,6 @@ def main(
         httpuser, httppassvoid, remote_host):
 # fmt: on
     """ main """
-    if len(new_source) != len(new_version):
-        raise Exception("""
-Cannot have different numbers of versions / sources: 
-new_version:  {len_new_version} {new_version}
-new_source:   {len_new_source} {new_source}
-""".format(
-                len_new_version=len(new_version),
-                new_version=str(new_version),
-                len_new_source=len(new_source),
-                new_source=str(new_source),
-            )
-        )
 
     return package_test(
         verbose,
