@@ -284,12 +284,13 @@ db.testCollection.save({test: "document"})
             ],
             moreopts=moreopts,
         )
-        dead_instance.run_starter()
+        dead_instance.run_starter(expect_to_fail=True)
 
         i = 0
         while True:
             logging.info(". %d", i)
             if not dead_instance.is_instance_running():
+                dead_instance.check_that_starter_log_contains("Unauthorized. Wrong credentials.")
                 break
             if i > 40:
                 logging.info("Giving up wating for the starter to exit")
