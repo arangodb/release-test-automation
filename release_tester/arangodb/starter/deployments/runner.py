@@ -882,15 +882,17 @@ class Runner(ABC):
         """remove all directories created by this test"""
         testdir = self.basecfg.base_test_dir / self.basedir
         print("cleaning up " + str(testdir))
-        if testdir.exists():
-            shutil.rmtree(testdir)
+        try:
+            if testdir.exists():
+                shutil.rmtree(testdir)
+        finally:
             if "REQUESTS_CA_BUNDLE" in os.environ:
                 del os.environ["REQUESTS_CA_BUNDLE"]
-        if reset_tmp and WINVER[0]:
-            os.environ["TMP"] = self.original_tmp
-            os.environ["TEMP"] = self.original_temp
-        elif "TMPDIR" in os.environ:
-            del os.environ["TMPDIR"]
+            if reset_tmp and WINVER[0]:
+                os.environ["TMP"] = self.original_tmp
+                os.environ["TEMP"] = self.original_temp
+            elif "TMPDIR" in os.environ:
+                del os.environ["TMPDIR"]
 
     @step
     def agency_trigger_leader_relection(self, old_leader):
