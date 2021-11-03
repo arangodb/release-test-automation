@@ -131,7 +131,7 @@ def common_options(
             help="options to the selenium web driver",
         )(function)
         function = click.option(
-            "--clean-alluredir",
+            "--clean-alluredir/--do-not-clean-alluredir",
             is_flag=True,
             default=True,
             help="clean allure results dir before running tests",
@@ -168,15 +168,13 @@ def download_options(default_source="public", double_source=False, other_source=
         if double_source:
             function = click.option(
                 "--new-source",
-                multiple=True,
-                default=[default_source],
+                default=default_source,
                 type=click.Choice(download_sources),
                 help="where to download the package from",
             )(function)
             function = click.option(
                 "--old-source",
-                multiple=True,
-                default=[default_source],
+                default=default_source,
                 type=click.Choice(download_sources),
                 help="where to download the package from",
             )(function)

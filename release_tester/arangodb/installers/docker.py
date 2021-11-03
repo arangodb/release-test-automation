@@ -78,10 +78,10 @@ class InstallerDocker(InstallerBase):
     def upgrade_package(self, old_installer):
         pass
 
-    def install_package(self):
+    def install_server_package_impl(self):
         logging.info("not installing anything.")
 
-    def un_install_package(self):
+    def un_install_server_package_impl(self):
         pass
 
     def broadcast_bind(self):

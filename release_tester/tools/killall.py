@@ -20,7 +20,7 @@ def get_all_processes(kill_selenium):
     chromedrivers = []
     headleschromes = []
     logging.info("searching for leftover processes")
-    for process in psutil.process_iter(["pid", "name"]):
+    for process in psutil.Process().children(recursive=True):
         try:
             name = process.name()
             if name.startswith("arangodb"):
@@ -95,6 +95,10 @@ def list_all_processes():
             if cmdline == "[]":
                 cmdline = "[" + process.name() + "]"
         except psutil.AccessDenied:
+            pass
+        except psutil.ProcessLookupError:
+            pass
+        except psutil.NoSuchProcess:
             pass
         logging.info("{pid} {proc}".format(pid=process.pid, proc=cmdline))
     print(pseaf)

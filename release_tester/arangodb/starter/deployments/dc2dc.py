@@ -312,7 +312,7 @@ class Dc2Dc(Runner):
         print("Arangosync v%s detected" % version)
         return semver.VersionInfo.parse(version)
 
-    def _stop_sync(self, timeout=120):
+    def _stop_sync(self, timeout=130):
         try:
             timeout_start = time.time()
             if self._is_higher_sync_version(SYNC_VERSIONS["150"], SYNC_VERSIONS["230"]):
@@ -326,19 +326,30 @@ class Dc2Dc(Runner):
                 _, _, _, _ = self.sync_manager.stop_sync(timeout, ["--ensure-in-sync=false"])
         except CliExecutionException as exc:
             self.state += "\n" + exc.execution_result[1]
-            raise Exception("failed to stop the synchronization") from exc
+            output = ""
+            if exc.have_timeout:
+                (result, output) = self.sync_manager.check_sync()
+                if result:
+                    print("CHECK SYNC OK!")
+            raise Exception("failed to stop the synchronization; check sync:" + output) from exc
 
-        if not self._is_higher_sync_version(SYNC_VERSIONS["180"], SYNC_VERSIONS["260"]):
-            print("Wait for the inactive replication on all clusters")
-            status_source = ""
-            status_target = ""
-            while time.time() < timeout_start + timeout:
-                status_source = _get_sync_status(self.cluster1)
-                status_target = _get_sync_status(self.cluster2)
-                if status_source == STATUS_INACTIVE and status_target == STATUS_INACTIVE:
-                    return
+        # From here on it is known that `arangosync stop sync` succeeded (exit code == 0).
+        if self._is_higher_sync_version(SYNC_VERSIONS["180"], SYNC_VERSIONS["260"]):
+            # The replication should be really stopped.
+            return
 
-                time.sleep(2)
+        # Workaround for older versions where stopping synchronization did not work well.
+        # It could return success, but it has not been stopped yet. It must be checked manually.
+        status_source = ""
+        status_target = ""
+        print("Wait for the inactive replication on all clusters")
+        while time.time() < timeout_start + timeout:
+            status_source = _get_sync_status(self.cluster1)
+            status_target = _get_sync_status(self.cluster2)
+            if status_source == STATUS_INACTIVE and status_target == STATUS_INACTIVE:
+                return
+
+            time.sleep(2)
 
         raise Exception(
             "failed to stop the synchronization, source status: " + status_source + ", target status: " + status_target

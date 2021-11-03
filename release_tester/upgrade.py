@@ -78,6 +78,7 @@ def run_upgrade(
             runner_strings[runner_type],
             None,
             new_inst.installer_type,
+            ssl
         ):
             with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
                 if (not enterprise or is_windows) and runner_type == RunnerType.DC2DC:
@@ -156,7 +157,7 @@ def run_upgrade(
                                 traceback.print_exc()
                                 lh.section("uninstall on error")
                                 old_inst.un_install_debug_package()
-                                old_inst.un_install_package()
+                                old_inst.un_install_server_package()
                                 old_inst.cleanup_system()
                                 try:
                                     runner.cleanup()
@@ -165,7 +166,7 @@ def run_upgrade(
                                 continue
 
                     lh.section("uninstall")
-                    new_inst.un_install_package()
+                    new_inst.un_install_server_package()
                     lh.section("check system")
                     new_inst.check_uninstall_cleanup()
                     lh.section("remove residuals")
@@ -200,14 +201,14 @@ def run_upgrade(
                     try:
                         print("Cleaning up system after error:")
                         old_inst.un_install_debug_package()
-                        old_inst.un_install_package()
+                        old_inst.un_install_server_package()
                         old_inst.cleanup_system()
                     except Exception:
                         print("Ignoring old cleanup error!")
                     try:
                         print("Ignoring new cleanup error!")
                         new_inst.un_install_debug_package()
-                        new_inst.un_install_package()
+                        new_inst.un_install_server_package()
                         new_inst.cleanup_system()
                     except Exception:
                         print("Ignoring new cleanup error!")

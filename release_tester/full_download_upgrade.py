@@ -62,7 +62,6 @@ def upgrade_package_test(
     selenium_driver_args,
     alluredir,
     clean_alluredir,
-    ssl,
     use_auto_certs,
 ):
     """process fetch & tests"""
@@ -81,98 +80,99 @@ def upgrade_package_test(
     results = []
     # do the actual work:
     execution_plan = [
-        (True, True, "EE", "Enterprise\nEnc@REST"),
-        (True, False, "EP", "Enterprise"),
-        (False, False, "C", "Community"),
+        (True, True, True, "EE", "Enterprise\nEnc@REST"),
+        (True, False, False, "EP", "Enterprise"),
+        (False, False, False, "C", "Community"),
     ]
 
-    for j in range(len(new_version)):
-        for (
-            enterprise,
-            encryption_at_rest,
-            directory_suffix,
-            testrun_name,
-        ) in execution_plan:
-            print("Cleaning up" + testrun_name)
-            run_cleanup(zip_package, testrun_name)
-        print("Cleanup done")
+    for (
+        enterprise,
+        encryption_at_rest,
+        ssl,
+        directory_suffix,
+        testrun_name,
+    ) in execution_plan:
+        print("Cleaning up" + testrun_name)
+        run_cleanup(zip_package, testrun_name)
+    print("Cleanup done")
 
-        for (
+    for (
+        enterprise,
+        encryption_at_rest,
+        ssl,
+        directory_suffix,
+        testrun_name,
+    ) in execution_plan:
+        if directory_suffix not in editions:
+            continue
+        # pylint: disable=W0612
+        dl_old = Download(
+            old_version,
+            verbose,
+            package_dir,
             enterprise,
-            encryption_at_rest,
-            directory_suffix,
-            testrun_name,
-        ) in execution_plan:
-            if directory_suffix not in editions:
-                continue
-            # pylint: disable=W0612
-            dl_old = Download(
-                old_version[j],
+            enterprise_magic,
+            zip_package,
+            old_dlstage,
+            httpusername,
+            httppassvoid,
+            remote_host,
+            versions,
+            fresh_versions,
+            git_version,
+        )
+        dl_new = Download(
+            new_version,
+            verbose,
+            package_dir,
+            enterprise,
+            enterprise_magic,
+            zip_package,
+            new_dlstage,
+            httpusername,
+            httppassvoid,
+            remote_host,
+            versions,
+            fresh_versions,
+            git_version,
+        )
+        if not dl_new.is_different() or not dl_old.is_different():
+            print("we already tested this version. bye.")
+            return 0
+        dl_old.get_packages(dl_old.is_different())
+        dl_new.get_packages(dl_new.is_different())
+        test_dir = Path(test_data_dir) / directory_suffix
+        if test_dir.exists():
+            shutil.rmtree(test_dir)
+            if "REQUESTS_CA_BUNDLE" in os.environ:
+                del os.environ["REQUESTS_CA_BUNDLE"]
+        test_dir.mkdir()
+        while not test_dir.exists():
+            time.sleep(1)
+        results.append(
+            run_upgrade(
+                str(dl_old.cfg.version),
+                str(dl_new.cfg.version),
                 verbose,
                 package_dir,
+                test_dir,
+                alluredir,
+                clean_alluredir,
                 enterprise,
-                enterprise_magic,
+                encryption_at_rest,
                 zip_package,
-                old_dlstage[j],
-                httpusername,
-                httppassvoid,
-                remote_host,
-                versions,
-                fresh_versions,
-                git_version,
+                False,  # interactive
+                starter_mode,
+                stress_upgrade,
+                False,  # abort on error
+                publicip,
+                selenium,
+                selenium_driver_args,
+                testrun_name,
+                ssl,
+                use_auto_certs,
             )
-            dl_new = Download(
-                new_version[j],
-                verbose,
-                package_dir,
-                enterprise,
-                enterprise_magic,
-                zip_package,
-                new_dlstage[j],
-                httpusername,
-                httppassvoid,
-                remote_host,
-                versions,
-                fresh_versions,
-                git_version,
-            )
-            if not dl_new.is_different() or not dl_old.is_different():
-                print("we already tested this version. bye.")
-                return 0
-            dl_old.get_packages(dl_old.is_different())
-            dl_new.get_packages(dl_new.is_different())
-            test_dir = Path(test_data_dir) / directory_suffix
-            if test_dir.exists():
-                shutil.rmtree(test_dir)
-                if "REQUESTS_CA_BUNDLE" in os.environ:
-                    del os.environ["REQUESTS_CA_BUNDLE"]
-            test_dir.mkdir()
-            while not test_dir.exists():
-                time.sleep(1)
-            results.append(
-                run_upgrade(
-                    str(dl_old.cfg.version),
-                    str(dl_new.cfg.version),
-                    verbose,
-                    package_dir,
-                    test_dir,
-                    alluredir,
-                    clean_alluredir,
-                    enterprise,
-                    encryption_at_rest,
-                    zip_package,
-                    False,  # interactive
-                    starter_mode,
-                    stress_upgrade,
-                    False,  # abort on error
-                    publicip,
-                    selenium,
-                    selenium_driver_args,
-                    testrun_name,
-                    ssl,
-                    use_auto_certs,
-                )
-            )
+        )
 
     print("V" * 80)
     status = True
@@ -229,9 +229,9 @@ def upgrade_package_test(
     help="tar file with the version combination in.",
 )
 @full_common_options
-@very_common_options(support_multi_version=True)
+@very_common_options()
 @common_options(
-    support_multi_version=True,
+    support_multi_version=False,
     support_old=True,
     interactive=False,
     test_data_dir="/home/test_dir",
@@ -255,26 +255,6 @@ def main(
         httpuser, httppassvoid, remote_host):
 # fmt: on
     """ main """
-    if ((len(new_source) != len(new_version)) or
-        (len(old_source) != len(old_version)) or
-        (len(old_source) != len(new_source))):
-        raise Exception("""
-Cannot have different numbers of versions / sources: 
-old_version:  {len_old_version} {old_version}
-old_source:   {len_old_source} {old_source}
-new_version:  {len_new_version} {new_version}
-new_source:   {len_new_source} {new_source}
-""".format(
-                len_old_version=len(old_version),
-                old_version=str(old_version),
-                len_old_source=len(old_source),
-                old_source=str(old_source),
-                len_new_version=len(new_version),
-                new_version=str(new_version),
-                len_new_source=len(new_source),
-                new_source=str(new_source),
-            )
-        )
 
     return upgrade_package_test(
         verbose,
@@ -300,7 +280,6 @@ new_source:   {len_new_source} {new_source}
         selenium_driver_args,
         alluredir,
         clean_alluredir,
-        ssl,
         use_auto_certs,
     )
 

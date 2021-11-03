@@ -45,8 +45,6 @@ def run_test(mode,
     """ main """
     lh.configure_logging(verbose)
     results = []
-    print('santoehu')
-    print(package_dir)
 
     do_install = mode in ["all", "install"]
     do_uninstall = mode in ["all", "uninstall"]
@@ -86,7 +84,8 @@ def run_test(mode,
                                     None,
                                     runner_strings[runner_type],
                                     None,
-                                    installers[0][1].installer_type):
+                                    installers[0][1].installer_type,
+                                    ssl):
             with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
                 if not enterprise and runner_type == RunnerType.DC2DC:
                     testcase.context.status = Status.SKIPPED
