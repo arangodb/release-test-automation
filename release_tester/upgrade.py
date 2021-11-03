@@ -196,8 +196,10 @@ def run_upgrade(
                     if runner:
                         try:
                             runner.cleanup()
-                        except Exception:
-                            print("Ignoring runner cleanup error!")
+                        except Exception as exception:
+                            print("Ignoring runner cleanup error! Exception:")
+                            print(str(exception))
+                            print("".join(traceback.TracebackException.from_exception(exception).format()))
                     try:
                         print("Cleaning up system after error:")
                         old_inst.un_install_debug_package()
