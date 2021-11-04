@@ -12,6 +12,8 @@ class DatabaseTestSuite(BaseTestSuite):
         # login.login('root', '')
 
         user = UserPage(self.webdriver)
+        assert user.current_user() == "root" "current user is root?"
+        assert user.current_database() == "_system" "current database is _system?"
         user.user_tab()
         user.add_new_user("tester")
         user.add_new_user("tester01")
@@ -38,6 +40,8 @@ class DatabaseTestSuite(BaseTestSuite):
         db.deleting_user('tester01')
 
         # login.logout_button()
+        assert user.current_user() == "root" "current user is root?"
+        assert user.current_database() == "_system" "current database is _system?"
         del user
         del db
         print("---------DataBase Page Test Completed--------- \n")

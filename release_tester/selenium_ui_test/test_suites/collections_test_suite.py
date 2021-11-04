@@ -11,6 +11,8 @@ class CollectionsTestSuite(BaseTestSuite):
         # login = LoginPage(self.webdriver)
         # login.login('root', self.root_passvoid)
         col = CollectionPage(self.webdriver)  # creating obj for Collection
+        assert col.current_user() == "root" "current user is root?"
+        assert col.current_database() == "_system" "current database is _system?"
 
         print("Selecting collection tab\n")
         col.select_collection_page()

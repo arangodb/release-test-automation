@@ -244,6 +244,16 @@ class BasePage:
         version = float(package_version[0:3])
         return version
 
+    def current_user(self):
+        """get the currently logged in user from the page upper middle"""
+        userbar_sitem = self.locator_finder_by_id("userBar")
+        return userbar_sitem.find_element_by_id("toggle").text
+
+    def current_database(self):
+        """get the currently used database from the page upper middle"""
+        database_sitem = self.locator_finder_by_id("dbStatus")
+        return database_sitem.find_element_by_id("state").text
+
     def scroll(self, down=0):
         """This method will be used to scroll up and down to any page"""
         # TODO: do this instead of sleep?

@@ -29,7 +29,8 @@ class UserPageTestSuite(BaseTestSuite):
         user.log_out()
         print("Re-Login begins with new user\n")
         login.login_webif("tester", "tester")
-        print("Re-Login begins with new user completed\n")
+        print("Re-Login begins with new user completed: %s / %s\n" % (
+            login.current_user(), login.current_database()))
 
         print("trying to create collection")
         collection_page = CollectionPage(self.webdriver)
@@ -45,6 +46,8 @@ class UserPageTestSuite(BaseTestSuite):
         user.log_out()
         # login back with root user
         login.login_webif("root", self.root_passvoid)
+        print("Re-Login root user completed: %s / %s\n" % (
+            login.current_user(), login.current_database()))
 
         user.user_tab()
         user.selecting_user_tester()
@@ -55,7 +58,8 @@ class UserPageTestSuite(BaseTestSuite):
         user.log_out()
         print("Re-Login begins with new user\n")
         login.login_webif("tester", "tester")
-        print("Re-Login begins with new user completed\n")
+        print("Re-Login begins with new user completed: %s / %s\n" % (
+            login.current_user(), login.current_database()))
         print("trying to create collection")
         collection_page.navbar_goto("collections")
         collection_page.create_sample_collection("read/write")
@@ -65,10 +69,10 @@ class UserPageTestSuite(BaseTestSuite):
         # logout from the current user to get back to root
         user.log_out()
         login.login_webif("root", self.root_passvoid)
+        print("Re-Login root user completed: %s / %s\n" % (
+            login.current_user(), login.current_database()))
 
-        del user
         self.webdriver.refresh()
-        user = UserPage(self.webdriver)
         user.user_tab()
         user.selecting_new_user()
         print("Deleting created user begins\n")
@@ -76,3 +80,6 @@ class UserPageTestSuite(BaseTestSuite):
         user.confirm_delete_btn()
         print("Deleting created user completed \n")
         print("---------User Test Completed---------\n")
+
+        assert login.current_user() == "root" "current user is root?"
+        assert login.current_database() == "_system" "current database is _system?"
