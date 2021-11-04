@@ -459,7 +459,7 @@ class BasePage:
 
                 # getting out from the db creation for the next check
                 if value is False and version == 3.9:
-                    self.driver.refresh()
+                    self.webdriver.refresh()
                     self.locator_finder_by_id("createDatabase").click()
                     time.sleep(1)
 
