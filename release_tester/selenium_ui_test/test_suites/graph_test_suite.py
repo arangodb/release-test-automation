@@ -1,6 +1,7 @@
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
 from selenium_ui_test.pages.graph_page import GraphPage, GraphExample, get_graph_name
 
+
 class GraphTestSuite(BaseTestSuite):
     @testcase
     def test_graph(self):
@@ -38,8 +39,8 @@ class GraphTestSuite(BaseTestSuite):
 
         print("Example Graphs creation started\n")
         for graph in GraphExample:
-            #graph = GraphExample.MANUAL_KNOWS
-            #this_graph.navbar_goto("graphs")
+            # graph = GraphExample.MANUAL_KNOWS
+            # this_graph.navbar_goto("graphs")
             print(graph)
             print("Creating '%s' Graph" % get_graph_name(graph))
             this_graph.create_graph(graph, self.importer, self.test_data_dir)

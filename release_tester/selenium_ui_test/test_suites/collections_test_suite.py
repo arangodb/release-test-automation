@@ -1,4 +1,5 @@
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
+
 # from selenium_ui_test.models import IndexType
 from selenium_ui_test.pages.collection_page import CollectionPage
 
@@ -206,8 +207,8 @@ class CollectionsTestSuite(BaseTestSuite):
         # print("Deleting all index completed\n")
 
         version = col.current_package_version()
-        print(version,'\n')
-        print('Cluster status: ', self.is_cluster)
+        print(version, "\n")
+        print("Cluster status: ", self.is_cluster)
         col.create_new_index("Persistent", 1, self.is_cluster)
         col.create_new_index("Geo", 2, self.is_cluster)
         col.create_new_index("Fulltext", 3, self.is_cluster)

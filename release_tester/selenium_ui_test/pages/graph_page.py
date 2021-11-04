@@ -5,13 +5,15 @@ from enum import IntEnum
 from selenium_ui_test.pages.base_page import Keys
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import ElementClickInterceptedException, TimeoutException
+
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=C0302 disable=R0902 disable=R0915 disable=R0914
 
 
 class GraphExample(IntEnum):
     """identify example and manual graphs to be managed herein"""
-    #pylint: disable=R0903
+
+    # pylint: disable=R0903
     KNOWS = 1
     TRAVERSAL = 2
     K_SHORTEST_PATH = 3
@@ -28,7 +30,8 @@ class GraphExample(IntEnum):
 
 class VCol:
     """maps a vertex collection to a graph"""
-    #pylint: disable=R0903
+
+    # pylint: disable=R0903
     def __init__(self, name):
         self.name = name
         self.ctype = "v"
@@ -36,7 +39,8 @@ class VCol:
 
 class ECol:
     """maps an edge collection to a graph"""
-    #pylint: disable=R0903
+
+    # pylint: disable=R0903
     def __init__(self, name):
         self.name = name
         self.ctype = "e"
@@ -44,7 +48,8 @@ class ECol:
 
 class GraphCreateSet:
     """this has all we need to know to create an example graph"""
-    #pylint: disable=R0903
+
+    # pylint: disable=R0903
     def __init__(self, clear_name, btn_id, collections, handler=None):
         self.clear_name = clear_name
         self.btn_id = btn_id
@@ -99,7 +104,9 @@ class GraphPage(NavigationBarPage):
         self.select_edge_type_id = "g_edgeType"
         self.select_restore_settings_id = "/html//button[@id='restoreGraphSettings']"
         self.select_tooltips_id = "//*[@id='graphSettingsView']/div/div[2]/div[1]/div[5]/i"
-        self.selected_dropdown_class = "select2-results-dept-0.select2-result.select2-result-selectable.select2-highlighted"
+        self.selected_dropdown_class = (
+            "select2-results-dept-0.select2-result.select2-result-selectable.select2-highlighted"
+        )
 
         self.select_sort_settings_id = "graphManagementToggle"
         self.select_sort_descend_id = "//*[@id='graphManagementDropdown']/ul/li[2]/a/label/i"
@@ -114,7 +121,7 @@ class GraphPage(NavigationBarPage):
 
         self.select_new_graph_name_id = "createNewGraphName"
 
-    #pylint: disable=W0613
+    # pylint: disable=W0613
     def create_manual_graph(self, importer, test_data_dir):
         """creating graph manually"""
         collection_page = self.locator_finder_by_id(self.select_collection_page_id)
@@ -788,12 +795,12 @@ class GraphPage(NavigationBarPage):
                 self.wait_for_ajax()
                 break
             except TimeoutException as exc:
-                retry +=1
+                retry += 1
                 if retry > 10:
                     raise exc
                 print("retrying delete " + str(retry))
             except ElementClickInterceptedException as exc:
-                retry +=1
+                retry += 1
                 if retry > 10:
                     raise exc
                 print("retrying delete " + str(retry))

@@ -9,6 +9,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 from selenium_ui_test.pages.navbar import NavigationBarPage
 
+
 class ClusterPage(NavigationBarPage):
     """Class for Cluster page"""
 

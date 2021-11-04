@@ -81,7 +81,7 @@ class ViewsTestSuite(BaseTestSuite):
             views.search_result_traverse_up()
 
             if self.is_cluster:
-                print('View rename is disabled in Cluster mode \n')
+                print("View rename is disabled in Cluster mode \n")
             else:
                 print("Rename firstViews to thirdViews started \n")
                 views.clicking_rename_views_btn()
@@ -91,7 +91,7 @@ class ViewsTestSuite(BaseTestSuite):
 
             print("Deleting views started \n")
             if self.is_cluster:
-                views.delete_views('first_view', views.select_first_view_id)
+                views.delete_views("first_view", views.select_first_view_id)
             else:
                 views.delete_views("renamed_view", views.select_renamed_view_id)
 

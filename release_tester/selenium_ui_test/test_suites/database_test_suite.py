@@ -36,8 +36,8 @@ class DatabaseTestSuite(BaseTestSuite):
 
         # need to add delete created user here
         user.user_tab()
-        db.deleting_user('tester')
-        db.deleting_user('tester01')
+        db.deleting_user("tester")
+        db.deleting_user("tester01")
 
         # login.logout_button()
         assert user.current_user() == "root" "current user is root?"

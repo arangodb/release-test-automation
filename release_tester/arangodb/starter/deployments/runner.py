@@ -390,7 +390,7 @@ class Runner(ABC):
             ui_test_results_table.columns.header = ["Name", "Result", "Message", "Traceback"]
             self.progress(False, "UI test results table:", supress_allure=True)
             self.progress(False, "\n" + str(ui_test_results_table), supress_allure=True)
-            self.ui_test_results_table=ui_test_results_table
+            self.ui_test_results_table = ui_test_results_table
 
             self.quit_selenium()
 

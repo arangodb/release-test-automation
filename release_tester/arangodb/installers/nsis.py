@@ -298,6 +298,7 @@ class InstallerW(InstallerBase):
                 logging.info("service shouldn't exist anymore!")
         except Exception:
             pass
+
     @step
     def un_install_client_package_impl(self):
         """Uninstall client package"""

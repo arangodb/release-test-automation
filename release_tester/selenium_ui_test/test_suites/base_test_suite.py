@@ -17,8 +17,6 @@ from selenium_ui_test.pages.base_page import BasePage
 from selenium_ui_test.pages.navbar import NavigationBarPage
 
 
-
-
 class BaseTestSuite(ABC):
     def __init__(self, selenium_runner, child_classes=[]):
         self.selenium_runner = selenium_runner

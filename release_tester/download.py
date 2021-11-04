@@ -16,6 +16,7 @@ import tools.loghelper as lh
 import requests
 from common_options import very_common_options, download_options
 
+
 def touch_all_tars_in_dir(tar_file):
     """sets the current filestamp to all tars so jenkins preserves them"""
     print("touching " + str(tar_file))
@@ -28,8 +29,10 @@ def touch_all_tars_in_dir(tar_file):
         if str(one_file).endswith("version.tar"):
             print("touching " + str(one_file))
             one_file.touch()
-        #else:
+        # else:
         #    print("doing nothing about " + str(one_file))
+
+
 def read_versions_tar(tar_file, versions):
     """reads the versions tar"""
     try:
