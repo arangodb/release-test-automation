@@ -11,8 +11,8 @@ class QueryTestSuite(BaseTestSuite):
         query_page = QueryPage(self.webdriver)
         graph_page = GraphPage(self.webdriver)
 
-        assert query_page.current_user() == "root" "current user is root?"
-        assert query_page.current_database() == "_system" "current database is _system?"
+        assert query_page.current_user() == "ROOT", "current user is root?"
+        assert query_page.current_database() == "_SYSTEM", "current database is _system?"
         print("Importing IMDB collections \n")
         query_page.import_collections(self.restore, self.test_data_dir, self.is_cluster)
 

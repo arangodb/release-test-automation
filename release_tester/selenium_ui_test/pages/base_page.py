@@ -248,7 +248,7 @@ class BasePage:
         """get the currently logged in user from the page upper middle"""
         self.wait_for_ajax()
         userbar_sitem = self.locator_finder_by_id("userBar")
-        return userbar_sitem.find_element_by_class_name("toggle").text
+        return str(userbar_sitem.find_element_by_class_name("toggle").text)
 
     def current_database(self):
         """get the currently used database from the page upper middle"""

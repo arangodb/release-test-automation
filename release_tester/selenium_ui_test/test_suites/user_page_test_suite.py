@@ -87,5 +87,5 @@ class UserPageTestSuite(BaseTestSuite):
         print("Deleting created user completed \n")
         print("---------User Test Completed---------\n")
 
-        assert login.current_user() == "ROOT" "current user is root?"
-        assert login.current_database() == "_SYSTEM" "current database is _system?"
+        assert login.current_user() == "ROOT", "current user is root?"
+        assert login.current_database() == "_SYSTEM", "current database is _system?"
