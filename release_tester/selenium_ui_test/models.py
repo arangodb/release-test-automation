@@ -5,6 +5,7 @@ from enum import Enum
 
 class IndexType(Enum):
     """which type of index"""
+
     PERSISTENT = "Persistent"
     GEO = "Geo"
     FULLTEXT = "Fulltext"
@@ -12,7 +13,8 @@ class IndexType(Enum):
 
 
 class RtaUiTestResult:
-    """ abstract a ui result """
+    """abstract a ui result"""
+
     def __init__(self, name, success, message, tb):
         self.name = name
         self.success = success
