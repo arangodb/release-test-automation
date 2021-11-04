@@ -320,8 +320,10 @@ class InstallerBase(ABC):
         """deserialize the config from disk"""
         verbose = self.cfg.verbose
         with open(self.calc_config_file_name()) as fileh:
+            print("loading " + str(self.calc_config_file_name()))
             self.cfg = yaml.load(fileh, Loader=yaml.Loader)
         self.cfg.semver = semver.VersionInfo.parse(self.cfg.version)
+
         self.instance = ArangodInstance(
             "single",
             self.cfg.port,
