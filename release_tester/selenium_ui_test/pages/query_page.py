@@ -101,6 +101,7 @@ class QueryPage(NavigationBarPage):
             if len(line) > 0:  # skip empty lines in heredocuments
                 self.send_key_action(line)
                 self.send_key_action(Keys.ENTER)
+        self.wait_for_ajax()
 
     def selecting_query_page(self):
         """Selecting query page"""
@@ -141,6 +142,7 @@ RETURN c
 
     def profile_query(self):
         """profiling query"""
+        self.wait_for_ajax()
         profile = self.profile_query_id
         profile = self.locator_finder_by_id(profile)
         profile.click()
@@ -150,9 +152,9 @@ RETURN c
 
     def explain_query(self):
         """Explaining query"""
-        explain_query = self.explain_query_id
-        explain_query = self.locator_finder_by_id(explain_query)
-        explain_query.click()
+        self.wait_for_ajax()
+        explain_query_sitem = self.locator_finder_by_id(self.explain_query_id)
+        explain_query_sitem.click()
         time.sleep(2)
 
     def debug_package_download(self):
