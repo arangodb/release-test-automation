@@ -9,6 +9,7 @@ from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 
 from selenium_ui_test.pages.base_page import BasePage
+
 # can't circumvent long lines..
 # pylint: disable=C0301
 

@@ -210,7 +210,7 @@ def full_common_options(function):
     function = click.option(
         "--edition",
         "editions",
-        default=['EE', 'EP', 'C'],
+        default=["EE", "EP", "C"],
         multiple=True,
         help="which editions to run EE => enterprise Encryption@rest, EP => enterprise, C => community",
     )(function)

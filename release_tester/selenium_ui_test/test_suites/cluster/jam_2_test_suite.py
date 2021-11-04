@@ -9,6 +9,7 @@ from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
 
 class ClusterJamStepTwoSuite(BaseTestSuite):
     """cluster jamming steps"""
+
     @testcase
     def jam_step_2(self):
         NavigationBarPage(self.webdriver).navbar_goto("cluster")
@@ -35,7 +36,9 @@ class ClusterJamStepTwoSuite(BaseTestSuite):
     @testcase
     def after_jam_step_2(self):
         """check the integrity of the system after recovery from cluster failure"""
-        version = self.selenium_runner.new_cfg.version if self.selenium_runner.new_cfg else self.selenium_runner.cfg.version
+        version = (
+            self.selenium_runner.new_cfg.version if self.selenium_runner.new_cfg else self.selenium_runner.cfg.version
+        )
         self.check_version(version, self.is_enterprise)
 
         NavigationBarPage(self.webdriver).navbar_goto("nodes")

@@ -1055,12 +1055,15 @@ class StarterManager:
         if self.count_occurances_in_starter_log(substring) > 0:
             return
         else:
-            raise Exception(f"Expected to find the following string: {substring}\n in this log file:\n{str(self.log_file)}")
+            raise Exception(
+                f"Expected to find the following string: {substring}\n in this log file:\n{str(self.log_file)}"
+            )
 
     def count_occurances_in_starter_log(self, substring: str):
         """count occurrences of a substring in the starter log"""
         number_of_occurances = self.get_log_file().count(substring)
         return number_of_occurances
+
 
 class StarterNonManager(StarterManager):
     """this class is a dummy starter manager to work with similar interface"""

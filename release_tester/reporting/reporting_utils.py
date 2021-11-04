@@ -155,7 +155,12 @@ class AllureTestSuiteContext:
                 test_suite_name = """
                             ArangoDB v.{} ({}) {} package (upgrade from {}) (enc@rest: {}) (SSL: {})
                             """.format(
-                    new_version, edition, package_type, old_version, "ON" if enc_at_rest else "OFF", "ON" if ssl else "OFF"
+                    new_version,
+                    edition,
+                    package_type,
+                    old_version,
+                    "ON" if enc_at_rest else "OFF",
+                    "ON" if ssl else "OFF",
                 )
             if runner_type:
                 test_suite_name = "[" + str(runner_type) + "] " + test_suite_name

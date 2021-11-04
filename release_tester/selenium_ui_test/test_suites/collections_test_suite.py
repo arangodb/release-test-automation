@@ -1,4 +1,5 @@
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
+
 # from selenium_ui_test.models import IndexType
 from selenium_ui_test.pages.collection_page import CollectionPage
 

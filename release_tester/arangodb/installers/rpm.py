@@ -273,10 +273,16 @@ class InstallerRPM(InstallerLinux):
             logging.info("TIMEOUT!")
             install.close(force=True)
             output = install.before
-            raise Exception("Installation of the package {} didn't finish within 90 seconds! Output:\n{}".format(str(package), output))
+            raise Exception(
+                "Installation of the package {} didn't finish within 90 seconds! Output:\n{}".format(
+                    str(package), output
+                )
+            )
         if install.exitstatus != 0:
             install.close(force=True)
-            raise Exception("Installation of the package {} didn't finish successfully! Output:\n{}".format(str(package), output))
+            raise Exception(
+                "Installation of the package {} didn't finish successfully! Output:\n{}".format(str(package), output)
+            )
         else:
             logging.info(str(self.debug_package) + " Installation successfull")
 
@@ -289,10 +295,8 @@ class InstallerRPM(InstallerLinux):
     @step
     def un_install_package(self, package_name: str):
         """Uninstall package"""
-        print("uninstalling rpm package \"%s\"" % package_name)
-        uninstall = pexpect.spawnu(
-            "rpm -e " + package_name
-        )
+        print('uninstalling rpm package "%s"' % package_name)
+        uninstall = pexpect.spawnu("rpm -e " + package_name)
         try:
             uninstall.expect(pexpect.EOF, timeout=30)
             ascii_print(uninstall.before)
