@@ -10,8 +10,8 @@ class AnalyzersTestSuite(BaseTestSuite):
         # login.login('root', '')
         analyzers = AnalyzerPage(self.webdriver)
 
-        assert analyzers.current_user() == "root" "current user is root?"
-        assert analyzers.current_database() == "_system" "current database is _system?"
+        assert analyzers.current_user() == "ROOT" "current user is root?"
+        assert analyzers.current_database() == "_SYSTEM" "current database is _system?"
         version = analyzers.current_package_version()
         if version >= 3.9:
             analyzers.select_analyzers_page()

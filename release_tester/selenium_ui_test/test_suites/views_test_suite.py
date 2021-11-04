@@ -10,8 +10,8 @@ class ViewsTestSuite(BaseTestSuite):
         # login = LoginPage(self.webdriver)
         # login.login('root', self.root_passvoid)
         views = ViewsPage(self.webdriver)  # creating obj for viewPage
-        assert views.current_user() == "root" "current user is root?"
-        assert views.current_database() == "_system" "current database is _system?"
+        assert views.current_user() == "ROOT" "current user is root?"
+        assert views.current_database() == "_SYSTEM" "current database is _system?"
 
         print("Selecting Views tab\n")
         views.select_views_tab()

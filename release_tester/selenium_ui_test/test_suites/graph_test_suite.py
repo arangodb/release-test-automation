@@ -13,8 +13,8 @@ class GraphTestSuite(BaseTestSuite):
         # creating multiple graph obj
         # print('z'*80)
         this_graph = GraphPage(self.webdriver)
-        assert this_graph.current_user() == "root" "current user is root?"
-        assert this_graph.current_database() == "_system" "current database is _system?"
+        assert this_graph.current_user() == "ROOT" "current user is root?"
+        assert this_graph.current_database() == "_SYSTEM" "current database is _system?"
         print("Manual Graph creation started \n")
 
         this_graph.select_graph_page()

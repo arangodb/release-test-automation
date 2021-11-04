@@ -11,8 +11,8 @@ class DashboardTestSuite(BaseTestSuite):
         # login.login('root', self.root_passvoid)
         # creating object for dashboard
         dash = DashboardPage(self.webdriver, self.is_enterprise)
-        assert dash.current_user() == "root" "current user is root?"
-        assert dash.current_database() == "_system" "current database is _system?"
+        assert dash.current_user() == "ROOT" "current user is root?"
+        assert dash.current_database() == "_SYSTEM" "current database is _system?"
         dash.navbar_goto("cluster" if self.is_cluster else "dashboard")
         dash.check_server_package_name()
         dash.current_package_version()
