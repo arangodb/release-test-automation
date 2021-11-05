@@ -16,6 +16,7 @@ from beautifultable import BeautifulTable, ALIGN_LEFT
 import tools.loghelper as lh
 from download import Download
 from upgrade import run_upgrade
+from conflict_checking import run_conflict_tests
 from test import run_test
 from cleanup import run_cleanup
 from tools.killall import list_all_processes
@@ -246,7 +247,28 @@ def upgrade_package_test(
                     use_auto_certs,
                 )
             )
-
+        run_conflict_tests(
+                    str(dl_old.cfg.version),
+                    str(dl_new.cfg.version),
+                    verbose,
+                    package_dir,
+                    test_dir,
+                    alluredir,
+                    clean_alluredir,
+                    enterprise,
+                    encryption_at_rest,
+                    zip_package,
+                    False,
+                    starter_mode,
+                    False,  # stress_upgrade,
+                    False,
+                    publicip,
+                    selenium,
+                    selenium_driver_args,
+                    testrun_name,
+                    ssl,
+                    use_auto_certs,
+        )
     print("V" * 80)
     status = True
     table = BeautifulTable(maxwidth=140)

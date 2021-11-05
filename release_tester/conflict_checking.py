@@ -24,7 +24,7 @@ import tools.loghelper as lh
 is_windows = platform.win32_ver()[0] != ""
 
 # pylint: disable=R0913 disable=R0914, disable=W0703, disable=R0912, disable=R0915
-def run_upgrade(
+def run_conflict_tests(
     old_version,
     new_version,
     verbose,
@@ -49,24 +49,39 @@ def run_upgrade(
     """execute upgrade tests"""
     lh.section("startup")
     results = []
-    for runner_type in STARTER_MODES[starter_mode]:
-        installers = create_config_installer_set(
-            [old_version, new_version],
-            verbose,
-            enterprise,
-            encryption_at_rest,
-            zip_package,
-            Path(package_dir),
-            Path(test_data_dir),
-            "all",
-            publicip,
-            interactive,
-            stress_upgrade,
-        )
-        old_inst = installers[0][1]
-        new_inst = installers[1][1]
-
-        with AllureTestSuiteContext(
+    installers = []
+    installers['community'] = create_config_installer_set(
+        [old_version, new_version],
+        verbose,
+        False,
+        encryption_at_rest,
+        zip_package,
+        Path(package_dir),
+        Path(test_data_dir),
+        "all",
+        publicip,
+        interactive,
+        stress_upgrade,
+    )
+    installers['enterprise'] = create_config_installer_set(
+        [old_version, new_version],
+        verbose,
+        True,
+        encryption_at_rest,
+        zip_package,
+        Path(package_dir),
+        Path(test_data_dir),
+        "all",
+        publicip,
+        interactive,
+        stress_upgrade,
+    )
+    old_inst_e = installers['enterprise'][0][1]
+    new_inst_e = installers['enterprise'][1][1]
+    old_inst_c = installers['community'][0][1]
+    new_inst_c = installers['community'][1][1]
+    
+    with AllureTestSuiteContext(
             alluredir,
             clean_alluredir,
             enterprise,
@@ -80,141 +95,24 @@ def run_upgrade(
             new_inst.installer_type,
             ssl,
         ):
-            with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
-                if (not enterprise or is_windows) and runner_type == RunnerType.DC2DC:
-                    testcase.context.status = Status.SKIPPED
-                    testcase.context.statusDetails = StatusDetails(
-                        message="DC2DC is not applicable to Community packages."
-                    )
-                    continue
-                one_result = {
-                    "testrun name": testrun_name,
-                    "testscenario": runner_strings[runner_type],
-                    "success": True,
-                    "message": "success",
-                    "progress": "success",
-                }
-                try:
-                    kill_all_processes()
-                    runner = None
-                    lh.section("configuration")
-                    print(
-                        """
-                    starter mode: {starter_mode}
-                    old version: {old_version}
-                    {cfg_repr}
-                    """.format(
-                            **{
-                                "starter_mode": str(starter_mode),
-                                "old_version": old_version,
-                                "cfg_repr": repr(installers[1][0]),
-                            }
-                        )
-                    )
-                    if runner_type:
-                        runner = make_runner(
-                            runner_type,
-                            abort_on_error,
-                            selenium,
-                            selenium_driver_args,
-                            installers,
-                            testrun_name,
-                            ssl=ssl,
-                            use_auto_certs=use_auto_certs,
-                        )
-                        if runner:
-                            try:
-                                runner.run()
-                                runner.cleanup()
-                                testcase.context.status = Status.PASSED
-                                if runner.ui_tests_failed:
-                                    one_result = {
-                                        "testrun name": testrun_name,
-                                        "testscenario": runner_strings[runner_type],
-                                        "success": False,
-                                        "message": "There are failed UI tests.\n%s" % str(runner.ui_test_results_table),
-                                        "progress": "",
-                                    }
-                                    results.append(one_result)
-                            except Exception as ex:
-                                one_result = {
-                                    "testrun name": testrun_name,
-                                    "testscenario": runner_strings[runner_type],
-                                    "success": False,
-                                    "message": str(ex),
-                                    "progress": runner.get_progress(),
-                                }
-                                results.append(one_result)
-                                runner.take_screenshot()
-                                # TODO runner.agency_acquire_dump()
-                                runner.search_for_warnings()
-                                runner.quit_selenium()
-                                kill_all_processes()
-                                runner.zip_test_dir()
-                                testcase.context.status = Status.FAILED
-                                if abort_on_error:
-                                    raise ex
-                                traceback.print_exc()
-                                lh.section("uninstall on error")
-                                old_inst.un_install_debug_package()
-                                old_inst.un_install_server_package()
-                                old_inst.cleanup_system()
-                                try:
-                                    runner.cleanup()
-                                finally:
-                                    pass
-                                continue
 
-                    lh.section("uninstall")
-                    new_inst.un_install_server_package()
-                    lh.section("check system")
-                    new_inst.check_uninstall_cleanup()
-                    lh.section("remove residuals")
-                    try:
-                        old_inst.cleanup_system()
-                    except Exception:
-                        print("Ignoring old cleanup error!")
-                    try:
-                        print("Ignoring new cleanup error!")
-                        new_inst.cleanup_system()
-                    except Exception:
-                        print("Ignoring general cleanup error!")
-                except Exception as ex:
-                    print("Caught. " + str(ex))
-                    one_result = {
-                        "testrun name": testrun_name,
-                        "testscenario": runner_strings[runner_type],
-                        "success": False,
-                        "message": str(ex),
-                        "progress": "aborted outside of testcodes",
-                    }
-                    if abort_on_error:
-                        print("re-throwing.")
-                        raise ex
-                    traceback.print_exc()
-                    kill_all_processes()
-                    if runner:
-                        try:
-                            runner.cleanup()
-                        except Exception as exception:
-                            print("Ignoring runner cleanup error! Exception:")
-                            print(str(exception))
-                            print("".join(traceback.TracebackException.from_exception(exception).format()))
-                    try:
-                        print("Cleaning up system after error:")
-                        old_inst.un_install_debug_package()
-                        old_inst.un_install_server_package()
-                        old_inst.cleanup_system()
-                    except Exception:
-                        print("Ignoring old cleanup error!")
-                    try:
-                        print("Ignoring new cleanup error!")
-                        new_inst.un_install_debug_package()
-                        new_inst.un_install_server_package()
-                        new_inst.cleanup_system()
-                    except Exception:
-                        print("Ignoring new cleanup error!")
-                results.append(one_result)
+        # here install old, debug symbols, check conflicts.
+
+            if self.cfg.debug_package_is_installed:
+                print("removing *old* debug package in advance")
+                self.old_installer.un_install_debug_package()
+            self.cfg.debug_package_is_installed = self.new_installer.install_debug_package()
+            if self.cfg.debug_package_is_installed:
+                self.new_installer.gdb_test()
+                self.cfg.debug_package_is_installed = inst.install_debug_package()
+                if self.cfg.debug_package_is_installed:
+                    self.progress(True, "testing debug symbols")
+                    inst.gdb_test()
+        if self.cfg.debug_package_is_installed:
+            print("uninstalling debug package")
+            inst.un_install_debug_package()
+
+        
     return results
 
 
@@ -233,7 +131,7 @@ def main(
     # fmt: on
     """ main trampoline """
     lh.configure_logging(verbose)
-    results = run_upgrade(
+    results = run_conflict_tests(
         old_version,
         new_version,
         verbose,
