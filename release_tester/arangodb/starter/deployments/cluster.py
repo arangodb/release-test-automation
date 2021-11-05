@@ -17,6 +17,8 @@ from tools.asciiprint import print_progress as progress
 arangoversions = {
     "370": semver.VersionInfo.parse("3.7.0"),
 }
+
+
 class Cluster(Runner):
     """this launches a cluster setup"""
 
@@ -64,42 +66,12 @@ db.testCollection.save({test: "document"})
             node2_tls_keyfile = self.cert_dir / Path("node2") / "tls.keyfile"
             node3_tls_keyfile = self.cert_dir / Path("node3") / "tls.keyfile"
 
-            self.cert_op(
-                [
-                    "tls",
-                    "keyfile",
-                    "--cacert=" + str(self.certificate_auth["cert"]),
-                    "--cakey=" + str(self.certificate_auth["key"]),
-                    "--keyfile=" + str(node1_tls_keyfile),
-                    "--host=" + self.cfg.publicip,
-                    "--host=localhost",
-                ]
-            )
-            self.cert_op(
-                [
-                    "tls",
-                    "keyfile",
-                    "--cacert=" + str(self.certificate_auth["cert"]),
-                    "--cakey=" + str(self.certificate_auth["key"]),
-                    "--keyfile=" + str(node2_tls_keyfile),
-                    "--host=" + self.cfg.publicip,
-                    "--host=localhost",
-                ]
-            )
-            self.cert_op(
-                [
-                    "tls",
-                    "keyfile",
-                    "--cacert=" + str(self.certificate_auth["cert"]),
-                    "--cakey=" + str(self.certificate_auth["key"]),
-                    "--keyfile=" + str(node3_tls_keyfile),
-                    "--host=" + self.cfg.publicip,
-                    "--host=localhost",
-                ]
-            )
+            for keyfile in [node1_tls_keyfile, node2_tls_keyfile, node3_tls_keyfile]:
+                self.generate_keyfile(keyfile)
+
             node1_opts.append(f"--ssl.keyfile={node1_tls_keyfile}")
             node2_opts.append(f"--ssl.keyfile={node2_tls_keyfile}")
-            node3_opts.append(f"--ssl.keyfile={node2_tls_keyfile}")
+            node3_opts.append(f"--ssl.keyfile={node3_tls_keyfile}")
 
         def add_starter(name, port, opts):
             self.starter_instances.append(
@@ -158,9 +130,10 @@ db.testCollection.save({test: "document"})
         self.set_frontend_instances()
 
     def test_setup_impl(self):
+        if self.selenium:
+            self.selenium.test_setup()
         self.wikidata_import_impl()
         self.execute_views_tests_impl()
-        pass
 
     def wait_for_restore_impl(self, backup_starter):
         for starter in self.starter_instances:
@@ -182,7 +155,7 @@ db.testCollection.save({test: "document"})
 
         self.starter_instances[1].command_upgrade()
         if self.selenium:
-            self.selenium.upgrade_deployment(self.cfg, self.new_cfg, timeout=30)  # * 5s
+            self.selenium.test_wait_for_upgrade()  # * 5s
         self.starter_instances[1].wait_for_upgrade(300)
         if self.cfg.stress_upgrade:
             bench_instances[0].wait()
@@ -247,7 +220,7 @@ db.testCollection.save({test: "document"})
         self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
 
         if self.selenium:
-            self.selenium.upgrade_deployment(self.cfg, self.new_cfg, timeout=30)  # * 5s
+            self.selenium.test_wait_for_upgrade()  # * 5s
 
     @step
     def jam_attempt_impl(self):
@@ -268,7 +241,7 @@ db.testCollection.save({test: "document"})
 
         prompt_user(self.basecfg, "instance stopped")
         if self.selenium:
-            self.selenium.jam_step_1(self.new_cfg if self.new_cfg else self.cfg)
+            self.selenium.jam_step_1()
 
         ret = self.starter_instances[0].arangosh.check_test_data(
             "Cluster one node missing", True, ["--disabledDbserverUUID", uuid]
@@ -295,6 +268,11 @@ db.testCollection.save({test: "document"})
         self.set_frontend_instances()
 
         logging.info("jamming: Starting instance without jwt")
+        moreopts = ["--starter.join", "127.0.0.1:9528"]
+        if self.cfg.ssl and not self.cfg.use_auto_certs:
+            keyfile = self.cert_dir / Path("nodeX") / "tls.keyfile"
+            self.generate_keyfile(keyfile)
+            moreopts.append(f"--ssl.keyfile={keyfile}")
         dead_instance = StarterManager(
             self.basecfg,
             Path("CLUSTER"),
@@ -306,14 +284,15 @@ db.testCollection.save({test: "document"})
                 InstanceType.COORDINATOR,
                 InstanceType.DBSERVER,
             ],
-            moreopts=["--starter.join", "127.0.0.1:9528"],
+            moreopts=moreopts,
         )
-        dead_instance.run_starter()
+        dead_instance.run_starter(expect_to_fail=True)
 
         i = 0
         while True:
             logging.info(". %d", i)
             if not dead_instance.is_instance_running():
+                dead_instance.check_that_starter_log_contains("Unauthorized. Wrong credentials.")
                 break
             if i > 40:
                 logging.info("Giving up wating for the starter to exit")
@@ -325,7 +304,7 @@ db.testCollection.save({test: "document"})
 
         prompt_user(self.basecfg, "cluster should be up")
         if self.selenium:
-            self.selenium.jam_step_2(self.new_cfg if self.new_cfg else self.cfg)
+            self.selenium.jam_step_2()
 
     def shutdown_impl(self):
         for node in self.starter_instances:
@@ -337,3 +316,26 @@ db.testCollection.save({test: "document"})
 
     def after_backup_impl(self):
         pass
+
+    def set_selenium_instances(self):
+        """set instances in selenium runner"""
+        self.selenium.set_instances(
+            self.cfg,
+            self.starter_instances[0].arango_importer,
+            self.starter_instances[0].arango_restore,
+            [x for x in self.starter_instances[0].all_instances if x.instance_type == InstanceType.COORDINATOR][0],
+            self.new_cfg,
+        )
+
+    def generate_keyfile(self, keyfile):
+        self.cert_op(
+            [
+                "tls",
+                "keyfile",
+                "--cacert=" + str(self.certificate_auth["cert"]),
+                "--cakey=" + str(self.certificate_auth["key"]),
+                "--keyfile=" + str(keyfile),
+                "--host=" + self.cfg.publicip,
+                "--host=localhost",
+            ]
+        )

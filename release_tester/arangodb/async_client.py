@@ -52,9 +52,12 @@ def custom_writer(ArangoCLIprogressiveTimeoutExecutorInstance, writer):
 
 class CliExecutionException(Exception):
     """transport CLI error texts"""
-    def __init__(self, message, execution_result):
+
+    def __init__(self, message, execution_result, have_timeout):
+        super().__init__()
         self.execution_result = execution_result
         self.message = message
+        self.have_timeout = have_timeout
 
 
 class ArangoCLIprogressiveTimeoutExecutor:
@@ -192,7 +195,7 @@ class ArangoCLIprogressiveTimeoutExecutor:
             res = (False, timeout_str + convert_result(result), rc_exit, line_filter)
             if expect_to_fail:
                 return res
-            raise CliExecutionException("Execution failed.", res)
+            raise CliExecutionException("Execution failed.", res, have_timeout)
 
         if not expect_to_fail:
             if len(result) == 0:
@@ -205,4 +208,4 @@ class ArangoCLIprogressiveTimeoutExecutor:
             res = (True, "", 0, line_filter)
         else:
             res = (True, convert_result(result), 0, line_filter)
-        raise CliExecutionException("Execution was expected to fail, but exited successfully.", res)
+        raise CliExecutionException("Execution was expected to fail, but exited successfully.", res, have_timeout)

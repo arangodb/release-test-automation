@@ -131,7 +131,7 @@ def common_options(
             help="options to the selenium web driver",
         )(function)
         function = click.option(
-            "--clean-alluredir",
+            "--clean-alluredir/--do-not-clean-alluredir",
             is_flag=True,
             default=True,
             help="clean allure results dir before running tests",
@@ -155,15 +155,7 @@ def common_options(
 
 def download_options(default_source="public", double_source=False, other_source=False):
     """these are options available in scripts downloading packages"""
-    download_sources = [
-        "ftp:stage1",
-        "http:stage1",
-        "ftp:stage2",
-        "http:stage2",
-        "nightlypublic",
-        "public",
-        "local"
-    ]
+    download_sources = ["ftp:stage1", "http:stage1", "ftp:stage2", "http:stage2", "nightlypublic", "public", "local"]
 
     def inner_func(function):
         function = click.option("--enterprise-magic", default="", help="Enterprise or community?")(function)
@@ -176,15 +168,13 @@ def download_options(default_source="public", double_source=False, other_source=
         if double_source:
             function = click.option(
                 "--new-source",
-                multiple=True,
-                default=[default_source],
+                default=default_source,
                 type=click.Choice(download_sources),
                 help="where to download the package from",
             )(function)
             function = click.option(
                 "--old-source",
-                multiple=True,
-                default=[default_source],
+                default=default_source,
                 type=click.Choice(download_sources),
                 help="where to download the package from",
             )(function)
@@ -208,3 +198,20 @@ def download_options(default_source="public", double_source=False, other_source=
         return function
 
     return inner_func
+
+
+def full_common_options(function):
+    """full test/& upgrade options"""
+    function = click.option(
+        "--git-version",
+        default="",
+        help="specify the output of: git rev-parse --verify HEAD",
+    )(function)
+    function = click.option(
+        "--edition",
+        "editions",
+        default=["EE", "EP", "C"],
+        multiple=True,
+        help="which editions to run EE => enterprise Encryption@rest, EP => enterprise, C => community",
+    )(function)
+    return function

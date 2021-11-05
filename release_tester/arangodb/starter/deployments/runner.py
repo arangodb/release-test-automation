@@ -17,14 +17,15 @@ import time
 from allure_commons._allure import attach
 import certifi
 import psutil
+from beautifultable import BeautifulTable
 import requests
-from reporting.reporting_utils import step
 
 import tools.errorhelper as eh
 import tools.interact as ti
 from tools.killall import kill_all_processes
 import tools.loghelper as lh
 
+from reporting.reporting_utils import step
 from arangodb.async_client import (
     CliExecutionException,
     dummy_line_result
@@ -32,8 +33,6 @@ from arangodb.async_client import (
 from arangodb.bench import load_scenarios
 from arangodb.instance import InstanceType, print_instances_table
 from arangodb.sh import ArangoshExecutor
-
-
 
 FNRX = re.compile("[\n@ ]*")
 WINVER = platform.win32_ver()
@@ -134,6 +133,8 @@ class Runner(ABC):
             self.versionstr = "OLD[" + self.cfg.version + "] "
 
         self.basedir = Path(properties.short_name)
+        self.ui_tests_failed = False
+        self.ui_test_results_table = None
         count = 1
         while True:
             try:
@@ -166,6 +167,7 @@ class Runner(ABC):
         self.new_installer = new_inst
         self.backup_name = None
         self.hot_backup = cfg.hot_backup and properties.supports_hotbackup and self.old_installer.supports_hot_backup()
+
         # self.hot_backup = False # TODO
         self.backup_instance_count = 3
         # starter instances that make_data wil run on
@@ -208,7 +210,7 @@ class Runner(ABC):
             else:
                 os.environ["TMPDIR"] = str(tmpdir)
 
-    def progress(self, is_sub, msg, separator="x"):
+    def progress(self, is_sub, msg, separator="x", supress_allure=False):
         """report user message, record for error handling."""
         if self.selenium:
             self.state += self.selenium.get_progress()
@@ -223,8 +225,9 @@ class Runner(ABC):
             lh.section(msg, separator)
             self.state += "*** " + msg
 
-        with step("Progress: " + msg):
-            pass
+        if not supress_allure:
+            with step("Progress: " + msg):
+                pass
 
     def ask_continue_or_exit(self, msg, output, default=True, status=1):
         """ask the user whether to abort the execution or continue anyways"""
@@ -274,8 +277,8 @@ class Runner(ABC):
             self.finish_setup()
             self.make_data()
             if self.selenium:
-                self.selenium.connect_server(self.get_frontend_instances(), "_system", self.cfg)
-                self.selenium.check_old(self.old_installer.cfg)
+                self.set_selenium_instances()
+                self.selenium.test_empty_ui()
             ti.prompt_user(
                 self.basecfg,
                 "{0}{1} Deployment started. Please test the UI!".format((self.versionstr), str(self.name)),
@@ -316,7 +319,7 @@ class Runner(ABC):
                 False,
                 "UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),
             )
-            if self.cfg.have_debug_package:
+            if self.cfg.debug_package_is_installed:
                 print("removing *old* debug package in advance")
                 self.old_installer.un_install_debug_package()
 
@@ -326,15 +329,15 @@ class Runner(ABC):
             self.new_installer.get_starter_version()
             # only install debug package for new package.
             self.progress(True, "installing debug package:")
-            self.cfg.have_debug_package = self.new_installer.install_debug_package()
-            if self.cfg.have_debug_package:
+            self.cfg.debug_package_is_installed = self.new_installer.install_debug_package()
+            if self.cfg.debug_package_is_installed:
                 self.new_installer.gdb_test()
             self.new_installer.stop_service()
             self.cfg.set_directories(self.new_installer.cfg)
             self.new_cfg.set_directories(self.new_installer.cfg)
 
             self.upgrade_arangod_version()  # make sure to pass new version
-            self.old_installer.un_install_package_for_upgrade()
+            self.old_installer.un_install_server_package_for_upgrade()
             if self.is_minor_upgrade() and self.new_installer.supports_backup():
                 self.new_installer.check_backup_is_created()
             self.make_data_after_upgrade()
@@ -378,7 +381,21 @@ class Runner(ABC):
                 starter.detect_fatal_errors()
         if self.do_uninstall:
             self.uninstall(self.old_installer if not self.new_installer else self.new_installer)
-        self.quit_selenium()
+        if self.selenium:
+            ui_test_results_table = BeautifulTable(maxwidth=160)
+            for result in self.selenium.test_results:
+                ui_test_results_table.rows.append(
+                    [result.name, "PASSED" if result.success else "FAILED", result.message, result.tb]
+                )
+                if not result.success:
+                    self.ui_tests_failed = True
+            ui_test_results_table.columns.header = ["Name", "Result", "Message", "Traceback"]
+            self.progress(False, "UI test results table:", supress_allure=True)
+            self.progress(False, "\n" + str(ui_test_results_table), supress_allure=True)
+            self.ui_test_results_table = ui_test_results_table
+
+            self.quit_selenium()
+
         self.progress(False, "Runner of type {0} - Finished!".format(str(self.name)))
 
     def run_selenium(self):
@@ -386,7 +403,7 @@ class Runner(ABC):
 
         self.progress(False, "Runner of type {0}".format(str(self.name)), "<3")
         self.old_installer.load_config()
-        self.old_installer.caclulate_file_locations()
+        self.old_installer.calculate_file_locations()
         self.basecfg.set_directories(self.old_installer.cfg)
         if self.do_starter_test:
             self.progress(
@@ -401,8 +418,7 @@ class Runner(ABC):
                 # find out about its processes:
                 starter.detect_instances()
             print(self.starter_instances)
-            self.selenium.connect_server(self.get_frontend_instances(), "_system", self.cfg)
-            self.selenium.check_old(self.old_installer.cfg)
+            self.selenium.test_after_install()
         if self.new_installer:
             self.versionstr = "NEW[" + self.new_cfg.version + "] "
 
@@ -432,8 +448,15 @@ class Runner(ABC):
 
         kill_all_processes(False)
         if self.do_install:
-            lh.subsubsection("installing package")
-            inst.install_package()
+            if inst.client_package:
+                lh.subsubsection("installing client package")
+                inst.install_client_package()
+                lh.subsubsection("checking files")
+                inst.check_installed_files()
+                lh.subsubsection("uninstalling client package")
+                inst.un_install_client_package()
+            lh.subsubsection("installing server package")
+            inst.install_server_package()
             self.cfg.set_directories(inst.cfg)
             lh.subsubsection("checking files")
             inst.check_installed_files()
@@ -459,8 +482,8 @@ class Runner(ABC):
             if not self.new_installer:
                 # only install debug package for new package.
                 self.progress(True, "installing debug package:")
-                self.cfg.have_debug_package = inst.install_debug_package()
-                if self.cfg.have_debug_package:
+                self.cfg.debug_package_is_installed = inst.install_debug_package()
+                if self.cfg.debug_package_is_installed:
                     self.progress(True, "testing debug symbols")
                     inst.gdb_test()
 
@@ -493,11 +516,11 @@ class Runner(ABC):
     def uninstall(self, inst):
         """uninstall the package from the system"""
         self.progress(True, "{0} - uninstall package".format(str(self.name)))
-        if self.cfg.have_debug_package:
+        if self.cfg.debug_package_is_installed:
             print("uninstalling debug package")
             inst.un_install_debug_package()
         print("uninstalling server package")
-        inst.un_install_package()
+        inst.un_install_server_package()
         inst.check_uninstall_cleanup()
         inst.cleanup_system()
 
@@ -531,7 +554,7 @@ class Runner(ABC):
     def make_data_after_upgrade(self):
         """check if setup is functional"""
         self.progress(True, "{0} - make data after upgrade".format(str(self.name)))
-        self.make_data_after_upgrade_impl()
+        self.make_data_wait_for_upgrade_impl()
 
     @step
     def test_setup(self):
@@ -732,7 +755,7 @@ class Runner(ABC):
         raise Exception("no frontend found.")
 
     # TODO test make data after upgrade@abstractmethod
-    def make_data_after_upgrade_impl(self):
+    def make_data_wait_for_upgrade_impl(self):
         """check the data after the upgrade"""
 
 
@@ -918,15 +941,17 @@ class Runner(ABC):
         """remove all directories created by this test"""
         testdir = self.basecfg.base_test_dir / self.basedir
         print("cleaning up " + str(testdir))
-        if testdir.exists():
-            shutil.rmtree(testdir)
+        try:
+            if testdir.exists():
+                shutil.rmtree(testdir)
+        finally:
             if "REQUESTS_CA_BUNDLE" in os.environ:
                 del os.environ["REQUESTS_CA_BUNDLE"]
-        if reset_tmp and WINVER[0]:
-            os.environ["TMP"] = self.original_tmp
-            os.environ["TEMP"] = self.original_temp
-        elif "TMPDIR" in os.environ:
-            del os.environ["TMPDIR"]
+            if reset_tmp and WINVER[0]:
+                os.environ["TMP"] = self.original_tmp
+                os.environ["TEMP"] = self.original_temp
+            elif "TMPDIR" in os.environ:
+                del os.environ["TMPDIR"]
 
     @step
     def agency_trigger_leader_relection(self, old_leader):
@@ -1155,3 +1180,7 @@ class Runner(ABC):
     def is_minor_upgrade(self):
         """do we only alter the third version digits?"""
         return self.new_installer.semver.minor > self.old_installer.semver.minor
+
+    def set_selenium_instances(self):
+        """set instances in selenium runner"""
+        pass

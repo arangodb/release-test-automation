@@ -140,7 +140,7 @@ class InstallerDeb(InstallerLinux):
             logging.info("TIMEOUT!")
 
     @step
-    def install_package(self):
+    def install_server_package_impl(self):
         # pylint: disable=too-many-statements
         logging.info("installing Arangodb debian package")
         server_not_started = False
@@ -210,7 +210,7 @@ class InstallerDeb(InstallerLinux):
         self.instance.detect_pid(1)  # should be owned by init
 
     @step
-    def un_install_package(self):
+    def un_install_server_package_impl(self):
         cmd = "dpkg --purge " + "arangodb3" + ("e" if self.cfg.enterprise else "")
         lh.log_cmd(cmd)
         uninstall = pexpect.spawnu(cmd)
@@ -224,7 +224,7 @@ class InstallerDeb(InstallerLinux):
             sys.exit(1)
 
     @step
-    def install_debug_package(self):
+    def install_debug_package_impl(self):
         """installing debug package"""
         cmd = "dpkg -i " + str(self.cfg.package_dir / self.debug_package)
         lh.log_cmd(cmd)
@@ -239,7 +239,6 @@ class InstallerDeb(InstallerLinux):
             ascii_print(debug_install.before)
         print()
         logging.info(str(self.debug_package) + " Installation successfull")
-        self.cfg.have_debug_package = True
 
         while debug_install.isalive():
             progress(".")
@@ -247,12 +246,48 @@ class InstallerDeb(InstallerLinux):
                 debug_install.close(force=True)
                 ascii_print(debug_install.before)
                 raise Exception(str(self.debug_package) + " debug installation didn't finish successfully!")
-        return self.cfg.have_debug_package
 
     @step
-    def un_install_debug_package(self):
+    def un_install_debug_package_impl(self):
+        """uninstall debug package"""
+        package_name = "arangodb3" + ("e-dbg" if self.cfg.enterprise else "-dbg")
+        self.uninstall_package(package_name)
+
+    @step
+    def install_client_package_impl(self):
+        """install client package"""
+        cmd = "dpkg -i " + str(self.cfg.package_dir / self.client_package)
+        lh.log_cmd(cmd)
         os.environ["DEBIAN_FRONTEND"] = "readline"
-        cmd = "dpkg --purge " + "arangodb3" + ("e-dbg" if self.cfg.enterprise else "-dbg")
+        client_install = pexpect.spawnu(cmd)
+        try:
+            logging.info("waiting for the installation to finish")
+            client_install.expect(pexpect.EOF, timeout=60)
+        except pexpect.exceptions.EOF:
+            logging.info("TIMEOUT!")
+            client_install.close(force=True)
+            ascii_print(client_install.before)
+        print()
+        logging.info(str(self.client_package) + " Installation successful")
+
+        while client_install.isalive():
+            progress(".")
+            if client_install.exitstatus != 0:
+                client_install.close(force=True)
+                ascii_print(client_install.before)
+                raise Exception(str(self.debug_package) + " client package installation didn't finish successfully!")
+
+    @step
+    def un_install_client_package_impl(self):
+        """uninstall client package"""
+        package_name = "arangodb3" + ("e-client" if self.cfg.enterprise else "-client")
+        self.uninstall_package(package_name)
+
+    @step
+    def uninstall_package(self, package_name):
+        """uninstall package"""
+        os.environ["DEBIAN_FRONTEND"] = "readline"
+        cmd = "dpkg --purge " + package_name
         lh.log_cmd(cmd)
         uninstall = pexpect.spawnu(cmd)
         try:
@@ -269,7 +304,7 @@ class InstallerDeb(InstallerLinux):
             if uninstall.exitstatus != 0:
                 uninstall.close(force=True)
                 ascii_print(uninstall.before)
-                raise Exception("Debug package uninstallation didn't finish successfully!")
+                raise Exception("Uninstallation of package %s didn't finish successfully!" % package_name)
 
     @step
     def cleanup_system(self):

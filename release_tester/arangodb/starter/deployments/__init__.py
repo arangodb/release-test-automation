@@ -63,6 +63,11 @@ def make_runner(
     for one_installer_set in installer_set:
         assert len(one_installer_set) == 2, "no complete object config?"
 
+    # Configure Chrome to accept self-signed SSL certs and certs signed by unknown CA.
+    # FIXME: Add custom CA to Chrome to properly validate server cert.
+    if ssl:
+        selenium_driver_args += ("ignore-certificate-errors",)
+
     logging.debug("Factory for Runner of type: {0}".format(str(runner_type)))
     args = (
         runner_type,

@@ -33,13 +33,11 @@ class StepData:
 class AllureListener:
     """allure plugin implementation"""
 
-    def __init__(self, default_test_suite_name=None):
+    def __init__(self, default_test_suite_name=None, default_parent_test_suite_name=None):
         self.allure_logger = AllureReporter()
         self._cache = ItemCache()
-        if default_test_suite_name:
-            self.default_test_suite_name = default_test_suite_name
-        else:
-            self.default_test_suite_name = "Release test automation"
+        self.default_test_suite_name = default_test_suite_name
+        self.default_parent_test_suite_name = default_parent_test_suite_name
 
     @allure_commons.hookimpl
     def attach_data(self, body, name, attachment_type, extension):
@@ -112,16 +110,23 @@ class AllureListener:
         """start test"""
         test_result = TestResult(name=name, uuid=uuid, start=now(), stop=now())
         test_result.status = context.status
-        test_result.labels.append(Label(name=LabelType.SUITE, value=self.default_test_suite_name))
+        if self.default_test_suite_name:
+            test_result.labels.append(Label(name=LabelType.SUITE, value=self.default_test_suite_name))
+        if self.default_parent_test_suite_name:
+            test_result.labels.append(Label(name=LabelType.PARENT_SUITE, value=self.default_parent_test_suite_name))
         test_result.labels.append(Label(name=LabelType.FRAMEWORK, value="ArangoDB Release Test Automation"))
         self.allure_logger.schedule_test(uuid, test_result)
         self._cache.push(test_result, uuid)
+        for label in context.labels:
+            test_result.labels.append(label)
 
     @allure_commons.hookimpl
     def stop_test(self, uuid, context):
         """stop test"""
         test_result = self._cache.get(uuid)
         test_result.status = context.status
+        if context.statusDetails:
+            test_result.statusDetails = context.statusDetails
         test_result.stop = now()
         # context.log_captor.save_logs()
         for step in test_result.steps:
@@ -130,7 +135,8 @@ class AllureListener:
                 test_result.statusDetails = step.statusDetails
 
         for label in context.labels:
-            test_result.labels.append(label)
+            if label not in test_result.labels:
+                test_result.labels.append(label)
         self.allure_logger.close_test(uuid)
 
 

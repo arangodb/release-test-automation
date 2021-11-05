@@ -68,11 +68,12 @@ class InstallerW(InstallerBase):
             version,
             architecture,
         )
-        self.client_package = "ArangoDB3%s-client-%s_%s.exe" % (
-            enterprise,
-            version,
-            architecture,
-        )
+        # self.client_package = "ArangoDB3%s-client-%s_%s.exe" % (
+        #     enterprise,
+        #     version,
+        #     architecture,
+        # )
+        self.client_package = None  # FIXME: Enable client package tests for NSIS when issue QA-182 is fixed
         self.debug_package = None  # TODO
 
     @step
@@ -123,7 +124,7 @@ class InstallerW(InstallerBase):
         logging.info("Installation successfull")
 
     @step
-    def install_package(self):
+    def install_server_package_impl(self):
         cmd = [
             str(self.cfg.package_dir / self.server_package),
             "/PASSWORD=" + self.cfg.passvoid,
@@ -137,6 +138,7 @@ class InstallerW(InstallerBase):
         ]
         logging.info("running windows package installer:")
         logging.info(str(cmd))
+        attach("Command", str(cmd))
         install = psutil.Popen(cmd)
         try:
             install.wait(600)
@@ -166,6 +168,36 @@ class InstallerW(InstallerBase):
         self.start_service()
         logging.info("Installation successfull")
 
+    @step
+    def install_client_package_impl(self):
+        """Install client package"""
+        cmd = [
+            str(self.cfg.package_dir / self.client_package),
+            "/INSTDIR=" + str(PureWindowsPath(self.cfg.install_prefix)),
+            "/APPDIR=" + str(PureWindowsPath(self.cfg.appdir)),
+            "/PATH=0",
+            "/S",
+            "/INSTALL_SCOPE_ALL=1",
+        ]
+        logging.info("running windows package installer:")
+        logging.info(str(cmd))
+        install = psutil.Popen(cmd)
+        try:
+            install.wait(600)
+        except psutil.TimeoutExpired as exc:
+            print("installing timed out, taking screenshot, re-raising!")
+            filename = "windows_install_client_package.png"
+            with mss() as sct:
+                sct.shot(output=filename)
+                attach(
+                    filename,
+                    name="Screenshot ({fn})".format(fn=filename),
+                    attachment_type=AttachmentType.PNG,
+                )
+            install.kill()
+            raise Exception("Installing failed to complete on time") from exc
+        logging.info("Installation successfull")
+
     def get_service(self):
         """get a service handle"""
         if self.service:
@@ -177,7 +209,7 @@ class InstallerW(InstallerBase):
             logging.error("failed to get service! - %s", str(exc))
             return
 
-    def un_install_package_for_upgrade(self):
+    def un_install_server_package_for_upgrade(self):
         """hook to uninstall old package for upgrade"""
         # once we modify it, the uninstaller will leave it there...
         if self.get_arangod_conf().exists():
@@ -215,7 +247,7 @@ class InstallerW(InstallerBase):
                 raise Exception("upgrade uninstall failed to complete on time") from exc
 
     @step
-    def un_install_package(self):
+    def un_install_server_package_impl(self):
         # once we modify it, the uninstaller will leave it there...
         if self.get_arangod_conf().exists():
             self.get_arangod_conf().unlink()
@@ -266,6 +298,44 @@ class InstallerW(InstallerBase):
                 logging.info("service shouldn't exist anymore!")
         except Exception:
             pass
+
+    @step
+    def un_install_client_package_impl(self):
+        """Uninstall client package"""
+        uninstaller = "Uninstall.exe"
+        tmp_uninstaller = Path("c:/tmp") / uninstaller
+        uninstaller = self.cfg.install_prefix / uninstaller
+
+        if uninstaller.exists():
+            # copy out the uninstaller as the windows facility would do:
+            shutil.copyfile(uninstaller, tmp_uninstaller)
+
+            cmd = [
+                tmp_uninstaller,
+                "/S",
+                "_?=" + str(PureWindowsPath(self.cfg.install_prefix)),
+            ]
+            logging.info("running windows package uninstaller")
+            logging.info(str(cmd))
+            uninstall = psutil.Popen(cmd)
+            try:
+                uninstall.wait(600)
+            except psutil.TimeoutExpired as exc:
+                print("uninstall timed out, taking screenshot, re-raising!")
+                filename = "windows_uninstall_client_package_screenshot.png"
+                with mss() as sct:
+                    sct.shot(output=filename)
+                    attach(
+                        filename,
+                        name="Screenshot ({fn})".format(fn=filename),
+                        attachment_type=AttachmentType.PNG,
+                    )
+                uninstall.kill()
+                raise Exception("uninstall failed to complete on time") from exc
+        if self.cfg.log_dir.exists():
+            shutil.rmtree(self.cfg.log_dir)
+        if tmp_uninstaller.exists():
+            tmp_uninstaller.unlink()
 
     @step
     def check_service_up(self):

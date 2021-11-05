@@ -50,7 +50,11 @@ def run_cleanup(zip_package, testrun_name: str = ""):
             inst.un_install_debug_package()
         except Exception:
             print("nothing to uninstall")
-        inst.un_install_package()
+        try:
+            inst.un_install_client_package()
+        except Exception:
+            print("nothing to uninstall")
+        inst.un_install_server_package()
     else:
         print("Cannot uninstall package without config.yml!")
     inst.cleanup_system()
