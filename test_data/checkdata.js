@@ -355,6 +355,31 @@ while (count < options.numberOfDBs) {
     // Check collections:
     progress();
     print(db._collections())
+    let cols = db._collections();
+    let allFound = true;
+    [`c_${ccount}`,
+     `chash_${ccount}`,
+     `cskip_${ccount}`,
+     `cfull_${ccount}`,
+     `cgeo_${ccount}`,
+     `cunique_${ccount}`,
+     `cmulti_${ccount}`,
+     `cempty_${ccount}`].forEach(colname => {
+       let foundOne = false;
+       cols.forEach(oneCol => {
+         if (oneCol.name() === colname) {
+           foundOne = true;
+         }
+       });
+       if (!foundOne) {
+         print("Didn't find this collection: " + colname);
+         allFound = false;
+       }
+     });
+    if (!allFound) {
+      throw Error("not all collections were present on the system!");
+    }
+
     let c = db._collection(`c_${ccount}`);
     let chash = db._collection(`chash_${ccount}`);
     let cskip = db._collection(`cskip_${ccount}`);

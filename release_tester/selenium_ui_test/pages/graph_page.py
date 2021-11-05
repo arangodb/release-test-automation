@@ -1,7 +1,10 @@
+#!/usr/bin/env python
+"""graph testsuite"""
 import time
 from enum import IntEnum
 from selenium_ui_test.pages.base_page import Keys
 from selenium_ui_test.pages.navbar import NavigationBarPage
+from selenium.common.exceptions import ElementClickInterceptedException, TimeoutException
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=C0302 disable=R0902 disable=R0915 disable=R0914
@@ -10,6 +13,7 @@ from selenium_ui_test.pages.navbar import NavigationBarPage
 class GraphExample(IntEnum):
     """identify example and manual graphs to be managed herein"""
 
+    # pylint: disable=R0903
     KNOWS = 1
     TRAVERSAL = 2
     K_SHORTEST_PATH = 3
@@ -27,6 +31,7 @@ class GraphExample(IntEnum):
 class VCol:
     """maps a vertex collection to a graph"""
 
+    # pylint: disable=R0903
     def __init__(self, name):
         self.name = name
         self.ctype = "v"
@@ -35,6 +40,7 @@ class VCol:
 class ECol:
     """maps an edge collection to a graph"""
 
+    # pylint: disable=R0903
     def __init__(self, name):
         self.name = name
         self.ctype = "e"
@@ -43,6 +49,7 @@ class ECol:
 class GraphCreateSet:
     """this has all we need to know to create an example graph"""
 
+    # pylint: disable=R0903
     def __init__(self, clear_name, btn_id, collections, handler=None):
         self.clear_name = clear_name
         self.btn_id = btn_id
@@ -69,7 +76,7 @@ class GraphPage(NavigationBarPage):
         self.select_example_graph_btn_id = "tab-exampleGraphs"
         self.select_ex_graph_format = "//*[@id='exampleGraphs']/table/tbody/tr[%d]/td[2]/button"
 
-        self.confirm_delete_graph_id = "modalButton0"
+        self.confirm_delete_graph_selector = "//button[text()='Delete' and not(ancestor::div[contains(@style,'display:none')]) and not(ancestor::div[contains(@style,'display: none')])]"
         self.delete_with_collection_id = "dropGraphCollections"
         self.select_really_delete_btn_id = "modal-confirm-delete"
 
@@ -97,6 +104,9 @@ class GraphPage(NavigationBarPage):
         self.select_edge_type_id = "g_edgeType"
         self.select_restore_settings_id = "/html//button[@id='restoreGraphSettings']"
         self.select_tooltips_id = "//*[@id='graphSettingsView']/div/div[2]/div[1]/div[5]/i"
+        self.selected_dropdown_class = (
+            "select2-results-dept-0.select2-result.select2-result-selectable.select2-highlighted"
+        )
 
         self.select_sort_settings_id = "graphManagementToggle"
         self.select_sort_descend_id = "//*[@id='graphManagementDropdown']/ul/li[2]/a/label/i"
@@ -111,6 +121,7 @@ class GraphPage(NavigationBarPage):
 
         self.select_new_graph_name_id = "createNewGraphName"
 
+    # pylint: disable=W0613
     def create_manual_graph(self, importer, test_data_dir):
         """creating graph manually"""
         collection_page = self.locator_finder_by_id(self.select_collection_page_id)
@@ -232,23 +243,20 @@ class GraphPage(NavigationBarPage):
 
         # selecting from collection from auto suggestion
         from_collection_sitem = self.locator_finder_by_id(from_collection)
-        from_collection_sitem.click()
-        super().send_key_action(Keys.ENTER)
-
-        time.sleep(1)
+        self.choose_item_from_a_dropdown_menu(from_collection_sitem, "manual_vertices")
+        time.sleep(10)
 
         # selecting to collection from auto suggestion
         to_collection_sitem = self.locator_finder_by_id(to_collection)
-        to_collection_sitem.click()
-        super().send_key_action(Keys.ENTER)
+        self.choose_item_from_a_dropdown_menu(to_collection_sitem, "manual_vertices")
 
-        time.sleep(1)
+        time.sleep(10)
 
         # selecting create graph btn
         create_btn_sitem = self.locator_finder_by_id(create_btn_id)
         create_btn_sitem.click()
 
-        time.sleep(2)
+        time.sleep(20)
 
         # selecting newly created graph btn
         knows_graph_sitem = self.locator_finder_by_xpath(knows_graph_id)
@@ -526,7 +534,7 @@ class GraphPage(NavigationBarPage):
             search_sitem.clear()
             search_sitem.send_keys(collection.name)
             if collection_sitem.text == collection.name:
-                print(collection.name + " collectionhas been validated")
+                print(collection.name + " collection has been validated")
             else:
                 print(collection.name + " collection wasn't found")
             time.sleep(3)
@@ -760,28 +768,42 @@ class GraphPage(NavigationBarPage):
     def delete_graph(self, graph: GraphExample):
         """Deleting created graphs"""
         print("Deleting %s Graph" % GRAPH_SETS[graph].clear_name)
-        self.wait_for_ajax()
-        btn_id = GRAPH_SETS[graph].btn_id
-        select_graph_setting_btn_sitem = self.locator_finder_by_id(btn_id)
-        select_graph_setting_btn_sitem.click()
-        self.wait_for_ajax()
+        retry = 0
+        while True:
+            try:
+                self.webdriver.refresh()
+                self.wait_for_ajax()
+                btn_id = GRAPH_SETS[graph].btn_id
+                select_graph_setting_btn_sitem = self.locator_finder_by_id(btn_id)
+                self.wait_for_ajax()
+                select_graph_setting_btn_sitem.click()
+                self.wait_for_ajax()
 
-        time.sleep(0.1)
-        confirm_delete_graph_sitem = self.locator_finder_by_id(self.confirm_delete_graph_id)
-        confirm_delete_graph_sitem.click()
-        self.wait_for_ajax()
+                time.sleep(0.1)
+                confirm_delete_graph_sitem = self.locator_finder_by_xpath(self.confirm_delete_graph_selector)
+                confirm_delete_graph_sitem.click()
+                self.wait_for_ajax()
 
-        time.sleep(0.1)
-        delete_with_collection_sitem = self.locator_finder_by_id(self.delete_with_collection_id)
-        delete_with_collection_sitem.click()
-        self.wait_for_ajax()
+                time.sleep(0.1)
+                delete_with_collection_sitem = self.locator_finder_by_id(self.delete_with_collection_id)
+                delete_with_collection_sitem.click()
+                self.wait_for_ajax()
 
-        time.sleep(0.1)
-        select_really_delete_btn_sitem = self.locator_finder_by_id(self.select_really_delete_btn_id)
-        select_really_delete_btn_sitem.click()
-        self.wait_for_ajax()
-
-        self.webdriver.refresh()
+                time.sleep(0.1)
+                select_really_delete_btn_sitem = self.locator_finder_by_id(self.select_really_delete_btn_id)
+                select_really_delete_btn_sitem.click()
+                self.wait_for_ajax()
+                break
+            except TimeoutException as exc:
+                retry += 1
+                if retry > 10:
+                    raise exc
+                print("retrying delete " + str(retry))
+            except ElementClickInterceptedException as exc:
+                retry += 1
+                if retry > 10:
+                    raise exc
+                print("retrying delete " + str(retry))
 
 
 GRAPH_SETS = [

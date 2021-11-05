@@ -1,7 +1,9 @@
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
-from selenium_ui_test.pages.analyzersPage import AnalyzerPage
+from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite
 
 from selenium_ui_test.test_suites.dashboard_test_suite import DashboardTestSuite
+from selenium_ui_test.test_suites.database_test_suite import DatabaseTestSuite
+from selenium_ui_test.test_suites.login_test_suite import LogInTestSuite
+from selenium_ui_test.test_suites.support_test_suite import SupportTestSuite
 from selenium_ui_test.test_suites.user_page_test_suite import UserPageTestSuite
 from selenium_ui_test.test_suites.collections_test_suite import CollectionsTestSuite
 from selenium_ui_test.test_suites.graph_test_suite import GraphTestSuite
@@ -16,12 +18,15 @@ class BasicTestSuite(BaseTestSuite):
         super().__init__(
             selenium_runner,
             child_classes=[
-                # UserPageTestSuite,
-                # CollectionsTestSuite,
-                # DashboardTestSuite,
-                # ViewsTestSuite,
-                # GraphTestSuite,
-                # QueryTestSuite,
-                # AnalyzersTestSuite,
+                UserPageTestSuite,
+                CollectionsTestSuite,
+                ViewsTestSuite,
+                GraphTestSuite,
+                QueryTestSuite,
+                AnalyzersTestSuite,
+                DatabaseTestSuite,
+                LogInTestSuite,
+                DashboardTestSuite,
+                SupportTestSuite,
             ],
         )

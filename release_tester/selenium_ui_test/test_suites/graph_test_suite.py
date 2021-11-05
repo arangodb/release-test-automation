@@ -13,6 +13,8 @@ class GraphTestSuite(BaseTestSuite):
         # creating multiple graph obj
         # print('z'*80)
         this_graph = GraphPage(self.webdriver)
+        assert this_graph.current_user() == "ROOT", "current user is root?"
+        assert this_graph.current_database() == "_SYSTEM", "current database is _system?"
         print("Manual Graph creation started \n")
 
         this_graph.select_graph_page()
@@ -37,15 +39,14 @@ class GraphTestSuite(BaseTestSuite):
 
         print("Example Graphs creation started\n")
         for graph in GraphExample:
-            # if graph == GraphExample.MANUAL_KNOWS:
-            #    break
-            this_graph.navbar_goto("graphs")
+            # graph = GraphExample.MANUAL_KNOWS
+            # this_graph.navbar_goto("graphs")
             print(graph)
             print("Creating '%s' Graph" % get_graph_name(graph))
             this_graph.create_graph(graph, self.importer, self.test_data_dir)
             this_graph.check_required_collections(graph)
 
-        this_graph.select_graph_page()
+            this_graph.select_graph_page()
 
         print("Example Graphs creation Completed\n")
 
@@ -56,7 +57,6 @@ class GraphTestSuite(BaseTestSuite):
         this_graph.inspect_knows_graph()
         # print("Selecting Graphs settings menu\n")
         # this_graph.graph_setting()
-
         print("Deleting created Graphs started\n")
         for graph in GraphExample:
             # if graph == GraphExample.MANUAL_KNOWS:

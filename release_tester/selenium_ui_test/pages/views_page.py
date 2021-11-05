@@ -3,6 +3,7 @@
 import time
 
 from selenium_ui_test.pages.navbar import NavigationBarPage
+from selenium.common.exceptions import TimeoutException
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=R0902 disable=R0915 disable=R0904
@@ -22,10 +23,9 @@ class ViewsPage(NavigationBarPage):
     select_renamed_view_id = "/html//div[@id='thirdView']"
     select_second_view_id = "//div[@id='secondView']//h5[@class='collectionName']"
 
-    def __init__(self, driver):
+    def __init__(self, webdriver):
+        super().__init__(webdriver)
         """View page initialization"""
-        super().__init__(driver)
-        self.driver = driver
         self.select_views_tab_id = "/html//a[@id='views']"
         self.create_new_views_id = "/html//a[@id='createView']"
         self.naming_new_view_id = "/html//input[@id='newName']"
@@ -91,13 +91,13 @@ class ViewsPage(NavigationBarPage):
         self.delete_views_confirm_btn_id = "//div[@id='modal-dialog']//button[@class='button-danger']"
         self.final_delete_confirmation_id = "modal-confirm-delete"
 
-    # selecting views tab
     def select_views_tab(self):
+        """selecting views tab"""
         select_views_tab_sitem = self.locator_finder_by_xpath(self.select_views_tab_id)
         select_views_tab_sitem.click()
 
-    # creating new views tab
     def create_new_views(self, name):
+        """creating new views tab"""
         print(f"Creating {name} started \n")
         create_new_views_sitem = self.locator_finder_by_xpath(self.create_new_views_id)
         create_new_views_sitem.click()
@@ -113,21 +113,21 @@ class ViewsPage(NavigationBarPage):
         time.sleep(2)
         print(f"Creating {name} completed \n")
 
-    # selecting view setting
     def select_views_settings(self):
+        """selecting view setting"""
         select_views_settings_sitem = self.locator_finder_by_xpath(self.select_views_settings_id)
         select_views_settings_sitem.click()
         time.sleep(3)
 
-    # sorting multiple views into descending
     def select_sorting_views(self):
+        """sorting multiple views into descending"""
         select_sorting_views_sitem = self.locator_finder_by_xpath(self.select_sorting_views_id)
         select_sorting_views_sitem.click()
         time.sleep(3)
 
-    # searching views
     def search_views(self, expected_text, search_locator):
-        search_views_sitem = self.locator_finder_by_xpath(self, self.search_views_id)
+        """searching views"""
+        search_views_sitem = self.locator_finder_by_xpath(self.search_views_id)
         search_views_sitem.click()
         search_views_sitem.clear()
         search_views_sitem.send_keys(expected_text)
@@ -148,51 +148,51 @@ class ViewsPage(NavigationBarPage):
             elif expected_text == "improved_arangosearch_view_02":
                 found = self.locator_finder_by_xpath(search_locator).text
                 assert found == expected_text, f"Expected views title {expected_text} but got {found}"
-        self.driver.refresh()
+        self.webdriver.refresh()
 
-    # selecting first view
     def select_first_view(self):
+        """selecting first view"""
         select_first_view_sitem = self.locator_finder_by_xpath(self.select_first_view_id)
         select_first_view_sitem.click()
 
-    # selecting collapse all btn
     def select_collapse_btn(self):
+        """selecting collapse all btn"""
         select_collapse_btn_sitem = self.locator_finder_by_xpath(self.select_collapse_btn_id)
         select_collapse_btn_sitem.click()
         time.sleep(3)
 
-    # selecting expand all btn
     def select_expand_btn(self):
+        """selecting expand all btn"""
         select_expand_btn_sitem = self.locator_finder_by_xpath(self.select_expand_btn_id)
         select_expand_btn_sitem.click()
         time.sleep(3)
 
-    # selecting object tabs
     def select_editor_mode_btn(self):
+        """selecting object tabs"""
         select_editor_btn_sitem = self.locator_finder_by_xpath(self.select_editor_mode_btn_id)
         select_editor_btn_sitem.click()
         time.sleep(3)
 
-    # switching editor mode to Code
     def switch_to_code_editor_mode(self):
+        """switching editor mode to Code"""
         switch_to_code_editor_mode_sitem = self.locator_finder_by_xpath(self.switch_to_code_editor_mode_id)
         switch_to_code_editor_mode_sitem.click()
         time.sleep(3)
 
-    # switching editor mode to Code compact view
     def compact_json_data(self):
+        """switching editor mode to Code compact view"""
         compact_json_data_sitem = self.locator_finder_by_xpath(self.compact_json_data_id)
         compact_json_data_sitem.click()
         time.sleep(3)
 
-    # switching editor mode to Tree
     def switch_to_tree_editor_mode(self):
+        """switching editor mode to Tree"""
         switch_to_tree_editor_mode_sitem = self.locator_finder_by_xpath(self.switch_to_tree_editor_mode_id)
         switch_to_tree_editor_mode_sitem.click()
         time.sleep(3)
 
-    # Clicking on arangosearch documentation link
     def click_arangosearch_documentation_link(self):
+        """Clicking on arangosearch documentation link"""
         self.click_arangosearch_documentation_link_id = self.locator_finder_by_xpath(
             self.click_arangosearch_documentation_link_id
         )
@@ -200,48 +200,48 @@ class ViewsPage(NavigationBarPage):
         expected_title = "Views Reference | ArangoSearch | Indexing | Manual | ArangoDB Documentation"
         assert title in expected_title, f"Expected page title {expected_title} but got {title}"
 
-    # Selecting search option inside views
     def select_inside_search(self, keyword):
+        """Selecting search option inside views"""
         select_inside_search_sitem = self.locator_finder_by_xpath(self.select_inside_search_id)
         select_inside_search_sitem.click()
         select_inside_search_sitem.clear()
         select_inside_search_sitem.send_keys(keyword)
 
-    # traverse search results down
     def search_result_traverse_down(self):
+        """traverse search results down"""
         search_result_traverse_down_sitem = self.locator_finder_by_xpath(self.search_result_traverse_down_id)
         for x in range(8):
             search_result_traverse_down_sitem.click()
             time.sleep(1)
 
-    # traverse search results up
     def search_result_traverse_up(self):
+        """traverse search results up"""
         search_result_traverse_up_sitem = self.locator_finder_by_xpath(self.search_result_traverse_up_id)
         for x in range(8):
             search_result_traverse_up_sitem.click()
             time.sleep(1)
 
-    # Select Views rename btn
     def clicking_rename_views_btn(self):
+        """Select Views rename btn"""
         clicking_rename_btn_sitem = self.locator_finder_by_id(self.clicking_rename_views_btn_id)
         clicking_rename_btn_sitem.click()
 
-    # changing view name
     def rename_views_name(self, name):
+        """changing view name"""
         rename_views_name_sitem = self.locator_finder_by_xpath(self.rename_views_name_id)
         rename_views_name_sitem.click()
         rename_views_name_sitem.clear()
         rename_views_name_sitem.send_keys(name)
 
-    # Confirm rename views
     def rename_views_name_confirm(self):
+        """Confirm rename views"""
         rename_views_name_confirm_sitem = self.locator_finder_by_xpath(self.rename_views_name_confirm_id)
         rename_views_name_confirm_sitem.click()
         time.sleep(2)
-        self.driver.back()
+        self.webdriver.back()
 
-    # creating improved views tab
     def create_improved_views(self, view_name, types):
+        """creating improved views tab"""
         """This method will create the improved views for v3.9+"""
         print("Selecting views create button \n")
         create_new_views_id = self.locator_finder_by_xpath(self.create_new_views_id)
@@ -357,7 +357,7 @@ class ViewsPage(NavigationBarPage):
         self.search_views("improved_arangosearch_view_02", self.select_improved_arangosearch_view_02)
 
         print(f"Selecting {name} for checking \n")
-        select_view_sitem = self.locator_finder_by_xpath(self, locator)
+        select_view_sitem = self.locator_finder_by_xpath(locator)
         select_view_sitem.click()
 
         self.select_collapse_btn()
@@ -398,19 +398,22 @@ class ViewsPage(NavigationBarPage):
         """This method will delete views"""
         self.select_views_tab()
         print(f"Selecting {name} for deleting \n")
-        select_view_sitem = self.locator_finder_by_xpath(locator)
-        select_view_sitem.click()
-        time.sleep(1)
+        try:
+            select_view_sitem = self.locator_finder_by_xpath(locator)
+            select_view_sitem.click()
+            time.sleep(1)
 
-        delete_views_btn_sitem = self.locator_finder_by_id(self.delete_views_btn_id)
-        delete_views_btn_sitem.click()
-        time.sleep(1)
+            delete_views_btn_sitem = self.locator_finder_by_id(self.delete_views_btn_id)
+            delete_views_btn_sitem.click()
+            time.sleep(1)
 
-        delete_views_confirm_btn_sitem = self.locator_finder_by_xpath(self.delete_views_confirm_btn_id)
-        delete_views_confirm_btn_sitem.click()
-        time.sleep(1)
+            delete_views_confirm_btn_sitem = self.locator_finder_by_xpath(self.delete_views_confirm_btn_id)
+            delete_views_confirm_btn_sitem.click()
+            time.sleep(1)
 
-        final_delete_confirmation_sitem = self.locator_finder_by_id(self.final_delete_confirmation_id)
-        final_delete_confirmation_sitem.click()
-        print(f"Selecting {name} for deleting completed \n")
-        time.sleep(1)
+            final_delete_confirmation_sitem = self.locator_finder_by_id(self.final_delete_confirmation_id)
+            final_delete_confirmation_sitem.click()
+            print(f"Selecting {name} for deleting completed \n")
+            time.sleep(1)
+        except TimeoutException as e:
+            print("FAIL: could not delete views properly", e, "\n")

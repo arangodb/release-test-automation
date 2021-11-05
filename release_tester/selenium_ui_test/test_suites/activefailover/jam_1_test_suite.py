@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+"""active failover base testsuite"""
 import pprint
 
 from selenium_ui_test.pages.navbar import NavigationBarPage
@@ -7,6 +9,8 @@ from selenium_ui_test.test_suites.base_test_suite import testcase
 
 
 class ActiveFailoverJamStepOneSuite(ActiveFailoverBaseTestSuite):
+    """check UI during failover with one node missing"""
+
     @testcase
     def jam_step_1(self):
         """check for one set of instances to go away"""

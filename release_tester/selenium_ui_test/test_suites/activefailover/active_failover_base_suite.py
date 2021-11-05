@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+"""active failover base testsuite"""
 import pprint
 import time
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite
@@ -7,6 +9,8 @@ from selenium_ui_test.pages.replication_page import ReplicationPage
 
 
 class ActiveFailoverBaseTestSuite(BaseTestSuite):
+    """testsuite to be run to check the follower count"""
+
     def check_follower_count(self, expect_follower_count=2, retry_count=10):
         """check the integrity of the old system after the install"""
         while retry_count > 0:

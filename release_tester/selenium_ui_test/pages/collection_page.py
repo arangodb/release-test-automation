@@ -12,9 +12,9 @@ from selenium_ui_test.pages.navbar import NavigationBarPage
 class CollectionPage(NavigationBarPage):
     """Collection page class"""
 
-    def __init__(self, driver):
+    def __init__(self, webdriver):
         """class initialization"""
-        super().__init__(driver)
+        super().__init__(webdriver)
         self.select_collection_page_id = "collections"
         self.select_create_collection_id = "createCollection"
         self.select_new_collection_name_id = "new-collection-name"
@@ -165,7 +165,7 @@ class CollectionPage(NavigationBarPage):
     def select_number_of_shards(self, shard_value):
         """selecting number of shards for the collection"""
         shards = "new-collection-shards"
-        shards_sitem = self.locator_finder_by_id(self, shards)
+        shards_sitem = self.locator_finder_by_id(shards)
         shards_sitem.click()
         shards_sitem.clear()
         shards_sitem.send_keys(shard_value)
@@ -174,7 +174,7 @@ class CollectionPage(NavigationBarPage):
     def select_replication_factor(self, rf_value):
         """selecting number of replication factor for the collection"""
         rf = "new-replication-factor"
-        rf_sitem = self.locator_finder_by_id(self, rf)
+        rf_sitem = self.locator_finder_by_id(rf)
         rf_sitem.click()
         rf_sitem.clear()
         rf_sitem.send_keys(rf_value)
@@ -485,107 +485,107 @@ class CollectionPage(NavigationBarPage):
 
     def create_new_index(self, index_name, value, cluster_status):
         print(f"Creating {index_name} index started \n")
-        create_new_index_btn_sitem = self.locator_finder_by_id(self, self.create_new_index_btn_id)
+        create_new_index_btn_sitem = self.locator_finder_by_id(self.create_new_index_btn_id)
         create_new_index_btn_sitem.click()
         time.sleep(2)
 
         print(f"selecting {index_name} from the list\n")
-        self.locator_finder_by_select(self, self.select_index_type_id, value)
+        self.locator_finder_by_select(self.select_index_type_id, value)
 
         if index_name == "Persistent":
-            self.select_persistent_fields_id = self.locator_finder_by_hover_item_id(
-                self, self.select_persistent_fields_id
-            )
+            self.select_persistent_fields_id = self.locator_finder_by_hover_item_id(self.select_persistent_fields_id)
             time.sleep(1)
             self.select_persistent_fields_id.send_keys("pfields").perform()
-            self.select_persistent_name_id = self.locator_finder_by_hover_item_id(self, self.select_persistent_name_id)
+            self.select_persistent_name_id = self.locator_finder_by_hover_item_id(self.select_persistent_name_id)
             self.select_persistent_name_id.send_keys("pname").perform()
             time.sleep(1)
 
-            if cluster_status:
+            if not cluster_status:
                 self.select_persistent_unique_id = self.locator_finder_by_hover_item_id(
-                    self, self.select_persistent_unique_id
+                    self.select_persistent_unique_id
                 )
 
-            self.select_persistent_sparse_id = self.locator_finder_by_hover_item_id(
-                self, self.select_persistent_sparse_id
-            )
+            self.select_persistent_sparse_id = self.locator_finder_by_hover_item_id(self.select_persistent_sparse_id)
             self.select_persistent_duplicate_id = self.locator_finder_by_hover_item_id(
-                self, self.select_persistent_duplicate_id
+                self.select_persistent_duplicate_id
             )
             self.select_persistent_background_id = self.locator_finder_by_hover_item_id(
-                self, self.select_persistent_background_id
+                self.select_persistent_background_id
             )
             time.sleep(1)
 
         elif index_name == "Geo":
-            self.select_geo_fields_id = self.locator_finder_by_hover_item_id(self, self.select_geo_fields_id)
+            self.select_geo_fields_id = self.locator_finder_by_hover_item_id(self.select_geo_fields_id)
             self.select_geo_fields_id.send_keys("gfields").perform()
             time.sleep(1)
-            self.select_geo_name_id = self.locator_finder_by_hover_item_id(self, self.select_geo_name_id)
+            self.select_geo_name_id = self.locator_finder_by_hover_item_id(self.select_geo_name_id)
             self.select_geo_name_id.send_keys("gname").perform()
             time.sleep(1)
-            self.select_geo_json_id = self.locator_finder_by_hover_item_id(self, self.select_geo_json_id)
-            self.select_geo_background_id = self.locator_finder_by_hover_item_id(self, self.select_geo_background_id)
+            self.select_geo_json_id = self.locator_finder_by_hover_item_id(self.select_geo_json_id)
+            self.select_geo_background_id = self.locator_finder_by_hover_item_id(self.select_geo_background_id)
             time.sleep(1)
             self.wait_for_ajax()
 
         elif index_name == "Fulltext":
-            self.select_fulltext_field_id = self.locator_finder_by_hover_item_id(self, self.select_fulltext_field_id)
+            self.select_fulltext_field_id = self.locator_finder_by_hover_item_id(self.select_fulltext_field_id)
             self.select_fulltext_field_id.send_keys("ffields").perform()
             time.sleep(1)
-            self.select_fulltext_name_id = self.locator_finder_by_hover_item_id(self, self.select_fulltext_name_id)
+            self.select_fulltext_name_id = self.locator_finder_by_hover_item_id(self.select_fulltext_name_id)
             self.select_fulltext_name_id.send_keys("fname").perform()
             time.sleep(1)
-            self.select_fulltext_length_id = self.locator_finder_by_hover_item_id(self, self.select_fulltext_length_id)
+            self.select_fulltext_length_id = self.locator_finder_by_hover_item_id(self.select_fulltext_length_id)
             self.select_fulltext_length_id.send_keys(100)
             self.select_fulltext_background_id = self.locator_finder_by_hover_item_id(
-                self, self.select_fulltext_background_id
+                self.select_fulltext_background_id
             )
             time.sleep(1)
             self.wait_for_ajax()
 
         elif index_name == "TTL":
-            self.select_ttl_field_id = self.locator_finder_by_hover_item_id(self, self.select_ttl_field_id)
+            self.select_ttl_field_id = self.locator_finder_by_hover_item_id(self.select_ttl_field_id)
             self.select_ttl_field_id.send_keys("tfields").perform()
             time.sleep(1)
-            self.select_ttl_name_id = self.locator_finder_by_hover_item_id(self, self.select_ttl_name_id)
+            self.select_ttl_name_id = self.locator_finder_by_hover_item_id(self.select_ttl_name_id)
             self.select_ttl_name_id.send_keys("tname").perform()
             time.sleep(1)
-            self.select_ttl_expiry_id = self.locator_finder_by_hover_item_id(self, self.select_ttl_expiry_id)
+            self.select_ttl_expiry_id = self.locator_finder_by_hover_item_id(self.select_ttl_expiry_id)
             self.select_ttl_expiry_id.send_keys(1000)
-            self.select_ttl_background_id = self.locator_finder_by_hover_item_id(self, self.select_ttl_background_id)
+            self.select_ttl_background_id = self.locator_finder_by_hover_item_id(self.select_ttl_background_id)
             time.sleep(1)
             self.wait_for_ajax()
 
         # experimental feature
         elif index_name == "ZKD":
-            select_zkd_field_sitem = self.locator_finder_by_id(self, "newZkdFields")
+            select_zkd_field_sitem = self.locator_finder_by_id("newZkdFields")
             select_zkd_field_sitem.click()
             select_zkd_field_sitem.clear()
             select_zkd_field_sitem.send_keys("zkdfileds")
+            time.sleep(1)
 
-            select_zkd_name_sitem = self.locator_finder_by_id(self, "newZkdName")
+            select_zkd_name_sitem = self.locator_finder_by_id("newZkdName")
             select_zkd_name_sitem.click()
             select_zkd_name_sitem.clear()
             select_zkd_name_sitem.send_keys("zkdname")
+            time.sleep(1)
 
-        select_create_index_btn_sitem = self.locator_finder_by_id(self, self.select_create_index_btn_id)
+        select_create_index_btn_sitem = self.locator_finder_by_id(self.select_create_index_btn_id)
         select_create_index_btn_sitem.click()
-        time.sleep(2)
+        time.sleep(5)  # it takes a bit of time to create
         self.wait_for_ajax()
 
         print(f"Creating {index_name} index completed \n")
 
-    # this method will delete all the indexes one by one
     def delete_all_index(self):
         """this method will delete all the indexes one by one"""
-        select_index_for_delete_sitem = self.locator_finder_by_xpath(self, self.select_index_for_delete_id)
-        select_index_for_delete_sitem.click()
-
-        select_index_confirm_delete_sitem = self.locator_finder_by_id(self, self.select_index_confirm_delete)
-        select_index_confirm_delete_sitem.click()
-        self.webdriver.refresh()
+        try:
+            select_index_for_delete_sitem = self.locator_finder_by_xpath(self.select_index_for_delete_id)
+            select_index_for_delete_sitem.click()
+            time.sleep(2)
+            select_index_confirm_delete_sitem = self.locator_finder_by_id(self.select_index_confirm_delete)
+            select_index_confirm_delete_sitem.click()
+            self.webdriver.refresh()
+        except TimeoutException as e:
+            print("Something went wrong ", e, "\n")
 
     def select_info_tab(self):
         """Selecting info tab from the collection submenu"""
@@ -678,13 +678,14 @@ class CollectionPage(NavigationBarPage):
         self.select_collection_page()
 
         try:
-            self.locator_finder_by_xpath(self, collection_locator).click()
+            self.locator_finder_by_xpath(collection_locator).click()
 
-            self.select_settings_tab()
+            # we don't care about the cluster specific things:
+            self.select_settings_tab(False)
             self.select_delete_collection()
 
             print(f"Deleting {collection_name} collection Completed \n")
-            self.driver.refresh()
+            self.webdriver.refresh()
         except TimeoutException:
             print("TimeoutException occurred! \n")
             print("Info: Collection has already been deleted or never created. \n")
@@ -717,10 +718,10 @@ class CollectionPage(NavigationBarPage):
                     notification_sitem.text == expected_text
                 ), f"Expected text{expected_text} but got {notification_sitem.text}"
             except TimeoutException:
-                print("Unexpected error occurred!")
+                print("FAIL: Unexpected error occurred!")
 
         except TimeoutException as ex:
             if test_name == "access":
                 print("Collection creation failed, which is expected")
             if test_name == "read/write":
-                raise Exception("Unexpected error occurred!") from ex
+                raise Exception("FAIL: Unexpected error occurred!") from ex

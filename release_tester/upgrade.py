@@ -132,7 +132,7 @@ def run_upgrade(
                                         "testrun name": testrun_name,
                                         "testscenario": runner_strings[runner_type],
                                         "success": False,
-                                        "message": "There are failed UI tests.",
+                                        "message": "There are failed UI tests.\n%s" % str(runner.ui_test_results_table),
                                         "progress": "",
                                     }
                                     results.append(one_result)

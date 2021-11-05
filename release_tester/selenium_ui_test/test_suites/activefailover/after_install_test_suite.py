@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+"""active failover base testsuite"""
 from selenium_ui_test.test_suites.base_classes.after_install_test_suite import AfterInstallTestSuite
 
 

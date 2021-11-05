@@ -18,6 +18,7 @@ from selenium.common.exceptions import (
 )
 import semver
 
+
 # from webdriver_manager.chrome import ChromeDriverManager
 # from webdriver_manager.firefox import GeckoDriverManager
 # from webdriver_manager.microsoft import EdgeChromiumDriverManager
@@ -216,12 +217,14 @@ class BasePage:
 
     def switch_tab(self, locator):
         """This method will change tab and close it and finally return to origin tab"""
+        print("switching tab method \n")
         self.locator = locator
         self.locator.send_keys(Keys.CONTROL + Keys.RETURN)  # this will open new tab on top of current
         self.webdriver.switch_to.window(self.webdriver.window_handles[1])  # switch to new tab according to index value
         title = self.webdriver.title
+        print("Current page title: ", title, "\n")
         time.sleep(15)
-        self.webdriver.close()
+        self.webdriver.close()  # closes the browser active window
         self.webdriver.switch_to.window(self.webdriver.window_handles[0])
         return title
 
@@ -240,6 +243,18 @@ class BasePage:
 
         version = float(package_version[0:3])
         return version
+
+    def current_user(self):
+        """get the currently logged in user from the page upper middle"""
+        self.wait_for_ajax()
+        userbar_sitem = self.locator_finder_by_id("userBar")
+        return str(userbar_sitem.find_element_by_class_name("toggle").text)
+
+    def current_database(self):
+        """get the currently used database from the page upper middle"""
+        self.wait_for_ajax()
+        database_sitem = self.locator_finder_by_id("dbStatus")
+        return database_sitem.find_element_by_class_name("state").text
 
     def scroll(self, down=0):
         """This method will be used to scroll up and down to any page"""
@@ -270,10 +285,10 @@ class BasePage:
         print(locator_name)
         self.locator = WebDriverWait(self.webdriver, timeout).until(
             EC.element_to_be_clickable((BY.ID, locator_name)),
-            message="UI-Test: " + locator_name + " locator was not found.",
+            message="UI-Test: " + str(locator_name) + " locator was not found.",
         )
         if self.locator is None:
-            raise Exception(locator_name, " locator was not found.")
+            raise Exception(str(locator_name), " locator was not found.")
         return self.locator
 
     def locator_finder_by_xpath(self, locator_name, timeout=10):
@@ -311,7 +326,9 @@ class BasePage:
 
     def locator_finder_by_class(self, locator_name):
         """This method will used for finding all the locators by their id"""
-        self.locator = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((BY.CLASS_NAME, locator_name)))
+        self.locator = WebDriverWait(self.webdriver, 10).until(
+            EC.element_to_be_clickable((BY.CLASS_NAME, locator_name))
+        )
         if self.locator is None:
             print(locator_name, " locator has not found.")
         else:
@@ -349,7 +366,7 @@ class BasePage:
             raise Exception("UI-Test: ", locator_name, " locator was not found.")
         return self.locator
 
-    def check_expected_error_messages(
+    def check_expected_error_messages_for_analyzer(
         self, error_input, print_statement, error_message, locators_id, error_message_id, div_id=None
     ):
         """This method will take three lists and check for expected error condition against user's inputs"""
@@ -362,7 +379,7 @@ class BasePage:
             if div_id is not None:
                 locator_sitem = self.locator_finder_by_xpath(locators)
             else:
-                locator_sitem = self.locator_finder_by_id(self, locators)
+                locator_sitem = self.locator_finder_by_id(locators)
             locator_sitem.click()
             locator_sitem.clear()
             locator_sitem.send_keys(error_input[i])
@@ -385,17 +402,85 @@ class BasePage:
                 # error_message list will hold expected error messages
                 assert (
                     error_sitem == error_message[i]
-                ), f"Expected error message {error_message[i]} but got {error_sitem}"
+                ), f"FAIL: Expected error message {error_message[i]} but got {error_sitem}"
 
-                print("x" * (len(error_sitem) + 23))
-                print("Expected error found: ", error_sitem)
-                print("x" * (len(error_sitem) + 23), "\n")
+                print("x" * (len(error_sitem) + 29))
+                print("OK: Expected error found: ", error_sitem)
+                print("x" * (len(error_sitem) + 29), "\n")
                 time.sleep(2)
 
             except TimeoutException:
                 raise Exception("*****-->Error occurred. Manual inspection required<--***** \n")
 
             i = i + 1
+
+    def check_expected_error_messages_for_database(
+        self, error_input, print_statement, error_message, locators_id, error_message_id, value=False
+    ):
+        """This method will take three lists and check for expected error condition against user's inputs"""
+        # value represent true because cluster rf and write concern has different wat to catch the error
+        i = 0
+        # looping through all the error scenario for test
+        while i < len(error_input):  # error_input list will hold a list of error inputs from the users
+            print(print_statement[i])  # print_statement will hold a list of all general print statements for the test
+            locators = locators_id  # locator id of the input placeholder where testing will take place
+            locator_sitem = self.locator_finder_by_id(locators)
+
+            locator_sitem.click()
+            locator_sitem.clear()
+            locator_sitem.send_keys(error_input[i])
+            time.sleep(2)
+
+            version = self.current_package_version()
+            if version == 3.8:
+                locator_sitem.send_keys(Keys.TAB)
+                time.sleep(2)
+            try:
+                # trying to create the db for 3.9 version
+                if value is False and version == 3.9:
+                    self.locator_finder_by_xpath('//*[@id="modalButton1"]').click()
+                    time.sleep(2)
+                    # placeholder's error message id for 3.9
+                    error_sitem = self.locator_finder_by_xpath(error_message_id).text
+                elif value is False and version == 3.8:
+                    error_sitem = self.locator_finder_by_xpath(error_message_id).text
+                else:
+                    error_sitem = self.locator_finder_by_xpath(error_message_id).text
+
+                # error_message list will hold expected error messages
+                assert (
+                    error_sitem == error_message[i]
+                ), f"FAIL: Expected error message {error_message[i]} but got {error_sitem}"
+
+                print("x" * (len(error_sitem) + 29))
+                print("OK: Expected error found: ", error_sitem)
+                print("x" * (len(error_sitem) + 29), "\n")
+                time.sleep(2)
+
+                # getting out from the db creation for the next check
+                if value is False and version == 3.9:
+                    self.webdriver.refresh()
+                    self.locator_finder_by_id("createDatabase").click()
+                    time.sleep(1)
+
+            except TimeoutException:
+                raise Exception("*****-->Error occurred. Manual inspection required<--***** \n")
+
+            i = i + 1
+
+    def check_server_package(self):
+        """This will determine the current server package type"""
+        try:
+            package = self.locator_finder_by_id("communityLabel").text
+            return package
+        except TimeoutException:
+            print("This is not a Community server package.\n")
+
+        try:
+            package = self.locator_finder_by_id("enterpriseLabel").text
+            return package
+        except TimeoutException:
+            print("This is not a Enterprise server package.\n")
 
     def choose_item_from_a_dropdown_menu(self, element: WebElement, item_text: str):
         """Given a drop-down menu element,
