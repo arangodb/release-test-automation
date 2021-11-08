@@ -146,7 +146,7 @@ def run_upgrade(
                                 }
                                 results.append(one_result)
                                 runner.take_screenshot()
-                                # TODO runner.agency_acquire_dump()
+                                runner.agency_acquire_dump()
                                 runner.search_for_warnings()
                                 runner.quit_selenium()
                                 kill_all_processes()
