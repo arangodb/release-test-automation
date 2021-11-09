@@ -167,7 +167,7 @@ def package_test(
                             one_result["testrun name"],
                             one_result["testscenario"],
                             # one_result['success'],
-                            one_result["message"],
+                            "\n".join(one_result["messages"]),
                         ]
                     )
                 else:
@@ -176,7 +176,7 @@ def package_test(
                             one_result["testrun name"],
                             one_result["testscenario"],
                             # one_result['success'],
-                            one_result["message"] + "\n" + "H" * 40 + "\n" + one_result["progress"],
+                            "\n".join(one_result["messages"]) + "\n" + "H" * 40 + "\n" + one_result["progress"],
                         ]
                     )
                 status = status and one_result["success"]
