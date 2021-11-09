@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """ tiny utility to kill all arangodb related processes """
 import logging
+from sys import platform
 
 from reporting.reporting_utils import step
 import psutil
@@ -20,7 +21,14 @@ def get_all_processes(kill_selenium):
     chromedrivers = []
     headleschromes = []
     logging.info("searching for leftover processes")
-    for process in psutil.Process().children(recursive=True):
+    processes = None
+    if platform.win32_ver()[0]:
+        # On Windows, iterate over all processes.
+        processes = psutil.process_iter()
+    else:
+        # On Unix, iterate only through processes, that are descendant from this process.
+        processes = psutil.Process().children(recursive=True)
+    for process in processes:
         try:
             name = process.name()
             if name.startswith("arangodb"):
