@@ -113,7 +113,7 @@ def common_options(
                 help="launch arangobench before starting the upgrade",
             )(function)
         function = click.option(
-            "--abort-on-error",
+            "--abort-on-error/--do-not-abort-on-error",
             is_flag=True,
             default=True,
             help="if we should abort on first error",
