@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ tiny utility to kill all arangodb related processes """
 import logging
-from sys import platform
+import platform
 
 from reporting.reporting_utils import step
 import psutil
