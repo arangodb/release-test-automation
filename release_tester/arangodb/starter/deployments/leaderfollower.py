@@ -202,7 +202,7 @@ process.exit(0);
         tries = 30
         if not self.follower_starter_instance.execute_frontend(self.checks["checkReplJS"]):
             while tries:
-                if self.follower_starter_instance.execute_frontend(self.checks["checkReplJS"], False):
+                if self.follower_starter_instance.execute_frontend(self.checks["checkReplJS"]):
                     break
                 progress(".")
                 time.sleep(1)
