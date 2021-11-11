@@ -2,12 +2,14 @@ from abc import ABC
 from datetime import datetime
 import logging
 import traceback
+
+from beautifultable import BeautifulTable
 from semver import VersionInfo
 
 from allure_commons._allure import attach
 from allure_commons.model2 import Status, Label, StatusDetails
 from allure_commons.types import AttachmentType, LabelType
-from reporting.reporting_utils import AllureTestSuiteContext, RtaTestcase
+from reporting.reporting_utils import AllureTestSuiteContext, RtaTestcase, attach_table
 
 from selenium.common.exceptions import InvalidSessionIdException
 
@@ -169,6 +171,24 @@ class BaseTestSuite(ABC):
         self.progress("Saving screenshot to file: %s" % filename)
         attach(screenshot, name="Screenshot ({fn})".format(fn=filename), attachment_type=AttachmentType.PNG)
 
+    def truncate_browser_log(self):
+        """truncate browser console log"""
+        self.webdriver.get_log('browser')
+
+    def save_browser_console_log(self):
+        """attach browser console log to the allure report"""
+        log_entries = self.webdriver.get_log('browser')
+        if len(log_entries) > 0:
+            table = BeautifulTable(maxwidth=160)
+            table.columns.header = ["Level", "Source", "Timestamp", "Message"]
+            for entry in log_entries:
+                table.rows.append(
+                    [entry["level"], entry["source"], entry["timestamp"], entry["message"]]
+                )
+            attach_table(table, "Browser console log")
+        else:
+            attach("", "Browser console log is empty")
+
     def check_version(self, expected_version: VersionInfo, is_enterprise: bool):
         """validate the version displayed in the UI"""
         ver = NavigationBarPage(self.webdriver).detect_version()
@@ -199,6 +219,7 @@ def testcase(title):
             with RtaTestcase(name, labels=[Label(name=LabelType.SUB_SUITE, value=sub_suite_name)]) as testcase:
                 try:
                     print('Running test case "%s"...' % name)
+                    self.truncate_browser_log()
                     func(*args, **kwargs)
                     success = True
                     print('Test case "%s" passed!' % name)
@@ -210,8 +231,9 @@ def testcase(title):
                     tb = "".join(traceback.TracebackException.from_exception(e).format())
                     print(message)
                     print(tb)
-                    self.take_screenshot()
                     testcase.context.status = Status.FAILED
+                    self.take_screenshot()
+                    self.save_browser_console_log()
                     testcase.context.statusDetails = StatusDetails(message=message, trace=tb)
                 test_result = RtaUiTestResult(name, success, message, tb)
                 return test_result
