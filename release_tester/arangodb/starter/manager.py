@@ -949,10 +949,13 @@ class StarterManager:
                 "/_admin/cluster/maintenance",
                 '"on"' if on_off else '"off"',
             )
-            print("Reply: " + str(reply[0].text))
-            if reply[0].status_code == 200:
-                return
-            time.sleep(3)
+            if len(reply) > 0:
+                print("Reply: " + str(reply[0].text))
+                if reply[0].status_code == 200:
+                    return
+            else:
+                print("Reply is empty. Sleeping for 3 s.")
+                time.sleep(3)
 
     @step
     def detect_leader(self):
