@@ -68,10 +68,10 @@ if (!db.testCollectionBefore) {
 if (!db.testCollectionAfter) {
   throw new Error("after collection does not exist - replication failed");
 }
-if (!db.testCollectionBefore.toArray()[0]["hello"] === "world") {
+if !(db.testCollectionBefore.toArray()[0]["hello"] === "world") {
   throw new Error("before not yet there?");
 }
-if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
+if !(db.testCollectionAfter.toArray()[0]["hello"] === "world") {
   throw new Error("after not yet there?");
 }
 """,
