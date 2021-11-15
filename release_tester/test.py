@@ -108,7 +108,7 @@ def run_test(mode,
                     "testrun name": testrun_name,
                     "testscenario": runner_strings[runner_type],
                     "success": True,
-                    "message": "",
+                    "messages": [],
                     "progress": "",
                 }
                 try:
