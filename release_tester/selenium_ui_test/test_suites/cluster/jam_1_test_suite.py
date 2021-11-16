@@ -1,13 +1,13 @@
 import platform
 import time
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
+from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 
 from selenium_ui_test.pages.cluster_page import ClusterPage
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium_ui_test.pages.nodes_page import NodesPage
 
 
-class ClusterJamStepOneSuite(BaseTestSuite):
+class ClusterJamStepOneSuite(BaseSeleniumTestSuite):
     WINVER = platform.win32_ver()
 
     @testcase

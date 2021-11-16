@@ -1,8 +1,9 @@
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
+from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
+from selenium_ui_test.test_suites.base_test_suite import testcase
 from selenium_ui_test.pages.dashboard_page import DashboardPage
 
 
-class DashboardTestSuite(BaseTestSuite):
+class DashboardTestSuite(BaseSeleniumTestSuite):
     @testcase
     def test_dashboard(self):
         """testing dashboard page"""

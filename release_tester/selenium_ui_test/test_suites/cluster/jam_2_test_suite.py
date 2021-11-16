@@ -4,10 +4,11 @@ import time
 from selenium_ui_test.pages.nodes_page import NodesPage
 from selenium_ui_test.pages.cluster_page import ClusterPage
 from selenium_ui_test.pages.navbar import NavigationBarPage
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
+from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
+from selenium_ui_test.test_suites.base_test_suite import testcase
 
 
-class ClusterJamStepTwoSuite(BaseTestSuite):
+class ClusterJamStepTwoSuite(BaseSeleniumTestSuite):
     """cluster jamming steps"""
 
     @testcase

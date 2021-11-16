@@ -12,7 +12,7 @@ class IndexType(Enum):
     TTL = "Ttl"
 
 
-class RtaUiTestResult:
+class RtaTestResult:
     """abstract a ui result"""
 
     def __init__(self, name, success, message, tb):

@@ -214,6 +214,7 @@ class InstallerBase(ABC):
 
     @step
     def un_install_server_package(self):
+        """uninstall server package"""
         self.un_install_server_package_impl()
         self.cfg.server_package_is_installed = False
 
@@ -242,11 +243,16 @@ class InstallerBase(ABC):
         self.un_install_debug_package_impl()
         self.cfg.debug_package_is_installed = False
 
+    @abstractmethod
     def install_debug_package_impl(self):
-        pass
+        """install debug package"""
 
+    @abstractmethod
     def un_install_debug_package_impl(self):
-        pass
+        """uninstall debug package"""
+
+    def __repr__(self):
+        return f"Installer type: {self.installer_type}\nServer package: {self.server_package}\nDebug package: {self.debug_package}\nClient package: {self.client_package}"
 
     @abstractmethod
     def calculate_package_names(self):
@@ -275,12 +281,6 @@ class InstallerBase(ABC):
     @abstractmethod
     def cleanup_system(self):
         """if the packages are known to not properly cleanup - do it here."""
-
-    def un_install_debug_package(self):
-        """Uninstalling debug package if it exist in the system"""
-
-    def install_debug_package(self):
-        """installing debug package"""
 
     def un_install_server_package_for_upgrade(self):
         """hook to uninstall old package for upgrade"""

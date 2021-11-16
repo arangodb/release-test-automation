@@ -131,7 +131,7 @@ class InstallerDeb(InstallerLinux):
                 ascii_print(server_upgrade.before)
                 logging.info("X" * 80)
                 logging.info("[E] Upgrade failed!")
-                sys.exit(1)
+                raise Exception("Upgrade failed!")
         try:
             logging.info("waiting for the upgrade to finish")
             server_upgrade.expect(pexpect.EOF, timeout=30)
@@ -189,7 +189,7 @@ class InstallerDeb(InstallerLinux):
             ascii_print(server_install.before)
             lh.line("X")
             logging.error("Installation failed!")
-            sys.exit(1)
+            raise Exception("Installation failed!")
         try:
             logging.info("waiting for the installation to finish")
             server_install.expect(pexpect.EOF, timeout=30)
@@ -219,9 +219,9 @@ class InstallerDeb(InstallerLinux):
             ascii_print(uninstall.before)
             uninstall.expect(pexpect.EOF)
             ascii_print(uninstall.before)
-        except pexpect.exceptions.EOF:
+        except pexpect.exceptions.EOF as ex:
             ascii_print(uninstall.before)
-            sys.exit(1)
+            raise ex
 
     @step
     def install_debug_package_impl(self):
@@ -272,10 +272,10 @@ class InstallerDeb(InstallerLinux):
 
         while client_install.isalive():
             progress(".")
-            if client_install.exitstatus != 0:
-                client_install.close(force=True)
-                ascii_print(client_install.before)
-                raise Exception(str(self.debug_package) + " client package installation didn't finish successfully!")
+        if client_install.exitstatus != 0:
+            client_install.close(force=True)
+            ascii_print(client_install.before)
+            raise Exception(str(self.debug_package) + " client package installation didn't finish successfully!")
 
     @step
     def un_install_client_package_impl(self):
@@ -295,9 +295,9 @@ class InstallerDeb(InstallerLinux):
             ascii_print(uninstall.before)
             uninstall.expect(pexpect.EOF, timeout=30)
             ascii_print(uninstall.before)
-        except pexpect.exceptions.EOF:
+        except pexpect.exceptions.EOF as ex:
             ascii_print(uninstall.before)
-            sys.exit(1)
+            raise ex
 
         while uninstall.isalive():
             progress(".")

@@ -1,8 +1,9 @@
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
+from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
+from selenium_ui_test.test_suites.base_test_suite import testcase
 from selenium_ui_test.pages.graph_page import GraphPage, GraphExample, get_graph_name
 
 
-class GraphTestSuite(BaseTestSuite):
+class GraphTestSuite(BaseSeleniumTestSuite):
     @testcase
     def test_graph(self):
         """testing graph page"""

@@ -1,60 +1,58 @@
-from abc import ABC
-from datetime import datetime
-import logging
 import traceback
-from semver import VersionInfo
-
-from allure_commons._allure import attach
+from abc import ABC
 from allure_commons.model2 import Status, Label, StatusDetails
 from allure_commons.types import AttachmentType, LabelType
 from reporting.reporting_utils import AllureTestSuiteContext, RtaTestcase
-
-from selenium.common.exceptions import InvalidSessionIdException
-
-from selenium_ui_test.models import RtaUiTestResult
-from selenium_ui_test.pages.login_page import LoginPage
-from selenium_ui_test.pages.base_page import BasePage
-from selenium_ui_test.pages.navbar import NavigationBarPage
+from selenium_ui_test.models import RtaTestResult
 
 
 class BaseTestSuite(ABC):
-    def __init__(self, selenium_runner, child_classes=[]):
-        self.selenium_runner = selenium_runner
-        self.webdriver = selenium_runner.webdriver
-        self.frontend = selenium_runner.ui_entrypoint_instance
-        self.root_passvoid = self.frontend.get_passvoid()
-        self.url = self.frontend.get_public_url()
-        self.is_cluster = selenium_runner.is_cluster
-        self.cfg = selenium_runner.cfg
-        self.importer = selenium_runner.importer
-        self.restore = selenium_runner.restorer
-        self.test_data_dir = selenium_runner.cfg.test_data_dir.resolve()
-        self.is_enterprise = selenium_runner.cfg.enterprise
-        self.is_headless = selenium_runner.is_headless
+    def __init__(self, child_classes=[]):
         self.test_results = []
         self.child_classes = child_classes
         self.children = []
-        for suite in child_classes:
-            self.children.append(suite(selenium_runner))
+        for child_class in child_classes:
+            self.children.append(self.init_child_class(child_class))
+        self.results_dir = None
+        self.clean_allure_dir = None
+        self.enterprise = None
+        self.zip_package = None
+        self.new_version = None
+        self.enc_at_rest = None
+        self.old_version = None
+        self.parent_test_suite_name = None
+        self.auto_generate_parent_test_suite_name = None
+        self.suite_name = None
+        self.runner_type = None
+        self.installer_type = None
+        self.ssl = None
+        self.use_subsuite = True
+
+    def init_child_class(self, child_class):
+        return child_class()
 
     def run(self):
-        self.setup()
+        self.setup_test_suite()
         for suite in self.children:
             self.test_results += suite.run()
         if self.has_own_testcases():
             with AllureTestSuiteContext(
-                None,
-                False,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
+                results_dir=None if not self.results_dir else self.results_dir,
+                clean=True if not self.clean_allure_dir else self.clean_allure_dir,
+                enterprise = None if not self.enterprise else self.enterprise,
+                zip_package = None if not self.zip_package else self.zip_package,
+                new_version = None if not self.new_version else self.new_version,
+                enc_at_rest = None if not self.enc_at_rest else self.enc_at_rest,
+                old_version = None if not self.old_version else self.old_version,
+                parent_test_suite_name = None if not self.parent_test_suite_name else self.parent_test_suite_name,
+                auto_generate_parent_test_suite_name = True if not hasattr(self, 'auto_generate_parent_test_suite_name') else self.auto_generate_parent_test_suite_name,
+                suite_name = None if not self.suite_name else self.suite_name,
+                runner_type = None if not self.runner_type else self.runner_type,
+                installer_type = None if not self.installer_type else self.installer_type,
+                ssl = False if not self.ssl else self.ssl,
             ):
                 self.test_results += self.run_own_testscases()
-        self.tear_down()
+        self.tear_down_test_suite()
         return self.test_results
 
     def run_own_testscases(self):
@@ -68,155 +66,87 @@ class BaseTestSuite(ABC):
         testcases = [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "is_testcase")]
         return len(testcases) > 0
 
-    def ui_assert(self, conditionstate, message):
-        """python assert sucks. fuckit."""
-        if not conditionstate:
-            logging.error(message)
-            self.take_screenshot()
-            assert False, message
+    def setup_test_suite(self):
+        """prepare to run test suite"""
+        pass
 
-    def connect_server_new_tab(self, cfg):
-        """login..."""
-        self.progress("Opening page")
-        print(frontend_instance[0].get_public_plain_url())
-        self.original_window_handle = self.webdriver.current_window_handle
-
-        # Open a new window
-        self.webdriver.execute_script("window.open('');")
-        self.webdriver.switch_to.window(self.webdriver.window_handles[1])
-        self.webdriver.get(
-            self.get_protocol()
-            + "://"
-            + self.frontend.get_public_plain_url()
-            + "/_db/_system/_admin/aardvark/index.html"
-        )
-        login_page = LoginPage(self.webdriver)
-        login_page.login_webif("root", frontend_instance[0].get_passvoid())
-
-    def close_tab_again(self):
-        """close a tab, and return to main window"""
-        self.webdriver.close()  # Switch back to the first tab with URL A
-        # self.webdriver.switch_to.window(self.webdriver.window_handles[0])
-        # print("Current Page Title is : %s" %self.webdriver.title)
-        # self.webdriver.close()
-        self.webdriver.switch_to.window(self.original_window_handle)
-        self.original_window_handle = None
-
-    def connect_server(self, frontend_instance, database, cfg):
-        """login..."""
-        self.progress("Opening page")
-        print(frontend_instance[0].get_public_plain_url())
-        self.webdriver.get(
-            self.get_protocol()
-            + "://"
-            + frontend_instance[0].get_public_plain_url()
-            + "/_db/_system/_admin/aardvark/index.html"
-        )
-        login_page = LoginPage(self.webdriver)
-        login_page.login_webif("root", frontend_instance[0].get_passvoid())
-
-    def go_to_index_page(self):
-        """Open index.html"""
-        self.progress("Open index.html")
-        path = "/_db/_system/_admin/aardvark/index.html"
-        self.goto_url_and_wait_until_loaded(path)
-        if "#login" in self.webdriver.current_url:
-            login_page = LoginPage(self.webdriver)
-            login_page.login_webif("root", self.root_passvoid, "_system")
-            self.goto_url_and_wait_until_loaded(path)
-
-    def go_to_dashboard(self, username="root", database_name="_system"):
-        path = "/_db/_system/_admin/aardvark/index.html#dashboard"
-        self.webdriver.get(self.url + path)
-        if not path in self.webdriver.current_url:
-            login_page = LoginPage(self.webdriver)
-            login_page.login_webif(username, self.root_passvoid, database_name)
-            self.webdriver.get(self.url + path)
-
-    def goto_url_and_wait_until_loaded(self, path):
-        self.webdriver.get(self.url + path)
-        BasePage(self.webdriver).wait_for_ajax()
-
-    def setup(self):
-        """prepare to run test cases"""
-        self.go_to_index_page()
-
-    def tear_down(self):
+    def tear_down_test_suite(self):
         """clean up after test suite"""
-        self.webdriver.delete_all_cookies()
+        pass
 
-    def progress(self, arg):
-        """state print todo"""
-        print(arg)
+    def setup_testcase(self):
+        """prepare to run test case"""
+        pass
 
-    def take_screenshot(self):
-        """*snap*"""
-        filename = datetime.now().strftime("%d-%m-%Y_%H:%M:%S.%f") + ".png"
-        self.progress("Taking screenshot from: %s " % self.webdriver.current_url)
-        try:
-            if self.is_headless:
-                self.progress("taking full screenshot")
-                elmnt = self.webdriver.find_element_by_tag_name("body")
-                screenshot = elmnt.screenshot_as_png()
-            else:
-                self.progress("taking screenshot")
-                screenshot = self.webdriver.get_screenshot_as_png()
-        except InvalidSessionIdException:
-            self.progress("Fatal: webdriver not connected!")
-        except Exception as ex:
-            self.progress("falling back to taking partial screenshot " + str(ex))
-            screenshot = self.webdriver.get_screenshot_as_png()
-        self.progress("Saving screenshot to file: %s" % filename)
-        attach(screenshot, name="Screenshot ({fn})".format(fn=filename), attachment_type=AttachmentType.PNG)
+    def teardown_testcase(self):
+        """clean up after test case"""
+        pass
 
-    def check_version(self, expected_version: VersionInfo, is_enterprise: bool):
-        """validate the version displayed in the UI"""
-        ver = NavigationBarPage(self.webdriver).detect_version()
-        self.progress(" %s ~= %s?" % (ver["version"].lower(), str(expected_version).lower()))
-        assert ver["version"].lower().lower().startswith(str(expected_version)), (
-            "UI-Test: wrong version: '" + str(ver["version"]).lower() + "' vs '" + str(expected_version).lower() + "'"
-        )
-        if is_enterprise:
-            assert ver["enterprise"] == "ENTERPRISE EDITION", "UI-Test: expected enterprise"
-        else:
-            assert ver["enterprise"] == "COMMUNITY EDITION", "UI-Test: expected community"
+    def add_crash_data_to_report(self):
+        pass
+
+    def there_are_failed_tests(self):
+        for result in self.test_results:
+            if not result.success:
+                return True
+        return False
 
 
-def testcase(title):
+def testcase(title=None, disable=False):
     def decorator(func):
         def wrapper(self, *args, **kwargs):
             name = None
             success = None
             message = None
             tb = None
-            if not callable(title):
-                name = title
-            elif title.__doc__:
-                name = title.__doc__
+            if callable(title):
+                if title.__doc__:
+                    name = title.__doc__
+                else:
+                    name = title.__name__
             else:
-                name = title.__name__
-            sub_suite_name = self.__doc__ if self.__doc__ else self.__class__.__name__
-            with RtaTestcase(name, labels=[Label(name=LabelType.SUB_SUITE, value=sub_suite_name)]) as testcase:
-                try:
-                    print('Running test case "%s"...' % name)
-                    func(*args, **kwargs)
-                    success = True
-                    print('Test case "%s" passed!' % name)
-                    testcase.context.status = Status.PASSED
-                except Exception as e:
-                    success = False
-                    print("Test failed!")
-                    message = str(e)
-                    tb = "".join(traceback.TracebackException.from_exception(e).format())
-                    print(message)
-                    print(tb)
-                    self.take_screenshot()
-                    testcase.context.status = Status.FAILED
-                    testcase.context.statusDetails = StatusDetails(message=message, trace=tb)
-                test_result = RtaUiTestResult(name, success, message, tb)
+                if type(title)==str:
+                    name = title
+                else:
+                    if func.__doc__:
+                        name = func.__doc__
+                    else:
+                        name = func.__name__
+            labels = []
+            if self.use_subsuite:
+                sub_suite_name = self.__doc__ if self.__doc__ else self.__class__.__name__
+                labels.append(Label(name=LabelType.SUB_SUITE, value=sub_suite_name))
+            with RtaTestcase(name, labels=labels) as testcase:
+                if disable:
+                    test_result = RtaTestResult(name, True, "test is skipped", None)
+                    testcase.context.status = Status.SKIPPED
+                    if type(disable) == str:
+                        testcase.context.statusDetails = StatusDetails(message=disable)
+                else:
+                    try:
+                        self.setup_testcase()
+                        print('Running test case "%s"...' % name)
+                        func(*args, **kwargs)
+                        success = True
+                        print('Test case "%s" passed!' % name)
+                        testcase.context.status = Status.PASSED
+                    except Exception as e:
+                        success = False
+                        print("Test failed!")
+                        message = str(e)
+                        tb = "".join(traceback.TracebackException.from_exception(e).format())
+                        print(message)
+                        print(tb)
+                        self.add_crash_data_to_report()
+                        testcase.context.status = Status.FAILED
+                        testcase.context.statusDetails = StatusDetails(message=message, trace=tb)
+                    finally:
+                        self.teardown_testcase()
+                    test_result = RtaTestResult(name, success, message, tb)
                 return test_result
 
         wrapper.is_testcase = True
+        wrapper.disable = disable
         return wrapper
 
     if callable(title):

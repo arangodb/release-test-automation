@@ -137,7 +137,7 @@ class InstallerRPM(InstallerLinux):
             print("exception : " + str(exc))
             lh.line("X")
             logging.error("Upgrade failed!")
-            sys.exit(1)
+            raise exc
 
         logging.debug("found: upgrade message")
 
@@ -145,9 +145,9 @@ class InstallerRPM(InstallerLinux):
         try:
             server_upgrade.expect(pexpect.EOF, timeout=30)
             ascii_print(server_upgrade.before)
-        except pexpect.exceptions.EOF:
+        except pexpect.exceptions.EOF as ex:
             logging.error("TIMEOUT! while upgrading package")
-            sys.exit(1)
+            raise ex
 
         logging.debug("upgrade successfully finished")
 
@@ -176,10 +176,10 @@ class InstallerRPM(InstallerLinux):
             server_install.expect(pexpect.EOF, timeout=60)
             reply = server_install.before
             ascii_print(reply)
-        except pexpect.exceptions.EOF:
+        except pexpect.exceptions.EOF as ex:
             ascii_print(server_install.before)
             logging.info("Installation failed!")
-            sys.exit(1)
+            raise ex
 
         while server_install.isalive():
             progress(".")
@@ -300,9 +300,9 @@ class InstallerRPM(InstallerLinux):
         try:
             uninstall.expect(pexpect.EOF, timeout=30)
             ascii_print(uninstall.before)
-        except pexpect.exceptions.EOF:
+        except pexpect.exceptions.EOF as ex:
             ascii_print(uninstall.before)
-            sys.exit(1)
+            raise ex
 
         while uninstall.isalive():
             progress(".")

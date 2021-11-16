@@ -5,7 +5,7 @@ import pprint
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium_ui_test.pages.replication_page import ReplicationPage
 from selenium_ui_test.test_suites.activefailover.active_failover_base_suite import ActiveFailoverBaseTestSuite
-from selenium_ui_test.test_suites.base_test_suite import testcase
+from selenium_ui_test.test_suites.base_selenium_test_suite import testcase
 
 
 class ActiveFailoverJamStepOneSuite(ActiveFailoverBaseTestSuite):

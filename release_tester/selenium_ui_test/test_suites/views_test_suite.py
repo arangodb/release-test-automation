@@ -1,8 +1,9 @@
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
+from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
+from selenium_ui_test.test_suites.base_test_suite import testcase
 from selenium_ui_test.pages.views_page import ViewsPage
 
 
-class ViewsTestSuite(BaseTestSuite):
+class ViewsTestSuite(BaseSeleniumTestSuite):
     @testcase
     def test_views(self):
         """testing Views page"""

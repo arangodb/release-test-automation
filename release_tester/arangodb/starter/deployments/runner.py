@@ -321,8 +321,6 @@ class Runner(ABC):
             lh.subsection("outputting version")
             self.new_installer.output_arangod_version()
             self.new_installer.get_starter_version()
-            # only install debug package for new package.
-            self.progress(True, "installing debug package:")
             self.new_installer.stop_service()
             self.cfg.set_directories(self.new_installer.cfg)
             self.new_cfg.set_directories(self.new_installer.cfg)

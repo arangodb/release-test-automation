@@ -75,6 +75,7 @@ def run_upgrade(
             encryption_at_rest,
             old_version,
             None,
+            True,
             runner_strings[runner_type],
             None,
             new_inst.installer_type,
