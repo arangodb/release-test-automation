@@ -243,13 +243,13 @@ class InstallerBase(ABC):
         self.un_install_debug_package_impl()
         self.cfg.debug_package_is_installed = False
 
-    @abstractmethod
     def install_debug_package_impl(self):
         """install debug package"""
+        pass
 
-    @abstractmethod
     def un_install_debug_package_impl(self):
         """uninstall debug package"""
+        pass
 
     def __repr__(self):
         return f"Installer type: {self.installer_type}\nServer package: {self.server_package}\nDebug package: {self.debug_package}\nClient package: {self.client_package}"
