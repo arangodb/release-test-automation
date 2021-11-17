@@ -456,6 +456,7 @@ class StarterManager:
         logging.info("StarterManager: waiting for process to exit")
         exit_code = self.instance.wait()
         self.add_logfile_to_report()
+        logging.info("Starter %s exited with %d" % (self.basedir, exit_code))
         if ON_WINDOWS:
             if exit_code == 15:
                 # TODO: remove wintendo starter bug workaround!
@@ -844,6 +845,7 @@ class StarterManager:
             print(detected_instances)
             attach(str(self.expect_instances), "Expected instances")
             attach(str(detected_instances), "Detected instances")
+            attach(str(self.all_instances), "Detailed instance info")
             if (self.expect_instances != detected_instances) or (not self.get_frontends()):
                 tries -= 1
                 time.sleep(5)
