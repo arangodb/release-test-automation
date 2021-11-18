@@ -173,7 +173,8 @@ class BaseTestSuite(ABC):
 
     def truncate_browser_log(self):
         """truncate browser console log"""
-        self.webdriver.get_log('browser')
+        if self.selenium_runner.supports_console_flush:
+            self.webdriver.get_log('browser')
 
     def save_browser_console_log(self):
         """attach browser console log to the allure report"""
