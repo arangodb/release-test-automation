@@ -2,6 +2,7 @@
 
 """ Release testing script"""
 from pathlib import Path
+import platform
 import traceback
 
 import sys
@@ -19,6 +20,7 @@ from arangodb.starter.deployments import (
     runner_strings,
 )
 import tools.loghelper as lh
+WINVER = platform.win32_ver()
 
 # fmt: off
 def run_test(mode,
@@ -87,9 +89,11 @@ def run_test(mode,
                                     installers[0][1].installer_type,
                                     ssl):
             with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
-                if not enterprise and runner_type == RunnerType.DC2DC:
+                if (runner_type == RunnerType.DC2DC and
+                    (not enterprise or WINVER[0] != "")):
                     testcase.context.status = Status.SKIPPED
-                    testcase.context.statusDetails = StatusDetails(message="DC2DC is not applicable to Community packages.")
+                    testcase.context.statusDetails = StatusDetails(
+                        message="DC2DC is not applicable to Community packages.")
                     continue
                 runner = make_runner(
                     runner_type,
