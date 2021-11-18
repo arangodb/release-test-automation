@@ -16,13 +16,13 @@ FNRX = re.compile("[\n@]*")
 class SeleniumRunner(ABC):
     "abstract base class for selenium UI testing"
     # pylint: disable=C0301 disable=R0904
-    def __init__(self, webdriver, is_headless: bool, testrun_name: str, ssl: bool, supports_console_flush: bool):
+    def __init__(self, webdriver, is_headless: bool, testrun_name: str, ssl: bool):
         """hi"""
         self.ssl = ssl
-        self.supports_console_flush = supports_console_flush
         self.is_headless = is_headless
         self.testrun_name = testrun_name
         self.webdriver = webdriver
+        self.supports_console_flush = self.webdriver.capabilities["browserName"] == "chrome"
         self.original_window_handle = None
         self.state = ""
         time.sleep(3)

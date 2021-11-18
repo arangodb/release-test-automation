@@ -22,7 +22,6 @@ def init(
     if driver_func is None:
         raise Exception("webdriver " + selenium_worker + "unknown")
     # from selenium.webdriver.chrome.options import Options
-    supports_console_flush = selenium_worker == "chrome"
     kwargs = {}
     is_headless = False
     if len(selenium_driver_args) > 0:
@@ -66,35 +65,35 @@ def init(
             LeaderFollower,
         )
 
-        return LeaderFollower(driver, is_headless, testrun_name, ssl, supports_console_flush)
+        return LeaderFollower(driver, is_headless, testrun_name, ssl)
 
     if runner_type == RunnerType.ACTIVE_FAILOVER:
         from arangodb.starter.deployments.selenium_deployments.activefailover import (
             ActiveFailover,
         )
 
-        return ActiveFailover(driver, is_headless, testrun_name, ssl, supports_console_flush)
+        return ActiveFailover(driver, is_headless, testrun_name, ssl)
 
     if runner_type == RunnerType.CLUSTER:
         from arangodb.starter.deployments.selenium_deployments.cluster import Cluster
 
-        return Cluster(driver, is_headless, testrun_name, ssl, supports_console_flush)
+        return Cluster(driver, is_headless, testrun_name, ssl)
 
     if runner_type == RunnerType.DC2DC:
         from arangodb.starter.deployments.selenium_deployments.dc2dc import Dc2Dc
 
-        return Dc2Dc(driver, is_headless, testrun_name, ssl, supports_console_flush)
+        return Dc2Dc(driver, is_headless, testrun_name, ssl)
 
     if runner_type == RunnerType.DC2DCENDURANCE:
         from arangodb.starter.deployments.selenium_deployments.dc2dc_endurance import (
             Dc2DcEndurance,
         )
 
-        return Dc2DcEndurance(driver, is_headless, testrun_name, ssl, supports_console_flush)
+        return Dc2DcEndurance(driver, is_headless, testrun_name, ssl)
 
     if runner_type == RunnerType.NONE:
         from arangodb.starter.deployments.selenium_deployments.none import NoStarter
 
-        return NoStarter(driver, is_headless, testrun_name, ssl, supports_console_flush)
+        return NoStarter(driver, is_headless, testrun_name, ssl)
 
     raise Exception("unknown starter type")
