@@ -108,31 +108,17 @@ def run_test(mode,
                     "testrun name": testrun_name,
                     "testscenario": runner_strings[runner_type],
                     "success": True,
-                    "message": "success",
-                    "progress": "success",
+                    "messages": [],
+                    "progress": "",
                 }
                 try:
                     runner.run()
                     runner.cleanup()
                     testcase.context.status = Status.PASSED
-                    if runner.ui_tests_failed:
-                        one_result = {
-                            "testrun name": testrun_name,
-                            "testscenario": runner_strings[runner_type],
-                            "success": False,
-                            "message": "There are failed UI tests.\n%s" % str(runner.ui_test_results_table),
-                            "progress": "",
-                        }
-                        results.append(one_result)
                 except Exception as ex:
-                    one_result = {
-                        "testrun name": testrun_name,
-                        "testscenario": runner_strings[runner_type],
-                        "success": False,
-                        "message": str(ex),
-                        "progress": runner.get_progress(),
-                    }
-                    results.append(one_result)
+                    one_result["success"] = False
+                    one_result["messages"].append(str(ex))
+                    one_result["progress"] += runner.get_progress()
                     runner.take_screenshot()
                     runner.agency_acquire_dump()
                     runner.search_for_warnings()
@@ -150,10 +136,15 @@ def run_test(mode,
                         pass
                     continue
 
+                if runner.ui_tests_failed:
+                    failed_test_names = [f'"{row["Name"]}"' for row in runner.ui_test_results_table if not row["Result"] == "PASSED"]
+                    one_result["success"] = False
+                    one_result[
+                        "messages"].append(
+                        f'The following UI tests failed: {", ".join(failed_test_names)}. See allure report for details.')
+
                 kill_all_processes()
                 count += 1
-
-                testcase.context.status = Status.PASSED
 
     return results
 

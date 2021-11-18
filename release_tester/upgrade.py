@@ -91,8 +91,8 @@ def run_upgrade(
                     "testrun name": testrun_name,
                     "testscenario": runner_strings[runner_type],
                     "success": True,
-                    "message": "success",
-                    "progress": "success",
+                    "messages": [],
+                    "progress": "",
                 }
                 try:
                     kill_all_processes()
@@ -127,26 +127,12 @@ def run_upgrade(
                                 runner.run()
                                 runner.cleanup()
                                 testcase.context.status = Status.PASSED
-                                if runner.ui_tests_failed:
-                                    one_result = {
-                                        "testrun name": testrun_name,
-                                        "testscenario": runner_strings[runner_type],
-                                        "success": False,
-                                        "message": "There are failed UI tests.\n%s" % str(runner.ui_test_results_table),
-                                        "progress": "",
-                                    }
-                                    results.append(one_result)
                             except Exception as ex:
-                                one_result = {
-                                    "testrun name": testrun_name,
-                                    "testscenario": runner_strings[runner_type],
-                                    "success": False,
-                                    "message": str(ex),
-                                    "progress": runner.get_progress(),
-                                }
-                                results.append(one_result)
+                                one_result["success"] = False
+                                one_result["messages"].append(str(ex))
+                                one_result["progress"] += runner.get_progress()
                                 runner.take_screenshot()
-                                # TODO runner.agency_acquire_dump()
+                                runner.agency_acquire_dump()
                                 runner.search_for_warnings()
                                 runner.quit_selenium()
                                 kill_all_processes()
@@ -164,7 +150,16 @@ def run_upgrade(
                                 finally:
                                     pass
                                 continue
-
+                            if runner.ui_tests_failed:
+                                failed_test_names = [
+                                    f'"{row["Name"]}"'
+                                    for row in runner.ui_test_results_table
+                                    if not row["Result"] == "PASSED"
+                                ]
+                                one_result["success"] = False
+                                one_result["messages"].append(
+                                    f'The following UI tests failed: {", ".join(failed_test_names)}. See allure report for details.'
+                                )
                     lh.section("uninstall")
                     new_inst.un_install_server_package()
                     lh.section("check system")
@@ -181,13 +176,9 @@ def run_upgrade(
                         print("Ignoring general cleanup error!")
                 except Exception as ex:
                     print("Caught. " + str(ex))
-                    one_result = {
-                        "testrun name": testrun_name,
-                        "testscenario": runner_strings[runner_type],
-                        "success": False,
-                        "message": str(ex),
-                        "progress": "aborted outside of testcodes",
-                    }
+                    one_result["success"] = False
+                    one_result["messages"].append(str(ex))
+                    one_result["progress"] += "\naborted outside of testcodes"
                     if abort_on_error:
                         print("re-throwing.")
                         raise ex

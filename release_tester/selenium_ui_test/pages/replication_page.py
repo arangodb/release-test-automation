@@ -97,7 +97,6 @@ class ReplicationPage(NavigationBarPage):
                     self.progress("re-trying goto replication")
                     NavigationBarPage(self.webdriver).navbar_goto("replication")
                 elif retry_count > 20:
-                    self.take_screenshot()
                     raise ex
                 else:
                     self.webdriver.refresh()

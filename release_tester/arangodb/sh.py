@@ -3,6 +3,7 @@
     to the configured connection """
 import logging
 import os
+import subprocess
 from pathlib import Path
 
 from queue import Queue, Empty
@@ -37,6 +38,8 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         # fmt: off
         run_cmd = [
             self.cfg.bin_dir / "arangosh",
+            "--log.foreground-tty",
+            "--log.force-direct",
             "--log.level", "v8=debug",
             "--server.endpoint", self.connect_instance.get_endpoint(),
             "--server.username", str(self.cfg.username)]
@@ -55,11 +58,14 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         arangosh_run = None
         lh.log_cmd(run_cmd, verbose)
         if verbose:
-            arangosh_run = psutil.Popen(run_cmd)
+            arangosh_run = psutil.Popen(run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            exitcode = arangosh_run.wait(timeout=60)
+            sys.stdout.write(arangosh_run.stdout.read().decode())
+            sys.stderr.write(arangosh_run.stderr.read().decode())
         else:
             arangosh_run = psutil.Popen(run_cmd, stdout=DEVNULL, stderr=DEVNULL)
+            exitcode = arangosh_run.wait(timeout=60)
         print("running arangosh with PID:" + str(arangosh_run.pid))
-        exitcode = arangosh_run.wait(timeout=60)
         # logging.debug("exitcode {0}".format(exitcode))
         return exitcode == 0
 
@@ -106,12 +112,15 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         arangosh_run = None
         lh.log_cmd(run_cmd, verbose)
         if verbose:
-            arangosh_run = psutil.Popen(run_cmd)
+            arangosh_run = psutil.Popen(run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            exitcode = arangosh_run.wait(timeout=60)
+            sys.stdout.write(arangosh_run.stdout.read().decode())
+            sys.stderr.write(arangosh_run.stderr.read().decode())
         else:
             arangosh_run = psutil.Popen(run_cmd, stdout=DEVNULL, stderr=DEVNULL)
+            exitcode = arangosh_run.wait(timeout=60)
 
         print("running arangosh with PID:" + str(arangosh_run.pid))
-        exitcode = arangosh_run.wait(timeout=30)
         logging.debug("exitcode {0}".format(exitcode))
         return exitcode == 0
 

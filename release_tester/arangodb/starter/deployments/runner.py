@@ -367,32 +367,34 @@ class Runner(ABC):
         else:
             logging.info("skipping upgrade step no new version given")
 
-        if self.do_starter_test:
-            self.progress(
-                False,
-                "{0} TESTS FOR {1}".format(self.testrun_name, str(self.name)),
-            )
-            self.test_setup()
-            self.jam_attempt()
-            self.starter_shutdown()
-            for starter in self.starter_instances:
-                starter.detect_fatal_errors()
-        if self.do_uninstall:
-            self.uninstall(self.old_installer if not self.new_installer else self.new_installer)
-        if self.selenium:
-            ui_test_results_table = BeautifulTable(maxwidth=160)
-            for result in self.selenium.test_results:
-                ui_test_results_table.rows.append(
-                    [result.name, "PASSED" if result.success else "FAILED", result.message, result.tb]
+        try:
+            if self.do_starter_test:
+                self.progress(
+                    False,
+                    "{0} TESTS FOR {1}".format(self.testrun_name, str(self.name)),
                 )
-                if not result.success:
-                    self.ui_tests_failed = True
-            ui_test_results_table.columns.header = ["Name", "Result", "Message", "Traceback"]
-            self.progress(False, "UI test results table:", supress_allure=True)
-            self.progress(False, "\n" + str(ui_test_results_table), supress_allure=True)
-            self.ui_test_results_table = ui_test_results_table
+                self.test_setup()
+                self.jam_attempt()
+                self.starter_shutdown()
+                for starter in self.starter_instances:
+                    starter.detect_fatal_errors()
+            if self.do_uninstall:
+                self.uninstall(self.old_installer if not self.new_installer else self.new_installer)
+        finally:
+            if self.selenium:
+                ui_test_results_table = BeautifulTable(maxwidth=160)
+                for result in self.selenium.test_results:
+                    ui_test_results_table.rows.append(
+                        [result.name, "PASSED" if result.success else "FAILED", result.message, result.tb]
+                    )
+                    if not result.success:
+                        self.ui_tests_failed = True
+                ui_test_results_table.columns.header = ["Name", "Result", "Message", "Traceback"]
+                self.progress(False, "UI test results table:", supress_allure=True)
+                self.progress(False, "\n" + str(ui_test_results_table), supress_allure=True)
+                self.ui_test_results_table = ui_test_results_table
 
-            self.quit_selenium()
+                self.quit_selenium()
 
         self.progress(False, "Runner of type {0} - Finished!".format(str(self.name)))
 
