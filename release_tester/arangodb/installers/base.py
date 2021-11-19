@@ -13,6 +13,8 @@ from abc import abstractmethod, ABC
 import semver
 import yaml
 import psutil
+
+from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor
 from arangodb.instance import ArangodInstance
 from tools.asciiprint import print_progress as progress
 from allure_commons._allure import attach
@@ -34,7 +36,7 @@ def run_file_command(file_to_check):
     line = proc.stdout.readline()
     FILE_PIDS.append(str(proc.pid))
     proc.wait()
-    # print(line)
+    print(line)
     return line
 
 
@@ -197,6 +199,7 @@ class InstallerBase(ABC):
         self.check_symlink = True
         self.instance = None
         self.starter_versions = {}
+        self.cli_executor = ArangoCLIprogressiveTimeoutExecutor(self.cfg, self.instance)
 
     def reset_version(self, version):
         """re-configure the version we work with"""
@@ -381,11 +384,11 @@ class InstallerBase(ABC):
     @step
     def output_arangod_version(self):
         """document the output of arangod --version"""
-        cmd = [self.cfg.sbin_dir / "arangod", "--version"]
-        attach(str(cmd), "Command")
-        ver = psutil.Popen(cmd)
-        print("arangod version ran with PID:" + (str(ver.pid)))
-        ver.wait()
+        return self.cli_executor.run_arango_tool_monitored(
+            executeable=self.cfg.sbin_dir / "arangod",
+            more_args=["--version"],
+            verbose=True
+        )
 
     @step
     def calculate_file_locations(self):
