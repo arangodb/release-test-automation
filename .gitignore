@@ -6,3 +6,7 @@ __pycache__
 
 allure_results
 allure-results
+
+geckodriver.log
+
+*.tar.bz2
