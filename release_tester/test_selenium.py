@@ -26,6 +26,7 @@ def run_upgrade(
     publicip,
     selenium,
     selenium_driver_args,
+    ssl,
 ):
     """execute upgrade tests"""
     lh.configure_logging(verbose)
@@ -47,6 +48,7 @@ def run_upgrade(
             publicip,
             interactive,
             stress_upgrade,
+            ssl,
         )
         lh.section("configuration")
         print(
@@ -83,14 +85,14 @@ def main(
         # common_options
         old_version, test_data_dir, encryption_at_rest, interactive,
         starter_mode, stress_upgrade, abort_on_error, publicip,
-        selenium, selenium_driver_args):
+        selenium, selenium_driver_args, ssl):
     """ main trampoline """
     return run_upgrade(old_version, new_version, verbose,
                        package_dir, test_data_dir,
                        enterprise, encryption_at_rest,
                        zip_package, interactive,
                        starter_mode, stress_upgrade, abort_on_error,
-                       publicip, selenium, selenium_driver_args)
+                       publicip, selenium, selenium_driver_args, ssl)
 # fmt: on
 
 if __name__ == "__main__":
