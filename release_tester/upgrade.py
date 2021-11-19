@@ -62,6 +62,7 @@ def run_upgrade(
             publicip,
             interactive,
             stress_upgrade,
+            ssl,
         )
         old_inst = installers[0][1]
         new_inst = installers[1][1]

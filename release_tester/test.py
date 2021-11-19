@@ -63,6 +63,7 @@ def run_test(mode,
         publicip,
         interactive,
         False,
+        ssl
     )
     lh.section("configuration")
     print(

@@ -68,6 +68,7 @@ def run_test(mode, scenario, frontends,
         publicip,
         interactive,
         False,
+        ssl,
     )
 
     inst = installers[0][1]
