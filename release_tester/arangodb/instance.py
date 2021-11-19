@@ -20,6 +20,7 @@ from tools.asciiprint import print_progress as progress
 
 
 # log tokens we want to suppress from our dump:
+from tools.clihelper import run_cmd_and_log_stdout
 
 LOG_BLACKLIST = [
     "2b6b3",  # -> asio error, tcp connections died... so f* waht.
