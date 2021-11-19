@@ -75,9 +75,9 @@ docker exec \
           --new-version "${NEW_VERSION}" \
           --no-zip \
           --verbose \
-          --selenium Chrome \
-          --selenium-driver-args headless \
-          --selenium-driver-args no-sandbox \
+#          --selenium Chrome \
+#          --selenium-driver-args headless \
+#          --selenium-driver-args no-sandbox \
           --alluredir /home/allure-results \
           --git-version "${GIT_VERSION}" \
           "${force_arg[@]}" \
