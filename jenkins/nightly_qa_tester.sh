@@ -60,9 +60,6 @@ docker run \
           /home/release-test-automation/release_tester/full_download_upgrade_test.py \
           --zip \
           --verbose \
-#          --selenium Chrome \
-#          --selenium-driver-args headless \
-#          --selenium-driver-args no-sandbox \
           --alluredir /home/allure-results \
           --git-version "$GIT_VERSION" \
           "${force_arg[@]}" \

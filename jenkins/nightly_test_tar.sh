@@ -69,9 +69,6 @@ docker run \
           --new-version "${NEW_VERSION}" \
           --zip \
           --verbose \
-#          --selenium Chrome \
-#          --selenium-driver-args headless \
-#          --selenium-driver-args no-sandbox \
           --alluredir /home/allure-results \
           --git-version "$GIT_VERSION" \
           "${force_arg[@]}" \
