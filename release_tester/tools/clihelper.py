@@ -1,9 +1,7 @@
 """ running CLI programs in subprocesses """
 import sys
-
+import logging
 import psutil
-
-from reporting import logging
 
 
 def run_cmd_and_log_stdout(cmd):
