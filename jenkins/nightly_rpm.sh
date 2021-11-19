@@ -75,12 +75,6 @@ docker exec \
           --new-version "${NEW_VERSION}" \
           --no-zip \
           --verbose \
-#          --selenium Chrome \
-#          --selenium-driver-args headless \
-#          --selenium-driver-args disable-dev-shm-usage \
-#          --selenium-driver-args no-sandbox \
-#          --selenium-driver-args remote-debugging-port=9222 \
-#          --selenium-driver-args start-maximized \
           --alluredir /home/allure-results \
           --git-version "${GIT_VERSION}" \
           "${force_arg[@]}" \
