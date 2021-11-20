@@ -160,12 +160,7 @@ def upgrade_package_test(
             new_dlstages.append(primary_dlstage)
 
     for j in range(len(new_versions)):
-        for (enterprise,
-             encryption_at_rest,
-             ssl,
-             directory_suffix,
-             testrun_name
-             ) in execution_plan:
+        for (enterprise, encryption_at_rest, ssl, directory_suffix, testrun_name) in execution_plan:
             print("Cleaning up" + testrun_name)
             run_cleanup(zip_package, testrun_name)
         print("Cleanup done")
@@ -175,12 +170,7 @@ def upgrade_package_test(
     if ssl:
         selenium_driver_args += ("ignore-certificate-errors",)
 
-    for (enterprise,
-         encryption_at_rest,
-         ssl,
-         directory_suffix,
-         testrun_name
-         ) in execution_plan:
+    for (enterprise, encryption_at_rest, ssl, directory_suffix, testrun_name) in execution_plan:
         if directory_suffix not in editions:
             print("skipping " + directory_suffix)
             continue

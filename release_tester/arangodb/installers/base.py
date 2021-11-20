@@ -385,10 +385,7 @@ class InstallerBase(ABC):
     def output_arangod_version(self):
         """document the output of arangod --version"""
         return self.cli_executor.run_monitored(
-            executeable=self.cfg.sbin_dir / "arangod",
-            args=["--version"],
-            timeout=10,
-            verbose=True
+            executeable=self.cfg.sbin_dir / "arangod", args=["--version"], timeout=10, verbose=True
         )
 
     @step
@@ -620,13 +617,13 @@ class InstallerBase(ABC):
         set an instance representing the system service launched by packages
         """
         self.instance = ArangodInstance(
-            typ = "single",
-            port = "8529",
-            localhost = self.cfg.localhost,
-            publicip = self.cfg.publicip,
-            basedir = (self.cfg.install_prefix / self.cfg.log_dir),
-            passvoid = self.cfg.passvoid,
-            ssl = self.cfg.ssl,
+            typ="single",
+            port="8529",
+            localhost=self.cfg.localhost,
+            publicip=self.cfg.publicip,
+            basedir=(self.cfg.install_prefix / self.cfg.log_dir),
+            passvoid=self.cfg.passvoid,
+            ssl=self.cfg.ssl,
         )
 
     def get_starter_version(self):
