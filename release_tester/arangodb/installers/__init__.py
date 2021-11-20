@@ -209,7 +209,7 @@ def create_config_installer_set(
     publicip: str,
     interactive: bool,
     stress_upgrade: bool,
-    ssl: bool
+    ssl: bool,
 ):
     """creates sets of configs and installers"""
     # pylint: disable=R0902 disable=R0913

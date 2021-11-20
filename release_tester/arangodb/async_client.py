@@ -101,7 +101,9 @@ class ArangoCLIprogressiveTimeoutExecutor:
         return self.run_monitored(executeable, run_cmd, timeout, result_line, verbose, expect_to_fail)
         # fmt: on
 
-    def run_monitored(self, executeable, args, timeout=60, result_line=dummy_line_result, verbose=False, expect_to_fail=False):
+    def run_monitored(
+        self, executeable, args, timeout=60, result_line=dummy_line_result, verbose=False, expect_to_fail=False
+    ):
         """
         run a script in background tracing with a dynamic timeout that its got output (is still alive...)
         """

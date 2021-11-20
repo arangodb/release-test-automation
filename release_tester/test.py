@@ -20,6 +20,7 @@ from arangodb.starter.deployments import (
     runner_strings,
 )
 import tools.loghelper as lh
+
 WINVER = platform.win32_ver()
 
 # fmt: off
