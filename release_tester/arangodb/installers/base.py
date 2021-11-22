@@ -623,7 +623,7 @@ class InstallerBase(ABC):
             publicip=self.cfg.publicip,
             basedir=(self.cfg.install_prefix / self.cfg.log_dir),
             passvoid=self.cfg.passvoid,
-            ssl=self.cfg.ssl,
+            ssl=False,
         )
 
     def get_starter_version(self):
