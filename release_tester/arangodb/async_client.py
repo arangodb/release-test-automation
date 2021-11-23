@@ -7,6 +7,9 @@ from queue import Queue, Empty
 import sys
 from subprocess import PIPE, Popen
 from threading import Thread
+
+from allure_commons._allure import attach
+
 from tools.asciiprint import print_progress as progress
 import tools.loghelper as lh
 
@@ -180,6 +183,8 @@ class ArangoCLIprogressiveTimeoutExecutor:
         rc_exit = process.wait()
         thread1.join()
         thread2.join()
+
+        attach(f"Exit code: ${str(rc_exit)}", str(rc_exit))
 
         if have_timeout or rc_exit != 0:
             res = (False, timeout_str + convert_result(result), rc_exit, line_filter)
