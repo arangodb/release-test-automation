@@ -184,7 +184,7 @@ class ArangoCLIprogressiveTimeoutExecutor:
         thread1.join()
         thread2.join()
 
-        attach(f"Exit code: ${str(rc_exit)}", str(rc_exit))
+        attach(str(rc_exit), f"Exit code: {str(rc_exit)}")
 
         if have_timeout or rc_exit != 0:
             res = (False, timeout_str + convert_result(result), rc_exit, line_filter)
