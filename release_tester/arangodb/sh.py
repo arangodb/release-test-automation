@@ -2,25 +2,15 @@
 """ Run a javascript command by spawning an arangosh
     to the configured connection """
 import logging
-import os
-import subprocess
+import sys
 from pathlib import Path
 
-from queue import Queue, Empty
-from subprocess import DEVNULL, PIPE, Popen
-import sys
-from threading import Thread
-from reporting.reporting_utils import step
-import psutil
-from tools.asciiprint import print_progress as progress
 import tools.errorhelper as eh
-import tools.loghelper as lh
 from arangodb.async_client import (
     ArangoCLIprogressiveTimeoutExecutor,
     dummy_line_result,
-    enqueue_stdout,
-    enqueue_stderr,
 )
+from reporting.reporting_utils import step
 
 ON_POSIX = "posix" in sys.builtin_module_names
 
@@ -32,51 +22,32 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         self.read_only = False
         super().__init__(config, connect_instance)
 
-    @step
-    def run_command(self, cmd, verbose=True):
-        """launch a command, print its name"""
-        # fmt: off
-        run_cmd = [
-            self.cfg.bin_dir / "arangosh",
-            "--log.foreground-tty",
-            "--log.force-direct",
-            "--log.level", "v8=debug",
-            "--server.endpoint", self.connect_instance.get_endpoint(),
-            "--server.username", str(self.cfg.username)]
-        # fmt: on
-        # if self.cfg.username:
-        #    run_cmd += [ "--server.username", str(self.cfg.username) ]
-        if self.cfg.passvoid:
-            run_cmd += ["--server.password", str(self.cfg.passvoid)]
-        else:
-            run_cmd += ["--server.password", str(self.connect_instance.get_passvoid())]
-        run_cmd += ["--javascript.execute-string", str(cmd[1])]
-
-        if len(cmd) > 2:
-            run_cmd += cmd[2:]
-
-        arangosh_run = None
-        lh.log_cmd(run_cmd, verbose)
-        if verbose:
-            arangosh_run = psutil.Popen(run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            exitcode = arangosh_run.wait(timeout=60)
-            sys.stdout.write(arangosh_run.stdout.read().decode())
-            sys.stderr.write(arangosh_run.stderr.read().decode())
-        else:
-            arangosh_run = psutil.Popen(run_cmd, stdout=DEVNULL, stderr=DEVNULL)
-            exitcode = arangosh_run.wait(timeout=60)
-        print("running arangosh with PID:" + str(arangosh_run.pid))
-        # logging.debug("exitcode {0}".format(exitcode))
-        return exitcode == 0
+    def run_command(self, cmd, verbose=True, timeout=300, result_line=dummy_line_result, expect_to_fail=False):
+        """run a command in arangosh"""
+        title = f"run a command in arangosh: {cmd[0]}"
+        with step(title):
+            executable = self.cfg.bin_dir / "arangosh"
+            arangosh_args = ["--log.level", "v8=debug", "--javascript.execute-string"]
+            arangosh_args += cmd[1:]
+            return self.run_arango_tool_monitored(
+                executeable=executable,
+                more_args=arangosh_args,
+                timeout=timeout,
+                result_line=result_line,
+                verbose=verbose,
+                expect_to_fail=expect_to_fail,
+            )
 
     @step
     def self_test(self):
         """run a command that throws to check exit code handling"""
         logging.info("running arangosh check")
-        success = self.run_command(
+        result = self.run_command(
             ("check throw exit codes", "throw 'yipiahea motherfucker'"),
-            self.cfg.verbose,
+            verbose=self.cfg.verbose,
+            expect_to_fail=True,
         )
+        success = result[0]
         logging.debug("sanity result: " + str(success) + " - expected: False")
 
         if success:
@@ -88,41 +59,6 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
 
         if not success:
             raise Exception("arangosh doesn't exit with 0 to indicate no errors")
-
-    @step
-    def run_script(self, cmd, verbose=True):
-        """launch an external js-script, print its name"""
-        # fmt: off
-        run_cmd = [
-            # if self.cfg.username:
-            #    run_cmd += [ "--server.username", str(self.cfg.username) ]
-            # if self.cfg.passvoid:
-            #    run_cmd += [ "--server.password", str(self.cfg.passvoid) ]
-            self.cfg.bin_dir / "arangosh",
-            "--log.level", "v8=debug",
-            "--server.endpoint", self.connect_instance.get_endpoint(),
-            "--server.username", str(self.cfg.username),
-            "--server.password", str(self.connect_instance.get_passvoid()),
-            "--javascript.execute", str(cmd[1]) ]
-        # fmt: on
-
-        if len(cmd) > 2:
-            run_cmd += cmd[2:]
-
-        arangosh_run = None
-        lh.log_cmd(run_cmd, verbose)
-        if verbose:
-            arangosh_run = psutil.Popen(run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            exitcode = arangosh_run.wait(timeout=60)
-            sys.stdout.write(arangosh_run.stdout.read().decode())
-            sys.stderr.write(arangosh_run.stderr.read().decode())
-        else:
-            arangosh_run = psutil.Popen(run_cmd, stdout=DEVNULL, stderr=DEVNULL)
-            exitcode = arangosh_run.wait(timeout=60)
-
-        print("running arangosh with PID:" + str(arangosh_run.pid))
-        logging.debug("exitcode {0}".format(exitcode))
-        return exitcode == 0
 
     @step
     def run_script_monitored(
@@ -165,62 +101,6 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             verbose,
             expect_to_fail,
         )
-
-    @step
-    def run_testing(
-        self,
-        testcase,
-        args,
-        # timeout,
-        logfile,
-        # verbose
-    ):
-        # pylint: disable=R0913 disable=R0902
-        """testing.js wrapper"""
-        # fmt: off
-        args = [
-            self.cfg.bin_dir / "arangosh",
-            '-c', str(self.cfg.cfgdir / 'arangosh.conf'),
-            '--log.level', 'warning',
-            "--log.level", "v8=debug",
-            '--server.endpoint', 'none',
-            '--javascript.allow-external-process-control', 'true',
-            '--javascript.execute', str(Path('UnitTests') / 'unittest.js'),
-            '--',
-            testcase, '--testBuckets'] + args
-        # fmt: on
-        print(args)
-        os.chdir(self.cfg.package_dir)
-        process = Popen(args, stdout=PIPE, stderr=PIPE, close_fds=ON_POSIX)
-        queue = Queue()
-        thread1 = Thread(target=enqueue_stdout, args=(process.stdout, queue, self.connect_instance))
-        thread2 = Thread(target=enqueue_stderr, args=(process.stderr, queue, self.connect_instance))
-        thread1.start()
-        thread2.start()
-
-        # ... do other things here
-        out = logfile.open("wb")
-        # read line without blocking
-        count = 0
-        while True:
-            print(".", end="")
-            line = ""
-            try:
-                line = queue.get(timeout=1)
-            except Empty:
-                progress("-")
-            else:
-                # print(line)
-                if line == -1:
-                    count += 1
-                    if count == 2:
-                        print("done!")
-                        break
-                else:
-                    out.write(line)
-                    # print(line)
-        thread1.join()
-        thread2.join()
 
     @step
     def js_version_check(self):

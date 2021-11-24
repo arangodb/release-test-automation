@@ -110,17 +110,18 @@ class Download:
         print(version)
         self.package_dir = Path(package_dir)
         self.cfg = InstallerConfig(
-            version,
-            verbose,
-            enterprise,
-            False,  # don't care for enc at rest
-            zip_package,
-            self.package_dir,
-            Path("/"),
-            "",
-            "127.0.0.1",
-            False,
-            False,
+            version=version,
+            verbose=verbose,
+            enterprise=enterprise,
+            encryption_at_rest=False,
+            zip_package=zip_package,
+            package_dir=self.package_dir,
+            test_dir=Path("/"),
+            mode="",
+            publicip="127.0.0.1",
+            interactive=False,
+            stress_upgrade=False,
+            ssl=False,
         )
         self.inst = make_installer(self.cfg)
         self.is_nightly = self.inst.semver.prerelease == "nightly"

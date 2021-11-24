@@ -26,6 +26,7 @@ def run_cleanup(zip_package, testrun_name: str = ""):
         "",
         False,
         False,
+        False,
     )
     inst = installer_set[0][1]
     if inst.calc_config_file_name().is_file():

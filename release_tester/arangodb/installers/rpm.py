@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 """ run an installer for the debian based operating system """
-import time
-import os
-import sys
-import shutil
 import logging
+import os
+import shutil
+import sys
+import time
 from pathlib import Path
 
-from reporting.reporting_utils import step
 import pexpect
-import psutil
 import semver
-from arangodb.sh import ArangoshExecutor
-from arangodb.installers.linux import InstallerLinux
-from tools.asciiprint import ascii_print, print_progress as progress
 
 import tools.loghelper as lh
+from arangodb.installers.linux import InstallerLinux
+from arangodb.sh import ArangoshExecutor
+from reporting.reporting_utils import step
+from tools.asciiprint import ascii_print, print_progress as progress
+from tools.clihelper import run_cmd_and_log_stdout
 
 
 class InstallerRPM(InstallerLinux):
@@ -89,9 +89,7 @@ class InstallerRPM(InstallerLinux):
         logging.info("starting service")
         cmd = ["service", "arangodb3", "start"]
         lh.log_cmd(cmd)
-        startserver = psutil.Popen(cmd)
-        logging.info("waiting for eof of start service")
-        startserver.wait()
+        run_cmd_and_log_stdout(cmd)
         time.sleep(0.1)
         self.instance.detect_pid(1)  # should be owned by init
 
@@ -100,9 +98,7 @@ class InstallerRPM(InstallerLinux):
         logging.info("stopping service")
         cmd = ["service", "arangodb3", "stop"]
         lh.log_cmd(cmd)
-        stopserver = psutil.Popen(cmd)
-        logging.info("waiting for eof")
-        stopserver.wait()
+        run_cmd_and_log_stdout(cmd)
         while self.check_service_up():
             time.sleep(1)
 
@@ -254,8 +250,7 @@ class InstallerRPM(InstallerLinux):
         self.stop_service()
         cmd = ["rpm", "-e", "arangodb3" + ("e" if self.cfg.enterprise else "")]
         lh.log_cmd(cmd)
-        uninstall = psutil.Popen(cmd)
-        uninstall.wait()
+        run_cmd_and_log_stdout(cmd)
 
     @step
     def install_rpm_package(self, package: str):

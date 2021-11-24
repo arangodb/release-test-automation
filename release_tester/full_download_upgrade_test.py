@@ -67,6 +67,8 @@ def upgrade_package_test(
     """process fetch & tests"""
 
     set_r_limits()
+    if not test_data_dir.is_absolute():
+        test_data_dir = Path.cwd() / test_data_dir
 
     lh.configure_logging(verbose)
     list_all_processes()
@@ -159,94 +161,86 @@ def upgrade_package_test(
             new_dlstages.append(primary_dlstage)
 
     for j in range(len(new_versions)):
-        for (
-            enterprise,
-            encryption_at_rest,
-            directory_suffix,
-            testrun_name,
-        ) in execution_plan:
+        for (enterprise, encryption_at_rest, ssl, directory_suffix, testrun_name) in execution_plan:
             print("Cleaning up" + testrun_name)
             run_cleanup(zip_package, testrun_name)
         print("Cleanup done")
 
-        # Configure Chrome to accept self-signed SSL certs and certs signed by unknown CA.
-        # FIXME: Add custom CA to Chrome to properly validate server cert.
-        if ssl:
-            selenium_driver_args += ("ignore-certificate-errors",)
+    # Configure Chrome to accept self-signed SSL certs and certs signed by unknown CA.
+    # FIXME: Add custom CA to Chrome to properly validate server cert.
+    if ssl:
+        selenium_driver_args += ("ignore-certificate-errors",)
 
-        for (
+    for (enterprise, encryption_at_rest, ssl, directory_suffix, testrun_name) in execution_plan:
+        if directory_suffix not in editions:
+            print("skipping " + directory_suffix)
+            continue
+        # pylint: disable=W0612
+        dl_old = Download(
+            old_versions[j],
+            verbose,
+            package_dir,
             enterprise,
-            encryption_at_rest,
-            directory_suffix,
-            testrun_name,
-        ) in execution_plan:
-            if directory_suffix not in editions:
-                continue
-            # pylint: disable=W0612
-            dl_old = Download(
-                old_versions[j],
+            enterprise_magic,
+            zip_package,
+            old_dlstages[j],
+            httpusername,
+            httppassvoid,
+            remote_host,
+            versions,
+            fresh_versions,
+            git_version,
+        )
+        dl_new = Download(
+            new_versions[j],
+            verbose,
+            package_dir,
+            enterprise,
+            enterprise_magic,
+            zip_package,
+            new_dlstages[j],
+            httpusername,
+            httppassvoid,
+            remote_host,
+            versions,
+            fresh_versions,
+            git_version,
+        )
+        dl_old.get_packages(force)
+        dl_new.get_packages(force)
+        test_dir = Path(test_data_dir) / directory_suffix
+        if test_dir.exists():
+            shutil.rmtree(test_dir)
+            if "REQUESTS_CA_BUNDLE" in os.environ:
+                del os.environ["REQUESTS_CA_BUNDLE"]
+        test_dir.mkdir(parents=True)
+        while not test_dir.exists():
+            time.sleep(1)
+        results.append(
+            run_upgrade(
+                str(dl_old.cfg.version),
+                str(dl_new.cfg.version),
                 verbose,
                 package_dir,
+                test_dir,
+                alluredir,
+                clean_alluredir,
                 enterprise,
-                enterprise_magic,
+                encryption_at_rest,
                 zip_package,
-                old_dlstages[j],
-                httpusername,
-                httppassvoid,
-                remote_host,
-                versions,
-                fresh_versions,
-                git_version,
+                False, # interactive_mode
+                starter_mode,
+                False,  # stress_upgrade,
+                False, # abort_on_error
+                publicip,
+                selenium,
+                selenium_driver_args,
+                testrun_name,
+                ssl,
+                use_auto_certs,
             )
-            dl_new = Download(
-                new_versions[j],
-                verbose,
-                package_dir,
-                enterprise,
-                enterprise_magic,
-                zip_package,
-                new_dlstages[j],
-                httpusername,
-                httppassvoid,
-                remote_host,
-                versions,
-                fresh_versions,
-                git_version,
-            )
-            dl_old.get_packages(force)
-            dl_new.get_packages(force)
-            test_dir = Path(test_data_dir) / directory_suffix
-            if test_dir.exists():
-                shutil.rmtree(test_dir)
-                if "REQUESTS_CA_BUNDLE" in os.environ:
-                    del os.environ["REQUESTS_CA_BUNDLE"]
-            test_dir.mkdir()
-            while not test_dir.exists():
-                time.sleep(1)
-            results.append(
-                run_upgrade(
-                    str(dl_old.cfg.version),
-                    str(dl_new.cfg.version),
-                    verbose,
-                    package_dir,
-                    test_dir,
-                    alluredir,
-                    clean_alluredir,
-                    enterprise,
-                    encryption_at_rest,
-                    zip_package,
-                    False,
-                    starter_mode,
-                    False,  # stress_upgrade,
-                    False,
-                    publicip,
-                    selenium,
-                    selenium_driver_args,
-                    testrun_name,
-                    ssl,
-                    use_auto_certs,
-                )
-            )
+        )
+
         run_conflict_tests(
                     str(dl_old.cfg.version),
                     str(dl_new.cfg.version),
@@ -269,6 +263,7 @@ def upgrade_package_test(
                     ssl,
                     use_auto_certs,
         )
+
     print("V" * 80)
     status = True
     table = BeautifulTable(maxwidth=140)
@@ -359,7 +354,7 @@ def main(
         git_version,
         httpuser,
         httppassvoid,
-        test_data_dir,
+        Path(test_data_dir),
         remote_host,
         force,
         starter_mode,

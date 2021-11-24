@@ -22,6 +22,7 @@ import requests
 
 import tools.errorhelper as eh
 import tools.interact as ti
+from tools.clihelper import run_cmd_and_log_stdout
 from tools.killall import kill_all_processes
 import tools.loghelper as lh
 
@@ -1065,9 +1066,8 @@ class Runner(ABC):
     def cert_op(self, args):
         """create a certificate"""
         print(args)
-        create_cert = psutil.Popen([self.cfg.bin_dir / "arangodb", "create"] + args)
-        print("creating cert with PID:" + str(create_cert.pid))
-        create_cert.wait()
+        cmd = [self.cfg.bin_dir / "arangodb", "create"] + args
+        run_cmd_and_log_stdout(cmd)
 
     def create_cert_dir(self):
         """create certificate directory"""
