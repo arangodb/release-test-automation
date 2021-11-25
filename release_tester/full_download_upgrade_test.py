@@ -242,26 +242,15 @@ def upgrade_package_test(
         )
 
         run_conflict_tests(
-                    str(dl_old.cfg.version),
-                    str(dl_new.cfg.version),
-                    verbose,
-                    package_dir,
-                    test_dir,
-                    alluredir,
-                    clean_alluredir,
-                    enterprise,
-                    encryption_at_rest,
-                    zip_package,
-                    False,
-                    starter_mode,
-                    False,  # stress_upgrade,
-                    False,
-                    publicip,
-                    selenium,
-                    selenium_driver_args,
-                    testrun_name,
-                    ssl,
-                    use_auto_certs,
+            old_version=str(dl_old.cfg.version),
+            new_version=str(dl_new.cfg.version),
+            verbose=verbose,
+            package_dir=package_dir,
+            alluredir=alluredir,
+            clean_alluredir=clean_alluredir,
+            enterprise=enterprise,
+            zip_package=zip_package,
+            interactive=False,
         )
 
     print("V" * 80)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """Release testing script"""
-import platform
+import sys
 
 import click
 
@@ -11,8 +11,6 @@ from package_installation_tests.community_package_installation_test_suite import
     CommunityPackageInstallationTestSuite
 from package_installation_tests.enterprise_package_installation_test_suite import \
     EnterprisePackageInstallationTestSuite
-
-is_windows = platform.win32_ver()[0] != ""
 
 
 # pylint: disable=R0913 disable=R0914, disable=W0703, disable=R0912, disable=R0915
@@ -28,12 +26,12 @@ def run_conflict_tests(
         interactive,
 ):
     """run package conflict tests"""
-    # with AllureTestSuiteContext(
-    #     results_dir=alluredir,
-    #     clean=clean_alluredir,
-    #     suite_name=f"Test package installation, upgrade, uninstallation.",
-    #     auto_generate_parent_test_suite_name=False,
-    # ):
+    #disable conflict tests for Windows and MacOS
+    if not sys.platform == "linux":
+        return
+    #disable conflict tests for zip packages
+    if zip_package:
+        return
     if not enterprise:
         suite = CommunityPackageInstallationTestSuite(
             old_version,
