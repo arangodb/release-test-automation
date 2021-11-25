@@ -14,6 +14,7 @@ from common_options import very_common_options, common_options, download_options
 from beautifultable import BeautifulTable, ALIGN_LEFT
 
 import tools.loghelper as lh
+from conflict_checking import run_conflict_tests
 from download import read_versions_tar, write_version_tar, Download, touch_all_tars_in_dir
 from upgrade import run_upgrade
 from cleanup import run_cleanup
@@ -172,6 +173,28 @@ def upgrade_package_test(
                 ssl,
                 use_auto_certs,
             )
+        )
+        run_conflict_tests(
+            str(dl_old.cfg.version),
+            str(dl_new.cfg.version),
+            verbose,
+            package_dir,
+            test_dir,
+            alluredir,
+            clean_alluredir,
+            enterprise,
+            encryption_at_rest,
+            zip_package,
+            False,
+            starter_mode,
+            False,  # stress_upgrade,
+            False,
+            publicip,
+            selenium,
+            selenium_driver_args,
+            testrun_name,
+            ssl,
+            use_auto_certs,
         )
 
     print("V" * 80)
