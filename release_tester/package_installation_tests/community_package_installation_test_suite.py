@@ -1,12 +1,12 @@
-from package_installation_tests.base_package_installation_test_suite import \
-    BasePackageInstallationTestSuite
-from package_installation_tests.installation_steps import \
-    check_if_server_packages_can_be_installed_consequentially, \
-    check_if_debug_package_can_be_installed_over_server_package, \
-    check_if_debug_package_can_be_installed, \
-    check_if_client_packages_can_be_installed_consequentially, \
-    check_if_client_package_can_be_installed_over_server_package, \
-    check_if_client_package_can_be_installed
+from package_installation_tests.base_package_installation_test_suite import BasePackageInstallationTestSuite
+from package_installation_tests.installation_steps import (
+    check_if_server_packages_can_be_installed_consequentially,
+    check_if_debug_package_can_be_installed_over_server_package,
+    check_if_debug_package_can_be_installed,
+    check_if_client_packages_can_be_installed_consequentially,
+    check_if_client_package_can_be_installed_over_server_package,
+    check_if_client_package_can_be_installed,
+)
 from selenium_ui_test.test_suites.base_test_suite import testcase
 
 
@@ -23,7 +23,8 @@ class CommunityPackageInstallationTestSuite(BasePackageInstallationTestSuite):
         zip_package,
         interactive,
     ):
-        super().__init__(old_version,
+        super().__init__(
+            old_version,
             new_version,
             verbose,
             package_dir,
@@ -32,7 +33,7 @@ class CommunityPackageInstallationTestSuite(BasePackageInstallationTestSuite):
             enterprise,
             zip_package,
             interactive,
-            )
+        )
         self.suite_name = f"Test package installation/uninstallation. New version: {new_version}. Old version: {old_version}. Package type: {str(self.new_inst_e.installer_type)}. Community edition."
 
     @testcase

@@ -122,18 +122,16 @@ class BaseSeleniumTestSuite(BaseTestSuite):
 
     def truncate_browser_log(self):
         """truncate browser console log"""
-        self.webdriver.get_log('browser')
+        self.webdriver.get_log("browser")
 
     def save_browser_console_log(self):
         """attach browser console log to the allure report"""
-        log_entries = self.webdriver.get_log('browser')
+        log_entries = self.webdriver.get_log("browser")
         if len(log_entries) > 0:
             table = BeautifulTable(maxwidth=160)
             table.columns.header = ["Level", "Source", "Timestamp", "Message"]
             for entry in log_entries:
-                table.rows.append(
-                    [entry["level"], entry["source"], entry["timestamp"], entry["message"]]
-                )
+                table.rows.append([entry["level"], entry["source"], entry["timestamp"], entry["message"]])
             attach_table(table, "Browser console log")
         else:
             attach("", "Browser console log is empty")

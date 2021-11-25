@@ -236,8 +236,7 @@ db.testCollection.save({test: "document"})
         uuid = self.starter_instances[terminate_instance].get_dbservers()[0].get_uuid()
         self.starter_instances[terminate_instance].terminate_instance(keep_instances=True)
         logging.info("relaunching agent!")
-        self.starter_instances[terminate_instance].manually_launch_instances(
-            [InstanceType.AGENT], [], False, False)
+        self.starter_instances[terminate_instance].manually_launch_instances([InstanceType.AGENT], [], False, False)
 
         self.set_frontend_instances()
 

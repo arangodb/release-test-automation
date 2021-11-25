@@ -6,6 +6,7 @@ from selenium_ui_test.pages.login_page import LoginPage
 from selenium_ui_test.pages.collection_page import CollectionPage
 from selenium.common.exceptions import TimeoutException
 
+
 class UserPageTestSuite(BaseSeleniumTestSuite):
     @testcase
     def test_user(self):
@@ -31,8 +32,9 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
             user.log_out()
             print("Re-Login begins with new user\n")
             login.login_webif("tester", "tester")
-            print("Re-Login begins with new user completed: %s / %s\n" % (
-                login.current_user(), login.current_database()))
+            print(
+                "Re-Login begins with new user completed: %s / %s\n" % (login.current_user(), login.current_database())
+            )
 
             print("trying to create collection")
             collection_page = CollectionPage(self.webdriver)
@@ -52,8 +54,7 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
             user.log_out()
             # login back with root user
             login.login_webif("root", self.root_passvoid)
-            print("Re-Login root user completed: %s / %s\n" % (
-                login.current_user(), login.current_database()))
+            print("Re-Login root user completed: %s / %s\n" % (login.current_user(), login.current_database()))
 
             user.user_tab()
             user.selecting_user_tester()
@@ -64,21 +65,21 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
             user.log_out()
             print("Re-Login begins with new user\n")
             login.login_webif("tester", "tester")
-            print("Re-Login begins with new user completed: %s / %s\n" % (
-                login.current_user(), login.current_database()))
+            print(
+                "Re-Login begins with new user completed: %s / %s\n" % (login.current_user(), login.current_database())
+            )
             print("trying to create collection")
             collection_page.navbar_goto("collections")
-            # TODO: we fail to remove this collection again. 
-            #collection_page.create_sample_collection("read/write")
-            #collection_page.select_delete_collection()
+            # TODO: we fail to remove this collection again.
+            # collection_page.create_sample_collection("read/write")
+            # collection_page.select_delete_collection()
             print("Allow user Read/Write access to the _system DB test Completed \n")
         finally:
             # logout from the current user to get back to root
             self.webdriver.refresh()
             user.log_out()
             login.login_webif("root", self.root_passvoid)
-            print("Re-Login root user completed: %s / %s\n" % (
-                login.current_user(), login.current_database()))
+            print("Re-Login root user completed: %s / %s\n" % (login.current_user(), login.current_database()))
 
             self.webdriver.refresh()
             user.user_tab()

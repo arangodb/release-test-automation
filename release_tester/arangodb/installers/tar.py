@@ -143,8 +143,7 @@ class InstallerTAR(InstallerBase):
         logging.info("installing Arangodb " + self.installer_type + "server package")
         logging.debug("package dir: {0.cfg.package_dir}- " "server_package: {0.server_package}".format(self))
         if self.cfg.install_prefix.exists():
-            print("Flushing pre-existing installation directory: " +
-                  str(self.cfg.install_prefix))
+            print("Flushing pre-existing installation directory: " + str(self.cfg.install_prefix))
             shutil.rmtree(self.cfg.install_prefix)
         else:
             self.cfg.install_prefix.mkdir(parents=True)

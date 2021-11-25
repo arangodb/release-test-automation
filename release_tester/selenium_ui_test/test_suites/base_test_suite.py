@@ -39,17 +39,19 @@ class BaseTestSuite(ABC):
             with AllureTestSuiteContext(
                 results_dir=None if not self.results_dir else self.results_dir,
                 clean=self.clean_allure_dir,
-                enterprise = None if not self.enterprise else self.enterprise,
-                zip_package = None if not self.zip_package else self.zip_package,
-                new_version = None if not self.new_version else self.new_version,
-                enc_at_rest = None if not self.enc_at_rest else self.enc_at_rest,
-                old_version = None if not self.old_version else self.old_version,
-                parent_test_suite_name = None if not self.parent_test_suite_name else self.parent_test_suite_name,
-                auto_generate_parent_test_suite_name = True if not hasattr(self, 'auto_generate_parent_test_suite_name') else self.auto_generate_parent_test_suite_name,
-                suite_name = None if not self.suite_name else self.suite_name,
-                runner_type = None if not self.runner_type else self.runner_type,
-                installer_type = None if not self.installer_type else self.installer_type,
-                ssl = False if not self.ssl else self.ssl,
+                enterprise=None if not self.enterprise else self.enterprise,
+                zip_package=None if not self.zip_package else self.zip_package,
+                new_version=None if not self.new_version else self.new_version,
+                enc_at_rest=None if not self.enc_at_rest else self.enc_at_rest,
+                old_version=None if not self.old_version else self.old_version,
+                parent_test_suite_name=None if not self.parent_test_suite_name else self.parent_test_suite_name,
+                auto_generate_parent_test_suite_name=True
+                if not hasattr(self, "auto_generate_parent_test_suite_name")
+                else self.auto_generate_parent_test_suite_name,
+                suite_name=None if not self.suite_name else self.suite_name,
+                runner_type=None if not self.runner_type else self.runner_type,
+                installer_type=None if not self.installer_type else self.installer_type,
+                ssl=False if not self.ssl else self.ssl,
             ):
                 self.test_results += self.run_own_testscases()
         self.tear_down_test_suite()
@@ -105,7 +107,7 @@ def testcase(title=None, disable=False):
                 else:
                     name = title.__name__
             else:
-                if type(title)==str:
+                if type(title) == str:
                     name = title
                 else:
                     if func.__doc__:
