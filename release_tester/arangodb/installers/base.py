@@ -15,6 +15,7 @@ import yaml
 import psutil
 
 from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor
+from arangodb.installers import InstallerConfig
 from arangodb.instance import ArangodInstance
 from tools.asciiprint import print_progress as progress
 from allure_commons._allure import attach
@@ -186,7 +187,7 @@ class BinaryDescription:
 class InstallerBase(ABC):
     """this is the prototype for the operation system agnostic installers"""
 
-    def __init__(self, cfg):
+    def __init__(self, cfg: InstallerConfig):
         self.arango_binaries = []
         self.cfg = copy.deepcopy(cfg)
         self.calculate_package_names()

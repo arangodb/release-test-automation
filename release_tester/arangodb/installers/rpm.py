@@ -11,6 +11,7 @@ import pexpect
 import semver
 
 import tools.loghelper as lh
+from arangodb.installers import InstallerConfig
 from arangodb.installers.linux import InstallerLinux
 from arangodb.sh import ArangoshExecutor
 from reporting.reporting_utils import step
@@ -21,7 +22,7 @@ from tools.clihelper import run_cmd_and_log_stdout
 class InstallerRPM(InstallerLinux):
     """install .rpm's on RedHat, CentOS, Rocky Linux or SuSe systems"""
 
-    def __init__(self, cfg):
+    def __init__(self, cfg: InstallerConfig):
         self.server_package = None
         self.client_package = None
         self.debug_package = None
@@ -328,13 +329,13 @@ class InstallerRPM(InstallerLinux):
     def cleanup_system(self):
         print("attempting system directory cleanup after RPM")
         if self.cfg.log_dir.exists():
-            print("cleaning upg %s " % str(self.cfg.log_dir))
+            print("cleaning up %s " % str(self.cfg.log_dir))
             shutil.rmtree(self.cfg.log_dir)
         else:
             print("log directory not known")
 
         if self.cfg.dbdir.exists():
-            print("cleaning upg %s " % str(self.cfg.dbdir))
+            print("cleaning up %s " % str(self.cfg.dbdir))
             shutil.rmtree(self.cfg.dbdir)
         else:
             print("database directory not known")
@@ -346,7 +347,7 @@ class InstallerRPM(InstallerLinux):
             print("app directory not known")
 
         if self.cfg.cfgdir.exists():
-            print("cleaning upg %s " % str(self.cfg.cfgdir))
+            print("cleaning up %s " % str(self.cfg.cfgdir))
             shutil.rmtree(self.cfg.cfgdir)
         else:
             print("config directory not known")

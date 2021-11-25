@@ -45,19 +45,14 @@ def check_if_debug_package_can_be_installed_over_server_package(debug_installer,
     server_installer.install_server_package()
     try:
         debug_installer.install_debug_package()
-        if expect_success:
-            try:
-                debug_installer.gdb_test()
-            except Exception as ex:
-                raise ex
-        else:
+        if not expect_success:
             raise Exception(f"Package {debug_package_name} can be installed over {server_package_name}. A conflict was expected!")
     except:
         if not expect_success:
             pass
         else:
             raise Exception(f"Package {debug_package_name} can not be installed over {server_package_name}. Success was expected!")
-
+    debug_installer.gdb_test()
 
 @step
 def check_if_client_package_can_be_installed_over_server_package(client_installer, server_installer, expect_success=False):

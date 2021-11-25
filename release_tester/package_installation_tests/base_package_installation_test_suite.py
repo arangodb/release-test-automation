@@ -46,6 +46,7 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
             publicip="127.0.0.1",
             interactive=interactive,
             stress_upgrade=False,
+            ssl=False,
         )
         self.installers["enterprise"] = create_config_installer_set(
             versions=[old_version, new_version],
@@ -59,11 +60,17 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
             publicip="127.0.0.1",
             interactive=interactive,
             stress_upgrade=False,
+            ssl=False,
         )
         self.old_inst_e = self.installers["enterprise"][0][1]
         self.new_inst_e = self.installers["enterprise"][1][1]
         self.old_inst_c = self.installers["community"][0][1]
         self.new_inst_c = self.installers["community"][1][1]
+
+    @step
+    def setup_test_suite(self):
+        """clean up the system before running tests"""
+        self.teardown_testcase()
 
     @step
     def teardown_testcase(self):
@@ -78,3 +85,5 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
         for installer in installers:
             if installer.cfg.server_package_is_installed:
                 installer.un_install_server_package()
+        for installer in installers:
+            installer.cleanup_system()

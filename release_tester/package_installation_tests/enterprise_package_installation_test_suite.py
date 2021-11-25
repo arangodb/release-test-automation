@@ -33,7 +33,7 @@ class EnterprisePackageInstallationTestSuite(BasePackageInstallationTestSuite):
             zip_package,
             interactive,
             )
-        self.suite_name = f"Test package installation/uninstallation. New version: {new_version}. Old version: {old_version}. Package type: {str(self.new_inst_e.installer_type)}. Community edition."
+        self.suite_name = f"Test package installation/uninstallation. New version: {new_version}. Old version: {old_version}. Package type: {str(self.new_inst_e.installer_type)}. Enterprise edition."
 
 
     @testcase
