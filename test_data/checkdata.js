@@ -101,7 +101,7 @@ function validateDocumentWorksInOneShard(db, baseName, count) {
   }
 }
 
-function testSmartGraphValidator(ccount) {
+function testSmartGraphEdgeValidator(ccount) {
   if (!isCluster || !flags.hasSmartGraphValidator()) {
     // Feature does not exist, no need to test:
     return {fail: false};
@@ -152,8 +152,64 @@ function testSmartGraphValidator(ccount) {
     }
     return {fail: false};
   } finally {
-    // Always report that we tested SmartGraph Validators
-    progress("Tested SmartGraph validators");
+    // Always report that we tested SmartGraph Edge Validators
+    progress("Tested SmartGraph edge validators");
+  }
+}
+
+function testSmartGraphVertexValidator(ccount) {
+  if (!isCluster || !flags.hasSmartGraphValidator()) {
+    // Feature does not exist, no need to test:
+    return {fail: false};
+  }
+
+  try {
+    const vColName = `patents_smart_${ccount}`;
+    const gName = `G_smart_${ccount}`;
+    const mismatchedSGAPrefixDoc = { _key: 'NL:1', COUNTRY: 'DE' }
+    const missingSGAPrefixDoc = { _key: '1', COUNTRY: 'DE' }
+
+    const vCol = db._collection(vColName);
+    if (!vCol) {
+        return {
+          fail: true,
+          message: `The smartGraph "${gName}" was not created correctly, collection ${vColName} missing`
+        };
+      }
+
+    const testValidator = doc => {
+      try {
+        vCol.save(doc);
+        return {
+          fail: true,
+          message: `Validator did not trigger on collection ${vColName} stored illegal document`
+        };
+      } catch (e) {
+        // We only allow the following two errors, all others should be reported.
+        if (e.errorNum !== 4003 && e.errorNum !== 4001) {
+          return {
+            fail: true,
+            message: `Validator of collection ${vColName} on attempt to store ${doc} returned unexpected error ${JSON.stringify(e)}`
+          };
+        }
+      }
+      return { fail: false };
+    }
+
+    // We try to insert a document with the wrong key. This should be rejected by the internal validator.
+    let res = testValidator(mismatchedSGAPrefixDoc);
+    if (res.fail) {
+      return res;
+    }
+    res = testValidator(missingSGAPrefixDoc);
+    if (res.fail) {
+      return res;
+    }
+
+    return { fail: false };
+  } finally {
+    // Always report that we tested SmartGraph Vertex Validators
+    progress("Tested SmartGraph vertex validators");
   }
 }
 
@@ -464,7 +520,15 @@ while (count < options.numberOfDBs) {
                    GRAPH "${gName}"
                    RETURN v`).toArray().length !== 6) { throw "Black Currant"; }
       progress();
-      const res = testSmartGraphValidator(ccount);
+
+      let res = testSmartGraphEdgeValidator(ccount);
+
+      if (res.fail) {
+        throw res.message;
+      }
+
+      progress();
+      res = testSmartGraphVertexValidator(ccount);
       if (res.fail) {
         throw res.message;
       }
