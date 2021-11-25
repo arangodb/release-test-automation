@@ -18,6 +18,10 @@ class FeatureFlags {
     return semver.gte(this._current, "3.9.0");
   }
 
+  hasSmartVertexValidator() {
+    return semver.gte(this._current, "3.10.0");
+  }
+
   shouldValidateOneShard() {
     return semver.gte(this._old, "3.7.7");
   }

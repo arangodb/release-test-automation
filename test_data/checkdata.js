@@ -158,9 +158,9 @@ function testSmartGraphEdgeValidator(ccount) {
 }
 
 function testSmartGraphVertexValidator(ccount) {
-  if (!isCluster || !flags.hasSmartGraphValidator()) {
-    // Feature does not exist, no need to test:
-    return {fail: false};
+  if (!isCluster || !flags.hasSmartVertexValidator() || options.readOnly) {
+    // Feature does not exist, or we're on a readonly cluster. Mo need to test.
+    return { fail: false };
   }
 
   try {
