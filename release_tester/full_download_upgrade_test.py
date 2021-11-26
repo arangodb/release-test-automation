@@ -83,6 +83,7 @@ def upgrade_package_test(
     new_dlstages = []
 
     for version_pair in upgrade_matrix.split(";"):
+        print("Adding: '" + version_pair + "'")
         old, new = version_pair.split(":")
         old_versions.append(old)
         new_versions.append(new)
