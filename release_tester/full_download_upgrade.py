@@ -174,6 +174,8 @@ def upgrade_package_test(
                 use_auto_certs,
             )
         )
+
+    for enterprise in [True, False]:
         run_conflict_tests(
             old_version=str(dl_old.cfg.version),
             new_version=str(dl_new.cfg.version),
