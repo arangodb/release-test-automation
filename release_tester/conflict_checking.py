@@ -80,7 +80,7 @@ def run_conflict_tests(
         result["success"] = False
         for one_result in suite.test_results:
             result["messages"].append(one_result.message)
-    return result
+    return [result]
 
 
 @click.command()
