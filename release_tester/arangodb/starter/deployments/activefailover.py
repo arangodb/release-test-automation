@@ -290,7 +290,11 @@ class ActiveFailover(Runner):
             print("AFO-Leader and agency leader are attached by the same starter!")
             self.agency_trigger_leader_relection(agency_leader)
 
-        self.first_leader.terminate_instance()
+        self.first_leader.terminate_instance(keep_instances=True)
+        logging.info("relaunching agent!")
+        self.first_leader.manually_launch_instances(
+            [InstanceType.AGENT], [], False, False)
+
         logging.info("waiting for new leader...")
         self.new_leader = None
 

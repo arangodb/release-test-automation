@@ -7,6 +7,9 @@ from queue import Queue, Empty
 import sys
 from subprocess import PIPE, Popen
 from threading import Thread
+
+from allure_commons._allure import attach
+
 from tools.asciiprint import print_progress as progress
 import tools.loghelper as lh
 
@@ -75,9 +78,9 @@ class ArangoCLIprogressiveTimeoutExecutor:
         self,
         executeable,
         more_args,
-        timeout,
-        result_line,
-        verbose,
+        timeout=60,
+        result_line=dummy_line_result,
+        verbose=False,
         expect_to_fail=False,
     ):
         """
@@ -87,16 +90,23 @@ class ArangoCLIprogressiveTimeoutExecutor:
         """
         # fmt: off
         run_cmd = [
-            "--server.endpoint", self.connect_instance.get_endpoint(),
             "--log.foreground-tty", "true",
             "--log.force-direct", "true",
-            "--server.username", str(self.cfg.username),
-            "--server.password", str(self.connect_instance.get_passvoid())
-        ] + more_args
+        ]
+        if self.connect_instance:
+            run_cmd += ["--server.endpoint", self.connect_instance.get_endpoint()]
+            run_cmd += ["--server.username", str(self.cfg.username)]
+        if self.cfg.passvoid:
+            run_cmd += ["--server.password", str(self.cfg.passvoid)]
+        elif self.connect_instance:
+            run_cmd += ["--server.password", str(self.connect_instance.get_passvoid())]
+        run_cmd += more_args
         return self.run_monitored(executeable, run_cmd, timeout, result_line, verbose, expect_to_fail)
         # fmt: on
 
-    def run_monitored(self, executeable, args, timeout, result_line, verbose, expect_to_fail=False):
+    def run_monitored(
+        self, executeable, args, timeout=60, result_line=dummy_line_result, verbose=False, expect_to_fail=False
+    ):
         """
         run a script in background tracing with a dynamic timeout that its got output (is still alive...)
         """
@@ -173,6 +183,8 @@ class ArangoCLIprogressiveTimeoutExecutor:
         rc_exit = process.wait()
         thread1.join()
         thread2.join()
+
+        attach(str(rc_exit), f"Exit code: {str(rc_exit)}")
 
         if have_timeout or rc_exit != 0:
             res = (False, timeout_str + convert_result(result), rc_exit, line_filter)

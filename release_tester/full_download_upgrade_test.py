@@ -66,6 +66,8 @@ def upgrade_package_test(
     """process fetch & tests"""
 
     set_r_limits()
+    if not test_data_dir.is_absolute():
+        test_data_dir = Path.cwd() / test_data_dir
 
     lh.configure_logging(verbose)
     list_all_processes()
@@ -180,6 +182,7 @@ def upgrade_package_test(
          testrun_name
          ) in execution_plan:
         if directory_suffix not in editions:
+            print("skipping " + directory_suffix)
             continue
         # pylint: disable=W0612
         dl_old = Download(
@@ -219,7 +222,7 @@ def upgrade_package_test(
             shutil.rmtree(test_dir)
             if "REQUESTS_CA_BUNDLE" in os.environ:
                 del os.environ["REQUESTS_CA_BUNDLE"]
-        test_dir.mkdir()
+        test_dir.mkdir(parents=True)
         while not test_dir.exists():
             time.sleep(1)
         results.append(
@@ -234,10 +237,10 @@ def upgrade_package_test(
                 enterprise,
                 encryption_at_rest,
                 zip_package,
-                False,
+                False, # interactive_mode
                 starter_mode,
                 False,  # stress_upgrade,
-                False,
+                False, # abort_on_error
                 publicip,
                 selenium,
                 selenium_driver_args,
@@ -337,7 +340,7 @@ def main(
         git_version,
         httpuser,
         httppassvoid,
-        test_data_dir,
+        Path(test_data_dir),
         remote_host,
         force,
         starter_mode,

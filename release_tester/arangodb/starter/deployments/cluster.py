@@ -234,7 +234,11 @@ db.testCollection.save({test: "document"})
 
         logging.info("stopping instance %d" % terminate_instance)
         uuid = self.starter_instances[terminate_instance].get_dbservers()[0].get_uuid()
-        self.starter_instances[terminate_instance].terminate_instance()
+        self.starter_instances[terminate_instance].terminate_instance(keep_instances=True)
+        logging.info("relaunching agent!")
+        self.starter_instances[terminate_instance].manually_launch_instances(
+            [InstanceType.AGENT], [], False, False)
+
         self.set_frontend_instances()
 
         prompt_user(self.basecfg, "instance stopped")

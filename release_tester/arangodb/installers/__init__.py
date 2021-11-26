@@ -35,6 +35,7 @@ class InstallerConfig:
         publicip: str,
         interactive: bool,
         stress_upgrade: bool,
+        ssl: bool,
     ):
         self.publicip = publicip
         self.interactive = interactive
@@ -63,6 +64,7 @@ class InstallerConfig:
 
         self.port = 8529
         self.localhost = "localhost"
+        self.ssl = ssl
 
         self.all_instances = {}
         self.frontends = []
@@ -207,6 +209,7 @@ def create_config_installer_set(
     publicip: str,
     interactive: bool,
     stress_upgrade: bool,
+    ssl: bool,
 ):
     """creates sets of configs and installers"""
     # pylint: disable=R0902 disable=R0913
@@ -225,6 +228,7 @@ def create_config_installer_set(
             publicip,
             interactive,
             stress_upgrade,
+            ssl,
         )
         installer = make_installer(install_config)
         res.append([install_config, installer])

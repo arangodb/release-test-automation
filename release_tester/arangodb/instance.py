@@ -20,11 +20,14 @@ from tools.asciiprint import print_progress as progress
 
 
 # log tokens we want to suppress from our dump:
+from tools.clihelper import run_cmd_and_log_stdout
 
 LOG_BLACKLIST = [
     "2b6b3",  # -> asio error, tcp connections died... so f* waht.
     "2c712",  # -> agency connection died...
     "40e37",  # -> upgrade required TODO remove me from here, add system instance handling.
+    "d72fb",  # -> license is going to expire...
+    "1afb1",  # -> unlicensed enterprise instance
 ]
 
 # log tokens we ignore in system ugprades...

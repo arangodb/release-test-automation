@@ -942,6 +942,7 @@ class StarterManager:
     def maintainance(self, on_off, instance_type):
         """enables / disables maintainance mode"""
         print(("enabling" if on_off else "disabling") + " Maintainer mode")
+        tries = 60
         while True:
             reply = self.send_request(
                 instance_type,
@@ -953,9 +954,17 @@ class StarterManager:
                 print("Reply: " + str(reply[0].text))
                 if reply[0].status_code == 200:
                     return
+                else:
+                    print(f"Reply status code is {reply[0].status_code}. Sleeping for 3 s.")
+                    time.sleep(3)
+                    tries -= 1
             else:
                 print("Reply is empty. Sleeping for 3 s.")
                 time.sleep(3)
+                tries -= 1
+            if tries <= 0:
+                action = "enable" if on_off else "disable"
+                raise Exception(f"Couldn't {action} maintainance mode!")
 
     @step
     def detect_leader(self):
