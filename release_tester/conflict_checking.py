@@ -7,29 +7,43 @@ import click
 
 import tools.loghelper as lh
 from common_options import very_common_options, common_options
-from package_installation_tests.community_package_installation_test_suite import CommunityPackageInstallationTestSuite
-from package_installation_tests.enterprise_package_installation_test_suite import EnterprisePackageInstallationTestSuite
+from package_installation_tests.community_package_installation_test_suite import \
+    CommunityPackageInstallationTestSuite
+from package_installation_tests.enterprise_package_installation_test_suite import \
+    EnterprisePackageInstallationTestSuite
 
 
 # pylint: disable=R0913 disable=R0914, disable=W0703, disable=R0912, disable=R0915
 def run_conflict_tests(
-    old_version,
-    new_version,
-    verbose,
-    package_dir,
-    alluredir,
-    clean_alluredir,
-    enterprise,
-    zip_package,
-    interactive,
+        old_version,
+        new_version,
+        verbose,
+        package_dir,
+        alluredir,
+        clean_alluredir,
+        enterprise,
+        zip_package,
+        interactive,
 ):
     """run package conflict tests"""
     # disable conflict tests for Windows and MacOS
     if not sys.platform == "linux":
-        return
+        return {
+            "testrun name": "Package installation/uninstallation tests were skipped because OS is not Linux.",
+            "testscenario": "",
+            "success": True,
+            "messages": [],
+            "progress": "",
+        }
     # disable conflict tests for zip packages
     if zip_package:
-        return
+        return {
+            "testrun name": "Package installation/uninstallation tests were skipped for zip packages.",
+            "testscenario": "",
+            "success": True,
+            "messages": [],
+            "progress": "",
+        }
     if not enterprise:
         suite = CommunityPackageInstallationTestSuite(
             old_version,
@@ -97,6 +111,7 @@ def main(
     )
     if not result["success"]:
         raise Exception("There are failed tests")
+
 
 if __name__ == "__main__":
     # pylint: disable=E1120 # fix clickiness.
