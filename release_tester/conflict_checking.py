@@ -55,8 +55,18 @@ def run_conflict_tests(
             interactive,
         )
     suite.run()
+    result = {
+        "testrun name": suite.suite_name,
+        "testscenario": "",
+        "success": True,
+        "messages": [],
+        "progress": "",
+    }
     if suite.there_are_failed_tests():
-        raise Exception("There are failed tests")
+        result["success"] = False
+        for one_result in suite.test_results:
+            result["messages"].append(one_result.message)
+    return result
 
 
 @click.command()
@@ -74,7 +84,7 @@ def main(
     # fmt: on
     """ main trampoline """
     lh.configure_logging(verbose)
-    run_conflict_tests(
+    result = run_conflict_tests(
         old_version,
         new_version,
         verbose,
@@ -85,6 +95,8 @@ def main(
         zip_package,
         interactive,
     )
+    if not result["success"]:
+        raise Exception("There are failed tests")
 
 if __name__ == "__main__":
     # pylint: disable=E1120 # fix clickiness.

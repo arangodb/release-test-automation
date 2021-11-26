@@ -176,16 +176,18 @@ def upgrade_package_test(
         )
 
     for enterprise in [True, False]:
-        run_conflict_tests(
-            old_version=str(dl_old.cfg.version),
-            new_version=str(dl_new.cfg.version),
-            verbose=verbose,
-            package_dir=package_dir,
-            alluredir=alluredir,
-            clean_alluredir=clean_alluredir,
-            enterprise=enterprise,
-            zip_package=zip_package,
-            interactive=False,
+        results.append(
+            run_conflict_tests(
+                old_version=str(dl_old.cfg.version),
+                new_version=str(dl_new.cfg.version),
+                verbose=verbose,
+                package_dir=package_dir,
+                alluredir=alluredir,
+                clean_alluredir=clean_alluredir,
+                enterprise=enterprise,
+                zip_package=zip_package,
+                interactive=False,
+            )
         )
 
     print("V" * 80)
