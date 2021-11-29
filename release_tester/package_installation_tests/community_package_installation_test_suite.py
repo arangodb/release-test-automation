@@ -6,6 +6,7 @@ from package_installation_tests.installation_steps import (
     check_if_client_packages_can_be_installed_consequentially,
     check_if_client_package_can_be_installed_over_server_package,
     check_if_client_package_can_be_installed,
+    check_if_server_package_can_be_installed,
 )
 from selenium_ui_test.test_suites.base_test_suite import testcase
 
@@ -85,3 +86,18 @@ class CommunityPackageInstallationTestSuite(BasePackageInstallationTestSuite):
     def test10(self):
         """Check that community client package can be installed/uninstalled."""
         check_if_client_package_can_be_installed(self.new_inst_c, True)
+
+    @testcase
+    def test11(self):
+        """Check that new community server package can be installed"""
+        check_if_server_package_can_be_installed(self.new_inst_c)
+
+    @testcase
+    def test12(self):
+        """Check that community server package can be upgraded"""
+        check_if_server_packages_can_be_installed_consequentially(self.old_inst_c, self.new_inst_c, True)
+
+    @testcase
+    def test13(self):
+        """Check that community client package can be upgraded"""
+        check_if_client_packages_can_be_installed_consequentially(self.old_inst_c, self.new_inst_c, True)

@@ -113,6 +113,23 @@ def check_if_client_package_can_be_installed(client_installer, expect_success=Tr
 
 
 @step
+def check_if_server_package_can_be_installed(server_installer, expect_success=True):
+    """check if client package can be installed"""
+    package_name = server_installer.server_package
+    try:
+        server_installer.install_server_package()
+    except:
+        if not expect_success:
+            pass
+        else:
+            raise Exception(f"Package {package_name} can not be installed. Success was expected!")
+    if expect_success:
+        server_installer.check_installed_files()
+    else:
+        raise Exception(f"Package {package_name} can be installed. An error was expected!")
+
+
+@step
 def check_if_debug_package_can_be_installed(debug_installer, expect_success=True):
     """check if debug package can be installed after server package"""
     debug_package_name = debug_installer.debug_package

@@ -7,23 +7,21 @@ import click
 
 import tools.loghelper as lh
 from common_options import very_common_options, common_options
-from package_installation_tests.community_package_installation_test_suite import \
-    CommunityPackageInstallationTestSuite
-from package_installation_tests.enterprise_package_installation_test_suite import \
-    EnterprisePackageInstallationTestSuite
+from package_installation_tests.community_package_installation_test_suite import CommunityPackageInstallationTestSuite
+from package_installation_tests.enterprise_package_installation_test_suite import EnterprisePackageInstallationTestSuite
 
 
 # pylint: disable=R0913 disable=R0914, disable=W0703, disable=R0912, disable=R0915
 def run_conflict_tests(
-        old_version,
-        new_version,
-        verbose,
-        package_dir,
-        alluredir,
-        clean_alluredir,
-        enterprise,
-        zip_package,
-        interactive,
+    old_version,
+    new_version,
+    verbose,
+    package_dir,
+    alluredir,
+    clean_alluredir,
+    enterprise,
+    zip_package,
+    interactive,
 ):
     """run package conflict tests"""
     # disable conflict tests for Windows and MacOS
