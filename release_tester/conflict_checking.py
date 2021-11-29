@@ -98,7 +98,7 @@ def main(
     # fmt: on
     """ main trampoline """
     lh.configure_logging(verbose)
-    result = run_conflict_tests(
+    results = run_conflict_tests(
         old_version,
         new_version,
         verbose,
@@ -109,8 +109,9 @@ def main(
         zip_package,
         interactive,
     )
-    if not result["success"]:
-        raise Exception("There are failed tests")
+    for result in results:
+        if not result["success"]:
+            raise Exception("There are failed tests")
 
 
 if __name__ == "__main__":
