@@ -633,10 +633,10 @@ class InstallerBase(ABC):
             if not starter.is_file():
                 print("starter not found where we searched it? " + str(starter))
                 return semver.VersionInfo.parse("0.0.0")
-            print(starter.stat())
+            # print(starter.stat())
             #print(starter.owner())
             #print(starter.group())
-            run_file_command(str(starter))
+            # run_file_command(str(starter))
             starter_version_proc = psutil.Popen(
                 [str(starter), "--version"],
                    stdout=subprocess.PIPE,
