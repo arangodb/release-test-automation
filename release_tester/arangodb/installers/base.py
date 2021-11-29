@@ -633,6 +633,7 @@ class InstallerBase(ABC):
             if not starter.is_file():
                 print("starter not found where we searched it? " + str(starter))
             else:
+                print(starter.stat())
                 starter_version_proc = psutil.Popen(
                     [str(starter), "--version"],
                     stdout=subprocess.PIPE,
