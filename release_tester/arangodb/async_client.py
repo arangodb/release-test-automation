@@ -7,7 +7,6 @@ from queue import Queue, Empty
 import sys
 from subprocess import PIPE, Popen
 from threading import Thread
-
 from allure_commons._allure import attach
 
 from tools.asciiprint import print_progress as progress
@@ -89,6 +88,14 @@ class ArangoCLIprogressiveTimeoutExecutor:
         (is still alive...)
         """
         # fmt: off
+        passvoid = ''
+        if self.cfg.passvoid:
+            passvoid  = str(self.cfg.passvoid)
+        elif self.connect_instance:
+            passvoid = str(self.connect_instance.get_passvoid())
+        if passvoid == None:
+            passvoid = ''
+
         run_cmd = [
             "--log.foreground-tty", "true",
             "--log.force-direct", "true",
@@ -96,10 +103,8 @@ class ArangoCLIprogressiveTimeoutExecutor:
         if self.connect_instance:
             run_cmd += ["--server.endpoint", self.connect_instance.get_endpoint()]
             run_cmd += ["--server.username", str(self.cfg.username)]
-        if self.cfg.passvoid:
-            run_cmd += ["--server.password", str(self.cfg.passvoid)]
-        elif self.connect_instance:
-            run_cmd += ["--server.password", str(self.connect_instance.get_passvoid())]
+            run_cmd += ["--server.password", passvoid]
+
         run_cmd += more_args
         return self.run_monitored(executeable, run_cmd, timeout, result_line, verbose, expect_to_fail)
         # fmt: on

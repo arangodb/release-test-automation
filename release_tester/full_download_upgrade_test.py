@@ -78,6 +78,23 @@ def upgrade_package_test(
     fresh_versions = {}
 
     results = []
+    new_versions = []
+    old_versions = []
+    old_dlstages = []
+    new_dlstages = []
+
+    for version_pair in upgrade_matrix.split(";"):
+        print("Adding: '" + version_pair + "'")
+        old, new = version_pair.split(":")
+        old_versions.append(old)
+        new_versions.append(new)
+        if old == primary_version:
+            old_dlstages.append(primary_dlstage)
+            new_dlstages.append(other_source)
+        else:
+            old_dlstages.append(other_source)
+            new_dlstages.append(primary_dlstage)
+
     # do the actual work:
     execution_plan = [
         (True, True, True, "EE", "Enterprise\nEnc@REST"),
@@ -143,22 +160,6 @@ def upgrade_package_test(
                 use_auto_certs,
             )
         )
-
-    new_versions = []
-    old_versions = []
-    old_dlstages = []
-    new_dlstages = []
-
-    for version_pair in upgrade_matrix.split(";"):
-        old, new = version_pair.split(":")
-        old_versions.append(old)
-        new_versions.append(new)
-        if old == primary_version:
-            old_dlstages.append(primary_dlstage)
-            new_dlstages.append(other_source)
-        else:
-            old_dlstages.append(other_source)
-            new_dlstages.append(primary_dlstage)
 
     for j in range(len(new_versions)):
         for (enterprise, encryption_at_rest, ssl, directory_suffix, testrun_name) in execution_plan:

@@ -12,12 +12,15 @@ import subprocess
 from pathlib import Path
 import plistlib
 
+import psutil
+
 from reporting.reporting_utils import step
 import pexpect
 from allure_commons._allure import attach
 
 from arangodb.installers.base import InstallerBase
 from tools.asciiprint import ascii_print
+from tools.asciiprint import print_progress as progress
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
@@ -191,11 +194,29 @@ class InstallerMac(InstallerBase):
 
     @step
     def check_service_up(self):
-        time.sleep(1)  # TODO
-        return True
+        for count in range(30):
+            if not self.instance.detect_gone():
+                return True
+            progress("SR" + str(count))
+            time.sleep(1)
+        return False
 
     def start_service(self):
-        """nothing to see here"""
+        """ there is no system way, hence do it manual: """
+        if self.check_service_up():
+            print("already running, doing nothing.")
+        arangod = self.cfg.real_sbin_dir / 'arangod';
+        system_cmd = [
+            str(arangod),
+            '-c',
+            self.baseetcdir / 'arangod.conf',
+            '--daemon',
+            '--pid-file',
+            '/var/tmp/arangod.pid']
+        print("Launching: " + str(system_cmd))
+        rc = psutil.Popen(system_cmd).wait()
+        print("started system arangod: " + str(rc));
+        self.instance.detect_pid(1)
 
     @step
     def stop_service(self):
@@ -226,7 +247,7 @@ class InstallerMac(InstallerBase):
         self.calculate_file_locations()
         self.run_installer_script()
         self.set_system_instance()
-        self.instance.detect_pid(1)  # should be owned by init - TODO
+        self.instance.detect_pid(1)
 
     @step
     def un_install_server_package_impl(self):
