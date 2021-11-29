@@ -10,6 +10,7 @@ def check_if_server_packages_can_be_installed_consequentially(installer1, instal
     try:
         installer2.upgrade_package(installer1)
         if expect_success:
+            installer2.check_installed_files()
             return
         else:
             raise Exception(
@@ -43,6 +44,8 @@ def check_if_client_packages_can_be_installed_consequentially(installer1, instal
         raise Exception(
             f"Package {second_package_name} can be installed over {first_package_name}. A conflict was expected!"
         )
+    else:
+        installer2.check_installed_files()
 
 
 @step
