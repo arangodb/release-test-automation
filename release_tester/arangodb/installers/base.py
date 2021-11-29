@@ -634,8 +634,8 @@ class InstallerBase(ABC):
                 print("starter not found where we searched it? " + str(starter))
             else:
                 print(starter.stat())
-                print(starter.owner())
-                print(starter.group())
+                #print(starter.owner())
+                #print(starter.group())
                 starter_version_proc = psutil.Popen(
                     [str(starter), "--version"],
                     stdout=subprocess.PIPE,
