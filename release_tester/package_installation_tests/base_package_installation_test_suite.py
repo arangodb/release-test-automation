@@ -70,10 +70,20 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
     @step
     def setup_test_suite(self):
         """clean up the system before running tests"""
-        self.teardown_testcase()
+        self.uninstall_everything()
+
+    @step
+    def tear_down_test_suite(self):
+        """clean up the system after running tests"""
+        self.uninstall_everything()
 
     @step
     def teardown_testcase(self):
+        """clean up after test case"""
+        self.uninstall_everything()
+
+    @step
+    def uninstall_everything(self):
         """uninstall all packages"""
         installers = [self.old_inst_e, self.new_inst_e, self.old_inst_c, self.new_inst_c]
         for installer in installers:
