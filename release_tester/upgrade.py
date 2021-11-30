@@ -140,6 +140,10 @@ def run_upgrade(
                                 kill_all_processes()
                                 runner.zip_test_dir()
                                 testcase.context.status = Status.FAILED
+                                testcase.context.statusDetails = StatusDetails(
+                                    message=str(ex),
+                                    trace="".join(traceback.TracebackException.from_exception(ex).format()),
+                                )
                                 if abort_on_error:
                                     raise ex
                                 traceback.print_exc()
