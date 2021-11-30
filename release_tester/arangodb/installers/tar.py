@@ -4,6 +4,7 @@ import platform
 import shutil
 import logging
 from pathlib import Path
+import time
 import os
 
 from reporting.reporting_utils import step
@@ -146,17 +147,24 @@ class InstallerTAR(InstallerBase):
             print("Flushing pre-existing installation directory: " +
                   str(self.cfg.install_prefix))
             shutil.rmtree(self.cfg.install_prefix)
+            while self.cfg.install_prefix.exists():
+                print('.')
+                time.sleep(1)
         else:
             self.cfg.install_prefix.mkdir(parents=True)
+
+        extract_to = self.cfg.install_prefix / ".."
+        extract_to = extract_to.resolve()
+
         print(
             "extracting: "
             + str(self.cfg.package_dir / self.server_package)
             + " to "
-            + str(self.cfg.install_prefix / "..")
+            + str(extract_to)
         )
         shutil.unpack_archive(
             str(self.cfg.package_dir / self.server_package),
-            str(self.cfg.install_prefix / ".."),
+            str(extract_to),
         )
         logging.info("Installation successfull")
 
