@@ -12,7 +12,7 @@ DOCKER_RPM_NAME=release-test-automation-rpm-$(cat VERSION.json)
 DOCKER_DEB_TAG=arangodb/release-test-automation-deb:$(cat VERSION.json)
 DOCKER_RPM_TAG=arangodb/release-test-automation-rpm:$(cat VERSION.json)
 
-if test -n "$FORCE" -o "$TEST_BRANCH" != 'master'; then
+if test -n "$FORCE" -o "$TEST_BRANCH" != 'main'; then
   force_arg='--force'
 fi
 

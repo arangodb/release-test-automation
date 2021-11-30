@@ -3,31 +3,42 @@
 import time
 
 from arangodb.starter.deployments.dc2dc import Dc2Dc
-from arangodb.starter.deployments.runner import RunnerProperties
+
 
 class Dc2DcEndurance(Dc2Dc):
-    """ this launches two clusters in dc2dc mode """
+    """this launches two clusters in dc2dc mode"""
+
     # pylint: disable=R0913 disable=R0902 disable=E1121
-    def __init__(self, runner_type, abort_on_error, installer_set,
-                 selenium, selenium_driver_args,
-                 testrun_name: str,
-                 ssl: bool,
-                 use_auto_certs: bool
-                 ):
-        super().__init__(runner_type, abort_on_error, installer_set,
-                         selenium, selenium_driver_args,
-                         testrun_name, ssl, use_auto_certs)
+    def __init__(
+        self,
+        runner_type,
+        abort_on_error,
+        installer_set,
+        selenium,
+        selenium_driver_args,
+        testrun_name: str,
+        ssl: bool,
+        use_auto_certs: bool,
+    ):
+        super().__init__(
+            runner_type,
+            abort_on_error,
+            installer_set,
+            selenium,
+            selenium_driver_args,
+            testrun_name,
+            ssl,
+            use_auto_certs,
+        )
         self.hot_backup = False
 
     def test_setup_impl(self):
-        scenarios = ['A', 'B', 'C', 'D', 'E', 'G', 'H']
+        scenarios = ["A", "B", "C", "D", "E", "G", "H"]
         bench_instances = []
         for scenario in scenarios:
             time.sleep(5)
             bench_instances.append(
-                self.cluster1['instance'].launch_arangobench(
-                    'dc2dc_'+scenario,
-                    ['--duration', '60'])
+                self.cluster1["instance"].launch_arangobench("dc2dc_" + scenario, ["--duration", "60"])
             )
         self.sync_manager.check_sync_status(0)
         self.sync_manager.check_sync_status(1)

@@ -12,13 +12,18 @@ import subprocess
 from pathlib import Path
 import plistlib
 
+import psutil
+
 from reporting.reporting_utils import step
 import pexpect
 from allure_commons._allure import attach
 
 from arangodb.installers.base import InstallerBase
 from tools.asciiprint import ascii_print
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
+from tools.asciiprint import print_progress as progress
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
+
 
 @step
 def _mountdmg(dmgpath):
@@ -26,39 +31,51 @@ def _mountdmg(dmgpath):
     Attempts to mount the dmg at dmgpath and returns first mountpoint
     """
     mountpoints = []
-    cmd = ['/usr/bin/hdiutil', 'attach', str(dmgpath),
-           '-mountRandom', '/tmp', '-nobrowse', '-plist',
-           '-owners', 'on']
+    cmd = [
+        "/usr/bin/hdiutil",
+        "attach",
+        str(dmgpath),
+        "-mountRandom",
+        "/tmp",
+        "-nobrowse",
+        "-plist",
+        "-owners",
+        "on",
+    ]
     print(cmd)
-    proc = subprocess.Popen(cmd, bufsize=-1,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            stdin=subprocess.PIPE)
-    proc.stdin.write(b"y\n") # answer 'Agree Y/N?' the dumb way...
+    proc = subprocess.Popen(
+        cmd,
+        bufsize=-1,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        stdin=subprocess.PIPE,
+    )
+    proc.stdin.write(b"y\n")  # answer 'Agree Y/N?' the dumb way...
     # pylint: disable=W0612
-    (pliststr,void) = proc.communicate()
+    (pliststr, void) = proc.communicate()
 
     offset = pliststr.find(b'<?xml version="1.0" encoding="UTF-8"?>')
     if offset > 0:
-        print('got string')
+        print("got string")
         print(offset)
         ascii_print(str(pliststr[0:offset]))
         pliststr = pliststr[offset:]
 
     if proc.returncode:
-        logging.error('while mounting')
+        logging.error("while mounting")
         return None
     if pliststr:
         # pliststr = bytearray(pliststr, 'ascii')
         # print(pliststr)
         plist = plistlib.loads(pliststr)
         print(plist)
-        for entity in plist['system-entities']:
-            if 'mount-point' in entity:
-                mountpoints.append(entity['mount-point'])
+        for entity in plist["system-entities"]:
+            if "mount-point" in entity:
+                mountpoints.append(entity["mount-point"])
     else:
         raise Exception("plist empty")
     return mountpoints[0]
+
 
 @step
 def _detect_dmg_mountpoints(dmgpath):
@@ -66,94 +83,88 @@ def _detect_dmg_mountpoints(dmgpath):
     Unmounts the dmg at mountpoint
     """
     mountpoints = []
-    cmd = ['/usr/bin/hdiutil', 'info', '-plist']
-    proc = subprocess.Popen(cmd, bufsize=-1,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE)
+    cmd = ["/usr/bin/hdiutil", "info", "-plist"]
+    proc = subprocess.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (pliststr, err) = proc.communicate()
     if proc.returncode:
-        logging.error('Error: "%s" while listing mountpoints %s.' %
-                      (err, dmgpath))
+        logging.error('Error: "%s" while listing mountpoints %s.' % (err, dmgpath))
         return mountpoints
     if pliststr:
         plist = plistlib.loads(pliststr)
-        for entity in plist['images']:
-            if ('image-path' not in entity or
-                entity['image-path'].find(str(dmgpath)) < 0):
+        for entity in plist["images"]:
+            if "image-path" not in entity or entity["image-path"].find(str(dmgpath)) < 0:
                 continue
-            if 'system-entities' in entity:
-                for item in entity['system-entities']:
-                    if 'mount-point' in item:
-                        mountpoints.append(item['mount-point'])
+            if "system-entities" in entity:
+                for item in entity["system-entities"]:
+                    if "mount-point" in item:
+                        mountpoints.append(item["mount-point"])
     else:
         raise Exception("plist empty")
     attach(mountpoints)
     return mountpoints
+
 
 def _unmountdmg(mountpoint):
     """
     Unmounts the dmg at mountpoint
     """
     logging.info("unmounting %s", mountpoint)
-    proc = subprocess.Popen(['/usr/bin/hdiutil', 'detach', mountpoint],
-                             bufsize=-1, stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE)
+    proc = subprocess.Popen(
+        ["/usr/bin/hdiutil", "detach", mountpoint],
+        bufsize=-1,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
     (dummy_output, err) = proc.communicate()
     if proc.returncode:
-        logging.error('Polite unmount failed: %s' % err)
-        logging.error('Attempting to force unmount %s' % mountpoint)
+        logging.error("Polite unmount failed: %s" % err)
+        logging.error("Attempting to force unmount %s" % mountpoint)
         # try forcing the unmount
-        retcode = subprocess.call(['/usr/bin/hdiutil',
-                                   'detach',
-                                   mountpoint,
-                                   '-force'])
+        retcode = subprocess.call(["/usr/bin/hdiutil", "detach", mountpoint, "-force"])
         if retcode:
-            logging.error('while mounting')
+            logging.error("while mounting")
+
 
 class InstallerMac(InstallerBase):
-    """ install .dmg's on a mac """
+    """install .dmg's on a mac"""
+
     # pylint: disable=R0913 disable=R0902
     def __init__(self, cfg):
-        self.remote_package_dir  = 'MacOSX'
+        self.remote_package_dir = "MacOSX"
         self.server_package = None
         self.client_package = None
         self.debug_package = None
         self.instance = None
         self.mountpoint = None
-        self.basehomedir = Path.home() / 'Library' / 'ArangoDB'
-        self.baseetcdir = Path.home() / 'Library' / 'ArangoDB-etc'
+        self.basehomedir = Path.home() / "Library" / "ArangoDB"
+        self.baseetcdir = Path.home() / "Library" / "ArangoDB-etc"
         self.installer_type = "DMG"
 
         cfg.install_prefix = None
-        cfg.localhost = 'localhost'
-        cfg.passvoid = '' # default mac install doesn't set passvoid
+        cfg.localhost = "localhost"
+        cfg.passvoid = ""  # default mac install doesn't set passvoid
 
-        cfg.log_dir = ( self.basehomedir / 'opt' / 'arangodb'
-                       / 'var' / 'log' / 'arangodb3' )
-        cfg.dbdir = ( self.basehomedir / 'opt' / 'arangodb'
-                      / 'var' / 'lib' / 'arangodb3' )
-        cfg.appdir = ( self.basehomedir / 'opt' / 'arangodb'
-                       / 'var' / 'lib' / 'arangodb3-apps' )
+        cfg.log_dir = self.basehomedir / "opt" / "arangodb" / "var" / "log" / "arangodb3"
+        cfg.dbdir = self.basehomedir / "opt" / "arangodb" / "var" / "lib" / "arangodb3"
+        cfg.appdir = self.basehomedir / "opt" / "arangodb" / "var" / "lib" / "arangodb3-apps"
         cfg.cfgdir = self.baseetcdir
         cfg.pidfile = Path("/var/tmp/arangod.pid")
 
         # we gonna override them to their real locations later on.
-        cfg.bin_dir = Path('/')
-        cfg.sbin_dir = Path('/')
-        cfg.real_bin_dir = Path('/')
-        cfg.real_sbin_dir = Path('/')
+        cfg.bin_dir = Path("/")
+        cfg.sbin_dir = Path("/")
+        cfg.real_bin_dir = Path("/")
+        cfg.real_sbin_dir = Path("/")
 
         super().__init__(cfg)
 
     @step
     def run_installer_script(self):
-        """ this will run the installer script from the dmg """
-        enterprise = 'e' if self.cfg.enterprise else ''
-        script = ( Path(self.mountpoint) /
-                   'ArangoDB3{}-CLI.app'.format(enterprise) /
-                   'Contents' /
-                   'MacOS' /
-                   'ArangoDB3-CLI')
+        """this will run the installer script from the dmg"""
+        enterprise = "e" if self.cfg.enterprise else ""
+        script = (
+            Path(self.mountpoint) / "ArangoDB3{}-CLI.app".format(enterprise) / "Contents" / "MacOS" / "ArangoDB3-CLI"
+        )
         print(script)
         os.environ["STORAGE_ENGINE"] = "auto"
         installscript = pexpect.spawnu(str(script))
@@ -165,33 +176,47 @@ class InstallerMac(InstallerBase):
         installscript.kill(0)
 
     def calculate_package_names(self):
-        enterprise = 'e' if self.cfg.enterprise else ''
-        architecture = 'x86_64'
+        enterprise = "e" if self.cfg.enterprise else ""
+        architecture = "x86_64"
 
         semdict = dict(self.cfg.semver.to_dict())
-        if semdict['prerelease']:
-            semdict['prerelease'] = '-{prerelease}'.format(**semdict)
+        if semdict["prerelease"]:
+            semdict["prerelease"] = "-{prerelease}".format(**semdict)
         else:
-            semdict['prerelease'] = ''
-        version = '{major}.{minor}.{patch}{prerelease}'.format(**semdict)
+            semdict["prerelease"] = ""
+        version = "{major}.{minor}.{patch}{prerelease}".format(**semdict)
 
-        desc = {
-            "ep"   : enterprise,
-            "cfg"  : version,
-            "arch" : architecture
-        }
+        desc = {"ep": enterprise, "cfg": version, "arch": architecture}
 
-        self.server_package = 'arangodb3{ep}-{cfg}.{arch}.dmg'.format(**desc)
+        self.server_package = "arangodb3{ep}-{cfg}.{arch}.dmg".format(**desc)
         self.client_package = None
         self.debug_package = None
 
     @step
     def check_service_up(self):
-        time.sleep(1)    # TODO
-        return True
+        for count in range(30):
+            if not self.instance.detect_gone():
+                return True
+            progress("SR" + str(count))
+            time.sleep(1)
+        return False
 
     def start_service(self):
-        """ nothing to see here """
+        """ there is no system way, hence do it manual: """
+        if self.check_service_up():
+            print("already running, doing nothing.")
+        arangod = self.cfg.real_sbin_dir / 'arangod';
+        system_cmd = [
+            str(arangod),
+            '-c',
+            self.baseetcdir / 'arangod.conf',
+            '--daemon',
+            '--pid-file',
+            '/var/tmp/arangod.pid']
+        print("Launching: " + str(system_cmd))
+        rc = psutil.Popen(system_cmd).wait()
+        print("started system arangod: " + str(rc));
+        self.instance.detect_pid(1)
 
     @step
     def stop_service(self):
@@ -200,48 +225,40 @@ class InstallerMac(InstallerBase):
     @step
     def upgrade_package(self, old_installer):
         os.environ["UPGRADE_DB"] = "No"
-        self.install_package()
+        self.instance = old_installer.instance
+        self.stop_service()
+        self.install_server_package_backend()
 
     @step
-    def un_install_package_for_upgrade(self):
-        """ hook to uninstall old package for upgrade """
+    def install_server_package_impl(self):
+        self.install_server_package_backend()
 
-    @step
-    def install_package(self):
+    def install_server_package_backend(self):
         if self.cfg.pidfile.exists():
             self.cfg.pidfile.unlink()
         logging.info("Mounting DMG")
-        self.mountpoint = _mountdmg(self.cfg.package_dir /
-                                    self.server_package)
+        self.mountpoint = _mountdmg(self.cfg.package_dir / self.server_package)
         print(self.mountpoint)
-        enterprise = 'e' if self.cfg.enterprise else ''
-        self.cfg.install_prefix = ( Path(self.mountpoint) /
-                                   'ArangoDB3{}-CLI.app'.format(enterprise) /
-                                   'Contents' /
-                                   'Resources')
+        enterprise = "e" if self.cfg.enterprise else ""
+        self.cfg.install_prefix = (
+            Path(self.mountpoint) / "ArangoDB3{}-CLI.app".format(enterprise) / "Contents" / "Resources"
+        )
         self.cfg.bin_dir = self.cfg.install_prefix
         self.cfg.sbin_dir = self.cfg.install_prefix
-        self.cfg.real_bin_dir = ( self.cfg.install_prefix
-                                  / 'opt' / 'arangodb' / 'bin' )
-        self.cfg.real_sbin_dir = ( self.cfg.install_prefix
-                                   / 'opt' / 'arangodb' / 'sbin')
-        self.cfg.all_instances = {
-            'single': {
-                'logfile': self.cfg.log_dir / 'arangod.log'
-            }
-        }
-        logging.info('Installation successfull')
-        self.caclulate_file_locations()
+        self.cfg.real_bin_dir = self.cfg.install_prefix / "opt" / "arangodb" / "bin"
+        self.cfg.real_sbin_dir = self.cfg.install_prefix / "opt" / "arangodb" / "sbin"
+        self.cfg.all_instances = {"single": {"logfile": self.cfg.log_dir / "arangod.log"}}
+        logging.info("Installation successfull")
+        self.calculate_file_locations()
         self.run_installer_script()
         self.set_system_instance()
-        self.instance.detect_pid(1) # should be owned by init - TODO
+        self.instance.detect_pid(1)
 
     @step
-    def un_install_package(self):
+    def un_install_server_package_impl(self):
         self.stop_service()
         if not self.mountpoint:
-            mpts = _detect_dmg_mountpoints(self.cfg.package_dir /
-                                           self.server_package)
+            mpts = _detect_dmg_mountpoints(self.cfg.package_dir / self.server_package)
             for mountpoint in mpts:
                 _unmountdmg(mountpoint)
         else:

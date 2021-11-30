@@ -12,19 +12,22 @@ from arangodb.starter.deployments import RunnerType, make_runner
 
 # pylint: disable=W0703
 def run_cleanup(zip_package, testrun_name: str = ""):
-    """ main """
+    """main"""
 
-    installer_set = create_config_installer_set(['3.3.3'],
-                                                True,
-                                                False,
-                                                False,
-                                                zip_package,
-                                                Path("/tmp/"),
-                                                Path("/"),
-                                                "127.0.0.1",
-                                                "",
-                                                False,
-                                                False)
+    installer_set = create_config_installer_set(
+        ["3.3.3"],
+        True,
+        False,
+        False,
+        zip_package,
+        Path("/tmp/"),
+        Path("/"),
+        "127.0.0.1",
+        "",
+        False,
+        False,
+        False,
+    )
     inst = installer_set[0][1]
     if inst.calc_config_file_name().is_file():
         inst.load_config()
@@ -33,35 +36,39 @@ def run_cleanup(zip_package, testrun_name: str = ""):
         installer_set[0][0].set_directories(inst.cfg)
     kill_all_processes()
     kill_all_processes()
-    starter_mode = [RunnerType.LEADER_FOLLOWER,
-                    RunnerType.ACTIVE_FAILOVER,
-                    RunnerType.CLUSTER,
-                    RunnerType.DC2DC]
+    starter_mode = [
+        RunnerType.LEADER_FOLLOWER,
+        RunnerType.ACTIVE_FAILOVER,
+        RunnerType.CLUSTER,
+        RunnerType.DC2DC,
+    ]
     for runner_type in starter_mode:
         assert runner_type
-        runner = make_runner(runner_type,
-                             False, 'none', [],
-                             installer_set,
-                             testrun_name
-                             )
+        runner = make_runner(runner_type, False, "none", [], installer_set, testrun_name)
         runner.cleanup()
     if inst.calc_config_file_name().is_file():
         try:
             inst.un_install_debug_package()
         except Exception:
-            print('nothing to uninstall')
-        inst.un_install_package()
+            print("nothing to uninstall")
+        try:
+            inst.un_install_client_package()
+        except Exception:
+            print("nothing to uninstall")
+        inst.un_install_server_package()
     else:
-        print('Cannot uninstall package without config.yml!')
+        print("Cannot uninstall package without config.yml!")
     inst.cleanup_system()
+
 
 @click.command()
 @zip_common_options
 def run_test(zip_package):
-    """ Wrapper... """
+    """Wrapper..."""
     lh.configure_logging(True)
     return run_cleanup(zip_package)
 
+
 if __name__ == "__main__":
-# pylint: disable=E1120 # fix clickiness.
+    # pylint: disable=E1120 # fix clickiness.
     run_test()

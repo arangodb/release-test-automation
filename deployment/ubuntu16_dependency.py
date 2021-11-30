@@ -33,116 +33,97 @@ In order to have clean environment
 
 
 # Updating current repository
-print('Updating current repository')
-cmd1 = ['apt-get', 'update', '-y']
-proc = subprocess.Popen(cmd1, bufsize=-1,
-                        stderr=subprocess.PIPE,
-                        stdin=subprocess.PIPE)
+print("Updating current repository")
+cmd1 = ["apt-get", "update", "-y"]
+proc = subprocess.Popen(cmd1, bufsize=-1, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
 proc.communicate()
 proc.wait()
 time.sleep(2)
 
 
 # Installing Python3.6-dev
-print('\nInstalling python3.6-dev.\n')
-cmd2 = ['apt-get', 'install', '-y', 'python3.6-dev']
-proc = subprocess.Popen(cmd2, bufsize=-1,
-                        stderr=subprocess.PIPE,
-                        stdin=subprocess.PIPE)
+print("\nInstalling python3.6-dev.\n")
+cmd2 = ["apt-get", "install", "-y", "python3.6-dev"]
+proc = subprocess.Popen(cmd2, bufsize=-1, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
 proc.communicate()
 proc.wait()
 
 
 # Installing gdb
-print('\nInstalling GDB')
-cmd3 = ['sudo', 'apt', 'install', 'gdb']
-proc = subprocess.Popen(cmd3, bufsize=-1,
-                        stderr=subprocess.PIPE,
-                        stdin=subprocess.PIPE)
+print("\nInstalling GDB")
+cmd3 = ["sudo", "apt", "install", "gdb"]
+proc = subprocess.Popen(cmd3, bufsize=-1, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
 proc.communicate()
 proc.wait()
 
 
 # Installing Python3-pip
-print('\nInstalling Python3-pip')
-cmd4 = ['apt', 'install', 'python3-pip', '-y']
-proc = subprocess.Popen(cmd4, bufsize=-1,
-                        stderr=subprocess.PIPE,
-                        stdin=subprocess.PIPE)
+print("\nInstalling Python3-pip")
+cmd4 = ["apt", "install", "python3-pip", "-y"]
+proc = subprocess.Popen(cmd4, bufsize=-1, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
 proc.communicate()
 proc.wait()
 
 
 # Upgrading pip3 version if necessary
-print('\nUpgrading pip3 version')
-cmd5 = ['python3.6', '-m', 'pip', 'install', '--upgrade', 'pip']
-proc = subprocess.Popen(cmd5, bufsize=-1,
-                        stderr=subprocess.PIPE,
-                        stdin=subprocess.PIPE)
+print("\nUpgrading pip3 version")
+cmd5 = ["python3.6", "-m", "pip", "install", "--upgrade", "pip"]
+proc = subprocess.Popen(cmd5, bufsize=-1, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
 proc.communicate()
 proc.wait()
 
 
-print('\nInstalling pipreqs')
-cmd6 = ['sudo', '-H', 'python3.6', '-m', 'pip', 'install', 'pipreqs']
-proc = subprocess.Popen(cmd6, bufsize=-1,
-                        stderr=subprocess.PIPE,
-                        stdin=subprocess.PIPE)
+print("\nInstalling pipreqs")
+cmd6 = ["sudo", "-H", "python3.6", "-m", "pip", "install", "pipreqs"]
+proc = subprocess.Popen(cmd6, bufsize=-1, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
 proc.communicate()
 proc.wait()
 
 
 path = input("\nEnter the path of release-test-automation directory: ")
 # run pepreqs on project folder & it will create the requirement.txt file
-print('\nRunning pepreqs on project folder.\n')
-cmd7 = ['pipreqs', path]
-proc = subprocess.Popen(cmd7, bufsize=-1,
-                        stderr=subprocess.PIPE,
-                        stdin=subprocess.PIPE)
+print("\nRunning pepreqs on project folder.\n")
+cmd7 = ["pipreqs", path]
+proc = subprocess.Popen(cmd7, bufsize=-1, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
 proc.communicate()
 proc.wait()
 
 
 # run pip3 install on requirement.txt file
-path = path + '/requirements.txt'
-print('\nInstalling all dependency packages for release-test-automation.\n')
-cmd8 = ['sudo', '-H', 'python3.6', '-m', 'pip', 'install', '-r', path]
-proc = subprocess.Popen(cmd8, bufsize=-1,
-                        stderr=subprocess.PIPE,
-                        stdin=subprocess.PIPE)
+path = path + "/requirements.txt"
+print("\nInstalling all dependency packages for release-test-automation.\n")
+cmd8 = ["sudo", "-H", "python3.6", "-m", "pip", "install", "-r", path]
+proc = subprocess.Popen(cmd8, bufsize=-1, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
 proc.communicate()
 proc.wait()
 
 
-# Installing pyftpdlib package 
-print('\nInstalling pyftpdlib package.\n')
-cmd9 = ['sudo', '-H', 'python3.6', '-m', 'pip', 'install', 'pyftpdlib']
-proc = subprocess.Popen(cmd9, bufsize=-1,
-                        stderr=subprocess.PIPE,
-                        stdin=subprocess.PIPE)
+# Installing pyftpdlib package
+print("\nInstalling pyftpdlib package.\n")
+cmd9 = ["sudo", "-H", "python3.6", "-m", "pip", "install", "pyftpdlib"]
+proc = subprocess.Popen(cmd9, bufsize=-1, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
 proc.communicate()
 proc.wait()
 
 
-print('\nCurrent Python3 Version ')
-cmd0 = ['python3.6', '-V']
-proc = subprocess.Popen(cmd0, bufsize=-1,
-                        stderr=subprocess.PIPE,
-                        stdin=subprocess.PIPE)
+print("\nCurrent Python3 Version ")
+cmd0 = ["python3.6", "-V"]
+proc = subprocess.Popen(cmd0, bufsize=-1, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
 proc.communicate()
 proc.wait()
 
 
-print('\nCurrent GDB Version ')
-cmd01 = ['gdb', '--version']
-proc = subprocess.Popen(cmd01, bufsize=-1,
-                        stderr=subprocess.PIPE,
-                        stdin=subprocess.PIPE)
+print("\nCurrent GDB Version ")
+cmd01 = ["gdb", "--version"]
+proc = subprocess.Popen(cmd01, bufsize=-1, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
 proc.communicate()
 proc.wait()
 
 pwd = os.path.dirname(os.path.realpath(__file__))
 
-shutil.copyfile(pwd + "/../jenkins/jenkins-release-test-automation-sudoers", "/etc/sudoers.d/jenkins-release-test-automation")
+shutil.copyfile(
+    pwd + "/../jenkins/jenkins-release-test-automation-sudoers",
+    "/etc/sudoers.d/jenkins-release-test-automation",
+)
 
-print('\nAll dependency has been configured & and ready to run release-test-automation.')
+print("\nAll dependency has been configured & and ready to run release-test-automation.")

@@ -5,12 +5,13 @@ import logging
 
 from allure_commons._allure import attach
 
+
 def configure_logging(verbose):
-    """ set up logging """
+    """set up logging"""
     logging.basicConfig(
         # level=logging.DEBUG,
-        datefmt='%H:%M:%S',
-        format='%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s'
+        datefmt="%H:%M:%S",
+        format="%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s",
     )
     logging.basicConfig()
     if verbose:
@@ -24,26 +25,27 @@ def configure_logging(verbose):
         ["urllib3", logging.WARNING, True],
         ["requests", logging.WARNING, True],
         ["selenium.webdriver.remote.remote_connection", logging.WARNING, True],
-        ["MARKDOWN", logging.WARNING, True]
+        ["MARKDOWN", logging.WARNING, True],
     ]
 
-    for l in loggers:
-        logger = logging.getLogger(l[0])
-        logger.setLevel(l[1])
-        logger.propagate = l[2]
+    for one_logger in loggers:
+        logger = logging.getLogger(one_logger[0])
+        logger.setLevel(one_logger[1])
+        logger.propagate = one_logger[2]
+
 
 def get_term_width():
-    """ eventually we should ask the term for the size """
+    """eventually we should ask the term for the size"""
     return 60
 
 
 def line(sym="-", length=get_term_width()):
-    """ adjust line to terminal width """
-    print(sym * int (length / len(sym)))
+    """adjust line to terminal width"""
+    print(sym * int(length / len(sym)))
 
 
 def log_cmd(cmd, print_cmd=True):
-    """ log string """
+    """log string"""
     if not isinstance(cmd, str):
         cmd = str(" ".join([str(x) for x in cmd]))
     attach(cmd, "Command")
@@ -51,6 +53,7 @@ def log_cmd(cmd, print_cmd=True):
         line("<")
         print("executing: " + cmd)
         line("^")
+
 
 # def logged_command_wait():
 #     """ run a command, redirect its output
@@ -66,10 +69,10 @@ def log_cmd(cmd, print_cmd=True):
 
 
 def subsection(name, sym="=", in_section=False):
-    """ print a subsection """
+    """print a subsection"""
     target_length = get_term_width()
 
-    spaces = (target_length - len(name) - 2 * len(sym))
+    spaces = target_length - len(name) - 2 * len(sym)
     spaces_front = int(spaces / 2)
     spaces_back = spaces - spaces_front
 
@@ -79,12 +82,14 @@ def subsection(name, sym="=", in_section=False):
     print(sym + " " * spaces_front + name + " " * spaces_back + sym)
     line(sym, target_length)
 
+
 def subsubsection(name, sym="-"):
-    """ print a subsubsection """
+    """print a subsubsection"""
     subsection(name, sym, False)
 
+
 def section(name, sym="#"):
-    """ print a section """
+    """print a section"""
     target_length = get_term_width()
 
     print()

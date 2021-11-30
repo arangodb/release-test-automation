@@ -149,9 +149,14 @@ function ReplicationSuite() {
     }
 
     db._useDatabase("_system");
+    let allDatabases = db._databases();
 
     connectToFollower();
     if (isCluster) {
+      while (allDatabases.length !== db._databases().length) {
+        print('D ' + allDatabases.length + " !== " + db._databases().length);
+        internal.sleep(1);
+      }
       let count = 0;
       let lastLogTick = 0;
       while ((lastLogTick !== state.lastLogTick) && (count < 500)) {
@@ -477,6 +482,7 @@ function ReplicationSuite() {
           let createDatabase = function() {
             db._useDatabase('_system');
             let name = "test" + internal.genRandomAlphaNumbers(16) + Date.now();
+            print("Creating " + name);
             return db._createDatabase(name);
           };
 
@@ -532,7 +538,7 @@ function ReplicationSuite() {
                   if (checksumCount > 20) {
                     throw Exception("_users collection isn't getting in sync!")
                   }
-                  sleep(1);
+                  internal.wait(1);
                   checksumCount += 1;
                 }
               }
