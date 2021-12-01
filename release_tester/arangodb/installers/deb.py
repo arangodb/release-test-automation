@@ -93,7 +93,7 @@ class InstallerDeb(InstallerLinux):
                 raise Exception("server service stop didn't" "finish successfully!")
 
     @step
-    def upgrade_package(self, old_installer):
+    def upgrade_server_package(self, old_installer):
         logging.info("upgrading Arangodb debian package")
         self.backup_dirs_number_before_upgrade = self.count_backup_dirs()
         os.environ["DEBIAN_FRONTEND"] = "readline"
@@ -277,6 +277,9 @@ class InstallerDeb(InstallerLinux):
             ascii_print(client_install.before)
             raise Exception(str(self.debug_package) + " client package installation didn't finish successfully!")
 
+    def upgrade_client_package_impl(self):
+        self.install_client_package()
+
     @step
     def un_install_client_package_impl(self):
         """uninstall client package"""
@@ -284,10 +287,11 @@ class InstallerDeb(InstallerLinux):
         self.uninstall_package(package_name)
 
     @step
-    def uninstall_package(self, package_name):
+    def uninstall_package(self, package_name, force=False):
         """uninstall package"""
         os.environ["DEBIAN_FRONTEND"] = "readline"
-        cmd = "dpkg --purge " + package_name
+        force = "--force-depends" if force else ""
+        cmd = f"dpkg --purge {force} {package_name}"
         lh.log_cmd(cmd)
         uninstall = pexpect.spawnu(cmd)
         try:
@@ -305,6 +309,11 @@ class InstallerDeb(InstallerLinux):
                 uninstall.close(force=True)
                 ascii_print(uninstall.before)
                 raise Exception("Uninstallation of package %s didn't finish successfully!" % package_name)
+
+    def uninstall_everything_impl(self):
+        """uninstall all arango packages present in the system(including those installed outside this installer)"""
+        for package_name in ["arangodb3", "arangodb3e", "arangodb3-client", "arangodb3e-client", "arangodb3e-dbg", "arangodb3-dbg"]:
+            self.uninstall_package(package_name, force=True)
 
     @step
     def cleanup_system(self):

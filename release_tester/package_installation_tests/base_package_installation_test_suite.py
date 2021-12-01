@@ -85,15 +85,9 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
     @step
     def uninstall_everything(self):
         """uninstall all packages"""
-        installers = [self.old_inst_e, self.new_inst_e, self.old_inst_c, self.new_inst_c]
-        for installer in installers:
-            if installer.cfg.debug_package_is_installed:
-                installer.un_install_debug_package()
-        for installer in installers:
-            if installer.cfg.client_package_is_installed:
-                installer.un_install_client_package()
-        for installer in installers:
-            if installer.cfg.server_package_is_installed:
-                installer.un_install_server_package()
-        for installer in installers:
+        self.new_inst_c.uninstall_everything()
+        for installer in [self.old_inst_e, self.new_inst_e, self.old_inst_c, self.new_inst_c]:
             installer.cleanup_system()
+            installer.cfg.server_package_is_installed = False
+            installer.cfg.debug_package_is_installed = False
+            installer.cfg.client_package_is_installed = False

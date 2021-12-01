@@ -104,7 +104,7 @@ class InstallerRPM(InstallerLinux):
             time.sleep(1)
 
     @step
-    def upgrade_package(self, old_installer):
+    def upgrade_server_package(self, old_installer):
         logging.info("upgrading Arangodb rpm package")
 
         self.cfg.passvoid = "RPM_passvoid_%d" % os.getpid()
@@ -254,10 +254,14 @@ class InstallerRPM(InstallerLinux):
         run_cmd_and_log_stdout(cmd)
 
     @step
-    def install_rpm_package(self, package: str):
+    def install_rpm_package(self, package: str, upgrade: bool = False):
         """installing rpm package"""
         print("installing rpm package: %s" % package)
-        cmd = "rpm -i " + package
+        if upgrade:
+            option = "--upgrade"
+        else:
+            option = "--install"
+        cmd = f"rpm {option} {package}"
         lh.log_cmd(cmd)
         install = pexpect.spawnu(cmd)
         try:
@@ -286,7 +290,6 @@ class InstallerRPM(InstallerLinux):
     def install_debug_package_impl(self):
         """installing debug package"""
         self.install_rpm_package(str(self.cfg.package_dir / self.debug_package))
-        self.cfg.debug_package_is_installed = True
 
     @step
     def un_install_package(self, package_name: str):
@@ -307,11 +310,14 @@ class InstallerRPM(InstallerLinux):
                 ascii_print(uninstall.before)
                 raise Exception("Uninstallation of packages %s failed. " % package_name)
 
+    def upgrade_client_package_impl(self):
+        """install a new version of the client package to the system"""
+        self.install_rpm_package(str(self.cfg.package_dir / self.client_package), upgrade=True)
+
     @step
     def install_client_package_impl(self):
         """installing client package"""
         self.install_rpm_package(str(self.cfg.package_dir / self.client_package))
-        self.cfg.client_package_is_installed = True
 
     def un_install_client_package_impl(self):
         """Uninstall client package"""
@@ -324,6 +330,11 @@ class InstallerRPM(InstallerLinux):
         print("uninstalling rpm debug package")
         package_name = "arangodb3" + ("e-debuginfo.x86_64" if self.cfg.enterprise else "-debuginfo.x86_64")
         self.un_install_package(package_name)
+
+    def uninstall_everything_impl(self):
+        """uninstall all arango packages present in the system(including those installed outside this installer)"""
+        for package_name in ["arangodb3", "arangodb3e", "arangodb3-client", "arangodb3e-client", "arangodb3e-debuginfo", "arangodb3-debuginfo"]:
+            self.un_install_package(package_name)
 
     @step
     def cleanup_system(self):

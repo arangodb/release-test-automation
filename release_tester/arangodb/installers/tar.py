@@ -134,7 +134,7 @@ class InstallerTAR(InstallerBase):
         """nothing to see here"""
 
     @step
-    def upgrade_package(self, old_installer):
+    def upgrade_server_package(self, old_installer):
         """Tar installer is the same way we did for installing."""
         self.install_server_package()
 

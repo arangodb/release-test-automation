@@ -219,6 +219,8 @@ class InstallerBase(ABC):
     @step
     def un_install_server_package(self):
         """uninstall server package"""
+        if self.cfg.debug_package_is_installed:
+            self.un_install_debug_package()
         self.un_install_server_package_impl()
         self.cfg.server_package_is_installed = False
 
@@ -267,8 +269,31 @@ class InstallerBase(ABC):
         """install the packages to the system"""
 
     @abstractmethod
-    def upgrade_package(self, old_installer):
-        """install a new version of the packages to the system"""
+    def upgrade_server_package(self, old_installer):
+        """install a new version of the server package to the system"""
+
+    @step
+    def upgrade_client_package(self, old_installer):
+        """install a new version of the client package to the system"""
+        self.upgrade_client_package_impl()
+        self.cfg.client_package_is_installed = True
+        self.calculate_file_locations()
+        old_installer.cfg.client_package_is_installed = False
+
+    def uninstall_everything(self):
+        """uninstall all arango packages present in the system(including those installed outside this installer)"""
+        self.uninstall_everything_impl()
+        self.cfg.server_package_is_installed = False
+        self.cfg.debug_package_is_installed = False
+        self.cfg.client_package_is_installed = False
+
+    def uninstall_everything_impl(self):
+        """uninstall all arango packages present in the system(including those installed outside this installer)"""
+        raise NotImplementedError("uninstall_everything_impl method is not implemented for this installer type")
+
+    @abstractmethod
+    def upgrade_client_package_impl(self):
+        """install a new version of the client package to the system"""
 
     @abstractmethod
     def check_service_up(self):

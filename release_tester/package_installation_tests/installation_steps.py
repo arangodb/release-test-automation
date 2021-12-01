@@ -8,7 +8,7 @@ def check_if_server_packages_can_be_installed_consequentially(installer1, instal
     second_package_name = installer2.server_package
     installer1.install_server_package()
     try:
-        installer2.upgrade_package(installer1)
+        installer2.upgrade_server_package(installer1)
         if expect_success:
             installer2.check_installed_files()
             return
@@ -32,7 +32,7 @@ def check_if_client_packages_can_be_installed_consequentially(installer1, instal
     second_package_name = installer2.client_package
     installer1.install_client_package()
     try:
-        installer2.install_client_package()
+        installer2.upgrade_client_package(installer1)
     except:
         if expect_success:
             raise Exception(
