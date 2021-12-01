@@ -28,7 +28,7 @@ fi
 
 VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_tar_version.tar"
 mkdir -p "${PACKAGE_CACHE}"
-mkdir -p test_dir/miniodata
+mkdir -p test_dir/miniodata/home/test_dir
 mkdir -p allure-results
 
 DOCKER_TAR_NAME=release-test-automation-tar
