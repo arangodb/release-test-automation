@@ -503,7 +503,7 @@ class Runner(ABC):
             sys_arangosh.js_version_check()
             # TODO: here we should invoke Makedata for the system installation.
 
-            logging.debug("stop system service " "to make ports available for starter")
+            logging.debug("stop system service to make ports available for starter")
             inst.stop_service()
 
     @step

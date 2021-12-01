@@ -629,19 +629,28 @@ class InstallerBase(ABC):
     def get_starter_version(self):
         """find out the version of the starter in this package"""
         if self.starter_versions == {}:
+            starter = self.cfg.bin_dir / "arangodb"
+            if not starter.is_file():
+                print("starter not found where we searched it? " + str(starter))
+                return semver.VersionInfo.parse("0.0.0")
+            # print(starter.stat())
+            #print(starter.owner())
+            #print(starter.group())
+            # run_file_command(str(starter))
             starter_version_proc = psutil.Popen(
-                [str(self.cfg.bin_dir / "arangodb"), "--version"],
-                stdout=subprocess.PIPE,
+                [str(starter), "--version"],
+                   stdout=subprocess.PIPE,
+                stdin=subprocess.PIPE,
                 stderr=subprocess.PIPE,
+                universal_newlines=True,
             )
-            (version_b, err) = starter_version_proc.communicate()
+            line = starter_version_proc.stdout.readline()
             starter_version_proc.wait()
-            version_str = version_b.decode("utf-8")
-            string_array = version_str.split(", ")
+            string_array = line.split(", ")
             for one_str in string_array:
                 splitted = one_str.split(" ")
                 self.starter_versions[splitted[0]] = splitted[1]
-            print("Starter version: " + str(self.starter_versions))
+                print("Starter version: " + str(self.starter_versions))
         return semver.VersionInfo.parse(self.starter_versions["Version"])
 
     def check_backup_is_created(self):
