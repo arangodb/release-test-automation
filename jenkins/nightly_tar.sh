@@ -42,7 +42,7 @@ trap 'docker kill "${DOCKER_TAR_NAME}";
       docker rm "${DOCKER_TAR_NAME}";
       docker kill minio1;
       docker rm minio1;
-      docker network delete minio-bridge;
+      docker network rm minio-bridge;
      ' EXIT
 
 if docker pull "arangodb/${DOCKER_TAR_TAG}"; then
