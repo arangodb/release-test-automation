@@ -30,7 +30,7 @@ MINIO_CFG = """
       "env_auth": "false",
       "access_key_id": "minio",
       "secret_access_key": "minio123",
-      "endpoint": "http://127.0.0.1:9000",
+      "endpoint": "http://minio1:9000",
       "region": "us-east-1"
     }
 }
