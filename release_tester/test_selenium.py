@@ -19,6 +19,7 @@ def run_upgrade(
     enterprise,
     encryption_at_rest,
     zip_package,
+    hot_backup,
     interactive,
     starter_mode,
     stress_upgrade,
@@ -42,6 +43,7 @@ def run_upgrade(
             enterprise,
             encryption_at_rest,
             zip_package,
+            hot_backup,
             Path(package_dir),
             Path(test_data_dir),
             "all",
@@ -81,7 +83,7 @@ def run_upgrade(
 # pylint: disable=R0913 disable=W0613
 def main(
         #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package,
+        new_version, verbose, enterprise, package_dir, zip_package, hot_backup,
         # common_options
         old_version, test_data_dir, encryption_at_rest, interactive,
         starter_mode, stress_upgrade, abort_on_error, publicip,
@@ -90,7 +92,7 @@ def main(
     return run_upgrade(old_version, new_version, verbose,
                        package_dir, test_data_dir,
                        enterprise, encryption_at_rest,
-                       zip_package, interactive,
+                       zip_package, hot_backup, interactive,
                        starter_mode, stress_upgrade, abort_on_error,
                        publicip, selenium, selenium_driver_args, ssl)
 # fmt: on

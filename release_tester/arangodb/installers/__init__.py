@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """ run an installer for the detected operating system """
+from enum import Enum
 import platform
 import os
 from pathlib import Path
@@ -8,6 +9,22 @@ import semver
 
 # pylint: disable=R0903
 
+class HotBackupSetting(Enum):
+    """whether we want thot backup or not """
+    DISABLED=0
+    DIRECTORY=1
+    S3BUCKET=2
+
+hb_strings = {
+    HotBackupSetting.DISABLED: "disabled",
+    HotBackupSetting.DIRECTORY: "directory",
+    HotBackupSetting.S3BUCKET: "s3bucket"
+}
+HB_MODES = {
+    "disabled": HotBackupSetting.DISABLED,
+    "directory": HotBackupSetting.DIRECTORY,
+    "s3bucket": HotBackupSetting.S3BUCKET
+}
 
 class InstallerFrontend:
     """class describing frontend instances"""
@@ -29,6 +46,7 @@ class InstallerConfig:
         enterprise: bool,
         encryption_at_rest: bool,
         zip_package: bool,
+        hot_backup: str,
         package_dir: Path,
         test_dir: Path,
         mode: str,
@@ -82,6 +100,11 @@ class InstallerConfig:
         self.hot_backup = (
             self.enterprise and (semver.compare(self.version, "3.5.1") >= 0) and not isinstance(winver, list)
         )
+        if self.hot_backup:
+            self.hot_backup = hot_backup
+        else:
+            self.hot_backup = HotBackupSetting.DISABLED
+        self.hb_string = hb_strings[self.hot_backup]
 
     def __repr__(self):
         return """
@@ -89,6 +112,7 @@ version: {0.version}
 using enterpise: {0.enterprise}
 using encryption at rest: {0.encryption_at_rest}
 using zip: {0.zip_package}
+hot backup mode: {0.hb_string}
 package directory: {0.package_dir}
 test directory: {0.base_test_dir}
 mode: {0.mode}
@@ -203,6 +227,7 @@ def create_config_installer_set(
     enterprise: bool,
     encryption_at_rest: bool,
     zip_package: bool,
+    hot_backup: str,
     package_dir: Path,
     test_dir: Path,
     mode: str,
@@ -222,6 +247,7 @@ def create_config_installer_set(
             enterprise,
             encryption_at_rest,
             zip_package,
+            hot_backup,
             package_dir,
             test_dir,
             mode,
