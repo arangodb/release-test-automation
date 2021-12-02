@@ -229,10 +229,10 @@ class Dc2Dc(Runner):
                 moreopts=opts,
             )
             val["instance"].set_jwt_file(val["JWTSecret"])
-            if port is None:
+            if port == 7528:
                 val["instance"].is_leader = True
 
-        add_starter(self.cluster1, None)
+        add_starter(self.cluster1, port=7528)
         add_starter(self.cluster2, port=9528)
         self.starter_instances = [self.cluster1["instance"], self.cluster2["instance"]]
 
@@ -246,7 +246,6 @@ class Dc2Dc(Runner):
             inst.detect_instances()
             inst.detect_instance_pids()
             cluster["smport"] = inst.get_sync_master_port()
-
             url = "http://{host}:{port}".format(host=self.cfg.publicip, port=str(cluster["smport"]))
             reply = requests.get(url)
             logging.info(str(reply))

@@ -225,11 +225,16 @@ class InstallerMac(InstallerBase):
 
     @step
     def upgrade_server_package(self, old_installer):
-        os.environ["UPGRADE_DB"] = "No"
-        self.install_server_package()
+        os.environ["UPGRADE_DB"] = "Yes"
+        self.instance = old_installer.instance
+        self.stop_service()
+        self.install_server_package_backend()
 
     @step
     def install_server_package_impl(self):
+        self.install_server_package_backend()
+
+    def install_server_package_backend(self):
         if self.cfg.pidfile.exists():
             self.cfg.pidfile.unlink()
         logging.info("Mounting DMG")

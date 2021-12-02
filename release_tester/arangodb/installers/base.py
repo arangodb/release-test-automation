@@ -677,8 +677,7 @@ class InstallerBase(ABC):
                 splitted = one_str.split(" ")
                 self.starter_versions[splitted[0]] = splitted[1]
                 print("Starter version: " + str(self.starter_versions))
-            return semver.VersionInfo.parse(self.starter_versions["Version"])
-        return self.starter_versions
+        return semver.VersionInfo.parse(self.starter_versions["Version"])
 
     def check_backup_is_created(self):
         """Check that backup was created after package upgrade"""
