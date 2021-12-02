@@ -291,9 +291,9 @@ class InstallerBase(ABC):
         """uninstall all arango packages present in the system(including those installed outside this installer)"""
         raise NotImplementedError("uninstall_everything_impl method is not implemented for this installer type")
 
-    @abstractmethod
     def upgrade_client_package_impl(self):
         """install a new version of the client package to the system"""
+        self.install_client_package()
 
     @abstractmethod
     def check_service_up(self):
