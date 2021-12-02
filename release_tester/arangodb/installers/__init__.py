@@ -98,13 +98,14 @@ class InstallerConfig:
         winver = platform.win32_ver()
 
         self.hot_backup = (
-            self.enterprise and (semver.compare(self.version, "3.5.1") >= 0) and not isinstance(winver, list)
+            self.enterprise and
+            (semver.compare(self.version, "3.5.1") >= 0) and
+            not isinstance(winver, list)
         )
         if self.hot_backup:
             self.hot_backup = hot_backup
         else:
             self.hot_backup = "disabled"
-        print(self.hot_backup)
         self.hb_mode = HB_MODES[self.hot_backup]
 
     def __repr__(self):
