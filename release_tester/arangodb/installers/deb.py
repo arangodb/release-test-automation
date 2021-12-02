@@ -312,7 +312,14 @@ class InstallerDeb(InstallerLinux):
 
     def uninstall_everything_impl(self):
         """uninstall all arango packages present in the system(including those installed outside this installer)"""
-        for package_name in ["arangodb3", "arangodb3e", "arangodb3-client", "arangodb3e-client", "arangodb3e-dbg", "arangodb3-dbg"]:
+        for package_name in [
+            "arangodb3",
+            "arangodb3e",
+            "arangodb3-client",
+            "arangodb3e-client",
+            "arangodb3e-dbg",
+            "arangodb3-dbg",
+        ]:
             self.uninstall_package(package_name, force=True)
 
     @step

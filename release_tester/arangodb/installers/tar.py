@@ -147,7 +147,7 @@ class InstallerTAR(InstallerBase):
             print("Flushing pre-existing installation directory: " + str(self.cfg.install_prefix))
             shutil.rmtree(self.cfg.install_prefix)
             while self.cfg.install_prefix.exists():
-                print('.')
+                print(".")
                 time.sleep(1)
         else:
             self.cfg.install_prefix.mkdir(parents=True)
@@ -155,12 +155,7 @@ class InstallerTAR(InstallerBase):
         extract_to = self.cfg.install_prefix / ".."
         extract_to = extract_to.resolve()
 
-        print(
-            "extracting: "
-            + str(self.cfg.package_dir / self.server_package)
-            + " to "
-            + str(extract_to)
-        )
+        print("extracting: " + str(self.cfg.package_dir / self.server_package) + " to " + str(extract_to))
         shutil.unpack_archive(
             str(self.cfg.package_dir / self.server_package),
             str(extract_to),

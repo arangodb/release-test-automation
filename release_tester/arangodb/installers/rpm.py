@@ -333,7 +333,14 @@ class InstallerRPM(InstallerLinux):
 
     def uninstall_everything_impl(self):
         """uninstall all arango packages present in the system(including those installed outside this installer)"""
-        for package_name in ["arangodb3", "arangodb3e", "arangodb3-client", "arangodb3e-client", "arangodb3e-debuginfo", "arangodb3-debuginfo"]:
+        for package_name in [
+            "arangodb3",
+            "arangodb3e",
+            "arangodb3-client",
+            "arangodb3e-client",
+            "arangodb3e-debuginfo",
+            "arangodb3-debuginfo",
+        ]:
             self.un_install_package(package_name)
 
     @step
