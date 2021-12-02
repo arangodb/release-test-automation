@@ -103,8 +103,9 @@ class InstallerConfig:
         if self.hot_backup:
             self.hot_backup = hot_backup
         else:
-            self.hot_backup = HotBackupSetting.DISABLED
-        self.hb_string = hb_strings[self.hot_backup]
+            self.hot_backup = "disabled"
+        print(self.hot_backup)
+        self.hb_mode = HB_MODES[self.hot_backup]
 
     def __repr__(self):
         return """
@@ -112,7 +113,7 @@ version: {0.version}
 using enterpise: {0.enterprise}
 using encryption at rest: {0.encryption_at_rest}
 using zip: {0.zip_package}
-hot backup mode: {0.hb_string}
+hot backup mode: {0.hot_backup}
 package directory: {0.package_dir}
 test directory: {0.base_test_dir}
 mode: {0.mode}
