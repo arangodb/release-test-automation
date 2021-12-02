@@ -29,6 +29,7 @@ fi
 VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_tar_version.tar"
 mkdir -p "${PACKAGE_CACHE}"
 mkdir -p test_dir/miniodata/home/test_dir
+rm -rf test_dir/miniodata/home/test_dir/*
 mkdir -p allure-results
 
 DOCKER_TAR_NAME=release-test-automation-tar
@@ -106,9 +107,10 @@ result=$?
 docker run \
        -v "$(pwd)/test_dir:/home/test_dir" \
        -v "$(pwd)/allure-results:/home/allure-results" \
+       -v $(pwd)/test_dir/miniodata:/data \
        --rm \
        "${DOCKER_TAR_TAG}" \
-       chown -R "$(id -u):$(id -g)" /home/test_dir /home/allure-results
+       chown -R "$(id -u):$(id -g)" /home/test_dir /home/allure-results /data/*
 
 if test "${result}" -eq "0"; then
     echo "OK"
