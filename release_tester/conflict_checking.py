@@ -26,22 +26,26 @@ def run_conflict_tests(
     """run package conflict tests"""
     # disable conflict tests for Windows and MacOS
     if not sys.platform == "linux":
-        return {
-            "testrun name": "Package installation/uninstallation tests were skipped because OS is not Linux.",
-            "testscenario": "",
-            "success": True,
-            "messages": [],
-            "progress": "",
-        }
+        return [
+            {
+                "testrun name": "Package installation/uninstallation tests were skipped because OS is not Linux.",
+                "testscenario": "",
+                "success": True,
+                "messages": [],
+                "progress": "",
+            }
+        ]
     # disable conflict tests for zip packages
     if zip_package:
-        return {
-            "testrun name": "Package installation/uninstallation tests were skipped for zip packages.",
-            "testscenario": "",
-            "success": True,
-            "messages": [],
-            "progress": "",
-        }
+        return [
+            {
+                "testrun name": "Package installation/uninstallation tests were skipped for zip packages.",
+                "testscenario": "",
+                "success": True,
+                "messages": [],
+                "progress": "",
+            }
+        ]
     if not enterprise:
         suite = CommunityPackageInstallationTestSuite(
             old_version,
