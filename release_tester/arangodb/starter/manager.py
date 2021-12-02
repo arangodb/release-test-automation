@@ -68,7 +68,6 @@ class StarterManager:
         # self.moreopts += ["--all.log.level=arangosearch=trace"]
         # self.moreopts += ["--all.log.level=startup=trace"]
         # self.moreopts += ["--all.log.level=engines=trace"]
-        self.moreopts += ["--all.log.level=backup=trace"]
 
         # directories
         self.raw_basedir = install_prefix
@@ -84,7 +83,8 @@ class StarterManager:
             self.moreopts += ["--starter.port", "%d" % self.starter_port]
 
         self.hotbackup_args = []
-        if self.cfg.hot_backup != HotBackupSetting.DISABLED:
+        if self.cfg.hb_mode != HotBackupSetting.DISABLED:
+            self.moreopts += ["--all.log.level=backup=trace"]
             self.hotbackup_args = [
                 "--all.rclone.executable",
                 self.cfg.real_sbin_dir / "rclone-arangodb",
