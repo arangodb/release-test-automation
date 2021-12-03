@@ -182,7 +182,7 @@ class BinaryDescription:
 
 
 ### main class
-# pylint: disable=attribute-defined-outside-init disable=too-many-public-methods
+# pylint: disable=attribute-defined-outside-init disable=too-many-public-methods disable=too-many-instance-attributes
 class InstallerBase(ABC):
     """this is the prototype for the operation system agnostic installers"""
 
@@ -217,6 +217,7 @@ class InstallerBase(ABC):
 
     @step
     def un_install_server_package(self):
+        """ uninstall the server package """
         self.un_install_server_package_impl()
         self.cfg.server_package_is_installed = False
 
@@ -246,10 +247,10 @@ class InstallerBase(ABC):
         self.cfg.debug_package_is_installed = False
 
     def install_debug_package_impl(self):
-        pass
+        """ install the debug package """
 
     def un_install_debug_package_impl(self):
-        pass
+        """ uninstall the debug package """
 
     @abstractmethod
     def calculate_package_names(self):
@@ -276,17 +277,20 @@ class InstallerBase(ABC):
         """stop the arangod system service"""
 
     @abstractmethod
+    def un_install_server_package_impl(self):
+        """ installer specific server uninstall function """
+
+    @abstractmethod
+    def install_client_package_impl(self):
+        """ installer specific client uninstall function """
+
+    @abstractmethod
+    def  un_install_client_package_impl(self):
+        """ installer specific client uninstall function """
+
+    @abstractmethod
     def cleanup_system(self):
         """if the packages are known to not properly cleanup - do it here."""
-
-    def un_install_debug_package(self):
-        """Uninstalling debug package if it exist in the system"""
-
-    def install_debug_package(self):
-        """installing debug package"""
-
-    def un_install_server_package_for_upgrade(self):
-        """hook to uninstall old package for upgrade"""
 
     def get_arangod_conf(self):
         """where on the disk is the arangod config installed?"""
@@ -297,6 +301,7 @@ class InstallerBase(ABC):
         there may be execptions."""
         return semver.compare(self.cfg.version, "3.5.1") >= 0
 
+    # pylint: disable=:R0201
     def calc_config_file_name(self):
         """store our config to disk - so we can be invoked partly"""
         cfg_file = Path()
@@ -655,8 +660,8 @@ class InstallerBase(ABC):
 
     def check_backup_is_created(self):
         """Check that backup was created after package upgrade"""
-        pass
 
+    # pylint: disable=:R0201
     def supports_backup(self):
         """Does this installer support automatic backup during minor upgrade?"""
         return False

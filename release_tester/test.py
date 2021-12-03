@@ -24,6 +24,7 @@ import tools.loghelper as lh
 WINVER = platform.win32_ver()
 
 # fmt: off
+# pylint: disable=R0913 disable=R0914
 def run_test(mode,
              new_version,
              verbose,
@@ -123,6 +124,7 @@ def run_test(mode,
                     runner.run()
                     runner.cleanup()
                     testcase.context.status = Status.PASSED
+                # pylint: disable=W0703
                 except Exception as ex:
                     one_result["success"] = False
                     one_result["messages"].append(str(ex))
@@ -145,11 +147,13 @@ def run_test(mode,
                     continue
 
                 if runner.ui_tests_failed:
-                    failed_test_names = [f'"{row["Name"]}"' for row in runner.ui_test_results_table if not row["Result"] == "PASSED"]
+                    failed_test_names = [f'"{row["Name"]}"' for row in
+                                         runner.ui_test_results_table if
+                                         not row["Result"] == "PASSED"]
                     one_result["success"] = False
                     one_result[
                         "messages"].append(
-                        f'The following UI tests failed: {", ".join(failed_test_names)}. See allure report for details.')
+f'The following UI tests failed: {", ".join(failed_test_names)}. See allure report for details.')
 
                 kill_all_processes()
                 count += 1

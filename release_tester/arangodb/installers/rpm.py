@@ -247,6 +247,7 @@ class InstallerRPM(InstallerLinux):
 
     @step
     def un_install_server_package_impl(self):
+        """ uninstall the server package """
         self.stop_service()
         cmd = ["rpm", "-e", "arangodb3" + ("e" if self.cfg.enterprise else "")]
         lh.log_cmd(cmd)
@@ -264,7 +265,7 @@ class InstallerRPM(InstallerLinux):
             install.expect(pexpect.EOF, timeout=90)
             output = install.before
             install.wait()
-        except pexpect.exceptions.TIMEOUT:
+        except pexpect.exceptions.TIMEOUT as ex:
             logging.info("TIMEOUT!")
             install.close(force=True)
             output = install.before
@@ -272,14 +273,13 @@ class InstallerRPM(InstallerLinux):
                 "Installation of the package {} didn't finish within 90 seconds! Output:\n{}".format(
                     str(package), output
                 )
-            )
+            ) from ex
         if install.exitstatus != 0:
             install.close(force=True)
             raise Exception(
                 "Installation of the package {} didn't finish successfully! Output:\n{}".format(str(package), output)
             )
-        else:
-            logging.info(str(self.debug_package) + " Installation successfull")
+        logging.info(str(self.debug_package) + " Installation successfull")
 
     @step
     def install_debug_package_impl(self):
@@ -287,6 +287,7 @@ class InstallerRPM(InstallerLinux):
         self.install_rpm_package(str(self.cfg.package_dir / self.debug_package))
         self.cfg.debug_package_is_installed = True
 
+    # pylint: disable=R0201
     @step
     def un_install_package(self, package_name: str):
         """Uninstall package"""

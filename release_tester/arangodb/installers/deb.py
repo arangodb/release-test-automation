@@ -211,6 +211,7 @@ class InstallerDeb(InstallerLinux):
 
     @step
     def un_install_server_package_impl(self):
+        """ uninstall server package """
         cmd = "dpkg --purge " + "arangodb3" + ("e" if self.cfg.enterprise else "")
         lh.log_cmd(cmd)
         uninstall = pexpect.spawnu(cmd)
@@ -283,6 +284,7 @@ class InstallerDeb(InstallerLinux):
         package_name = "arangodb3" + ("e-client" if self.cfg.enterprise else "-client")
         self.uninstall_package(package_name)
 
+    # pylint: disable=R0201
     @step
     def uninstall_package(self, package_name):
         """uninstall package"""

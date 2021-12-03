@@ -15,7 +15,7 @@ FNRX = re.compile("[\n@]*")
 
 class SeleniumRunner(ABC):
     "abstract base class for selenium UI testing"
-    # pylint: disable=C0301 disable=R0904
+    # pylint: disable=C0301 disable=R0904 disable=R0902 disable=R0913
     def __init__(self, webdriver, is_headless: bool, testrun_name: str, ssl: bool):
         """hi"""
         self.ssl = ssl
@@ -161,7 +161,6 @@ class SeleniumRunner(ABC):
 
     def test_empty_ui(self):
         """run all tests that expect the server to be empty"""
-        pass
 
     def run_test_suites(self, suites):
         """run all test suites from a given list"""
