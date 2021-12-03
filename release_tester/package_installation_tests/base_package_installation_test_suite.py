@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from allure_commons._allure import attach
+
 from arangodb.installers import create_config_installer_set
 from reporting.reporting_utils import step
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite
@@ -91,3 +93,9 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
             installer.cfg.server_package_is_installed = False
             installer.cfg.debug_package_is_installed = False
             installer.cfg.client_package_is_installed = False
+
+    def add_crash_data_to_report(self):
+        inst = self.installers["enterprise"][0][1]
+        if inst.instance and inst.instance.logfile.exists():
+            log = open(inst.instance.logfile, "r").read()
+            attach(log, "Log file " + str(inst.instance.logfile))
