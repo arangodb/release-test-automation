@@ -76,6 +76,7 @@ class Download:
         enterprise,
         enterprise_magic,
         zip_package,
+        hot_backup,
         source,
         httpuser,
         httppassvoid,
@@ -115,6 +116,7 @@ class Download:
             enterprise=enterprise,
             encryption_at_rest=False,
             zip_package=zip_package,
+            hot_backup = hot_backup,
             package_dir=self.package_dir,
             test_dir=Path("/"),
             mode="",
@@ -327,7 +329,7 @@ class Download:
 # pylint: disable=R0913
 def main(
         #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package,
+        new_version, verbose, enterprise, package_dir, zip_package, hot_backup,
         # download options:
         enterprise_magic, force, source,
         httpuser, httppassvoid, remote_host):
@@ -341,6 +343,7 @@ def main(
         enterprise,
         enterprise_magic,
         zip_package,
+        hot_backup,
         source,
         httpuser,
         httppassvoid,

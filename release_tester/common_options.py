@@ -6,7 +6,7 @@ import sys
 import click
 
 from arangodb.starter.deployments import STARTER_MODES
-
+from arangodb.installers import HB_MODES
 
 def zip_common_options(function):
     """zip option. even on cleanup which has no more."""
@@ -54,6 +54,13 @@ def very_common_options(support_multi_version=False):
             "--package-dir",
             default=package_dir,
             help="directory to down/load the packages from/to.",
+        )(function)
+        function = click.option(
+            "--hotbackup-mode",
+            "hot_backup",
+            default="directory",
+            type=click.Choice(HB_MODES.keys()),
+            help="which type of hot backup to use",
         )(function)
         function = zip_common_options(function)
         return function

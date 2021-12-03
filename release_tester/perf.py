@@ -39,7 +39,7 @@ import tools.loghelper as lh
 # pylint: disable=R0913 disable=W0613 disable=R0914
 def run_test(mode, scenario, frontends,
              #very_common_options
-             new_version, verbose, enterprise, package_dir, zip_package,
+             new_version, verbose, enterprise, package_dir, zip_package, hot_backup,
              # common_options
              alluredir, clean_alluredir, ssl, use_auto_certs,
              # old_version,
@@ -62,6 +62,7 @@ def run_test(mode, scenario, frontends,
         enterprise,
         encryption_at_rest,
         zip_package,
+        hot_backup,
         Path(package_dir),
         Path(test_data_dir),
         mode,

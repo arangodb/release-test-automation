@@ -20,6 +20,7 @@ def run_cleanup(zip_package, testrun_name: str = ""):
         False,
         False,
         zip_package,
+        "disabled",
         Path("/tmp/"),
         Path("/"),
         "127.0.0.1",
