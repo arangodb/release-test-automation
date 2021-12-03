@@ -28,7 +28,8 @@ fi
 
 VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_tar_version.tar"
 mkdir -p "${PACKAGE_CACHE}"
-mkdir -p test_dir
+mkdir -p test_dir/miniodata/home/test_dir
+rm -rf test_dir/miniodata/home/test_dir/*
 mkdir -p allure-results
 
 DOCKER_TAR_NAME=release-test-automation-tar
@@ -40,6 +41,9 @@ docker rm "$DOCKER_TAR_NAME" || true
 
 trap 'docker kill "${DOCKER_TAR_NAME}";
       docker rm "${DOCKER_TAR_NAME}";
+      docker kill minio1;
+      docker rm minio1;
+      docker network rm minio-bridge;
      ' EXIT
 
 if docker pull "arangodb/${DOCKER_TAR_TAG}"; then
@@ -47,6 +51,22 @@ if docker pull "arangodb/${DOCKER_TAR_TAG}"; then
 else
     docker build containers/docker_tar -t "${DOCKER_TAR_TAG}" || exit
 fi
+
+docker network create -d bridge minio-bridge
+
+
+docker run -d \
+  -p 9000:9000 \
+  -p 9001:9001 \
+  --network=minio-bridge \
+  --name minio1 \
+  -v $(pwd)/test_dir/miniodata:/data \
+  -e "MINIO_ROOT_USER=minio" \
+  -e "MINIO_ROOT_PASSWORD=minio123" \
+  quay.io/minio/minio server /data --console-address ":9001"
+
+
+
 
 # we need --init since our upgrade leans on zombies not happening:
 docker run \
@@ -59,6 +79,7 @@ docker run \
        -v /dev/shm:/dev/shm \
        --env="BUILD_NUMBER=${BUILD_NUMBER}" \
        \
+       --network=minio-bridge \
        --name="${DOCKER_TAR_NAME}" \
        --pid=host \
        --rm \
@@ -72,6 +93,7 @@ docker run \
           --old-version "${OLD_VERSION}" \
           --new-version "${NEW_VERSION}" \
           --zip \
+          --hotbackup-mode s3bucket \
           --verbose \
           --alluredir /home/allure-results \
           --git-version "$GIT_VERSION" \
@@ -85,9 +107,10 @@ result=$?
 docker run \
        -v "$(pwd)/test_dir:/home/test_dir" \
        -v "$(pwd)/allure-results:/home/allure-results" \
+       -v $(pwd)/test_dir/miniodata:/data \
        --rm \
        "${DOCKER_TAR_TAG}" \
-       chown -R "$(id -u):$(id -g)" /home/test_dir /home/allure-results
+       chown -R "$(id -u):$(id -g)" /home/test_dir /home/allure-results /data/*
 
 if test "${result}" -eq "0"; then
     echo "OK"
