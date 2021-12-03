@@ -93,7 +93,7 @@ class ArangoCLIprogressiveTimeoutExecutor:
             passvoid  = str(self.cfg.passvoid)
         elif self.connect_instance:
             passvoid = str(self.connect_instance.get_passvoid())
-        if passvoid == None:
+        if passvoid is None:
             passvoid = ''
 
         run_cmd = [
