@@ -194,7 +194,10 @@ class InstallerDeb(InstallerLinux):
             logging.info("waiting for the installation to finish")
             server_install.expect(pexpect.EOF, timeout=30)
             ascii_print(server_install.before)
-            server_not_started = server_install.before.find("not running 'is-active arangodb3.service'") >= 0
+            server_not_started = (
+                server_install.before.find("not running 'is-active arangodb3.service'") >= 0
+                or server_install.before.find("not running 'start arangodb3.service'") >= 0
+            )
         except pexpect.exceptions.EOF:
             logging.info("TIMEOUT!")
         while server_install.isalive():
