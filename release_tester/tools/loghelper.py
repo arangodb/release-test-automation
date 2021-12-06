@@ -2,9 +2,39 @@
 """ invoke subprocesses and timestamped print their output """
 # import subprocess
 import logging
+from logging import StreamHandler, Handler
+import sys
 
 from allure_commons._allure import attach
 
+class StdOutHandler(StreamHandler):
+    def __init__(self):
+        Handler.__init__(self)
+
+    def flush(self):
+        """
+        Flushes the stream.
+        """
+        self.acquire()
+        try:
+            sys.stdout.flush()
+        finally:
+            self.release()
+
+    def emit(self, record):
+        try:
+            msg = self.format(record)
+            stream = sys.stdout
+            stream.write(msg + self.terminator)
+            self.flush()
+        except RecursionError:  # See issue 36272
+            raise
+        except Exception:
+            self.handleError(record)
+
+    def __repr__(self):
+        level = logging.getLevelName(self.level)
+        return '<%s (%s)>' % (self.__class__.__name__, level)
 
 def configure_logging(verbose):
     """set up logging"""
@@ -32,6 +62,11 @@ def configure_logging(verbose):
         logger = logging.getLogger(one_logger[0])
         logger.setLevel(one_logger[1])
         logger.propagate = one_logger[2]
+
+    logger = logging.getLogger("root")
+    for handler in logger.handlers:
+        logger.removeHandler(handler)
+    logger.addHandler(StdOutHandler())
 
 
 def get_term_width():
