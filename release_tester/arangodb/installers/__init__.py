@@ -125,7 +125,7 @@ verbose: {0.verbose}
             self
         )
 
-    def set_from(other_cfg):
+    def set_from(self, other_cfg):
         try:
             self.reset_version(other_cfg.version)
             self.publicip = other_cfg.publicip
