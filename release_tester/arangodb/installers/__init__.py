@@ -125,6 +125,54 @@ verbose: {0.verbose}
             self
         )
 
+    def set_from(other_cfg):
+        try:
+            self.reset_version(other_cfg.version)
+            self.publicip = other_cfg.publicip
+            self.interactive = other_cfg.interactive
+            self.enterprise = other_cfg.enterprise
+            self.encryption_at_rest = other_cfg.encryption_at_rest
+            self.zip_package = other_cfg.zip_package
+
+            self.mode = other_cfg.mode
+            self.verbose = other_cfg.verbose
+            self.package_dir = other_cfg.package_dir
+            self.have_system_service = other_cfg.have_system_service
+            self.debug_package_is_installed = other_cfg.debug_package_is_installed
+            self.client_package_is_installed = other_cfg.client_package_is_installed
+            self.server_package_is_installed = other_cfg.server_package_is_installed
+            self.stress_upgrade = other_cfg.stress_upgrade
+
+            self.install_prefix = other_cfg.install_prefix
+
+            self.base_test_dir = other_cfg.base_test_dir
+            self.pwd = other_cfg.pwd
+            self.test_data_dir = other_cfg.test_data_dir
+
+            self.username = other_cfg.username
+            self.passvoid = other_cfg.passvoid
+            self.jwt = other_cfg.jwt
+
+            self.port = other_cfg.port
+            self.localhost = other_cfg.localhost
+            self.ssl = other_cfg.ssl
+
+            self.all_instances = other_cfg.all_instances
+            self.frontends = other_cfg.frontends
+            self.log_dir = other_cfg.log_dir
+            self.bin_dir = other_cfg.bin_dir
+            self.real_bin_dir = other_cfg.real_bin_dir
+            self.sbin_dir = other_cfg.sbin_dir
+            self.real_sbin_dir = other_cfg.real_sbin_dir
+            self.dbdir = other_cfg.dbdir
+            self.appdir = other_cfg.appdir
+            self.cfgdir = other_cfg.cfgdir
+            self.hot_backup = other_cfg.hot_backup
+            self.hb_mode = other_cfg.hb_mode
+        except AttributeError:
+            # if the config.yml gave us a wrong value, we don't care.
+            pass
+
     def reset_version(self, version):
         """establish a new version to manage"""
         self.version = version
