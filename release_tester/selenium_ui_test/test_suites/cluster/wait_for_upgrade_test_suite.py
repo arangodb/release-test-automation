@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+""" cluster upgrade monitoring testsuite """
 import time
 
 from selenium.common.exceptions import StaleElementReferenceException
@@ -13,6 +15,7 @@ class ClusterWaitForUpgradeTestSuite(BaseTestSuite):
 
     @testcase
     def upgrade_deployment(self, timeout=30):
+        """test cases to check the integrity of the old system after the upgrade (Cluster)"""
         old_cfg = self.cfg
         new_cfg = self.selenium_runner.new_cfg
         old_ver = str(old_cfg.semver)

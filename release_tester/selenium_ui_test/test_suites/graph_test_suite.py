@@ -1,8 +1,11 @@
+#!/usr/bin/env python3
+""" graph testsuite """
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
 from selenium_ui_test.pages.graph_page import GraphPage, GraphExample, get_graph_name
 
 
 class GraphTestSuite(BaseTestSuite):
+    """ graph testsuite """
     @testcase
     def test_graph(self):
         """testing graph page"""

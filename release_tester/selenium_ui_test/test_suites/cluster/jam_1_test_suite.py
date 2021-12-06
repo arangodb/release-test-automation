@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+""" cluster jam step 1 testsuite """
 import platform
 import time
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
@@ -8,6 +10,7 @@ from selenium_ui_test.pages.nodes_page import NodesPage
 
 
 class ClusterJamStepOneSuite(BaseTestSuite):
+    """ cluster jam step 1 testsuite """
     WINVER = platform.win32_ver()
 
     @testcase

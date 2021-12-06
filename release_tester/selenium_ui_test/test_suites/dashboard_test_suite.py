@@ -1,8 +1,11 @@
+#!/usr/bin/env python3
+""" dashboard testsuite """
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
 from selenium_ui_test.pages.dashboard_page import DashboardPage
 
 
 class DashboardTestSuite(BaseTestSuite):
+    """ test the dashboar """
     @testcase
     def test_dashboard(self):
         """testing dashboard page"""

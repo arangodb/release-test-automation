@@ -1,10 +1,15 @@
+#!/usr/bin/env python3
+""" analyzer page testsuite """
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
-from selenium_ui_test.pages.analyzersPage import AnalyzerPage
+from selenium_ui_test.pages.analyzers_page import AnalyzerPage
 
 
 class AnalyzersTestSuite(BaseTestSuite):
+    """ analyzer page testsuite """
     @testcase
     def test_analyzers(self):
+        """ analyzer page test """
+        # pylint: disable=too-many-statements
         print("---------Analyzers Page Test Begin--------- \n")
         # login = LoginPage(self.webdriver)
         # login.login('root', '')

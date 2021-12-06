@@ -1,9 +1,12 @@
+#!/usr/bin/env python3
+""" database page object """
 import time
 from selenium.common.exceptions import TimeoutException
 from selenium_ui_test.pages.navbar import NavigationBarPage
 
-
+# pylint: disable=too-many-statements
 class DatabasePage(NavigationBarPage):
+    """ database page object """
     def __init__(self, webdriver):
         super().__init__(webdriver)
         self.database_page = "databases"
@@ -20,6 +23,7 @@ class DatabasePage(NavigationBarPage):
 
     def create_new_db(self, db_name, index, cluster):
         """Creating and checking new database"""
+        #pylint: disable=too-many-locals
         self.select_database_page()
         print(f"Creating {db_name} database started \n")
         create_new_db_btn = self.create_new_db_btn
@@ -103,8 +107,8 @@ class DatabasePage(NavigationBarPage):
             assert db_name_sitem == "ONESHARD", f"Expected ONESHARD but got {db_name_sitem}"
 
         print(f"Logging out from {db_name_sitem} database \n")
-        db = '//*[@id="dbStatus"]/a[3]/i'
-        change_db_sitem = self.locator_finder_by_xpath(db)
+        db_id = '//*[@id="dbStatus"]/a[3]/i'
+        change_db_sitem = self.locator_finder_by_xpath(db_id)
         change_db_sitem.click()
         time.sleep(4)
 
@@ -118,6 +122,7 @@ class DatabasePage(NavigationBarPage):
 
     def test_database_expected_error(self, cluster):
         """This method will test all negative scenario"""
+        #pylint: disable=too-many-statements disable=too-many-statements  disable=too-many-locals
         self.select_database_page()
         print("Expected error scenario for the Database name Started. \n")
         create_new_db_btn = self.create_new_db_btn
@@ -166,10 +171,10 @@ class DatabasePage(NavigationBarPage):
         print("Expected error scenario for the Database name Completed \n")
 
         if cluster and version == 3.9:
-            db = self.locator_finder_by_id("newDatabaseName")
-            db.click()
-            db.clear()
-            db.send_keys("db")
+            db_sitem = self.locator_finder_by_id("newDatabaseName")
+            db_sitem.click()
+            db_sitem.clear()
+            db_sitem.send_keys("db")
             time.sleep(2)
             # ----------------------------database Replication Factor convention test-----------------------------
             print("Expected error scenario for the Database Replication Factor Started \n")
@@ -205,10 +210,10 @@ class DatabasePage(NavigationBarPage):
                 'Checking Write Concern with "שלום"',
             ]
             wc_error_message = [
-                "Must be a number between 1 and 10. Has to be smaller or equal compared to the " "replicationFactor.",
-                "Must be a number between 1 and 10. Has to be smaller or equal compared to the " "replicationFactor.",
-                "Must be a number between 1 and 10. Has to be smaller or equal compared to the " "replicationFactor.",
-                "Must be a number between 1 and 10. Has to be smaller or equal compared to the " "replicationFactor.",
+                "Must be a number between 1 and 10. Has to be smaller or equal compared to the replicationFactor.",
+                "Must be a number between 1 and 10. Has to be smaller or equal compared to the replicationFactor.",
+                "Must be a number between 1 and 10. Has to be smaller or equal compared to the replicationFactor.",
+                "Must be a number between 1 and 10. Has to be smaller or equal compared to the replicationFactor.",
             ]
             wc_name = "new-write-concern"
             wc_name_error_id = '//*[@id="row_new-write-concern"]/th[2]/p'
@@ -254,10 +259,10 @@ class DatabasePage(NavigationBarPage):
                 'Checking Write Concern with "שלום"',
             ]
             wc_error_message = [
-                "Must be a number between 1 and 10. Has to be smaller or equal compared to the " "replicationFactor.",
-                "Must be a number between 1 and 10. Has to be smaller or equal compared to the " "replicationFactor.",
-                "Must be a number between 1 and 10. Has to be smaller or equal compared to the " "replicationFactor.",
-                "Must be a number between 1 and 10. Has to be smaller or equal compared to the " "replicationFactor.",
+                "Must be a number between 1 and 10. Has to be smaller or equal compared to the replicationFactor.",
+                "Must be a number between 1 and 10. Has to be smaller or equal compared to the replicationFactor.",
+                "Must be a number between 1 and 10. Has to be smaller or equal compared to the replicationFactor.",
+                "Must be a number between 1 and 10. Has to be smaller or equal compared to the replicationFactor.",
             ]
             wc_name = "new-write-concern"
             wc_name_error = '//*[@id="row_new-write-concern"]/th[2]/p'

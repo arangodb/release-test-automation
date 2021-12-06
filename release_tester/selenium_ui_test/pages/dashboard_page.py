@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+""" dashboard page object """
 import time
 from selenium.common.exceptions import TimeoutException
 from selenium_ui_test.pages.navbar import NavigationBarPage
@@ -82,7 +84,7 @@ class DashboardPage(NavigationBarPage):
             check_system_resource_sitem.click()
             time.sleep(3)
         except TimeoutException as ex:
-            print("FAIL: cound not find the system-statistics locator! \n")
+            print("FAIL: cound not find the system-statistics locator! \n" + str(ex))
 
     def check_distribution_tab(self):
         """Checking distribution tab"""
