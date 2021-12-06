@@ -1,7 +1,11 @@
+#!/usr/bin/env python3
+""" navigation bar page object """
+import time
 from selenium_ui_test.pages.user_bar_page import UserBarPage
 from selenium.common.exceptions import TimeoutException
-import time
 
+# wtf navbar?
+# pylint: disable=blacklisted-name
 
 class NavigationBarPage(UserBarPage):
     """Page object representing the navigation bar"""

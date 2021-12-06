@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+""" base class for all testsuites """
+
 import traceback
 from abc import ABC
 from allure_commons.model2 import Status, Label, StatusDetails
@@ -58,13 +61,15 @@ class BaseTestSuite(ABC):
         return self.test_results
 
     def run_own_testscases(self):
+        """ run all tests local to the derived class """
         testcases = [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "is_testcase")]
         results = []
-        for testcase in testcases:
-            results.append(testcase(self))
+        for one_testcase in testcases:
+            results.append(one_testcase(self))
         return results
 
     def has_own_testcases(self):
+        """ do we have own testcases? """
         testcases = [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "is_testcase")]
         return len(testcases) > 0
 
@@ -97,6 +102,7 @@ class BaseTestSuite(ABC):
 def testcase(title=None, disable=False):
     def decorator(func):
         def wrapper(self, *args, **kwargs):
+            # pylint: disable=broad-except
             name = None
             success = None
             message = None
@@ -153,5 +159,4 @@ def testcase(title=None, disable=False):
 
     if callable(title):
         return decorator(title)
-    else:
-        return decorator
+    return decorator

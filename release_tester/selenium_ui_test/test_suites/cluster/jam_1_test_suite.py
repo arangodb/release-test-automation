@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+""" cluster jam step 1 testsuite """
 import platform
 import time
 from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite

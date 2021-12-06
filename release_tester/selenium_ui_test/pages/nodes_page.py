@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+""" nodes page object """
 from datetime import time
 
 from beautifultable import BeautifulTable
@@ -36,7 +38,6 @@ class NodesPage(NavigationBarPage):
                 time.sleep(1)
                 continue
             except TimeoutException as ex:
-                self.take_screenshot()
                 raise ex
 
     def _get_nodes_table(self, timeout):

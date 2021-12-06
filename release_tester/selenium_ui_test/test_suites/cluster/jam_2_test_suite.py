@@ -13,6 +13,7 @@ class ClusterJamStepTwoSuite(BaseSeleniumTestSuite):
 
     @testcase
     def jam_step_2(self):
+        """ step 2 jamming: check the instances are gone from the table """
         NavigationBarPage(self.webdriver).navbar_goto("cluster")
         cluster_page = ClusterPage(self.webdriver)
         node_count = None
