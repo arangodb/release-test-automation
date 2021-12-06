@@ -48,6 +48,7 @@ def upgrade_package_test(
     package_dir,
     enterprise_magic,
     zip_package,
+    hot_backup,
     other_source,
     git_version,
     httpusername,
@@ -120,6 +121,7 @@ def upgrade_package_test(
             enterprise,
             enterprise_magic,
             zip_package,
+            hot_backup,
             primary_dlstage,
             httpusername,
             httppassvoid,
@@ -149,6 +151,7 @@ def upgrade_package_test(
                 enterprise,
                 encryption_at_rest,
                 zip_package,
+                hot_backup,
                 False,  # interactive
                 starter_mode,
                 False,  # abort_on_error
@@ -184,6 +187,7 @@ def upgrade_package_test(
             enterprise,
             enterprise_magic,
             zip_package,
+            hot_backup,
             old_dlstages[j],
             httpusername,
             httppassvoid,
@@ -199,6 +203,7 @@ def upgrade_package_test(
             enterprise,
             enterprise_magic,
             zip_package,
+            hot_backup,
             new_dlstages[j],
             httpusername,
             httppassvoid,
@@ -229,7 +234,8 @@ def upgrade_package_test(
                 enterprise,
                 encryption_at_rest,
                 zip_package,
-                False,  # interactive_mode
+                hot_backup,
+                False, # interactive_mode
                 starter_mode,
                 False,  # stress_upgrade,
                 False,  # abort_on_error
@@ -320,7 +326,7 @@ def main(
         editions,
         upgrade_matrix,
         #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package,
+        new_version, verbose, enterprise, package_dir, zip_package, hot_backup,
         # common_options
         # old_version,
         test_data_dir, encryption_at_rest, alluredir, clean_alluredir, ssl, use_auto_certs,
@@ -343,6 +349,7 @@ def main(
         package_dir,
         enterprise_magic,
         zip_package,
+        hot_backup,
         other_source,
         git_version,
         httpuser,

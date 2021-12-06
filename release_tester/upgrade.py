@@ -35,6 +35,7 @@ def run_upgrade(
     enterprise,
     encryption_at_rest,
     zip_package,
+    hot_backup,
     interactive,
     starter_mode,
     stress_upgrade,
@@ -56,6 +57,7 @@ def run_upgrade(
             enterprise,
             encryption_at_rest,
             zip_package,
+            hot_backup,
             Path(package_dir),
             Path(test_data_dir),
             "all",
@@ -223,10 +225,12 @@ def run_upgrade(
 def main(
         #very_common_options
         new_version, verbose, enterprise, package_dir, zip_package,
+        hot_backup,
         # common_options
         old_version, test_data_dir, encryption_at_rest, interactive,
         starter_mode, stress_upgrade, abort_on_error, publicip,
-        selenium, selenium_driver_args, alluredir, clean_alluredir, ssl, use_auto_certs):
+        selenium, selenium_driver_args, alluredir, clean_alluredir,
+        ssl, use_auto_certs):
     # fmt: on
     """ main trampoline """
     lh.configure_logging(verbose)
@@ -241,6 +245,7 @@ def main(
         enterprise,
         encryption_at_rest,
         zip_package,
+        hot_backup,
         interactive,
         starter_mode,
         stress_upgrade,

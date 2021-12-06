@@ -23,6 +23,7 @@ from allure_commons.types import AttachmentType
 from tools.asciiprint import print_progress as progress
 from tools.timestamp import timestamp
 import tools.loghelper as lh
+from arangodb.installers import HotBackupSetting
 from arangodb.instance import (
     ArangodInstance,
     ArangodRemoteInstance,
@@ -67,7 +68,6 @@ class StarterManager:
         # self.moreopts += ["--all.log.level=arangosearch=trace"]
         # self.moreopts += ["--all.log.level=startup=trace"]
         # self.moreopts += ["--all.log.level=engines=trace"]
-        self.moreopts += ["--all.log.level=backup=trace"]
 
         # directories
         self.raw_basedir = install_prefix
@@ -82,9 +82,10 @@ class StarterManager:
         if self.starter_port is not None:
             self.moreopts += ["--starter.port", "%d" % self.starter_port]
 
-        self.hotbackup = []
-        if self.cfg.enterprise and semver.compare(self.cfg.version, "3.5.1") >= 0:
-            self.hotbackup = [
+        self.hotbackup_args = []
+        if self.cfg.hb_mode != HotBackupSetting.DISABLED:
+            self.moreopts += ["--all.log.level=backup=trace"]
+            self.hotbackup_args = [
                 "--all.rclone.executable",
                 self.cfg.real_sbin_dir / "rclone-arangodb",
             ]
@@ -248,7 +249,7 @@ class StarterManager:
     def run_starter(self, expect_to_fail=False):
         """launch the starter for this instance"""
         logging.info("running starter " + self.name)
-        args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup + self.arguments
+        args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.arguments
         lh.log_cmd(args)
         self.instance = psutil.Popen(args)
         logging.info("my starter has PID:" + str(self.instance.pid))
@@ -590,8 +591,8 @@ class StarterManager:
         # On windows the install prefix may change,
         # since we can't overwrite open files:
         self.cfg.set_directories(new_install_cfg)
-        if self.cfg.hot_backup:
-            self.hotbackup = [
+        if self.cfg.hb_mode != HotBackupSetting.DISABLED:
+            self.hotbackup_args = [
                 "--all.rclone.executable",
                 self.cfg.real_sbin_dir / "rclone-arangodb",
             ]
@@ -679,7 +680,7 @@ class StarterManager:
         restart the starter instance after we killed it eventually,
         maybe command manual upgrade (and wait for exit)
         """
-        args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup + self.arguments + moreargs
+        args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.arguments + moreargs
 
         logging.info("StarterManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)
@@ -896,7 +897,7 @@ class StarterManager:
             self.arangosh = ArangoshExecutor(self.cfg, self.get_frontend())
             self.arango_importer = ArangoImportExecutor(self.cfg, self.get_frontend())
             self.arango_restore = ArangoRestoreExecutor(self.cfg, self.get_frontend())
-            if self.cfg.hot_backup:
+            if self.cfg.hb_mode != HotBackupSetting.DISABLED:
                 self.cfg.passvoid = self.passvoid
                 self.hb_instance = HotBackupManager(
                     self.cfg,
