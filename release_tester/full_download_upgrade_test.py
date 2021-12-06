@@ -235,7 +235,7 @@ def upgrade_package_test(
                 encryption_at_rest,
                 zip_package,
                 hot_backup,
-                False, # interactive_mode
+                False,  # interactive_mode
                 starter_mode,
                 False,  # stress_upgrade,
                 False,  # abort_on_error

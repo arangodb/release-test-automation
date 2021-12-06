@@ -49,7 +49,7 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
             interactive=interactive,
             stress_upgrade=False,
             ssl=False,
-            hot_backup=False,
+            hot_backup="disabled",
         )
         self.installers["enterprise"] = create_config_installer_set(
             versions=[old_version, new_version],
@@ -64,7 +64,7 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
             interactive=interactive,
             stress_upgrade=False,
             ssl=False,
-            hot_backup = False,
+            hot_backup="disabled",
         )
         self.old_inst_e = self.installers["enterprise"][0][1]
         self.new_inst_e = self.installers["enterprise"][1][1]

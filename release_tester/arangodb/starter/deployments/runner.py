@@ -165,9 +165,11 @@ class Runner(ABC):
         self.old_installer = old_inst
         self.new_installer = new_inst
         self.backup_name = None
-        self.hot_backup = (cfg.hb_mode != HotBackupSetting.DISABLED and
-                           properties.supports_hotbackup and
-                           self.old_installer.supports_hot_backup())
+        self.hot_backup = (
+            cfg.hb_mode != HotBackupSetting.DISABLED
+            and properties.supports_hotbackup
+            and self.old_installer.supports_hot_backup()
+        )
         self.backup_instance_count = 3
         # starter instances that make_data wil run on
         # maybe it would be better to work directly on
