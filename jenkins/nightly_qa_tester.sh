@@ -48,6 +48,7 @@ docker run \
        -v /tmp/tmp:/tmp/ \
        -v /dev/shm:/dev/shm \
        --env="BUILD_NUMBER=${BUILD_NUMBER}" \
+       --env="PYTHONUNBUFFERED=1" \
        \
        --name="${DOCKER_TAR_NAME}" \
        --pid=host \

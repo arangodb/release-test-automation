@@ -57,6 +57,7 @@ docker run \
        -v /dev/shm:/dev/shm \
        -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
        --env="BUILD_NUMBER=${BUILD_NUMBER}" \
+       --env="PYTHONUNBUFFERED=1" \
        \
        --name="${DOCKER_RPM_NAME}" \
        --rm \
