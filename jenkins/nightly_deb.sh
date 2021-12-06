@@ -91,6 +91,12 @@ docker run \
        "${DOCKER_DEB_TAG}" \
        chown -R "$(id -u):$(id -g)" /home/test_dir /home/allure-results
 
+docker run \
+       -v /tmp/tmp:/tmp/ \
+       --rm \
+       "${DOCKER_TAR_TAG}" \
+       rm -f /tmp/config.yml 
+
 if test "${result}" -eq "0"; then
     echo "OK"
 else

@@ -135,8 +135,6 @@ def run_upgrade(
                                 one_result["messages"].append(str(ex))
                                 one_result["progress"] += runner.get_progress()
                                 runner.take_screenshot()
-                                print("hold!")
-                                input("Press Enter to continue.")
                                 runner.agency_acquire_dump()
                                 runner.search_for_warnings()
                                 runner.quit_selenium()
