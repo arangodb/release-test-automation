@@ -65,10 +65,13 @@ def configure_logging(verbose):
         logger.setLevel(one_logger[1])
         logger.propagate = one_logger[2]
 
-    logger = logging.getLogger("root")
+    logger = logging.getLogger()
     for handler in logger.handlers:
         logger.removeHandler(handler)
-    logger.addHandler(StdOutHandler())
+    handler = StdOutHandler()
+    formatter = logging.Formatter('%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
 
 def get_term_width():
