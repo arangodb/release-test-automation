@@ -629,7 +629,7 @@ class InstallerBase(ABC):
     def get_starter_version(self):
         """find out the version of the starter in this package"""
         if self.starter_versions == {}:
-            starter = self.cfg.bin_dir / "arangodb"
+            starter = self.cfg.bin_dir / ("arangodb" + FILE_EXTENSION)
             if not starter.is_file():
                 print("starter not found where we searched it? " + str(starter))
                 return semver.VersionInfo.parse("0.0.0")
