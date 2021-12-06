@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+""" analyzer page object """
 import time
 
 from selenium_ui_test.pages.base_page import Keys
@@ -6,6 +8,8 @@ from selenium.common.exceptions import TimeoutException
 
 
 class AnalyzerPage(NavigationBarPage):
+    """ analyzer page object """
+    # pylint: disable=too-many-instance-attributes
     def __init__(self, webdriver):
         super().__init__(webdriver)
         self.analyzers_page = "analyzers"  # list of in-built analyzers
@@ -107,7 +111,6 @@ class AnalyzerPage(NavigationBarPage):
     def select_analyzer_to_check(self, analyzer_name, analyzer_view):
         """Checking in-built analyzers one by one"""
         print("Selecting analyzer from the in-built analyzers list \n")
-        analyzer_name = analyzer_name
         identity_sitem = self.locator_finder_by_xpath(analyzer_name)
         identity_sitem.click()
         time.sleep(2)
@@ -131,6 +134,7 @@ class AnalyzerPage(NavigationBarPage):
 
     def add_new_analyzer(self, name, index, div_id):
         """Adding analyzer type delimiter with necessary features"""
+        # pylint: disable=too-many-locals disable=too-many-branches disable=too-many-statements
         self.select_analyzers_page()
         self.webdriver.refresh()
 
@@ -313,7 +317,7 @@ class AnalyzerPage(NavigationBarPage):
 
             print(f"Selecting maximum N-Gram length for {name} \n")
             ngram_length_max_length = (
-                "/html/body/div[32]/div/div[2]/div/div[4]/fieldset" "/div/div[4]/fieldset/div/div[2]/input"
+                "/html/body/div[32]/div/div[2]/div/div[4]/fieldset/div/div[4]/fieldset/div/div[2]/input"
             )
             ngram_length_max_length_sitem = self.locator_finder_by_xpath(ngram_length_max_length)
             ngram_length_max_length_sitem.click()
@@ -633,8 +637,8 @@ class AnalyzerPage(NavigationBarPage):
         # checking search results if built analyzer tab are open
         try:
             if value == "de":
-                de = "//*[@class='arango-table-td table-cell1' and text()='text_de']"
-                de_sitem = self.locator_finder_by_xpath(de).text
+                de_id = "//*[@class='arango-table-td table-cell1' and text()='text_de']"
+                de_sitem = self.locator_finder_by_xpath(de_id).text
                 expected_msg = "text_de"
                 print(f"Searching for {expected_msg} \n")
                 assert expected_msg == de_sitem, f"Expected {expected_msg} but got {de_sitem}"
@@ -650,10 +654,11 @@ class AnalyzerPage(NavigationBarPage):
                 print("You did not put any search keyword. Please check manually! \n")
 
             time.sleep(2)
-        except Exception:
-            raise Exception("Error occurred!! required manual inspection.\n")
+        except Exception as ex:
+            raise Exception("Error occurred!! required manual inspection.\n") from ex
 
     def test_analyzer_expected_error(self, name, index, div_id):
+        # pylint: disable=too-many-locals disable=too-many-statements
         """testing analyzers negative scenarios"""
         self.select_analyzers_page()
         self.webdriver.refresh()
@@ -863,7 +868,7 @@ class AnalyzerPage(NavigationBarPage):
         # force_delete.sitem = self.locator_finder_by_xpath(force_delete)
         # force_delete.sitem.click()
 
-        delete_btn = f'//*[@id="modal-content-delete-0"]/div[3]/button[2]'
+        delete_btn = '//*[@id="modal-content-delete-0"]/div[3]/button[2]'
         delete_btn_sitem = self.locator_finder_by_xpath(delete_btn)
         delete_btn_sitem.click()
         time.sleep(2)

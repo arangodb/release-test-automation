@@ -1,4 +1,5 @@
-from selenium.common.exceptions import TimeoutException
+#!/usr/bin/env python3
+""" user bar page object """
 from selenium_ui_test.pages.base_page import BasePage
 
 
@@ -19,11 +20,7 @@ class UserBarPage(BasePage):
 
     def get_health_state(self):
         """extract the health state in the upper right corner"""
-        try:
-            elem = self.locator_finder_by_xpath("/html/body/div[2]/div/div[1]/div/ul[1]/li[2]/a[2]")
-        except TimeoutException as ex:
-            self.take_screenshot()
-            raise ex
+        elem = self.locator_finder_by_xpath("/html/body/div[2]/div/div[1]/div/ul[1]/li[2]/a[2]")
         # self.webdriver.find_element_by_class_name("state health-state") WTF? Y not?
         self.progress("Health state:" + elem.text)
         return elem.text
