@@ -53,6 +53,9 @@ class InstallerRPM(InstallerLinux):
             self.cfg.semver = semver.VersionInfo.parse("{major}.{minor}.{patch}+{build}".format(**semdict))
             semdict = dict(self.cfg.semver.to_dict())
             semdict["prerelease"] = ""
+        elif prerelease.startswith("alpha"):
+            semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
+            semdict["build"] = "0.101"
         elif prerelease.startswith("beta"):
             semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
             semdict["build"] = "0.201"
