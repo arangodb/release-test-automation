@@ -52,7 +52,7 @@ class InstallerDeb(InstallerLinux):
         semdict = dict(self.cfg.semver.to_dict())
 
         if semdict["prerelease"]:
-            if semdict["prerelease"].startswith("nightly") or semdict["prerelease"].startswith("alpha"):
+            if semdict["prerelease"].startswith("nightly"):
                 semdict["prerelease"] = "~~{prerelease}".format(**semdict)
             else:
                 semdict["prerelease"] = "~{prerelease}".format(**semdict)
