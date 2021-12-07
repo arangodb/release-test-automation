@@ -204,8 +204,6 @@ class InstallerBase(ABC):
     def reset_version(self, version):
         """re-configure the version we work with"""
         version = version.split("~")[0]
-        version = ".".join(version.split(".")[:3])
-        self.semver = semver.VersionInfo.parse(version)
         self.cfg.reset_version(version)
 
     @step
