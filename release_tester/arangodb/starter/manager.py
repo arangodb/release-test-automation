@@ -157,6 +157,7 @@ class StarterManager:
         ] + self.moreopts
 
     def __repr__(self):
+        print(self.get_jwt_header())
         return str(get_instances_table(self.get_instance_essentials()))
 
     def name(self):
@@ -307,7 +308,6 @@ class StarterManager:
             raise Exception("failed to parse the output" " of the header command: " + str(header))
 
         self.jwt_tokens[filename] = str(header).split(" ")[2].split("\\")[0]
-        print('JWT for this installation: ' + self.jwt_tokens[filename])
         return self.jwt_tokens[filename]
 
     def get_jwt_header(self):
