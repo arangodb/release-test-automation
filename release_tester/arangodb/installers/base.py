@@ -206,7 +206,7 @@ class InstallerBase(ABC):
         if version.find('nightly') >=0:
             version = version.split("~")[0]
             version = ".".join(version.split(".")[:3])
-            self.semver = semver.VersionInfo.parse(version)
+        self.semver = semver.VersionInfo.parse(version)
         self.cfg.reset_version(version)
 
     @step
