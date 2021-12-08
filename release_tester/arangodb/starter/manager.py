@@ -157,7 +157,6 @@ class StarterManager:
         ] + self.moreopts
 
     def __repr__(self):
-        print("JWT: " + self.get_jwt_header())
         return str(get_instances_table(self.get_instance_essentials()))
 
     def name(self):
