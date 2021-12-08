@@ -307,6 +307,7 @@ class StarterManager:
             raise Exception("failed to parse the output" " of the header command: " + str(header))
 
         self.jwt_tokens[filename] = str(header).split(" ")[2].split("\\")[0]
+        print('JWT for this installation: ' + self.jwt_tokens[filename])
         return self.jwt_tokens[filename]
 
     def get_jwt_header(self):
