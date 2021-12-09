@@ -1,3 +1,4 @@
+import shutil
 from pathlib import Path
 
 from allure_commons._allure import attach
@@ -97,7 +98,18 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
             installer.cfg.client_package_is_installed = False
 
     def add_crash_data_to_report(self):
+        self.save_log_file()
+        self.save_data_dir()
+
+    def save_log_file(self):
         inst = self.installers["enterprise"][0][1]
         if inst.instance and inst.instance.logfile.exists():
             log = open(inst.instance.logfile, "r").read()
             attach(log, "Log file " + str(inst.instance.logfile))
+
+    def save_data_dir(self):
+        inst = self.installers["enterprise"][0][1]
+        data_dir = inst.cfg.dbdir
+        if data_dir.exists():
+            archive = shutil.make_archive("datadir", "bztar", data_dir, data_dir)
+            attach.file(archive, "data directory archive", "application/x-bzip2", "tar.bz2")
