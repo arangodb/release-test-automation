@@ -118,7 +118,7 @@ db.testCollection.save({test: "document"})
             node.detect_instances()
             node.detect_instance_pids()
             # self.basecfg.add_frontend('http', self.basecfg.publicip, str(node.get_frontend_port()))
-        logging.info("instances are ready")
+        logging.info("instances are ready - JWT: " + self.starter_instances[0].get_jwt_header())
         count = 0
         for node in self.starter_instances:
             node.set_passvoid("cluster", count == 0)
@@ -140,7 +140,7 @@ db.testCollection.save({test: "document"})
 
     def upgrade_arangod_version_impl(self):
         """rolling upgrade this installation"""
-        self.agency_set_debug_logging()  # TODO: remove debug logging
+        # self.agency_set_debug_logging()
         bench_instances = []
         if self.cfg.stress_upgrade:
             bench_instances.append(self.starter_instances[0].launch_arangobench("cluster_upgrade_scenario_1"))
@@ -187,7 +187,6 @@ db.testCollection.save({test: "document"})
             node.upgrade_instances([
                 InstanceType.DBSERVER
             ], ['--database.auto-upgrade', 'true',
-                '--log.level', 'startup=trace', # TODO: remove me again.
                 '--log.foreground-tty', 'true'])
         self.progress(True, "step 4 - coordinator upgrade")
         # now the new cluster is running. we will now run the coordinator upgrades
@@ -222,6 +221,7 @@ db.testCollection.save({test: "document"})
 
     @step
     def jam_attempt_impl(self):
+        # pylint: disable=too-many-statements
         # this is simply to slow to be worth wile:
         # collections = self.get_collection_list()
         agency_leader = self.agency_get_leader()
@@ -329,6 +329,7 @@ db.testCollection.save({test: "document"})
         )
 
     def generate_keyfile(self, keyfile):
+        """ generate the ssl certificate file """
         self.cert_op(
             [
                 "tls",

@@ -164,6 +164,7 @@ class InstallerTAR(InstallerBase):
 
     @step
     def install_client_package_impl(self):
+        """ install the client tar file """
         logging.info("installing Arangodb " + self.installer_type + "client package")
         logging.debug("package dir: {0.cfg.package_dir}- " "client_package: {0.client_package}".format(self))
         if not self.cfg.install_prefix.exists():
@@ -182,13 +183,16 @@ class InstallerTAR(InstallerBase):
 
     @step
     def un_install_server_package_impl(self):
+        """ remove server package """
         self.purge_install_dir()
 
     @step
     def un_install_client_package_impl(self):
+        """ purge client package """
         self.purge_install_dir()
 
     def purge_install_dir(self):
+        """ remove the install directory """
         if self.cfg.install_prefix.exists():
             shutil.rmtree(self.cfg.install_prefix)
 

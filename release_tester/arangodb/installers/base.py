@@ -183,7 +183,7 @@ class BinaryDescription:
 
 
 ### main class
-# pylint: disable=attribute-defined-outside-init disable=too-many-public-methods
+# pylint: disable=attribute-defined-outside-init disable=too-many-public-methods disable=too-many-instance-attributes
 class InstallerBase(ABC):
     """this is the prototype for the operation system agnostic installers"""
 
@@ -204,8 +204,9 @@ class InstallerBase(ABC):
 
     def reset_version(self, version):
         """re-configure the version we work with"""
-        version = version.split("~")[0]
-        version = ".".join(version.split(".")[:3])
+        if version.find('nightly') >=0:
+            version = version.split("~")[0]
+            version = ".".join(version.split(".")[:3])
         self.semver = semver.VersionInfo.parse(version)
         self.cfg.reset_version(version)
 
@@ -218,7 +219,7 @@ class InstallerBase(ABC):
 
     @step
     def un_install_server_package(self):
-        """uninstall server package"""
+        """ uninstall the server package """
         if self.cfg.debug_package_is_installed:
             self.un_install_debug_package()
         self.un_install_server_package_impl()
@@ -250,11 +251,11 @@ class InstallerBase(ABC):
         self.cfg.debug_package_is_installed = False
 
     def install_debug_package_impl(self):
-        """install debug package"""
+        """ install the debug package """
         pass
 
     def un_install_debug_package_impl(self):
-        """uninstall debug package"""
+        """ uninstall the debug package """
         pass
 
     def __repr__(self):
@@ -308,11 +309,23 @@ class InstallerBase(ABC):
         """stop the arangod system service"""
 
     @abstractmethod
-    def cleanup_system(self):
-        """if the packages are known to not properly cleanup - do it here."""
+    def un_install_server_package_impl(self):
+        """ installer specific server uninstall function """
 
     def un_install_server_package_for_upgrade(self):
         """hook to uninstall old package for upgrade"""
+
+    @abstractmethod
+    def install_client_package_impl(self):
+        """ installer specific client uninstall function """
+
+    @abstractmethod
+    def un_install_client_package_impl(self):
+        """ installer specific client uninstall function """
+
+    @abstractmethod
+    def cleanup_system(self):
+        """if the packages are known to not properly cleanup - do it here."""
 
     def get_arangod_conf(self):
         """where on the disk is the arangod config installed?"""
@@ -323,6 +336,7 @@ class InstallerBase(ABC):
         there may be execptions."""
         return semver.compare(self.cfg.version, "3.5.1") >= 0
 
+    # pylint: disable=:R0201
     def calc_config_file_name(self):
         """store our config to disk - so we can be invoked partly"""
         cfg_file = Path()
@@ -681,8 +695,8 @@ class InstallerBase(ABC):
 
     def check_backup_is_created(self):
         """Check that backup was created after package upgrade"""
-        pass
 
+    # pylint: disable=:R0201
     def supports_backup(self):
         """Does this installer support automatic backup during minor upgrade?"""
         return False

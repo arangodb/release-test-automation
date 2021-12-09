@@ -80,7 +80,7 @@ class RunnerProperties:
 class Runner(ABC):
     """abstract starter deployment runner"""
 
-    # pylint: disable=R0913 disable=R0902 disable=R0904 disable=C0415 disable=R0914 disable=R0915
+    # pylint: disable=R0913 disable=R0902 disable=R0904 disable=C0415 disable=R0914 disable=R0915 disable=R0912
     def __init__(
         self,
         runner_type,
@@ -115,7 +115,6 @@ class Runner(ABC):
         self.do_starter_test = cfg.mode in ["all", "tests"]
         self.do_upgrade = False
         self.supports_rolling_upgrade = WINVER[0] == ""
-        # self.supports_rolling_upgrade = False # TODO
 
         self.basecfg = copy.deepcopy(cfg)
         self.new_cfg = new_cfg
@@ -1114,4 +1113,3 @@ class Runner(ABC):
 
     def set_selenium_instances(self):
         """set instances in selenium runner"""
-        pass

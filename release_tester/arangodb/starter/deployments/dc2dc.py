@@ -250,6 +250,7 @@ class Dc2Dc(Runner):
             reply = requests.get(url)
             logging.info(str(reply))
             logging.info(str(reply.raw))
+            logging.info("instances are ready - JWT: " + inst.get_jwt_header())
 
         launch(self.cluster1)
         launch(self.cluster2)

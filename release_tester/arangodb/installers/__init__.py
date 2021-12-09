@@ -128,6 +128,7 @@ verbose: {0.verbose}
         )
 
     def set_from(self, other_cfg):
+        """copy constructor"""
         try:
             self.reset_version(other_cfg.version)
             self.publicip = other_cfg.publicip
@@ -273,6 +274,7 @@ def make_installer(install_config: InstallerConfig):
     raise Exception("unsupported os" + platform.system())
 
 
+# pylint: disable=too-many-locals
 def create_config_installer_set(
     versions: list,
     verbose: bool,

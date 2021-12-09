@@ -16,7 +16,6 @@ import time
 from pathlib import Path
 import psutil
 import requests
-import semver
 from allure_commons._allure import attach
 from allure_commons.types import AttachmentType
 
@@ -46,7 +45,7 @@ ON_WINDOWS = sys.platform == "win32"
 class StarterManager:
     """manages one starter instance"""
 
-    # pylint: disable=R0913 disable=R0902 disable=W0102 disable=R0915 disable=R0904 disable=E0202
+    # pylint: disable=R0913 disable=R0902 disable=W0102 disable=R0915 disable=R0904 disable=E0202 disable=R0912
     def __init__(
         self,
         basecfg,
@@ -955,10 +954,9 @@ class StarterManager:
                 print("Reply: " + str(reply[0].text))
                 if reply[0].status_code == 200:
                     return
-                else:
-                    print(f"Reply status code is {reply[0].status_code}. Sleeping for 3 s.")
-                    time.sleep(3)
-                    tries -= 1
+                print(f"Reply status code is {reply[0].status_code}. Sleeping for 3 s.")
+                time.sleep(3)
+                tries -= 1
             else:
                 print("Reply is empty. Sleeping for 3 s.")
                 time.sleep(3)
@@ -1057,10 +1055,8 @@ class StarterManager:
         """Check that starter instance is alive"""
         if not self.instance.is_running():
             raise Exception(f"Starter instance is not running. Base directory: {str(self.basedir)}")
-        elif self.instance.status() == psutil.STATUS_ZOMBIE:
+        if self.instance.status() == psutil.STATUS_ZOMBIE:
             raise Exception(f"Starter instance is a zombie. Base directory: {str(self.basedir)}")
-        else:
-            return
 
     @step
     def check_that_starter_log_contains(self, substring: str):
@@ -1121,8 +1117,8 @@ class StarterNonManager(StarterManager):
         basecfg.index += 1
 
     @step
-    def run_starter(self):
-        pass
+    def run_starter(self, expect_to_fail=False):
+        """ fake run starter method """
 
     @step
     def detect_instances(self):
