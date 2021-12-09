@@ -20,8 +20,6 @@ from tools.asciiprint import print_progress as progress
 
 
 # log tokens we want to suppress from our dump:
-from tools.clihelper import run_cmd_and_log_stdout
-
 LOG_BLACKLIST = [
     "2b6b3",  # -> asio error, tcp connections died... so f* waht.
     "2c712",  # -> agency connection died...
@@ -50,7 +48,7 @@ INSTANCE_TYPE_STRING_MAP = {
     "coordinator": InstanceType.COORDINATOR,
     "resilientsingle": InstanceType.RESILIENT_SINGLE,
     "single": InstanceType.SINGLE,
-    "agent": InstanceType.AGENT,
+   "agent": InstanceType.AGENT,
     "dbserver": InstanceType.DBSERVER,
     "syncmaster": InstanceType.SYNCMASTER,
     "syncworker": InstanceType.SYNCWORKER,
