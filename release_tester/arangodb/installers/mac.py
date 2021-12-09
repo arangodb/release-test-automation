@@ -270,6 +270,12 @@ class InstallerMac(InstallerBase):
         else:
             _unmountdmg(self.mountpoint)
 
+    def install_client_package_impl(self):
+        """ no mac client package """
+
+    def  un_install_client_package_impl(self):
+        """ no mac client package """
+
     @step
     def cleanup_system(self):
         if self.cfg.log_dir.exists():

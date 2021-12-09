@@ -118,7 +118,7 @@ db.testCollection.save({test: "document"})
             node.detect_instances()
             node.detect_instance_pids()
             # self.basecfg.add_frontend('http', self.basecfg.publicip, str(node.get_frontend_port()))
-        logging.info("instances are ready")
+        logging.info("instances are ready - JWT: " + self.starter_instances[0].get_jwt_header())
         count = 0
         for node in self.starter_instances:
             node.set_passvoid("cluster", count == 0)

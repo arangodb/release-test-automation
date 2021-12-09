@@ -22,6 +22,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         self.read_only = False
         super().__init__(config, connect_instance)
 
+    # pylint: disable=too-many-arguments
     def run_command(self, cmd, verbose=True, timeout=300, result_line=dummy_line_result, expect_to_fail=False):
         """run a command in arangosh"""
         title = f"run a command in arangosh: {cmd[0]}"

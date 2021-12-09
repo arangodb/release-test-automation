@@ -155,7 +155,7 @@ class ActiveFailover(Runner):
             node.active_failover_detect_hosts()
 
     def finish_setup_impl(self):
-        logging.info("instances are ready, detecting leader")
+        logging.info("instances are ready, detecting leader. JWT: " + self.starter_instances[0].get_jwt_header())
         self._detect_leader()
         if self.selenium:
             self.set_selenium_instances()

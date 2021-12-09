@@ -67,12 +67,13 @@ def step(title):
 class RtaTestcase:
     """test case class for allure reporting"""
 
+    # pylint: disable=dangerous-default-value
     def __init__(self, name, labels=[]):
         self.name = name
         self._uuid = str(uuid4())
         self.context = TestcaseContext()
-        for l in labels:
-            self.add_label(l)
+        for one_label in labels:
+            self.add_label(one_label)
 
     def __enter__(self):
         allure_commons.plugin_manager.hook.start_test(
@@ -117,7 +118,7 @@ class AllureTestSuiteContext:
     """test suite class for allure reporting"""
 
     test_suite_count = 0
-    # pylint: disable=R0913
+    # pylint: disable=too-many-locals 
     def __init__(
         self,
         results_dir,
