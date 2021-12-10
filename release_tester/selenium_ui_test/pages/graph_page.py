@@ -874,7 +874,6 @@ GRAPH_SETS = [
                    min_version='3.6.0'),
     GraphCreateSet("disjoint Smartgraph",
                    "smart_graph_settings",
-#                   "satellite_graph_settings",
                    [
                        VCol("profiles"),
                        ECol("relations")
