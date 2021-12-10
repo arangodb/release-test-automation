@@ -47,7 +47,7 @@ class GraphTestSuite(BaseTestSuite):
             print(graph_id)
             graph = get_graph(graph_id)
             if (graph.is_graph_supported(self.cfg.enterprise, self.cfg.semver) and
-                graph_id >= GraphExample.MANUAL_KNOWS):
+                graph_id > GraphExample.MANUAL_KNOWS):
                 print("Creating '%s' Graph" % graph.get_name())
                 this_graph.create_graph(graph_id, self.importer, self.test_data_dir)
                 this_graph.check_required_collections(graph_id)
@@ -68,11 +68,43 @@ class GraphTestSuite(BaseTestSuite):
         for graph_id in GraphExample:
             graph = get_graph(graph_id)
             if (graph.is_graph_supported(self.cfg.enterprise, self.cfg.semver) and
-                graph_id >= GraphExample.MANUAL_KNOWS):
+                graph_id > GraphExample.MANUAL_KNOWS):
                 this_graph.navbar_goto("graphs")
                 this_graph.delete_graph(graph_id)
         print("Deleting created Graphs Completed\n")
 
+
+
+
+        with GraphExample.MANUAL_KNOWS as graph_id:
+            print(graph_id)
+            graph = get_graph(graph_id)
+            if (graph.is_graph_supported(self.cfg.enterprise, self.cfg.semver) and
+                graph_id > GraphExample.MANUAL_KNOWS):
+                print("Creating '%s' Graph" % graph.get_name())
+                this_graph.create_graph(graph_id, self.importer, self.test_data_dir)
+                this_graph.check_required_collections(graph_id)
+
+                this_graph.select_graph_page()
+            else:
+                print("Skipping '%s' Graph not supported by the current setup" % graph.get_name())
+
+
+        print("Example Graphs creation Completed\n")
+
+        print("Sorting all graphs as descending\n")
+        this_graph.select_sort_descend()
+
+        print("Deleting created Graphs started\n")
+        with GraphExample.MANUAL_KNOWS as graph_id:
+            graph = get_graph(graph_id)
+            if (graph.is_graph_supported(self.cfg.enterprise, self.cfg.semver) and
+                graph_id > GraphExample.MANUAL_KNOWS):
+                this_graph.navbar_goto("graphs")
+                this_graph.delete_graph(graph_id)
+        print("Deleting created Graphs Completed\n")
+
+        
 
         print("Example Graphs creation started\n")
         for graph_id in GraphExample:

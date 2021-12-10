@@ -25,8 +25,8 @@ class GraphExample(IntEnum):
     CONNECTED = 8
     # these are non graph-example tabs; their index doesn't align with their table column:
     # if more example graphs are added, add them above, move numbers.
-    MANUAL_KNOWS = 9
-    MANUAL_SATELITE_GRAPH = 10
+    MANUAL_KNOWS = 9 # overlaps with knows graph 
+    MANUAL_SATELITE_GRAPH = 10 # overlaps with knows graph
     MANUAL_SMART_GRAHP = 11
     MANUAL_DISJOINT_SMART_GRAHP = 12
 
@@ -854,10 +854,27 @@ GRAPH_SETS = [
     GraphCreateSet(
         "Manual Knows",
         "knows_graph_manual_settings",
-        [VCol("manual_vertices"), ECol("manual_edge")],
+        [
+            VCol("manual_vertices"),
+            ECol("manual_edge")
+        ],
         GraphPage.create_manual_graph,
     ),
-    GraphCreateSet("Satelite Graph", "satellite_graph_settings", [], GraphPage.create_satellite_graph, enterprise=True),
-    GraphCreateSet("Smartgraph", "satellite_graph_settings", [], GraphPage.create_smart_graph, enterprise=True),
+    GraphCreateSet("Satelite Graph",
+                   "satellite_graph_settings",
+                   [
+                       VCol("manual_vertices"),
+                       ECol("manual_edge")
+                   ],
+                   GraphPage.create_satellite_graph,
+                   enterprise=True),
+    GraphCreateSet("Smartgraph",
+                   "satellite_graph_settings",
+                   [
+                       VCol("profiles"),
+                       ECol("relations")
+                   ],
+                   GraphPage.create_smart_graph,
+                   enterprise=True),
     GraphCreateSet("disjoint Smartgraph", "satellite_graph_settings", [], GraphPage.create_disjoint_smart_graph, enterprise=True),
 ]
