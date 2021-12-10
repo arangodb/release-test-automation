@@ -22,7 +22,7 @@ class GraphTestSuite(BaseTestSuite):
             print(graph_id)
             graph = get_graph(graph_id)
             if (graph.is_graph_supported(self.cfg.enterprise, self.cfg.semver) and
-                graph_id > GraphExample.MANUAL_KNOWS):
+                graph_id >= GraphExample.MANUAL_KNOWS):
                 print("Creating '%s' Graph" % graph.get_name())
                 this_graph.navbar_goto("graphs")
                 self.webdriver.refresh()
@@ -41,7 +41,7 @@ class GraphTestSuite(BaseTestSuite):
             print(graph_id)
             graph = get_graph(graph_id)
             if (graph.is_graph_supported(self.cfg.enterprise, self.cfg.semver) and
-                graph_id <= GraphExample.MANUAL_KNOWS):
+                graph_id < GraphExample.MANUAL_KNOWS):
                 this_graph.navbar_goto("graphs")
                 self.webdriver.refresh()
                 print("Creating '%s' Graph" % graph.get_name())
@@ -66,7 +66,7 @@ class GraphTestSuite(BaseTestSuite):
         for graph_id in GraphExample:
             graph = get_graph(graph_id)
             if (graph.is_graph_supported(self.cfg.enterprise, self.cfg.semver) and
-                graph_id <= GraphExample.MANUAL_KNOWS):
+                graph_id < GraphExample.MANUAL_KNOWS):
                 this_graph.navbar_goto("graphs")
                 this_graph.delete_graph(graph_id)
         print("Deleting created Graphs Completed\n")
