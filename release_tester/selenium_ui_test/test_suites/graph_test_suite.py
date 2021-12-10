@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ graph testsuite """
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
-from selenium_ui_test.pages.graph_page import GraphPage, GraphExample, get_graph_name
+from selenium_ui_test.pages.graph_page import GraphPage, GraphExample, get_graph
 
 
 class GraphTestSuite(BaseTestSuite):
@@ -41,15 +41,21 @@ class GraphTestSuite(BaseTestSuite):
         #    print("Adding Disjoint Smart Graph completed \n")
 
         print("Example Graphs creation started\n")
-        for graph in GraphExample:
+        for graph_id in GraphExample:
             # graph = GraphExample.MANUAL_KNOWS
             # this_graph.navbar_goto("graphs")
-            print(graph)
-            print("Creating '%s' Graph" % get_graph_name(graph))
-            this_graph.create_graph(graph, self.importer, self.test_data_dir)
-            this_graph.check_required_collections(graph)
+            print(graph_id)
+            graph = get_graph(graph_id)
+            if (graph.is_graph_supported(self.cfg.enterprise, self.cfg.semver) and
+                graph_id < GraphExample.MANUAL_KNOWS):
+                print("Creating '%s' Graph" % graph.get_name())
+                this_graph.create_graph(graph_id, self.importer, self.test_data_dir)
+                this_graph.check_required_collections(graph_id)
 
-            this_graph.select_graph_page()
+                this_graph.select_graph_page()
+            else:
+                print("Skipping '%s' Graph not supported by the current setup" % graph.get_name())
+
 
         print("Example Graphs creation Completed\n")
 
@@ -61,12 +67,50 @@ class GraphTestSuite(BaseTestSuite):
         # print("Selecting Graphs settings menu\n")
         # this_graph.graph_setting()
         print("Deleting created Graphs started\n")
-        for graph in GraphExample:
-            # if graph == GraphExample.MANUAL_KNOWS:
-            #    break
-            this_graph.navbar_goto("graphs")
-            this_graph.delete_graph(graph)
+        for graph_id in GraphExample:
+            graph = get_graph(graph_id)
+            if (graph.is_graph_supported(self.cfg.enterprise, self.cfg.semver) and
+                graph_id < GraphExample.MANUAL_KNOWS):
+                this_graph.navbar_goto("graphs")
+                this_graph.delete_graph(graph_id)
         print("Deleting created Graphs Completed\n")
+
+
+        for graph_id in GraphExample:
+            # graph = GraphExample.MANUAL_KNOWS
+            # this_graph.navbar_goto("graphs")
+            print(graph_id)
+            graph = get_graph(graph_id)
+            if (graph.is_graph_supported(self.cfg.enterprise, self.cfg.semver) and
+                graph_id >= GraphExample.MANUAL_KNOWS):
+                print("Creating '%s' Graph" % graph.get_name())
+                this_graph.create_graph(graph_id, self.importer, self.test_data_dir)
+                this_graph.check_required_collections(graph_id)
+
+                this_graph.select_graph_page()
+            else:
+                print("Skipping '%s' Graph not supported by the current setup" % graph.get_name())
+
+
+        print("Example Graphs creation Completed\n")
+
+        print("Sorting all graphs as descending\n")
+        this_graph.select_sort_descend()
+
+        print("Selecting Knows Graph for inspection\n")
+        this_graph.inspect_knows_graph()
+        # print("Selecting Graphs settings menu\n")
+        # this_graph.graph_setting()
+        print("Deleting created Graphs started\n")
+        for graph_id in GraphExample:
+            graph = get_graph(graph_id)
+            if (graph.is_graph_supported(self.cfg.enterprise, self.cfg.semver) and
+                graph_id >= GraphExample.MANUAL_KNOWS):
+                this_graph.navbar_goto("graphs")
+                this_graph.delete_graph(graph_id)
+        print("Deleting created Graphs Completed\n")
+
+
         # login.logout_button()
         # del login
         print("---------Checking Graphs completed--------- \n")

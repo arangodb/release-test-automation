@@ -2,6 +2,7 @@
 """graph testsuite"""
 import time
 from enum import IntEnum
+import semver
 from selenium_ui_test.pages.base_page import Keys
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import ElementClickInterceptedException, TimeoutException
@@ -22,10 +23,10 @@ class GraphExample(IntEnum):
     SOCIAL = 6
     CITY = 7
     MANUAL_KNOWS = 8
-    # MANUAL_SATELITE_GRAPH = 9
-    # MANUAL_SMART_GRAHP = 10
-    # MANUAL_DISJOINT_SMART_GRAHP = 11
-    # TODO: 3.8 and newer only: CONNECTED = 12
+    MANUAL_SATELITE_GRAPH = 9
+    MANUAL_SMART_GRAHP = 10
+    MANUAL_DISJOINT_SMART_GRAHP = 11
+    CONNECTED = 12
 
 
 class VCol:
@@ -45,24 +46,38 @@ class ECol:
         self.name = name
         self.ctype = "e"
 
-
+ALL_VERSIONS="3.0.0"
 class GraphCreateSet:
     """this has all we need to know to create an example graph"""
 
     # pylint: disable=R0903
-    def __init__(self, clear_name, btn_id, collections, handler=None):
+    def __init__(self, clear_name, btn_id, collections,
+                 handler=None,
+                 enterprise=False,
+                 min_version=ALL_VERSIONS):
         self.clear_name = clear_name
         self.btn_id = btn_id
         self.handler = handler
         self.collections = collections
+        self.min_version = semver.VersionInfo.parse(min_version)
+        self.requiresEnterprise = enterprise
 
+    def is_graph_supported(self, enterprise, version):
+        if self.requiresEnterprise and not enterprise:
+            return False
+        return version > self.min_version
+
+    def get_name(self):
+        """resolves the enum to a printeable string"""
+        return self.clear_name
 
 GRAPH_SETS = []
 
-
-def get_graph_name(graph: GraphExample):
-    """resolves the enum to a printeable string"""
-    return GRAPH_SETS[graph].clear_name
+def get_graph(graph: GraphExample):
+    try:
+        return GRAPH_SETS[graph]
+    except IndexError:
+        raise Exception("unknown Graph " + str(graph))
 
 
 class GraphPage(NavigationBarPage):
@@ -320,10 +335,10 @@ class GraphPage(NavigationBarPage):
 
             # importing collections using arangoimport
             print("Importing knows_edge collections \n")
-            importer.import_smart_edge_collection("knows_edge", knows_path / "knows_edge.json", ["profiles_smart"])
+            importer.import_smart_edge_collection("knows_edge", knows_path / "manual_edge.json", ["profiles_smart"])
 
             print("Importing persons collections \n")
-            importer.import_collection("persons", knows_path / "persons.json")
+            importer.import_collection("persons", knows_path / "manual_vertices.json")
 
             # Selecting satellite graph settings to view and delete
             satellite_settings_id = '//*[@id="satellite_graph_tile"]/div/h5'
@@ -831,8 +846,13 @@ GRAPH_SETS = [
         [VCol("persons"), ECol("manual_edge")],
         GraphPage.create_manual_graph,
     ),
-    GraphCreateSet("Satelite Graph", "satellite_graph_settings", [], GraphPage.create_satellite_graph),
-    GraphCreateSet("Smartgraph", "satellite_graph_settings", [], GraphPage.create_smart_graph),
-    GraphCreateSet("disjoint Smartgraph", "satellite_graph_settings", [], GraphPage.create_disjoint_smart_graph),
-    GraphCreateSet("Connected Components", "connectedComponentsGraph_settings", [], None),  # TODO?
+    GraphCreateSet("Satelite Graph", "satellite_graph_settings", [], GraphPage.create_satellite_graph, enterprise=True),
+    GraphCreateSet("Smartgraph", "satellite_graph_settings", [], GraphPage.create_smart_graph, enterprise=True),
+    GraphCreateSet("disjoint Smartgraph", "satellite_graph_settings", [], GraphPage.create_disjoint_smart_graph, enterprise=True),
+    GraphCreateSet("Connected Components", "connectedComponentsGraph_settings",
+                   [
+                   ],
+                   None,
+                   enterprise=True,
+                   min_version='3.8.0'),
 ]
