@@ -22,11 +22,13 @@ class GraphExample(IntEnum):
     WORLD = 5
     SOCIAL = 6
     CITY = 7
-    MANUAL_KNOWS = 8
-    MANUAL_SATELITE_GRAPH = 9
-    MANUAL_SMART_GRAHP = 10
-    MANUAL_DISJOINT_SMART_GRAHP = 11
-    CONNECTED = 12
+    CONNECTED = 8
+    # these are non graph-example tabs; their index doesn't align with their table column:
+    # if more example graphs are added, add them above, move numbers.
+    MANUAL_KNOWS = 9
+    MANUAL_SATELITE_GRAPH = 10
+    MANUAL_SMART_GRAHP = 11
+    MANUAL_DISJOINT_SMART_GRAHP = 12
 
 
 class VCol:
@@ -840,19 +842,22 @@ GRAPH_SETS = [
             ECol("internationalHighway"),
         ],
     ),
+    GraphCreateSet("Connected Components", "connectedComponentsGraph_settings",
+                   [
+                       VCol("components"),
+                       ECol("connections")
+                   ],
+                   None,
+                   enterprise=True,
+                   min_version='3.8.0'),
+    # these are non graph-example tabs; their index doesn't align with their table column:
     GraphCreateSet(
         "Manual Knows",
         "knows_graph_manual_settings",
-        [VCol("persons"), ECol("manual_edge")],
+        [VCol("manual_vertices"), ECol("manual_edge")],
         GraphPage.create_manual_graph,
     ),
     GraphCreateSet("Satelite Graph", "satellite_graph_settings", [], GraphPage.create_satellite_graph, enterprise=True),
     GraphCreateSet("Smartgraph", "satellite_graph_settings", [], GraphPage.create_smart_graph, enterprise=True),
     GraphCreateSet("disjoint Smartgraph", "satellite_graph_settings", [], GraphPage.create_disjoint_smart_graph, enterprise=True),
-    GraphCreateSet("Connected Components", "connectedComponentsGraph_settings",
-                   [
-                   ],
-                   None,
-                   enterprise=True,
-                   min_version='3.8.0'),
 ]
