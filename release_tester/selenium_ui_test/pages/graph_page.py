@@ -26,7 +26,7 @@ class GraphExample(IntEnum):
     # these are non graph-example tabs; their index doesn't align with their table column:
     # if more example graphs are added, add them above, move numbers.
     MANUAL_KNOWS = 9 # overlaps with knows graph 
-    MANUAL_SATELITE_GRAPH = 10 # overlaps with knows graph
+    MANUAL_SATELLITE_GRAPH = 10 # overlaps with knows graph
     MANUAL_SMART_GRAHP = 11
     MANUAL_DISJOINT_SMART_GRAHP = 12
 
@@ -377,9 +377,8 @@ class GraphPage(NavigationBarPage):
         """Adding smart disjoint graph"""
         page_path = test_data_dir / "ui_data" / "graph_page" / "pregel_community"
 
-        select_graph_id = self.select_create_graph_id
-        select_graph_sitem = self.locator_finder_by_id(select_graph_id)
-        select_graph_sitem.click()
+        create_graph_sitem = self.locator_finder_by_id(self.select_create_graph_id)
+        create_graph_sitem.click()
 
         # list of id's for smart graph
         select_smart = "tab-smartGraph"
@@ -855,7 +854,7 @@ GRAPH_SETS = [
         ],
         GraphPage.create_manual_graph,
     ),
-    GraphCreateSet("Satelite Graph",
+    GraphCreateSet("Satellite Graph",
                    "satellite_graph_settings",
                    [
                        VCol("persons"),
@@ -865,7 +864,7 @@ GRAPH_SETS = [
                    enterprise=True,
                    min_version='3.8.0'),
     GraphCreateSet("Smartgraph",
-                   "satellite_graph_settings",
+                   "smart_graph_settings",
                    [
                        VCol("profiles"),
                        ECol("relations")
@@ -874,7 +873,8 @@ GRAPH_SETS = [
                    enterprise=True,
                    min_version='3.6.0'),
     GraphCreateSet("disjoint Smartgraph",
-                   "satellite_graph_settings",
+                   "smart_graph_settings",
+#                   "satellite_graph_settings",
                    [
                        VCol("profiles"),
                        ECol("relations")
