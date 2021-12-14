@@ -100,6 +100,7 @@ class InstallerDeb(InstallerLinux):
         cmd = "dpkg -i " + str(self.cfg.package_dir / self.server_package)
         lh.log_cmd(cmd)
         server_upgrade = pexpect.spawnu(cmd)
+        server_upgrade.logfile = sys.stdout
         while True:
             try:
                 i = server_upgrade.expect(
@@ -108,7 +109,7 @@ class InstallerDeb(InstallerLinux):
                         "Database files are up-to-date",
                         "arangod.conf",
                     ],
-                    timeout=60,
+                    timeout=120,
                 )
                 if i == 0:
                     logging.info("X" * 80)
@@ -150,6 +151,7 @@ class InstallerDeb(InstallerLinux):
         cmd = "dpkg -i " + str(self.cfg.package_dir / self.server_package)
         lh.log_cmd(cmd)
         server_install = pexpect.spawnu(cmd)
+        server_install.logfile = sys.stdout
         try:
             logging.debug("expect: user1")
             i = server_install.expect(["user:", "arangod.conf"], timeout=120)
@@ -247,6 +249,7 @@ class InstallerDeb(InstallerLinux):
                 debug_install.close(force=True)
                 ascii_print(debug_install.before)
                 raise Exception(str(self.debug_package) + " debug installation didn't finish successfully!")
+        return True
 
     @step
     def un_install_debug_package_impl(self):

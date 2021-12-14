@@ -238,8 +238,9 @@ class InstallerBase(ABC):
     @step
     def install_debug_package(self):
         """install the debug package to the system"""
-        self.install_debug_package_impl()
+        ret = self.install_debug_package_impl()
         self.cfg.debug_package_is_installed = True
+        return ret
 
     @step
     def un_install_debug_package(self):
@@ -247,11 +248,16 @@ class InstallerBase(ABC):
         self.un_install_debug_package_impl()
         self.cfg.debug_package_is_installed = False
 
+    def un_install_server_package_for_upgrade(self):
+        """ if there should be something to do with the old package on upgrade, do it here"""
+
     def install_debug_package_impl(self):
         """ install the debug package """
+        return False
 
     def un_install_debug_package_impl(self):
         """ uninstall the debug package """
+        return False
 
     @abstractmethod
     def calculate_package_names(self):
@@ -321,7 +327,14 @@ class InstallerBase(ABC):
     def save_config(self):
         """dump the config to disk"""
         self.cfg.semver = None
-        self.calc_config_file_name().write_text(yaml.dump(self.cfg))
+        cfg_file = self.calc_config_file_name()
+        if cfg_file.exists():
+            try:
+                cfg_file.unlink()
+            except PermissionError:
+                print("Ignoring non deleteable " + str(cfg_file))
+                return
+        cfg_file.write_text(yaml.dump(self.cfg))
         self.cfg.semver = semver.VersionInfo.parse(self.cfg.version)
 
     @step

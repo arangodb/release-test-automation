@@ -289,6 +289,7 @@ class InstallerRPM(InstallerLinux):
         """installing debug package"""
         self.install_rpm_package(str(self.cfg.package_dir / self.debug_package))
         self.cfg.debug_package_is_installed = True
+        return True
 
     # pylint: disable=R0201
     @step
