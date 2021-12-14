@@ -239,14 +239,15 @@ class InstallerBase(ABC):
     def install_debug_package(self):
         """install the debug package to the system"""
         ret = self.install_debug_package_impl()
-        self.cfg.debug_package_is_installed = True
+        self.cfg.debug_package_is_installed = ret
         return ret
 
     @step
     def un_install_debug_package(self):
         """Uninstall debug package"""
-        self.un_install_debug_package_impl()
-        self.cfg.debug_package_is_installed = False
+        ret = self.un_install_debug_package_impl()
+        self.cfg.debug_package_is_installed = ret
+        return ret
 
     @step
     def un_install_server_package_for_upgrade(self):

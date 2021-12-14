@@ -283,13 +283,14 @@ class InstallerRPM(InstallerLinux):
                 "Installation of the package {} didn't finish successfully! Output:\n{}".format(str(package), output)
             )
         logging.info(str(self.debug_package) + " Installation successfull")
+        return True
 
     @step
     def install_debug_package_impl(self):
         """installing debug package"""
-        self.install_rpm_package(str(self.cfg.package_dir / self.debug_package))
-        self.cfg.debug_package_is_installed = True
-        return True
+        ret = self.install_rpm_package(str(self.cfg.package_dir / self.debug_package))
+        self.cfg.debug_package_is_installed = ret
+        return ret
 
     # pylint: disable=R0201
     @step
