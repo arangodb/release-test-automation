@@ -56,16 +56,20 @@ class GraphCreateSet:
     def __init__(self, clear_name, btn_id, collections,
                  handler=None,
                  enterprise=False,
-                 min_version=ALL_VERSIONS):
+                 min_version=ALL_VERSIONS,
+                 non_cl_min_ver=ALL_VERSIONS):
         self.clear_name = clear_name
         self.btn_id = btn_id
         self.handler = handler
         self.collections = collections
         self.min_version = semver.VersionInfo.parse(min_version)
+        self.non_cl_min_ver = non_cl_min_ver
         self.requiresEnterprise = enterprise
 
-    def is_graph_supported(self, enterprise, version):
+    def is_graph_supported(self, enterprise, version, is_cluster):
         if self.requiresEnterprise and not enterprise:
+            return False
+        if not is_cluster and version < self.non_cl_min_ver:
             return False
         return version > self.min_version
 
@@ -862,6 +866,7 @@ GRAPH_SETS = [
                    ],
                    GraphPage.create_satellite_graph,
                    enterprise=True,
+                   non_cl_min_ver='3.10.0',
                    min_version='3.8.0'),
     GraphCreateSet("Smartgraph",
                    "smart_graph_settings",
@@ -871,6 +876,7 @@ GRAPH_SETS = [
                    ],
                    GraphPage.create_smart_graph,
                    enterprise=True,
+                   non_cl_min_ver='3.10.0',
                    min_version='3.6.0'),
     GraphCreateSet("disjoint Smartgraph",
                    "smart_graph_settings",
@@ -880,5 +886,6 @@ GRAPH_SETS = [
                    ],
                    GraphPage.create_disjoint_smart_graph,
                    enterprise=True,
+                   non_cl_min_ver='3.10.0',
                    min_version='3.6.0'),
 ]

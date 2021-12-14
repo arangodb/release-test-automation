@@ -21,7 +21,7 @@ class GraphTestSuite(BaseTestSuite):
             # these graphs have overlapping collections, so we create / delete them one by one.
             print(graph_id)
             graph = get_graph(graph_id)
-            if (graph.is_graph_supported(self.cfg.enterprise, self.cfg.semver) and
+            if (graph.is_graph_supported(self.cfg.enterprise, self.cfg.semver, self.is_cluster) and
                 graph_id >= GraphExample.MANUAL_KNOWS):
                 print("Creating '%s' Graph" % graph.get_name())
                 this_graph.navbar_goto("graphs")
@@ -40,7 +40,7 @@ class GraphTestSuite(BaseTestSuite):
         for graph_id in GraphExample:
             print(graph_id)
             graph = get_graph(graph_id)
-            if (graph.is_graph_supported(self.cfg.enterprise, self.cfg.semver) and
+            if (graph.is_graph_supported(self.cfg.enterprise, self.cfg.semver, self.is_cluster) and
                 graph_id < GraphExample.MANUAL_KNOWS):
                 this_graph.navbar_goto("graphs")
                 self.webdriver.refresh()
@@ -65,7 +65,7 @@ class GraphTestSuite(BaseTestSuite):
         print("Deleting created Graphs started\n")
         for graph_id in GraphExample:
             graph = get_graph(graph_id)
-            if (graph.is_graph_supported(self.cfg.enterprise, self.cfg.semver) and
+            if (graph.is_graph_supported(self.cfg.enterprise, self.cfg.semver, self.is_cluster) and
                 graph_id < GraphExample.MANUAL_KNOWS):
                 this_graph.navbar_goto("graphs")
                 this_graph.delete_graph(graph_id)
