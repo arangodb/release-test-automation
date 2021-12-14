@@ -247,6 +247,7 @@ class InstallerDeb(InstallerLinux):
                 debug_install.close(force=True)
                 ascii_print(debug_install.before)
                 raise Exception(str(self.debug_package) + " debug installation didn't finish successfully!")
+        return True
 
     @step
     def un_install_debug_package_impl(self):
