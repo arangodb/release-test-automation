@@ -22,7 +22,7 @@ class GraphTestSuite(BaseTestSuite):
             print(graph_id)
             graph = get_graph(graph_id)
             if (graph.is_graph_supported(self.cfg.enterprise, self.cfg.semver, self.is_cluster) and
-                graph_id >= GraphExample.MANUAL_KNOWS):
+                graph_id >= GraphExample.CONNECTED):
                 print("Creating '%s' Graph" % graph.get_name())
                 this_graph.navbar_goto("graphs")
                 self.webdriver.refresh()
@@ -35,13 +35,14 @@ class GraphTestSuite(BaseTestSuite):
             else:
                 print("Skipping '%s' Graph not supported by the current setup" % graph.get_name())
         
-
+        # if we create more graphs at once, the collection list will not show all collections anymore:
         print("Example Graphs creation started\n")
         for graph_id in GraphExample:
             print(graph_id)
             graph = get_graph(graph_id)
             if (graph.is_graph_supported(self.cfg.enterprise, self.cfg.semver, self.is_cluster) and
-                graph_id < GraphExample.MANUAL_KNOWS):
+                graph_id < GraphExample.CONNECTED):
+                self.webdriver.refresh()
                 this_graph.navbar_goto("graphs")
                 self.webdriver.refresh()
                 print("Creating '%s' Graph" % graph.get_name())
@@ -66,7 +67,7 @@ class GraphTestSuite(BaseTestSuite):
         for graph_id in GraphExample:
             graph = get_graph(graph_id)
             if (graph.is_graph_supported(self.cfg.enterprise, self.cfg.semver, self.is_cluster) and
-                graph_id < GraphExample.MANUAL_KNOWS):
+                graph_id < GraphExample.CONNECTED):
                 this_graph.navbar_goto("graphs")
                 this_graph.delete_graph(graph_id)
         print("Deleting created Graphs Completed\n")
