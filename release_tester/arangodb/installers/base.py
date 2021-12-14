@@ -248,8 +248,9 @@ class InstallerBase(ABC):
         self.un_install_debug_package_impl()
         self.cfg.debug_package_is_installed = False
 
+    @step
     def un_install_server_package_for_upgrade(self):
-        """ if there should be something to do with the old package on upgrade, do it here"""
+        """ if we need to do something to the old installation on upgrade, do it here. """
 
     def install_debug_package_impl(self):
         """ install the debug package """
