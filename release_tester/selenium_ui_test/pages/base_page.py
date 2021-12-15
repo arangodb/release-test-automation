@@ -105,7 +105,7 @@ class BasePage:
         """wait for jquery to finish..."""
         wait = WebDriverWait(self.webdriver, 15)
         try:
-            wait.until(lambda driver: driver.execute_script("return jQuery.active") == 0)
+            wait.until(lambda driver: driver.execute_script("return (typeof jQuery !== 'undefined') && jQuery.active") == 0)
             wait.until(lambda driver: driver.execute_script("return document.readyState") == "complete")
         except TimeoutException:
             pass

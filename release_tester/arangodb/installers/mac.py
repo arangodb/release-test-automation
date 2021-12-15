@@ -226,7 +226,7 @@ class InstallerMac(InstallerBase):
 
     @step
     def upgrade_server_package(self, old_installer):
-    """ upgrade an existing installation. """
+        """ upgrade an existing installation. """
         os.environ["UPGRADE_DB"] = "Yes"
         self.instance = old_installer.instance
         self.stop_service()

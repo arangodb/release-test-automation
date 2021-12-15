@@ -251,6 +251,7 @@ class ViewsPage(NavigationBarPage):
         create_new_views_id.click()
         time.sleep(2)
 
+        self.wait_for_ajax()
         print(f"Select name for the {view_name} \n")
         name_id = "newName"
         name_id_sitem = self.locator_finder_by_id(name_id)
@@ -259,17 +260,20 @@ class ViewsPage(NavigationBarPage):
         name_id_sitem.send_keys(view_name)
         time.sleep(2)
 
+        self.wait_for_ajax()
         print(f"Selecting primary compression for {view_name} \n")
         primary_compression = "newPrimarySortCompression"
         self.locator_finder_by_select(primary_compression, types)  # keep it default choice
         time.sleep(2)
 
+        self.wait_for_ajax()
         print(f"Select primary sort for {view_name} \n")
         primary_sort = '//*[@id="accordion2"]/div/div[1]/a/span[2]/b'
         primary_sort_sitem = self.locator_finder_by_xpath(primary_sort)
         primary_sort_sitem.click()
         time.sleep(2)
 
+        self.wait_for_ajax()
         print(f"Select primary field for {view_name} \n")
         primary_field = '//*[@id="newPrimarySort-row-0"]/td[1]/input'
         primary_field_sitem = self.locator_finder_by_xpath(primary_field)
@@ -278,10 +282,12 @@ class ViewsPage(NavigationBarPage):
         primary_field_sitem.send_keys("attr")
         time.sleep(2)
 
+        self.wait_for_ajax()
         print(f"Selecting direction for {view_name} \n")
         direction = "/html/body/div[1]/div/div[2]/div[1]/div/div[2]/div/table/tbody/tr/th/table/tbody/tr/td[2]/select"
         self.locator_finder_by_select_using_xpath(direction, types)  # keep it default choice
 
+        self.wait_for_ajax()
         print(f"Select stored value for {view_name} \n")
         sorted_value = '//*[@id="accordion3"]/div/div[1]/a/span[2]/b'
         sorted_value_sitem = self.locator_finder_by_xpath(sorted_value)
@@ -306,12 +312,14 @@ class ViewsPage(NavigationBarPage):
         self.locator_finder_by_select_using_xpath(stored_direction, types)  # keep it default choice
         time.sleep(2)
 
+        self.wait_for_ajax()
         print(f"Select advance options for {view_name} \n")
         advance_option = '//*[@id="accordion4"]/div/div[1]/a/span[2]/b'
         advance_option_sitem = self.locator_finder_by_xpath(advance_option)
         advance_option_sitem.click()
         time.sleep(2)
 
+        self.wait_for_ajax()
         print(f"Select write buffer value for {view_name} \n")
         write_buffer = "newWriteBufferIdle"
         write_buffer_sitem = self.locator_finder_by_id(write_buffer)
@@ -320,6 +328,7 @@ class ViewsPage(NavigationBarPage):
         write_buffer_sitem.send_keys("50")
         time.sleep(2)
 
+        self.wait_for_ajax()
         print(f"Select write buffer value for {view_name} \n")
         write_buffer_active = "newWriteBufferActive"
         write_buffer_active_sitem = self.locator_finder_by_id(write_buffer_active)
@@ -328,6 +337,7 @@ class ViewsPage(NavigationBarPage):
         write_buffer_active_sitem.send_keys("8")
         time.sleep(2)
 
+        self.wait_for_ajax()
         print(f"Select max write buffer value for {view_name} \n")
         max_buffer_size = "newWriteBufferSizeMax"
         max_buffer_size_sitem = self.locator_finder_by_id(max_buffer_size)
@@ -335,6 +345,7 @@ class ViewsPage(NavigationBarPage):
         max_buffer_size_sitem.send_keys("33554434")
         time.sleep(2)
 
+        self.wait_for_ajax()
         print(f"Selecting creation button for {view_name} \n")
         max_buffer_size = "modalButton1"
         max_buffer_size_sitem = self.locator_finder_by_id(max_buffer_size)

@@ -22,6 +22,7 @@ class SeleniumRunner(ABC):
         self.is_headless = is_headless
         self.testrun_name = testrun_name
         self.webdriver = webdriver
+        self.supports_console_flush = self.webdriver.capabilities["browserName"] == "chrome"
         self.original_window_handle = None
         self.state = ""
         time.sleep(3)

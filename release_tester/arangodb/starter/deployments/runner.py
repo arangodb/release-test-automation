@@ -378,7 +378,7 @@ class Runner(ABC):
                 ui_test_results_table = BeautifulTable(maxwidth=160)
                 for result in self.selenium.test_results:
                     ui_test_results_table.rows.append(
-                        [result.name, "PASSED" if result.success else "FAILED", result.message, result.tb]
+                        [result.name, "PASSED" if result.success else "FAILED", result.message, result.traceback]
                     )
                     if not result.success:
                         self.ui_tests_failed = True
