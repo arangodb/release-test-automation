@@ -15,6 +15,7 @@ import yaml
 import psutil
 
 from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor
+from arangodb.installers import InstallerConfig
 from arangodb.instance import ArangodInstance
 from tools.asciiprint import print_progress as progress
 from allure_commons._allure import attach
@@ -186,7 +187,7 @@ class BinaryDescription:
 class InstallerBase(ABC):
     """this is the prototype for the operation system agnostic installers"""
 
-    def __init__(self, cfg):
+    def __init__(self, cfg: InstallerConfig):
         self.arango_binaries = []
         self.cfg = copy.deepcopy(cfg)
         self.calculate_package_names()
@@ -219,6 +220,8 @@ class InstallerBase(ABC):
     @step
     def un_install_server_package(self):
         """ uninstall the server package """
+        if self.cfg.debug_package_is_installed:
+            self.un_install_debug_package()
         self.un_install_server_package_impl()
         self.cfg.server_package_is_installed = False
 
@@ -255,9 +258,14 @@ class InstallerBase(ABC):
 
     def install_debug_package_impl(self):
         """ install the debug package """
+        pass
 
     def un_install_debug_package_impl(self):
         """ uninstall the debug package """
+        pass
+
+    def __repr__(self):
+        return f"Installer type: {self.installer_type}\nServer package: {self.server_package}\nDebug package: {self.debug_package}\nClient package: {self.client_package}"
 
     @abstractmethod
     def calculate_package_names(self):
@@ -268,8 +276,31 @@ class InstallerBase(ABC):
         """install the packages to the system"""
 
     @abstractmethod
-    def upgrade_package(self, old_installer):
-        """install a new version of the packages to the system"""
+    def upgrade_server_package(self, old_installer):
+        """install a new version of the server package to the system"""
+
+    @step
+    def upgrade_client_package(self, old_installer):
+        """install a new version of the client package to the system"""
+        self.upgrade_client_package_impl()
+        self.cfg.client_package_is_installed = True
+        self.calculate_file_locations()
+        old_installer.cfg.client_package_is_installed = False
+
+    def uninstall_everything(self):
+        """uninstall all arango packages present in the system(including those installed outside this installer)"""
+        self.uninstall_everything_impl()
+        self.cfg.server_package_is_installed = False
+        self.cfg.debug_package_is_installed = False
+        self.cfg.client_package_is_installed = False
+
+    def uninstall_everything_impl(self):
+        """uninstall all arango packages present in the system(including those installed outside this installer)"""
+        raise NotImplementedError("uninstall_everything_impl method is not implemented for this installer type")
+
+    def upgrade_client_package_impl(self):
+        """install a new version of the client package to the system"""
+        self.install_client_package()
 
     @abstractmethod
     def check_service_up(self):
@@ -287,12 +318,15 @@ class InstallerBase(ABC):
     def un_install_server_package_impl(self):
         """ installer specific server uninstall function """
 
+    def un_install_server_package_for_upgrade(self):
+        """hook to uninstall old package for upgrade"""
+
     @abstractmethod
     def install_client_package_impl(self):
         """ installer specific client uninstall function """
 
     @abstractmethod
-    def  un_install_client_package_impl(self):
+    def un_install_client_package_impl(self):
         """ installer specific client uninstall function """
 
     @abstractmethod
@@ -646,12 +680,12 @@ class InstallerBase(ABC):
                 print("starter not found where we searched it? " + str(starter))
                 return semver.VersionInfo.parse("0.0.0")
             # print(starter.stat())
-            #print(starter.owner())
-            #print(starter.group())
+            # print(starter.owner())
+            # print(starter.group())
             # run_file_command(str(starter))
             starter_version_proc = psutil.Popen(
                 [str(starter), "--version"],
-                   stdout=subprocess.PIPE,
+                stdout=subprocess.PIPE,
                 stdin=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 universal_newlines=True,

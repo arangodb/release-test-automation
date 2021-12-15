@@ -2,13 +2,13 @@
 """active failover base testsuite"""
 import pprint
 import time
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite
+from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 from selenium_ui_test.pages.navbar import NavigationBarPage
 
 from selenium_ui_test.pages.replication_page import ReplicationPage
 
 
-class ActiveFailoverBaseTestSuite(BaseTestSuite):
+class ActiveFailoverBaseTestSuite(BaseSeleniumTestSuite):
     """testsuite to be run to check the follower count"""
 
     def check_follower_count(self, expect_follower_count=2, retry_count=10):

@@ -427,8 +427,9 @@ class StarterManager:
         """check whether all spawned arangods are fully bootet"""
         logging.debug("checking if starter instance booted: " + str(self.basedir))
         if not self.instance.is_running():
-            logging.error("Starter Instance {0.name} is gone!".format(self))
-            sys.exit(0)
+            message = "Starter Instance {0.name} is gone!".format(self)
+            logging.error(message)
+            raise Exception(message)
 
         # if the logfile contains up and running we are fine
         lfs = self.get_log_file()
@@ -731,8 +732,9 @@ class StarterManager:
                     return port
             logging.info("retrying logfile")
             time.sleep(1)
-        logging.error("could not get port form: " + self.log_file)
-        sys.exit(1)
+        message = "could not get port form: " + self.log_file
+        logging.error(message)
+        raise Exception(message)
 
     def get_sync_master_port(self):
         """get the port of a syncmaster arangosync"""
@@ -858,8 +860,9 @@ class StarterManager:
             logging.error("please check logs in" + str(self.basedir))
             for logf in logfiles:
                 logging.debug(logf)
-            logging.error("if that does not help try to delete: " + str(self.basedir))
-            sys.exit(1)
+            message = "if that does not help try to delete: " + str(self.basedir)
+            logging.error(message)
+            raise Exception(message)
 
         self.show_all_instances()
 
@@ -930,9 +933,6 @@ class StarterManager:
                 "Not all instances are alive. " "The following are not running: %s",
                 str(missing_instances),
             )
-            # if self.abort_on_error:
-            #    logging.error("exiting")
-            #    sys.exit(1)
             raise Exception("instances missing: " + str(missing_instances))
         instances_table = get_instances_table(self.get_instance_essentials())
         logging.info("All arangod instances still running: \n%s", str(instances_table))

@@ -116,7 +116,7 @@ class Download:
             enterprise=enterprise,
             encryption_at_rest=False,
             zip_package=zip_package,
-            hot_backup = hot_backup,
+            hot_backup=hot_backup,
             package_dir=self.package_dir,
             test_dir=Path("/"),
             mode="",

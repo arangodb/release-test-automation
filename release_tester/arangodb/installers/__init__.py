@@ -9,22 +9,26 @@ import semver
 
 # pylint: disable=R0903
 
+
 class HotBackupSetting(Enum):
-    """whether we want thot backup or not """
-    DISABLED=0
-    DIRECTORY=1
-    S3BUCKET=2
+    """whether we want thot backup or not"""
+
+    DISABLED = 0
+    DIRECTORY = 1
+    S3BUCKET = 2
+
 
 hb_strings = {
     HotBackupSetting.DISABLED: "disabled",
     HotBackupSetting.DIRECTORY: "directory",
-    HotBackupSetting.S3BUCKET: "s3bucket"
+    HotBackupSetting.S3BUCKET: "s3bucket",
 }
 HB_MODES = {
     "disabled": HotBackupSetting.DISABLED,
     "directory": HotBackupSetting.DIRECTORY,
-    "s3bucket": HotBackupSetting.S3BUCKET
+    "s3bucket": HotBackupSetting.S3BUCKET,
 }
+
 
 class InstallerFrontend:
     """class describing frontend instances"""
@@ -98,9 +102,7 @@ class InstallerConfig:
         winver = platform.win32_ver()
 
         self.hot_backup = (
-            self.enterprise and
-            (semver.compare(self.version, "3.5.1") >= 0) and
-            not isinstance(winver, list)
+            self.enterprise and (semver.compare(self.version, "3.5.1") >= 0) and not isinstance(winver, list)
         )
         if self.hot_backup:
             self.hot_backup = hot_backup

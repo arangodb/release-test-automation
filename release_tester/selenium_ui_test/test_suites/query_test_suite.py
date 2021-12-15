@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """ query testsuite """
-
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
+from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
+from selenium_ui_test.test_suites.base_test_suite import testcase
 from selenium_ui_test.pages.query_page import QueryPage
 from selenium_ui_test.pages.graph_page import GraphPage
 from selenium_ui_test.pages.graph_page import GraphExample, get_graph_name
 
 
-class QueryTestSuite(BaseTestSuite):
+class QueryTestSuite(BaseSeleniumTestSuite):
     """ query testsuite """
     @testcase
     def test_query(self):

@@ -17,25 +17,24 @@ from arangodb.installers import HotBackupSetting
 HB_2_RCLONE_TYPE = {
     HotBackupSetting.DISABLED: "disabled",
     HotBackupSetting.DIRECTORY: "local",
-    HotBackupSetting.S3BUCKET: "S3"
+    HotBackupSetting.S3BUCKET: "S3",
 }
 
 HB_2_RCLONE_PROVIDER = {
     HotBackupSetting.DISABLED: None,
     HotBackupSetting.DIRECTORY: None,
-    HotBackupSetting.S3BUCKET: "minio"
+    HotBackupSetting.S3BUCKET: "minio",
 }
 
-class HotBackupConfig():
-    """ manage rclone setup """
-    def __init__(self,
-                 basecfg,
-                 name,
-                 raw_install_prefix):
+
+class HotBackupConfig:
+    """manage rclone setup"""
+
+    def __init__(self, basecfg, name, raw_install_prefix):
         self.cfg = basecfg
         self.install_prefix = raw_install_prefix
         self.cfg_type = HB_2_RCLONE_TYPE[basecfg.hb_mode]
-        self.name = str(name).replace('/', '_')
+        self.name = str(name).replace("/", "_")
         self.provider = HB_2_RCLONE_PROVIDER[basecfg.hb_mode]
         self.acl = "private"
 
@@ -44,20 +43,18 @@ class HotBackupConfig():
 
         if basecfg.hb_mode == HotBackupSetting.S3BUCKET:
             self.name = "S3"
-            config["type"] =  "s3"
-            config["provider"] =  "minio"
-            config["env_auth"] =  "false"
-            config["access_key_id"] =  "minio"
-            config["secret_access_key"] =  "minio123"
-            config["endpoint"] =  "http://minio1:9000"
-            config["region"] =  "us-east-1"
+            config["type"] = "s3"
+            config["provider"] = "minio"
+            config["env_auth"] = "false"
+            config["access_key_id"] = "minio"
+            config["secret_access_key"] = "minio123"
+            config["endpoint"] = "http://minio1:9000"
+            config["region"] = "us-east-1"
         elif basecfg.hb_mode == HotBackupSetting.DIRECTORY:
-            config["copy-links"] =  "false"
-            config["links"] =  "false"
-            config["one_file_system"] =  "true"
-        self.config = {
-            self.name: config
-        }
+            config["copy-links"] = "false"
+            config["links"] = "false"
+            config["one_file_system"] = "true"
+        self.config = {self.name: config}
 
     def save_config(self, filename):
         """writes a hotbackup rclone configuration file"""

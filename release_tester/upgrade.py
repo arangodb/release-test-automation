@@ -78,6 +78,7 @@ def run_upgrade(
             encryption_at_rest,
             old_version,
             None,
+            True,
             runner_strings[runner_type],
             None,
             new_inst.installer_type,
@@ -141,6 +142,10 @@ def run_upgrade(
                                 kill_all_processes()
                                 runner.zip_test_dir()
                                 testcase.context.status = Status.FAILED
+                                testcase.context.statusDetails = StatusDetails(
+                                    message=str(ex),
+                                    trace="".join(traceback.TracebackException.from_exception(ex).format()),
+                                )
                                 if abort_on_error:
                                     raise ex
                                 traceback.print_exc()
