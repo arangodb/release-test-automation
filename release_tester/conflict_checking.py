@@ -6,6 +6,7 @@ import sys
 import click
 
 import tools.loghelper as lh
+import distro
 from common_options import very_common_options, common_options
 from package_installation_tests.community_package_installation_test_suite import CommunityPackageInstallationTestSuite
 from package_installation_tests.enterprise_package_installation_test_suite import EnterprisePackageInstallationTestSuite
@@ -40,6 +41,16 @@ def run_conflict_tests(
         return [
             {
                 "testrun name": "Package installation/uninstallation tests were skipped for zip packages.",
+                "testscenario": "",
+                "success": True,
+                "messages": [],
+                "progress": "",
+            }
+        ]
+    if distro.linux_distribution(full_distribution_name=False)[0] in ["debian", "ubuntu"]:
+        return [
+            {
+                "testrun name": "Package installation/uninstallation tests are temporarily disabled for debian-based linux distros. Waiting for BTS-684",
                 "testscenario": "",
                 "success": True,
                 "messages": [],
