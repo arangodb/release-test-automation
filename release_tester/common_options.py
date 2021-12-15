@@ -8,6 +8,7 @@ import click
 from arangodb.starter.deployments import STARTER_MODES
 from arangodb.installers import HB_MODES
 
+
 def zip_common_options(function):
     """zip option. even on cleanup which has no more."""
     function = click.option(

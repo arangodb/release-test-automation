@@ -7,10 +7,10 @@ from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium_ui_test.pages.nodes_page import NodesPage
 from selenium_ui_test.test_suites.base_test_suite import testcase
 
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite
+from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 
 
-class ClusterWaitForUpgradeTestSuite(BaseTestSuite):
+class ClusterWaitForUpgradeTestSuite(BaseSeleniumTestSuite):
     """test cases to check the integrity of the old system after the upgrade (Cluster)"""
 
     @testcase

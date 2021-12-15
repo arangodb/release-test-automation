@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """ database testsuite """
-from selenium_ui_test.pages.user_page import UserPage
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
 from selenium_ui_test.pages.database_page import DatabasePage
+from selenium_ui_test.pages.user_page import UserPage
+from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
+from selenium_ui_test.test_suites.base_test_suite import testcase
 
 
-class DatabaseTestSuite(BaseTestSuite):
-    """ database testsuite """
+class DatabaseTestSuite(BaseSeleniumTestSuite):
     @testcase
     def test_database(self):
         """testing database page"""

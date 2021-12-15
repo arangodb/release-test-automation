@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """ collection testsuite """
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
+from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
+from selenium_ui_test.test_suites.base_test_suite import testcase
+
 
 # from selenium_ui_test.models import IndexType
 from selenium_ui_test.pages.collection_page import CollectionPage
 
 
-class CollectionsTestSuite(BaseTestSuite):
-    """ collection testsuite """
-    # pylint: disable=too-many-statements
+class CollectionsTestSuite(BaseSeleniumTestSuite):
     @testcase
     def test_collection(self):
         """testing collection page"""

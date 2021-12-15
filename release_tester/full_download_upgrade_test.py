@@ -16,6 +16,7 @@ from beautifultable import BeautifulTable, ALIGN_LEFT
 import tools.loghelper as lh
 from download import Download
 from upgrade import run_upgrade
+from conflict_checking import run_conflict_tests
 from test import run_test
 from cleanup import run_cleanup
 from tools.killall import list_all_processes
@@ -244,16 +245,31 @@ def upgrade_package_test(
                 encryption_at_rest,
                 zip_package,
                 hot_backup,
-                False, # interactive_mode
+                False,  # interactive_mode
                 starter_mode,
                 False,  # stress_upgrade,
-                False, # abort_on_error
+                False,  # abort_on_error
                 publicip,
                 selenium,
                 selenium_driver_args,
                 testrun_name,
                 ssl,
                 use_auto_certs,
+            )
+        )
+
+    for enterprise in [True, False]:
+        results.append(
+            run_conflict_tests(
+                old_version=str(dl_old.cfg.version),
+                new_version=str(dl_new.cfg.version),
+                verbose=verbose,
+                package_dir=package_dir,
+                alluredir=alluredir,
+                clean_alluredir=clean_alluredir,
+                enterprise=enterprise,
+                zip_package=zip_package,
+                interactive=False,
             )
         )
 

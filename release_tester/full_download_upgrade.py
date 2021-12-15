@@ -14,6 +14,7 @@ from common_options import very_common_options, common_options, download_options
 from beautifultable import BeautifulTable, ALIGN_LEFT
 
 import tools.loghelper as lh
+from conflict_checking import run_conflict_tests
 from download import read_versions_tar, write_version_tar, Download, touch_all_tars_in_dir
 from upgrade import run_upgrade
 from cleanup import run_cleanup
@@ -175,6 +176,21 @@ def upgrade_package_test(
                 testrun_name,
                 ssl,
                 use_auto_certs,
+            )
+        )
+
+    for enterprise in [True, False]:
+        results.append(
+            run_conflict_tests(
+                old_version=str(dl_old.cfg.version),
+                new_version=str(dl_new.cfg.version),
+                verbose=verbose,
+                package_dir=package_dir,
+                alluredir=alluredir,
+                clean_alluredir=clean_alluredir,
+                enterprise=enterprise,
+                zip_package=zip_package,
+                interactive=False,
             )
         )
 

@@ -25,6 +25,7 @@ if test -n "$SOURCE"; then
 fi
 
 VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_tar_version.tar"
+PYTHONUNBUFFERED=1
 mkdir -p "${PACKAGE_CACHE}"
 mkdir -p test_dir
 mkdir -p allure-results

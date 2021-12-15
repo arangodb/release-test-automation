@@ -29,4 +29,3 @@ def ask_continue_or_exit(msg, interactive=True, default=True, status=1):
         print()
         print("Abort requested (default action)")
         raise Exception("must not continue from here - bye " + str(status))
-        # sys.exit(status)

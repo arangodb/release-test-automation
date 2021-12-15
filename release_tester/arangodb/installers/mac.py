@@ -202,17 +202,18 @@ class InstallerMac(InstallerBase):
         return False
 
     def start_service(self):
-        """ there is no system way, hence do it manual: """
+        """there is no system way, hence do it manual:"""
         if self.check_service_up():
             print("already running, doing nothing.")
-        arangod = self.cfg.real_sbin_dir / 'arangod'
+        arangod = self.cfg.real_sbin_dir / "arangod"
         system_cmd = [
             str(arangod),
-            '-c',
-            self.baseetcdir / 'arangod.conf',
-            '--daemon',
-            '--pid-file',
-            '/var/tmp/arangod.pid']
+            "-c",
+            self.baseetcdir / "arangod.conf",
+            "--daemon",
+            "--pid-file",
+            "/var/tmp/arangod.pid",
+        ]
         print("Launching: " + str(system_cmd))
         ret = psutil.Popen(system_cmd).wait()
         print("started system arangod: " + str(ret))
@@ -224,8 +225,8 @@ class InstallerMac(InstallerBase):
         self.instance.terminate_instance()
 
     @step
-    def upgrade_package(self, old_installer):
-        """ upgrade an existing installation. """
+    def upgrade_server_package(self, old_installer):
+    """ upgrade an existing installation. """
         os.environ["UPGRADE_DB"] = "Yes"
         self.instance = old_installer.instance
         self.stop_service()

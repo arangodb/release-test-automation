@@ -77,7 +77,7 @@ class InstallerW(InstallerBase):
         self.debug_package = None  # TODO
 
     @step
-    def upgrade_package(self, old_installer):
+    def upgrade_server_package(self, old_installer):
         self.backup_dirs_number_before_upgrade = self.count_backup_dirs()
         self.stop_service()
         cmd = [

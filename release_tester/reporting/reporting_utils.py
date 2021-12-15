@@ -123,12 +123,13 @@ class AllureTestSuiteContext:
         self,
         results_dir,
         clean,
-        enterprise,
-        zip_package,
-        new_version,
-        enc_at_rest,
+        enterprise=None,
+        zip_package=None,
+        new_version=None,
+        enc_at_rest=None,
         old_version=None,
         parent_test_suite_name=None,
+        auto_generate_parent_test_suite_name=True,
         suite_name=None,
         runner_type=None,
         installer_type=None,
@@ -193,7 +194,7 @@ class AllureTestSuiteContext:
                 self.test_suite_name = generate_suite_name()
             if parent_test_suite_name:
                 self.parent_test_suite_name = parent_test_suite_name
-            elif suite_name:
+            elif suite_name and auto_generate_parent_test_suite_name:
                 self.parent_test_suite_name = generate_suite_name()
             else:
                 self.parent_test_suite_name = None

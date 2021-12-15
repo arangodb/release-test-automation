@@ -121,14 +121,16 @@ class AllureListener:
             test_result.labels.append(label)
 
     @allure_commons.hookimpl
-    def stop_test(self, uuid, context):
+    def stop_test(self, uuid, context, exc_type, exc_val, exc_tb):
         """stop test"""
         test_result = self._cache.get(uuid)
         test_result.status = context.status
         if context.statusDetails:
             test_result.statusDetails = context.statusDetails
         test_result.stop = now()
-        # context.log_captor.save_logs()
+        if exc_type or exc_val or exc_tb:
+            test_result.status = get_status(exc_val)
+            test_result.statusDetails = get_status_details(exc_type, exc_val, exc_tb)
         for step in test_result.steps:
             if step.status == Status.FAILED:
                 test_result.status = Status.FAILED

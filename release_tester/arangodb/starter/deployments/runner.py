@@ -164,9 +164,11 @@ class Runner(ABC):
         self.old_installer = old_inst
         self.new_installer = new_inst
         self.backup_name = None
-        self.hot_backup = (cfg.hb_mode != HotBackupSetting.DISABLED and
-                           properties.supports_hotbackup and
-                           self.old_installer.supports_hot_backup())
+        self.hot_backup = (
+            cfg.hb_mode != HotBackupSetting.DISABLED
+            and properties.supports_hotbackup
+            and self.old_installer.supports_hot_backup()
+        )
         self.backup_instance_count = 3
         # starter instances that make_data wil run on
         # maybe it would be better to work directly on
@@ -317,19 +319,10 @@ class Runner(ABC):
                 False,
                 "UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),
             )
-            if self.cfg.debug_package_is_installed:
-                print("removing *old* debug package in advance")
-                self.old_installer.un_install_debug_package()
-
-            self.new_installer.upgrade_package(self.old_installer)
+            self.new_installer.upgrade_server_package(self.old_installer)
             lh.subsection("outputting version")
             self.new_installer.output_arangod_version()
             self.new_installer.get_starter_version()
-            # only install debug package for new package.
-            self.progress(True, "installing debug package:")
-            self.cfg.debug_package_is_installed = self.new_installer.install_debug_package()
-            if self.cfg.debug_package_is_installed:
-                self.new_installer.gdb_test()
             self.new_installer.stop_service()
             self.cfg.set_directories(self.new_installer.cfg)
             self.new_cfg.set_directories(self.new_installer.cfg)
@@ -482,10 +475,6 @@ class Runner(ABC):
             if not self.new_installer:
                 # only install debug package for new package.
                 self.progress(True, "installing debug package:")
-                self.cfg.debug_package_is_installed = inst.install_debug_package()
-                if self.cfg.debug_package_is_installed:
-                    self.progress(True, "testing debug symbols")
-                    inst.gdb_test()
 
         # start / stop
         if inst.check_service_up():
@@ -516,9 +505,6 @@ class Runner(ABC):
     def uninstall(self, inst):
         """uninstall the package from the system"""
         self.progress(True, "{0} - uninstall package".format(str(self.name)))
-        if self.cfg.debug_package_is_installed:
-            print("uninstalling debug package")
-            inst.un_install_debug_package()
         print("uninstalling server package")
         inst.un_install_server_package()
         inst.check_uninstall_cleanup()

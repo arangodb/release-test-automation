@@ -135,7 +135,7 @@ class InstallerTAR(InstallerBase):
         """nothing to see here"""
 
     @step
-    def upgrade_package(self, old_installer):
+    def upgrade_server_package(self, old_installer):
         """Tar installer is the same way we did for installing."""
         self.install_server_package()
 
@@ -144,11 +144,10 @@ class InstallerTAR(InstallerBase):
         logging.info("installing Arangodb " + self.installer_type + "server package")
         logging.debug("package dir: {0.cfg.package_dir}- " "server_package: {0.server_package}".format(self))
         if self.cfg.install_prefix.exists():
-            print("Flushing pre-existing installation directory: " +
-                  str(self.cfg.install_prefix))
+            print("Flushing pre-existing installation directory: " + str(self.cfg.install_prefix))
             shutil.rmtree(self.cfg.install_prefix)
             while self.cfg.install_prefix.exists():
-                print('.')
+                print(".")
                 time.sleep(1)
         else:
             self.cfg.install_prefix.mkdir(parents=True)
@@ -156,12 +155,7 @@ class InstallerTAR(InstallerBase):
         extract_to = self.cfg.install_prefix / ".."
         extract_to = extract_to.resolve()
 
-        print(
-            "extracting: "
-            + str(self.cfg.package_dir / self.server_package)
-            + " to "
-            + str(extract_to)
-        )
+        print("extracting: " + str(self.cfg.package_dir / self.server_package) + " to " + str(extract_to))
         shutil.unpack_archive(
             str(self.cfg.package_dir / self.server_package),
             str(extract_to),

@@ -292,8 +292,7 @@ class ActiveFailover(Runner):
 
         self.first_leader.terminate_instance(keep_instances=True)
         logging.info("relaunching agent!")
-        self.first_leader.manually_launch_instances(
-            [InstanceType.AGENT], [], False, False)
+        self.first_leader.manually_launch_instances([InstanceType.AGENT], [], False, False)
 
         logging.info("waiting for new leader...")
         self.new_leader = None
