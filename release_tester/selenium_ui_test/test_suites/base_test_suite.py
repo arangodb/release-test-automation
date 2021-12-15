@@ -1,28 +1,24 @@
 #!/usr/bin/env python3
 """ base class for all testsuites """
+
+import traceback
 from abc import ABC
 from datetime import datetime
-import logging
-import traceback
-
-from beautifultable import BeautifulTable
-from semver import VersionInfo
-
-import traceback
-from abc import ABC
+from allure_commons._allure import attach
 from allure_commons.model2 import Status, Label, StatusDetails
 from allure_commons.types import AttachmentType, LabelType
-from reporting.reporting_utils import AllureTestSuiteContext, RtaTestcase, attach_table
+from reporting.reporting_utils import AllureTestSuiteContext, RtaTestcase
+
+from semver import VersionInfo
 
 from selenium.common.exceptions import InvalidSessionIdException
 
-from selenium_ui_test.models import RtaUiTestResult
-from selenium_ui_test.pages.login_page import LoginPage
-from selenium_ui_test.pages.base_page import BasePage
 from selenium_ui_test.pages.navbar import NavigationBarPage
-
+from selenium_ui_test.models import RtaTestResult
 
 class BaseTestSuite(ABC):
+    """base class for testsuites"""
+    # pylint: disable=dangerous-default-value disable=too-many-instance-attributes
     def __init__(self, child_classes=[]):
         self.test_results = []
         self.child_classes = child_classes
@@ -36,6 +32,8 @@ class BaseTestSuite(ABC):
         self.new_version = None
         self.enc_at_rest = None
         self.old_version = None
+        self.webdriver = None
+        self.is_headless = False
         self.parent_test_suite_name = None
         self.auto_generate_parent_test_suite_name = None
         self.suite_name = None
@@ -44,10 +42,13 @@ class BaseTestSuite(ABC):
         self.ssl = None
         self.use_subsuite = True
 
+    # pylint: disable=no-self-use
     def init_child_class(self, child_class):
+        """initialise the child class"""
         return child_class()
 
     def run(self):
+        """execute the test"""
         self.setup_test_suite()
         for suite in self.children:
             self.test_results += suite.run()
@@ -88,7 +89,6 @@ class BaseTestSuite(ABC):
 
     def setup_test_suite(self):
         """prepare to run test suite"""
-        pass
 
     def tear_down_test_suite(self):
         """clean up after test suite"""
@@ -132,8 +132,7 @@ class BaseTestSuite(ABC):
         else:
             assert ver["enterprise"] == "COMMUNITY EDITION", "UI-Test: expected community"
 
-
-def testcase(title):
+def testcase(title=None, disable=False):
     """ base testcase class decorator """
     def decorator(func):
         def wrapper(self, *args, **kwargs):
@@ -141,35 +140,50 @@ def testcase(title):
             name = None
             success = None
             message = None
-            tb = None
+            traceback_instance = None
             if callable(title):
                 if title.__doc__:
                     name = title.__doc__
                 else:
                     name = title.__name__
             else:
-                name = title.__name__
-            sub_suite_name = self.__doc__ if self.__doc__ else self.__class__.__name__
-            with RtaTestcase(name, labels=[Label(name=LabelType.SUB_SUITE, value=sub_suite_name)]) as my_testcase:
-                try:
-                    print('Running test case "%s"...' % name)
-                    self.truncate_browser_log()
-                    func(*args, **kwargs)
-                    success = True
-                    print('Test case "%s" passed!' % name)
-                    my_testcase.context.status = Status.PASSED
-                except Exception as ex:
-                    success = False
-                    print("Test failed!")
-                    message = str(ex)
-                    traceback_instance = "".join(traceback.TracebackException.from_exception(ex).format())
-                    print(message)
-                    print(traceback_instance)
-                    my_testcase.context.status = Status.FAILED
-                    self.take_screenshot()
-                    self.save_browser_console_log()
-                    my_testcase.context.statusDetails = StatusDetails(message=message, trace=traceback_instance)
-                test_result = RtaUiTestResult(name, success, message, traceback_instance)
+                if isinstance(title, str):
+                    name = title
+                else:
+                    if func.__doc__:
+                        name = func.__doc__
+                    else:
+                        name = func.__name__
+            labels = []
+            if self.use_subsuite:
+                sub_suite_name = self.__doc__ if self.__doc__ else self.__class__.__name__
+                labels.append(Label(name=LabelType.SUB_SUITE, value=sub_suite_name))
+            with RtaTestcase(name, labels=labels) as my_testcase:
+                if disable:
+                    test_result = RtaTestResult(name, True, "test is skipped", None)
+                    my_testcase.context.status = Status.SKIPPED
+                    if isinstance(disable, str):
+                        my_testcase.context.statusDetails = StatusDetails(message=disable)
+                else:
+                    try:
+                        print('Running test case "%s"...' % name)
+                        func(*args, **kwargs)
+                        success = True
+                        print('Test case "%s" passed!' % name)
+                        my_testcase.context.status = Status.PASSED
+                    except Exception as ex:
+                        success = False
+                        print("Test failed!")
+                        message = str(ex)
+                        traceback_instance = "".join(traceback.TracebackException.from_exception(ex).format())
+                        print(message)
+                        print(traceback_instance)
+                        self.add_crash_data_to_report()
+                        my_testcase.context.status = Status.FAILED
+                        my_testcase.context.statusDetails = StatusDetails(message=message, trace=traceback_instance)
+                    finally:
+                        self.teardown_testcase()
+                    test_result = RtaTestResult(name, success, message, traceback_instance)
                 return test_result
 
         wrapper.is_testcase = True

@@ -262,7 +262,7 @@ class InstallerBase(ABC):
 
     def un_install_debug_package_impl(self):
         """ uninstall the debug package """
-         return False
+        return False
 
     def __repr__(self):
         return f"Installer type: {self.installer_type}\nServer package: {self.server_package}\nDebug package: {self.debug_package}\nClient package: {self.client_package}"
