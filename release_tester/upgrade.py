@@ -2,11 +2,12 @@
 
 """ Release testing script"""
 from pathlib import Path
+import platform
+import sys
 import traceback
 
-import sys
-import platform
 import click
+import semver
 from allure_commons.model2 import Status, StatusDetails
 
 from common_options import very_common_options, common_options
@@ -25,8 +26,7 @@ is_windows = platform.win32_ver()[0] != ""
 
 # pylint: disable=R0913 disable=R0914, disable=W0703, disable=R0912, disable=R0915
 def run_upgrade(
-    old_version,
-    new_version,
+    versions: list,
     verbose,
     package_dir,
     test_data_dir,
@@ -49,7 +49,7 @@ def run_upgrade(
     results = []
     for runner_type in STARTER_MODES[starter_mode]:
         installers = create_config_installer_set(
-            [old_version, new_version],
+            versions,
             verbose,
             zip_package,
             hot_backup,
@@ -67,17 +67,14 @@ def run_upgrade(
         with AllureTestSuiteContext(
             alluredir,
             clean_alluredir,
-            run_props.enterprise,
+            run_props,
             zip_package,
-            new_version,
-            run_props.encryption_at_rest,
-            old_version,
+            versions,
             None,
             True,
             runner_strings[runner_type],
             None,
             new_inst.installer_type,
-            run_props.ssl,
         ):
             with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
                 if (not run_props.enterprise or is_windows) and runner_type == RunnerType.DC2DC:
@@ -105,7 +102,7 @@ def run_upgrade(
                     """.format(
                             **{
                                 "starter_mode": str(starter_mode),
-                                "old_version": old_version,
+                                "old_version": str(versions[0]),
                                 "cfg_repr": repr(installers[1][0]),
                             }
                         )
@@ -229,8 +226,10 @@ def main(
     """ main trampoline """
     lh.configure_logging(verbose)
     results = run_upgrade(
-        old_version,
-        new_version,
+        [
+            semver.VersionInfo.parse(old_version),
+            semver.VersionInfo.parse(new_version)
+        ],
         verbose,
         package_dir,
         test_data_dir,

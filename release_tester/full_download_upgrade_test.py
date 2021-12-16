@@ -33,13 +33,6 @@ def set_r_limits():
 
         resource.setrlimit(resource.RLIMIT_CORE, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
 
-
-def workaround_nightly_versioning(ver):
-    """adjust package names of nightlies to be semver parseable"""
-    # return ver.replace("-nightly", ".9999999-nightly")
-    return ver
-
-
 # pylint: disable=R0913 disable=R0914 disable=R0912, disable=R0915
 def upgrade_package_test(
     verbose,
@@ -134,8 +127,8 @@ def upgrade_package_test(
             time.sleep(1)
         results.append(
             run_test(
-                starter_mode,
-                str(dl_new.cfg.version),
+                "all",
+                [dl_new.cfg.version],
                 verbose,
                 package_dir,
                 test_dir,
@@ -214,8 +207,10 @@ def upgrade_package_test(
             time.sleep(1)
         results.append(
             run_upgrade(
-                str(dl_old.cfg.version),
-                str(dl_new.cfg.version),
+                [
+                    dl_old.cfg.version,
+                    dl_new.cfg.version
+                ],
                 verbose,
                 package_dir,
                 test_dir,

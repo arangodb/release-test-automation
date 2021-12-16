@@ -32,12 +32,6 @@ def set_r_limits():
         resource.setrlimit(resource.RLIMIT_CORE, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
 
 
-def workaround_nightly_versioning(ver):
-    """adjust package names of nightlies to be semver parseable"""
-    # return ver.replace("-nightly", ".9999999-nightly")
-    return ver
-
-
 # pylint: disable=R0913 disable=R0914 disable=R0912, disable=R0915
 def package_test(
     verbose,
@@ -119,7 +113,7 @@ def package_test(
         results.append(
             run_test(
                 "all",
-                str(dl_new.cfg.version),
+                [dl_new.cfg.version],
                 verbose,
                 package_dir,
                 test_dir,
@@ -221,7 +215,7 @@ def main(
 
     return package_test(
         verbose,
-        workaround_nightly_versioning(new_version),
+        new_version,
         package_dir,
         enterprise_magic,
         zip_package,

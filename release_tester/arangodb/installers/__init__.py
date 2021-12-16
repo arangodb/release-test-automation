@@ -314,10 +314,10 @@ def create_config_installer_set(
     """creates sets of configs and installers"""
     # pylint: disable=R0902 disable=R0913
     res = []
-    for version in versions:
-        print(version)
+    for one_version in versions:
+        print(str(one_version))
         install_config = InstallerConfig(
-            version,
+            str(one_version),
             verbose,
             run_properties.enterprise,
             run_properties.encryption_at_rest,

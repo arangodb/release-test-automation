@@ -3,11 +3,12 @@
 """ Release testing script"""
 from pathlib import Path
 import platform
+import sys
 import traceback
 
-import sys
-import click
 from allure_commons.model2 import Status, StatusDetails
+import click
+import semver
 
 from common_options import very_common_options, common_options
 from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext
@@ -26,7 +27,7 @@ WINVER = platform.win32_ver()
 # fmt: off
 # pylint: disable=R0913 disable=R0914
 def run_test(mode,
-             new_version,
+             versions: list,
              verbose,
              package_dir,
              test_data_dir,
@@ -52,7 +53,7 @@ def run_test(mode,
     do_uninstall = mode in ["all", "uninstall"]
 
     installers = create_config_installer_set(
-        [new_version],
+        versions,
         verbose,
         zip_package,
         hot_backup,
@@ -78,17 +79,14 @@ def run_test(mode,
     for runner_type in STARTER_MODES[starter_mode]:
         with AllureTestSuiteContext(alluredir,
                                     clean_alluredir,
-                                    run_props.enterprise,
+                                    run_props,
                                     zip_package,
-                                    new_version,
-                                    run_props.encryption_at_rest,
-                                    None,
+                                    versions,
                                     True,
                                     None,
                                     runner_strings[runner_type],
                                     None,
-                                    installers[0][1].installer_type,
-                                    run_props.ssl):
+                                    installers[0][1].installer_type):
             with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
                 if (runner_type == RunnerType.DC2DC and
                     (not run_props.enterprise or WINVER[0] != "")):
@@ -192,7 +190,7 @@ def main(mode,
     """ main trampoline """
     lh.configure_logging(verbose)
     results = run_test(mode,
-                       new_version,
+                       [semver.VersionInfo.parse(new_version)],
                        verbose,
                        Path(package_dir),
                        Path(test_data_dir),
