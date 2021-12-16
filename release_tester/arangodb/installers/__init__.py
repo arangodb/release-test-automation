@@ -297,18 +297,32 @@ EXECUTION_PLAN = [
     RunProperties(False, False, False, "Community", "C"),
 ]
 
+class InstallerBaseConfig:
+    def __init__(self,
+                 verbose: bool,
+                 zip_package: bool,
+                 hot_backup: str,
+                 package_dir: Path,
+                 test_data_dir: Path,
+                 starter_mode: str,
+                 publicip: str,
+                 interactive: bool,
+                 stress_upgrade: bool):
+        self.verbose = verbose
+        self.zip_package = zip_package
+        self.hot_backup = hot_backup
+        self.package_dir = package_dir
+        self.test_data_dir = test_data_dir
+        self.starter_mode = starter_mode
+        self.publicip = publicip
+        self.interactive = interactive
+        self.stress_upgrade = stress_upgrade
+    
+
 # pylint: disable=too-many-locals
 def create_config_installer_set(
     versions: list,
-    verbose: bool,
-    zip_package: bool,
-    hot_backup: str,
-    package_dir: Path,
-    test_dir: Path,
-    mode: str,
-    publicip: str,
-    interactive: bool,
-    stress_upgrade: bool,
+    base_config: InstallerBaseConfig,
     run_properties: RunProperties
 ):
     """creates sets of configs and installers"""
@@ -318,17 +332,17 @@ def create_config_installer_set(
         print(str(one_version))
         install_config = InstallerConfig(
             str(one_version),
-            verbose,
+            base_config.verbose,
             run_properties.enterprise,
             run_properties.encryption_at_rest,
-            zip_package,
-            hot_backup,
-            package_dir,
-            test_dir,
-            mode,
-            publicip,
-            interactive,
-            stress_upgrade,
+            base_config.zip_package,
+            base_config.hot_backup,
+            base_config.package_dir,
+            base_config.test_data_dir,
+            base_config.starter_mode,
+            base_config.publicip,
+            base_config.interactive,
+            base_config.stress_upgrade,
             run_properties.ssl,
         )
         installer = make_installer(install_config)

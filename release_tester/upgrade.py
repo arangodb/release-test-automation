@@ -2,29 +2,14 @@
 
 """ Release testing script"""
 from pathlib import Path
-import platform
 import sys
-import traceback
 
 import click
 import semver
-from allure_commons.model2 import Status, StatusDetails
 
 from common_options import very_common_options, common_options
-from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext
-from tools.killall import kill_all_processes
-from arangodb.installers import create_config_installer_set, RunProperties
-from arangodb.starter.deployments import (
-    RunnerType,
-    make_runner,
-    runner_strings,
-    STARTER_MODES,
-)
-import tools.loghelper as lh
-
-is_windows = platform.win32_ver()[0] != ""
-
-
+from arangodb.installers import RunProperties
+from test_driver import TestDriver
 
 @click.command()
 # pylint: disable=R0913
@@ -42,16 +27,11 @@ def main(
         ssl, use_auto_certs):
     # fmt: on
     """ main trampoline """
-    lh.configure_logging(verbose)
-    results = run_upgrade(
-        [
-            semver.VersionInfo.parse(old_version),
-            semver.VersionInfo.parse(new_version)
-        ],
+    test_driver = TestDriver(
         verbose,
-        package_dir,
-        test_data_dir,
-        alluredir,
+        Path(package_dir),
+        Path(test_data_dir),
+        Path(alluredir),
         clean_alluredir,
         zip_package,
         hot_backup,
@@ -62,7 +42,13 @@ def main(
         publicip,
         selenium,
         selenium_driver_args,
-        use_auto_certs,
+        use_auto_certs)
+    test_driver.set_r_limits()
+    results = test_driver.run_upgrade(
+        [
+            semver.VersionInfo.parse(old_version),
+            semver.VersionInfo.parse(new_version)
+        ],
         RunProperties(enterprise,
                       encryption_at_rest,
                       ssl))

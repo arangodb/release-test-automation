@@ -1,12 +1,7 @@
 #!/usr/bin/python3
 """ fetch nightly packages, process upgrade """
 from pathlib import Path
-
-import os
 import sys
-
-import shutil
-import time
 
 import click
 from common_options import very_common_options, common_options, download_options, full_common_options
@@ -15,55 +10,33 @@ from beautifultable import BeautifulTable, ALIGN_LEFT
 
 import tools.loghelper as lh
 from download import read_versions_tar, write_version_tar, Download, touch_all_tars_in_dir
-from test import run_test
-from cleanup import run_cleanup
+
+from test_driver import TestDriver
 from tools.killall import list_all_processes
 
 from arangodb.installers import EXECUTION_PLAN
 
-def set_r_limits():
-    """on linux manipulate ulimit values"""
-    # pylint: disable=C0415
-    import platform
-
-    if not platform.win32_ver()[0]:
-        import resource
-
-        resource.setrlimit(resource.RLIMIT_CORE, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
-
-
 # pylint: disable=R0913 disable=R0914 disable=R0912, disable=R0915
 def package_test(
-    verbose,
     new_version,
-    package_dir,
     enterprise_magic,
-    zip_package,
-    hot_backup,
     new_dlstage,
     git_version,
     httpusername,
     httppassvoid,
-    test_data_dir,
     version_state_tar,
     remote_host,
     force,
-    starter_mode,
     editions,
-    publicip,
-    selenium,
-    selenium_driver_args,
-    alluredir,
-    clean_alluredir,
-    use_auto_certs,
+    test_driver
 ):
     """process fetch & tests"""
 
-    set_r_limits()
+    test_driver.set_r_limits()
 
-    lh.configure_logging(verbose)
+    lh.configure_logging(test_driver.base_config.verbose)
     list_all_processes()
-    os.chdir(test_data_dir)
+    test_dir = test_driver.base_config.test_data_dir
 
     versions = {}
     fresh_versions = {}
@@ -73,7 +46,7 @@ def package_test(
     results = []
     # do the actual work:
     for props in EXECUTION_PLAN:
-        run_cleanup(zip_package, props)
+        test_driver.run_cleanup(props)
 
     print("Cleanup done")
 
@@ -82,12 +55,12 @@ def package_test(
             continue
         dl_new = Download(
             new_version,
-            verbose,
-            package_dir,
+            test_driver.verbose,
+            test_driver.package_dir,
             props.enterprise,
             enterprise_magic,
-            zip_package,
-            hot_backup,
+            test_driver.base_config.zip_package,
+            test_driver.base_config.hot_backup,
             new_dlstage,
             httpusername,
             httppassvoid,
@@ -99,35 +72,16 @@ def package_test(
 
         if not dl_new.is_different() and not force:
             print("we already tested this version. bye.")
-            return 0
+            sys.exit(0)
         dl_new.get_packages(dl_new.is_different())
 
-        test_dir = Path(test_data_dir) / props.directory_suffix
-        if test_dir.exists():
-            shutil.rmtree(test_dir)
-            if "REQUESTS_CA_BUNDLE" in os.environ:
-                del os.environ["REQUESTS_CA_BUNDLE"]
-        test_dir.mkdir()
-        while not test_dir.exists():
-            time.sleep(1)
+        this_test_dir = test_dir / props.directory_suffix
+        test_driver.reset_test_data_dir(this_test_dir)
+
         results.append(
-            run_test(
+            test_driver.run_test(
                 "all",
                 [dl_new.cfg.version],
-                verbose,
-                package_dir,
-                test_dir,
-                alluredir,
-                clean_alluredir,
-                zip_package,
-                hot_backup,
-                False,  # interactive
-                starter_mode,
-                False,  # abort_on_error
-                publicip,
-                selenium,
-                selenium_driver_args,
-                use_auto_certs,
                 props
             )
         )
@@ -213,29 +167,35 @@ def main(
 # fmt: on
     """ main """
 
-    return package_test(
+    test_driver = TestDriver(
         verbose,
-        new_version,
-        package_dir,
-        enterprise_magic,
+        Path(package_dir),
+        Path(test_data_dir),
+        Path(alluredir),
+        clean_alluredir,
         zip_package,
         hot_backup,
+        False,  # interactive
+        starter_mode,
+        False,  # stress_upgrade,
+        False,  # abort_on_error
+        publicip,
+        selenium,
+        selenium_driver_args,
+        use_auto_certs)
+
+    return package_test(
+        new_version,
+        enterprise_magic,
         new_source,
         git_version,
         httpuser,
         httppassvoid,
-        test_data_dir,
         Path(version_state_tar),
         remote_host,
         force,
-        starter_mode,
         editions,
-        publicip,
-        selenium,
-        selenium_driver_args,
-        alluredir,
-        clean_alluredir,
-        use_auto_certs,
+        test_driver
     )
 
 

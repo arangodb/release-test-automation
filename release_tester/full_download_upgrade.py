@@ -1,12 +1,7 @@
 #!/usr/bin/python3
 """ fetch nightly packages, process upgrade """
 from pathlib import Path
-
-import os
 import sys
-
-import shutil
-import time
 
 import click
 from common_options import very_common_options, common_options, download_options, full_common_options
@@ -16,57 +11,34 @@ from beautifultable import BeautifulTable, ALIGN_LEFT
 import tools.loghelper as lh
 from conflict_checking import run_conflict_tests
 from download import read_versions_tar, write_version_tar, Download, touch_all_tars_in_dir
-from upgrade import run_upgrade
-from cleanup import run_cleanup
+from test_driver import TestDriver
 from tools.killall import list_all_processes
 
 from arangodb.installers import EXECUTION_PLAN
 
-def set_r_limits():
-    """on linux manipulate ulimit values"""
-    # pylint: disable=C0415
-    import platform
-
-    if not platform.win32_ver()[0]:
-        import resource
-
-        resource.setrlimit(resource.RLIMIT_CORE, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
-
 # pylint: disable=R0913 disable=R0914 disable=R0912, disable=R0915
 def upgrade_package_test(
-    verbose,
     new_version,
     old_version,
-    package_dir,
     enterprise_magic,
-    zip_package,
-    hot_backup,
     new_dlstage,
     old_dlstage,
     git_version,
     httpusername,
     httppassvoid,
-    test_data_dir,
     version_state_tar,
     remote_host,
     force,
-    starter_mode,
     editions,
-    stress_upgrade,
-    publicip,
-    selenium,
-    selenium_driver_args,
-    alluredir,
-    clean_alluredir,
-    use_auto_certs,
+    test_driver
 ):
     """process fetch & tests"""
 
-    set_r_limits()
+    test_driver.set_r_limits()
 
-    lh.configure_logging(verbose)
+    lh.configure_logging(test_driver.base_config.verbose)
     list_all_processes()
-    os.chdir(test_data_dir)
+    test_dir = test_driver.base_config.test_data_dir
 
     versions = {}
     fresh_versions = {}
@@ -77,7 +49,7 @@ def upgrade_package_test(
     # do the actual work:
     for props in EXECUTION_PLAN:
         print("Cleaning up" + props.testrun_name)
-        run_cleanup(zip_package, props)
+        test_driver.run_cleanup(props)
     print("Cleanup done")
 
     for props in EXECUTION_PLAN:
@@ -86,12 +58,12 @@ def upgrade_package_test(
         # pylint: disable=W0612
         dl_old = Download(
             old_version,
-            verbose,
-            package_dir,
+            test_driver.base_config.verbose,
+            test_driver.base_config.package_dir,
             props.enterprise,
             enterprise_magic,
-            zip_package,
-            hot_backup,
+            test_driver.base_config.zip_package,
+            test_driver.base_config.hot_backup,
             old_dlstage,
             httpusername,
             httppassvoid,
@@ -102,12 +74,12 @@ def upgrade_package_test(
         )
         dl_new = Download(
             new_version,
-            verbose,
-            package_dir,
+            test_driver.base_config.verbose,
+            test_driver.base_config.package_dir,
             props.enterprise,
             enterprise_magic,
-            zip_package,
-            hot_backup,
+            test_driver.base_config.zip_package,
+            test_driver.base_config.hot_backup,
             new_dlstage,
             httpusername,
             httppassvoid,
@@ -121,50 +93,31 @@ def upgrade_package_test(
             return 0
         dl_old.get_packages(dl_old.is_different())
         dl_new.get_packages(dl_new.is_different())
-        test_dir = Path(test_data_dir) / props.directory_suffix
-        if test_dir.exists():
-            shutil.rmtree(test_dir)
-            if "REQUESTS_CA_BUNDLE" in os.environ:
-                del os.environ["REQUESTS_CA_BUNDLE"]
-        test_dir.mkdir()
-        while not test_dir.exists():
-            time.sleep(1)
+
+        this_test_dir = test_dir / props.directory_suffix
+        test_driver.reset_test_data_dir(this_test_dir)
+
         results.append(
-            run_upgrade(
+            test_driver.run_upgrade(
                 [
                     dl_old.cfg.version,
                     dl_new.cfg.version
                 ],
-                verbose,
-                package_dir,
-                test_dir,
-                alluredir,
-                clean_alluredir,
-                zip_package,
-                hot_backup,
-                False,  # interactive
-                starter_mode,
-                stress_upgrade,
-                False,  # abort on error
-                publicip,
-                selenium,
-                selenium_driver_args,
-                use_auto_certs,
                 props
             )
         )
 
-    for enterprise in [True, False]:
+    for use_enterprise in [True, False]:
         results.append(
             run_conflict_tests(
                 old_version=str(dl_old.cfg.version),
                 new_version=str(dl_new.cfg.version),
-                verbose=verbose,
-                package_dir=package_dir,
-                alluredir=alluredir,
-                clean_alluredir=clean_alluredir,
-                enterprise=enterprise,
-                zip_package=zip_package,
+                verbose=test_driver.base_config.verbose,
+                package_dir=test_driver.base_config.package_dir,
+                alluredir=test_driver.alluredir,
+                clean_alluredir=test_driver.clean_alluredir,
+                enterprise=use_enterprise,
+                zip_package=test_driver.zip_package,
                 interactive=False,
             )
         )
@@ -251,32 +204,37 @@ def main(
 # fmt: on
     """ main """
 
-    return upgrade_package_test(
+    test_driver = TestDriver(
         verbose,
-        new_version,
-        old_version,
-        package_dir,
-        enterprise_magic,
+        Path(package_dir),
+        Path(test_data_dir),
+        Path(alluredir),
+        clean_alluredir,
         zip_package,
         hot_backup,
+        False,  # interactive
+        starter_mode,
+        stress_upgrade,
+        False,  # abort_on_error
+        publicip,
+        selenium,
+        selenium_driver_args,
+        use_auto_certs)
+
+    return upgrade_package_test(
+        new_version,
+        old_version,
+        enterprise_magic,
         new_source,
         old_source,
         git_version,
         httpuser,
         httppassvoid,
-        test_data_dir,
         Path(version_state_tar),
         remote_host,
         force,
-        starter_mode,
         editions,
-        stress_upgrade,
-        publicip,
-        selenium,
-        selenium_driver_args,
-        alluredir,
-        clean_alluredir,
-        use_auto_certs,
+        test_driver
     )
 
 
