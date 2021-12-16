@@ -84,7 +84,7 @@ def upgrade_package_test(
     # do the actual work:
     for props in EXECUTION_PLAN:
         print("Cleaning up" + props.testrun_name)
-        run_cleanup(zip_package, props.testrun_name)
+        run_cleanup(zip_package, props)
     print("Cleanup done")
 
     for props in EXECUTION_PLAN:

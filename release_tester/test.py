@@ -54,8 +54,6 @@ def run_test(mode,
     installers = create_config_installer_set(
         [new_version],
         verbose,
-        run_props.enterprise,
-        run_props.encryption_at_rest,
         zip_package,
         hot_backup,
         Path(package_dir),
@@ -64,7 +62,7 @@ def run_test(mode,
         publicip,
         interactive,
         False,
-        run_props.ssl
+        run_props
     )
     lh.section("configuration")
     print(
@@ -104,7 +102,7 @@ def run_test(mode,
                     selenium,
                     selenium_driver_args,
                     installers,
-                    ssl=run_props.ssl,
+                    run_props,
                     use_auto_certs=use_auto_certs,
                 )
                 # install on first run:
@@ -209,6 +207,7 @@ def main(mode,
                        selenium,
                        selenium_driver_args,
                        use_auto_certs,
+                       # pylint: disable=too-many-function-args
                        RunProperties(enterprise,
                                      encryption_at_rest,
                                      ssl))

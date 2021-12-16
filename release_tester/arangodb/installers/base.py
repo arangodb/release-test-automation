@@ -368,14 +368,14 @@ class InstallerBase(ABC):
             except PermissionError:
                 print("Ignoring non deleteable " + str(cfg_file))
                 return
-        cfg_file.write_text(yaml.dump(self.cfg))
+        cfg_file.write_text(yaml.dump(self.cfg), encoding='utf8')
         self.cfg.semver = semver.VersionInfo.parse(self.cfg.version)
 
     @step
     def load_config(self):
         """deserialize the config from disk"""
         verbose = self.cfg.verbose
-        with open(self.calc_config_file_name()) as fileh:
+        with open(self.calc_config_file_name(), encoding='utf8') as fileh:
             print("loading " + str(self.calc_config_file_name()))
             self.cfg.set_from(yaml.load(fileh, Loader=yaml.Loader))
         self.cfg.semver = semver.VersionInfo.parse(self.cfg.version)

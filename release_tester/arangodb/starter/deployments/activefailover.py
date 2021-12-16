@@ -125,7 +125,7 @@ class ActiveFailover(Runner):
                         InstanceType.AGENT,
                         InstanceType.RESILIENT_SINGLE,
                     ],
-                    jwtStr="afo",
+                    jwt_str="afo",
                     moreopts=opts,
                 )
             )

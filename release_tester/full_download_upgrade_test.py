@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 """ fetch nightly packages, process upgrade """
 from pathlib import Path
-
+from copy import copy
 import os
 import sys
 
@@ -97,8 +97,12 @@ def upgrade_package_test(
             old_dlstages.append(other_source)
             new_dlstages.append(primary_dlstage)
 
-    for props in EXECUTION_PLAN:
-        run_cleanup(zip_package, "test_" + props.testrun_name)
+    for default_props in EXECUTION_PLAN:
+        props = copy(default_props)
+        props.testrun_name = "test_" + props.testrun_name
+        props.directory_suffix = props.directory_suffix + "_t"
+
+        run_cleanup(zip_package, props)
         print("Cleanup done")
         if props.directory_suffix not in editions:
             continue
@@ -120,7 +124,7 @@ def upgrade_package_test(
             git_version,
         )
         dl_new.get_packages(force)
-        test_dir = Path(test_data_dir) / (props.directory_suffix + "_t")
+        test_dir = Path(test_data_dir) / (props.directory_suffix)
         if test_dir.exists():
             shutil.rmtree(test_dir)
             if "REQUESTS_CA_BUNDLE" in os.environ:
@@ -153,7 +157,7 @@ def upgrade_package_test(
     for j in range(len(new_versions)):
         for props in EXECUTION_PLAN:
             print("Cleaning up" + props.testrun_name)
-            run_cleanup(zip_package, props.testrun_name)
+            run_cleanup(zip_package, props)
         print("Cleanup done")
 
     # Configure Chrome to accept self-signed SSL certs and certs signed by unknown CA.

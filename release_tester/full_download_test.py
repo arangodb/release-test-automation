@@ -79,7 +79,7 @@ def package_test(
     results = []
     # do the actual work:
     for props in EXECUTION_PLAN:
-        run_cleanup(zip_package, props.testrun_name)
+        run_cleanup(zip_package, props)
 
     print("Cleanup done")
 

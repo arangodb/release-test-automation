@@ -51,8 +51,6 @@ def run_upgrade(
         installers = create_config_installer_set(
             [old_version, new_version],
             verbose,
-            run_props.enterprise,
-            run_props.encryption_at_rest,
             zip_package,
             hot_backup,
             Path(package_dir),
@@ -61,7 +59,7 @@ def run_upgrade(
             publicip,
             interactive,
             stress_upgrade,
-            run_props.ssl,
+            run_props,
         )
         old_inst = installers[0][1]
         new_inst = installers[1][1]
@@ -119,8 +117,7 @@ def run_upgrade(
                             selenium,
                             selenium_driver_args,
                             installers,
-                            run_props.testrun_name,
-                            ssl=run_props.ssl,
+                            run_props,
                             use_auto_certs=use_auto_certs,
                         )
                         if runner:

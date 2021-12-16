@@ -3,7 +3,7 @@ from pathlib import Path
 
 from allure_commons._allure import attach
 
-from arangodb.installers import create_config_installer_set
+from arangodb.installers import create_config_installer_set, RunProperties
 from reporting.reporting_utils import step
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite
 
@@ -34,14 +34,11 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
         self.suite_name = None
         self.runner_type = None
         self.installer_type = None
-        self.ssl = None
         self.use_subsuite = False
         self.installers = {}
         self.installers["community"] = create_config_installer_set(
             versions=[old_version, new_version],
             verbose=verbose,
-            enterprise=False,
-            encryption_at_rest=False,
             zip_package=zip_package,
             package_dir=Path(package_dir),
             test_dir=None,
@@ -49,14 +46,14 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
             publicip="127.0.0.1",
             interactive=interactive,
             stress_upgrade=False,
-            ssl=False,
             hot_backup="disabled",
+            RunProperties(enterprise=False,
+                          encryption_at_rest=False,
+                          ssl=False)
         )
         self.installers["enterprise"] = create_config_installer_set(
             versions=[old_version, new_version],
             verbose=verbose,
-            enterprise=True,
-            encryption_at_rest=False,
             zip_package=zip_package,
             package_dir=Path(package_dir),
             test_dir=None,
@@ -64,8 +61,10 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
             publicip="127.0.0.1",
             interactive=interactive,
             stress_upgrade=False,
-            ssl=False,
             hot_backup="disabled",
+            RunProperties(enterprise=True,
+                          encryption_at_rest=False,
+                          ssl=False)
         )
         self.old_inst_e = self.installers["enterprise"][0][1]
         self.new_inst_e = self.installers["enterprise"][1][1]

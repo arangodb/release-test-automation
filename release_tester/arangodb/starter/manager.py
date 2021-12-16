@@ -54,7 +54,7 @@ class StarterManager:
         expect_instances,
         mode=None,
         port=None,
-        jwtStr=None,
+        jwt_str=None,
         moreopts=[],
     ):
         self.expect_instances = expect_instances
@@ -100,9 +100,9 @@ class StarterManager:
         self.jwtfile = None
         self.jwt_header = None
         self.jwt_tokens = dict()
-        if jwtStr:
+        if jwt_str:
             self.jwtfile = Path(str(self.basedir) + "_jwt")
-            self.jwtfile.write_text(jwtStr)
+            self.jwtfile.write_text(jwt_str)
             self.moreopts += ["--auth.jwt-secret", str(self.jwtfile)]
             self.get_jwt_header()
 
@@ -1086,7 +1086,7 @@ class StarterNonManager(StarterManager):
         expect_instances,
         mode=None,
         port=None,
-        jwtStr=None,
+        jwt_str=None,
         moreopts=[],
     ):
 
@@ -1097,7 +1097,7 @@ class StarterNonManager(StarterManager):
             expect_instances,
             mode,
             port,
-            jwtStr,
+            jwt_str,
             moreopts,
         )
 

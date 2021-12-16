@@ -6,19 +6,17 @@ import click
 import tools.loghelper as lh
 from common_options import zip_common_options
 from tools.killall import kill_all_processes
-from arangodb.installers import create_config_installer_set
+from arangodb.installers import create_config_installer_set, RunProperties
 
 from arangodb.starter.deployments import RunnerType, make_runner
 
 # pylint: disable=W0703
-def run_cleanup(zip_package, testrun_name: str = ""):
+def run_cleanup(zip_package, run_properties: RunProperties):
     """main"""
 
     installer_set = create_config_installer_set(
         ["3.3.3"],
         True,
-        False,
-        False,
         zip_package,
         "disabled",
         Path("/tmp/"),
@@ -27,7 +25,7 @@ def run_cleanup(zip_package, testrun_name: str = ""):
         "",
         False,
         False,
-        False,
+        run_properties
     )
     inst = installer_set[0][1]
     if inst.calc_config_file_name().is_file():
@@ -45,7 +43,7 @@ def run_cleanup(zip_package, testrun_name: str = ""):
     ]
     for runner_type in starter_mode:
         assert runner_type
-        runner = make_runner(runner_type, False, "none", [], installer_set, testrun_name)
+        runner = make_runner(runner_type, False, "", [], installer_set, run_properties)
         runner.cleanup()
     if inst.calc_config_file_name().is_file():
         try:
@@ -67,7 +65,7 @@ def run_cleanup(zip_package, testrun_name: str = ""):
 def run_test(zip_package):
     """Wrapper..."""
     lh.configure_logging(True)
-    return run_cleanup(zip_package)
+    return run_cleanup(zip_package, RunProperties(False, False, False))
 
 
 if __name__ == "__main__":
