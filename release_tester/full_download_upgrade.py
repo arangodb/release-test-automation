@@ -145,8 +145,6 @@ def upgrade_package_test(
                 test_dir,
                 alluredir,
                 clean_alluredir,
-                #enterprise,
-                #encryption_at_rest,
                 zip_package,
                 hot_backup,
                 False,  # interactive
@@ -156,8 +154,6 @@ def upgrade_package_test(
                 publicip,
                 selenium,
                 selenium_driver_args,
-                #testrun_name,
-                #ssl,
                 use_auto_certs,
                 props
             )
