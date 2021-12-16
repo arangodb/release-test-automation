@@ -4,7 +4,7 @@ from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTe
 from selenium_ui_test.test_suites.base_test_suite import testcase
 from selenium_ui_test.pages.query_page import QueryPage
 from selenium_ui_test.pages.graph_page import GraphPage
-from selenium_ui_test.pages.graph_page import GraphExample, get_graph_name
+from selenium_ui_test.pages.graph_page import GraphExample, get_graph
 
 
 class QueryTestSuite(BaseSeleniumTestSuite):
@@ -51,7 +51,7 @@ class QueryTestSuite(BaseSeleniumTestSuite):
         graph = GraphExample.WORLD
         query_page.navbar_goto("graphs")
         self.webdriver.refresh()
-        print("Creating '%s' Graph" % get_graph_name(graph))
+        print("Creating '%s' Graph" % get_graph(graph).get_name())
         graph_page.create_graph(graph, self.importer, self.test_data_dir)
         graph_page.check_required_collections(graph)
         query_page.world_country_graph_query()
@@ -63,7 +63,7 @@ class QueryTestSuite(BaseSeleniumTestSuite):
         graph = GraphExample.K_SHORTEST_PATH
         query_page.navbar_goto("graphs")
         self.webdriver.refresh()
-        print("Creating '%s' Graph" % get_graph_name(graph))
+        print("Creating '%s' Graph" % get_graph(graph).get_name())
         graph_page.create_graph(graph, self.importer, self.test_data_dir)
         graph_page.check_required_collections(graph)
         query_page.k_shortest_paths_graph_query()
@@ -75,7 +75,7 @@ class QueryTestSuite(BaseSeleniumTestSuite):
         graph = GraphExample.CITY
         graph_page.navbar_goto("graphs")
         self.webdriver.refresh()
-        print("Creating '%s' Graph" % get_graph_name(graph))
+        print("Creating '%s' Graph" % get_graph(graph).get_name())
         graph_page.create_graph(graph, self.importer, self.test_data_dir)
         graph_page.check_required_collections(graph)
         print("Executing City Graph query \n")

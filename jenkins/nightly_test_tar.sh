@@ -72,6 +72,9 @@ docker run \
           --verbose \
           --alluredir /home/allure-results \
           --git-version "$GIT_VERSION" \
+          --selenium Chrome \
+          --selenium-driver-args headless \
+          --selenium-driver-args no-sandbox \
           "${force_arg[@]}" \
           "${@}"
 result=$?
