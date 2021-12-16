@@ -43,7 +43,7 @@ def run_cleanup(zip_package, run_properties: RunProperties):
     ]
     for runner_type in starter_mode:
         assert runner_type
-        runner = make_runner(runner_type, False, "", [], installer_set, run_properties)
+        runner = make_runner(runner_type, False, "none", [], installer_set, run_properties)
         runner.cleanup()
     if inst.calc_config_file_name().is_file():
         try:
