@@ -12,7 +12,7 @@ from allure_commons.model2 import Status, StatusDetails
 from common_options import very_common_options, common_options
 from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext
 from tools.killall import kill_all_processes
-from arangodb.installers import create_config_installer_set
+from arangodb.installers import create_config_installer_set, RunProperties
 from arangodb.starter.deployments import (
     RunnerType,
     make_runner,
@@ -32,8 +32,6 @@ def run_upgrade(
     test_data_dir,
     alluredir,
     clean_alluredir,
-    enterprise,
-    encryption_at_rest,
     zip_package,
     hot_backup,
     interactive,
@@ -43,9 +41,8 @@ def run_upgrade(
     publicip,
     selenium,
     selenium_driver_args,
-    testrun_name,
-    ssl,
     use_auto_certs,
+    run_props: RunProperties
 ):
     """execute upgrade tests"""
     lh.section("startup")
@@ -54,8 +51,8 @@ def run_upgrade(
         installers = create_config_installer_set(
             [old_version, new_version],
             verbose,
-            enterprise,
-            encryption_at_rest,
+            run_props.enterprise,
+            run_props.encryption_at_rest,
             zip_package,
             hot_backup,
             Path(package_dir),
@@ -64,7 +61,7 @@ def run_upgrade(
             publicip,
             interactive,
             stress_upgrade,
-            ssl,
+            run_props.ssl,
         )
         old_inst = installers[0][1]
         new_inst = installers[1][1]
@@ -72,27 +69,27 @@ def run_upgrade(
         with AllureTestSuiteContext(
             alluredir,
             clean_alluredir,
-            enterprise,
+            run_props.enterprise,
             zip_package,
             new_version,
-            encryption_at_rest,
+            run_props.encryption_at_rest,
             old_version,
             None,
             True,
             runner_strings[runner_type],
             None,
             new_inst.installer_type,
-            ssl,
+            run_props.ssl,
         ):
             with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
-                if (not enterprise or is_windows) and runner_type == RunnerType.DC2DC:
+                if (not run_props.enterprise or is_windows) and runner_type == RunnerType.DC2DC:
                     testcase.context.status = Status.SKIPPED
                     testcase.context.statusDetails = StatusDetails(
                         message="DC2DC is not applicable to Community packages."
                     )
                     continue
                 one_result = {
-                    "testrun name": testrun_name,
+                    "testrun name": run_props.testrun_name,
                     "testscenario": runner_strings[runner_type],
                     "success": True,
                     "messages": [],
@@ -122,8 +119,8 @@ def run_upgrade(
                             selenium,
                             selenium_driver_args,
                             installers,
-                            testrun_name,
-                            ssl=ssl,
+                            run_props.testrun_name,
+                            ssl=run_props.ssl,
                             use_auto_certs=use_auto_certs,
                         )
                         if runner:
@@ -242,8 +239,6 @@ def main(
         test_data_dir,
         alluredir,
         clean_alluredir,
-        enterprise,
-        encryption_at_rest,
         zip_package,
         hot_backup,
         interactive,
@@ -253,10 +248,10 @@ def main(
         publicip,
         selenium,
         selenium_driver_args,
-        "",
-        ssl,
         use_auto_certs,
-    )
+        RunProperties(enterprise,
+                      encryption_at_rest,
+                      ssl))
     print("V" * 80)
     status = True
     for one_result in results:

@@ -274,6 +274,29 @@ def make_installer(install_config: InstallerConfig):
     raise Exception("unsupported os" + platform.system())
 
 
+
+class RunProperties:
+    """bearer class for run properties"""
+    def __init__(self,
+                 enterprise: bool,
+                 encryption_at_rest: bool,
+                 ssl: bool,
+                 testrun_name: str = "",
+                 directory_suffix: str = ""):
+        """set the values for this testrun"""
+        self.enterprise = enterprise
+        self.encryption_at_rest = encryption_at_rest
+        self.ssl = ssl
+        self.testrun_name = testrun_name
+        self.directory_suffix = directory_suffix
+
+# pylint: disable=too-many-function-args
+EXECUTION_PLAN = [
+    RunProperties(True, True, True, "Enterprise\nEnc@REST", "EE"),
+    RunProperties(True, False, False, "Enterprise", "EP"),
+    RunProperties(False, False, False, "Community", "C"),
+]
+
 # pylint: disable=too-many-locals
 def create_config_installer_set(
     versions: list,

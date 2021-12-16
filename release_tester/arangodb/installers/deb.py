@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """ run an installer for the debian based operating system """
-import sys
 import time
 import os
+import sys
 import re
 import shutil
 import logging
@@ -127,12 +127,12 @@ class InstallerDeb(InstallerLinux):
                     ascii_print(server_upgrade.before)
                     server_upgrade.sendline("Y")
                     # fallthrough - repeat.
-            except pexpect.exceptions.EOF:
+            except pexpect.exceptions.EOF as ex:
                 logging.info("X" * 80)
                 ascii_print(server_upgrade.before)
                 logging.info("X" * 80)
                 logging.info("[E] Upgrade failed!")
-                raise Exception("Upgrade failed!")
+                raise Exception("Upgrade failed!") from ex
         try:
             logging.info("waiting for the upgrade to finish")
             server_upgrade.expect(pexpect.EOF, timeout=30)
@@ -186,12 +186,12 @@ class InstallerDeb(InstallerLinux):
             server_install.expect("Backup database files before upgrading")
             ascii_print(server_install.before)
             server_install.sendline("yes")
-        except pexpect.exceptions.EOF:
+        except pexpect.exceptions.EOF as ex:
             lh.line("X")
             ascii_print(server_install.before)
             lh.line("X")
             logging.error("Installation failed!")
-            raise Exception("Installation failed!")
+            raise Exception("Installation failed!") from ex
         try:
             logging.info("waiting for the installation to finish")
             server_install.expect(pexpect.EOF, timeout=30)
