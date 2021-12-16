@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """ inbetween class for linux specific utilities - GDB tests. """
 import logging
-import sys
 import time
 
 from reporting.reporting_utils import step

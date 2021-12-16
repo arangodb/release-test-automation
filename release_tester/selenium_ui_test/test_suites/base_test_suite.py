@@ -3,18 +3,13 @@
 
 import traceback
 from abc import ABC
-from datetime import datetime
-from allure_commons._allure import attach
+
 from allure_commons.model2 import Status, Label, StatusDetails
-from allure_commons.types import AttachmentType, LabelType
+from allure_commons.types import LabelType
+
 from reporting.reporting_utils import AllureTestSuiteContext, RtaTestcase
-
-from semver import VersionInfo
-
-from selenium.common.exceptions import InvalidSessionIdException
-
-from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium_ui_test.models import RtaTestResult
+
 
 class BaseTestSuite(ABC):
     """base class for testsuites"""
@@ -32,8 +27,6 @@ class BaseTestSuite(ABC):
         self.new_version = None
         self.enc_at_rest = None
         self.old_version = None
-        self.webdriver = None
-        self.is_headless = False
         self.parent_test_suite_name = None
         self.auto_generate_parent_test_suite_name = None
         self.suite_name = None
@@ -89,48 +82,31 @@ class BaseTestSuite(ABC):
 
     def setup_test_suite(self):
         """prepare to run test suite"""
+        pass
 
     def tear_down_test_suite(self):
         """clean up after test suite"""
-        self.webdriver.delete_all_cookies()
+        pass
 
-    # pylint: disable=no-self-use
-    def progress(self, arg):
-        """state print""" # todo
-        print(arg)
+    def setup_testcase(self):
+        """prepare to run test case"""
+        pass
 
-    def take_screenshot(self):
-        """*snap*"""
-        # pylint: disable=broad-except
-        filename = datetime.now().strftime("%d-%m-%Y_%H:%M:%S.%f") + ".png"
-        self.progress("Taking screenshot from: %s " % self.webdriver.current_url)
-        try:
-            if self.is_headless:
-                self.progress("taking full screenshot")
-                elmnt = self.webdriver.find_element_by_tag_name("body")
-                screenshot = elmnt.screenshot_as_png()
-            else:
-                self.progress("taking screenshot")
-                screenshot = self.webdriver.get_screenshot_as_png()
-        except InvalidSessionIdException:
-            self.progress("Fatal: webdriver not connected!")
-        except Exception as ex:
-            self.progress("falling back to taking partial screenshot " + str(ex))
-            screenshot = self.webdriver.get_screenshot_as_png()
-        self.progress("Saving screenshot to file: %s" % filename)
-        attach(screenshot, name="Screenshot ({fn})".format(fn=filename), attachment_type=AttachmentType.PNG)
+    def teardown_testcase(self):
+        """clean up after test case"""
+        pass
 
-    def check_version(self, expected_version: VersionInfo, is_enterprise: bool):
-        """validate the version displayed in the UI"""
-        ver = NavigationBarPage(self.webdriver).detect_version()
-        self.progress(" %s ~= %s?" % (ver["version"].lower(), str(expected_version).lower()))
-        assert ver["version"].lower().lower().startswith(str(expected_version)), (
-            "UI-Test: wrong version: '" + str(ver["version"]).lower() + "' vs '" + str(expected_version).lower() + "'"
-        )
-        if is_enterprise:
-            assert ver["enterprise"] == "ENTERPRISE EDITION", "UI-Test: expected enterprise"
-        else:
-            assert ver["enterprise"] == "COMMUNITY EDITION", "UI-Test: expected community"
+    def add_crash_data_to_report(self):
+        """add eventual crash data"""
+        pass
+
+    def there_are_failed_tests(self):
+        """check whether there are failed tests"""
+        for result in self.test_results:
+            if not result.success:
+                return True
+        return False
+
 
 def testcase(title=None, disable=False):
     """ base testcase class decorator """

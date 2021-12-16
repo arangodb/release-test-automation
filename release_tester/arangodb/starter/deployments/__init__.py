@@ -6,7 +6,7 @@ import logging
 from typing import Optional
 from arangodb.starter.deployments.runner import Runner
 from arangodb.installers.base import InstallerBase
-from arangodb.installers import InstallerConfig
+from arangodb.installers import InstallerConfig, RunProperties
 from reporting.reporting_utils import step
 
 
@@ -53,8 +53,7 @@ def make_runner(
     selenium_worker: str,
     selenium_driver_args: list,
     installer_set: list,
-    testrun_name: str = "",
-    ssl: bool = False,
+    runner_properties: RunProperties,
     use_auto_certs: bool = True,
 ) -> Runner:
     """get an instance of the arangod runner - as you specify"""
@@ -65,7 +64,7 @@ def make_runner(
 
     # Configure Chrome to accept self-signed SSL certs and certs signed by unknown CA.
     # FIXME: Add custom CA to Chrome to properly validate server cert.
-    if ssl:
+    if runner_properties.ssl:
         selenium_driver_args += ("ignore-certificate-errors",)
 
     logging.debug("Factory for Runner of type: {0}".format(str(runner_type)))
@@ -75,8 +74,8 @@ def make_runner(
         installer_set,
         selenium_worker,
         selenium_driver_args,
-        testrun_name,
-        ssl,
+        runner_properties.testrun_name,
+        runner_properties.ssl,
         use_auto_certs,
     )
 

@@ -12,7 +12,7 @@ from allure_commons.model2 import Status, StatusDetails
 from common_options import very_common_options, common_options
 from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext
 from tools.killall import kill_all_processes
-from arangodb.installers import create_config_installer_set
+from arangodb.installers import create_config_installer_set, RunProperties
 from arangodb.starter.deployments import (
     RunnerType,
     make_runner,
@@ -32,8 +32,6 @@ def run_test(mode,
              test_data_dir,
              alluredir,
              clean_alluredir,
-             enterprise,
-             encryption_at_rest,
              zip_package,
              hot_backup,
              interactive,
@@ -42,9 +40,8 @@ def run_test(mode,
              publicip,
              selenium,
              selenium_driver_args,
-             testrun_name,
-             ssl,
              use_auto_certs,
+             run_props: RunProperties
 ):
 # fmt: on
     """ main """
@@ -57,8 +54,6 @@ def run_test(mode,
     installers = create_config_installer_set(
         [new_version],
         verbose,
-        enterprise,
-        encryption_at_rest,
         zip_package,
         hot_backup,
         Path(package_dir),
@@ -67,7 +62,7 @@ def run_test(mode,
         publicip,
         interactive,
         False,
-        ssl
+        run_props
     )
     lh.section("configuration")
     print(
@@ -83,20 +78,20 @@ def run_test(mode,
     for runner_type in STARTER_MODES[starter_mode]:
         with AllureTestSuiteContext(alluredir,
                                     clean_alluredir,
-                                    enterprise,
+                                    run_props.enterprise,
                                     zip_package,
                                     new_version,
-                                    encryption_at_rest,
+                                    run_props.encryption_at_rest,
                                     None,
                                     True,
                                     None,
                                     runner_strings[runner_type],
                                     None,
                                     installers[0][1].installer_type,
-                                    ssl):
+                                    run_props.ssl):
             with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
                 if (runner_type == RunnerType.DC2DC and
-                    (not enterprise or WINVER[0] != "")):
+                    (not run_props.enterprise or WINVER[0] != "")):
                     testcase.context.status = Status.SKIPPED
                     testcase.context.statusDetails = StatusDetails(
                         message="DC2DC is not applicable to Community packages.")
@@ -107,7 +102,7 @@ def run_test(mode,
                     selenium,
                     selenium_driver_args,
                     installers,
-                    ssl=ssl,
+                    run_props,
                     use_auto_certs=use_auto_certs,
                 )
                 # install on first run:
@@ -115,7 +110,7 @@ def run_test(mode,
                 # only uninstall after the last test:
                 runner.do_uninstall = (count == len(STARTER_MODES[starter_mode])) and do_uninstall
                 one_result = {
-                    "testrun name": testrun_name,
+                    "testrun name": run_props.testrun_name,
                     "testscenario": runner_strings[runner_type],
                     "success": True,
                     "messages": [],
@@ -203,8 +198,6 @@ def main(mode,
                        Path(test_data_dir),
                        alluredir,
                        clean_alluredir,
-                       enterprise,
-                       encryption_at_rest,
                        zip_package,
                        hot_backup,
                        interactive,
@@ -213,9 +206,11 @@ def main(mode,
                        publicip,
                        selenium,
                        selenium_driver_args,
-                       "",
-                       ssl,
-                       use_auto_certs)
+                       use_auto_certs,
+                       # pylint: disable=too-many-function-args
+                       RunProperties(enterprise,
+                                     encryption_at_rest,
+                                     ssl))
     print("V" * 80)
     status = True
     for one_result in results:

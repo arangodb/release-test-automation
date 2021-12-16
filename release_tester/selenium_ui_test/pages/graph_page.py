@@ -67,6 +67,7 @@ class GraphCreateSet:
         self.requiresEnterprise = enterprise
 
     def is_graph_supported(self, enterprise, version, is_cluster):
+        """will this graph be supported in your environment?"""
         if self.requiresEnterprise and not enterprise:
             return False
         if not is_cluster and version < self.non_cl_min_ver:
@@ -82,8 +83,8 @@ GRAPH_SETS = []
 def get_graph(graph: GraphExample):
     try:
         return GRAPH_SETS[graph]
-    except IndexError:
-        raise Exception("unknown Graph " + str(graph))
+    except IndexError as ex:
+        raise Exception("unknown Graph " + str(graph)) from ex
 
 
 class GraphPage(NavigationBarPage):
