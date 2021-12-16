@@ -258,11 +258,11 @@ class InstallerBase(ABC):
 
     def install_debug_package_impl(self):
         """ install the debug package """
-        pass
+        return False
 
     def un_install_debug_package_impl(self):
         """ uninstall the debug package """
-        pass
+        return False
 
     def __repr__(self):
         return f"Installer type: {self.installer_type}\nServer package: {self.server_package}\nDebug package: {self.debug_package}\nClient package: {self.client_package}"
@@ -361,7 +361,14 @@ class InstallerBase(ABC):
     def save_config(self):
         """dump the config to disk"""
         self.cfg.semver = None
-        self.calc_config_file_name().write_text(yaml.dump(self.cfg))
+        cfg_file = self.calc_config_file_name()
+        if cfg_file.exists():
+            try:
+                cfg_file.unlink()
+            except PermissionError:
+                print("Ignoring non deleteable " + str(cfg_file))
+                return
+        cfg_file.write_text(yaml.dump(self.cfg))
         self.cfg.semver = semver.VersionInfo.parse(self.cfg.version)
 
     @step
