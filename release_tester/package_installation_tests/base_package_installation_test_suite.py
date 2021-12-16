@@ -47,9 +47,9 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
             interactive=interactive,
             stress_upgrade=False,
             hot_backup="disabled",
-            RunProperties(enterprise=False,
-                          encryption_at_rest=False,
-                          ssl=False)
+            run_properties=RunProperties(enterprise=False,
+                                         encryption_at_rest=False,
+                                         ssl=False)
         )
         self.installers["enterprise"] = create_config_installer_set(
             versions=[old_version, new_version],
@@ -62,9 +62,9 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
             interactive=interactive,
             stress_upgrade=False,
             hot_backup="disabled",
-            RunProperties(enterprise=True,
-                          encryption_at_rest=False,
-                          ssl=False)
+            run_properties=RunProperties(enterprise=True,
+                                         encryption_at_rest=False,
+                                         ssl=False)
         )
         self.old_inst_e = self.installers["enterprise"][0][1]
         self.new_inst_e = self.installers["enterprise"][1][1]
