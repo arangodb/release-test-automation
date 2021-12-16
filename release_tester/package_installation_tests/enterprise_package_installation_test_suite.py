@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+"""enterprise package conflict checking suite"""
 from package_installation_tests.base_package_installation_test_suite import BasePackageInstallationTestSuite
 from package_installation_tests.installation_steps import (
     check_if_server_packages_can_be_installed_consequentially,
@@ -12,6 +14,7 @@ from selenium_ui_test.test_suites.base_test_suite import testcase
 
 
 class EnterprisePackageInstallationTestSuite(BasePackageInstallationTestSuite):
+    """enterprise package conflict checking suite"""
     def __init__(
         self,
         old_version,

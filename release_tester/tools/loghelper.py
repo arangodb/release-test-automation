@@ -9,6 +9,7 @@ from allure_commons._allure import attach
 
 
 class StdOutHandler(StreamHandler):
+    """stdout handler adapter"""
     def __init__(self):
         Handler.__init__(self)
 

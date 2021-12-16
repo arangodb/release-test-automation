@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+"""base class for package conflict checking"""
 import shutil
 from pathlib import Path
 
@@ -9,6 +11,7 @@ from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite
 
 
 class BasePackageInstallationTestSuite(BaseTestSuite):
+    """base class for package conflict checking"""
     def __init__(
         self,
         old_version,
@@ -101,12 +104,14 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
         self.save_data_dir()
 
     def save_log_file(self):
+        """upload a logfile into the report."""
         inst = self.installers["enterprise"][0][1]
         if inst.instance and inst.instance.logfile.exists():
             log = open(inst.instance.logfile, "r").read()
             attach(log, "Log file " + str(inst.instance.logfile))
 
     def save_data_dir(self):
+        """upload a system database directory into the report"""
         inst = self.installers["enterprise"][0][1]
         data_dir = inst.cfg.dbdir
         if data_dir.exists():

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+"""steps for the installation"""
 from reporting.reporting_utils import step
 
 
