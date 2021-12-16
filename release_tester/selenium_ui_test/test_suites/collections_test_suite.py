@@ -9,6 +9,7 @@ from selenium_ui_test.pages.collection_page import CollectionPage
 
 
 class CollectionsTestSuite(BaseSeleniumTestSuite):
+    """collection tab suite"""
     @testcase
     def test_collection(self):
         """testing collection page"""

@@ -97,9 +97,11 @@ class BaseTestSuite(ABC):
         pass
 
     def add_crash_data_to_report(self):
+        """add eventual crash data"""
         pass
 
     def there_are_failed_tests(self):
+        """check whether there are failed tests"""
         for result in self.test_results:
             if not result.success:
                 return True

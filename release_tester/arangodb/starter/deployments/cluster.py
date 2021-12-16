@@ -80,7 +80,7 @@ db.testCollection.save({test: "document"})
                     self.basedir,
                     name,
                     mode="cluster",
-                    jwtStr=self.jwtdatastr,
+                    jwt_str=self.jwtdatastr,
                     port=port,
                     expect_instances=[
                         InstanceType.AGENT,
@@ -279,7 +279,7 @@ db.testCollection.save({test: "document"})
             Path("CLUSTER"),
             "nodeX",
             mode="cluster",
-            jwtStr=None,
+            jwt_str=None,
             expect_instances=[
                 InstanceType.AGENT,
                 InstanceType.COORDINATOR,

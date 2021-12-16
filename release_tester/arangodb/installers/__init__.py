@@ -6,7 +6,6 @@ import os
 from pathlib import Path
 from reporting.reporting_utils import step
 import semver
-
 # pylint: disable=R0903
 
 
@@ -274,12 +273,34 @@ def make_installer(install_config: InstallerConfig):
     raise Exception("unsupported os" + platform.system())
 
 
+
+class RunProperties:
+    """bearer class for run properties"""
+    # pylint: disable=too-many-function-args disable=too-many-arguments
+    def __init__(self,
+                 enterprise: bool,
+                 encryption_at_rest: bool,
+                 ssl: bool,
+                 testrun_name: str = "",
+                 directory_suffix: str = ""):
+        """set the values for this testrun"""
+        self.enterprise = enterprise
+        self.encryption_at_rest = encryption_at_rest
+        self.ssl = ssl
+        self.testrun_name = testrun_name
+        self.directory_suffix = directory_suffix
+
+# pylint: disable=too-many-function-args
+EXECUTION_PLAN = [
+    RunProperties(True, True, True, "Enterprise\nEnc@REST", "EE"),
+    RunProperties(True, False, False, "Enterprise", "EP"),
+    RunProperties(False, False, False, "Community", "C"),
+]
+
 # pylint: disable=too-many-locals
 def create_config_installer_set(
     versions: list,
     verbose: bool,
-    enterprise: bool,
-    encryption_at_rest: bool,
     zip_package: bool,
     hot_backup: str,
     package_dir: Path,
@@ -288,7 +309,7 @@ def create_config_installer_set(
     publicip: str,
     interactive: bool,
     stress_upgrade: bool,
-    ssl: bool,
+    run_properties: RunProperties
 ):
     """creates sets of configs and installers"""
     # pylint: disable=R0902 disable=R0913
@@ -298,8 +319,8 @@ def create_config_installer_set(
         install_config = InstallerConfig(
             version,
             verbose,
-            enterprise,
-            encryption_at_rest,
+            run_properties.enterprise,
+            run_properties.encryption_at_rest,
             zip_package,
             hot_backup,
             package_dir,
@@ -308,7 +329,7 @@ def create_config_installer_set(
             publicip,
             interactive,
             stress_upgrade,
-            ssl,
+            run_properties.ssl,
         )
         installer = make_installer(install_config)
         res.append([install_config, installer])

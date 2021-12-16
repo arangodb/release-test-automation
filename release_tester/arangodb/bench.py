@@ -18,7 +18,7 @@ def load_scenarios():
     yamldir = pathlib.Path(__file__).parent.absolute() / ".." / ".." / "scenarios" / "arangobench"
     for one_yaml in yamldir.iterdir():
         if one_yaml.is_file():
-            with open(one_yaml) as fileh:
+            with open(one_yaml, encoding='utf8') as fileh:
                 obj = yaml.load(fileh, Loader=yaml.Loader)
                 for key in obj.keys():
                     if isinstance(obj[key], bool):

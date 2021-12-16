@@ -7,7 +7,7 @@ import re
 import click
 from common_options import very_common_options, common_options
 from tools.killall import kill_all_processes
-from arangodb.installers import create_config_installer_set
+from arangodb.installers import create_config_installer_set, RunProperties
 from arangodb.starter.deployments.cluster_perf import ClusterPerf
 from arangodb.starter.deployments import RunnerType
 import tools.loghelper as lh
@@ -55,12 +55,14 @@ def run_test(mode, scenario, frontends,
     do_uninstall = mode in ["all", "uninstall"]
 
     lh.section("startup")
-
+    # pylint: disable=too-many-function-args
+    props = RunProperties(enterprise,
+                          encryption_at_rest,
+                          ssl,
+                          "perf")
     installers = create_config_installer_set(
         [new_version],
         verbose,
-        enterprise,
-        encryption_at_rest,
         zip_package,
         hot_backup,
         Path(package_dir),
@@ -69,7 +71,7 @@ def run_test(mode, scenario, frontends,
         publicip,
         interactive,
         False,
-        ssl,
+        props
     )
 
     inst = installers[0][1]

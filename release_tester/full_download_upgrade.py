@@ -20,6 +20,7 @@ from upgrade import run_upgrade
 from cleanup import run_cleanup
 from tools.killall import list_all_processes
 
+from arangodb.installers import EXECUTION_PLAN
 
 def set_r_limits():
     """on linux manipulate ulimit values"""
@@ -81,38 +82,20 @@ def upgrade_package_test(
 
     results = []
     # do the actual work:
-    execution_plan = [
-        (True, True, True, "EE", "Enterprise\nEnc@REST"),
-        (True, False, False, "EP", "Enterprise"),
-        (False, False, False, "C", "Community"),
-    ]
-
-    for (
-        enterprise,
-        encryption_at_rest,
-        ssl,
-        directory_suffix,
-        testrun_name,
-    ) in execution_plan:
-        print("Cleaning up" + testrun_name)
-        run_cleanup(zip_package, testrun_name)
+    for props in EXECUTION_PLAN:
+        print("Cleaning up" + props.testrun_name)
+        run_cleanup(zip_package, props)
     print("Cleanup done")
 
-    for (
-        enterprise,
-        encryption_at_rest,
-        ssl,
-        directory_suffix,
-        testrun_name,
-    ) in execution_plan:
-        if directory_suffix not in editions:
+    for props in EXECUTION_PLAN:
+        if props.directory_suffix not in editions:
             continue
         # pylint: disable=W0612
         dl_old = Download(
             old_version,
             verbose,
             package_dir,
-            enterprise,
+            props.enterprise,
             enterprise_magic,
             zip_package,
             hot_backup,
@@ -128,7 +111,7 @@ def upgrade_package_test(
             new_version,
             verbose,
             package_dir,
-            enterprise,
+            props.enterprise,
             enterprise_magic,
             zip_package,
             hot_backup,
@@ -145,7 +128,7 @@ def upgrade_package_test(
             return 0
         dl_old.get_packages(dl_old.is_different())
         dl_new.get_packages(dl_new.is_different())
-        test_dir = Path(test_data_dir) / directory_suffix
+        test_dir = Path(test_data_dir) / props.directory_suffix
         if test_dir.exists():
             shutil.rmtree(test_dir)
             if "REQUESTS_CA_BUNDLE" in os.environ:
@@ -162,8 +145,6 @@ def upgrade_package_test(
                 test_dir,
                 alluredir,
                 clean_alluredir,
-                enterprise,
-                encryption_at_rest,
                 zip_package,
                 hot_backup,
                 False,  # interactive
@@ -173,9 +154,8 @@ def upgrade_package_test(
                 publicip,
                 selenium,
                 selenium_driver_args,
-                testrun_name,
-                ssl,
                 use_auto_certs,
+                props
             )
         )
 
@@ -229,7 +209,7 @@ def upgrade_package_test(
 
     tablestr = str(table)
     print(tablestr)
-    Path("testfailures.txt").write_text(tablestr)
+    Path("testfailures.txt").write_text(tablestr, encoding='utf8')
     if not status:
         print("exiting with failure")
         sys.exit(1)
