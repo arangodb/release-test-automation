@@ -88,7 +88,6 @@ class TestDriver:
     # pylint: disable=W0703
     def run_cleanup(self, run_properties: RunProperties):
         """main"""
-    
         installer_set = create_config_installer_set(
             ["3.3.3"],
             self.base_config,

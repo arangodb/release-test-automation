@@ -119,7 +119,7 @@ class Download:
             hot_backup=hot_backup,
             package_dir=self.package_dir,
             test_dir=Path("/"),
-            mode="",
+            deployment_mode="",
             publicip="127.0.0.1",
             interactive=False,
             stress_upgrade=False,
