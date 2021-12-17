@@ -199,9 +199,9 @@ class InstallerBase(ABC):
         self.check_stripped = True
         self.check_symlink = True
         self.installer_type = "None"
-        self.server_package = None
-        self.debug_package = None
-        self.client_package = None
+        self.server_package = ""
+        self.debug_package = ""
+        self.client_package = ""
         self.instance = None
         self.starter_versions = {}
         self.cli_executor = ArangoCLIprogressiveTimeoutExecutor(self.cfg, self.instance)
