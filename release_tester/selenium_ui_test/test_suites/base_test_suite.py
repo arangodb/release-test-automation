@@ -86,23 +86,18 @@ class BaseTestSuite(ABC):
 
     def setup_test_suite(self):
         """prepare to run test suite"""
-        pass
 
     def tear_down_test_suite(self):
         """clean up after test suite"""
-        pass
 
     def setup_testcase(self):
         """prepare to run test case"""
-        pass
 
     def teardown_testcase(self):
         """clean up after test case"""
-        pass
 
     def add_crash_data_to_report(self):
         """add eventual crash data"""
-        pass
 
     def there_are_failed_tests(self):
         """check whether there are failed tests"""
@@ -116,7 +111,7 @@ def testcase(title=None, disable=False):
     """ base testcase class decorator """
     def decorator(func):
         def wrapper(self, *args, **kwargs):
-            # pylint: disable=broad-except
+            # pylint: disable=broad-except disable=too-many-branches
             name = None
             success = None
             message = None

@@ -13,10 +13,6 @@ from selenium_ui_test.pages.navbar import NavigationBarPage
 class ClusterPage(NavigationBarPage):
     """Class for Cluster page"""
 
-    def __init__(self, driver):
-        """Cluster page initialization"""
-        super().__init__(driver)
-
     def cluster_dashboard_get_count(self, timeout=15):
         """
         extract the coordinator / dbserver count from the 'cluster' page

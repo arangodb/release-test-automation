@@ -10,7 +10,7 @@ from common_options import very_common_options, common_options, download_options
 from beautifultable import BeautifulTable, ALIGN_LEFT
 
 import tools.loghelper as lh
-from download import Download
+from download import Download, DownloadOptions
 from test_driver import TestDriver
 from conflict_checking import run_conflict_tests
 from tools.killall import list_all_processes
@@ -19,16 +19,12 @@ from arangodb.installers import EXECUTION_PLAN
 
 # pylint: disable=R0913 disable=R0914 disable=R0912, disable=R0915
 def upgrade_package_test(
-    primary_version,
-    primary_dlstage,
-    upgrade_matrix,
-    enterprise_magic,
+    dl_opts: DownloadOptions,
+    primary_version: str,
+    primary_dlstage: str,
+    upgrade_matrix: str,
     other_source,
     git_version,
-    httpusername,
-    httppassvoid,
-    remote_host,
-    force,
     editions,
     test_driver
 ):
@@ -72,22 +68,16 @@ def upgrade_package_test(
             continue
         # pylint: disable=W0612
         dl_new = Download(
+            dl_opts,
             primary_version,
-            test_driver.verbose,
-            test_driver.package_dir,
             props.enterprise,
-            enterprise_magic,
             test_driver.base_config.zip_package,
-            test_driver.base_config.hot_backup,
             primary_dlstage,
-            httpusername,
-            httppassvoid,
-            remote_host,
             versions,
             fresh_versions,
             git_version,
         )
-        dl_new.get_packages(force)
+        dl_new.get_packages(dl_opts.force)
 
         this_test_dir = test_dir / props.directory_suffix
         test_driver.reset_test_data_dir(this_test_dir)
@@ -117,39 +107,27 @@ def upgrade_package_test(
             continue
         # pylint: disable=W0612
         dl_old = Download(
+            dl_opts,
             old_versions[j],
-            test_driver.base_config.verbose,
-            test_driver.package_dir,
             props.enterprise,
-            enterprise_magic,
             test_driver.base_config.zip_package,
-            test_driver.base_config.hot_backup, #TODO why hot backup here???
             old_dlstages[j],
-            httpusername,
-            httppassvoid,
-            remote_host,
             versions,
             fresh_versions,
             git_version,
         )
         dl_new = Download(
+            dl_opts,
             new_versions[j],
-            test_driver.base_config.verbose,
-            test_driver.base_config.package_dir,
             props.enterprise,
-            enterprise_magic,
             test_driver.base_config.zip_package,
-            test_driver.base_config.hot_backup, #TODO why hot backup here???
             new_dlstages[j],
-            httpusername,
-            httppassvoid,
-            remote_host,
             versions,
             fresh_versions,
             git_version,
         )
-        dl_old.get_packages(force)
-        dl_new.get_packages(force)
+        dl_old.get_packages(dl_opts.force)
+        dl_new.get_packages(dl_opts.force)
 
         this_test_dir = test_dir / props.directory_suffix
         test_driver.reset_test_data_dir(this_test_dir)
@@ -256,6 +234,13 @@ def main(
         httpuser, httppassvoid, remote_host):
 # fmt: on
     """ main """
+    dl_opts = DownloadOptions(force,
+                              verbose,
+                              package_dir,
+                              enterprise_magic,
+                              httpuser,
+                              httppassvoid,
+                              remote_host)
 
     test_driver = TestDriver(
         verbose,
@@ -275,16 +260,12 @@ def main(
         use_auto_certs)
 
     return upgrade_package_test(
+        dl_opts,
         new_version,
         source,
         upgrade_matrix,
-        enterprise_magic,
         other_source,
         git_version,
-        httpuser,
-        httppassvoid,
-        remote_host,
-        force,
         editions,
         test_driver
     )

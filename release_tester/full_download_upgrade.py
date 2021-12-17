@@ -10,7 +10,12 @@ from beautifultable import BeautifulTable, ALIGN_LEFT
 
 import tools.loghelper as lh
 from conflict_checking import run_conflict_tests
-from download import read_versions_tar, write_version_tar, Download, touch_all_tars_in_dir
+from download import (
+    read_versions_tar,
+    write_version_tar,
+    touch_all_tars_in_dir,
+    Download,
+    DownloadOptions)
 from test_driver import TestDriver
 from tools.killall import list_all_processes
 
@@ -18,17 +23,13 @@ from arangodb.installers import EXECUTION_PLAN
 
 # pylint: disable=R0913 disable=R0914 disable=R0912, disable=R0915
 def upgrade_package_test(
+    dl_opts: DownloadOptions,
     new_version,
     old_version,
-    enterprise_magic,
     new_dlstage,
     old_dlstage,
     git_version,
-    httpusername,
-    httppassvoid,
     version_state_tar,
-    remote_host,
-    force,
     editions,
     test_driver
 ):
@@ -57,33 +58,21 @@ def upgrade_package_test(
             continue
         # pylint: disable=W0612
         dl_old = Download(
+            dl_opts,
             old_version,
-            test_driver.base_config.verbose,
-            test_driver.base_config.package_dir,
             props.enterprise,
-            enterprise_magic,
             test_driver.base_config.zip_package,
-            test_driver.base_config.hot_backup,
             old_dlstage,
-            httpusername,
-            httppassvoid,
-            remote_host,
             versions,
             fresh_versions,
             git_version,
         )
         dl_new = Download(
+            dl_opts,
             new_version,
-            test_driver.base_config.verbose,
-            test_driver.base_config.package_dir,
             props.enterprise,
-            enterprise_magic,
             test_driver.base_config.zip_package,
-            test_driver.base_config.hot_backup,
             new_dlstage,
-            httpusername,
-            httppassvoid,
-            remote_host,
             versions,
             fresh_versions,
             git_version,
@@ -162,7 +151,7 @@ def upgrade_package_test(
         print("exiting with failure")
         sys.exit(1)
 
-    if force:
+    if dl_opts.force:
         touch_all_tars_in_dir(version_state_tar)
     else:
         write_version_tar(version_state_tar, fresh_versions)
@@ -203,6 +192,13 @@ def main(
         httpuser, httppassvoid, remote_host):
 # fmt: on
     """ main """
+    dl_opts = DownloadOptions(force,
+                              verbose,
+                              package_dir,
+                              enterprise_magic,
+                              httpuser,
+                              httppassvoid,
+                              remote_host)
 
     test_driver = TestDriver(
         verbose,
@@ -222,17 +218,13 @@ def main(
         use_auto_certs)
 
     return upgrade_package_test(
+        dl_opts,
         new_version,
         old_version,
-        enterprise_magic,
         new_source,
         old_source,
         git_version,
-        httpuser,
-        httppassvoid,
         Path(version_state_tar),
-        remote_host,
-        force,
         editions,
         test_driver
     )

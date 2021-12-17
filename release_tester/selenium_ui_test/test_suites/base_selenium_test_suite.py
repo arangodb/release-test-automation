@@ -96,6 +96,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
             self.goto_url_and_wait_until_loaded(path)
 
     def go_to_dashboard(self, username="root", database_name="_system"):
+        """open the dashboard page"""
         path = "/_db/_system/_admin/aardvark/index.html#dashboard"
         self.webdriver.get(self.url + path)
         if not path in self.webdriver.current_url:
@@ -104,6 +105,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
             self.webdriver.get(self.url + path)
 
     def goto_url_and_wait_until_loaded(self, path):
+        """goto & wait for loaded"""
         self.webdriver.get(self.url + path)
         BasePage(self.webdriver).wait_for_ajax()
 
@@ -119,6 +121,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
         """clean up after test case"""
         self.truncate_browser_log()
 
+    # pylint: disable=no-self-use
     def progress(self, arg):
         """state print todo"""
         print(arg)
@@ -145,6 +148,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
 
     def take_screenshot(self):
         """*snap*"""
+        # pylint: disable=broad-except
         filename = datetime.now().strftime("%d-%m-%Y_%H:%M:%S.%f") + ".png"
         self.progress("Taking screenshot from: %s " % self.webdriver.current_url)
         try:

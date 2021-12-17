@@ -9,7 +9,12 @@ from common_options import very_common_options, common_options, download_options
 from beautifultable import BeautifulTable, ALIGN_LEFT
 
 import tools.loghelper as lh
-from download import read_versions_tar, write_version_tar, Download, touch_all_tars_in_dir
+from download import (
+    read_versions_tar,
+    write_version_tar,
+    touch_all_tars_in_dir,
+    Download,
+    DownloadOptions)
 
 from test_driver import TestDriver
 from tools.killall import list_all_processes
@@ -18,15 +23,11 @@ from arangodb.installers import EXECUTION_PLAN
 
 # pylint: disable=R0913 disable=R0914 disable=R0912, disable=R0915
 def package_test(
+    dl_opts: DownloadOptions,
     new_version,
-    enterprise_magic,
     new_dlstage,
     git_version,
-    httpusername,
-    httppassvoid,
     version_state_tar,
-    remote_host,
-    force,
     editions,
     test_driver
 ):
@@ -54,23 +55,17 @@ def package_test(
         if props.directory_suffix not in editions:
             continue
         dl_new = Download(
+            dl_opts,
             new_version,
-            test_driver.verbose,
-            test_driver.package_dir,
             props.enterprise,
-            enterprise_magic,
             test_driver.base_config.zip_package,
-            test_driver.base_config.hot_backup,
             new_dlstage,
-            httpusername,
-            httppassvoid,
-            remote_host,
             versions,
             fresh_versions,
             git_version,
         )
 
-        if not dl_new.is_different() and not force:
+        if not dl_new.is_different() and not dl_opts.force:
             print("we already tested this version. bye.")
             sys.exit(0)
         dl_new.get_packages(dl_new.is_different())
@@ -126,7 +121,7 @@ def package_test(
         print("exiting with failure")
         sys.exit(1)
 
-    if force:
+    if dl_opts.force:
         touch_all_tars_in_dir(version_state_tar)
     else:
         write_version_tar(version_state_tar, fresh_versions)
@@ -166,6 +161,13 @@ def main(
         httpuser, httppassvoid, remote_host):
 # fmt: on
     """ main """
+    dl_opts = DownloadOptions(force,
+                              verbose,
+                              package_dir,
+                              enterprise_magic,
+                              httpuser,
+                              httppassvoid,
+                              remote_host)
 
     test_driver = TestDriver(
         verbose,
@@ -185,15 +187,11 @@ def main(
         use_auto_certs)
 
     return package_test(
+        dl_opts,
         new_version,
-        enterprise_magic,
         new_source,
         git_version,
-        httpuser,
-        httppassvoid,
         Path(version_state_tar),
-        remote_host,
-        force,
         editions,
         test_driver
     )

@@ -37,13 +37,13 @@ def read_versions_tar(tar_file, versions):
     """reads the versions tar"""
     try:
         fdesc = tar_file.open("rb")
-        tar = tarfile.open(fileobj=fdesc, mode="r:")
-        for member in tar:
-            print(member.name)
-            print(member.isfile())
-            if member.isfile():
-                versions[member.name] = tar.extractfile(member).read().decode(encoding="utf-8")
-        tar.close()
+        with tarfile.open(fileobj=fdesc, mode="r:") as tar:
+            for member in tar:
+                print(member.name)
+                print(member.isfile())
+                if member.isfile():
+                    versions[member.name] = tar.extractfile(member).read().decode(encoding="utf-8")
+            tar.close()
         fdesc.close()
     except FileNotFoundError:
         pass
@@ -53,52 +53,60 @@ def write_version_tar(tar_file, versions):
     """write the versions tar"""
     print("writing " + str(tar_file))
     fdesc = tar_file.open("wb")
-    tar = tarfile.open(fileobj=fdesc, mode="w:")
-    for version_name in versions:
-        data = versions[version_name].encode("utf-8")
-        file_obj = BytesIO(data)
-        info = tarfile.TarInfo(name=version_name)
-        info.size = len(data)
-        tar.addfile(tarinfo=info, fileobj=file_obj)
-    tar.close()
+    with tarfile.open(fileobj=fdesc, mode="w:") as tar:
+        for version_name in versions:
+            data = versions[version_name].encode("utf-8")
+            file_obj = BytesIO(data)
+            info = tarfile.TarInfo(name=version_name)
+            info.size = len(data)
+            tar.addfile(tarinfo=info, fileobj=file_obj)
+        tar.close()
     fdesc.close()
 
+class DownloadOptions:
+    """ bearer class for base download options """
+    # pylint: disable=too-many-arguments disable=too-few-public-methods
+    def __init__(self,
+                 force_dl,
+                 verbose,
+                 package_dir,
+                 enterprise_magic,
+                 httpuser,
+                 httppassvoid,
+                 remote_host):
+        self.force_dl = force_dl
+        self.verbose = verbose
+        self.package_dir = package_dir
+        self.enterprise_magic = enterprise_magic
+        self.httpuser = httpuser
+        self.httppassvoid = httppassvoid
+        self.remote_host = remote_host
 
 class Download:
     """manage package downloading from any known arango package source"""
 
-    # pylint: disable=R0913 disable=R0902
-    def __init__(
-        self,
-        version,
-        verbose,
-        package_dir,
-        enterprise,
-        enterprise_magic,
-        zip_package,
-        hot_backup,
-        source,
-        httpuser,
-        httppassvoid,
-        remote_host,
-        existing_version_states,
-        new_version_states,
-        git_version,
-    ):
+    # pylint: disable=R0913 disable=R0902 disable=dangerous-default-value
+    def __init__(self,
+                 options: DownloadOptions,
+                 version,
+                 enterprise,
+                 zip_package,
+                 source,
+                 existing_version_states={},
+                 new_version_states={},
+                 git_version=""):
         """main"""
         lh.section("configuration")
         print("version: " + str(version))
         print("using enterpise: " + str(enterprise))
         print("using zip: " + str(zip_package))
-        print("package directory: " + str(package_dir))
-        print("verbose: " + str(verbose))
-        self.user = httpuser
-        self.passvoid = httppassvoid
-        self.enterprise_magic = enterprise_magic
+        print("package directory: " + str(options.package_dir))
+        print("verbose: " + str(options.verbose))
+        self.options = options
         self.source = source
-        if remote_host != "":
+        if options.remote_host != "":
             # external DNS to wuerg around docker dns issues...
-            self.remote_host = remote_host
+            self.remote_host = options.remote_host
         else:
             # dns split horizon...
             if source in ["ftp:stage1", "ftp:stage2"]:
@@ -108,16 +116,14 @@ class Download:
             else:
                 self.remote_host = "download.arangodb.com"
         lh.section("startup")
-        print(version)
-        self.package_dir = Path(package_dir)
         self.cfg = InstallerConfig(
             version=version,
-            verbose=verbose,
-            enterprise=enterprise,
+            verbose=options.verbose,
+            enterprise=options.enterprise,
             encryption_at_rest=False,
             zip_package=zip_package,
-            hot_backup=hot_backup,
-            package_dir=self.package_dir,
+            hot_backup=False, # don't care
+            package_dir=options.package_dir,
             test_dir=Path("/"),
             deployment_mode="",
             publicip="127.0.0.1",
@@ -160,7 +166,7 @@ class Download:
             "bare_major_version": "{major}.{minor}".format(**self.cfg.semver.to_dict()),
             "remote_package_dir": self.inst.remote_package_dir,
             "enterprise": "Enterprise" if self.cfg.enterprise else "Community",
-            "enterprise_magic": self.enterprise_magic + "/" if self.cfg.enterprise else "",
+            "enterprise_magic": self.options.enterprise_magic + "/" if self.cfg.enterprise else "",
             "packages": "" if self.is_nightly else "packages",
             "nightly": "nightly" if self.is_nightly else "",
         }
@@ -223,8 +229,8 @@ class Download:
         url = "https://{user}:{passvoid}@{remote_host}:8529/{dir}{pkg}".format(
             **{
                 "remote_host": self.remote_host,
-                "passvoid": self.passvoid,
-                "user": self.user,
+                "passvoid": self.options.passvoid,
+                "user": self.options.user,
                 "dir": directory,
                 "pkg": package,
             }
@@ -302,15 +308,15 @@ class Download:
             self.packages.append(self.inst.debug_package)
 
         for package in self.packages:
-            self.funcs[self.source](self.directories[self.source], package, Path(self.package_dir), force)
+            self.funcs[self.source](self.directories[self.source], package, Path(self.options.package_dir), force)
 
     def get_version_info(self, git_version):
         """download the nightly sourceInfo.json file, calculate more precise version of the packages"""
         if self.source == "local":
             return ""
         source_info_fn = "sourceInfo.json"
-        self.funcs[self.source](self.directories[self.source], source_info_fn, Path(self.package_dir), True)
-        text = (self.package_dir / source_info_fn).read_text()
+        self.funcs[self.source](self.directories[self.source], source_info_fn, Path(self.options.package_dir), True)
+        text = (self.options.package_dir / source_info_fn).read_text()
         while text[0] != "{":
             text = text[1:]
         val = json.loads(text)
@@ -329,27 +335,27 @@ class Download:
 # pylint: disable=R0913
 def main(
         #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package, hot_backup,
+        new_version, verbose, enterprise, package_dir, zip_package, _, # hot_backup,
         # download options:
         enterprise_magic, force, source,
         httpuser, httppassvoid, remote_host):
 # fmt: on
     """ main wrapper """
+    dl_opts = DownloadOptions(force,
+                              verbose,
+                              package_dir,
+                              enterprise_magic,
+                              httpuser,
+                              httppassvoid,
+                              remote_host)
+
     lh.configure_logging(verbose)
     downloader = Download(
-        new_version,
-        verbose,
-        package_dir,
-        enterprise,
-        enterprise_magic,
-        zip_package,
-        hot_backup,
-        source,
-        httpuser,
-        httppassvoid,
-        remote_host,
-        {}, {}, ""
-    )
+        options=dl_opts,
+        version=new_version,
+        enterprise=enterprise,
+        zip_package=zip_package,
+        source=source)
     return downloader.get_packages(force)
 
 

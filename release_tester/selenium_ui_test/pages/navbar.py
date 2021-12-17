@@ -16,9 +16,6 @@ class NavigationBarPage(UserBarPage):
     click_google_group_link_id = "//*[@id='navigationBar']/div[2]/p[4]/a"
     navbar_id = "navigationBar"
 
-    def __init__(self, driver):
-        super().__init__(driver)
-
     def navbar_goto(self, tag):
         """click on any of the items in the 'navbar'"""
         self.wait_for_ajax()

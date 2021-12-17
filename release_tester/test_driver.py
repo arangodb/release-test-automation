@@ -25,6 +25,7 @@ is_windows = platform.win32_ver()[0] != ""
 
 class TestDriver:
     """driver base class to run different tests"""
+    # pylint: disable=too-many-arguments disable=too-many-locals
     def __init__(
             self,
             verbose,

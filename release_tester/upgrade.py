@@ -12,7 +12,7 @@ from arangodb.installers import RunProperties
 from test_driver import TestDriver
 
 @click.command()
-# pylint: disable=R0913
+# pylint: disable=R0913 disable=too-many-locals
 @very_common_options()
 @common_options(support_old=True, interactive=True)
 # fmt: off
