@@ -52,7 +52,7 @@ class InstallerConfig:
         hot_backup: str,
         package_dir: Path,
         test_dir: Path,
-        mode: str,
+        deployment_mode: str,
         publicip: str,
         interactive: bool,
         stress_upgrade: bool,
@@ -64,7 +64,7 @@ class InstallerConfig:
         self.encryption_at_rest = encryption_at_rest and enterprise
         self.zip_package = zip_package
 
-        self.mode = mode
+        self.deployment_mode = deployment_mode
         self.verbose = verbose
         self.package_dir = package_dir
         self.have_system_service = True
@@ -118,7 +118,7 @@ using zip: {0.zip_package}
 hot backup mode: {0.hot_backup}
 package directory: {0.package_dir}
 test directory: {0.base_test_dir}
-mode: {0.mode}
+deployment_mode: {0.deployment_mode}
 public ip: {0.publicip}
 interactive: {0.interactive}
 verbose: {0.verbose}
@@ -136,7 +136,7 @@ verbose: {0.verbose}
             self.encryption_at_rest = other_cfg.encryption_at_rest
             self.zip_package = other_cfg.zip_package
 
-            self.mode = other_cfg.mode
+            self.deployment_mode = other_cfg.deployment_mode
             self.verbose = other_cfg.verbose
             self.package_dir = other_cfg.package_dir
             self.have_system_service = other_cfg.have_system_service
@@ -323,6 +323,7 @@ class InstallerBaseConfig:
 def create_config_installer_set(
     versions: list,
     base_config: InstallerBaseConfig,
+    deployment_mode: str,
     run_properties: RunProperties
 ):
     """creates sets of configs and installers"""
@@ -339,7 +340,7 @@ def create_config_installer_set(
             base_config.hot_backup,
             base_config.package_dir,
             base_config.test_data_dir,
-            base_config.starter_mode,
+            deployment_mode,
             base_config.publicip,
             base_config.interactive,
             base_config.stress_upgrade,

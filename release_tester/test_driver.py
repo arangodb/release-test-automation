@@ -92,6 +92,7 @@ class TestDriver:
         installer_set = create_config_installer_set(
             ["3.3.3"],
             self.base_config,
+            "all",
             run_properties
         )
         inst = installer_set[0][1]
@@ -137,6 +138,7 @@ class TestDriver:
             installers = create_config_installer_set(
                 versions,
                 self.base_config,
+                "all",
                 run_props,
             )
             old_inst = installers[0][1]
@@ -288,19 +290,20 @@ class TestDriver:
     # fmt: off
     # pylint: disable=R0913 disable=R0914
     def run_test(self,
-                 mode,
+                 deployment_mode,
                  versions: list,
                  run_props: RunProperties):
     # fmt: on
         """ main """
         results = []
 
-        do_install = mode in ["all", "install"]
-        do_uninstall = mode in ["all", "uninstall"]
+        do_install = deployment_mode in ["all", "install"]
+        do_uninstall = deployment_mode in ["all", "uninstall"]
 
         installers = create_config_installer_set(
             versions,
             self.base_config,
+            deployment_mode,
             run_props
         )
         lh.section("configuration")
@@ -309,7 +312,7 @@ class TestDriver:
         mode: {mode}
         {cfg_repr}
         """.format(
-                **{"mode": str(mode), "cfg_repr": repr(installers[0][0])}
+                **{"mode": str(deployment_mode), "cfg_repr": repr(installers[0][0])}
             )
         )
 
@@ -344,7 +347,7 @@ class TestDriver:
                     # install on first run:
                     runner.do_install = (count == 1) and do_install
                     # only uninstall after the last test:
-                    runner.do_uninstall = (count == len(STARTER_MODES[self.base_config.starter_mode])) and do_uninstall
+                    runner.do_uninstall = (count == len(STARTER_MODES[deployment_mode])) and do_uninstall
                     one_result = {
                         "testrun name": run_props.testrun_name,
                         "testscenario": runner_strings[runner_type],
