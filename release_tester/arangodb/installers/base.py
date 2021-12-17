@@ -217,9 +217,9 @@ class InstallerBase(ABC):
     @step
     def install_server_package(self):
         """install the server package to the system"""
+        self.calculate_file_locations()
         self.install_server_package_impl()
         self.cfg.server_package_is_installed = True
-        self.calculate_file_locations()
 
     @step
     def un_install_server_package(self):
