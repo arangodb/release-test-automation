@@ -298,6 +298,8 @@ EXECUTION_PLAN = [
 ]
 
 class InstallerBaseConfig:
+    """commandline argument config settings"""
+    # pylint: disable=too-many-instance-attributes disable=too-many-arguments
     def __init__(self,
                  verbose: bool,
                  zip_package: bool,
@@ -317,7 +319,6 @@ class InstallerBaseConfig:
         self.publicip = publicip
         self.interactive = interactive
         self.stress_upgrade = stress_upgrade
-    
 
 # pylint: disable=too-many-locals
 def create_config_installer_set(

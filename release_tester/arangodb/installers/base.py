@@ -27,18 +27,18 @@ FILE_PIDS = []
 @step
 def run_file_command(file_to_check):
     """run `file file_to_check` and return the output"""
-    proc = subprocess.Popen(
+    with subprocess.Popen(
         ["file", file_to_check],
         stdout=subprocess.PIPE,
         stdin=subprocess.PIPE,
         stderr=subprocess.PIPE,
         universal_newlines=True,
-    )
-    line = proc.stdout.readline()
-    FILE_PIDS.append(str(proc.pid))
-    proc.wait()
-    print(line)
-    return line
+    ) as proc:
+        line = proc.stdout.readline()
+        FILE_PIDS.append(str(proc.pid))
+        proc.wait()
+        print(line)
+        return line
 
 
 IS_WINDOWS = platform.win32_ver()[0]
@@ -129,10 +129,10 @@ class BinaryDescription:
             shutil.copy(str(self.path), str(to_file))
             # invoke the strip command on file_path
             cmd = ["strip", str(to_file)]
-            proc = subprocess.Popen(cmd, bufsize=-1, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
-            FILE_PIDS.append(str(proc.pid))
-            proc.communicate()
-            proc.wait()
+            with subprocess.Popen(cmd, bufsize=-1, stderr=subprocess.PIPE, stdin=subprocess.PIPE) as proc:
+                FILE_PIDS.append(str(proc.pid))
+                proc.communicate()
+                proc.wait()
             # check the size of copied file after stripped
             after_stripped_size = to_file.stat().st_size
 
@@ -198,6 +198,10 @@ class InstallerBase(ABC):
         self.reset_version(cfg.version)
         self.check_stripped = True
         self.check_symlink = True
+        self.installer_type = None
+        self.server_package = None
+        self.debug_package = None
+        self.client_package = None
         self.instance = None
         self.starter_versions = {}
         self.cli_executor = ArangoCLIprogressiveTimeoutExecutor(self.cfg, self.instance)
@@ -256,16 +260,22 @@ class InstallerBase(ABC):
     def un_install_server_package_for_upgrade(self):
         """ if we need to do something to the old installation on upgrade, do it here. """
 
+    # pylint: disable=no-self-use
     def install_debug_package_impl(self):
         """ install the debug package """
         return False
 
+    # pylint: disable=no-self-use
     def un_install_debug_package_impl(self):
         """ uninstall the debug package """
         return False
 
     def __repr__(self):
-        return f"Installer type: {self.installer_type}\nServer package: {self.server_package}\nDebug package: {self.debug_package}\nClient package: {self.client_package}"
+        return ("Installer type: {0.installer_type}\n"+
+                "Server package: {0.server_package}\n"+
+                "Debug package: {0.debug_package}\n"+
+                "Client package: {0.client_package}").format(
+                    self)
 
     @abstractmethod
     def calculate_package_names(self):
@@ -317,9 +327,6 @@ class InstallerBase(ABC):
     @abstractmethod
     def un_install_server_package_impl(self):
         """ installer specific server uninstall function """
-
-    def un_install_server_package_for_upgrade(self):
-        """hook to uninstall old package for upgrade"""
 
     @abstractmethod
     def install_client_package_impl(self):
@@ -681,7 +688,7 @@ class InstallerBase(ABC):
 
     def get_starter_version(self):
         """find out the version of the starter in this package"""
-        if self.starter_versions == {}:
+        if not self.starter_versions:
             starter = self.cfg.bin_dir / ("arangodb" + FILE_EXTENSION)
             if not starter.is_file():
                 print("starter not found where we searched it? " + str(starter))
