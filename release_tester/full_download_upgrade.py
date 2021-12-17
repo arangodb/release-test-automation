@@ -106,7 +106,7 @@ def upgrade_package_test(
                 alluredir=test_driver.alluredir,
                 clean_alluredir=test_driver.clean_alluredir,
                 enterprise=use_enterprise,
-                zip_package=test_driver.zip_package,
+                zip_package=test_driver.base_config.zip_package,
                 interactive=False,
             )
         )

@@ -119,7 +119,7 @@ class Download:
         self.cfg = InstallerConfig(
             version=version,
             verbose=options.verbose,
-            enterprise=options.enterprise,
+            enterprise=enterprise,
             encryption_at_rest=False,
             zip_package=zip_package,
             hot_backup=False, # don't care

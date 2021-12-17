@@ -198,7 +198,7 @@ class InstallerBase(ABC):
         self.reset_version(cfg.version)
         self.check_stripped = True
         self.check_symlink = True
-        self.installer_type = None
+        self.installer_type = "None"
         self.server_package = None
         self.debug_package = None
         self.client_package = None
