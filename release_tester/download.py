@@ -122,7 +122,7 @@ class Download:
             enterprise=enterprise,
             encryption_at_rest=False,
             zip_package=zip_package,
-            hot_backup=False, # don't care
+            hot_backup="disabled", # don't care
             package_dir=options.package_dir,
             test_dir=Path("/"),
             deployment_mode="",
