@@ -2,31 +2,29 @@
 
 """Release testing script"""
 import sys
+from pathlib import Path
 
 import click
 
 import tools.loghelper as lh
 import distro
 from common_options import very_common_options, common_options
-from package_installation_tests.community_package_installation_test_suite import CommunityPackageInstallationTestSuite
-from package_installation_tests.enterprise_package_installation_test_suite import EnterprisePackageInstallationTestSuite
+from arangodb.installers import InstallerBaseConfig
 
+IS_LINUX = sys.platform == "linux"
 
 # pylint: disable=R0913 disable=R0914, disable=W0703, disable=R0912, disable=R0915
 def run_conflict_tests(
-    old_version,
-    new_version,
-    verbose,
-    package_dir,
-    alluredir,
-    clean_alluredir,
-    enterprise,
-    zip_package,
-    interactive,
+        old_version,
+        new_version,
+        enterprise: bool,
+        alluredir: Path,
+        clean_alluredir: bool,
+        basecfg: InstallerBaseConfig,
 ):
     """run package conflict tests"""
     # disable conflict tests for Windows and MacOS
-    if not sys.platform == "linux":
+    if not IS_LINUX:
         return [
             {
                 "testrun name": "Package installation/uninstallation tests were skipped because OS is not Linux.",
@@ -37,7 +35,7 @@ def run_conflict_tests(
             }
         ]
     # disable conflict tests for zip packages
-    if zip_package:
+    if basecfg.zip_package:
         return [
             {
                 "testrun name": "Package installation/uninstallation tests were skipped for zip packages.",
@@ -47,40 +45,33 @@ def run_conflict_tests(
                 "progress": "",
             }
         ]
+    # disable conflict tests for deb packages for now.
     if distro.linux_distribution(full_distribution_name=False)[0] in ["debian", "ubuntu"]:
         return [
             {
-                "testrun name": "Package installation/uninstallation tests are temporarily disabled for debian-based linux distros. Waiting for BTS-684",
+                "testrun name": "Package installation/uninstallation tests are temporarily" +
+                  "disabled for debian-based linux distros. Waiting for BTS-684",
                 "testscenario": "",
                 "success": True,
                 "messages": [],
                 "progress": "",
             }
         ]
-    if not enterprise:
-        suite = CommunityPackageInstallationTestSuite(
-            old_version,
-            new_version,
-            verbose,
-            package_dir,
-            alluredir,
-            clean_alluredir,
-            enterprise,
-            zip_package,
-            interactive,
-        )
+    suite = None
+    # pylint: disable=import-outside-toplevel
+    if enterprise:
+        from package_installation_tests.enterprise_package_installation_test_suite import \
+            EnterprisePackageInstallationTestSuite as testSuite
     else:
-        suite = EnterprisePackageInstallationTestSuite(
-            old_version,
-            new_version,
-            verbose,
-            package_dir,
-            alluredir,
-            clean_alluredir,
-            enterprise,
-            zip_package,
-            interactive,
-        )
+        from package_installation_tests.community_package_installation_test_suite import \
+            CommunityPackageInstallationTestSuite as testSuite
+    suite = testSuite(
+        old_version=old_version,
+        new_version=new_version,
+        alluredir=alluredir,
+        clean_alluredir=clean_alluredir,
+        basecfg=basecfg
+    )
     suite.run()
     result = {
         "testrun name": suite.suite_name,
@@ -97,10 +88,12 @@ def run_conflict_tests(
 
 
 @click.command()
+# we ignore some params, since this is a test-only toplevel tool:
 # pylint: disable=R0913
 @very_common_options()
 @common_options(support_old=True, interactive=True)
 # fmt: off
+# pylint: disable=unused-argument
 def main(
         # very_common_options
         new_version, verbose, enterprise, package_dir, zip_package,
@@ -110,17 +103,25 @@ def main(
         selenium, selenium_driver_args, alluredir, clean_alluredir, ssl, use_auto_certs):
     # fmt: on
     """ main trampoline """
+
     lh.configure_logging(verbose)
+    basecfg = InstallerBaseConfig(verbose=verbose,
+                                  zip_package=zip_package,
+                                  hot_backup=hot_backup,
+                                  package_dir=Path(package_dir),
+                                  starter_mode="all",
+                                  test_data_dir=None,
+                                  publicip="127.0.0.1",
+                                  interactive=interactive, # todo default to  false???
+                                  stress_upgrade=False)
+
     results = run_conflict_tests(
         old_version,
         new_version,
-        verbose,
-        package_dir,
+        enterprise,
         alluredir,
         clean_alluredir,
-        enterprise,
-        zip_package,
-        interactive,
+        basecfg,
     )
     for result in results:
         if not result["success"]:

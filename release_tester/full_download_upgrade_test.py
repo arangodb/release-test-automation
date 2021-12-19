@@ -147,13 +147,10 @@ def upgrade_package_test(
             run_conflict_tests(
                 old_version=str(dl_old.cfg.version),
                 new_version=str(dl_new.cfg.version),
-                verbose=test_driver.base_config.verbose,
-                package_dir=test_driver.package_dir,
+                enterprise=use_enterprise,
                 alluredir=test_driver.alluredir,
                 clean_alluredir=test_driver.clean_alluredir,
-                enterprise=use_enterprise,
-                zip_package=test_driver.base_config.zip_package,
-                interactive=False,
+                basecfg=test_driver.base_config
             )
         )
 

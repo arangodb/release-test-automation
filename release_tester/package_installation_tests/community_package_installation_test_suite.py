@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """testsuite for community packages"""
 
+from pathlib import Path
+
+from arangodb.installers import InstallerBaseConfig
 from package_installation_tests.base_package_installation_test_suite import BasePackageInstallationTestSuite
 from package_installation_tests.installation_steps import (
     check_if_server_packages_can_be_installed_consequentially,
@@ -16,28 +19,21 @@ from selenium_ui_test.test_suites.base_test_suite import testcase
 
 class CommunityPackageInstallationTestSuite(BasePackageInstallationTestSuite):
     """testsuite for community packages"""
+    # pylint: disable=too-many-arguments disable=line-too-long
     def __init__(
         self,
         old_version,
         new_version,
-        verbose,
-        package_dir,
-        alluredir,
-        clean_alluredir,
-        enterprise,
-        zip_package,
-        interactive,
+        alluredir: Path,
+        clean_alluredir: bool,
+        basecfg: InstallerBaseConfig
     ):
         super().__init__(
             old_version,
             new_version,
-            verbose,
-            package_dir,
             alluredir,
             clean_alluredir,
-            enterprise,
-            zip_package,
-            interactive,
+            basecfg
         )
         self.suite_name = f"Test package installation/uninstallation. New version: {new_version}. Old version: {old_version}. Package type: {str(self.new_inst_e.installer_type)}. Community edition."
 
