@@ -319,6 +319,7 @@ class Runner(ABC):
                 False,
                 "UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),
             )
+            self.new_installer.calculate_package_names()
             self.new_installer.upgrade_server_package(self.old_installer)
             lh.subsection("outputting version")
             self.new_installer.output_arangod_version()
