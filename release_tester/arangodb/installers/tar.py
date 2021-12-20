@@ -161,6 +161,7 @@ class InstallerTAR(InstallerBase):
             str(extract_to),
         )
         logging.info("Installation successfull")
+        self.calculate_file_locations()
 
     @step
     def install_client_package_impl(self):
@@ -180,6 +181,7 @@ class InstallerTAR(InstallerBase):
             str(self.cfg.install_prefix / ".."),
         )
         logging.info("Installation successfull")
+        self.calculate_file_locations()
 
     @step
     def un_install_server_package_impl(self):
