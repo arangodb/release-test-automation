@@ -456,8 +456,8 @@ class InstallerBase(ABC):
         """set the global location of files"""
         # files present in both server and client packages
         self.calculate_package_names()
+        self.arango_binaries = []
         if self.cfg.client_package_is_installed or self.cfg.server_package_is_installed:
-            self.arango_binaries = []
             stripped_arangod = semver.compare(self.cfg.version, "3.7.999") < 0
 
             self.arango_binaries.append(
