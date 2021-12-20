@@ -362,22 +362,22 @@ class InstallerRPM(InstallerLinux):
             print("cleaning up %s " % str(self.cfg.log_dir))
             shutil.rmtree(self.cfg.log_dir)
         else:
-            print("log directory not known")
+            print("log directory not found")
 
         if self.cfg.dbdir.exists():
             print("cleaning up %s " % str(self.cfg.dbdir))
             shutil.rmtree(self.cfg.dbdir)
         else:
-            print("database directory not known")
+            print("database directory not found")
 
         if self.cfg.appdir.exists():
             print("cleaning up %s " % str(self.cfg.appdir))
             shutil.rmtree(self.cfg.appdir)
         else:
-            print("app directory not known")
+            print("app directory not found")
 
         if self.cfg.cfgdir.exists():
             print("cleaning up %s " % str(self.cfg.cfgdir))
             shutil.rmtree(self.cfg.cfgdir)
         else:
-            print("config directory not known")
+            print("config directory not found")
