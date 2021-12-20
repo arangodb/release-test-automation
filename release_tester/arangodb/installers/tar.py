@@ -165,6 +165,7 @@ class InstallerTAR(InstallerBase):
             str(extract_to),
         )
         logging.info("Installation successfull")
+        self.cfg.server_package_is_installed = True
         self.cfg.install_prefix = self.cfg.server_install_prefix
         if self.architecture == "win64":
             self.cfg.bin_dir = self.cfg.install_prefix / "usr" / "bin"
@@ -196,6 +197,7 @@ class InstallerTAR(InstallerBase):
             str(self.cfg.install_prefix / ".."),
         )
         logging.info("Installation successfull")
+        self.cfg.client_package_is_installed = True
         self.cfg.install_prefix = self.cfg.client_install_prefix
         if self.architecture == "win64":
             self.cfg.bin_dir = self.cfg.install_prefix / "usr" / "bin"
