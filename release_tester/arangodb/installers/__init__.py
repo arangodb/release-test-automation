@@ -360,5 +360,6 @@ def create_config_installer_set(
             run_properties.ssl,
         )
         installer = make_installer(install_config)
+        installer.calculate_package_names()
         res.append([install_config, installer])
     return res
