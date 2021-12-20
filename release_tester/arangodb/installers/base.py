@@ -110,13 +110,16 @@ class BinaryDescription:
 
     def check_path(self, enterprise, in_version=True):
         """check whether the file rightfully exists or not"""
+        is_there = self.path.is_file()
         if enterprise and self.enterprise:
-            if not self.path.is_file() and in_version:
-                raise Exception("Binary missing from enterprise package!" + str(self.path))
+            if not is_there and in_version:
+                raise Exception("Binary missing from enterprise package! " + str(self.path))
         # file must not exist
         if not enterprise and self.enterprise:
-            if self.path.is_file():
-                raise Exception("Enterprise binary found in community package!" + str(self.path))
+            if is_there:
+                raise Exception("Enterprise binary found in community package! " + str(self.path))
+        elif not is_there:
+            raise Exception("binary was not found! " + str(self.path))
 
     def check_stripped_mac(self):
         """Checking stripped status of the arangod"""
