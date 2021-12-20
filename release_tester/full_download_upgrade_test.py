@@ -12,7 +12,6 @@ from beautifultable import BeautifulTable, ALIGN_LEFT
 import tools.loghelper as lh
 from download import Download, DownloadOptions
 from test_driver import TestDriver
-from conflict_checking import run_conflict_tests
 from tools.killall import list_all_processes
 
 from arangodb.installers import EXECUTION_PLAN
@@ -144,13 +143,12 @@ def upgrade_package_test(
 
     for use_enterprise in [True, False]:
         results.append(
-            run_conflict_tests(
-                old_version=str(dl_old.cfg.version),
-                new_version=str(dl_new.cfg.version),
+            test_driver.run_conflict_tests(
+                [
+                    dl_old.cfg.version,
+                    dl_new.cfg.version
+                ],
                 enterprise=use_enterprise,
-                alluredir=test_driver.alluredir,
-                clean_alluredir=test_driver.clean_alluredir,
-                basecfg=test_driver.base_config
             )
         )
 

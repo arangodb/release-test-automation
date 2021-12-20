@@ -3,10 +3,12 @@
 from pathlib import Path
 import platform
 import os
+import sys
 import time
 import traceback
 
 import shutil
+import distro
 
 from allure_commons.model2 import Status, StatusDetails
 
@@ -21,7 +23,8 @@ from arangodb.starter.deployments import (
 )
 import tools.loghelper as lh
 
-is_windows = platform.win32_ver()[0] != ""
+IS_WINDOWS = platform.win32_ver()[0] != ""
+IS_LINUX = sys.platform == "linux"
 
 class TestDriver:
     """driver base class to run different tests"""
@@ -69,7 +72,7 @@ class TestDriver:
     def set_r_limits(self):
         """on linux manipulate ulimit values"""
         # pylint: disable=C0415
-        if not is_windows:
+        if not IS_WINDOWS:
             import resource
             resource.setrlimit(resource.RLIMIT_CORE,
                                (resource.RLIM_INFINITY,
@@ -157,7 +160,7 @@ class TestDriver:
                 new_inst.installer_type,
             ):
                 with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
-                    if (not run_props.enterprise or is_windows) and runner_type == RunnerType.DC2DC:
+                    if (not run_props.enterprise or IS_WINDOWS) and runner_type == RunnerType.DC2DC:
                         testcase.context.status = Status.SKIPPED
                         testcase.context.statusDetails = StatusDetails(
                             message="DC2DC is not applicable to Community packages."
@@ -330,7 +333,7 @@ class TestDriver:
                                         installers[0][1].installer_type):
                 with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
                     if (runner_type == RunnerType.DC2DC and
-                        (not run_props.enterprise or is_windows)):
+                        (not run_props.enterprise or IS_WINDOWS)):
                         testcase.context.status = Status.SKIPPED
                         testcase.context.statusDetails = StatusDetails(
                             message="DC2DC is not applicable to Community packages.")
@@ -398,3 +401,73 @@ class TestDriver:
                     count += 1
 
         return results
+
+    # pylint: disable=R0913 disable=R0914, disable=W0703, disable=R0912, disable=R0915
+    def run_conflict_tests(
+            self,
+            versions: list,
+            enterprise: bool
+    ):
+        """run package conflict tests"""
+        # disable conflict tests for Windows and MacOS
+        if not IS_LINUX:
+            return [
+                {
+                    "testrun name": "Package installation/uninstallation tests were skipped because OS is not Linux.",
+                    "testscenario": "",
+                    "success": True,
+                    "messages": [],
+                    "progress": "",
+                }
+            ]
+        # disable conflict tests for zip packages
+        if self.base_config.zip_package:
+            return [
+                {
+                    "testrun name": "Package installation/uninstallation tests were skipped for zip packages.",
+                    "testscenario": "",
+                    "success": True,
+                    "messages": [],
+                    "progress": "",
+                }
+            ]
+        # disable conflict tests for deb packages for now.
+        if distro.linux_distribution(full_distribution_name=False)[0] in ["debian", "ubuntu"]:
+            return [
+                {
+                    "testrun name": "Package installation/uninstallation tests are temporarily" +
+                      "disabled for debian-based linux distros. Waiting for BTS-684",
+                    "testscenario": "",
+                    "success": True,
+                    "messages": [],
+                    "progress": "",
+                }
+            ]
+        suite = None
+        # pylint: disable=import-outside-toplevel
+        if enterprise:
+            from package_installation_tests.enterprise_package_installation_test_suite import \
+                EnterprisePackageInstallationTestSuite as testSuite
+        else:
+            from package_installation_tests.community_package_installation_test_suite import \
+                CommunityPackageInstallationTestSuite as testSuite
+        suite = testSuite(
+            old_version=versions[0],
+            new_version=versions[1],
+            alluredir=self.alluredir,
+            clean_alluredir=self.clean_alluredir,
+            basecfg=self.base_config
+        )
+        suite.run()
+        result = {
+            "testrun name": suite.suite_name,
+            "testscenario": "",
+            "success": True,
+            "messages": [],
+            "progress": "",
+        }
+        if suite.there_are_failed_tests():
+            result["success"] = False
+            for one_result in suite.test_results:
+                result["messages"].append(one_result.message)
+        return [result]

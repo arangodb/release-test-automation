@@ -51,7 +51,7 @@ def attach_table(table, title="HTML table"):
     """
     # pylint: disable=E1101
     template = Template(template_str)
-    html_table = tabulate(table, headers=table.column_headers, tablefmt="html")
+    html_table = tabulate(table, headers=table.columns.header, tablefmt="html")
     attach(template.substitute(html_table=html_table), title, AttachmentType.HTML)
 
 
