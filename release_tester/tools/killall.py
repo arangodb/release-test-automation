@@ -96,6 +96,7 @@ def kill_all_processes(kill_selenium=True):
 def list_all_processes():
     """list all processes for later reference"""
     pseaf = "PID  Process"
+    # pylint: disable=catching-non-exception
     for process in psutil.process_iter(["pid", "name"]):
         cmdline = process.name
         try:

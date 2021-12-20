@@ -51,7 +51,7 @@ def attach_table(table, title="HTML table"):
     """
     # pylint: disable=E1101
     template = Template(template_str)
-    html_table = tabulate(table, headers=table.column_headers, tablefmt="html")
+    html_table = tabulate(table, headers=table.columns.header, tablefmt="html")
     attach(template.substitute(html_table=html_table), title, AttachmentType.HTML)
 
 
@@ -101,7 +101,7 @@ class RtaTestcase:
         self.context.labels.append(label)
 
 
-# pylint: disable=R0903
+# pylint: disable=R0903 disable=invalid-name
 class TestcaseContext:
     """a class to store test case context"""
 
@@ -118,25 +118,22 @@ class AllureTestSuiteContext:
     """test suite class for allure reporting"""
 
     test_suite_count = 0
-    # pylint: disable=too-many-locals 
+    # pylint: disable=too-many-locals disable=dangerous-default-value disable=too-many-arguments
     def __init__(
         self,
         results_dir,
         clean,
-        enterprise=None,
+        properties=None,
         zip_package=None,
-        new_version=None,
-        enc_at_rest=None,
-        old_version=None,
+        versions=[],
         parent_test_suite_name=None,
         auto_generate_parent_test_suite_name=True,
         suite_name=None,
         runner_type=None,
-        installer_type=None,
-        ssl=False,
+        installer_type=None
     ):
         def generate_suite_name():
-            if enterprise:
+            if properties.enterprise:
                 edition = "Enterprise"
             else:
                 edition = "Community"
@@ -147,34 +144,38 @@ class AllureTestSuiteContext:
                     package_type = "universal binary archive"
                 else:
                     package_type = "deb/rpm/nsis/dmg"
-            if not old_version:
+            if len(versions) == 1:
                 test_suite_name = """
             ArangoDB v.{} ({}) ({} package) (enc@rest: {}) (SSL: {}) (clean install)
                                 """.format(
-                    new_version, edition, package_type, "ON" if enc_at_rest else "OFF", "ON" if ssl else "OFF"
+                                    str(versions[0]),
+                                    edition,
+                                    package_type,
+                                    "ON" if properties.encryption_at_rest else "OFF",
+                                    "ON" if properties.ssl else "OFF"
                 )
             else:
                 test_suite_name = """
                             ArangoDB v.{} ({}) {} package (upgrade from {}) (enc@rest: {}) (SSL: {})
                             """.format(
-                    new_version,
-                    edition,
-                    package_type,
-                    old_version,
-                    "ON" if enc_at_rest else "OFF",
-                    "ON" if ssl else "OFF",
+                                str(versions[0]),
+                                edition,
+                                package_type,
+                                str(versions[1]),
+                                "ON" if properties.encryption_at_rest else "OFF",
+                                "ON" if properties.ssl else "OFF",
                 )
             if runner_type:
                 test_suite_name = "[" + str(runner_type) + "] " + test_suite_name
 
             return test_suite_name
 
-        test_listeners = [p for p in allure_commons.plugin_manager.get_plugins() if type(p) == AllureListener]
+        test_listeners = [p for p in allure_commons.plugin_manager.get_plugins() if isinstance(p, AllureListener)]
         self.previous_test_listener = None if len(test_listeners) == 0 else test_listeners[0]
 
         if self.previous_test_listener:
             labels = (
-                {k: v for k, v in self.previous_test_listener._cache._items.items() if type(v) == TestResult}
+                {k: v for k, v in self.previous_test_listener._cache._items.items() if isinstance(v, TestResult)}
                 .popitem()[1]
                 .labels
             )

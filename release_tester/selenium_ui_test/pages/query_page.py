@@ -288,7 +288,7 @@ RETURN doc"""
         # selecting query execution area
         # TODO: re-add or delete bind values
         # bind_alive = self.bind_param_input_id % "1"
-        bind_name = self.bind_param_input_id % "2"
+        # bind_name = self.bind_param_input_id % "2"
         self.enter_query(
             """
 FOR doc IN Characters

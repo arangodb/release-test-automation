@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """steps for the installation"""
 from reporting.reporting_utils import step
-
+# pylint: disable=broad-except
 
 @step
 def check_if_server_packages_can_be_installed_consequentially(installer1, installer2, expect_success=True):
@@ -14,17 +14,15 @@ def check_if_server_packages_can_be_installed_consequentially(installer1, instal
         if expect_success:
             installer2.check_installed_files()
             return
-        else:
-            raise Exception(
-                f"Package {second_package_name} can be installed over {first_package_name}. A conflict was expected!"
-            )
-    except:
+        raise Exception(
+            f"Package {second_package_name} can be installed over {first_package_name}. A conflict was expected!"
+        )
+    except Exception as ex:
         if not expect_success:
             return
-        else:
-            raise Exception(
-                f"Package {second_package_name} can not be installed over {first_package_name}. Success was expected!"
-            )
+        raise Exception(
+            f"Package {second_package_name} can not be installed over {first_package_name}. Success was expected!"
+        ) from ex
 
 
 @step
@@ -35,19 +33,17 @@ def check_if_client_packages_can_be_installed_consequentially(installer1, instal
     installer1.install_client_package()
     try:
         installer2.upgrade_client_package(installer1)
-    except:
+    except Exception as ex:
         if expect_success:
             raise Exception(
                 f"Package {second_package_name} can not be installed over {first_package_name}. Success was expected!"
-            )
-        else:
-            return
+            ) from ex
+        return
     if not expect_success:
         raise Exception(
             f"Package {second_package_name} can be installed over {first_package_name}. A conflict was expected!"
         )
-    else:
-        installer2.check_installed_files()
+    installer2.check_installed_files()
 
 
 @step
@@ -62,13 +58,13 @@ def check_if_debug_package_can_be_installed_over_server_package(debug_installer,
             raise Exception(
                 f"Package {debug_package_name} can be installed over {server_package_name}. A conflict was expected!"
             )
-    except:
+    except Exception as ex:
         if not expect_success:
             pass
         else:
             raise Exception(
                 f"Package {debug_package_name} can not be installed over {server_package_name}. Success was expected!"
-            )
+            ) from ex
     debug_installer.gdb_test()
 
 
@@ -88,13 +84,11 @@ def check_if_client_package_can_be_installed_over_server_package(
             raise Exception(
                 f"Package {client_package_name} can be installed over {server_package_name}. A conflict was expected!"
             )
-    except:
+    except Exception as ex:
         if expect_success:
             raise Exception(
                 f"Package {client_package_name} can not be installed over {server_package_name}. Success was expected!"
-            )
-        else:
-            pass
+            ) from ex
 
 
 @step
@@ -103,11 +97,11 @@ def check_if_client_package_can_be_installed(client_installer, expect_success=Tr
     client_package_name = client_installer.client_package
     try:
         client_installer.install_client_package()
-    except:
+    except Exception as ex:
         if not expect_success:
             pass
         else:
-            raise Exception(f"Package {client_package_name} can not be installed. Success was expected!")
+            raise Exception(f"Package {client_package_name} can not be installed. Success was expected!") from ex
     if expect_success:
         client_installer.check_installed_files()
     else:
@@ -120,11 +114,11 @@ def check_if_server_package_can_be_installed(server_installer, expect_success=Tr
     package_name = server_installer.server_package
     try:
         server_installer.install_server_package()
-    except:
+    except Exception as ex:
         if not expect_success:
             pass
         else:
-            raise Exception(f"Package {package_name} can not be installed. Success was expected!")
+            raise Exception(f"Package {package_name} can not be installed. Success was expected!") from ex
     if expect_success:
         server_installer.check_installed_files()
     else:
@@ -139,8 +133,8 @@ def check_if_debug_package_can_be_installed(debug_installer, expect_success=True
         debug_installer.install_debug_package()
         if not expect_success:
             raise Exception(f"Package {debug_package_name} can be installed. An error was expected!")
-    except:
+    except Exception as ex:
         if not expect_success:
             pass
         else:
-            raise Exception(f"Package {debug_package_name} can not be installed. Success was expected!")
+            raise Exception(f"Package {debug_package_name} can not be installed. Success was expected!") from ex

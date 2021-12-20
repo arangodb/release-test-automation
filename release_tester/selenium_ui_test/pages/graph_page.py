@@ -25,7 +25,7 @@ class GraphExample(IntEnum):
     CONNECTED = 8
     # these are non graph-example tabs; their index doesn't align with their table column:
     # if more example graphs are added, add them above, move numbers.
-    MANUAL_KNOWS = 9 # overlaps with knows graph 
+    MANUAL_KNOWS = 9 # overlaps with knows graph
     MANUAL_SATELLITE_GRAPH = 10 # overlaps with knows graph
     MANUAL_SMART_GRAHP = 11
     MANUAL_DISJOINT_SMART_GRAHP = 12
@@ -52,7 +52,7 @@ ALL_VERSIONS="3.0.0"
 class GraphCreateSet:
     """this has all we need to know to create an example graph"""
 
-    # pylint: disable=R0903
+    # pylint: disable=R0903 disable=too-many-arguments
     def __init__(self, clear_name, btn_id, collections,
                  handler=None,
                  enterprise=False,
@@ -64,11 +64,11 @@ class GraphCreateSet:
         self.collections = collections
         self.min_version = semver.VersionInfo.parse(min_version)
         self.non_cl_min_ver = non_cl_min_ver
-        self.requiresEnterprise = enterprise
+        self.requires_enterprise = enterprise
 
     def is_graph_supported(self, enterprise, version, is_cluster):
         """will this graph be supported in your environment?"""
-        if self.requiresEnterprise and not enterprise:
+        if self.requires_enterprise and not enterprise:
             return False
         if not is_cluster and version < self.non_cl_min_ver:
             return False
@@ -81,6 +81,7 @@ class GraphCreateSet:
 GRAPH_SETS = []
 
 def get_graph(graph: GraphExample):
+    """look up the graph"""
     try:
         return GRAPH_SETS[graph]
     except IndexError as ex:

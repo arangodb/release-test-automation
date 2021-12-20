@@ -99,10 +99,10 @@ class StarterManager:
         # arg - jwtstr
         self.jwtfile = None
         self.jwt_header = None
-        self.jwt_tokens = dict()
+        self.jwt_tokens = {}
         if jwt_str:
             self.jwtfile = Path(str(self.basedir) + "_jwt")
-            self.jwtfile.write_text(jwt_str)
+            self.jwtfile.write_text(jwt_str, encoding='utf-8')
             self.moreopts += ["--auth.jwt-secret", str(self.jwtfile)]
             self.get_jwt_header()
 
@@ -261,7 +261,7 @@ class StarterManager:
         # pylint disable=W0703
         match_str = "--starter.data-dir={0.basedir}".format(self)
         if self.passvoidfile.exists():
-            self.passvoid = self.passvoidfile.read_text(errors="backslashreplace")
+            self.passvoid = self.passvoidfile.read_text(errors="backslashreplace", encoding='utf-8')
         for process in psutil.process_iter(["pid", "name"]):
             try:
                 name = process.name()
@@ -283,6 +283,7 @@ class StarterManager:
 
     def get_jwt_token_from_secret_file(self, filename):
         """retrieve token from the JWT secret file which is cached for the future use"""
+        # pylint: disable=consider-iterating-dictionary
         if filename in self.jwt_tokens.keys():
             # token for that file was checked already.
             return self.jwt_tokens[filename]
@@ -321,7 +322,7 @@ class StarterManager:
         if write_to_server:
             print("Provisioning passvoid " + passvoid)
             self.arangosh.js_set_passvoid("root", passvoid)
-            self.passvoidfile.write_text(passvoid)
+            self.passvoidfile.write_text(passvoid, encoding='utf-8')
         self.passvoid = passvoid
         for i in self.all_instances:
             if i.is_frontend():
@@ -554,6 +555,7 @@ class StarterManager:
                         waitpid,
                     )
 
+    # pylint: disable=unused-argument
     @step
     def upgrade_instances(self, which_instances, moreargs, waitpid=True, force_kill_fatal=True):
         """kill, launch the instances of this starter with optional arguments and restart"""

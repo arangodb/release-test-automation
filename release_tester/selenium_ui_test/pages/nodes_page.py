@@ -17,10 +17,6 @@ from reporting.reporting_utils import attach_table
 class NodesPage(NavigationBarPage):
     """Class for Nodes page"""
 
-    def __init__(self, driver):
-        """Nodes page initialization"""
-        super().__init__(driver)
-
     def cluster_get_nodes_table(self, timeout=20):
         """
         extract the table of coordinators / dbservers from the 'nodes' page

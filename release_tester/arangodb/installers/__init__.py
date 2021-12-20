@@ -52,7 +52,7 @@ class InstallerConfig:
         hot_backup: str,
         package_dir: Path,
         test_dir: Path,
-        mode: str,
+        deployment_mode: str,
         publicip: str,
         interactive: bool,
         stress_upgrade: bool,
@@ -64,7 +64,7 @@ class InstallerConfig:
         self.encryption_at_rest = encryption_at_rest and enterprise
         self.zip_package = zip_package
 
-        self.mode = mode
+        self.deployment_mode = deployment_mode
         self.verbose = verbose
         self.package_dir = package_dir
         self.have_system_service = True
@@ -118,7 +118,7 @@ using zip: {0.zip_package}
 hot backup mode: {0.hot_backup}
 package directory: {0.package_dir}
 test directory: {0.base_test_dir}
-mode: {0.mode}
+deployment_mode: {0.deployment_mode}
 public ip: {0.publicip}
 interactive: {0.interactive}
 verbose: {0.verbose}
@@ -136,7 +136,7 @@ verbose: {0.verbose}
             self.encryption_at_rest = other_cfg.encryption_at_rest
             self.zip_package = other_cfg.zip_package
 
-            self.mode = other_cfg.mode
+            self.deployment_mode = other_cfg.deployment_mode
             self.verbose = other_cfg.verbose
             self.package_dir = other_cfg.package_dir
             self.have_system_service = other_cfg.have_system_service
@@ -297,40 +297,69 @@ EXECUTION_PLAN = [
     RunProperties(False, False, False, "Community", "C"),
 ]
 
+class InstallerBaseConfig:
+    """commandline argument config settings"""
+    # pylint: disable=too-many-instance-attributes disable=too-many-arguments
+    def __init__(self,
+                 verbose: bool,
+                 zip_package: bool,
+                 hot_backup: str,
+                 package_dir: Path,
+                 test_data_dir: Path,
+                 starter_mode: str,
+                 publicip: str,
+                 interactive: bool,
+                 stress_upgrade: bool):
+        self.verbose = verbose
+        self.zip_package = zip_package
+        self.hot_backup = hot_backup
+        self.package_dir = package_dir
+        self.test_data_dir = test_data_dir
+        self.starter_mode = starter_mode
+        self.publicip = publicip
+        self.interactive = interactive
+        self.stress_upgrade = stress_upgrade
+    def __repr__(self):
+        return """
+verbose : {0.verbose}
+zip_package : {0.zip_package}
+hot_backup : {0.hot_backup}
+package_dir : {0.package_dir}
+test_data_dir : {0.test_data_dir}
+starter_mode : {0.starter_mode}
+publicip : {0.publicip}
+interactive : {0.interactive}
+stress_upgrade : {0.stress_upgrade}
+""".format(self)
+
 # pylint: disable=too-many-locals
 def create_config_installer_set(
     versions: list,
-    verbose: bool,
-    zip_package: bool,
-    hot_backup: str,
-    package_dir: Path,
-    test_dir: Path,
-    mode: str,
-    publicip: str,
-    interactive: bool,
-    stress_upgrade: bool,
+    base_config: InstallerBaseConfig,
+    deployment_mode: str,
     run_properties: RunProperties
 ):
     """creates sets of configs and installers"""
     # pylint: disable=R0902 disable=R0913
     res = []
-    for version in versions:
-        print(version)
+    for one_version in versions:
+        print(str(one_version))
         install_config = InstallerConfig(
-            version,
-            verbose,
+            str(one_version),
+            base_config.verbose,
             run_properties.enterprise,
             run_properties.encryption_at_rest,
-            zip_package,
-            hot_backup,
-            package_dir,
-            test_dir,
-            mode,
-            publicip,
-            interactive,
-            stress_upgrade,
+            base_config.zip_package,
+            base_config.hot_backup,
+            base_config.package_dir,
+            base_config.test_data_dir,
+            deployment_mode,
+            base_config.publicip,
+            base_config.interactive,
+            base_config.stress_upgrade,
             run_properties.ssl,
         )
         installer = make_installer(install_config)
+        installer.calculate_package_names()
         res.append([install_config, installer])
     return res
