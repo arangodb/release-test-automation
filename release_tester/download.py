@@ -67,13 +67,13 @@ class DownloadOptions:
     """ bearer class for base download options """
     # pylint: disable=too-many-arguments disable=too-few-public-methods
     def __init__(self,
-                 force_dl,
-                 verbose,
-                 package_dir,
-                 enterprise_magic,
-                 httpuser,
-                 httppassvoid,
-                 remote_host):
+                 force_dl: bool,
+                 verbose: bool,
+                 package_dir: Path,
+                 enterprise_magic: str,
+                 httpuser: str,
+                 httppassvoid: str,
+                 remote_host: str):
         self.force_dl = force_dl
         self.verbose = verbose
         self.package_dir = package_dir
@@ -125,7 +125,7 @@ class Download:
             hot_backup="disabled", # don't care
             package_dir=options.package_dir,
             test_dir=Path("/"),
-            deployment_mode="",
+            deployment_mode="all",
             publicip="127.0.0.1",
             interactive=False,
             stress_upgrade=False,
@@ -332,10 +332,10 @@ class Download:
 @very_common_options()
 @download_options()
 # fmt: off
-# pylint: disable=R0913
+# pylint: disable=R0913 disable=unused-argument
 def main(
         #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package, _, # hot_backup,
+        new_version, verbose, enterprise, package_dir, zip_package, hot_backup,
         # download options:
         enterprise_magic, force, source,
         httpuser, httppassvoid, remote_host):
@@ -343,7 +343,7 @@ def main(
     """ main wrapper """
     dl_opts = DownloadOptions(force,
                               verbose,
-                              package_dir,
+                              Path(package_dir),
                               enterprise_magic,
                               httpuser,
                               httppassvoid,
