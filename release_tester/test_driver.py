@@ -452,11 +452,10 @@ class TestDriver:
             from package_installation_tests.community_package_installation_test_suite import \
                 CommunityPackageInstallationTestSuite as testSuite
         suite = testSuite(
-            old_version=versions[0],
-            new_version=versions[1],
+            versions=versions,
             alluredir=self.alluredir,
             clean_alluredir=self.clean_alluredir,
-            basecfg=self.base_config
+            base_config=self.base_config
         )
         suite.run()
         result = {

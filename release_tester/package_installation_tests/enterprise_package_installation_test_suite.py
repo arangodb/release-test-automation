@@ -21,20 +21,18 @@ class EnterprisePackageInstallationTestSuite(BasePackageInstallationTestSuite):
     # pylint: disable=too-many-arguments disable=line-too-long
     def __init__(
         self,
-        old_version,
-        new_version,
+        versions: list,
         alluredir: Path,
         clean_alluredir: bool,
-        basecfg: InstallerBaseConfig
+        base_config: InstallerBaseConfig
     ):
         super().__init__(
-            old_version=old_version,
-            new_version=new_version,
+            versions=versions,
             alluredir=alluredir,
             clean_alluredir=clean_alluredir,
-            basecfg=basecfg
+            base_config=base_config
         )
-        self.suite_name = f"Test package installation/uninstallation. New version: {new_version}. Old version: {old_version}. Package type: {str(self.new_inst_e.installer_type)}. Enterprise edition."
+        self.suite_name = f"Test package installation/uninstallation. New version: {versions[1]}. Old version: {versions[0]}. Package type: {str(self.new_inst_e.installer_type)}. Enterprise edition."
 
     @testcase
     def test1(self):

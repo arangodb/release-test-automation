@@ -319,6 +319,18 @@ class InstallerBaseConfig:
         self.publicip = publicip
         self.interactive = interactive
         self.stress_upgrade = stress_upgrade
+    def __repr__(self):
+        return """
+verbose : {0.verbose}
+zip_package : {0.zip_package}
+hot_backup : {0.hot_backup}
+package_dir : {0.package_dir}
+test_data_dir : {0.test_data_dir}
+starter_mode : {0.starter_mode}
+publicip : {0.publicip}
+interactive : {0.interactive}
+stress_upgrade : {0.stress_upgrade}
+""".format(self)
 
 # pylint: disable=too-many-locals
 def create_config_installer_set(

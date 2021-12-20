@@ -15,19 +15,18 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
     """base class for package conflict checking"""
     def __init__(
             self,
-            old_version,
-            new_version,
+            versions: list,
             alluredir: Path,
             clean_alluredir: bool,
-            basecfg: InstallerBaseConfig
+            base_config: InstallerBaseConfig
     ):
         super().__init__()
         self.results_dir = alluredir
         self.clean_alluredir = clean_alluredir
-        self.zip_package = basecfg.zip_package
-        self.new_version = new_version
+        self.zip_package = base_config.zip_package
+        self.new_version = versions
         self.enc_at_rest = None
-        self.old_version = old_version
+        self.old_version = versions[0]
         self.parent_test_suite_name = None
         self.auto_generate_parent_test_suite_name = False
         self.suite_name = None
@@ -36,16 +35,16 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
         self.use_subsuite = False
         self.installers = {}
         self.installers["community"] = create_config_installer_set(
-            versions=[old_version, new_version],
-            base_config=InstallerBaseConfig,
+            versions=versions,
+            base_config=base_config,
             deployment_mode="all",
             run_properties=RunProperties(enterprise=False,
                                          encryption_at_rest=False,
                                          ssl=False)
         )
         self.installers["enterprise"] = create_config_installer_set(
-            versions=[old_version, new_version],
-            base_config=InstallerBaseConfig,
+            versions=versions,
+            base_config=base_config,
             deployment_mode="all",
             run_properties=RunProperties(enterprise=True,
                                          encryption_at_rest=False,
