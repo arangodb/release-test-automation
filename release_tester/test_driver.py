@@ -48,7 +48,12 @@ class TestDriver:
             ):
         if not test_data_dir.is_absolute():
             test_data_dir = Path.cwd() / test_data_dir
+        if not test_data_dir.exists():
+            test_data_dir.mkdir(parents=True)
         os.chdir(test_data_dir)
+
+        if not package_dir.exists():
+            package_dir.mkdir(parents=True)
 
         self.base_config = InstallerBaseConfig(verbose,
                                                zip_package,
@@ -61,8 +66,12 @@ class TestDriver:
                                                stress_upgrade)
         lh.configure_logging(verbose)
         self.abort_on_error = abort_on_error
+
+        if not alluredir.exists():
+            alluredir.mkdir(parents=True)
         self.alluredir = alluredir
         self.clean_alluredir = clean_alluredir
+
         self.use_auto_certs = use_auto_certs
         self.selenium = selenium
         self.selenium_driver_args = selenium_driver_args
@@ -431,6 +440,7 @@ class TestDriver:
                 }
             ]
         # disable conflict tests for deb packages for now.
+        # pylint: disable=import-outside-toplevel
         import distro
         if distro.linux_distribution(full_distribution_name=False)[0] in ["debian", "ubuntu"]:
             return [

@@ -3,11 +3,29 @@
 """ these are our common CLI options """
 from pathlib import Path
 import sys
+import os
 import click
 
 from arangodb.starter.deployments import STARTER_MODES
 from arangodb.installers import HB_MODES
 
+CWD = Path.cwd()
+
+def get_default_value(env_key,
+                      add_subkey,
+                      default_value):
+    """try to extract default values from the environment"""
+    if env_key in os.environ:
+        return os.environ[env_key] + add_subkey
+    return default_value
+
+def get_default_path_value(env_key,
+                           add_path,
+                           default_path):
+    """try to extract jenkins default path values"""
+    if env_key in os.environ:
+        return os.environ[env_key] / add_path
+    return default_path
 
 def zip_common_options(function):
     """zip option. even on cleanup which has no more."""
@@ -26,9 +44,13 @@ def very_common_options(support_multi_version=False):
     package_dir = Path("/home/package_cache/")
 
     if not package_dir.exists():
-        package_dir = Path("/tmp/")
+        package_dir = CWD / 'package_cache'
 
-    defver = "3.9-nightly"
+    if not package_dir.exists():
+        package_dir = Path("/tmp/")
+    package_dir = get_default_path_value('WORKSPACE', 'package_cache', package_dir)
+
+    defver = "3.10-nightly"
     if support_multi_version:
         defver = [defver]
 
@@ -77,6 +99,8 @@ def common_options(
 ):
     """these options are common to most scripts"""
 
+    test_data_dir = get_default_path_value('WORKSPACE', 'test_dir', test_data_dir)
+    default_allure_dir = get_default_path_value('WORKSPACE', 'allure-results', CWD / "allure-results")
     def inner_func(function):
 
         if support_old:
@@ -146,7 +170,7 @@ def common_options(
         )(function)
         function = click.option(
             "--alluredir",
-            default=Path("./allure-results"),
+            default=default_allure_dir,
             help="directory to store allure results",
         )(function)
         function = click.option("--ssl/--no-ssl", is_flag=True, default=False, help="use SSL")(function)
