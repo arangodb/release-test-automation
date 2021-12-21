@@ -50,7 +50,7 @@ def very_common_options(support_multi_version=False):
         package_dir = Path("/tmp/")
     package_dir = get_default_path_value('WORKSPACE', 'package_cache', package_dir)
 
-    defver = "3.10-nightly"
+    defver = get_default_value('NEW_VERSION', '', "3.10-nightly")
     if support_multi_version:
         defver = [defver]
 
@@ -104,7 +104,7 @@ def common_options(
     def inner_func(function):
 
         if support_old:
-            defver = "3.8-nightly"
+            defver = get_default_value('OLD_VERSION', '', "3.9-nightly")
             if support_multi_version:
                 defver = [defver]
             function = click.option(
