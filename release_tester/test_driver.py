@@ -8,7 +8,6 @@ import time
 import traceback
 
 import shutil
-import distro
 
 from allure_commons.model2 import Status, StatusDetails
 
@@ -432,6 +431,7 @@ class TestDriver:
                 }
             ]
         # disable conflict tests for deb packages for now.
+        import distro
         if distro.linux_distribution(full_distribution_name=False)[0] in ["debian", "ubuntu"]:
             return [
                 {
