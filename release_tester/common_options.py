@@ -11,20 +11,20 @@ from arangodb.installers import HB_MODES
 
 CWD = Path.cwd()
 
-def get_default_value(env_key,
-                      add_subkey,
-                      default_value):
+def get_default_value(env_key: str,
+                      add_subkey: str,
+                      default_value: str):
     """try to extract default values from the environment"""
     if env_key in os.environ:
         return os.environ[env_key] + add_subkey
     return default_value
 
-def get_default_path_value(env_key,
-                           add_path,
-                           default_path):
+def get_default_path_value(env_key: str,
+                           add_path: str,
+                           default_path: Path):
     """try to extract jenkins default path values"""
     if env_key in os.environ:
-        return os.environ[env_key] / add_path
+        return Path(os.environ[env_key]) / add_path
     return default_path
 
 def zip_common_options(function):
