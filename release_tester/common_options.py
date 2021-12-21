@@ -24,7 +24,7 @@ def get_default_path_value(env_key,
                            default_path):
     """try to extract jenkins default path values"""
     if env_key in os.environ:
-        return os.environ[env_key] / add_path
+        return Path(os.environ[env_key]) / add_path
     return default_path
 
 def zip_common_options(function):
