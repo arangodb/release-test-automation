@@ -316,7 +316,7 @@ class Download:
             return ""
         source_info_fn = "sourceInfo.json"
         self.funcs[self.source](self.directories[self.source], source_info_fn, Path(self.options.package_dir), True)
-        text = (self.options.package_dir / source_info_fn).read_text()
+        text = (Path(self.options.package_dir) / source_info_fn).read_text()
         while text[0] != "{":
             text = text[1:]
         val = json.loads(text)
