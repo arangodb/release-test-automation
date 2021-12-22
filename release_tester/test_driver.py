@@ -100,6 +100,7 @@ class TestDriver:
             RunProperties(False, False, False)
         )
         self.installer_type = installers[0][1].installer_type.split(' ')[0].replace('.', '')
+        return self.installer_type
 
     def reset_test_data_dir(self, test_data_dir):
         """set the test data directory for the next testrun, make sure its clean."""
