@@ -16,6 +16,9 @@ import tools.loghelper as lh
 import requests
 from common_options import very_common_options, download_options
 
+def get_tar_file_path(base_directory, versions, package_target):
+    """calculate the name of the versions tar file"""
+    return base_directory / f"Upgrade_{versions[0]}__{versions[1]}_{package_target}_version.tar"
 
 def touch_all_tars_in_dir(tar_file):
     """sets the current filestamp to all tars so jenkins preserves them"""
@@ -31,7 +34,6 @@ def touch_all_tars_in_dir(tar_file):
             one_file.touch()
         # else:
         #    print("doing nothing about " + str(one_file))
-
 
 def read_versions_tar(tar_file, versions):
     """reads the versions tar"""

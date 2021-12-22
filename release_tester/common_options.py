@@ -99,7 +99,9 @@ def common_options(
     """these options are common to most scripts"""
 
     test_data_dir = get_default_path_value('WORKSPACE', 'test_dir', test_data_dir)
-    default_allure_dir = get_default_path_value('WORKSPACE', 'allure-results', CWD / "allure-results")
+    default_allure_dir = Path('/home/allure-results')
+    if not default_allure_dir.exists():
+        default_allure_dir = get_default_path_value('WORKSPACE', 'allure-results', CWD / "allure-results")
     def inner_func(function):
 
         if support_old:

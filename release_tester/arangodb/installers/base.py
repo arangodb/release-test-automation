@@ -113,11 +113,13 @@ class BinaryDescription:
         is_there = self.path.is_file()
         if enterprise and self.enterprise:
             if not is_there and in_version:
-                raise Exception("Binary missing from enterprise package! " + str(self.path))
+                raise Exception("Binary missing from enterprise package! "
+                                + str(self.path))
         # file must not exist
         if not enterprise and self.enterprise:
             if is_there:
-                raise Exception("Enterprise binary found in community package! " + str(self.path))
+                raise Exception("Enterprise binary found in community package! "
+                                + str(self.path))
         elif not is_there:
             raise Exception("binary was not found! " + str(self.path))
 
@@ -201,7 +203,6 @@ class InstallerBase(ABC):
         self.reset_version(cfg.version)
         self.check_stripped = True
         self.check_symlink = True
-        self.installer_type = "None"
         self.server_package = ""
         self.debug_package = ""
         self.client_package = ""

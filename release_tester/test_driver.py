@@ -46,14 +46,18 @@ class TestDriver:
             selenium_driver_args,
             use_auto_certs,
             ):
+        self.launch_dir = Path.cwd()
+        if "WORKSPACE" in os.environ:
+            self.launch_dir = Path(os.environ["WORKSPACE"])
+
         if not test_data_dir.is_absolute():
-            test_data_dir = Path.cwd() / test_data_dir
+            test_data_dir =  self.launch_dir / test_data_dir
         if not test_data_dir.exists():
-            test_data_dir.mkdir(parents=True)
+            test_data_dir.mkdir(parents=True, exist_ok=True)
         os.chdir(test_data_dir)
 
         if not package_dir.exists():
-            package_dir.mkdir(parents=True)
+            package_dir.mkdir(parents=True, exist_ok=True)
 
         self.base_config = InstallerBaseConfig(verbose,
                                                zip_package,
@@ -73,6 +77,7 @@ class TestDriver:
         init_allure(results_dir=alluredir,
                     clean=clean_alluredir,
                     zip_package=self.base_config.zip_package)
+        self.installer_type = None
 
     # pylint: disable=no-self-use
     def set_r_limits(self):
@@ -84,6 +89,19 @@ class TestDriver:
                                (resource.RLIM_INFINITY,
                                 resource.RLIM_INFINITY))
 
+    def get_packaging_shorthand(self):
+        """ get the [DEB|RPM|EXE|DMG|ZIP|targz] from the installer """
+        if self.installer_type:
+            return self.installer_type
+        installers = create_config_installer_set(
+            ["3.3.3"],
+            self.base_config,
+            "all",
+            RunProperties(False, False, False)
+        )
+        self.installer_type = installers[0][1].installer_type.split(' ')[0].replace('.', '')
+        return self.installer_type
+
     def reset_test_data_dir(self, test_data_dir):
         """set the test data directory for the next testrun, make sure its clean."""
         self.base_config.test_data_dir = test_data_dir
@@ -91,7 +109,7 @@ class TestDriver:
             shutil.rmtree(test_data_dir)
             if "REQUESTS_CA_BUNDLE" in os.environ:
                 del os.environ["REQUESTS_CA_BUNDLE"]
-        test_data_dir.mkdir()
+        test_data_dir.mkdir(exist_ok=True)
         while not test_data_dir.exists():
             time.sleep(1)
 
