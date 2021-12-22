@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """base class for package conflict checking"""
 import shutil
-from pathlib import Path
 
 from allure_commons._allure import attach
 
@@ -16,13 +15,9 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
     def __init__(
             self,
             versions: list,
-            alluredir: Path,
-            clean_alluredir: bool,
             base_config: InstallerBaseConfig
     ):
         super().__init__()
-        self.results_dir = alluredir
-        self.clean_alluredir = clean_alluredir
         self.zip_package = base_config.zip_package
         self.new_version = versions
         self.enc_at_rest = None

@@ -8,6 +8,7 @@ from reporting.reporting_utils import step
 import semver
 # pylint: disable=R0903
 
+IS_WINDOWS = platform.win32_ver()[0] != ""
 
 class HotBackupSetting(Enum):
     """whether we want thot backup or not"""
@@ -241,8 +242,7 @@ def make_installer(install_config: InstallerConfig):
         from arangodb.installers.tar import InstallerTAR
 
         return InstallerTAR(install_config)
-    winver = platform.win32_ver()
-    if winver[0]:
+    if IS_WINDOWS:
         from arangodb.installers.nsis import InstallerW
 
         return InstallerW(install_config)
@@ -289,6 +289,11 @@ class RunProperties:
         self.ssl = ssl
         self.testrun_name = testrun_name
         self.directory_suffix = directory_suffix
+
+    def supports_dc2dc(self):
+        """will the DC2DC case be supported by this case? """
+        return self.enterprise and not IS_WINDOWS
+
 
 # pylint: disable=too-many-function-args
 EXECUTION_PLAN = [

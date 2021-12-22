@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 """enterprise package conflict checking suite"""
-from pathlib import Path
-
 from arangodb.installers import InstallerBaseConfig
 from package_installation_tests.base_package_installation_test_suite import BasePackageInstallationTestSuite
 from package_installation_tests.installation_steps import (
@@ -22,14 +20,10 @@ class EnterprisePackageInstallationTestSuite(BasePackageInstallationTestSuite):
     def __init__(
         self,
         versions: list,
-        alluredir: Path,
-        clean_alluredir: bool,
         base_config: InstallerBaseConfig
     ):
         super().__init__(
             versions=versions,
-            alluredir=alluredir,
-            clean_alluredir=clean_alluredir,
             base_config=base_config
         )
         self.suite_name = f"Test package installation/uninstallation. New version: {versions[1]}. Old version: {versions[0]}. Package type: {str(self.new_inst_e.installer_type)}. Enterprise edition."

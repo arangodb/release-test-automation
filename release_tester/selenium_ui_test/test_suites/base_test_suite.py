@@ -21,10 +21,7 @@ class BaseTestSuite(ABC):
         self.children = []
         for child_class in child_classes:
             self.children.append(self.init_child_class(child_class))
-        self.results_dir = None
-        self.clean_allure_dir = True
         self.enterprise = False
-        self.zip_package = None
         self.new_version = None
         self.enc_at_rest = False
         self.old_version = None
@@ -52,12 +49,9 @@ class BaseTestSuite(ABC):
             self.test_results += suite.run()
         if self.has_own_testcases():
             with AllureTestSuiteContext(
-                results_dir=None if not self.results_dir else self.results_dir,
-                clean=self.clean_allure_dir,
                 properties=RunProperties(self.enterprise,
                                          self.enc_at_rest,
                                          self.ssl),
-                zip_package=None if not self.zip_package else self.zip_package,
                 versions=versions,
                 parent_test_suite_name=None if not self.parent_test_suite_name else self.parent_test_suite_name,
                 auto_generate_parent_test_suite_name=True

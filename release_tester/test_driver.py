@@ -11,7 +11,7 @@ import shutil
 
 from allure_commons.model2 import Status, StatusDetails
 
-from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext
+from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext, init_allure
 from tools.killall import kill_all_processes
 from arangodb.installers import create_config_installer_set, RunProperties, InstallerBaseConfig
 from arangodb.starter.deployments import (
@@ -67,14 +67,12 @@ class TestDriver:
         lh.configure_logging(verbose)
         self.abort_on_error = abort_on_error
 
-        if not alluredir.exists():
-            alluredir.mkdir(parents=True)
-        self.alluredir = alluredir
-        self.clean_alluredir = clean_alluredir
-
         self.use_auto_certs = use_auto_certs
         self.selenium = selenium
         self.selenium_driver_args = selenium_driver_args
+        init_allure(results_dir=alluredir,
+                    clean=clean_alluredir,
+                    zip_package=self.base_config.zip_package)
 
     # pylint: disable=no-self-use
     def set_r_limits(self):
@@ -156,19 +154,16 @@ class TestDriver:
             new_inst = installers[1][1]
 
             with AllureTestSuiteContext(
-                self.alluredir,
-                self.clean_alluredir,
-                run_props,
-                self.base_config.zip_package,
-                versions,
-                None,
-                True,
-                runner_strings[runner_type],
-                None,
-                new_inst.installer_type,
+                    properties=run_props,
+                    versions=versions,
+                    parent_test_suite_name=None,
+                    auto_generate_parent_test_suite_name=True,
+                    suite_name=runner_strings[runner_type],
+                    runner_type=None,
+                    installer_type=new_inst.installer_type,
             ):
                 with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
-                    if (not run_props.enterprise or IS_WINDOWS) and runner_type == RunnerType.DC2DC:
+                    if not run_props.supports_dc2dc() and runner_type == RunnerType.DC2DC:
                         testcase.context.status = Status.SKIPPED
                         testcase.context.statusDetails = StatusDetails(
                             message="DC2DC is not applicable to Community packages."
@@ -329,23 +324,26 @@ class TestDriver:
 
         count = 1
         for runner_type in STARTER_MODES[self.base_config.starter_mode]:
-            with AllureTestSuiteContext(self.alluredir,
-                                        self.clean_alluredir,
-                                        run_props,
-                                        self.base_config.zip_package,
-                                        versions,
-                                        True,
-                                        None,
-                                        runner_strings[runner_type],
-                                        None,
-                                        installers[0][1].installer_type):
+            with AllureTestSuiteContext(properties=run_props,
+                                        versions=versions,
+                                        parent_test_suite_name=None,
+                                        auto_generate_parent_test_suite_name=True,
+                                        suite_name=runner_strings[runner_type],
+                                        runner_type=None,
+                                        installer_type=installers[0][1].installer_type):
                 with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
-                    if (runner_type == RunnerType.DC2DC and
-                        (not run_props.enterprise or IS_WINDOWS)):
+                    if not run_props.supports_dc2dc() and runner_type == RunnerType.DC2DC:
                         testcase.context.status = Status.SKIPPED
                         testcase.context.statusDetails = StatusDetails(
                             message="DC2DC is not applicable to Community packages.")
                         continue
+                    one_result = {
+                        "testrun name": run_props.testrun_name,
+                        "testscenario": runner_strings[runner_type],
+                        "success": True,
+                        "messages": [],
+                        "progress": "",
+                    }
                     runner = make_runner(
                         runner_type,
                         self.abort_on_error,
@@ -359,13 +357,6 @@ class TestDriver:
                     runner.do_install = (count == 1) and do_install
                     # only uninstall after the last test:
                     runner.do_uninstall = (count == len(STARTER_MODES[deployment_mode])) and do_uninstall
-                    one_result = {
-                        "testrun name": run_props.testrun_name,
-                        "testscenario": runner_strings[runner_type],
-                        "success": True,
-                        "messages": [],
-                        "progress": "",
-                    }
                     try:
                         runner.run()
                         runner.cleanup()
@@ -463,8 +454,6 @@ class TestDriver:
                 CommunityPackageInstallationTestSuite as testSuite
         suite = testSuite(
             versions=versions,
-            alluredir=self.alluredir,
-            clean_alluredir=self.clean_alluredir,
             base_config=self.base_config
         )
         suite.run()

@@ -1,4 +1,5 @@
 """ utility functions/classes for allure reporting """
+from pathlib import Path
 from string import Template
 from uuid import uuid4
 
@@ -113,6 +114,22 @@ class TestcaseContext:
         self.statusDetails = statusDetails
         self.labels = []
 
+RESULTS_DIR=Path()
+CLEAN_DIR=False
+ZIP_PACKAGE=False
+
+def init_allure(results_dir: Path,
+                clean: bool,
+                zip_package: bool):
+    """ globally init this module"""
+    # pylint: disable=global-statement
+    global RESULTS_DIR, CLEAN_DIR, ZIP_PACKAGE
+    if not results_dir.exists():
+        results_dir.mkdir(parents=True)
+
+    RESULTS_DIR=results_dir
+    CLEAN_DIR=clean
+    ZIP_PACKAGE=zip_package
 
 class AllureTestSuiteContext:
     """test suite class for allure reporting"""
@@ -121,10 +138,7 @@ class AllureTestSuiteContext:
     # pylint: disable=too-many-locals disable=dangerous-default-value disable=too-many-arguments
     def __init__(
         self,
-        results_dir,
-        clean,
         properties=None,
-        zip_package=None,
         versions=[],
         parent_test_suite_name=None,
         auto_generate_parent_test_suite_name=True,
@@ -140,7 +154,7 @@ class AllureTestSuiteContext:
             if installer_type:
                 package_type = installer_type
             else:
-                if zip_package:
+                if ZIP_PACKAGE:
                     package_type = "universal binary archive"
                 else:
                     package_type = "deb/rpm/nsis/dmg"
@@ -200,9 +214,9 @@ class AllureTestSuiteContext:
             else:
                 self.parent_test_suite_name = None
             if AllureTestSuiteContext.test_suite_count == 0:
-                self.file_logger = AllureFileLogger(results_dir, clean)
+                self.file_logger = AllureFileLogger(RESULTS_DIR, CLEAN_DIR)
             else:
-                self.file_logger = AllureFileLogger(results_dir, False)
+                self.file_logger = AllureFileLogger(RESULTS_DIR, False)
             self.test_listener = AllureListener(
                 default_test_suite_name=self.test_suite_name, default_parent_test_suite_name=self.parent_test_suite_name
             )

@@ -38,7 +38,6 @@ def zip_common_options(function):
     )(function)
     return function
 
-
 def very_common_options(support_multi_version=False):
     """These options are in all scripts"""
     package_dir = Path("/home/package_cache/")
