@@ -18,7 +18,7 @@ from common_options import very_common_options, download_options
 
 def get_tar_file_path(base_directory, versions, package_target):
     """calculate the name of the versions tar file"""
-    return base_directory / f"Upgrade_{versions[0]}__{versions[1]}_{package_target}.tar"
+    return base_directory / f"Upgrade_{versions[0]}__{versions[1]}_{package_target}_version.tar"
 
 def touch_all_tars_in_dir(tar_file):
     """sets the current filestamp to all tars so jenkins preserves them"""
