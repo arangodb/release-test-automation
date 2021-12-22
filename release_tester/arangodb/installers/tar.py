@@ -48,7 +48,6 @@ class InstallerTAR(InstallerBase):
         self.extension = "tar.gz"
         self.hot_backup = True
         self.architecture = None
-
         if MACVER[0]:
             cfg.localhost = "localhost"
             self.remote_package_dir = "MacOSX"

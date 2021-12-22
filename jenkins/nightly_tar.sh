@@ -66,19 +66,18 @@ docker run -d \
   quay.io/minio/minio server /data --console-address ":9001"
 
 
-
-
 # we need --init since our upgrade leans on zombies not happening:
 docker run \
        --ulimit core=-1 \
        -v "$(pwd):/home/release-test-automation" \
        -v "$(pwd)/test_dir:/home/test_dir" \
        -v "$(pwd)/allure-results:/home/allure-results" \
-       -v "${PACKAGE_CACHE}:/home/package_cache" \
+       -v "${PACKAGE_CACHE}:/home/release-test-automation/package_cache" \
        -v /tmp/tmp:/tmp/ \
        -v /dev/shm:/dev/shm \
        --env="BUILD_NUMBER=${BUILD_NUMBER}" \
        --env="PYTHONUNBUFFERED=1" \
+       --env="WORKSPACE=/home/release-test-automation/" \
        \
        --network=minio-bridge \
        --name="${DOCKER_TAR_NAME}" \
@@ -90,7 +89,6 @@ docker run \
        "arangodb/${DOCKER_TAR_TAG}" \
        \
           /home/release-test-automation/release_tester/full_download_upgrade.py \
-          --version-state-tar "/home/release-test-automation/${VERSION_TAR_NAME}" \
           --old-version "${OLD_VERSION}" \
           --new-version "${NEW_VERSION}" \
           --zip \

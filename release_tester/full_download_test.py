@@ -10,6 +10,7 @@ from beautifultable import BeautifulTable, ALIGN_LEFT
 
 import tools.loghelper as lh
 from download import (
+    get_tar_file_path,
     read_versions_tar,
     write_version_tar,
     touch_all_tars_in_dir,
@@ -27,7 +28,6 @@ def package_test(
     new_version,
     new_dlstage,
     git_version,
-    version_state_tar,
     editions,
     test_driver
 ):
@@ -41,6 +41,9 @@ def package_test(
 
     versions = {}
     fresh_versions = {}
+    version_state_tar = get_tar_file_path(test_driver.launch_dir,
+                                          ["0.0.0", new_version],
+                                          test_driver.get_packaging_shorthand())
     read_versions_tar(version_state_tar, versions)
     print(versions)
 
@@ -128,11 +131,6 @@ def package_test(
 
 
 @click.command()
-@click.option(
-    "--version-state-tar",
-    default="/home/release-test-automation/versions.tar",
-    help="tar file with the version combination in.",
-)
 @full_common_options
 @very_common_options()
 @common_options(
@@ -144,7 +142,6 @@ def package_test(
 # fmt: off
 # pylint: disable=R0913, disable=W0613
 def main(
-        version_state_tar,
         git_version,
         editions,
         #very_common_options
@@ -191,7 +188,6 @@ def main(
         new_version,
         new_source,
         git_version,
-        Path(version_state_tar),
         editions,
         test_driver
     )

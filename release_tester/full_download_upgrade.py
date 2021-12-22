@@ -10,6 +10,7 @@ from beautifultable import BeautifulTable, ALIGN_LEFT
 
 import tools.loghelper as lh
 from download import (
+    get_tar_file_path,
     read_versions_tar,
     write_version_tar,
     touch_all_tars_in_dir,
@@ -28,20 +29,21 @@ def upgrade_package_test(
     new_dlstage,
     old_dlstage,
     git_version,
-    version_state_tar,
     editions,
     test_driver
 ):
     """process fetch & tests"""
 
     test_driver.set_r_limits()
-
     lh.configure_logging(test_driver.base_config.verbose)
     list_all_processes()
     test_dir = test_driver.base_config.test_data_dir
 
     versions = {}
     fresh_versions = {}
+    version_state_tar = get_tar_file_path(test_driver.launch_dir,
+                                          [old_version, new_version],
+                                          test_driver.get_packaging_shorthand())
     read_versions_tar(version_state_tar, versions)
     print(versions)
 
@@ -219,7 +221,6 @@ def main(
         new_source,
         old_source,
         git_version,
-        Path(version_state_tar),
         editions,
         test_driver
     )
