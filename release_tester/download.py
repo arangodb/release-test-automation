@@ -45,6 +45,7 @@ def read_versions_tar(tar_file, versions):
                 print(member.isfile())
                 if member.isfile():
                     versions[member.name] = tar.extractfile(member).read().decode(encoding="utf-8")
+                    print(versions[member.name])
             tar.close()
         fdesc.close()
     except FileNotFoundError:
@@ -58,6 +59,8 @@ def write_version_tar(tar_file, versions):
     with tarfile.open(fileobj=fdesc, mode="w:") as tar:
         for version_name in versions:
             data = versions[version_name].encode("utf-8")
+            print(version_name)
+            print(versions[version_name])
             file_obj = BytesIO(data)
             info = tarfile.TarInfo(name=version_name)
             info.size = len(data)

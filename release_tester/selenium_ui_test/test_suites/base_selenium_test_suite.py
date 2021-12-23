@@ -42,6 +42,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
         """python assert sucks. fuckit."""
         if not conditionstate:
             logging.error(message)
+            self.save_page_source()
             self.take_screenshot()
             assert False, message
 
@@ -127,6 +128,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
         print(arg)
 
     def add_crash_data_to_report(self):
+        self.save_page_source()
         self.take_screenshot()
         self.save_browser_console_log()
 
@@ -145,6 +147,13 @@ class BaseSeleniumTestSuite(BaseTestSuite):
             attach_table(table, "Browser console log")
         else:
             attach("", "Browser console log is empty")
+
+    def save_page_source(self):
+        """save current page"""
+        html = self.webdriver.page_source
+        filename = datetime.now().strftime("%d-%m-%Y_%H:%M:%S.%f") + ".html"
+        self.progress("Saving pagedump to file: %s" % filename)
+        attach(html, name="Pagedump of ({fn})".format(fn=filename), attachment_type=AttachmentType.HTML)
 
     def take_screenshot(self):
         """*snap*"""
