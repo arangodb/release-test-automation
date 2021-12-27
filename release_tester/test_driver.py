@@ -11,6 +11,11 @@ import shutil
 
 from allure_commons.model2 import Status, StatusDetails
 
+from license_manager_tests.afo import LicenseManagerAfoTestSuite
+from license_manager_tests.cluster import LicenseManagerClusterTestSuite
+from license_manager_tests.dc2dc import LicenseManagerDc2DcTestSuite
+from license_manager_tests.leader_follower import LicenseManagerLeaderFollowerTestSuite
+from license_manager_tests.single_server import LicenseManagerSingleServerTestSuite
 from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext, init_allure
 from tools.killall import kill_all_processes
 from arangodb.installers import create_config_installer_set, RunProperties, InstallerBaseConfig
@@ -487,3 +492,36 @@ class TestDriver:
             for one_result in suite.test_results:
                 result["messages"].append(one_result.message)
         return [result]
+
+    def run_license_manager_tests(
+            self,
+            new_version,
+    ):
+        """run license manager tests"""
+        args = (
+            new_version,
+            self.base_config,
+        )
+        suites = [
+            LicenseManagerSingleServerTestSuite(*args),
+            LicenseManagerLeaderFollowerTestSuite(*args),
+            LicenseManagerClusterTestSuite(*args),
+            LicenseManagerAfoTestSuite(*args),
+            LicenseManagerDc2DcTestSuite(*args),
+        ]
+        results = []
+        for suite in suites:
+            suite.run()
+            result = {
+                "testrun name": suite.suite_name,
+                "testscenario": "",
+                "success": True,
+                "messages": [],
+                "progress": "",
+            }
+            if suite.there_are_failed_tests():
+                result["success"] = False
+                for one_result in suite.test_results:
+                    result["messages"].append(one_result.message)
+            results.append(result)
+        return results

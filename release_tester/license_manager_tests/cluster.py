@@ -1,0 +1,67 @@
+import json
+
+import requests
+
+from arangodb.installers import RunProperties
+from arangodb.instance import InstanceType
+from arangodb.starter.deployments import make_runner, RunnerType
+from license_manager_tests.license_manager_base_test_suite import LicenseManagerBaseTestSuite
+from reporting.reporting_utils import step
+from selenium_ui_test.test_suites.base_test_suite import testcase
+
+
+class LicenseManagerClusterTestSuite(LicenseManagerBaseTestSuite):
+    """License manager tests: cluster"""
+
+    @step
+    def start_cluster(self):
+        self.runner = make_runner(
+            runner_type=RunnerType.CLUSTER,
+            abort_on_error=False,
+            selenium_worker="none",
+            selenium_driver_args=[],
+            installer_set=self.installer_set,
+            runner_properties=RunProperties(
+                enterprise=True,
+                encryption_at_rest=False,
+                ssl=False,
+            ),
+            use_auto_certs=False,
+        )
+        self.runner.starter_prepare_env()
+        self.runner.starter_run()
+        self.runner.finish_setup()
+        self.starter = self.runner.starter_instances[0]
+
+    def get_server_id(self):
+        resp = self.starter.send_request(
+            InstanceType.COORDINATOR,
+            requests.get,
+            "/_api/cluster/agency-dump",
+        )
+        json_body = json.loads(resp[0].text)
+        agent_list = list(json_body["agency"][".agency"]["pool"].keys())
+        agent_list.sort()
+        return "".join(agent_list)
+
+    def set_license(self, license):
+        body = """[[{"/arango/.license":{"op":"set","new": """ + license + """}}]]"""
+        resp = self.runner.get_agency_leader_starter().send_request(
+            InstanceType.AGENT,
+            requests.post,
+            "/_api/agency/write",
+            body,
+        )
+        assert 200 <= resp[0].status_code < 300, "Failed to write license to agency."
+
+    @testcase
+    def clean_install_temp_license(self):
+        """Check that server gets a 60-minute license after installation on a clean system"""
+        self.start_cluster()
+        self.check_that_license_is_not_expired(50 * 60)
+
+    @testcase
+    def goto_read_only_mode_when_license_expired(self):
+        """Check that system goes to read-only mode when license is expired"""
+        self.expire_license()
+        self.check_readonly()

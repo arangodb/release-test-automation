@@ -47,6 +47,10 @@ else
     docker build containers/docker_deb -t "${DOCKER_DEB_TAG}" || exit
 fi
 
+ssh -o StrictHostKeyChecking=no -T git@github.com
+git clone git@github.com:arangodb/release-test-automation-helpers.git
+mv $(pwd)/release-test-automation-helpers $(pwd)/release_tester/tools/external_helpers
+
 docker run \
        --ulimit core=-1 \
        -v "$(pwd):/home/release-test-automation" \

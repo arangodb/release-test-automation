@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
 import time
+import datetime
 import logging
 import sys
 from pathlib import Path
@@ -395,3 +396,19 @@ please revalidate the UI states on the new leader; you should see *one* follower
             [x for x in self.leader.all_instances if x.instance_type == InstanceType.RESILIENT_SINGLE][0],
             self.new_cfg,
         )
+
+    def get_agency_leader_starter(self):
+        """get the starter instance that manages the current agency leader"""
+        agency = []
+        for starter_mgr in self.starter_instances:
+            agency += starter_mgr.get_agents()
+        leader = None
+        leading_date = datetime.datetime(1970, 1, 1, 0, 0, 0)
+        for starter_mgr in self.starter_instances:
+            agency = starter_mgr.get_agents()
+            for agent in agency:
+                agent_leading_date = agent.search_for_agent_serving()
+                if agent_leading_date > leading_date:
+                    leading_date = agent_leading_date
+                    leader = starter_mgr
+        return leader
