@@ -14,7 +14,6 @@ class LicenseManagerLeaderFollowerTestSuite(LicenseManagerBaseTestSuite):
     @step
     def setup_test_suite(self):
         """clean up the system before running tests"""
-        super().setup_test_suite()
         self.start_leader_follower()
 
 
@@ -82,8 +81,11 @@ class LicenseManagerLeaderFollowerTestSuite(LicenseManagerBaseTestSuite):
         with step("Check that collection wasn't replicated to follower"):
             try:
                 self.runner.follower_starter_instance.arangosh.run_command(
-                    ("try to read collection", "db._query('FOR doc IN checkExpireLicenseOnFollower RETURN doc');"), True,
-                    expect_to_fail=True
+                    ("try to read collection", "db._query('FOR doc IN checkExpireLicenseOnFollower RETURN doc');"),
+                    True,
+                    expect_to_fail=True,
                 )
             except CliExecutionException as ex:
-                raise Exception("Collection was replicated to follower after license expiry. Follower must be in read-only mode!") from ex
+                raise Exception(
+                    "Collection was replicated to follower after license expiry. Follower must be in read-only mode!"
+                ) from ex

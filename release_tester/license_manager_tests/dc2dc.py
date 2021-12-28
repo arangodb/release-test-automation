@@ -85,8 +85,11 @@ class LicenseManagerDc2DcTestSuite(LicenseManagerBaseTestSuite):
         with step("Check that collection wasn't replicated to follower cluster"):
             try:
                 self.runner.cluster1["instance"].arangosh.run_command(
-                    ("try to read collection", "db._query('FOR doc IN checkExpireLicenseOnFollower RETURN doc');"), True,
-                    expect_to_fail=True
+                    ("try to read collection", "db._query('FOR doc IN checkExpireLicenseOnFollower RETURN doc');"),
+                    True,
+                    expect_to_fail=True,
                 )
             except CliExecutionException as ex:
-                raise Exception("Collection was replicated to follower cluster after license expiry. Follower must be in read-only mode!") from ex
+                raise Exception(
+                    "Collection was replicated to follower cluster after license expiry. Follower must be in read-only mode!"
+                ) from ex

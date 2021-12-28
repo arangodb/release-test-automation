@@ -23,23 +23,25 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
         self,
         new_version,
         installer_base_config,
+        child_classes=[],
     ):
-        super().__init__()
-        self.parent_test_suite_name = None
+        self.new_version=new_version
+        self.base_cfg = installer_base_config
+        super().__init__(child_classes=child_classes)
+        self.parent_test_suite_name = "Licence manager test suite"
         self.auto_generate_parent_test_suite_name = False
         if self.__doc__:
             self.suite_name = self.__doc__
         else:
             self.suite_name = "Licence manager test suite"
         self.use_subsuite = False
-        base_cfg = installer_base_config
         run_props = RunProperties(
             enterprise=True,
             encryption_at_rest=False,
             ssl=False,
         )
         self.installer_set = create_config_installer_set(
-            versions=[new_version], base_config=base_cfg, deployment_mode="all", run_properties=run_props
+            versions=[new_version], base_config=self.base_cfg, deployment_mode="all", run_properties=run_props
         )
         self.installer = self.installer_set[0][1]
         self.starter = None
@@ -48,17 +50,15 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
         self.passvoid = "license_manager_tests"
         self.publicip = installer_base_config.publicip
 
-    @step
-    def setup_test_suite(self):
-        """clean up the system before running tests"""
-        self.installer.install_server_package()
-        self.installer.stop_service()
+    # pylint: disable=no-self-use
+    def init_child_class(self, child_class):
+        """initialise the child class"""
+        return child_class(self.new_version, self.base_cfg)
 
     @step
     def tear_down_test_suite(self):
         """clean up the system after running tests"""
         self.runner.starter_shutdown()
-        self.installer.un_install_server_package()
 
     @step
     def setup_testcase(self):

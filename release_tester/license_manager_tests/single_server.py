@@ -16,7 +16,6 @@ class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
     def tear_down_test_suite(self):
         """clean up the system after running tests"""
         self.starter.terminate_instance()
-        self.installer.un_install_server_package()
 
     def get_server_id(self):
         datadir = self.starter.all_instances[0].basedir / "data"

@@ -233,8 +233,8 @@ class Download:
         url = "https://{user}:{passvoid}@{remote_host}:8529/{dir}{pkg}".format(
             **{
                 "remote_host": self.remote_host,
-                "passvoid": self.options.passvoid,
-                "user": self.options.user,
+                "passvoid": self.options.httppassvoid,
+                "user": self.options.httpuser,
                 "dir": directory,
                 "pkg": package,
             }

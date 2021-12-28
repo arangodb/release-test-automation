@@ -1,23 +1,16 @@
 #!/usr/bin/env python3
 """test drivers"""
-from pathlib import Path
-import platform
 import os
+import platform
+import shutil
 import sys
 import time
 import traceback
-
-import shutil
+from pathlib import Path
 
 from allure_commons.model2 import Status, StatusDetails
 
-from license_manager_tests.afo import LicenseManagerAfoTestSuite
-from license_manager_tests.cluster import LicenseManagerClusterTestSuite
-from license_manager_tests.dc2dc import LicenseManagerDc2DcTestSuite
-from license_manager_tests.leader_follower import LicenseManagerLeaderFollowerTestSuite
-from license_manager_tests.single_server import LicenseManagerSingleServerTestSuite
-from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext, init_allure
-from tools.killall import kill_all_processes
+import tools.loghelper as lh
 from arangodb.installers import create_config_installer_set, RunProperties, InstallerBaseConfig
 from arangodb.starter.deployments import (
     RunnerType,
@@ -25,7 +18,9 @@ from arangodb.starter.deployments import (
     runner_strings,
     STARTER_MODES,
 )
-import tools.loghelper as lh
+from license_manager_tests.main_test_suite import MainLicenseManagerTestSuite
+from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext, init_allure
+from tools.killall import kill_all_processes
 
 IS_WINDOWS = platform.win32_ver()[0] != ""
 IS_LINUX = sys.platform == "linux"
@@ -79,7 +74,7 @@ class TestDriver:
         self.use_auto_certs = use_auto_certs
         self.selenium = selenium
         self.selenium_driver_args = selenium_driver_args
-        init_allure(results_dir=alluredir,
+        init_allure(results_dir=Path(alluredir),
                     clean=clean_alluredir,
                     zip_package=self.base_config.zip_package)
         self.installer_type = None
@@ -503,11 +498,7 @@ class TestDriver:
             self.base_config,
         )
         suites = [
-            LicenseManagerSingleServerTestSuite(*args),
-            LicenseManagerLeaderFollowerTestSuite(*args),
-            LicenseManagerClusterTestSuite(*args),
-            LicenseManagerAfoTestSuite(*args),
-            LicenseManagerDc2DcTestSuite(*args),
+            MainLicenseManagerTestSuite(*args),
         ]
         results = []
         for suite in suites:
