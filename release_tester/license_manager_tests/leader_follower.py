@@ -16,8 +16,6 @@ class LicenseManagerLeaderFollowerTestSuite(LicenseManagerBaseTestSuite):
         """clean up the system before running tests"""
         self.start_leader_follower()
 
-
-
     def get_server_id(self):
         datadir = self.starter.all_instances[0].basedir / "data"
         server_file_content = json.load(open(datadir / "SERVER"))

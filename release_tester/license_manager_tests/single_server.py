@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 import requests
 
@@ -35,7 +36,7 @@ class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
     def start_single_server(self):
         self.starter = StarterManager(
             basecfg=self.installer.cfg,
-            install_prefix=self.installer.cfg.install_prefix,
+            install_prefix=Path("SingleServer"),
             instance_prefix="single",
             expect_instances=[InstanceType.SINGLE],
             mode="single",

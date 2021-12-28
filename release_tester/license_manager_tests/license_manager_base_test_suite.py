@@ -25,7 +25,7 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
         installer_base_config,
         child_classes=[],
     ):
-        self.new_version=new_version
+        self.new_version = new_version
         self.base_cfg = installer_base_config
         super().__init__(child_classes=child_classes)
         self.parent_test_suite_name = "Licence manager test suite"
