@@ -38,7 +38,7 @@ class TestConfig:
         self.db_offset = 0
         self.progressive_timeout = 100
 
-
+# pylint: disable=global-variable-not-assigned
 statsdc = statsd.StatsClient("localhost", 8125)
 RESULTS_TXT = None
 OTHER_SH_OUTPUT = None

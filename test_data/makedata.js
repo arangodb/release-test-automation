@@ -186,7 +186,7 @@ function createOneShardVariant(db, baseName, count) {
     print(`skipping ${databaseName} - it failed to be created, but it is no one-shard.`);
     return;
   }
-  progress('created OneShard DB');
+  progress(`created OneShard DB '${databaseName}'`);
   for (let ccount = 0; ccount < options.collectionMultiplier; ++ccount) {
     const c0 = createCollectionSafe(`c_${ccount}_0`, 1, 2);
     const c1 = createCollectionSafe(`c_${ccount}_1`, 1, 2);

@@ -3,6 +3,7 @@
 import logging
 import os
 import shutil
+import sys
 import time
 from pathlib import Path
 
@@ -121,6 +122,7 @@ class InstallerRPM(InstallerLinux):
         cmd = "rpm --upgrade " + str(self.cfg.package_dir / self.server_package)
         lh.log_cmd(cmd)
         server_upgrade = pexpect.spawnu(cmd)
+        server_upgrade.logfile = sys.stdout
 
         try:
             server_upgrade.expect(
@@ -167,6 +169,7 @@ class InstallerRPM(InstallerLinux):
         cmd = "rpm " + "-i " + str(package)
         lh.log_cmd(cmd)
         server_install = pexpect.spawnu(cmd)
+        server_install.logfile = sys.stdout
         reply = None
 
         try:
@@ -206,6 +209,7 @@ class InstallerRPM(InstallerLinux):
         self.cfg.passvoid = "RPM_passvoid_%d" % os.getpid()
         lh.log_cmd("/usr/sbin/arango-secure-installation")
         with pexpect.spawnu("/usr/sbin/arango-secure-installation") as etpw:
+            etpw.logfile = sys.stdout
             result = None
             try:
                 ask_for_pass = [
@@ -267,6 +271,7 @@ class InstallerRPM(InstallerLinux):
         cmd = f"rpm {option} {package}"
         lh.log_cmd(cmd)
         install = pexpect.spawnu(cmd)
+        install.logfile = sys.stdout
         try:
             logging.info("waiting for the installation to finish")
             install.expect(pexpect.EOF, timeout=90)
@@ -302,6 +307,7 @@ class InstallerRPM(InstallerLinux):
         """Uninstall package"""
         print('uninstalling rpm package "%s"' % package_name)
         uninstall = pexpect.spawnu("rpm -e " + package_name)
+        uninstall.logfile = sys.stdout
         try:
             uninstall.expect(pexpect.EOF, timeout=30)
             ascii_print(uninstall.before)
@@ -356,22 +362,22 @@ class InstallerRPM(InstallerLinux):
             print("cleaning up %s " % str(self.cfg.log_dir))
             shutil.rmtree(self.cfg.log_dir)
         else:
-            print("log directory not known")
+            print("log directory not found")
 
         if self.cfg.dbdir.exists():
             print("cleaning up %s " % str(self.cfg.dbdir))
             shutil.rmtree(self.cfg.dbdir)
         else:
-            print("database directory not known")
+            print("database directory not found")
 
         if self.cfg.appdir.exists():
             print("cleaning up %s " % str(self.cfg.appdir))
             shutil.rmtree(self.cfg.appdir)
         else:
-            print("app directory not known")
+            print("app directory not found")
 
         if self.cfg.cfgdir.exists():
             print("cleaning up %s " % str(self.cfg.cfgdir))
             shutil.rmtree(self.cfg.cfgdir)
         else:
-            print("config directory not known")
+            print("config directory not found")

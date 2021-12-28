@@ -5,6 +5,7 @@ import multiprocessing
 from pathlib import Path, PureWindowsPath
 import shutil
 import time
+# pylint: disable=import-error
 import winreg
 import os
 import re
@@ -31,7 +32,7 @@ class InstallerW(InstallerBase):
         self.client_package = None
         self.service = None
         self.remote_package_dir = "Windows"
-        self.installer_type = "NSIS"
+        self.installer_type = "EXE"
         self.backup_dirs_number_before_upgrade = None
 
         cfg.install_prefix = Path("C:/tmp")

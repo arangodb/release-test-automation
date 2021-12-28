@@ -32,10 +32,6 @@ class ReplicationPage(NavigationBarPage):
         "follower": ['//*[@id="repl-follower-table"]//thead//th[%d]', '//*[@id="repl-follower-table"]//tr[%d]//td[%d]'],
     }
 
-    def __init__(self, driver):
-        """Replication page initialization"""
-        super().__init__(driver)
-
     def _get_repl_page(self, which, timeout=30):
         """parse the complete replication state table"""
         state_table = self.get_state_table(timeout)
@@ -71,7 +67,7 @@ class ReplicationPage(NavigationBarPage):
             message="UI-Test: replication state table didn't arive on time %s " % timeout,
         )
         state_table = {}
-        for key in self.REPL_TABLE_LOC:
+        for key in self.REPL_TABLE_LOC.items():
             state_table[key] = table_elm.find_element_by_xpath(self.REPL_TABLE_LOC[key]).text
         return state_table
 

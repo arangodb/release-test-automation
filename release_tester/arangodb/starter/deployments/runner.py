@@ -109,10 +109,10 @@ class Runner(ABC):
             new_cfg = install_set[1][1].cfg
             new_inst = install_set[1][1]
 
-        self.do_install = cfg.mode == "all" or cfg.mode == "install"
-        self.do_uninstall = cfg.mode == "all" or cfg.mode == "uninstall"
-        self.do_system_test = cfg.mode in ["all", "system"] and cfg.have_system_service
-        self.do_starter_test = cfg.mode in ["all", "tests"]
+        self.do_install = cfg.deployment_mode in ["all", "install"]
+        self.do_uninstall = cfg.deployment_mode in ["all", "uninstall"]
+        self.do_system_test = cfg.deployment_mode in ["all", "system"] and cfg.have_system_service
+        self.do_starter_test = cfg.deployment_mode in ["all", "tests"]
         self.do_upgrade = False
         self.supports_rolling_upgrade = WINVER[0] == ""
 
@@ -319,6 +319,7 @@ class Runner(ABC):
                 False,
                 "UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),
             )
+            self.new_installer.calculate_package_names()
             self.new_installer.upgrade_server_package(self.old_installer)
             lh.subsection("outputting version")
             self.new_installer.output_arangod_version()

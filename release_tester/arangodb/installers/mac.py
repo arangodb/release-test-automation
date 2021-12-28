@@ -43,16 +43,17 @@ def _mountdmg(dmgpath):
         "on",
     ]
     print(cmd)
-    proc = subprocess.Popen(
+    pliststr = ""
+    with subprocess.Popen(
         cmd,
         bufsize=-1,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         stdin=subprocess.PIPE,
-    )
-    proc.stdin.write(b"y\n")  # answer 'Agree Y/N?' the dumb way...
-    # pylint: disable=W0612
-    (pliststr, void) = proc.communicate()
+    ) as proc:
+        proc.stdin.write(b"y\n")  # answer 'Agree Y/N?' the dumb way...
+        # pylint: disable=W0612
+        (pliststr, _) = proc.communicate()
 
     offset = pliststr.find(b'<?xml version="1.0" encoding="UTF-8"?>')
     if offset > 0:
@@ -84,11 +85,13 @@ def _detect_dmg_mountpoints(dmgpath):
     """
     mountpoints = []
     cmd = ["/usr/bin/hdiutil", "info", "-plist"]
-    proc = subprocess.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    (pliststr, err) = proc.communicate()
-    if proc.returncode:
-        logging.error('Error: "%s" while listing mountpoints %s.' % (err, dmgpath))
-        return mountpoints
+    pliststr = ""
+    err = ""
+    with subprocess.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
+        (pliststr, err) = proc.communicate()
+        if proc.returncode:
+            logging.error('Error: "%s" while listing mountpoints %s.' % (err, dmgpath))
+            return mountpoints
     if pliststr:
         plist = plistlib.loads(pliststr)
         for entity in plist["images"]:
@@ -109,20 +112,20 @@ def _unmountdmg(mountpoint):
     Unmounts the dmg at mountpoint
     """
     logging.info("unmounting %s", mountpoint)
-    proc = subprocess.Popen(
+    with subprocess.Popen(
         ["/usr/bin/hdiutil", "detach", mountpoint],
         bufsize=-1,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-    )
-    (dummy_output, err) = proc.communicate()
-    if proc.returncode:
-        logging.error("Polite unmount failed: %s" % err)
-        logging.error("Attempting to force unmount %s" % mountpoint)
-        # try forcing the unmount
-        retcode = subprocess.call(["/usr/bin/hdiutil", "detach", mountpoint, "-force"])
-        if retcode:
-            logging.error("while mounting")
+    ) as proc:
+        (_, err) = proc.communicate()
+        if proc.returncode:
+            logging.error("Polite unmount failed: %s" % err)
+            logging.error("Attempting to force unmount %s" % mountpoint)
+            # try forcing the unmount
+            retcode = subprocess.call(["/usr/bin/hdiutil", "detach", mountpoint, "-force"])
+            if retcode:
+                logging.error("while mounting")
 
 
 class InstallerMac(InstallerBase):

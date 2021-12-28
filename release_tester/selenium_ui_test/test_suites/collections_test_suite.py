@@ -10,6 +10,7 @@ from selenium_ui_test.pages.collection_page import CollectionPage
 
 class CollectionsTestSuite(BaseSeleniumTestSuite):
     """collection tab suite"""
+    # pylint: disable=too-many-statements
     @testcase
     def test_collection(self):
         """testing collection page"""

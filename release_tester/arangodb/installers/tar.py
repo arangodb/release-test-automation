@@ -43,10 +43,11 @@ class InstallerTAR(InstallerBase):
         self.cfg = cfg
         self.dash = "-"
         self.cfg.install_prefix = self.basedir
+        self.cfg.client_install_prefix = self.basedir
+        self.cfg.server_install_prefix = self.basedir
         self.extension = "tar.gz"
         self.hot_backup = True
         self.architecture = None
-
         if MACVER[0]:
             cfg.localhost = "localhost"
             self.remote_package_dir = "MacOSX"
@@ -112,6 +113,8 @@ class InstallerTAR(InstallerBase):
         else:
             self.server_package = "arangodb3{ep}-{arch}{dashus}{ver}.{ext}".format(**self.desc)
             self.client_package = "arangodb3{ep}-client-{arch}{dashus}{ver}.{ext}".format(**self.desc)
+            self.cfg.client_install_prefix = self.basedir / "arangodb3{ep}-client-{arch}{dashus}{ver}".format(**self.desc)
+            self.cfg.server_install_prefix = self.basedir / "arangodb3{ep}-{arch}{dashus}{ver}".format(**self.desc)
             if self.cfg.client_package_is_installed:
                 self.cfg.install_prefix = self.basedir / "arangodb3{ep}-client-{arch}{dashus}{ver}".format(**self.desc)
             else:
@@ -161,6 +164,19 @@ class InstallerTAR(InstallerBase):
             str(extract_to),
         )
         logging.info("Installation successfull")
+        self.cfg.server_package_is_installed = True
+        self.cfg.install_prefix = self.cfg.server_install_prefix
+        if self.architecture == "win64":
+            self.cfg.bin_dir = self.cfg.install_prefix / "usr" / "bin"
+            self.cfg.sbin_dir = self.cfg.install_prefix / "usr" / "bin"
+            self.cfg.real_bin_dir = self.cfg.bin_dir
+            self.cfg.real_sbin_dir = self.cfg.sbin_dir
+        else:
+            self.cfg.bin_dir = self.cfg.install_prefix / "bin"
+            self.cfg.sbin_dir = self.cfg.install_prefix / "usr" / "sbin"
+            self.cfg.real_bin_dir = self.cfg.install_prefix / "usr" / "bin"
+            self.cfg.real_sbin_dir = self.cfg.sbin_dir
+        self.calculate_file_locations()
 
     @step
     def install_client_package_impl(self):
@@ -180,6 +196,19 @@ class InstallerTAR(InstallerBase):
             str(self.cfg.install_prefix / ".."),
         )
         logging.info("Installation successfull")
+        self.cfg.client_package_is_installed = True
+        self.cfg.install_prefix = self.cfg.client_install_prefix
+        if self.architecture == "win64":
+            self.cfg.bin_dir = self.cfg.install_prefix / "usr" / "bin"
+            self.cfg.sbin_dir = self.cfg.install_prefix / "usr" / "bin"
+            self.cfg.real_bin_dir = self.cfg.bin_dir
+            self.cfg.real_sbin_dir = self.cfg.sbin_dir
+        else:
+            self.cfg.bin_dir = self.cfg.install_prefix / "bin"
+            self.cfg.sbin_dir = self.cfg.install_prefix / "usr" / "sbin"
+            self.cfg.real_bin_dir = self.cfg.install_prefix / "usr" / "bin"
+            self.cfg.real_sbin_dir = self.cfg.sbin_dir
+        self.calculate_file_locations()
 
     @step
     def un_install_server_package_impl(self):

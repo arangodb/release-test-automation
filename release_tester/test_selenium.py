@@ -37,12 +37,13 @@ def run_upgrade(
             continue
         installers = create_config_installer_set(
             [old_version, new_version],
+
             verbose,
             zip_package,
             hot_backup,
             Path(package_dir),
             Path(test_data_dir),
-            "all",
+            "all", # deployment_mode
             publicip,
             interactive,
             stress_upgrade,

@@ -8,9 +8,6 @@ class UserBarPage(BasePage):
 
     logout_button_id = "userLogoutIcon"
 
-    def __init__(self, driver):
-        super().__init__(driver)
-
     def log_out(self):
         """click log out icon on the user bar and wait for"""
         logout_button_sitem = self.locator_finder_by_id(self.logout_button_id)

@@ -1,37 +1,27 @@
 #!/usr/bin/env python3
 """base class for package conflict checking"""
 import shutil
-from pathlib import Path
 
 from allure_commons._allure import attach
 
-from arangodb.installers import create_config_installer_set, RunProperties
+from arangodb.installers import create_config_installer_set, RunProperties, InstallerBaseConfig
 from reporting.reporting_utils import step
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite
 
 
 class BasePackageInstallationTestSuite(BaseTestSuite):
+    # pylint: disable=too-many-instance-attributes disable=too-many-arguments
     """base class for package conflict checking"""
     def __init__(
-        self,
-        old_version,
-        new_version,
-        verbose,
-        package_dir,
-        alluredir,
-        clean_alluredir,
-        enterprise,
-        zip_package,
-        interactive,
+            self,
+            versions: list,
+            base_config: InstallerBaseConfig
     ):
         super().__init__()
-        self.results_dir = alluredir
-        self.clean_allure_dir = clean_alluredir
-        self.enterprise = enterprise
-        self.zip_package = zip_package
-        self.new_version = new_version
+        self.zip_package = base_config.zip_package
+        self.new_version = versions
         self.enc_at_rest = None
-        self.old_version = old_version
+        self.old_version = versions[0]
         self.parent_test_suite_name = None
         self.auto_generate_parent_test_suite_name = False
         self.suite_name = None
@@ -40,31 +30,17 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
         self.use_subsuite = False
         self.installers = {}
         self.installers["community"] = create_config_installer_set(
-            versions=[old_version, new_version],
-            verbose=verbose,
-            zip_package=zip_package,
-            package_dir=Path(package_dir),
-            test_dir=None,
-            mode="all",
-            publicip="127.0.0.1",
-            interactive=interactive,
-            stress_upgrade=False,
-            hot_backup="disabled",
+            versions=versions,
+            base_config=base_config,
+            deployment_mode="all",
             run_properties=RunProperties(enterprise=False,
                                          encryption_at_rest=False,
                                          ssl=False)
         )
         self.installers["enterprise"] = create_config_installer_set(
-            versions=[old_version, new_version],
-            verbose=verbose,
-            zip_package=zip_package,
-            package_dir=Path(package_dir),
-            test_dir=None,
-            mode="all",
-            publicip="127.0.0.1",
-            interactive=interactive,
-            stress_upgrade=False,
-            hot_backup="disabled",
+            versions=versions,
+            base_config=base_config,
+            deployment_mode="all",
             run_properties=RunProperties(enterprise=True,
                                          encryption_at_rest=False,
                                          ssl=False)
@@ -107,13 +83,13 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
         """upload a logfile into the report."""
         inst = self.installers["enterprise"][0][1]
         if inst.instance and inst.instance.logfile.exists():
-            log = open(inst.instance.logfile, "r").read()
-            attach(log, "Log file " + str(inst.instance.logfile))
+            with open(inst.instance.logfile, "r", encoding='utf8').read() as log:
+                attach(log, "Log file " + str(inst.instance.logfile))
 
     def save_data_dir(self):
         """upload a system database directory into the report"""
         inst = self.installers["enterprise"][0][1]
         data_dir = inst.cfg.dbdir
         if data_dir.exists():
-            archive = shutil.make_archive("datadir", "bztar", data_dir, data_dir)
-            attach.file(archive, "data directory archive", "application/x-bzip2", "tar.bz2")
+            with shutil.make_archive("datadir", "bztar", data_dir, data_dir) as archive:
+                attach.file(archive, "data directory archive", "application/x-bzip2", "tar.bz2")

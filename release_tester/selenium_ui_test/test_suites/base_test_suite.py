@@ -9,6 +9,7 @@ from allure_commons.types import LabelType
 
 from reporting.reporting_utils import AllureTestSuiteContext, RtaTestcase
 from selenium_ui_test.models import RtaTestResult
+from arangodb.installers import RunProperties
 
 
 class BaseTestSuite(ABC):
@@ -20,19 +21,16 @@ class BaseTestSuite(ABC):
         self.children = []
         for child_class in child_classes:
             self.children.append(self.init_child_class(child_class))
-        self.results_dir = None
-        self.clean_allure_dir = True
-        self.enterprise = None
-        self.zip_package = None
+        self.enterprise = False
         self.new_version = None
-        self.enc_at_rest = None
+        self.enc_at_rest = False
         self.old_version = None
         self.parent_test_suite_name = None
         self.auto_generate_parent_test_suite_name = None
         self.suite_name = None
         self.runner_type = None
         self.installer_type = None
-        self.ssl = None
+        self.ssl = False
         self.use_subsuite = True
 
     # pylint: disable=no-self-use
@@ -43,17 +41,18 @@ class BaseTestSuite(ABC):
     def run(self):
         """execute the test"""
         self.setup_test_suite()
+        versions=[self.new_version]
+        if self.old_version:
+            versions.append(self.old_version)
+
         for suite in self.children:
             self.test_results += suite.run()
         if self.has_own_testcases():
             with AllureTestSuiteContext(
-                results_dir=None if not self.results_dir else self.results_dir,
-                clean=self.clean_allure_dir,
-                enterprise=None if not self.enterprise else self.enterprise,
-                zip_package=None if not self.zip_package else self.zip_package,
-                new_version=None if not self.new_version else self.new_version,
-                enc_at_rest=None if not self.enc_at_rest else self.enc_at_rest,
-                old_version=None if not self.old_version else self.old_version,
+                properties=RunProperties(self.enterprise,
+                                         self.enc_at_rest,
+                                         self.ssl),
+                versions=versions,
                 parent_test_suite_name=None if not self.parent_test_suite_name else self.parent_test_suite_name,
                 auto_generate_parent_test_suite_name=True
                 if not hasattr(self, "auto_generate_parent_test_suite_name")
@@ -61,7 +60,6 @@ class BaseTestSuite(ABC):
                 suite_name=None if not self.suite_name else self.suite_name,
                 runner_type=None if not self.runner_type else self.runner_type,
                 installer_type=None if not self.installer_type else self.installer_type,
-                ssl=False if not self.ssl else self.ssl,
             ):
                 self.test_results += self.run_own_testscases()
         self.tear_down_test_suite()
@@ -82,23 +80,18 @@ class BaseTestSuite(ABC):
 
     def setup_test_suite(self):
         """prepare to run test suite"""
-        pass
 
     def tear_down_test_suite(self):
         """clean up after test suite"""
-        pass
 
     def setup_testcase(self):
         """prepare to run test case"""
-        pass
 
     def teardown_testcase(self):
         """clean up after test case"""
-        pass
 
     def add_crash_data_to_report(self):
         """add eventual crash data"""
-        pass
 
     def there_are_failed_tests(self):
         """check whether there are failed tests"""
@@ -112,7 +105,7 @@ def testcase(title=None, disable=False):
     """ base testcase class decorator """
     def decorator(func):
         def wrapper(self, *args, **kwargs):
-            # pylint: disable=broad-except
+            # pylint: disable=broad-except disable=too-many-branches
             name = None
             success = None
             message = None

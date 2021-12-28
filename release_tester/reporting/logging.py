@@ -16,7 +16,7 @@ class IoDuplicator(io.TextIOBase):
         return "".join(self.deque)
 
     def write(self, x):
-        n = self.downstream.write(x)
+        line = self.downstream.write(x)
         self.downstream.flush()
         self.deque.append(x)
-        return n
+        return line
