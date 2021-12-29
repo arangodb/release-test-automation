@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """test drivers"""
+import logging
 import os
 import platform
 import shutil
@@ -8,6 +9,7 @@ import time
 import traceback
 from pathlib import Path
 
+import semver
 from allure_commons.model2 import Status, StatusDetails
 
 import tools.loghelper as lh
@@ -493,6 +495,17 @@ class TestDriver:
             new_version,
     ):
         """run license manager tests"""
+        if semver.VersionInfo.parse(new_version) < "3.9.0-nightly":
+            logging.info("License manager test suite is only applicable to versions 3.9 and newer.")
+            return [
+                {
+                    "testrun name": "License manager test suite is only applicable to versions 3.9 and newer.",
+                    "testscenario": "",
+                    "success": True,
+                    "messages": [],
+                    "progress": "",
+                }
+            ]
         args = (
             new_version,
             self.base_config,
