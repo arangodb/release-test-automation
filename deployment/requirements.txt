@@ -1,8 +1,1 @@
-click
-semver
-distro
-pexpect
-allure_python_commons
-tabulate
-certifi
-markdown
+../requirements.txt
