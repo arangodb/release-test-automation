@@ -29,7 +29,7 @@ PYTHONUNBUFFERED=1
 mkdir -p "${PACKAGE_CACHE}"
 mkdir -p test_dir
 mkdir -p allure-results
-
+ulimit -n 65535
 
 $(pwd)/release_tester/full_download_upgrade.py \
       --version-state-tar "${WORKSPACE}/${VERSION_TAR_NAME}" \
