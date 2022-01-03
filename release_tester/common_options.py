@@ -3,141 +3,248 @@
 """ these are our common CLI options """
 from pathlib import Path
 import sys
+import os
 import click
 
-from arangodb.starter.deployments import (
-    STARTER_MODES
-)
+from arangodb.starter.deployments import STARTER_MODES
+from arangodb.installers import HB_MODES
+
+CWD = Path.cwd()
+
+def get_default_value(env_key: str,
+                      add_subkey: str,
+                      default_value: str):
+    """try to extract default values from the environment"""
+    if env_key in os.environ:
+        return os.environ[env_key] + add_subkey
+    return default_value
+
+def get_default_path_value(env_key: str,
+                           add_path: str,
+                           default_path: Path):
+    """try to extract jenkins default path values"""
+    if env_key in os.environ:
+        return Path(os.environ[env_key]) / add_path
+    return default_path
 
 def zip_common_options(function):
-    """ zip option. even on cleanup which has no more. """
-    function = click.option('--zip/--no-zip', "zip_package",
-                            is_flag=True,
-                            default=False,
-                            help='switch to zip or tar.gz package instead'
-                            ' of default OS package')(function)
+    """zip option. even on cleanup which has no more."""
+    function = click.option(
+        "--zip/--no-zip",
+        "zip_package",
+        is_flag=True,
+        default=False,
+        help="switch to zip or tar.gz package instead" " of default OS package",
+    )(function)
     return function
 
-def very_common_options(function):
-    """ These options are in all scripts """
-    package_dir = Path('/home/package_cache/')
+def very_common_options(support_multi_version=False):
+    """These options are in all scripts"""
+    package_dir = Path("/home/package_cache/")
+
     if not package_dir.exists():
-        package_dir = Path('/tmp/')
-    function = click.option('--new-version',
-                            help='ArangoDB version number.',
-                            default="3.8.0-nightly")(function)
-    function = click.option('--verbose/--no-verbose',
-                            is_flag=True,
-                            default=False,
-                            help='switch starter to verbose logging mode.'
-                            )(function)
-    function = click.option('--enterprise/--no-enterprise',
-                            is_flag=True,
-                            default=False,
-                            help='Enterprise or community?')(function)
-    function = click.option('--package-dir',
-                            default=package_dir,
-                            help='directory to load the packages from.'
-                            )(function)
-    function = zip_common_options(function)
-    return function
+        package_dir = CWD / 'package_cache'
 
-def common_options(support_old=True, interactive=True, test_data_dir='/tmp/'):
-    """ these options are common to most scripts """
+    if not package_dir.exists():
+        package_dir = Path("/tmp/")
+    package_dir = get_default_path_value('WORKSPACE', 'package_cache', package_dir)
+
+    defver = get_default_value('NEW_VERSION', '', "3.10-nightly")
+    if support_multi_version:
+        defver = [defver]
+
     def inner_func(function):
+        function = click.option(
+            "--new-version",
+            multiple=support_multi_version,
+            help="ArangoDB version number.",
+            default=defver,
+        )(function)
+        function = click.option(
+            "--verbose/--no-verbose",
+            is_flag=True,
+            default=False,
+            help="switch starter to verbose logging mode.",
+        )(function)
+        function = click.option(
+            "--enterprise/--no-enterprise",
+            is_flag=True,
+            default=False,
+            help="Enterprise or community?",
+        )(function)
+        function = click.option(
+            "--package-dir",
+            default=package_dir,
+            help="directory to down/load the packages from/to.",
+        )(function)
+        function = click.option(
+            "--hotbackup-mode",
+            "hot_backup",
+            default="directory",
+            type=click.Choice(HB_MODES.keys()),
+            help="which type of hot backup to use",
+        )(function)
+        function = zip_common_options(function)
+        return function
+
+    return inner_func
+
+
+def common_options(
+    support_old=True,
+    interactive=True,
+    test_data_dir="/tmp/",
+    support_multi_version=False,
+):
+    """these options are common to most scripts"""
+
+    test_data_dir = get_default_path_value('WORKSPACE', 'test_dir', test_data_dir)
+    default_allure_dir = Path('/home/allure-results')
+    if not default_allure_dir.exists():
+        default_allure_dir = get_default_path_value('WORKSPACE', 'allure-results', CWD / "allure-results")
+    def inner_func(function):
+
         if support_old:
-            function = click.option('--old-version',
-                                    help='old ArangoDB version number.',
-                                    default="3.7.0-nightly")(function)
-        function = click.option('--test-data-dir',
-                                default=test_data_dir,
-                                help='directory create databases etc. in.'
-                                )(function)
-        function = click.option('--encryption-at-rest/--no-encryption-at-rest',
-                                is_flag=True,
-                                default=False,
-                                help='turn on encryption at rest for Enterprise packages'
-                                )(function)
+            defver = get_default_value('OLD_VERSION', '', "3.9-nightly")
+            if support_multi_version:
+                defver = [defver]
+            function = click.option(
+                "--old-version",
+                multiple=support_multi_version,
+                help="old ArangoDB version number.",
+                default=defver,
+            )(function)
+        function = click.option(
+            "--test-data-dir",
+            default=test_data_dir,
+            help="directory create databases etc. in.",
+        )(function)
+        function = click.option(
+            "--encryption-at-rest/--no-encryption-at-rest",
+            is_flag=True,
+            default=False,
+            help="turn on encryption at rest for Enterprise packages",
+        )(function)
         if interactive:
-            function = click.option('--interactive/--no-interactive',
-                                    is_flag=True,
-                                    default=sys.stdout.isatty(),
-                                    help='wait for the user to hit Enter?'
-                                    )(function)
-        function = click.option('--starter-mode',
-                                default='all',
-                                type=click.Choice(STARTER_MODES.keys()),
-                                help='which starter deployments modes to use'
-                                )(function)
+            function = click.option(
+                "--interactive/--no-interactive",
+                is_flag=True,
+                default=sys.stdout.isatty(),
+                help="wait for the user to hit Enter?",
+            )(function)
+        function = click.option(
+            "--starter-mode",
+            default="all",
+            type=click.Choice(STARTER_MODES.keys()),
+            help="which starter deployments modes to use",
+        )(function)
         if support_old:
-            function = click.option('--stress-upgrade',
-                                    is_flag=True,
-                                    default=False,
-                                    help='launch arangobench before starting the upgrade'
-                                    )(function)
-        function = click.option('--abort-on-error',
-                                is_flag=True,
-                                default=True,
-                                help='if we should abort on first error')(function)
-        function = click.option('--publicip',
-                                default='127.0.0.1',
-                                help='IP for the click to browser hints.')(function)
-        function = click.option('--selenium',
-                                default='none',
-                                help='if non-interactive chose the selenium target'
-                                )(function)
-        function = click.option('--selenium-driver-args',
-                                default=[],
-                                multiple=True,
-                                help='options to the selenium web driver')(function)
+            function = click.option(
+                "--stress-upgrade",
+                is_flag=True,
+                default=False,
+                help="launch arangobench before starting the upgrade",
+            )(function)
+        function = click.option(
+            "--abort-on-error/--do-not-abort-on-error",
+            is_flag=True,
+            default=True,
+            help="if we should abort on first error",
+        )(function)
+        function = click.option("--publicip", default="127.0.0.1", help="IP for the click to browser hints.")(function)
+        function = click.option(
+            "--selenium",
+            default="none",
+            help="if non-interactive chose the selenium target",
+        )(function)
+        function = click.option(
+            "--selenium-driver-args",
+            default=[],
+            multiple=True,
+            help="options to the selenium web driver",
+        )(function)
+        function = click.option(
+            "--clean-alluredir/--do-not-clean-alluredir",
+            is_flag=True,
+            default=True,
+            help="clean allure results dir before running tests",
+        )(function)
+        function = click.option(
+            "--alluredir",
+            default=default_allure_dir,
+            help="directory to store allure results",
+        )(function)
+        function = click.option("--ssl/--no-ssl", is_flag=True, default=False, help="use SSL")(function)
+        function = click.option(
+            "--use-auto-certs",
+            is_flag=True,
+            default=False,
+            help="use self-signed SSL certs",
+        )(function)
         return function
+
     return inner_func
 
-def download_options(default_source="public", double_source=False):
-    """ these are options available in scripts downloading packages """
-    download_sources = [
-        "ftp:stage1",
-        "http:stage1",
-        "ftp:stage2",
-        "http:stage2",
-        "public"
-    ]
+
+def download_options(default_source="public", double_source=False, other_source=False):
+    """these are options available in scripts downloading packages"""
+    download_sources = ["ftp:stage1", "http:stage1", "ftp:stage2", "http:stage2", "nightlypublic", "public", "local"]
+
     def inner_func(function):
-        function = click.option('--enterprise-magic',
-                                default='',
-                                help='Enterprise or community?')(function)
-        function = click.option('--force/--no-force',
-                                is_flag=True,
-                                default=False,
-                                help='whether to overwrite existing target files or not.'
-                                )(function)
+        function = click.option("--enterprise-magic", default="", help="Enterprise or community?")(function)
+        function = click.option(
+            "--force/--no-force",
+            is_flag=True,
+            default=False,
+            help="whether to overwrite existing target files or not.",
+        )(function)
         if double_source:
-            function = click.option('--new-source',
-                                    default=default_source,
-                                    type=click.Choice(download_sources),
-                                    help='where to download the package from'
-                                    )(function)
-            function = click.option('--old-source',
-                                    default=default_source,
-                                    type=click.Choice(download_sources),
-                                    help='where to download the package from'
-                                    )(function)
+            function = click.option(
+                "--new-source",
+                default=default_source,
+                type=click.Choice(download_sources),
+                help="where to download the package from",
+            )(function)
+            function = click.option(
+                "--old-source",
+                default=default_source,
+                type=click.Choice(download_sources),
+                help="where to download the package from",
+            )(function)
         else:
-            function = click.option('--source',
-                                    default=default_source,
-                                    type=click.Choice(download_sources),
-                                    help='where to download the package from'
-                                    )(function)
-        function = click.option('--httpuser',
-                                default="",
-                                help='user for external http download')(function)
-        function = click.option('--httppassvoid',
-                                default="",
-                                help='passvoid for external http download'
-                                )(function)
-        function = click.option('--remote-host',
-                                default="",
-                                help='remote host to acquire packages from'
-                                )(function)
+            function = click.option(
+                "--source",
+                default=default_source,
+                type=click.Choice(download_sources),
+                help="where to download the package from",
+            )(function)
+        if other_source:
+            function = click.option(
+                "--other-source",
+                default=default_source,
+                type=click.Choice(download_sources),
+                help="where to download the secondary package from",
+            )(function)
+        function = click.option("--httpuser", default="", help="user for external http download")(function)
+        function = click.option("--httppassvoid", default="", help="passvoid for external http download")(function)
+        function = click.option("--remote-host", default="", help="remote host to acquire packages from")(function)
         return function
+
     return inner_func
+
+
+def full_common_options(function):
+    """full test/& upgrade options"""
+    function = click.option(
+        "--git-version",
+        default="",
+        help="specify the output of: git rev-parse --verify HEAD",
+    )(function)
+    function = click.option(
+        "--edition",
+        "editions",
+        default=["EE", "EP", "C"],
+        multiple=True,
+        help="which editions to run EE => enterprise Encryption@rest, EP => enterprise, C => community",
+    )(function)
+    return function

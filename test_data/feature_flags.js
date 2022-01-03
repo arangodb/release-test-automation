@@ -21,6 +21,9 @@ class FeatureFlags {
   shouldValidateOneShard() {
     return semver.gte(this._old, "3.7.7");
   }
+  shouldValidateFoxx() {
+    return semver.gte(this._old, "3.6.0");
+  }
 };
 
 exports.FeatureFlags = FeatureFlags;

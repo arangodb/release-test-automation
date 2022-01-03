@@ -1,0 +1,5 @@
+[{
+  "name": "Imported_Query",
+  "value": "FOR c IN imdb_vertices LIMIT 500 RETURN c",
+  "parameter": ""
+}]

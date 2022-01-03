@@ -4,3 +4,9 @@ __pycache__
 #IDE's
 .idea
 
+allure_results
+allure-results
+
+geckodriver.log
+
+*.tar.bz2

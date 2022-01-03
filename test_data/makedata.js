@@ -12,19 +12,24 @@
 // `--collectionMultiplier [1] how many times to create the collections / index / view / graph set?
 // `--singleShard [false]      whether this should only be a single shard instance
 // `--progress [false]         whether to output a keepalive indicator to signal the invoker that work is ongoing
-
+'use strict';
+const utils = require('@arangodb/foxx/manager-utils');
+const fs = require('fs');
+const expect = require('chai').expect;
+const path = require('path');
 const _ = require('lodash');
 const internal = require('internal');
+const download = internal.download;
 const arangodb = require("@arangodb");
 const console = require("console");
 const g = require('@arangodb/general-graph');
-const fs = require("fs");
 const db = internal.db;
 const time = internal.time;
 const sleep = internal.sleep;
 const ERRORS = arangodb.errors;
 let v = db._version(true);
 const enterprise = v.license === "enterprise";
+const dbVersion = db._version();
 let gsm;
 if (enterprise) {
   gsm = require('@arangodb/smart-graph');
@@ -38,6 +43,7 @@ let vertices = JSON.parse(fs.readFileSync(`${PWD}/vertices.json`));
 let edges = JSON.parse(fs.readFileSync(`${PWD}/edges_naive.json`));
 let smart_edges = JSON.parse(fs.readFileSync(`${PWD}/edges.json`));
 
+const { FeatureFlags } = require("./feature_flags");
 
 let database = "_system";
 let databaseName;
@@ -50,7 +56,9 @@ const optionsDefaults = {
   dataMultiplier: 1,
   collectionMultiplier: 1,
   singleShard: false,
-  progress: false
+  progress: false,
+  oldVersion: "3.5.0",
+  passvoid: ''
 };
 
 let args = ARGUMENTS;
@@ -66,6 +74,8 @@ _.defaults(options, optionsDefaults);
 var numberLength = Math.log(options.numberOfDBs + options.countOffset) * Math.LOG10E + 1 | 0;
 
 const zeroPad = (num) => String(num).padStart(numberLength, '0');
+
+const flags = new FeatureFlags(dbVersion, options.oldVersion);
 
 let tStart = 0;
 let timeLine = [];
@@ -129,7 +139,7 @@ function createCollectionSafe(name, DefaultNoSharts, DefaultReplFactor) {
     numberOfShards: getShardCount(DefaultNoSharts),
     replicationFactor: getReplicationFactor(DefaultReplFactor)
   };
-  
+  print(options);
   return createSafe(name, colName => {
     return db._create(colName, options);
   }, colName => {
@@ -138,7 +148,7 @@ function createCollectionSafe(name, DefaultNoSharts, DefaultReplFactor) {
 }
 
 function createIndexSafe(options) {
-  opts = _.clone(options);
+  let opts = _.clone(options);
   delete opts.col
   return createSafe(options.col.name(), colname => {
     options.col.ensureIndex(opts);
@@ -176,15 +186,104 @@ function createOneShardVariant(db, baseName, count) {
     print(`skipping ${databaseName} - it failed to be created, but it is no one-shard.`);
     return;
   }
-  progress('created OneShard DB');
+  progress(`created OneShard DB '${databaseName}'`);
   for (let ccount = 0; ccount < options.collectionMultiplier; ++ccount) {
-    const c0 = createCollectionSafe(`c_${ccount}_0`, 1, 1);
-    const c1 = createCollectionSafe(`c_${ccount}_1`, 1, 1);
+    const c0 = createCollectionSafe(`c_${ccount}_0`, 1, 2);
+    const c1 = createCollectionSafe(`c_${ccount}_1`, 1, 2);
     c0.save({_key: "knownKey", value: "success"});
     c1.save({_key: "knownKey", value: "success"});
   }
   progress('stored OneShard Data');
 }
+
+// inspired by shell-foxx-api-spec.js
+function loadFoxxIntoZip(path) {
+  let zip = utils.zipDirectory(path);
+  let content = fs.readFileSync(zip);
+  fs.remove(zip);
+  return {
+    type: 'inlinezip',
+    buffer: content
+  };
+}
+
+function installFoxx(mountpoint, which, mode) {
+  let headers = {};
+  let content;
+  if (which.type === 'js') {
+    headers['content-type'] = 'application/javascript';
+    content = which.buffer;
+  } else if (which.type === 'dir') {
+    headers['content-type'] = 'application/zip';
+    var utils = require('@arangodb/foxx/manager-utils');
+    let zip = utils.zipDirectory(which.buffer);
+    content = fs.readFileSync(zip);
+    fs.remove(zip);
+  } else if (which.type === 'inlinezip') {
+    content = which.buffer;
+    headers['content-type'] = 'application/zip';
+  } else if (which.type === 'url') {
+    content = { source: which };
+  } else if (which.type === 'file') {
+    content = fs.readFileSync(which.buffer);
+  }
+  let devmode = '';
+  if (typeof which.devmode === "boolean") {
+    devmode = `&development=${which.devmode}`;
+  }
+  let crudResp;
+  if (mode === "upgrade") {
+    crudResp = arango.PATCH('/_api/foxx/service?mount=' + mountpoint + devmode, content, headers);
+  } else if (mode === "replace") {
+    crudResp = arango.PUT('/_api/foxx/service?mount=' + mountpoint + devmode, content, headers);
+  } else {
+    let reply = download(
+      arango.getEndpoint().replace(/^tcp:/, 'http:').replace(/^ssl:/, 'https:') +
+        '/_api/foxx?mount=' + mountpoint + devmode,
+      content,
+      {
+        method: 'POST',
+        headers: headers,
+        timeout: 300,
+        username: 'root',
+        password: options.passvoid,
+      });
+    expect(reply.code).to.equal(201);
+    crudResp = JSON.parse(reply.body);
+  }
+  expect(crudResp).to.have.property('manifest');
+  return crudResp;
+}
+
+function deleteFoxx(mountpoint) {
+  const deleteResp = arango.DELETE('/_api/foxx/service?force=true&mount=' + mountpoint);
+  expect(deleteResp).to.have.property('code');
+  expect(deleteResp.code).to.equal(204);
+  expect(deleteResp.error).to.equal(false);
+}
+
+const itzpapalotlPath = path.resolve(internal.pathForTesting('common'), 'test-data', 'apps', 'itzpapalotl');
+const itzpapalotlZip = loadFoxxIntoZip(itzpapalotlPath);
+const minimalWorkingServicePath = path.resolve(internal.pathForTesting('common'), 'test-data', 'apps', 'crud');
+const minimalWorkingZip = loadFoxxIntoZip(minimalWorkingServicePath);
+const minimalWorkingZipDev = {
+  buffer: minimalWorkingZip.buffer,
+  devmode: true,
+  type: minimalWorkingZip.type
+};
+const minimalWorkingZipPath = utils.zipDirectory(minimalWorkingServicePath);
+
+const serviceServicePath = path.resolve(internal.pathForTesting('common'), 'test-data', 'apps', 'service-service', 'index.js');
+const crudTestServiceSource = {
+  type: 'js',
+  buffer: fs.readFileSync(serviceServicePath)
+};
+
+print("installing Itzpapalotl");
+installFoxx('/itz', itzpapalotlZip);
+
+print("installing crud");
+installFoxx('/crud', minimalWorkingZip);
 
 let count = 0;
 while (count < options.numberOfDBs) {
@@ -416,9 +515,7 @@ while (count < options.numberOfDBs) {
     progress('loadGraph1');
 
     // And now a smart graph (if enterprise):
-    // NOTE: Temporarily disabled SmartGraph tests. This crashes the hotbackup.
-    // Tests for now and needs fixing.
-    if (enterprise && false) {
+    if (enterprise) {
       let Gsm = createSafe(`G_smart_${ccount}`, graphName => {
         return gsm._create(graphName,
                            [
@@ -449,3 +546,12 @@ while (count < options.numberOfDBs) {
 
   count++;
 }
+
+//try {
+//  db._useDatabase("_system");
+//  db._create('_fishbowl', { isSystem: true, distributeShardsLike: '_users' });
+//} catch(err) {}
+
+print('YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY')
+print(db._databases())
+

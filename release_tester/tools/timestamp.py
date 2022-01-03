@@ -4,5 +4,5 @@ import datetime
 
 
 def timestamp():
-    """ get the formated "now" timestamp"""
+    """get the formated "now" timestamp"""
     return datetime.datetime.utcnow().isoformat()
