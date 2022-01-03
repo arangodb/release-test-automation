@@ -237,7 +237,7 @@ class InstallerMac(InstallerBase):
         self.instance = old_installer.instance
         self.stop_service()
         self.install_server_package_backend()
-        os.environ["UPGRADE_DB"] = None
+        os.unsetenv("UPGRADE_DB")
 
     @step
     def install_server_package_impl(self):
