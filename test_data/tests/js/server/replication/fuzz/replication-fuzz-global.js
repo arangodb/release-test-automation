@@ -482,6 +482,7 @@ function ReplicationSuite() {
           let createDatabase = function() {
             db._useDatabase('_system');
             let name = "test" + internal.genRandomAlphaNumbers(16) + Date.now();
+            print("Creating " + name);
             return db._createDatabase(name);
           };
 

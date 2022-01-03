@@ -1,9 +1,16 @@
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
+#!/usr/bin/env python3
+""" collection testsuite """
+from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
+from selenium_ui_test.test_suites.base_test_suite import testcase
+
+
 # from selenium_ui_test.models import IndexType
 from selenium_ui_test.pages.collection_page import CollectionPage
 
 
-class CollectionsTestSuite(BaseTestSuite):
+class CollectionsTestSuite(BaseSeleniumTestSuite):
+    """collection tab suite"""
+    # pylint: disable=too-many-statements
     @testcase
     def test_collection(self):
         """testing collection page"""
@@ -11,6 +18,8 @@ class CollectionsTestSuite(BaseTestSuite):
         # login = LoginPage(self.webdriver)
         # login.login('root', self.root_passvoid)
         col = CollectionPage(self.webdriver)  # creating obj for Collection
+        assert col.current_user() == "ROOT", "current user is root?"
+        assert col.current_database() == "_SYSTEM", "current database is _system?"
 
         print("Selecting collection tab\n")
         col.select_collection_page()
@@ -204,19 +213,21 @@ class CollectionsTestSuite(BaseTestSuite):
         # print("Deleting all index completed\n")
 
         version = col.current_package_version()
+        print(version, "\n")
+        print("Cluster status: ", self.is_cluster)
         col.create_new_index("Persistent", 1, self.is_cluster)
         col.create_new_index("Geo", 2, self.is_cluster)
         col.create_new_index("Fulltext", 3, self.is_cluster)
         col.create_new_index("TTL", 4, self.is_cluster)
         if version >= 3.9:
-            col.create_new_index("ZKD", 5)
+            col.create_new_index("ZKD", 5, self.is_cluster)
             print("Deleting all index started\n")
-            for i in range(4):
+            for _ in range(4):
                 col.delete_all_index()
             print("Deleting all index completed\n")
         else:
             print("Deleting all index started\n")
-            for i in range(3):
+            for _ in range(3):
                 col.delete_all_index()
             print("Deleting all index completed\n")
 

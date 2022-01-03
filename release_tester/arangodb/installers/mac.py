@@ -12,12 +12,15 @@ import subprocess
 from pathlib import Path
 import plistlib
 
+import psutil
+
 from reporting.reporting_utils import step
 import pexpect
 from allure_commons._allure import attach
 
 from arangodb.installers.base import InstallerBase
 from tools.asciiprint import ascii_print
+from tools.asciiprint import print_progress as progress
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
@@ -40,16 +43,17 @@ def _mountdmg(dmgpath):
         "on",
     ]
     print(cmd)
-    proc = subprocess.Popen(
+    pliststr = ""
+    with subprocess.Popen(
         cmd,
         bufsize=-1,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         stdin=subprocess.PIPE,
-    )
-    proc.stdin.write(b"y\n")  # answer 'Agree Y/N?' the dumb way...
-    # pylint: disable=W0612
-    (pliststr, void) = proc.communicate()
+    ) as proc:
+        proc.stdin.write(b"y\n")  # answer 'Agree Y/N?' the dumb way...
+        # pylint: disable=W0612
+        (pliststr, _) = proc.communicate()
 
     offset = pliststr.find(b'<?xml version="1.0" encoding="UTF-8"?>')
     if offset > 0:
@@ -81,11 +85,13 @@ def _detect_dmg_mountpoints(dmgpath):
     """
     mountpoints = []
     cmd = ["/usr/bin/hdiutil", "info", "-plist"]
-    proc = subprocess.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    (pliststr, err) = proc.communicate()
-    if proc.returncode:
-        logging.error('Error: "%s" while listing mountpoints %s.' % (err, dmgpath))
-        return mountpoints
+    pliststr = ""
+    err = ""
+    with subprocess.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
+        (pliststr, err) = proc.communicate()
+        if proc.returncode:
+            logging.error('Error: "%s" while listing mountpoints %s.' % (err, dmgpath))
+            return mountpoints
     if pliststr:
         plist = plistlib.loads(pliststr)
         for entity in plist["images"]:
@@ -106,20 +112,20 @@ def _unmountdmg(mountpoint):
     Unmounts the dmg at mountpoint
     """
     logging.info("unmounting %s", mountpoint)
-    proc = subprocess.Popen(
+    with subprocess.Popen(
         ["/usr/bin/hdiutil", "detach", mountpoint],
         bufsize=-1,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-    )
-    (dummy_output, err) = proc.communicate()
-    if proc.returncode:
-        logging.error("Polite unmount failed: %s" % err)
-        logging.error("Attempting to force unmount %s" % mountpoint)
-        # try forcing the unmount
-        retcode = subprocess.call(["/usr/bin/hdiutil", "detach", mountpoint, "-force"])
-        if retcode:
-            logging.error("while mounting")
+    ) as proc:
+        (_, err) = proc.communicate()
+        if proc.returncode:
+            logging.error("Polite unmount failed: %s" % err)
+            logging.error("Attempting to force unmount %s" % mountpoint)
+            # try forcing the unmount
+            retcode = subprocess.call(["/usr/bin/hdiutil", "detach", mountpoint, "-force"])
+            if retcode:
+                logging.error("while mounting")
 
 
 class InstallerMac(InstallerBase):
@@ -191,23 +197,52 @@ class InstallerMac(InstallerBase):
 
     @step
     def check_service_up(self):
-        time.sleep(1)  # TODO
-        return True
+        for count in range(30):
+            if not self.instance.detect_gone():
+                return True
+            progress("SR" + str(count))
+            time.sleep(1)
+        return False
 
     def start_service(self):
-        """nothing to see here"""
+        """there is no system way, hence do it manual:"""
+        if self.check_service_up():
+            print("already running, doing nothing.")
+        arangod = self.cfg.real_sbin_dir / "arangod"
+        system_cmd = [
+            str(arangod),
+            "-c",
+            self.baseetcdir / "arangod.conf",
+            "--daemon",
+            "--pid-file",
+            "/var/tmp/arangod.pid",
+        ]
+        print("Launching: " + str(system_cmd))
+        ret = psutil.Popen(system_cmd).wait()
+        print("started system arangod: " + str(ret))
+        self.instance.detect_pid(1)
 
     @step
     def stop_service(self):
+        """ stop the system wide service """
         self.instance.terminate_instance()
 
     @step
-    def upgrade_package(self, old_installer):
-        os.environ["UPGRADE_DB"] = "No"
-        self.install_server_package()
+    def upgrade_server_package(self, old_installer):
+        """ upgrade an existing installation. """
+        os.environ["UPGRADE_DB"] = "Yes"
+        self.instance = old_installer.instance
+        self.stop_service()
+        self.install_server_package_backend()
+        os.environ["UPGRADE_DB"] = None
 
     @step
     def install_server_package_impl(self):
+        """ fresh install """
+        self.install_server_package_backend()
+
+    def install_server_package_backend(self):
+        """ install or upgrade """
         if self.cfg.pidfile.exists():
             self.cfg.pidfile.unlink()
         logging.info("Mounting DMG")
@@ -226,10 +261,11 @@ class InstallerMac(InstallerBase):
         self.calculate_file_locations()
         self.run_installer_script()
         self.set_system_instance()
-        self.instance.detect_pid(1)  # should be owned by init - TODO
+        self.instance.detect_pid(1)
 
     @step
     def un_install_server_package_impl(self):
+        """ remove the package """
         self.stop_service()
         if not self.mountpoint:
             mpts = _detect_dmg_mountpoints(self.cfg.package_dir / self.server_package)
@@ -237,6 +273,12 @@ class InstallerMac(InstallerBase):
                 _unmountdmg(mountpoint)
         else:
             _unmountdmg(self.mountpoint)
+
+    def install_client_package_impl(self):
+        """ no mac client package """
+
+    def  un_install_client_package_impl(self):
+        """ no mac client package """
 
     @step
     def cleanup_system(self):

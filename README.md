@@ -108,6 +108,7 @@ Supported Parameters:
  - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
  - `--[no-]ssl` use SSL (default = False)
  - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl) 
+ - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
 
 Example usage:
  - Windows: `python ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
@@ -146,11 +147,31 @@ Supported Parameters:
  - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
  - `--[no-]ssl` use SSL (default = False)
  - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl)
+ - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
  
 Example usage:
  - Windows: `python ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
  - Linux (ubuntu|debian) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
  - Linux (centos|fedora|sles) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
+
+# Using `conflict_checking.py` for testing of package installation process
+
+To run the tests you need to download older version packages in addition to the version you intend to test.
+Both Community and Enterprise editions are required.   
+Supported Parameters:
+ - `--new-version` which Arangodb Version you want to run the test on
+ - `--old-version` old version of ArangoDB to be used in tests where an older version is required, e.g. testing that newer debug package cannot be installed over older server package
+ - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
+ - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
+ - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
+ - `--verbose` if specified more logging is done
+ - `--alluredir` - directory to save test results in allure format (default = allure-results)
+ - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
+
+Example usage:
+ - Windows: `python ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
+ - Linux (ubuntu|debian) `python3 ./release_tester/test.py --new-version 3.6.2 --no-enterprise --package-dir /home/willi/Downloads`
+ - Linux (centos|fedora|sles) `python3 ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
 
 # using `download.py` to download packages from stage1/stage2/live
 
@@ -228,12 +249,72 @@ Supported Parameters:
  - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
  - `--[no-]ssl` use SSL (default = False)
  - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl)
+ - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
 
 Example usage: 
 
 - [jenkins/nightly_tar.sh](jenkins/nightly_tar.sh) Download nightly tarball packages, and run it with selenium in `containers/docker_tar` ubuntu container
 - [jenkins/nightly_deb.sh](jenkins/nightly_deb.sh) Download nightly debian packages, and run them with selenium in `containers/docker_deb` ubuntu container
 - [jenkins/nightly_rpm.sh](jenkins/nightly_rpm.sh) Download nightly redhat packages, and run them with selenium in `containers/docker_rpm` centos 7 container
+
+
+# Using `full_download_upgrade_test.py` for automated full release testing
+
+`full_download_upgrade_test.py` integrates `test.py`, `upgrade.py` and `download_packages.py`.
+It will download `Enterprise` and `Community` packages, while `-nightly` will first attempt
+to resolve the proper version of the nightly package, since `-nightly` allways is a suffix to the latest released version + 1.
+
+
+
+It will then run the `upgrade.py` mechanic for:
+ - enterprise with encryption at rest enabled
+ - enterprise 
+ - community
+
+and create a final report at the end of the run.
+
+The downloading of packages can be circumvented by specifying `--source local`.
+
+Supported Parameters:
+ - `--new-version`
+   - new: This is the to be released version. it will be downloaded from `--source`.
+ - `--upgrade-matrix list` specify a list of upgrades to run. For all other versions, `--other-source` will
+   be used to specify the download source. The list is specified in the format of: (without blanks)
+     `first-From : first-To ; second-From : second-To`
+ - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
+ - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
+ - `--enterprise-magic` specify your secret enterprise download key here.
+ - `--[other-]source [public|nightlypublic|[ftp|http]:stage1|[ftp|http]:stage2]`
+   - `nightlypublic` will download the packages from the nightly builds at downloads.arangodb.com
+   - `local` no packages will be downloaded at all, but rather are expected to be found in `package-dir`.
+   - `public` (default) will download the packages from downloads.arangodb.com
+   - `stage1` will download the files from the staging fileserver - level 1 - ftp: internal http external requires credentials
+   - `stage2` will download the files from the staging fileserver - level 2 - ftp: internal http external requires credentials
+ - `--httpuser` username for stage http access
+ - `--httppassvoid` secret for stage http access
+ - `--force` overwrite readily existing downloaded packages
+ - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
+ - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
+ - `--verbose` if specified more logging is done
+ - `--starter-mode [all|LF|AFO|CL|DC|none]` which starter test to exute, `all` of them or `none` at all or: 
+   - `LF` - Leader / Follower - setup two single instances, start replication between them
+   - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
+   - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
+   - `DC` - setup 2 clusters, connect them with arangosync (enterprise only)
+ - `--selenium` - specify the webdriver to be used to work with selenium (if)
+ - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
+ - `--alluredir` - directory to save test results in allure format (default = allure-results)
+ - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
+ - `--[no-]ssl` use SSL (default = False)
+ - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl)
+ - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
+
+Example usage: 
+
+- [jenkins/nightly_tar.sh](jenkins/nightly_tar.sh) Download nightly tarball packages, and run it with selenium in `containers/docker_tar` ubuntu container
+- [jenkins/nightly_deb.sh](jenkins/nightly_deb.sh) Download nightly debian packages, and run them with selenium in `containers/docker_deb` ubuntu container
+- [jenkins/nightly_rpm.sh](jenkins/nightly_rpm.sh) Download nightly redhat packages, and run them with selenium in `containers/docker_rpm` centos 7 container
+
 
 # Using cleanup.py to clean out the system
 

@@ -68,10 +68,10 @@ if (!db.testCollectionBefore) {
 if (!db.testCollectionAfter) {
   throw new Error("after collection does not exist - replication failed");
 }
-if (!db.testCollectionBefore.toArray()[0]["hello"] === "world") {
+if (!(db.testCollectionBefore.toArray()[0]["hello"] === "world")) {
   throw new Error("before not yet there?");
 }
-if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
+if (!(db.testCollectionAfter.toArray()[0]["hello"] === "world")) {
   throw new Error("after not yet there?");
 }
 """,
@@ -117,7 +117,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
             mode="single",
             port=1234,
             expect_instances=[InstanceType.SINGLE],
-            jwtStr="leader",
+            jwt_str="leader",
             moreopts=leader_opts,
         )
         self.leader_starter_instance.is_leader = True
@@ -129,7 +129,7 @@ if (!db.testCollectionAfter.toArray()[0]["hello"] === "world") {
             mode="single",
             port=2345,
             expect_instances=[InstanceType.SINGLE],
-            jwtStr="follower",
+            jwt_str="follower",
             moreopts=follower_opts,
         )
 
@@ -202,7 +202,7 @@ process.exit(0);
         tries = 30
         if not self.follower_starter_instance.execute_frontend(self.checks["checkReplJS"]):
             while tries:
-                if self.follower_starter_instance.execute_frontend(self.checks["checkReplJS"], False):
+                if self.follower_starter_instance.execute_frontend(self.checks["checkReplJS"]):
                     break
                 progress(".")
                 time.sleep(1)

@@ -22,22 +22,21 @@ class SupportPage(NavigationBarPage):
     def select_support_page(self):
         """Selecting support page"""
         support = self.select_support_page_id
-        support = self.locator_finder_by_id(self, support)
+        support = self.locator_finder_by_id(support)
         support.click()
         time.sleep(1)
 
     def select_documentation_support(self):
         """selecting documentation support"""
         documentation = self.select_documentation_support_id
-        documentation = self.locator_finder_by_id(self, documentation)
+        documentation = self.locator_finder_by_id(documentation)
         documentation.click()
         time.sleep(1)
 
     def click_on_link(self, link_id):
         """Clicking on link on any page and switch to that tab and return to origin tab"""
-        click_on_link_id = link_id
-        click_on_link_id = self.locator_finder_by_xpath(self, click_on_link_id)
-        title = self.switch_tab(click_on_link_id)  # this method will call switch tab and close tab
+        click_on_link_id_sitem = self.locator_finder_by_xpath(link_id)
+        title = self.switch_tab(click_on_link_id_sitem)  # this method will call switch tab and close tab
         return title
 
     def loop_through_link_traversal(self, print_statement, link_list, assertion_list):
@@ -46,13 +45,16 @@ class SupportPage(NavigationBarPage):
         while i < len(link_list):
             print(print_statement[i])
             title = self.click_on_link(link_list[i])
-            assert title == assertion_list[i], f"Expected page title {assertion_list[i]} but got {title}"
+            try:
+                assert title == assertion_list[i], f"Expected page title {assertion_list[i]} but got {title}"
+            except AssertionError:
+                print(f"Assertion Error occurred! for {assertion_list[i]}\n")
             i = i + 1
 
     def click_on_btn(self, link_id):
         """this method will execute multiple backup restore tab documentation"""
         click_on_btn = link_id
-        click_on_btn = self.locator_finder_by_xpath(self, click_on_btn)
+        click_on_btn = self.locator_finder_by_xpath(click_on_btn)
         click_on_btn.click()
 
     def loop_through_btn_traversal(self, print_statement, btn_list):
@@ -232,13 +234,13 @@ class SupportPage(NavigationBarPage):
         print("Checking all Support tab link started\n")
 
         support = self.select_support_page_id
-        support = self.locator_finder_by_id(self, support)
+        support = self.locator_finder_by_id(support)
         support.click()
         time.sleep(1)
 
         # selecting community support tab
         com_support = self.select_community_support_id
-        com_support = self.locator_finder_by_id(self, com_support)
+        com_support = self.locator_finder_by_id(com_support)
         com_support.click()
         time.sleep(1)
 
@@ -290,13 +292,13 @@ class SupportPage(NavigationBarPage):
         print("Checking all Rest api tab link started\n")
 
         support = self.select_support_page_id
-        support = self.locator_finder_by_id(self, support)
+        support = self.locator_finder_by_id(support)
         support.click()
         time.sleep(1)
 
         # selecting community support tab
         rest_api = self.select_rest_api_swagger_id
-        rest_api = self.locator_finder_by_id(self, rest_api)
+        rest_api = self.locator_finder_by_id(rest_api)
         rest_api.click()
         time.sleep(1)
 
@@ -309,7 +311,7 @@ class SupportPage(NavigationBarPage):
         if version >= 3.7:
             print("Checking Backup Restore option started\n")
             backup_restore = '//*[@id="operations-tag-BackupRestore"]'
-            backup_restore = self.locator_finder_by_xpath(self, backup_restore)
+            backup_restore = self.locator_finder_by_xpath(backup_restore)
             backup_restore.click()
             time.sleep(1)
 

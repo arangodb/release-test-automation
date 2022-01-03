@@ -2,19 +2,16 @@
 """the cluster pgae object"""
 import time
 
-from selenium.common.exceptions import StaleElementReferenceException, TimeoutException
+from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 from selenium_ui_test.pages.navbar import NavigationBarPage
 
+
 class ClusterPage(NavigationBarPage):
     """Class for Cluster page"""
-
-    def __init__(self, driver):
-        """Cluster page initialization"""
-        super().__init__(driver)
 
     def cluster_dashboard_get_count(self, timeout=15):
         """
@@ -43,6 +40,3 @@ class ClusterPage(NavigationBarPage):
                 self.progress("retrying after stale element")
                 time.sleep(1)
                 continue
-            except TimeoutException as ex:
-                self.take_screenshot()
-                raise ex

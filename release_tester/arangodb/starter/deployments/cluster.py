@@ -80,7 +80,7 @@ db.testCollection.save({test: "document"})
                     self.basedir,
                     name,
                     mode="cluster",
-                    jwtStr=self.jwtdatastr,
+                    jwt_str=self.jwtdatastr,
                     port=port,
                     expect_instances=[
                         InstanceType.AGENT,
@@ -118,7 +118,7 @@ db.testCollection.save({test: "document"})
             node.detect_instances()
             node.detect_instance_pids()
             # self.basecfg.add_frontend('http', self.basecfg.publicip, str(node.get_frontend_port()))
-        logging.info("instances are ready")
+        logging.info("instances are ready - JWT: " + self.starter_instances[0].get_jwt_header())
         count = 0
         for node in self.starter_instances:
             node.set_passvoid("cluster", count == 0)
@@ -140,7 +140,7 @@ db.testCollection.save({test: "document"})
 
     def upgrade_arangod_version_impl(self):
         """rolling upgrade this installation"""
-        self.agency_set_debug_logging()  # TODO: remove debug logging
+        # self.agency_set_debug_logging()
         bench_instances = []
         if self.cfg.stress_upgrade:
             bench_instances.append(self.starter_instances[0].launch_arangobench("cluster_upgrade_scenario_1"))
@@ -187,7 +187,6 @@ db.testCollection.save({test: "document"})
             node.upgrade_instances([
                 InstanceType.DBSERVER
             ], ['--database.auto-upgrade', 'true',
-                '--log.level', 'startup=trace', # TODO: remove me again.
                 '--log.foreground-tty', 'true'])
         self.progress(True, "step 4 - coordinator upgrade")
         # now the new cluster is running. we will now run the coordinator upgrades
@@ -222,6 +221,7 @@ db.testCollection.save({test: "document"})
 
     @step
     def jam_attempt_impl(self):
+        # pylint: disable=too-many-statements
         # this is simply to slow to be worth wile:
         # collections = self.get_collection_list()
         agency_leader = self.agency_get_leader()
@@ -234,7 +234,10 @@ db.testCollection.save({test: "document"})
 
         logging.info("stopping instance %d" % terminate_instance)
         uuid = self.starter_instances[terminate_instance].get_dbservers()[0].get_uuid()
-        self.starter_instances[terminate_instance].terminate_instance()
+        self.starter_instances[terminate_instance].terminate_instance(keep_instances=True)
+        logging.info("relaunching agent!")
+        self.starter_instances[terminate_instance].manually_launch_instances([InstanceType.AGENT], [], False, False)
+
         self.set_frontend_instances()
 
         prompt_user(self.basecfg, "instance stopped")
@@ -276,7 +279,7 @@ db.testCollection.save({test: "document"})
             Path("CLUSTER"),
             "nodeX",
             mode="cluster",
-            jwtStr=None,
+            jwt_str=None,
             expect_instances=[
                 InstanceType.AGENT,
                 InstanceType.COORDINATOR,
@@ -284,12 +287,13 @@ db.testCollection.save({test: "document"})
             ],
             moreopts=moreopts,
         )
-        dead_instance.run_starter()
+        dead_instance.run_starter(expect_to_fail=True)
 
         i = 0
         while True:
             logging.info(". %d", i)
             if not dead_instance.is_instance_running():
+                dead_instance.check_that_starter_log_contains("Unauthorized. Wrong credentials.")
                 break
             if i > 40:
                 logging.info("Giving up wating for the starter to exit")
@@ -325,6 +329,7 @@ db.testCollection.save({test: "document"})
         )
 
     def generate_keyfile(self, keyfile):
+        """ generate the ssl certificate file """
         self.cert_op(
             [
                 "tls",

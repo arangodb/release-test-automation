@@ -1,12 +1,7 @@
 #!/usr/bin/python3
 """ fetch nightly packages, process upgrade """
 from pathlib import Path
-
-import os
 import sys
-
-import shutil
-import time
 
 import click
 from common_options import very_common_options, common_options, download_options, full_common_options
@@ -14,147 +9,80 @@ from common_options import very_common_options, common_options, download_options
 from beautifultable import BeautifulTable, ALIGN_LEFT
 
 import tools.loghelper as lh
-from download import read_versions_tar, write_version_tar, Download, touch_all_tars_in_dir
-from test import run_test
-from cleanup import run_cleanup
+from download import (
+    get_tar_file_path,
+    read_versions_tar,
+    write_version_tar,
+    touch_all_tars_in_dir,
+    Download,
+    DownloadOptions)
+
+from test_driver import TestDriver
 from tools.killall import list_all_processes
 
-
-def set_r_limits():
-    """on linux manipulate ulimit values"""
-    # pylint: disable=C0415
-    import platform
-
-    if not platform.win32_ver()[0]:
-        import resource
-
-        resource.setrlimit(resource.RLIMIT_CORE, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
-
-
-def workaround_nightly_versioning(ver):
-    """adjust package names of nightlies to be semver parseable"""
-    # return ver.replace("-nightly", ".9999999-nightly")
-    return ver
-
+from arangodb.installers import EXECUTION_PLAN
 
 # pylint: disable=R0913 disable=R0914 disable=R0912, disable=R0915
 def package_test(
-    verbose,
+    dl_opts: DownloadOptions,
     new_version,
-    package_dir,
-    enterprise_magic,
-    zip_package,
     new_dlstage,
     git_version,
-    httpusername,
-    httppassvoid,
-    test_data_dir,
-    version_state_tar,
-    remote_host,
-    force,
-    starter_mode,
     editions,
-    publicip,
-    selenium,
-    selenium_driver_args,
-    alluredir,
-    clean_alluredir,
-    use_auto_certs,
+    test_driver
 ):
     """process fetch & tests"""
 
-    set_r_limits()
+    test_driver.set_r_limits()
 
-    lh.configure_logging(verbose)
+    lh.configure_logging(test_driver.base_config.verbose)
     list_all_processes()
-    os.chdir(test_data_dir)
+    test_dir = test_driver.base_config.test_data_dir
 
     versions = {}
     fresh_versions = {}
+    version_state_tar = get_tar_file_path(test_driver.launch_dir,
+                                          ["0.0.0", new_version],
+                                          test_driver.get_packaging_shorthand())
     read_versions_tar(version_state_tar, versions)
     print(versions)
 
     results = []
     # do the actual work:
-    execution_plan = [
-        (True, True, True, "EE", "Enterprise\nEnc@REST"),
-        (True, False, False, "EP", "Enterprise"),
-        (False, False, False, "C", "Community"),
-    ]
+    for props in EXECUTION_PLAN:
+        test_driver.run_cleanup(props)
 
-    for j in range(len(new_version)):
-        for (
-            enterprise,
-            encryption_at_rest,
-            ssl,
-            directory_suffix,
-            testrun_name,
-        ) in execution_plan:
-            run_cleanup(zip_package, testrun_name)
+    print("Cleanup done")
 
-        print("Cleanup done")
+    for props in EXECUTION_PLAN:
+        if props.directory_suffix not in editions:
+            continue
+        dl_new = Download(
+            dl_opts,
+            new_version,
+            props.enterprise,
+            test_driver.base_config.zip_package,
+            new_dlstage,
+            versions,
+            fresh_versions,
+            git_version,
+        )
 
-        for (
-            enterprise,
-            encryption_at_rest,
-            ssl,
-            directory_suffix,
-            testrun_name,
-        ) in execution_plan:
-            if directory_suffix not in editions:
-                continue
-            dl_new = Download(
-                new_version[j],
-                verbose,
-                package_dir,
-                enterprise,
-                enterprise_magic,
-                zip_package,
-                new_dlstage[j],
-                httpusername,
-                httppassvoid,
-                remote_host,
-                versions,
-                fresh_versions,
-                git_version,
+        if not dl_new.is_different() and not dl_opts.force:
+            print("we already tested this version. bye.")
+            sys.exit(0)
+        dl_new.get_packages(dl_new.is_different())
+
+        this_test_dir = test_dir / props.directory_suffix
+        test_driver.reset_test_data_dir(this_test_dir)
+
+        results.append(
+            test_driver.run_test(
+                "all",
+                [dl_new.cfg.version],
+                props
             )
-
-            if not dl_new.is_different() and not force:
-                print("we already tested this version. bye.")
-                return 0
-            dl_new.get_packages(dl_new.is_different())
-
-            test_dir = Path(test_data_dir) / directory_suffix
-            if test_dir.exists():
-                shutil.rmtree(test_dir)
-                if "REQUESTS_CA_BUNDLE" in os.environ:
-                    del os.environ["REQUESTS_CA_BUNDLE"]
-            test_dir.mkdir()
-            while not test_dir.exists():
-                time.sleep(1)
-            results.append(
-                run_test(
-                    "all",
-                    str(dl_new.cfg.version),
-                    verbose,
-                    package_dir,
-                    test_dir,
-                    alluredir,
-                    clean_alluredir,
-                    enterprise,
-                    encryption_at_rest,
-                    zip_package,
-                    False,  # interactive
-                    starter_mode,
-                    False,  # abort_on_error
-                    publicip,
-                    selenium,
-                    selenium_driver_args,
-                    testrun_name,
-                    ssl,
-                    use_auto_certs,
-                )
-            )
+        )
 
     print("V" * 80)
     status = True
@@ -168,7 +96,7 @@ def package_test(
                             one_result["testrun name"],
                             one_result["testscenario"],
                             # one_result['success'],
-                            one_result["message"],
+                            "\n".join(one_result["messages"]),
                         ]
                     )
                 else:
@@ -177,7 +105,7 @@ def package_test(
                             one_result["testrun name"],
                             one_result["testscenario"],
                             # one_result['success'],
-                            one_result["message"] + "\n" + "H" * 40 + "\n" + one_result["progress"],
+                            "\n".join(one_result["messages"]) + "\n" + "H" * 40 + "\n" + one_result["progress"],
                         ]
                     )
                 status = status and one_result["success"]
@@ -191,27 +119,21 @@ def package_test(
 
     tablestr = str(table)
     print(tablestr)
-    Path("testfailures.txt").write_text(tablestr)
+    Path("testfailures.txt").write_text(tablestr, encoding='utf8')
     if not status:
         print("exiting with failure")
         sys.exit(1)
 
-    if force:
+    if dl_opts.force_dl:
         touch_all_tars_in_dir(version_state_tar)
     else:
         write_version_tar(version_state_tar, fresh_versions)
 
 
 @click.command()
-@click.option(
-    "--version-state-tar",
-    default="/home/release-test-automation/versions.tar",
-    help="tar file with the version combination in.",
-)
 @full_common_options
-@very_common_options(support_multi_version=True)
+@very_common_options()
 @common_options(
-    support_multi_version=True,
     support_old=False,
     interactive=False,
     test_data_dir="/home/test_dir",
@@ -220,11 +142,10 @@ def package_test(
 # fmt: off
 # pylint: disable=R0913, disable=W0613
 def main(
-        version_state_tar,
         git_version,
         editions,
         #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package,
+        new_version, verbose, enterprise, package_dir, zip_package, hot_backup,
         # common_options,
         # old_version,
         test_data_dir, encryption_at_rest, alluredir, clean_alluredir, ssl, use_auto_certs,
@@ -237,41 +158,38 @@ def main(
         httpuser, httppassvoid, remote_host):
 # fmt: on
     """ main """
-    if len(new_source) != len(new_version):
-        raise Exception("""
-Cannot have different numbers of versions / sources: 
-new_version:  {len_new_version} {new_version}
-new_source:   {len_new_source} {new_source}
-""".format(
-                len_new_version=len(new_version),
-                new_version=str(new_version),
-                len_new_source=len(new_source),
-                new_source=str(new_source),
-            )
-        )
+    dl_opts = DownloadOptions(force,
+                              verbose,
+                              package_dir,
+                              enterprise_magic,
+                              httpuser,
+                              httppassvoid,
+                              remote_host)
 
-    return package_test(
+    test_driver = TestDriver(
         verbose,
-        workaround_nightly_versioning(new_version),
-        package_dir,
-        enterprise_magic,
+        Path(package_dir),
+        Path(test_data_dir),
+        Path(alluredir),
+        clean_alluredir,
         zip_package,
-        new_source,
-        git_version,
-        httpuser,
-        httppassvoid,
-        test_data_dir,
-        Path(version_state_tar),
-        remote_host,
-        force,
+        hot_backup,
+        False,  # interactive
         starter_mode,
-        editions,
+        False,  # stress_upgrade,
+        False,  # abort_on_error
         publicip,
         selenium,
         selenium_driver_args,
-        alluredir,
-        clean_alluredir,
-        use_auto_certs,
+        use_auto_certs)
+
+    return package_test(
+        dl_opts,
+        new_version,
+        new_source,
+        git_version,
+        editions,
+        test_driver
     )
 
 

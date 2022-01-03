@@ -16,6 +16,10 @@ import tools.loghelper as lh
 import requests
 from common_options import very_common_options, download_options
 
+def get_tar_file_path(base_directory, versions, package_target):
+    """calculate the name of the versions tar file"""
+    return base_directory / f"Upgrade_{versions[0]}__{versions[1]}_{package_target}_version.tar"
+
 def touch_all_tars_in_dir(tar_file):
     """sets the current filestamp to all tars so jenkins preserves them"""
     print("touching " + str(tar_file))
@@ -28,19 +32,21 @@ def touch_all_tars_in_dir(tar_file):
         if str(one_file).endswith("version.tar"):
             print("touching " + str(one_file))
             one_file.touch()
-        #else:
+        # else:
         #    print("doing nothing about " + str(one_file))
+
 def read_versions_tar(tar_file, versions):
     """reads the versions tar"""
     try:
         fdesc = tar_file.open("rb")
-        tar = tarfile.open(fileobj=fdesc, mode="r:")
-        for member in tar:
-            print(member.name)
-            print(member.isfile())
-            if member.isfile():
-                versions[member.name] = tar.extractfile(member).read().decode(encoding="utf-8")
-        tar.close()
+        with tarfile.open(fileobj=fdesc, mode="r:") as tar:
+            for member in tar:
+                print(member.name)
+                print(member.isfile())
+                if member.isfile():
+                    versions[member.name] = tar.extractfile(member).read().decode(encoding="utf-8")
+                    print(versions[member.name])
+            tar.close()
         fdesc.close()
     except FileNotFoundError:
         pass
@@ -50,51 +56,62 @@ def write_version_tar(tar_file, versions):
     """write the versions tar"""
     print("writing " + str(tar_file))
     fdesc = tar_file.open("wb")
-    tar = tarfile.open(fileobj=fdesc, mode="w:")
-    for version_name in versions:
-        data = versions[version_name].encode("utf-8")
-        file_obj = BytesIO(data)
-        info = tarfile.TarInfo(name=version_name)
-        info.size = len(data)
-        tar.addfile(tarinfo=info, fileobj=file_obj)
-    tar.close()
+    with tarfile.open(fileobj=fdesc, mode="w:") as tar:
+        for version_name in versions:
+            data = versions[version_name].encode("utf-8")
+            print(version_name)
+            print(versions[version_name])
+            file_obj = BytesIO(data)
+            info = tarfile.TarInfo(name=version_name)
+            info.size = len(data)
+            tar.addfile(tarinfo=info, fileobj=file_obj)
+        tar.close()
     fdesc.close()
 
+class DownloadOptions:
+    """ bearer class for base download options """
+    # pylint: disable=too-many-arguments disable=too-few-public-methods
+    def __init__(self,
+                 force_dl: bool,
+                 verbose: bool,
+                 package_dir: Path,
+                 enterprise_magic: str,
+                 httpuser: str,
+                 httppassvoid: str,
+                 remote_host: str):
+        self.force_dl = force_dl
+        self.verbose = verbose
+        self.package_dir = package_dir
+        self.enterprise_magic = enterprise_magic
+        self.httpuser = httpuser
+        self.httppassvoid = httppassvoid
+        self.remote_host = remote_host
 
 class Download:
     """manage package downloading from any known arango package source"""
 
-    # pylint: disable=R0913 disable=R0902
-    def __init__(
-        self,
-        version,
-        verbose,
-        package_dir,
-        enterprise,
-        enterprise_magic,
-        zip_package,
-        source,
-        httpuser,
-        httppassvoid,
-        remote_host,
-        existing_version_states,
-        new_version_states,
-        git_version,
-    ):
+    # pylint: disable=R0913 disable=R0902 disable=dangerous-default-value
+    def __init__(self,
+                 options: DownloadOptions,
+                 version,
+                 enterprise,
+                 zip_package,
+                 source,
+                 existing_version_states={},
+                 new_version_states={},
+                 git_version=""):
         """main"""
         lh.section("configuration")
         print("version: " + str(version))
         print("using enterpise: " + str(enterprise))
         print("using zip: " + str(zip_package))
-        print("package directory: " + str(package_dir))
-        print("verbose: " + str(verbose))
-        self.user = httpuser
-        self.passvoid = httppassvoid
-        self.enterprise_magic = enterprise_magic
+        print("package directory: " + str(options.package_dir))
+        print("verbose: " + str(options.verbose))
+        self.options = options
         self.source = source
-        if remote_host != "":
+        if options.remote_host != "":
             # external DNS to wuerg around docker dns issues...
-            self.remote_host = remote_host
+            self.remote_host = options.remote_host
         else:
             # dns split horizon...
             if source in ["ftp:stage1", "ftp:stage2"]:
@@ -104,20 +121,20 @@ class Download:
             else:
                 self.remote_host = "download.arangodb.com"
         lh.section("startup")
-        print(version)
-        self.package_dir = Path(package_dir)
         self.cfg = InstallerConfig(
-            version,
-            verbose,
-            enterprise,
-            False,  # don't care for enc at rest
-            zip_package,
-            self.package_dir,
-            Path("/"),
-            "",
-            "127.0.0.1",
-            False,
-            False,
+            version=version,
+            verbose=options.verbose,
+            enterprise=enterprise,
+            encryption_at_rest=False,
+            zip_package=zip_package,
+            hot_backup="disabled", # don't care
+            package_dir=options.package_dir,
+            test_dir=Path("/"),
+            deployment_mode="all",
+            publicip="127.0.0.1",
+            interactive=False,
+            stress_upgrade=False,
+            ssl=False,
         )
         self.inst = make_installer(self.cfg)
         self.is_nightly = self.inst.semver.prerelease == "nightly"
@@ -146,15 +163,14 @@ class Download:
 
     def calculate_package_names(self):
         """guess where to locate the packages"""
-        if self.is_nightly:
-            self.inst.calculate_package_names()
+        self.inst.calculate_package_names()
         self.params = {
             "full_version": "v{major}.{minor}.{patch}".format(**self.cfg.semver.to_dict()),
             "major_version": "arangodb{major}{minor}".format(**self.cfg.semver.to_dict()),
             "bare_major_version": "{major}.{minor}".format(**self.cfg.semver.to_dict()),
             "remote_package_dir": self.inst.remote_package_dir,
             "enterprise": "Enterprise" if self.cfg.enterprise else "Community",
-            "enterprise_magic": self.enterprise_magic + "/" if self.cfg.enterprise else "",
+            "enterprise_magic": self.options.enterprise_magic + "/" if self.cfg.enterprise else "",
             "packages": "" if self.is_nightly else "packages",
             "nightly": "nightly" if self.is_nightly else "",
         }
@@ -217,8 +233,8 @@ class Download:
         url = "https://{user}:{passvoid}@{remote_host}:8529/{dir}{pkg}".format(
             **{
                 "remote_host": self.remote_host,
-                "passvoid": self.passvoid,
-                "user": self.user,
+                "passvoid": self.options.passvoid,
+                "user": self.options.user,
                 "dir": directory,
                 "pkg": package,
             }
@@ -296,15 +312,15 @@ class Download:
             self.packages.append(self.inst.debug_package)
 
         for package in self.packages:
-            self.funcs[self.source](self.directories[self.source], package, Path(self.package_dir), force)
+            self.funcs[self.source](self.directories[self.source], package, Path(self.options.package_dir), force)
 
     def get_version_info(self, git_version):
         """download the nightly sourceInfo.json file, calculate more precise version of the packages"""
         if self.source == "local":
             return ""
         source_info_fn = "sourceInfo.json"
-        self.funcs[self.source](self.directories[self.source], source_info_fn, Path(self.package_dir), True)
-        text = (self.package_dir / source_info_fn).read_text()
+        self.funcs[self.source](self.directories[self.source], source_info_fn, Path(self.options.package_dir), True)
+        text = (Path(self.options.package_dir) / source_info_fn).read_text()
         while text[0] != "{":
             text = text[1:]
         val = json.loads(text)
@@ -320,29 +336,30 @@ class Download:
 @very_common_options()
 @download_options()
 # fmt: off
-# pylint: disable=R0913
+# pylint: disable=R0913 disable=unused-argument
 def main(
         #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package,
+        new_version, verbose, enterprise, package_dir, zip_package, hot_backup,
         # download options:
         enterprise_magic, force, source,
         httpuser, httppassvoid, remote_host):
 # fmt: on
     """ main wrapper """
+    dl_opts = DownloadOptions(force,
+                              verbose,
+                              Path(package_dir),
+                              enterprise_magic,
+                              httpuser,
+                              httppassvoid,
+                              remote_host)
+
     lh.configure_logging(verbose)
     downloader = Download(
-        new_version,
-        verbose,
-        package_dir,
-        enterprise,
-        enterprise_magic,
-        zip_package,
-        source,
-        httpuser,
-        httppassvoid,
-        remote_host,
-        {}, {}, ""
-    )
+        options=dl_opts,
+        version=new_version,
+        enterprise=enterprise,
+        zip_package=zip_package,
+        source=source)
     return downloader.get_packages(force)
 
 

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+""" cluster upgrade monitoring testsuite """
 import time
 
 from selenium.common.exceptions import StaleElementReferenceException
@@ -5,14 +7,15 @@ from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium_ui_test.pages.nodes_page import NodesPage
 from selenium_ui_test.test_suites.base_test_suite import testcase
 
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite
+from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 
 
-class ClusterWaitForUpgradeTestSuite(BaseTestSuite):
+class ClusterWaitForUpgradeTestSuite(BaseSeleniumTestSuite):
     """test cases to check the integrity of the old system after the upgrade (Cluster)"""
 
     @testcase
     def upgrade_deployment(self, timeout=30):
+        """test cases to check the integrity of the old system after the upgrade (Cluster)"""
         old_cfg = self.cfg
         new_cfg = self.selenium_runner.new_cfg
         old_ver = str(old_cfg.semver)

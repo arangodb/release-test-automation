@@ -75,7 +75,7 @@ class InstallerDocker(InstallerBase):
     def stop_service(self):
         pass
 
-    def upgrade_package(self, old_installer):
+    def upgrade_server_package(self, old_installer):
         pass
 
     def install_server_package_impl(self):
@@ -83,6 +83,12 @@ class InstallerDocker(InstallerBase):
 
     def un_install_server_package_impl(self):
         pass
+
+    def install_client_package_impl(self):
+        """ no docker client container """
+
+    def  un_install_client_package_impl(self):
+        """ no docker client container """
 
     def broadcast_bind(self):
         pass

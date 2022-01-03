@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+""" nodes page object """
 from datetime import time
 
 from beautifultable import BeautifulTable
@@ -14,10 +16,6 @@ from reporting.reporting_utils import attach_table
 
 class NodesPage(NavigationBarPage):
     """Class for Nodes page"""
-
-    def __init__(self, driver):
-        """Nodes page initialization"""
-        super().__init__(driver)
 
     def cluster_get_nodes_table(self, timeout=20):
         """
@@ -36,7 +34,6 @@ class NodesPage(NavigationBarPage):
                 time.sleep(1)
                 continue
             except TimeoutException as ex:
-                self.take_screenshot()
                 raise ex
 
     def _get_nodes_table(self, timeout):

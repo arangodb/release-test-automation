@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """ inbetween class for linux specific utilities - GDB tests. """
 import logging
-import sys
 import time
 
 from reporting.reporting_utils import step
@@ -19,9 +18,10 @@ class InstallerLinux(InstallerBase):
         self.remote_package_dir = "Linux"
         super().__init__(cfg)
 
+    @step
     def gdb_test(self):
         """
-        gdb check for arangod in /sbin folder before installing the package
+        check that debug symbols for arangod binary are present
         """
         gdb = pexpect.spawnu("gdb " + str(self.cfg.real_sbin_dir / "arangod"))
         outputs = gdb.expect(
@@ -41,9 +41,10 @@ class InstallerLinux(InstallerBase):
             gdb.sendline("quit")
             logging.info("Quiting gdb session.")
             gdb.terminate(force=True)
+            raise Exception("GDB wasn't able to find debug symbols.")
         else:
             logging.info("Something wrong")
-            sys.exit(1)
+            raise Exception("Something went wrong during gdb test.")
 
     @step
     def check_service_up(self):

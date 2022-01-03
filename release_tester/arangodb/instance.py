@@ -20,11 +20,12 @@ from tools.asciiprint import print_progress as progress
 
 
 # log tokens we want to suppress from our dump:
-
 LOG_BLACKLIST = [
     "2b6b3",  # -> asio error, tcp connections died... so f* waht.
     "2c712",  # -> agency connection died...
     "40e37",  # -> upgrade required TODO remove me from here, add system instance handling.
+    "d72fb",  # -> license is going to expire...
+    "1afb1",  # -> unlicensed enterprise instance
 ]
 
 # log tokens we ignore in system ugprades...
@@ -47,7 +48,7 @@ INSTANCE_TYPE_STRING_MAP = {
     "coordinator": InstanceType.COORDINATOR,
     "resilientsingle": InstanceType.RESILIENT_SINGLE,
     "single": InstanceType.SINGLE,
-    "agent": InstanceType.AGENT,
+   "agent": InstanceType.AGENT,
     "dbserver": InstanceType.DBSERVER,
     "syncmaster": InstanceType.SYNCMASTER,
     "syncworker": InstanceType.SYNCWORKER,
@@ -315,7 +316,7 @@ class Instance(ABC):
             return
         print(str(self.logfile))
         count = 0
-        with open(self.logfile, errors="backslashreplace") as log_fh:
+        with open(self.logfile, errors="backslashreplace", encoding='utf8') as log_fh:
             for line in log_fh:
                 if self.is_line_relevant(line):
                     if self.is_suppressed_log_line(line):
@@ -503,7 +504,7 @@ class ArangodInstance(Instance):
         while True:
             log_file_content = ""
             last_line = ""
-            with open(self.logfile, errors="backslashreplace") as log_fh:
+            with open(self.logfile, errors="backslashreplace", encoding='utf8') as log_fh:
                 for line in log_fh:
                     # skip empty lines
                     if line == "":
@@ -548,7 +549,7 @@ class ArangodInstance(Instance):
     def detect_fatal_errors(self):
         """check whether we have FATAL lines in the logfile"""
         fatal_line = None
-        with open(self.logfile, errors="backslashreplace") as log_fh:
+        with open(self.logfile, errors="backslashreplace", encoding='utf8') as log_fh:
             for line in log_fh:
                 if fatal_line is not None:
                     fatal_line += "\n" + line
@@ -578,7 +579,7 @@ class ArangodInstance(Instance):
             else:
                 raise TimeoutError("instance logfile '" + str(self.logfile) + "' didn't show up in 20 seconds")
 
-            with open(self.logfile, errors="backslashreplace") as log_fh:
+            with open(self.logfile, errors="backslashreplace", encoding='utf8') as log_fh:
                 for line in log_fh:
                     # skip empty lines
                     if line == "":
@@ -662,7 +663,7 @@ class ArangodInstance(Instance):
         if not self.logfile.exists():
             print(str(self.logfile) + " doesn't exist, skipping.")
             return self.serving
-        with open(self.logfile, errors="backslashreplace") as log_fh:
+        with open(self.logfile, errors="backslashreplace", encoding='utf8') as log_fh:
             for line in log_fh:
                 if "a66dc" in line:
                     serving_line = line

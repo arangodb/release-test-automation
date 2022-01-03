@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+""" dashboard page object """
 import time
 from selenium.common.exceptions import TimeoutException
 from selenium_ui_test.pages.navbar import NavigationBarPage
@@ -77,21 +79,24 @@ class DashboardPage(NavigationBarPage):
 
     def check_system_resource(self):
         """checking system resource tab from the dashboard"""
-        check_system_resource_sitem = self.locator_finder_by_id(self.check_system_resource_id)
-        check_system_resource_sitem.click()
-        time.sleep(1)
+        try:
+            check_system_resource_sitem = self.locator_finder_by_id(self.check_system_resource_id)
+            check_system_resource_sitem.click()
+            time.sleep(3)
+        except TimeoutException as ex:
+            print("FAIL: cound not find the system-statistics locator! \n" + str(ex))
 
     def check_distribution_tab(self):
         """Checking distribution tab"""
         distribution = '//*[@id="subNavigationBar"]/ul[2]/li[2]/a'
-        distribution_sitem = self.locator_finder_by_xpath(self, distribution)
+        distribution_sitem = self.locator_finder_by_xpath(distribution)
         distribution_sitem.click()
         time.sleep(3)
 
     def check_maintenance_tab(self):
         """Checking maintenance tab"""
         maintenance = '//*[@id="subNavigationBar"]/ul[2]/li[3]/a'
-        maintenance_sitem = self.locator_finder_by_xpath(self, maintenance)
+        maintenance_sitem = self.locator_finder_by_xpath(maintenance)
         maintenance_sitem.click()
         time.sleep(3)
 

@@ -1,12 +1,7 @@
 #!/usr/bin/python3
 """ fetch nightly packages, process upgrade """
 from pathlib import Path
-
-import os
 import sys
-
-import shutil
-import time
 
 import click
 from common_options import very_common_options, common_options, download_options, full_common_options
@@ -14,124 +9,71 @@ from common_options import very_common_options, common_options, download_options
 from beautifultable import BeautifulTable, ALIGN_LEFT
 
 import tools.loghelper as lh
-from download import read_versions_tar, write_version_tar, Download, touch_all_tars_in_dir
-from upgrade import run_upgrade
-from cleanup import run_cleanup
+from download import (
+    get_tar_file_path,
+    read_versions_tar,
+    write_version_tar,
+    touch_all_tars_in_dir,
+    Download,
+    DownloadOptions)
+from test_driver import TestDriver
 from tools.killall import list_all_processes
 
-
-def set_r_limits():
-    """on linux manipulate ulimit values"""
-    # pylint: disable=C0415
-    import platform
-
-    if not platform.win32_ver()[0]:
-        import resource
-
-        resource.setrlimit(resource.RLIMIT_CORE, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
-
-
-def workaround_nightly_versioning(ver):
-    """adjust package names of nightlies to be semver parseable"""
-    # return ver.replace("-nightly", ".9999999-nightly")
-    return ver
-
+from arangodb.installers import EXECUTION_PLAN
 
 # pylint: disable=R0913 disable=R0914 disable=R0912, disable=R0915
 def upgrade_package_test(
-    verbose,
+    dl_opts: DownloadOptions,
     new_version,
     old_version,
-    package_dir,
-    enterprise_magic,
-    zip_package,
     new_dlstage,
     old_dlstage,
     git_version,
-    httpusername,
-    httppassvoid,
-    test_data_dir,
-    version_state_tar,
-    remote_host,
-    force,
-    starter_mode,
     editions,
-    stress_upgrade,
-    publicip,
-    selenium,
-    selenium_driver_args,
-    alluredir,
-    clean_alluredir,
-    use_auto_certs,
+    test_driver
 ):
     """process fetch & tests"""
 
-    set_r_limits()
-
-    lh.configure_logging(verbose)
+    test_driver.set_r_limits()
+    lh.configure_logging(test_driver.base_config.verbose)
     list_all_processes()
-    os.chdir(test_data_dir)
+    test_dir = test_driver.base_config.test_data_dir
 
     versions = {}
     fresh_versions = {}
+    version_state_tar = get_tar_file_path(test_driver.launch_dir,
+                                          [old_version, new_version],
+                                          test_driver.get_packaging_shorthand())
     read_versions_tar(version_state_tar, versions)
     print(versions)
 
     results = []
     # do the actual work:
-    execution_plan = [
-        (True, True, True, "EE", "Enterprise\nEnc@REST"),
-        (True, False, False, "EP", "Enterprise"),
-        (False, False, False, "C", "Community"),
-    ]
-
-    for (
-        enterprise,
-        encryption_at_rest,
-        ssl,
-        directory_suffix,
-        testrun_name,
-    ) in execution_plan:
-        print("Cleaning up" + testrun_name)
-        run_cleanup(zip_package, testrun_name)
+    for props in EXECUTION_PLAN:
+        print("Cleaning up" + props.testrun_name)
+        test_driver.run_cleanup(props)
     print("Cleanup done")
 
-    for (
-        enterprise,
-        encryption_at_rest,
-        ssl,
-        directory_suffix,
-        testrun_name,
-    ) in execution_plan:
-        if directory_suffix not in editions:
+    for props in EXECUTION_PLAN:
+        if props.directory_suffix not in editions:
             continue
         # pylint: disable=W0612
         dl_old = Download(
+            dl_opts,
             old_version,
-            verbose,
-            package_dir,
-            enterprise,
-            enterprise_magic,
-            zip_package,
+            props.enterprise,
+            test_driver.base_config.zip_package,
             old_dlstage,
-            httpusername,
-            httppassvoid,
-            remote_host,
             versions,
             fresh_versions,
             git_version,
         )
         dl_new = Download(
+            dl_opts,
             new_version,
-            verbose,
-            package_dir,
-            enterprise,
-            enterprise_magic,
-            zip_package,
+            props.enterprise,
+            test_driver.base_config.zip_package,
             new_dlstage,
-            httpusername,
-            httppassvoid,
-            remote_host,
             versions,
             fresh_versions,
             git_version,
@@ -141,36 +83,28 @@ def upgrade_package_test(
             return 0
         dl_old.get_packages(dl_old.is_different())
         dl_new.get_packages(dl_new.is_different())
-        test_dir = Path(test_data_dir) / directory_suffix
-        if test_dir.exists():
-            shutil.rmtree(test_dir)
-            if "REQUESTS_CA_BUNDLE" in os.environ:
-                del os.environ["REQUESTS_CA_BUNDLE"]
-        test_dir.mkdir()
-        while not test_dir.exists():
-            time.sleep(1)
+
+        this_test_dir = test_dir / props.directory_suffix
+        test_driver.reset_test_data_dir(this_test_dir)
+
         results.append(
-            run_upgrade(
-                str(dl_old.cfg.version),
-                str(dl_new.cfg.version),
-                verbose,
-                package_dir,
-                test_dir,
-                alluredir,
-                clean_alluredir,
-                enterprise,
-                encryption_at_rest,
-                zip_package,
-                False,  # interactive
-                starter_mode,
-                stress_upgrade,
-                False,  # abort on error
-                publicip,
-                selenium,
-                selenium_driver_args,
-                testrun_name,
-                ssl,
-                use_auto_certs,
+            test_driver.run_upgrade(
+                [
+                    dl_old.cfg.version,
+                    dl_new.cfg.version
+                ],
+                props
+            )
+        )
+
+    for use_enterprise in [True, False]:
+        results.append(
+            test_driver.run_conflict_tests(
+                [
+                    dl_old.cfg.version,
+                    dl_new.cfg.version
+                ],
+                enterprise=use_enterprise,
             )
         )
 
@@ -186,7 +120,7 @@ def upgrade_package_test(
                             one_result["testrun name"],
                             one_result["testscenario"],
                             # one_result['success'],
-                            one_result["message"],
+                            "\n".join(one_result["messages"]),
                         ]
                     )
                 else:
@@ -195,7 +129,7 @@ def upgrade_package_test(
                             one_result["testrun name"],
                             one_result["testscenario"],
                             # one_result['success'],
-                            one_result["message"] + "\n" + "H" * 40 + "\n" + one_result["progress"],
+                            "\n".join(one_result["messages"]) + "\n" + "H" * 40 + "\n" + one_result["progress"],
                         ]
                     )
                 status = status and one_result["success"]
@@ -209,12 +143,12 @@ def upgrade_package_test(
 
     tablestr = str(table)
     print(tablestr)
-    Path("testfailures.txt").write_text(tablestr)
+    Path("testfailures.txt").write_text(tablestr, encoding='utf8')
     if not status:
         print("exiting with failure")
         sys.exit(1)
 
-    if force:
+    if dl_opts.force_dl:
         touch_all_tars_in_dir(version_state_tar)
     else:
         write_version_tar(version_state_tar, fresh_versions)
@@ -244,7 +178,7 @@ def main(
         git_version,
         editions,
         #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package,
+        new_version, verbose, enterprise, package_dir, zip_package, hot_backup,
         # common_options
         old_version, test_data_dir, encryption_at_rest, alluredir, clean_alluredir, ssl, use_auto_certs,
         # no-interactive!
@@ -255,32 +189,40 @@ def main(
         httpuser, httppassvoid, remote_host):
 # fmt: on
     """ main """
+    dl_opts = DownloadOptions(force,
+                              verbose,
+                              package_dir,
+                              enterprise_magic,
+                              httpuser,
+                              httppassvoid,
+                              remote_host)
 
-    return upgrade_package_test(
+    test_driver = TestDriver(
         verbose,
-        workaround_nightly_versioning(new_version),
-        workaround_nightly_versioning(old_version),
-        package_dir,
-        enterprise_magic,
+        Path(package_dir),
+        Path(test_data_dir),
+        Path(alluredir),
+        clean_alluredir,
         zip_package,
-        new_source,
-        old_source,
-        git_version,
-        httpuser,
-        httppassvoid,
-        test_data_dir,
-        Path(version_state_tar),
-        remote_host,
-        force,
+        hot_backup,
+        False,  # interactive
         starter_mode,
-        editions,
         stress_upgrade,
+        False,  # abort_on_error
         publicip,
         selenium,
         selenium_driver_args,
-        alluredir,
-        clean_alluredir,
-        use_auto_certs,
+        use_auto_certs)
+
+    return upgrade_package_test(
+        dl_opts,
+        new_version,
+        old_version,
+        new_source,
+        old_source,
+        git_version,
+        editions,
+        test_driver
     )
 
 

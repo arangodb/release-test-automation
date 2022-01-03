@@ -4,6 +4,7 @@ import platform
 import shutil
 import logging
 from pathlib import Path
+import time
 import os
 
 from reporting.reporting_utils import step
@@ -42,10 +43,11 @@ class InstallerTAR(InstallerBase):
         self.cfg = cfg
         self.dash = "-"
         self.cfg.install_prefix = self.basedir
+        self.cfg.client_install_prefix = self.basedir
+        self.cfg.server_install_prefix = self.basedir
         self.extension = "tar.gz"
         self.hot_backup = True
         self.architecture = None
-
         if MACVER[0]:
             cfg.localhost = "localhost"
             self.remote_package_dir = "MacOSX"
@@ -111,6 +113,8 @@ class InstallerTAR(InstallerBase):
         else:
             self.server_package = "arangodb3{ep}-{arch}{dashus}{ver}.{ext}".format(**self.desc)
             self.client_package = "arangodb3{ep}-client-{arch}{dashus}{ver}.{ext}".format(**self.desc)
+            self.cfg.client_install_prefix = self.basedir / "arangodb3{ep}-client-{arch}{dashus}{ver}".format(**self.desc)
+            self.cfg.server_install_prefix = self.basedir / "arangodb3{ep}-{arch}{dashus}{ver}".format(**self.desc)
             if self.cfg.client_package_is_installed:
                 self.cfg.install_prefix = self.basedir / "arangodb3{ep}-client-{arch}{dashus}{ver}".format(**self.desc)
             else:
@@ -134,7 +138,7 @@ class InstallerTAR(InstallerBase):
         """nothing to see here"""
 
     @step
-    def upgrade_package(self, old_installer):
+    def upgrade_server_package(self, old_installer):
         """Tar installer is the same way we did for installing."""
         self.install_server_package()
 
@@ -142,22 +146,41 @@ class InstallerTAR(InstallerBase):
     def install_server_package_impl(self):
         logging.info("installing Arangodb " + self.installer_type + "server package")
         logging.debug("package dir: {0.cfg.package_dir}- " "server_package: {0.server_package}".format(self))
-        if not self.cfg.install_prefix.exists():
+        if self.cfg.install_prefix.exists():
+            print("Flushing pre-existing installation directory: " + str(self.cfg.install_prefix))
+            shutil.rmtree(self.cfg.install_prefix)
+            while self.cfg.install_prefix.exists():
+                print(".")
+                time.sleep(1)
+        else:
             self.cfg.install_prefix.mkdir(parents=True)
-        print(
-            "extracting: "
-            + str(self.cfg.package_dir / self.server_package)
-            + " to "
-            + str(self.cfg.install_prefix / "..")
-        )
+
+        extract_to = self.cfg.install_prefix / ".."
+        extract_to = extract_to.resolve()
+
+        print("extracting: " + str(self.cfg.package_dir / self.server_package) + " to " + str(extract_to))
         shutil.unpack_archive(
             str(self.cfg.package_dir / self.server_package),
-            str(self.cfg.install_prefix / ".."),
+            str(extract_to),
         )
         logging.info("Installation successfull")
+        self.cfg.server_package_is_installed = True
+        self.cfg.install_prefix = self.cfg.server_install_prefix
+        if self.architecture == "win64":
+            self.cfg.bin_dir = self.cfg.install_prefix / "usr" / "bin"
+            self.cfg.sbin_dir = self.cfg.install_prefix / "usr" / "bin"
+            self.cfg.real_bin_dir = self.cfg.bin_dir
+            self.cfg.real_sbin_dir = self.cfg.sbin_dir
+        else:
+            self.cfg.bin_dir = self.cfg.install_prefix / "bin"
+            self.cfg.sbin_dir = self.cfg.install_prefix / "usr" / "sbin"
+            self.cfg.real_bin_dir = self.cfg.install_prefix / "usr" / "bin"
+            self.cfg.real_sbin_dir = self.cfg.sbin_dir
+        self.calculate_file_locations()
 
     @step
     def install_client_package_impl(self):
+        """ install the client tar file """
         logging.info("installing Arangodb " + self.installer_type + "client package")
         logging.debug("package dir: {0.cfg.package_dir}- " "client_package: {0.client_package}".format(self))
         if not self.cfg.install_prefix.exists():
@@ -173,16 +196,32 @@ class InstallerTAR(InstallerBase):
             str(self.cfg.install_prefix / ".."),
         )
         logging.info("Installation successfull")
+        self.cfg.client_package_is_installed = True
+        self.cfg.install_prefix = self.cfg.client_install_prefix
+        if self.architecture == "win64":
+            self.cfg.bin_dir = self.cfg.install_prefix / "usr" / "bin"
+            self.cfg.sbin_dir = self.cfg.install_prefix / "usr" / "bin"
+            self.cfg.real_bin_dir = self.cfg.bin_dir
+            self.cfg.real_sbin_dir = self.cfg.sbin_dir
+        else:
+            self.cfg.bin_dir = self.cfg.install_prefix / "bin"
+            self.cfg.sbin_dir = self.cfg.install_prefix / "usr" / "sbin"
+            self.cfg.real_bin_dir = self.cfg.install_prefix / "usr" / "bin"
+            self.cfg.real_sbin_dir = self.cfg.sbin_dir
+        self.calculate_file_locations()
 
     @step
     def un_install_server_package_impl(self):
+        """ remove server package """
         self.purge_install_dir()
 
     @step
     def un_install_client_package_impl(self):
+        """ purge client package """
         self.purge_install_dir()
 
     def purge_install_dir(self):
+        """ remove the install directory """
         if self.cfg.install_prefix.exists():
             shutil.rmtree(self.cfg.install_prefix)
 

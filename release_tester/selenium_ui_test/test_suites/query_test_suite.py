@@ -1,16 +1,23 @@
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
+#!/usr/bin/env python3
+""" query testsuite """
+from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
+from selenium_ui_test.test_suites.base_test_suite import testcase
 from selenium_ui_test.pages.query_page import QueryPage
 from selenium_ui_test.pages.graph_page import GraphPage
-from selenium_ui_test.pages.graph_page import GraphExample, get_graph_name
+from selenium_ui_test.pages.graph_page import GraphExample, get_graph
 
 
-class QueryTestSuite(BaseTestSuite):
+class QueryTestSuite(BaseSeleniumTestSuite):
+    """ query testsuite """
     @testcase
     def test_query(self):
         """testing query page"""
+        # pylint: disable=too-many-statements
         query_page = QueryPage(self.webdriver)
         graph_page = GraphPage(self.webdriver)
 
+        assert query_page.current_user() == "ROOT", "current user is root?"
+        assert query_page.current_database() == "_SYSTEM", "current database is _system?"
         print("Importing IMDB collections \n")
         query_page.import_collections(self.restore, self.test_data_dir, self.is_cluster)
 
@@ -43,32 +50,38 @@ class QueryTestSuite(BaseTestSuite):
         print("Executing example graph query \n")
         graph = GraphExample.WORLD
         query_page.navbar_goto("graphs")
-        print("Creating '%s' Graph" % get_graph_name(graph))
+        self.webdriver.refresh()
+        print("Creating '%s' Graph" % get_graph(graph).get_name())
         graph_page.create_graph(graph, self.importer, self.test_data_dir)
         graph_page.check_required_collections(graph)
         query_page.world_country_graph_query()
         query_page.navbar_goto("graphs")
+        self.webdriver.refresh()
         graph_page.delete_graph(graph)
         self.webdriver.refresh()
 
         graph = GraphExample.K_SHORTEST_PATH
         query_page.navbar_goto("graphs")
-        print("Creating '%s' Graph" % get_graph_name(graph))
+        self.webdriver.refresh()
+        print("Creating '%s' Graph" % get_graph(graph).get_name())
         graph_page.create_graph(graph, self.importer, self.test_data_dir)
         graph_page.check_required_collections(graph)
         query_page.k_shortest_paths_graph_query()
         query_page.navbar_goto("graphs")
+        self.webdriver.refresh()
         graph_page.delete_graph(graph)
         self.webdriver.refresh()
 
         graph = GraphExample.CITY
         graph_page.navbar_goto("graphs")
-        print("Creating '%s' Graph" % get_graph_name(graph))
+        self.webdriver.refresh()
+        print("Creating '%s' Graph" % get_graph(graph).get_name())
         graph_page.create_graph(graph, self.importer, self.test_data_dir)
         graph_page.check_required_collections(graph)
         print("Executing City Graph query \n")
         query_page.city_graph()
         query_page.navbar_goto("graphs")
+        self.webdriver.refresh()
         graph_page.delete_graph(graph)
 
         graph_page.navbar_goto("queries")

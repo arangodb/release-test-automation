@@ -38,7 +38,7 @@ class TestConfig:
         self.db_offset = 0
         self.progressive_timeout = 100
 
-
+# pylint: disable=global-variable-not-assigned
 statsdc = statsd.StatsClient("localhost", 8125)
 RESULTS_TXT = None
 OTHER_SH_OUTPUT = None
@@ -104,7 +104,7 @@ class ClusterPerf(Runner):
             cfg.scenario.write_text(yaml.dump(TestConfig()))
             raise Exception("have written %s with default config" % str(cfg.scenario))
 
-        with open(cfg.scenario) as fileh:
+        with open(cfg.scenario, encoding='utf8') as fileh:
             self.scenario = yaml.load(fileh, Loader=yaml.Loader)
 
         super().__init__(
@@ -119,8 +119,8 @@ class ClusterPerf(Runner):
         self.success = False
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
-        RESULTS_TXT = Path("/tmp/results.txt").open("w")
-        OTHER_SH_OUTPUT = Path("/tmp/errors.txt").open("w")
+        RESULTS_TXT = Path("/tmp/results.txt").open("w", encoding='utf8')
+        OTHER_SH_OUTPUT = Path("/tmp/errors.txt").open("w", encoding='utf8')
 
     def starter_prepare_env_impl(self):
         mem = psutil.virtual_memory()
@@ -186,7 +186,7 @@ class ClusterPerf(Runner):
                 self.basedir,
                 "node1",
                 mode="cluster",
-                jwtStr=self.jwtdatastr,
+                jwt_str=self.jwtdatastr,
                 port=9528,
                 expect_instances=[
                     InstanceType.AGENT,
@@ -203,7 +203,7 @@ class ClusterPerf(Runner):
                 self.basedir,
                 "node2",
                 mode="cluster",
-                jwtStr=self.jwtdatastr,
+                jwt_str=self.jwtdatastr,
                 port=9628,
                 expect_instances=[
                     InstanceType.AGENT,
@@ -220,7 +220,7 @@ class ClusterPerf(Runner):
                 self.basedir,
                 "node3",
                 mode="cluster",
-                jwtStr=self.jwtdatastr,
+                jwt_str=self.jwtdatastr,
                 port=9728,
                 expect_instances=[
                     InstanceType.AGENT,

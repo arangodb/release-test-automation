@@ -1,15 +1,22 @@
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
+#!/usr/bin/env python3
+""" views testsuite """
+from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
+from selenium_ui_test.test_suites.base_test_suite import testcase
 from selenium_ui_test.pages.views_page import ViewsPage
 
 
-class ViewsTestSuite(BaseTestSuite):
+class ViewsTestSuite(BaseSeleniumTestSuite):
+    """ views testsuite """
     @testcase
     def test_views(self):
         """testing Views page"""
+        # pylint: disable=too-many-statements
         print("---------Checking Views Begin--------- \n")
         # login = LoginPage(self.webdriver)
         # login.login('root', self.root_passvoid)
         views = ViewsPage(self.webdriver)  # creating obj for viewPage
+        assert views.current_user() == "ROOT", "current user is root?"
+        assert views.current_database() == "_SYSTEM", "current database is _system?"
 
         print("Selecting Views tab\n")
         views.select_views_tab()
@@ -77,14 +84,22 @@ class ViewsTestSuite(BaseTestSuite):
             print("Traversing all results up and down \n")
             views.search_result_traverse_down()
             views.search_result_traverse_up()
-            print("Rename firstViews to thirdViews started \n")
-            views.clicking_rename_views_btn()
-            views.rename_views_name("thirdView")
-            views.rename_views_name_confirm()
-            print("Rename the current Views completed \n")
+
+            if self.is_cluster:
+                print("View rename is disabled in Cluster mode \n")
+            else:
+                print("Rename firstViews to thirdViews started \n")
+                views.clicking_rename_views_btn()
+                views.rename_views_name("thirdView")
+                views.rename_views_name_confirm()
+                print("Rename the current Views completed \n")
 
             print("Deleting views started \n")
-            views.delete_views("renamed_view", views.select_renamed_view_id)
+            if self.is_cluster:
+                views.delete_views("first_view", views.select_first_view_id)
+            else:
+                views.delete_views("renamed_view", views.select_renamed_view_id)
+
             views.delete_views("second_view", views.select_second_view_id)
 
         # print("Deleting views completed\n")

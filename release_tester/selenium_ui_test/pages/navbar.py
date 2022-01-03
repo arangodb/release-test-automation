@@ -1,7 +1,11 @@
+#!/usr/bin/env python3
+""" navigation bar page object """
+import time
 from selenium_ui_test.pages.user_bar_page import UserBarPage
 from selenium.common.exceptions import TimeoutException
-import time
 
+# wtf navbar?
+# pylint: disable=blacklisted-name
 
 class NavigationBarPage(UserBarPage):
     """Page object representing the navigation bar"""
@@ -11,9 +15,6 @@ class NavigationBarPage(UserBarPage):
     click_stackoverflow_link_id = "//*[@id='navigationBar']/div[2]/p[3]/a"
     click_google_group_link_id = "//*[@id='navigationBar']/div[2]/p[4]/a"
     navbar_id = "navigationBar"
-
-    def __init__(self, driver):
-        super().__init__(driver)
 
     def navbar_goto(self, tag):
         """click on any of the items in the 'navbar'"""

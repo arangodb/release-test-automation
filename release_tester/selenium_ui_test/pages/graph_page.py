@@ -1,7 +1,11 @@
+#!/usr/bin/env python
+"""graph testsuite"""
 import time
 from enum import IntEnum
+import semver
 from selenium_ui_test.pages.base_page import Keys
 from selenium_ui_test.pages.navbar import NavigationBarPage
+from selenium.common.exceptions import ElementClickInterceptedException, TimeoutException
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=C0302 disable=R0902 disable=R0915 disable=R0914
@@ -10,6 +14,7 @@ from selenium_ui_test.pages.navbar import NavigationBarPage
 class GraphExample(IntEnum):
     """identify example and manual graphs to be managed herein"""
 
+    # pylint: disable=R0903
     KNOWS = 1
     TRAVERSAL = 2
     K_SHORTEST_PATH = 3
@@ -17,16 +22,19 @@ class GraphExample(IntEnum):
     WORLD = 5
     SOCIAL = 6
     CITY = 7
-    MANUAL_KNOWS = 8
-    # MANUAL_SATELITE_GRAPH = 9
-    # MANUAL_SMART_GRAHP = 10
-    # MANUAL_DISJOINT_SMART_GRAHP = 11
-    # TODO: 3.8 and newer only: CONNECTED = 12
+    CONNECTED = 8
+    # these are non graph-example tabs; their index doesn't align with their table column:
+    # if more example graphs are added, add them above, move numbers.
+    MANUAL_KNOWS = 9 # overlaps with knows graph
+    MANUAL_SATELLITE_GRAPH = 10 # overlaps with knows graph
+    MANUAL_SMART_GRAHP = 11
+    MANUAL_DISJOINT_SMART_GRAHP = 12
 
 
 class VCol:
     """maps a vertex collection to a graph"""
 
+    # pylint: disable=R0903
     def __init__(self, name):
         self.name = name
         self.ctype = "v"
@@ -35,27 +43,49 @@ class VCol:
 class ECol:
     """maps an edge collection to a graph"""
 
+    # pylint: disable=R0903
     def __init__(self, name):
         self.name = name
         self.ctype = "e"
 
-
+ALL_VERSIONS="3.0.0"
 class GraphCreateSet:
     """this has all we need to know to create an example graph"""
 
-    def __init__(self, clear_name, btn_id, collections, handler=None):
+    # pylint: disable=R0903 disable=too-many-arguments
+    def __init__(self, clear_name, btn_id, collections,
+                 handler=None,
+                 enterprise=False,
+                 min_version=ALL_VERSIONS,
+                 non_cl_min_ver=ALL_VERSIONS):
         self.clear_name = clear_name
         self.btn_id = btn_id
         self.handler = handler
         self.collections = collections
+        self.min_version = semver.VersionInfo.parse(min_version)
+        self.non_cl_min_ver = non_cl_min_ver
+        self.requires_enterprise = enterprise
 
+    def is_graph_supported(self, enterprise, version, is_cluster):
+        """will this graph be supported in your environment?"""
+        if self.requires_enterprise and not enterprise:
+            return False
+        if not is_cluster and version < self.non_cl_min_ver:
+            return False
+        return version > self.min_version
+
+    def get_name(self):
+        """resolves the enum to a printeable string"""
+        return self.clear_name
 
 GRAPH_SETS = []
 
-
-def get_graph_name(graph: GraphExample):
-    """resolves the enum to a printeable string"""
-    return GRAPH_SETS[graph].clear_name
+def get_graph(graph: GraphExample):
+    """look up the graph"""
+    try:
+        return GRAPH_SETS[graph]
+    except IndexError as ex:
+        raise Exception("unknown Graph " + str(graph)) from ex
 
 
 class GraphPage(NavigationBarPage):
@@ -69,7 +99,7 @@ class GraphPage(NavigationBarPage):
         self.select_example_graph_btn_id = "tab-exampleGraphs"
         self.select_ex_graph_format = "//*[@id='exampleGraphs']/table/tbody/tr[%d]/td[2]/button"
 
-        self.confirm_delete_graph_id = "modalButton0"
+        self.confirm_delete_graph_selector = "//button[text()='Delete' and not(ancestor::div[contains(@style,'display:none')]) and not(ancestor::div[contains(@style,'display: none')])]"
         self.delete_with_collection_id = "dropGraphCollections"
         self.select_really_delete_btn_id = "modal-confirm-delete"
 
@@ -97,6 +127,9 @@ class GraphPage(NavigationBarPage):
         self.select_edge_type_id = "g_edgeType"
         self.select_restore_settings_id = "/html//button[@id='restoreGraphSettings']"
         self.select_tooltips_id = "//*[@id='graphSettingsView']/div/div[2]/div[1]/div[5]/i"
+        self.selected_dropdown_class = (
+            "select2-results-dept-0.select2-result.select2-result-selectable.select2-highlighted"
+        )
 
         self.select_sort_settings_id = "graphManagementToggle"
         self.select_sort_descend_id = "//*[@id='graphManagementDropdown']/ul/li[2]/a/label/i"
@@ -111,6 +144,7 @@ class GraphPage(NavigationBarPage):
 
         self.select_new_graph_name_id = "createNewGraphName"
 
+    # pylint: disable=W0613
     def create_manual_graph(self, importer, test_data_dir):
         """creating graph manually"""
         collection_page = self.locator_finder_by_id(self.select_collection_page_id)
@@ -232,23 +266,20 @@ class GraphPage(NavigationBarPage):
 
         # selecting from collection from auto suggestion
         from_collection_sitem = self.locator_finder_by_id(from_collection)
-        from_collection_sitem.click()
-        super().send_key_action(Keys.ENTER)
-
-        time.sleep(1)
+        self.choose_item_from_a_dropdown_menu(from_collection_sitem, "manual_vertices")
+        time.sleep(10)
 
         # selecting to collection from auto suggestion
         to_collection_sitem = self.locator_finder_by_id(to_collection)
-        to_collection_sitem.click()
-        super().send_key_action(Keys.ENTER)
+        self.choose_item_from_a_dropdown_menu(to_collection_sitem, "manual_vertices")
 
-        time.sleep(1)
+        time.sleep(10)
 
         # selecting create graph btn
         create_btn_sitem = self.locator_finder_by_id(create_btn_id)
         create_btn_sitem.click()
 
-        time.sleep(2)
+        time.sleep(20)
 
         # selecting newly created graph btn
         knows_graph_sitem = self.locator_finder_by_xpath(knows_graph_id)
@@ -259,238 +290,232 @@ class GraphPage(NavigationBarPage):
 
     def create_satellite_graph(self, importer, test_data_dir):
         """creating satellite graph"""
-        if super().current_package_version() >= 3.8:
-            self.select_graph_page()
-            knows_path = test_data_dir / "ui_data" / "graph_page" / "knows"
-            select_graph_sitem = self.locator_finder_by_id(self.select_create_graph_id)
-            select_graph_sitem.click()
+        self.select_graph_page()
+        knows_path = test_data_dir / "ui_data" / "graph_page" / "knows"
+        select_graph_sitem = self.locator_finder_by_id(self.select_create_graph_id)
+        select_graph_sitem.click()
 
-            # list of id's for satellite graph
-            select_satellite = "tab-satelliteGraph"
-            new_graph = self.select_new_graph_name_id
-            edge_definition = "s2id_newEdgeDefinitions0"
-            from_collection = "s2id_fromCollections0"
-            to_collection = "s2id_toCollections0"
-            create_btn_id = "modalButton1"
+        # list of id's for satellite graph
+        select_satellite = "tab-satelliteGraph"
+        new_graph = self.select_new_graph_name_id
+        edge_definition = "s2id_newEdgeDefinitions0"
+        from_collection = "s2id_fromCollections0"
+        to_collection = "s2id_toCollections0"
+        create_btn_id = "modalButton1"
 
-            # selecting satellite graph tab
-            select_satellite_sitem = self.locator_finder_by_id(select_satellite)
-            select_satellite_sitem.click()
+        # selecting satellite graph tab
+        select_satellite_sitem = self.locator_finder_by_id(select_satellite)
+        select_satellite_sitem.click()
 
-            new_graph_sitem = self.locator_finder_by_id(new_graph)
-            new_graph_sitem.click()
-            new_graph_sitem.clear()
-            new_graph_sitem.send_keys("satellite_graph")
+        new_graph_sitem = self.locator_finder_by_id(new_graph)
+        new_graph_sitem.click()
+        new_graph_sitem.clear()
+        new_graph_sitem.send_keys("satellite_graph")
 
-            # selecting edge definition from auto suggestion
-            edge_definition_sitem = self.locator_finder_by_id(edge_definition)
-            edge_definition_sitem.click()
-            super().send_key_action("knows_edge")
-            super().send_key_action(Keys.ENTER)
+        # selecting edge definition from auto suggestion
+        edge_definition_sitem = self.locator_finder_by_id(edge_definition)
+        edge_definition_sitem.click()
+        super().send_key_action("knows_edge")
+        super().send_key_action(Keys.ENTER)
 
-            # selecting from collection from auto suggestion
-            from_collection_sitem = self.locator_finder_by_id(from_collection)
-            from_collection_sitem.click()
-            super().send_key_action("persons")
-            super().send_key_action(Keys.ENTER)
+        # selecting from collection from auto suggestion
+        from_collection_sitem = self.locator_finder_by_id(from_collection)
+        from_collection_sitem.click()
+        super().send_key_action("persons")
+        super().send_key_action(Keys.ENTER)
 
-            time.sleep(1)
+        time.sleep(1)
 
-            # selecting to collection from auto suggestion
-            to_collection_sitem = self.locator_finder_by_id(to_collection)
-            to_collection_sitem.click()
-            super().send_key_action("persons")
-            super().send_key_action(Keys.ENTER)
+        # selecting to collection from auto suggestion
+        to_collection_sitem = self.locator_finder_by_id(to_collection)
+        to_collection_sitem.click()
+        super().send_key_action("persons")
+        super().send_key_action(Keys.ENTER)
 
-            time.sleep(1)
+        time.sleep(1)
 
-            # selecting create graph btn
-            create_btn_sitem = self.locator_finder_by_id(create_btn_id)
-            create_btn_sitem.click()
+        # selecting create graph btn
+        create_btn_sitem = self.locator_finder_by_id(create_btn_id)
+        create_btn_sitem.click()
 
-            time.sleep(2)
+        time.sleep(2)
 
-            # importing collections using arangoimport
-            print("Importing knows_edge collections \n")
-            importer.import_smart_edge_collection("knows_edge", knows_path / "knows_edge.json", ["profiles_smart"])
+        # importing collections using arangoimport
+        print("Importing knows_edge collections \n")
+        importer.import_smart_edge_collection("knows_edge", knows_path / "manual_edge.json", ["profiles_smart"])
 
-            print("Importing persons collections \n")
-            importer.import_collection("persons", knows_path / "persons.json")
+        print("Importing persons collections \n")
+        importer.import_collection("persons", knows_path / "manual_vertices.json")
 
-            # Selecting satellite graph settings to view and delete
-            satellite_settings_id = '//*[@id="satellite_graph_tile"]/div/h5'
-            satellite_settings_sitem = self.locator_finder_by_xpath(satellite_settings_id)
-            satellite_settings_sitem.click()
+        # Selecting satellite graph settings to view and delete
+        satellite_settings_id = '//*[@id="satellite_graph_tile"]/div/h5'
+        satellite_settings_sitem = self.locator_finder_by_xpath(satellite_settings_id)
+        satellite_settings_sitem.click()
 
-            time.sleep(5)
-            self.webdriver.back()
-            time.sleep(1)
+        time.sleep(5)
+        self.webdriver.back()
+        time.sleep(1)
 
-            print("\n")
-            print("Smart Graph deleting started \n")
-            satellite_settings_id = "satellite_graph_settings"
-            satellite_settings_sitem = self.locator_finder_by_id(satellite_settings_id)
-            satellite_settings_sitem.click()
-
-            delete_btn_id = "modalButton0"
-            delete_sitem = self.locator_finder_by_id(delete_btn_id)
-            delete_sitem.click()
-
-            delete_check_id = "dropGraphCollections"
-            delete_check_sitem = self.locator_finder_by_id(delete_check_id)
-            delete_check_sitem.click()
-
-            delete_confirm_btn_id = "modal-confirm-delete"
-            delete_confirm_btn_sitem = self.locator_finder_by_id(delete_confirm_btn_id)
-            delete_confirm_btn_sitem.click()
-
-            time.sleep(2)
-            print("Satellite Graph deleted successfully \n")
-            self.webdriver.refresh()
-        else:
-            print("Satellite Graph is not supported for the current package \n")
+#    def delete_sattelite_graph(self):
+#        print("\n")
+#        print("Smart Graph deleting started \n")
+#        satellite_settings_id = "satellite_graph_settings"
+#        satellite_settings_sitem = self.locator_finder_by_id(satellite_settings_id)
+#        satellite_settings_sitem.click()
+#
+#        delete_btn_id = "modalButton0"
+#        delete_sitem = self.locator_finder_by_id(delete_btn_id)
+#        delete_sitem.click()
+#
+#        delete_check_id = "dropGraphCollections"
+#        delete_check_sitem = self.locator_finder_by_id(delete_check_id)
+#        delete_check_sitem.click()
+#
+#        delete_confirm_btn_id = "modal-confirm-delete"
+#        delete_confirm_btn_sitem = self.locator_finder_by_id(delete_confirm_btn_id)
+#        delete_confirm_btn_sitem.click()
+#
+#        time.sleep(2)
+#        print("Satellite Graph deleted successfully \n")
+#        self.webdriver.refresh()
 
     def create_smart_graph(self, importer, test_data_dir, disjointgraph=False):
         """Adding smart disjoint graph"""
         page_path = test_data_dir / "ui_data" / "graph_page" / "pregel_community"
 
-        if super().current_package_version() >= 3.6 and disjointgraph is False:
-            select_graph_id = self.select_create_graph_id
-            select_graph_sitem = self.locator_finder_by_id(select_graph_id)
-            select_graph_sitem.click()
+        create_graph_sitem = self.locator_finder_by_id(self.select_create_graph_id)
+        create_graph_sitem.click()
 
-            # list of id's for smart graph
-            select_smart = "tab-smartGraph"
-            new_graph = self.select_new_graph_name_id
-            shard = "new-numberOfShards"
-            replication = "new-replicationFactor"
-            write_concern = "new-writeConcern"
-            disjoint = "new-isDisjoint"
-            smart_attribute = "new-smartGraphAttribute"
+        # list of id's for smart graph
+        select_smart = "tab-smartGraph"
+        new_graph = self.select_new_graph_name_id
+        shard = "new-numberOfShards"
+        replication = "new-replicationFactor"
+        write_concern = "new-writeConcern"
+        disjoint = "new-isDisjoint"
+        smart_attribute = "new-smartGraphAttribute"
 
-            edge_definition = "s2id_newEdgeDefinitions0"
-            from_collection = "s2id_fromCollections0"
-            to_collection = "s2id_toCollections0"
-            create_btn_id = "modalButton1"
+        edge_definition = "s2id_newEdgeDefinitions0"
+        from_collection = "s2id_fromCollections0"
+        to_collection = "s2id_toCollections0"
+        create_btn_id = "modalButton1"
 
-            # selecting smart graph tab
-            select_smart_sitem = self.locator_finder_by_id(select_smart)
-            select_smart_sitem.click()
+        # selecting smart graph tab
+        select_smart_sitem = self.locator_finder_by_id(select_smart)
+        select_smart_sitem.click()
 
-            new_graph_sitem = self.locator_finder_by_id(new_graph)
-            new_graph_sitem.click()
-            new_graph_sitem.clear()
-            new_graph_sitem.send_keys("smart_graph")
+        new_graph_sitem = self.locator_finder_by_id(new_graph)
+        new_graph_sitem.click()
+        new_graph_sitem.clear()
+        new_graph_sitem.send_keys("smart_graph")
 
-            # specifying number of shards
-            shard_sitem = self.locator_finder_by_id(shard)
-            shard_sitem.click()
-            shard_sitem.send_keys("3")
+        # specifying number of shards
+        shard_sitem = self.locator_finder_by_id(shard)
+        shard_sitem.click()
+        shard_sitem.send_keys("3")
 
-            # specifying replication of shards
-            replication_sitem = self.locator_finder_by_id(replication)
-            replication_sitem.click()
-            replication_sitem.send_keys("3")
+        # specifying replication of shards
+        replication_sitem = self.locator_finder_by_id(replication)
+        replication_sitem.click()
+        replication_sitem.send_keys("3")
 
-            # specifying write concern of shards
-            write_concern_sitem = self.locator_finder_by_id(write_concern)
-            write_concern_sitem.click()
-            write_concern_sitem.send_keys("1")
+        # specifying write concern of shards
+        write_concern_sitem = self.locator_finder_by_id(write_concern)
+        write_concern_sitem.click()
+        write_concern_sitem.send_keys("1")
 
-            # specifying write disjoint graphs
-            if disjointgraph:
-                disjoint_sitem = self.locator_finder_by_id(disjoint)
-                disjoint_sitem.click()
-            else:
-                print("Disjoint Graph not selected. \n")
-
-            # specifying write concern of shards
-            smart_attribute_sitem = self.locator_finder_by_id(smart_attribute)
-            smart_attribute_sitem.click()
-            smart_attribute_sitem.send_keys("community")
-
-            # scrolling down
-            super().scroll(1)
-            time.sleep(2)
-
-            # selecting edge definition from auto suggestion
-            edge_definition_sitem = self.locator_finder_by_id(edge_definition)
-            edge_definition_sitem.click()
-
-            super().send_key_action("relations")
-            super().send_key_action(Keys.ENTER)
-
-            # selecting from collection from auto suggestion
-            from_collection_sitem = self.locator_finder_by_id(from_collection)
-            from_collection_sitem.click()
-            super().send_key_action("profiles")
-            super().send_key_action(Keys.ENTER)
-
-            time.sleep(1)
-
-            # selecting to collection from auto suggestion
-            to_collection_sitem = self.locator_finder_by_id(to_collection)
-            to_collection_sitem.click()
-            super().send_key_action("profiles")
-            super().send_key_action(Keys.ENTER)
-            time.sleep(1)
-
-            # selecting create graph btn
-            create_btn_sitem = self.locator_finder_by_id(create_btn_id)
-            create_btn_sitem.click()
-            time.sleep(2)
-
-            print("Importing profile collections \n")
-            importer.import_collection("profiles", page_path / "profiles.jsonl")
-
-            print("Importing relations collections \n")
-            importer.import_smart_edge_collection("relations", page_path / "relations.jsonl", ["profiles_smart"])
-
-            # opening smart graph
-            smart_graph_id = "smart_graph_tile"
-            smart_graph_sitem = self.locator_finder_by_id(smart_graph_id)
-            smart_graph_sitem.click()
-            time.sleep(2)
-
-            # loading full graph
-            load_graph_id = "loadFullGraph"
-            load_graph_sitem = self.locator_finder_by_id(load_graph_id)
-            load_graph_sitem.click()
-            time.sleep(1)
-
-            load_full_graph_id = "modalButton1"
-            load_full_graph_sitem = self.locator_finder_by_id(load_full_graph_id)
-            load_full_graph_sitem.click()
-            time.sleep(5)
-
-            self.webdriver.back()
-
-            time.sleep(2)
-
-            print("\n")
-            print("Smart Graph deleting started \n")
-            smart_settings_id = "smart_graph_settings"
-            smart_settings_sitem = self.locator_finder_by_id(smart_settings_id)
-            smart_settings_sitem.click()
-
-            delete_btn_id = "modalButton0"
-            delete_btn_sitem = self.locator_finder_by_id(delete_btn_id)
-            delete_btn_sitem.click()
-
-            delete_check_id = "dropGraphCollections"
-            delete_check_sitem = self.locator_finder_by_id(delete_check_id)
-            delete_check_sitem.click()
-
-            delete_confirm_btn_id = "modal-confirm-delete"
-            delete_confirm_btn_sitem = self.locator_finder_by_id(delete_confirm_btn_id)
-            delete_confirm_btn_sitem.click()
-
-            time.sleep(2)
-            print("Smart Graph deleted successfully \n")
-
-            self.webdriver.refresh()
+        # specifying write disjoint graphs
+        if disjointgraph:
+            disjoint_sitem = self.locator_finder_by_id(disjoint)
+            disjoint_sitem.click()
         else:
-            print("Disjoint Graph is not supported for the current package \n")
+            print("Disjoint Graph not selected. \n")
+
+        # specifying write concern of shards
+        smart_attribute_sitem = self.locator_finder_by_id(smart_attribute)
+        smart_attribute_sitem.click()
+        smart_attribute_sitem.send_keys("community")
+
+        # scrolling down
+        super().scroll(1)
+        time.sleep(2)
+
+        # selecting edge definition from auto suggestion
+        edge_definition_sitem = self.locator_finder_by_id(edge_definition)
+        edge_definition_sitem.click()
+
+        super().send_key_action("relations")
+        super().send_key_action(Keys.ENTER)
+
+        # selecting from collection from auto suggestion
+        from_collection_sitem = self.locator_finder_by_id(from_collection)
+        from_collection_sitem.click()
+        super().send_key_action("profiles")
+        super().send_key_action(Keys.ENTER)
+
+        time.sleep(1)
+
+        # selecting to collection from auto suggestion
+        to_collection_sitem = self.locator_finder_by_id(to_collection)
+        to_collection_sitem.click()
+        super().send_key_action("profiles")
+        super().send_key_action(Keys.ENTER)
+        time.sleep(1)
+
+        # selecting create graph btn
+        create_btn_sitem = self.locator_finder_by_id(create_btn_id)
+        create_btn_sitem.click()
+        time.sleep(2)
+
+        print("Importing profile collections \n")
+        importer.import_collection("profiles", page_path / "profiles.jsonl")
+
+        print("Importing relations collections \n")
+        importer.import_smart_edge_collection("relations", page_path / "relations.jsonl", ["profiles_smart"])
+
+        # opening smart graph
+        smart_graph_id = "smart_graph_tile"
+        smart_graph_sitem = self.locator_finder_by_id(smart_graph_id)
+        smart_graph_sitem.click()
+        time.sleep(2)
+
+        # loading full graph
+        load_graph_id = "loadFullGraph"
+        load_graph_sitem = self.locator_finder_by_id(load_graph_id)
+        load_graph_sitem.click()
+        time.sleep(1)
+
+        load_full_graph_id = "modalButton1"
+        load_full_graph_sitem = self.locator_finder_by_id(load_full_graph_id)
+        load_full_graph_sitem.click()
+        time.sleep(5)
+
+        self.webdriver.back()
+
+#        time.sleep(2)
+#
+#        print("\n")
+#        print("Smart Graph deleting started \n")
+#        smart_settings_id = "smart_graph_settings"
+#        smart_settings_sitem = self.locator_finder_by_id(smart_settings_id)
+#        smart_settings_sitem.click()
+#
+#        delete_btn_id = "modalButton0"
+#        delete_btn_sitem = self.locator_finder_by_id(delete_btn_id)
+#        delete_btn_sitem.click()
+#
+#        delete_check_id = "dropGraphCollections"
+#        delete_check_sitem = self.locator_finder_by_id(delete_check_id)
+#        delete_check_sitem.click()
+#
+#        delete_confirm_btn_id = "modal-confirm-delete"
+#        delete_confirm_btn_sitem = self.locator_finder_by_id(delete_confirm_btn_id)
+#        delete_confirm_btn_sitem.click()
+#
+#        time.sleep(2)
+#        print("Smart Graph deleted successfully \n")
+#
+#        self.webdriver.refresh()
 
     def create_disjoint_smart_graph(self, importer, test_data_dir):
         """wrap it with disjoint true"""
@@ -526,7 +551,7 @@ class GraphPage(NavigationBarPage):
             search_sitem.clear()
             search_sitem.send_keys(collection.name)
             if collection_sitem.text == collection.name:
-                print(collection.name + " collectionhas been validated")
+                print(collection.name + " collection has been validated")
             else:
                 print(collection.name + " collection wasn't found")
             time.sleep(3)
@@ -760,28 +785,42 @@ class GraphPage(NavigationBarPage):
     def delete_graph(self, graph: GraphExample):
         """Deleting created graphs"""
         print("Deleting %s Graph" % GRAPH_SETS[graph].clear_name)
-        self.wait_for_ajax()
-        btn_id = GRAPH_SETS[graph].btn_id
-        select_graph_setting_btn_sitem = self.locator_finder_by_id(btn_id)
-        select_graph_setting_btn_sitem.click()
-        self.wait_for_ajax()
+        retry = 0
+        while True:
+            try:
+                self.webdriver.refresh()
+                self.wait_for_ajax()
+                btn_id = GRAPH_SETS[graph].btn_id
+                select_graph_setting_btn_sitem = self.locator_finder_by_id(btn_id)
+                self.wait_for_ajax()
+                select_graph_setting_btn_sitem.click()
+                self.wait_for_ajax()
 
-        time.sleep(0.1)
-        confirm_delete_graph_sitem = self.locator_finder_by_id(self.confirm_delete_graph_id)
-        confirm_delete_graph_sitem.click()
-        self.wait_for_ajax()
+                time.sleep(0.1)
+                confirm_delete_graph_sitem = self.locator_finder_by_xpath(self.confirm_delete_graph_selector)
+                confirm_delete_graph_sitem.click()
+                self.wait_for_ajax()
 
-        time.sleep(0.1)
-        delete_with_collection_sitem = self.locator_finder_by_id(self.delete_with_collection_id)
-        delete_with_collection_sitem.click()
-        self.wait_for_ajax()
+                time.sleep(0.1)
+                delete_with_collection_sitem = self.locator_finder_by_id(self.delete_with_collection_id)
+                delete_with_collection_sitem.click()
+                self.wait_for_ajax()
 
-        time.sleep(0.1)
-        select_really_delete_btn_sitem = self.locator_finder_by_id(self.select_really_delete_btn_id)
-        select_really_delete_btn_sitem.click()
-        self.wait_for_ajax()
-
-        self.webdriver.refresh()
+                time.sleep(0.1)
+                select_really_delete_btn_sitem = self.locator_finder_by_id(self.select_really_delete_btn_id)
+                select_really_delete_btn_sitem.click()
+                self.wait_for_ajax()
+                break
+            except TimeoutException as exc:
+                retry += 1
+                if retry > 10:
+                    raise exc
+                print("retrying delete " + str(retry))
+            except ElementClickInterceptedException as exc:
+                retry += 1
+                if retry > 10:
+                    raise exc
+                print("retrying delete " + str(retry))
 
 
 GRAPH_SETS = [
@@ -803,14 +842,52 @@ GRAPH_SETS = [
             ECol("internationalHighway"),
         ],
     ),
+    GraphCreateSet("Connected Components", "connectedComponentsGraph_settings",
+                   [
+                       VCol("components"),
+                       ECol("connections")
+                   ],
+                   None,
+                   enterprise=True,
+                   min_version='3.8.0'),
+    # these are non graph-example tabs; their index doesn't align with their table column:
     GraphCreateSet(
         "Manual Knows",
         "knows_graph_manual_settings",
-        [VCol("persons"), ECol("manual_edge")],
+        [
+            VCol("manual_vertices"),
+            ECol("manual_edge")
+        ],
         GraphPage.create_manual_graph,
     ),
-    GraphCreateSet("Satelite Graph", "satellite_graph_settings", [], GraphPage.create_satellite_graph),
-    GraphCreateSet("Smartgraph", "satellite_graph_settings", [], GraphPage.create_smart_graph),
-    GraphCreateSet("disjoint Smartgraph", "satellite_graph_settings", [], GraphPage.create_disjoint_smart_graph),
-    GraphCreateSet("Connected Components", "connectedComponentsGraph_settings", [], None),  # TODO?
+    GraphCreateSet("Satellite Graph",
+                   "satellite_graph_settings",
+                   [
+                       VCol("persons"),
+                       ECol("knows_edge")
+                   ],
+                   GraphPage.create_satellite_graph,
+                   enterprise=True,
+                   non_cl_min_ver='3.10.0',
+                   min_version='3.8.0'),
+    GraphCreateSet("Smartgraph",
+                   "smart_graph_settings",
+                   [
+                       VCol("profiles"),
+                       ECol("relations")
+                   ],
+                   GraphPage.create_smart_graph,
+                   enterprise=True,
+                   non_cl_min_ver='3.10.0',
+                   min_version='3.6.0'),
+    GraphCreateSet("disjoint Smartgraph",
+                   "smart_graph_settings",
+                   [
+                       VCol("profiles"),
+                       ECol("relations")
+                   ],
+                   GraphPage.create_disjoint_smart_graph,
+                   enterprise=True,
+                   non_cl_min_ver='3.10.0',
+                   min_version='3.6.0'),
 ]

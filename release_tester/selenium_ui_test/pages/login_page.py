@@ -9,6 +9,7 @@ from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 
 from selenium_ui_test.pages.base_page import BasePage
+
 # can't circumvent long lines..
 # pylint: disable=C0301
 
@@ -25,6 +26,7 @@ class LoginPage(BasePage):
         self.database_select = """//select[@id="loginDatabase"]"""
         # self.select_db_opt_id = "loginDatabase"
         self.select_db_btn_id = "goToDatabase"
+        self.logout_button_id = "userLogoutIcon"
 
     def _login_wait_for_screen(self):
         """wait for the browser to show the login screen"""
@@ -104,3 +106,10 @@ class LoginPage(BasePage):
 
         assert "No results found." not in self.webdriver.page_source, "no results found?"
         return False
+
+    def log_out(self):
+        """click log out icon on the user bar and wait for"""
+        logout_button_sitem = self.locator_finder_by_id(self.logout_button_id)
+        logout_button_sitem.click()
+        print("Logout from the current user\n")
+        self.wait_for_ajax()

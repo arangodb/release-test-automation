@@ -100,7 +100,7 @@ if winver[0]:
                 signal.signal(signal.SIGINT, original_sigint_handler)
 
     Process.terminate = ProcessMonkey.terminate
-    # pylint: disable=W0231
+    # pylint: disable=W0231 disable=consider-using-with
     class Popen(Process):
         """overload this function"""
 

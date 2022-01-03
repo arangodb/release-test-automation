@@ -142,11 +142,12 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         logging.info("SyncManager: checking sync consistency : %s", str(args))
         try:
             result = self.run_monitored(
-                self.cfg.bin_dir / "arangosync",
-                args,
-                300,
-                dummy_line_result,
-                self.cfg.verbose,
+                executeable=self.cfg.bin_dir / "arangosync",
+                args=args,
+                timeout=300,
+                result_line=dummy_line_result,
+                verbose=self.cfg.verbose,
+                expect_to_fail=False,
             )
         except CliExecutionException as exc:
             result = exc.execution_result

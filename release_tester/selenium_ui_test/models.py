@@ -2,19 +2,21 @@
 """abstract base models"""
 from enum import Enum
 
+# pylint: disable=too-few-public-methods
 
 class IndexType(Enum):
     """which type of index"""
+
     PERSISTENT = "Persistent"
     GEO = "Geo"
     FULLTEXT = "Fulltext"
     TTL = "Ttl"
 
 
-class RtaUiTestResult:
-    """ abstract a ui result """
-    def __init__(self, name, success, message, tb):
+class RtaTestResult:
+    """abstract a ui result"""
+    def __init__(self, name, success, message, traceback):
         self.name = name
         self.success = success
         self.message = message
-        self.tb = tb
+        self.traceback = traceback

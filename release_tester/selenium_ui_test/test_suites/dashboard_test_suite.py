@@ -1,8 +1,12 @@
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
+#!/usr/bin/env python3
+""" dashboard testsuite """
+from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
+from selenium_ui_test.test_suites.base_test_suite import testcase
 from selenium_ui_test.pages.dashboard_page import DashboardPage
 
 
-class DashboardTestSuite(BaseTestSuite):
+class DashboardTestSuite(BaseSeleniumTestSuite):
+    """testing dashboard page"""
     @testcase
     def test_dashboard(self):
         """testing dashboard page"""
@@ -11,6 +15,8 @@ class DashboardTestSuite(BaseTestSuite):
         # login.login('root', self.root_passvoid)
         # creating object for dashboard
         dash = DashboardPage(self.webdriver, self.is_enterprise)
+        assert dash.current_user() == "ROOT", "current user is root?"
+        assert dash.current_database() == "_SYSTEM", "current database is _system?"
         dash.navbar_goto("cluster" if self.is_cluster else "dashboard")
         dash.check_server_package_name()
         dash.current_package_version()

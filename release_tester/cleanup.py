@@ -4,68 +4,33 @@
 from pathlib import Path
 import click
 import tools.loghelper as lh
+from arangodb.installers import RunProperties
 from common_options import zip_common_options
-from tools.killall import kill_all_processes
-from arangodb.installers import create_config_installer_set
-
-from arangodb.starter.deployments import RunnerType, make_runner
-
-# pylint: disable=W0703
-def run_cleanup(zip_package, testrun_name: str = ""):
-    """main"""
-
-    installer_set = create_config_installer_set(
-        ["3.3.3"],
-        True,
-        False,
-        False,
-        zip_package,
-        Path("/tmp/"),
-        Path("/"),
-        "127.0.0.1",
-        "",
-        False,
-        False,
-    )
-    inst = installer_set[0][1]
-    if inst.calc_config_file_name().is_file():
-        inst.load_config()
-        inst.cfg.interactive = False
-        inst.stop_service()
-        installer_set[0][0].set_directories(inst.cfg)
-    kill_all_processes()
-    kill_all_processes()
-    starter_mode = [
-        RunnerType.LEADER_FOLLOWER,
-        RunnerType.ACTIVE_FAILOVER,
-        RunnerType.CLUSTER,
-        RunnerType.DC2DC,
-    ]
-    for runner_type in starter_mode:
-        assert runner_type
-        runner = make_runner(runner_type, False, "none", [], installer_set, testrun_name)
-        runner.cleanup()
-    if inst.calc_config_file_name().is_file():
-        try:
-            inst.un_install_debug_package()
-        except Exception:
-            print("nothing to uninstall")
-        try:
-            inst.un_install_client_package()
-        except Exception:
-            print("nothing to uninstall")
-        inst.un_install_server_package()
-    else:
-        print("Cannot uninstall package without config.yml!")
-    inst.cleanup_system()
-
+from test_driver import TestDriver
 
 @click.command()
 @zip_common_options
 def run_test(zip_package):
     """Wrapper..."""
     lh.configure_logging(True)
-    return run_cleanup(zip_package)
+    test_driver = TestDriver(
+        False,
+        Path(""),
+        Path(""),
+        Path(""),
+        True,
+        zip_package,
+        False, # hot_backup,
+        False, # interactive,
+        "all", # starter_mode,
+        False, # stress_upgrade,
+        False, # abort_on_error,
+        "127.0.0.1",
+        "none",
+        [],
+        False)
+    test_driver.set_r_limits()
+    test_driver.run_cleanup(RunProperties(False, False, False))
 
 
 if __name__ == "__main__":
