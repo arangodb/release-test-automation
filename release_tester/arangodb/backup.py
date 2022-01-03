@@ -34,7 +34,7 @@ class HotBackupConfig:
         self.cfg = basecfg
         self.install_prefix = raw_install_prefix
         self.cfg_type = HB_2_RCLONE_TYPE[basecfg.hb_mode]
-        self.name = str(name).replace("/", "_")
+        self.name = str(name).replace("/", "_").replace(".", "_")
         self.provider = HB_2_RCLONE_PROVIDER[basecfg.hb_mode]
         self.acl = "private"
 
