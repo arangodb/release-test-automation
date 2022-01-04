@@ -477,8 +477,8 @@ while (count < options.numberOfDBs) {
       let count = 0;
       while (count < options.dataMultiplier) {
         edges.forEach(edg => {
-          edg._from = V.name() + '/' + edg._from.split('/')[1];
-          edg._to = V.name() + '/' + edg._to.split('/')[1];
+          edg._from = V.name() + '/' + edg._from.split('/')[1] + "" + count;
+          edg._to = V.name() + '/' + edg._to.split('/')[1] + "" + count;
         });
 
         let cVertices = _.clone(vertices);
