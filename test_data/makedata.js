@@ -4,14 +4,16 @@
 //   arangosh USUAL_OPTIONS_INCLUDING_AUTHENTICATION --javascript.execute makedata.js [DATABASENAME]
 // where DATABASENAME is optional and defaults to "_system". The database
 // in question is created (if it is not "_system").
-// `--minReplicationFactor [1] don't create collections with smaller replication factor than this.
-// `--maxReplicationFactor [2] don't create collections with a bigger replication factor than this.
-// `--dataMultiplier [1]       0 - no data; else n-times the data
-// `--numberOfDBs [1]          count of databases to create and fill
-// `--countOffset [0]          number offset at which to start the database count
-// `--collectionMultiplier [1] how many times to create the collections / index / view / graph set?
-// `--singleShard [false]      whether this should only be a single shard instance
-// `--progress [false]         whether to output a keepalive indicator to signal the invoker that work is ongoing
+// `--minReplicationFactor [1]  don't create collections with smaller replication factor than this.
+// `--maxReplicationFactor [2]  don't create collections with a bigger replication factor than this.
+// `--dataMultiplier [1]        0 - no data; else n-times the data
+// `--numberOfDBs [1]           count of databases to create and fill
+// `--countOffset [0]           number offset at which to start the database count
+// `--bigDoc false              attach a big string to the edge documents
+// `--collectionMultiplier [1]  how many times to create the collections / index / view / graph set?
+// `--collectionCountOffset [0] number offset at which to start the database count
+// `--singleShard [false]       whether this should only be a single shard instance
+// `--progress [false]          whether to output a keepalive indicator to signal the invoker that work is ongoing
 'use strict';
 const utils = require('@arangodb/foxx/manager-utils');
 const fs = require('fs');
@@ -55,10 +57,12 @@ const optionsDefaults = {
   countOffset: 0,
   dataMultiplier: 1,
   collectionMultiplier: 1,
+  collectionCountOffset: 0,
   singleShard: false,
   progress: false,
   oldVersion: "3.5.0",
-  passvoid: ''
+  passvoid: '',
+  bigDoc: false
 };
 
 let args = ARGUMENTS;
@@ -279,11 +283,22 @@ const crudTestServiceSource = {
   buffer: fs.readFileSync(serviceServicePath)
 };
 
-print("installing Itzpapalotl");
-installFoxx('/itz', itzpapalotlZip);
+if (options.numberOfDBs === 1 && options.collectionMultiplier === 1) {
+  // foxxes only install once...
+  print("installing Itzpapalotl");
+  installFoxx('/itz', itzpapalotlZip);
 
-print("installing crud");
-installFoxx('/crud', minimalWorkingZip);
+  print("installing crud");
+  installFoxx('/crud', minimalWorkingZip);
+}
+
+let big_doc = '';
+if (options.bigDoc) {
+  for (let i=0; i < 100000; i++) {
+    big_doc += "abcde" + i;
+  }
+}
+
 
 let count = 0;
 while (count < options.numberOfDBs) {
@@ -315,7 +330,7 @@ while (count < options.numberOfDBs) {
   }
   progress('createDB');
 
-  let ccount = 0;
+  let ccount = options.collectionCountOffset;
   while (ccount < options.collectionMultiplier) {
     // Create a few collections:
     let c = createCollectionSafe(`c_${ccount}`, 3, 2);
@@ -479,6 +494,9 @@ while (count < options.numberOfDBs) {
         edges.forEach(edg => {
           edg._from = V.name() + '/' + edg._from.split('/')[1] + "" + count;
           edg._to = V.name() + '/' + edg._to.split('/')[1] + "" + count;
+          if (options.bigDoc) {
+            edg.big_doc = big_doc;
+          }
         });
 
         let cVertices = _.clone(vertices);
