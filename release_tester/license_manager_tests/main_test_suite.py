@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """ license manager test suites entrypoint """
+import platform
+
 from license_manager_tests.afo import LicenseManagerAfoTestSuite
 from license_manager_tests.cluster import LicenseManagerClusterTestSuite
 from license_manager_tests.dc2dc import LicenseManagerDc2DcTestSuite
@@ -8,6 +10,7 @@ from license_manager_tests.license_manager_base_test_suite import LicenseManager
 from license_manager_tests.single_server import LicenseManagerSingleServerTestSuite
 from reporting.reporting_utils import step
 
+IS_WINDOWS = platform.win32_ver()[0] != ""
 
 class MainLicenseManagerTestSuite(LicenseManagerBaseTestSuite):
     """testsuites entrypoint"""
@@ -17,16 +20,18 @@ class MainLicenseManagerTestSuite(LicenseManagerBaseTestSuite):
         new_version,
         installer_base_config,
     ):
+        child_classes = [
+                            LicenseManagerSingleServerTestSuite,
+                            LicenseManagerLeaderFollowerTestSuite,
+                            LicenseManagerAfoTestSuite,
+                            LicenseManagerClusterTestSuite,
+                        ]
+        if not IS_WINDOWS:
+            child_classes.append(LicenseManagerDc2DcTestSuite)
         super().__init__(
             new_version,
             installer_base_config,
-            child_classes=[
-                LicenseManagerSingleServerTestSuite,
-                LicenseManagerLeaderFollowerTestSuite,
-                LicenseManagerAfoTestSuite,
-                LicenseManagerClusterTestSuite,
-                LicenseManagerDc2DcTestSuite,
-            ],
+            child_classes=child_classes,
         )
 
     @step

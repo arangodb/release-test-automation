@@ -1,7 +1,5 @@
 import json
-
 import requests
-
 from arangodb.async_client import CliExecutionException
 from arangodb.installers import RunProperties
 from arangodb.instance import InstanceType
@@ -9,7 +7,9 @@ from arangodb.starter.deployments import make_runner, RunnerType
 from license_manager_tests.license_manager_base_test_suite import LicenseManagerBaseTestSuite
 from reporting.reporting_utils import step
 from selenium_ui_test.test_suites.base_test_suite import testcase
+import platform
 
+IS_WINDOWS = platform.win32_ver()[0] != ""
 
 class LicenseManagerDc2DcTestSuite(LicenseManagerBaseTestSuite):
     """License manager tests: DC2DC"""

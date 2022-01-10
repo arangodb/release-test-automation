@@ -1,4 +1,5 @@
 import json
+import shutil
 from pathlib import Path
 
 import requests
@@ -12,6 +13,11 @@ from selenium_ui_test.test_suites.base_test_suite import testcase
 
 class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
     """License manager tests: single server"""
+
+    @step
+    def setup_test_suite(self):
+        """clean up the system before running tests"""
+        self.cleanup()
 
     @step
     def tear_down_test_suite(self):
@@ -31,6 +37,12 @@ class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
             license_file.write(license)
         self.starter.terminate_instance()
         self.starter.respawn_instance()
+
+    def cleanup(self):
+        """remove all directories created by previous run of this test"""
+        testdir = self.basecfg.base_test_dir / self.basedir / "SingleServer"
+        if testdir.exists():
+            shutil.rmtree(testdir)
 
     @step
     def start_single_server(self):

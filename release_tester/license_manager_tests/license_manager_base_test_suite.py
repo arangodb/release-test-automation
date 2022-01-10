@@ -28,7 +28,8 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
         self.new_version = new_version
         self.base_cfg = installer_base_config
         super().__init__(child_classes=child_classes)
-        self.parent_test_suite_name = "Licence manager test suite"
+        package_type = ".tar.gz" if installer_base_config.zip_package else ".deb/.rpm/NSIS"
+        self.parent_test_suite_name = f"Licence manager test suite ({package_type})"
         self.auto_generate_parent_test_suite_name = False
         if self.__doc__:
             self.suite_name = self.__doc__
@@ -162,7 +163,7 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
             raise Exception("The system is not in read-only mode.")
         assert (
             "ArangoError 11: cannot create collection" in result[1]
-        ), "Expected error message not found on arangosh output."
+        ), "Expected error message not found in arangosh output."
 
     @step
     def check_not_readonly(self):
