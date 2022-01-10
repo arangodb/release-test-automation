@@ -184,7 +184,10 @@ class InstallerMac(InstallerBase):
 
         semdict = dict(self.cfg.semver.to_dict())
         if semdict["prerelease"]:
-            semdict["prerelease"] = "-{prerelease}".format(**semdict)
+            if semdict["prerelease"].startswith("nightly"):
+                semdict["prerelease"] = ".{prerelease}".format(**semdict)
+            else:
+                semdict["prerelease"] = "-{prerelease}".format(**semdict)
         else:
             semdict["prerelease"] = ""
         version = "{major}.{minor}.{patch}{prerelease}".format(**semdict)
@@ -234,7 +237,7 @@ class InstallerMac(InstallerBase):
         self.instance = old_installer.instance
         self.stop_service()
         self.install_server_package_backend()
-        os.environ["UPGRADE_DB"] = None
+        os.unsetenv("UPGRADE_DB")
 
     @step
     def install_server_package_impl(self):

@@ -446,7 +446,7 @@ while (count < options.numberOfDBs) {
     let citations_naive = db._collection(`citations_naive_${ccount}`)
     if (citations_naive.count() !== 1000) { throw "Papaya"; }
     progress();
-    if (db._query(`FOR v, e, p IN 1..10 OUTBOUND "${patents_naive.name()}/US:3858245" 
+    if (db._query(`FOR v, e, p IN 1..10 OUTBOUND "${patents_naive.name()}/US:3858245${ccount}"
                  GRAPH "G_naive_${ccount}"
                  RETURN v`).toArray().length !== 6) { throw "Physalis"; }
     progress();
@@ -460,7 +460,7 @@ while (count < options.numberOfDBs) {
       if (citations_smart.count() !== 1000) { throw "Liji"; }
       progress();
       const gName = `G_smart_${ccount}`;
-      if (db._query(`FOR v, e, p IN 1..10 OUTBOUND "${patents_smart.name()}/US:3858245" 
+      if (db._query(`FOR v, e, p IN 1..10 OUTBOUND "${patents_smart.name()}/US:3858245${ccount}"
                    GRAPH "${gName}"
                    RETURN v`).toArray().length !== 6) { throw "Black Currant"; }
       progress();
