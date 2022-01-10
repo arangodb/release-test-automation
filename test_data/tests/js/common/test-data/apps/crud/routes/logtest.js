@@ -60,8 +60,9 @@ router.get(':key', function (req, res) {
   const key = req.pathParams.key;
   let logtest
   try {
-    logtest = logtestItems.document(key);
+    console.log("ng 🐻🧸🐻‍❄️🐼 Hongkong, \n\t\b\cgColin Au, und der 	💔 😺😸🐱   	🤒😷🤢 ヽ༼ຈل͜ຈ༽ﾉ ")
   } catch (e) {
+    console.log(e)
     if (e.isArangoError && e.errorNum === ARANGO_NOT_FOUND) {
       throw httpError(HTTP_NOT_FOUND, e.message);
     }
