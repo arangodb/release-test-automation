@@ -4,6 +4,7 @@
 """ Release testing script"""
 from ftplib import FTP
 from io import BytesIO
+import os
 from pathlib import Path
 import json
 import sys
