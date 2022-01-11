@@ -81,6 +81,8 @@ class DownloadOptions:
                  remote_host: str):
         self.force_dl = force_dl
         self.verbose = verbose
+        if not package_dir.is_absolute():
+            package_dir =  package_dir.resolve()
         self.package_dir = package_dir
         self.enterprise_magic = enterprise_magic
         self.httpuser = httpuser
