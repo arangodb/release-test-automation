@@ -234,7 +234,7 @@ class Download:
             **{
                 "remote_host": self.remote_host,
                 "passvoid": self.options.httppassvoid,
-                "user": self.options.user,
+                "user": self.options.httpuser,
                 "dir": directory,
                 "pkg": package,
             }
