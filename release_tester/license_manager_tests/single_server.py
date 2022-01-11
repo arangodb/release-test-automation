@@ -14,6 +14,14 @@ from selenium_ui_test.test_suites.base_test_suite import testcase
 class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
     """License manager tests: single server"""
 
+    def __init__(self, new_version, installer_base_config, child_classes=[]):
+        super().__init__(
+            new_version,
+            installer_base_config,
+            child_classes,
+        )
+        self.short_name = "SingleServer"
+
     @step
     def setup_test_suite(self):
         """clean up the system before running tests"""
@@ -40,7 +48,7 @@ class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
 
     def cleanup(self):
         """remove all directories created by previous run of this test"""
-        testdir = self.basecfg.base_test_dir / self.basedir / "SingleServer"
+        testdir = self.base_cfg.test_data_dir / self.short_name
         if testdir.exists():
             shutil.rmtree(testdir)
 
@@ -48,7 +56,7 @@ class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
     def start_single_server(self):
         self.starter = StarterManager(
             basecfg=self.installer.cfg,
-            install_prefix=Path("SingleServer"),
+            install_prefix=Path(self.short_name),
             instance_prefix="single",
             expect_instances=[InstanceType.SINGLE],
             mode="single",
