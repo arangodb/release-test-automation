@@ -76,7 +76,7 @@ def upgrade_package_test(
             fresh_versions,
             git_version,
         )
-        dl_new.get_packages(dl_opts.is_different())
+        dl_new.get_packages(dl_opts.force)
 
         this_test_dir = test_dir / props.directory_suffix
         test_driver.reset_test_data_dir(this_test_dir)
