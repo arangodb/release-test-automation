@@ -139,6 +139,8 @@ class InstallerDeb(InstallerLinux):
             ascii_print(server_upgrade.before)
         except pexpect.exceptions.EOF:
             logging.info("TIMEOUT!")
+        self.set_system_instance()
+        self.instance.detect_pid(1)  # should be owned by init
 
     @step
     def install_server_package_impl(self):
@@ -228,6 +230,7 @@ class InstallerDeb(InstallerLinux):
         except pexpect.exceptions.EOF as ex:
             ascii_print(uninstall.before)
             raise ex
+        self.instance.search_for_warnings()
 
     @step
     def install_debug_package_impl(self):
