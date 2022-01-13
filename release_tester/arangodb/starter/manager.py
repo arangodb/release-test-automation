@@ -69,6 +69,8 @@ class StarterManager:
         # self.moreopts += ["--all.log.level=arangosearch=trace"]
         # self.moreopts += ["--all.log.level=startup=trace"]
         # self.moreopts += ["--all.log.level=engines=trace"]
+        # self.moreopts += ["--all.log.escape-control-chars=true"]
+        # self.moreopts += ["--all.log.escape-unicode-chars=true"]
 
         # directories
         self.raw_basedir = install_prefix

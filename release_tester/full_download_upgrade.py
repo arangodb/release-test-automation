@@ -195,7 +195,7 @@ def main(
     """ main """
     dl_opts = DownloadOptions(force,
                               verbose,
-                              package_dir,
+                              Path(package_dir),
                               enterprise_magic,
                               httpuser,
                               httppassvoid,

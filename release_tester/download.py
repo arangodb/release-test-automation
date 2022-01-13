@@ -4,6 +4,7 @@
 """ Release testing script"""
 from ftplib import FTP
 from io import BytesIO
+import os
 from pathlib import Path
 import json
 import sys
@@ -79,8 +80,13 @@ class DownloadOptions:
                  httpuser: str,
                  httppassvoid: str,
                  remote_host: str):
+        self.launch_dir = Path.cwd()
+        if "WORKSPACE" in os.environ:
+            self.launch_dir = Path(os.environ["WORKSPACE"])
         self.force_dl = force_dl
         self.verbose = verbose
+        if not package_dir.is_absolute():
+            package_dir =  (self.launch_dir / package_dir).resolve()
         self.package_dir = package_dir
         self.enterprise_magic = enterprise_magic
         self.httpuser = httpuser
