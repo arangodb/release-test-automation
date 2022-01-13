@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
 if test -z "$GIT_VERSION"; then
