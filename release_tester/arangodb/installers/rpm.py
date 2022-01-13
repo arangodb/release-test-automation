@@ -151,6 +151,8 @@ class InstallerRPM(InstallerLinux):
             raise ex
 
         logging.debug("upgrade successfully finished")
+        self.set_system_instance()
+        self.instance.detect_pid(1)  # should be owned by init
 
     @step
     def install_server_package_impl(self):
