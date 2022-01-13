@@ -41,8 +41,8 @@ trap 'docker kill "${DOCKER_DEB_NAME}";
       docker rm "${DOCKER_DEB_NAME}"
      ' EXIT
 
-DOCKER_NAMESPACE="arangodb"
-if docker pull "${DOCKER_NAMESPACE}/${DOCKER_DEB_TAG}"; then
+DOCKER_NAMESPACE="arangodb/"
+if docker pull "${DOCKER_NAMESPACE}${DOCKER_DEB_TAG}"; then
     echo "using ready built container"
 else
     docker build containers/docker_deb -t "${DOCKER_DEB_TAG}" || exit
@@ -67,7 +67,7 @@ docker run \
        --privileged \
        -itd \
        \
-       "${DOCKER_NAMESPACE}/${DOCKER_DEB_TAG}" \
+       "${DOCKER_NAMESPACE}${DOCKER_DEB_TAG}" \
        \
        /lib/systemd/systemd --system --unit=multiuser.target 
 
