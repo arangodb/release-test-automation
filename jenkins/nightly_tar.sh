@@ -46,10 +46,12 @@ trap 'docker kill "${DOCKER_TAR_NAME}";
       docker network rm minio-bridge;
      ' EXIT
 
-if docker pull "arangodb/${DOCKER_TAR_TAG}"; then
+DOCKER_NAMESPACE="arangodb/"
+if docker pull "${DOCKER_NAMESPACE}OCKER_TAR_TAG}"; then
     echo "using ready built container"
 else
     docker build containers/docker_tar -t "${DOCKER_TAR_TAG}" || exit
+    DOCKER_NAMESPACE=""
 fi
 
 docker network create -d bridge minio-bridge
@@ -86,7 +88,7 @@ docker run \
        --ulimit core=-1 \
        --init \
        \
-       "arangodb/${DOCKER_TAR_TAG}" \
+       "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}" \
        \
           /home/release-test-automation/release_tester/full_download_upgrade.py \
           --old-version "${OLD_VERSION}" \
