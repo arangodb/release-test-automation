@@ -41,10 +41,12 @@ trap 'docker kill "${DOCKER_RPM_NAME}";
       docker rm "${DOCKER_RPM_NAME}";
      ' EXIT
 
-if docker pull "arangodb/${DOCKER_RPM_TAG}"; then
+DOCKER_NAMESPACE="arangodb/"
+if docker pull "${DOCKER_NAMESPACE}${DOCKER_RPM_TAG}"; then
     echo "using ready built container"
 else
     docker build containers/docker_rpm -t "${DOCKER_RPM_TAG}" || exit
+    DOCKER_NAMESPACE=""
 fi
 
 docker run \
@@ -65,7 +67,7 @@ docker run \
        --privileged \
        -itd \
        \
-       "arangodb/${DOCKER_RPM_TAG}" \
+       "${DOCKER_NAMESPACE}${DOCKER_RPM_TAG}" \
        \
        /lib/systemd/systemd --system --unit=multiuser.target 
 

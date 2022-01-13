@@ -67,7 +67,9 @@ RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in ; do [ $i == systemd
   rm -rf /lib/systemd/system/sockets.target.wants/udev;\
   rm -rf /lib/systemd/system/sockets.target.wants/initctl;\
   rm -rf /lib/systemd/system/basic.target.wants/;\
-  rm -rf /lib/systemd/system/anaconda.target.wants/*;
+  rm -rf /lib/systemd/system/anaconda.target.wants/*;\
+  rm -f /usr/sbin/policy-rc.d
+
 VOLUME [ "/sys/fs/cgroup" ]
 RUN ln -s /lib/systemd/systemd /usr/sbin/init
 CMD /usr/sbin/init
