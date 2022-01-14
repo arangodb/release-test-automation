@@ -33,7 +33,7 @@ let PWDRE = /.*at (.*)makedata.js.*/;
 let stack = new Error().stack;
 let PWD = fs.makeAbsolute(PWDRE.exec(stack)[1]);
 
-let isCluster = true; // TODO
+let isCluster = arango.GET("/_admin/role") === "COORDINATOR";
 let database = "_system";
 let databaseName;
 

@@ -11,7 +11,7 @@ const semver = require('semver');
 const time = internal.time;
 let db = internal.db;
 let print = internal.print;
-const isCluster = require("internal").isCluster();
+let isCluster = arango.GET("/_admin/role") === "COORDINATOR";
 const dbVersion = db._version();
 
 let PWDRE = /.*at (.*)checkdata.js.*/;
