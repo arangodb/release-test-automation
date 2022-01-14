@@ -1,4 +1,4 @@
-/* global arangodb, print,  db, zeroPad, createSafe, ERRORS */
+/* global arangodb, print,  db, zeroPad, createSafe, ERRORS, databaseName */
 
 (function () {
   return {
@@ -12,7 +12,7 @@
       if (database !== "_system") {
         print('#ix');
         let c = zeroPad(localCount + dbCount + options.countOffset);
-        let databaseName = `${database}_${c}`;
+        databaseName = `${database}_${c}`; // TODO: global variable :/
         if (db._databases().includes(databaseName)) {
           // its already there - skip this one.
           print(`skipping ${databaseName} - its already there.`);
@@ -31,6 +31,7 @@
       } else if (options.numberOfDBs > 1) {
         throw new Error("must specify a database prefix if want to work with multiple DBs.");
       }
+      databaseName = "_system";
       return localCount;
     },
     makeData: function (options, isCluster, isEnterprise, dbCount, loopCount) {
@@ -41,11 +42,12 @@
       // check per DB
       if (database !== "_system") {
         let c = zeroPad(dbCount + options.countOffset);
-        let databaseName = `${database}_${c}`;
+        databaseName = `${database}_${c}`; // TODO: global variable :/
         db._useDatabase(databaseName);
       } else if (options.numberOfDBs > 1) {
         throw new Error("must specify a database prefix if want to work with multiple DBs.");
       }
+      databaseName = "_system";
     },
     checkData: function (options, isCluster, isEnterprise, dbCount, loopCount) {
       print(`checking data ${dbCount} ${loopCount}`);
@@ -53,7 +55,7 @@
     clearDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
       if (database !== "_system") {
         let c = zeroPad(dbCount + options.countOffset);
-        let databaseName = `${database}_${c}`;
+        databaseName = `${database}_${c}`; // TODO: global variable :/
         try {
           db._useDatabase(databaseName);
         } catch (x) {
@@ -66,6 +68,7 @@
       } else if (options.numberOfDBs > 1) {
         throw new Error("must specify a database prefix if want to work with multiple DBs.");
       }
+      databaseName = "_system";
       return 0;
     }
   };
