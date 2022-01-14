@@ -10,7 +10,7 @@
         oldVersion = currentVersion;
       }
       let old = semver.parse(semver.coerce(oldVersion));
-      return semver.gte(old, "3.7.7");
+      return enterprise && semver.gte(old, "3.7.7");
     },
 
     makeDataDB: function (options, isCluster, isEnterprise, database, dbCount, loopCount) {

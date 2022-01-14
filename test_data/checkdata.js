@@ -3,10 +3,11 @@
 // Use like this:
 //   arangosh USUAL_OPTIONS_INCLUDING_AUTHENTICATION --javascript.execute checkdata.js [DATABASENAME]
 // where DATABASENAME is optional and defaults to "_system".
-const fs = require('fs');
-
-const _ = require('lodash');
 const internal = require('internal');
+const fs = require('fs');
+const _ = require('lodash');
+const semver = require('semver');
+
 const time = internal.time;
 let db = internal.db;
 let print = internal.print;
