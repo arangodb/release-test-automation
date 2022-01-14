@@ -1,16 +1,12 @@
+/* global print,  db, progress, createCollectionSafe, createIndexSafe, time  */
 let rand = require("internal").rand;
 
 (function () {
   return {
-    isSupported: function(version, oldVersion, options, enterprise, cluster) {
+    isSupported: function (version, oldVersion, options, enterprise, cluster) {
       return true;
     },
-
-    makeDataDB: function(options, isCluster, isEnterprise, database, dbCount) {
-      // All items created must contain dbCount
-      print(`making per database data ${dbCount}`);
-    },
-    makeData: function(options, isCluster, isEnterprise, dbCount, loopCount) {
+    makeData: function (options, isCluster, isEnterprise, dbCount, loopCount) {
       // All items created must contain dbCount and loopCount
       // Create a few collections:
       let c = createCollectionSafe(`c_${loopCount}`, 3, 2);
@@ -50,9 +46,7 @@ let rand = require("internal").rand;
       createIndexSafe({col: cmulti, type: "fulltext", fields: ["text"], minLength: 6});
       progress('createIndexFulltext9');
 
-
-
-      let makeRandomString = function(l) {
+      let makeRandomString = function (l) {
         var r = rand();
         var d = rand();
         var s = "x";
@@ -63,17 +57,17 @@ let rand = require("internal").rand;
         return s.slice(0, l);
       };
 
-      let makeRandomNumber = function(low, high) {
+      let makeRandomNumber = function (low, high) {
         return (Math.abs(rand()) % (high - low)) + low;
       };
 
-      let makeRandomTimeStamp = function() {
+      let makeRandomTimeStamp = function () {
         return new Date(rand() * 1000).toISOString();
       };
 
-      let rcount = 1;   // for uniqueness
+      let rcount = 1; // for uniqueness
 
-      let makeRandomDoc = function() {
+      let makeRandomDoc = function () {
         rcount += 1;
         let s = "";
         for (let i = 0; i < 10; ++i) {
@@ -94,7 +88,7 @@ let rand = require("internal").rand;
                            }};
       };
 
-      let writeData = function(coll, n) {
+      let writeData = function (coll, n) {
         let wcount = 0;
         while (wcount < options.dataMultiplier) {
           let l = [];
@@ -102,28 +96,27 @@ let rand = require("internal").rand;
 
           for (let i = 0; i < n; ++i) {
             l.push(makeRandomDoc());
-            if (l.length % 1000 === 0 || i === n-1) {
+            if (l.length % 1000 === 0 || i === n - 1) {
               let t = time();
               coll.insert(l);
               let t2 = time();
               l = [];
-              //print(i+1, t2-t);
-              times.push(t2-t);
+              // print(i+1, t2-t);
+              times.push(t2 - t);
             }
           }
           // Timings, if ever needed:
-          //times = times.sort(function(a, b) { return a-b; });
-          //print(" Median:", times[Math.floor(times.length / 2)], "\n",
-          //      "90%ile:", times[Math.floor(times.length * 0.90)], "\n",
-          //      "99%ile:", times[Math.floor(times.length * 0.99)], "\n",
-          //      "min   :", times[0], "\n",
-          //      "max   :", times[times.length-1]);
+          // times = times.sort(function(a, b) { return a-b; });
+          // print(" Median:", times[Math.floor(times.length / 2)], "\n",
+          //       "90%ile:", times[Math.floor(times.length * 0.90)], "\n",
+          //       "99%ile:", times[Math.floor(times.length * 0.99)], "\n",
+          //       "min   :", times[0], "\n",
+          //       "max   :", times[times.length-1]);
           wcount += 1;
         }
       };
 
       // Now the actual data writing:
-
       writeData(c, 1000);
       progress('writeData1');
       writeData(chash, 12345);
@@ -139,8 +132,8 @@ let rand = require("internal").rand;
       writeData(cmulti, 12346);
       progress('writeData7');
     },
-    checkData: function(options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
-      print(`checking data ${dbConut} ${loopCount}`);
+    checkData: function (options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
+      print(`checking data ${dbCount} ${loopCount}`);
       let cols = db._collections();
       let allFound = true;
       [`c_${loopCount}`,
@@ -163,7 +156,7 @@ let rand = require("internal").rand;
          }
        });
       if (!allFound) {
-        throw Error("not all collections were present on the system!");
+        throw new Error("not all collections were present on the system!");
       }
 
       let c = db._collection(`c_${loopCount}`);
@@ -178,66 +171,81 @@ let rand = require("internal").rand;
       // Check indexes:
       progress();
 
-      if (c.getIndexes().length != 1) { throw "Banana"; }
-      if (chash.getIndexes().length != 2) { throw "Apple"; }
-      if (chash.getIndexes()[1].type != "hash") { throw "Pear"; }
-      if (cskip.getIndexes().length != 2) { throw "Tomato"; }
-      if (cskip.getIndexes()[1].type != "skiplist") { throw "Avocado"; }
-      if (cfull.getIndexes().length != 2) { throw "Mango"; }
-      if (cfull.getIndexes()[1].type != "fulltext") { throw "Cucumber"; }
-      if (cgeo.getIndexes().length != 2) { throw "Jackfruit"; }
-      if (cgeo.getIndexes()[1].type != "geo") { throw "Onion"; }
-      if (cunique.getIndexes().length != 2) { throw "Durian"; }
-      if (cunique.getIndexes()[1].unique != true) { throw "Mandarin"; }
-      if (cmulti.getIndexes().length != 5) { throw "Leek"; }
-      if (cempty.getIndexes().length != 1) { throw "Pineapple"; }
+      if (c.getIndexes().length !== 1) { throw new Error("Banana"); }
+      if (chash.getIndexes().length !== 2) { throw new Error("Apple"); }
+      if (chash.getIndexes()[1].type !== "hash") { throw new Error("Pear"); }
+      if (cskip.getIndexes().length !== 2) { throw new Error("Tomato"); }
+      if (cskip.getIndexes()[1].type !== "skiplist") { throw new Error("Avocado"); }
+      if (cfull.getIndexes().length !== 2) { throw new Error("Mango"); }
+      if (cfull.getIndexes()[1].type !== "fulltext") { throw new Error("Cucumber"); }
+      if (cgeo.getIndexes().length !== 2) { throw new Error("Jackfruit"); }
+      if (cgeo.getIndexes()[1].type !== "geo") { throw new Error("Onion"); }
+      if (cunique.getIndexes().length !== 2) { throw new Error("Durian"); }
+      if (cunique.getIndexes()[1].unique !== true) { throw new Error("Mandarin"); }
+      if (cmulti.getIndexes().length !== 5) { throw new Error("Leek"); }
+      if (cempty.getIndexes().length !== 1) { throw new Error("Pineapple"); }
 
       // Check data:
       progress();
-      if (c.count() != 1000) { throw "Audi"; }
-      if (chash.count() != 12345) { throw "VW"; }
-      if (cskip.count() != 2176) { throw "Tesla"; }
-      if (cgeo.count() != 5245) { throw "Mercedes"; }
-      if (cfull.count() != 6253) { throw "Renault"; }
-      if (cunique.count() != 5362) { throw "Opel"; }
-      if (cmulti.count() != 12346) { throw "Fiat"; }
+      if (c.count() !== 1000) { throw new Error("Audi"); }
+      if (chash.count() !== 12345) { throw new Error("VW"); }
+      if (cskip.count() !== 2176) { throw new Error("Tesla"); }
+      if (cgeo.count() !== 5245) { throw new Error("Mercedes"); }
+      if (cfull.count() !== 6253) { throw new Error("Renault"); }
+      if (cunique.count() !== 5362) { throw new Error("Opel"); }
+      if (cmulti.count() !== 12346) { throw new Error("Fiat"); }
 
       // Check a few queries:
       progress();
-      if (db._query(`FOR x IN ${c.name()} FILTER x.a == "id1001" RETURN x`).toArray().length !== 1) { throw "Red Currant"; }
+      if (db._query(`FOR x IN ${c.name()} FILTER x.a == "id1001" RETURN x`).toArray().length !== 1) { throw new Error("Red Currant"); }
       progress();
-      if (db._query(`FOR x IN ${chash.name()} FILTER x.a == "id10452" RETURN x`).toArray().length !== 1) { throw "Blueberry"; }
+      if (db._query(`FOR x IN ${chash.name()} FILTER x.a == "id10452" RETURN x`).toArray().length !== 1) { throw new Error("Blueberry"); }
       progress();
-      if (db._query(`FOR x IN ${cskip.name()} FILTER x.a == "id13948" RETURN x`).toArray().length !== 1) { throw "Grape"; }
+      if (db._query(`FOR x IN ${cskip.name()} FILTER x.a == "id13948" RETURN x`).toArray().length !== 1) { throw new Error("Grape"); }
       progress();
-      if (db._query(`FOR x IN ${cempty.name()} RETURN x`).toArray().length !== 0) { throw "Grapefruit"; }
+      if (db._query(`FOR x IN ${cempty.name()} RETURN x`).toArray().length !== 0) { throw new Error("Grapefruit"); }
       progress();
-      if (db._query(`FOR x IN ${cgeo.name()} FILTER x.a == "id20473" RETURN x`).toArray().length !== 1) { throw "Bean"; }
+      if (db._query(`FOR x IN ${cgeo.name()} FILTER x.a == "id20473" RETURN x`).toArray().length !== 1) { throw new Error("Bean"); }
       progress();
-      if (db._query(`FOR x IN ${cunique.name()} FILTER x.a == "id32236" RETURN x`).toArray().length !== 1) { throw "Watermelon"; }
+      if (db._query(`FOR x IN ${cunique.name()} FILTER x.a == "id32236" RETURN x`).toArray().length !== 1) { throw new Error("Watermelon"); }
       progress();
-      if (db._query(`FOR x IN ${cmulti.name()} FILTER x.a == "id32847" RETURN x`).toArray().length !== 1) { throw "Honeymelon"; }
+      if (db._query(`FOR x IN ${cmulti.name()} FILTER x.a == "id32847" RETURN x`).toArray().length !== 1) { throw new Error("Honeymelon"); }
       progress();
     },
-    clearData: function(options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
-      print(`checking data ${dbConut} ${loopCount}`);
-      try { db._drop(`c_${loopCount}`); } catch (e) {}
+    clearData: function (options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
+      print(`checking data ${dbCount} ${loopCount}`);
+      try {
+        db._drop(`c_${loopCount}`);
+      } catch (e) {}
       progress();
-      try { db._drop(`chash_${loopCount}`); } catch (e) {}
+      try {
+        db._drop(`chash_${loopCount}`);
+      } catch (e) {}
       progress();
-      try { db._drop(`cskip_${loopCount}`); } catch (e) {}
+      try {
+        db._drop(`cskip_${loopCount}`);
+      } catch (e) {}
       progress();
-      try { db._drop(`cfull_${loopCount}`); } catch (e) {}
+      try {
+        db._drop(`cfull_${loopCount}`);
+      } catch (e) {}
       progress();
-      try { db._drop(`cgeo_${loopCount}`); } catch (e) {}
+      try {
+        db._drop(`cgeo_${loopCount}`);
+      } catch (e) {}
       progress();
-      try { db._drop(`cunique_${loopCount}`); } catch (e) {}
+      try {
+        db._drop(`cunique_${loopCount}`);
+      } catch (e) {}
       progress();
-      try { db._drop(`cmulti_${loopCount}`); } catch (e) {}
+      try {
+        db._drop(`cmulti_${loopCount}`);
+      } catch (e) {}
       progress();
-      try { db._drop(`cempty_${loopCount}`); } catch (e) {}
+      try {
+        db._drop(`cempty_${loopCount}`);
+      } catch (e) {}
       progress();
     }
   };
-
-}())
+}());

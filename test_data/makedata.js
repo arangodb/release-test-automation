@@ -1,4 +1,4 @@
-/* global print, start_pretty_print, ARGUMENTS */
+/* global print, ARGUMENTS */
 //
 // Use like this:
 //   arangosh USUAL_OPTIONS_INCLUDING_AUTHENTICATION --javascript.execute makedata.js [DATABASENAME]
@@ -15,17 +15,12 @@
 // `--singleShard [false]       whether this should only be a single shard instance
 // `--progress [false]          whether to output a keepalive indicator to signal the invoker that work is ongoing
 'use strict';
-const utils = require('@arangodb/foxx/manager-utils');
 const fs = require('fs');
-const expect = require('chai').expect;
-const path = require('path');
 const _ = require('lodash');
 const internal = require('internal');
-const download = internal.download;
 const semver = require('semver');
 const arangodb = require("@arangodb");
 const console = require("console");
-const g = require('@arangodb/general-graph');
 const db = internal.db;
 const time = internal.time;
 const sleep = internal.sleep;
@@ -33,20 +28,10 @@ const ERRORS = arangodb.errors;
 let v = db._version(true);
 const enterprise = v.license === "enterprise";
 const dbVersion = db._version();
-let gsm;
-if (enterprise) {
-  gsm = require('@arangodb/smart-graph');
-}
 
 let PWDRE = /.*at (.*)makedata.js.*/;
 let stack = new Error().stack;
 let PWD = fs.makeAbsolute(PWDRE.exec(stack)[1]);
-
-let vertices = JSON.parse(fs.readFileSync(`${PWD}/vertices.json`));
-let edges = JSON.parse(fs.readFileSync(`${PWD}/edges_naive.json`));
-let smart_edges = JSON.parse(fs.readFileSync(`${PWD}/edges.json`));
-
-const { FeatureFlags } = require("./feature_flags");
 
 let isCluster = true; // TODO
 let database = "_system";
@@ -69,7 +54,7 @@ const optionsDefaults = {
 };
 
 let args = ARGUMENTS;
-if ((0 < args.length) &&
+if ((args.length > 0) &&
     (args[0].slice(0, 1) !== '-')) {
   database = args[0];
   args = args.slice(1);
@@ -82,11 +67,9 @@ var numberLength = Math.log(options.numberOfDBs + options.countOffset) * Math.LO
 
 const zeroPad = (num) => String(num).padStart(numberLength, '0');
 
-const flags = new FeatureFlags(dbVersion, options.oldVersion);
-
 let tStart = 0;
 let timeLine = [];
-function progress(gaugeName) {
+function progress (gaugeName) {
   let now = time();
   let delta = now - tStart;
   timeLine.push(delta);
@@ -99,19 +82,18 @@ function progress(gaugeName) {
 let MakeDataDbFuncs = [];
 let MakeDataFuncs = [];
 
-function scanTestPaths ( options) {
-  
-  let suites = _.filter(fs.list(fs.join(PWD,'makedata_suites')),
-                  function (p) {
-                    return (p.substr(-3) === '.js');
-                  })
-      .map(function (x) {
-        return fs.join(fs.join(PWD, 'makedata_suites'), x);
-      }).sort();
+function scanTestPaths (options) {
+  let suites = _.filter(
+    fs.list(fs.join(PWD, 'makedata_suites')),
+    function (p) {
+      return (p.substr(-3) === '.js');
+    }).map(function (x) {
+      return fs.join(fs.join(PWD, 'makedata_suites'), x);
+    }).sort();
   suites.forEach(suitePath => {
     let suite = require("internal").load(suitePath);
     if (suite.isSupported(dbVersion, options.oldVersion, options, enterprise, false)) {
-      print("supported")
+      print("supported");
       if ('makeData' in suite) {
         MakeDataFuncs.push(suite.makeData);
       }
@@ -122,17 +104,14 @@ function scanTestPaths ( options) {
   });
 }
 
-
-
-
-
-function getShardCount(defaultShardCount) {
+function getShardCount (defaultShardCount) {
   if (options.singleShard) {
     return 1;
   }
   return defaultShardCount;
 }
-function getReplicationFactor(defaultReplicationFactor) {
+
+function getReplicationFactor (defaultReplicationFactor) {
   if (defaultReplicationFactor > options.maxReplicationFactor) {
     return options.maxReplicationFactor;
   }
@@ -142,32 +121,33 @@ function getReplicationFactor(defaultReplicationFactor) {
   return defaultReplicationFactor;
 }
 
-
-
-function writeGraphData(V, E, vertices, edges) {
+let bigDoc = '';
+if (options.bigDoc) {
+  for (let i = 0; i < 100000; i++) {
+    bigDoc += "abcde" + i;
+  }
+}
+function writeGraphData (V, E, vertices, edges) {
   let gcount = 0;
   while (gcount < options.dataMultiplier) {
     edges.forEach(edg => {
       edg._from = V.name() + '/' + edg._from.split('/')[1] + "" + gcount;
       edg._to = V.name() + '/' + edg._to.split('/')[1] + "" + gcount;
       if (options.bigDoc) {
-        edg.big_doc = big_doc;
+        edg.bigDoc = bigDoc;
       }
     });
-    
     let cVertices = _.clone(vertices);
     cVertices.forEach(vertex => {
       vertex['_key'] = vertex['_key'] + gcount;
     });
-    
     V.insert(vertices);
     E.insert(edges);
     gcount += 1;
   }
-};
+}
 
-
-function createSafe(name, fn1, fnErrorExists) {
+function createSafe (name, fn1, fnErrorExists) {
   let countDbRetry = 0;
   while (countDbRetry < 50) {
     try {
@@ -179,8 +159,7 @@ function createSafe(name, fn1, fnErrorExists) {
           // make sure no local caches are there:
           db._flushCache();
           return fnErrorExists(name);
-        }
-        catch(x) {
+        } catch (x) {
           sleep(countDbRetry * 0.1);
           countDbRetry += 1;
           console.error(`${databaseName}: ${name}: isn't there anyways??? ${x.message} - ${x.stack}`);
@@ -196,7 +175,7 @@ function createSafe(name, fn1, fnErrorExists) {
   throw new Error(`${name} creation failed!`);
 }
 
-function createCollectionSafe(name, DefaultNoSharts, DefaultReplFactor) {
+function createCollectionSafe (name, DefaultNoSharts, DefaultReplFactor) {
   let options = {
     numberOfShards: getShardCount(DefaultNoSharts),
     replicationFactor: getReplicationFactor(DefaultReplFactor)
@@ -209,17 +188,14 @@ function createCollectionSafe(name, DefaultNoSharts, DefaultReplFactor) {
   });
 }
 
-function createIndexSafe(options) {
+function createIndexSafe (options) {
   let opts = _.clone(options);
-  delete opts.col
+  delete opts.col;
   return createSafe(options.col.name(), colname => {
     options.col.ensureIndex(opts);
   }, colName => {
     return false; // well, its there?
   });
-}
-
-function createOneShardVariant(db, baseName, count) {
 }
 
 scanTestPaths(options);
@@ -229,7 +205,7 @@ while (count < options.numberOfDBs) {
   timeLine = [tStart];
   MakeDataDbFuncs.forEach(func => {
     db._useDatabase("_system");
-    func(options, isCluster, enterprise, database, count);
+    count += func(options, isCluster, enterprise, database, count);
   });
   progress('createDB');
 
@@ -240,18 +216,20 @@ while (count < options.numberOfDBs) {
            count,
            ccount);
     });
-    ccount ++;
+    ccount++;
   }
 
   console.error(timeLine.join());
-
   count++;
 }
 
 try {
   db._useDatabase("_system");
-  db._create('_fishbowl', { isSystem: true, distributeShardsLike: '_users' });
-} catch(err) {}
+  db._create('_fishbowl', {
+    isSystem: true,
+    distributeShardsLike: '_users'
+  });
+} catch (err) {}
 
-print('YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY')
-print(db._databases())
+print('YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY');
+print(db._databases());

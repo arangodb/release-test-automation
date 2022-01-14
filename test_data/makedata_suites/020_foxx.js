@@ -1,5 +1,18 @@
+/* global print, fs, db, internal, arango */
+
 // inspired by shell-foxx-api-spec.js
-function loadFoxxIntoZip(path) {
+
+const utils = require('@arangodb/foxx/manager-utils');
+const download = internal.download;
+const path = require('path');
+const expect = require('chai').expect;
+
+const {
+  assertTrue,
+  assertEqual
+} = require("jsunity").jsUnity.assertions;
+
+function loadFoxxIntoZip (path) {
   let zip = utils.zipDirectory(path);
   let content = fs.readFileSync(zip);
   fs.remove(zip);
@@ -9,7 +22,7 @@ function loadFoxxIntoZip(path) {
   };
 }
 
-function installFoxx(mountpoint, which, mode) {
+function installFoxx (mountpoint, which, mode, options) {
   let headers = {};
   let content;
   if (which.type === 'js') {
@@ -48,7 +61,7 @@ function installFoxx(mountpoint, which, mode) {
         headers: headers,
         timeout: 300,
         username: 'root',
-        password: options.passvoid,
+        password: options.passvoid
       });
     expect(reply.code).to.equal(201);
     crudResp = JSON.parse(reply.body);
@@ -57,15 +70,16 @@ function installFoxx(mountpoint, which, mode) {
   return crudResp;
 }
 
-function deleteFoxx(mountpoint) {
-  const deleteResp = arango.DELETE('/_api/foxx/service?force=true&mount=' + mountpoint);
-  expect(deleteResp).to.have.property('code');
-  expect(deleteResp.code).to.equal(204);
-  expect(deleteResp.error).to.equal(false);
-}
+//function deleteFoxx (mountpoint) {
+//  const deleteResp = arango.DELETE('/_api/foxx/service?force=true&mount=' + mountpoint);
+//  expect(deleteResp).to.have.property('code');
+//  expect(deleteResp.code).to.equal(204);
+//  expect(deleteResp.error).to.equal(false);
+//}
 
 const itzpapalotlPath = path.resolve(internal.pathForTesting('common'), 'test-data', 'apps', 'itzpapalotl');
 const itzpapalotlZip = loadFoxxIntoZip(itzpapalotlPath);
+
 const minimalWorkingServicePath = path.resolve(internal.pathForTesting('common'), 'test-data', 'apps', 'crud');
 const minimalWorkingZip = loadFoxxIntoZip(minimalWorkingServicePath);
 const minimalWorkingZipDev = {
@@ -80,32 +94,28 @@ const crudTestServiceSource = {
   type: 'js',
   buffer: fs.readFileSync(serviceServicePath)
 };
-function checkFoxxService() {
-}
-
 
 (function () {
   let shouldValidateFoxx;
   return {
-    isSupported: function(version, oldVersion, options, enterprise, cluster) {
+    isSupported: function (version, oldVersion, options, enterprise, cluster) {
       return (options.numberOfDBs === 1 && options.collectionMultiplier === 1 && options.testFoxx);
     },
-
-    makeDataDB: function(options, isCluster, isEnterprise, database, dbCount) {
+    makeDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
       // All items created must contain dbCount
       print(`making per database data ${dbCount}`);
       print("installing Itzpapalotl");
-      installFoxx('/itz', itzpapalotlZip);
+      installFoxx('/itz', itzpapalotlZip, options);
 
       print("installing crud");
-      installFoxx('/crud', minimalWorkingZip);
+      installFoxx('/crud', minimalWorkingZip, options);
     },
-    makeData: function(options, isCluster, isEnterprise, dbCount, loopCount) {
+    makeData: function (options, isCluster, isEnterprise, dbCount, loopCount) {
       // All items created must contain dbCount and loopCount
       print(`making data ${dbCount} ${loopCount}`);
     },
-    checkDataDB: function(options, isCluster, isEnterprise, dbCount,  readOnly) {
-      print(`checking data ${dbConut} `);
+    checkDataDB: function (options, isCluster, isEnterprise, dbCount, readOnly) {
+      print(`checking data ${dbCount} `);
       const onlyJson = {
         'accept': 'application/json',
         'accept-content-type': 'application/json'
@@ -118,7 +128,7 @@ function checkFoxxService() {
         '/_db/_system/itz/index',
         '/_db/_system/crud/xxx'
       ].forEach(route => {
-        for (let i=0; i < 200; i++) {
+        for (let i = 0; i < 200; i++) {
           try {
             reply = arango.GET_RAW(route, onlyJson);
             if (reply.code === 200) {
@@ -135,7 +145,7 @@ function checkFoxxService() {
           }
           internal.sleep(3);
         }
-        throw ("foxx route '" + route + "' not ready on time!");
+        throw new Error("foxx route '" + route + "' not ready on time!");
       });
 
       print("Foxx: Itzpapalotl getting the root of the gods");
@@ -160,14 +170,14 @@ function checkFoxxService() {
       assertEqual(parsedBody, []);
 
       print("Foxx: crud testing POST xxx");
-      
+
       reply = arango.POST_RAW('/_db/_system/crud/xxx', {_key: "test"});
       if (options.readOnly) {
         assertEqual(reply.code, "400");
       } else {
         assertEqual(reply.code, "201");
       }
-      
+
       print("Foxx: crud testing get xxx");
       reply = arango.GET_RAW('/_db/_system/crud/xxx', onlyJson);
       assertEqual(reply.code, "200");
@@ -187,5 +197,4 @@ function checkFoxxService() {
       }
     }
   };
-
-}())
+}());

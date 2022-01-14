@@ -1,30 +1,27 @@
+/* global fs, PWD, writeGraphData, getShardCount, getReplicationFactor,  print, progress, db, createSafe, _, semver, testSmartGraphValidator */
 
 (function () {
+  let gsm;
   let checkSmartGraphValidator;
-  let big_doc = '';
-  if (options.bigDoc) {
-    for (let i=0; i < 100000; i++) {
-      big_doc += "abcde" + i;
-    }
-  }
+  let vertices = JSON.parse(fs.readFileSync(`${PWD}/vertices.json`));
+  let smartEdges = JSON.parse(fs.readFileSync(`${PWD}/edges.json`));
+
   return {
-    isSupported: function(currentVersion, oldVersion, options, enterprise, cluster) {
+    isSupported: function (currentVersion, oldVersion, options, enterprise, cluster) {
       let current = semver.parse(semver.coerce(currentVersion));
 
       checkSmartGraphValidator = semver.gte(current, "3.9.0") && cluster;
+      if (enterprise) {
+        gsm = require('@arangodb/smart-graph');
+      }
 
       return enterprise;
     },
-
-    makeDataDB: function(options, isCluster, isEnterprise, database, dbCount) {
-      // All items created must contain dbCount
-      print(`making per database data ${dbCount}`);
-    },
-    makeData: function(options, isCluster, isEnterprise, dbCount, loopCount) {
+    makeData: function (options, isCluster, isEnterprise, dbCount, loopCount) {
       // All items created must contain dbCount and loopCount
       print(`making data ${dbCount} ${loopCount}`);
       // And now a smart graph (if enterprise):
-      let Gsm = createSafe(`G_smart_${loopCount}`, graphName => {
+      createSafe(`G_smart_${loopCount}`, graphName => {
         return gsm._create(graphName,
                            [
                              gsm._relation(`citations_smart_${loopCount}`,
@@ -34,7 +31,7 @@
                            {
                              numberOfShards: getShardCount(3),
                              replicationFactor: getReplicationFactor(2),
-                             smartGraphAttribute:"COUNTRY"
+                             smartGraphAttribute: "COUNTRY"
                            });
       }, graphName => {
         return gsm._graph(graphName);
@@ -42,28 +39,35 @@
       progress('createEGraph2');
       writeGraphData(db._collection(`patents_smart_${loopCount}`),
                      db._collection(`citations_smart_${loopCount}`),
-                     _.clone(vertices), _.clone(smart_edges));
+                     _.clone(vertices),
+                     _.clone(smartEdges));
       progress('writeEGraph2');
     },
-    checkData: function(options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
-      print(`checking data ${dbConut} ${loopCount}`);
-      if (false){ // TODO: re-enable me!
+    checkData: function (options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
+      print(`checking data ${dbCount} ${loopCount}`);
+      if (false) { // TODO: re-enable me!
         const vColName = `patents_smart_${loopCount}`;
-        let patents_smart = db._collection(vColName);
-        if (patents_smart.count() !== 761) { throw "Cherry"; }
+        let patentsSmart = db._collection(vColName);
+        if (patentsSmart.count() !== 761) {
+          throw new Error("Cherry");
+        }
         progress();
         const eColName = `citations_smart_${loopCount}`;
-        let citations_smart = db._collection(eColName);
-        if (citations_smart.count() !== 1000) { throw "Liji"; }
+        let citationsSmart = db._collection(eColName);
+        if (citationsSmart.count() !== 1000) {
+          throw new Error("Liji");
+        }
         progress();
         const gName = `G_smart_${loopCount}`;
-        if (db._query(`FOR v, e, p IN 1..10 OUTBOUND "${patents_smart.name()}/US:3858245${loopCount}"
+        if (db._query(`FOR v, e, p IN 1..10 OUTBOUND "${patentsSmart.name()}/US:3858245${loopCount}"
                    GRAPH "${gName}"
-                   RETURN v`).toArray().length !== 6) { throw "Black Currant"; }
+                   RETURN v`).toArray().length !== 6) {
+          throw new Error("Black Currant");
+        }
         progress();
         const res = testSmartGraphValidator(loopCount);
         if (res.fail) {
-          throw res.message;
+          throw new Error(res.message);
         }
       }
       if (checkSmartGraphValidator) {
@@ -71,8 +75,16 @@
           const vColName = `patents_smart_${loopCount}`;
           const eColName = `citations_smart_${loopCount}`;
           const gName = `G_smart_${loopCount}`;
-          const remoteDocument = {_key: "abc:123:def", _from: `${vColName}/abc:123`, _to: `${vColName}/def:123`};
-          const localDocument = {_key: "abc:123:abc", _from: `${vColName}/abc:123`, _to: `${vColName}/abc:123`};
+          const remoteDocument = {
+            _key: "abc:123:def",
+            _from: `${vColName}/abc:123`,
+            _to: `${vColName}/def:123`
+          };
+          const localDocument = {
+            _key: "abc:123:abc",
+            _from: `${vColName}/abc:123`,
+            _to: `${vColName}/abc:123`
+          };
           const testValidator = (colName, doc) => {
             let col = db._collection(colName);
             if (!col) {
@@ -89,7 +101,7 @@
               };
             } catch (e) {
               // We only allow the following two errors, all others should be reported.
-              if (e.errorNum != 1466 && e.errorNum != 1233) {
+              if (e.errorNum !== 1466 && e.errorNum !== 1233) {
                 return {
                   fail: true,
                   message: `Validator of collection ${colName} on atempt to store ${doc} returned unexpected error ${JSON.stringify(e)}`
@@ -97,7 +109,7 @@
               }
             }
             return {fail: false};
-          }
+          };
           // We try to insert a document into the wrong shard. This should be rejected by the internal validator
           let res = testValidator(`_local_${eColName}`, remoteDocument);
           if (res.fail) {
@@ -118,18 +130,14 @@
         }
       }
     },
-    clearData: function(options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
-      print(`checking data ${dbConut} ${loopCount}`);
+    clearData: function (options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
+      print(`checking data ${dbCount} ${loopCount}`);
     // Drop graph:
-
-      let g = require("@arangodb/general-graph");
       let gsm = require("@arangodb/smart-graph");
       progress();
       try {
-        gsm._drop(`G_smart_${ccount}`, true);
-      } catch(e) { }
-    }
+        gsm._drop(`G_smart_${loopCount}`, true);
+      } catch (e) { }
     }
   };
-
-}())
+}());

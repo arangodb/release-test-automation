@@ -1,24 +1,17 @@
+/* global fs, PWD, writeGraphData, getShardCount,getReplicationFactor,  print, progress, db, createSafe, _  */
 
 (function () {
-  let big_doc = '';
-  if (options.bigDoc) {
-    for (let i=0; i < 100000; i++) {
-      big_doc += "abcde" + i;
-    }
-  }
+  const g = require('@arangodb/general-graph');
+  let vertices = JSON.parse(fs.readFileSync(`${PWD}/vertices.json`));
+  let edges = JSON.parse(fs.readFileSync(`${PWD}/edges_naive.json`));
   return {
-    isSupported: function(version, oldVersion, options, enterprise, cluster) {
+    isSupported: function (version, oldVersion, options, enterprise, cluster) {
       return true;
     },
-
-    makeDataDB: function(options, isCluster, isEnterprise, database, dbCount) {
-      // All items created must contain dbCount
-      print(`making per database data ${dbCount}`);
-    },
-    makeData: function(options, isCluster, isEnterprise, dbCount, loopCount) {
+    makeData: function (options, isCluster, isEnterprise, dbCount, loopCount) {
       // All items created must contain dbCount and loopCount
       print(`making data ${dbCount} ${loopCount}`);
-      let G = createSafe(`G_naive_${loopCount}`, graphName => {
+      createSafe(`G_naive_${loopCount}`, graphName => {
         return g._create(graphName,
                          [
                            g._relation(`citations_naive_${loopCount}`,
@@ -28,7 +21,7 @@
                          [],
                          {
                            replicationFactor: getReplicationFactor(2),
-                           numberOfShards:getShardCount(3)
+                           numberOfShards: getShardCount(3)
                          });
 
       }, graphName => {
@@ -40,29 +33,34 @@
                      _.clone(vertices), _.clone(edges));
       progress('loadGraph1');
     },
-    checkData: function(options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
-      print(`checking data ${dbConut} ${loopCount}`);
+    checkData: function (options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
+      print(`checking data ${dbCount} ${loopCount}`);
     // Check graph:
 
-      let patents_naive = db._collection(`patents_naive_${loopCount}`)
-      if (patents_naive.count() !== 761) { throw "Orange"; }
+      let patentsNaive = db._collection(`patents_naive_${loopCount}`);
+      if (patentsNaive.count() !== 761) {
+        throw new Error("Orange");
+      }
       progress();
-      let citations_naive = db._collection(`citations_naive_${loopCount}`)
-      if (citations_naive.count() !== 1000) { throw "Papaya"; }
+      let citationsNaive = db._collection(`citations_naive_${loopCount}`);
+      if (citationsNaive.count() !== 1000) {
+        throw new Error("Papaya");
+      }
       progress();
-      if (db._query(`FOR v, e, p IN 1..10 OUTBOUND "${patents_naive.name()}/US:3858245${loopCount}"
+      if (db._query(`FOR v, e, p IN 1..10 OUTBOUND "${patentsNaive.name()}/US:3858245${loopCount}"
                  GRAPH "G_naive_${loopCount}"
-                 RETURN v`).toArray().length !== 6) { throw "Physalis"; }
+                 RETURN v`).toArray().length !== 6) {
+        throw new Error("Physalis");
+      }
       progress();
     },
-    clearData: function(options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
-      print(`checking data ${dbConut} ${loopCount}`);
+    clearData: function (options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
+      print(`checking data ${dbCount} ${loopCount}`);
       // Drop graph:
-
-      let g = require("@arangodb/general-graph");
       progress();
-      try { g._drop(`G_naive_${ccount}`, true); } catch(e) { }
+      try {
+        g._drop(`G_naive_${loopCount}`, true);
+      } catch (e) { }
     }
   };
-
-}())
+}());
