@@ -1,5 +1,4 @@
-/* global arangodb, print,  db, zeroPad, createSafe  */
-const ERRORS = arangodb.errors;
+/* global arangodb, print,  db, zeroPad, createSafe, ERRORS */
 
 (function () {
   return {

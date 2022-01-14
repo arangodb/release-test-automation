@@ -105,10 +105,10 @@ const crudTestServiceSource = {
       // All items created must contain dbCount
       print(`making per database data ${dbCount}`);
       print("installing Itzpapalotl");
-      installFoxx('/itz', itzpapalotlZip, options);
+      installFoxx('/itz', itzpapalotlZip, "install", options);
 
       print("installing crud");
-      installFoxx('/crud', minimalWorkingZip, options);
+      installFoxx('/crud', minimalWorkingZip, "install", options);
     },
     makeData: function (options, isCluster, isEnterprise, dbCount, loopCount) {
       // All items created must contain dbCount and loopCount

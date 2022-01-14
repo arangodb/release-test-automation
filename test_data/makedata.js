@@ -50,7 +50,8 @@ const optionsDefaults = {
   progress: false,
   oldVersion: "3.5.0",
   passvoid: '',
-  bigDoc: false
+  bigDoc: false,
+  passvoid: ''
 };
 
 let args = ARGUMENTS;
@@ -59,10 +60,8 @@ if ((args.length > 0) &&
   database = args[0];
   args = args.slice(1);
 }
-
 let options = internal.parseArgv(args, 0);
 _.defaults(options, optionsDefaults);
-
 var numberLength = Math.log(options.numberOfDBs + options.countOffset) * Math.LOG10E + 1 | 0;
 
 const zeroPad = (num) => String(num).padStart(numberLength, '0');
@@ -180,7 +179,6 @@ function createCollectionSafe (name, DefaultNoSharts, DefaultReplFactor) {
     numberOfShards: getShardCount(DefaultNoSharts),
     replicationFactor: getReplicationFactor(DefaultReplFactor)
   };
-  print(options);
   return createSafe(name, colName => {
     return db._create(colName, options);
   }, colName => {
