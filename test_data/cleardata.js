@@ -60,74 +60,54 @@ function getReplicationFactor(defaultReplicationFactor) {
   }
   return defaultReplicationFactor;
 }
+let ClearDataFuncs = [];
+let ClearDataDbFuncs = [];
+function scanTestPaths ( options) {
+  
+  let suites = _.filter(fs.list(fs.join(PWD,'makedata_suites')),
+                  function (p) {
+                    return (p.substr(-3) === '.js');
+                  })
+      .map(function (x) {
+        return fs.join(fs.join(PWD, 'makedata_suites'), x);
+      }).sort();
+  suites.forEach(suitePath => {
+    let suite = require("internal").load(suitePath);
+    if (suite.isSupported(dbVersion, options.oldVersion, options, enterprise, false)) {
+      print("supported")
+      if ('clearData' in suite) {
+        ClearDataFuncs.push(suite.clearData);
+      }
+      if ('clearDataDB' in suite) {
+        ClearDataDbFuncs.push(suite.clearDataDB);
+      }
+    }
+  });
+}
 
 let v = db._connection.GET("/_api/version");
 const enterprise = v.license === "enterprise"
-
+scanTestPaths(options);
 let count = 0;
 while (count < options.numberOfDBs) {
   let databaseName = database
   tStart = time();
   timeLine = [tStart];
-  db._useDatabase("_system");
+  ClearDataDbFuncs.forEach(func => {
+    db._useDatabase("_system");
+    func(options, isCluster, enterprise, database, count);
+  });
 
-  if (database != "_system") {
-    print('#ix')
-    c = zeroPad(count+options.countOffset);
-    databaseName = `${database}_${c}`;
-    try {
-      db._useDatabase(databaseName);
-    } catch (x) {
-      if (x.errorNum === ERRORS.ERROR_ARANGO_DATABASE_NOT_FOUND.code) {
-        count ++;
-        continue;
-      }
-      else {
-        print(x)
-      }
-    }
-  }
-  else if (options.numberOfDBs > 1) {
-    throw ("must specify a database prefix if want to work with multiple DBs.")
-  }
   progress();
   ccount = 0;
   while (ccount < options.collectionMultiplier) {
     // Drop collections:
+    ClearDataFuncs.forEach(func => {
+      func(options, isCluster, enterprise,
+           count,
+           ccount);
+    });
 
-    try { db._drop(`c_${ccount}`); } catch (e) {}
-    progress();
-    try { db._drop(`chash_${ccount}`); } catch (e) {}
-    progress();
-    try { db._drop(`cskip_${ccount}`); } catch (e) {}
-    progress();
-    try { db._drop(`cfull_${ccount}`); } catch (e) {}
-    progress();
-    try { db._drop(`cgeo_${ccount}`); } catch (e) {}
-    progress();
-    try { db._drop(`cunique_${ccount}`); } catch (e) {}
-    progress();
-    try { db._drop(`cmulti_${ccount}`); } catch (e) {}
-    progress();
-    try { db._drop(`cempty_${ccount}`); } catch (e) {}
-    progress();
-
-    try { db._dropView(`view1_${ccount}`); } catch (e) { print(e); }
-    progress();
-    try { db._drop(`cview1_${ccount}`); } catch (e) { print(e); }
-    progress();
-
-    // Drop graph:
-
-    let g = require("@arangodb/general-graph");
-    progress();
-    try { g._drop(`G_naive_${ccount}`, true); } catch(e) { }
-    progress();
-    if (enterprise) {
-      let gsm = require("@arangodb/smart-graph");
-      progress();
-      try { gsm._drop(`G_smart_${ccount}`, true); } catch(e) { }
-    }
     progress();
     ccount ++;
   }
