@@ -99,6 +99,7 @@ const crudTestServiceSource = {
   let shouldValidateFoxx;
   return {
     isSupported: function (version, oldVersion, options, enterprise, cluster) {
+      return false
       return (options.numberOfDBs === 1 && options.collectionMultiplier === 1 && options.testFoxx);
     },
     makeDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
@@ -109,10 +110,7 @@ const crudTestServiceSource = {
 
       print("installing crud");
       installFoxx('/crud', minimalWorkingZip, "install", options);
-    },
-    makeData: function (options, isCluster, isEnterprise, dbCount, loopCount) {
-      // All items created must contain dbCount and loopCount
-      print(`making data ${dbCount} ${loopCount}`);
+      return 0;
     },
     checkDataDB: function (options, isCluster, isEnterprise, dbCount, readOnly) {
       print(`checking data ${dbCount} `);
@@ -133,7 +131,7 @@ const crudTestServiceSource = {
             reply = arango.GET_RAW(route, onlyJson);
             if (reply.code === 200) {
               print(route + " OK");
-              return;
+              return 0;
             }
             let msg = JSON.stringify(reply);
             if (reply.hasOwnProperty('parsedBody')) {
@@ -195,6 +193,7 @@ const crudTestServiceSource = {
       } else {
         assertEqual(reply.code, "204");
       }
+      return 0;
     }
   };
 }());

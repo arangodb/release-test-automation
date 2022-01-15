@@ -10,12 +10,11 @@
         oldVersion = currentVersion;
       }
       let old = semver.parse(semver.coerce(oldVersion));
-      return enterprise && cluster && semver.gte(old, "3.7.7");
+      return  enterprise && cluster && semver.gte(old, "3.7.7");
     },
-
-    makeDataDB: function (options, isCluster, isEnterprise, database, dbCount, loopCount) {
+    makeDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
       // All items created must contain dbCount
-      print(`making per database data ${dbCount}`);
+      print(`oneShard making per database data ${dbCount}`);
       let baseName = database;
       if (baseName === "_system") {
         baseName = "system";
@@ -27,7 +26,7 @@
       if (db._databases().includes(databaseName)) {
         // its already there - skip this one.
         print(`skipping ${databaseName} - its already there.`);
-        return;
+        return 0;
       }
       const created = createSafe(databaseName,
                                  dbname => {
@@ -43,7 +42,7 @@
       if (!created) {
         // its already wrongly there - skip this one.
         print(`skipping ${databaseName} - it failed to be created, but it is no one-shard.`);
-        return;
+        return 0;
       }
       progress(`created OneShard DB '${databaseName}'`);
       for (let ccount = 0; ccount < options.collectionMultiplier; ++ccount) {
@@ -60,29 +59,31 @@
       }
       db._useDatabase('_system');
       progress('stored OneShard Data');
+      return 0;
     },
-    checkData: function (options, isCluster, isEnterprise, database, dbCount, loopCount) {
+    checkDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
       let baseName = database;
       if (baseName === "_system") {
         baseName = "system";
       }
       progress("Test OneShard setup");
-      const databaseName = `${baseName}_${loopCount}_oneShard`;
-      print('vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv ' + databaseName);
+      const databaseName = `${baseName}_${dbCount}_oneShard`;
+      print('oneshard vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv ' + databaseName);
       print(db._databases());
       db._useDatabase(databaseName);
       for (let ccount = 0; ccount < options.collectionMultiplier; ++ccount) {
         const query = `
       LET testee = DOCUMENT("c_${ccount}_0/knownKey")
-      FOR x IN c_${loopCount}_1
+      FOR x IN c_${ccount}_1
         RETURN {v1: testee.value, v2: x.value}
       `;
         const result = db._query(query).toArray();
         if (result.length !== 1 || result[0].v1 !== "success" || result[0].v2 !== "success") {
           throw new Error("DOCUMENT call in OneShard database does not return data");
         }
-
       }
+      db._useDatabase('_system');
+      return 0;
     }
   };
 }());

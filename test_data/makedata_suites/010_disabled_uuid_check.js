@@ -91,6 +91,7 @@
       }
 
       print("done - continuing test.");
+      return 0;
     }
   };
 }());

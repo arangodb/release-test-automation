@@ -11,7 +11,7 @@ const semver = require('semver');
 const time = internal.time;
 let db = internal.db;
 let print = internal.print;
-let isCluster = arango.GET("/_admin/role") === "COORDINATOR";
+let isCluster = arango.GET("/_admin/server/role").role === "COORDINATOR";
 const dbVersion = db._version();
 
 let PWDRE = /.*at (.*)checkdata.js.*/;
@@ -87,7 +87,7 @@ function scanTestPaths (options) {
     }).sort();
   suites.forEach(suitePath => {
     let suite = require("internal").load(suitePath);
-    if (suite.isSupported(dbVersion, options.oldVersion, options, enterprise, false)) {
+    if (suite.isSupported(dbVersion, options.oldVersion, options, enterprise, isCluster)) {
       print("supported");
       if ('checkData' in suite) {
         CheckDataFuncs.push(suite.checkData);
@@ -103,31 +103,37 @@ function scanTestPaths (options) {
 let v = db._version(true);
 const enterprise = v.license === "enterprise";
 scanTestPaths(options);
-let count = 0;
-while (count < options.numberOfDBs) {
+let dbCount = 0;
+while (dbCount < options.numberOfDBs) {
   tStart = time();
   timeLine = [tStart];
   db._useDatabase("_system");
 
   CheckDataDbFuncs.forEach(func => {
     db._useDatabase("_system");
-    func(options, isCluster, enterprise, database, count);
+    dbCount += func(options,
+                    isCluster,
+                    enterprise,
+                    database,
+                    dbCount);
   });
 
   progress();
-  let ccount = 0;
-  while (ccount < options.collectionMultiplier) {
+  let loopCount = 0;
+  while (loopCount < options.collectionMultiplier) {
 
     // Check collections:
     progress();
     print(db._collections());
     CheckDataFuncs.forEach(func => {
-      func(options, isCluster, enterprise,
-           count,
-           ccount);
+      func(options,
+           isCluster,
+           enterprise,
+           dbCount,
+           loopCount);
     });
-    ccount++;
+    loopCount++;
   }
   print(timeLine.join());
-  count++;
+  dbCount++;
 }

@@ -32,8 +32,7 @@ const dbVersion = db._version();
 let PWDRE = /.*at (.*)makedata.js.*/;
 let stack = new Error().stack;
 let PWD = fs.makeAbsolute(PWDRE.exec(stack)[1]);
-
-let isCluster = arango.GET("/_admin/role") === "COORDINATOR";
+let isCluster = arango.GET("/_admin/server/role").role === "COORDINATOR";
 let database = "_system";
 let databaseName;
 
@@ -48,7 +47,7 @@ const optionsDefaults = {
   testFoxx: true,
   singleShard: false,
   progress: false,
-  oldVersion: "3.5.0",
+  newVersion: "3.5.0",
   passvoid: '',
   bigDoc: false,
   passvoid: ''
@@ -91,7 +90,7 @@ function scanTestPaths (options) {
     }).sort();
   suites.forEach(suitePath => {
     let suite = require("internal").load(suitePath);
-    if (suite.isSupported(dbVersion, options.oldVersion, options, enterprise, false)) {
+    if (suite.isSupported(dbVersion, dbVersion, options, enterprise, isCluster)) {
       print("supported");
       if ('makeData' in suite) {
         MakeDataFuncs.push(suite.makeData);
@@ -197,28 +196,28 @@ function createIndexSafe (options) {
 }
 
 scanTestPaths(options);
-let count = 0;
-while (count < options.numberOfDBs) {
+let dbCount = 0;
+while (dbCount < options.numberOfDBs) {
   tStart = time();
   timeLine = [tStart];
   MakeDataDbFuncs.forEach(func => {
     db._useDatabase("_system");
-    count += func(options, isCluster, enterprise, database, count);
+    dbCount += func(options, isCluster, enterprise, database, dbCount);
   });
   progress('createDB');
 
-  let ccount = options.collectionCountOffset;
-  while (ccount < options.collectionMultiplier) {
+  let loopCount = options.collectionCountOffset;
+  while (loopCount < options.collectionMultiplier) {
     MakeDataFuncs.forEach(func => {
       func(options, isCluster, enterprise,
-           count,
-           ccount);
+           dbCount,
+           loopCount);
     });
-    ccount++;
+    loopCount++;
   }
 
   console.error(timeLine.join());
-  count++;
+  dbCount++;
 }
 
 try {

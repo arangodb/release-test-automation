@@ -9,13 +9,16 @@ const fs = require('fs');
 const _ = require('lodash');
 const internal = require('internal')
 const arangodb = require("@arangodb");
+const semver = require('semver');
 const time = internal.time;
 let db = internal.db;
 let print = internal.print;
 let database = "_system";
 let PWDRE = /.*at (.*)cleardata.js.*/;
 let stack = new Error().stack;
+let isCluster = arango.GET("/_admin/server/role").role === "COORDINATOR";
 let PWD = fs.makeAbsolute(PWDRE.exec(stack)[1]);
+const dbVersion = db._version();
 
 const optionsDefaults = {
   minReplicationFactor: 1,
@@ -24,6 +27,7 @@ const optionsDefaults = {
   countOffset: 0,
   collectionMultiplier: 1,
   singleShard: false,
+  oldVersion: "3.5.0",
   progress: false
 }
 
@@ -77,7 +81,7 @@ function scanTestPaths (options) {
     }).sort();
   suites.forEach(suitePath => {
     let suite = require("internal").load(suitePath);
-    if (suite.isSupported(dbVersion, options.oldVersion, options, enterprise, false)) {
+    if (suite.isSupported(dbVersion, options.oldVersion, options, enterprise, isCluster)) {
       print("supported");
       if ('clearData' in suite) {
         ClearDataFuncs.push(suite.clearData);
@@ -92,30 +96,30 @@ function scanTestPaths (options) {
 let v = db._connection.GET("/_api/version");
 const enterprise = v.license === "enterprise"
 scanTestPaths(options);
-let count = 0;
-while (count < options.numberOfDBs) {
+let dbCount = 0;
+while (dbCount < options.numberOfDBs) {
   let databaseName = database
   tStart = time();
   timeLine = [tStart];
   ClearDataDbFuncs.forEach(func => {
     db._useDatabase("_system");
-    func(options, isCluster, enterprise, database, count);
+    func(options, isCluster, enterprise, database, dbCount);
   });
 
   progress();
-  ccount = 0;
-  while (ccount < options.collectionMultiplier) {
+  loopCount = 0;
+  while (loopCount < options.collectionMultiplier) {
     // Drop collections:
     ClearDataFuncs.forEach(func => {
       func(options,
            isCluster,
            enterprise,
-           count,
-           ccount);
+           dbCount,
+           loopCount);
     });
 
     progress();
-    ccount ++;
+    loopCount ++;
   }
   progress();
 
@@ -131,5 +135,5 @@ while (count < options.numberOfDBs) {
     progress();
   }
   print(timeLine.join());
-  count ++;
+  dbCount++;
 }

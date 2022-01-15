@@ -48,6 +48,7 @@
         throw new Error("must specify a database prefix if want to work with multiple DBs.");
       }
       databaseName = "_system";
+      return 0;
     },
     checkData: function (options, isCluster, isEnterprise, dbCount, loopCount) {
       print(`checking data ${dbCount} ${loopCount}`);
