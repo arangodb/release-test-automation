@@ -125,8 +125,8 @@ def upgrade_package_test(
             fresh_versions,
             git_version,
         )
-        dl_old.get_packages(dl_opts.force)
-        dl_new.get_packages(dl_opts.force)
+        dl_old.get_packages(dl_opts.force_dl)
+        dl_new.get_packages(dl_opts.force_dl)
 
         this_test_dir = test_dir / props.directory_suffix
         test_driver.reset_test_data_dir(this_test_dir)
@@ -231,7 +231,7 @@ def main(
     """ main """
     dl_opts = DownloadOptions(force,
                               verbose,
-                              package_dir,
+                              Path(package_dir),
                               enterprise_magic,
                               httpuser,
                               httppassvoid,

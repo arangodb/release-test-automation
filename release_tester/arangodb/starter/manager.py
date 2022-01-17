@@ -64,9 +64,13 @@ class StarterManager:
         if self.cfg.verbose:
             self.moreopts += ["--log.verbose=true"]
             # self.moreopts += ['--all.log', 'startup=debug']
+        # self.moreopts += ["--args.coordinators.query.memory-limit=123456" ]
+        # self.moreopts += ["--all.query.memory-limit=123456" ]
         # self.moreopts += ["--all.log.level=arangosearch=trace"]
         # self.moreopts += ["--all.log.level=startup=trace"]
         # self.moreopts += ["--all.log.level=engines=trace"]
+        # self.moreopts += ["--all.log.escape-control-chars=true"]
+        # self.moreopts += ["--all.log.escape-unicode-chars=true"]
 
         # directories
         self.raw_basedir = install_prefix

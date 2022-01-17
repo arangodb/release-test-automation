@@ -56,6 +56,8 @@ class TestDriver:
             test_data_dir.mkdir(parents=True, exist_ok=True)
         os.chdir(test_data_dir)
 
+        if not package_dir.is_absolute():
+            package_dir =  (self.launch_dir / package_dir).resolve()
         if not package_dir.exists():
             package_dir.mkdir(parents=True, exist_ok=True)
 

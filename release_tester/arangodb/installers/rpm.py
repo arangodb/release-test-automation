@@ -151,6 +151,7 @@ class InstallerRPM(InstallerLinux):
             raise ex
 
         logging.debug("upgrade successfully finished")
+        self.start_service()
 
     @step
     def install_server_package_impl(self):
