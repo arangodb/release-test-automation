@@ -11,6 +11,7 @@ const internal = require('internal')
 const arangodb = require("@arangodb");
 const semver = require('semver');
 const time = internal.time;
+const ERRORS = arangodb.errors;
 let db = internal.db;
 let print = internal.print;
 let database = "_system";
@@ -25,11 +26,17 @@ const optionsDefaults = {
   maxReplicationFactor: 2,
   numberOfDBs: 1,
   countOffset: 0,
+  dataMultiplier: 1,
   collectionMultiplier: 1,
+  collectionCountOffset: 0,
+  testFoxx: true,
   singleShard: false,
+  progress: false,
   oldVersion: "3.5.0",
-  progress: false
-}
+  passvoid: '',
+  bigDoc: false,
+  passvoid: ''
+};
 
 let args = _.clone(ARGUMENTS);
 if ((args.length > 0) &&
@@ -103,7 +110,7 @@ while (dbCount < options.numberOfDBs) {
   timeLine = [tStart];
   ClearDataDbFuncs.forEach(func => {
     db._useDatabase("_system");
-    func(options, isCluster, enterprise, database, dbCount);
+    func(options, isCluster, enterprise, dbCount);
   });
 
   progress();
