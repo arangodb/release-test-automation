@@ -22,11 +22,11 @@
     checkData: function (options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
       print(`checking data ${dbCount} ${loopCount}`);
     },
-    clearDataDB: function (options, isCluster, isEnterprise, dbCount, readOnly) {
+    clearDataDB: function (options, isCluster, isEnterprise, dbCount, database) {
       // check per DB
       return 0;
     },
-    clearData: function (options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
+    clearData: function (options, isCluster, isEnterprise, dbCount, loopCount) {
       print(`checking data ${dbCount} ${loopCount}`);
     }
   };

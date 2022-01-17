@@ -84,6 +84,16 @@
       }
       db._useDatabase('_system');
       return 0;
-    }
+    },
+    clearDataDB: function (options, isCluster, isEnterprise, dbCount, database) {
+      // check per DB
+      progress("Test OneShard teardown");
+      let baseName = database;
+      const databaseName = `${baseName}_${dbCount}_oneShard`;
+      db._useDatabase('_system');
+      db._dropDatabase(databaseName);
+
+      return 0;
+    },
   };
 }());

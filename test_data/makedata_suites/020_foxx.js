@@ -196,7 +196,7 @@ const crudTestServiceSource = {
       }
       return 0;
     },
-    clearDataDB: function (options, isCluster, isEnterprise, dbCount) {
+    clearDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
       // All items created must contain dbCount
       print(`deleting foxx ${dbCount}`);
       print("uninstalling Itzpapalotl");

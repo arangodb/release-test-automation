@@ -110,7 +110,7 @@ while (dbCount < options.numberOfDBs) {
   timeLine = [tStart];
   ClearDataDbFuncs.forEach(func => {
     db._useDatabase("_system");
-    func(options, isCluster, enterprise, dbCount);
+    func(options, isCluster, enterprise, database, dbCount);
   });
 
   progress();
