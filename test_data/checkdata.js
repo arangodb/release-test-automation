@@ -115,7 +115,8 @@ while (dbCount < options.numberOfDBs) {
                     isCluster,
                     enterprise,
                     database,
-                    dbCount);
+                    dbCount,
+                    options.readOnly);
   });
 
   progress();

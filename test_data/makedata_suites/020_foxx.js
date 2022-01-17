@@ -113,7 +113,7 @@ const crudTestServiceSource = {
       installFoxx(`/crud_${dbCount}`, minimalWorkingZip, "install", options);
       return 0;
     },
-    checkDataDB: function (options, isCluster, isEnterprise, dbCount, readOnly) {
+    checkDataDB: function (options, isCluster, isEnterprise, database, dbCount, readOnly) {
       print(`checking data ${dbCount} `);
       const onlyJson = {
         'accept': 'application/json',

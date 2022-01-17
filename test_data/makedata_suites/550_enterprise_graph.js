@@ -1,4 +1,4 @@
-/* global fs, PWD, writeGraphData, getShardCount, getReplicationFactor,  print, progress, db, createSafe, _, semver, testSmartGraphValidator */
+/* global fs, PWD, writeGraphData, getShardCount, getReplicationFactor,  print, progress, db, createSafe, _, semver */
 
 (function () {
   let gsm;
@@ -10,11 +10,11 @@
     isSupported: function (currentVersion, oldVersion, options, enterprise, cluster) {
       let current = semver.parse(semver.coerce(currentVersion));
 
-      checkSmartGraphValidator = semver.gte(current, "3.9.0") && cluster;
+      checkSmartGraphValidator = semver.gte(current, "3.9.0") && cluster && !options.readOnly;
+      checkSmartGraphValidator = false; // TODO!
       if (enterprise) {
         gsm = require('@arangodb/smart-graph');
       }
-
       return enterprise;
     },
     makeData: function (options, isCluster, isEnterprise, dbCount, loopCount) {
@@ -45,31 +45,25 @@
     },
     checkData: function (options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
       print(`checking data ${dbCount} ${loopCount}`);
-      if (false) { // TODO: re-enable me!
-        const vColName = `patents_smart_${loopCount}`;
-        let patentsSmart = db._collection(vColName);
-        if (patentsSmart.count() !== 761) {
-          throw new Error("Cherry");
-        }
-        progress();
-        const eColName = `citations_smart_${loopCount}`;
-        let citationsSmart = db._collection(eColName);
-        if (citationsSmart.count() !== 1000) {
-          throw new Error("Liji");
-        }
-        progress();
-        const gName = `G_smart_${loopCount}`;
-        if (db._query(`FOR v, e, p IN 1..10 OUTBOUND "${patentsSmart.name()}/US:3858245${loopCount}"
+      const vColName = `patents_smart_${loopCount}`;
+      let patentsSmart = db._collection(vColName);
+      if (patentsSmart.count() !== 761) {
+        throw new Error("Cherry");
+      }
+      progress();
+      const eColName = `citations_smart_${loopCount}`;
+      let citationsSmart = db._collection(eColName);
+      if (citationsSmart.count() !== 1000) {
+        throw new Error("Liji");
+      }
+      progress();
+      const gName = `G_smart_${loopCount}`;
+      if (db._query(`FOR v, e, p IN 1..10 OUTBOUND "${patentsSmart.name()}/US:3858245${loopCount}"
                    GRAPH "${gName}"
                    RETURN v`).toArray().length !== 6) {
-          throw new Error("Black Currant");
-        }
-        progress();
-        const res = testSmartGraphValidator(loopCount);
-        if (res.fail) {
-          throw new Error(res.message);
-        }
+        throw new Error("Black Currant");
       }
+      progress();
       if (checkSmartGraphValidator) {
         try {
           const vColName = `patents_smart_${loopCount}`;
