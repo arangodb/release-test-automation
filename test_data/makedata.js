@@ -89,16 +89,27 @@ function scanTestPaths (options) {
       return fs.join(fs.join(PWD, 'makedata_suites'), x);
     }).sort();
   suites.forEach(suitePath => {
+    let supported = "";
+    let unsupported = "";
     let suite = require("internal").load(suitePath);
     if (suite.isSupported(dbVersion, dbVersion, options, enterprise, isCluster)) {
-      print("supported");
       if ('makeData' in suite) {
+        supported += "L" ;
         MakeDataFuncs.push(suite.makeData);
+      } else {
+        unsupported += " ";
       }
       if ('makeDataDB' in suite) {
+        supported += "D";
         MakeDataDbFuncs.push(suite.makeDataDB);
+      } else {
+        unsupported += " ";
       }
+    } else {
+      supported = " ";
+      unsupported = " ";
     }
+    print("[" + supported +"]   " + unsupported + suitePath);
   });
 }
 

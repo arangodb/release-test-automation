@@ -87,16 +87,27 @@ function scanTestPaths (options) {
       return fs.join(fs.join(PWD, 'makedata_suites'), x);
     }).sort();
   suites.forEach(suitePath => {
+    let supported = "";
+    let unsupported = "";
     let suite = require("internal").load(suitePath);
     if (suite.isSupported(dbVersion, options.oldVersion, options, enterprise, isCluster)) {
-      print("supported");
       if ('clearData' in suite) {
+        supported += "L" ;
         ClearDataFuncs.push(suite.clearData);
+      } else {
+        unsupported += " ";
       }
       if ('clearDataDB' in suite) {
+        supported += "D";
         ClearDataDbFuncs.push(suite.clearDataDB);
+      } else {
+        unsupported += " ";
       }
+    } else {
+      supported = " ";
+      unsupported = " ";
     }
+    print("[" + supported +"]   " + unsupported + suitePath);
   });
 }
 

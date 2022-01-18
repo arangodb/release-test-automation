@@ -86,16 +86,27 @@ function scanTestPaths (options) {
       return fs.join(fs.join(PWD, 'makedata_suites'), x);
     }).sort();
   suites.forEach(suitePath => {
+    let supported = "";
+    let unsupported = "";
     let suite = require("internal").load(suitePath);
     if (suite.isSupported(dbVersion, options.oldVersion, options, enterprise, isCluster)) {
-      print("supported");
       if ('checkData' in suite) {
+        supported += "L" ;
         CheckDataFuncs.push(suite.checkData);
+      } else {
+        unsupported += " ";
       }
       if ('checkDataDB' in suite) {
+        supported += "D";
         CheckDataDbFuncs.push(suite.checkDataDB);
+      } else {
+        unsupported += " ";
       }
+    } else {
+      supported = " ";
+      unsupported = " ";
     }
+    print("[" + supported +"]   " + unsupported + suitePath);
   });
 }
 
