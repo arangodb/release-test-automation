@@ -378,6 +378,16 @@ It should be considered to provide a set of hooks:
 The hook functions should respect a counter, and use it in their respective reseource names.
 Jslint should be used to check code validity.
 
+The list of the hooks enabled for this very run of one of the tools is printed on startup for reference.
+
+Makedata should be considered a framework for consistency checking in the following situations:
+ - replication
+ - hot backup
+ - upgrade
+ - dc2dc
+
+The replication fuzzing test should be used to ensure the above with randomness added.
+
 Makedata is by default ran with one dataset. However, it can also be used as load generator. 
 In this case, the counters have to be respected, so subsequent runs don't clash with earlier runs.
 The provided dbCount / loopCount should be used in identifiers to ensure this.
