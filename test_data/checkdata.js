@@ -37,8 +37,6 @@ let PWD = fs.makeAbsolute(PWDRE.exec(stack)[1]);
 let isCluster = arango.GET("/_admin/server/role").role === "COORDINATOR";
 let database = "_system";
 let databaseName;
-let v = db._version(true);
-const enterprise = v.license === "enterprise";
 
 const optionsDefaults = {
   disabledDbserverUUID: "",
