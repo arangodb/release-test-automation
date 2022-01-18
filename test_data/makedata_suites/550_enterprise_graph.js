@@ -2,16 +2,11 @@
 
 (function () {
   let gsm;
-  let checkSmartGraphValidator;
   let vertices = JSON.parse(fs.readFileSync(`${PWD}/vertices.json`));
   let smartEdges = JSON.parse(fs.readFileSync(`${PWD}/edges.json`));
 
   return {
     isSupported: function (currentVersion, oldVersion, options, enterprise, cluster) {
-      let current = semver.parse(semver.coerce(currentVersion));
-
-      checkSmartGraphValidator = semver.gte(current, "3.9.0") && cluster && !options.readOnly;
-      checkSmartGraphValidator = false; // TODO!
       if (enterprise) {
         gsm = require('@arangodb/smart-graph');
       }
@@ -64,65 +59,6 @@
         throw new Error("Black Currant");
       }
       progress();
-      if (checkSmartGraphValidator) {
-        try {
-          const vColName = `patents_smart_${loopCount}`;
-          const eColName = `citations_smart_${loopCount}`;
-          const gName = `G_smart_${loopCount}`;
-          const remoteDocument = {
-            _key: "abc:123:def",
-            _from: `${vColName}/abc:123`,
-            _to: `${vColName}/def:123`
-          };
-          const localDocument = {
-            _key: "abc:123:abc",
-            _from: `${vColName}/abc:123`,
-            _to: `${vColName}/abc:123`
-          };
-          const testValidator = (colName, doc) => {
-            let col = db._collection(colName);
-            if (!col) {
-              return {
-                fail: true,
-                message: `The smartGraph "${gName}" was not created correctly, collection ${colName} missing`
-              };
-            }
-            try {
-              col.save(doc);
-              return {
-                fail: true,
-                message: `Validator did not trigger on collection ${colName} stored illegal document`
-              };
-            } catch (e) {
-              // We only allow the following two errors, all others should be reported.
-              if (e.errorNum !== 1466 && e.errorNum !== 1233) {
-                return {
-                  fail: true,
-                  message: `Validator of collection ${colName} on atempt to store ${doc} returned unexpected error ${JSON.stringify(e)}`
-                };
-              }
-            }
-            return {fail: false};
-          };
-          // We try to insert a document into the wrong shard. This should be rejected by the internal validator
-          let res = testValidator(`_local_${eColName}`, remoteDocument);
-          if (res.fail) {
-            return res;
-          }
-          res = testValidator(`_from_${eColName}`, localDocument);
-          if (res.fail) {
-            return res;
-          }
-          res = testValidator(`_to_${eColName}`, localDocument);
-          if (res.fail) {
-            return res;
-          }
-          return {fail: false};
-        } finally {
-          // Always report that we tested SmartGraph Validators
-          progress("Tested SmartGraph validators");
-        }
-      }
     },
     clearData: function (options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
       print(`checking data ${dbCount} ${loopCount}`);
