@@ -353,12 +353,12 @@ The scripts in the `deployment` directory will try to install all the required p
 
 
 # makedata / checkdata framework
-Makedata is ran inside arangosh. It was made to be user expandeable by hooking in on test cases.
+Makedata is ran inside arangosh. It was made to be user-expandeable by hooking in on test cases.
 It consists of these files in test_data:
  - `makedata.js` - initially generate test data
  - `checkdata.js` - check whether data is available; could be read-only
- - `cleardata.js` - remove the testdata - after that makedata should be able to be ran again without issues.
- - Plugins in test_data/makedata_suites:
+ - `cleardata.js` - remove the testdata - after invoking it makedata should be able to be ran again without issues.
+ - Plugins in `test_data/makedata_suites` executed in alphanumeric order:
    - `000_dummy.js` - this can be used as a template if you want to create a new plugin. 
    - `010_disabled_uuid_check.js` If you're running a cluster setup in failover mode, this checks whether all shards have an available leader.
    - `020_foxx.js` Installs foxx, checks it. 
@@ -367,9 +367,10 @@ It consists of these files in test_data:
    - `400_views.js` creates some views
    - `500_community_graph.js` creates a community patent graph
    - `550_enterprise_graph.js` creates an enterprise patent graph
+   - `560_smartgraph_validator.js` on top of the enterprise graph, this will check the integrity check of the server.
    - `900_oneshard.js` creates oneshard database and does stuff with it.
 
-It should be considered to provide a set of hooks:
+It should be considered to provide a set of hooks (000_dummy.js can be considered being a template for this):
 
 - Hook to check whether the environment will support your usecase [single/cluster deployment, Community/Enterprise, versions in test]
 - Per Database loop Create / Check [readonly] / Delete handler
