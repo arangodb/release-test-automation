@@ -1,25 +1,44 @@
-/* global print, start_pretty_print, ARGUMENTS */
-
+/* global print, ARGUMENTS */
+//
 // Use like this:
 //   arangosh USUAL_OPTIONS_INCLUDING_AUTHENTICATION --javascript.execute cleardata.js [DATABASENAME]
 // where DATABASENAME is optional and defaults to "_system". The database
-// in question is dropped (if it is not "_system").
-
+// in question is created (if it is not "_system").
+// `--minReplicationFactor [1]  don't create collections with smaller replication factor than this.
+// `--maxReplicationFactor [2]  don't create collections with a bigger replication factor than this.
+// `--dataMultiplier [1]        0 - no data; else n-times the data
+// `--numberOfDBs [1]           count of databases to create and fill
+// `--countOffset [0]           number offset at which to start the database count
+// `--bigDoc false              attach a big string to the edge documents
+// `--collectionMultiplier [1]  how many times to create the collections / index / view / graph set?
+// `--collectionCountOffset [0] number offset at which to start the database count
+// `--singleShard [false]       whether this should only be a single shard instance
+// `--progress [false]          whether to output a keepalive indicator to signal the invoker that work is ongoing
+// `--disabledDbserverUUID      this server is offline, wait for shards on it to be moved
+// `--readonly                  the SUT is readonly. fail if writing is successfull.
+'use strict';
 const fs = require('fs');
 const _ = require('lodash');
-const internal = require('internal')
-const arangodb = require("@arangodb");
+const internal = require('internal');
 const semver = require('semver');
+const arangodb = require("@arangodb");
+const console = require("console");
+const db = internal.db;
 const time = internal.time;
+const sleep = internal.sleep;
 const ERRORS = arangodb.errors;
-let db = internal.db;
-let print = internal.print;
-let database = "_system";
+let v = db._version(true);
+const enterprise = v.license === "enterprise";
+const dbVersion = db._version();
+
 let PWDRE = /.*at (.*)cleardata.js.*/;
 let stack = new Error().stack;
-let isCluster = arango.GET("/_admin/server/role").role === "COORDINATOR";
 let PWD = fs.makeAbsolute(PWDRE.exec(stack)[1]);
-const dbVersion = db._version();
+let isCluster = arango.GET("/_admin/server/role").role === "COORDINATOR";
+let database = "_system";
+let databaseName;
+let v = db._version(true);
+const enterprise = v.license === "enterprise";
 
 const optionsDefaults = {
   minReplicationFactor: 1,
@@ -51,30 +70,17 @@ _.defaults(options, optionsDefaults);
 var numberLength = Math.log(options.numberOfDBs + options.countOffset) * Math.LOG10E + 1 | 0;
 
 const zeroPad = (num) => String(num).padStart(numberLength, '0');
+
 let tStart = 0;
 let timeLine = [];
-function progress () {
-  now = time();
-  timeLine.push(now - tStart);
-  tStart = now;
+function progress (gaugeName) {
+  let now = time();
+  let delta = now - tStart;
+  timeLine.push(delta);
   if (options.progress) {
-    print("#");
+    print(`# - ${gaugeName},${tStart},${delta}`);
   }
-}
-function getShardCount (defaultShardCount) {
-  if (options.singleShard) {
-    return 1;
-  }
-  return defaultShardCount;
-}
-function getReplicationFactor (defaultReplicationFactor) {
-  if (defaultReplicationFactor > options.maxReplicationFactor) {
-    return options.maxReplicationFactor;
-  }
-  if (defaultReplicationFactor < options.minReplicationFactor) {
-    return options.minReplicationFactor;
-  }
-  return defaultReplicationFactor;
+  tStart = now;
 }
 let ClearDataFuncs = [];
 let ClearDataDbFuncs = [];
@@ -111,23 +117,40 @@ function scanTestPaths (options) {
   });
 }
 
-let v = db._connection.GET("/_api/version");
-const enterprise = v.license === "enterprise"
+function getShardCount (defaultShardCount) {
+  if (options.singleShard) {
+    return 1;
+  }
+  return defaultShardCount;
+}
+
+function getReplicationFactor (defaultReplicationFactor) {
+  if (defaultReplicationFactor > options.maxReplicationFactor) {
+    return options.maxReplicationFactor;
+  }
+  if (defaultReplicationFactor < options.minReplicationFactor) {
+    return options.minReplicationFactor;
+  }
+  return defaultReplicationFactor;
+}
+
 scanTestPaths(options);
 let dbCount = 0;
 while (dbCount < options.numberOfDBs) {
-  let databaseName = database
   tStart = time();
   timeLine = [tStart];
   ClearDataDbFuncs.forEach(func => {
     db._useDatabase("_system");
-    func(options, isCluster, enterprise, database, dbCount);
+    func(options,
+         isCluster,
+         enterprise,
+         database,
+         dbCount);
   });
 
-  progress();
-  loopCount = 0;
+  let loopCount = options.collectionCountOffset;
   while (loopCount < options.collectionMultiplier) {
-    // Drop collections:
+    progress();
     ClearDataFuncs.forEach(func => {
       func(options,
            isCluster,

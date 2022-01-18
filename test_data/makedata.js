@@ -14,6 +14,7 @@
 // `--collectionCountOffset [0] number offset at which to start the database count
 // `--singleShard [false]       whether this should only be a single shard instance
 // `--progress [false]          whether to output a keepalive indicator to signal the invoker that work is ongoing
+// `--bigDoc                    Increase size of the graph documents
 'use strict';
 const fs = require('fs');
 const _ = require('lodash');
@@ -35,6 +36,8 @@ let PWD = fs.makeAbsolute(PWDRE.exec(stack)[1]);
 let isCluster = arango.GET("/_admin/server/role").role === "COORDINATOR";
 let database = "_system";
 let databaseName;
+let v = db._version(true);
+const enterprise = v.license === "enterprise";
 
 const optionsDefaults = {
   minReplicationFactor: 1,
@@ -50,17 +53,18 @@ const optionsDefaults = {
   newVersion: "3.5.0",
   passvoid: '',
   bigDoc: false,
-  passvoid: ''
 };
 
-let args = ARGUMENTS;
+let args = _.clone(ARGUMENTS);
 if ((args.length > 0) &&
     (args[0].slice(0, 1) !== '-')) {
-  database = args[0];
+  database = args[0]; // must start with 'system_' else replication fuzzing may delete it!
   args = args.slice(1);
 }
+
 let options = internal.parseArgv(args, 0);
 _.defaults(options, optionsDefaults);
+
 var numberLength = Math.log(options.numberOfDBs + options.countOffset) * Math.LOG10E + 1 | 0;
 
 const zeroPad = (num) => String(num).padStart(numberLength, '0');
@@ -213,14 +217,21 @@ while (dbCount < options.numberOfDBs) {
   timeLine = [tStart];
   MakeDataDbFuncs.forEach(func => {
     db._useDatabase("_system");
-    dbCount += func(options, isCluster, enterprise, database, dbCount);
+    dbCount += func(options,
+                    isCluster,
+                    enterprise,
+                    database,
+                    dbCount);
   });
   progress('createDB');
 
   let loopCount = options.collectionCountOffset;
   while (loopCount < options.collectionMultiplier) {
+    progress();
     MakeDataFuncs.forEach(func => {
-      func(options, isCluster, enterprise,
+      func(options,
+           isCluster,
+           enterprise,
            dbCount,
            loopCount);
     });
