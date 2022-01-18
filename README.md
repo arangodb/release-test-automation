@@ -360,7 +360,7 @@ It consists of these files in test_data:
  - `cleardata.js` - remove the testdata - after invoking it makedata should be able to be ran again without issues.
  - Plugins in `test_data/makedata_suites` executed in alphanumeric order:
    - `000_dummy.js` - this can be used as a template if you want to create a new plugin. 
-   - `010_disabled_uuid_check.js` If you're running a cluster setup in failover mode, this checks whether all shards have an available leader.
+   - `010_disabled_uuid_check.js` If you're running a cluster setup in failover mode, this checks and waits for all shards have an available leader.
    - `020_foxx.js` Installs foxx, checks it. 
    - `050_database.js` creates databases for the test data.
    - `100_collections.js` creates a set of collections / indices
@@ -376,7 +376,7 @@ It should be considered to provide a set of hooks (000_dummy.js can be considere
 - Per Database loop Create / Check [readonly] / Delete handler
 - Per Collection loop Create / Check [readonly] / Delete handler
 
-The hook functions should respect a counter, and use it in their respective reseource names.
+The hook functions should respect their counter parameters, and use them in their respective reseource names.
 Jslint should be used to check code validity.
 
 The list of the hooks enabled for this very run of one of the tools is printed on startup for reference.
@@ -390,7 +390,7 @@ Makedata should be considered a framework for consistency checking in the follow
 The replication fuzzing test should be used to ensure the above with randomness added.
 
 Makedata is by default ran with one dataset. However, it can also be used as load generator. 
-In this case, the counters have to be respected, so subsequent runs don't clash with earlier runs.
+For this case especialy, the counters have to be respected, so subsequent runs don't clash with earlier runs.
 The provided dbCount / loopCount should be used in identifiers to ensure this.
 
 # Flow of testcases
