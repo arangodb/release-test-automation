@@ -5,8 +5,7 @@
     isSupported: function (currentVersion, oldVersion, options, enterprise, cluster) {
       let current = semver.parse(semver.coerce(currentVersion));
 
-      //return semver.gte(current, "3.9.0") && cluster && !options.readOnly;
-      return false; // TODO!
+      return semver.gte(current, "3.9.0") && cluster && !options.readOnly;
     },
     checkData: function (options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
       // depends on the 550_enterprise_graph.js to be there
@@ -65,8 +64,8 @@
         }
         return {fail: false};
       } finally {
-        // Always report that we tested SmartGraph Validators
-        progress("Tested SmartGraph validators");
+        // Always report that we tested SmartGraph edge Validators
+        progress("Tested SmartGraph edge validators");
       }
     }
   };

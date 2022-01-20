@@ -367,7 +367,8 @@ It consists of these files in test_data:
    - `400_views.js` creates some views
    - `500_community_graph.js` creates a community patent graph
    - `550_enterprise_graph.js` creates an enterprise patent graph
-   - `560_smartgraph_validator.js` on top of the enterprise graph, this will check the integrity check of the server.
+   - `560_smartgraph_edge_validator.js` on top of the enterprise graph, this will check the integrity check of the server.
+   - `561_smartgraph_vertex_validator.js` on top of the enterprise graph, this will check the integrity check of the server.
    - `900_oneshard.js` creates oneshard database and does stuff with it.
 
 It should be considered to provide a set of hooks (000_dummy.js can be considered being a template for this):
