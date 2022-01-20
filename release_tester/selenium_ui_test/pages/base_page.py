@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+""" base page object """
 import time
 
 # from selenium import webdriver
@@ -63,7 +65,7 @@ class BasePage:
         #         profile = webdriver.FirefoxProfile()
         #         profile.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/json, text/csv")  # mime
         #         profile.set_preference("browser.download.manager.showWhenStarting", False)
-        #         profile.set_preference("browser.download.dir", "C:\\Users\\rearf\\Downloads")  # fixme
+        #         profile.set_preference("browser.download.dir", "C:\\Users\\rearf\\Downloads")
         #         profile.set_preference("browser.download.folderList", 2)
         #         profile.set_preference("pdfjs.disabled", True)
         #
@@ -103,7 +105,7 @@ class BasePage:
         """wait for jquery to finish..."""
         wait = WebDriverWait(self.webdriver, 15)
         try:
-            wait.until(lambda driver: driver.execute_script("return jQuery.active") == 0)
+            wait.until(lambda driver: driver.execute_script("return (typeof jQuery !== 'undefined') && jQuery.active") == 0)
             wait.until(lambda driver: driver.execute_script("return document.readyState") == "complete")
         except TimeoutException:
             pass
@@ -229,6 +231,7 @@ class BasePage:
         return title
 
     def check_version_is_newer(self, compare_version):
+        """ check whether the version in the ui is the expected """
         ui_version_str = self.locator_finder_by_id("currentVersion").text
         print("Package Version: ", ui_version_str)
         ui_version = semver.VersionInfo.parse(ui_version_str)
@@ -331,8 +334,7 @@ class BasePage:
         )
         if self.locator is None:
             print(locator_name, " locator has not found.")
-        else:
-            return self.locator
+        return self.locator
 
     def locator_finder_by_hover_item_id(self, locator):
         """This method will used for finding all the locators and hover the mouse by id"""
@@ -366,6 +368,7 @@ class BasePage:
             raise Exception("UI-Test: ", locator_name, " locator was not found.")
         return self.locator
 
+    # pylint: disable=too-many-arguments
     def check_expected_error_messages_for_analyzer(
         self, error_input, print_statement, error_message, locators_id, error_message_id, div_id=None
     ):
@@ -409,11 +412,12 @@ class BasePage:
                 print("x" * (len(error_sitem) + 29), "\n")
                 time.sleep(2)
 
-            except TimeoutException:
-                raise Exception("*****-->Error occurred. Manual inspection required<--***** \n")
+            except TimeoutException as ex:
+                raise Exception("*****-->Error occurred. Manual inspection required<--***** \n") from ex
 
             i = i + 1
 
+    # pylint: disable=too-many-arguments
     def check_expected_error_messages_for_database(
         self, error_input, print_statement, error_message, locators_id, error_message_id, value=False
     ):
@@ -463,8 +467,8 @@ class BasePage:
                     self.locator_finder_by_id("createDatabase").click()
                     time.sleep(1)
 
-            except TimeoutException:
-                raise Exception("*****-->Error occurred. Manual inspection required<--***** \n")
+            except TimeoutException as ex:
+                raise Exception("*****-->Error occurred. Manual inspection required<--***** \n") from ex
 
             i = i + 1
 
@@ -481,6 +485,7 @@ class BasePage:
             return package
         except TimeoutException:
             print("This is not a Enterprise server package.\n")
+        return "package not found"
 
     def choose_item_from_a_dropdown_menu(self, element: WebElement, item_text: str):
         """Given a drop-down menu element,
@@ -491,11 +496,13 @@ class BasePage:
         item_element.click()
 
     def click_submenu_entry(self, text):
+        """click submenu"""
         locator = """//li[contains(@class, 'subMenuEntry')]/a[text()='%s']""" % text
         self.locator_finder_by_xpath(locator).click()
 
+    # pylint: disable=no-self-use
     def progress(self, arg):
-        """state print todo"""
+        """state print""" # todo
         print(arg)
 
     def xpath(self, path):

@@ -21,13 +21,7 @@ def get_all_processes(kill_selenium):
     chromedrivers = []
     headleschromes = []
     logging.info("searching for leftover processes")
-    processes = None
-    if platform.win32_ver()[0]:
-        # On Windows, iterate over all processes.
-        processes = psutil.process_iter()
-    else:
-        # On Unix, iterate only through processes, that are descendant from this process.
-        processes = psutil.Process().children(recursive=True)
+    processes = psutil.process_iter()
     for process in processes:
         try:
             name = process.name()
@@ -96,6 +90,7 @@ def kill_all_processes(kill_selenium=True):
 def list_all_processes():
     """list all processes for later reference"""
     pseaf = "PID  Process"
+    # pylint: disable=catching-non-exception
     for process in psutil.process_iter(["pid", "name"]):
         cmdline = process.name
         try:

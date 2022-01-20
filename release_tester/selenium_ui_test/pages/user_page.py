@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+""" user page object """
 import time
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import StaleElementReferenceException

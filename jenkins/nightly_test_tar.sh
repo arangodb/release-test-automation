@@ -23,7 +23,6 @@ else
     force_arg+=(--remote-host "$(host nas02.arangodb.biz |sed "s;.* ;;")")
 fi
 
-VERSION_TAR_NAME="${NEW_VERSION}_tar_version.tar"
 mkdir -p "${PACKAGE_CACHE}"
 mkdir -p test_dir
 mkdir -p allure-results
@@ -51,10 +50,11 @@ docker run \
        -v "$(pwd):/home/release-test-automation" \
        -v "$(pwd)/test_dir:/home/test_dir" \
        -v "$(pwd)/allure-results:/home/allure-results" \
-       -v "${PACKAGE_CACHE}:/home/package_cache" \
+       -v "${PACKAGE_CACHE}:/home/release-test-automation/package_cache" \
        -v /tmp/tmp:/tmp/ \
        -v /dev/shm:/dev/shm \
        --env="BUILD_NUMBER=${BUILD_NUMBER}" \
+       --env="PYTHONUNBUFFERED=1" \
        \
        --name="${DOCKER_TAR_NAME}" \
        --pid=host \
@@ -65,12 +65,14 @@ docker run \
        "arangodb/${DOCKER_TAR_TAG}" \
        \
           /home/release-test-automation/release_tester/full_download_test.py \
-          --version-state-tar "/home/release-test-automation/${VERSION_TAR_NAME}" \
           --new-version "${NEW_VERSION}" \
           --zip \
           --verbose \
           --alluredir /home/allure-results \
           --git-version "$GIT_VERSION" \
+          --selenium Chrome \
+          --selenium-driver-args headless \
+          --selenium-driver-args no-sandbox \
           "${force_arg[@]}" \
           "${@}"
 result=$?

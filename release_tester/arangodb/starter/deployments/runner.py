@@ -16,7 +16,6 @@ import time
 
 from allure_commons._allure import attach
 import certifi
-import psutil
 from beautifultable import BeautifulTable
 import requests
 
@@ -30,6 +29,7 @@ from reporting.reporting_utils import step
 
 from arangodb.async_client import CliExecutionException
 from arangodb.bench import load_scenarios
+from arangodb.installers import HotBackupSetting
 from arangodb.instance import InstanceType, print_instances_table
 from arangodb.sh import ArangoshExecutor
 
@@ -80,7 +80,7 @@ class RunnerProperties:
 class Runner(ABC):
     """abstract starter deployment runner"""
 
-    # pylint: disable=R0913 disable=R0902 disable=R0904 disable=C0415 disable=R0914 disable=R0915
+    # pylint: disable=R0913 disable=R0902 disable=R0904 disable=C0415 disable=R0914 disable=R0915 disable=R0912
     def __init__(
         self,
         runner_type,
@@ -109,13 +109,12 @@ class Runner(ABC):
             new_cfg = install_set[1][1].cfg
             new_inst = install_set[1][1]
 
-        self.do_install = cfg.mode == "all" or cfg.mode == "install"
-        self.do_uninstall = cfg.mode == "all" or cfg.mode == "uninstall"
-        self.do_system_test = cfg.mode in ["all", "system"] and cfg.have_system_service
-        self.do_starter_test = cfg.mode in ["all", "tests"]
+        self.do_install = cfg.deployment_mode in ["all", "install"]
+        self.do_uninstall = cfg.deployment_mode in ["all", "uninstall"]
+        self.do_system_test = cfg.deployment_mode in ["all", "system"] and cfg.have_system_service
+        self.do_starter_test = cfg.deployment_mode in ["all", "tests"]
         self.do_upgrade = False
         self.supports_rolling_upgrade = WINVER[0] == ""
-        # self.supports_rolling_upgrade = False # TODO
 
         self.basecfg = copy.deepcopy(cfg)
         self.new_cfg = new_cfg
@@ -165,9 +164,11 @@ class Runner(ABC):
         self.old_installer = old_inst
         self.new_installer = new_inst
         self.backup_name = None
-        self.hot_backup = cfg.hot_backup and properties.supports_hotbackup and self.old_installer.supports_hot_backup()
-
-        # self.hot_backup = False # TODO
+        self.hot_backup = (
+            cfg.hb_mode != HotBackupSetting.DISABLED
+            and properties.supports_hotbackup
+            and self.old_installer.supports_hot_backup()
+        )
         self.backup_instance_count = 3
         # starter instances that make_data wil run on
         # maybe it would be better to work directly on
@@ -318,19 +319,11 @@ class Runner(ABC):
                 False,
                 "UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),
             )
-            if self.cfg.debug_package_is_installed:
-                print("removing *old* debug package in advance")
-                self.old_installer.un_install_debug_package()
-
-            self.new_installer.upgrade_package(self.old_installer)
+            self.new_installer.calculate_package_names()
+            self.new_installer.upgrade_server_package(self.old_installer)
             lh.subsection("outputting version")
             self.new_installer.output_arangod_version()
             self.new_installer.get_starter_version()
-            # only install debug package for new package.
-            self.progress(True, "installing debug package:")
-            self.cfg.debug_package_is_installed = self.new_installer.install_debug_package()
-            if self.cfg.debug_package_is_installed:
-                self.new_installer.gdb_test()
             self.new_installer.stop_service()
             self.cfg.set_directories(self.new_installer.cfg)
             self.new_cfg.set_directories(self.new_installer.cfg)
@@ -386,7 +379,7 @@ class Runner(ABC):
                 ui_test_results_table = BeautifulTable(maxwidth=160)
                 for result in self.selenium.test_results:
                     ui_test_results_table.rows.append(
-                        [result.name, "PASSED" if result.success else "FAILED", result.message, result.tb]
+                        [result.name, "PASSED" if result.success else "FAILED", result.message, result.traceback]
                     )
                     if not result.success:
                         self.ui_tests_failed = True
@@ -483,10 +476,6 @@ class Runner(ABC):
             if not self.new_installer:
                 # only install debug package for new package.
                 self.progress(True, "installing debug package:")
-                self.cfg.debug_package_is_installed = inst.install_debug_package()
-                if self.cfg.debug_package_is_installed:
-                    self.progress(True, "testing debug symbols")
-                    inst.gdb_test()
 
         # start / stop
         if inst.check_service_up():
@@ -503,7 +492,7 @@ class Runner(ABC):
             sys_arangosh.js_version_check()
             # TODO: here we should invoke Makedata for the system installation.
 
-            logging.debug("stop system service " "to make ports available for starter")
+            logging.debug("stop system service to make ports available for starter")
             inst.stop_service()
 
     @step
@@ -517,9 +506,6 @@ class Runner(ABC):
     def uninstall(self, inst):
         """uninstall the package from the system"""
         self.progress(True, "{0} - uninstall package".format(str(self.name)))
-        if self.cfg.debug_package_is_installed:
-            print("uninstalling debug package")
-            inst.un_install_debug_package()
         print("uninstalling server package")
         inst.un_install_server_package()
         inst.check_uninstall_cleanup()
@@ -1128,4 +1114,3 @@ class Runner(ABC):
 
     def set_selenium_instances(self):
         """set instances in selenium runner"""
-        pass

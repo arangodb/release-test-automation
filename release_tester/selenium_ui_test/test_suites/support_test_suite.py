@@ -1,8 +1,12 @@
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
+#!/usr/bin/env python3
+""" support page testsuite """
+from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
+from selenium_ui_test.test_suites.base_test_suite import testcase
 from selenium_ui_test.pages.support_page import SupportPage
 
 
-class SupportTestSuite(BaseTestSuite):
+class SupportTestSuite(BaseSeleniumTestSuite):
+    """ support page testsuite """
     @testcase
     def test_support(self):
         """testing support page"""

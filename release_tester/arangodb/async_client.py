@@ -7,7 +7,6 @@ from queue import Queue, Empty
 import sys
 from subprocess import PIPE, Popen
 from threading import Thread
-
 from allure_commons._allure import attach
 
 from tools.asciiprint import print_progress as progress
@@ -89,6 +88,14 @@ class ArangoCLIprogressiveTimeoutExecutor:
         (is still alive...)
         """
         # fmt: off
+        passvoid = ''
+        if self.cfg.passvoid:
+            passvoid  = str(self.cfg.passvoid)
+        elif self.connect_instance:
+            passvoid = str(self.connect_instance.get_passvoid())
+        if passvoid is None:
+            passvoid = ''
+
         run_cmd = [
             "--log.foreground-tty", "true",
             "--log.force-direct", "true",
@@ -96,10 +103,8 @@ class ArangoCLIprogressiveTimeoutExecutor:
         if self.connect_instance:
             run_cmd += ["--server.endpoint", self.connect_instance.get_endpoint()]
             run_cmd += ["--server.username", str(self.cfg.username)]
-        if self.cfg.passvoid:
-            run_cmd += ["--server.password", str(self.cfg.passvoid)]
-        elif self.connect_instance:
-            run_cmd += ["--server.password", str(self.connect_instance.get_passvoid())]
+            run_cmd += ["--server.password", passvoid]
+
         run_cmd += more_args
         return self.run_monitored(executeable, run_cmd, timeout, result_line, verbose, expect_to_fail)
         # fmt: on
@@ -113,76 +118,76 @@ class ArangoCLIprogressiveTimeoutExecutor:
 
         run_cmd = [executeable] + args
         lh.log_cmd(run_cmd, verbose)
-        process = Popen(
+        with Popen(
             run_cmd,
             stdout=PIPE,
             stderr=PIPE,
             close_fds=ON_POSIX,
             cwd=self.cfg.test_data_dir.resolve(),
-        )
-        queue = Queue()
-        thread1 = Thread(
-            name="readIO",
-            target=enqueue_stdout,
-            args=(process.stdout, queue, self.connect_instance),
-        )
-        thread2 = Thread(
-            name="readErrIO",
-            target=enqueue_stderr,
-            args=(process.stderr, queue, self.connect_instance),
-        )
-        thread1.start()
-        thread2.start()
-
-        try:
-            print(
-                "me PID:%d launched PID:%d with LWPID:%d and LWPID:%d"
-                % (os.getpid(), process.pid, thread1.native_id, thread2.native_id)
+        ) as process:
+            queue = Queue()
+            thread1 = Thread(
+                name="readIO",
+                target=enqueue_stdout,
+                args=(process.stdout, queue, self.connect_instance),
             )
-        except AttributeError:
-            print("me PID:%d launched PID:%d with LWPID:N/A and LWPID:N/A" % (os.getpid(), process.pid))
+            thread2 = Thread(
+                name="readErrIO",
+                target=enqueue_stderr,
+                args=(process.stderr, queue, self.connect_instance),
+            )
+            thread1.start()
+            thread2.start()
 
-        # ... do other things here
-        # out = logfile.open('wb')
-        # read line without blocking
-        have_timeout = False
-        line_filter = False
-        tcount = 0
-        close_count = 0
-        result = []
-        while not have_timeout:
-            if not verbose:
-                progress("sj" + str(tcount))
-            line = ""
             try:
-                line = queue.get(timeout=1)
-                line_filter = line_filter or result_line(line)
-            except Empty:
-                tcount += 1
-                if verbose:
-                    progress("T " + str(tcount))
-                have_timeout = tcount >= timeout
-            else:
-                tcount = 0
-                if isinstance(line, tuple):
+                print(
+                    "me PID:%d launched PID:%d with LWPID:%d and LWPID:%d"
+                    % (os.getpid(), process.pid, thread1.native_id, thread2.native_id)
+                )
+            except AttributeError:
+                print("me PID:%d launched PID:%d with LWPID:N/A and LWPID:N/A" % (os.getpid(), process.pid))
+
+            # ... do other things here
+            # out = logfile.open('wb')
+            # read line without blocking
+            have_timeout = False
+            line_filter = False
+            tcount = 0
+            close_count = 0
+            result = []
+            while not have_timeout:
+                if not verbose:
+                    progress("sj" + str(tcount))
+                line = ""
+                try:
+                    line = queue.get(timeout=1)
+                    line_filter = line_filter or result_line(line)
+                except Empty:
+                    tcount += 1
                     if verbose:
-                        print("e: " + str(line[0]))
-                    if not str(line[0]).startswith("#"):
-                        result.append(line)
+                        progress("T " + str(tcount))
+                    have_timeout = tcount >= timeout
                 else:
-                    close_count += 1
-                    if close_count == 2:
-                        print(" done!")
-                        break
-        timeout_str = ""
-        if have_timeout:
-            timeout_str = "TIMEOUT OCCURED!"
-            print(timeout_str)
-            timeout_str += "\n"
-            process.kill()
-        rc_exit = process.wait()
-        thread1.join()
-        thread2.join()
+                    tcount = 0
+                    if isinstance(line, tuple):
+                        if verbose:
+                            print("e: " + str(line[0]))
+                        if not str(line[0]).startswith("#"):
+                            result.append(line)
+                    else:
+                        close_count += 1
+                        if close_count == 2:
+                            print(" done!")
+                            break
+            timeout_str = ""
+            if have_timeout:
+                timeout_str = "TIMEOUT OCCURED!"
+                print(timeout_str)
+                timeout_str += "\n"
+                process.kill()
+            rc_exit = process.wait()
+            thread1.join()
+            thread2.join()
 
         attach(str(rc_exit), f"Exit code: {str(rc_exit)}")
 

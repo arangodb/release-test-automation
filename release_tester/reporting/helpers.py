@@ -14,7 +14,7 @@ from allure_commons.reporter import AllureReporter
 from allure_commons.types import LabelType, AttachmentType
 from allure_commons.utils import now, format_traceback, format_exception, uuid4
 
-from .logging import IoDuplicator
+from reporting.logging import IoDuplicator
 
 # pylint: disable=R0903
 class StepData:
@@ -120,15 +120,18 @@ class AllureListener:
         for label in context.labels:
             test_result.labels.append(label)
 
+    # pylint: disable=too-many-arguments
     @allure_commons.hookimpl
-    def stop_test(self, uuid, context):
+    def stop_test(self, uuid, context, exc_type, exc_val, exc_tb):
         """stop test"""
         test_result = self._cache.get(uuid)
         test_result.status = context.status
         if context.statusDetails:
             test_result.statusDetails = context.statusDetails
         test_result.stop = now()
-        # context.log_captor.save_logs()
+        if exc_type or exc_val or exc_tb:
+            test_result.status = get_status(exc_val)
+            test_result.statusDetails = get_status_details(exc_type, exc_val, exc_tb)
         for step in test_result.steps:
             if step.status == Status.FAILED:
                 test_result.status = Status.FAILED
@@ -144,7 +147,7 @@ class ItemCache:
     """a class to store allure report objects before writing to output"""
 
     def __init__(self):
-        self._items = dict()
+        self._items = {}
 
     def get(self, uuid):
         """get item from cache by uuid"""

@@ -125,7 +125,7 @@ class ActiveFailover(Runner):
                         InstanceType.AGENT,
                         InstanceType.RESILIENT_SINGLE,
                     ],
-                    jwtStr="afo",
+                    jwt_str="afo",
                     moreopts=opts,
                 )
             )
@@ -155,7 +155,7 @@ class ActiveFailover(Runner):
             node.active_failover_detect_hosts()
 
     def finish_setup_impl(self):
-        logging.info("instances are ready, detecting leader")
+        logging.info("instances are ready, detecting leader. JWT: " + self.starter_instances[0].get_jwt_header())
         self._detect_leader()
         if self.selenium:
             self.set_selenium_instances()
@@ -292,8 +292,7 @@ class ActiveFailover(Runner):
 
         self.first_leader.terminate_instance(keep_instances=True)
         logging.info("relaunching agent!")
-        self.first_leader.manually_launch_instances(
-            [InstanceType.AGENT], [], False, False)
+        self.first_leader.manually_launch_instances([InstanceType.AGENT], [], False, False)
 
         logging.info("waiting for new leader...")
         self.new_leader = None

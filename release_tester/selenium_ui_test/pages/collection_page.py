@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+""" collection page object """
 import time
 import traceback
 
@@ -26,19 +28,19 @@ class CollectionPage(NavigationBarPage):
         self.create_new_collection_btn_id = "modalButton1"
         self.select_collection_settings_id = "collectionsToggle"
         self.display_system_collection_id = (
-            "//div[@id='collectionsDropdown']" "/ul[1]/li[2]/a/label[@class='checkbox checkboxLabel']"
+            "//div[@id='collectionsDropdown']/ul[1]/li[2]/a/label[@class='checkbox checkboxLabel']"
         )
         self.display_document_collection_id = (
-            "//div[@id='collectionsDropdown']" "/ul[1]/li[3]/a/label[@class='checkbox checkboxLabel']"
+            "//div[@id='collectionsDropdown']/ul[1]/li[3]/a/label[@class='checkbox checkboxLabel']"
         )
         self.display_edge_collection_id = (
-            "//div[@id='collectionsDropdown']" "/ul[1]/li[4]/a/label[@class='checkbox checkboxLabel']"
+            "//div[@id='collectionsDropdown']/ul[1]/li[4]/a/label[@class='checkbox checkboxLabel']"
         )
         self.select_status_loaded_id = (
-            "//div[@id='collectionsDropdown']" "/ul[2]/li[2]/a[@href='#']/label[@class='checkbox checkboxLabel']"
+            "//div[@id='collectionsDropdown']/ul[2]/li[2]/a[@href='#']/label[@class='checkbox checkboxLabel']"
         )
         self.select_status_unloaded_id = (
-            "//div[@id='collectionsDropdown']" "/ul[2]/li[3]/a[@href='#']/label[@class='checkbox checkboxLabel']"
+            "//div[@id='collectionsDropdown']/ul[2]/li[3]/a[@href='#']/label[@class='checkbox checkboxLabel']"
         )
         self.sort_by_name_id = "sortName"
         self.sort_by_type_id = "sortType"
@@ -97,7 +99,7 @@ class CollectionPage(NavigationBarPage):
         self.select_ttl_background_id = "newTtlBackground"
 
         self.select_index_for_delete_id = (
-            "/html//table[@id='collectionEditIndexTable']" "/tbody/tr[2]/th[9]/span[@title='Delete index']"
+            "/html//table[@id='collectionEditIndexTable']/tbody/tr[2]/th[9]/span[@title='Delete index']"
         )
         self.select_index_confirm_delete = "indexConfirmDelete"
         self.select_info_tab_id = "//*[@id='subNavigationBarPage']/ul[2]/li[3]/a"
@@ -173,8 +175,7 @@ class CollectionPage(NavigationBarPage):
 
     def select_replication_factor(self, rf_value):
         """selecting number of replication factor for the collection"""
-        rf = "new-replication-factor"
-        rf_sitem = self.locator_finder_by_id(rf)
+        rf_sitem = self.locator_finder_by_id("new-replication-factor")
         rf_sitem.click()
         rf_sitem.clear()
         rf_sitem.send_keys(rf_value)
@@ -484,6 +485,7 @@ class CollectionPage(NavigationBarPage):
     #     self.wait_for_ajax()
 
     def create_new_index(self, index_name, value, cluster_status):
+        """ create a new Index """
         print(f"Creating {index_name} index started \n")
         create_new_index_btn_sitem = self.locator_finder_by_id(self.create_new_index_btn_id)
         create_new_index_btn_sitem.click()
@@ -584,8 +586,8 @@ class CollectionPage(NavigationBarPage):
             select_index_confirm_delete_sitem = self.locator_finder_by_id(self.select_index_confirm_delete)
             select_index_confirm_delete_sitem.click()
             self.webdriver.refresh()
-        except TimeoutException as e:
-            print("Something went wrong ", e, "\n")
+        except TimeoutException as ex:
+            print("Something went wrong ", ex, "\n")
 
     def select_info_tab(self):
         """Selecting info tab from the collection submenu"""
@@ -669,6 +671,7 @@ class CollectionPage(NavigationBarPage):
         self.click_submenu_entry("Settings")
 
     def select_collection(self, collection_name):
+        """ select a collection """
         selector = """//div[contains(@class, 'tile')][@id='collection_%s']""" % collection_name
         self.locator_finder_by_xpath(selector).click()
 
@@ -689,9 +692,9 @@ class CollectionPage(NavigationBarPage):
         except TimeoutException:
             print("TimeoutException occurred! \n")
             print("Info: Collection has already been deleted or never created. \n")
-        except Exception:
+        except Exception as ex:
             traceback.print_exc()
-            raise Exception("Critical Error occurred and need manual inspection!! \n")
+            raise Exception("Critical Error occurred and need manual inspection!! \n") from ex
 
     def create_sample_collection(self, test_name):
         """selecting collection tab"""

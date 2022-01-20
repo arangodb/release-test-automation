@@ -1,11 +1,16 @@
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
+#!/usr/bin/env python3
+""" views testsuite """
+from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
+from selenium_ui_test.test_suites.base_test_suite import testcase
 from selenium_ui_test.pages.views_page import ViewsPage
 
 
-class ViewsTestSuite(BaseTestSuite):
+class ViewsTestSuite(BaseSeleniumTestSuite):
+    """ views testsuite """
     @testcase
     def test_views(self):
         """testing Views page"""
+        # pylint: disable=too-many-statements
         print("---------Checking Views Begin--------- \n")
         # login = LoginPage(self.webdriver)
         # login.login('root', self.root_passvoid)

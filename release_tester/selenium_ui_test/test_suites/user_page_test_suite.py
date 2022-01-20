@@ -1,11 +1,18 @@
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, testcase
+#!/usr/bin/env python3
+""" user page testsuite """
+from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
+from selenium_ui_test.test_suites.base_test_suite import testcase
+
 from selenium_ui_test.pages.user_page import UserPage
 from selenium_ui_test.pages.login_page import LoginPage
 
 from selenium_ui_test.pages.collection_page import CollectionPage
 from selenium.common.exceptions import TimeoutException
 
-class UserPageTestSuite(BaseTestSuite):
+
+class UserPageTestSuite(BaseSeleniumTestSuite):
+# pylint: disable=too-many-statements
+    """ user page testsuite """
     @testcase
     def test_user(self):
         """testing user page"""
@@ -30,8 +37,9 @@ class UserPageTestSuite(BaseTestSuite):
             user.log_out()
             print("Re-Login begins with new user\n")
             login.login_webif("tester", "tester")
-            print("Re-Login begins with new user completed: %s / %s\n" % (
-                login.current_user(), login.current_database()))
+            print(
+                "Re-Login begins with new user completed: %s / %s\n" % (login.current_user(), login.current_database())
+            )
 
             print("trying to create collection")
             collection_page = CollectionPage(self.webdriver)
@@ -51,8 +59,7 @@ class UserPageTestSuite(BaseTestSuite):
             user.log_out()
             # login back with root user
             login.login_webif("root", self.root_passvoid)
-            print("Re-Login root user completed: %s / %s\n" % (
-                login.current_user(), login.current_database()))
+            print("Re-Login root user completed: %s / %s\n" % (login.current_user(), login.current_database()))
 
             user.user_tab()
             user.selecting_user_tester()
@@ -63,11 +70,12 @@ class UserPageTestSuite(BaseTestSuite):
             user.log_out()
             print("Re-Login begins with new user\n")
             login.login_webif("tester", "tester")
-            print("Re-Login begins with new user completed: %s / %s\n" % (
-                login.current_user(), login.current_database()))
+            print(
+                "Re-Login begins with new user completed: %s / %s\n" % (login.current_user(), login.current_database())
+            )
             print("trying to create collection")
             collection_page.navbar_goto("collections")
-            # TODO: we fail to remove this collection again. 
+            # TODO: we fail to remove this collection again.
             #collection_page.create_sample_collection("read/write")
             #collection_page.select_delete_collection()
             print("Allow user Read/Write access to the _system DB test Completed \n")
@@ -76,8 +84,7 @@ class UserPageTestSuite(BaseTestSuite):
             self.webdriver.refresh()
             user.log_out()
             login.login_webif("root", self.root_passvoid)
-            print("Re-Login root user completed: %s / %s\n" % (
-                login.current_user(), login.current_database()))
+            print("Re-Login root user completed: %s / %s\n" % (login.current_user(), login.current_database()))
 
             self.webdriver.refresh()
             user.user_tab()

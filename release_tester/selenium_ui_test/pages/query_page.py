@@ -1,14 +1,15 @@
+#!/usr/bin/env python3
+""" query page object """
 import time
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium_ui_test.pages.base_page import BasePage
 from selenium_ui_test.pages.navbar import NavigationBarPage
 
 # can't circumvent long lines.. nAttr nLines
-# pylint: disable=C0301 disable=R0902 disable=R0915 disable=R0914
+# pylint: disable=C0301 disable=R0902 disable=R0915 disable=R0914 disable=too-many-public-methods
 
 
 class QueryPage(NavigationBarPage):
@@ -231,8 +232,8 @@ RETURN c
         self.enter_query(
             """
 UPDATE "{key}"
-    WITH {alive: false}
-IN Characters"""
+    WITH {{alive: false}}
+IN Characters""".format(key=key)
         )
 
         # selecting execute query button
@@ -287,7 +288,7 @@ RETURN doc"""
         # selecting query execution area
         # TODO: re-add or delete bind values
         # bind_alive = self.bind_param_input_id % "1"
-        bind_name = self.bind_param_input_id % "2"
+        # bind_name = self.bind_param_input_id % "2"
         self.enter_query(
             """
 FOR doc IN Characters

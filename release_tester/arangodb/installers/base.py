@@ -15,6 +15,7 @@ import yaml
 import psutil
 
 from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor
+from arangodb.installers import InstallerConfig
 from arangodb.instance import ArangodInstance
 from tools.asciiprint import print_progress as progress
 from allure_commons._allure import attach
@@ -26,18 +27,18 @@ FILE_PIDS = []
 @step
 def run_file_command(file_to_check):
     """run `file file_to_check` and return the output"""
-    proc = subprocess.Popen(
+    with subprocess.Popen(
         ["file", file_to_check],
         stdout=subprocess.PIPE,
         stdin=subprocess.PIPE,
         stderr=subprocess.PIPE,
         universal_newlines=True,
-    )
-    line = proc.stdout.readline()
-    FILE_PIDS.append(str(proc.pid))
-    proc.wait()
-    print(line)
-    return line
+    ) as proc:
+        line = proc.stdout.readline()
+        FILE_PIDS.append(str(proc.pid))
+        proc.wait()
+        print(line)
+        return line
 
 
 IS_WINDOWS = platform.win32_ver()[0]
@@ -109,13 +110,18 @@ class BinaryDescription:
 
     def check_path(self, enterprise, in_version=True):
         """check whether the file rightfully exists or not"""
+        is_there = self.path.is_file()
         if enterprise and self.enterprise:
-            if not self.path.is_file() and in_version:
-                raise Exception("Binary missing from enterprise package!" + str(self.path))
+            if not is_there and in_version:
+                raise Exception("Binary missing from enterprise package! "
+                                + str(self.path))
         # file must not exist
         if not enterprise and self.enterprise:
-            if self.path.is_file():
-                raise Exception("Enterprise binary found in community package!" + str(self.path))
+            if is_there:
+                raise Exception("Enterprise binary found in community package! "
+                                + str(self.path))
+        elif not is_there:
+            raise Exception("binary was not found! " + str(self.path))
 
     def check_stripped_mac(self):
         """Checking stripped status of the arangod"""
@@ -128,10 +134,10 @@ class BinaryDescription:
             shutil.copy(str(self.path), str(to_file))
             # invoke the strip command on file_path
             cmd = ["strip", str(to_file)]
-            proc = subprocess.Popen(cmd, bufsize=-1, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
-            FILE_PIDS.append(str(proc.pid))
-            proc.communicate()
-            proc.wait()
+            with subprocess.Popen(cmd, bufsize=-1, stderr=subprocess.PIPE, stdin=subprocess.PIPE) as proc:
+                FILE_PIDS.append(str(proc.pid))
+                proc.communicate()
+                proc.wait()
             # check the size of copied file after stripped
             after_stripped_size = to_file.stat().st_size
 
@@ -182,11 +188,11 @@ class BinaryDescription:
 
 
 ### main class
-# pylint: disable=attribute-defined-outside-init disable=too-many-public-methods
+# pylint: disable=attribute-defined-outside-init disable=too-many-public-methods disable=too-many-instance-attributes
 class InstallerBase(ABC):
     """this is the prototype for the operation system agnostic installers"""
 
-    def __init__(self, cfg):
+    def __init__(self, cfg: InstallerConfig):
         self.arango_binaries = []
         self.cfg = copy.deepcopy(cfg)
         self.calculate_package_names()
@@ -197,26 +203,33 @@ class InstallerBase(ABC):
         self.reset_version(cfg.version)
         self.check_stripped = True
         self.check_symlink = True
+        self.server_package = ""
+        self.debug_package = ""
+        self.client_package = ""
         self.instance = None
         self.starter_versions = {}
         self.cli_executor = ArangoCLIprogressiveTimeoutExecutor(self.cfg, self.instance)
 
     def reset_version(self, version):
         """re-configure the version we work with"""
-        version = version.split("~")[0]
-        version = ".".join(version.split(".")[:3])
+        if version.find('nightly') >=0:
+            version = version.split("~")[0]
+            version = ".".join(version.split(".")[:3])
         self.semver = semver.VersionInfo.parse(version)
         self.cfg.reset_version(version)
 
     @step
     def install_server_package(self):
         """install the server package to the system"""
+        self.calculate_file_locations()
         self.install_server_package_impl()
         self.cfg.server_package_is_installed = True
-        self.calculate_file_locations()
 
     @step
     def un_install_server_package(self):
+        """ uninstall the server package """
+        if self.cfg.debug_package_is_installed:
+            self.un_install_debug_package()
         self.un_install_server_package_impl()
         self.cfg.server_package_is_installed = False
 
@@ -236,20 +249,37 @@ class InstallerBase(ABC):
     @step
     def install_debug_package(self):
         """install the debug package to the system"""
-        self.install_debug_package_impl()
-        self.cfg.debug_package_is_installed = True
+        ret = self.install_debug_package_impl()
+        self.cfg.debug_package_is_installed = ret
+        return ret
 
     @step
     def un_install_debug_package(self):
         """Uninstall debug package"""
-        self.un_install_debug_package_impl()
-        self.cfg.debug_package_is_installed = False
+        ret = self.un_install_debug_package_impl()
+        self.cfg.debug_package_is_installed = ret
+        return ret
 
+    @step
+    def un_install_server_package_for_upgrade(self):
+        """ if we need to do something to the old installation on upgrade, do it here. """
+
+    # pylint: disable=no-self-use
     def install_debug_package_impl(self):
-        pass
+        """ install the debug package """
+        return False
 
+    # pylint: disable=no-self-use
     def un_install_debug_package_impl(self):
-        pass
+        """ uninstall the debug package """
+        return False
+
+    def __repr__(self):
+        return ("Installer type: {0.installer_type}\n"+
+                "Server package: {0.server_package}\n"+
+                "Debug package: {0.debug_package}\n"+
+                "Client package: {0.client_package}").format(
+                    self)
 
     @abstractmethod
     def calculate_package_names(self):
@@ -260,8 +290,31 @@ class InstallerBase(ABC):
         """install the packages to the system"""
 
     @abstractmethod
-    def upgrade_package(self, old_installer):
-        """install a new version of the packages to the system"""
+    def upgrade_server_package(self, old_installer):
+        """install a new version of the server package to the system"""
+
+    @step
+    def upgrade_client_package(self, old_installer):
+        """install a new version of the client package to the system"""
+        self.upgrade_client_package_impl()
+        self.cfg.client_package_is_installed = True
+        self.calculate_file_locations()
+        old_installer.cfg.client_package_is_installed = False
+
+    def uninstall_everything(self):
+        """uninstall all arango packages present in the system(including those installed outside this installer)"""
+        self.uninstall_everything_impl()
+        self.cfg.server_package_is_installed = False
+        self.cfg.debug_package_is_installed = False
+        self.cfg.client_package_is_installed = False
+
+    def uninstall_everything_impl(self):
+        """uninstall all arango packages present in the system(including those installed outside this installer)"""
+        raise NotImplementedError("uninstall_everything_impl method is not implemented for this installer type")
+
+    def upgrade_client_package_impl(self):
+        """install a new version of the client package to the system"""
+        self.install_client_package()
 
     @abstractmethod
     def check_service_up(self):
@@ -276,17 +329,20 @@ class InstallerBase(ABC):
         """stop the arangod system service"""
 
     @abstractmethod
+    def un_install_server_package_impl(self):
+        """ installer specific server uninstall function """
+
+    @abstractmethod
+    def install_client_package_impl(self):
+        """ installer specific client uninstall function """
+
+    @abstractmethod
+    def un_install_client_package_impl(self):
+        """ installer specific client uninstall function """
+
+    @abstractmethod
     def cleanup_system(self):
         """if the packages are known to not properly cleanup - do it here."""
-
-    def un_install_debug_package(self):
-        """Uninstalling debug package if it exist in the system"""
-
-    def install_debug_package(self):
-        """installing debug package"""
-
-    def un_install_server_package_for_upgrade(self):
-        """hook to uninstall old package for upgrade"""
 
     def get_arangod_conf(self):
         """where on the disk is the arangod config installed?"""
@@ -297,6 +353,7 @@ class InstallerBase(ABC):
         there may be execptions."""
         return semver.compare(self.cfg.version, "3.5.1") >= 0
 
+    # pylint: disable=:R0201
     def calc_config_file_name(self):
         """store our config to disk - so we can be invoked partly"""
         cfg_file = Path()
@@ -315,16 +372,23 @@ class InstallerBase(ABC):
     def save_config(self):
         """dump the config to disk"""
         self.cfg.semver = None
-        self.calc_config_file_name().write_text(yaml.dump(self.cfg))
+        cfg_file = self.calc_config_file_name()
+        if cfg_file.exists():
+            try:
+                cfg_file.unlink()
+            except PermissionError:
+                print("Ignoring non deleteable " + str(cfg_file))
+                return
+        cfg_file.write_text(yaml.dump(self.cfg), encoding='utf8')
         self.cfg.semver = semver.VersionInfo.parse(self.cfg.version)
 
     @step
     def load_config(self):
         """deserialize the config from disk"""
         verbose = self.cfg.verbose
-        with open(self.calc_config_file_name()) as fileh:
+        with open(self.calc_config_file_name(), encoding='utf8') as fileh:
             print("loading " + str(self.calc_config_file_name()))
-            self.cfg = yaml.load(fileh, Loader=yaml.Loader)
+            self.cfg.set_from(yaml.load(fileh, Loader=yaml.Loader))
         self.cfg.semver = semver.VersionInfo.parse(self.cfg.version)
 
         self.instance = ArangodInstance(
@@ -393,8 +457,8 @@ class InstallerBase(ABC):
         """set the global location of files"""
         # files present in both server and client packages
         self.calculate_package_names()
+        self.arango_binaries = []
         if self.cfg.client_package_is_installed or self.cfg.server_package_is_installed:
-            self.arango_binaries = []
             stripped_arangod = semver.compare(self.cfg.version, "3.7.999") < 0
 
             self.arango_binaries.append(
@@ -628,26 +692,35 @@ class InstallerBase(ABC):
 
     def get_starter_version(self):
         """find out the version of the starter in this package"""
-        if self.starter_versions == {}:
+        if not self.starter_versions:
+            starter = self.cfg.bin_dir / ("arangodb" + FILE_EXTENSION)
+            if not starter.is_file():
+                print("starter not found where we searched it? " + str(starter))
+                return semver.VersionInfo.parse("0.0.0")
+            # print(starter.stat())
+            # print(starter.owner())
+            # print(starter.group())
+            # run_file_command(str(starter))
             starter_version_proc = psutil.Popen(
-                [str(self.cfg.bin_dir / "arangodb"), "--version"],
+                [str(starter), "--version"],
                 stdout=subprocess.PIPE,
+                stdin=subprocess.PIPE,
                 stderr=subprocess.PIPE,
+                universal_newlines=True,
             )
-            (version_b, err) = starter_version_proc.communicate()
+            line = starter_version_proc.stdout.readline()
             starter_version_proc.wait()
-            version_str = version_b.decode("utf-8")
-            string_array = version_str.split(", ")
+            string_array = line.split(", ")
             for one_str in string_array:
                 splitted = one_str.split(" ")
                 self.starter_versions[splitted[0]] = splitted[1]
-            print("Starter version: " + str(self.starter_versions))
+                print("Starter version: " + str(self.starter_versions))
         return semver.VersionInfo.parse(self.starter_versions["Version"])
 
     def check_backup_is_created(self):
         """Check that backup was created after package upgrade"""
-        pass
 
+    # pylint: disable=:R0201
     def supports_backup(self):
         """Does this installer support automatic backup during minor upgrade?"""
         return False

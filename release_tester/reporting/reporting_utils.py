@@ -1,4 +1,5 @@
 """ utility functions/classes for allure reporting """
+from pathlib import Path
 from string import Template
 from uuid import uuid4
 
@@ -51,7 +52,7 @@ def attach_table(table, title="HTML table"):
     """
     # pylint: disable=E1101
     template = Template(template_str)
-    html_table = tabulate(table, headers=table.column_headers, tablefmt="html")
+    html_table = tabulate(table, headers=table.columns.header, tablefmt="html")
     attach(template.substitute(html_table=html_table), title, AttachmentType.HTML)
 
 
@@ -67,12 +68,13 @@ def step(title):
 class RtaTestcase:
     """test case class for allure reporting"""
 
+    # pylint: disable=dangerous-default-value
     def __init__(self, name, labels=[]):
         self.name = name
         self._uuid = str(uuid4())
         self.context = TestcaseContext()
-        for l in labels:
-            self.add_label(l)
+        for one_label in labels:
+            self.add_label(one_label)
 
     def __enter__(self):
         allure_commons.plugin_manager.hook.start_test(
@@ -100,7 +102,7 @@ class RtaTestcase:
         self.context.labels.append(label)
 
 
-# pylint: disable=R0903
+# pylint: disable=R0903 disable=invalid-name
 class TestcaseContext:
     """a class to store test case context"""
 
@@ -112,67 +114,82 @@ class TestcaseContext:
         self.statusDetails = statusDetails
         self.labels = []
 
+RESULTS_DIR=Path()
+CLEAN_DIR=False
+ZIP_PACKAGE=False
+
+def init_allure(results_dir: Path,
+                clean: bool,
+                zip_package: bool):
+    """ globally init this module"""
+    # pylint: disable=global-statement
+    global RESULTS_DIR, CLEAN_DIR, ZIP_PACKAGE
+    if not results_dir.exists():
+        results_dir.mkdir(parents=True)
+
+    RESULTS_DIR=results_dir
+    CLEAN_DIR=clean
+    ZIP_PACKAGE=zip_package
 
 class AllureTestSuiteContext:
     """test suite class for allure reporting"""
 
     test_suite_count = 0
-    # pylint: disable=R0913
+    # pylint: disable=too-many-locals disable=dangerous-default-value disable=too-many-arguments
     def __init__(
         self,
-        results_dir,
-        clean,
-        enterprise,
-        zip_package,
-        new_version,
-        enc_at_rest,
-        old_version=None,
+        properties=None,
+        versions=[],
         parent_test_suite_name=None,
+        auto_generate_parent_test_suite_name=True,
         suite_name=None,
         runner_type=None,
-        installer_type=None,
-        ssl=False,
+        installer_type=None
     ):
         def generate_suite_name():
-            if enterprise:
+            if properties.enterprise:
                 edition = "Enterprise"
             else:
                 edition = "Community"
             if installer_type:
                 package_type = installer_type
             else:
-                if zip_package:
+                if ZIP_PACKAGE:
                     package_type = "universal binary archive"
                 else:
                     package_type = "deb/rpm/nsis/dmg"
-            if not old_version:
+            if len(versions) == 1:
                 test_suite_name = """
             ArangoDB v.{} ({}) ({} package) (enc@rest: {}) (SSL: {}) (clean install)
                                 """.format(
-                    new_version, edition, package_type, "ON" if enc_at_rest else "OFF", "ON" if ssl else "OFF"
+                                    str(versions[0]),
+                                    edition,
+                                    package_type,
+                                    "ON" if properties.encryption_at_rest else "OFF",
+                                    "ON" if properties.ssl else "OFF"
                 )
             else:
                 test_suite_name = """
                             ArangoDB v.{} ({}) {} package (upgrade from {}) (enc@rest: {}) (SSL: {})
                             """.format(
-                    new_version,
-                    edition,
-                    package_type,
-                    old_version,
-                    "ON" if enc_at_rest else "OFF",
-                    "ON" if ssl else "OFF",
+                                str(versions[0]),
+                                edition,
+                                package_type,
+                                str(versions[1]),
+                                "ON" if properties.encryption_at_rest else "OFF",
+                                "ON" if properties.ssl else "OFF",
                 )
             if runner_type:
                 test_suite_name = "[" + str(runner_type) + "] " + test_suite_name
 
             return test_suite_name
 
-        test_listeners = [p for p in allure_commons.plugin_manager.get_plugins() if type(p) == AllureListener]
+        test_listeners = [p for p in allure_commons.plugin_manager.get_plugins() if isinstance(p, AllureListener)]
         self.previous_test_listener = None if len(test_listeners) == 0 else test_listeners[0]
 
         if self.previous_test_listener:
             labels = (
-                {k: v for k, v in self.previous_test_listener._cache._items.items() if type(v) == TestResult}
+                {k: v for k, v in self.previous_test_listener._cache._items.items() if isinstance(v, TestResult)}
                 .popitem()[1]
                 .labels
             )
@@ -192,14 +209,14 @@ class AllureTestSuiteContext:
                 self.test_suite_name = generate_suite_name()
             if parent_test_suite_name:
                 self.parent_test_suite_name = parent_test_suite_name
-            elif suite_name:
+            elif suite_name and auto_generate_parent_test_suite_name:
                 self.parent_test_suite_name = generate_suite_name()
             else:
                 self.parent_test_suite_name = None
             if AllureTestSuiteContext.test_suite_count == 0:
-                self.file_logger = AllureFileLogger(results_dir, clean)
+                self.file_logger = AllureFileLogger(RESULTS_DIR, CLEAN_DIR)
             else:
-                self.file_logger = AllureFileLogger(results_dir, False)
+                self.file_logger = AllureFileLogger(RESULTS_DIR, False)
             self.test_listener = AllureListener(
                 default_test_suite_name=self.test_suite_name, default_parent_test_suite_name=self.parent_test_suite_name
             )

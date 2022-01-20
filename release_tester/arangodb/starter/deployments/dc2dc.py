@@ -187,19 +187,19 @@ class Dc2Dc(Runner):
             self.cert_op(["jwt-secret", "--secret=" + str(node["SyncSecret"])])
             self.cert_op(["jwt-secret", "--secret=" + str(node["JWTSecret"])])
 
-        def add_starter(val, port):
+        def add_starter(val, port, moreopts=[]):
             # fmt: off
             opts = [
-                '--all.log.level=backup=trace',
-                '--all.log.level=requests=debug',
-                '--starter.sync',
-                '--starter.local',
-                '--auth.jwt-secret=' + str(val["JWTSecret"]),
-                '--sync.server.keyfile=' + str(val["tlsKeyfile"]),
-                '--sync.server.client-cafile=' + str(client_cert),
-                '--sync.master.jwt-secret=' + str(val["SyncSecret"]),
-                '--starter.address=' + self.cfg.publicip
-            ]
+                    '--all.log.level=backup=trace',
+                    '--all.log.level=requests=debug',
+                    '--starter.sync',
+                    '--starter.local',
+                    '--auth.jwt-secret=' +           str(val["JWTSecret"]),
+                    '--sync.server.keyfile=' +       str(val["tlsKeyfile"]),
+                    '--sync.server.client-cafile=' + str(client_cert),
+                    '--sync.master.jwt-secret=' +    str(val["SyncSecret"]),
+                    '--starter.address=' +           self.cfg.publicip
+                ] + moreopts
             # fmt: on
             if self.cfg.ssl and not self.cfg.use_auto_certs:
                 opts.append("--ssl.keyfile=" + str(val["tlsKeyfile"]))
@@ -229,11 +229,11 @@ class Dc2Dc(Runner):
                 moreopts=opts,
             )
             val["instance"].set_jwt_file(val["JWTSecret"])
-            if port is None:
+            if port == 7528:
                 val["instance"].is_leader = True
 
-        add_starter(self.cluster1, None)
-        add_starter(self.cluster2, port=9528)
+        add_starter(self.cluster1, port=7528)
+        add_starter(self.cluster2, port=9528, moreopts=['--args.dbservers.log', 'request=trace'])
         self.starter_instances = [self.cluster1["instance"], self.cluster2["instance"]]
 
     def starter_run_impl(self):
@@ -246,11 +246,11 @@ class Dc2Dc(Runner):
             inst.detect_instances()
             inst.detect_instance_pids()
             cluster["smport"] = inst.get_sync_master_port()
-
             url = "http://{host}:{port}".format(host=self.cfg.publicip, port=str(cluster["smport"]))
             reply = requests.get(url)
             logging.info(str(reply))
             logging.info(str(reply.raw))
+            logging.info("instances are ready - JWT: " + inst.get_jwt_header())
 
         launch(self.cluster1)
         launch(self.cluster2)
@@ -375,9 +375,10 @@ class Dc2Dc(Runner):
                 self.cluster2["instance"].detect_instances()
         elif last_sync_output.find("Shard is not turned on for synchronizing") >= 0:
             self.progress(True, "arangosync: sync in progress.")
-        elif re.match(USERS_ERROR_RX, last_sync_output):
-            self.progress(True, "arangosync: resetting users collection...")
-            self.sync_manager.reset_failed_shard("_system", "_users")
+        # we want to research this to find an actual cure, so we want to see these errors:
+        #elif re.match(USERS_ERROR_RX, last_sync_output):
+        #    self.progress(True, "arangosync: resetting users collection...")
+        #    self.sync_manager.reset_failed_shard("_system", "_users")
         else:
             self.progress(True, "arangosync: unknown error condition, doing nothing.")
 

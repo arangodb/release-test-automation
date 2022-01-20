@@ -11,6 +11,7 @@ import pexpect
 import semver
 
 import tools.loghelper as lh
+from arangodb.installers import InstallerConfig
 from arangodb.installers.linux import InstallerLinux
 from arangodb.sh import ArangoshExecutor
 from reporting.reporting_utils import step
@@ -21,7 +22,7 @@ from tools.clihelper import run_cmd_and_log_stdout
 class InstallerRPM(InstallerLinux):
     """install .rpm's on RedHat, CentOS, Rocky Linux or SuSe systems"""
 
-    def __init__(self, cfg):
+    def __init__(self, cfg: InstallerConfig):
         self.server_package = None
         self.client_package = None
         self.debug_package = None
@@ -53,6 +54,9 @@ class InstallerRPM(InstallerLinux):
             self.cfg.semver = semver.VersionInfo.parse("{major}.{minor}.{patch}+{build}".format(**semdict))
             semdict = dict(self.cfg.semver.to_dict())
             semdict["prerelease"] = ""
+        elif prerelease.startswith("alpha"):
+            semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
+            semdict["build"] = "0.101"
         elif prerelease.startswith("beta"):
             semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
             semdict["build"] = "0.201"
@@ -103,7 +107,7 @@ class InstallerRPM(InstallerLinux):
             time.sleep(1)
 
     @step
-    def upgrade_package(self, old_installer):
+    def upgrade_server_package(self, old_installer):
         logging.info("upgrading Arangodb rpm package")
 
         self.cfg.passvoid = "RPM_passvoid_%d" % os.getpid()
@@ -118,6 +122,7 @@ class InstallerRPM(InstallerLinux):
         cmd = "rpm --upgrade " + str(self.cfg.package_dir / self.server_package)
         lh.log_cmd(cmd)
         server_upgrade = pexpect.spawnu(cmd)
+        server_upgrade.logfile = sys.stdout
 
         try:
             server_upgrade.expect(
@@ -133,7 +138,7 @@ class InstallerRPM(InstallerLinux):
             print("exception : " + str(exc))
             lh.line("X")
             logging.error("Upgrade failed!")
-            sys.exit(1)
+            raise exc
 
         logging.debug("found: upgrade message")
 
@@ -141,11 +146,12 @@ class InstallerRPM(InstallerLinux):
         try:
             server_upgrade.expect(pexpect.EOF, timeout=30)
             ascii_print(server_upgrade.before)
-        except pexpect.exceptions.EOF:
+        except pexpect.exceptions.EOF as ex:
             logging.error("TIMEOUT! while upgrading package")
-            sys.exit(1)
+            raise ex
 
         logging.debug("upgrade successfully finished")
+        self.start_service()
 
     @step
     def install_server_package_impl(self):
@@ -164,6 +170,7 @@ class InstallerRPM(InstallerLinux):
         cmd = "rpm " + "-i " + str(package)
         lh.log_cmd(cmd)
         server_install = pexpect.spawnu(cmd)
+        server_install.logfile = sys.stdout
         reply = None
 
         try:
@@ -172,10 +179,10 @@ class InstallerRPM(InstallerLinux):
             server_install.expect(pexpect.EOF, timeout=60)
             reply = server_install.before
             ascii_print(reply)
-        except pexpect.exceptions.EOF:
+        except pexpect.exceptions.EOF as ex:
             ascii_print(server_install.before)
             logging.info("Installation failed!")
-            sys.exit(1)
+            raise ex
 
         while server_install.isalive():
             progress(".")
@@ -203,6 +210,7 @@ class InstallerRPM(InstallerLinux):
         self.cfg.passvoid = "RPM_passvoid_%d" % os.getpid()
         lh.log_cmd("/usr/sbin/arango-secure-installation")
         with pexpect.spawnu("/usr/sbin/arango-secure-installation") as etpw:
+            etpw.logfile = sys.stdout
             result = None
             try:
                 ask_for_pass = [
@@ -247,24 +255,30 @@ class InstallerRPM(InstallerLinux):
 
     @step
     def un_install_server_package_impl(self):
+        """ uninstall the server package """
         self.stop_service()
         cmd = ["rpm", "-e", "arangodb3" + ("e" if self.cfg.enterprise else "")]
         lh.log_cmd(cmd)
         run_cmd_and_log_stdout(cmd)
 
     @step
-    def install_rpm_package(self, package: str):
+    def install_rpm_package(self, package: str, upgrade: bool = False):
         """installing rpm package"""
         print("installing rpm package: %s" % package)
-        cmd = "rpm -i " + package
+        if upgrade:
+            option = "--upgrade"
+        else:
+            option = "--install"
+        cmd = f"rpm {option} {package}"
         lh.log_cmd(cmd)
         install = pexpect.spawnu(cmd)
+        install.logfile = sys.stdout
         try:
             logging.info("waiting for the installation to finish")
             install.expect(pexpect.EOF, timeout=90)
             output = install.before
             install.wait()
-        except pexpect.exceptions.TIMEOUT:
+        except pexpect.exceptions.TIMEOUT as ex:
             logging.info("TIMEOUT!")
             install.close(force=True)
             output = install.before
@@ -272,32 +286,35 @@ class InstallerRPM(InstallerLinux):
                 "Installation of the package {} didn't finish within 90 seconds! Output:\n{}".format(
                     str(package), output
                 )
-            )
+            ) from ex
         if install.exitstatus != 0:
             install.close(force=True)
             raise Exception(
                 "Installation of the package {} didn't finish successfully! Output:\n{}".format(str(package), output)
             )
-        else:
-            logging.info(str(self.debug_package) + " Installation successfull")
+        logging.info(str(self.debug_package) + " Installation successfull")
+        return True
 
     @step
     def install_debug_package_impl(self):
         """installing debug package"""
-        self.install_rpm_package(str(self.cfg.package_dir / self.debug_package))
-        self.cfg.debug_package_is_installed = True
+        ret = self.install_rpm_package(str(self.cfg.package_dir / self.debug_package))
+        self.cfg.debug_package_is_installed = ret
+        return ret
 
+    # pylint: disable=R0201
     @step
     def un_install_package(self, package_name: str):
         """Uninstall package"""
         print('uninstalling rpm package "%s"' % package_name)
         uninstall = pexpect.spawnu("rpm -e " + package_name)
+        uninstall.logfile = sys.stdout
         try:
             uninstall.expect(pexpect.EOF, timeout=30)
             ascii_print(uninstall.before)
-        except pexpect.exceptions.EOF:
+        except pexpect.exceptions.EOF as ex:
             ascii_print(uninstall.before)
-            sys.exit(1)
+            raise ex
 
         while uninstall.isalive():
             progress(".")
@@ -306,11 +323,14 @@ class InstallerRPM(InstallerLinux):
                 ascii_print(uninstall.before)
                 raise Exception("Uninstallation of packages %s failed. " % package_name)
 
+    def upgrade_client_package_impl(self):
+        """install a new version of the client package to the system"""
+        self.install_rpm_package(str(self.cfg.package_dir / self.client_package), upgrade=True)
+
     @step
     def install_client_package_impl(self):
         """installing client package"""
         self.install_rpm_package(str(self.cfg.package_dir / self.client_package))
-        self.cfg.client_package_is_installed = True
 
     def un_install_client_package_impl(self):
         """Uninstall client package"""
@@ -324,29 +344,41 @@ class InstallerRPM(InstallerLinux):
         package_name = "arangodb3" + ("e-debuginfo.x86_64" if self.cfg.enterprise else "-debuginfo.x86_64")
         self.un_install_package(package_name)
 
+    def uninstall_everything_impl(self):
+        """uninstall all arango packages present in the system(including those installed outside this installer)"""
+        for package_name in [
+            "arangodb3",
+            "arangodb3e",
+            "arangodb3-client",
+            "arangodb3e-client",
+            "arangodb3e-debuginfo",
+            "arangodb3-debuginfo",
+        ]:
+            self.un_install_package(package_name)
+
     @step
     def cleanup_system(self):
         print("attempting system directory cleanup after RPM")
         if self.cfg.log_dir.exists():
-            print("cleaning upg %s " % str(self.cfg.log_dir))
+            print("cleaning up %s " % str(self.cfg.log_dir))
             shutil.rmtree(self.cfg.log_dir)
         else:
-            print("log directory not known")
+            print("log directory not found")
 
         if self.cfg.dbdir.exists():
-            print("cleaning upg %s " % str(self.cfg.dbdir))
+            print("cleaning up %s " % str(self.cfg.dbdir))
             shutil.rmtree(self.cfg.dbdir)
         else:
-            print("database directory not known")
+            print("database directory not found")
 
         if self.cfg.appdir.exists():
             print("cleaning up %s " % str(self.cfg.appdir))
             shutil.rmtree(self.cfg.appdir)
         else:
-            print("app directory not known")
+            print("app directory not found")
 
         if self.cfg.cfgdir.exists():
-            print("cleaning upg %s " % str(self.cfg.cfgdir))
+            print("cleaning up %s " % str(self.cfg.cfgdir))
             shutil.rmtree(self.cfg.cfgdir)
         else:
-            print("config directory not known")
+            print("config directory not found")

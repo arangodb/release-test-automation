@@ -2,6 +2,7 @@
 """abstract base models"""
 from enum import Enum
 
+# pylint: disable=too-few-public-methods
 
 class IndexType(Enum):
     """which type of index"""
@@ -12,11 +13,10 @@ class IndexType(Enum):
     TTL = "Ttl"
 
 
-class RtaUiTestResult:
+class RtaTestResult:
     """abstract a ui result"""
-
-    def __init__(self, name, success, message, tb):
+    def __init__(self, name, success, message, traceback):
         self.name = name
         self.success = success
         self.message = message
-        self.tb = tb
+        self.traceback = traceback
