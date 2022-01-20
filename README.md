@@ -393,6 +393,13 @@ Makedata is by default ran with one dataset. However, it can also be used as loa
 For this case especialy, the counters have to be respected, so subsequent runs don't clash with earlier runs.
 The provided dbCount / loopCount should be used in identifiers to ensure this.
 
+To Aid development, the makedata framework can be launched from within the arangodb unittests, 
+if this repository is checked out next to it:
+
+``` bash
+./scripts/unittest rta_makedata --extremeVerbosity true --cluster true
+```
+
 # Flow of testcases
 The base flow lives in `runner.py`; special deployment specific implementations in the respective derivates. 
 The Flow is as follows:
