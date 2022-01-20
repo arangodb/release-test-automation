@@ -41,9 +41,11 @@ class BaseTestSuite(ABC):
     def run(self):
         """execute the test"""
         self.setup_test_suite()
-        versions=[self.new_version]
+        versions=[]
         if self.old_version:
             versions.append(self.old_version)
+        if self.new_version:
+            versions.append(self.new_version)
 
         for suite in self.children:
             self.test_results += suite.run()
