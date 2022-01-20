@@ -397,7 +397,7 @@ To Aid development, the makedata framework can be launched from within the arang
 if this repository is checked out next to it:
 
 ``` bash
-./scripts/unittest rta_makedata --extremeVerbosity true --cluster true
+./scripts/unittest rta_makedata --extremeVerbosity true --cluster true --makedata_args:bigDoc true
 ```
 
 # Flow of testcases
