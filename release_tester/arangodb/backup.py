@@ -6,6 +6,8 @@ import json
 import re
 import time
 
+from allure_commons._allure import attach
+
 from reporting.reporting_utils import step
 
 from tools.asciiprint import ascii_convert_str, print_progress as progress
@@ -110,6 +112,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
             expect_to_fail,
         )
 
+        attach(output, "arangobackup output")
         if not success:
             raise Exception("arangobackup exited " + str(output))
 
