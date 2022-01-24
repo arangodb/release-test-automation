@@ -79,7 +79,7 @@
       `;
         const result = db._query(query).toArray();
         if (result.length !== 1 || result[0].v1 !== "success" || result[0].v2 !== "success") {
-          throw new Error("DOCUMENT call in OneShard database does not return data");
+          throw new Error("DOCUMENT call in OneShard database does not return data " + JSON.stringify(result));
         }
       }
       db._useDatabase('_system');
