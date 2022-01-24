@@ -86,7 +86,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
 
     @step
     def run_backup(self, arguments, name, silent=False, expect_to_fail=False):
-        """launch the starter for this instance"""
+        """run arangobackup"""
         if not silent:
             logging.info("running hot backup " + name)
         run_cmd = []

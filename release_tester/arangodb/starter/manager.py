@@ -280,7 +280,6 @@ class StarterManager:
                 logging.error(ex)
         raise Exception("didn't find a starter for " + match_str)
 
-    @step
     def set_jwt_file(self, filename):
         """some scenarios don't want to use the builtin jwt generation from the manager"""
         self.jwtfile = filename
