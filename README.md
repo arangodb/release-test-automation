@@ -367,7 +367,55 @@ The scripts in the `deployment` directory will try to install all the required p
  - `attic_snippets` - trial and error scripts of start phase, utility functions like killall for mac/windows for manual invocation
 
 
-# Code Structure
+# makedata / checkdata framework
+Makedata is ran inside arangosh. It was made to be user-expandeable by hooking in on test cases.
+It consists of these files in test_data:
+ - `makedata.js` - initially generate test data
+ - `checkdata.js` - check whether data is available; could be read-only
+ - `cleardata.js` - remove the testdata - after invoking it makedata should be able to be ran again without issues.
+ - Plugins in `test_data/makedata_suites` executed in alphanumeric order:
+   - `000_dummy.js` - this can be used as a template if you want to create a new plugin. 
+   - `010_disabled_uuid_check.js` If you're running a cluster setup in failover mode, this checks and waits for all shards have an available leader.
+   - `020_foxx.js` Installs foxx, checks it. 
+   - `050_database.js` creates databases for the test data.
+   - `100_collections.js` creates a set of collections / indices
+   - `400_views.js` creates some views
+   - `500_community_graph.js` creates a community patent graph
+   - `550_enterprise_graph.js` creates an enterprise patent graph
+   - `560_smartgraph_validator.js` on top of the enterprise graph, this will check the integrity check of the server.
+   - `900_oneshard.js` creates oneshard database and does stuff with it.
+
+It should be considered to provide a set of hooks (000_dummy.js can be considered being a template for this):
+
+- Hook to check whether the environment will support your usecase [single/cluster deployment, Community/Enterprise, versions in test]
+- Per Database loop Create / Check [readonly] / Delete handler
+- Per Collection loop Create / Check [readonly] / Delete handler
+
+The hook functions should respect their counter parameters, and use them in their respective reseource names.
+Jslint should be used to check code validity.
+
+The list of the hooks enabled for this very run of one of the tools is printed on startup for reference.
+
+Makedata should be considered a framework for consistency checking in the following situations:
+ - replication
+ - hot backup
+ - upgrade
+ - dc2dc
+
+The replication fuzzing test should be used to ensure the above with randomness added.
+
+Makedata is by default ran with one dataset. However, it can also be used as load generator. 
+For this case especialy, the counters have to be respected, so subsequent runs don't clash with earlier runs.
+The provided dbCount / loopCount should be used in identifiers to ensure this.
+
+To Aid development, the makedata framework can be launched from within the arangodb unittests, 
+if this repository is checked out next to it:
+
+``` bash
+./scripts/unittest rta_makedata --extremeVerbosity true --cluster true --makedata_args:bigDoc true
+```
+
+# Flow of testcases
 The base flow lives in `runner.py`; special deployment specific implementations in the respective derivates. 
 The Flow is as follows:
 
@@ -376,7 +424,8 @@ install
 prepare and setup abstractions, starter managers, create certificates, ec. [starter_prepare_env[_impl]]
 launch all the actual starter instances, wait for them to become alive [starter_run[_impl]]
 finalize the setup like start sync'ing [finish_setup[_impl]]
-invoke make data
+[makedata]
+[makedata check]
 => ask user to inspect the installation
 if HotBackup capable:
   create backup
@@ -386,12 +435,12 @@ if HotBackup capable:
   delete backup
   list backup to revalidate there is none
   restore backup
-  check data
+  [checkdata]
   create non-backup data again
 if Update:
   manage packages (uninstall debug, install new, install new debug, test debug)
   upgrade the starter environment [upgrade_arangod_version[_impl]]
-  makedata validate after upgrade 
+  [makedata check] after upgrade 
   if Hotbackup capable:
     list backups
     upload backup once more
@@ -399,12 +448,15 @@ if Update:
     list & check its empty
     restore the backup
     validate post-backup data is gone again
-  check make data
+  [makedata check]
 test the setup [test_setup[_impl]]
+[makedata check]
 try to jam the setup [jam_setup[_impl]]
+[makedata check]
 shutdown the setup
 uninstall packages
 ```
+
 # GOAL
 
 create most of the flow of i.e. https://github.com/arangodb/release-qa/issues/264 in a portable way. 

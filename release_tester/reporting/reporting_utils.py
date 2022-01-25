@@ -172,10 +172,10 @@ class AllureTestSuiteContext:
                 test_suite_name = """
                             ArangoDB v.{} ({}) {} package (upgrade from {}) (enc@rest: {}) (SSL: {})
                             """.format(
-                                str(versions[0]),
+                                str(versions[1]),
                                 edition,
                                 package_type,
-                                str(versions[1]),
+                                str(versions[0]),
                                 "ON" if properties.encryption_at_rest else "OFF",
                                 "ON" if properties.ssl else "OFF",
                 )
