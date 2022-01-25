@@ -13,7 +13,8 @@ from semver import VersionInfo
 from selenium_ui_test.pages.base_page import BasePage
 from selenium_ui_test.pages.login_page import LoginPage
 from selenium_ui_test.pages.navbar import NavigationBarPage
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite
+from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, run_before_suite, \
+    run_after_suite, run_after_each_testcase
 from reporting.reporting_utils import attach_table
 
 
@@ -110,15 +111,18 @@ class BaseSeleniumTestSuite(BaseTestSuite):
         self.webdriver.get(self.url + path)
         BasePage(self.webdriver).wait_for_ajax()
 
-    def setup_test_suite(self):
+    @run_before_suite
+    def prepare_to_run_tests(self):
         """prepare to run test cases"""
         self.go_to_index_page()
 
-    def tear_down_test_suite(self):
+    @run_after_suite
+    def after_test_suite(self):
         """clean up after test suite"""
         self.webdriver.delete_all_cookies()
 
-    def teardown_testcase(self):
+    @run_after_each_testcase
+    def after_testcase(self):
         """clean up after test case"""
         self.truncate_browser_log()
 

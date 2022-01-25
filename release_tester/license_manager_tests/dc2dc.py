@@ -6,13 +6,18 @@ from arangodb.instance import InstanceType
 from arangodb.starter.deployments import make_runner, RunnerType
 from license_manager_tests.license_manager_base_test_suite import LicenseManagerBaseTestSuite
 from reporting.reporting_utils import step
-from selenium_ui_test.test_suites.base_test_suite import testcase
+from selenium_ui_test.test_suites.base_test_suite import testcase, run_before_suite
 import platform
 
 IS_WINDOWS = platform.win32_ver()[0] != ""
 
+
 class LicenseManagerDc2DcTestSuite(LicenseManagerBaseTestSuite):
     """License manager tests: DC2DC"""
+
+    @run_before_suite
+    def startup(self):
+        self.start_clusters()
 
     @step
     def start_clusters(self):
@@ -62,7 +67,6 @@ class LicenseManagerDc2DcTestSuite(LicenseManagerBaseTestSuite):
     @testcase
     def clean_install_temp_license(self):
         """Check that server gets a 60-minute license after installation on a clean system"""
-        self.start_clusters()
         self.check_that_license_is_not_expired(50 * 60)
 
     @testcase

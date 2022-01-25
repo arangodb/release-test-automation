@@ -9,6 +9,7 @@ from allure_commons.logger import AllureFileLogger
 from allure_commons.model2 import Status, TestResult
 from allure_commons.types import AttachmentType, LabelType
 from tabulate import tabulate
+
 from reporting.helpers import AllureListener
 
 
@@ -114,9 +115,10 @@ class TestcaseContext:
         self.statusDetails = statusDetails
         self.labels = []
 
-RESULTS_DIR=Path()
-CLEAN_DIR=False
-ZIP_PACKAGE=False
+RESULTS_DIR = Path()
+CLEAN_DIR = False
+ZIP_PACKAGE = False
+
 
 def init_allure(results_dir: Path,
                 clean: bool,
@@ -127,24 +129,26 @@ def init_allure(results_dir: Path,
     if not results_dir.exists():
         results_dir.mkdir(parents=True)
 
-    RESULTS_DIR=results_dir
-    CLEAN_DIR=clean
-    ZIP_PACKAGE=zip_package
+    RESULTS_DIR = results_dir
+    CLEAN_DIR = clean
+    ZIP_PACKAGE = zip_package
+
 
 class AllureTestSuiteContext:
     """test suite class for allure reporting"""
 
     test_suite_count = 0
+
     # pylint: disable=too-many-locals disable=dangerous-default-value disable=too-many-arguments
     def __init__(
-        self,
-        properties=None,
-        versions=[],
-        parent_test_suite_name=None,
-        auto_generate_parent_test_suite_name=True,
-        suite_name=None,
-        runner_type=None,
-        installer_type=None
+            self,
+            properties=None,
+            versions=[],
+            parent_test_suite_name=None,
+            auto_generate_parent_test_suite_name=True,
+            suite_name=None,
+            runner_type=None,
+            installer_type=None
     ):
         def generate_suite_name():
             if properties.enterprise:
@@ -162,46 +166,46 @@ class AllureTestSuiteContext:
                 test_suite_name = """
             ArangoDB v.{} ({}) ({} package) (enc@rest: {}) (SSL: {}) (clean install)
                                 """.format(
-                                    str(versions[0]),
-                                    edition,
-                                    package_type,
-                                    "ON" if properties.encryption_at_rest else "OFF",
-                                    "ON" if properties.ssl else "OFF"
+                    str(versions[0]),
+                    edition,
+                    package_type,
+                    "ON" if properties.encryption_at_rest else "OFF",
+                    "ON" if properties.ssl else "OFF"
                 )
             else:
                 test_suite_name = """
                             ArangoDB v.{} ({}) {} package (upgrade from {}) (enc@rest: {}) (SSL: {})
                             """.format(
-                                str(versions[1]),
-                                edition,
-                                package_type,
-                                str(versions[0]),
-                                "ON" if properties.encryption_at_rest else "OFF",
-                                "ON" if properties.ssl else "OFF",
+                    str(versions[1]),
+                    edition,
+                    package_type,
+                    str(versions[0]),
+                    "ON" if properties.encryption_at_rest else "OFF",
+                    "ON" if properties.ssl else "OFF",
                 )
             if runner_type:
                 test_suite_name = "[" + str(runner_type) + "] " + test_suite_name
 
             return test_suite_name
 
-        test_listeners = [p for p in allure_commons.plugin_manager.get_plugins() if isinstance(p, AllureListener)]
+        test_listeners = [p for p in allure_commons.plugin_manager.get_plugins() if
+                          isinstance(p, AllureListener)]
         self.previous_test_listener = None if len(test_listeners) == 0 else test_listeners[0]
+        file_loggers = [l for l in allure_commons.plugin_manager.get_plugins() if
+                        isinstance(l, AllureFileLogger)]
+        self.file_logger = None if len(file_loggers) == 0 else file_loggers[0]
 
-        if self.previous_test_listener:
-            labels = (
-                {k: v for k, v in self.previous_test_listener._cache._items.items() if isinstance(v, TestResult)}
-                .popitem()[1]
-                .labels
-            )
+        previous_test_results = [] if not self.previous_test_listener else {k: v for k, v in
+                                                                            self.previous_test_listener._cache._items.items()
+                                                                            if
+                                                                            isinstance(v,
+                                                                                       TestResult)}
+        if len(previous_test_results) > 0:
+            labels = previous_test_results[0][1].labels
             parent_suite_label = [l for l in labels if l.name == LabelType.PARENT_SUITE][0]
             suite_label = [l for l in labels if l.name == LabelType.SUITE][0]
             self.parent_test_suite_name = parent_suite_label.value
             self.test_suite_name = suite_label.value
-            self.test_listener = AllureListener(
-                default_test_suite_name=self.test_suite_name, default_parent_test_suite_name=self.parent_test_suite_name
-            )
-            allure_commons.plugin_manager.unregister(self.previous_test_listener)
-            allure_commons.plugin_manager.register(self.test_listener)
         else:
             if suite_name:
                 self.test_suite_name = suite_name
@@ -213,22 +217,33 @@ class AllureTestSuiteContext:
                 self.parent_test_suite_name = generate_suite_name()
             else:
                 self.parent_test_suite_name = None
+
+        if not self.file_logger:
             if AllureTestSuiteContext.test_suite_count == 0:
                 self.file_logger = AllureFileLogger(RESULTS_DIR, CLEAN_DIR)
             else:
                 self.file_logger = AllureFileLogger(RESULTS_DIR, False)
-            self.test_listener = AllureListener(
-                default_test_suite_name=self.test_suite_name, default_parent_test_suite_name=self.parent_test_suite_name
-            )
-            allure_commons.plugin_manager.register(self.test_listener)
             allure_commons.plugin_manager.register(self.file_logger)
 
+        if self.previous_test_listener:
+            allure_commons.plugin_manager.unregister(self.previous_test_listener)
+
+        self.test_listener = AllureListener(
+            default_test_suite_name=self.test_suite_name,
+            default_parent_test_suite_name=self.parent_test_suite_name
+        )
+        allure_commons.plugin_manager.register(self.test_listener)
+        self.test_listener.start_suite(self.test_suite_name)
         AllureTestSuiteContext.test_suite_count += 1
+
+    def destroy(self):
+        self.__exit__(None, None, None)
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        self.test_listener.stop_suite()
         if self.previous_test_listener:
             allure_commons.plugin_manager.unregister(self.test_listener)
             allure_commons.plugin_manager.register(self.previous_test_listener)

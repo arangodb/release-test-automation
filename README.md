@@ -645,7 +645,7 @@ These tests use the CSV data from the wikip
 
 # Allure reporting
 To view allure report, you must have allure installed in your system. Download link(for Linux):
-https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/2.14.0/allure-commandline-2.14.0.zip
+https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/2.17.2/allure-commandline-2.17.2.zip
 
 After the test run is finished, run the following command:
 ```bash

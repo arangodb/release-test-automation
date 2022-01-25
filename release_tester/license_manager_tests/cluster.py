@@ -7,11 +7,15 @@ from arangodb.instance import InstanceType
 from arangodb.starter.deployments import make_runner, RunnerType
 from license_manager_tests.license_manager_base_test_suite import LicenseManagerBaseTestSuite
 from reporting.reporting_utils import step
-from selenium_ui_test.test_suites.base_test_suite import testcase
+from selenium_ui_test.test_suites.base_test_suite import testcase, run_before_suite
 
 
 class LicenseManagerClusterTestSuite(LicenseManagerBaseTestSuite):
     """License manager tests: cluster"""
+
+    @run_before_suite
+    def startup(self):
+        self.start_cluster()
 
     @step
     def start_cluster(self):
@@ -57,7 +61,6 @@ class LicenseManagerClusterTestSuite(LicenseManagerBaseTestSuite):
     @testcase
     def clean_install_temp_license(self):
         """Check that server gets a 60-minute license after installation on a clean system"""
-        self.start_cluster()
         self.check_that_license_is_not_expired(50 * 60)
 
     @testcase

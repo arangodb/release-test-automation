@@ -5,14 +5,14 @@ from arangodb.installers import RunProperties
 from arangodb.starter.deployments import make_runner, RunnerType
 from license_manager_tests.license_manager_base_test_suite import LicenseManagerBaseTestSuite
 from reporting.reporting_utils import step
-from selenium_ui_test.test_suites.base_test_suite import testcase
+from selenium_ui_test.test_suites.base_test_suite import testcase, run_before_suite
 
 
 class LicenseManagerLeaderFollowerTestSuite(LicenseManagerBaseTestSuite):
     """License manager tests: leader-follower"""
 
-    @step
-    def setup_test_suite(self):
+    @run_before_suite
+    def startup(self):
         """clean up the system before running tests"""
         self.start_leader_follower()
 

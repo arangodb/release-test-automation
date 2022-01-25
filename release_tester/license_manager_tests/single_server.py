@@ -8,7 +8,7 @@ from arangodb.instance import InstanceType
 from arangodb.starter.manager import StarterManager
 from license_manager_tests.license_manager_base_test_suite import LicenseManagerBaseTestSuite
 from reporting.reporting_utils import step
-from selenium_ui_test.test_suites.base_test_suite import testcase
+from selenium_ui_test.test_suites.base_test_suite import testcase, run_before_suite, run_after_suite
 
 
 class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
@@ -22,14 +22,15 @@ class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
         )
         self.short_name = "SingleServer"
 
-    @step
-    def setup_test_suite(self):
+    @run_before_suite
+    def start(self):
         """clean up the system before running tests"""
         self.cleanup()
+        self.start_single_server()
 
-    @step
-    def tear_down_test_suite(self):
-        """clean up the system after running tests"""
+    @run_after_suite
+    def shutdown(self):
+        """shutdown instance"""
         self.starter.terminate_instance()
 
     def get_server_id(self):
@@ -71,7 +72,6 @@ class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
     @testcase
     def clean_install_temp_license(self):
         """Check that server gets a 60-minute license after installation on a clean system"""
-        self.start_single_server()
         self.check_that_license_is_not_expired(50 * 60)
 
     @testcase

@@ -14,7 +14,7 @@ from arangodb.starter.deployments.cluster import Cluster
 from arangodb.starter.deployments.dc2dc import Dc2Dc
 from arangodb.starter.deployments.leaderfollower import LeaderFollower
 from reporting.reporting_utils import step
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite
+from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, run_after_suite, run_before_each_testcase
 from tools.external_helpers.license_generator.license_generator import create_license
 
 
@@ -27,15 +27,11 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
     ):
         self.new_version = new_version
         self.base_cfg = installer_base_config
-        super().__init__(child_classes=child_classes)
         package_type = ".tar.gz" if installer_base_config.zip_package else ".deb/.rpm/NSIS"
-        self.parent_test_suite_name = f"Licence manager test suite ({package_type})"
+        self.suite_name = f"Licence manager test suite: ArangoDB v. {str(new_version)} ({package_type})"
         self.auto_generate_parent_test_suite_name = False
-        if self.__doc__:
-            self.suite_name = self.__doc__
-        else:
-            self.suite_name = "Licence manager test suite"
-        self.use_subsuite = False
+        super().__init__(child_classes=child_classes)
+        self.use_subsuite = True
         run_props = RunProperties(
             enterprise=True,
             encryption_at_rest=False,
@@ -56,20 +52,10 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
         """initialise the child class"""
         return child_class(self.new_version, self.base_cfg)
 
-    @step
-    def tear_down_test_suite(self):
-        """clean up the system after running tests"""
+    @run_after_suite
+    def shutdown(self):
+        """shutdown instance(s)"""
         self.runner.starter_shutdown()
-
-    @step
-    def setup_testcase(self):
-        """prepare to run test case"""
-        self.set_valid_license()
-
-    @step
-    def teardown_testcase(self):
-        """clean up after test case"""
-        pass
 
     def add_crash_data_to_report(self):
         self.save_log_file()
@@ -141,9 +127,9 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
         license = create_license(new_timestamp, server_id)
         self.set_license(license)
 
-    @step
+    @run_before_each_testcase
     def set_valid_license(self):
-        """expire license"""
+        """set valid license"""
         new_timestamp = str(int(time() + 59 * 60))
         server_id = self.get_server_id()
         license = create_license(new_timestamp, server_id)
