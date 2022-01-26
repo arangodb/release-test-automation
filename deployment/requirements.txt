@@ -1,4 +1,1 @@
-click
-semver
-distro
-pexpect
+../requirements.txt

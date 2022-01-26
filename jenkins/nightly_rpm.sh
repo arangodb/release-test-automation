@@ -1,90 +1,107 @@
 #!/bin/bash
 
-VERSION=$(cat VERSION.json)
-GIT_VERSION=$(git rev-parse --verify HEAD)
+GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
 if test -z "$GIT_VERSION"; then
     GIT_VERSION=$VERSION
 fi
-
 if test -z "$OLD_VERSION"; then
-    OLD_VERSION=3.7.0-nightly
+    OLD_VERSION=3.8.0-nightly
 fi
 if test -z "$NEW_VERSION"; then
-    NEW_VERSION=3.8.0-nightly
+    NEW_VERSION=3.9.0-nightly
 fi
-if test -n "$PACKAGE_CACHE"; then
-    PACKAGE_CACHE=$(pwd)/package_cache
-fi
-
-VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_rpm_version"
-mkdir -p ${VERSION_TAR_NAME}
-tar -xvf ${VERSION_TAR_NAME}.tar || true
-
-DOCKER_RPM_NAME=release-test-automation-rpm-$(cat VERSION.json)
-
-DOCKER_RPM_TAG=arangodb/release-test-automation-rpm:$(cat VERSION.json)
-
-if test -n "$FORCE" -o "$TEST_BRANCH" != 'master'; then
-  force_arg='--force'
+if test -z "${PACKAGE_CACHE}"; then
+    PACKAGE_CACHE="$(pwd)/package_cache/"
 fi
 
-docker kill $DOCKER_RPM_NAME || true
-docker rm $DOCKER_RPM_NAME || true
+force_arg=()
+if test -n "$FORCE" -o "$TEST_BRANCH" != 'main'; then
+  force_arg=(--force)
+fi
 
-trap "docker kill $DOCKER_RPM_NAME; \
-     docker rm $DOCKER_RPM_NAME; \
-     " EXIT
+if test -n "$SOURCE"; then
+    force_arg+=(--old-source "$SOURCE" --new-source "$SOURCE")
+else
+    force_arg+=(--remote-host "$(host nas02.arangodb.biz |sed "s;.* ;;")")
+fi
 
-version=$(git rev-parse --verify HEAD)
+VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_rpm_version.tar"
+mkdir -p "${PACKAGE_CACHE}"
+mkdir -p test_dir
+mkdir -p allure-results
 
-docker build containers/docker_rpm -t $DOCKER_RPM_TAG || exit
+DOCKER_RPM_NAME=release-test-automation-rpm
+
+DOCKER_RPM_TAG="${DOCKER_RPM_NAME}:$(cat containers/this_version.txt)"
+
+docker kill "${DOCKER_RPM_NAME}" || true
+docker rm "${DOCKER_RPM_NAME}" || true
+
+trap 'docker kill "${DOCKER_RPM_NAME}";
+      docker rm "${DOCKER_RPM_NAME}";
+     ' EXIT
+
+DOCKER_NAMESPACE="arangodb/"
+if docker pull "${DOCKER_NAMESPACE}${DOCKER_RPM_TAG}"; then
+    echo "using ready built container"
+else
+    docker build containers/docker_rpm -t "${DOCKER_RPM_TAG}" || exit
+    DOCKER_NAMESPACE=""
+fi
 
 docker run \
        --ulimit core=-1 \
-       -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
-       -v $(pwd):/home/release-test-automation \
-       -v $(pwd)/test_dir:/home/test_dir \
-       -v "$PACKAGE_CACHE":/home/package_cache \
-       -v $(pwd)/${VERSION_TAR_NAME}:/home/versions \
+       -v "$(pwd):/home/release-test-automation" \
+       -v "$(pwd)/test_dir:/home/test_dir" \
+       -v "$(pwd)/allure-results:/home/allure-results" \
+       -v "${PACKAGE_CACHE}:/home/release-test-automation/package_cache" \
        -v /tmp/tmp:/tmp/ \
        -v /dev/shm:/dev/shm \
+       -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
+       --env="BUILD_NUMBER=${BUILD_NUMBER}" \
+       --env="PYTHONUNBUFFERED=1" \
+       --env="WORKSPACE=/home/release-test-automation/" \
        \
+       --name="${DOCKER_RPM_NAME}" \
        --rm \
        --privileged \
-       --name=$DOCKER_RPM_NAME \
        -itd \
        \
-       $DOCKER_RPM_TAG \
+       "${DOCKER_NAMESPACE}${DOCKER_RPM_TAG}" \
        \
        /lib/systemd/systemd --system --unit=multiuser.target 
 
-docker exec $DOCKER_RPM_NAME \
-          /home/release-test-automation/release_tester/full_download_upgrade_test.py \
-          --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;") \
+docker exec \
+          "${DOCKER_RPM_NAME}" \
+          /home/release-test-automation/release_tester/full_download_upgrade.py \
           --old-version "${OLD_VERSION}" \
           --new-version "${NEW_VERSION}" \
           --no-zip \
           --verbose \
-          --selenium Chrome \
-          --selenium-driver-args headless \
-          --selenium-driver-args disable-dev-shm-usage \
-          --selenium-driver-args no-sandbox \
-          --selenium-driver-args remote-debugging-port=9222 \
-          --selenium-driver-args start-maximized \
-          $force_arg $@
+          --alluredir /home/allure-results \
+          --git-version "${GIT_VERSION}" \
+          "${force_arg[@]}" \
+          "${@}"
 result=$?
 
-docker stop $DOCKER_RPM_NAME
+docker stop "${DOCKER_RPM_NAME}"
 
 # Cleanup ownership:
 docker run \
-       -v $(pwd)/test_dir:/home/test_dir \
+       -v "$(pwd)/test_dir:/home/test_dir" \
+       -v "$(pwd)/allure-results:/home/allure-results" \
        --rm \
-       $DOCKER_RPM_TAG chown -R $(id -u):$(id -g) /home/test_dir
+       "${DOCKER_RPM_TAG}" \
+       chown -R "$(id -u):$(id -g)" /home/test_dir /home/allure-results
 
-if test "$result" -eq "0"; then
+docker run \
+       -v /tmp/tmp:/tmp/ \
+       --rm \
+       "${DOCKER_TAR_TAG}" \
+       rm -f /tmp/config.yml 
+
+if test "${result}" -eq "0"; then
     echo "OK"
-    tar -cvf ${VERSION_TAR_NAME}.tar ${VERSION_TAR_NAME}
 else
     echo "FAILED RPM!"
     exit 1

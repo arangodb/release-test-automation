@@ -8,7 +8,7 @@
 ///
 /// DISCLAIMER
 ///
-/// Copyright 2010-2012 triagens GmbH, Cologne, Germany
+/// Copyright 2010-2021 triagens GmbH, Cologne, Germany
 ///
 /// Licensed under the Apache License, Version 2.0 (the "License");
 /// you may not use this file except in compliance with the License.
@@ -25,12 +25,15 @@
 /// Copyright holder is triAGENS GmbH, Cologne, Germany
 ///
 /// @author Jan Steemann
+/// @author Tomasz Mielech
 /// @author Copyright 2017, triAGENS GmbH, Cologne, Germany
 ////////////////////////////////////////////////////////////////////////////////
 
 var jsunity = require("jsunity");
+let url = require('url');
 var arangodb = require("@arangodb");
 var db = arangodb.db;
+const request = require("@arangodb/request");
 
 const reconnectRetry = require('@arangodb/replication-common').reconnectRetry;
 var replication = require("@arangodb/replication");
@@ -38,8 +41,8 @@ let compareTicks = replication.compareTicks;
 var console = require("console");
 var internal = require("internal");
 var leaderEndpoint = arango.getEndpoint();
-var followerEndpoint = ARGUMENTS[ARGUMENTS.length - 1];
 
+const options = internal.parseArgv(ARGUMENTS, 0);
 var isCluster = arango.getRole() === 'COORDINATOR';
 var isSingle = arango.getRole() === 'SINGLE';
 const replStateBeforeStart = replication.globalApplier.stateAll();
@@ -48,11 +51,30 @@ const havePreconfiguredReplication = isSingle && (
   (replStateBeforeStart['_system'].state.running === true) ||
     (replStateBeforeStart['_system'].state.phase === 'inactive')
 );
-let followerCreds = followerEndpoint.split('/')[2].split('@')[0].split(':');
-followerEndpoint = followerEndpoint.split('@')[1];
-var leaderCreds = followerCreds;
+
+const followerURL = url.parse(options['args']);
+const followerCreds = followerURL.auth.split(':');
+const followerEndpoint = followerURL.protocol + '//' + followerURL.host; // host contains hostname and port
 
 
+function getCollectionChecksum(baseUrl, jwt, database, colName) {
+  var res;
+  try {
+    let args = {
+       url: baseUrl.replace(/^tcp:/, 'http:').replace(/^ssl:/, 'https:') +
+         '/_db/' + database + '/_api/collection/' + colName + '/checksum',
+       auth: {
+         bearer: jwt,
+       },
+       timeout: 300
+    }
+    res = request.get(args);
+  } catch (x) {
+    print('can not get collection checksum' + x)
+    throw x;
+  }
+  return JSON.parse(res.body).checksum;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief test suite
@@ -72,6 +94,7 @@ function ReplicationSuite() {
     reconnectRetry(followerEndpoint, db._name(), followerCreds[0], followerCreds[1]);
     db._flushCache();
   };
+
 
   var collectionChecksum = function(name) {
     if (isCluster) {
@@ -126,9 +149,14 @@ function ReplicationSuite() {
     }
 
     db._useDatabase("_system");
+    let allDatabases = db._databases();
 
     connectToFollower();
     if (isCluster) {
+      while (allDatabases.length !== db._databases().length) {
+        print('D ' + allDatabases.length + " !== " + db._databases().length);
+        internal.sleep(1);
+      }
       let count = 0;
       let lastLogTick = 0;
       while ((lastLogTick !== state.lastLogTick) && (count < 500)) {
@@ -211,7 +239,9 @@ function ReplicationSuite() {
             db._useDatabase('_system');
             let dbs;
             while (true) {
-              dbs = db._databases().filter(function(db) { return db !== '_system'; });
+              dbs = db._databases().filter(function(db) {
+                return ((db !== '_system') && !db.startsWith('system_'));
+              });
               if (dbs.length !== 0) {
                 break;
               }
@@ -452,6 +482,7 @@ function ReplicationSuite() {
           let createDatabase = function() {
             db._useDatabase('_system');
             let name = "test" + internal.genRandomAlphaNumbers(16) + Date.now();
+            print("Creating " + name);
             return db._createDatabase(name);
           };
 
@@ -459,9 +490,9 @@ function ReplicationSuite() {
             pickDatabase();
             let name = db._name();
             db._useDatabase('_system');
+            print("dropping Database " + name)
             db._dropDatabase(name);
           };
-
 
           let ops = [
             { name: "insert", func: insert },
@@ -490,11 +521,28 @@ function ReplicationSuite() {
             ops.push({ name: "renameCollection", func: renameCollection });
           }
 
+          const jwtExist = options.hasOwnProperty('jwt1') && options.hasOwnProperty('jwt2')
           for (let i = 0; i < 3000; ++i) {
             pickDatabase();
             let op = ops[Math.floor(Math.random() * ops.length)];
             print(Date() + " - " + op.name);
             op.func();
+            if (isCluster && jwtExist) {
+              let leaderChecksum = getCollectionChecksum(leaderEndpoint, options.jwt1, '_system', '_users');
+              let followerChecksum;
+              let checksumCount = 0;
+              while (leaderChecksum !== followerChecksum) {
+                followerChecksum = getCollectionChecksum(followerEndpoint, options.jwt2, '_system', '_users');
+                if (leaderChecksum !== followerChecksum) {
+                  print('C');
+                  if (checksumCount > 20) {
+                    throw Exception("_users collection isn't getting in sync!")
+                  }
+                  internal.wait(1);
+                  checksumCount += 1;
+                }
+              }
+            }
           }
           if (isCluster) {
             for (let i = 0; i < 300; i++) {
