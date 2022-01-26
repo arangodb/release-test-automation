@@ -2,6 +2,7 @@
 import json
 import shutil
 from pathlib import Path
+
 # pylint: disable=E0401
 from arangodb.instance import InstanceType
 from arangodb.starter.manager import StarterManager
@@ -12,6 +13,7 @@ from selenium_ui_test.test_suites.base_test_suite import testcase, run_before_su
 
 class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
     """License manager tests: single server"""
+
     # pylint: disable=W0102
     def __init__(self, new_version, installer_base_config, child_classes=[]):
         super().__init__(

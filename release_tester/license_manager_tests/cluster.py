@@ -3,7 +3,7 @@ import json
 
 import requests
 
-#pylint: disable=E0401
+# pylint: disable=E0401
 from arangodb.installers import RunProperties
 from arangodb.instance import InstanceType
 from arangodb.starter.deployments import make_runner, RunnerType
@@ -54,7 +54,7 @@ class LicenseManagerClusterTestSuite(LicenseManagerBaseTestSuite):
         agent_list.sort()
         return "".join(agent_list)
 
-    #pylint: disable=W0622
+    # pylint: disable=W0622
     def set_license(self, license):
         """set new license"""
         body = """[[{"/arango/.license":{"op":"set","new": """ + license + """}}]]"""

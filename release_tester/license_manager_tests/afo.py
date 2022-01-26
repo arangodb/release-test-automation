@@ -1,5 +1,6 @@
 """License manager tests: active failover"""
 import requests
+
 # pylint: disable=E0401
 from arangodb.installers import RunProperties
 from arangodb.instance import InstanceType

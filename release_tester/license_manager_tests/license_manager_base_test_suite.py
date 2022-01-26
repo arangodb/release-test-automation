@@ -6,6 +6,7 @@ from time import time
 
 import requests
 from allure_commons._allure import attach
+
 # pylint: disable=E0401
 from arangodb.async_client import CliExecutionException
 from arangodb.installers import create_config_installer_set, RunProperties
@@ -15,13 +16,13 @@ from arangodb.starter.deployments.cluster import Cluster
 from arangodb.starter.deployments.dc2dc import Dc2Dc
 from arangodb.starter.deployments.leaderfollower import LeaderFollower
 from reporting.reporting_utils import step
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, run_after_suite, \
-    run_before_each_testcase
+from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, run_after_suite, run_before_each_testcase
 from tools.external_helpers.license_generator.license_generator import create_license
 
 
 class LicenseManagerBaseTestSuite(BaseTestSuite):
     """base class for license manager test suites"""
+
     # pylint: disable=R0902 disable=W0102
     def __init__(
         self,
@@ -94,7 +95,7 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
             time_left > time_left_threshold
         ), f"{message} Expected time left: more than {time_left_threshold} seconds."
 
-    #pylint: disable=R0913
+    # pylint: disable=R0913
     def send_request(self, method, url, data=None, headers={}, timeout=None, instance_type=None):
         """send HTTP request to an instance"""
         if not instance_type:
@@ -124,7 +125,7 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
             requests.get,
             "/_db/_system/_admin/license",
         )
-        #pylint: disable=W0622
+        # pylint: disable=W0622
         license = json.loads(resp[0].content)
         return license
 

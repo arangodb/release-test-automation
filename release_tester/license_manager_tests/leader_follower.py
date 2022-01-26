@@ -1,6 +1,7 @@
 """License manager tests: leader-follower"""
 import json
-#pylint: disable=E0401
+
+# pylint: disable=E0401
 from arangodb.async_client import CliExecutionException
 from arangodb.installers import RunProperties
 from arangodb.starter.deployments import make_runner, RunnerType
@@ -24,7 +25,7 @@ class LicenseManagerLeaderFollowerTestSuite(LicenseManagerBaseTestSuite):
         server_id = server_file_content["serverId"]
         return server_id
 
-    #pylint: disable=W0622 disable=W0221
+    # pylint: disable=W0622 disable=W0221
     def set_license(self, license, starter_instance=None):
         """set new license"""
         if not starter_instance:
@@ -39,7 +40,7 @@ class LicenseManagerLeaderFollowerTestSuite(LicenseManagerBaseTestSuite):
     @step
     def start_leader_follower(self):
         """start a leader-follower setup"""
-        #pylint: disable=W0201
+        # pylint: disable=W0201
         self.runner = make_runner(
             runner_type=RunnerType.LEADER_FOLLOWER,
             abort_on_error=False,
