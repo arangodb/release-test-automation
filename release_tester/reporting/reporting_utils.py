@@ -195,17 +195,9 @@ class AllureTestSuiteContext:
                         isinstance(l, AllureFileLogger)]
         self.file_logger = None if len(file_loggers) == 0 else file_loggers[0]
 
-        previous_test_results = [] if not self.previous_test_listener else {k: v for k, v in
-                                                                            self.previous_test_listener._cache._items.items()
-                                                                            if
-                                                                            isinstance(v,
-                                                                                       TestResult)}
-        if len(previous_test_results) > 0:
-            labels = previous_test_results[0][1].labels
-            parent_suite_label = [l for l in labels if l.name == LabelType.PARENT_SUITE][0]
-            suite_label = [l for l in labels if l.name == LabelType.SUITE][0]
-            self.parent_test_suite_name = parent_suite_label.value
-            self.test_suite_name = suite_label.value
+        if self.previous_test_listener:
+            self.parent_test_suite_name = self.previous_test_listener.default_parent_test_suite_name
+            self.test_suite_name = self.previous_test_listener.default_test_suite_name
         else:
             if suite_name:
                 self.test_suite_name = suite_name
