@@ -1,0 +1,14 @@
+psutil
+pyyaml
+pexpect
+requests
+click
+semver
+selenium
+beautifultable
+tabulate
+markdown
+allure_python_commons
+certifi
+mss
+distro

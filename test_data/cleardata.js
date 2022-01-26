@@ -1,57 +1,128 @@
-
+/* global print, ARGUMENTS */
+//
 // Use like this:
 //   arangosh USUAL_OPTIONS_INCLUDING_AUTHENTICATION --javascript.execute cleardata.js [DATABASENAME]
 // where DATABASENAME is optional and defaults to "_system". The database
-// in question is dropped (if it is not "_system").
-
+// in question is created (if it is not "_system").
+// `--minReplicationFactor [1]  don't create collections with smaller replication factor than this.
+// `--maxReplicationFactor [2]  don't create collections with a bigger replication factor than this.
+// `--dataMultiplier [1]        0 - no data; else n-times the data
+// `--numberOfDBs [1]           count of databases to create and fill
+// `--countOffset [0]           number offset at which to start the database count
+// `--bigDoc false              attach a big string to the edge documents
+// `--collectionMultiplier [1]  how many times to create the collections / index / view / graph set?
+// `--collectionCountOffset [0] number offset at which to start the database count
+// `--singleShard [false]       whether this should only be a single shard instance
+// `--progress [false]          whether to output a keepalive indicator to signal the invoker that work is ongoing
+// `--disabledDbserverUUID      this server is offline, wait for shards on it to be moved
+// `--readonly                  the SUT is readonly. fail if writing is successfull.
+'use strict';
+const fs = require('fs');
 const _ = require('lodash');
-const internal = require('internal')
+const internal = require('internal');
+const semver = require('semver');
 const arangodb = require("@arangodb");
+const console = require("console");
+const db = internal.db;
 const time = internal.time;
-let db = internal.db;
-let print = internal.print;
-let database = "_system";
+const sleep = internal.sleep;
 const ERRORS = arangodb.errors;
+let v = db._version(true);
+const enterprise = v.license === "enterprise";
+const dbVersion = db._version();
+
+let PWDRE = /.*at (.*)cleardata.js.*/;
+let stack = new Error().stack;
+let PWD = fs.makeAbsolute(PWDRE.exec(stack)[1]);
+let isCluster = arango.GET("/_admin/server/role").role === "COORDINATOR";
+let database = "_system";
+let databaseName;
 
 const optionsDefaults = {
   minReplicationFactor: 1,
   maxReplicationFactor: 2,
   numberOfDBs: 1,
   countOffset: 0,
+  dataMultiplier: 1,
   collectionMultiplier: 1,
+  collectionCountOffset: 0,
+  testFoxx: true,
   singleShard: false,
-  progress: false
+  progress: false,
+  oldVersion: "3.5.0",
+  passvoid: '',
+  bigDoc: false,
+  passvoid: ''
+};
+
+let args = _.clone(ARGUMENTS);
+if ((args.length > 0) &&
+    (args[0].slice(0, 1) !== '-')) {
+  database = args[0]; // must start with 'system_' else replication fuzzing may delete it!
+  args = args.slice(1);
 }
 
-if ((0 < ARGUMENTS.length) &&
-    (ARGUMENTS[0].slice(0, 1) !== '-')) {
-  database = ARGUMENTS[0];
-  ARGUMENTS=ARGUMENTS.slice(1);
-}
-
-let options = internal.parseArgv(ARGUMENTS, 0);
+let options = internal.parseArgv(args, 0);
 _.defaults(options, optionsDefaults);
 
 var numberLength = Math.log(options.numberOfDBs + options.countOffset) * Math.LOG10E + 1 | 0;
 
-const zeroPad = (num) => String(num).padStart(numberLength, '0')
+const zeroPad = (num) => String(num).padStart(numberLength, '0');
+
 let tStart = 0;
 let timeLine = [];
-function progress() {
-  now = time();
-  timeLine.push(now - tStart);
-  tStart = now;
+function progress (gaugeName) {
+  let now = time();
+  let delta = now - tStart;
+  timeLine.push(delta);
   if (options.progress) {
-    print("#");
+    print(`# - ${gaugeName},${tStart},${delta}`);
   }
+  tStart = now;
 }
-function getShardCount(defaultShardCount) {
+let ClearDataFuncs = [];
+let ClearDataDbFuncs = [];
+function scanTestPaths (options) {
+  let suites = _.filter(
+    fs.list(fs.join(PWD, 'makedata_suites')),
+    function (p) {
+      return (p.substr(-3) === '.js');
+    }).map(function (x) {
+      return fs.join(fs.join(PWD, 'makedata_suites'), x);
+    }).sort();
+  suites.forEach(suitePath => {
+    let supported = "";
+    let unsupported = "";
+    let suite = require("internal").load(suitePath);
+    if (suite.isSupported(dbVersion, options.oldVersion, options, enterprise, isCluster)) {
+      if ('clearData' in suite) {
+        supported += "L" ;
+        ClearDataFuncs.push(suite.clearData);
+      } else {
+        unsupported += " ";
+      }
+      if ('clearDataDB' in suite) {
+        supported += "D";
+        ClearDataDbFuncs.push(suite.clearDataDB);
+      } else {
+        unsupported += " ";
+      }
+    } else {
+      supported = " ";
+      unsupported = " ";
+    }
+    print("[" + supported +"]   " + unsupported + suitePath);
+  });
+}
+
+function getShardCount (defaultShardCount) {
   if (options.singleShard) {
     return 1;
   }
   return defaultShardCount;
 }
-function getReplicationFactor(defaultReplicationFactor) {
+
+function getReplicationFactor (defaultReplicationFactor) {
   if (defaultReplicationFactor > options.maxReplicationFactor) {
     return options.maxReplicationFactor;
   }
@@ -61,75 +132,33 @@ function getReplicationFactor(defaultReplicationFactor) {
   return defaultReplicationFactor;
 }
 
-let v = db._connection.GET("/_api/version");
-const enterprise = v.license === "enterprise"
-
-let count = 0;
-while (count < options.numberOfDBs) {
-  let databaseName = database
+scanTestPaths(options);
+let dbCount = 0;
+while (dbCount < options.numberOfDBs) {
   tStart = time();
   timeLine = [tStart];
-  db._useDatabase("_system");
+  ClearDataDbFuncs.forEach(func => {
+    db._useDatabase("_system");
+    func(options,
+         isCluster,
+         enterprise,
+         database,
+         dbCount);
+  });
 
-  if (database != "_system") {
-    print('#ix')
-    c = zeroPad(count+options.countOffset);
-    databaseName = `${database}_${c}`;
-    try {
-      db._useDatabase(databaseName);
-    } catch (x) {
-      if (x.errorNum === ERRORS.ERROR_ARANGO_DATABASE_NOT_FOUND.code) {
-        count ++;
-        continue;
-      }
-      else {
-        print(x)
-      }
-    }
-  }
-  else if (options.numberOfDBs > 1) {
-    throw ("must specify a database prefix if want to work with multiple DBs.")
-  }
-  progress();
-  ccount = 0;
-  while (ccount < options.collectionMultiplier) {
-    // Drop collections:
+  let loopCount = options.collectionCountOffset;
+  while (loopCount < options.collectionMultiplier) {
+    progress();
+    ClearDataFuncs.forEach(func => {
+      func(options,
+           isCluster,
+           enterprise,
+           dbCount,
+           loopCount);
+    });
 
-    try { db._drop(`c_${ccount}`); } catch (e) {}
     progress();
-    try { db._drop(`chash_${ccount}`); } catch (e) {}
-    progress();
-    try { db._drop(`cskip_${ccount}`); } catch (e) {}
-    progress();
-    try { db._drop(`cfull_${ccount}`); } catch (e) {}
-    progress();
-    try { db._drop(`cgeo_${ccount}`); } catch (e) {}
-    progress();
-    try { db._drop(`cunique_${ccount}`); } catch (e) {}
-    progress();
-    try { db._drop(`cmulti_${ccount}`); } catch (e) {}
-    progress();
-    try { db._drop(`cempty_${ccount}`); } catch (e) {}
-    progress();
-
-    try { db._dropView(`view1_${ccount}`); } catch (e) { print(e); }
-    progress();
-    try { db._drop(`cview1_${ccount}`); } catch (e) { print(e); }
-    progress();
-
-    // Drop graph:
-
-    let g = require("@arangodb/general-graph");
-    progress();
-    try { g._drop(`G_naive_${ccount}`, true); } catch(e) { }
-    progress();
-    if (enterprise) {
-      let gsm = require("@arangodb/smart-graph");
-      progress();
-      try { gsm._drop(`G_smart_${ccount}`, true); } catch(e) { }
-    }
-    progress();
-    ccount ++;
+    loopCount ++;
   }
   progress();
 
@@ -145,6 +174,5 @@ while (count < options.numberOfDBs) {
     progress();
   }
   print(timeLine.join());
-  count ++;
+  dbCount++;
 }
-

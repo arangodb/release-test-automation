@@ -1,0 +1,15 @@
+[tool.black]
+line-length = 120
+target-version = ['py36']
+exclude = '''
+(
+  /(
+    attic_snippets
+    | .vscode
+    | scenarios
+  )/
+)
+'''
+
+[tool.pylint]
+max-line-length = 120

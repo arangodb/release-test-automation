@@ -12,6 +12,7 @@
 - click - for commandline parsing https://click.palletsprojects.com/en/7.x/
 - semver - semantic versioning.
 - beautiful table - https://beautifultable.readthedocs.io/en/latest/quickstart.html
+- certifi - to use custom SSL certificates with the python requests lib
 - gdb - for checking debug symbol. `sudo apt-get install gdb` macos:`brew install gdb` 
 
 # Installing
@@ -19,26 +20,28 @@
 ## Linux
 
 - **debian** / **ubuntu**:
-  `apt-get install python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect python3-pyftpdlib python3-statsd python3-selenium gdb`
+  `apt-get install python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect python3-pyftpdlib python3-statsd python3-selenium python3-pip gdb`
   
   the `python3-semver` on debian is to old - need to use the pip version instead:
-  `pip3 install semver beautifultable`
+  `pip3 install semver beautifultable allure_python_commons certifi tabulate`
   
   Ubuntu 16.40 pip3 system package is broken. Fix like this: 
   `dpkg -r python3-pip python3-pexpect` 
   `python3.8 -m easy_install pip`
-  `pip install distro semver pexpect psutil beautifultable`
+  `pip install distro semver pexpect psutil beautifultable allure_python_commons certifi`
   
 - **centos**:
    `yum update ; yum install python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect python3-pyftpdlib; pip3 install psutil semver beautifultable` 
    `sudo yum install gdb`
 - **plain pip**:
-  `pip3 install psutil pyyaml pexpect requests click semver ftplib selenium beautifultable`
+  `pip3 install psutil pyyaml pexpect requests click semver ftplib selenium beautifultable tabulate allure_python_commons certifi`
+  or:
+  `pip install -r requirements.txt`
 
 ## Mac OS
 :
     `brew install gnu-tar`
-    `pip3 install click psutil requests pyyaml semver pexpect selenium beautifultable`
+    `pip3 install click psutil requests pyyaml semver pexpect selenium beautifultable tabulate allure_python_commons certifi`
     `brew install gdb`
 if `python --version` is below 3.9 you also have to download ftplib:
     `pip3 install click ftplib`
@@ -101,7 +104,12 @@ Supported Parameters:
  - `--verbose` if specified more logging is done
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
- 
+ - `--alluredir` - directory to save test results in allure format (default = allure-results)
+ - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
+ - `--[no-]ssl` use SSL (default = False)
+ - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl) 
+ - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
+
 Example usage:
  - Windows: `python ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
  - Linux (ubuntu|debian) `python3 ./release_tester/test.py --new-version 3.6.2 --no-enterprise --package-dir /home/willi/Downloads`
@@ -135,15 +143,39 @@ Supported Parameters:
    - `DC` - setup 2 clusters, connect them with arangosync (enterprise only)
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
+ - `--alluredir` - directory to save test results in allure format (default = allure-results)
+ - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
+ - `--[no-]ssl` use SSL (default = False)
+ - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl)
+ - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
  
 Example usage:
  - Windows: `python ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
  - Linux (ubuntu|debian) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
  - Linux (centos|fedora|sles) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
 
-# using `acquire_packages.py` to download packages from stage1/stage2/live
+# Using `conflict_checking.py` for testing of package installation process
 
-`acquire_packages.py` can fetch a set of packages for later use with `upgrade.py`/`test.py`. It will detect the platform its working on.
+To run the tests you need to download older version packages in addition to the version you intend to test.
+Both Community and Enterprise editions are required.   
+Supported Parameters:
+ - `--new-version` which Arangodb Version you want to run the test on
+ - `--old-version` old version of ArangoDB to be used in tests where an older version is required, e.g. testing that newer debug package cannot be installed over older server package
+ - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
+ - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
+ - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
+ - `--verbose` if specified more logging is done
+ - `--alluredir` - directory to save test results in allure format (default = allure-results)
+ - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
+
+Example usage:
+ - Windows: `python ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
+ - Linux (ubuntu|debian) `python3 ./release_tester/test.py --new-version 3.6.2 --no-enterprise --package-dir /home/willi/Downloads`
+ - Linux (centos|fedora|sles) `python3 ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
+
+# using `download.py` to download packages from stage1/stage2/live
+
+`download.py` can fetch a set of packages for later use with `upgrade.py`/`test.py`. It will detect the platform its working on.
 
 Supported Parameters:
  - `--new-version` which Arangodb Version you want to run the test on
@@ -151,7 +183,8 @@ Supported Parameters:
  - `--enterprise-magic` specify your secret enterprise download key here.
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--package-dir` The directory where we will download the nsis .exe / deb / rpm [/ dmg WIP] to
- - `--source [public|[ftp|http]:stage1|[ftp|http]:stage2]`
+ - `--source [public|nightlypublic|[ftp|http]:stage1|[ftp|http]:stage2]`
+   - `nightlypublic` will download the packages from the nightly builds at downloads.arangodb.com
    - `public` (default) will download the packages from downloads.arangodb.com
    - `stage1` will download the files from the staging fileserver - level 1 - ftp: internal http external requires credentials
    - `stage2` will download the files from the staging fileserver - level 2 - ftp: internal http external requires credentials
@@ -161,16 +194,16 @@ Supported Parameters:
  - `--force` overwrite readily existing downloaded packages
 
 example usage:
-`python3 release_tester/acquire_packages.py --enterprise \
-                                            --new-version '3.7.1-rc.1+0.501' \
-                                            --enterprise-magic <enterprisekey> \
-                                            --package-dir /home/willi/Downloads/ \
-                                            --force \
-                                            --source ftp:stage2`
+`python3 release_tester/download.py --enterprise \
+                                    --new-version '3.7.1-rc.1+0.501' \
+                                    --enterprise-magic <enterprisekey> \
+                                    --package-dir /home/willi/Downloads/ \
+                                    --force \
+                                    --source ftp:stage2`
 
-# Using `full_download_upgrade_test.py` for automated upgrade testing
+# Using `full_download_upgrade.py` for automated upgrade testing
 
-`full_download_upgrade_test.py` integrates `upgrade.py` and `acquire_packages.py`.
+`full_download_upgrade.py` integrates `upgrade.py` and `download_packages.py`.
 It will download `Enterprise` and `Community` packages, while `-nightly` will first attempt
 to resolve the proper version of the nightly package, since `-nightly` allways is a suffix to the latest released version + 1.
 
@@ -184,14 +217,16 @@ and create a final report at the end of the run.
 The downloading of packages can be circumvented by specifying `--source local`.
 
 Supported Parameters:
- - `--old-version` which Arangodb Version you want to install to setup the old system
- - `--new-version` which Arangodb Version you want to upgrade the environment to
+ - `--[new|old]-version`
+   - old: which Arangodb Version you want to install to setup the old system
+   - new: which Arangodb Version you want to upgrade the environment to
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
  - `--[no-]encryption-at-rest` turn on encryption at rest for Enterprise packages
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--enterprise-magic` specify your secret enterprise download key here.
- - `--source [local|public|[ftp|http]:stage1|[ftp|http]:stage2]`
+ - `--[new|old]-source [public|nightlypublic|[ftp|http]:stage1|[ftp|http]:stage2]`
+   - `nightlypublic` will download the packages from the nightly builds at downloads.arangodb.com
    - `local` no packages will be downloaded at all, but rather are expected to be found in `package-dir`.
    - `public` (default) will download the packages from downloads.arangodb.com
    - `stage1` will download the files from the staging fileserver - level 1 - ftp: internal http external requires credentials
@@ -210,12 +245,76 @@ Supported Parameters:
    - `DC` - setup 2 clusters, connect them with arangosync (enterprise only)
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
+ - `--alluredir` - directory to save test results in allure format (default = allure-results)
+ - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
+ - `--[no-]ssl` use SSL (default = False)
+ - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl)
+ - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
 
 Example usage: 
 
 - [jenkins/nightly_tar.sh](jenkins/nightly_tar.sh) Download nightly tarball packages, and run it with selenium in `containers/docker_tar` ubuntu container
 - [jenkins/nightly_deb.sh](jenkins/nightly_deb.sh) Download nightly debian packages, and run them with selenium in `containers/docker_deb` ubuntu container
 - [jenkins/nightly_rpm.sh](jenkins/nightly_rpm.sh) Download nightly redhat packages, and run them with selenium in `containers/docker_rpm` centos 7 container
+
+
+# Using `full_download_upgrade_test.py` for automated full release testing
+
+`full_download_upgrade_test.py` integrates `test.py`, `upgrade.py` and `download_packages.py`.
+It will download `Enterprise` and `Community` packages, while `-nightly` will first attempt
+to resolve the proper version of the nightly package, since `-nightly` allways is a suffix to the latest released version + 1.
+
+
+
+It will then run the `upgrade.py` mechanic for:
+ - enterprise with encryption at rest enabled
+ - enterprise 
+ - community
+
+and create a final report at the end of the run.
+
+The downloading of packages can be circumvented by specifying `--source local`.
+
+Supported Parameters:
+ - `--new-version`
+   - new: This is the to be released version. it will be downloaded from `--source`.
+ - `--upgrade-matrix list` specify a list of upgrades to run. For all other versions, `--other-source` will
+   be used to specify the download source. The list is specified in the format of: (without blanks)
+     `first-From : first-To ; second-From : second-To`
+ - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
+ - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
+ - `--enterprise-magic` specify your secret enterprise download key here.
+ - `--[other-]source [public|nightlypublic|[ftp|http]:stage1|[ftp|http]:stage2]`
+   - `nightlypublic` will download the packages from the nightly builds at downloads.arangodb.com
+   - `local` no packages will be downloaded at all, but rather are expected to be found in `package-dir`.
+   - `public` (default) will download the packages from downloads.arangodb.com
+   - `stage1` will download the files from the staging fileserver - level 1 - ftp: internal http external requires credentials
+   - `stage2` will download the files from the staging fileserver - level 2 - ftp: internal http external requires credentials
+ - `--httpuser` username for stage http access
+ - `--httppassvoid` secret for stage http access
+ - `--force` overwrite readily existing downloaded packages
+ - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
+ - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
+ - `--verbose` if specified more logging is done
+ - `--starter-mode [all|LF|AFO|CL|DC|none]` which starter test to exute, `all` of them or `none` at all or: 
+   - `LF` - Leader / Follower - setup two single instances, start replication between them
+   - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
+   - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
+   - `DC` - setup 2 clusters, connect them with arangosync (enterprise only)
+ - `--selenium` - specify the webdriver to be used to work with selenium (if)
+ - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
+ - `--alluredir` - directory to save test results in allure format (default = allure-results)
+ - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
+ - `--[no-]ssl` use SSL (default = False)
+ - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl)
+ - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
+
+Example usage: 
+
+- [jenkins/nightly_tar.sh](jenkins/nightly_tar.sh) Download nightly tarball packages, and run it with selenium in `containers/docker_tar` ubuntu container
+- [jenkins/nightly_deb.sh](jenkins/nightly_deb.sh) Download nightly debian packages, and run them with selenium in `containers/docker_deb` ubuntu container
+- [jenkins/nightly_rpm.sh](jenkins/nightly_rpm.sh) Download nightly redhat packages, and run them with selenium in `containers/docker_rpm` centos 7 container
+
 
 # Using cleanup.py to clean out the system
 
@@ -239,7 +338,7 @@ The scripts in the `deployment` directory will try to install all the required p
 
  - `release_tester/test.py` - main process flow, install, run test, uninstall
  - `release_tester/upgrade.py` - main upgrade process flow, install, run test, upgrade, test again, uninstall
- - `release_tester/acquire_packages.py` - download packages via our various distribution routes
+ - `release_tester/download.py` - download packages via our various distribution routes
  - `release_tester/cleanup.py` - remove files and installed packages etc.
  - `release_tester/installers/[base|nsis|tar|linux|deb|rpm|mac].py` distribution / OS specific [un]installation/upgrade automation
  - `release_tester/arangodb/instance.py` wraps one process of arangod / arangosync; detects its operation mode
@@ -253,7 +352,55 @@ The scripts in the `deployment` directory will try to install all the required p
  - `attic_snippets` - trial and error scripts of start phase, utility functions like killall for mac/windows for manual invocation
 
 
-# Code Structure
+# makedata / checkdata framework
+Makedata is ran inside arangosh. It was made to be user-expandeable by hooking in on test cases.
+It consists of these files in test_data:
+ - `makedata.js` - initially generate test data
+ - `checkdata.js` - check whether data is available; could be read-only
+ - `cleardata.js` - remove the testdata - after invoking it makedata should be able to be ran again without issues.
+ - Plugins in `test_data/makedata_suites` executed in alphanumeric order:
+   - `000_dummy.js` - this can be used as a template if you want to create a new plugin. 
+   - `010_disabled_uuid_check.js` If you're running a cluster setup in failover mode, this checks and waits for all shards have an available leader.
+   - `020_foxx.js` Installs foxx, checks it. 
+   - `050_database.js` creates databases for the test data.
+   - `100_collections.js` creates a set of collections / indices
+   - `400_views.js` creates some views
+   - `500_community_graph.js` creates a community patent graph
+   - `550_enterprise_graph.js` creates an enterprise patent graph
+   - `560_smartgraph_validator.js` on top of the enterprise graph, this will check the integrity check of the server.
+   - `900_oneshard.js` creates oneshard database and does stuff with it.
+
+It should be considered to provide a set of hooks (000_dummy.js can be considered being a template for this):
+
+- Hook to check whether the environment will support your usecase [single/cluster deployment, Community/Enterprise, versions in test]
+- Per Database loop Create / Check [readonly] / Delete handler
+- Per Collection loop Create / Check [readonly] / Delete handler
+
+The hook functions should respect their counter parameters, and use them in their respective reseource names.
+Jslint should be used to check code validity.
+
+The list of the hooks enabled for this very run of one of the tools is printed on startup for reference.
+
+Makedata should be considered a framework for consistency checking in the following situations:
+ - replication
+ - hot backup
+ - upgrade
+ - dc2dc
+
+The replication fuzzing test should be used to ensure the above with randomness added.
+
+Makedata is by default ran with one dataset. However, it can also be used as load generator. 
+For this case especialy, the counters have to be respected, so subsequent runs don't clash with earlier runs.
+The provided dbCount / loopCount should be used in identifiers to ensure this.
+
+To Aid development, the makedata framework can be launched from within the arangodb unittests, 
+if this repository is checked out next to it:
+
+``` bash
+./scripts/unittest rta_makedata --extremeVerbosity true --cluster true --makedata_args:bigDoc true
+```
+
+# Flow of testcases
 The base flow lives in `runner.py`; special deployment specific implementations in the respective derivates. 
 The Flow is as follows:
 
@@ -262,7 +409,8 @@ install
 prepare and setup abstractions, starter managers, create certificates, ec. [starter_prepare_env[_impl]]
 launch all the actual starter instances, wait for them to become alive [starter_run[_impl]]
 finalize the setup like start sync'ing [finish_setup[_impl]]
-invoke make data
+[makedata]
+[makedata check]
 => ask user to inspect the installation
 if HotBackup capable:
   create backup
@@ -272,12 +420,12 @@ if HotBackup capable:
   delete backup
   list backup to revalidate there is none
   restore backup
-  check data
+  [checkdata]
   create non-backup data again
 if Update:
   manage packages (uninstall debug, install new, install new debug, test debug)
   upgrade the starter environment [upgrade_arangod_version[_impl]]
-  makedata validate after upgrade 
+  [makedata check] after upgrade 
   if Hotbackup capable:
     list backups
     upload backup once more
@@ -285,12 +433,15 @@ if Update:
     list & check its empty
     restore the backup
     validate post-backup data is gone again
-  check make data
+  [makedata check]
 test the setup [test_setup[_impl]]
+[makedata check]
 try to jam the setup [jam_setup[_impl]]
+[makedata check]
 shutdown the setup
 uninstall packages
 ```
+
 # GOAL
 
 create most of the flow of i.e. https://github.com/arangodb/release-qa/issues/264 in a portable way. 
@@ -477,4 +628,23 @@ These tests use the CSV data from the wikip
  http://home.apache.org/~mikemccand/enwiki-20120502-lines-1k.txt.lzma
 
 
+# Allure reporting
+To view allure report, you must have allure installed in your system. Download link(for Linux):
+https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/2.14.0/allure-commandline-2.14.0.zip
 
+After the test run is finished, run the following command:
+```bash
+allure serve [results_dir]
+```
+Default results dir: allure_results
+This will open a browser with the test report.
+
+# Maintaining code quality
+## Formatter
+We use [Black Formatter](https://github.com/psf/black). To apply formatting to the code simply run `black .` in the project root dir.  
+Formatter settings are stored in `pyproject.toml` file.
+To switch formatting off for a code block, start it with `# fmt: off` and end with `# fmt: on`.  
+To disable formatting for single line, end it with `# fmt: on`. 
+
+## Linter
+We use [pylint](https://pylint.org/). Command to run it: `pylint release_tester`
