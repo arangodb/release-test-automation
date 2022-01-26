@@ -236,9 +236,9 @@ verbose: {0.verbose}
 # pylint: disable=import-outside-toplevel
 def make_installer(install_config: InstallerConfig):
     # pylint: disable=too-many-return-statements
-    """ detect the OS and its distro,
-        choose the proper installer
-        and return it"""
+    """detect the OS and its distro,
+    choose the proper installer
+    and return it"""
     if install_config.source:
         from arangodb.installers.source import InstallerSource
         return InstallerSource(install_config)
@@ -246,9 +246,9 @@ def make_installer(install_config: InstallerConfig):
     if install_config.zip_package:
         from arangodb.installers.tar import InstallerTAR
         return InstallerTAR(install_config)
+
     if IS_WINDOWS:
         from arangodb.installers.nsis import InstallerW
-
         return InstallerW(install_config)
 
     macver = platform.mac_ver()
