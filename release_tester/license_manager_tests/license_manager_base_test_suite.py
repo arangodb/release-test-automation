@@ -189,6 +189,5 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
                 agents.append(agent)
         return agents
 
-    @abstractmethod
     def get_server_id(self):
         """read server id from data dir"""
