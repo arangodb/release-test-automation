@@ -1,24 +1,28 @@
+"""base class for license manager test suites"""
 import json
 import shutil
-from pathlib import Path
+from abc import abstractmethod
 from time import time
 
 import requests
 from allure_commons._allure import attach
-
+# pylint: disable=E0401
 from arangodb.async_client import CliExecutionException
-from arangodb.installers import create_config_installer_set, InstallerBaseConfig, RunProperties
+from arangodb.installers import create_config_installer_set, RunProperties
 from arangodb.instance import InstanceType
 from arangodb.starter.deployments.activefailover import ActiveFailover
 from arangodb.starter.deployments.cluster import Cluster
 from arangodb.starter.deployments.dc2dc import Dc2Dc
 from arangodb.starter.deployments.leaderfollower import LeaderFollower
 from reporting.reporting_utils import step
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, run_after_suite, run_before_each_testcase
+from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, run_after_suite, \
+    run_before_each_testcase
 from tools.external_helpers.license_generator.license_generator import create_license
 
 
 class LicenseManagerBaseTestSuite(BaseTestSuite):
+    """base class for license manager test suites"""
+    # pylint: disable=R0902 disable=W0102
     def __init__(
         self,
         new_version,
@@ -58,15 +62,18 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
         self.runner.starter_shutdown()
 
     def add_crash_data_to_report(self):
+        """save data dir and logs in case a test failed"""
         self.save_log_file()
         self.save_data_dir()
 
     def save_log_file(self):
+        """add log file to the report"""
         if self.installer.instance and self.installer.instance.logfile.exists():
             log = open(self.installer.instance.logfile, "r").read()
             attach(log, "Log file " + str(self.installer.instance.logfile))
 
     def save_data_dir(self):
+        """add datadir archive to the report"""
         data_dir = self.installer.cfg.dbdir
         if data_dir.exists():
             archive = shutil.make_archive("datadir", "bztar", data_dir, data_dir)
@@ -75,6 +82,7 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
     @step
     def check_that_license_is_not_expired(self, time_left_threshold=0):
         """check that license is not expired"""
+        # pylint: disable=W0622
         license = self.get_license()
         license_expiry_timestamp = license["features"]["expires"]
         time_left = license_expiry_timestamp - time()
@@ -86,7 +94,9 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
             time_left > time_left_threshold
         ), f"{message} Expected time left: more than {time_left_threshold} seconds."
 
+    #pylint: disable=R0913
     def send_request(self, method, url, data=None, headers={}, timeout=None, instance_type=None):
+        """send HTTP request to an instance"""
         if not instance_type:
             if isinstance(self.runner, LeaderFollower):
                 instance_type = InstanceType.SINGLE
@@ -109,14 +119,18 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
         return resp
 
     def get_license(self):
+        """read current license via REST API"""
         resp = self.send_request(
             requests.get,
             "/_db/_system/_admin/license",
         )
+        #pylint: disable=W0622
         license = json.loads(resp[0].content)
         return license
 
+    # pylint: disable=W0622
     def set_license(self, license):
+        """set new license"""
         raise NotImplementedError(f"Setting license not implemented for {type(self)}")
 
     @step
@@ -124,6 +138,7 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
         """expire license"""
         new_timestamp = str(int(time() - 1))
         server_id = self.get_server_id()
+        # pylint: disable=W0622
         license = create_license(new_timestamp, server_id)
         self.set_license(license)
 
@@ -132,6 +147,7 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
         """set valid license"""
         new_timestamp = str(int(time() + 59 * 60))
         server_id = self.get_server_id()
+        # pylint: disable=W0622
         license = create_license(new_timestamp, server_id)
         self.set_license(license)
 
@@ -142,11 +158,11 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
             result = self.starter.arangosh.run_command(
                 ("try to create collection", 'db._create("checkReadOnlyMode");'), True, expect_to_fail=True
             )
-        except CliExecutionException:
+        except CliExecutionException as exc:
             self.starter.arangosh.run_command(
                 ("delete collection", 'db._drop("checkReadOnlyMode");'), True, expect_to_fail=False
             )
-            raise Exception("The system is not in read-only mode.")
+            raise Exception("The system is not in read-only mode.") from exc
         assert (
             "ArangoError 11: cannot create collection" in result[1]
         ), "Expected error message not found in arangosh output."
@@ -158,15 +174,20 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
             self.starter.arangosh.run_command(
                 ("try to create collection", 'db._create("checkNotReadOnlyMode");'), True, expect_to_fail=False
             )
-        except CliExecutionException:
-            raise Exception("Couldn't create collection. The system is expected not to be in read-only mode.")
+        except CliExecutionException as exc:
+            raise Exception("Couldn't create collection. The system is expected not to be in read-only mode.") from exc
         self.starter.arangosh.run_command(
             ("delete collection", 'db._drop("checkNotReadOnlyMode");'), True, expect_to_fail=False
         )
 
     def get_agents(self):
+        """get a list of agents"""
         agents = []
         for starter in self.runner.starter_instances:
             for agent in starter.get_agents():
                 agents.append(agent)
         return agents
+
+    @abstractmethod
+    def get_server_id(self):
+        """read server id from data dir"""

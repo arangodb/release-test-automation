@@ -1,7 +1,9 @@
+"""License manager tests: cluster"""
 import json
 
 import requests
 
+#pylint: disable=E0401
 from arangodb.installers import RunProperties
 from arangodb.instance import InstanceType
 from arangodb.starter.deployments import make_runner, RunnerType
@@ -15,10 +17,13 @@ class LicenseManagerClusterTestSuite(LicenseManagerBaseTestSuite):
 
     @run_before_suite
     def startup(self):
+        """prepare test env"""
         self.start_cluster()
 
     @step
     def start_cluster(self):
+        """start a cluster setup"""
+        # pylint: disable=W0201
         self.runner = make_runner(
             runner_type=RunnerType.CLUSTER,
             abort_on_error=False,
@@ -38,6 +43,7 @@ class LicenseManagerClusterTestSuite(LicenseManagerBaseTestSuite):
         self.starter = self.runner.starter_instances[0]
 
     def get_server_id(self):
+        """read server ids from agency"""
         resp = self.starter.send_request(
             InstanceType.COORDINATOR,
             requests.get,
@@ -48,7 +54,9 @@ class LicenseManagerClusterTestSuite(LicenseManagerBaseTestSuite):
         agent_list.sort()
         return "".join(agent_list)
 
+    #pylint: disable=W0622
     def set_license(self, license):
+        """set new license"""
         body = """[[{"/arango/.license":{"op":"set","new": """ + license + """}}]]"""
         resp = self.runner.get_agency_leader_starter().send_request(
             InstanceType.AGENT,

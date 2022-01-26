@@ -35,6 +35,7 @@ def run_upgrade(
     for runner_type in STARTER_MODES[starter_mode]:
         if not run_props.enterprise and runner_type == RunnerType.DC2DC:
             continue
+        # pylint: disable=E1121
         installers = create_config_installer_set(
             [old_version, new_version],
 

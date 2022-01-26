@@ -6,10 +6,10 @@ from uuid import uuid4
 import allure_commons
 from allure_commons._allure import attach, StepContext
 from allure_commons.logger import AllureFileLogger
-from allure_commons.model2 import Status, TestResult
-from allure_commons.types import AttachmentType, LabelType
+from allure_commons.model2 import Status
+from allure_commons.types import AttachmentType
 from tabulate import tabulate
-
+#pylint: disable=E0401
 from reporting.helpers import AllureListener
 
 
@@ -229,6 +229,7 @@ class AllureTestSuiteContext:
         AllureTestSuiteContext.test_suite_count += 1
 
     def destroy(self):
+        """close test suite context"""
         self.__exit__(None, None, None)
 
     def __enter__(self):

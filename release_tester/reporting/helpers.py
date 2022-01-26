@@ -13,7 +13,7 @@ from allure_commons.model2 import (
 from allure_commons.reporter import AllureReporter
 from allure_commons.types import LabelType, AttachmentType
 from allure_commons.utils import now, format_traceback, format_exception, uuid4
-
+# pylint: disable=E0401
 from reporting.logging import IoDuplicator
 
 
@@ -160,31 +160,37 @@ class AllureListener:
         self.current_testcase_container_uuid = None
 
     def start_suite(self, suite_name):
+        """start a test suite"""
         container = TestResultContainer(uuid=self.container_uuid, name=suite_name)
         self._cache.push(container, self.container_uuid)
         self.allure_logger.start_group(self.container_uuid, container)
         self.allure_logger.update_group(self.container_uuid, start=now())
 
     def stop_suite(self):
+        """stop running test suite"""
         self.allure_logger.stop_group(self.container_uuid)
 
     def start_before_fixture(self, uuid, name):
+        """start a fixture that is ran before a test case or test suite"""
         container_uuid = self.current_testcase_container_uuid if self.current_testcase_container_uuid else self.container_uuid
         fixture = TestBeforeResult(name=name, start=now(), parameters={})
         self.allure_logger.start_before_fixture(container_uuid, uuid, fixture)
 
     def stop_before_fixture(self, uuid, exc_type, exc_val, exc_tb):
+        """stop a fixture that is ran before a test case or test suite"""
         self.allure_logger.stop_before_fixture(uuid=uuid,
                                         stop=now(),
                                         status=get_status(exc_val),
                                         statusDetails=get_status_details(exc_type, exc_val, exc_tb))
 
     def start_after_fixture(self, uuid, name):
+        """start a fixture that is ran after a test case or test suite"""
         container_uuid = self.current_testcase_container_uuid if self.current_testcase_container_uuid else self.container_uuid
         fixture = TestAfterResult(name=name, start=now(), parameters={})
         self.allure_logger.start_after_fixture(container_uuid, uuid, fixture)
 
     def stop_after_fixture(self, uuid, exc_type, exc_val, exc_tb):
+        """stop a fixture that is ran after a test case or test suite"""
         self.allure_logger.stop_after_fixture(uuid=uuid,
                                         stop=now(),
                                         status=get_status(exc_val),

@@ -8,7 +8,7 @@ from uuid import uuid4
 
 from allure_commons.model2 import Status, Label, StatusDetails
 from allure_commons.types import LabelType
-
+#pylint: disable=E0401
 from arangodb.installers import RunProperties
 from reporting.reporting_utils import AllureTestSuiteContext, RtaTestcase, step
 from selenium_ui_test.models import RtaTestResult
@@ -46,6 +46,7 @@ class BaseTestSuite(ABC):
         if self.new_version:
             versions.append(self.new_version)
         if hasattr(self, "generate_custom_suite_name"):
+            #pylint: disable=E1101
             self.suite_name = self.generate_custom_suite_name()
         self.test_suite_context = AllureTestSuiteContext(
                 properties=RunProperties(self.enterprise,
@@ -110,6 +111,7 @@ class BaseTestSuite(ABC):
         return [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "run_after_each_testcase")]
 
     def run_before_fixtures(self, funcs):
+        """run a set of fixtures before the test suite or test case"""
         for func in funcs:
             name = func.__doc__ if func.__doc__ else func.__name__
             with step(name):
@@ -120,12 +122,14 @@ class BaseTestSuite(ABC):
                 exc_tb = None
                 try:
                     func()
+                #pylint: disable=W0702
                 except:
                     exc_type, exc_val, exc_tb = sys.exc_info()
             self.test_suite_context.test_listener.stop_before_fixture(fixture_uuid, exc_type,
                                                                       exc_val, exc_tb)
 
     def run_after_fixtures(self, funcs):
+        """run a set of fixtures after the test suite or test case"""
         for func in funcs:
             name = func.__doc__ if func.__doc__ else func.__name__
             with step(name):
@@ -136,6 +140,7 @@ class BaseTestSuite(ABC):
                 exc_tb = None
                 try:
                     func()
+                # pylint: disable=W0702
                 except:
                     exc_type, exc_val, exc_tb = sys.exc_info()
             self.test_suite_context.test_listener.stop_after_fixture(fixture_uuid, exc_type,
@@ -172,32 +177,28 @@ def run_before_suite(func):
     if callable(func):
         func.run_before_suite = True
         return func
-    else:
-        raise Exception("Only functions can be marked with @run_before_suite decorator")
+    raise Exception("Only functions can be marked with @run_before_suite decorator")
 
 def run_after_suite(func):
     """mark method to be ran after test suite"""
     if callable(func):
         func.run_after_suite = True
         return func
-    else:
-        raise Exception("Only functions can be marked with @run_after_suite decorator")
+    raise Exception("Only functions can be marked with @run_after_suite decorator")
 
 def run_before_each_testcase(func):
     """mark method to be ran before each testcase in its test suite"""
     if callable(func):
         func.run_before_each_testcase = True
         return func
-    else:
-        raise Exception("Only functions can be marked with @run_before_each_testcase decorator")
+    raise Exception("Only functions can be marked with @run_before_each_testcase decorator")
 
 def run_after_each_testcase(func):
     """mark method to be ran before each testcase in its test suite"""
     if callable(func):
         func.run_after_each_testcase = True
         return func
-    else:
-        raise Exception("Only functions can be marked with @run_after_each_testcase decorator")
+    raise Exception("Only functions can be marked with @run_after_each_testcase decorator")
 
 def testcase(title=None, disable=False):
     """ base testcase class decorator """

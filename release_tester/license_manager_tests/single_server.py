@@ -1,9 +1,8 @@
+"""License manager tests: single server"""
 import json
 import shutil
 from pathlib import Path
-
-import requests
-
+# pylint: disable=E0401
 from arangodb.instance import InstanceType
 from arangodb.starter.manager import StarterManager
 from license_manager_tests.license_manager_base_test_suite import LicenseManagerBaseTestSuite
@@ -13,7 +12,7 @@ from selenium_ui_test.test_suites.base_test_suite import testcase, run_before_su
 
 class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
     """License manager tests: single server"""
-
+    # pylint: disable=W0102
     def __init__(self, new_version, installer_base_config, child_classes=[]):
         super().__init__(
             new_version,
@@ -34,12 +33,15 @@ class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
         self.starter.terminate_instance()
 
     def get_server_id(self):
+        """read server ID from data directory"""
         datadir = self.starter.all_instances[0].basedir / "data"
         server_file_content = json.load(open(datadir / "SERVER"))
         server_id = server_file_content["serverId"]
         return server_id
 
+    # pylint: disable=W0622
     def set_license(self, license):
+        """set new license"""
         datadir = self.starter.all_instances[0].basedir / "data"
         with open(datadir / ".license", "w") as license_file:
             license_file.truncate()
@@ -55,6 +57,8 @@ class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
 
     @step
     def start_single_server(self):
+        """start a single server setup"""
+        # pylint: disable=W0201
         self.starter = StarterManager(
             basecfg=self.installer.cfg,
             install_prefix=Path(self.short_name),

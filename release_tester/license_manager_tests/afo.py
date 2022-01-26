@@ -1,7 +1,6 @@
-import json
-
+"""License manager tests: active failover"""
 import requests
-
+# pylint: disable=E0401
 from arangodb.installers import RunProperties
 from arangodb.instance import InstanceType
 from arangodb.starter.deployments import make_runner, RunnerType
@@ -15,10 +14,13 @@ class LicenseManagerAfoTestSuite(LicenseManagerBaseTestSuite):
 
     @run_before_suite
     def startup(self):
+        """prepare test environment"""
         self.start_afo()
 
     @step
     def start_afo(self):
+        """start an AFO setup"""
+        # pylint: disable=W0201
         self.runner = make_runner(
             runner_type=RunnerType.ACTIVE_FAILOVER,
             abort_on_error=False,
@@ -38,6 +40,7 @@ class LicenseManagerAfoTestSuite(LicenseManagerBaseTestSuite):
         self.starter = self.runner.leader
 
     def get_server_id(self):
+        """read server ids from agency"""
         agents = self.get_agents()
         agent_ids = []
         for agent in agents:
@@ -45,7 +48,9 @@ class LicenseManagerAfoTestSuite(LicenseManagerBaseTestSuite):
         agent_ids.sort()
         return "".join(agent_ids)
 
+    # pylint: disable=W0622
     def set_license(self, license):
+        """set new license"""
         body = """[[{"/arango/.license":{"op":"set","new": """ + license + """}}]]"""
         resp = self.runner.get_agency_leader_starter().send_request(
             InstanceType.AGENT,

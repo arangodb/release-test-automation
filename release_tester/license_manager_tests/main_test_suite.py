@@ -48,4 +48,3 @@ class MainLicenseManagerTestSuite(LicenseManagerBaseTestSuite):
 
     def shutdown(self):
         """mute parent method"""
-        pass

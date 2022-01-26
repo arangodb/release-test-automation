@@ -71,7 +71,7 @@ def write_version_tar(tar_file, versions):
 
 class DownloadOptions:
     """ bearer class for base download options """
-    # pylint: disable=too-many-arguments disable=too-few-public-methods
+    # pylint: disable=too-many-arguments disable=too-few-public-methods disable=R0902
     def __init__(self,
                  force_dl: bool,
                  verbose: bool,

@@ -11,6 +11,7 @@ from test_driver import TestDriver
 
 @click.command()
 # pylint: disable=R0913
+# pylint: disable=R0914
 @very_common_options()
 @common_options(support_old=True, interactive=True)
 # fmt: off
@@ -18,6 +19,7 @@ def main(
         # very_common_options
         new_version, verbose, enterprise, package_dir, zip_package,
         # common_options
+        # pylint: disable=W0613
         hot_backup, old_version, test_data_dir, encryption_at_rest, interactive,
         starter_mode, stress_upgrade, abort_on_error, publicip,
         selenium, selenium_driver_args, alluredir, clean_alluredir, ssl, use_auto_certs):
