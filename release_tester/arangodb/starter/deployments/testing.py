@@ -9,16 +9,13 @@ import pprint
 import shutil
 
 from pathlib import Path
-from queue import Queue, Empty
 from threading  import Thread, Lock
 
 import psutil
 import yaml
 
-from arangodb.instance import InstanceType
-from arangodb.starter.deployments.runner import Runner
+from arangodb.starter.deployments.runner import Runner, RunnerProperties
 
-from tools.asciiprint import print_progress as progress
 from tools.timestamp import timestamp
 
 
@@ -31,6 +28,7 @@ class TestConfig():
     """ this represents one tests configuration """
     # pylint: disable=R0902 disable=R0903
     def __init__(self):
+        """ defaults for test config """
         self.parallelity = 3
         self.db_count = 100
         self.db_count_chunks = 5
@@ -87,10 +85,11 @@ def testing_runner(testing_instance, this, arangosh):
         this['log_file'].rename(failname)
         this['log_file'] = failname
         # raise Exception("santehusanotehusanotehu")
-    
+
     testing_instance.done_job(this['weight'])
 
 def convert_args(args):
+    """ json -> testconfig """
     ret_args = []
     for one_arg in args:
         if isinstance(one_arg, bool):
@@ -100,6 +99,7 @@ def convert_args(args):
     return ret_args
 
 def set_filenames(suite):
+    """ directories """
     suite['base_testdir'] = Path.cwd() / 'tmp'
     suite['base_logdir' ] = Path.cwd() / 'testrun'
     suite['base_thislogdir'] = suite['base_testdir'] / suite['log']
@@ -110,6 +110,7 @@ def set_filenames(suite):
     suite['report_file'] =  suite['base_thislogdir'] / 'UNITTEST_RESULT.json'
 
 def create_scenario(scenarios, testsuite, test_content):
+    """ instanciate one test scenario from yaml """
     args = []
     suffix = ""
     if test_content['mode'] == "cluster":
@@ -154,6 +155,7 @@ def create_scenario(scenarios, testsuite, test_content):
         set_filenames(suite)
 
 def parse_scenario(yml_file, scenarios):
+    """ load one yaml """
     if not yml_file.name.endswith('.yml'):
         return
     testsuite = yml_file.name[:-4]
@@ -166,35 +168,52 @@ def parse_scenario(yml_file, scenarios):
         create_scenario(scenarios, testsuite, suite)
 
 class Testing(Runner):
-    """ this launches a cluster setup """
+    """ this launches a testing setup """
     # pylint: disable=R0913 disable=R0902
-    def __init__(self, runner_type, cfg, old_inst, new_cfg, new_inst, selenium, selenium_driver_args):
-        global OTHER_SH_OUTPUT, RESULTS_TXT
+    def __init__(
+        self,
+        runner_type,
+        abort_on_error,
+        installer_set,
+        selenium,
+        selenium_driver_args,
+        testrun_name: str,
+        ssl: bool,
+        use_auto_certs: bool,
+    ):
+        # global OTHER_SH_OUTPUT, RESULTS_TXT
         #if not cfg.scenario.exists():
         #    cfg.scenario.write_text(yaml.dump(TestConfig()))
         #    raise Exception("have written %s with default config" % str(cfg.scenario))
 
+        super().__init__(runner_type,
+                         abort_on_error,
+                         installer_set,
+                         RunnerProperties('TESTING', 1, 1, True, ssl, use_auto_certs),
+                         selenium, selenium_driver_args, "xx")
         self.scenarios = []
-        for scenario in cfg.scenario.iterdir():
+        for scenario in self.cfg.scenario.iterdir():
             if scenario.is_file():
                 parse_scenario(scenario, self.scenarios)
             else:
                 print('no: ' + str(scenario))
         pp.pprint(self.scenarios)
-        super().__init__(runner_type, cfg, old_inst, new_cfg, new_inst,
-                         'TESTING', 1, 1, selenium, selenium_driver_args, "xx")
         self.success = False
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
         self.slot_lock = Lock()
+        self.available_slots = psutil.cpu_count() / 4 # TODO well threadripper..
+        self.used_slots = 0
         #RESULTS_TXT = Path('/tmp/results.txt').open('w')
         #OTHER_SH_OUTPUT = Path('/tmp/errors.txt').open('w')
 
     def done_job(self, count):
+        """ if one job is finished... """
         with self.slot_lock:
             self.used_slots -= count
 
     def launch_next(self, offset):
+        """ launch one testing job """
         if self.scenarios[offset]['weight'] > (self.available_slots - self.used_slots):
             return False
         with self.slot_lock:
@@ -210,13 +229,12 @@ class Testing(Runner):
                               self.old_installer.arangosh))
         worker.start()
         return True
-        
+
     def starter_prepare_env_impl(self):
+        """ run testing suites """
         mem = psutil.virtual_memory()
         os.environ['ARANGODB_OVERRIDE_DETECTED_TOTAL_MEMORY'] = str(int((mem.total * 0.8) / 9))
 
-        self.available_slots = psutil.cpu_count() / 4 # TODO well threadripper..
-        self.used_slots = 0
         #raise Exception("tschuess")
         start_offset = 0
         used_slots = 0
@@ -266,17 +284,16 @@ class Testing(Runner):
                             "bztar",
                             str(some_scenario['base_logdir']) + "/",
                             str(some_scenario['base_logdir']) + "/")
-        
+
     def jam_attempt_impl(self):
         pass
 
     def make_data_impl(self):
         pass # we do this later.
-    def check_data_impl_sh(self, arangosh):
-        pass # we don't care
     def check_data_impl(self):
         pass
     def supports_backup_impl(self):
+        """ nope """
         return False # we want to do this on our own.
 
     def starter_run_impl(self):
