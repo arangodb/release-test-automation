@@ -101,14 +101,15 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             result_line,
             verbose,
             expect_to_fail,
+            )
 
     def run_testing(self,
                     testcase,
-                    args,
-                    #timeout,
+                    testing_args,
+                    timeout,
                     directory,
-                    logfile,
-                    #verbose
+                    # logfile,
+                    verbose
                     ):
        # pylint: disable=R0913 disable=R0902
         """ testing.js wrapper """
@@ -120,15 +121,18 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             '--server.endpoint', 'none',
             '--javascript.allow-external-process-control', 'true',
             '--javascript.execute', str(Path('UnitTests') / 'unittest.js'),
+            ]
+        run_cmd = args +[
             '--',
-            testcase] + ['--testOutput', directory ] + args
+            testcase,
+            '--testOutput', directory ] + testing_args
         return self.run_arango_tool_monitored(
             self.cfg.bin_dir / "arangosh",
             run_cmd,
             timeout,
-            result_line,
+            dummy_line_result,
             verbose,
-            expect_to_fail,
+            False,
         )
 
     @step
