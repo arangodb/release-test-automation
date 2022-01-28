@@ -824,7 +824,7 @@ class StarterManager:
                         )
                         instance_class = ArangodInstance
                     # directory = self.basedir / name
-                    if match:
+                    if match and len(match.group(2)) > 0:
                         # we may see a `local-slave-*` directory inbetween,
                         # hence we need to choose the current directory not
                         # the starter toplevel dir for this:
