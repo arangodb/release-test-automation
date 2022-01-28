@@ -8,6 +8,7 @@ from arangodb.installers import RunProperties
 from common_options import zip_common_options
 from test_driver import TestDriver
 
+
 @click.command()
 @zip_common_options
 def run_test(zip_package):
@@ -20,15 +21,16 @@ def run_test(zip_package):
         Path(""),
         True,
         zip_package,
-        False, # hot_backup,
-        False, # interactive,
-        "all", # starter_mode,
-        False, # stress_upgrade,
-        False, # abort_on_error,
+        False,  # hot_backup,
+        False,  # interactive,
+        "all",  # starter_mode,
+        False,  # stress_upgrade,
+        False,  # abort_on_error,
         "127.0.0.1",
         "none",
         [],
-        False)
+        False,
+    )
     test_driver.set_r_limits()
     test_driver.run_cleanup(RunProperties(False, False, False))
 

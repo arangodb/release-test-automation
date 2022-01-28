@@ -10,7 +10,6 @@ from common_options import very_common_options, common_options
 from test_driver import TestDriver
 
 
-
 @click.command()
 # we ignore some params, since this is a test-only toplevel tool:
 # pylint: disable=too-many-arguments disable=too-many-locals

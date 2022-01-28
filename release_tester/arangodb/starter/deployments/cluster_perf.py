@@ -38,6 +38,7 @@ class TestConfig:
         self.db_offset = 0
         self.progressive_timeout = 100
 
+
 # pylint: disable=global-variable-not-assigned
 statsdc = statsd.StatsClient("localhost", 8125)
 RESULTS_TXT = None
@@ -104,7 +105,7 @@ class ClusterPerf(Runner):
             cfg.scenario.write_text(yaml.dump(TestConfig()))
             raise Exception("have written %s with default config" % str(cfg.scenario))
 
-        with open(cfg.scenario, encoding='utf8') as fileh:
+        with open(cfg.scenario, encoding="utf8") as fileh:
             self.scenario = yaml.load(fileh, Loader=yaml.Loader)
 
         super().__init__(
@@ -119,8 +120,8 @@ class ClusterPerf(Runner):
         self.success = False
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
-        RESULTS_TXT = Path("/tmp/results.txt").open("w", encoding='utf8')
-        OTHER_SH_OUTPUT = Path("/tmp/errors.txt").open("w", encoding='utf8')
+        RESULTS_TXT = Path("/tmp/results.txt").open("w", encoding="utf8")
+        OTHER_SH_OUTPUT = Path("/tmp/errors.txt").open("w", encoding="utf8")
 
     def starter_prepare_env_impl(self):
         mem = psutil.virtual_memory()

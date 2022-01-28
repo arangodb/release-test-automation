@@ -113,13 +113,11 @@ class BinaryDescription:
         is_there = self.path.is_file()
         if enterprise and self.enterprise:
             if not is_there and in_version:
-                raise Exception("Binary missing from enterprise package! "
-                                + str(self.path))
+                raise Exception("Binary missing from enterprise package! " + str(self.path))
         # file must not exist
         if not enterprise and self.enterprise:
             if is_there:
-                raise Exception("Enterprise binary found in community package! "
-                                + str(self.path))
+                raise Exception("Enterprise binary found in community package! " + str(self.path))
         elif not is_there:
             raise Exception("binary was not found! " + str(self.path))
 
@@ -212,7 +210,7 @@ class InstallerBase(ABC):
 
     def reset_version(self, version):
         """re-configure the version we work with"""
-        if version.find('nightly') >=0:
+        if version.find("nightly") >= 0:
             version = version.split("~")[0]
             version = ".".join(version.split(".")[:3])
         self.semver = semver.VersionInfo.parse(version)
@@ -227,7 +225,7 @@ class InstallerBase(ABC):
 
     @step
     def un_install_server_package(self):
-        """ uninstall the server package """
+        """uninstall the server package"""
         if self.cfg.debug_package_is_installed:
             self.un_install_debug_package()
         self.un_install_server_package_impl()
@@ -262,24 +260,25 @@ class InstallerBase(ABC):
 
     @step
     def un_install_server_package_for_upgrade(self):
-        """ if we need to do something to the old installation on upgrade, do it here. """
+        """if we need to do something to the old installation on upgrade, do it here."""
 
     # pylint: disable=no-self-use
     def install_debug_package_impl(self):
-        """ install the debug package """
+        """install the debug package"""
         return False
 
     # pylint: disable=no-self-use
     def un_install_debug_package_impl(self):
-        """ uninstall the debug package """
+        """uninstall the debug package"""
         return False
 
     def __repr__(self):
-        return ("Installer type: {0.installer_type}\n"+
-                "Server package: {0.server_package}\n"+
-                "Debug package: {0.debug_package}\n"+
-                "Client package: {0.client_package}").format(
-                    self)
+        return (
+            "Installer type: {0.installer_type}\n"
+            + "Server package: {0.server_package}\n"
+            + "Debug package: {0.debug_package}\n"
+            + "Client package: {0.client_package}"
+        ).format(self)
 
     @abstractmethod
     def calculate_package_names(self):
@@ -330,15 +329,15 @@ class InstallerBase(ABC):
 
     @abstractmethod
     def un_install_server_package_impl(self):
-        """ installer specific server uninstall function """
+        """installer specific server uninstall function"""
 
     @abstractmethod
     def install_client_package_impl(self):
-        """ installer specific client uninstall function """
+        """installer specific client uninstall function"""
 
     @abstractmethod
     def un_install_client_package_impl(self):
-        """ installer specific client uninstall function """
+        """installer specific client uninstall function"""
 
     @abstractmethod
     def cleanup_system(self):
@@ -379,14 +378,14 @@ class InstallerBase(ABC):
             except PermissionError:
                 print("Ignoring non deleteable " + str(cfg_file))
                 return
-        cfg_file.write_text(yaml.dump(self.cfg), encoding='utf8')
+        cfg_file.write_text(yaml.dump(self.cfg), encoding="utf8")
         self.cfg.semver = semver.VersionInfo.parse(self.cfg.version)
 
     @step
     def load_config(self):
         """deserialize the config from disk"""
         verbose = self.cfg.verbose
-        with open(self.calc_config_file_name(), encoding='utf8') as fileh:
+        with open(self.calc_config_file_name(), encoding="utf8") as fileh:
             print("loading " + str(self.calc_config_file_name()))
             self.cfg.set_from(yaml.load(fileh, Loader=yaml.Loader))
         self.cfg.semver = semver.VersionInfo.parse(self.cfg.version)

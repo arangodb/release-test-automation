@@ -233,7 +233,9 @@ RETURN c
             """
 UPDATE "{key}"
     WITH {{alive: false}}
-IN Characters""".format(key=key)
+IN Characters""".format(
+                key=key
+            )
         )
 
         # selecting execute query button

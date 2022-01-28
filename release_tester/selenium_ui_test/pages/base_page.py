@@ -105,7 +105,9 @@ class BasePage:
         """wait for jquery to finish..."""
         wait = WebDriverWait(self.webdriver, 15)
         try:
-            wait.until(lambda driver: driver.execute_script("return (typeof jQuery !== 'undefined') && jQuery.active") == 0)
+            wait.until(
+                lambda driver: driver.execute_script("return (typeof jQuery !== 'undefined') && jQuery.active") == 0
+            )
             wait.until(lambda driver: driver.execute_script("return document.readyState") == "complete")
         except TimeoutException:
             pass
@@ -231,7 +233,7 @@ class BasePage:
         return title
 
     def check_version_is_newer(self, compare_version):
-        """ check whether the version in the ui is the expected """
+        """check whether the version in the ui is the expected"""
         ui_version_str = self.locator_finder_by_id("currentVersion").text
         print("Package Version: ", ui_version_str)
         ui_version = semver.VersionInfo.parse(ui_version_str)
@@ -502,7 +504,7 @@ class BasePage:
 
     # pylint: disable=no-self-use
     def progress(self, arg):
-        """state print""" # todo
+        """state print"""  # todo
         print(arg)
 
     def xpath(self, path):

@@ -6,7 +6,8 @@ from selenium_ui_test.pages.support_page import SupportPage
 
 
 class SupportTestSuite(BaseSeleniumTestSuite):
-    """ support page testsuite """
+    """support page testsuite"""
+
     @testcase
     def test_support(self):
         """testing support page"""

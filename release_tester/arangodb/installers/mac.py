@@ -227,12 +227,12 @@ class InstallerMac(InstallerBase):
 
     @step
     def stop_service(self):
-        """ stop the system wide service """
+        """stop the system wide service"""
         self.instance.terminate_instance()
 
     @step
     def upgrade_server_package(self, old_installer):
-        """ upgrade an existing installation. """
+        """upgrade an existing installation."""
         os.environ["UPGRADE_DB"] = "Yes"
         self.instance = old_installer.instance
         self.stop_service()
@@ -241,11 +241,11 @@ class InstallerMac(InstallerBase):
 
     @step
     def install_server_package_impl(self):
-        """ fresh install """
+        """fresh install"""
         self.install_server_package_backend()
 
     def install_server_package_backend(self):
-        """ install or upgrade """
+        """install or upgrade"""
         if self.cfg.pidfile.exists():
             self.cfg.pidfile.unlink()
         logging.info("Mounting DMG")
@@ -268,7 +268,7 @@ class InstallerMac(InstallerBase):
 
     @step
     def un_install_server_package_impl(self):
-        """ remove the package """
+        """remove the package"""
         self.stop_service()
         if not self.mountpoint:
             mpts = _detect_dmg_mountpoints(self.cfg.package_dir / self.server_package)
@@ -278,10 +278,10 @@ class InstallerMac(InstallerBase):
             _unmountdmg(self.mountpoint)
 
     def install_client_package_impl(self):
-        """ no mac client package """
+        """no mac client package"""
 
-    def  un_install_client_package_impl(self):
-        """ no mac client package """
+    def un_install_client_package_impl(self):
+        """no mac client package"""
 
     @step
     def cleanup_system(self):

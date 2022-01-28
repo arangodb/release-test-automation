@@ -25,7 +25,7 @@ def run_upgrade(
     publicip,
     selenium,
     selenium_driver_args,
-    run_props: RunProperties
+    run_props: RunProperties,
 ):
     """execute upgrade tests"""
     lh.configure_logging(verbose)
@@ -38,13 +38,12 @@ def run_upgrade(
         # pylint: disable=too-many-function-args
         installers = create_config_installer_set(
             [old_version, new_version],
-
             verbose,
             zip_package,
             hot_backup,
             Path(package_dir),
             Path(test_data_dir),
-            "all", # deployment_mode
+            "all",  # deployment_mode
             publicip,
             interactive,
             stress_upgrade,

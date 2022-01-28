@@ -330,7 +330,7 @@ db.testCollection.save({test: "document"})
         )
 
     def generate_keyfile(self, keyfile):
-        """ generate the ssl certificate file """
+        """generate the ssl certificate file"""
         self.cert_op(
             [
                 "tls",

@@ -6,7 +6,8 @@ from selenium_ui_test.pages.views_page import ViewsPage
 
 
 class ViewsTestSuite(BaseSeleniumTestSuite):
-    """ views testsuite """
+    """views testsuite"""
+
     @testcase
     def test_views(self):
         """testing Views page"""

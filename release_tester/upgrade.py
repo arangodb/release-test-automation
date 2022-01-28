@@ -11,6 +11,7 @@ from common_options import very_common_options, common_options
 from arangodb.installers import RunProperties
 from test_driver import TestDriver
 
+
 @click.command()
 # pylint: disable=too-many-arguments disable=too-many-locals
 @very_common_options()

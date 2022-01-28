@@ -9,7 +9,8 @@ from allure_commons.logger import AllureFileLogger
 from allure_commons.model2 import Status
 from allure_commons.types import AttachmentType
 from tabulate import tabulate
-#pylint: disable=import-error
+
+# pylint: disable=import-error
 from reporting.helpers import AllureListener
 
 
@@ -115,15 +116,14 @@ class TestcaseContext:
         self.statusDetails = statusDetails
         self.labels = []
 
+
 RESULTS_DIR = Path()
 CLEAN_DIR = False
 ZIP_PACKAGE = False
 
 
-def init_allure(results_dir: Path,
-                clean: bool,
-                zip_package: bool):
-    """ globally init this module"""
+def init_allure(results_dir: Path, clean: bool, zip_package: bool):
+    """globally init this module"""
     # pylint: disable=global-statement
     global RESULTS_DIR, CLEAN_DIR, ZIP_PACKAGE
     if not results_dir.exists():
@@ -141,14 +141,14 @@ class AllureTestSuiteContext:
 
     # pylint: disable=too-many-locals disable=dangerous-default-value disable=too-many-arguments
     def __init__(
-            self,
-            properties=None,
-            versions=[],
-            parent_test_suite_name=None,
-            auto_generate_parent_test_suite_name=True,
-            suite_name=None,
-            runner_type=None,
-            installer_type=None
+        self,
+        properties=None,
+        versions=[],
+        parent_test_suite_name=None,
+        auto_generate_parent_test_suite_name=True,
+        suite_name=None,
+        runner_type=None,
+        installer_type=None,
     ):
         def generate_suite_name():
             if properties.enterprise:
@@ -170,7 +170,7 @@ class AllureTestSuiteContext:
                     edition,
                     package_type,
                     "ON" if properties.encryption_at_rest else "OFF",
-                    "ON" if properties.ssl else "OFF"
+                    "ON" if properties.ssl else "OFF",
                 )
             else:
                 test_suite_name = """
@@ -188,11 +188,9 @@ class AllureTestSuiteContext:
 
             return test_suite_name
 
-        test_listeners = [p for p in allure_commons.plugin_manager.get_plugins() if
-                          isinstance(p, AllureListener)]
+        test_listeners = [p for p in allure_commons.plugin_manager.get_plugins() if isinstance(p, AllureListener)]
         self.previous_test_listener = None if len(test_listeners) == 0 else test_listeners[0]
-        file_loggers = [l for l in allure_commons.plugin_manager.get_plugins() if
-                        isinstance(l, AllureFileLogger)]
+        file_loggers = [l for l in allure_commons.plugin_manager.get_plugins() if isinstance(l, AllureFileLogger)]
         self.file_logger = None if len(file_loggers) == 0 else file_loggers[0]
 
         if self.previous_test_listener:
@@ -221,8 +219,7 @@ class AllureTestSuiteContext:
             allure_commons.plugin_manager.unregister(self.previous_test_listener)
 
         self.test_listener = AllureListener(
-            default_test_suite_name=self.test_suite_name,
-            default_parent_test_suite_name=self.parent_test_suite_name
+            default_test_suite_name=self.test_suite_name, default_parent_test_suite_name=self.parent_test_suite_name
         )
         allure_commons.plugin_manager.register(self.test_listener)
         self.test_listener.start_suite(self.test_suite_name)

@@ -8,6 +8,7 @@ from selenium_ui_test.test_suites.base_test_suite import testcase
 
 class DatabaseTestSuite(BaseSeleniumTestSuite):
     """testing database page"""
+
     @testcase
     def test_database(self):
         """testing database page"""

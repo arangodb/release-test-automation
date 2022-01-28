@@ -5,6 +5,7 @@ import multiprocessing
 from pathlib import Path, PureWindowsPath
 import shutil
 import time
+
 # pylint: disable=import-error
 import winreg
 import os

@@ -11,8 +11,9 @@ from selenium.common.exceptions import TimeoutException
 
 
 class UserPageTestSuite(BaseSeleniumTestSuite):
-# pylint: disable=too-many-statements
-    """ user page testsuite """
+    # pylint: disable=too-many-statements
+    """user page testsuite"""
+
     @testcase
     def test_user(self):
         """testing user page"""
@@ -76,8 +77,8 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
             print("trying to create collection")
             collection_page.navbar_goto("collections")
             # TODO: we fail to remove this collection again.
-            #collection_page.create_sample_collection("read/write")
-            #collection_page.select_delete_collection()
+            # collection_page.create_sample_collection("read/write")
+            # collection_page.select_delete_collection()
             print("Allow user Read/Write access to the _system DB test Completed \n")
         finally:
             # logout from the current user to get back to root

@@ -15,7 +15,8 @@ from download import (
     write_version_tar,
     touch_all_tars_in_dir,
     Download,
-    DownloadOptions)
+    DownloadOptions,
+)
 from test_driver import TestDriver
 from tools.killall import list_all_processes
 
@@ -23,14 +24,7 @@ from arangodb.installers import EXECUTION_PLAN
 
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
 def upgrade_package_test(
-    dl_opts: DownloadOptions,
-    new_version,
-    old_version,
-    new_dlstage,
-    old_dlstage,
-    git_version,
-    editions,
-    test_driver
+    dl_opts: DownloadOptions, new_version, old_version, new_dlstage, old_dlstage, git_version, editions, test_driver
 ):
     """process fetch & tests"""
 
@@ -41,9 +35,9 @@ def upgrade_package_test(
 
     versions = {}
     fresh_versions = {}
-    version_state_tar = get_tar_file_path(test_driver.launch_dir,
-                                          [old_version, new_version],
-                                          test_driver.get_packaging_shorthand())
+    version_state_tar = get_tar_file_path(
+        test_driver.launch_dir, [old_version, new_version], test_driver.get_packaging_shorthand()
+    )
     read_versions_tar(version_state_tar, versions)
     print(versions)
 
@@ -87,30 +81,17 @@ def upgrade_package_test(
         this_test_dir = test_dir / props.directory_suffix
         test_driver.reset_test_data_dir(this_test_dir)
 
-        results.append(
-            test_driver.run_upgrade(
-                [
-                    dl_old.cfg.version,
-                    dl_new.cfg.version
-                ],
-                props
-            )
-        )
+        results.append(test_driver.run_upgrade([dl_old.cfg.version, dl_new.cfg.version], props))
 
     for use_enterprise in [True, False]:
         results.append(
             test_driver.run_conflict_tests(
-                [
-                    dl_old.cfg.version,
-                    dl_new.cfg.version
-                ],
+                [dl_old.cfg.version, dl_new.cfg.version],
                 enterprise=use_enterprise,
             )
         )
 
-    results.append(
-        test_driver.run_license_manager_tests(dl_new.cfg.version)
-    )
+    results.append(test_driver.run_license_manager_tests(dl_new.cfg.version))
 
     print("V" * 80)
     status = True
@@ -147,7 +128,7 @@ def upgrade_package_test(
 
     tablestr = str(table)
     print(tablestr)
-    Path("testfailures.txt").write_text(tablestr, encoding='utf8')
+    Path("testfailures.txt").write_text(tablestr, encoding="utf8")
     if not status:
         print("exiting with failure")
         sys.exit(1)

@@ -7,7 +7,8 @@ from selenium_ui_test.pages.login_page import LoginPage
 
 
 class LogInTestSuite(BaseSeleniumTestSuite):
-    """ login testsuite """
+    """login testsuite"""
+
     @testcase
     def test_login(self):
         """testing login page"""

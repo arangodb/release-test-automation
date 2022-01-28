@@ -5,18 +5,19 @@ import shutil
 from allure_commons._allure import attach
 
 from arangodb.installers import create_config_installer_set, RunProperties, InstallerBaseConfig
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, run_before_suite, \
-    run_after_suite, run_after_each_testcase
+from selenium_ui_test.test_suites.base_test_suite import (
+    BaseTestSuite,
+    run_before_suite,
+    run_after_suite,
+    run_after_each_testcase,
+)
 
 
 class BasePackageInstallationTestSuite(BaseTestSuite):
     # pylint: disable=too-many-instance-attributes disable=too-many-arguments
     """base class for package conflict checking"""
-    def __init__(
-            self,
-            versions: list,
-            base_config: InstallerBaseConfig
-    ):
+
+    def __init__(self, versions: list, base_config: InstallerBaseConfig):
         self.new_version = versions[1]
         self.old_version = versions[0]
         self.zip_package = base_config.zip_package
@@ -32,17 +33,13 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
             versions=versions,
             base_config=base_config,
             deployment_mode="all",
-            run_properties=RunProperties(enterprise=False,
-                                         encryption_at_rest=False,
-                                         ssl=False)
+            run_properties=RunProperties(enterprise=False, encryption_at_rest=False, ssl=False),
         )
         self.installers["enterprise"] = create_config_installer_set(
             versions=versions,
             base_config=base_config,
             deployment_mode="all",
-            run_properties=RunProperties(enterprise=True,
-                                         encryption_at_rest=False,
-                                         ssl=False)
+            run_properties=RunProperties(enterprise=True, encryption_at_rest=False, ssl=False),
         )
         self.old_inst_e = self.installers["enterprise"][0][1]
         self.new_inst_e = self.installers["enterprise"][1][1]
@@ -70,7 +67,7 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
         """upload a logfile into the report."""
         inst = self.installers["enterprise"][0][1]
         if inst.instance and inst.instance.logfile.exists():
-            with open(inst.instance.logfile, "r", encoding='utf8').read() as log:
+            with open(inst.instance.logfile, "r", encoding="utf8").read() as log:
                 attach(log, "Log file " + str(inst.instance.logfile))
 
     def save_data_dir(self):

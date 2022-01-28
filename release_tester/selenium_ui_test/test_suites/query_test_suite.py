@@ -8,7 +8,8 @@ from selenium_ui_test.pages.graph_page import GraphExample, get_graph
 
 
 class QueryTestSuite(BaseSeleniumTestSuite):
-    """ query testsuite """
+    """query testsuite"""
+
     @testcase
     def test_query(self):
         """testing query page"""

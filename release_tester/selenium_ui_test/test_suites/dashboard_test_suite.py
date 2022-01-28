@@ -7,6 +7,7 @@ from selenium_ui_test.pages.dashboard_page import DashboardPage
 
 class DashboardTestSuite(BaseSeleniumTestSuite):
     """testing dashboard page"""
+
     @testcase
     def test_dashboard(self):
         """testing dashboard page"""

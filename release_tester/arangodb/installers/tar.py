@@ -113,7 +113,9 @@ class InstallerTAR(InstallerBase):
         else:
             self.server_package = "arangodb3{ep}-{arch}{dashus}{ver}.{ext}".format(**self.desc)
             self.client_package = "arangodb3{ep}-client-{arch}{dashus}{ver}.{ext}".format(**self.desc)
-            self.cfg.client_install_prefix = self.basedir / "arangodb3{ep}-client-{arch}{dashus}{ver}".format(**self.desc)
+            self.cfg.client_install_prefix = self.basedir / "arangodb3{ep}-client-{arch}{dashus}{ver}".format(
+                **self.desc
+            )
             self.cfg.server_install_prefix = self.basedir / "arangodb3{ep}-{arch}{dashus}{ver}".format(**self.desc)
             if self.cfg.client_package_is_installed:
                 self.cfg.install_prefix = self.basedir / "arangodb3{ep}-client-{arch}{dashus}{ver}".format(**self.desc)
@@ -180,7 +182,7 @@ class InstallerTAR(InstallerBase):
 
     @step
     def install_client_package_impl(self):
-        """ install the client tar file """
+        """install the client tar file"""
         logging.info("installing Arangodb " + self.installer_type + "client package")
         logging.debug("package dir: {0.cfg.package_dir}- " "client_package: {0.client_package}".format(self))
         if not self.cfg.install_prefix.exists():
@@ -212,16 +214,16 @@ class InstallerTAR(InstallerBase):
 
     @step
     def un_install_server_package_impl(self):
-        """ remove server package """
+        """remove server package"""
         self.purge_install_dir()
 
     @step
     def un_install_client_package_impl(self):
-        """ purge client package """
+        """purge client package"""
         self.purge_install_dir()
 
     def purge_install_dir(self):
-        """ remove the install directory """
+        """remove the install directory"""
         if self.cfg.install_prefix.exists():
             shutil.rmtree(self.cfg.install_prefix)
 

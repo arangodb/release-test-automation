@@ -233,7 +233,7 @@ class Dc2Dc(Runner):
                 val["instance"].is_leader = True
 
         add_starter(self.cluster1, port=7528)
-        add_starter(self.cluster2, port=9528, moreopts=['--args.dbservers.log', 'request=trace'])
+        add_starter(self.cluster2, port=9528, moreopts=["--args.dbservers.log", "request=trace"])
         self.starter_instances = [self.cluster1["instance"], self.cluster2["instance"]]
 
     def starter_run_impl(self):
@@ -376,7 +376,7 @@ class Dc2Dc(Runner):
         elif last_sync_output.find("Shard is not turned on for synchronizing") >= 0:
             self.progress(True, "arangosync: sync in progress.")
         # we want to research this to find an actual cure, so we want to see these errors:
-        #elif re.match(USERS_ERROR_RX, last_sync_output):
+        # elif re.match(USERS_ERROR_RX, last_sync_output):
         #    self.progress(True, "arangosync: resetting users collection...")
         #    self.sync_manager.reset_failed_shard("_system", "_users")
         else:

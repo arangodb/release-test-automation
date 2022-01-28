@@ -8,7 +8,8 @@ from selenium.common.exceptions import TimeoutException
 
 
 class AnalyzerPage(NavigationBarPage):
-    """ analyzer page object """
+    """analyzer page object"""
+
     # pylint: disable=too-many-instance-attributes
     def __init__(self, webdriver):
         super().__init__(webdriver)

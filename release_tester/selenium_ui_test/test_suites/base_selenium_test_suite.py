@@ -13,13 +13,18 @@ from semver import VersionInfo
 from selenium_ui_test.pages.base_page import BasePage
 from selenium_ui_test.pages.login_page import LoginPage
 from selenium_ui_test.pages.navbar import NavigationBarPage
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, run_before_suite, \
-    run_after_suite, run_after_each_testcase
+from selenium_ui_test.test_suites.base_test_suite import (
+    BaseTestSuite,
+    run_before_suite,
+    run_after_suite,
+    run_after_each_testcase,
+)
 from reporting.reporting_utils import attach_table
 
 
 class BaseSeleniumTestSuite(BaseTestSuite):
-    """ base class for all selenium testsuites """
+    """base class for all selenium testsuites"""
+
     # pylint: disable=dangerous-default-value disable=too-many-instance-attributes
     def __init__(self, selenium_runner, child_classes=[]):
         self.selenium_runner = selenium_runner
@@ -47,45 +52,45 @@ class BaseSeleniumTestSuite(BaseTestSuite):
             self.take_screenshot()
             assert False, message
 
-#    def connect_server_new_tab(self, cfg):
-#        """login..."""
-#        self.progress("Opening page")
-#        print(frontend_instance[0].get_public_plain_url())
-#        self.original_window_handle = self.webdriver.current_window_handle
-#
-#        # Open a new window
-#        self.webdriver.execute_script("window.open('');")
-#        self.webdriver.switch_to.window(self.webdriver.window_handles[1])
-#        self.webdriver.get(
-#            self.get_protocol()
-#            + "://"
-#            + self.frontend.get_public_plain_url()
-#            + "/_db/_system/_admin/aardvark/index.html"
-#        )
-#        login_page = LoginPage(self.webdriver)
-#        login_page.login_webif("root", frontend_instance[0].get_passvoid())
-#
-#    def close_tab_again(self):
-#        """close a tab, and return to main window"""
-#        self.webdriver.close()  # Switch back to the first tab with URL A
-#        # self.webdriver.switch_to.window(self.webdriver.window_handles[0])
-#        # print("Current Page Title is : %s" %self.webdriver.title)
-#        # self.webdriver.close()
-#        self.webdriver.switch_to.window(self.original_window_handle)
-#        self.original_window_handle = None
-#
-#    def connect_server(self, frontend_instance, database, cfg):
-#        """login..."""
-#        self.progress("Opening page")
-#        print(frontend_instance[0].get_public_plain_url())
-#        self.webdriver.get(
-#            self.get_protocol()
-#            + "://"
-#            + frontend_instance[0].get_public_plain_url()
-#            + "/_db/_system/_admin/aardvark/index.html"
-#        )
-#        login_page = LoginPage(self.webdriver)
-#        login_page.login_webif("root", frontend_instance[0].get_passvoid())
+    #    def connect_server_new_tab(self, cfg):
+    #        """login..."""
+    #        self.progress("Opening page")
+    #        print(frontend_instance[0].get_public_plain_url())
+    #        self.original_window_handle = self.webdriver.current_window_handle
+    #
+    #        # Open a new window
+    #        self.webdriver.execute_script("window.open('');")
+    #        self.webdriver.switch_to.window(self.webdriver.window_handles[1])
+    #        self.webdriver.get(
+    #            self.get_protocol()
+    #            + "://"
+    #            + self.frontend.get_public_plain_url()
+    #            + "/_db/_system/_admin/aardvark/index.html"
+    #        )
+    #        login_page = LoginPage(self.webdriver)
+    #        login_page.login_webif("root", frontend_instance[0].get_passvoid())
+    #
+    #    def close_tab_again(self):
+    #        """close a tab, and return to main window"""
+    #        self.webdriver.close()  # Switch back to the first tab with URL A
+    #        # self.webdriver.switch_to.window(self.webdriver.window_handles[0])
+    #        # print("Current Page Title is : %s" %self.webdriver.title)
+    #        # self.webdriver.close()
+    #        self.webdriver.switch_to.window(self.original_window_handle)
+    #        self.original_window_handle = None
+    #
+    #    def connect_server(self, frontend_instance, database, cfg):
+    #        """login..."""
+    #        self.progress("Opening page")
+    #        print(frontend_instance[0].get_public_plain_url())
+    #        self.webdriver.get(
+    #            self.get_protocol()
+    #            + "://"
+    #            + frontend_instance[0].get_public_plain_url()
+    #            + "/_db/_system/_admin/aardvark/index.html"
+    #        )
+    #        login_page = LoginPage(self.webdriver)
+    #        login_page.login_webif("root", frontend_instance[0].get_passvoid())
 
     def go_to_index_page(self):
         """Open index.html"""

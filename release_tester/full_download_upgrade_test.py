@@ -25,7 +25,7 @@ def upgrade_package_test(
     other_source,
     git_version,
     editions,
-    test_driver
+    test_driver,
 ):
     """process fetch & tests"""
 
@@ -81,13 +81,7 @@ def upgrade_package_test(
         this_test_dir = test_dir / props.directory_suffix
         test_driver.reset_test_data_dir(this_test_dir)
 
-        results.append(
-            test_driver.run_test(
-                "all",
-                [dl_new.cfg.version],
-                props
-            )
-        )
+        results.append(test_driver.run_test("all", [dl_new.cfg.version], props))
 
     for j in range(len(new_versions)):
         for props in EXECUTION_PLAN:
@@ -97,7 +91,7 @@ def upgrade_package_test(
 
     # Configure Chrome to accept self-signed SSL certs and certs signed by unknown CA.
     # FIXME: Add custom CA to Chrome to properly validate server cert.
-    #if props.ssl:
+    # if props.ssl:
     #    selenium_driver_args += ("ignore-certificate-errors",)
 
     for props in EXECUTION_PLAN:
@@ -131,23 +125,12 @@ def upgrade_package_test(
         this_test_dir = test_dir / props.directory_suffix
         test_driver.reset_test_data_dir(this_test_dir)
 
-        results.append(
-            test_driver.run_upgrade(
-                [
-                    dl_old.cfg.version,
-                    dl_new.cfg.version
-                ],
-                props
-            )
-        )
+        results.append(test_driver.run_upgrade([dl_old.cfg.version, dl_new.cfg.version], props))
 
     for use_enterprise in [True, False]:
         results.append(
             test_driver.run_conflict_tests(
-                [
-                    dl_old.cfg.version,
-                    dl_new.cfg.version
-                ],
+                [dl_old.cfg.version, dl_new.cfg.version],
                 enterprise=use_enterprise,
             )
         )
@@ -187,7 +170,7 @@ def upgrade_package_test(
 
     tablestr = str(table)
     print(tablestr)
-    Path("testfailures.txt").write_text(tablestr, encoding='utf8')
+    Path("testfailures.txt").write_text(tablestr, encoding="utf8")
     if not status:
         print("exiting with failure")
         sys.exit(1)

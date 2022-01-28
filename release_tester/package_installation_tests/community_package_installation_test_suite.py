@@ -16,16 +16,10 @@ from selenium_ui_test.test_suites.base_test_suite import testcase
 
 class CommunityPackageInstallationTestSuite(BasePackageInstallationTestSuite):
     """testsuite for community packages"""
+
     # pylint: disable=too-many-arguments disable=line-too-long
-    def __init__(
-        self,
-        versions: list,
-        base_config: InstallerBaseConfig
-    ):
-        super().__init__(
-            versions=versions,
-            base_config=base_config
-        )
+    def __init__(self, versions: list, base_config: InstallerBaseConfig):
+        super().__init__(versions=versions, base_config=base_config)
 
     def generate_custom_suite_name(self):
         return f"Test package installation/uninstallation. New version: {self.new_version}. Old version: {self.old_version}. Package type: {str(self.new_inst_e.installer_type)}. Community edition."

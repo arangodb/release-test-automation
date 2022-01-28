@@ -485,7 +485,7 @@ class CollectionPage(NavigationBarPage):
     #     self.wait_for_ajax()
 
     def create_new_index(self, index_name, value, cluster_status):
-        """ create a new Index """
+        """create a new Index"""
         print(f"Creating {index_name} index started \n")
         create_new_index_btn_sitem = self.locator_finder_by_id(self.create_new_index_btn_id)
         create_new_index_btn_sitem.click()
@@ -671,7 +671,7 @@ class CollectionPage(NavigationBarPage):
         self.click_submenu_entry("Settings")
 
     def select_collection(self, collection_name):
-        """ select a collection """
+        """select a collection"""
         selector = """//div[contains(@class, 'tile')][@id='collection_%s']""" % collection_name
         self.locator_finder_by_xpath(selector).click()
 

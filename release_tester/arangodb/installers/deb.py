@@ -218,7 +218,7 @@ class InstallerDeb(InstallerLinux):
 
     @step
     def un_install_server_package_impl(self):
-        """ uninstall server package """
+        """uninstall server package"""
         cmd = "dpkg --purge " + "arangodb3" + ("e" if self.cfg.enterprise else "")
         lh.log_cmd(cmd)
         uninstall = pexpect.spawnu(cmd)

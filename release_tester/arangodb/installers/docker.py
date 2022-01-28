@@ -85,10 +85,10 @@ class InstallerDocker(InstallerBase):
         pass
 
     def install_client_package_impl(self):
-        """ no docker client container """
+        """no docker client container"""
 
-    def  un_install_client_package_impl(self):
-        """ no docker client container """
+    def un_install_client_package_impl(self):
+        """no docker client container"""
 
     def broadcast_bind(self):
         pass

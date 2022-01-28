@@ -8,11 +8,15 @@ from allure_commons.model2 import (
     TestResult,
     Status,
     Label,
-    StatusDetails, TestResultContainer, TestBeforeResult, TestAfterResult,
+    StatusDetails,
+    TestResultContainer,
+    TestBeforeResult,
+    TestAfterResult,
 )
 from allure_commons.reporter import AllureReporter
 from allure_commons.types import LabelType, AttachmentType
 from allure_commons.utils import now, format_traceback, format_exception, uuid4
+
 # pylint: disable=import-error
 from reporting.logging import IoDuplicator
 
@@ -39,7 +43,7 @@ class AllureListener:
         self._cache = ItemCache()
         self.default_test_suite_name = default_test_suite_name
         self.default_parent_test_suite_name = default_parent_test_suite_name
-        self.container_uuid=str(uuid4())
+        self.container_uuid = str(uuid4())
         self.current_testcase_container_uuid = None
         self.parent_test_listener = None
 
@@ -134,7 +138,6 @@ class AllureListener:
         self.allure_logger.start_group(self.current_testcase_container_uuid, container)
         self.allure_logger.update_group(self.current_testcase_container_uuid, start=now())
 
-
     # pylint: disable=too-many-arguments
     @allure_commons.hookimpl
     def stop_test(self, uuid, context, exc_type, exc_val, exc_tb):
@@ -172,29 +175,38 @@ class AllureListener:
 
     def start_before_fixture(self, uuid, name):
         """start a fixture that is ran before a test case or test suite"""
-        container_uuid = self.current_testcase_container_uuid if self.current_testcase_container_uuid else self.container_uuid
+        container_uuid = (
+            self.current_testcase_container_uuid if self.current_testcase_container_uuid else self.container_uuid
+        )
         fixture = TestBeforeResult(name=name, start=now(), parameters={})
         self.allure_logger.start_before_fixture(container_uuid, uuid, fixture)
 
     def stop_before_fixture(self, uuid, exc_type, exc_val, exc_tb):
         """stop a fixture that is ran before a test case or test suite"""
-        self.allure_logger.stop_before_fixture(uuid=uuid,
-                                        stop=now(),
-                                        status=get_status(exc_val),
-                                        statusDetails=get_status_details(exc_type, exc_val, exc_tb))
+        self.allure_logger.stop_before_fixture(
+            uuid=uuid,
+            stop=now(),
+            status=get_status(exc_val),
+            statusDetails=get_status_details(exc_type, exc_val, exc_tb),
+        )
 
     def start_after_fixture(self, uuid, name):
         """start a fixture that is ran after a test case or test suite"""
-        container_uuid = self.current_testcase_container_uuid if self.current_testcase_container_uuid else self.container_uuid
+        container_uuid = (
+            self.current_testcase_container_uuid if self.current_testcase_container_uuid else self.container_uuid
+        )
         fixture = TestAfterResult(name=name, start=now(), parameters={})
         self.allure_logger.start_after_fixture(container_uuid, uuid, fixture)
 
     def stop_after_fixture(self, uuid, exc_type, exc_val, exc_tb):
         """stop a fixture that is ran after a test case or test suite"""
-        self.allure_logger.stop_after_fixture(uuid=uuid,
-                                        stop=now(),
-                                        status=get_status(exc_val),
-                                        statusDetails=get_status_details(exc_type, exc_val, exc_tb))
+        self.allure_logger.stop_after_fixture(
+            uuid=uuid,
+            stop=now(),
+            status=get_status(exc_val),
+            statusDetails=get_status_details(exc_type, exc_val, exc_tb),
+        )
+
 
 class ItemCache:
     """a class to store allure report objects before writing to output"""

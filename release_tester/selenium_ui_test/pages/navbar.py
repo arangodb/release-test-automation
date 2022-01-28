@@ -7,6 +7,7 @@ from selenium.common.exceptions import TimeoutException
 # wtf navbar?
 # pylint: disable=blacklisted-name
 
+
 class NavigationBarPage(UserBarPage):
     """Page object representing the navigation bar"""
 

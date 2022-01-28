@@ -8,7 +8,8 @@ from uuid import uuid4
 
 from allure_commons.model2 import Status, Label, StatusDetails
 from allure_commons.types import LabelType
-#pylint: disable=import-error
+
+# pylint: disable=import-error
 from arangodb.installers import RunProperties
 from reporting.reporting_utils import AllureTestSuiteContext, RtaTestcase, step
 from selenium_ui_test.models import RtaTestResult
@@ -16,13 +17,14 @@ from selenium_ui_test.models import RtaTestResult
 
 class BaseTestSuite(ABC):
     """base class for testsuites"""
+
     # pylint: disable=dangerous-default-value disable=too-many-instance-attributes
     def __init__(self, child_classes=[]):
         self.test_results = []
         self.child_classes = child_classes
         self.children = []
         self.parent = None
-        self.child_classes=child_classes
+        self.child_classes = child_classes
         self.enterprise = False
         if not hasattr(self, "new_version"):
             self.new_version = None
@@ -46,21 +48,19 @@ class BaseTestSuite(ABC):
         if self.new_version:
             versions.append(self.new_version)
         if hasattr(self, "generate_custom_suite_name"):
-            #pylint: disable=no-member
+            # pylint: disable=no-member
             self.suite_name = self.generate_custom_suite_name()
         self.test_suite_context = AllureTestSuiteContext(
-                properties=RunProperties(self.enterprise,
-                                         self.enc_at_rest,
-                                         self.ssl),
-                versions=versions,
-                parent_test_suite_name=None if not self.parent_test_suite_name else self.parent_test_suite_name,
-                auto_generate_parent_test_suite_name=True
-                if not hasattr(self, "auto_generate_parent_test_suite_name")
-                else self.auto_generate_parent_test_suite_name,
-                suite_name=None if not self.suite_name else self.suite_name,
-                runner_type=None if not self.runner_type else self.runner_type,
-                installer_type=None if not self.installer_type else self.installer_type,
-            )
+            properties=RunProperties(self.enterprise, self.enc_at_rest, self.ssl),
+            versions=versions,
+            parent_test_suite_name=None if not self.parent_test_suite_name else self.parent_test_suite_name,
+            auto_generate_parent_test_suite_name=True
+            if not hasattr(self, "auto_generate_parent_test_suite_name")
+            else self.auto_generate_parent_test_suite_name,
+            suite_name=None if not self.suite_name else self.suite_name,
+            runner_type=None if not self.runner_type else self.runner_type,
+            installer_type=None if not self.installer_type else self.installer_type,
+        )
 
     # pylint: disable=no-self-use
     def init_child_class(self, child_class):
@@ -73,7 +73,7 @@ class BaseTestSuite(ABC):
         if self.has_own_testcases():
             self.test_results += self.run_own_testscases()
         for suite_class in self.child_classes:
-            suite=self.init_child_class(suite_class)
+            suite = self.init_child_class(suite_class)
             suite.test_suite_context.test_listener.parent_test_listener = self.test_suite_context.test_listener
             self.children.append(suite)
             self.test_results += suite.run()
@@ -82,7 +82,7 @@ class BaseTestSuite(ABC):
         return self.test_results
 
     def run_own_testscases(self):
-        """ run all tests local to the derived class """
+        """run all tests local to the derived class"""
         testcases = [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "is_testcase")]
         results = []
         for one_testcase in testcases:
@@ -90,24 +90,24 @@ class BaseTestSuite(ABC):
         return results
 
     def has_own_testcases(self):
-        """ do we have own testcases? """
+        """do we have own testcases?"""
         testcases = [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "is_testcase")]
         return len(testcases) > 0
 
     def get_run_before_suite_methods(self):
-        """ list methods that are marked to be ran before test suite """
+        """list methods that are marked to be ran before test suite"""
         return [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "run_before_suite")]
 
     def get_run_after_suite_methods(self):
-        """ list methods that are marked to be ran before test suite """
+        """list methods that are marked to be ran before test suite"""
         return [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "run_after_suite")]
 
     def get_run_before_each_testcase_methods(self):
-        """ list methods that are marked to be ran before test suite """
+        """list methods that are marked to be ran before test suite"""
         return [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "run_before_each_testcase")]
 
     def get_run_after_each_testcase_methods(self):
-        """ list methods that are marked to be ran before test suite """
+        """list methods that are marked to be ran before test suite"""
         return [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "run_after_each_testcase")]
 
     def run_before_fixtures(self, funcs):
@@ -122,11 +122,10 @@ class BaseTestSuite(ABC):
                 exc_tb = None
                 try:
                     func()
-                #pylint: disable=bare-except
+                # pylint: disable=bare-except
                 except:
                     exc_type, exc_val, exc_tb = sys.exc_info()
-            self.test_suite_context.test_listener.stop_before_fixture(fixture_uuid, exc_type,
-                                                                      exc_val, exc_tb)
+            self.test_suite_context.test_listener.stop_before_fixture(fixture_uuid, exc_type, exc_val, exc_tb)
 
     def run_after_fixtures(self, funcs):
         """run a set of fixtures after the test suite or test case"""
@@ -143,8 +142,7 @@ class BaseTestSuite(ABC):
                 # pylint: disable=bare-except
                 except:
                     exc_type, exc_val, exc_tb = sys.exc_info()
-            self.test_suite_context.test_listener.stop_after_fixture(fixture_uuid, exc_type,
-                                                                     exc_val, exc_tb)
+            self.test_suite_context.test_listener.stop_after_fixture(fixture_uuid, exc_type, exc_val, exc_tb)
 
     def setup_test_suite(self):
         """prepare to run test suite"""
@@ -172,12 +170,14 @@ class BaseTestSuite(ABC):
                 return True
         return False
 
+
 def run_before_suite(func):
     """mark method to be ran before test suite"""
     if callable(func):
         func.run_before_suite = True
         return func
     raise Exception("Only functions can be marked with @run_before_suite decorator")
+
 
 def run_after_suite(func):
     """mark method to be ran after test suite"""
@@ -186,12 +186,14 @@ def run_after_suite(func):
         return func
     raise Exception("Only functions can be marked with @run_after_suite decorator")
 
+
 def run_before_each_testcase(func):
     """mark method to be ran before each testcase in its test suite"""
     if callable(func):
         func.run_before_each_testcase = True
         return func
     raise Exception("Only functions can be marked with @run_before_each_testcase decorator")
+
 
 def run_after_each_testcase(func):
     """mark method to be ran before each testcase in its test suite"""
@@ -200,8 +202,10 @@ def run_after_each_testcase(func):
         return func
     raise Exception("Only functions can be marked with @run_after_each_testcase decorator")
 
+
 def testcase(title=None, disable=False):
-    """ base testcase class decorator """
+    """base testcase class decorator"""
+
     def decorator(func):
         def wrapper(self, *args, **kwargs):
             # pylint: disable=broad-except disable=too-many-branches

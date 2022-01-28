@@ -11,6 +11,6 @@ from reporting.reporting_utils import step
 def set_prometheus_jwt(jwtstr):
     """alter the prometheus config to patch our current JWT into it"""
     cf_file = Path("/etc/prometheus/prometheus.token")
-    cf_file.write_text(jwtstr, encoding='utf-8')
+    cf_file.write_text(jwtstr, encoding="utf-8")
     restart = psutil.Popen(["/etc/init.d/prometheus-node-exporter", "restart"])
     restart.wait()

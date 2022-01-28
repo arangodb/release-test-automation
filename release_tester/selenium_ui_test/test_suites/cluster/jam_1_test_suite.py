@@ -11,7 +11,8 @@ from selenium_ui_test.test_suites.base_test_suite import testcase
 
 
 class ClusterJamStepOneSuite(BaseSeleniumTestSuite):
-    """ cluster jam step 1 testsuite """
+    """cluster jam step 1 testsuite"""
+
     WINVER = platform.win32_ver()
 
     @testcase

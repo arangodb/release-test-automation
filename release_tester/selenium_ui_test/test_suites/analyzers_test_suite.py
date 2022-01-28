@@ -6,10 +6,11 @@ from selenium_ui_test.test_suites.base_test_suite import testcase
 
 
 class AnalyzersTestSuite(BaseSeleniumTestSuite):
-    """ analyzer page testsuite """
+    """analyzer page testsuite"""
+
     @testcase
     def test_analyzers(self):
-        """ analyzer page test """
+        """analyzer page test"""
         # pylint: disable=too-many-statements
         print("---------Analyzers Page Test Begin--------- \n")
         # login = LoginPage(self.webdriver)

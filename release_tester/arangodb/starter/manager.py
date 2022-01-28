@@ -106,7 +106,7 @@ class StarterManager:
         self.jwt_tokens = {}
         if jwt_str:
             self.jwtfile = Path(str(self.basedir) + "_jwt")
-            self.jwtfile.write_text(jwt_str, encoding='utf-8')
+            self.jwtfile.write_text(jwt_str, encoding="utf-8")
             self.moreopts += ["--auth.jwt-secret", str(self.jwtfile)]
             self.get_jwt_header()
 
@@ -265,7 +265,7 @@ class StarterManager:
         # pylint disable=broad-except
         match_str = "--starter.data-dir={0.basedir}".format(self)
         if self.passvoidfile.exists():
-            self.passvoid = self.passvoidfile.read_text(errors="backslashreplace", encoding='utf-8')
+            self.passvoid = self.passvoidfile.read_text(errors="backslashreplace", encoding="utf-8")
         for process in psutil.process_iter(["pid", "name"]):
             try:
                 name = process.name()
@@ -325,7 +325,7 @@ class StarterManager:
         if write_to_server:
             print("Provisioning passvoid " + passvoid)
             self.arangosh.js_set_passvoid("root", passvoid)
-            self.passvoidfile.write_text(passvoid, encoding='utf-8')
+            self.passvoidfile.write_text(passvoid, encoding="utf-8")
         self.passvoid = passvoid
         for i in self.all_instances:
             if i.is_frontend():
@@ -1123,7 +1123,7 @@ class StarterNonManager(StarterManager):
 
     @step
     def run_starter(self, expect_to_fail=False):
-        """ fake run starter method """
+        """fake run starter method"""
 
     @step
     def detect_instances(self):

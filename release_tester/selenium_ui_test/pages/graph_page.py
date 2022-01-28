@@ -25,8 +25,8 @@ class GraphExample(IntEnum):
     CONNECTED = 8
     # these are non graph-example tabs; their index doesn't align with their table column:
     # if more example graphs are added, add them above, move numbers.
-    MANUAL_KNOWS = 9 # overlaps with knows graph
-    MANUAL_SATELLITE_GRAPH = 10 # overlaps with knows graph
+    MANUAL_KNOWS = 9  # overlaps with knows graph
+    MANUAL_SATELLITE_GRAPH = 10  # overlaps with knows graph
     MANUAL_SMART_GRAHP = 11
     MANUAL_DISJOINT_SMART_GRAHP = 12
 
@@ -48,16 +48,24 @@ class ECol:
         self.name = name
         self.ctype = "e"
 
-ALL_VERSIONS="3.0.0"
+
+ALL_VERSIONS = "3.0.0"
+
+
 class GraphCreateSet:
     """this has all we need to know to create an example graph"""
 
     # pylint: disable=too-few-public-methods disable=too-many-arguments
-    def __init__(self, clear_name, btn_id, collections,
-                 handler=None,
-                 enterprise=False,
-                 min_version=ALL_VERSIONS,
-                 non_cl_min_ver=ALL_VERSIONS):
+    def __init__(
+        self,
+        clear_name,
+        btn_id,
+        collections,
+        handler=None,
+        enterprise=False,
+        min_version=ALL_VERSIONS,
+        non_cl_min_ver=ALL_VERSIONS,
+    ):
         self.clear_name = clear_name
         self.btn_id = btn_id
         self.handler = handler
@@ -78,7 +86,9 @@ class GraphCreateSet:
         """resolves the enum to a printeable string"""
         return self.clear_name
 
+
 GRAPH_SETS = []
+
 
 def get_graph(graph: GraphExample):
     """look up the graph"""
@@ -356,28 +366,28 @@ class GraphPage(NavigationBarPage):
         self.webdriver.back()
         time.sleep(1)
 
-#    def delete_sattelite_graph(self):
-#        print("\n")
-#        print("Smart Graph deleting started \n")
-#        satellite_settings_id = "satellite_graph_settings"
-#        satellite_settings_sitem = self.locator_finder_by_id(satellite_settings_id)
-#        satellite_settings_sitem.click()
-#
-#        delete_btn_id = "modalButton0"
-#        delete_sitem = self.locator_finder_by_id(delete_btn_id)
-#        delete_sitem.click()
-#
-#        delete_check_id = "dropGraphCollections"
-#        delete_check_sitem = self.locator_finder_by_id(delete_check_id)
-#        delete_check_sitem.click()
-#
-#        delete_confirm_btn_id = "modal-confirm-delete"
-#        delete_confirm_btn_sitem = self.locator_finder_by_id(delete_confirm_btn_id)
-#        delete_confirm_btn_sitem.click()
-#
-#        time.sleep(2)
-#        print("Satellite Graph deleted successfully \n")
-#        self.webdriver.refresh()
+    #    def delete_sattelite_graph(self):
+    #        print("\n")
+    #        print("Smart Graph deleting started \n")
+    #        satellite_settings_id = "satellite_graph_settings"
+    #        satellite_settings_sitem = self.locator_finder_by_id(satellite_settings_id)
+    #        satellite_settings_sitem.click()
+    #
+    #        delete_btn_id = "modalButton0"
+    #        delete_sitem = self.locator_finder_by_id(delete_btn_id)
+    #        delete_sitem.click()
+    #
+    #        delete_check_id = "dropGraphCollections"
+    #        delete_check_sitem = self.locator_finder_by_id(delete_check_id)
+    #        delete_check_sitem.click()
+    #
+    #        delete_confirm_btn_id = "modal-confirm-delete"
+    #        delete_confirm_btn_sitem = self.locator_finder_by_id(delete_confirm_btn_id)
+    #        delete_confirm_btn_sitem.click()
+    #
+    #        time.sleep(2)
+    #        print("Satellite Graph deleted successfully \n")
+    #        self.webdriver.refresh()
 
     def create_smart_graph(self, importer, test_data_dir, disjointgraph=False):
         """Adding smart disjoint graph"""
@@ -492,30 +502,30 @@ class GraphPage(NavigationBarPage):
 
         self.webdriver.back()
 
-#        time.sleep(2)
-#
-#        print("\n")
-#        print("Smart Graph deleting started \n")
-#        smart_settings_id = "smart_graph_settings"
-#        smart_settings_sitem = self.locator_finder_by_id(smart_settings_id)
-#        smart_settings_sitem.click()
-#
-#        delete_btn_id = "modalButton0"
-#        delete_btn_sitem = self.locator_finder_by_id(delete_btn_id)
-#        delete_btn_sitem.click()
-#
-#        delete_check_id = "dropGraphCollections"
-#        delete_check_sitem = self.locator_finder_by_id(delete_check_id)
-#        delete_check_sitem.click()
-#
-#        delete_confirm_btn_id = "modal-confirm-delete"
-#        delete_confirm_btn_sitem = self.locator_finder_by_id(delete_confirm_btn_id)
-#        delete_confirm_btn_sitem.click()
-#
-#        time.sleep(2)
-#        print("Smart Graph deleted successfully \n")
-#
-#        self.webdriver.refresh()
+    #        time.sleep(2)
+    #
+    #        print("\n")
+    #        print("Smart Graph deleting started \n")
+    #        smart_settings_id = "smart_graph_settings"
+    #        smart_settings_sitem = self.locator_finder_by_id(smart_settings_id)
+    #        smart_settings_sitem.click()
+    #
+    #        delete_btn_id = "modalButton0"
+    #        delete_btn_sitem = self.locator_finder_by_id(delete_btn_id)
+    #        delete_btn_sitem.click()
+    #
+    #        delete_check_id = "dropGraphCollections"
+    #        delete_check_sitem = self.locator_finder_by_id(delete_check_id)
+    #        delete_check_sitem.click()
+    #
+    #        delete_confirm_btn_id = "modal-confirm-delete"
+    #        delete_confirm_btn_sitem = self.locator_finder_by_id(delete_confirm_btn_id)
+    #        delete_confirm_btn_sitem.click()
+    #
+    #        time.sleep(2)
+    #        print("Smart Graph deleted successfully \n")
+    #
+    #        self.webdriver.refresh()
 
     def create_disjoint_smart_graph(self, importer, test_data_dir):
         """wrap it with disjoint true"""
@@ -842,52 +852,46 @@ GRAPH_SETS = [
             ECol("internationalHighway"),
         ],
     ),
-    GraphCreateSet("Connected Components", "connectedComponentsGraph_settings",
-                   [
-                       VCol("components"),
-                       ECol("connections")
-                   ],
-                   None,
-                   enterprise=True,
-                   min_version='3.8.0'),
+    GraphCreateSet(
+        "Connected Components",
+        "connectedComponentsGraph_settings",
+        [VCol("components"), ECol("connections")],
+        None,
+        enterprise=True,
+        min_version="3.8.0",
+    ),
     # these are non graph-example tabs; their index doesn't align with their table column:
     GraphCreateSet(
         "Manual Knows",
         "knows_graph_manual_settings",
-        [
-            VCol("manual_vertices"),
-            ECol("manual_edge")
-        ],
+        [VCol("manual_vertices"), ECol("manual_edge")],
         GraphPage.create_manual_graph,
     ),
-    GraphCreateSet("Satellite Graph",
-                   "satellite_graph_settings",
-                   [
-                       VCol("persons"),
-                       ECol("knows_edge")
-                   ],
-                   GraphPage.create_satellite_graph,
-                   enterprise=True,
-                   non_cl_min_ver='3.10.0',
-                   min_version='3.8.0'),
-    GraphCreateSet("Smartgraph",
-                   "smart_graph_settings",
-                   [
-                       VCol("profiles"),
-                       ECol("relations")
-                   ],
-                   GraphPage.create_smart_graph,
-                   enterprise=True,
-                   non_cl_min_ver='3.10.0',
-                   min_version='3.6.0'),
-    GraphCreateSet("disjoint Smartgraph",
-                   "smart_graph_settings",
-                   [
-                       VCol("profiles"),
-                       ECol("relations")
-                   ],
-                   GraphPage.create_disjoint_smart_graph,
-                   enterprise=True,
-                   non_cl_min_ver='3.10.0',
-                   min_version='3.6.0'),
+    GraphCreateSet(
+        "Satellite Graph",
+        "satellite_graph_settings",
+        [VCol("persons"), ECol("knows_edge")],
+        GraphPage.create_satellite_graph,
+        enterprise=True,
+        non_cl_min_ver="3.10.0",
+        min_version="3.8.0",
+    ),
+    GraphCreateSet(
+        "Smartgraph",
+        "smart_graph_settings",
+        [VCol("profiles"), ECol("relations")],
+        GraphPage.create_smart_graph,
+        enterprise=True,
+        non_cl_min_ver="3.10.0",
+        min_version="3.6.0",
+    ),
+    GraphCreateSet(
+        "disjoint Smartgraph",
+        "smart_graph_settings",
+        [VCol("profiles"), ECol("relations")],
+        GraphPage.create_disjoint_smart_graph,
+        enterprise=True,
+        non_cl_min_ver="3.10.0",
+        min_version="3.6.0",
+    ),
 ]
