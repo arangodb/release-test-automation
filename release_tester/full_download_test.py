@@ -62,6 +62,7 @@ def package_test(
             new_version,
             props.enterprise,
             test_driver.base_config.zip_package,
+            test_driver.base_config.src_testing,
             new_dlstage,
             versions,
             fresh_versions,
