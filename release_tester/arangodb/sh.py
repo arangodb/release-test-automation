@@ -72,7 +72,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         verbose=True,
         expect_to_fail=False,
     ):
-        # pylint: disable=R0913 disable=R0902 disable=R0915 disable=R0912 disable=R0914
+        # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=too-many-statements disable=too-many-branches disable=too-many-locals
         """
         runs a script in background tracing with
         a dynamic timeout that its got output
@@ -184,7 +184,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
 
     @step
     def run_in_arangosh(self, testname, args=[], moreargs=[], result_line=dummy_line_result, timeout=100):
-        # pylint: disable=R0913 disable=R0902 disable=W0102
+        # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=dangerous-default-value
         """mimic runInArangosh testing.js behaviour"""
         if testname:
             logging.info("adding test data for {0}".format(testname))
@@ -216,7 +216,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
 
     @step
     def create_test_data(self, testname, args=[], result_line=dummy_line_result, timeout=100):
-        # pylint: disable=W0102
+        # pylint: disable=dangerous-default-value
         """deploy testdata into the instance"""
         if testname:
             logging.info("adding test data for {0}".format(testname))
@@ -238,7 +238,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
 
     @step
     def check_test_data(self, testname, supports_foxx_tests, args=[], result_line=dummy_line_result):
-        # pylint: disable=W0102
+        # pylint: disable=dangerous-default-value
         """check back the testdata in the instance"""
         if testname:
             logging.info("checking test data for {0}".format(testname))
@@ -262,7 +262,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
 
     @step
     def clear_test_data(self, testname, args=[], result_line=dummy_line_result):
-        # pylint: disable=W0102
+        # pylint: disable=dangerous-default-value
         """flush the testdata from the instance again"""
         if testname:
             logging.info("removing test data for {0}".format(testname))

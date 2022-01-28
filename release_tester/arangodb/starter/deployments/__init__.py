@@ -45,7 +45,7 @@ STARTER_MODES = {
     "none": [RunnerType.NONE],
 }
 
-# pylint: disable=import-outside-toplevel disable=R0913 disable=R0914 disable=E1121
+# pylint: disable=import-outside-toplevel disable=too-many-arguments disable=too-many-locals disable=too-many-function-args
 @step
 def make_runner(
     runner_type: RunnerType,

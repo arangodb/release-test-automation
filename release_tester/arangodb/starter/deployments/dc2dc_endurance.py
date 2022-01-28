@@ -8,7 +8,7 @@ from arangodb.starter.deployments.dc2dc import Dc2Dc
 class Dc2DcEndurance(Dc2Dc):
     """this launches two clusters in dc2dc mode"""
 
-    # pylint: disable=R0913 disable=R0902 disable=E1121
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=too-many-function-args
     def __init__(
         self,
         runner_type,

@@ -27,7 +27,7 @@ import semver
 # from webdriver_manager.utils import ChromeType
 
 # can't circumvent long lines.. nAttr nLines
-# pylint: disable=C0301 disable=R0902 disable=R0904 disable=R0915
+# pylint: disable=line-too-long disable=too-many-instance-attributes disable=too-many-public-methods disable=too-many-statements
 
 
 class BasePage:

@@ -12,7 +12,7 @@ from arangodb.installers import RunProperties
 from test_driver import TestDriver
 
 @click.command()
-# pylint: disable=R0913 disable=too-many-locals
+# pylint: disable=too-many-arguments disable=too-many-locals
 @very_common_options()
 @common_options(support_old=True, interactive=True)
 # fmt: off
@@ -63,5 +63,5 @@ def main(
 
 
 if __name__ == "__main__":
-    # pylint: disable=E1120 # fix clickiness.
+    # pylint: disable=no-value-for-parameter # fix clickiness.
     main()

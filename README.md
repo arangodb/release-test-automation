@@ -173,6 +173,21 @@ Example usage:
  - Linux (ubuntu|debian) `python3 ./release_tester/test.py --new-version 3.6.2 --no-enterprise --package-dir /home/willi/Downloads`
  - Linux (centos|fedora|sles) `python3 ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
 
+# Using `run_license_tests.py` to test the license manager feature
+
+License manager tests are only applicable to enterprise edition.   
+Supported Parameters:
+ - `--new-version` which Arangodb Version you want to run the test on
+ - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
+ - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
+ - `--verbose` if specified more logging is done
+ - `--alluredir` - directory to save test results in allure format (default = allure-results)
+ - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
+ - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
+
+Example usage:
+ - Linux (ubuntu|debian) `python3 ./release_tester/run_license_tests.py --new-version 3.9.0-nightly --verbose --package-dir /home/vitaly/tmp/packages --zip`
+
 # using `download.py` to download packages from stage1/stage2/live
 
 `download.py` can fetch a set of packages for later use with `upgrade.py`/`test.py`. It will detect the platform its working on.
@@ -630,7 +645,7 @@ These tests use the CSV data from the wikip
 
 # Allure reporting
 To view allure report, you must have allure installed in your system. Download link(for Linux):
-https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/2.14.0/allure-commandline-2.14.0.zip
+https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/2.17.2/allure-commandline-2.17.2.zip
 
 After the test run is finished, run the following command:
 ```bash

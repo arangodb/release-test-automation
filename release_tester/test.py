@@ -28,7 +28,7 @@ from arangodb.installers import RunProperties
 )
 @very_common_options()
 @common_options(support_old=False)
-# pylint: disable=R0913 disable=R0914, disable=W0703
+# pylint: disable=too-many-arguments disable=too-many-locals, disable=broad-except
 # fmt: off
 def main(mode,
          #very_common_options
@@ -76,5 +76,5 @@ def main(mode,
         sys.exit(1)
 
 if __name__ == "__main__":
-    # pylint: disable=E1120 # fix clickiness.
+    # pylint: disable=no-value-for-parameter # fix clickiness.
     sys.exit(main())

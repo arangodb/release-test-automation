@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 from reporting.reporting_utils import step
 import semver
-# pylint: disable=R0903
+# pylint: disable=too-few-public-methods
 
 IS_WINDOWS = platform.win32_ver()[0] != ""
 
@@ -42,7 +42,7 @@ class InstallerFrontend:
 class InstallerConfig:
     """stores the baseline of this environment"""
 
-    # pylint: disable=R0913 disable=R0902
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
     def __init__(
         self,
         version: str,
@@ -345,7 +345,7 @@ def create_config_installer_set(
     run_properties: RunProperties
 ):
     """creates sets of configs and installers"""
-    # pylint: disable=R0902 disable=R0913
+    # pylint: disable=too-many-instance-attributes disable=too-many-arguments
     res = []
     for one_version in versions:
         print(str(one_version))

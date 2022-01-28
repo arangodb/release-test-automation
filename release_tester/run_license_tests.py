@@ -1,56 +1,49 @@
 #!/usr/bin/env python3
 
-"""Release testing script"""
+"""License manager tests runner script"""
 from pathlib import Path
 
 import click
-import semver
 
 from common_options import very_common_options, common_options
 from test_driver import TestDriver
 
 
-
 @click.command()
-# we ignore some params, since this is a test-only toplevel tool:
-# pylint: disable=too-many-arguments disable=too-many-locals
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-locals
 @very_common_options()
 @common_options(support_old=True, interactive=True)
 # fmt: off
-# pylint: disable=unused-argument
 def main(
         # very_common_options
         new_version, verbose, enterprise, package_dir, zip_package,
         # common_options
+        # pylint: disable=unused-argument
         hot_backup, old_version, test_data_dir, encryption_at_rest, interactive,
         starter_mode, stress_upgrade, abort_on_error, publicip,
         selenium, selenium_driver_args, alluredir, clean_alluredir, ssl, use_auto_certs):
     # fmt: on
     """ main trampoline """
     test_driver = TestDriver(
-        verbose,
-        Path(package_dir),
-        Path(test_data_dir),
-        Path(alluredir),
-        clean_alluredir,
-        zip_package,
-        hot_backup,
-        interactive,
-        starter_mode,
-        stress_upgrade,
-        abort_on_error,
-        publicip,
-        selenium,
-        selenium_driver_args,
-        use_auto_certs)
+        verbose=verbose,
+        package_dir=Path(package_dir),
+        test_data_dir=Path(test_data_dir),
+        alluredir=alluredir,
+        clean_alluredir=clean_alluredir,
+        zip_package=zip_package,
+        hot_backup=hot_backup,
+        interactive=interactive,
+        starter_mode=starter_mode,
+        stress_upgrade=False,
+        abort_on_error=abort_on_error,
+        publicip=publicip,
+        selenium="none",
+        selenium_driver_args=[],
+        use_auto_certs=use_auto_certs,
+    )
     test_driver.set_r_limits()
-
-    results = test_driver.run_conflict_tests(
-        [
-            semver.VersionInfo.parse(old_version),
-            semver.VersionInfo.parse(new_version)
-        ],
-        enterprise)
+    results = test_driver.run_license_manager_tests(new_version)
     for result in results:
         if not result["success"]:
             raise Exception("There are failed tests")
