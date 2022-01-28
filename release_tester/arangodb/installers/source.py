@@ -21,7 +21,8 @@ class InstallerSource(InstallerBase):
         self.client_package = None
         self.debug_package = None
         self.installer_type = "source directory"
-        cfg.installPrefix = Path("/")
+        cfg.reset_version(cfg.version)
+        cfg.installPrefix = cfg.package_dir
         sub_dir = str(cfg.version)
         if cfg.enterprise:
             sub_dir = "E_" + sub_dir
@@ -45,9 +46,25 @@ class InstallerSource(InstallerBase):
         cfg.dbdir = cfg.bin_dir
         cfg.appdir = cfg.bin_dir
         cfg.cfgdir = cfg.package_dir / 'etc' / 'relative'
+        js_dir = str(cfg.package_dir / 'js')
+        cfg.default_arangosh_args = [
+            '-c', str(cfg.cfgdir / 'arangosh.conf'),
+            '--javascript.startup-directory', js_dir
+        ]
+        cfg.default_starter_args = [
+            '--server.arangod=' + str(cfg.real_sbin_dir / 'arangod'),
+            '--server.js-dir=' + js_dir
+        ]
+
+        print('x'*40)
+        print(cfg.semver)
         super().__init__(cfg)
+        print('x'*40)
+        print(self.cfg.semver)
+        print(cfg.version)
+        self.reset_version(cfg.version)
         self.check_stripped = False
-        
+        self.cfg.have_system_service = False
         self.arangosh = ArangoshExecutor(self.cfg, self.instance)
 
     def supports_hot_backup(self):

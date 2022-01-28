@@ -92,6 +92,8 @@ class InstallerConfig:
 
         self.all_instances = {}
         self.frontends = []
+        self.default_arangosh_args = []
+        self.default_starter_args = []
         self.reset_version(version)
         self.log_dir = Path()
         self.bin_dir = Path()
@@ -134,6 +136,8 @@ verbose: {0.verbose}
         """copy constructor"""
         try:
             self.reset_version(other_cfg.version)
+            self.default_arangosh_args = other.default_arangosh_args
+            self.default_starter_args = other.default_starter_args
             self.publicip = other_cfg.publicip
             self.interactive = other_cfg.interactive
             self.enterprise = other_cfg.enterprise

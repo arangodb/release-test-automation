@@ -59,7 +59,7 @@ class StarterManager:
     ):
         self.expect_instances = expect_instances
         self.expect_instances.sort()
-        self.moreopts = moreopts
+        self.moreopts = basecfg.default_starter_args + moreopts
         self.cfg = copy.deepcopy(basecfg)
         if self.cfg.verbose:
             self.moreopts += ["--log.verbose=true"]

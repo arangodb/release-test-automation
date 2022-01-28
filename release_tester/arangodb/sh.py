@@ -28,7 +28,10 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         title = f"run a command in arangosh: {cmd[0]}"
         with step(title):
             executable = self.cfg.bin_dir / "arangosh"
-            arangosh_args = ["--log.level", "v8=debug", "--javascript.execute-string"]
+            arangosh_args = self.cfg.default_arangosh_args + [
+                "--log.level", "v8=debug",
+                "--javascript.execute-string"
+            ]
             arangosh_args += cmd[1:]
             return self.run_arango_tool_monitored(
                 executeable=executable,
@@ -83,7 +86,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         else:
             process_control = []
         # fmt: off
-        run_cmd = [
+        run_cmd = self.cfg.default_arangosh_args + [
             "--log.level", "v8=debug",
             "--javascript.module-directory", self.cfg.test_data_dir.resolve(),
         ] + process_control + [
