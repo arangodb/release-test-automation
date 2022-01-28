@@ -18,6 +18,10 @@ IS_WINDOWS = platform.win32_ver()[0] != ""
 class LicenseManagerDc2DcTestSuite(LicenseManagerBaseTestSuite):
     """License manager tests: DC2DC"""
 
+    def get_default_instance_type(self):
+        """get the instance type we should communicate with"""
+        return InstanceType.COORDINATOR
+
     @run_before_suite
     def startup(self):
         """prepare test env"""

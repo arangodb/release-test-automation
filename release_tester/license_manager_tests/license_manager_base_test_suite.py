@@ -95,20 +95,15 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
             time_left > time_left_threshold
         ), f"{message} Expected time left: more than {time_left_threshold} seconds."
 
+    def get_default_instance_type(self):
+        """get the instance type we should communicate with"""
+        raise NotImplementedError(f"Default instance type is not set for {type(self)}")
+
     # pylint: disable=R0913
     def send_request(self, method, url, data=None, headers={}, timeout=None, instance_type=None):
         """send HTTP request to an instance"""
         if not instance_type:
-            if isinstance(self.runner, LeaderFollower):
-                instance_type = InstanceType.SINGLE
-            elif isinstance(self.runner, ActiveFailover):
-                instance_type = InstanceType.RESILIENT_SINGLE
-            elif isinstance(self.runner, Cluster):
-                instance_type = InstanceType.COORDINATOR
-            elif isinstance(self.runner, Dc2Dc):
-                instance_type = InstanceType.COORDINATOR
-            else:
-                instance_type = InstanceType.SINGLE
+            instance_type = self.get_default_instance_type()
         resp = self.starter.send_request(
             instance_type=instance_type,
             verb_method=method,

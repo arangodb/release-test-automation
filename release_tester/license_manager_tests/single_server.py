@@ -23,6 +23,10 @@ class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
         )
         self.short_name = "SingleServer"
 
+    def get_default_instance_type(self):
+        """get the instance type we should communicate with"""
+        return InstanceType.SINGLE
+
     @run_before_suite
     def start(self):
         """clean up the system before running tests"""

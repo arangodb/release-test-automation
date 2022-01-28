@@ -4,6 +4,7 @@ import json
 # pylint: disable=E0401
 from arangodb.async_client import CliExecutionException
 from arangodb.installers import RunProperties
+from arangodb.instance import InstanceType
 from arangodb.starter.deployments import make_runner, RunnerType
 from license_manager_tests.license_manager_base_test_suite import LicenseManagerBaseTestSuite
 from reporting.reporting_utils import step
@@ -12,6 +13,10 @@ from selenium_ui_test.test_suites.base_test_suite import testcase, run_before_su
 
 class LicenseManagerLeaderFollowerTestSuite(LicenseManagerBaseTestSuite):
     """License manager tests: leader-follower"""
+
+    def get_default_instance_type(self):
+        """get the instance type we should communicate with"""
+        return InstanceType.SINGLE
 
     @run_before_suite
     def startup(self):

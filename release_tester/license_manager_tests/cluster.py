@@ -15,6 +15,10 @@ from selenium_ui_test.test_suites.base_test_suite import testcase, run_before_su
 class LicenseManagerClusterTestSuite(LicenseManagerBaseTestSuite):
     """License manager tests: cluster"""
 
+    def get_default_instance_type(self):
+        """get the instance type we should communicate with"""
+        return InstanceType.RESILIENT_SINGLE
+
     @run_before_suite
     def startup(self):
         """prepare test env"""
@@ -58,7 +62,7 @@ class LicenseManagerClusterTestSuite(LicenseManagerBaseTestSuite):
     def set_license(self, license):
         """set new license"""
         body = """[[{"/arango/.license":{"op":"set","new": """ + license + """}}]]"""
-        resp = self.runner.get_agency_leader_starter().send_request(
+        resp = self.runner.agency_get_leader().send_request(
             InstanceType.AGENT,
             requests.post,
             "/_api/agency/write",
