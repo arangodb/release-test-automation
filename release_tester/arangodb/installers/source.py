@@ -49,6 +49,9 @@ class InstallerSource(InstallerBase):
         cfg.appdir = cfg.bin_dir
         cfg.cfgdir = cfg.package_dir / 'etc' / 'relative'
         js_dir = str(cfg.package_dir / 'js')
+        cfg.default_backup_args = [
+            '-c', str(cfg.cfgdir / 'arangobackup.conf'),
+        ]
         cfg.default_arangosh_args = [
             '-c', str(cfg.cfgdir / 'arangosh.conf'),
             '--javascript.startup-directory', js_dir
