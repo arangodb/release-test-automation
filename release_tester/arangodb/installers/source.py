@@ -6,6 +6,7 @@ import shutil
 import logging
 from pathlib import Path
 import pexpect
+import platform
 import psutil
 from arangodb.sh import ArangoshExecutor
 from arangodb.installers.base import InstallerBase
@@ -13,6 +14,7 @@ from tools.asciiprint import ascii_print, print_progress as progress
 
 import tools.loghelper as lh
 
+IS_WINDOWS = platform.win32_ver()[0] != ""
 
 class InstallerSource(InstallerBase):
     """ adjust to arango source directory """
@@ -69,7 +71,7 @@ class InstallerSource(InstallerBase):
 
     def supports_hot_backup(self):
         """no hot backup support on the wintendo."""
-        if not self.hot_backup:
+        if IS_WINDOWS:
             return False
         return super().supports_hot_backup()
 
