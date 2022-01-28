@@ -23,7 +23,7 @@ arangoversions = {
 class Cluster(Runner):
     """this launches a cluster setup"""
 
-    # pylint: disable=R0913 disable=R0902
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
     def __init__(
         self,
         runner_type,

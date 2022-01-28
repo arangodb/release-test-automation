@@ -3,7 +3,7 @@ import json
 import platform
 import requests
 
-# pylint: disable=E0401
+# pylint: disable=import-error
 from arangodb.async_client import CliExecutionException
 from arangodb.installers import RunProperties
 from arangodb.instance import InstanceType
@@ -30,7 +30,7 @@ class LicenseManagerDc2DcTestSuite(LicenseManagerBaseTestSuite):
     @step
     def start_clusters(self):
         """start DC2DC setup"""
-        # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
         self.runner = make_runner(
             runner_type=RunnerType.DC2DC,
             abort_on_error=False,
@@ -61,7 +61,7 @@ class LicenseManagerDc2DcTestSuite(LicenseManagerBaseTestSuite):
         agent_list.sort()
         return "".join(agent_list)
 
-    # pylint: disable=W0622
+    # pylint: disable=redefined-builtin
     def set_license(self, license):
         """set new license"""
         body = """[[{"/arango/.license":{"op":"set","new": """ + license + """}}]]"""
@@ -92,7 +92,7 @@ class LicenseManagerDc2DcTestSuite(LicenseManagerBaseTestSuite):
     def expire_license_on_follower_cluster(self):
         """Check that follower cluster goes to read-only mode when license is expired"""
         with step("Expire license on follower"):
-            # pylint: disable=W0201
+            # pylint: disable=attribute-defined-outside-init
             self.starter = self.runner.cluster1["instance"]
             self.expire_license()
             self.starter = self.runner.cluster2["instance"]

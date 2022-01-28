@@ -73,7 +73,7 @@ class AfoServerState(IntEnum):
 class Instance(ABC):
     """abstract instance manager"""
 
-    # pylint: disable=R0913 disable=R0902
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
     def __init__(
         self,
         instance_type,
@@ -139,7 +139,7 @@ class Instance(ABC):
 
     def analyze_starter_file_line(self, line):
         """instance specific analyzer function"""
-        # pylint: disable=W0107
+        # pylint: disable=unnecessary-pass
         pass
 
     def load_starter_instance_control_file(self):
@@ -306,7 +306,7 @@ class Instance(ABC):
 
     def is_line_relevant(self, line):
         """it returns true if the line from logs should be printed"""
-        # pylint: disable=R0201
+        # pylint: disable=no-self-use
         return "FATAL" in line or "ERROR" in line or "WARNING" in line or "{crash}" in line
 
     def search_for_warnings(self):
@@ -342,7 +342,7 @@ class Instance(ABC):
 class ArangodInstance(Instance):
     """represent one arangodb instance"""
 
-    # pylint: disable=R0913
+    # pylint: disable=too-many-arguments
     def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl, is_system=False):
         super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangod", ssl)
         self.is_system = is_system
@@ -371,7 +371,7 @@ class ArangodInstance(Instance):
             "url": self.get_public_login_url() if self.is_frontend() else "",
         }
 
-    # pylint: disable=R1705
+    # pylint: disable=no-else-return
     def get_protocol(self):
         """return protocol of this arangod instance (ssl/tcp)"""
         if self.ssl:
@@ -379,7 +379,7 @@ class ArangodInstance(Instance):
         else:
             return "tcp"
 
-    # pylint: disable=R1705
+    # pylint: disable=no-else-return
     def get_http_protocol(self):
         """return protocol of this arangod instance (http/https)"""
         if self.ssl:
@@ -441,7 +441,7 @@ class ArangodInstance(Instance):
 
     def is_sync_instance(self):
         """no."""
-        # pylint: disable=R0201
+        # pylint: disable=no-self-use
         return False
 
     @step
@@ -562,7 +562,7 @@ class ArangodInstance(Instance):
 
     def detect_pid(self, ppid, offset=0, full_binary_path=""):
         """detect the instance"""
-        # pylint: disable=R0915 disable=R0914
+        # pylint: disable=too-many-statements disable=too-many-locals
         self.pid = 0
         self.ppid = ppid
         tries = 40
@@ -675,7 +675,7 @@ class ArangodInstance(Instance):
 class ArangodRemoteInstance(ArangodInstance):
     """represent one arangodb instance"""
 
-    # pylint: disable=R0913
+    # pylint: disable=too-many-arguments
     def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl):
         super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangod", ssl)
 
@@ -683,7 +683,7 @@ class ArangodRemoteInstance(ArangodInstance):
 class SyncInstance(Instance):
     """represent one arangosync instance"""
 
-    # pylint: disable=R0913
+    # pylint: disable=too-many-arguments
     def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl):
         super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangosync", ssl)
         self.logfile_parameter = ""
@@ -761,17 +761,17 @@ class SyncInstance(Instance):
 
     def is_frontend(self):
         """no."""
-        # pylint: disable=R0201
+        # pylint: disable=no-self-use
         return False
 
     def is_dbserver(self):
         """no."""
-        # pylint: disable=R0201
+        # pylint: disable=no-self-use
         return False
 
     def is_sync_instance(self):
         """yes."""
-        # pylint: disable=R0201
+        # pylint: disable=no-self-use
         return True
 
     def is_line_relevant(self, line):

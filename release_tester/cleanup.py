@@ -34,5 +34,5 @@ def run_test(zip_package):
 
 
 if __name__ == "__main__":
-    # pylint: disable=E1120 # fix clickiness.
+    # pylint: disable=no-value-for-parameter # fix clickiness.
     run_test()

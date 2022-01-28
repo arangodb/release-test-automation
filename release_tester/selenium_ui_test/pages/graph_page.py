@@ -8,13 +8,13 @@ from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import ElementClickInterceptedException, TimeoutException
 
 # can't circumvent long lines.. nAttr nLines
-# pylint: disable=C0301 disable=C0302 disable=R0902 disable=R0915 disable=R0914
+# pylint: disable=line-too-long disable=too-many-lines disable=too-many-instance-attributes disable=too-many-statements disable=too-many-locals
 
 
 class GraphExample(IntEnum):
     """identify example and manual graphs to be managed herein"""
 
-    # pylint: disable=R0903
+    # pylint: disable=too-few-public-methods
     KNOWS = 1
     TRAVERSAL = 2
     K_SHORTEST_PATH = 3
@@ -34,7 +34,7 @@ class GraphExample(IntEnum):
 class VCol:
     """maps a vertex collection to a graph"""
 
-    # pylint: disable=R0903
+    # pylint: disable=too-few-public-methods
     def __init__(self, name):
         self.name = name
         self.ctype = "v"
@@ -43,7 +43,7 @@ class VCol:
 class ECol:
     """maps an edge collection to a graph"""
 
-    # pylint: disable=R0903
+    # pylint: disable=too-few-public-methods
     def __init__(self, name):
         self.name = name
         self.ctype = "e"
@@ -52,7 +52,7 @@ ALL_VERSIONS="3.0.0"
 class GraphCreateSet:
     """this has all we need to know to create an example graph"""
 
-    # pylint: disable=R0903 disable=too-many-arguments
+    # pylint: disable=too-few-public-methods disable=too-many-arguments
     def __init__(self, clear_name, btn_id, collections,
                  handler=None,
                  enterprise=False,
@@ -144,7 +144,7 @@ class GraphPage(NavigationBarPage):
 
         self.select_new_graph_name_id = "createNewGraphName"
 
-    # pylint: disable=W0613
+    # pylint: disable=unused-argument
     def create_manual_graph(self, importer, test_data_dir):
         """creating graph manually"""
         collection_page = self.locator_finder_by_id(self.select_collection_page_id)

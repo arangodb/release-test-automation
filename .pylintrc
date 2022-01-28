@@ -555,7 +555,7 @@ preferred-modules=
 # Maximum number of arguments for function / method.
 max-args=5
 
-# Maximum number of attributes for a class (see R0902).
+# Maximum number of attributes for a class (see too-many-instance-attributes).
 max-attributes=7
 
 # Maximum number of boolean expressions in an if statement (see R0916).

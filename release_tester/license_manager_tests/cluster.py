@@ -3,7 +3,7 @@ import json
 
 import requests
 
-# pylint: disable=E0401
+# pylint: disable=import-error
 from arangodb.installers import RunProperties
 from arangodb.instance import InstanceType
 from arangodb.starter.deployments import make_runner, RunnerType
@@ -27,7 +27,7 @@ class LicenseManagerClusterTestSuite(LicenseManagerBaseTestSuite):
     @step
     def start_cluster(self):
         """start a cluster setup"""
-        # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
         self.runner = make_runner(
             runner_type=RunnerType.CLUSTER,
             abort_on_error=False,
@@ -58,7 +58,7 @@ class LicenseManagerClusterTestSuite(LicenseManagerBaseTestSuite):
         agent_list.sort()
         return "".join(agent_list)
 
-    # pylint: disable=W0622
+    # pylint: disable=redefined-builtin
     def set_license(self, license):
         """set new license"""
         body = """[[{"/arango/.license":{"op":"set","new": """ + license + """}}]]"""

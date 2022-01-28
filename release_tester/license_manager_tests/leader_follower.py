@@ -1,7 +1,7 @@
 """License manager tests: leader-follower"""
 import json
 
-# pylint: disable=E0401
+# pylint: disable=import-error
 from arangodb.async_client import CliExecutionException
 from arangodb.installers import RunProperties
 from arangodb.instance import InstanceType
@@ -30,7 +30,7 @@ class LicenseManagerLeaderFollowerTestSuite(LicenseManagerBaseTestSuite):
         server_id = server_file_content["serverId"]
         return server_id
 
-    # pylint: disable=W0622 disable=W0221
+    # pylint: disable=redefined-builtin disable=arguments-differ
     def set_license(self, license, starter_instance=None):
         """set new license"""
         if not starter_instance:
@@ -45,7 +45,7 @@ class LicenseManagerLeaderFollowerTestSuite(LicenseManagerBaseTestSuite):
     @step
     def start_leader_follower(self):
         """start a leader-follower setup"""
-        # pylint: disable=W0201
+        # pylint: disable=attribute-defined-outside-init
         self.runner = make_runner(
             runner_type=RunnerType.LEADER_FOLLOWER,
             abort_on_error=False,
@@ -81,7 +81,7 @@ class LicenseManagerLeaderFollowerTestSuite(LicenseManagerBaseTestSuite):
     def expire_license_on_follower(self):
         """Check that follower goes to read-only mode when license is expired"""
         with step("Expire license on follower"):
-            # pylint: disable=W0201
+            # pylint: disable=attribute-defined-outside-init
             self.starter = self.runner.follower_starter_instance
             self.expire_license()
             self.starter = self.runner.leader_starter_instance

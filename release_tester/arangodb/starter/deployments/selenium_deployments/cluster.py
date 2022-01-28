@@ -11,7 +11,7 @@ class Cluster(SeleniumRunner):
     """check the leader follower setup and its properties"""
 
     def __init__(self, webdriver, is_headless: bool, testrun_name: str, ssl: bool):
-        # pylint: disable=W0235
+        # pylint: disable=useless-super-delegation
         super().__init__(webdriver, is_headless, testrun_name, ssl)
         self.is_cluster = True
         self.main_test_suite_list = [BasicTestSuite]

@@ -1,20 +1,14 @@
 """base class for license manager test suites"""
 import json
 import shutil
-from abc import abstractmethod
 from time import time
 
 import requests
 from allure_commons._allure import attach
 
-# pylint: disable=E0401
+# pylint: disable=import-error
 from arangodb.async_client import CliExecutionException
 from arangodb.installers import create_config_installer_set, RunProperties
-from arangodb.instance import InstanceType
-from arangodb.starter.deployments.activefailover import ActiveFailover
-from arangodb.starter.deployments.cluster import Cluster
-from arangodb.starter.deployments.dc2dc import Dc2Dc
-from arangodb.starter.deployments.leaderfollower import LeaderFollower
 from reporting.reporting_utils import step
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, run_after_suite, run_before_each_testcase
 from tools.external_helpers.license_generator.license_generator import create_license
@@ -23,7 +17,7 @@ from tools.external_helpers.license_generator.license_generator import create_li
 class LicenseManagerBaseTestSuite(BaseTestSuite):
     """base class for license manager test suites"""
 
-    # pylint: disable=R0902 disable=W0102
+    # pylint: disable=too-many-instance-attributes disable=dangerous-default-value
     def __init__(
         self,
         new_version,
@@ -83,7 +77,7 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
     @step
     def check_that_license_is_not_expired(self, time_left_threshold=0):
         """check that license is not expired"""
-        # pylint: disable=W0622
+        # pylint: disable=redefined-builtin
         license = self.get_license()
         license_expiry_timestamp = license["features"]["expires"]
         time_left = license_expiry_timestamp - time()
@@ -99,7 +93,7 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
         """get the instance type we should communicate with"""
         raise NotImplementedError(f"Default instance type is not set for {type(self)}")
 
-    # pylint: disable=R0913
+    # pylint: disable=too-many-arguments
     def send_request(self, method, url, data=None, headers={}, timeout=None, instance_type=None):
         """send HTTP request to an instance"""
         if not instance_type:
@@ -120,11 +114,11 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
             requests.get,
             "/_db/_system/_admin/license",
         )
-        # pylint: disable=W0622
+        # pylint: disable=redefined-builtin
         license = json.loads(resp[0].content)
         return license
 
-    # pylint: disable=W0622
+    # pylint: disable=redefined-builtin
     def set_license(self, license):
         """set new license"""
         raise NotImplementedError(f"Setting license not implemented for {type(self)}")
@@ -132,9 +126,10 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
     @step
     def expire_license(self):
         """expire license"""
+        # pylint: disable=assignment-from-no-return
         new_timestamp = str(int(time() - 1))
         server_id = self.get_server_id()
-        # pylint: disable=W0622
+        # pylint: disable=redefined-builtin
         license = create_license(new_timestamp, server_id)
         self.set_license(license)
 
@@ -142,8 +137,9 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
     def set_valid_license(self):
         """set valid license"""
         new_timestamp = str(int(time() + 59 * 60))
+        # pylint: disable=assignment-from-no-return
         server_id = self.get_server_id()
-        # pylint: disable=W0622
+        # pylint: disable=redefined-builtin
         license = create_license(new_timestamp, server_id)
         self.set_license(license)
 

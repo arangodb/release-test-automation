@@ -8,7 +8,7 @@ from uuid import uuid4
 
 from allure_commons.model2 import Status, Label, StatusDetails
 from allure_commons.types import LabelType
-#pylint: disable=E0401
+#pylint: disable=import-error
 from arangodb.installers import RunProperties
 from reporting.reporting_utils import AllureTestSuiteContext, RtaTestcase, step
 from selenium_ui_test.models import RtaTestResult
@@ -46,7 +46,7 @@ class BaseTestSuite(ABC):
         if self.new_version:
             versions.append(self.new_version)
         if hasattr(self, "generate_custom_suite_name"):
-            #pylint: disable=E1101
+            #pylint: disable=no-member
             self.suite_name = self.generate_custom_suite_name()
         self.test_suite_context = AllureTestSuiteContext(
                 properties=RunProperties(self.enterprise,
@@ -122,7 +122,7 @@ class BaseTestSuite(ABC):
                 exc_tb = None
                 try:
                     func()
-                #pylint: disable=W0702
+                #pylint: disable=bare-except
                 except:
                     exc_type, exc_val, exc_tb = sys.exc_info()
             self.test_suite_context.test_listener.stop_before_fixture(fixture_uuid, exc_type,
@@ -140,7 +140,7 @@ class BaseTestSuite(ABC):
                 exc_tb = None
                 try:
                     func()
-                # pylint: disable=W0702
+                # pylint: disable=bare-except
                 except:
                     exc_type, exc_val, exc_tb = sys.exc_info()
             self.test_suite_context.test_listener.stop_after_fixture(fixture_uuid, exc_type,

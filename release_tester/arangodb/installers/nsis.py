@@ -18,7 +18,7 @@ from reporting.reporting_utils import step
 
 from arangodb.installers.base import InstallerBase
 
-# pylint: disable=W0611
+# pylint: disable=unused-import
 # this will patch psutil for us:
 import tools.monkeypatch_psutil
 
@@ -26,7 +26,7 @@ import tools.monkeypatch_psutil
 class InstallerW(InstallerBase):
     """install the windows NSIS package"""
 
-    # pylint: disable=R0913 disable=R0902
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
     def __init__(self, cfg):
         self.server_package = None
         self.client_package = None
@@ -203,7 +203,7 @@ class InstallerW(InstallerBase):
         """get a service handle"""
         if self.service:
             return
-        # pylint: disable=W0703
+        # pylint: disable=broad-except
         try:
             self.service = psutil.win_service_get("ArangoDB")
         except Exception as exc:
@@ -291,7 +291,7 @@ class InstallerW(InstallerBase):
         # since it needs to look at all these files we
         # just unloaded into it to make sure no harm originates from them.
         time.sleep(30 / multiprocessing.cpu_count())
-        # pylint: disable=W0703, disable=W0107
+        # pylint: disable=broad-except, disable=unnecessary-pass
         try:
             logging.info(psutil.win_service_get("ArangoDB"))
             self.get_service()

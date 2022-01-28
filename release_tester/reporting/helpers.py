@@ -13,11 +13,11 @@ from allure_commons.model2 import (
 from allure_commons.reporter import AllureReporter
 from allure_commons.types import LabelType, AttachmentType
 from allure_commons.utils import now, format_traceback, format_exception, uuid4
-# pylint: disable=E0401
+# pylint: disable=import-error
 from reporting.logging import IoDuplicator
 
 
-# pylint: disable=R0903
+# pylint: disable=too-few-public-methods
 class StepData:
     """a class to store step context"""
 

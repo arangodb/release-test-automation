@@ -52,7 +52,7 @@ class ArangoBenchManager:
         self.passvoid = "testpassvoid"
         self.instance = None
 
-    # pylint: disable=W0102
+    # pylint: disable=dangerous-default-value
     @allure.step
     def launch(self, testcase_no, moreopts=[]):
         """run arangobench"""

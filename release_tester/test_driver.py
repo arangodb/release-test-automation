@@ -86,7 +86,7 @@ class TestDriver:
     # pylint: disable=no-self-use
     def set_r_limits(self):
         """on linux manipulate ulimit values"""
-        # pylint: disable=C0415
+        # pylint: disable=import-outside-toplevel
         if not IS_WINDOWS:
             import resource
             resource.setrlimit(resource.RLIMIT_CORE,
@@ -117,7 +117,7 @@ class TestDriver:
         while not test_data_dir.exists():
             time.sleep(1)
 
-    # pylint: disable=W0703
+    # pylint: disable=broad-except
     def run_cleanup(self, run_properties: RunProperties):
         """main"""
         installer_set = create_config_installer_set(
@@ -158,7 +158,7 @@ class TestDriver:
             print("Cannot uninstall package without config.yml!")
         inst.cleanup_system()
 
-    # pylint: disable=R0913 disable=R0914, disable=W0703, disable=R0912, disable=R0915
+    # pylint: disable=too-many-arguments disable=too-many-locals, disable=broad-except, disable=too-many-branches, disable=too-many-statements
     def run_upgrade(self,
                     versions: list,
                     run_props: RunProperties):
@@ -316,7 +316,7 @@ class TestDriver:
         return results
 
     # fmt: off
-    # pylint: disable=R0913 disable=R0914
+    # pylint: disable=too-many-arguments disable=too-many-locals
     def run_test(self,
                  deployment_mode,
                  versions: list,
@@ -383,7 +383,7 @@ class TestDriver:
                         runner.run()
                         runner.cleanup()
                         testcase.context.status = Status.PASSED
-                    # pylint: disable=W0703
+                    # pylint: disable=broad-except
                     except Exception as ex:
                         one_result["success"] = False
                         one_result["messages"].append(str(ex))
@@ -423,7 +423,7 @@ class TestDriver:
 
         return results
 
-    # pylint: disable=R0913 disable=R0914, disable=W0703, disable=R0912, disable=R0915
+    # pylint: disable=too-many-arguments disable=too-many-locals, disable=broad-except, disable=too-many-branches, disable=too-many-statements
     def run_conflict_tests(
             self,
             versions: list,

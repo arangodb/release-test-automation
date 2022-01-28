@@ -20,11 +20,11 @@ import tools.loghelper as lh
 from tools.prometheus import set_prometheus_jwt
 from tools.timestamp import timestamp
 
-# pylint: disable=W0603
+# pylint: disable=global-statement
 class TestConfig:
     """this represents one tests configuration"""
 
-    # pylint: disable=R0902 disable=R0903
+    # pylint: disable=too-many-instance-attributes disable=too-few-public-methods
     def __init__(self):
         self.parallelity = 3
         self.db_count = 100
@@ -86,7 +86,7 @@ def makedata_runner(queue, resq, arangosh, progressive_timeout):
 class ClusterPerf(Runner):
     """this launches a cluster setup"""
 
-    # pylint: disable=R0913 disable=R0902
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
     def __init__(
         self,
         runner_type,
@@ -128,7 +128,7 @@ class ClusterPerf(Runner):
 
         self.basecfg.index = 0
 
-        # pylint: disable=C0415
+        # pylint: disable=import-outside-toplevel
         if self.remote:
             from arangodb.starter.manager import StarterNonManager as StarterManager
         else:

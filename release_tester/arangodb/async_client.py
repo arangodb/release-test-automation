@@ -17,7 +17,7 @@ ON_POSIX = "posix" in sys.builtin_module_names
 
 def dummy_line_result(line):
     """do nothing with the line..."""
-    # pylint: disable=W0104
+    # pylint: disable=pointless-statement
     line
     return True
 
@@ -67,7 +67,7 @@ class ArangoCLIprogressiveTimeoutExecutor:
     timeout will be relative to the last thing printed.
     """
 
-    # pylint: disable=R0903 R0913 disable=R0902 disable=R0915 disable=R0912 disable=R0914
+    # pylint: disable=too-few-public-methods too-many-arguments disable=too-many-instance-attributes disable=too-many-statements disable=too-many-branches disable=too-many-locals
     def __init__(self, config, connect_instance):
         """launcher class for cli tools"""
         self.connect_instance = connect_instance

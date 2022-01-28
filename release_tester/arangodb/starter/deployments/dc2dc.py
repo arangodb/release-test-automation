@@ -90,7 +90,7 @@ def _get_sync_status(cluster):
 class Dc2Dc(Runner):
     """this launches two clusters in dc2dc mode"""
 
-    # pylint: disable=R0913 disable=R0902
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
     def __init__(
         self,
         runner_type,

@@ -15,7 +15,7 @@ if winver[0]:
     POSIX = False
     # may throw on elderly wintendos?
     # this is only here on the wintendo, don't bother me else where.
-    # pylint: disable=E0611
+    # pylint: disable=no-name-in-module
     from psutil import Process
     from psutil import TimeoutExpired
     from psutil import _psutil_windows as cext
@@ -84,23 +84,23 @@ if winver[0]:
 
                 def sigint_boomerang_handler(signum, frame):
                     """do the right thing to behave like linux does"""
-                    # pylint: disable=W0613
+                    # pylint: disable=unused-argument
                     if signum != signal.SIGINT:
                         sys.exit(1)
-                    # pylint: disable=W0107
+                    # pylint: disable=unnecessary-pass
                     pass
 
                 original_sigint_handler = signal.getsignal(signal.SIGINT)
                 signal.signal(signal.SIGINT, sigint_boomerang_handler)
                 # only here on the wintendo:
-                # pylint: disable=E1101
+                # pylint: disable=no-member
                 self.send_signal(signal.CTRL_BREAK_EVENT)
                 self.wait()
                 # restore original handler
                 signal.signal(signal.SIGINT, original_sigint_handler)
 
     Process.terminate = ProcessMonkey.terminate
-    # pylint: disable=W0231 disable=consider-using-with
+    # pylint: disable=super-init-not-called disable=consider-using-with
     class Popen(Process):
         """overload this function"""
 

@@ -69,7 +69,7 @@ class HotBackupConfig:
 
 
 class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
-    # pylint: disable=R0902
+    # pylint: disable=too-many-instance-attributes
     """manages one arangobackup instance"""
 
     def __init__(self, config, name, raw_install_prefix, connect_instance):

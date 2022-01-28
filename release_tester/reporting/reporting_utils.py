@@ -9,7 +9,7 @@ from allure_commons.logger import AllureFileLogger
 from allure_commons.model2 import Status
 from allure_commons.types import AttachmentType
 from tabulate import tabulate
-#pylint: disable=E0401
+#pylint: disable=import-error
 from reporting.helpers import AllureListener
 
 
@@ -51,7 +51,7 @@ def attach_table(table, title="HTML table"):
     $html_table
     </html>
     """
-    # pylint: disable=E1101
+    # pylint: disable=no-member
     template = Template(template_str)
     html_table = tabulate(table, headers=table.columns.header, tablefmt="html")
     attach(template.substitute(html_table=html_table), title, AttachmentType.HTML)
@@ -103,7 +103,7 @@ class RtaTestcase:
         self.context.labels.append(label)
 
 
-# pylint: disable=R0903 disable=invalid-name
+# pylint: disable=too-few-public-methods disable=invalid-name
 class TestcaseContext:
     """a class to store test case context"""
 

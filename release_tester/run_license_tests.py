@@ -10,8 +10,8 @@ from test_driver import TestDriver
 
 
 @click.command()
-# pylint: disable=R0913
-# pylint: disable=R0914
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-locals
 @very_common_options()
 @common_options(support_old=True, interactive=True)
 # fmt: off
@@ -19,7 +19,7 @@ def main(
         # very_common_options
         new_version, verbose, enterprise, package_dir, zip_package,
         # common_options
-        # pylint: disable=W0613
+        # pylint: disable=unused-argument
         hot_backup, old_version, test_data_dir, encryption_at_rest, interactive,
         starter_mode, stress_upgrade, abort_on_error, publicip,
         selenium, selenium_driver_args, alluredir, clean_alluredir, ssl, use_auto_certs):
@@ -50,5 +50,5 @@ def main(
 
 
 if __name__ == "__main__":
-    # pylint: disable=E1120 # fix clickiness.
+    # pylint: disable=no-value-for-parameter # fix clickiness.
     main()
