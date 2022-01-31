@@ -86,7 +86,7 @@ Supported Parameters:
  - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
  - `--[no-]encryption-at-rest` turn on encryption at rest for Enterprise packages
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
- - `--src` switches to [Source directory](#source-distribution) logic
+ - `--src` switches to [Source directory](#source-installer) logic
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
@@ -130,7 +130,7 @@ Supported Parameters:
  - `--old-version` which Arangodb Version you want to install to setup the old system
  - `--new-version` which Arangodb Version you want to upgrade the environment to
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
- - `--src` switches to [Source directory](#source-distribution) logic
+ - `--src` switches to [Source directory](#source-installer) logic
  - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
  - `--[no-]encryption-at-rest` turn on encryption at rest for Enterprise packages
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
