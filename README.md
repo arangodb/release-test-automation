@@ -648,3 +648,98 @@ To disable formatting for single line, end it with `# fmt: on`.
 
 ## Linter
 We use [pylint](https://pylint.org/). Command to run it: `pylint release_tester`
+
+### source "Installer"
+Similar to `--zip` `--src` flips the switch of not using the native package installer on that respective system but this one.
+The reasoning is to use a local directory with compiled arangodb and launch this as if it were deployed from a package. 
+The source directory should contain `build/bin` with the compile results inside.
+
+The source directory is located via 3 parameters (and if build/bin exists chosen accordingly):
+- `--package-dir` - in `test.py` this can be used to directly point to the source directory. Alternatively, i.e. symlinks can be used:
+- `--old-version` 3.10.0-devel (+ --[no-]enterprise) => `[E_]3.10.0-devel`
+- `--new-version` same as above for the version to upgrade to (or in test.py run alone)
+
+If `--enterprise` is specfied, RTA treats this as an enterprise deployment. I.e. HotBackup becomes available.
+Additionally the enterprise javascript files are added via cli parameters to arangosh and arangod / starter.
+
+Several binaries are not built from with the arangodb source. They have to be added as copy or symlink to the bin directory.
+They can easily be obtained through nightry zip/tar packages or be build from their respective source directories and symlinked in:
+- arangodb - the starter.
+- arangosync - the arangosync binary for dc2dc replication
+- rclone-arangodb 
+
+# docker container
+We will build a the docker container based on the latest public enterprise docker container:
+```
+docker build . -t test
+```
+
+The purpose of the derived container is to ship the arangosh to run the tests in.
+
+Running the docker container, parametrizing the connection endpoints of the cluster:
+```
+docker run test:latest --frontends tcp://192.168.173.88:9629 \
+                       --frontends tcp://192.168.173.88:9729 \
+                       --frontends tcp://192.168.173.88:9529 \
+                       --scenario scenarios/cluster_replicated.yml
+```
+
+# nightly tar docker container
+This container is intended to test the nightly tar packages whether starter deployment upgrades are working properly.
+
+Build the container for later use with:
+```
+docker build docker_tar/ -t arangodb/release-test-automation
+```
+
+Run the container from within the office network; DNS lookup outside of the docker container:
+```
+docker run \
+  -v `pwd`:/home/release-test-automation \
+  -v /home/willi/Downloads/:/home/package_cache \
+  -v /tmp/versions:/home/versions \
+  --init \
+  arangodb/release-test-automation \
+   --old-version 3.7.7-nightly \
+   --new-version 3.8.0-nightly \
+   --remote-host $(host nas02.arangodb.biz |sed "s;.* ;;")
+```
+
+Run the container from abroad:
+```
+docker run  \
+  -v `pwd`:/home/release-test-automation \
+  -v /home/willi/Downloads/:/home/package_cache \
+  -v /tmp/versions:/home/versions \
+  --init \
+  arangodb/release-test-automation \
+    --old-version 3.7.7-nightly --new-version 3.8.0-nightly \
+    --source http:stage2 --httpuser user --httppassvoid passvoid
+```
+
+## Wikipedia dump tests
+These tests use the CSV data from the wikip
+ http://home.apache.org/~mikemccand/enwiki-20120502-lines-1k.txt.lzma
+
+
+# Allure reporting
+To view allure report, you must have allure installed in your system. Download link(for Linux):
+https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/2.14.0/allure-commandline-2.14.0.zip
+
+After the test run is finished, run the following command:
+```bash
+allure serve [results_dir]
+```
+Default results dir: allure_results
+This will open a browser with the test report.
+
+# Maintaining code quality
+## Formatter
+We use [Black Formatter](https://github.com/psf/black). To apply formatting to the code simply run `black .` in the project root dir.  
+Formatter settings are stored in `pyproject.toml` file.
+To switch formatting off for a code block, start it with `# fmt: off` and end with `# fmt: on`.  
+To disable formatting for single line, end it with `# fmt: on`. 
+
+## Linter
+We use [pylint](https://pylint.org/). Command to run it: `pylint release_tester`
+
