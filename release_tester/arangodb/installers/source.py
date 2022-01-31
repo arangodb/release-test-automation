@@ -37,6 +37,8 @@ class InstallerSource(InstallerBase):
         print("identified this source directory: " + str(test_dir))
         # no installing... its there...
         cfg.bin_dir = cfg.package_dir / "build" / "bin"
+        if (cfg.bin_dir / 'RelWithDebInfo').exists():
+            cfg.bin_dir = cfg.bin_dir / 'RelWithDebInfo'
         cfg.sbin_dir = cfg.package_dir / "build" / "bin"
         cfg.real_bin_dir = cfg.bin_dir
         cfg.real_sbin_dir = cfg.sbin_dir
