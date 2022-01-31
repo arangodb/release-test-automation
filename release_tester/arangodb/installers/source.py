@@ -40,6 +40,7 @@ class InstallerSource(InstallerBase):
         cfg.sbin_dir = cfg.package_dir / "build" / "bin"
         cfg.real_bin_dir = cfg.bin_dir
         cfg.real_sbin_dir = cfg.sbin_dir
+        print(cfg.bin_dir)
         if not cfg.bin_dir.exists():
             raise Exception("unable to locate soure directories and binaries in: " + str(cfg.bin_dir))
         cfg.localhost = 'localhost'
@@ -49,17 +50,28 @@ class InstallerSource(InstallerBase):
         cfg.appdir = cfg.bin_dir
         cfg.cfgdir = cfg.package_dir / 'etc' / 'relative'
         js_dir = str(cfg.package_dir / 'js')
+        js_enterprise = []
+        js_enterprise_server = []
+        if cfg.enterprise:
+            js_enterprise = [
+                '--javascript.module-directory',
+                str(cfg.package_dir / 'enterprise' / 'js')
+                ]
+            js_enterprise_server = [
+                '--all.javascript.module-directory',
+                str(cfg.package_dir / 'enterprise' / 'js')
+                ]
         cfg.default_backup_args = [
             '-c', str(cfg.cfgdir / 'arangobackup.conf'),
         ]
         cfg.default_arangosh_args = [
             '-c', str(cfg.cfgdir / 'arangosh.conf'),
             '--javascript.startup-directory', js_dir
-        ]
+        ] + js_enterprise 
         cfg.default_starter_args = [
             '--server.arangod=' + str(cfg.real_sbin_dir / 'arangod'),
             '--server.js-dir=' + js_dir
-        ]
+        ] + js_enterprise_server
 
         print('x'*40)
         print(cfg.semver)
