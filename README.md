@@ -655,7 +655,7 @@ We use [pylint](https://pylint.org/). Command to run it: `pylint release_tester`
 In RTA an "installer" makes the ArangoDB version available in the system. By default, the native installer to the system is chosen.
 With `--zip` the Windows Zip or Mac/Linux .tar.gz package is chosen. Similar to this `--src` flips the switch of not deploying a package
 via an installer at all, but rather choose a source directory with compiled binaries to launch.
-The source directory (directories in case of running upgrade) should contain `build/bin` with the compile results inside.
+The source directory (directories in case of running upgrade) should contain `build/bin` with the compiled result binaries inside.
 
 Several binaries are not built from with the arangodb source. They have to be added as copy or symlink to the bin directory.
 They can easily be obtained through nightry zip/tar packages or be build from their respective source directories and symlinked into the `build/bin` directories:
@@ -665,7 +665,7 @@ They can easily be obtained through nightry zip/tar packages or be build from th
 
 The source directory is located via 3 parameters (and if build/bin exists chosen accordingly):
 - `--package-dir` - in `test.py` this can be used to directly point to the source directory. Alternatively, i.e. symlinks can be used:
-- `--new-version` if you specify 3.10.0-devel (and --[no-]enterprise) this will result in this directory: `[package-dir]/[E_]3.10.0-devel`
+- `--new-version` if you specify `3.10.0-devel` (a semver valid version) (and --[no-]enterprise) this will result in this directory: `[package-dir]/[E_]3.10.0-devel`
 - `--old-version` in `upgrade.py` this is used for the old version to upgrade from, works similar as `--new-version`.
 
 If `--enterprise` is specfied, RTA treats this as an enterprise deployment, HotBackup and DC2DC becomes available.
@@ -680,14 +680,21 @@ Additionally the enterprise javascript files are added via cli parameters to ara
 ```
 
 or running an upgrade:
+(To adjust this a bit strict directory naming conventions, symbolic links are used)
 
 ```
+mkdir arangoversions
+cd arangoversions
+ln -s /home/willi/src/stable-3.9 E_3.9.0
+ln -s /home/willi/src/devel E_3.10.0-devel
+cd ..
 ./release-tester/upgrade.py --src \
   --enterprise \
-  --package-dir /home/willi/src/ \
+  --package-dir $(pwd)/arangoversions \
   --new-version 3.10.0-devel \
   --old-version 3.9.0 \
   --starter-mode DC
 ```
 
 Will search for `/home/willi/src/E_3.9.0/build/bin` to launch the deployment initially, and upgrade to `/home/willi/src/E_3.10.0-devel/build/bin`.
+

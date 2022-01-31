@@ -78,12 +78,7 @@ class InstallerSource(InstallerBase):
         cfg.default_restore_args = [
             '-c', str(cfg.cfgdir / 'arangoimport.conf'),
         ]
-        print('x'*40)
-        print(cfg.semver)
         super().__init__(cfg)
-        print('x'*40)
-        print(self.cfg.semver)
-        print(cfg.version)
         self.reset_version(cfg.version)
         self.check_stripped = False
         self.cfg.have_system_service = False
