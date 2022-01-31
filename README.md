@@ -663,7 +663,7 @@ They can easily be obtained through nightry zip/tar packages or be build from th
 - arangosync - the arangosync binary for dc2dc replication
 - rclone-arangodb 
 
-The source directory is located via 3 parameters (and if build/bin exists chosen accordingly):
+The source directory is located via 3 parameters (and if `build/bin` exists chosen accordingly):
 - `--package-dir` - in `test.py` this can be used to directly point to the source directory. Alternatively, i.e. symlinks can be used:
 - `--new-version` if you specify `3.10.0-devel` (a semver valid version) (and --[no-]enterprise) this will result in this directory: `[package-dir]/[E_]3.10.0-devel`
 - `--old-version` in `upgrade.py` this is used for the old version to upgrade from, works similar as `--new-version`.
