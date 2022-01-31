@@ -657,16 +657,37 @@ With `--zip` the Windows Zip or Mac/Linux .tar.gz package is chosen. Similar to 
 via an installer at all, but rather choose a source directory with compiled binaries to launch.
 The source directory (directories in case of running upgrade) should contain `build/bin` with the compile results inside.
 
+Several binaries are not built from with the arangodb source. They have to be added as copy or symlink to the bin directory.
+They can easily be obtained through nightry zip/tar packages or be build from their respective source directories and symlinked into the `build/bin` directories:
+- arangodb - the starter.
+- arangosync - the arangosync binary for dc2dc replication
+- rclone-arangodb 
+
 The source directory is located via 3 parameters (and if build/bin exists chosen accordingly):
 - `--package-dir` - in `test.py` this can be used to directly point to the source directory. Alternatively, i.e. symlinks can be used:
 - `--new-version` if you specify 3.10.0-devel (and --[no-]enterprise) this will result in this directory: `[package-dir]/[E_]3.10.0-devel`
 - `--old-version` in `upgrade.py` this is used for the old version to upgrade from, works similar as `--new-version`.
 
-If `--enterprise` is specfied, RTA treats this as an enterprise deployment. I.e. HotBackup becomes available.
+If `--enterprise` is specfied, RTA treats this as an enterprise deployment, HotBackup and DC2DC becomes available.
 Additionally the enterprise javascript files are added via cli parameters to arangosh and arangod / starter.
 
-Several binaries are not built from with the arangodb source. They have to be added as copy or symlink to the bin directory.
-They can easily be obtained through nightry zip/tar packages or be build from their respective source directories and symlinked in:
-- arangodb - the starter.
-- arangosync - the arangosync binary for dc2dc replication
-- rclone-arangodb 
+```
+./release-tester/test.py --src \
+  --enterprise \
+  --package-dir ../devel \
+  --new-version 3.10.0-devel \
+  --starter-mode DC
+```
+
+or running an upgrade:
+
+```
+./release-tester/upgrade.py --src \
+  --enterprise \
+  --package-dir /home/willi/src/ \
+  --new-version 3.10.0-devel \
+  --old-version 3.9.0 \
+  --starter-mode DC
+```
+
+Will search for `/home/willi/src/E_3.9.0/build/bin` to launch the deployment initially, and upgrade to `/home/willi/src/E_3.10.0-devel/build/bin`.
