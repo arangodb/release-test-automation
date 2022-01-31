@@ -21,7 +21,7 @@ class LicenseManagerClusterTestSuite(LicenseManagerBaseTestSuite):
 
     @run_before_suite
     def startup(self):
-        """prepare test env"""
+        """prepare test environment to run license manager tests on a cluster setup"""
         self.start_cluster()
 
     @step
