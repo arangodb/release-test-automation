@@ -72,7 +72,12 @@ class InstallerSource(InstallerBase):
             '--server.arangod=' + str(cfg.real_sbin_dir / 'arangod'),
             '--server.js-dir=' + js_dir
         ] + js_enterprise_server
-
+        cfg.default_imp_args = [
+            '-c', str(cfg.cfgdir / 'arangoimport.conf'),
+        ]
+        cfg.default_restore_args = [
+            '-c', str(cfg.cfgdir / 'arangoimport.conf'),
+        ]
         print('x'*40)
         print(cfg.semver)
         super().__init__(cfg)

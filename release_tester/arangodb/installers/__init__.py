@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """ run an installer for the detected operating system """
+import copy
 from enum import Enum
 import platform
 import os
@@ -95,6 +96,9 @@ class InstallerConfig:
         self.default_arangosh_args = []
         self.default_starter_args = []
         self.default_backup_args = []
+        self.default_imp_args = []
+        self.default_restore_args = []
+
         self.reset_version(version)
         self.log_dir = Path()
         self.bin_dir = Path()
@@ -137,9 +141,11 @@ verbose: {0.verbose}
         """copy constructor"""
         try:
             self.reset_version(other_cfg.version)
-            self.default_arangosh_args = other.default_arangosh_args
-            self.default_starter_args = other.default_starter_args
-            self.default_backup_args = other.default_backup_args
+            self.default_arangosh_args = copy.deepcopy(other.default_arangosh_args)
+            self.default_starter_args = copy.deepcopy(other.default_starter_args)
+            self.default_backup_args = copy.deepcopy(other.default_backup_args)
+            self.default_imp_args = copy.deepcopy(other.default_imp_args)
+            self.default_restore_args = copy.deepcopy(other.default_restore_args)
             self.publicip = other_cfg.publicip
             self.interactive = other_cfg.interactive
             self.enterprise = other_cfg.enterprise
