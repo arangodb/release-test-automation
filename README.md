@@ -658,7 +658,7 @@ The source directory should contain `build/bin` with the compile results inside.
 
 The source directory is located via 3 parameters (and if build/bin exists chosen accordingly):
 - `--package-dir` - in `test.py` this can be used to directly point to the source directory. Alternatively, i.e. symlinks can be used:
-- `--old-version` 3.10.0-devel (+ --[no-]enterprise) => `[E_]3.10.0-devel`
+- `--old-version` 3.10.0-devel (+ --[no-]enterprise) => `package-dir/[E_]3.10.0-devel`
 - `--new-version` same as above for the version to upgrade to (or in test.py run alone)
 
 If `--enterprise` is specfied, RTA treats this as an enterprise deployment. I.e. HotBackup becomes available.
