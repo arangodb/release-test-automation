@@ -102,6 +102,7 @@ class Download:
                  version,
                  enterprise,
                  zip_package,
+                 src_testing,
                  source,
                  existing_version_states={},
                  new_version_states={},
@@ -133,6 +134,7 @@ class Download:
             enterprise=enterprise,
             encryption_at_rest=False,
             zip_package=zip_package,
+            src_testing=src_testing,
             hot_backup="disabled", # don't care
             package_dir=options.package_dir,
             test_dir=Path("/"),
@@ -345,7 +347,7 @@ class Download:
 # pylint: disable=R0913 disable=unused-argument
 def main(
         #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package, hot_backup,
+        new_version, verbose, enterprise, package_dir, zip_package, src_testing, hot_backup,
         # download options:
         enterprise_magic, force, source,
         httpuser, httppassvoid, remote_host):
@@ -365,6 +367,7 @@ def main(
         version=new_version,
         enterprise=enterprise,
         zip_package=zip_package,
+        src_testing=src_testing,
         source=source)
     return downloader.get_packages(force)
 

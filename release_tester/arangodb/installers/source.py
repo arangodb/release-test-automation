@@ -6,315 +6,131 @@ import shutil
 import logging
 from pathlib import Path
 import pexpect
+import platform
 import psutil
 from arangodb.sh import ArangoshExecutor
-from arangodb.installers.linux import InstallerLinux
+from arangodb.installers.base import InstallerBase
 from tools.asciiprint import ascii_print, print_progress as progress
 
 import tools.loghelper as lh
 
+IS_WINDOWS = platform.win32_ver()[0] != ""
 
-class InstallerSource(InstallerLinux):
+class InstallerSource(InstallerBase):
     """ adjust to arango source directory """
     def __init__(self, cfg):
         self.server_package = None
         self.client_package = None
         self.debug_package = None
-        self.check_stripped = False
-
-        cfg.installPrefix = Path("/")
+        self.installer_type = "source directory"
+        cfg.reset_version(cfg.version)
+        cfg.installPrefix = cfg.package_dir
+        sub_dir = str(cfg.version)
+        if cfg.enterprise:
+            sub_dir = "E_" + sub_dir
+        test_dir = cfg.package_dir / sub_dir
+        if not test_dir.exists():
+            print("source version sub-directory doesn't exist: " + str(test_dir))
+            test_dir = cfg.package_dir
+        if test_dir.is_symlink():
+            test_dir = test_dir.readlink()
+        print("identified this source directory: " + str(test_dir))
         # no installing... its there...
         cfg.bin_dir = cfg.package_dir / "build" / "bin"
         cfg.sbin_dir = cfg.package_dir / "build" / "bin"
         cfg.real_bin_dir = cfg.bin_dir
         cfg.real_sbin_dir = cfg.sbin_dir
+        print(cfg.bin_dir)
+        if not cfg.bin_dir.exists():
+            raise Exception("unable to locate soure directories and binaries in: " + str(cfg.bin_dir))
         cfg.localhost = 'localhost'
 
-        cfg.log_dir = Path('/var/log/arangodb3')
-        cfg.dbdir = Path('/var/lib/arangodb3')
-        cfg.appdir = Path('/var/lib/arangodb3-apps')
+        cfg.log_dir = cfg.bin_dir
+        cfg.dbdir = cfg.bin_dir
+        cfg.appdir = cfg.bin_dir
         cfg.cfgdir = cfg.package_dir / 'etc' / 'relative'
+        js_dir = str(cfg.package_dir / 'js')
+        js_enterprise = []
+        js_enterprise_server = []
+        if cfg.enterprise:
+            js_enterprise = [
+                '--javascript.module-directory',
+                str(cfg.package_dir / 'enterprise' / 'js')
+                ]
+            js_enterprise_server = [
+                '--all.javascript.module-directory',
+                str(cfg.package_dir / 'enterprise' / 'js')
+                ]
+        cfg.default_backup_args = [
+            '-c', str(cfg.cfgdir / 'arangobackup.conf'),
+        ]
+        cfg.default_arangosh_args = [
+            '-c', str(cfg.cfgdir / 'arangosh.conf'),
+            '--javascript.startup-directory', js_dir
+        ] + js_enterprise 
+        cfg.default_starter_args = [
+            '--server.arangod=' + str(cfg.real_sbin_dir / 'arangod'),
+            '--server.js-dir=' + js_dir
+        ] + js_enterprise_server
+
+        print('x'*40)
+        print(cfg.semver)
         super().__init__(cfg)
-        
+        print('x'*40)
+        print(self.cfg.semver)
+        print(cfg.version)
+        self.reset_version(cfg.version)
+        self.check_stripped = False
+        self.cfg.have_system_service = False
         self.arangosh = ArangoshExecutor(self.cfg, self.instance)
 
+    def supports_hot_backup(self):
+        """no hot backup support on the wintendo."""
+        if IS_WINDOWS:
+            return False
+        return super().supports_hot_backup()
 
     def calculate_package_names(self):
-        enterprise = 'e' if self.cfg.enterprise else ''
-        architecture = 'x86_64'
-
-        if self.cfg.semver.prerelease == "nightly":
-            self.cfg.semver._prerelease = ''
-            self.cfg.semver._build = "0.2"
-        semdict = dict(self.cfg.semver.to_dict())
-
-        if semdict['prerelease']:
-            # remove dots, but prepend one:
-            semdict['prerelease'] = '.' + semdict['prerelease'].replace('.', '')
-        else:
-            semdict['prerelease'] = ''
-
-        if not semdict['build']:
-            semdict['build'] = '1.0'
-
-        package_version = '{build}{prerelease}'.format(**semdict)
-
-        version = '{major}.{minor}.{patch}'.format(**semdict)
-
-        desc = {
-            "ep"   : enterprise,
-            "cfg"  : version,
-            "ver"  : package_version,
-            "arch" : architecture
-        }
-
-        self.server_package = (
-            'arangodb3{ep}-{cfg}-{ver}.{arch}.rpm'.format(**desc))
-        self.client_package = (
-            'arangodb3{ep}-client-{cfg}-{ver}.{arch}.rpm'.format(**desc))
-        self.debug_package = (
-            'arangodb3{ep}-debuginfo-{cfg}-{ver}.{arch}.rpm'.format(**desc))
+        """nothing to see here"""
 
     def check_service_up(self):
-        if self.instance.pid:
-            try:
-                psutil.Process(self.instance.pid)
-            except:
-                return False
-        else:
-            return False
-        time.sleep(1)   # TODO
-        return True
+        """nothing to see here"""
 
     def start_service(self):
-        assert self.instance
-
-        logging.info("starting service")
-        cmd = ['service', 'arangodb3', 'start']
-        lh.log_cmd(cmd)
-        startserver = psutil.Popen(cmd)
-        logging.info("waiting for eof of start service")
-        startserver.wait()
-        time.sleep(0.1)
-        self.instance.detect_pid(1) # should be owned by init
+        """nothing to see here"""
 
     def stop_service(self):
-        logging.info("stopping service")
-        cmd = ['service', 'arangodb3', 'stop']
-        lh.log_cmd(cmd)
-        stopserver = psutil.Popen(cmd)
-        logging.info("waiting for eof")
-        stopserver.wait()
-        while self.check_service_up():
-            time.sleep(1)
+        """nothing to see here"""
 
     def upgrade_package(self, old_installer):
-        logging.info("upgrading Arangodb rpm package")
+        """nothing to see here"""
 
-        self.cfg.passvoid = "sanoetuh"   # TODO
-        self.cfg.log_dir = Path('/var/log/arangodb3')
-        self.cfg.dbdir  = Path('/var/lib/arangodb3')
-        self.cfg.appdir = Path('/var/lib/arangodb3-apps')
-        self.cfg.cfgdir = Path('/etc/arangodb3')
-
-        self.set_system_instance()
-
-        #https://access.redhat.com/solutions/1189
-        cmd = 'rpm --upgrade ' + str(self.cfg.package_dir / self.server_package)
-        lh.log_cmd(cmd)
-        server_upgrade = pexpect.spawnu(cmd)
-
-        try:
-            server_upgrade.expect(
-                'First Steps with ArangoDB:|server '
-                'will now shut down due to upgrade,'
-                'database initialization or admin restoration.')
-            print(server_upgrade.before)
-        except pexpect.exceptions.EOF as exc:
-            lh.line("X")
-            ascii_print(server_upgrade.before)
-            lh.line("X")
-            print("exception : " + str(exc))
-            lh.line("X")
-            logging.error("Upgrade failed!")
-            sys.exit(1)
-
-        logging.debug("found: upgrade message")
-
-        logging.info("waiting for the upgrade to finish")
-        try:
-            server_upgrade.expect(pexpect.EOF, timeout=30)
-            ascii_print(server_upgrade.before)
-        except pexpect.exceptions.EOF:
-            logging.error("TIMEOUT! while upgrading package")
-            sys.exit(1)
-
-        logging.debug("upgrade successfully finished")
-
-    def install_package(self):
-        # pylint: disable=too-many-statements
-        self.cfg.log_dir = Path('/var/log/arangodb3')
-        self.cfg.dbdir  = Path('/var/lib/arangodb3')
-        self.cfg.appdir = Path('/var/lib/arangodb3-apps')
-        self.cfg.cfgdir = Path('/etc/arangodb3')
-        self.set_system_instance()
-        logging.info("installing Arangodb RPM package")
-        package = self.cfg.package_dir / self.server_package
-        if not package.is_file():
-            logging.info("package doesn't exist: %s", str(package))
-            raise Exception("failed to find package")
-
-        cmd = 'rpm ' + '-i ' + str(package)
-        lh.log_cmd(cmd)
-        server_install = pexpect.spawnu(cmd)
-        reply = None
-
-        try:
-            server_install.expect('the current password is')
-            ascii_print(server_install.before)
-            server_install.expect(pexpect.EOF, timeout=60)
-            reply = server_install.before
-            ascii_print(reply)
-        except pexpect.exceptions.EOF:
-            ascii_print(server_install.before)
-            logging.info("Installation failed!")
-            sys.exit(1)
-
-        while server_install.isalive():
-            progress('.')
-            if server_install.exitstatus != 0:
-                raise Exception("server installation "
-                                "didn't finish successfully!")
-
-        start = reply.find("'")
-        end = reply.find("'", start + 1)
-        self.cfg.passvoid = reply[start + 1: end]
-
-        self.start_service()
-        self.instance.detect_pid(1) # should be owned by init
-
-        pwcheckarangosh = ArangoshExecutor(self.cfg, self.instance)
-        if not pwcheckarangosh.js_version_check():
-            logging.error(
-                "Version Check failed -"
-                "probably setting the default random password didn't work! %s",
-                self.cfg.passvoid)
-
-        #should we wait for user here? or mark the error in a special way
-
-        self.stop_service()
-
-        self.cfg.passvoid = "sanoetuh"   # TODO
-        lh.log_cmd('/usr/sbin/arango-secure-installation')
-        with pexpect.spawnu('/usr/sbin/arango-secure-installation') as etpw:
-            result = None
-            try:
-                ask_for_pass = [
-                    'Please enter a new password for the ArangoDB root user:',
-                    'Please enter password for root user:',
-                ]
-
-                result = etpw.expect(ask_for_pass)
-                if result is None:
-                    raise RuntimeError("Not asked for password")
-
-                etpw.sendline(self.cfg.passvoid)
-                result = etpw.expect('Repeat password: ')
-                if result is None:
-                    raise RuntimeError("Not asked to repeat the password")
-                ascii_print(etpw.before)
-                logging.info("password should be set to: " + self.cfg.passvoid)
-                etpw.sendline(self.cfg.passvoid)
-
-                logging.info("expecting eof")
-                logging.info("password should be set to: " + self.cfg.passvoid)
-                result = etpw.expect(pexpect.EOF)
-
-                logging.info("password should be set to: " + self.cfg.passvoid)
-                ascii_print(etpw.before)
-
-            #except pexpect.exceptions.EOF:
-            except Exception as exc:
-                logging.error("setting our password failed!")
-                logging.error("X" * 80)
-                logging.error("XO" * 80)
-                logging.error(repr(self.cfg))
-                logging.error("X" * 80)
-                logging.error("result: " + str(result))
-                logging.error("X" * 80)
-                ascii_print(etpw.before)
-                logging.error("X" * 80)
-                raise exc
-
-        self.start_service()
-        self.instance.detect_pid(1) # should be owned by init
+    def install_server_package_impl(self):
+        """nothing to see here"""
 
     def un_install_package(self):
-        self.stop_service()
-        cmd = ['rpm', '-e', 'arangodb3' + ('e' if self.cfg.enterprise else '')]
-        lh.log_cmd(cmd)
-        uninstall = psutil.Popen(cmd)
-        uninstall.wait()
-
+        """nothing to see here"""
 
     def install_debug_package(self):
-        """ installing debug package """
-        cmd = 'rpm -i ' + str(self.cfg.package_dir / self.debug_package)
-        lh.log_cmd(cmd)
-        debug_install = pexpect.spawnu(cmd)
-        try:
-            logging.info("waiting for the installation to finish")
-            debug_install.expect(pexpect.EOF, timeout=90)
-        except pexpect.exceptions.EOF:
-            logging.info("TIMEOUT!")
-            debug_install.close(force=True)
-            ascii_print(debug_install.before)
-        print()
-        logging.info(str(self.debug_package) + ' Installation successfull')
-        self.cfg.have_debug_package = True
-
-        while debug_install.isalive():
-            progress('.')
-            if debug_install.exitstatus != 0:
-                debug_install.close(force=True)
-                ascii_print(debug_install.before)
-                raise Exception(
-                    str(self.debug_package) +
-                    " debug installation didn't finish successfully!")
-        return self.cfg.have_debug_package
+        """nothing to see here"""
 
     def un_install_debug_package(self):
-        uninstall = pexpect.spawnu('rpm -e ' +
-                                   'arangodb3' +
-                                   ('e-debuginfo.x86_64'
-                                    if self.cfg.enterprise else
-                                    '-debuginfo.x86_64'))
-        try:
-            uninstall.expect(pexpect.EOF, timeout=30)
-            ascii_print(uninstall.before)
-        except pexpect.exceptions.EOF:
-            ascii_print(uninstall.before)
-            sys.exit(1)
-
-        while uninstall.isalive():
-            progress('.')
-            if uninstall.exitstatus != 0:
-                uninstall.close(force=True)
-                ascii_print(uninstall.before)
-                raise Exception("Debug package uninstallation"
-                                " didn't finish successfully!")
+        """nothing to see here"""
 
     def cleanup_system(self):
-        # TODO: should this be cleaned by the rpm uninstall in first place?
-        if self.cfg.log_dir.exists():
-            print("cleaning upg %s "% str(self.cfg.log_dir))
-            shutil.rmtree(self.cfg.log_dir)
-        if self.cfg.dbdir.exists():
-            print("cleaning upg %s "% str(self.cfg.dbdir))
-            shutil.rmtree(self.cfg.dbdir)
-        if self.cfg.appdir.exists():
-            print("cleaning upg %s "% str(self.cfg.appdir))
-            shutil.rmtree(self.cfg.appdir)
-        if self.cfg.cfgdir.exists():
-            print("cleaning upg %s "% str(self.cfg.cfgdir))
-            shutil.rmtree(self.cfg.cfgdir)
+        """nothing to see here"""
+
+    def install_client_package_impl(self):
+        """nothing to see here"""
+
+    def un_install_client_package_impl(self):
+        """nothing to see here"""
+
+    def un_install_server_package_impl(self):
+        """nothing to see here"""
+
+    def upgrade_server_package(self):
+        """nothing to see here"""
+
+    def check_engine_file(self):
+        """nothing to see here"""

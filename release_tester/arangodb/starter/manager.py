@@ -59,7 +59,7 @@ class StarterManager:
     ):
         self.expect_instances = expect_instances
         self.expect_instances.sort()
-        self.moreopts = moreopts
+        self.moreopts = basecfg.default_starter_args + moreopts
         self.cfg = copy.deepcopy(basecfg)
         if self.cfg.verbose:
             self.moreopts += ["--log.verbose=true"]
@@ -824,7 +824,7 @@ class StarterManager:
                         )
                         instance_class = ArangodInstance
                     # directory = self.basedir / name
-                    if match:
+                    if match and len(match.group(2)) > 0:
                         # we may see a `local-slave-*` directory inbetween,
                         # hence we need to choose the current directory not
                         # the starter toplevel dir for this:
