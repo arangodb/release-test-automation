@@ -481,7 +481,7 @@ class Runner(ABC):
         if inst.check_service_up():
             inst.stop_service()
         inst.start_service()
-
+        print(inst.cfg.semver)
         sys_arangosh = ArangoshExecutor(inst.cfg, inst.instance)
 
         logging.debug("self test after installation")

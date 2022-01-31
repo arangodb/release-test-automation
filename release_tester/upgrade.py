@@ -19,7 +19,7 @@ from test_driver import TestDriver
 def main(
         #very_common_options
         new_version, verbose, enterprise, package_dir, zip_package,
-        hot_backup,
+        src_testing, hot_backup,
         # common_options
         old_version, test_data_dir, encryption_at_rest, interactive,
         starter_mode, stress_upgrade, abort_on_error, publicip,
@@ -34,6 +34,7 @@ def main(
         Path(alluredir),
         clean_alluredir,
         zip_package,
+        src_testing,
         hot_backup,
         interactive,
         starter_mode,

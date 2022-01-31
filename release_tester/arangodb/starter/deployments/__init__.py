@@ -19,6 +19,7 @@ class RunnerType(Enum):
     CLUSTER = 3
     DC2DC = 4
     DC2DCENDURANCE = 5
+    TESTING = 6
 
 
 runner_strings = {
@@ -28,6 +29,7 @@ runner_strings = {
     RunnerType.CLUSTER: "Cluster",
     RunnerType.DC2DC: "DC 2 DC",
     RunnerType.DC2DCENDURANCE: "DC 2 DC endurance",
+    RunnerType.TESTING: "Testing"
 }
 
 STARTER_MODES = {

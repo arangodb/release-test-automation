@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """ run an installer for the detected operating system """
+import copy
 from enum import Enum
 import platform
 import os
@@ -50,6 +51,7 @@ class InstallerConfig:
         enterprise: bool,
         encryption_at_rest: bool,
         zip_package: bool,
+        src_testing: bool,
         hot_backup: str,
         package_dir: Path,
         test_dir: Path,
@@ -64,6 +66,7 @@ class InstallerConfig:
         self.enterprise = enterprise
         self.encryption_at_rest = encryption_at_rest and enterprise
         self.zip_package = zip_package
+        self.src_testing = src_testing
 
         self.deployment_mode = deployment_mode
         self.verbose = verbose
@@ -90,6 +93,12 @@ class InstallerConfig:
 
         self.all_instances = {}
         self.frontends = []
+        self.default_arangosh_args = []
+        self.default_starter_args = []
+        self.default_backup_args = []
+        self.default_imp_args = []
+        self.default_restore_args = []
+
         self.reset_version(version)
         self.log_dir = Path()
         self.bin_dir = Path()
@@ -116,6 +125,7 @@ version: {0.version}
 using enterpise: {0.enterprise}
 using encryption at rest: {0.encryption_at_rest}
 using zip: {0.zip_package}
+using source: {0.src_testing}
 hot backup mode: {0.hot_backup}
 package directory: {0.package_dir}
 test directory: {0.base_test_dir}
@@ -131,11 +141,17 @@ verbose: {0.verbose}
         """copy constructor"""
         try:
             self.reset_version(other_cfg.version)
+            self.default_arangosh_args = copy.deepcopy(other.default_arangosh_args)
+            self.default_starter_args = copy.deepcopy(other.default_starter_args)
+            self.default_backup_args = copy.deepcopy(other.default_backup_args)
+            self.default_imp_args = copy.deepcopy(other.default_imp_args)
+            self.default_restore_args = copy.deepcopy(other.default_restore_args)
             self.publicip = other_cfg.publicip
             self.interactive = other_cfg.interactive
             self.enterprise = other_cfg.enterprise
             self.encryption_at_rest = other_cfg.encryption_at_rest
             self.zip_package = other_cfg.zip_package
+            self.src_testing = other_cfg.src_testing
 
             self.deployment_mode = other_cfg.deployment_mode
             self.verbose = other_cfg.verbose
@@ -238,13 +254,16 @@ def make_installer(install_config: InstallerConfig):
     """detect the OS and its distro,
     choose the proper installer
     and return it"""
+    if install_config.src_testing:
+        from arangodb.installers.source import InstallerSource
+        return InstallerSource(install_config)
+
     if install_config.zip_package:
         from arangodb.installers.tar import InstallerTAR
-
         return InstallerTAR(install_config)
+
     if IS_WINDOWS:
         from arangodb.installers.nsis import InstallerW
-
         return InstallerW(install_config)
 
     macver = platform.mac_ver()
@@ -308,6 +327,7 @@ class InstallerBaseConfig:
     def __init__(self,
                  verbose: bool,
                  zip_package: bool,
+                 src_testing: bool,
                  hot_backup: str,
                  package_dir: Path,
                  test_data_dir: Path,
@@ -317,6 +337,7 @@ class InstallerBaseConfig:
                  stress_upgrade: bool):
         self.verbose = verbose
         self.zip_package = zip_package
+        self.src_testing = src_testing
         self.hot_backup = hot_backup
         self.package_dir = package_dir
         self.test_data_dir = test_data_dir
@@ -328,6 +349,7 @@ class InstallerBaseConfig:
         return """
 verbose : {0.verbose}
 zip_package : {0.zip_package}
+src_testing : {0.src_testing}
 hot_backup : {0.hot_backup}
 package_dir : {0.package_dir}
 test_data_dir : {0.test_data_dir}
@@ -355,6 +377,7 @@ def create_config_installer_set(
             run_properties.enterprise,
             run_properties.encryption_at_rest,
             base_config.zip_package,
+            base_config.src_testing,
             base_config.hot_backup,
             base_config.package_dir,
             base_config.test_data_dir,

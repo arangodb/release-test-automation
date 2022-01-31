@@ -377,6 +377,7 @@ class InstallerBase(ABC):
             try:
                 cfg_file.unlink()
             except PermissionError:
+                self.cfg.semver = semver.VersionInfo.parse(self.cfg.version)
                 print("Ignoring non deleteable " + str(cfg_file))
                 return
         cfg_file.write_text(yaml.dump(self.cfg), encoding='utf8')

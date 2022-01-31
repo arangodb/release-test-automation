@@ -28,7 +28,10 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         title = f"run a command in arangosh: {cmd[0]}"
         with step(title):
             executable = self.cfg.bin_dir / "arangosh"
-            arangosh_args = ["--log.level", "v8=debug", "--javascript.execute-string"]
+            arangosh_args = self.cfg.default_arangosh_args + [
+                "--log.level", "v8=debug",
+                "--javascript.execute-string"
+            ]
             arangosh_args += cmd[1:]
             return self.run_arango_tool_monitored(
                 executeable=executable,
@@ -83,7 +86,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         else:
             process_control = []
         # fmt: off
-        run_cmd = [
+        run_cmd = self.cfg.default_arangosh_args + [
             "--log.level", "v8=debug",
             "--javascript.module-directory", self.cfg.test_data_dir.resolve(),
         ] + process_control + [
@@ -101,6 +104,38 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             result_line,
             verbose,
             expect_to_fail,
+            )
+
+    def run_testing(self,
+                    testcase,
+                    testing_args,
+                    timeout,
+                    directory,
+                    # logfile,
+                    verbose
+                    ):
+       # pylint: disable=R0913 disable=R0902
+        """ testing.js wrapper """
+        args = [
+            self.cfg.bin_dir / "arangosh",
+            '-c', str(self.cfg.cfgdir / 'arangosh.conf'),
+            '--log.level', 'warning',
+            "--log.level", "v8=debug",
+            '--server.endpoint', 'none',
+            '--javascript.allow-external-process-control', 'true',
+            '--javascript.execute', str(Path('UnitTests') / 'unittest.js'),
+            ]
+        run_cmd = args +[
+            '--',
+            testcase,
+            '--testOutput', directory ] + testing_args
+        return self.run_arango_tool_monitored(
+            self.cfg.bin_dir / "arangosh",
+            run_cmd,
+            timeout,
+            dummy_line_result,
+            verbose,
+            False,
         )
 
     @step
