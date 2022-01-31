@@ -652,14 +652,15 @@ To disable formatting for single line, end it with `# fmt: on`.
 We use [pylint](https://pylint.org/). Command to run it: `pylint release_tester`
 
 ### source "Installer"
-Similar to `--zip` `--src` flips the switch of not using the native package installer on that respective system but this one.
-The reasoning is to use a local directory with compiled arangodb and launch this as if it were deployed from a package. 
-The source directory should contain `build/bin` with the compile results inside.
+In RTA an "installer" makes the ArangoDB version available in the system. By default, the native installer to the system is chosen.
+With `--zip` the Windows Zip or Mac/Linux .tar.gz package is chosen. Similar to this `--src` flips the switch of not deploying a package
+via an installer at all, but rather choose a source directory with compiled binaries to launch.
+The source directory (directories in case of running upgrade) should contain `build/bin` with the compile results inside.
 
 The source directory is located via 3 parameters (and if build/bin exists chosen accordingly):
 - `--package-dir` - in `test.py` this can be used to directly point to the source directory. Alternatively, i.e. symlinks can be used:
-- `--old-version` 3.10.0-devel (+ --[no-]enterprise) => `package-dir/[E_]3.10.0-devel`
-- `--new-version` same as above for the version to upgrade to (or in test.py run alone)
+- `--new-version` if you specify 3.10.0-devel (and --[no-]enterprise) this will result in this directory: `[package-dir]/[E_]3.10.0-devel`
+- `--old-version` in `upgrade.py` this is used for the old version to upgrade from, works similar as `--new-version`.
 
 If `--enterprise` is specfied, RTA treats this as an enterprise deployment. I.e. HotBackup becomes available.
 Additionally the enterprise javascript files are added via cli parameters to arangosh and arangod / starter.
