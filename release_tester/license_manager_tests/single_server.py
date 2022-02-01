@@ -29,7 +29,7 @@ class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
 
     @run_before_suite
     def start(self):
-        """clean up the system before running tests"""
+        """clean up the system before running license manager tests on a single server setup"""
         self.cleanup()
         self.start_single_server()
 

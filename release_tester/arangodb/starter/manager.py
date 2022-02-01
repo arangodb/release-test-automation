@@ -37,7 +37,8 @@ from arangodb.imp import ArangoImportExecutor
 from arangodb.restore import ArangoRestoreExecutor
 from arangodb.bench import ArangoBenchManager
 
-from reporting.reporting_utils import attach_table, step
+from reporting.reporting_utils import attach_table, step, attach_http_request_to_report, \
+    attach_http_response_to_report
 
 ON_WINDOWS = sys.platform == "win32"
 
@@ -349,15 +350,17 @@ class StarterManager:
                 else:
                     headers["Authorization"] = "Bearer " + str(self.get_jwt_header())
                     base_url = instance.get_public_plain_url()
+                    full_url = self.get_http_protocol() + "://" + base_url + url
+                    attach_http_request_to_report(verb_method.__name__, full_url, headers, data)
                     reply = verb_method(
-                        self.get_http_protocol() + "://" + base_url + url,
+                        full_url,
                         data=data,
                         headers=headers,
                         allow_redirects=False,
                         timeout=timeout,
                         verify=False,
                     )
-                    # print(reply.text)
+                    attach_http_response_to_report(reply)
                     results.append(reply)
         http_client.HTTPConnection.debuglevel = 0
         return results

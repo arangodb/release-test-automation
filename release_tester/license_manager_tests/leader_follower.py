@@ -20,7 +20,7 @@ class LicenseManagerLeaderFollowerTestSuite(LicenseManagerBaseTestSuite):
 
     @run_before_suite
     def startup(self):
-        """clean up the system before running tests"""
+        """clean up the system before running license manager tests on a leader-follower setup"""
         self.start_leader_follower()
 
     def get_server_id(self):

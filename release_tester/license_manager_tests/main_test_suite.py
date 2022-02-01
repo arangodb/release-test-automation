@@ -42,7 +42,7 @@ class MainLicenseManagerTestSuite(LicenseManagerBaseTestSuite):
 
     @run_before_suite
     def install_package(self):
-        """clean up the system before running tests"""
+        """clean up the system before running the license manager test suites"""
         self.installer.install_server_package()
         self.installer.stop_service()
 
