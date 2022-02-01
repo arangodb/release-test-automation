@@ -45,6 +45,7 @@ class TestDriver:
             alluredir: Path,
             clean_alluredir,
             zip_package,
+            src_testing,
             hot_backup,
             interactive,
             starter_mode,
@@ -72,6 +73,7 @@ class TestDriver:
 
         self.base_config = InstallerBaseConfig(verbose,
                                                zip_package,
+                                               src_testing,
                                                hot_backup,
                                                package_dir,
                                                test_data_dir,

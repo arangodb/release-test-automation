@@ -5,6 +5,7 @@ import logging
 import json
 import re
 import time
+import copy
 
 from reporting.reporting_utils import step
 
@@ -89,7 +90,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         """run arangobackup"""
         if not silent:
             logging.info("running hot backup " + name)
-        run_cmd = []
+        run_cmd = copy.deepcopy(self.cfg.default_backup_args)
         if self.cfg.verbose:
             run_cmd += ["--log.level=debug"]
         run_cmd += arguments

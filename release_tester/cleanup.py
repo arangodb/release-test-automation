@@ -10,7 +10,7 @@ from test_driver import TestDriver
 
 @click.command()
 @zip_common_options
-def run_test(zip_package):
+def run_test(zip_package, src_testing):
     """Wrapper..."""
     lh.configure_logging(True)
     test_driver = TestDriver(
@@ -20,6 +20,7 @@ def run_test(zip_package):
         Path(""),
         True,
         zip_package,
+        src_testing,
         False, # hot_backup,
         False, # interactive,
         "all", # starter_mode,
