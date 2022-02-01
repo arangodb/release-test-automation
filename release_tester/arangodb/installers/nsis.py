@@ -65,7 +65,7 @@ class InstallerW(InstallerBase):
         with psutil.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
             (signtool_str, err) = proc.communicate()
             if proc.returncode:
-                raise Exception("Signtool exited nonzero " + str(cmd))
+                raise Exception("Signtool exited nonzero " + str(cmd) + "\n" + str(signtool_str))
             print(signtool_str)
             if signtool_str.find(success_string) == -1:
                 raise Exception("Signtool didn't find signature: " + str(signtool_str))
