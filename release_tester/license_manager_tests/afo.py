@@ -15,7 +15,7 @@ class LicenseManagerAfoTestSuite(LicenseManagerBaseTestSuite):
 
     def get_default_instance_type(self):
         """get the instance type we should communicate with"""
-        return InstanceType.SINGLE
+        return InstanceType.RESILIENT_SINGLE
 
     @run_before_suite
     def startup(self):
@@ -57,7 +57,7 @@ class LicenseManagerAfoTestSuite(LicenseManagerBaseTestSuite):
     def set_license(self, license):
         """set new license"""
         body = """[[{"/arango/.license":{"op":"set","new": """ + license + """}}]]"""
-        resp = self.runner.agency_get_leader().send_request(
+        resp = self.runner.agency_get_leader_starter_instance().send_request(
             InstanceType.AGENT,
             requests.post,
             "/_api/agency/write",
