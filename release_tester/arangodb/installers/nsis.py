@@ -67,7 +67,8 @@ class InstallerW(InstallerBase):
             if proc.returncode:
                 raise Exception("Signtool exited nonzero " + str(cmd) + "\n" + str(signtool_str))
             print(signtool_str)
-            if signtool_str.find(success_string) == -1:
+            print(signtool_str.find(success_string))
+            if signtool_str.find(success_string) != -1:
                 raise Exception("Signtool didn't find signature: " + str(signtool_str))
     
     def calculate_package_names(self):
