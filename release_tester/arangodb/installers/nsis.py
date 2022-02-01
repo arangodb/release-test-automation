@@ -55,6 +55,20 @@ class InstallerW(InstallerBase):
         """no hot backup support on the wintendo."""
         return False
 
+    def _verify_signature(self, programm):
+        fulldir = self.cfg.package_dir / programm
+        fulldir = fulldir.resolve()
+        success_string = b'Successfully verified'
+        cmd = ['signtool', 'verify', '/pa', str(fulldir)]
+        print(cmd)
+        with psutil.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
+            (signtool_str, err) = proc.communicate()
+            if proc.returncode:
+                raise Exception("Signtool exited nonzero " + str(cmd))
+            print(signtool_str)
+            if signtool_str.find(success_string) == -1:
+                raise Exception("Signtool didn't find signature: " + str(signtool_str))
+    
     def calculate_package_names(self):
         enterprise = "e" if self.cfg.enterprise else ""
         architecture = "win64"
@@ -81,6 +95,7 @@ class InstallerW(InstallerBase):
     def upgrade_server_package(self, old_installer):
         self.backup_dirs_number_before_upgrade = self.count_backup_dirs()
         self.stop_service()
+        self._verify_signature(self.server_package)
         cmd = [
             str(self.cfg.package_dir / self.server_package),
             "/INSTDIR=" + str(PureWindowsPath(self.cfg.install_prefix)),
@@ -126,6 +141,7 @@ class InstallerW(InstallerBase):
 
     @step
     def install_server_package_impl(self):
+        self._verify_signature(self.server_package)
         cmd = [
             str(self.cfg.package_dir / self.server_package),
             "/PASSWORD=" + self.cfg.passvoid,
@@ -172,6 +188,7 @@ class InstallerW(InstallerBase):
     @step
     def install_client_package_impl(self):
         """Install client package"""
+        self._verify_signature(self.server_package)
         cmd = [
             str(self.cfg.package_dir / self.client_package),
             "/INSTDIR=" + str(PureWindowsPath(self.cfg.install_prefix)),
