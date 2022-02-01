@@ -28,12 +28,12 @@ from arangodb.installers import RunProperties
 )
 @very_common_options()
 @common_options(support_old=False)
-# pylint: disable=R0913 disable=R0914, disable=W0703
+# pylint: disable=too-many-arguments disable=too-many-locals, disable=broad-except
 # fmt: off
 def main(mode,
          #very_common_options
          new_version, verbose, enterprise, package_dir, zip_package,
-         hot_backup,
+         src_testing, hot_backup,
          # common_options
          alluredir, clean_alluredir, ssl, use_auto_certs,
          # old_version,
@@ -49,6 +49,7 @@ def main(mode,
         Path(alluredir),
         clean_alluredir,
         zip_package,
+        src_testing,
         hot_backup,
         interactive,
         starter_mode,
@@ -76,5 +77,5 @@ def main(mode,
         sys.exit(1)
 
 if __name__ == "__main__":
-    # pylint: disable=E1120 # fix clickiness.
+    # pylint: disable=no-value-for-parameter # fix clickiness.
     sys.exit(main())

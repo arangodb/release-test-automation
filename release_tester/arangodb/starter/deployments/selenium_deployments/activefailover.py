@@ -14,7 +14,7 @@ class ActiveFailover(SeleniumRunner):
     """check the active failover setup and its properties"""
 
     def __init__(self, webdriver, is_headless: bool, testrun_name: str, ssl: bool):
-        # pylint: disable=W0235
+        # pylint: disable=useless-super-delegation
         super().__init__(webdriver, is_headless, testrun_name, ssl)
         self.main_test_suite_list = [BasicTestSuite]
         self.after_install_test_suite_list = [ActiveFailoverAfterInstallTestSuite]

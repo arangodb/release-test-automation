@@ -21,7 +21,7 @@ from tools.killall import list_all_processes
 
 from arangodb.installers import EXECUTION_PLAN
 
-# pylint: disable=R0913 disable=R0914 disable=R0912, disable=R0915
+# pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
 def upgrade_package_test(
     dl_opts: DownloadOptions,
     new_version,
@@ -57,12 +57,13 @@ def upgrade_package_test(
     for props in EXECUTION_PLAN:
         if props.directory_suffix not in editions:
             continue
-        # pylint: disable=W0612
+        # pylint: disable=unused-variable
         dl_old = Download(
             dl_opts,
             old_version,
             props.enterprise,
             test_driver.base_config.zip_package,
+            test_driver.base_config.src_testing,
             old_dlstage,
             versions,
             fresh_versions,
@@ -73,6 +74,7 @@ def upgrade_package_test(
             new_version,
             props.enterprise,
             test_driver.base_config.zip_package,
+            test_driver.base_config.src_testing,
             new_dlstage,
             versions,
             fresh_versions,
@@ -107,6 +109,10 @@ def upgrade_package_test(
                 enterprise=use_enterprise,
             )
         )
+
+    results.append(
+        test_driver.run_license_manager_tests(dl_new.cfg.version)
+    )
 
     print("V" * 80)
     status = True
@@ -172,13 +178,13 @@ def upgrade_package_test(
 )
 @download_options(default_source="ftp:stage2", double_source=True)
 # fmt: off
-# pylint: disable=R0913, disable=W0613
+# pylint: disable=too-many-arguments, disable=unused-argument
 def main(
         version_state_tar,
         git_version,
         editions,
         #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package, hot_backup,
+        new_version, verbose, enterprise, package_dir, zip_package, src_testing, hot_backup,
         # common_options
         old_version, test_data_dir, encryption_at_rest, alluredir, clean_alluredir, ssl, use_auto_certs,
         # no-interactive!
@@ -204,6 +210,7 @@ def main(
         Path(alluredir),
         clean_alluredir,
         zip_package,
+        src_testing,
         hot_backup,
         False,  # interactive
         starter_mode,
@@ -227,5 +234,5 @@ def main(
 
 
 if __name__ == "__main__":
-    # pylint: disable=E1120 # fix clickiness.
+    # pylint: disable=no-value-for-parameter # fix clickiness.
     sys.exit(main())

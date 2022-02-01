@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """test drivers"""
-from pathlib import Path
-import platform
+import logging
 import os
+import platform
+import shutil
 import sys
 import time
 import traceback
+from pathlib import Path
 
-import shutil
-
+import semver
 from allure_commons.model2 import Status, StatusDetails
 
-from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext, init_allure
-from tools.killall import kill_all_processes
+import tools.loghelper as lh
 from arangodb.installers import create_config_installer_set, RunProperties, InstallerBaseConfig
 from arangodb.starter.deployments import (
     RunnerType,
@@ -20,7 +20,9 @@ from arangodb.starter.deployments import (
     runner_strings,
     STARTER_MODES,
 )
-import tools.loghelper as lh
+from license_manager_tests.main_test_suite import MainLicenseManagerTestSuite
+from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext, init_allure
+from tools.killall import kill_all_processes
 
 IS_WINDOWS = platform.win32_ver()[0] != ""
 IS_LINUX = sys.platform == "linux"
@@ -36,6 +38,7 @@ class TestDriver:
             alluredir: Path,
             clean_alluredir,
             zip_package,
+            src_testing,
             hot_backup,
             interactive,
             starter_mode,
@@ -63,6 +66,7 @@ class TestDriver:
 
         self.base_config = InstallerBaseConfig(verbose,
                                                zip_package,
+                                               src_testing,
                                                hot_backup,
                                                package_dir,
                                                test_data_dir,
@@ -76,7 +80,7 @@ class TestDriver:
         self.use_auto_certs = use_auto_certs
         self.selenium = selenium
         self.selenium_driver_args = selenium_driver_args
-        init_allure(results_dir=alluredir,
+        init_allure(results_dir=Path(alluredir),
                     clean=clean_alluredir,
                     zip_package=self.base_config.zip_package)
         self.installer_type = None
@@ -84,7 +88,7 @@ class TestDriver:
     # pylint: disable=no-self-use
     def set_r_limits(self):
         """on linux manipulate ulimit values"""
-        # pylint: disable=C0415
+        # pylint: disable=import-outside-toplevel
         if not IS_WINDOWS:
             import resource
             resource.setrlimit(resource.RLIMIT_CORE,
@@ -115,7 +119,7 @@ class TestDriver:
         while not test_data_dir.exists():
             time.sleep(1)
 
-    # pylint: disable=W0703
+    # pylint: disable=broad-except
     def run_cleanup(self, run_properties: RunProperties):
         """main"""
         installer_set = create_config_installer_set(
@@ -156,7 +160,7 @@ class TestDriver:
             print("Cannot uninstall package without config.yml!")
         inst.cleanup_system()
 
-    # pylint: disable=R0913 disable=R0914, disable=W0703, disable=R0912, disable=R0915
+    # pylint: disable=too-many-arguments disable=too-many-locals, disable=broad-except, disable=too-many-branches, disable=too-many-statements
     def run_upgrade(self,
                     versions: list,
                     run_props: RunProperties):
@@ -314,7 +318,7 @@ class TestDriver:
         return results
 
     # fmt: off
-    # pylint: disable=R0913 disable=R0914
+    # pylint: disable=too-many-arguments disable=too-many-locals
     def run_test(self,
                  deployment_mode,
                  versions: list,
@@ -381,7 +385,7 @@ class TestDriver:
                         runner.run()
                         runner.cleanup()
                         testcase.context.status = Status.PASSED
-                    # pylint: disable=W0703
+                    # pylint: disable=broad-except
                     except Exception as ex:
                         one_result["success"] = False
                         one_result["messages"].append(str(ex))
@@ -421,7 +425,7 @@ class TestDriver:
 
         return results
 
-    # pylint: disable=R0913 disable=R0914, disable=W0703, disable=R0912, disable=R0915
+    # pylint: disable=too-many-arguments disable=too-many-locals, disable=broad-except, disable=too-many-branches, disable=too-many-statements
     def run_conflict_tests(
             self,
             versions: list,
@@ -489,3 +493,43 @@ class TestDriver:
             for one_result in suite.test_results:
                 result["messages"].append(one_result.message)
         return [result]
+
+    def run_license_manager_tests(
+            self,
+            new_version,
+    ):
+        """run license manager tests"""
+        if semver.VersionInfo.parse(new_version) < "3.9.0-nightly":
+            logging.info("License manager test suite is only applicable to versions 3.9 and newer.")
+            return [
+                {
+                    "testrun name": "License manager test suite is only applicable to versions 3.9 and newer.",
+                    "testscenario": "",
+                    "success": True,
+                    "messages": [],
+                    "progress": "",
+                }
+            ]
+        args = (
+            new_version,
+            self.base_config,
+        )
+        suites = [
+            MainLicenseManagerTestSuite(*args),
+        ]
+        results = []
+        for suite in suites:
+            suite.run()
+            result = {
+                "testrun name": suite.suite_name,
+                "testscenario": "",
+                "success": True,
+                "messages": [],
+                "progress": "",
+            }
+            if suite.there_are_failed_tests():
+                result["success"] = False
+                for one_result in suite.test_results:
+                    result["messages"].append(one_result.message)
+            results.append(result)
+        return results

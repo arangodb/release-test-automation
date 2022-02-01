@@ -52,7 +52,7 @@ def _mountdmg(dmgpath):
         stdin=subprocess.PIPE,
     ) as proc:
         proc.stdin.write(b"y\n")  # answer 'Agree Y/N?' the dumb way...
-        # pylint: disable=W0612
+        # pylint: disable=unused-variable
         (pliststr, _) = proc.communicate()
 
     offset = pliststr.find(b'<?xml version="1.0" encoding="UTF-8"?>')
@@ -131,7 +131,7 @@ def _unmountdmg(mountpoint):
 class InstallerMac(InstallerBase):
     """install .dmg's on a mac"""
 
-    # pylint: disable=R0913 disable=R0902
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
     def __init__(self, cfg):
         self.remote_package_dir = "MacOSX"
         self.server_package = None

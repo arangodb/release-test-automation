@@ -10,3 +10,5 @@ allure-results
 geckodriver.log
 
 *.tar.bz2
+
+release_tester/tools/external_helpers

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# pylint: disable=C0301
+# pylint: disable=line-too-long
 # have long strings, need long lines.
 """ Release testing script"""
 from ftplib import FTP
@@ -71,7 +71,7 @@ def write_version_tar(tar_file, versions):
 
 class DownloadOptions:
     """ bearer class for base download options """
-    # pylint: disable=too-many-arguments disable=too-few-public-methods
+    # pylint: disable=too-many-arguments disable=too-few-public-methods disable=too-many-instance-attributes
     def __init__(self,
                  force_dl: bool,
                  verbose: bool,
@@ -96,12 +96,13 @@ class DownloadOptions:
 class Download:
     """manage package downloading from any known arango package source"""
 
-    # pylint: disable=R0913 disable=R0902 disable=dangerous-default-value
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=dangerous-default-value
     def __init__(self,
                  options: DownloadOptions,
                  version,
                  enterprise,
                  zip_package,
+                 src_testing,
                  source,
                  existing_version_states={},
                  new_version_states={},
@@ -133,6 +134,7 @@ class Download:
             enterprise=enterprise,
             encryption_at_rest=False,
             zip_package=zip_package,
+            src_testing=src_testing,
             hot_backup="disabled", # don't care
             package_dir=options.package_dir,
             test_dir=Path("/"),
@@ -214,7 +216,7 @@ class Download:
             "local": self.acquire_none,
         }
 
-    # pylint: disable=W0613 disable=R0201
+    # pylint: disable=unused-argument disable=no-self-use
     def acquire_none(self, directory, package, local_dir, force):
         """use the copy that we already have, hence do nothing"""
         print("skipping download")
@@ -342,10 +344,10 @@ class Download:
 @very_common_options()
 @download_options()
 # fmt: off
-# pylint: disable=R0913 disable=unused-argument
+# pylint: disable=too-many-arguments disable=unused-argument
 def main(
         #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package, hot_backup,
+        new_version, verbose, enterprise, package_dir, zip_package, src_testing, hot_backup,
         # download options:
         enterprise_magic, force, source,
         httpuser, httppassvoid, remote_host):
@@ -365,10 +367,11 @@ def main(
         version=new_version,
         enterprise=enterprise,
         zip_package=zip_package,
+        src_testing=src_testing,
         source=source)
     return downloader.get_packages(force)
 
 
 if __name__ == "__main__":
-    # pylint: disable=E1120 # fix clickiness.
+    # pylint: disable=no-value-for-parameter # fix clickiness.
     sys.exit(main())

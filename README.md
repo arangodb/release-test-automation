@@ -86,6 +86,7 @@ Supported Parameters:
  - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
  - `--[no-]encryption-at-rest` turn on encryption at rest for Enterprise packages
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
+ - `--src` switches to [Source directory](#source-installer) logic
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
@@ -129,6 +130,7 @@ Supported Parameters:
  - `--old-version` which Arangodb Version you want to install to setup the old system
  - `--new-version` which Arangodb Version you want to upgrade the environment to
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
+ - `--src` switches to [Source directory](#source-installer) logic
  - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
  - `--[no-]encryption-at-rest` turn on encryption at rest for Enterprise packages
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
@@ -172,6 +174,21 @@ Example usage:
  - Windows: `python ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
  - Linux (ubuntu|debian) `python3 ./release_tester/test.py --new-version 3.6.2 --no-enterprise --package-dir /home/willi/Downloads`
  - Linux (centos|fedora|sles) `python3 ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
+
+# Using `run_license_tests.py` to test the license manager feature
+
+License manager tests are only applicable to enterprise edition.   
+Supported Parameters:
+ - `--new-version` which Arangodb Version you want to run the test on
+ - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
+ - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
+ - `--verbose` if specified more logging is done
+ - `--alluredir` - directory to save test results in allure format (default = allure-results)
+ - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
+ - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
+
+Example usage:
+ - Linux (ubuntu|debian) `python3 ./release_tester/run_license_tests.py --new-version 3.9.0-nightly --verbose --package-dir /home/vitaly/tmp/packages --zip`
 
 # using `download.py` to download packages from stage1/stage2/live
 
@@ -630,7 +647,7 @@ These tests use the CSV data from the wikip
 
 # Allure reporting
 To view allure report, you must have allure installed in your system. Download link(for Linux):
-https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/2.14.0/allure-commandline-2.14.0.zip
+https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/2.17.2/allure-commandline-2.17.2.zip
 
 After the test run is finished, run the following command:
 ```bash
@@ -648,3 +665,51 @@ To disable formatting for single line, end it with `# fmt: on`.
 
 ## Linter
 We use [pylint](https://pylint.org/). Command to run it: `pylint release_tester`
+
+### source "Installer"
+In RTA an "installer" makes the ArangoDB version available in the system. By default, the native installer to the system is chosen.
+With `--zip` the Windows Zip or Mac/Linux .tar.gz package is chosen. Similar to this `--src` flips the switch of not deploying a package
+via an installer at all, but rather choose a source directory with compiled binaries to launch.
+The source directory (directories in case of running upgrade) should contain `build/bin` with the compiled result binaries inside.
+
+Several binaries are not built from with the arangodb source. They have to be added as copy or symlink to the bin directory.
+They can easily be obtained through nightry zip/tar packages or be build from their respective source directories and symlinked into the `build/bin` directories:
+- arangodb - the starter.
+- arangosync - the arangosync binary for dc2dc replication
+- rclone-arangodb 
+
+The source directory is located via 3 parameters (and if `build/bin` exists chosen accordingly):
+- `--package-dir` - in `test.py` this can be used to directly point to the source directory. Alternatively, subdirectories with symlinks can be used:
+- `--new-version` if you specify `3.10.0-devel` (a semver valid version) (and --[no-]enterprise) this will result in this directory: `[package-dir]/[E_]3.10.0-devel`
+- `--old-version` in `upgrade.py` this is used for the old version to upgrade from, works similar as `--new-version`.
+
+If `--enterprise` is specfied, RTA treats this as an enterprise deployment, HotBackup and DC2DC becomes available.
+Additionally the enterprise javascript files are added via cli parameters to arangosh and arangod / starter.
+
+```
+./release-tester/test.py --src \
+  --enterprise \
+  --package-dir ../devel \
+  --new-version 3.10.0-devel \
+  --starter-mode DC
+```
+
+or running an upgrade:
+(To adjust this a bit strict directory naming conventions, symbolic links are used)
+
+```
+mkdir arangoversions
+cd arangoversions
+ln -s /home/willi/src/stable-3.9 E_3.9.0
+ln -s /home/willi/src/devel E_3.10.0-devel
+cd ..
+./release-tester/upgrade.py --src \
+  --enterprise \
+  --package-dir $(pwd)/arangoversions \
+  --new-version 3.10.0-devel \
+  --old-version 3.9.0 \
+  --starter-mode DC
+```
+
+Will search for `/home/willi/src/E_3.9.0/build/bin` to launch the deployment initially, and upgrade to `/home/willi/src/E_3.10.0-devel/build/bin`.
+

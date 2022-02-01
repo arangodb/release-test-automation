@@ -55,7 +55,7 @@ class BinaryDescription:
     """describe the availability of an arangodb binary and its properties"""
 
     def __init__(self, path, name, enter, strip, vmin, vmax, sym, binary_type):
-        # pylint: disable=R0913 disable=R0902
+        # pylint: disable=too-many-arguments disable=too-many-instance-attributes
         self.path = path / (name + FILE_EXTENSION)
         self.enterprise = enter
         self.stripped = strip
@@ -353,7 +353,7 @@ class InstallerBase(ABC):
         there may be execptions."""
         return semver.compare(self.cfg.version, "3.5.1") >= 0
 
-    # pylint: disable=:R0201
+    # pylint: disable=:no-self-use
     def calc_config_file_name(self):
         """store our config to disk - so we can be invoked partly"""
         cfg_file = Path()
@@ -377,6 +377,7 @@ class InstallerBase(ABC):
             try:
                 cfg_file.unlink()
             except PermissionError:
+                self.cfg.semver = semver.VersionInfo.parse(self.cfg.version)
                 print("Ignoring non deleteable " + str(cfg_file))
                 return
         cfg_file.write_text(yaml.dump(self.cfg), encoding='utf8')
@@ -642,7 +643,7 @@ class InstallerBase(ABC):
     @step
     def check_installed_files(self):
         """check for the files whether they're installed"""
-        # pylint: disable=W0603
+        # pylint: disable=global-statement
         global FILE_PIDS
         if IS_MAC:
             print("Strip checking is disabled on DMG packages.")
@@ -720,7 +721,7 @@ class InstallerBase(ABC):
     def check_backup_is_created(self):
         """Check that backup was created after package upgrade"""
 
-    # pylint: disable=:R0201
+    # pylint: disable=:no-self-use
     def supports_backup(self):
         """Does this installer support automatic backup during minor upgrade?"""
         return False

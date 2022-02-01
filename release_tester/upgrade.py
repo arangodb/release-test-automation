@@ -12,14 +12,14 @@ from arangodb.installers import RunProperties
 from test_driver import TestDriver
 
 @click.command()
-# pylint: disable=R0913 disable=too-many-locals
+# pylint: disable=too-many-arguments disable=too-many-locals
 @very_common_options()
 @common_options(support_old=True, interactive=True)
 # fmt: off
 def main(
         #very_common_options
         new_version, verbose, enterprise, package_dir, zip_package,
-        hot_backup,
+        src_testing, hot_backup,
         # common_options
         old_version, test_data_dir, encryption_at_rest, interactive,
         starter_mode, stress_upgrade, abort_on_error, publicip,
@@ -34,6 +34,7 @@ def main(
         Path(alluredir),
         clean_alluredir,
         zip_package,
+        src_testing,
         hot_backup,
         interactive,
         starter_mode,
@@ -63,5 +64,5 @@ def main(
 
 
 if __name__ == "__main__":
-    # pylint: disable=E1120 # fix clickiness.
+    # pylint: disable=no-value-for-parameter # fix clickiness.
     main()

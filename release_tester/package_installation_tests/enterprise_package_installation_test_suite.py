@@ -26,7 +26,9 @@ class EnterprisePackageInstallationTestSuite(BasePackageInstallationTestSuite):
             versions=versions,
             base_config=base_config
         )
-        self.suite_name = f"Test package installation/uninstallation. New version: {versions[1]}. Old version: {versions[0]}. Package type: {str(self.new_inst_e.installer_type)}. Enterprise edition."
+
+    def generate_custom_suite_name(self):
+        return f"Test package installation/uninstallation. New version: {self.new_version}. Old version: {self.old_version}. Package type: {str(self.new_inst_e.installer_type)}. Enterprise edition."
 
     @testcase
     def test1(self):

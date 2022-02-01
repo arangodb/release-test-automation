@@ -296,7 +296,7 @@ class InstallerDeb(InstallerLinux):
         package_name = "arangodb3" + ("e-client" if self.cfg.enterprise else "-client")
         self.uninstall_package(package_name)
 
-    # pylint: disable=R0201
+    # pylint: disable=no-self-use
     @step
     def uninstall_package(self, package_name, force=False):
         """uninstall package"""

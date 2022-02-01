@@ -89,7 +89,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         )
 
     @step
-    # pylint: disable=W0102
+    # pylint: disable=dangerous-default-value
     def stop_sync(self, timeout=60, more_args=[]):
         """run the stop sync command"""
         args = [

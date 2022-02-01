@@ -302,7 +302,7 @@ class InstallerRPM(InstallerLinux):
         self.cfg.debug_package_is_installed = ret
         return ret
 
-    # pylint: disable=R0201
+    # pylint: disable=no-self-use
     @step
     def un_install_package(self, package_name: str):
         """Uninstall package"""
