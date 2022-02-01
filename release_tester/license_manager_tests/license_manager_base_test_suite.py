@@ -11,8 +11,12 @@ from arangodb.async_client import CliExecutionException
 from arangodb.installers import create_config_installer_set, RunProperties
 from reporting.reporting_utils import step
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, run_after_suite, run_before_each_testcase
-from tools.external_helpers.license_generator.license_generator import create_license
-
+try:
+    from tools.external_helpers.license_generator.license_generator import create_license
+    EXTERNAL_HELPERS_LOADED = True
+except ModuleNotFoundError as exc:
+    print("External helpers not found. License manager tests will not run.")
+    EXTERNAL_HELPERS_LOADED = False
 
 class LicenseManagerBaseTestSuite(BaseTestSuite):
     """base class for license manager test suites"""
