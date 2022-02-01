@@ -64,11 +64,10 @@ class InstallerW(InstallerBase):
         print(cmd)
         with psutil.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
             (signtool_str, err) = proc.communicate()
+            print(signtool_str)
             if proc.returncode:
                 raise Exception("Signtool exited nonzero " + str(cmd) + "\n" + str(signtool_str))
-            print(signtool_str)
-            print(signtool_str.find(success_string))
-            if signtool_str.find(success_string) != -1:
+            if signtool_str.find(success_string) < 0:
                 raise Exception("Signtool didn't find signature: " + str(signtool_str))
     
     def calculate_package_names(self):
