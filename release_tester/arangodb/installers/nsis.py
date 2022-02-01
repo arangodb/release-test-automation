@@ -4,6 +4,7 @@ import logging
 import multiprocessing
 from pathlib import Path, PureWindowsPath
 import shutil
+import subprocess
 import time
 # pylint: disable=import-error
 import winreg
