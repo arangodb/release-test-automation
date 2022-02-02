@@ -24,7 +24,7 @@ class LicenseManagerDc2DcTestSuite(LicenseManagerBaseTestSuite):
 
     @run_before_suite
     def startup(self):
-        """prepare test env"""
+        """prepare test environment to run license manager tests on a DC2DC setup"""
         self.start_clusters()
 
     @step

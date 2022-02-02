@@ -56,14 +56,42 @@ def attach_table(table, title="HTML table"):
     html_table = tabulate(table, headers=table.columns.header, tablefmt="html")
     attach(template.substitute(html_table=html_table), title, AttachmentType.HTML)
 
+def attach_http_request_to_report(method: str, url: str, headers: dict, body: str):
+    request = f"""
+    <html>
+    <p><b>Method: </b>${method.upper()}</p>
+    <p><b>URL: </b>${url}</p>
+    <p><b>Headers: </b></p>
+    <p>
+    """
+    for key in headers:
+        request += f"<b>{key}: </b>{headers[key]}<br>"
+    request += f"</p>"
+    request += f"<p><b>Body:<br></b>{body}</p>"
+    request +="</html>"
+    attach(request, "HTTP request", AttachmentType.HTML)
 
-def step(title):
+def attach_http_response_to_report(response):
+    response_html=f"""
+    <html>
+    <p><b>Status code:</b> {response.status_code}</p>
+    <p><b>Headers:</b><br>
+    """
+    for key in response.headers:
+        response_html += f"<b>{key}:</b> {response.headers[key]}<br>"
+    response_html += "</p>"
+    response_html += f"<p><b>Body: </b>{str(response.content)}</p>"
+    response_html += "</html>"
+    attach(response_html, f"HTTP response ({response.status_code})", AttachmentType.HTML)
+
+
+def step(title, params={}):
     """init allure step"""
     if callable(title):
         if title.__doc__:
-            return StepContext(title.__doc__, {})(title)
-        return StepContext(title.__name__, {})(title)
-    return StepContext(title, {})
+            return StepContext(title.__doc__, params)(title)
+        return StepContext(title.__name__, params)(title)
+    return StepContext(title, params)
 
 
 class RtaTestcase:
