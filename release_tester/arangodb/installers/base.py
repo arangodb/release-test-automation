@@ -97,7 +97,7 @@ class BinaryDescription:
             cmd = ['codesign', '--verify', '--verbose', str(self.path)]
             check_strings = [b'valid on disk', b'satisfies its Designated Requirement']
             with psutil.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
-                (codesign_str, err) = proc.communicate()
+                (_, codesign_str) = proc.communicate()
                 print(codesign_str)
                 if proc.returncode:
                     raise Exception("codesign exited nonzero " + str(cmd) + "\n" + str(codesign_str))
@@ -235,9 +235,9 @@ class InstallerBase(ABC):
     @step
     def install_server_package(self):
         """install the server package to the system"""
-        self.calculate_file_locations()
         self.install_server_package_impl()
         self.cfg.server_package_is_installed = True
+        self.calculate_file_locations()
 
     @step
     def un_install_server_package(self):
