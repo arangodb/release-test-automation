@@ -659,17 +659,14 @@ class InstallerBase(ABC):
         """check for the files whether they're installed"""
         # pylint: disable=global-statement
         global FILE_PIDS
-        if IS_MAC:
-            print("Strip checking is disabled on DMG packages.")
-        else:
-            for binary in self.arango_binaries:
-                progress("S" if binary.stripped else "s")
-                binary.check_installed(
-                    self.cfg.version,
-                    self.cfg.enterprise,
-                    self.check_stripped,
-                    self.check_symlink,
-                )
+        for binary in self.arango_binaries:
+            progress("S" if binary.stripped else "s")
+            binary.check_installed(
+                self.cfg.version,
+                self.cfg.enterprise,
+                self.check_stripped,
+                self.check_symlink,
+            )
         print("\nran file commands with PID:" + str(FILE_PIDS) + "\n")
         FILE_PIDS = []
         logging.info("all files ok")

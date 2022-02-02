@@ -160,6 +160,7 @@ class InstallerMac(InstallerBase):
         cfg.real_sbin_dir = Path("/")
 
         super().__init__(cfg)
+        self.check_stripped = false
 
     @step
     def run_installer_script(self):
