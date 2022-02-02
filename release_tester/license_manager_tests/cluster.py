@@ -17,11 +17,11 @@ class LicenseManagerClusterTestSuite(LicenseManagerBaseTestSuite):
 
     def get_default_instance_type(self):
         """get the instance type we should communicate with"""
-        return InstanceType.RESILIENT_SINGLE
+        return InstanceType.COORDINATOR
 
     @run_before_suite
     def startup(self):
-        """prepare test env"""
+        """prepare test environment to run license manager tests on a cluster setup"""
         self.start_cluster()
 
     @step
@@ -62,7 +62,7 @@ class LicenseManagerClusterTestSuite(LicenseManagerBaseTestSuite):
     def set_license(self, license):
         """set new license"""
         body = """[[{"/arango/.license":{"op":"set","new": """ + license + """}}]]"""
-        resp = self.runner.agency_get_leader().send_request(
+        resp = self.runner.agency_get_leader_starter_instance().send_request(
             InstanceType.AGENT,
             requests.post,
             "/_api/agency/write",

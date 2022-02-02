@@ -17,7 +17,7 @@ from test_driver import TestDriver
 # fmt: off
 def main(
         # very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package,
+        new_version, verbose, enterprise, package_dir, zip_package, src_testing,
         # common_options
         # pylint: disable=unused-argument
         hot_backup, old_version, test_data_dir, encryption_at_rest, interactive,
@@ -32,6 +32,7 @@ def main(
         alluredir=alluredir,
         clean_alluredir=clean_alluredir,
         zip_package=zip_package,
+        src_testing=src_testing,
         hot_backup=hot_backup,
         interactive=interactive,
         starter_mode=starter_mode,

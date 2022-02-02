@@ -51,7 +51,7 @@ trap 'docker kill "${DOCKER_TAR_NAME}";
      ' EXIT
 
 DOCKER_NAMESPACE="arangodb/"
-if docker pull "${DOCKER_NAMESPACE}OCKER_TAR_TAG}"; then
+if docker pull "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}"; then
     echo "using ready built container"
 else
     docker build containers/docker_tar -t "${DOCKER_TAR_TAG}" || exit
