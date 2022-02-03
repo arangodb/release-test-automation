@@ -11,6 +11,7 @@ from common_options import very_common_options, common_options
 from arangodb.installers import RunProperties
 from test_driver import TestDriver
 
+
 @click.command()
 # pylint: disable=too-many-arguments disable=too-many-locals
 @very_common_options()
@@ -19,7 +20,7 @@ from test_driver import TestDriver
 def main(
         #very_common_options
         new_version, verbose, enterprise, package_dir, zip_package,
-        src_testing, hot_backup,
+        src_testing, hot_backup, hb_provider, hb_storage_path_prefix, hb_storage_path_prefix,
         # common_options
         old_version, test_data_dir, encryption_at_rest, interactive,
         starter_mode, stress_upgrade, abort_on_error, publicip,
@@ -36,6 +37,9 @@ def main(
         zip_package,
         src_testing,
         hot_backup,
+        hb_provider,
+        hb_storage_path_prefix,
+        hb_storage_path_prefix,
         interactive,
         starter_mode,
         stress_upgrade,

@@ -34,62 +34,68 @@ except ModuleNotFoundError as exc:
 IS_WINDOWS = platform.win32_ver()[0] != ""
 IS_LINUX = sys.platform == "linux"
 
+
 class TestDriver:
     """driver base class to run different tests"""
+
     # pylint: disable=too-many-arguments disable=too-many-locals
     def __init__(
-            self,
-            verbose,
-            package_dir: Path,
-            test_data_dir: Path,
-            alluredir: Path,
-            clean_alluredir,
-            zip_package,
-            src_testing,
-            hot_backup,
-            interactive,
-            starter_mode,
-            stress_upgrade,
-            abort_on_error,
-            publicip,
-            selenium,
-            selenium_driver_args,
-            use_auto_certs,
-            ):
+        self,
+        verbose,
+        package_dir: Path,
+        test_data_dir: Path,
+        alluredir: Path,
+        clean_alluredir,
+        zip_package,
+        src_testing,
+        hot_backup,
+        hb_provider,
+        hb_storage_path_prefix,
+        interactive,
+        starter_mode,
+        stress_upgrade,
+        abort_on_error,
+        publicip,
+        selenium,
+        selenium_driver_args,
+        use_auto_certs,
+    ):
         self.launch_dir = Path.cwd()
         if "WORKSPACE" in os.environ:
             self.launch_dir = Path(os.environ["WORKSPACE"])
 
         if not test_data_dir.is_absolute():
-            test_data_dir =  self.launch_dir / test_data_dir
+            test_data_dir = self.launch_dir / test_data_dir
         if not test_data_dir.exists():
             test_data_dir.mkdir(parents=True, exist_ok=True)
         os.chdir(test_data_dir)
 
         if not package_dir.is_absolute():
-            package_dir =  (self.launch_dir / package_dir).resolve()
+            package_dir = (self.launch_dir / package_dir).resolve()
         if not package_dir.exists():
             package_dir.mkdir(parents=True, exist_ok=True)
 
-        self.base_config = InstallerBaseConfig(verbose,
-                                               zip_package,
-                                               src_testing,
-                                               hot_backup,
-                                               package_dir,
-                                               test_data_dir,
-                                               starter_mode,
-                                               publicip,
-                                               interactive,
-                                               stress_upgrade)
+        self.base_config = InstallerBaseConfig(
+            verbose,
+            zip_package,
+            src_testing,
+            hot_backup,
+            hb_provider,
+            hb_storage_path_prefix,
+            package_dir,
+            test_data_dir,
+            starter_mode,
+            publicip,
+            interactive,
+            stress_upgrade,
+        )
         lh.configure_logging(verbose)
         self.abort_on_error = abort_on_error
 
         self.use_auto_certs = use_auto_certs
         self.selenium = selenium
         self.selenium_driver_args = selenium_driver_args
-        init_allure(results_dir=Path(alluredir),
-                    clean=clean_alluredir,
-                    zip_package=self.base_config.zip_package)
+        init_allure(results_dir=Path(alluredir), clean=clean_alluredir, zip_package=self.base_config.zip_package)
         self.installer_type = None
 
     # pylint: disable=no-self-use
@@ -98,21 +104,15 @@ class TestDriver:
         # pylint: disable=import-outside-toplevel
         if not IS_WINDOWS:
             import resource
-            resource.setrlimit(resource.RLIMIT_CORE,
-                               (resource.RLIM_INFINITY,
-                                resource.RLIM_INFINITY))
+
+            resource.setrlimit(resource.RLIMIT_CORE, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
 
     def get_packaging_shorthand(self):
-        """ get the [DEB|RPM|EXE|DMG|ZIP|targz] from the installer """
+        """get the [DEB|RPM|EXE|DMG|ZIP|targz] from the installer"""
         if self.installer_type:
             return self.installer_type
-        installers = create_config_installer_set(
-            ["3.3.3"],
-            self.base_config,
-            "all",
-            RunProperties(False, False, False)
-        )
-        self.installer_type = installers[0][1].installer_type.split(' ')[0].replace('.', '')
+        installers = create_config_installer_set(["3.3.3"], self.base_config, "all", RunProperties(False, False, False))
+        self.installer_type = installers[0][1].installer_type.split(" ")[0].replace(".", "")
         return self.installer_type
 
     def reset_test_data_dir(self, test_data_dir):
@@ -129,12 +129,7 @@ class TestDriver:
     # pylint: disable=broad-except
     def run_cleanup(self, run_properties: RunProperties):
         """main"""
-        installer_set = create_config_installer_set(
-            ["3.3.3"],
-            self.base_config,
-            "all",
-            run_properties
-        )
+        installer_set = create_config_installer_set(["3.3.3"], self.base_config, "all", run_properties)
         inst = installer_set[0][1]
         if inst.calc_config_file_name().is_file():
             inst.load_config()
@@ -168,9 +163,7 @@ class TestDriver:
         inst.cleanup_system()
 
     # pylint: disable=too-many-arguments disable=too-many-locals, disable=broad-except, disable=too-many-branches, disable=too-many-statements
-    def run_upgrade(self,
-                    versions: list,
-                    run_props: RunProperties):
+    def run_upgrade(self, versions: list, run_props: RunProperties):
         """execute upgrade tests"""
         lh.section("startup")
         results = []
@@ -185,13 +178,13 @@ class TestDriver:
             new_inst = installers[1][1]
 
             with AllureTestSuiteContext(
-                    properties=run_props,
-                    versions=versions,
-                    parent_test_suite_name=None,
-                    auto_generate_parent_test_suite_name=True,
-                    suite_name=runner_strings[runner_type],
-                    runner_type=None,
-                    installer_type=new_inst.installer_type,
+                properties=run_props,
+                versions=versions,
+                parent_test_suite_name=None,
+                auto_generate_parent_test_suite_name=True,
+                suite_name=runner_strings[runner_type],
+                runner_type=None,
+                installer_type=new_inst.installer_type,
             ):
                 with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
                     if not run_props.supports_dc2dc() and runner_type == RunnerType.DC2DC:
@@ -274,7 +267,7 @@ class TestDriver:
                                     ]
                                     one_result["success"] = False
                                     one_result["messages"].append(
-    f'The following UI tests failed: {", ".join(failed_test_names)}. See allure report for details.'
+                                        f'The following UI tests failed: {", ".join(failed_test_names)}. See allure report for details.'
                                     )
                         lh.section("uninstall")
                         new_inst.un_install_server_package()

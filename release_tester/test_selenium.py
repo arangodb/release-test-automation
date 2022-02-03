@@ -18,6 +18,8 @@ def run_upgrade(
     test_data_dir,
     zip_package,
     hot_backup,
+    hb_provider,
+    hb_storage_path_prefix,
     interactive,
     starter_mode,
     stress_upgrade,
@@ -25,7 +27,7 @@ def run_upgrade(
     publicip,
     selenium,
     selenium_driver_args,
-    run_props: RunProperties
+    run_props: RunProperties,
 ):
     """execute upgrade tests"""
     lh.configure_logging(verbose)
@@ -38,13 +40,14 @@ def run_upgrade(
         # pylint: disable=too-many-function-args
         installers = create_config_installer_set(
             [old_version, new_version],
-
             verbose,
             zip_package,
             hot_backup,
+            hb_provider,
+            hb_storage_path_prefix,
             Path(package_dir),
             Path(test_data_dir),
-            "all", # deployment_mode
+            "all",  # deployment_mode
             publicip,
             interactive,
             stress_upgrade,
@@ -81,7 +84,7 @@ def run_upgrade(
 # pylint: disable=too-many-arguments disable=unused-argument
 def main(
         #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package, hot_backup,
+        new_version, verbose, enterprise, package_dir, zip_package, hot_backup, hb_provider, hb_storage_path_prefix,
         # common_options
         old_version, test_data_dir, encryption_at_rest, interactive,
         starter_mode, stress_upgrade, abort_on_error, publicip,
@@ -89,7 +92,7 @@ def main(
     """ main trampoline """
     return run_upgrade(old_version, new_version, verbose,
                        package_dir, test_data_dir,
-                       zip_package, hot_backup, interactive,
+                       zip_package, hot_backup, hb_provider, hb_storage_path_prefix, interactive,
                        starter_mode, stress_upgrade, abort_on_error,
                        publicip, selenium, selenium_driver_args,
                        RunProperties(enterprise,

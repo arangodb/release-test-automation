@@ -15,7 +15,8 @@ from download import (
     write_version_tar,
     touch_all_tars_in_dir,
     Download,
-    DownloadOptions)
+    DownloadOptions,
+)
 
 from test_driver import TestDriver
 from tools.killall import list_all_processes
@@ -23,14 +24,7 @@ from tools.killall import list_all_processes
 from arangodb.installers import EXECUTION_PLAN
 
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
-def package_test(
-    dl_opts: DownloadOptions,
-    new_version,
-    new_dlstage,
-    git_version,
-    editions,
-    test_driver
-):
+def package_test(dl_opts: DownloadOptions, new_version, new_dlstage, git_version, editions, test_driver):
     """process fetch & tests"""
 
     test_driver.set_r_limits()
@@ -41,9 +35,9 @@ def package_test(
 
     versions = {}
     fresh_versions = {}
-    version_state_tar = get_tar_file_path(test_driver.launch_dir,
-                                          ["0.0.0", new_version],
-                                          test_driver.get_packaging_shorthand())
+    version_state_tar = get_tar_file_path(
+        test_driver.launch_dir, ["0.0.0", new_version], test_driver.get_packaging_shorthand()
+    )
     read_versions_tar(version_state_tar, versions)
     print(versions)
 
@@ -77,13 +71,7 @@ def package_test(
         this_test_dir = test_dir / props.directory_suffix
         test_driver.reset_test_data_dir(this_test_dir)
 
-        results.append(
-            test_driver.run_test(
-                "all",
-                [dl_new.cfg.version],
-                props
-            )
-        )
+        results.append(test_driver.run_test("all", [dl_new.cfg.version], props))
 
     print("V" * 80)
     status = True
@@ -120,7 +108,7 @@ def package_test(
 
     tablestr = str(table)
     print(tablestr)
-    Path("testfailures.txt").write_text(tablestr, encoding='utf8')
+    Path("testfailures.txt").write_text(tablestr, encoding="utf8")
     if not status:
         print("exiting with failure")
         sys.exit(1)
@@ -146,7 +134,7 @@ def main(
         git_version,
         editions,
         #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package, src_testing, hot_backup,
+        new_version, verbose, enterprise, package_dir, zip_package, src_testing, hot_backup, hb_provider, hb_storage_path_prefix,
         # common_options,
         # old_version,
         test_data_dir, encryption_at_rest, alluredir, clean_alluredir, ssl, use_auto_certs,
@@ -176,6 +164,8 @@ def main(
         zip_package,
         src_testing,
         hot_backup,
+        hb_provider,
+        hb_storage_path_prefix,
         False,  # interactive
         starter_mode,
         False,  # stress_upgrade,

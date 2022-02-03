@@ -7,11 +7,13 @@ import os
 from pathlib import Path
 from reporting.reporting_utils import step
 import semver
+
 # pylint: disable=too-few-public-methods
 
 IS_WINDOWS = platform.win32_ver()[0] != ""
 
-class HotBackupSetting(Enum):
+
+class HotBackupMode(Enum):
     """whether we want thot backup or not"""
 
     DISABLED = 0
@@ -19,15 +21,27 @@ class HotBackupSetting(Enum):
     S3BUCKET = 2
 
 
+class HotBackupProviders(Enum):
+    """list of cloud storage providers"""
+
+    MINIO = 0
+    AWS = 1
+
+
 hb_strings = {
-    HotBackupSetting.DISABLED: "disabled",
-    HotBackupSetting.DIRECTORY: "directory",
-    HotBackupSetting.S3BUCKET: "s3bucket",
+    HotBackupMode.DISABLED: "disabled",
+    HotBackupMode.DIRECTORY: "directory",
+    HotBackupMode.S3BUCKET: "s3bucket",
 }
 HB_MODES = {
-    "disabled": HotBackupSetting.DISABLED,
-    "directory": HotBackupSetting.DIRECTORY,
-    "s3bucket": HotBackupSetting.S3BUCKET,
+    "disabled": HotBackupMode.DISABLED,
+    "directory": HotBackupMode.DIRECTORY,
+    "s3bucket": HotBackupMode.S3BUCKET,
+}
+
+HB_PROVIDERS = {
+    "minio": HotBackupProviders.MINIO,
+    "aws": HotBackupProviders.AWS,
 }
 
 
@@ -53,6 +67,8 @@ class InstallerConfig:
         zip_package: bool,
         src_testing: bool,
         hot_backup: str,
+        hb_provider: str,
+        hb_storage_path_prefix: str,
         package_dir: Path,
         test_dir: Path,
         deployment_mode: str,
@@ -118,6 +134,11 @@ class InstallerConfig:
         else:
             self.hot_backup = "disabled"
         self.hb_mode = HB_MODES[self.hot_backup]
+        if hb_provider:
+            self.hb_provider = HB_PROVIDERS[hb_provider]
+        else:
+            self.hb_provider = None
+        self.hb_storage_path_prefix = hb_storage_path_prefix
 
     def __repr__(self):
         return """
@@ -256,14 +277,17 @@ def make_installer(install_config: InstallerConfig):
     and return it"""
     if install_config.src_testing:
         from arangodb.installers.source import InstallerSource
+
         return InstallerSource(install_config)
 
     if install_config.zip_package:
         from arangodb.installers.tar import InstallerTAR
+
         return InstallerTAR(install_config)
 
     if IS_WINDOWS:
         from arangodb.installers.nsis import InstallerW
+
         return InstallerW(install_config)
 
     macver = platform.mac_ver()
@@ -292,16 +316,13 @@ def make_installer(install_config: InstallerConfig):
     raise Exception("unsupported os" + platform.system())
 
 
-
 class RunProperties:
     """bearer class for run properties"""
+
     # pylint: disable=too-many-function-args disable=too-many-arguments
-    def __init__(self,
-                 enterprise: bool,
-                 encryption_at_rest: bool,
-                 ssl: bool,
-                 testrun_name: str = "",
-                 directory_suffix: str = ""):
+    def __init__(
+        self, enterprise: bool, encryption_at_rest: bool, ssl: bool, testrun_name: str = "", directory_suffix: str = ""
+    ):
         """set the values for this testrun"""
         self.enterprise = enterprise
         self.encryption_at_rest = encryption_at_rest
@@ -310,7 +331,7 @@ class RunProperties:
         self.directory_suffix = directory_suffix
 
     def supports_dc2dc(self):
-        """will the DC2DC case be supported by this case? """
+        """will the DC2DC case be supported by this case?"""
         return self.enterprise and not IS_WINDOWS
 
 
@@ -321,30 +342,39 @@ EXECUTION_PLAN = [
     RunProperties(False, False, False, "Community", "C"),
 ]
 
+
 class InstallerBaseConfig:
     """commandline argument config settings"""
+
     # pylint: disable=too-many-instance-attributes disable=too-many-arguments
-    def __init__(self,
-                 verbose: bool,
-                 zip_package: bool,
-                 src_testing: bool,
-                 hot_backup: str,
-                 package_dir: Path,
-                 test_data_dir: Path,
-                 starter_mode: str,
-                 publicip: str,
-                 interactive: bool,
-                 stress_upgrade: bool):
+    def __init__(
+        self,
+        verbose: bool,
+        zip_package: bool,
+        src_testing: bool,
+        hot_backup: str,
+        hb_provider: str,
+        hb_storage_path_prefix: str,
+        package_dir: Path,
+        test_data_dir: Path,
+        starter_mode: str,
+        publicip: str,
+        interactive: bool,
+        stress_upgrade: bool,
+    ):
         self.verbose = verbose
         self.zip_package = zip_package
         self.src_testing = src_testing
         self.hot_backup = hot_backup
+        self.hb_provider = hb_provider
+        self.hb_storage_path_prefix = hb_storage_path_prefix
         self.package_dir = package_dir
         self.test_data_dir = test_data_dir
         self.starter_mode = starter_mode
         self.publicip = publicip
         self.interactive = interactive
         self.stress_upgrade = stress_upgrade
+
     def __repr__(self):
         return """
 verbose : {0.verbose}
@@ -357,14 +387,14 @@ starter_mode : {0.starter_mode}
 publicip : {0.publicip}
 interactive : {0.interactive}
 stress_upgrade : {0.stress_upgrade}
-""".format(self)
+""".format(
+            self
+        )
+
 
 # pylint: disable=too-many-locals
 def create_config_installer_set(
-    versions: list,
-    base_config: InstallerBaseConfig,
-    deployment_mode: str,
-    run_properties: RunProperties
+    versions: list, base_config: InstallerBaseConfig, deployment_mode: str, run_properties: RunProperties
 ):
     """creates sets of configs and installers"""
     # pylint: disable=too-many-instance-attributes disable=too-many-arguments
@@ -379,6 +409,8 @@ def create_config_installer_set(
             base_config.zip_package,
             base_config.src_testing,
             base_config.hot_backup,
+            base_config.hb_provider,
+            base_config.hb_storage_path_prefix,
             base_config.package_dir,
             base_config.test_data_dir,
             deployment_mode,

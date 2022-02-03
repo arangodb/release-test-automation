@@ -6,6 +6,7 @@ import json
 import re
 import time
 import copy
+from os import environ
 
 from reporting.reporting_utils import step
 
@@ -13,18 +14,24 @@ from tools.asciiprint import ascii_convert_str, print_progress as progress
 import tools.loghelper as lh
 
 from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor
-from arangodb.installers import HotBackupSetting
+from arangodb.installers import HotBackupMode, HotBackupProviders
 
 HB_2_RCLONE_TYPE = {
-    HotBackupSetting.DISABLED: "disabled",
-    HotBackupSetting.DIRECTORY: "local",
-    HotBackupSetting.S3BUCKET: "S3",
+    HotBackupMode.DISABLED: "disabled",
+    HotBackupMode.DIRECTORY: "local",
+    HotBackupMode.S3BUCKET: "S3",
 }
 
-HB_2_RCLONE_PROVIDER = {
-    HotBackupSetting.DISABLED: None,
-    HotBackupSetting.DIRECTORY: None,
-    HotBackupSetting.S3BUCKET: "minio",
+HB_2_RCLONE_PROVIDER_DEFAULT = {
+    HotBackupMode.DISABLED: None,
+    HotBackupMode.DIRECTORY: None,
+    HotBackupMode.S3BUCKET: HotBackupProviders.MINIO,
+}
+
+ALLOWED_PROVIDERS = {
+    HotBackupMode.DISABLED: [],
+    HotBackupMode.DIRECTORY: [],
+    HotBackupMode.S3BUCKET: [HotBackupProviders.MINIO, HotBackupProviders.AWS],
 }
 
 
@@ -36,13 +43,19 @@ class HotBackupConfig:
         self.install_prefix = raw_install_prefix
         self.cfg_type = HB_2_RCLONE_TYPE[basecfg.hb_mode]
         self.name = str(name).replace("/", "_").replace(".", "_")
-        self.provider = HB_2_RCLONE_PROVIDER[basecfg.hb_mode]
+        if not basecfg.hb_provider:
+            self.provider = HB_2_RCLONE_PROVIDER_DEFAULT[basecfg.hb_mode]
+        elif basecfg.hb_provider not in ALLOWED_PROVIDERS[basecfg.hb_mode]:
+            raise Exception(
+                f"Storage provider {basecfg.hb_provider} is not allowed for rclone config type {basecfg.hb_mode}!"
+            )
+        else:
+            self.provider = basecfg.hb_provider
         self.acl = "private"
-
         config = {}
         config["type"] = self.cfg_type
 
-        if basecfg.hb_mode == HotBackupSetting.S3BUCKET:
+        if basecfg.hb_mode == HotBackupMode.S3BUCKET and self.provider == HotBackupProviders.MINIO:
             self.name = "S3"
             config["type"] = "s3"
             config["provider"] = "minio"
@@ -51,11 +64,30 @@ class HotBackupConfig:
             config["secret_access_key"] = "minio123"
             config["endpoint"] = "http://minio1:9000"
             config["region"] = "us-east-1"
-        elif basecfg.hb_mode == HotBackupSetting.DIRECTORY:
+        elif basecfg.hb_mode == HotBackupMode.S3BUCKET and self.provider == HotBackupProviders.AWS:
+            try:
+                self.name = "S3"
+                config["type"] = "s3"
+                config["provider"] = "AWS"
+                config["env_auth"] = "false"
+                config["access_key_id"] = environ["AWS_ACCESS_KEY_ID"]
+                config["secret_access_key"] = environ["AWS_SECRET_ACCESS_KEY"]
+                config["region"] = environ["AWS_REGION"]
+                config["acl"] = environ["AWS_ACL"]
+            except KeyError as exc:
+                raise Exception(
+                    "Please set AWS credentials as environment variables AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, AWS_ACL"
+                ) from exc
+        elif basecfg.hb_mode == HotBackupMode.DIRECTORY:
             config["copy-links"] = "false"
             config["links"] = "false"
             config["one_file_system"] = "true"
         self.config = {self.name: config}
+
+        self.hb_storage_path_prefix = basecfg.hb_storage_path_prefix
+        self.remote_storage_path_prefix = f"{self.name}:/{self.hb_storage_path_prefix}"
+        while "//" in self.remote_storage_path_prefix:
+            self.remote_storage_path_prefix = self.remote_storage_path_prefix.replace("//", "/")
 
     def save_config(self, filename):
         """writes a hotbackup rclone configuration file"""
@@ -67,6 +99,12 @@ class HotBackupConfig:
     def get_rclone_config_file(self):
         """create a config file and return its full name"""
         return self.save_config("rclone_config.json")
+
+    def construct_remote_storage_path(self, postfix):
+        result = self.remote_storage_path_prefix + "/" + postfix
+        while "//" in result:
+            result = result.replace("//", "/")
+        return result
 
 
 class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
@@ -161,7 +199,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
             '--label', identifier,
             '--identifier', backup_name,
             '--rclone-config-file', backup_config.get_rclone_config_file(),
-            '--remote-path', backup_config.name + '://' + str(self.backup_dir)
+            '--remote-path', backup_config.construct_remote_storage_path(str(self.backup_dir))
         ]
         # fmt: on
         out = self.run_backup(args, backup_name)
@@ -218,7 +256,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
             '--label', identifier,
             '--identifier', backup_name,
             '--rclone-config-file', backup_config.get_rclone_config_file(),
-            '--remote-path', backup_config.name + '://' + str(self.backup_dir)
+            '--remote-path', backup_config.construct_remote_storage_path(str(self.backup_dir))
         ]
         # fmt: on
         out = self.run_backup(args, backup_name)

@@ -20,7 +20,7 @@ def main(
         new_version, verbose, enterprise, package_dir, zip_package, src_testing,
         # common_options
         # pylint: disable=unused-argument
-        hot_backup, old_version, test_data_dir, encryption_at_rest, interactive,
+        hot_backup, hb_provider, hb_storage_path_prefix, old_version, test_data_dir, encryption_at_rest, interactive,
         starter_mode, stress_upgrade, abort_on_error, publicip,
         selenium, selenium_driver_args, alluredir, clean_alluredir, ssl, use_auto_certs):
     # fmt: on
@@ -34,6 +34,8 @@ def main(
         zip_package=zip_package,
         src_testing=src_testing,
         hot_backup=hot_backup,
+        hb_provider=hb_provider,
+        hb_storage_path_prefix= hb_storage_path_prefix,
         interactive=interactive,
         starter_mode=starter_mode,
         stress_upgrade=False,

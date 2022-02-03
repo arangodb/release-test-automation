@@ -22,7 +22,7 @@ from allure_commons.types import AttachmentType
 from tools.asciiprint import print_progress as progress
 from tools.timestamp import timestamp
 import tools.loghelper as lh
-from arangodb.installers import HotBackupSetting
+from arangodb.installers import HotBackupMode
 from arangodb.instance import (
     ArangodInstance,
     ArangodRemoteInstance,
@@ -37,8 +37,7 @@ from arangodb.imp import ArangoImportExecutor
 from arangodb.restore import ArangoRestoreExecutor
 from arangodb.bench import ArangoBenchManager
 
-from reporting.reporting_utils import attach_table, step, attach_http_request_to_report, \
-    attach_http_response_to_report
+from reporting.reporting_utils import attach_table, step, attach_http_request_to_report, attach_http_response_to_report
 
 ON_WINDOWS = sys.platform == "win32"
 
@@ -87,7 +86,7 @@ class StarterManager:
             self.moreopts += ["--starter.port", "%d" % self.starter_port]
 
         self.hotbackup_args = []
-        if self.cfg.hb_mode != HotBackupSetting.DISABLED:
+        if self.cfg.hb_mode != HotBackupMode.DISABLED:
             self.moreopts += ["--all.log.level=backup=trace"]
             self.hotbackup_args = [
                 "--all.rclone.executable",
@@ -107,7 +106,7 @@ class StarterManager:
         self.jwt_tokens = {}
         if jwt_str:
             self.jwtfile = Path(str(self.basedir) + "_jwt")
-            self.jwtfile.write_text(jwt_str, encoding='utf-8')
+            self.jwtfile.write_text(jwt_str, encoding="utf-8")
             self.moreopts += ["--auth.jwt-secret", str(self.jwtfile)]
             self.get_jwt_header()
 
@@ -266,7 +265,7 @@ class StarterManager:
         # pylint disable=broad-except
         match_str = "--starter.data-dir={0.basedir}".format(self)
         if self.passvoidfile.exists():
-            self.passvoid = self.passvoidfile.read_text(errors="backslashreplace", encoding='utf-8')
+            self.passvoid = self.passvoidfile.read_text(errors="backslashreplace", encoding="utf-8")
         for process in psutil.process_iter(["pid", "name"]):
             try:
                 name = process.name()
@@ -326,7 +325,7 @@ class StarterManager:
         if write_to_server:
             print("Provisioning passvoid " + passvoid)
             self.arangosh.js_set_passvoid("root", passvoid)
-            self.passvoidfile.write_text(passvoid, encoding='utf-8')
+            self.passvoidfile.write_text(passvoid, encoding="utf-8")
         self.passvoid = passvoid
         for i in self.all_instances:
             if i.is_frontend():
@@ -598,7 +597,7 @@ class StarterManager:
         # On windows the install prefix may change,
         # since we can't overwrite open files:
         self.cfg.set_directories(new_install_cfg)
-        if self.cfg.hb_mode != HotBackupSetting.DISABLED:
+        if self.cfg.hb_mode != HotBackupMode.DISABLED:
             self.hotbackup_args = [
                 "--all.rclone.executable",
                 self.cfg.real_sbin_dir / "rclone-arangodb",
@@ -904,7 +903,7 @@ class StarterManager:
             self.arangosh = ArangoshExecutor(self.cfg, self.get_frontend())
             self.arango_importer = ArangoImportExecutor(self.cfg, self.get_frontend())
             self.arango_restore = ArangoRestoreExecutor(self.cfg, self.get_frontend())
-            if self.cfg.hb_mode != HotBackupSetting.DISABLED:
+            if self.cfg.hb_mode != HotBackupMode.DISABLED:
                 self.cfg.passvoid = self.passvoid
                 self.hb_instance = HotBackupManager(
                     self.cfg,
@@ -1126,7 +1125,7 @@ class StarterNonManager(StarterManager):
 
     @step
     def run_starter(self, expect_to_fail=False):
-        """ fake run starter method """
+        """fake run starter method"""
 
     @step
     def detect_instances(self):

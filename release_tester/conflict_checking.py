@@ -10,7 +10,6 @@ from common_options import very_common_options, common_options
 from test_driver import TestDriver
 
 
-
 @click.command()
 # we ignore some params, since this is a test-only toplevel tool:
 # pylint: disable=too-many-arguments disable=too-many-locals
@@ -22,7 +21,7 @@ def main(
         # very_common_options
         new_version, verbose, enterprise, package_dir, zip_package,
         # common_options
-        hot_backup, old_version, test_data_dir, encryption_at_rest, interactive,
+        hot_backup, hb_provider, hb_storage_path_prefix, old_version, test_data_dir, encryption_at_rest, interactive,
         starter_mode, stress_upgrade, abort_on_error, publicip,
         selenium, selenium_driver_args, alluredir, clean_alluredir, ssl, use_auto_certs):
     # fmt: on
@@ -35,6 +34,8 @@ def main(
         clean_alluredir,
         zip_package,
         hot_backup,
+        hb_provider,
+        hb_storage_path_prefix,
         interactive,
         starter_mode,
         stress_upgrade,

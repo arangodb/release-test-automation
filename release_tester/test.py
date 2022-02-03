@@ -33,7 +33,7 @@ from arangodb.installers import RunProperties
 def main(mode,
          #very_common_options
          new_version, verbose, enterprise, package_dir, zip_package,
-         src_testing, hot_backup,
+         src_testing, hot_backup, hb_provider, hb_storage_path_prefix,
          # common_options
          alluredir, clean_alluredir, ssl, use_auto_certs,
          # old_version,
@@ -51,6 +51,8 @@ def main(mode,
         zip_package,
         src_testing,
         hot_backup,
+        hb_provider,
+        hb_storage_path_prefix,
         interactive,
         starter_mode,
         False, # stress_upgrade

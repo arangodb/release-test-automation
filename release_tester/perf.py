@@ -39,7 +39,7 @@ import tools.loghelper as lh
 # pylint: disable=too-many-arguments disable=unused-argument disable=too-many-locals
 def run_test(mode, scenario, frontends,
              #very_common_options
-             new_version, verbose, enterprise, package_dir, zip_package, hot_backup,
+             new_version, verbose, enterprise, package_dir, zip_package, hot_backup, hb_provider, hb_storage_path_prefix,
              # common_options
              alluredir, clean_alluredir, ssl, use_auto_certs,
              # old_version,
@@ -65,6 +65,8 @@ def run_test(mode, scenario, frontends,
         verbose,
         zip_package,
         hot_backup,
+        hb_provider,
+        hb_storage_path_prefix,
         Path(package_dir),
         Path(test_data_dir),
         mode,
