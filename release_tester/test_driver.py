@@ -24,6 +24,13 @@ from license_manager_tests.main_test_suite import MainLicenseManagerTestSuite
 from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext, init_allure
 from tools.killall import kill_all_processes
 
+try:
+    from tools.external_helpers.license_generator.license_generator import create_license
+    EXTERNAL_HELPERS_LOADED = True
+except ModuleNotFoundError as exc:
+    print("External helpers not found. License manager tests will not run.")
+    EXTERNAL_HELPERS_LOADED = False
+
 IS_WINDOWS = platform.win32_ver()[0] != ""
 IS_LINUX = sys.platform == "linux"
 
@@ -506,6 +513,17 @@ class TestDriver:
                     "testrun name": "License manager test suite is only applicable to versions 3.9 and newer.",
                     "testscenario": "",
                     "success": True,
+                    "messages": [],
+                    "progress": "",
+                }
+            ]
+        if not EXTERNAL_HELPERS_LOADED:
+            logging.info("License manager test suite cannot run, because external helpers are not present.")
+            return [
+                {
+                    "testrun name": "License manager test suite cannot run, because external helpers are not present.",
+                    "testscenario": "",
+                    "success": False,
                     "messages": [],
                     "progress": "",
                 }
