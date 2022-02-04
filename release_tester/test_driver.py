@@ -105,9 +105,9 @@ class TestDriver:
     def copy_packages_to_result(self, installers):
         for installer_set in installers:
             for package in [
-                    installer_set[1].server_package,
-                    installer_set[1].debug_package,
-                    installer_set[1].client_package]:
+                    installer_set[1].cfg.package_dir / installer_set[1].server_package,
+                    installer_set[1].cfg.package_dir / installer_set[1].debug_package,
+                    installer_set[1].cfg.package_dir / installer_set[1].client_package]:
                 if package is not None:
                     print("Copying package into result: " + str(package))
                     shutil.copyfile(package, ".")
