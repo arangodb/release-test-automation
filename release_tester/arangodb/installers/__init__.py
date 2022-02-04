@@ -141,11 +141,11 @@ verbose: {0.verbose}
         """copy constructor"""
         try:
             self.reset_version(other_cfg.version)
-            self.default_arangosh_args = copy.deepcopy(other.default_arangosh_args)
-            self.default_starter_args = copy.deepcopy(other.default_starter_args)
-            self.default_backup_args = copy.deepcopy(other.default_backup_args)
-            self.default_imp_args = copy.deepcopy(other.default_imp_args)
-            self.default_restore_args = copy.deepcopy(other.default_restore_args)
+            self.default_arangosh_args = copy.deepcopy(other_cfg.default_arangosh_args)
+            self.default_starter_args = copy.deepcopy(other_cfg.default_starter_args)
+            self.default_backup_args = copy.deepcopy(other_cfg.default_backup_args)
+            self.default_imp_args = copy.deepcopy(other_cfg.default_imp_args)
+            self.default_restore_args = copy.deepcopy(other_cfg.default_restore_args)
             self.publicip = other_cfg.publicip
             self.interactive = other_cfg.interactive
             self.enterprise = other_cfg.enterprise

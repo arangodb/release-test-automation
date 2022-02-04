@@ -91,9 +91,23 @@ class BinaryDescription:
             self
         )
 
+    def _validate_notarization(self):
+        """ check whether this binary is notarized """
+        if IS_MAC:
+            cmd = ['codesign', '--verify', '--verbose', str(self.path)]
+            check_strings = [b'valid on disk', b'satisfies its Designated Requirement']
+            with psutil.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
+                (_, codesign_str) = proc.communicate()
+                print(codesign_str)
+                if proc.returncode:
+                    raise Exception("codesign exited nonzero " + str(cmd) + "\n" + str(codesign_str))
+                if codesign_str.find(check_strings[0]) < 0 or codesign_str.find(check_strings[1]) < 0:
+                    raise Exception("codesign didn't find signature: " + str(signtool_str))
+
     @step
     def check_installed(self, version, enterprise, check_stripped, check_symlink):
         """check all attributes of this file in reality"""
+        self._validate_notarization()
         attach(str(self), "file info")
         if semver.compare(self.version_min, version) == 1:
             self.check_path(enterprise, False)
@@ -221,9 +235,9 @@ class InstallerBase(ABC):
     @step
     def install_server_package(self):
         """install the server package to the system"""
-        self.calculate_file_locations()
         self.install_server_package_impl()
         self.cfg.server_package_is_installed = True
+        self.calculate_file_locations()
 
     @step
     def un_install_server_package(self):
@@ -645,17 +659,14 @@ class InstallerBase(ABC):
         """check for the files whether they're installed"""
         # pylint: disable=global-statement
         global FILE_PIDS
-        if IS_MAC:
-            print("Strip checking is disabled on DMG packages.")
-        else:
-            for binary in self.arango_binaries:
-                progress("S" if binary.stripped else "s")
-                binary.check_installed(
-                    self.cfg.version,
-                    self.cfg.enterprise,
-                    self.check_stripped,
-                    self.check_symlink,
-                )
+        for binary in self.arango_binaries:
+            progress("S" if binary.stripped else "s")
+            binary.check_installed(
+                self.cfg.version,
+                self.cfg.enterprise,
+                self.check_stripped,
+                self.check_symlink,
+            )
         print("\nran file commands with PID:" + str(FILE_PIDS) + "\n")
         FILE_PIDS = []
         logging.info("all files ok")

@@ -65,8 +65,10 @@ class InstallerRPM(InstallerLinux):
             semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
             semdict["build"] = "0.501"
         elif len(prerelease) > 0:
+            semdict["build"] = semdict["prerelease"]
+            semdict["prerelease"] = ""
             # remove dots, but prepend one:
-            semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
+            # once was: semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
 
         if not semdict["build"]:
             semdict["build"] = "1.0"
