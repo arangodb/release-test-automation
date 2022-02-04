@@ -102,6 +102,16 @@ class TestDriver:
                                (resource.RLIM_INFINITY,
                                 resource.RLIM_INFINITY))
 
+    def copy_packages_to_result(self, installers):
+        for installer_set in installers:
+            for package in [
+                    installer_set[0].server_package,
+                    installer_set[0].debug_package,
+                    installer_set[0].client_package]:
+                if package is not None:
+                    print("Copying package into result: " + str(package))
+                    shutil.copyfile(package, ".")
+        
     def get_packaging_shorthand(self):
         """ get the [DEB|RPM|EXE|DMG|ZIP|targz] from the installer """
         if self.installer_type:
@@ -261,6 +271,7 @@ class TestDriver:
                                     old_inst.un_install_debug_package()
                                     old_inst.un_install_server_package()
                                     old_inst.cleanup_system()
+                                    self.copy_packages_to_result(installers)
                                     try:
                                         runner.cleanup()
                                     finally:
@@ -403,6 +414,7 @@ class TestDriver:
                         runner.quit_selenium()
                         kill_all_processes()
                         runner.zip_test_dir()
+                        self.copy_packages_to_result(installers)
                         testcase.context.status = Status.FAILED
                         testcase.context.statusDetails = StatusDetails(message=str(ex),
                                                                        trace="".join(
