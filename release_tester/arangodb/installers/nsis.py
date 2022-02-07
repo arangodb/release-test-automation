@@ -80,6 +80,14 @@ class InstallerW(InstallerBase):
         else:
             semdict["prerelease"] = ""
         version = "{major}.{minor}.{patch}{prerelease}".format(**semdict)
+
+        self.desc = {
+            "ep": enterprise,
+            "ver": version,
+            "arch": architecture,
+            "ext": self.extension,
+        }
+
         self.server_package = "ArangoDB3%s-%s_%s.exe" % (
             enterprise,
             version,
