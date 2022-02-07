@@ -93,7 +93,7 @@ class BinaryDescription:
 
     def _validate_notarization(self):
         """ check whether this binary is notarized """
-        if IS_MAC:
+        if IS_MAC and enterprise and self.enterprise:
             cmd = ['codesign', '--verify', '--verbose', str(self.path)]
             check_strings = [b'valid on disk', b'satisfies its Designated Requirement']
             with psutil.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
@@ -107,7 +107,7 @@ class BinaryDescription:
     @step
     def check_installed(self, version, enterprise, check_stripped, check_symlink):
         """check all attributes of this file in reality"""
-        self._validate_notarization()
+        self._validate_notarization(enterprise)
         attach(str(self), "file info")
         if semver.compare(self.version_min, version) == 1:
             self.check_path(enterprise, False)
