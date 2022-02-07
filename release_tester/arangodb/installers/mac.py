@@ -200,7 +200,7 @@ class InstallerMac(InstallerBase):
             # remove dots, but prepend one:
             semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
         elif len(prerelease) > 0:
-            semdict["build"] = semdict["prerelease"]
+            semdict["build"] = "." + semdict["prerelease"]
             semdict["prerelease"] = ""
             # remove dots, but prepend one:
             # once was: semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
