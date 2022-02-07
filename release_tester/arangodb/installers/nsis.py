@@ -91,7 +91,7 @@ class InstallerW(InstallerBase):
         #     architecture,
         # )
         self.client_package = None  # FIXME: Enable client package tests for NSIS when issue QA-182 is fixed
-        self.debug_package = None  # TODO
+        self.debug_package =  "ArangoDB3{ep}-{ver}.pdb.{ext}".format(**self.desc)
 
     @step
     def upgrade_server_package(self, old_installer):
