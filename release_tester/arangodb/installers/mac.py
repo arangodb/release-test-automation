@@ -183,6 +183,7 @@ class InstallerMac(InstallerBase):
         enterprise = "e" if self.cfg.enterprise else ""
         architecture = "x86_64"
 
+        prerelease = self.cfg.semver.prerelease
         semdict = dict(self.cfg.semver.to_dict())
         if prerelease is None or prerelease == "":
             semdict["prerelease"] = ""
