@@ -104,6 +104,7 @@ class InstallerTAR(InstallerBase):
 
         if self.architecture == "win64":
             self.server_package = "ArangoDB3{ep}-{ver}{dashus}{arch}.{ext}".format(**self.desc)
+            self.debug_package =  "ArangoDB3{ep}-{ver}.pdb.{ext}".format(**self.desc)
             self.client_package = None
             self.cfg.install_prefix = self.basedir / "arangodb3{ep}-{ver}{dashus}{arch}".format(**self.desc)
             self.cfg.bin_dir = self.cfg.install_prefix / "usr" / "bin"
