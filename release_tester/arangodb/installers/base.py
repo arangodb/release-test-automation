@@ -91,7 +91,7 @@ class BinaryDescription:
             self
         )
 
-    def _validate_notarization(self):
+    def _validate_notarization(self, enterprise):
         """ check whether this binary is notarized """
         if IS_MAC and enterprise and self.enterprise:
             cmd = ['codesign', '--verify', '--verbose', str(self.path)]
