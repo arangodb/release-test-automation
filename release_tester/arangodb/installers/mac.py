@@ -187,6 +187,8 @@ class InstallerMac(InstallerBase):
         semdict = dict(self.cfg.semver.to_dict())
         if prerelease is None or prerelease == "":
             semdict["prerelease"] = ""
+        if semdict["build"] is None:
+            semdict["build"] = ""
         elif prerelease == "nightly":
             semdict["prerelease"] = ".{prerelease}".format(**semdict)
         elif prerelease.startswith("alpha"):
