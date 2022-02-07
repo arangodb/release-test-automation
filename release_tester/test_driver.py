@@ -110,7 +110,7 @@ class TestDriver:
                     installer_set[1].client_package]:
                 if package is not None:
                     print("Copying package into result: " + str(installer_set[1].cfg.package_dir / package))
-                    shutil.copyfile(installer_set[1].cfg.package_dir / package, self.launch_dir)
+                    shutil.copyfile(installer_set[1].cfg.package_dir / package, self.launch_dir / package)
         
     def get_packaging_shorthand(self):
         """ get the [DEB|RPM|EXE|DMG|ZIP|targz] from the installer """
