@@ -184,15 +184,31 @@ class InstallerMac(InstallerBase):
         enterprise = "e" if self.cfg.enterprise else ""
         architecture = "x86_64"
 
+        prerelease = self.cfg.semver.prerelease
         semdict = dict(self.cfg.semver.to_dict())
-        if semdict["prerelease"]:
-            if semdict["prerelease"].startswith("nightly"):
-                semdict["prerelease"] = ".{prerelease}".format(**semdict)
-            else:
-                semdict["prerelease"] = "-{prerelease}".format(**semdict)
-        else:
+        if prerelease is None or prerelease == "":
             semdict["prerelease"] = ""
-        version = "{major}.{minor}.{patch}{prerelease}".format(**semdict)
+        if semdict["build"] is None:
+            semdict["build"] = ""
+        elif prerelease == "nightly":
+            semdict["prerelease"] = ".{prerelease}".format(**semdict)
+        elif prerelease.startswith("alpha"):
+            # TODO: is this right?
+            semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
+        elif prerelease.startswith("beta"):
+            # TODO: is this right?
+            semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
+        elif prerelease.startswith("rc"):
+            # TODO: is this right?
+            # remove dots, but prepend one:
+            semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
+        elif len(prerelease) > 0:
+            semdict["build"] = "." + semdict["prerelease"]
+            semdict["prerelease"] = ""
+            # remove dots, but prepend one:
+            # once was: semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
+
+        version = "{major}.{minor}.{patch}{build}{prerelease}".format(**semdict)
 
         desc = {"ep": enterprise, "cfg": version, "arch": architecture}
 
