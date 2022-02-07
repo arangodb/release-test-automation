@@ -93,7 +93,9 @@ class BinaryDescription:
 
     def _validate_notarization(self, enterprise):
         """ check whether this binary is notarized """
-        if IS_MAC and enterprise and self.enterprise:
+        if not enterprise and self.enterprise:
+            return
+        if IS_MAC:
             cmd = ['codesign', '--verify', '--verbose', str(self.path)]
             check_strings = [b'valid on disk', b'satisfies its Designated Requirement']
             with psutil.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
