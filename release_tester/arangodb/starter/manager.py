@@ -86,7 +86,7 @@ class StarterManager:
             self.moreopts += ["--starter.port", "%d" % self.starter_port]
 
         self.hotbackup_args = []
-        if self.cfg.hb_mode != HotBackupMode.DISABLED:
+        if self.cfg.hb_provider_cfg.mode != HotBackupMode.DISABLED:
             self.moreopts += ["--all.log.level=backup=trace"]
             self.hotbackup_args = [
                 "--all.rclone.executable",
@@ -597,7 +597,7 @@ class StarterManager:
         # On windows the install prefix may change,
         # since we can't overwrite open files:
         self.cfg.set_directories(new_install_cfg)
-        if self.cfg.hb_mode != HotBackupMode.DISABLED:
+        if self.cfg.hb_provider_cfg.mode != HotBackupMode.DISABLED:
             self.hotbackup_args = [
                 "--all.rclone.executable",
                 self.cfg.real_sbin_dir / "rclone-arangodb",
@@ -903,7 +903,7 @@ class StarterManager:
             self.arangosh = ArangoshExecutor(self.cfg, self.get_frontend())
             self.arango_importer = ArangoImportExecutor(self.cfg, self.get_frontend())
             self.arango_restore = ArangoRestoreExecutor(self.cfg, self.get_frontend())
-            if self.cfg.hb_mode != HotBackupMode.DISABLED:
+            if self.cfg.hb_provider_cfg.mode != HotBackupMode.DISABLED:
                 self.cfg.passvoid = self.passvoid
                 self.hb_instance = HotBackupManager(
                     self.cfg,

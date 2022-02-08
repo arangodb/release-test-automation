@@ -165,7 +165,7 @@ class Runner(ABC):
         self.new_installer = new_inst
         self.backup_name = None
         self.hot_backup = (
-            cfg.hb_mode != HotBackupMode.DISABLED
+            cfg.hb_provider_cfg.mode != HotBackupMode.DISABLED
             and properties.supports_hotbackup
             and self.old_installer.supports_hot_backup()
         )

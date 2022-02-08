@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """ run an installer for the detected operating system """
 import copy
-from enum import Enum
-import platform
 import os
+import platform
+from enum import Enum
 from pathlib import Path
-from reporting.reporting_utils import step
+
 import semver
+
+from reporting.reporting_utils import step
 
 # pylint: disable=too-few-public-methods
 
@@ -43,6 +45,32 @@ HB_PROVIDERS = {
     "minio": HotBackupProviders.MINIO,
     "aws": HotBackupProviders.AWS,
 }
+
+
+class HotBackupProviderCfg:
+    ALLOWED_PROVIDERS = {
+        HotBackupMode.DISABLED: [],
+        HotBackupMode.DIRECTORY: [],
+        HotBackupMode.S3BUCKET: [HotBackupProviders.MINIO, HotBackupProviders.AWS],
+    }
+
+    HB_PROVIDER_DEFAULT = {
+        HotBackupMode.DISABLED: None,
+        HotBackupMode.DIRECTORY: None,
+        HotBackupMode.S3BUCKET: HotBackupProviders.MINIO,
+    }
+
+    def __init__(self, mode: HotBackupMode, provider: HotBackupProviders = None, path_prefix: str = None):
+        self.mode = mode
+        if provider and provider not in HotBackupProviderCfg.ALLOWED_PROVIDERS[mode]:
+            raise Exception(f"Storage provider {provider} is not allowed for rclone config type {mode}!")
+        if provider:
+            self.provider = provider
+        else:
+            self.provider = HotBackupProviderCfg.HB_PROVIDER_DEFAULT[self.mode]
+        self.path_prefix = path_prefix
+        while "//" in self.path_prefix:
+            self.path_prefix = self.path_prefix.replace("//", "/")
 
 
 class InstallerFrontend:
@@ -130,15 +158,11 @@ class InstallerConfig:
             self.enterprise and (semver.compare(self.version, "3.5.1") >= 0) and not isinstance(winver, list)
         )
         if self.hot_backup:
-            self.hot_backup = hot_backup
+            self.hb_provider_cfg = HotBackupProviderCfg(
+                HB_MODES[hot_backup], HB_PROVIDERS[hb_provider] if hb_provider else None, hb_storage_path_prefix
+            )
         else:
-            self.hot_backup = "disabled"
-        self.hb_mode = HB_MODES[self.hot_backup]
-        if hb_provider:
-            self.hb_provider = HB_PROVIDERS[hb_provider]
-        else:
-            self.hb_provider = None
-        self.hb_storage_path_prefix = hb_storage_path_prefix
+            self.hb_provider_cfg = HotBackupProviderCfg(HotBackupMode.DISABLED)
 
     def __repr__(self):
         return """
@@ -208,7 +232,7 @@ verbose: {0.verbose}
             self.appdir = other_cfg.appdir
             self.cfgdir = other_cfg.cfgdir
             self.hot_backup = other_cfg.hot_backup
-            self.hb_mode = other_cfg.hb_mode
+            self.hb_provider_cfg = other_cfg.hb_provider_cfg
         except AttributeError:
             # if the config.yml gave us a wrong value, we don't care.
             pass
