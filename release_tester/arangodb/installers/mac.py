@@ -142,7 +142,6 @@ class InstallerMac(InstallerBase):
         self.basehomedir = Path.home() / "Library" / "ArangoDB"
         self.baseetcdir = Path.home() / "Library" / "ArangoDB-etc"
         self.installer_type = "DMG"
-        self.extension = "dmg"
 
         cfg.install_prefix = None
         cfg.localhost = "localhost"
@@ -187,10 +186,10 @@ class InstallerMac(InstallerBase):
 
         prerelease = self.cfg.semver.prerelease
         semdict = dict(self.cfg.semver.to_dict())
-        if prerelease is None or prerelease == "":
-            semdict["prerelease"] = ""
         if semdict["build"] is None:
             semdict["build"] = ""
+        if prerelease is None or prerelease == "":
+            semdict["prerelease"] = ""
         elif prerelease == "nightly":
             semdict["prerelease"] = ".{prerelease}".format(**semdict)
         elif prerelease.startswith("alpha"):
