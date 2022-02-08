@@ -73,10 +73,10 @@ class HotBackupConfig:
                 config["access_key_id"] = environ["AWS_ACCESS_KEY_ID"]
                 config["secret_access_key"] = environ["AWS_SECRET_ACCESS_KEY"]
                 config["region"] = environ["AWS_REGION"]
-                config["acl"] = environ["AWS_ACL"]
+                config["acl"] = str(environ.get("AWS_ACL")) if environ.get("AWS_ACL") else "private"
             except KeyError as exc:
                 raise Exception(
-                    "Please set AWS credentials as environment variables AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, AWS_ACL"
+                    "Please set AWS credentials as environment variables AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION."
                 ) from exc
         elif basecfg.hb_mode == HotBackupMode.DIRECTORY:
             config["copy-links"] = "false"

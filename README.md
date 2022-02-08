@@ -110,6 +110,9 @@ Supported Parameters:
  - `--[no-]ssl` use SSL (default = False)
  - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl) 
  - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
+ - `--hotbackup-mode` - Hot backup mode. Possible values: disabled, directory or s3bucket. 
+ - `--hotbackup-provider` - Cloud storage provider. Possible values for s3bucket: minio, aws.
+ - `--hb-storage-path-prefix` - Bucket name and subdirectory to store hot backups in cloud.
 
 Example usage:
  - Windows: `python ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
@@ -150,6 +153,9 @@ Supported Parameters:
  - `--[no-]ssl` use SSL (default = False)
  - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl)
  - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
+ - `--hotbackup-mode` - Hot backup mode. Possible values: disabled, directory or s3bucket. 
+ - `--hotbackup-provider` - Cloud storage provider. Possible values for s3bucket: minio, aws.
+ - `--hb-storage-path-prefix` - Bucket name and subdirectory to store hot backups in cloud.
  
 Example usage:
  - Windows: `python ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
@@ -267,6 +273,9 @@ Supported Parameters:
  - `--[no-]ssl` use SSL (default = False)
  - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl)
  - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
+ - `--hotbackup-mode` - Hot backup mode. Possible values: disabled, directory or s3bucket. 
+ - `--hotbackup-provider` - Cloud storage provider. Possible values for s3bucket: minio, aws.
+ - `--hb-storage-path-prefix` - Bucket name and subdirectory to store hot backups in cloud.
 
 Example usage: 
 
@@ -325,6 +334,9 @@ Supported Parameters:
  - `--[no-]ssl` use SSL (default = False)
  - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl)
  - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
+ - `--hotbackup-mode` - Hot backup mode. Possible values: disabled, directory or s3bucket. 
+ - `--hotbackup-provider` - Cloud storage provider. Possible values for s3bucket: minio, aws.
+ - `--hb-storage-path-prefix` - Bucket name and subdirectory to store hot backups in cloud.
 
 Example usage: 
 
@@ -416,6 +428,24 @@ if this repository is checked out next to it:
 ``` bash
 ./scripts/unittest rta_makedata --extremeVerbosity true --cluster true --makedata_args:bigDoc true
 ```
+
+# Hot backup settings
+During the test scenarios hot backups will be created/restored and uploaded/downloaded to/from an external storage using the bundled rclone. 
+RTA supports different types of external storage. By default the backups will be just copied to another directory using rclone. 
+Other options include running minio(S3-compatible open-source storage) locally and uploading backups to a real cloud provider. 
+This is controlled using the following 3 command line parameters:
+ - `--hotbackup-mode` - Hot backup mode. Possible values: disabled, directory or s3bucket. 
+ - `--hotbackup-provider` - Cloud storage provider. Possible values for s3bucket: minio, aws.
+ - `--hb-storage-path-prefix` - Bucket name and subdirectory to store hot backups in cloud.
+
+Each cloud storage may also have some specific configuration parameters, which must be set as environment variables.
+### List of environment variables for AWS:
+`AWS_ACCESS_KEY_ID` - access key id (mandatory parameter)  
+`AWS_SECRET_ACCESS_KEY` - secret access key (mandatory parameter)  
+`AWS_REGION` - region (mandatory parameter)  
+`AWS_ACL` - ACL (default value: `private`)  
+
+
 
 # Flow of testcases
 The base flow lives in `runner.py`; special deployment specific implementations in the respective derivates. 
