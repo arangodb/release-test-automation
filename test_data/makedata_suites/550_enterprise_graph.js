@@ -43,7 +43,7 @@
       const vColName = `patents_smart_${loopCount}`;
       let patentsSmart = db._collection(vColName);
       if (patentsSmart.count() !== 761) {
-        throw new Error("Cherry");
+        throw new Error("Cherry 761 != " + patentsSmart.count());
       }
       progress();
       const eColName = `citations_smart_${loopCount}`;
