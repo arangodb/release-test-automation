@@ -34,6 +34,7 @@ class InstallerW(InstallerBase):
         self.service = None
         self.remote_package_dir = "Windows"
         self.installer_type = "EXE"
+        self.extension = "exe"
         self.backup_dirs_number_before_upgrade = None
 
         cfg.install_prefix = Path("C:/tmp")
@@ -79,6 +80,14 @@ class InstallerW(InstallerBase):
         else:
             semdict["prerelease"] = ""
         version = "{major}.{minor}.{patch}{prerelease}".format(**semdict)
+
+        self.desc = {
+            "ep": enterprise,
+            "ver": version,
+            "arch": architecture,
+            "ext": self.extension,
+        }
+
         self.server_package = "ArangoDB3%s-%s_%s.exe" % (
             enterprise,
             version,
@@ -90,7 +99,7 @@ class InstallerW(InstallerBase):
         #     architecture,
         # )
         self.client_package = None  # FIXME: Enable client package tests for NSIS when issue QA-182 is fixed
-        self.debug_package = None  # TODO
+        self.debug_package =  "ArangoDB3{ep}-{ver}.pdb.zip".format(**self.desc)
 
     @step
     def upgrade_server_package(self, old_installer):

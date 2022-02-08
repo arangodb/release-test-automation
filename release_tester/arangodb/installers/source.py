@@ -23,6 +23,7 @@ class InstallerSource(InstallerBase):
         self.client_package = None
         self.debug_package = None
         self.installer_type = "source directory"
+        self.extension = ""
         cfg.reset_version(cfg.version)
         cfg.installPrefix = cfg.package_dir
         sub_dir = str(cfg.version)

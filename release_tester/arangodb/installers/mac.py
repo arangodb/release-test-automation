@@ -142,6 +142,7 @@ class InstallerMac(InstallerBase):
         self.basehomedir = Path.home() / "Library" / "ArangoDB"
         self.baseetcdir = Path.home() / "Library" / "ArangoDB-etc"
         self.installer_type = "DMG"
+        self.extension = "dmg"
 
         cfg.install_prefix = None
         cfg.localhost = "localhost"
