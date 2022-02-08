@@ -161,6 +161,7 @@ class InstallerMac(InstallerBase):
 
         super().__init__(cfg)
         self.check_stripped = False
+        self.check_notarized = True
 
     @step
     def run_installer_script(self):
