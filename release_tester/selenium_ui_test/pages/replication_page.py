@@ -68,7 +68,7 @@ class ReplicationPage(NavigationBarPage):
         )
         state_table = {}
         for key in self.REPL_TABLE_LOC.items():
-            state_table[key] = table_elm.find_element_by_xpath(self.REPL_TABLE_LOC[key]).text
+            state_table[key[0]] = table_elm.find_element_by_xpath(key[1]).text
         return state_table
 
     def get_replication_screen(self, is_leader, timeout=20):

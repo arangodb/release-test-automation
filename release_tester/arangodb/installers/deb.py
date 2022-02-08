@@ -27,6 +27,7 @@ class InstallerDeb(InstallerLinux):
         self.debug_package = None
         self.log_examiner = None
         self.installer_type = "DEB"
+        self.extension = "deb"
         self.backup_dirs_number_before_upgrade = None
 
         # Are those required to be stored in the cfg?
@@ -54,8 +55,15 @@ class InstallerDeb(InstallerLinux):
         if semdict["prerelease"]:
             if semdict["prerelease"].startswith("nightly"):
                 semdict["prerelease"] = "~~{prerelease}".format(**semdict)
-            else:
+            elif prerelease.startswith("alpha"):
                 semdict["prerelease"] = "~{prerelease}".format(**semdict)
+            elif prerelease.startswith("beta"):
+                semdict["prerelease"] = "~{prerelease}".format(**semdict)
+            elif prerelease.startswith("rc"):
+                semdict["prerelease"] = "~{prerelease}".format(**semdict)
+            elif len(prerelease) > 0:
+                # semdict["prerelease"] = semdict["prerelease"]
+                pass
         else:
             semdict["prerelease"] = ""
 

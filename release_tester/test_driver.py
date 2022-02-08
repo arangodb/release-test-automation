@@ -11,6 +11,7 @@ from pathlib import Path
 
 import semver
 from allure_commons.model2 import Status, StatusDetails
+from allure_commons._allure import attach
 
 import tools.loghelper as lh
 from arangodb.installers import create_config_installer_set, RunProperties, InstallerBaseConfig
@@ -107,6 +108,20 @@ class TestDriver:
 
             resource.setrlimit(resource.RLIMIT_CORE, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
 
+    def copy_packages_to_result(self, installers):
+        for installer_set in installers:
+            for package in [
+                    installer_set[1].server_package,
+                    installer_set[1].debug_package,
+                    installer_set[1].client_package]:
+                if package is not None:
+                    print(Path.cwd())
+                    print("Copying package into result: " + str(installer_set[1].cfg.package_dir / package) +
+                          " => " + str(Path.cwd()))
+                    shutil.copyfile(installer_set[1].cfg.package_dir / package,
+                                    Path.cwd() / package)
+                    attach.file(Path.cwd() / package, "source archive used in tests", installer_set[1].extension)
+        
     def get_packaging_shorthand(self):
         """get the [DEB|RPM|EXE|DMG|ZIP|targz] from the installer"""
         if self.installer_type:
@@ -254,6 +269,7 @@ class TestDriver:
                                     old_inst.un_install_debug_package()
                                     old_inst.un_install_server_package()
                                     old_inst.cleanup_system()
+                                    self.copy_packages_to_result(installers)
                                     try:
                                         runner.cleanup()
                                     finally:
@@ -396,6 +412,7 @@ class TestDriver:
                         runner.quit_selenium()
                         kill_all_processes()
                         runner.zip_test_dir()
+                        self.copy_packages_to_result(installers)
                         testcase.context.status = Status.FAILED
                         testcase.context.statusDetails = StatusDetails(message=str(ex),
                                                                        trace="".join(

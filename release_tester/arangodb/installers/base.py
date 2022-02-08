@@ -91,8 +91,10 @@ class BinaryDescription:
             self
         )
 
-    def _validate_notarization(self):
+    def _validate_notarization(self, enterprise):
         """ check whether this binary is notarized """
+        if not enterprise and self.enterprise:
+            return
         if IS_MAC:
             cmd = ['codesign', '--verify', '--verbose', str(self.path)]
             check_strings = [b'valid on disk', b'satisfies its Designated Requirement']
@@ -105,9 +107,10 @@ class BinaryDescription:
                     raise Exception("codesign didn't find signature: " + str(signtool_str))
 
     @step
-    def check_installed(self, version, enterprise, check_stripped, check_symlink):
+    def check_installed(self, version, enterprise, check_stripped, check_symlink, check_notarized):
         """check all attributes of this file in reality"""
-        self._validate_notarization()
+        if check_notarized:
+            self._validate_notarization(enterprise)
         attach(str(self), "file info")
         if semver.compare(self.version_min, version) == 1:
             self.check_path(enterprise, False)
@@ -217,6 +220,7 @@ class InstallerBase(ABC):
         self.reset_version(cfg.version)
         self.check_stripped = True
         self.check_symlink = True
+        self.check_notarized = False
         self.server_package = ""
         self.debug_package = ""
         self.client_package = ""
@@ -666,6 +670,7 @@ class InstallerBase(ABC):
                 self.cfg.enterprise,
                 self.check_stripped,
                 self.check_symlink,
+                self.check_notarized
             )
         print("\nran file commands with PID:" + str(FILE_PIDS) + "\n")
         FILE_PIDS = []
