@@ -17,7 +17,7 @@ class ArangoRestoreExecutor(ArangoCLIprogressiveTimeoutExecutor):
         a dynamic timeout that its got output
         (is still alive...)
         """
-        run_cmd = cfg.default_restore_args + [
+        run_cmd = self.cfg.default_restore_args + [
             "--input-directory",
             str(basepath),
         ] + args
