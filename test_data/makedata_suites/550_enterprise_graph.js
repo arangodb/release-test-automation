@@ -43,20 +43,21 @@
       const vColName = `patents_smart_${loopCount}`;
       let patentsSmart = db._collection(vColName);
       if (patentsSmart.count() !== 761) {
-        throw new Error("Cherry 761 != " + patentsSmart.count());
+        throw new Error(vColName + " expected count to be 761 but is: " + patentsSmart.count());
       }
       progress();
       const eColName = `citations_smart_${loopCount}`;
       let citationsSmart = db._collection(eColName);
       if (citationsSmart.count() !== 1000) {
-        throw new Error("Liji");
+        throw new Error(eColName + "count expected to be 1000 but is: " + citationsSmart.count());
       }
       progress();
       const gName = `G_smart_${loopCount}`;
-      if (db._query(`FOR v, e, p IN 1..10 OUTBOUND "${patentsSmart.name()}/US:3858245${loopCount}"
+      let len = db._query(`FOR v, e, p IN 1..10 OUTBOUND "${patentsSmart.name()}/US:3858245${loopCount}"
                    GRAPH "${gName}"
-                   RETURN v`).toArray().length !== 6) {
-        throw new Error("Black Currant");
+                   RETURN v`).toArray().length;
+      if (len !== 6) {
+        throw new Error("Black Currant 6 != " + len);
       }
       progress();
     },
