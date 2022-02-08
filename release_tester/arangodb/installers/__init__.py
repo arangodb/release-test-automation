@@ -69,7 +69,7 @@ class HotBackupProviderCfg:
         else:
             self.provider = HotBackupProviderCfg.HB_PROVIDER_DEFAULT[self.mode]
         self.path_prefix = path_prefix
-        while "//" in self.path_prefix:
+        while self.path_prefix and "//" in self.path_prefix:
             self.path_prefix = self.path_prefix.replace("//", "/")
 
 
