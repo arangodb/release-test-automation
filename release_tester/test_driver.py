@@ -11,6 +11,7 @@ from pathlib import Path
 
 import semver
 from allure_commons.model2 import Status, StatusDetails
+from allure_commons._allure import attach
 
 import tools.loghelper as lh
 from arangodb.installers import create_config_installer_set, RunProperties, InstallerBaseConfig
@@ -109,8 +110,12 @@ class TestDriver:
                     installer_set[1].debug_package,
                     installer_set[1].client_package]:
                 if package is not None:
-                    print("Copying package into result: " + str(installer_set[1].cfg.package_dir / package))
-                    shutil.copyfile(installer_set[1].cfg.package_dir / package, self.launch_dir / package)
+                    print(Path.cwd())
+                    print("Copying package into result: " + str(installer_set[1].cfg.package_dir / package) +
+                          " => " + str(Path.cwd()))
+                    shutil.copyfile(installer_set[1].cfg.package_dir / package,
+                                    Path.cwd() / package)
+                    attach.file(Path.cwd() / package, "source archive used in tests", installer_set[1].extension)
         
     def get_packaging_shorthand(self):
         """ get the [DEB|RPM|EXE|DMG|ZIP|targz] from the installer """

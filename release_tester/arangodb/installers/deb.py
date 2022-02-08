@@ -27,6 +27,7 @@ class InstallerDeb(InstallerLinux):
         self.debug_package = None
         self.log_examiner = None
         self.installer_type = "DEB"
+        self.extension = "deb"
         self.backup_dirs_number_before_upgrade = None
 
         # Are those required to be stored in the cfg?
