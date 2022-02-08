@@ -104,6 +104,7 @@ class TestDriver:
                                 resource.RLIM_INFINITY))
 
     def copy_packages_to_result(self, installers):
+        """ copy packages in test to the report directory (including debug symbols) """
         for installer_set in installers:
             for package in [
                     installer_set[1].server_package,
@@ -116,7 +117,7 @@ class TestDriver:
                     shutil.copyfile(installer_set[1].cfg.package_dir / package,
                                     Path.cwd() / package)
                     attach.file(Path.cwd() / package, "source archive used in tests", installer_set[1].extension)
-        
+
     def get_packaging_shorthand(self):
         """ get the [DEB|RPM|EXE|DMG|ZIP|targz] from the installer """
         if self.installer_type:

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ base page object """
 import time
-
+import tools.interact as ti
 # from selenium import webdriver
 
 from selenium.webdriver.chrome.webdriver import WebDriver
@@ -35,9 +35,10 @@ class BasePage:
 
     driver: WebDriver
 
-    def __init__(self, webdriver):
+    def __init__(self, webdriver, cfg):
         """base initialization"""
         self.webdriver = webdriver
+        self.cfg = cfg
         self.query_execution_area = '//*[@id="aqlEditor"]'
         self.bindvalues_area = '//*[@id="bindParamAceEditor"]'
         self.locator = None
@@ -296,10 +297,14 @@ class BasePage:
 
     def locator_finder_by_xpath(self, locator_name, timeout=10):
         """This method will used for finding all the locators by their xpath"""
-        self.locator = WebDriverWait(self.webdriver, timeout).until(
-            EC.element_to_be_clickable((BY.XPATH, locator_name)),
-            message="UI-Test: " + locator_name + " locator was not found.",
-        )
+        try:
+            self.locator = WebDriverWait(self.webdriver, timeout).until(
+                EC.element_to_be_clickable((BY.XPATH, locator_name)),
+                message="UI-Test: " + locator_name + " locator was not found.",
+            )
+        except Exception as ex:
+            ti.prompt_user(self.cfg, ex.message)
+            raise ex
         if self.locator is None:
             raise Exception("UI-Test: ", locator_name, " locator was not found.")
         return self.locator

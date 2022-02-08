@@ -1,18 +1,8 @@
 #!/usr/bin/env python3
 """ run an installer for the debian based operating system """
-import time
-import sys
-import shutil
-import logging
-from pathlib import Path
-import pexpect
 import platform
-import psutil
 from arangodb.sh import ArangoshExecutor
 from arangodb.installers.base import InstallerBase
-from tools.asciiprint import ascii_print, print_progress as progress
-
-import tools.loghelper as lh
 
 IS_WINDOWS = platform.win32_ver()[0] != ""
 
@@ -70,7 +60,7 @@ class InstallerSource(InstallerBase):
         cfg.default_arangosh_args = [
             '-c', str(cfg.cfgdir / 'arangosh.conf'),
             '--javascript.startup-directory', js_dir
-        ] + js_enterprise 
+        ] + js_enterprise
         cfg.default_starter_args = [
             '--server.arangod=' + str(cfg.real_sbin_dir / 'arangod'),
             '--server.js-dir=' + js_dir
@@ -132,7 +122,7 @@ class InstallerSource(InstallerBase):
     def un_install_server_package_impl(self):
         """nothing to see here"""
 
-    def upgrade_server_package(self):
+    def upgrade_server_package(self, old_installer):
         """nothing to see here"""
 
     def check_engine_file(self):
