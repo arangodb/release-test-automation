@@ -4,6 +4,7 @@
     let sgm;
 
     const numberOfShards = 7;
+    const verticesInSatellite = 13;
 
     const generateNames = (loopCount, isDisjoint) => {
         const disjointPostfix = isDisjoint ? "_disjoint" : "";
@@ -119,7 +120,37 @@
             }
         }
         collection.save(docs);
-        progress(`Created docs`)
+        progress(`Created Smart Vertices`);
+    };
+
+    /// @brief, helper method to create satellite documents.
+    /// Will create verticesInSatellite many documents inside the Satellite collection
+    const createSatelliteVertices = (collection) => {
+        const shardList = collection.shards().sort();
+        if (shardList.length !== 1) {
+            throw new Error(`Satellite Collection "${collection.name()}" has more than 1 shard`);
+        }
+        const docs = [];
+        for (let i = 0; i < verticesInSatellite; ++i) {
+            docs.push({value: i});
+        }
+        collection.save(docs);
+        progress(`Created Satellite Vertices`);
+    };
+
+    /// @brief, helper method to create satellite->satellite edges.
+    /// Will create verticesInSatellite many edges inside the Satellite->Satellite collection
+    const createSatToSatEdges = (collection, fromCol, toCol) => {
+        const shardList = collection.shards().sort();
+        if (shardList.length !== 1) {
+            throw new Error(`Satellite Edge Collection "${collection.name()}" has more than 1 shard`);
+        }
+        const docs = [];
+        for (let i = 0; i < verticesInSatellite; ++i) {
+            docs.push({_from: `${fromCol}/abc`, _to: `${toCol}/abc`});
+        }
+        collection.save(docs);
+        progress(`Created Satellite Vertices`);
     };
 
     const testSmartVerticesExist = (collection) => {
@@ -129,15 +160,44 @@
         const counts = collection.count(true);
         for (const shard of shardList) {
             if (counts[shard] !== numDocs[shard]) {
-                throw new Error(`Mismatching counts on shard ${shard}, got ${counts[shard]} vs. ${numDocs[shard]}`);
+                throw new Error(`Mismatching counts on Smart Vertex shard ${shard}, got ${counts[shard]} vs. ${numDocs[shard]}`);
             }
         }
-        progress(`Success, Vertex Collection document counts match`);
+        progress(`Success, Smart Vertex Collection document counts match`);
+    };
+
+    const testSatelliteVerticesExist = (collection) => {
+        progress(`Testing, Satellite Vertex Collection document counts`);
+        const shardList = collection.shards().sort();
+        if (shardList.length !== 1) {
+            throw new Error(`Satellite Collection "${collection.name()}" has more than 1 shard`);
+        }
+        const counts = collection.count(true);
+        for (const shard of shardList) {
+            if (counts[shard] !== verticesInSatellite) {
+                throw new Error(`Mismatching counts on Satellite Vertex shard ${shard}, got ${counts[shard]} vs. ${verticesInSatellite}`);
+            }
+        }
+        progress(`Success, Satellite Vertex Collection document counts match`);
+    };
+
+    const testSatToSatEdgesExist = (collection) => {
+        progress(`Testing, SatToSat Edge Collection document counts`);
+        const shardList = collection.shards().sort();
+        if (shardList.length !== 1) {
+            throw new Error(`Satellite Collection "${collection.name()}" has more than 1 shard`);
+        }
+        const counts = collection.count(true);
+        for (const shard of shardList) {
+            if (counts[shard] !== verticesInSatellite) {
+                throw new Error(`Mismatching counts on SatToSat Edge shard ${shard}, got ${counts[shard]} vs. ${verticesInSatellite}`);
+            }
+        }
+        progress(`Success, SatToSat Edge Collection document counts match`);
     };
 
     const createGraphData = (isDisjoint, loopCount) => {
         const {
-            smartGraphName,
             satelliteCollectionName,
             verticesCollectionName,
             edgesCollectionName,
@@ -149,6 +209,8 @@
 
         const shardKeys = generateSmartGraphShardKeys(db._collection(verticesCollectionName));
         createSmartVertices(db._collection(verticesCollectionName), shardKeys, smartGraphAttribute);
+        createSatelliteVertices(db._collection(satelliteCollectionName));
+        createSatToSatEdges(db._collection(edgesSatToSatCollectionName), satelliteCollectionName, satelliteCollectionName);
     }
 
     return {
@@ -187,6 +249,8 @@
                     smartGraphAttribute
                 } = generateNames(loopCount, isDisjoint);
                 testSmartVerticesExist(db._collection(verticesCollectionName));
+                testSatelliteVerticesExist(db._collection(satelliteCollectionName));
+                testSatToSatEdgesExist(db._collection(edgesSatToSatCollectionName));
             }
 
         },
