@@ -128,7 +128,7 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
         col.select_choose_file_btn(str(self.test_data_dir / "ui_data" / "edges.json"))
         col.select_confirm_upload_btn()
         self.webdriver.refresh()  # in order to clear the screen before fetching data
-        print("Uploading " + col.getting_total_row_count() + " to the collection Completed\n")
+        print("Uploading " + col.getting_total_row_count() + " documents to the collection Completed\n")
         print("Selecting size of the displayed\n")
 
         self.webdriver.back()
@@ -140,7 +140,7 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
         col.select_choose_file_btn(str(self.test_data_dir / "ui_data" / "names_100.json"))
         col.select_confirm_upload_btn()
         self.webdriver.refresh()  # in order to clear the screen before fetching data
-        print("Uploading " + col.getting_total_row_count() + " to the collection Completed\n")
+        print("Uploading " + col.getting_total_row_count() + " documents to the collection Completed\n")
         print("Selecting size of the displayed\n")
 
         # print("Downloading Documents as JSON file\n")

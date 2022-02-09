@@ -291,8 +291,14 @@ class CollectionPage(NavigationBarPage):
     def getting_total_row_count(self):
         """getting_total_row_count"""
         # ATTENTION: this will only be visible & successfull if the browser window is wide enough!
-        getting_total_row_count_sitem = self.locator_finder_by_xpath(self.getting_total_row_count_id, 20)
-        return getting_total_row_count_sitem.text
+        size = self.webdriver.get_window_size()
+        if (size["width"] > 1000):
+            getting_total_row_count_sitem = self.locator_finder_by_xpath(self.getting_total_row_count_id, 20)
+            return getting_total_row_count_sitem.text
+        else:
+            print("your browser window is to narrow! " + str(size))
+            return "-1"
+
 
     def download_doc_as_json(self):
         """Exporting documents as JSON file from the collection"""
