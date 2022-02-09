@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """ views testsuite """
+import semver
+
 from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 from selenium_ui_test.test_suites.base_test_suite import testcase
 from selenium_ui_test.pages.views_page import ViewsPage
@@ -24,7 +26,7 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
         # checking 3.9 for improved views
         version = views.current_package_version()
 
-        if version == 3.9:
+        if version >= semver.VersionInfo.parse("3.9.0"):
             print("Creating improved views start here \n")
             views.create_improved_views("improved_arangosearch_view_01", 0)
             views.create_improved_views("improved_arangosearch_view_02", 1)
@@ -42,9 +44,7 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
                 views.delete_views("modified_views_name", views.select_modified_views_name)
             views.delete_views("improved_arangosearch_view_02", views.select_improved_arangosearch_view_02)
             print("Deleting views completed \n")
-
-        # for package version less than 3.9e
-        elif version <= 3.9:
+        else:            # for package version less than 3.9e
             views.create_new_views("firstView")
             views.create_new_views("secondView")
 

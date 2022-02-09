@@ -247,7 +247,7 @@ class BasePage:
         print("Package Version: ", package_version)
         time.sleep(1)
 
-        version = float(package_version[0:3])
+        version = semver.VersionInfo.parse(package_version)
         return version
 
     def current_user(self):

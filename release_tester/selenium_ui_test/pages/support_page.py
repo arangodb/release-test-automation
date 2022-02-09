@@ -1,5 +1,6 @@
 """support page model"""
 import time
+import semver
 
 from selenium_ui_test.pages.navbar import NavigationBarPage
 
@@ -302,13 +303,13 @@ class SupportPage(NavigationBarPage):
         rest_api.click()
         time.sleep(1)
 
-        version = super().current_package_version()
+        version = self.current_package_version()
 
         # checking backup restore
         iframe = self.switch_to_iframe_id
-        super().switch_to_iframe(iframe)
+        self.switch_to_iframe(iframe)
 
-        if version >= 3.7:
+        if version >= semver.VersionInfo.parse("3.7.0"):
             print("Checking Backup Restore option started\n")
             backup_restore = '//*[@id="operations-tag-BackupRestore"]'
             backup_restore = self.locator_finder_by_xpath(backup_restore)
@@ -369,4 +370,4 @@ class SupportPage(NavigationBarPage):
         # print('Checking Backup Restore option started\n')
 
         # switching back to default view
-        super().switch_back_to_origin_window()
+        self.switch_back_to_origin_window()

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """ collection page object """
 import time
+import semver
 import traceback
 
 from selenium.common.exceptions import ElementNotInteractableException, TimeoutException
@@ -311,7 +312,7 @@ class CollectionPage(NavigationBarPage):
             select_export_doc_confirm_btn_sitem = self.locator_finder_by_id(self.select_export_doc_confirm_btn_id)
             select_export_doc_confirm_btn_sitem.click()
             time.sleep(2)
-            # super().clear_download_bar()
+            # self.clear_download_bar()
 
     def filter_documents(self, value):
         """Checking Filter functionality"""
@@ -603,7 +604,7 @@ class CollectionPage(NavigationBarPage):
 
     def select_schema_tab(self):
         """Selecting Schema tab from the collection submenu"""
-        if super().current_package_version() >= 3.8:
+        if self.current_package_version() >= semver.VersionInfo.parse("3.8.0"):
             select_schema_tab_sitem = self.locator_finder_by_xpath(self.select_schema_tab_id)
             select_schema_tab_sitem.click()
             time.sleep(2)
