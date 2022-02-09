@@ -306,10 +306,10 @@ class BasePage:
             )
         except Exception as ex:
             ti.prompt_user(self.cfg,
-                           "ERR" * 30 +
+                           "ERROR " * 10 +
                            "\nError while wating for web element:\n" +
                            str(ex) + "\n" +
-                           ''.join(traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__))
+                           "".join(traceback.format_stack(ex.__traceback__.tb_frame))
                            )
             raise ex
         if self.locator is None:
