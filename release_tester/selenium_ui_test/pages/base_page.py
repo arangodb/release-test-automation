@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """ base page object """
 import time
+import traceback
+
 import tools.interact as ti
 # from selenium import webdriver
 
@@ -303,8 +305,12 @@ class BasePage:
                 message="UI-Test: " + locator_name + " locator was not found.",
             )
         except Exception as ex:
-            print('zz' * 40)
-            ti.prompt_user(self.cfg, str(ex))
+            ti.prompt_user(self.cfg,
+                           "ERR" * 30 +
+                           "\nError while wating for web element:\n" +
+                           str(ex) + "\n" +
+                           ''.join(traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__))
+                           )
             raise ex
         if self.locator is None:
             raise Exception("UI-Test: ", locator_name, " locator was not found.")
