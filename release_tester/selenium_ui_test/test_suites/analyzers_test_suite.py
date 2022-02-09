@@ -14,7 +14,7 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
         print("---------Analyzers Page Test Begin--------- \n")
         # login = LoginPage(self.webdriver)
         # login.login('root', '')
-        analyzers = AnalyzerPage(self.webdriver)
+        analyzers = AnalyzerPage(self.webdriver, self.cfg)
 
         assert analyzers.current_user() == "ROOT", "current user is root?"
         assert analyzers.current_database() == "_SYSTEM", "current database is _system?"

@@ -15,9 +15,9 @@ from selenium_ui_test.pages.navbar import NavigationBarPage
 class QueryPage(NavigationBarPage):
     """Class for Query page"""
 
-    def __init__(self, driver):
+    def __init__(self, driver, cfg):
         """Query page initialization"""
-        super().__init__(driver)
+        super().__init__(driver, cfg)
         self.selecting_query_page_id = "queries"
         self.execute_query_btn_id = "executeQuery"
         self.profile_query_id = "profileQuery"

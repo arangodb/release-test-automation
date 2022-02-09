@@ -91,9 +91,9 @@ def get_graph(graph: GraphExample):
 class GraphPage(NavigationBarPage):
     """class for Graph page"""
 
-    def __init__(self, driver):
+    def __init__(self, driver, cfg):
         """Graph page initialization"""
-        super().__init__(driver)
+        super().__init__(driver, cfg)
         self.select_graph_page_id = "graphs"
         self.select_create_graph_id = "createGraph"
         self.select_example_graph_btn_id = "tab-exampleGraphs"

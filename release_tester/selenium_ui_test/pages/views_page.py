@@ -23,9 +23,9 @@ class ViewsPage(NavigationBarPage):
     select_renamed_view_id = "/html//div[@id='thirdView']"
     select_second_view_id = "//div[@id='secondView']//h5[@class='collectionName']"
 
-    def __init__(self, webdriver):
+    def __init__(self, webdriver, cfg):
         """View page initialization"""
-        super().__init__(webdriver)
+        super().__init__(webdriver, cfg)
         self.select_views_tab_id = "/html//a[@id='views']"
         self.create_new_views_id = "/html//a[@id='createView']"
         self.naming_new_view_id = "/html//input[@id='newName']"

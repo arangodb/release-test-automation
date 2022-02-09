@@ -17,7 +17,7 @@ class LeaderFollowerAfterInstallTestSuite(AfterInstallTestSuite):
         count = 0
         replication_table = None
         while True:
-            NavigationBarPage(self.webdriver).navbar_goto("replication")
+            NavigationBarPage(self.webdriver, self.cfg).navbar_goto("replication")
             replication_page = ReplicationPage(self.webdriver)
             replication_table = replication_page.get_replication_screen(leader_follower, 120)
             self.progress(" " + str(replication_table))

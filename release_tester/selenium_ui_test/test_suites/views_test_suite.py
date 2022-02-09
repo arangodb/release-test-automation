@@ -14,7 +14,7 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
         print("---------Checking Views Begin--------- \n")
         # login = LoginPage(self.webdriver)
         # login.login('root', self.root_passvoid)
-        views = ViewsPage(self.webdriver)  # creating obj for viewPage
+        views = ViewsPage(self.webdriver, self.cfg)  # creating obj for viewPage
         assert views.current_user() == "ROOT", "current user is root?"
         assert views.current_database() == "_SYSTEM", "current database is _system?"
 

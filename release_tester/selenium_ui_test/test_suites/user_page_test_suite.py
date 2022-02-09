@@ -17,10 +17,10 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
     def test_user(self):
         """testing user page"""
         print("---------User Test Begin--------- \n")
-        login = LoginPage(self.webdriver)
+        login = LoginPage(self.webdriver, self.cfg)
         # login.login('root', self.self.root_passvoid)
         self.webdriver.refresh()
-        user = UserPage(self.webdriver)
+        user = UserPage(self.webdriver, self.cfg)
         try:
             print("New user creation begins \n")
             user.user_tab()
@@ -42,7 +42,7 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
             )
 
             print("trying to create collection")
-            collection_page = CollectionPage(self.webdriver)
+            collection_page = CollectionPage(self.webdriver, self.cfg)
             collection_page.navbar_goto("collections")
             collection_page.create_sample_collection("access")
             try:

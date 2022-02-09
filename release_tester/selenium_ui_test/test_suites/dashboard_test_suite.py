@@ -11,10 +11,10 @@ class DashboardTestSuite(BaseSeleniumTestSuite):
     def test_dashboard(self):
         """testing dashboard page"""
         print("---------Checking Dashboard started--------- \n")
-        # login = LoginPage(self.webdriver)
+        # login = LoginPage(self.webdriver, self.cfg)
         # login.login('root', self.root_passvoid)
         # creating object for dashboard
-        dash = DashboardPage(self.webdriver, self.is_enterprise)
+        dash = DashboardPage(self.webdriver, self.cfg, self.is_enterprise)
         assert dash.current_user() == "ROOT", "current user is root?"
         assert dash.current_database() == "_SYSTEM", "current database is _system?"
         dash.navbar_goto("cluster" if self.is_cluster else "dashboard")

@@ -303,7 +303,8 @@ class BasePage:
                 message="UI-Test: " + locator_name + " locator was not found.",
             )
         except Exception as ex:
-            ti.prompt_user(self.cfg, ex.message)
+            print('zz' * 40)
+            ti.prompt_user(self.cfg, str(ex))
             raise ex
         if self.locator is None:
             raise Exception("UI-Test: ", locator_name, " locator was not found.")
