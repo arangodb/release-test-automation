@@ -227,6 +227,7 @@ class InstallerBase(ABC):
         self.instance = None
         self.starter_versions = {}
         self.cli_executor = ArangoCLIprogressiveTimeoutExecutor(self.cfg, self.instance)
+        self.core_glob = "**/*core"
 
     def reset_version(self, version):
         """re-configure the version we work with"""
@@ -740,4 +741,10 @@ class InstallerBase(ABC):
     # pylint: disable=:no-self-use
     def supports_backup(self):
         """Does this installer support automatic backup during minor upgrade?"""
+        return False
+
+    def find_crash(self, base_path):
+        for i in base_path.glob(self.core_pattern):
+            print("Found coredump! " + str(i))
+            return True
         return False
