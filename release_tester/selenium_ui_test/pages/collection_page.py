@@ -655,9 +655,9 @@ class CollectionPage(NavigationBarPage):
         time.sleep(2)
         self.wait_for_ajax()
 
-    def select_delete_collection(self):
+    def select_delete_collection(self, expec_fail=False):
         """Deleting Collection from settings tab"""
-        delete_collection_sitem = self.locator_finder_by_xpath(self.delete_collection_id)
+        delete_collection_sitem = self.locator_finder_by_xpath(self.delete_collection_id, expec_fail=expec_fail)
         delete_collection_sitem.click()
         time.sleep(1)
         delete_collection_confirm_sitem = self.locator_finder_by_xpath(self.delete_collection_confirm_id)

@@ -297,7 +297,7 @@ class BasePage:
             raise Exception(str(locator_name), " locator was not found.")
         return self.locator
 
-    def locator_finder_by_xpath(self, locator_name, timeout=10):
+    def locator_finder_by_xpath(self, locator_name, timeout=10, expec_fail=False):
         """This method will used for finding all the locators by their xpath"""
         try:
             self.locator = WebDriverWait(self.webdriver, timeout).until(
@@ -305,6 +305,8 @@ class BasePage:
                 message="UI-Test: " + locator_name + " locator was not found.",
             )
         except Exception as ex:
+            if expec_fail:
+                raise ex
             ti.prompt_user(self.cfg,
                            "ERROR " * 10 +
                            "\nError while wating for web element:\n" +

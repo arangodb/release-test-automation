@@ -46,7 +46,7 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
             collection_page.navbar_goto("collections")
             collection_page.create_sample_collection("access")
             try:
-                collection_page.select_delete_collection()
+                collection_page.select_delete_collection(expec_fail=True)
                 raise Exception("must not be able to select deleting collections here!")
             except TimeoutException:
                 pass
