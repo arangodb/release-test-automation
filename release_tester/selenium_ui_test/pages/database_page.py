@@ -132,8 +132,8 @@ class DatabasePage(NavigationBarPage):
 
         # ---------------------------------------database name convention test---------------------------------------
         print("Expected error scenario for the Database name Started \n")
-        version = super().current_package_version()
-        if version == 3.9:
+        version = self.current_package_version()
+        if version >= 3.9:
             db_name_error_input = ["@", "1", "שלום"]  # name must be 64 bit thus 65 character won't work too.
             db_name_print_statement = [
                 'Checking Db name with symbol " @ "',
@@ -170,7 +170,7 @@ class DatabasePage(NavigationBarPage):
         )
         print("Expected error scenario for the Database name Completed \n")
 
-        if cluster and version == 3.9:
+        if cluster and version >= 3.9:
             db_sitem = self.locator_finder_by_id("newDatabaseName")
             db_sitem.click()
             db_sitem.clear()
@@ -224,7 +224,7 @@ class DatabasePage(NavigationBarPage):
             )
             print("Expected error scenario for the Database Write Concern Completed \n")
 
-        if cluster and version == 3.8:
+        if cluster and version >= 3.8:
             # -------------------------------database Replication Factor convention test------------------------------
             print("Expected error scenario for the Database Replication Factor Started \n")
             rf_error_input = ["@", "a", "11", "שלום"]

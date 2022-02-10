@@ -36,7 +36,7 @@ class DashboardPage(NavigationBarPage):
 
     def check_current_package_version(self):
         """checking current package version from the dashboard"""
-        super().current_package_version()
+        self.current_package_version()
 
     def check_current_username(self):
         """checking current username from the dashboard"""

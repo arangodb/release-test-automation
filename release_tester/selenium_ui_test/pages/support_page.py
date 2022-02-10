@@ -302,7 +302,7 @@ class SupportPage(NavigationBarPage):
         rest_api.click()
         time.sleep(1)
 
-        version = super().current_package_version()
+        version = self.current_package_version()
 
         # checking backup restore
         iframe = self.switch_to_iframe_id
