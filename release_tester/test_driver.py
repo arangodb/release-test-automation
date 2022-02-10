@@ -118,7 +118,7 @@ class TestDriver:
                     shutil.copyfile(installer_set[1].cfg.package_dir / package,
                                     Path.cwd() / package)
                     attach.file(Path.cwd() / package,
-                                "source archive used in tests " + str(package),
+                                "source archive used in tests: " + str(package),
                                 installer_set[1].extension)
         
     def get_packaging_shorthand(self):
