@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """ analyzer page testsuite """
+import semver
+
 from selenium_ui_test.pages.analyzers_page import AnalyzerPage
 from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 from selenium_ui_test.test_suites.base_test_suite import testcase
@@ -19,7 +21,7 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
         assert analyzers.current_user() == "ROOT", "current user is root?"
         assert analyzers.current_database() == "_SYSTEM", "current database is _system?"
         version = analyzers.current_package_version()
-        if version >= 3.9:
+        if version >= semver.VersionInfo.parse("3.9.0"):
             analyzers.select_analyzers_page()
             analyzers.select_help_filter_btn()
 

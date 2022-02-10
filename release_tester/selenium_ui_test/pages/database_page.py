@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """ database page object """
 import time
+import semver
+
 from selenium.common.exceptions import TimeoutException
 from selenium_ui_test.pages.navbar import NavigationBarPage
 
