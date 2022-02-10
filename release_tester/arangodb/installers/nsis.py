@@ -52,6 +52,7 @@ class InstallerW(InstallerBase):
         super().__init__(cfg)
         self.check_stripped = False
         self.check_symlink = False
+        self.core_glob = "**/*.dmp"
 
     def supports_hot_backup(self):
         """no hot backup support on the wintendo."""
