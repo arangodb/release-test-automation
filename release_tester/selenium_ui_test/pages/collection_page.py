@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """ collection page object """
 import time
+import semver
 import traceback
 
 from selenium.common.exceptions import ElementNotInteractableException, TimeoutException
@@ -14,9 +15,9 @@ from selenium_ui_test.pages.navbar import NavigationBarPage
 class CollectionPage(NavigationBarPage):
     """Collection page class"""
 
-    def __init__(self, webdriver):
+    def __init__(self, webdriver, cfg):
         """class initialization"""
-        super().__init__(webdriver)
+        super().__init__(webdriver, cfg)
         self.select_collection_page_id = "collections"
         self.select_create_collection_id = "createCollection"
         self.select_new_collection_name_id = "new-collection-name"
@@ -291,8 +292,14 @@ class CollectionPage(NavigationBarPage):
     def getting_total_row_count(self):
         """getting_total_row_count"""
         # ATTENTION: this will only be visible & successfull if the browser window is wide enough!
-        getting_total_row_count_sitem = self.locator_finder_by_xpath(self.getting_total_row_count_id, 20)
-        return getting_total_row_count_sitem.text
+        size = self.webdriver.get_window_size()
+        if (size["width"] > 1000):
+            getting_total_row_count_sitem = self.locator_finder_by_xpath(self.getting_total_row_count_id, 20)
+            return getting_total_row_count_sitem.text
+        else:
+            print("your browser window is to narrow! " + str(size))
+            return "-1"
+
 
     def download_doc_as_json(self):
         """Exporting documents as JSON file from the collection"""
@@ -305,7 +312,7 @@ class CollectionPage(NavigationBarPage):
             select_export_doc_confirm_btn_sitem = self.locator_finder_by_id(self.select_export_doc_confirm_btn_id)
             select_export_doc_confirm_btn_sitem.click()
             time.sleep(2)
-            # super().clear_download_bar()
+            # self.clear_download_bar()
 
     def filter_documents(self, value):
         """Checking Filter functionality"""
@@ -597,7 +604,7 @@ class CollectionPage(NavigationBarPage):
 
     def select_schema_tab(self):
         """Selecting Schema tab from the collection submenu"""
-        if super().current_package_version() >= 3.8:
+        if self.current_package_version() >= semver.VersionInfo.parse("3.8.0"):
             select_schema_tab_sitem = self.locator_finder_by_xpath(self.select_schema_tab_id)
             select_schema_tab_sitem.click()
             time.sleep(2)
@@ -648,9 +655,9 @@ class CollectionPage(NavigationBarPage):
         time.sleep(2)
         self.wait_for_ajax()
 
-    def select_delete_collection(self):
+    def select_delete_collection(self, expec_fail=False):
         """Deleting Collection from settings tab"""
-        delete_collection_sitem = self.locator_finder_by_xpath(self.delete_collection_id)
+        delete_collection_sitem = self.locator_finder_by_xpath(self.delete_collection_id, expec_fail=expec_fail)
         delete_collection_sitem.click()
         time.sleep(1)
         delete_collection_confirm_sitem = self.locator_finder_by_xpath(self.delete_collection_confirm_id)

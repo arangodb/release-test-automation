@@ -19,7 +19,7 @@ WINVER = platform.win32_ver()
 class InstallerTAR(InstallerBase):
     """install Tar.gz's on Linux/Mac hosts"""
 
-    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=too-many-statements
     def __init__(self, cfg):
         self.basedir = Path("/tmp")
         if WINVER[0]:
@@ -115,7 +115,8 @@ class InstallerTAR(InstallerBase):
         else:
             self.server_package = "arangodb3{ep}-{arch}{dashus}{ver}.{ext}".format(**self.desc)
             self.client_package = "arangodb3{ep}-client-{arch}{dashus}{ver}.{ext}".format(**self.desc)
-            self.cfg.client_install_prefix = self.basedir / "arangodb3{ep}-client-{arch}{dashus}{ver}".format(**self.desc)
+            self.cfg.client_install_prefix = self.basedir / "arangodb3{ep}-client-{arch}{dashus}{ver}".format(
+                **self.desc)
             self.cfg.server_install_prefix = self.basedir / "arangodb3{ep}-{arch}{dashus}{ver}".format(**self.desc)
             if self.cfg.client_package_is_installed:
                 self.cfg.install_prefix = self.basedir / "arangodb3{ep}-client-{arch}{dashus}{ver}".format(**self.desc)

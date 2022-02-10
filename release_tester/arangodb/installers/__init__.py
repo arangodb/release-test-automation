@@ -43,7 +43,7 @@ class InstallerFrontend:
 class InstallerConfig:
     """stores the baseline of this environment"""
 
-    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=too-many-locals
     def __init__(
         self,
         version: str,

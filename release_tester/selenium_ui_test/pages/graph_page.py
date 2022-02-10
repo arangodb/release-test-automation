@@ -91,9 +91,9 @@ def get_graph(graph: GraphExample):
 class GraphPage(NavigationBarPage):
     """class for Graph page"""
 
-    def __init__(self, driver):
+    def __init__(self, driver, cfg):
         """Graph page initialization"""
-        super().__init__(driver)
+        super().__init__(driver, cfg)
         self.select_graph_page_id = "graphs"
         self.select_create_graph_id = "createGraph"
         self.select_example_graph_btn_id = "tab-exampleGraphs"
@@ -315,22 +315,22 @@ class GraphPage(NavigationBarPage):
         # selecting edge definition from auto suggestion
         edge_definition_sitem = self.locator_finder_by_id(edge_definition)
         edge_definition_sitem.click()
-        super().send_key_action("knows_edge")
-        super().send_key_action(Keys.ENTER)
+        self.send_key_action("knows_edge")
+        self.send_key_action(Keys.ENTER)
 
         # selecting from collection from auto suggestion
         from_collection_sitem = self.locator_finder_by_id(from_collection)
         from_collection_sitem.click()
-        super().send_key_action("persons")
-        super().send_key_action(Keys.ENTER)
+        self.send_key_action("persons")
+        self.send_key_action(Keys.ENTER)
 
         time.sleep(1)
 
         # selecting to collection from auto suggestion
         to_collection_sitem = self.locator_finder_by_id(to_collection)
         to_collection_sitem.click()
-        super().send_key_action("persons")
-        super().send_key_action(Keys.ENTER)
+        self.send_key_action("persons")
+        self.send_key_action(Keys.ENTER)
 
         time.sleep(1)
 
@@ -437,29 +437,29 @@ class GraphPage(NavigationBarPage):
         smart_attribute_sitem.send_keys("community")
 
         # scrolling down
-        super().scroll(1)
+        self.scroll(1)
         time.sleep(2)
 
         # selecting edge definition from auto suggestion
         edge_definition_sitem = self.locator_finder_by_id(edge_definition)
         edge_definition_sitem.click()
 
-        super().send_key_action("relations")
-        super().send_key_action(Keys.ENTER)
+        self.send_key_action("relations")
+        self.send_key_action(Keys.ENTER)
 
         # selecting from collection from auto suggestion
         from_collection_sitem = self.locator_finder_by_id(from_collection)
         from_collection_sitem.click()
-        super().send_key_action("profiles")
-        super().send_key_action(Keys.ENTER)
+        self.send_key_action("profiles")
+        self.send_key_action(Keys.ENTER)
 
         time.sleep(1)
 
         # selecting to collection from auto suggestion
         to_collection_sitem = self.locator_finder_by_id(to_collection)
         to_collection_sitem.click()
-        super().send_key_action("profiles")
-        super().send_key_action(Keys.ENTER)
+        self.send_key_action("profiles")
+        self.send_key_action(Keys.ENTER)
         time.sleep(1)
 
         # selecting create graph btn
@@ -613,7 +613,7 @@ class GraphPage(NavigationBarPage):
             camera_sitem = self.locator_finder_by_xpath(camera)
             camera_sitem.click()
             time.sleep(3)
-            # super().clear_download_bar()
+            # self.clear_download_bar()
 
         # TODO: fullscreen may only work interactive with pynput
         # print("Selecting full screen mode\n")
@@ -621,7 +621,7 @@ class GraphPage(NavigationBarPage):
         # full_screen_sitem.click()
         # time.sleep(3)
         # print("Return to normal mode\n")
-        # super().escape()
+        # self.escape()
         # time.sleep(3)
 
         # print("Selecting Resume layout button \n")
@@ -723,7 +723,7 @@ class GraphPage(NavigationBarPage):
         type6 = self.select_edge_type_id
 
         self.webdriver.find_element_by_xpath(tip1).click()
-        super().scroll(1)
+        self.scroll(1)
         time.sleep(2)
         restore1 = self.locator_finder_by_xpath(restore1)
         restore1.click()
@@ -734,7 +734,7 @@ class GraphPage(NavigationBarPage):
         time.sleep(5)
 
         self.webdriver.find_element_by_xpath(tip2).click()
-        super().scroll(1)
+        self.scroll(1)
         time.sleep(2)
         restore2 = self.locator_finder_by_xpath(restore2)
         restore2.click()
@@ -745,7 +745,7 @@ class GraphPage(NavigationBarPage):
         time.sleep(5)
 
         self.webdriver.find_element_by_xpath(tip4).click()
-        super().scroll(1)
+        self.scroll(1)
         time.sleep(2)
         restore4 = self.locator_finder_by_xpath(restore4)
         restore4.click()
@@ -756,7 +756,7 @@ class GraphPage(NavigationBarPage):
         time.sleep(5)
 
         self.webdriver.find_element_by_xpath(tip5).click()
-        super().scroll(1)
+        self.scroll(1)
         time.sleep(2)
         restore5 = self.locator_finder_by_xpath(restore5)
         restore5.click()
@@ -767,7 +767,7 @@ class GraphPage(NavigationBarPage):
         time.sleep(5)
 
         self.webdriver.find_element_by_xpath(tip6).click()
-        super().scroll(1)
+        self.scroll(1)
         time.sleep(2)
         restore6 = self.locator_finder_by_xpath(restore6)
         restore6.click()

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """ collection testsuite """
+import semver
 from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 from selenium_ui_test.test_suites.base_test_suite import testcase
 
@@ -15,9 +16,9 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
     def test_collection(self):
         """testing collection page"""
         print("---------Checking Collection Begin--------- \n")
-        # login = LoginPage(self.webdriver)
+        # login = LoginPage(self.webdriver, self.cfg)
         # login.login('root', self.root_passvoid)
-        col = CollectionPage(self.webdriver)  # creating obj for Collection
+        col = CollectionPage(self.webdriver, self.cfg)  # creating obj for Collection
         assert col.current_user() == "ROOT", "current user is root?"
         assert col.current_database() == "_SYSTEM", "current database is _system?"
 
@@ -128,7 +129,7 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
         col.select_choose_file_btn(str(self.test_data_dir / "ui_data" / "edges.json"))
         col.select_confirm_upload_btn()
         self.webdriver.refresh()  # in order to clear the screen before fetching data
-        print("Uploading " + col.getting_total_row_count() + " to the collection Completed\n")
+        print("Uploading " + col.getting_total_row_count() + " documents to the collection Completed\n")
         print("Selecting size of the displayed\n")
 
         self.webdriver.back()
@@ -140,7 +141,7 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
         col.select_choose_file_btn(str(self.test_data_dir / "ui_data" / "names_100.json"))
         col.select_confirm_upload_btn()
         self.webdriver.refresh()  # in order to clear the screen before fetching data
-        print("Uploading " + col.getting_total_row_count() + " to the collection Completed\n")
+        print("Uploading " + col.getting_total_row_count() + " documents to the collection Completed\n")
         print("Selecting size of the displayed\n")
 
         # print("Downloading Documents as JSON file\n")
@@ -219,7 +220,7 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
         col.create_new_index("Geo", 2, self.is_cluster)
         col.create_new_index("Fulltext", 3, self.is_cluster)
         col.create_new_index("TTL", 4, self.is_cluster)
-        if version >= 3.9:
+        if version >= semver.VersionInfo.parse("3.9.0"):
             col.create_new_index("ZKD", 5, self.is_cluster)
             print("Deleting all index started\n")
             for _ in range(4):
@@ -260,10 +261,12 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
         # print("Deleting Collection completed\n")
 
         # these will clearup the resources even in failed test case scenario
-        col.delete_collection("TestDoc", col.select_doc_collection_id)
+        if self.is_cluster:
+            col.delete_collection("TestDoc", col.select_doc_collection_id)
+        else:
+            col.delete_collection("TestDocRenamed", col.select_renamed_doc_collection_id)
         col.delete_collection("TestEdge", col.select_edge_collection_id)
         col.delete_collection("Test", col.select_test_doc_collection_id)
-        col.delete_collection("TestDocRenamed", col.select_renamed_doc_collection_id)
 
         del col
         # login.logout_button()
