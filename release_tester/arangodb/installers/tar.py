@@ -76,6 +76,7 @@ class InstallerTAR(InstallerBase):
         if WINVER[0]:
             self.check_stripped = False
             self.check_symlink = False
+            self.core_glob = "**/*.dmp"
 
     def supports_hot_backup(self):
         """no hot backup support on the wintendo."""

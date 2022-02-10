@@ -105,6 +105,8 @@ class TestDriver:
 
     def copy_packages_to_result(self, installers):
         """ copy packages in test to the report directory (including debug symbols) """
+        if not installers[0][1].find_crash(installers[0][0].base_test_dir):
+            return
         for installer_set in installers:
             for package in [
                     installer_set[1].server_package,
@@ -116,8 +118,10 @@ class TestDriver:
                           " => " + str(Path.cwd()))
                     shutil.copyfile(installer_set[1].cfg.package_dir / package,
                                     Path.cwd() / package)
-                    attach.file(Path.cwd() / package, "source archive used in tests", installer_set[1].extension)
-
+                    attach.file(Path.cwd() / package,
+                                "source archive used in tests: " + str(package),
+                                installer_set[1].extension)
+        
     def get_packaging_shorthand(self):
         """ get the [DEB|RPM|EXE|DMG|ZIP|targz] from the installer """
         if self.installer_type:
@@ -265,6 +269,7 @@ class TestDriver:
                                     runner.quit_selenium()
                                     kill_all_processes()
                                     runner.zip_test_dir()
+                                    self.copy_packages_to_result(installers)
                                     testcase.context.status = Status.FAILED
                                     testcase.context.statusDetails = StatusDetails(
                                         message=str(ex),
@@ -277,7 +282,6 @@ class TestDriver:
                                     old_inst.un_install_debug_package()
                                     old_inst.un_install_server_package()
                                     old_inst.cleanup_system()
-                                    self.copy_packages_to_result(installers)
                                     try:
                                         runner.cleanup()
                                     finally:
