@@ -744,7 +744,7 @@ class InstallerBase(ABC):
         return False
 
     def find_crash(self, base_path):
-        for i in base_path.glob(self.core_pattern):
+        for i in base_path.glob(self.core_glob):
             print("Found coredump! " + str(i))
             return True
         return False
