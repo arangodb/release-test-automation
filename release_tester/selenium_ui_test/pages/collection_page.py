@@ -597,7 +597,7 @@ class CollectionPage(NavigationBarPage):
 
     def select_schema_tab(self):
         """Selecting Schema tab from the collection submenu"""
-        if super().current_package_version() >= 3.8:
+        if self.current_package_version() >= 3.8:
             select_schema_tab_sitem = self.locator_finder_by_xpath(self.select_schema_tab_id)
             select_schema_tab_sitem.click()
             time.sleep(2)

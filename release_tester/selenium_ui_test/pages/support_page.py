@@ -4,7 +4,7 @@ import time
 from selenium_ui_test.pages.navbar import NavigationBarPage
 
 # can't circumvent long lines.. nAttr nLines
-# pylint: disable=line-too-long disable=too-many-instance-attributes disable=too-many-statements disable=too-many-locals
+# pylint: disable=C0301 disable=R0902 disable=R0915 disable=R0914
 
 
 class SupportPage(NavigationBarPage):
@@ -302,7 +302,7 @@ class SupportPage(NavigationBarPage):
         rest_api.click()
         time.sleep(1)
 
-        version = super().current_package_version()
+        version = self.current_package_version()
 
         # checking backup restore
         iframe = self.switch_to_iframe_id

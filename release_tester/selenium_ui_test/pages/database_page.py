@@ -132,7 +132,7 @@ class DatabasePage(NavigationBarPage):
 
         # ---------------------------------------database name convention test---------------------------------------
         print("Expected error scenario for the Database name Started \n")
-        version = super().current_package_version()
+        version = self.current_package_version()
         if version == 3.9:
             db_name_error_input = ["@", "1", "שלום"]  # name must be 64 bit thus 65 character won't work too.
             db_name_print_statement = [
