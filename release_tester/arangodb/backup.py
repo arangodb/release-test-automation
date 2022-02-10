@@ -5,6 +5,7 @@ import logging
 import json
 import re
 import time
+import copy
 
 from reporting.reporting_utils import step
 
@@ -69,7 +70,7 @@ class HotBackupConfig:
 
 
 class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
-    # pylint: disable=R0902
+    # pylint: disable=too-many-instance-attributes
     """manages one arangobackup instance"""
 
     def __init__(self, config, name, raw_install_prefix, connect_instance):
@@ -86,10 +87,10 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
 
     @step
     def run_backup(self, arguments, name, silent=False, expect_to_fail=False):
-        """launch the starter for this instance"""
+        """run arangobackup"""
         if not silent:
             logging.info("running hot backup " + name)
-        run_cmd = []
+        run_cmd = copy.deepcopy(self.cfg.default_backup_args)
         if self.cfg.verbose:
             run_cmd += ["--log.level=debug"]
         run_cmd += arguments

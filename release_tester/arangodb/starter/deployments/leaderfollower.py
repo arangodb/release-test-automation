@@ -18,7 +18,7 @@ from reporting.reporting_utils import step
 class LeaderFollower(Runner):
     """this runs a leader / Follower setup with synchronisation"""
 
-    # pylint: disable=R0913 disable=R0902
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
     def __init__(
         self,
         runner_type,

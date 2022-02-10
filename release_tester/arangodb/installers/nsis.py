@@ -4,6 +4,7 @@ import logging
 import multiprocessing
 from pathlib import Path, PureWindowsPath
 import shutil
+import subprocess
 import time
 # pylint: disable=import-error
 import winreg
@@ -18,7 +19,7 @@ from reporting.reporting_utils import step
 
 from arangodb.installers.base import InstallerBase
 
-# pylint: disable=W0611
+# pylint: disable=unused-import
 # this will patch psutil for us:
 import tools.monkeypatch_psutil
 
@@ -26,13 +27,14 @@ import tools.monkeypatch_psutil
 class InstallerW(InstallerBase):
     """install the windows NSIS package"""
 
-    # pylint: disable=R0913 disable=R0902
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
     def __init__(self, cfg):
         self.server_package = None
         self.client_package = None
         self.service = None
         self.remote_package_dir = "Windows"
         self.installer_type = "EXE"
+        self.extension = "exe"
         self.backup_dirs_number_before_upgrade = None
 
         cfg.install_prefix = Path("C:/tmp")
@@ -55,6 +57,20 @@ class InstallerW(InstallerBase):
         """no hot backup support on the wintendo."""
         return False
 
+    def _verify_signature(self, programm):
+        fulldir = self.cfg.package_dir / programm
+        fulldir = fulldir.resolve()
+        success_string = b'Successfully verified'
+        cmd = ['signtool', 'verify', '/pa', str(fulldir)]
+        print(cmd)
+        with psutil.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
+            (signtool_str, err) = proc.communicate()
+            print(signtool_str)
+            if proc.returncode:
+                raise Exception("Signtool exited nonzero " + str(cmd) + "\n" + str(signtool_str))
+            if signtool_str.find(success_string) < 0:
+                raise Exception("Signtool didn't find signature: " + str(signtool_str))
+    
     def calculate_package_names(self):
         enterprise = "e" if self.cfg.enterprise else ""
         architecture = "win64"
@@ -64,6 +80,14 @@ class InstallerW(InstallerBase):
         else:
             semdict["prerelease"] = ""
         version = "{major}.{minor}.{patch}{prerelease}".format(**semdict)
+
+        self.desc = {
+            "ep": enterprise,
+            "ver": version,
+            "arch": architecture,
+            "ext": self.extension,
+        }
+
         self.server_package = "ArangoDB3%s-%s_%s.exe" % (
             enterprise,
             version,
@@ -75,12 +99,13 @@ class InstallerW(InstallerBase):
         #     architecture,
         # )
         self.client_package = None  # FIXME: Enable client package tests for NSIS when issue QA-182 is fixed
-        self.debug_package = None  # TODO
+        self.debug_package =  "ArangoDB3{ep}-{ver}.pdb.zip".format(**self.desc)
 
     @step
     def upgrade_server_package(self, old_installer):
         self.backup_dirs_number_before_upgrade = self.count_backup_dirs()
         self.stop_service()
+        self._verify_signature(self.server_package)
         cmd = [
             str(self.cfg.package_dir / self.server_package),
             "/INSTDIR=" + str(PureWindowsPath(self.cfg.install_prefix)),
@@ -126,6 +151,7 @@ class InstallerW(InstallerBase):
 
     @step
     def install_server_package_impl(self):
+        self._verify_signature(self.server_package)
         cmd = [
             str(self.cfg.package_dir / self.server_package),
             "/PASSWORD=" + self.cfg.passvoid,
@@ -172,6 +198,7 @@ class InstallerW(InstallerBase):
     @step
     def install_client_package_impl(self):
         """Install client package"""
+        self._verify_signature(self.server_package)
         cmd = [
             str(self.cfg.package_dir / self.client_package),
             "/INSTDIR=" + str(PureWindowsPath(self.cfg.install_prefix)),
@@ -203,7 +230,7 @@ class InstallerW(InstallerBase):
         """get a service handle"""
         if self.service:
             return
-        # pylint: disable=W0703
+        # pylint: disable=broad-except
         try:
             self.service = psutil.win_service_get("ArangoDB")
         except Exception as exc:
@@ -291,7 +318,7 @@ class InstallerW(InstallerBase):
         # since it needs to look at all these files we
         # just unloaded into it to make sure no harm originates from them.
         time.sleep(30 / multiprocessing.cpu_count())
-        # pylint: disable=W0703, disable=W0107
+        # pylint: disable=broad-except, disable=unnecessary-pass
         try:
             logging.info(psutil.win_service_get("ArangoDB"))
             self.get_service()

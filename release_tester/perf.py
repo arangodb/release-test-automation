@@ -36,7 +36,7 @@ import tools.loghelper as lh
 @very_common_options
 @common_options(support_old=False)
 # fmt: off
-# pylint: disable=R0913 disable=W0613 disable=R0914
+# pylint: disable=too-many-arguments disable=unused-argument disable=too-many-locals
 def run_test(mode, scenario, frontends,
              #very_common_options
              new_version, verbose, enterprise, package_dir, zip_package, hot_backup,
@@ -116,5 +116,5 @@ def run_test(mode, scenario, frontends,
 
 
 if __name__ == "__main__":
-    # pylint: disable=E1120 # fix clickiness.
+    # pylint: disable=no-value-for-parameter # fix clickiness.
     sys.exit(run_test())

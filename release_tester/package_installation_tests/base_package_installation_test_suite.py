@@ -5,8 +5,8 @@ import shutil
 from allure_commons._allure import attach
 
 from arangodb.installers import create_config_installer_set, RunProperties, InstallerBaseConfig
-from reporting.reporting_utils import step
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite
+from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, run_before_suite, \
+    run_after_suite, run_after_each_testcase
 
 
 class BasePackageInstallationTestSuite(BaseTestSuite):
@@ -17,11 +17,10 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
             versions: list,
             base_config: InstallerBaseConfig
     ):
-        super().__init__()
-        self.zip_package = base_config.zip_package
-        self.new_version = versions
-        self.enc_at_rest = None
+        self.new_version = versions[1]
         self.old_version = versions[0]
+        self.zip_package = base_config.zip_package
+        self.enc_at_rest = None
         self.parent_test_suite_name = None
         self.auto_generate_parent_test_suite_name = False
         self.suite_name = None
@@ -49,23 +48,11 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
         self.new_inst_e = self.installers["enterprise"][1][1]
         self.old_inst_c = self.installers["community"][0][1]
         self.new_inst_c = self.installers["community"][1][1]
+        super().__init__()
 
-    @step
-    def setup_test_suite(self):
-        """clean up the system before running tests"""
-        self.uninstall_everything()
-
-    @step
-    def tear_down_test_suite(self):
-        """clean up the system after running tests"""
-        self.uninstall_everything()
-
-    @step
-    def teardown_testcase(self):
-        """clean up after test case"""
-        self.uninstall_everything()
-
-    @step
+    @run_before_suite
+    @run_after_suite
+    @run_after_each_testcase
     def uninstall_everything(self):
         """uninstall all packages"""
         self.new_inst_c.uninstall_everything()

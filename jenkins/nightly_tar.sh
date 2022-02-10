@@ -32,6 +32,10 @@ mkdir -p test_dir/miniodata/home/test_dir
 rm -rf test_dir/miniodata/home/test_dir/*
 mkdir -p allure-results
 
+ssh -o StrictHostKeyChecking=no -T git@github.com
+git clone git@github.com:arangodb/release-test-automation-helpers.git
+mv $(pwd)/release-test-automation-helpers $(pwd)/release_tester/tools/external_helpers
+
 DOCKER_TAR_NAME=release-test-automation-tar
 
 DOCKER_TAR_TAG="${DOCKER_TAR_NAME}:$(cat containers/this_version.txt)"
@@ -47,7 +51,7 @@ trap 'docker kill "${DOCKER_TAR_NAME}";
      ' EXIT
 
 DOCKER_NAMESPACE="arangodb/"
-if docker pull "${DOCKER_NAMESPACE}OCKER_TAR_TAG}"; then
+if docker pull "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}"; then
     echo "using ready built container"
 else
     docker build containers/docker_tar -t "${DOCKER_TAR_TAG}" || exit

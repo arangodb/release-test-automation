@@ -28,7 +28,10 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         title = f"run a command in arangosh: {cmd[0]}"
         with step(title):
             executable = self.cfg.bin_dir / "arangosh"
-            arangosh_args = ["--log.level", "v8=debug", "--javascript.execute-string"]
+            arangosh_args = self.cfg.default_arangosh_args + [
+                "--log.level", "v8=debug",
+                "--javascript.execute-string"
+            ]
             arangosh_args += cmd[1:]
             return self.run_arango_tool_monitored(
                 executeable=executable,
@@ -72,7 +75,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         verbose=True,
         expect_to_fail=False,
     ):
-        # pylint: disable=R0913 disable=R0902 disable=R0915 disable=R0912 disable=R0914
+        # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=too-many-statements disable=too-many-branches disable=too-many-locals
         """
         runs a script in background tracing with
         a dynamic timeout that its got output
@@ -83,7 +86,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         else:
             process_control = []
         # fmt: off
-        run_cmd = [
+        run_cmd = self.cfg.default_arangosh_args + [
             "--log.level", "v8=debug",
             "--javascript.module-directory", self.cfg.test_data_dir.resolve(),
         ] + process_control + [
@@ -101,6 +104,38 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             result_line,
             verbose,
             expect_to_fail,
+            )
+
+    def run_testing(self,
+                    testcase,
+                    testing_args,
+                    timeout,
+                    directory,
+                    # logfile,
+                    verbose
+                    ):
+       # pylint: disable=R0913 disable=R0902
+        """ testing.js wrapper """
+        args = [
+            self.cfg.bin_dir / "arangosh",
+            '-c', str(self.cfg.cfgdir / 'arangosh.conf'),
+            '--log.level', 'warning',
+            "--log.level", "v8=debug",
+            '--server.endpoint', 'none',
+            '--javascript.allow-external-process-control', 'true',
+            '--javascript.execute', str(Path('UnitTests') / 'unittest.js'),
+            ]
+        run_cmd = args +[
+            '--',
+            testcase,
+            '--testOutput', directory ] + testing_args
+        return self.run_arango_tool_monitored(
+            self.cfg.bin_dir / "arangosh",
+            run_cmd,
+            timeout,
+            dummy_line_result,
+            verbose,
+            False,
         )
 
     @step
@@ -184,7 +219,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
 
     @step
     def run_in_arangosh(self, testname, args=[], moreargs=[], result_line=dummy_line_result, timeout=100):
-        # pylint: disable=R0913 disable=R0902 disable=W0102
+        # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=dangerous-default-value
         """mimic runInArangosh testing.js behaviour"""
         if testname:
             logging.info("adding test data for {0}".format(testname))
@@ -216,7 +251,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
 
     @step
     def create_test_data(self, testname, args=[], result_line=dummy_line_result, timeout=100):
-        # pylint: disable=W0102
+        # pylint: disable=dangerous-default-value
         """deploy testdata into the instance"""
         if testname:
             logging.info("adding test data for {0}".format(testname))
@@ -238,7 +273,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
 
     @step
     def check_test_data(self, testname, supports_foxx_tests, args=[], result_line=dummy_line_result):
-        # pylint: disable=W0102
+        # pylint: disable=dangerous-default-value
         """check back the testdata in the instance"""
         if testname:
             logging.info("checking test data for {0}".format(testname))
@@ -262,7 +297,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
 
     @step
     def clear_test_data(self, testname, args=[], result_line=dummy_line_result):
-        # pylint: disable=W0102
+        # pylint: disable=dangerous-default-value
         """flush the testdata from the instance again"""
         if testname:
             logging.info("removing test data for {0}".format(testname))

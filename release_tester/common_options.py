@@ -36,6 +36,13 @@ def zip_common_options(function):
         default=False,
         help="switch to zip or tar.gz package instead" " of default OS package",
     )(function)
+    function = click.option(
+        "--src/--no-src",
+        "src_testing",
+        is_flag=True,
+        default=False,
+        help="switch to source directory instead" " of default OS package",
+    )(function)
     return function
 
 def very_common_options(support_multi_version=False):
@@ -49,7 +56,7 @@ def very_common_options(support_multi_version=False):
         package_dir = Path("/tmp/")
     package_dir = get_default_path_value('WORKSPACE', 'package_cache', package_dir)
 
-    defver = get_default_value('NEW_VERSION', '', "3.10-nightly")
+    defver = get_default_value('NEW_VERSION', '', "3.10.0-nightly")
     if support_multi_version:
         defver = [defver]
 

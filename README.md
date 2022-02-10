@@ -86,6 +86,7 @@ Supported Parameters:
  - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
  - `--[no-]encryption-at-rest` turn on encryption at rest for Enterprise packages
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
+ - `--src` switches to [Source directory](#source-installer) logic
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
@@ -129,6 +130,7 @@ Supported Parameters:
  - `--old-version` which Arangodb Version you want to install to setup the old system
  - `--new-version` which Arangodb Version you want to upgrade the environment to
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
+ - `--src` switches to [Source directory](#source-installer) logic
  - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
  - `--[no-]encryption-at-rest` turn on encryption at rest for Enterprise packages
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
@@ -172,6 +174,21 @@ Example usage:
  - Windows: `python ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
  - Linux (ubuntu|debian) `python3 ./release_tester/test.py --new-version 3.6.2 --no-enterprise --package-dir /home/willi/Downloads`
  - Linux (centos|fedora|sles) `python3 ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
+
+# Using `run_license_tests.py` to test the license manager feature
+
+License manager tests are only applicable to enterprise edition.   
+Supported Parameters:
+ - `--new-version` which Arangodb Version you want to run the test on
+ - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
+ - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
+ - `--verbose` if specified more logging is done
+ - `--alluredir` - directory to save test results in allure format (default = allure-results)
+ - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
+ - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
+
+Example usage:
+ - Linux (ubuntu|debian) `python3 ./release_tester/run_license_tests.py --new-version 3.9.0-nightly --verbose --package-dir /home/vitaly/tmp/packages --zip`
 
 # using `download.py` to download packages from stage1/stage2/live
 
@@ -352,7 +369,55 @@ The scripts in the `deployment` directory will try to install all the required p
  - `attic_snippets` - trial and error scripts of start phase, utility functions like killall for mac/windows for manual invocation
 
 
-# Code Structure
+# makedata / checkdata framework
+Makedata is ran inside arangosh. It was made to be user-expandeable by hooking in on test cases.
+It consists of these files in test_data:
+ - `makedata.js` - initially generate test data
+ - `checkdata.js` - check whether data is available; could be read-only
+ - `cleardata.js` - remove the testdata - after invoking it makedata should be able to be ran again without issues.
+ - Plugins in `test_data/makedata_suites` executed in alphanumeric order:
+   - `000_dummy.js` - this can be used as a template if you want to create a new plugin. 
+   - `010_disabled_uuid_check.js` If you're running a cluster setup in failover mode, this checks and waits for all shards have an available leader.
+   - `020_foxx.js` Installs foxx, checks it. 
+   - `050_database.js` creates databases for the test data.
+   - `100_collections.js` creates a set of collections / indices
+   - `400_views.js` creates some views
+   - `500_community_graph.js` creates a community patent graph
+   - `550_enterprise_graph.js` creates an enterprise patent graph
+   - `560_smartgraph_validator.js` on top of the enterprise graph, this will check the integrity check of the server.
+   - `900_oneshard.js` creates oneshard database and does stuff with it.
+
+It should be considered to provide a set of hooks (000_dummy.js can be considered being a template for this):
+
+- Hook to check whether the environment will support your usecase [single/cluster deployment, Community/Enterprise, versions in test]
+- Per Database loop Create / Check [readonly] / Delete handler
+- Per Collection loop Create / Check [readonly] / Delete handler
+
+The hook functions should respect their counter parameters, and use them in their respective reseource names.
+Jslint should be used to check code validity.
+
+The list of the hooks enabled for this very run of one of the tools is printed on startup for reference.
+
+Makedata should be considered a framework for consistency checking in the following situations:
+ - replication
+ - hot backup
+ - upgrade
+ - dc2dc
+
+The replication fuzzing test should be used to ensure the above with randomness added.
+
+Makedata is by default ran with one dataset. However, it can also be used as load generator. 
+For this case especialy, the counters have to be respected, so subsequent runs don't clash with earlier runs.
+The provided dbCount / loopCount should be used in identifiers to ensure this.
+
+To Aid development, the makedata framework can be launched from within the arangodb unittests, 
+if this repository is checked out next to it:
+
+``` bash
+./scripts/unittest rta_makedata --extremeVerbosity true --cluster true --makedata_args:bigDoc true
+```
+
+# Flow of testcases
 The base flow lives in `runner.py`; special deployment specific implementations in the respective derivates. 
 The Flow is as follows:
 
@@ -361,7 +426,8 @@ install
 prepare and setup abstractions, starter managers, create certificates, ec. [starter_prepare_env[_impl]]
 launch all the actual starter instances, wait for them to become alive [starter_run[_impl]]
 finalize the setup like start sync'ing [finish_setup[_impl]]
-invoke make data
+[makedata]
+[makedata check]
 => ask user to inspect the installation
 if HotBackup capable:
   create backup
@@ -371,12 +437,12 @@ if HotBackup capable:
   delete backup
   list backup to revalidate there is none
   restore backup
-  check data
+  [checkdata]
   create non-backup data again
 if Update:
   manage packages (uninstall debug, install new, install new debug, test debug)
   upgrade the starter environment [upgrade_arangod_version[_impl]]
-  makedata validate after upgrade 
+  [makedata check] after upgrade 
   if Hotbackup capable:
     list backups
     upload backup once more
@@ -384,12 +450,15 @@ if Update:
     list & check its empty
     restore the backup
     validate post-backup data is gone again
-  check make data
+  [makedata check]
 test the setup [test_setup[_impl]]
+[makedata check]
 try to jam the setup [jam_setup[_impl]]
+[makedata check]
 shutdown the setup
 uninstall packages
 ```
+
 # GOAL
 
 create most of the flow of i.e. https://github.com/arangodb/release-qa/issues/264 in a portable way. 
@@ -578,7 +647,7 @@ These tests use the CSV data from the wikip
 
 # Allure reporting
 To view allure report, you must have allure installed in your system. Download link(for Linux):
-https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/2.14.0/allure-commandline-2.14.0.zip
+https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/2.17.2/allure-commandline-2.17.2.zip
 
 After the test run is finished, run the following command:
 ```bash
@@ -596,3 +665,51 @@ To disable formatting for single line, end it with `# fmt: on`.
 
 ## Linter
 We use [pylint](https://pylint.org/). Command to run it: `pylint release_tester`
+
+### source "Installer"
+In RTA an "installer" makes the ArangoDB version available in the system. By default, the native installer to the system is chosen.
+With `--zip` the Windows Zip or Mac/Linux .tar.gz package is chosen. Similar to this `--src` flips the switch of not deploying a package
+via an installer at all, but rather choose a source directory with compiled binaries to launch.
+The source directory (directories in case of running upgrade) should contain `build/bin` with the compiled result binaries inside.
+
+Several binaries are not built from with the arangodb source. They have to be added as copy or symlink to the bin directory.
+They can easily be obtained through nightry zip/tar packages or be build from their respective source directories and symlinked into the `build/bin` directories:
+- arangodb - the starter.
+- arangosync - the arangosync binary for dc2dc replication
+- rclone-arangodb 
+
+The source directory is located via 3 parameters (and if `build/bin` exists chosen accordingly):
+- `--package-dir` - in `test.py` this can be used to directly point to the source directory. Alternatively, subdirectories with symlinks can be used:
+- `--new-version` if you specify `3.10.0-devel` (a semver valid version) (and --[no-]enterprise) this will result in this directory: `[package-dir]/[E_]3.10.0-devel`
+- `--old-version` in `upgrade.py` this is used for the old version to upgrade from, works similar as `--new-version`.
+
+If `--enterprise` is specfied, RTA treats this as an enterprise deployment, HotBackup and DC2DC becomes available.
+Additionally the enterprise javascript files are added via cli parameters to arangosh and arangod / starter.
+
+```
+./release-tester/test.py --src \
+  --enterprise \
+  --package-dir ../devel \
+  --new-version 3.10.0-devel \
+  --starter-mode DC
+```
+
+or running an upgrade:
+(To adjust this a bit strict directory naming conventions, symbolic links are used)
+
+```
+mkdir arangoversions
+cd arangoversions
+ln -s /home/willi/src/stable-3.9 E_3.9.0
+ln -s /home/willi/src/devel E_3.10.0-devel
+cd ..
+./release-tester/upgrade.py --src \
+  --enterprise \
+  --package-dir $(pwd)/arangoversions \
+  --new-version 3.10.0-devel \
+  --old-version 3.9.0 \
+  --starter-mode DC
+```
+
+Will search for `/home/willi/src/E_3.9.0/build/bin` to launch the deployment initially, and upgrade to `/home/willi/src/E_3.10.0-devel/build/bin`.
+

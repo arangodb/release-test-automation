@@ -19,7 +19,7 @@ WINVER = platform.win32_ver()
 class InstallerTAR(InstallerBase):
     """install Tar.gz's on Linux/Mac hosts"""
 
-    # pylint: disable=R0913 disable=R0902
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
     def __init__(self, cfg):
         self.basedir = Path("/tmp")
         if WINVER[0]:
@@ -104,6 +104,7 @@ class InstallerTAR(InstallerBase):
 
         if self.architecture == "win64":
             self.server_package = "ArangoDB3{ep}-{ver}{dashus}{arch}.{ext}".format(**self.desc)
+            self.debug_package =  "ArangoDB3{ep}-{ver}.pdb.{ext}".format(**self.desc)
             self.client_package = None
             self.cfg.install_prefix = self.basedir / "arangodb3{ep}-{ver}{dashus}{arch}".format(**self.desc)
             self.cfg.bin_dir = self.cfg.install_prefix / "usr" / "bin"

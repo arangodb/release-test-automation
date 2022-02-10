@@ -27,6 +27,7 @@ class InstallerDeb(InstallerLinux):
         self.debug_package = None
         self.log_examiner = None
         self.installer_type = "DEB"
+        self.extension = "deb"
         self.backup_dirs_number_before_upgrade = None
 
         # Are those required to be stored in the cfg?
@@ -54,8 +55,15 @@ class InstallerDeb(InstallerLinux):
         if semdict["prerelease"]:
             if semdict["prerelease"].startswith("nightly"):
                 semdict["prerelease"] = "~~{prerelease}".format(**semdict)
-            else:
+            elif prerelease.startswith("alpha"):
                 semdict["prerelease"] = "~{prerelease}".format(**semdict)
+            elif prerelease.startswith("beta"):
+                semdict["prerelease"] = "~{prerelease}".format(**semdict)
+            elif prerelease.startswith("rc"):
+                semdict["prerelease"] = "~{prerelease}".format(**semdict)
+            elif len(prerelease) > 0:
+                # semdict["prerelease"] = semdict["prerelease"]
+                pass
         else:
             semdict["prerelease"] = ""
 
@@ -296,7 +304,7 @@ class InstallerDeb(InstallerLinux):
         package_name = "arangodb3" + ("e-client" if self.cfg.enterprise else "-client")
         self.uninstall_package(package_name)
 
-    # pylint: disable=R0201
+    # pylint: disable=no-self-use
     @step
     def uninstall_package(self, package_name, force=False):
         """uninstall package"""

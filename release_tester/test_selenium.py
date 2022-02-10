@@ -9,7 +9,7 @@ from arangodb.installers import create_config_installer_set, RunProperties
 from arangodb.starter.deployments import RunnerType, make_runner, STARTER_MODES
 import tools.loghelper as lh
 
-# pylint: disable=R0913 disable=R0914 disable=R0914
+# pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-locals
 def run_upgrade(
     old_version,
     new_version,
@@ -35,6 +35,7 @@ def run_upgrade(
     for runner_type in STARTER_MODES[starter_mode]:
         if not run_props.enterprise and runner_type == RunnerType.DC2DC:
             continue
+        # pylint: disable=too-many-function-args
         installers = create_config_installer_set(
             [old_version, new_version],
 
@@ -77,7 +78,7 @@ def run_upgrade(
 @very_common_options()
 @common_options(support_old=True)
 # fmt: off
-# pylint: disable=R0913 disable=W0613
+# pylint: disable=too-many-arguments disable=unused-argument
 def main(
         #very_common_options
         new_version, verbose, enterprise, package_dir, zip_package, hot_backup,
@@ -97,5 +98,5 @@ def main(
 # fmt: on
 
 if __name__ == "__main__":
-    # pylint: disable=E1120 # fix clickiness.
+    # pylint: disable=no-value-for-parameter # fix clickiness.
     main()

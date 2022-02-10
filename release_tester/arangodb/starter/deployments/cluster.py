@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
 import time
+import datetime
 import logging
 from pathlib import Path
 import semver
@@ -22,7 +23,7 @@ arangoversions = {
 class Cluster(Runner):
     """this launches a cluster setup"""
 
-    # pylint: disable=R0913 disable=R0902
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
     def __init__(
         self,
         runner_type,

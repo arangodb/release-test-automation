@@ -30,6 +30,10 @@ mkdir -p "${PACKAGE_CACHE}"
 mkdir -p test_dir
 mkdir -p allure-results
 
+ssh -o StrictHostKeyChecking=no -T git@github.com
+git clone git@github.com:arangodb/release-test-automation-helpers.git
+mv $(pwd)/release-test-automation-helpers $(pwd)/release_tester/tools/external_helpers
+
 DOCKER_RPM_NAME=release-test-automation-rpm
 
 DOCKER_RPM_TAG="${DOCKER_RPM_NAME}:$(cat containers/this_version.txt)"

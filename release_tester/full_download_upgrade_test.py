@@ -16,7 +16,7 @@ from tools.killall import list_all_processes
 
 from arangodb.installers import EXECUTION_PLAN
 
-# pylint: disable=R0913 disable=R0914 disable=R0912, disable=R0915
+# pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
 def upgrade_package_test(
     dl_opts: DownloadOptions,
     primary_version: str,
@@ -65,12 +65,13 @@ def upgrade_package_test(
         print("Cleanup done")
         if props.directory_suffix not in editions:
             continue
-        # pylint: disable=W0612
+        # pylint: disable=unused-variable
         dl_new = Download(
             dl_opts,
             primary_version,
             props.enterprise,
             test_driver.base_config.zip_package,
+            test_driver.base_config.src_testing,
             primary_dlstage,
             versions,
             fresh_versions,
@@ -104,12 +105,13 @@ def upgrade_package_test(
         if props.directory_suffix not in editions:
             print("skipping " + props.directory_suffix)
             continue
-        # pylint: disable=W0612
+        # pylint: disable=unused-variable
         dl_old = Download(
             dl_opts,
             old_versions[j],
             props.enterprise,
             test_driver.base_config.zip_package,
+            test_driver.base_config.src_testing,
             old_dlstages[j],
             versions,
             fresh_versions,
@@ -120,6 +122,7 @@ def upgrade_package_test(
             new_versions[j],
             props.enterprise,
             test_driver.base_config.zip_package,
+            test_driver.base_config.src_testing,
             new_dlstages[j],
             versions,
             fresh_versions,
@@ -209,13 +212,13 @@ def upgrade_package_test(
 )
 @download_options(default_source="ftp:stage2", other_source=True)
 # fmt: off
-# pylint: disable=R0913, disable=W0613
+# pylint: disable=too-many-arguments, disable=unused-argument
 def main(
         git_version,
         editions,
         upgrade_matrix,
         #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package, hot_backup,
+        new_version, verbose, enterprise, package_dir, zip_package, src_testing, hot_backup,
         # common_options
         # old_version,
         test_data_dir, encryption_at_rest, alluredir, clean_alluredir, ssl, use_auto_certs,
@@ -244,6 +247,7 @@ def main(
         Path(alluredir),
         clean_alluredir,
         zip_package,
+        src_testing,
         hot_backup,
         False,  # interactive
         starter_mode,
@@ -267,5 +271,5 @@ def main(
 
 
 if __name__ == "__main__":
-    # pylint: disable=E1120 # fix clickiness.
+    # pylint: disable=no-value-for-parameter # fix clickiness.
     sys.exit(main())

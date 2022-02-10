@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
-import time
 import logging
 import sys
+import time
 from pathlib import Path
 
 import requests
 from requests.auth import HTTPBasicAuth
 
 from arangodb.instance import InstanceType
-from arangodb.starter.manager import StarterManager
 from arangodb.starter.deployments.runner import Runner, RunnerProperties
-
+from arangodb.starter.manager import StarterManager
 from tools.asciiprint import print_progress as progress
 from tools.interact import prompt_user
 
@@ -19,7 +18,7 @@ from tools.interact import prompt_user
 class ActiveFailover(Runner):
     """This launches an active failover setup"""
 
-    # pylint: disable=R0913 disable=R0902
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
     def __init__(
         self,
         runner_type,
@@ -284,7 +283,7 @@ class ActiveFailover(Runner):
             self.selenium.test_wait_for_upgrade()
 
     def jam_attempt_impl(self):
-        # pylint: disable=R0915
+        # pylint: disable=too-many-statements
         agency_leader = self.agency_get_leader()
         if self.first_leader.have_this_instance(agency_leader):
             print("AFO-Leader and agency leader are attached by the same starter!")

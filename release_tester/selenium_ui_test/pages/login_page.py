@@ -11,7 +11,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium_ui_test.pages.base_page import BasePage
 
 # can't circumvent long lines..
-# pylint: disable=C0301
+# pylint: disable=line-too-long
 
 
 class LoginPage(BasePage):

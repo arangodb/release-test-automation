@@ -9,7 +9,7 @@ from selenium_ui_test.pages.navbar import NavigationBarPage
 
 
 # can't circumvent long lines.. nAttr nLines
-# pylint: disable=C0301 disable=R0902 disable=R0915 disable=R0914
+# pylint: disable=line-too-long disable=too-many-instance-attributes disable=too-many-statements disable=too-many-locals
 
 
 class ReplicationPage(NavigationBarPage):
@@ -68,7 +68,7 @@ class ReplicationPage(NavigationBarPage):
         )
         state_table = {}
         for key in self.REPL_TABLE_LOC.items():
-            state_table[key] = table_elm.find_element_by_xpath(self.REPL_TABLE_LOC[key]).text
+            state_table[key[0]] = table_elm.find_element_by_xpath(key[1]).text
         return state_table
 
     def get_replication_screen(self, is_leader, timeout=20):

@@ -9,7 +9,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium_ui_test.pages.navbar import NavigationBarPage
 
 # can't circumvent long lines.. nAttr nLines
-# pylint: disable=C0301 disable=R0902 disable=R0915 disable=R0914 disable=too-many-public-methods
+# pylint: disable=line-too-long disable=too-many-instance-attributes disable=too-many-statements disable=too-many-locals disable=too-many-public-methods
 
 
 class QueryPage(NavigationBarPage):

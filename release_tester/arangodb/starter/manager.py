@@ -37,15 +37,16 @@ from arangodb.imp import ArangoImportExecutor
 from arangodb.restore import ArangoRestoreExecutor
 from arangodb.bench import ArangoBenchManager
 
-from reporting.reporting_utils import attach_table, step
+from reporting.reporting_utils import attach_table, step, attach_http_request_to_report, \
+    attach_http_response_to_report
 
 ON_WINDOWS = sys.platform == "win32"
 
-# pylint: disable=C0302
+# pylint: disable=too-many-lines
 class StarterManager:
     """manages one starter instance"""
 
-    # pylint: disable=R0913 disable=R0902 disable=W0102 disable=R0915 disable=R0904 disable=E0202 disable=R0912
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=dangerous-default-value disable=too-many-statements disable=too-many-public-methods disable=method-hidden disable=too-many-branches
     def __init__(
         self,
         basecfg,
@@ -59,7 +60,7 @@ class StarterManager:
     ):
         self.expect_instances = expect_instances
         self.expect_instances.sort()
-        self.moreopts = moreopts
+        self.moreopts = basecfg.default_starter_args + moreopts
         self.cfg = copy.deepcopy(basecfg)
         if self.cfg.verbose:
             self.moreopts += ["--log.verbose=true"]
@@ -262,7 +263,7 @@ class StarterManager:
     @step
     def attach_running_starter(self):
         """somebody else is running the party, but we also want to have a look"""
-        # pylint disable=W0703
+        # pylint disable=broad-except
         match_str = "--starter.data-dir={0.basedir}".format(self)
         if self.passvoidfile.exists():
             self.passvoid = self.passvoidfile.read_text(errors="backslashreplace", encoding='utf-8')
@@ -280,7 +281,6 @@ class StarterManager:
                 logging.error(ex)
         raise Exception("didn't find a starter for " + match_str)
 
-    @step
     def set_jwt_file(self, filename):
         """some scenarios don't want to use the builtin jwt generation from the manager"""
         self.jwtfile = filename
@@ -350,15 +350,17 @@ class StarterManager:
                 else:
                     headers["Authorization"] = "Bearer " + str(self.get_jwt_header())
                     base_url = instance.get_public_plain_url()
+                    full_url = self.get_http_protocol() + "://" + base_url + url
+                    attach_http_request_to_report(verb_method.__name__, full_url, headers, data)
                     reply = verb_method(
-                        self.get_http_protocol() + "://" + base_url + url,
+                        full_url,
                         data=data,
                         headers=headers,
                         allow_redirects=False,
                         timeout=timeout,
                         verify=False,
                     )
-                    # print(reply.text)
+                    attach_http_response_to_report(reply)
                     results.append(reply)
         http_client.HTTPConnection.debuglevel = 0
         return results
@@ -825,7 +827,7 @@ class StarterManager:
                         )
                         instance_class = ArangodInstance
                     # directory = self.basedir / name
-                    if match:
+                    if match and len(match.group(2)) > 0:
                         # we may see a `local-slave-*` directory inbetween,
                         # hence we need to choose the current directory not
                         # the starter toplevel dir for this:
@@ -1048,7 +1050,7 @@ class StarterManager:
         logfile = str(self.log_file)
         attach.file(logfile, "Starter log file", AttachmentType.TEXT)
 
-    # pylint: disable=R1705
+    # pylint: disable=no-else-return
     def get_http_protocol(self):
         """get HTTP protocol for this starter(http/https)"""
         if self.cfg.ssl:
@@ -1083,7 +1085,7 @@ class StarterManager:
 class StarterNonManager(StarterManager):
     """this class is a dummy starter manager to work with similar interface"""
 
-    # pylint: disable=W0102 disable=R0913
+    # pylint: disable=dangerous-default-value disable=too-many-arguments
     def __init__(
         self,
         basecfg,

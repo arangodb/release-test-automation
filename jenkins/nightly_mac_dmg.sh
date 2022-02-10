@@ -29,6 +29,11 @@ PYTHONUNBUFFERED=1
 mkdir -p "${PACKAGE_CACHE}"
 mkdir -p test_dir
 mkdir -p allure-results
+
+ssh -o StrictHostKeyChecking=no -T git@github.com
+git clone git@github.com:arangodb/release-test-automation-helpers.git
+mv $(pwd)/release-test-automation-helpers $(pwd)/release_tester/tools/external_helpers
+
 ulimit -n 65535
 
 $(pwd)/release_tester/full_download_upgrade.py \

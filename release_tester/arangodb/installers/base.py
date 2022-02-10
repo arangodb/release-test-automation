@@ -55,7 +55,7 @@ class BinaryDescription:
     """describe the availability of an arangodb binary and its properties"""
 
     def __init__(self, path, name, enter, strip, vmin, vmax, sym, binary_type):
-        # pylint: disable=R0913 disable=R0902
+        # pylint: disable=too-many-arguments disable=too-many-instance-attributes
         self.path = path / (name + FILE_EXTENSION)
         self.enterprise = enter
         self.stripped = strip
@@ -91,9 +91,26 @@ class BinaryDescription:
             self
         )
 
+    def _validate_notarization(self, enterprise):
+        """ check whether this binary is notarized """
+        if not enterprise and self.enterprise:
+            return
+        if IS_MAC:
+            cmd = ['codesign', '--verify', '--verbose', str(self.path)]
+            check_strings = [b'valid on disk', b'satisfies its Designated Requirement']
+            with psutil.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
+                (_, codesign_str) = proc.communicate()
+                print(codesign_str)
+                if proc.returncode:
+                    raise Exception("codesign exited nonzero " + str(cmd) + "\n" + str(codesign_str))
+                if codesign_str.find(check_strings[0]) < 0 or codesign_str.find(check_strings[1]) < 0:
+                    raise Exception("codesign didn't find signature: " + str(signtool_str))
+
     @step
-    def check_installed(self, version, enterprise, check_stripped, check_symlink):
+    def check_installed(self, version, enterprise, check_stripped, check_symlink, check_notarized):
         """check all attributes of this file in reality"""
+        if check_notarized:
+            self._validate_notarization(enterprise)
         attach(str(self), "file info")
         if semver.compare(self.version_min, version) == 1:
             self.check_path(enterprise, False)
@@ -203,6 +220,7 @@ class InstallerBase(ABC):
         self.reset_version(cfg.version)
         self.check_stripped = True
         self.check_symlink = True
+        self.check_notarized = False
         self.server_package = ""
         self.debug_package = ""
         self.client_package = ""
@@ -221,9 +239,9 @@ class InstallerBase(ABC):
     @step
     def install_server_package(self):
         """install the server package to the system"""
-        self.calculate_file_locations()
         self.install_server_package_impl()
         self.cfg.server_package_is_installed = True
+        self.calculate_file_locations()
 
     @step
     def un_install_server_package(self):
@@ -353,7 +371,7 @@ class InstallerBase(ABC):
         there may be execptions."""
         return semver.compare(self.cfg.version, "3.5.1") >= 0
 
-    # pylint: disable=:R0201
+    # pylint: disable=:no-self-use
     def calc_config_file_name(self):
         """store our config to disk - so we can be invoked partly"""
         cfg_file = Path()
@@ -377,6 +395,7 @@ class InstallerBase(ABC):
             try:
                 cfg_file.unlink()
             except PermissionError:
+                self.cfg.semver = semver.VersionInfo.parse(self.cfg.version)
                 print("Ignoring non deleteable " + str(cfg_file))
                 return
         cfg_file.write_text(yaml.dump(self.cfg), encoding='utf8')
@@ -642,19 +661,17 @@ class InstallerBase(ABC):
     @step
     def check_installed_files(self):
         """check for the files whether they're installed"""
-        # pylint: disable=W0603
+        # pylint: disable=global-statement
         global FILE_PIDS
-        if IS_MAC:
-            print("Strip checking is disabled on DMG packages.")
-        else:
-            for binary in self.arango_binaries:
-                progress("S" if binary.stripped else "s")
-                binary.check_installed(
-                    self.cfg.version,
-                    self.cfg.enterprise,
-                    self.check_stripped,
-                    self.check_symlink,
-                )
+        for binary in self.arango_binaries:
+            progress("S" if binary.stripped else "s")
+            binary.check_installed(
+                self.cfg.version,
+                self.cfg.enterprise,
+                self.check_stripped,
+                self.check_symlink,
+                self.check_notarized
+            )
         print("\nran file commands with PID:" + str(FILE_PIDS) + "\n")
         FILE_PIDS = []
         logging.info("all files ok")
@@ -720,7 +737,7 @@ class InstallerBase(ABC):
     def check_backup_is_created(self):
         """Check that backup was created after package upgrade"""
 
-    # pylint: disable=:R0201
+    # pylint: disable=:no-self-use
     def supports_backup(self):
         """Does this installer support automatic backup during minor upgrade?"""
         return False

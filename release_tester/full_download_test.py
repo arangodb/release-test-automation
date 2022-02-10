@@ -22,7 +22,7 @@ from tools.killall import list_all_processes
 
 from arangodb.installers import EXECUTION_PLAN
 
-# pylint: disable=R0913 disable=R0914 disable=R0912, disable=R0915
+# pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
 def package_test(
     dl_opts: DownloadOptions,
     new_version,
@@ -62,6 +62,7 @@ def package_test(
             new_version,
             props.enterprise,
             test_driver.base_config.zip_package,
+            test_driver.base_config.src_testing,
             new_dlstage,
             versions,
             fresh_versions,
@@ -140,12 +141,12 @@ def package_test(
 )
 @download_options(default_source="ftp:stage2", double_source=True)
 # fmt: off
-# pylint: disable=R0913, disable=W0613
+# pylint: disable=too-many-arguments, disable=unused-argument
 def main(
         git_version,
         editions,
         #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package, hot_backup,
+        new_version, verbose, enterprise, package_dir, zip_package, src_testing, hot_backup,
         # common_options,
         # old_version,
         test_data_dir, encryption_at_rest, alluredir, clean_alluredir, ssl, use_auto_certs,
@@ -173,6 +174,7 @@ def main(
         Path(alluredir),
         clean_alluredir,
         zip_package,
+        src_testing,
         hot_backup,
         False,  # interactive
         starter_mode,
@@ -194,5 +196,5 @@ def main(
 
 
 if __name__ == "__main__":
-    # pylint: disable=E1120 # fix clickiness.
+    # pylint: disable=no-value-for-parameter # fix clickiness.
     sys.exit(main())

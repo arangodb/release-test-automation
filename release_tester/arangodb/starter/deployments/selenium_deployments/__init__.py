@@ -9,7 +9,7 @@ from selenium.common.exceptions import SessionNotCreatedException
 from arangodb.starter.deployments import RunnerType
 from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunner
 
-# pylint: disable=import-outside-toplevel disable=R0914 disable=R0912 disable=R0915
+# pylint: disable=import-outside-toplevel disable=too-many-locals disable=too-many-branches disable=too-many-statements
 def init(
     runner_type: RunnerType,
     selenium_worker: str,

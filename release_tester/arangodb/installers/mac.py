@@ -52,7 +52,7 @@ def _mountdmg(dmgpath):
         stdin=subprocess.PIPE,
     ) as proc:
         proc.stdin.write(b"y\n")  # answer 'Agree Y/N?' the dumb way...
-        # pylint: disable=W0612
+        # pylint: disable=unused-variable
         (pliststr, _) = proc.communicate()
 
     offset = pliststr.find(b'<?xml version="1.0" encoding="UTF-8"?>')
@@ -131,7 +131,7 @@ def _unmountdmg(mountpoint):
 class InstallerMac(InstallerBase):
     """install .dmg's on a mac"""
 
-    # pylint: disable=R0913 disable=R0902
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
     def __init__(self, cfg):
         self.remote_package_dir = "MacOSX"
         self.server_package = None
@@ -160,6 +160,8 @@ class InstallerMac(InstallerBase):
         cfg.real_sbin_dir = Path("/")
 
         super().__init__(cfg)
+        self.check_stripped = False
+        self.check_notarized = True
 
     @step
     def run_installer_script(self):
@@ -182,15 +184,31 @@ class InstallerMac(InstallerBase):
         enterprise = "e" if self.cfg.enterprise else ""
         architecture = "x86_64"
 
+        prerelease = self.cfg.semver.prerelease
         semdict = dict(self.cfg.semver.to_dict())
-        if semdict["prerelease"]:
-            if semdict["prerelease"].startswith("nightly"):
-                semdict["prerelease"] = ".{prerelease}".format(**semdict)
-            else:
-                semdict["prerelease"] = "-{prerelease}".format(**semdict)
-        else:
+        if semdict["build"] is None:
+            semdict["build"] = ""
+        if prerelease is None or prerelease == "":
             semdict["prerelease"] = ""
-        version = "{major}.{minor}.{patch}{prerelease}".format(**semdict)
+        elif prerelease == "nightly":
+            semdict["prerelease"] = ".{prerelease}".format(**semdict)
+        elif prerelease.startswith("alpha"):
+            # TODO: is this right?
+            semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
+        elif prerelease.startswith("beta"):
+            # TODO: is this right?
+            semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
+        elif prerelease.startswith("rc"):
+            # TODO: is this right?
+            # remove dots, but prepend one:
+            semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
+        elif len(prerelease) > 0:
+            semdict["build"] = "." + semdict["prerelease"]
+            semdict["prerelease"] = ""
+            # remove dots, but prepend one:
+            # once was: semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
+
+        version = "{major}.{minor}.{patch}{build}{prerelease}".format(**semdict)
 
         desc = {"ep": enterprise, "cfg": version, "arch": architecture}
 

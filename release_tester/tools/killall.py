@@ -8,7 +8,7 @@ import psutil
 from allure_commons._allure import attach
 
 # yes, we catch all.
-# pylint: disable=W0703
+# pylint: disable=broad-except
 
 
 @step

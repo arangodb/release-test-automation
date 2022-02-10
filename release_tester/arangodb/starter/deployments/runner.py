@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """ baseclass to manage a starter based installation """
-# pylint: disable=C0302
+# pylint: disable=too-many-lines
 from abc import abstractmethod, ABC
 import copy
 import datetime
@@ -40,7 +40,7 @@ WINVER = platform.win32_ver()
 def detect_file_ulimit():
     """check whether the ulimit for files is to low"""
     if not WINVER[0]:
-        # pylint: disable=C0415
+        # pylint: disable=import-outside-toplevel
         import resource
 
         nofd = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
@@ -59,7 +59,7 @@ def detect_file_ulimit():
 class RunnerProperties:
     """runner properties management class"""
 
-    # pylint: disable=R0903 disable=R0913 disable=R0912
+    # pylint: disable=too-few-public-methods disable=too-many-arguments disable=too-many-branches
     def __init__(
         self,
         short_name: str,
@@ -80,7 +80,7 @@ class RunnerProperties:
 class Runner(ABC):
     """abstract starter deployment runner"""
 
-    # pylint: disable=R0913 disable=R0902 disable=R0904 disable=C0415 disable=R0914 disable=R0915 disable=R0912
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=too-many-public-methods disable=import-outside-toplevel disable=too-many-locals disable=too-many-statements disable=too-many-branches
     def __init__(
         self,
         runner_type,
@@ -252,7 +252,7 @@ class Runner(ABC):
 
     def run(self):
         """run the full lifecycle flow of this deployment"""
-        # pylint: disable=R0915 disable=R0912
+        # pylint: disable=too-many-statements disable=too-many-branches
         if self.do_starter_test and not self.remote:
             detect_file_ulimit()
 
@@ -481,7 +481,7 @@ class Runner(ABC):
         if inst.check_service_up():
             inst.stop_service()
         inst.start_service()
-
+        print(inst.cfg.semver)
         sys_arangosh = ArangoshExecutor(inst.cfg, inst.instance)
 
         logging.debug("self test after installation")
@@ -795,7 +795,7 @@ class Runner(ABC):
             return starter.hb_instance.delete(name)
         raise Exception("no frontend found.")
 
-    # pylint: disable=R0201
+    # pylint: disable=no-self-use
     def wait_for_restore_impl(self, backup_starter):
         """wait for all restores to be finished"""
         backup_starter.wait_for_restore()
@@ -927,6 +927,23 @@ class Runner(ABC):
         return leader
 
     @step
+    def agency_get_leader_starter_instance(self):
+        """get the starter instance that manages the current agency leader"""
+        agency = []
+        for starter_mgr in self.starter_instances:
+            agency += starter_mgr.get_agents()
+        leader = None
+        leading_date = datetime.datetime(1970, 1, 1, 0, 0, 0)
+        for starter_mgr in self.starter_instances:
+            agency = starter_mgr.get_agents()
+            for agent in agency:
+                agent_leading_date = agent.search_for_agent_serving()
+                if agent_leading_date > leading_date:
+                    leading_date = agent_leading_date
+                    leader = starter_mgr
+        return leader
+
+    @step
     def agency_acquire_dump(self):
         """turns on logging on the agency"""
         print("Duming agency")
@@ -1049,7 +1066,7 @@ class Runner(ABC):
             )
         return body_json["results"][collection_name]
 
-    # pylint: disable=R1705
+    # pylint: disable=no-else-return
     def get_protocol(self):
         """return protocol of this starter (ssl/tcp)"""
         if self.cfg.ssl:
@@ -1057,7 +1074,7 @@ class Runner(ABC):
         else:
             return "tcp"
 
-    # pylint: disable=R1705
+    # pylint: disable=no-else-return
     def get_http_protocol(self):
         """return protocol of this starter (http/https)"""
         if self.cfg.ssl:
