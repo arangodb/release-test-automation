@@ -104,7 +104,7 @@ class TestDriver:
                                 resource.RLIM_INFINITY))
 
     def copy_packages_to_result(self, installers):
-        if not installer[0][1].find_crash(installer_set[0].base_test_dir):
+        if not installers[0][1].find_crash(installer_set[0].base_test_dir):
             return
         for installer_set in installers:
             for package in [
