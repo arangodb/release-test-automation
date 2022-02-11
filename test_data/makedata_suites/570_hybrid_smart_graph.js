@@ -2,7 +2,7 @@
 
 (function () {
     const Joi = require('joi');
-    const { arango } = require('@arangodb');
+    const {arango} = require('@arangodb');
     const chai = require('chai');
     const expect = chai.expect;
 
@@ -24,22 +24,22 @@
             return result;
         }
         if (actual instanceof Object && expected instanceof Object) {
-          const expectedKeys = Object.keys(expected);
-          const result = [];
+            const expectedKeys = Object.keys(expected);
+            const result = [];
 
-          for (const k of _.difference(Object.keys(actual), expectedKeys)) {
-              result.push({key: k, message: "Is added, but not expected"});
-          }
-          for (const k of expectedKeys) {
-              const res  = diffHelper(actual[k], expected[k]);
-              if (res !== true) {
-                  result.push({key: k, message: res});
-              }
-          }
-          if (result.length === 0) {
-              return true;
-          }
-          return result;
+            for (const k of _.difference(Object.keys(actual), expectedKeys)) {
+                result.push({key: k, message: "Is added, but not expected"});
+            }
+            for (const k of expectedKeys) {
+                const res = diffHelper(actual[k], expected[k]);
+                if (res !== true) {
+                    result.push({key: k, message: res});
+                }
+            }
+            if (result.length === 0) {
+                return true;
+            }
+            return result;
         }
         if (actual === expected) {
             return true;
@@ -54,7 +54,7 @@
     const localStorageName = "UnitTestHybridSmartGraph_local_storage";
 
     const createStorage = () => {
-        const col = createSafe(localStorageName, name =>  db._create(name), name => db._collection(name));
+        const col = createSafe(localStorageName, name => db._create(name), name => db._collection(name));
         const store = (_key, data) => {
             col.save({_key, data});
         };
@@ -77,7 +77,8 @@
     const clearStorage = () => {
         try {
             db._drop(localStorageName);
-        } catch (e){}
+        } catch (e) {
+        }
     };
 
     const url = '/_api/gharial';
@@ -126,7 +127,7 @@
             edgesSatToSmartCollectionName,
             edgesSmartToSatCollectionName,
             smartGraphAttribute
-        } =  generateNames(loopCount, isDisjoint);
+        } = generateNames(loopCount, isDisjoint);
         let options = {
             satellites: [satelliteCollectionName],
             isDisjoint,
@@ -159,7 +160,10 @@
         ];
         // Create a Hybrid Smart Graph
         const g = createSafe(smartGraphName, graphName => {
-            return sgm._create(graphName, edgeDefinitions, [], options);
+            require("console").warn(options);
+            const g = sgm._create(graphName, edgeDefinitions, [], options);
+            require("console").warn(`On create: ${JSON.stringify(db._collection(satelliteCollectionName).properties(true))}`);
+            return g
 
         }, graphName => {
             return sgm._graph(graphName);
@@ -364,7 +368,7 @@
             edgesSatToSmartCollectionName,
             edgesSmartToSatCollectionName,
             smartGraphAttribute
-        } =  generateNames(loopCount, isDisjoint);
+        } = generateNames(loopCount, isDisjoint);
 
         const shardKeys = generateSmartGraphShardKeys(db._collection(verticesCollectionName));
         createSmartVertices(db._collection(verticesCollectionName), shardKeys, smartGraphAttribute);
@@ -400,7 +404,7 @@
                     collection: Joi.string().required(),
                     from: Joi.array().items(Joi.string()).required(),
                     to: Joi.array().items(Joi.string()).required(),
-                    checksum: Joi.string().required()
+                    checksum: Joi.number().unsafe().required()
                 });
             } else {
                 edgeDefinitionSchema = Joi.object({
@@ -425,7 +429,7 @@
                 edgeDefinitions: Joi.array().items(edgeDefinitionSchema).required()
             };
             if (hasDetails) {
-                generalGraphSchema.checksum = Joi.string().required();
+                generalGraphSchema.checksum = Joi.number().unsafe().required();
             }
 
             if (isCluster || isSmart || isSatellite) {
@@ -485,7 +489,11 @@
                 Object.assign(generalGraphSchema, hybridSmartGraphSchema);
 
                 if (hybridCollections.length > 0) {
+                    require("console").warn(JSON.stringify(graph));
+                    require("console").warn(JSON.stringify(hybridCollections));
+
                     hybridCollections.forEach((hybridCol) => {
+                        require("console").warn(JSON.stringify(db._collection(hybridCol).properties(true)));
                         expect(graph.satellites.indexOf(hybridCol)).to.be.greaterThan(-1);
                     });
                 } else {
@@ -623,7 +631,7 @@
         testSatToSatEdgesExist(db._collection(edgesSatToSatCollectionName));
     };
 
-    let hasDetails = false;
+    let hasDetails = true;
     return {
         isSupported: function (currentVersion, oldVersion, options, enterprise, cluster) {
             if (enterprise) {
@@ -674,7 +682,7 @@
             for (const isDisjoint of [true, false]) {
                 const {
                     smartGraphName
-                } =  generateNames(loopCount, isDisjoint);
+                } = generateNames(loopCount, isDisjoint);
                 progress();
 
                 try {
