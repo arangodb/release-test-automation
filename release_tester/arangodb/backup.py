@@ -29,6 +29,7 @@ class HotBackupConfig:
     """manage rclone setup"""
 
     def __init__(self, basecfg, name, raw_install_prefix):
+        self.hb_timeout = 20
         self.hb_provider_cfg = basecfg.hb_provider_cfg
         self.install_prefix = raw_install_prefix
         self.cfg_type = HB_2_RCLONE_TYPE[self.hb_provider_cfg.mode]
@@ -54,6 +55,7 @@ class HotBackupConfig:
         ):
             try:
                 self.name = "S3"
+                self.timout = 120
                 config["type"] = "s3"
                 config["provider"] = "AWS"
                 config["env_auth"] = "false"
@@ -109,7 +111,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
             self.backup_dir.mkdir(parents=True)
 
     @step
-    def run_backup(self, arguments, name, silent=False, expect_to_fail=False):
+    def run_backup(self, arguments, name, silent=False, expect_to_fail=False, timeout=20):
         """run arangobackup"""
         if not silent:
             logging.info("running hot backup " + name)
@@ -128,7 +130,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         success, output, _, error_found = self.run_arango_tool_monitored(
             self.cfg.bin_dir / "arangobackup",
             run_cmd,
-            20,
+            timeout,
             inspect_line_result,
             self.cfg.verbose and not silent,
             expect_to_fail,
@@ -188,7 +190,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         ]
         # fmt: on
 
-        out = self.run_backup(args, backup_name)
+        out = self.run_backup(args, backup_name, timout=HotBackupConfig.timeout)
         for line in out.split("\n"):
             match = re.match(r".*arangobackup upload --status-id=(\d*)", str(line))
             if match:
@@ -245,7 +247,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
             '--remote-path', backup_config.construct_remote_storage_path(str(self.backup_dir))
         ]
         # fmt: on
-        out = self.run_backup(args, backup_name)
+        out = self.run_backup(args, backup_name, timout=HotBackupConfig.timeout)
         for line in out.split("\n"):
             match = re.match(r".*arangobackup download --status-id=(\d*)", str(line))
             if match:
