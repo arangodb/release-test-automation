@@ -4,7 +4,7 @@
 from pathlib import Path
 import click
 import tools.loghelper as lh
-from arangodb.installers import RunProperties
+from arangodb.installers import RunProperties, HotBackupCliCfg
 from common_options import zip_common_options
 from test_driver import TestDriver
 
@@ -22,9 +22,13 @@ def run_test(zip_package, src_testing):
         True,
         zip_package,
         src_testing,
-        False,  # hot_backup,
-        None,
-        "",
+        HotBackupCliCfg(""'
+                        ""'
+                        ""'
+                        ""'
+                        ""'
+                        ""'
+                        ""),
         False,  # interactive,
         "all",  # starter_mode,
         False,  # stress_upgrade,

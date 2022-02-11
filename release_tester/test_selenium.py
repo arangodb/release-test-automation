@@ -84,7 +84,9 @@ def run_upgrade(
 # pylint: disable=too-many-arguments disable=unused-argument
 def main(
         #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package, hot_backup, hb_provider, hb_storage_path_prefix,
+        new_version, verbose, enterprise, package_dir, zip_package, src_testing,
+        hot_backup, hb_provider, hb_storage_path_prefix,
+        hb_aws_access_key_id, hb_aws_secret_access_key, hb_aws_region, hb_aws_acl,
         # common_options
         old_version, test_data_dir, encryption_at_rest, interactive,
         starter_mode, stress_upgrade, abort_on_error, publicip,

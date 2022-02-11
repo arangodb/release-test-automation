@@ -72,6 +72,23 @@ class HotBackupProviderCfg:
         while self.path_prefix and "//" in self.path_prefix:
             self.path_prefix = self.path_prefix.replace("//", "/")
 
+class HotBackupCliCfg:
+    def __init__(self,
+                 hot_backup,
+                 hb_provider,
+                 hb_storage_path_prefix,
+                 hb_aws_access_key_id,
+                 hb_aws_secret_access_key,
+                 hb_aws_region,
+                 hb_aws_acl):
+        self.hot_backup = hot_backup
+        self.hb_provider = hb_provider
+        self.hb_storage_path_prefix = hb_storage_path_prefix
+        self.hb_aws_access_key_id = hb_aws_access_key_id
+        self.hb_aws_secret_access_key = hb_aws_secret_access_key
+        self.hb_aws_region = hb_aws_region
+        self.hb_aws_acl = hb_aws_acl
+        
 
 class InstallerFrontend:
     """class describing frontend instances"""
@@ -94,9 +111,7 @@ class InstallerConfig:
         encryption_at_rest: bool,
         zip_package: bool,
         src_testing: bool,
-        hot_backup: str,
-        hb_provider: str,
-        hb_storage_path_prefix: str,
+        hot_backup_cli_cfg: HotBackupCliCfg
         package_dir: Path,
         test_dir: Path,
         deployment_mode: str,
@@ -163,6 +178,7 @@ class InstallerConfig:
             )
         else:
             self.hb_provider_cfg = HotBackupProviderCfg(HotBackupMode.DISABLED)
+        self.hot_backup_cli_cfg = hot_backup_cli_cfg
 
     def __repr__(self):
         return """
@@ -232,7 +248,8 @@ verbose: {0.verbose}
             self.appdir = other_cfg.appdir
             self.cfgdir = other_cfg.cfgdir
             self.hot_backup = other_cfg.hot_backup
-            self.hb_provider_cfg = other_cfg.hb_provider_cfg
+            self.hb_provider_cfg = copy.deepcopy(other_cfg.hb_provider_cfg)
+            self.hot_backup_cli_cfg = copy.deepcopy(other_cfg.hot_backup_cli_cfg)
         except AttributeError:
             # if the config.yml gave us a wrong value, we don't care.
             pass
