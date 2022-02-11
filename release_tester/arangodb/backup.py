@@ -55,7 +55,7 @@ class HotBackupConfig:
         ):
             try:
                 self.name = "S3"
-                self.timout = 120
+                self.hb_timeout = 120
                 config["type"] = "s3"
                 config["provider"] = "AWS"
                 config["env_auth"] = "false"
@@ -190,7 +190,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         ]
         # fmt: on
 
-        out = self.run_backup(args, backup_name, timout=backup_config.hb_timeout)
+        out = self.run_backup(args, backup_name, timeout=backup_config.hb_timeout)
         for line in out.split("\n"):
             match = re.match(r".*arangobackup upload --status-id=(\d*)", str(line))
             if match:
@@ -247,7 +247,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
             '--remote-path', backup_config.construct_remote_storage_path(str(self.backup_dir))
         ]
         # fmt: on
-        out = self.run_backup(args, backup_name, timout=backup_config.hb_timeout)
+        out = self.run_backup(args, backup_name, timeout=backup_config.hb_timeout)
         for line in out.split("\n"):
             match = re.match(r".*arangobackup download --status-id=(\d*)", str(line))
             if match:
