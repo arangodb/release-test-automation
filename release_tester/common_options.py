@@ -85,14 +85,14 @@ def very_common_options(support_multi_version=False):
             help="directory to down/load the packages from/to.",
         )(function)
         function = click.option(
-            "--hotbackup-mode",
+            "--hb-mode",
             "hot_backup",
             default="directory",
             type=click.Choice(HB_MODES.keys()),
             help="which type of hot backup to use",
         )(function)
         function = click.option(
-            "--hotbackup-provider",
+            "--hb-provider",
             "hb_provider",
             default=None,
             type=click.Choice(HB_PROVIDERS.keys()),

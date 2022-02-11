@@ -102,7 +102,7 @@ docker run \
           --old-version "${OLD_VERSION}" \
           --new-version "${NEW_VERSION}" \
           --zip \
-          --hotbackup-mode s3bucket \
+          --hb-mode s3bucket \
           --verbose \
           --alluredir /home/allure-results \
           --git-version "$GIT_VERSION" \
