@@ -40,14 +40,18 @@ def read_versions_tar(tar_file, versions):
     """reads the versions tar"""
     try:
         fdesc = tar_file.open("rb")
-        with tarfile.open(fileobj=fdesc, mode="r:") as tar:
-            for member in tar:
-                print(member.name)
-                print(member.isfile())
-                if member.isfile():
-                    versions[member.name] = tar.extractfile(member).read().decode(encoding="utf-8")
-                    print(versions[member.name])
-            tar.close()
+        try:
+            with tarfile.open(fileobj=fdesc, mode="r:") as tar:
+                for member in tar:
+                    print(member.name)
+                    print(member.isfile())
+                    if member.isfile():
+                        versions[member.name] = tar.extractfile(member).read().decode(encoding="utf-8")
+                        print(versions[member.name])
+                tar.close()
+        except tarfile.ReadError as ex:
+            print("Ignoring exception during reading the tar file: " + str(ex))
+            pass
         fdesc.close()
     except FileNotFoundError:
         pass
