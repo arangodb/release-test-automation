@@ -52,6 +52,7 @@ class InstallerW(InstallerBase):
         super().__init__(cfg)
         self.check_stripped = False
         self.check_symlink = False
+        self.core_glob = "**/*.dmp"
 
     def supports_hot_backup(self):
         """no hot backup support on the wintendo."""
@@ -64,13 +65,13 @@ class InstallerW(InstallerBase):
         cmd = ['signtool', 'verify', '/pa', str(fulldir)]
         print(cmd)
         with psutil.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
-            (signtool_str, err) = proc.communicate()
+            (signtool_str, _) = proc.communicate()
             print(signtool_str)
             if proc.returncode:
                 raise Exception("Signtool exited nonzero " + str(cmd) + "\n" + str(signtool_str))
             if signtool_str.find(success_string) < 0:
                 raise Exception("Signtool didn't find signature: " + str(signtool_str))
-    
+
     def calculate_package_names(self):
         enterprise = "e" if self.cfg.enterprise else ""
         architecture = "win64"

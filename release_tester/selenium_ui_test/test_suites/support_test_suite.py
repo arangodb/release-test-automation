@@ -11,11 +11,11 @@ class SupportTestSuite(BaseSeleniumTestSuite):
     def test_support(self):
         """testing support page"""
         print("---------Checking Support page started--------- \n")
-        # login = LoginPage(self.webdriver)
+        # login = LoginPage(self.webdriver, self.cfg)
         # login.login('root', self.root_passvoid)
 
         # creating multiple support page obj
-        support = SupportPage(self.webdriver)
+        support = SupportPage(self.webdriver, self.cfg)
 
         print("Selecting Support Page \n")
         support.select_support_page()

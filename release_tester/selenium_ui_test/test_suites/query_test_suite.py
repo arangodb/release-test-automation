@@ -13,8 +13,8 @@ class QueryTestSuite(BaseSeleniumTestSuite):
     def test_query(self):
         """testing query page"""
         # pylint: disable=too-many-statements
-        query_page = QueryPage(self.webdriver)
-        graph_page = GraphPage(self.webdriver)
+        query_page = QueryPage(self.webdriver, self.cfg)
+        graph_page = GraphPage(self.webdriver, self.cfg)
 
         assert query_page.current_user() == "ROOT", "current user is root?"
         assert query_page.current_database() == "_SYSTEM", "current database is _system?"

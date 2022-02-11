@@ -10,7 +10,10 @@
       if (enterprise) {
         gsm = require('@arangodb/smart-graph');
       }
-      return enterprise;
+      // strip off -nightly etc:
+      ver = semver.parse(oldVersion.split('-')[0])
+      // as of 3.10 BTS-776 has to have this workaround:
+      return enterprise && (cluster || semver.lt(ver, "3.10.0"));
     },
     makeData: function (options, isCluster, isEnterprise, dbCount, loopCount) {
       // All items created must contain dbCount and loopCount

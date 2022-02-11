@@ -11,9 +11,9 @@ from selenium.common.exceptions import StaleElementReferenceException
 class UserPage(NavigationBarPage):
     """Class for User page"""
 
-    def __init__(self, driver):
+    def __init__(self, driver, cfg):
         """User page initialization"""
-        super().__init__(driver)
+        super().__init__(driver, cfg)
         self.add_new_user_id = "createUser"
         self.enter_new_user_name_id = "newUsername"
         self.enter_new_name_id = "newName"

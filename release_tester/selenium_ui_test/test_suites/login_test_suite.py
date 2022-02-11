@@ -12,7 +12,7 @@ class LogInTestSuite(BaseSeleniumTestSuite):
     def test_login(self):
         """testing login page"""
         print("Starting ", self.webdriver.title, "\n")
-        login_page = LoginPage(self.webdriver)
+        login_page = LoginPage(self.webdriver, self.cfg)
         assert login_page.current_user() == "ROOT", "current user is root?"
         assert login_page.current_database() == "_SYSTEM", "current database is _system?"
         login_page.log_out()
