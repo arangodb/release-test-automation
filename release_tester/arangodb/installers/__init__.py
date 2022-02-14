@@ -174,7 +174,9 @@ class InstallerConfig:
         winver = platform.win32_ver()
 
         self.hb_cli_cfg = hb_cli_cfg
-        self.hot_backup_supported = self.enterprise and not IS_WINDOWS
+        self.hot_backup_supported = (self.enterprise and
+                                     not IS_WINDOWS and
+                                     hb_cli_cfg.hb_provider_cfg.mode != HotBackupMode.DISABLED)
 
     def __repr__(self):
         return """
