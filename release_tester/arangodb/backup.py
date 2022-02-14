@@ -7,42 +7,39 @@ import re
 import time
 import copy
 
+from allure_commons._allure import attach
+
 from reporting.reporting_utils import step
 
 from tools.asciiprint import ascii_convert_str, print_progress as progress
 import tools.loghelper as lh
 
 from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor
-from arangodb.installers import HotBackupSetting
+from arangodb.installers import HotBackupMode, HotBackupProviders
 
 HB_2_RCLONE_TYPE = {
-    HotBackupSetting.DISABLED: "disabled",
-    HotBackupSetting.DIRECTORY: "local",
-    HotBackupSetting.S3BUCKET: "S3",
+    HotBackupMode.DISABLED: "disabled",
+    HotBackupMode.DIRECTORY: "local",
+    HotBackupMode.S3BUCKET: "S3",
 }
-
-HB_2_RCLONE_PROVIDER = {
-    HotBackupSetting.DISABLED: None,
-    HotBackupSetting.DIRECTORY: None,
-    HotBackupSetting.S3BUCKET: "minio",
-}
-
 
 class HotBackupConfig:
     """manage rclone setup"""
 
     def __init__(self, basecfg, name, raw_install_prefix):
-        self.cfg = basecfg
+        self.hb_timeout = 20
+        hbcfg = basecfg.hb_cli_cfg
+        self.hb_provider_cfg = hbcfg.hb_provider_cfg
         self.install_prefix = raw_install_prefix
-        self.cfg_type = HB_2_RCLONE_TYPE[basecfg.hb_mode]
+        self.cfg_type = HB_2_RCLONE_TYPE[self.hb_provider_cfg.mode]
         self.name = str(name).replace("/", "_").replace(".", "_")
-        self.provider = HB_2_RCLONE_PROVIDER[basecfg.hb_mode]
-        self.acl = "private"
-
         config = {}
         config["type"] = self.cfg_type
 
-        if basecfg.hb_mode == HotBackupSetting.S3BUCKET:
+        if (
+            self.hb_provider_cfg.mode == HotBackupMode.S3BUCKET
+            and self.hb_provider_cfg.provider == HotBackupProviders.MINIO
+        ):
             self.name = "S3"
             config["type"] = "s3"
             config["provider"] = "minio"
@@ -51,7 +48,20 @@ class HotBackupConfig:
             config["secret_access_key"] = "minio123"
             config["endpoint"] = "http://minio1:9000"
             config["region"] = "us-east-1"
-        elif basecfg.hb_mode == HotBackupSetting.DIRECTORY:
+        elif (
+            self.hb_provider_cfg.mode == HotBackupMode.S3BUCKET
+            and self.hb_provider_cfg.provider == HotBackupProviders.AWS
+        ):
+            self.name = "S3"
+            self.hb_timeout = 120
+            config["type"] = "s3"
+            config["provider"] = "AWS"
+            config["env_auth"] = "false"
+            config["access_key_id"] = hbcfg.hb_aws_access_key_id
+            config["secret_access_key"] = hbcfg.hb_aws_secret_access_key
+            config["region"] = hbcfg.hb_aws_region
+            config["acl"] = hbcfg.hb_aws_acl
+        elif self.hb_provider_cfg.mode == HotBackupMode.DIRECTORY:
             config["copy-links"] = "false"
             config["links"] = "false"
             config["one_file_system"] = "true"
@@ -60,13 +70,24 @@ class HotBackupConfig:
     def save_config(self, filename):
         """writes a hotbackup rclone configuration file"""
         fhandle = self.install_prefix / filename
+        lh.subsubsection("Writing RClone config:")
         print(json.dumps(self.config))
         fhandle.write_text(json.dumps(self.config))
         return str(fhandle)
 
+    @step
     def get_rclone_config_file(self):
         """create a config file and return its full name"""
-        return self.save_config("rclone_config.json")
+        filename = self.save_config("rclone_config.json")
+        attach.file(filename, "rclone_config.json", "application/json", "rclone_config.json")
+        return filename
+
+    def construct_remote_storage_path(self, postfix):
+        """ generate a working storage path from the config params """
+        result = f"{self.name}:/{self.hb_provider_cfg.path_prefix}/{postfix}"
+        while "//" in result:
+            result = result.replace("//", "/")
+        return result
 
 
 class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
@@ -85,8 +106,9 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         if not self.backup_dir.exists():
             self.backup_dir.mkdir(parents=True)
 
+    # pylint: disable=too-many-arguments
     @step
-    def run_backup(self, arguments, name, silent=False, expect_to_fail=False):
+    def run_backup(self, arguments, name, silent=False, expect_to_fail=False, timeout=20):
         """run arangobackup"""
         if not silent:
             logging.info("running hot backup " + name)
@@ -105,7 +127,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         success, output, _, error_found = self.run_arango_tool_monitored(
             self.cfg.bin_dir / "arangobackup",
             run_cmd,
-            20,
+            timeout,
             inspect_line_result,
             self.cfg.verbose and not silent,
             expect_to_fail,
@@ -161,10 +183,11 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
             '--label', identifier,
             '--identifier', backup_name,
             '--rclone-config-file', backup_config.get_rclone_config_file(),
-            '--remote-path', backup_config.name + '://' + str(self.backup_dir)
+            '--remote-path', backup_config.construct_remote_storage_path(str(self.backup_dir))
         ]
         # fmt: on
-        out = self.run_backup(args, backup_name)
+
+        out = self.run_backup(args, backup_name, timeout=backup_config.hb_timeout)
         for line in out.split("\n"):
             match = re.match(r".*arangobackup upload --status-id=(\d*)", str(line))
             if match:
@@ -218,10 +241,10 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
             '--label', identifier,
             '--identifier', backup_name,
             '--rclone-config-file', backup_config.get_rclone_config_file(),
-            '--remote-path', backup_config.name + '://' + str(self.backup_dir)
+            '--remote-path', backup_config.construct_remote_storage_path(str(self.backup_dir))
         ]
         # fmt: on
-        out = self.run_backup(args, backup_name)
+        out = self.run_backup(args, backup_name, timeout=backup_config.hb_timeout)
         for line in out.split("\n"):
             match = re.match(r".*arangobackup download --status-id=(\d*)", str(line))
             if match:

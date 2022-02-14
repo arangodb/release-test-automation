@@ -406,9 +406,16 @@ class InstallerBase(ABC):
     def load_config(self):
         """deserialize the config from disk"""
         verbose = self.cfg.verbose
-        with open(self.calc_config_file_name(), encoding='utf8') as fileh:
-            print("loading " + str(self.calc_config_file_name()))
-            self.cfg.set_from(yaml.load(fileh, Loader=yaml.Loader))
+        try:
+            with open(self.calc_config_file_name(), encoding='utf8') as fileh:
+                print("loading " + str(self.calc_config_file_name()))
+                cfg = yaml.load(fileh, Loader=yaml.Loader)
+                test_cfg = copy.deepcopy(self.cfg)
+                test_cfg.set_from(cfg)
+                self.cfg.set_from(test_cfg)
+        except Exception as ex:
+            print("failed to load saved config - skiping " + str(ex))
+            return
         self.cfg.semver = semver.VersionInfo.parse(self.cfg.version)
 
         self.instance = ArangodInstance(

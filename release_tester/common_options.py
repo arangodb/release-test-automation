@@ -7,25 +7,24 @@ import os
 import click
 
 from arangodb.starter.deployments import STARTER_MODES
-from arangodb.installers import HB_MODES
+from arangodb.installers import HB_MODES, HB_PROVIDERS
 
 CWD = Path.cwd()
 
-def get_default_value(env_key: str,
-                      add_subkey: str,
-                      default_value: str):
+
+def get_default_value(env_key: str, add_subkey: str, default_value: str):
     """try to extract default values from the environment"""
     if env_key in os.environ:
         return os.environ[env_key] + add_subkey
     return default_value
 
-def get_default_path_value(env_key: str,
-                           add_path: str,
-                           default_path: Path):
+
+def get_default_path_value(env_key: str, add_path: str, default_path: Path):
     """try to extract jenkins default path values"""
     if env_key in os.environ:
         return Path(os.environ[env_key]) / add_path
     return default_path
+
 
 def zip_common_options(function):
     """zip option. even on cleanup which has no more."""
@@ -45,18 +44,75 @@ def zip_common_options(function):
     )(function)
     return function
 
+def hotbackup_options():
+    """ all of these hot backup options """
+    access_key_id = get_default_value("AWS_ACCESS_KEY_ID", "", "")
+    secret_access_key = get_default_value("AWS_SECRET_ACCESS_KEY", "", "")
+    region = get_default_value("AWS_REGION", "", "")
+    acl = get_default_value("AWS_ACL", "", "private")
+
+    def inner_func(function):
+        function = click.option(
+            "--hb-mode",
+            "hot_backup",
+            default="directory",
+            type=click.Choice(HB_MODES.keys()),
+            help="which type of hot backup to use",
+        )(function)
+        function = click.option(
+            "--hb-provider",
+            "hb_provider",
+            default=None,
+            type=click.Choice(HB_PROVIDERS.keys()),
+            help="which storage provider to use for hot backup",
+        )(function)
+        function = click.option(
+            "--hb-storage-path-prefix",
+            "hb_storage_path_prefix",
+            default="",
+            help="directory to store hot backups on the cloud storage",
+        )(function)
+        function = click.option(
+            "--hb-aws-access-key-id",
+            "hb_aws_access_key_id",
+            default=access_key_id,
+            help="AWS access key id",
+        )(function)
+        function = click.option(
+            "--hb-aws-secret-access-key",
+            "hb_aws_secret_access_key",
+            default=secret_access_key,
+            help="AWS secret access key",
+        )(function)
+        function = click.option(
+            "--hb-aws-region",
+            "hb_aws_region",
+            default=region,
+            help="AWS region",
+        )(function)
+        function = click.option(
+            "--hb-aws-acl",
+            "hb_aws_acl",
+            default=acl,
+            help="AWS  ACL (default value: 'private')",
+        )(function)
+        return function
+    return inner_func
+
+
+
 def very_common_options(support_multi_version=False):
     """These options are in all scripts"""
     package_dir = Path("/home/package_cache/")
 
     if not package_dir.exists():
-        package_dir = CWD / 'package_cache'
+        package_dir = CWD / "package_cache"
 
     if not package_dir.exists():
         package_dir = Path("/tmp/")
-    package_dir = get_default_path_value('WORKSPACE', 'package_cache', package_dir)
+    package_dir = get_default_path_value("WORKSPACE", "package_cache", package_dir)
 
-    defver = get_default_value('NEW_VERSION', '', "3.10.0-nightly")
+    defver = get_default_value("NEW_VERSION", "", "3.10.0-nightly")
     if support_multi_version:
         defver = [defver]
 
@@ -84,13 +140,6 @@ def very_common_options(support_multi_version=False):
             default=package_dir,
             help="directory to down/load the packages from/to.",
         )(function)
-        function = click.option(
-            "--hotbackup-mode",
-            "hot_backup",
-            default="directory",
-            type=click.Choice(HB_MODES.keys()),
-            help="which type of hot backup to use",
-        )(function)
         function = zip_common_options(function)
         return function
 
@@ -105,14 +154,15 @@ def common_options(
 ):
     """these options are common to most scripts"""
 
-    test_data_dir = get_default_path_value('WORKSPACE', 'test_dir', test_data_dir)
-    default_allure_dir = Path('/home/allure-results')
+    test_data_dir = get_default_path_value("WORKSPACE", "test_dir", test_data_dir)
+    default_allure_dir = Path("/home/allure-results")
     if not default_allure_dir.exists():
-        default_allure_dir = get_default_path_value('WORKSPACE', 'allure-results', CWD / "allure-results")
+        default_allure_dir = get_default_path_value("WORKSPACE", "allure-results", CWD / "allure-results")
+
     def inner_func(function):
 
         if support_old:
-            defver = get_default_value('OLD_VERSION', '', "3.9-nightly")
+            defver = get_default_value("OLD_VERSION", "", "3.9-nightly")
             if support_multi_version:
                 defver = [defver]
             function = click.option(
