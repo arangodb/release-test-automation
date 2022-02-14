@@ -11,7 +11,7 @@ import sys
 import tarfile
 
 import click
-from arangodb.installers import make_installer, InstallerConfig
+from arangodb.installers import make_installer, InstallerConfig, HotBackupCliCfg
 import tools.loghelper as lh
 
 import requests
@@ -359,12 +359,21 @@ class Download:
 # pylint: disable=too-many-arguments disable=unused-argument
 def main(
         #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package, src_testing, hot_backup, hb_provider, hb_storage_path_prefix,
+        new_version, verbose, enterprise, package_dir, zip_package, src_testing,
+        hot_backup, hb_provider, hb_storage_path_prefix,
+        hb_aws_access_key_id, hb_aws_secret_access_key, hb_aws_region, hb_aws_acl,
         # download options:
         enterprise_magic, force, source,
         httpuser, httppassvoid, remote_host):
 # fmt: on
     """ main wrapper """
+    _ = HotBackupCliCfg(hot_backup,
+                        hb_provider,
+                        hb_storage_path_prefix,
+                        hb_aws_access_key_id,
+                        hb_aws_secret_access_key,
+                        hb_aws_region,
+                        hb_aws_acl)
     dl_opts = DownloadOptions(force,
                               verbose,
                               Path(package_dir),

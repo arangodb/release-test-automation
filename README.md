@@ -437,13 +437,12 @@ This is controlled using the following 3 command line parameters:
  - `--hb-mode` - Hot backup mode. Possible values: disabled, directory or s3bucket. 
  - `--hb-provider` - Cloud storage provider. Possible values for s3bucket: minio, aws.
  - `--hb-storage-path-prefix` - Bucket name and subdirectory to store hot backups in cloud.
+ - `--hb-aws-access-key-id` [env `AWS_ACCESS_KEY_ID`] - access key id (mandatory parameter)
+ - `--hb-aws-secret-access-key` [env `AWS_SECRET_ACCESS_KEY`] - secret access key (mandatory parameter)
+ - `--hb-aws-region` [env `AWS_REGION`] - region (mandatory parameter)
+ - `--hb-aws-acl` [env `AWS_ACL`] - ACL (default value: `private`)
 
 Each cloud storage may also have some specific configuration parameters, which must be set as environment variables.
-### List of environment variables for AWS:
-`AWS_ACCESS_KEY_ID` - access key id (mandatory parameter)  
-`AWS_SECRET_ACCESS_KEY` - secret access key (mandatory parameter)  
-`AWS_REGION` - region (mandatory parameter)  
-`AWS_ACL` - ACL (default value: `private`)  
 
 
 

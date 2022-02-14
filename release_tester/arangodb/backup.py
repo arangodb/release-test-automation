@@ -24,11 +24,10 @@ HB_2_RCLONE_TYPE = {
     HotBackupMode.S3BUCKET: "S3",
 }
 
-
 class HotBackupConfig:
     """manage rclone setup"""
 
-    def __init__(self, basecfg, name, raw_install_prefix):
+    def __init__(self, basecfg, name, raw_install_prefix, clicfg: HotBackupCliCfg):
         self.hb_timeout = 20
         self.hb_provider_cfg = basecfg.hb_provider_cfg
         self.install_prefix = raw_install_prefix

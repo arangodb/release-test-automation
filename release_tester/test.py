@@ -10,6 +10,7 @@ import semver
 from common_options import very_common_options, common_options
 from test_driver import TestDriver
 from arangodb.installers import RunProperties
+from arangodb.backup import HotBackupCliCfg
 
 
 @click.command()
@@ -32,8 +33,9 @@ from arangodb.installers import RunProperties
 # fmt: off
 def main(mode,
          #very_common_options
-         new_version, verbose, enterprise, package_dir, zip_package,
-         src_testing, hot_backup, hb_provider, hb_storage_path_prefix,
+         new_version, verbose, enterprise, package_dir, zip_package, src_testing,
+         hot_backup, hb_provider, hb_storage_path_prefix,
+         hb_aws_access_key_id, hb_aws_secret_access_key, hb_aws_region, hb_aws_acl,
          # common_options
          alluredir, clean_alluredir, ssl, use_auto_certs,
          # old_version,
@@ -50,9 +52,13 @@ def main(mode,
         clean_alluredir,
         zip_package,
         src_testing,
-        hot_backup,
-        hb_provider,
-        hb_storage_path_prefix,
+        HotBackupCliCfg(hot_backup,
+                        hb_provider,
+                        hb_storage_path_prefix,
+                        hb_aws_access_key_id,
+                        hb_aws_secret_access_key,
+                        hb_aws_region,
+                        hb_aws_acl),
         interactive,
         starter_mode,
         False, # stress_upgrade

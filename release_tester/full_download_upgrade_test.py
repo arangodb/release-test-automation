@@ -14,7 +14,7 @@ from download import Download, DownloadOptions
 from test_driver import TestDriver
 from tools.killall import list_all_processes
 
-from arangodb.installers import EXECUTION_PLAN
+from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg
 
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
 def upgrade_package_test(
@@ -201,7 +201,9 @@ def main(
         editions,
         upgrade_matrix,
         #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package, src_testing, hot_backup, hb_provider, hb_storage_path_prefix,
+        new_version, verbose, enterprise, package_dir, zip_package, src_testing,
+        hot_backup, hb_provider, hb_storage_path_prefix,
+        hb_aws_access_key_id, hb_aws_secret_access_key, hb_aws_region, hb_aws_acl,
         # common_options
         # old_version,
         test_data_dir, encryption_at_rest, alluredir, clean_alluredir, ssl, use_auto_certs,
@@ -231,9 +233,13 @@ def main(
         clean_alluredir,
         zip_package,
         src_testing,
-        hot_backup,
-        hb_provider,
-        hb_storage_path_prefix,
+        HotBackupCliCfg(hot_backup,
+                        hb_provider,
+                        hb_storage_path_prefix,
+                        hb_aws_access_key_id,
+                        hb_aws_secret_access_key,
+                        hb_aws_region,
+                        hb_aws_acl),
         False,  # interactive
         starter_mode,
         False,  # stress_upgrade,
