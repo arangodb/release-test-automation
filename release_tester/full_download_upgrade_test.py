@@ -68,6 +68,7 @@ def upgrade_package_test(
         # pylint: disable=unused-variable
         dl_new = Download(
             dl_opts,
+            test_driver.base_config.hb_cli_cfg,
             primary_version,
             props.enterprise,
             test_driver.base_config.zip_package,
@@ -102,6 +103,7 @@ def upgrade_package_test(
         # pylint: disable=unused-variable
         dl_old = Download(
             dl_opts,
+            test_driver.base_config.hb_cli_cfg,
             old_versions[j],
             props.enterprise,
             test_driver.base_config.zip_package,
@@ -113,6 +115,7 @@ def upgrade_package_test(
         )
         dl_new = Download(
             dl_opts,
+            test_driver.base_config.hb_cli_cfg,
             new_versions[j],
             props.enterprise,
             test_driver.base_config.zip_package,

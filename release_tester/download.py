@@ -112,11 +112,11 @@ class Download:
     def __init__(
         self,
         options: DownloadOptions,
-        hot_backup_cli_cfg: HotBackupCliCfg,
-        version,
-        enterprise,
-        zip_package,
-        src_testing,
+        hb_cli_cfg: HotBackupCliCfg,
+        version: str,
+        enterprise: bool,
+        zip_package: bool,
+        src_testing: bool,
         source,
         existing_version_states={},
         new_version_states={},
@@ -150,7 +150,7 @@ class Download:
             encryption_at_rest=False,
             zip_package=zip_package,
             src_testing=src_testing,
-            hot_backup_cli_cfg=hot_backup_cli_cfg,
+            hb_cli_cfg=hb_cli_cfg,
             package_dir=options.package_dir,
             test_dir=Path("/"),
             deployment_mode="all",
@@ -370,13 +370,13 @@ def main(
         httpuser, httppassvoid, remote_host):
 # fmt: on
     """ main wrapper """
-    hot_backup_cli_cfg = HotBackupCliCfg(hot_backup,
-                                         hb_provider,
-                                         hb_storage_path_prefix,
-                                         hb_aws_access_key_id,
-                                         hb_aws_secret_access_key,
-                                         hb_aws_region,
-                                         hb_aws_acl)
+    hb_cli_cfg = HotBackupCliCfg(hot_backup,
+                                 hb_provider,
+                                 hb_storage_path_prefix,
+                                 hb_aws_access_key_id,
+                                 hb_aws_secret_access_key,
+                                 hb_aws_region,
+                                 hb_aws_acl)
     dl_opts = DownloadOptions(force,
                               verbose,
                               Path(package_dir),
@@ -388,7 +388,7 @@ def main(
     lh.configure_logging(verbose)
     downloader = Download(
         options=dl_opts,
-        hot_backup_cli_cfg=hot_backup_cli_cfg,
+        hb_cli_cfg=hb_cli_cfg,
         version=new_version,
         enterprise=enterprise,
         zip_package=zip_package,

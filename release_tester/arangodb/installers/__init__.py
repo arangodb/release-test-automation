@@ -75,14 +75,14 @@ class HotBackupProviderCfg:
 class HotBackupCliCfg:
     """ map common_options hotbackup_options """
     def __init__(self,
-                 hb_mode,
-                 hb_provider,
-                 hb_storage_path_prefix,
-                 hb_aws_access_key_id,
-                 hb_aws_secret_access_key,
-                 hb_aws_region,
-                 hb_aws_acl):
-        self.hb_mode = HB_MODEL[hb_mode]
+                 hb_mode="",
+                 hb_provider="",
+                 hb_storage_path_prefix="",
+                 hb_aws_access_key_id="",
+                 hb_aws_secret_access_key="",
+                 hb_aws_region="",
+                 hb_aws_acl=""):
+        self.hb_mode = HB_MODES[hb_mode]
         self.hb_provider_cfg = HotBackupProviderCfg(
             self.hb_mode, HB_PROVIDERS[hb_provider] if hb_provider else None, hb_storage_path_prefix
         )
@@ -115,7 +115,7 @@ class InstallerConfig:
         encryption_at_rest: bool,
         zip_package: bool,
         src_testing: bool,
-        hot_backup_cli_cfg: HotBackupCliCfg,
+        hb_cli_cfg: HotBackupCliCfg,
         package_dir: Path,
         test_dir: Path,
         deployment_mode: str,
@@ -173,7 +173,7 @@ class InstallerConfig:
         self.cfgdir = Path()
         winver = platform.win32_ver()
 
-        self.hot_backup_cli_cfg = hot_backup_cli_cfg
+        self.hb_cli_cfg = hb_cli_cfg
         self.hot_backup_supported = self.enterprise and not IS_WINDOWS
 
     def __repr__(self):
@@ -244,7 +244,7 @@ verbose: {0.verbose}
             self.appdir = other_cfg.appdir
             self.cfgdir = other_cfg.cfgdir
             self.hot_backup_supported = other_cfg.hot_backup_supported
-            self.hot_backup_cli_cfg = copy.deepcopy(other_cfg.hot_backup_cli_cfg)
+            self.hb_cli_cfg = copy.deepcopy(other_cfg.hb_cli_cfg)
         except AttributeError:
             # if the config.yml gave us a wrong value, we don't care.
             pass
@@ -440,9 +440,7 @@ def create_config_installer_set(
             run_properties.encryption_at_rest,
             base_config.zip_package,
             base_config.src_testing,
-            base_config.hot_backup,
-            base_config.hb_provider,
-            base_config.hb_storage_path_prefix,
+            base_config.hb_cli_cfg,
             base_config.package_dir,
             base_config.test_data_dir,
             deployment_mode,

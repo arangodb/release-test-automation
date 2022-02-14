@@ -28,7 +28,7 @@ class HotBackupConfig:
 
     def __init__(self, basecfg, name, raw_install_prefix):
         self.hb_timeout = 20
-        hbcfg = basecfg.hot_backup_cli_cfg
+        hbcfg = basecfg.hb_cli_cfg
         self.hb_provider_cfg = hbcfg.hb_provider_cfg
         self.install_prefix = raw_install_prefix
         self.cfg_type = HB_2_RCLONE_TYPE[self.hb_provider_cfg.mode]

@@ -53,6 +53,7 @@ def package_test(dl_opts: DownloadOptions, new_version, new_dlstage, git_version
             continue
         dl_new = Download(
             dl_opts,
+            test_driver.base_config.hb_cli_cfg,
             new_version,
             props.enterprise,
             test_driver.base_config.zip_package,
