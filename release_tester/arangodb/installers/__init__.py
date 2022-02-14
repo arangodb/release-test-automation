@@ -74,14 +74,17 @@ class HotBackupProviderCfg:
 
 class HotBackupCliCfg:
     def __init__(self,
-                 hot_backup,
+                 hb_mode,
                  hb_provider,
                  hb_storage_path_prefix,
                  hb_aws_access_key_id,
                  hb_aws_secret_access_key,
                  hb_aws_region,
                  hb_aws_acl):
-        self.hot_backup = hot_backup
+        self.hb_mode = HB_MODEL[hb_mode]
+        self.hb_provider_cfg = HotBackupProviderCfg(
+            self.hb_mode, HB_PROVIDERS[hb_provider] if hb_provider else None, hb_storage_path_prefix
+        )
         self.hb_provider = hb_provider
         self.hb_storage_path_prefix = hb_storage_path_prefix
         self.hb_aws_access_key_id = hb_aws_access_key_id
@@ -111,7 +114,7 @@ class InstallerConfig:
         encryption_at_rest: bool,
         zip_package: bool,
         src_testing: bool,
-        hot_backup_cli_cfg: HotBackupCliCfg
+        hot_backup_cli_cfg: HotBackupCliCfg,
         package_dir: Path,
         test_dir: Path,
         deployment_mode: str,
@@ -169,16 +172,8 @@ class InstallerConfig:
         self.cfgdir = Path()
         winver = platform.win32_ver()
 
-        self.hot_backup = (
-            self.enterprise and (semver.compare(self.version, "3.5.1") >= 0) and not isinstance(winver, list)
-        )
-        if self.hot_backup:
-            self.hb_provider_cfg = HotBackupProviderCfg(
-                HB_MODES[hot_backup], HB_PROVIDERS[hb_provider] if hb_provider else None, hb_storage_path_prefix
-            )
-        else:
-            self.hb_provider_cfg = HotBackupProviderCfg(HotBackupMode.DISABLED)
         self.hot_backup_cli_cfg = hot_backup_cli_cfg
+        self.hot_backup_supported = self.enterprise and not IS_WINDOWS
 
     def __repr__(self):
         return """
@@ -187,7 +182,7 @@ using enterpise: {0.enterprise}
 using encryption at rest: {0.encryption_at_rest}
 using zip: {0.zip_package}
 using source: {0.src_testing}
-hot backup mode: {0.hot_backup}
+hot backup mode: {0.hot_backup_supported}
 package directory: {0.package_dir}
 test directory: {0.base_test_dir}
 deployment_mode: {0.deployment_mode}
@@ -247,8 +242,7 @@ verbose: {0.verbose}
             self.dbdir = other_cfg.dbdir
             self.appdir = other_cfg.appdir
             self.cfgdir = other_cfg.cfgdir
-            self.hot_backup = other_cfg.hot_backup
-            self.hb_provider_cfg = copy.deepcopy(other_cfg.hb_provider_cfg)
+            self.hot_backup_supported = other_cfg.hot_backup_supported
             self.hot_backup_cli_cfg = copy.deepcopy(other_cfg.hot_backup_cli_cfg)
         except AttributeError:
             # if the config.yml gave us a wrong value, we don't care.
@@ -393,9 +387,7 @@ class InstallerBaseConfig:
         verbose: bool,
         zip_package: bool,
         src_testing: bool,
-        hot_backup: str,
-        hb_provider: str,
-        hb_storage_path_prefix: str,
+        hb_cli_cfg: HotBackupCliCfg,
         package_dir: Path,
         test_data_dir: Path,
         starter_mode: str,
@@ -406,9 +398,7 @@ class InstallerBaseConfig:
         self.verbose = verbose
         self.zip_package = zip_package
         self.src_testing = src_testing
-        self.hot_backup = hot_backup
-        self.hb_provider = hb_provider
-        self.hb_storage_path_prefix = hb_storage_path_prefix
+        self.hb_cli_cfg = hb_cli_cfg
         self.package_dir = package_dir
         self.test_data_dir = test_data_dir
         self.starter_mode = starter_mode
@@ -421,7 +411,7 @@ class InstallerBaseConfig:
 verbose : {0.verbose}
 zip_package : {0.zip_package}
 src_testing : {0.src_testing}
-hot_backup : {0.hot_backup}
+hot_backup : {0.hb_cli_cfg.hot_backup}
 package_dir : {0.package_dir}
 test_data_dir : {0.test_data_dir}
 starter_mode : {0.starter_mode}
