@@ -70,6 +70,7 @@ class HotBackupConfig:
     def save_config(self, filename):
         """writes a hotbackup rclone configuration file"""
         fhandle = self.install_prefix / filename
+        lh.subsubsection("Writing RClone config:")
         print(json.dumps(self.config))
         fhandle.write_text(json.dumps(self.config))
         return str(fhandle)
