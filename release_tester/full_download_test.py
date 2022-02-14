@@ -4,7 +4,7 @@ from pathlib import Path
 import sys
 
 import click
-from common_options import very_common_options, common_options, download_options, full_common_options
+from common_options import very_common_options, common_options, download_options, full_common_options, hotbackup_options
 
 from beautifultable import BeautifulTable, ALIGN_LEFT
 
@@ -122,6 +122,7 @@ def package_test(dl_opts: DownloadOptions, new_version, new_dlstage, git_version
 @click.command()
 @full_common_options
 @very_common_options()
+@hotbackup_options()
 @common_options(
     support_old=False,
     interactive=False,
@@ -135,6 +136,7 @@ def main(
         editions,
         #very_common_options
         new_version, verbose, enterprise, package_dir, zip_package, src_testing,
+        #hotbackup_options
         hot_backup, hb_provider, hb_storage_path_prefix,
         hb_aws_access_key_id, hb_aws_secret_access_key, hb_aws_region, hb_aws_acl,
         # common_options,

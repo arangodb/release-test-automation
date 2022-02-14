@@ -73,6 +73,7 @@ class HotBackupProviderCfg:
             self.path_prefix = self.path_prefix.replace("//", "/")
 
 class HotBackupCliCfg:
+    """ map common_options hotbackup_options """
     def __init__(self,
                  hb_mode,
                  hb_provider,

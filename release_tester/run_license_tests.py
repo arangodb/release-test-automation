@@ -7,22 +7,24 @@ import click
 
 from common_options import very_common_options, common_options
 from test_driver import TestDriver
-
+from arangodb.installers import HotBackupCliCfg
 
 @click.command()
-# pylint: disable=too-many-arguments
-# pylint: disable=too-many-locals
+# pylint: disable=too-many-arguments disable=too-many-locals disable=unused-argument
 @very_common_options()
 @common_options(support_old=True, interactive=True)
 # fmt: off
 def main(
-        # very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package, src_testing,
-        # common_options
         # pylint: disable=unused-argument
-        hot_backup, hb_provider, hb_storage_path_prefix, old_version, test_data_dir, encryption_at_rest, interactive,
+        #very_common_options
+        new_version, verbose, enterprise, package_dir, zip_package, src_testing,
+        hot_backup, hb_provider, hb_storage_path_prefix,
+        hb_aws_access_key_id, hb_aws_secret_access_key, hb_aws_region, hb_aws_acl,
+        # common_options
+        old_version, test_data_dir, encryption_at_rest, interactive,
         starter_mode, stress_upgrade, abort_on_error, publicip,
-        selenium, selenium_driver_args, alluredir, clean_alluredir, ssl, use_auto_certs):
+        selenium, selenium_driver_args, alluredir, clean_alluredir,
+        ssl, use_auto_certs):
     # fmt: on
     """ main trampoline """
     test_driver = TestDriver(
@@ -33,9 +35,13 @@ def main(
         clean_alluredir=clean_alluredir,
         zip_package=zip_package,
         src_testing=src_testing,
-        hot_backup=hot_backup,
-        hb_provider=hb_provider,
-        hb_storage_path_prefix= hb_storage_path_prefix,
+        hot_backup_cli_cfg=HotBackupCliCfg(hot_backup,
+                                           hb_provider,
+                                           hb_storage_path_prefix,
+                                           hb_aws_access_key_id,
+                                           hb_aws_secret_access_key,
+                                           hb_aws_region,
+                                           hb_aws_acl),
         interactive=interactive,
         starter_mode=starter_mode,
         stress_upgrade=False,

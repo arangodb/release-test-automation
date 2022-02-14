@@ -5,7 +5,7 @@ from copy import copy
 import sys
 
 import click
-from common_options import very_common_options, common_options, download_options, full_common_options
+from common_options import very_common_options, common_options, download_options, full_common_options, hotbackup_options
 
 from beautifultable import BeautifulTable, ALIGN_LEFT
 
@@ -187,6 +187,7 @@ def upgrade_package_test(
     "--upgrade-matrix", default="", help="list of upgrade operations ala '3.6.15:3.7.15;3.7.14:3.7.15;3.7.15:3.8.1'"
 )
 @very_common_options()
+@hotbackup_options()
 @common_options(
     support_multi_version=False,
     support_old=False,
@@ -202,6 +203,7 @@ def main(
         upgrade_matrix,
         #very_common_options
         new_version, verbose, enterprise, package_dir, zip_package, src_testing,
+        #hotbackup_options
         hot_backup, hb_provider, hb_storage_path_prefix,
         hb_aws_access_key_id, hb_aws_secret_access_key, hb_aws_region, hb_aws_acl,
         # common_options

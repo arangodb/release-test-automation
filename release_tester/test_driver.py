@@ -122,7 +122,7 @@ class TestDriver:
                     attach.file(Path.cwd() / package,
                                 "source archive used in tests: " + str(package),
                                 installer_set[1].extension)
-        
+
     def get_packaging_shorthand(self):
         """get the [DEB|RPM|EXE|DMG|ZIP|targz] from the installer"""
         if self.installer_type:

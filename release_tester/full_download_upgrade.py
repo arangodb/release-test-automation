@@ -4,7 +4,7 @@ from pathlib import Path
 import sys
 
 import click
-from common_options import very_common_options, common_options, download_options, full_common_options
+from common_options import very_common_options, common_options, download_options, full_common_options, hotbackup_options
 
 from beautifultable import BeautifulTable, ALIGN_LEFT
 
@@ -151,6 +151,7 @@ def upgrade_package_test(
 )
 @full_common_options
 @very_common_options()
+@hotbackup_options()
 @common_options(
     support_multi_version=False,
     support_old=True,
@@ -165,11 +166,12 @@ def main(
         git_version,
         editions,
         #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package, src_testing, hot_backup, hb_provider, hb_storage_path_prefix,
-        #very_common_options
         new_version, verbose, enterprise, package_dir, zip_package, src_testing,
+        #hotbackup_options
         hot_backup, hb_provider, hb_storage_path_prefix,
         hb_aws_access_key_id, hb_aws_secret_access_key, hb_aws_region, hb_aws_acl,
+        # common_options
+        old_version, test_data_dir, encryption_at_rest, alluredir, clean_alluredir, ssl, use_auto_certs,
         # no-interactive!
         starter_mode, stress_upgrade, abort_on_error, publicip,
         selenium, selenium_driver_args,

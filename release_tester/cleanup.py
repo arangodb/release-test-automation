@@ -22,12 +22,12 @@ def run_test(zip_package, src_testing):
         True,
         zip_package,
         src_testing,
-        HotBackupCliCfg(""'
-                        ""'
-                        ""'
-                        ""'
-                        ""'
-                        ""'
+        HotBackupCliCfg("",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
                         ""),
         False,  # interactive,
         "all",  # starter_mode,

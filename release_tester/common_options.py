@@ -140,7 +140,6 @@ def very_common_options(support_multi_version=False):
             default=package_dir,
             help="directory to down/load the packages from/to.",
         )(function)
-        function = hotbackup_options(function)
         function = zip_common_options(function)
         return function
 

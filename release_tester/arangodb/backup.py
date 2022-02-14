@@ -6,7 +6,6 @@ import json
 import re
 import time
 import copy
-from os import environ
 
 from allure_commons._allure import attach
 
@@ -16,7 +15,7 @@ from tools.asciiprint import ascii_convert_str, print_progress as progress
 import tools.loghelper as lh
 
 from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor
-from arangodb.installers import HotBackupMode, HotBackupProviders, HotBackupProviderCfg
+from arangodb.installers import HotBackupMode, HotBackupProviders
 
 HB_2_RCLONE_TYPE = {
     HotBackupMode.DISABLED: "disabled",
@@ -27,9 +26,10 @@ HB_2_RCLONE_TYPE = {
 class HotBackupConfig:
     """manage rclone setup"""
 
-    def __init__(self, basecfg, name, raw_install_prefix, clicfg: HotBackupCliCfg):
+    def __init__(self, basecfg, name, raw_install_prefix):
         self.hb_timeout = 20
-        self.hb_provider_cfg = basecfg.hb_provider_cfg
+        hbcfg = basecfg.hot_backup_cli_cfg
+        self.hb_provider_cfg = hbcfg.hb_provider_cfg
         self.install_prefix = raw_install_prefix
         self.cfg_type = HB_2_RCLONE_TYPE[self.hb_provider_cfg.mode]
         self.name = str(name).replace("/", "_").replace(".", "_")
@@ -52,20 +52,15 @@ class HotBackupConfig:
             self.hb_provider_cfg.mode == HotBackupMode.S3BUCKET
             and self.hb_provider_cfg.provider == HotBackupProviders.AWS
         ):
-            try:
-                self.name = "S3"
-                self.hb_timeout = 120
-                config["type"] = "s3"
-                config["provider"] = "AWS"
-                config["env_auth"] = "false"
-                config["access_key_id"] = environ["AWS_ACCESS_KEY_ID"]
-                config["secret_access_key"] = environ["AWS_SECRET_ACCESS_KEY"]
-                config["region"] = environ["AWS_REGION"]
-                config["acl"] = str(environ.get("AWS_ACL")) if environ.get("AWS_ACL") else "private"
-            except KeyError as exc:
-                raise Exception(
-                    "Please set AWS credentials as environment variables AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION."
-                ) from exc
+            self.name = "S3"
+            self.hb_timeout = 120
+            config["type"] = "s3"
+            config["provider"] = "AWS"
+            config["env_auth"] = "false"
+            config["access_key_id"] = hbcfg.hb_aws_access_key_id
+            config["secret_access_key"] = hbcfg.hb_aws_secret_access_key
+            config["region"] = hbcfg.hb_aws_region
+            config["acl"] = hbcfg.hb_aws_acl
         elif self.hb_provider_cfg.mode == HotBackupMode.DIRECTORY:
             config["copy-links"] = "false"
             config["links"] = "false"
@@ -87,6 +82,7 @@ class HotBackupConfig:
         return filename
 
     def construct_remote_storage_path(self, postfix):
+        """ generate a working storage path from the config params """
         result = f"{self.name}:/{self.hb_provider_cfg.path_prefix}/{postfix}"
         while "//" in result:
             result = result.replace("//", "/")
@@ -109,6 +105,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         if not self.backup_dir.exists():
             self.backup_dir.mkdir(parents=True)
 
+    # pylint: disable=too-many-arguments
     @step
     def run_backup(self, arguments, name, silent=False, expect_to_fail=False, timeout=20):
         """run arangobackup"""

@@ -7,10 +7,9 @@ import re
 import click
 from common_options import very_common_options, common_options
 from tools.killall import kill_all_processes
-from arangodb.installers import create_config_installer_set, RunProperties
+from arangodb.installers import create_config_installer_set, RunProperties, HotBackupCliCfg
 from arangodb.starter.deployments.cluster_perf import ClusterPerf
 from arangodb.starter.deployments import RunnerType
-from arangodb.backup import HotBackupCliCfg
 import tools.loghelper as lh
 
 
