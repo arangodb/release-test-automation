@@ -11,9 +11,9 @@ from selenium_ui_test.pages.navbar import NavigationBarPage
 class DashboardPage(NavigationBarPage):
     """Class for Dashboard page"""
 
-    def __init__(self, driver, enterprise):
+    def __init__(self, driver, cfg, enterprise):
         """dashboardPage class initialization"""
-        super().__init__(driver)
+        super().__init__(driver, cfg)
         self.check_server_package_name_id = "enterpriseLabel" if enterprise else "communityLabel"
         self.check_current_package_version_id = "currentVersion"
         self.check_current_username_id = "//li[@id='userBar']//span[@class='toggle']"
@@ -36,7 +36,7 @@ class DashboardPage(NavigationBarPage):
 
     def check_current_package_version(self):
         """checking current package version from the dashboard"""
-        super().current_package_version()
+        self.current_package_version()
 
     def check_current_username(self):
         """checking current username from the dashboard"""
@@ -75,7 +75,7 @@ class DashboardPage(NavigationBarPage):
 
     def check_responsiveness_for_dashboard(self):
         """Checking LOG tab causes unresponsive UI (found in 3.8 server package"""
-        super().check_ui_responsiveness()
+        self.check_ui_responsiveness()
 
     def check_system_resource(self):
         """checking system resource tab from the dashboard"""
@@ -108,7 +108,7 @@ class DashboardPage(NavigationBarPage):
             time.sleep(1)
 
             print("scrolling the current page \n")
-            super().scroll()
+            self.scroll()
 
             # toggle view text to table and vice-versa
             print("Changing metrics tab to table view \n")

@@ -84,6 +84,10 @@ docker run \
        --env="BUILD_NUMBER=${BUILD_NUMBER}" \
        --env="PYTHONUNBUFFERED=1" \
        --env="WORKSPACE=/home/release-test-automation/" \
+       --env="AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" \
+       --env="AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" \
+       --env="AWS_REGION=$AWS_REGION" \
+       --env="AWS_ACL=$AWS_ACL" \
        \
        --network=minio-bridge \
        --name="${DOCKER_TAR_NAME}" \
@@ -98,7 +102,7 @@ docker run \
           --old-version "${OLD_VERSION}" \
           --new-version "${NEW_VERSION}" \
           --zip \
-          --hotbackup-mode s3bucket \
+          --hb-mode s3bucket \
           --verbose \
           --alluredir /home/allure-results \
           --git-version "$GIT_VERSION" \

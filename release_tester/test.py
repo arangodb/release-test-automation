@@ -7,9 +7,9 @@ import sys
 import click
 import semver
 
-from common_options import very_common_options, common_options
+from common_options import very_common_options, common_options, hotbackup_options
 from test_driver import TestDriver
-from arangodb.installers import RunProperties
+from arangodb.installers import RunProperties, HotBackupCliCfg
 
 
 @click.command()
@@ -27,13 +27,16 @@ from arangodb.installers import RunProperties
     help="operation mode.",
 )
 @very_common_options()
+@hotbackup_options()
 @common_options(support_old=False)
 # pylint: disable=too-many-arguments disable=too-many-locals, disable=broad-except
 # fmt: off
 def main(mode,
          #very_common_options
-         new_version, verbose, enterprise, package_dir, zip_package,
-         src_testing, hot_backup,
+         new_version, verbose, enterprise, package_dir, zip_package, src_testing,
+         #hotbackup_options
+         hot_backup, hb_provider, hb_storage_path_prefix,
+         hb_aws_access_key_id, hb_aws_secret_access_key, hb_aws_region, hb_aws_acl,
          # common_options
          alluredir, clean_alluredir, ssl, use_auto_certs,
          # old_version,
@@ -50,7 +53,13 @@ def main(mode,
         clean_alluredir,
         zip_package,
         src_testing,
-        hot_backup,
+        HotBackupCliCfg(hot_backup,
+                        hb_provider,
+                        hb_storage_path_prefix,
+                        hb_aws_access_key_id,
+                        hb_aws_secret_access_key,
+                        hb_aws_region,
+                        hb_aws_acl),
         interactive,
         starter_mode,
         False, # stress_upgrade

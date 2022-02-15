@@ -187,7 +187,8 @@ class Dc2Dc(Runner):
             self.cert_op(["jwt-secret", "--secret=" + str(node["SyncSecret"])])
             self.cert_op(["jwt-secret", "--secret=" + str(node["JWTSecret"])])
 
-        def add_starter(val, port, moreopts=[]):
+        # pylint: disable=dangerous-default-value
+        def _add_starter(val, port, moreopts=[]):
             # fmt: off
             opts = [
                     '--all.log.level=backup=trace',
@@ -232,8 +233,8 @@ class Dc2Dc(Runner):
             if port == 7528:
                 val["instance"].is_leader = True
 
-        add_starter(self.cluster1, port=7528)
-        add_starter(self.cluster2, port=9528, moreopts=['--args.dbservers.log', 'request=trace'])
+        _add_starter(self.cluster1, port=7528)
+        _add_starter(self.cluster2, port=9528, moreopts=['--args.dbservers.log', 'request=trace'])
         self.starter_instances = [self.cluster1["instance"], self.cluster2["instance"]]
 
     def starter_run_impl(self):

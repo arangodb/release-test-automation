@@ -17,9 +17,9 @@ from selenium_ui_test.pages.base_page import BasePage
 class LoginPage(BasePage):
     """Login class for selenium UI testing"""
 
-    def __init__(self, driver):
+    def __init__(self, driver, cfg):
         """Login page initialization"""
-        super().__init__(driver)
+        super().__init__(driver, cfg)
         self.username_textbox_id = "loginUsername"
         self.password_textbox_id = "loginPassword"
         self.login_button_id = "submitLogin"

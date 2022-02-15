@@ -28,7 +28,7 @@ class ArangoImportExecutor(ArangoCLIprogressiveTimeoutExecutor):
         a dynamic timeout that its got output
         (is still alive...)
         """
-        run_cmd = cfg.default_imp_args + [
+        run_cmd = self.cfg.default_imp_args + [
             "--log.level",
             "debug",
         ] + args

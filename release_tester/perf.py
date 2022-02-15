@@ -7,7 +7,7 @@ import re
 import click
 from common_options import very_common_options, common_options
 from tools.killall import kill_all_processes
-from arangodb.installers import create_config_installer_set, RunProperties
+from arangodb.installers import create_config_installer_set, RunProperties, HotBackupCliCfg
 from arangodb.starter.deployments.cluster_perf import ClusterPerf
 from arangodb.starter.deployments import RunnerType
 import tools.loghelper as lh
@@ -38,8 +38,10 @@ import tools.loghelper as lh
 # fmt: off
 # pylint: disable=too-many-arguments disable=unused-argument disable=too-many-locals
 def run_test(mode, scenario, frontends,
-             #very_common_options
-             new_version, verbose, enterprise, package_dir, zip_package, hot_backup,
+        #very_common_options
+        new_version, verbose, enterprise, package_dir, zip_package, src_testing,
+        hot_backup, hb_provider, hb_storage_path_prefix,
+        hb_aws_access_key_id, hb_aws_secret_access_key, hb_aws_region, hb_aws_acl,
              # common_options
              alluredir, clean_alluredir, ssl, use_auto_certs,
              # old_version,
@@ -64,7 +66,13 @@ def run_test(mode, scenario, frontends,
         [new_version],
         verbose,
         zip_package,
-        hot_backup,
+        HotBackupCliCfg(hot_backup,
+                        hb_provider,
+                        hb_storage_path_prefix,
+                        hb_aws_access_key_id,
+                        hb_aws_secret_access_key,
+                        hb_aws_region,
+                        hb_aws_acl),
         Path(package_dir),
         Path(test_data_dir),
         mode,

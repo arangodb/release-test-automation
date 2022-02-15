@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 """page object for views editing"""
 import time
+import semver
 
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import TimeoutException
@@ -23,9 +24,9 @@ class ViewsPage(NavigationBarPage):
     select_renamed_view_id = "/html//div[@id='thirdView']"
     select_second_view_id = "//div[@id='secondView']//h5[@class='collectionName']"
 
-    def __init__(self, webdriver):
+    def __init__(self, webdriver, cfg):
         """View page initialization"""
-        super().__init__(webdriver)
+        super().__init__(webdriver, cfg)
         self.select_views_tab_id = "/html//a[@id='views']"
         self.create_new_views_id = "/html//a[@id='createView']"
         self.naming_new_view_id = "/html//input[@id='newName']"
@@ -134,7 +135,7 @@ class ViewsPage(NavigationBarPage):
         time.sleep(2)
 
         print(f"Checking that we get the right results for {expected_text}\n")
-        if super().current_package_version() <= 3.8:
+        if self.current_package_version() <= semver.VersionInfo.parse("3.8.0"):
             if expected_text == "firstView":
                 found = self.locator_finder_by_xpath(search_locator).text
                 assert found == expected_text, f"Expected views title {expected_text} but got {found}"
