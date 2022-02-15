@@ -1,9 +1,10 @@
 #!/usr/bin/python3
 """page object for views editing"""
 import time
-
+import semver
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.keys import Keys
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=line-too-long disable=too-many-instance-attributes disable=too-many-statements disable=too-many-public-methods
@@ -304,6 +305,20 @@ class ViewsPage(NavigationBarPage):
         # stored_field_sitem.send_keys('attr')
         # stored_field_sitem.send_keys(Keys.ENTER)
         # time.sleep(2)
+        version = self.current_package_version()
+        if semver.VersionInfo.parse(version) >= "3.9.0-nightly":
+            print('stored value has been skipped.\n')
+        else:
+            print(f'Select stored field for {view_name} \n')
+            # stored_field = "//div[contains(@id,'s2id_field')]"
+            stored_field = "/html/body/div[1]/div/div[2]/div[2]/div/div[2]/div/table/tbody/tr/th/table/tbody/tr/td[1]/div"
+
+            stored_field_sitem = self.locator_finder_by_xpath(stored_field)
+            stored_field_sitem.click()
+            stored_field_sitem.clear()
+            stored_field_sitem.send_keys('attr')
+            stored_field_sitem.send_keys(Keys.ENTER)
+            time.sleep(2)
 
         print(f"Selecting stored direction for {view_name} \n")
         stored_direction = (
@@ -353,6 +368,147 @@ class ViewsPage(NavigationBarPage):
         max_buffer_size_sitem.send_keys("33554434")
         time.sleep(2)
         self.webdriver.refresh()
+    
+    def checking_modified_views(self, deployment):
+        """This method will check views for 3.10.x package version"""
+        print('Selecting improved views \n')
+        views = "//*[text()='improved_arangosearch_view_01']"
+        views_sitem = self.locator_finder_by_xpath(views)
+        views_sitem.click()
+        time.sleep(2)
+        self.wait_for_ajax()
+
+        print('Selecting Consolidation Policy \n')
+        policy = "//*[text()='Consolidation Policy']"
+        policy_sitem = self.locator_finder_by_xpath(policy)
+        policy_sitem.click()
+        time.sleep(2)
+
+        self.wait_for_ajax()
+        print('Selecting segments min value \n')
+        segment_min = "/html/body/div[2]/div/div[2]/div[2]/div/div/div[1]/div/div/table/tbody/tr[2]/th[2]/input"
+        segment_min_sitem = self.locator_finder_by_xpath(segment_min)
+        segment_min_sitem.click()
+        segment_min_sitem.clear()
+        segment_min_sitem.send_keys('4')
+        time.sleep(2)
+        self.wait_for_ajax()
+
+        print('Selecting segments max value \n')
+        segment_max = "/html/body/div[2]/div/div[2]/div[2]/div/div/div[1]/div/div/table/tbody/tr[3]/th[2]/input"
+        segment_max_sitem = self.locator_finder_by_xpath(segment_max)
+        segment_max_sitem.click()
+        segment_max_sitem.clear()
+        segment_max_sitem.send_keys('14')
+        time.sleep(2)
+
+        self.wait_for_ajax()
+        print('Selecting bytes value \n')
+        segment_bytes = "/html/body/div[2]/div/div[2]/div[2]/div/div/div[1]/div/div/table/tbody/tr[4]/th[2]/input"
+        segment_bytes_sitem = self.locator_finder_by_xpath(segment_bytes)
+        segment_bytes_sitem.click()
+        segment_bytes_sitem.clear()
+        segment_bytes_sitem.send_keys('5368709128')
+        time.sleep(2)
+
+        self.wait_for_ajax()
+        print('Selecting bytes floor value \n')
+        segment_floor = "/html/body/div[2]/div/div[2]/div[2]/div/div/div[1]/div/div/table/tbody/tr[5]/th[2]/input"
+        segment_floor_sitem = self.locator_finder_by_xpath(segment_floor)
+        segment_floor_sitem.click()
+        segment_floor_sitem.clear()
+        segment_floor_sitem.send_keys('2097158')
+        time.sleep(2)
+
+        print('Saving the consolidation policy with new value \n')
+        save = '//*[@id="modal-dialog"]/div[2]/button/i'
+        save_sitem = self.locator_finder_by_xpath(save)
+        save_sitem.click()
+        time.sleep(3)
+
+        self.wait_for_ajax()
+        print('Select JSON tab \n')
+        json = '//*[@id="subNavigationBar"]/ul[2]/li[5]/a'
+        json_sitem = self.locator_finder_by_xpath(json)
+        json_sitem.click()
+        time.sleep(1)
+
+        print("Switch editor mode to Compact mode Code \n")
+        compact = '//*[@id="JSON"]/div/div[2]/div/div/div/div/div[1]/button[2]'
+        compact_sitem = self.locator_finder_by_xpath(compact)
+        compact_sitem.click()
+        time.sleep(1)
+
+        print("Switch editor mode to normal mode Code \n")
+        normal = '//*[@id="JSON"]/div/div[2]/div/div/div/div/div[1]/button[1]'
+        normal_sitem = self.locator_finder_by_xpath(normal)
+        normal_sitem.click()
+
+        if deployment:
+            print('Changing name of the view is disabled for cluster deployment \n')
+        else:
+            print('Select Settings tab \n')
+            settings = "//*[text()='Settings']"
+            settings_sitem = self.locator_finder_by_xpath(settings)
+            settings_sitem.click()
+
+            print('Change view name \n')
+            name = '/html/body/div[2]/div/div[2]/div[2]/div/div/div[1]/div/div/table/tbody/tr[1]/th[2]/input'
+            name_stiem = self.locator_finder_by_xpath(name)
+            name_stiem.click()
+            name_stiem.clear()
+            name_stiem.send_keys('modified_views_name')
+            time.sleep(2)
+
+            save_btn = '//*[@id="modal-dialog"]/div[2]/button[2]'
+            save_btn_sitem = self.locator_finder_by_xpath(save_btn)
+            save_btn_sitem.click()
+            time.sleep(2)
+    
+    def delete_new_views(self, name):
+        """this method will delete all the newer version views"""
+        self.select_views_tab()
+        try:
+            views = ''
+            if name == 'modified_views_name':
+                views = "//*[text()='modified_views_name']"
+            elif name == 'improved_arangosearch_view_01':
+                views = "//*[text()='improved_arangosearch_view_01']"
+            elif name == 'improved_arangosearch_view_02':
+                views = "//*[text()='improved_arangosearch_view_02']"
+
+            views_sitem = self.locator_finder_by_xpath(views)
+            views_sitem.click()
+            time.sleep(2)
+
+            settings_tab = "//*[text()='Settings']"
+            settings_tab_sitem = self.locator_finder_by_xpath(settings_tab)
+            settings_tab_sitem.click()
+            time.sleep(2)
+
+            delete_btn = '//*[@id="modal-dialog"]/div[2]/button[1]'
+            delete_btn_sitem = self.locator_finder_by_xpath(delete_btn)
+            delete_btn_sitem.click()
+            time.sleep(2)
+
+            confirm_delete_btn = ''
+            if name == 'modified_views_name':
+                confirm_delete_btn = '//*[@id="modal-content-delete-modified_views_name"]/div[3]/button[2]'
+            elif name == 'improved_arangosearch_view_01':
+                confirm_delete_btn = '//*[@id="modal-content-delete-improved_arangosearch_view_01"]/div[3]/button[2]'
+            elif name == 'improved_arangosearch_view_02':
+                confirm_delete_btn = '//*[@id="modal-content-delete-improved_arangosearch_view_02"]/div[3]/button[2]'
+
+            confirm_delete_btn_sitem = self.locator_finder_by_xpath(confirm_delete_btn)
+            confirm_delete_btn_sitem.click()
+            time.sleep(2)
+
+            self.webdriver.refresh()
+            time.sleep(2)
+
+        except TimeoutException as ex:
+            print(f'Error found, Can not delete views {ex} \n')
+
 
     def checking_improved_views(self, name, locator, deployment):
         """This method will check improved views"""
@@ -398,7 +554,6 @@ class ViewsPage(NavigationBarPage):
         self.search_result_traverse_up()
 
         if deployment:
-            print("Current Deployment ->", deployment)  # will delete later
             print("Renaming views are disabled for the Cluster deployment")
         else:
             print(f"Rename {name} to modified_name started \n")
