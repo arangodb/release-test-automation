@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """ views testsuite """
+import semver
+
 from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 from selenium_ui_test.test_suites.base_test_suite import testcase
 from selenium_ui_test.pages.views_page import ViewsPage
@@ -16,7 +18,7 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
         print("---------Checking Views Begin--------- \n")
         # login = LoginPage(self.webdriver)
         # login.login('root', self.root_passvoid)
-        views = ViewsPage(self.webdriver)  # creating obj for viewPage
+        views = ViewsPage(self.webdriver, self.cfg)  # creating obj for viewPage
         assert views.current_user() == "ROOT", "current user is root?"
         assert views.current_database() == "_SYSTEM", "current database is _system?"
 

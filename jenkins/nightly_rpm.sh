@@ -65,6 +65,10 @@ docker run \
        --env="BUILD_NUMBER=${BUILD_NUMBER}" \
        --env="PYTHONUNBUFFERED=1" \
        --env="WORKSPACE=/home/release-test-automation/" \
+       --env="AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" \
+       --env="AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" \
+       --env="AWS_REGION=$AWS_REGION" \
+       --env="AWS_ACL=$AWS_ACL" \
        \
        --name="${DOCKER_RPM_NAME}" \
        --rm \

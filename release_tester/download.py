@@ -11,15 +11,17 @@ import sys
 import tarfile
 
 import click
-from arangodb.installers import make_installer, InstallerConfig
+from arangodb.installers import make_installer, InstallerConfig, HotBackupCliCfg
 import tools.loghelper as lh
 
 import requests
 from common_options import very_common_options, download_options
 
+
 def get_tar_file_path(base_directory, versions, package_target):
     """calculate the name of the versions tar file"""
     return base_directory / f"Upgrade_{versions[0]}__{versions[1]}_{package_target}_version.tar"
+
 
 def touch_all_tars_in_dir(tar_file):
     """sets the current filestamp to all tars so jenkins preserves them"""
@@ -36,18 +38,23 @@ def touch_all_tars_in_dir(tar_file):
         # else:
         #    print("doing nothing about " + str(one_file))
 
+
 def read_versions_tar(tar_file, versions):
     """reads the versions tar"""
     try:
         fdesc = tar_file.open("rb")
-        with tarfile.open(fileobj=fdesc, mode="r:") as tar:
-            for member in tar:
-                print(member.name)
-                print(member.isfile())
-                if member.isfile():
-                    versions[member.name] = tar.extractfile(member).read().decode(encoding="utf-8")
-                    print(versions[member.name])
-            tar.close()
+        try:
+            with tarfile.open(fileobj=fdesc, mode="r:") as tar:
+                for member in tar:
+                    print(member.name)
+                    print(member.isfile())
+                    if member.isfile():
+                        versions[member.name] = tar.extractfile(member).read().decode(encoding="utf-8")
+                        print(versions[member.name])
+                tar.close()
+        except tarfile.ReadError as ex:
+            print("Ignoring exception during reading the tar file: " + str(ex))
+            pass
         fdesc.close()
     except FileNotFoundError:
         pass
@@ -69,44 +76,52 @@ def write_version_tar(tar_file, versions):
         tar.close()
     fdesc.close()
 
+
 class DownloadOptions:
-    """ bearer class for base download options """
+    """bearer class for base download options"""
+
     # pylint: disable=too-many-arguments disable=too-few-public-methods disable=too-many-instance-attributes
-    def __init__(self,
-                 force_dl: bool,
-                 verbose: bool,
-                 package_dir: Path,
-                 enterprise_magic: str,
-                 httpuser: str,
-                 httppassvoid: str,
-                 remote_host: str):
+    def __init__(
+        self,
+        force_dl: bool,
+        verbose: bool,
+        package_dir: Path,
+        enterprise_magic: str,
+        httpuser: str,
+        httppassvoid: str,
+        remote_host: str,
+    ):
         self.launch_dir = Path.cwd()
         if "WORKSPACE" in os.environ:
             self.launch_dir = Path(os.environ["WORKSPACE"])
         self.force_dl = force_dl
         self.verbose = verbose
         if not package_dir.is_absolute():
-            package_dir =  (self.launch_dir / package_dir).resolve()
+            package_dir = (self.launch_dir / package_dir).resolve()
         self.package_dir = package_dir
         self.enterprise_magic = enterprise_magic
         self.httpuser = httpuser
         self.httppassvoid = httppassvoid
         self.remote_host = remote_host
 
+
 class Download:
     """manage package downloading from any known arango package source"""
 
     # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=dangerous-default-value
-    def __init__(self,
-                 options: DownloadOptions,
-                 version,
-                 enterprise,
-                 zip_package,
-                 src_testing,
-                 source,
-                 existing_version_states={},
-                 new_version_states={},
-                 git_version=""):
+    def __init__(
+        self,
+        options: DownloadOptions,
+        hb_cli_cfg: HotBackupCliCfg,
+        version: str,
+        enterprise: bool,
+        zip_package: bool,
+        src_testing: bool,
+        source,
+        existing_version_states={},
+        new_version_states={},
+        git_version="",
+    ):
         """main"""
         lh.section("configuration")
         print("version: " + str(version))
@@ -135,7 +150,7 @@ class Download:
             encryption_at_rest=False,
             zip_package=zip_package,
             src_testing=src_testing,
-            hot_backup="disabled", # don't care
+            hb_cli_cfg=hb_cli_cfg,
             package_dir=options.package_dir,
             test_dir=Path("/"),
             deployment_mode="all",
@@ -347,12 +362,21 @@ class Download:
 # pylint: disable=too-many-arguments disable=unused-argument
 def main(
         #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package, src_testing, hot_backup,
+        new_version, verbose, enterprise, package_dir, zip_package, src_testing,
+        hot_backup, hb_provider, hb_storage_path_prefix,
+        hb_aws_access_key_id, hb_aws_secret_access_key, hb_aws_region, hb_aws_acl,
         # download options:
         enterprise_magic, force, source,
         httpuser, httppassvoid, remote_host):
 # fmt: on
     """ main wrapper """
+    hb_cli_cfg = HotBackupCliCfg(hot_backup,
+                                 hb_provider,
+                                 hb_storage_path_prefix,
+                                 hb_aws_access_key_id,
+                                 hb_aws_secret_access_key,
+                                 hb_aws_region,
+                                 hb_aws_acl)
     dl_opts = DownloadOptions(force,
                               verbose,
                               Path(package_dir),
@@ -364,6 +388,7 @@ def main(
     lh.configure_logging(verbose)
     downloader = Download(
         options=dl_opts,
+        hb_cli_cfg=hb_cli_cfg,
         version=new_version,
         enterprise=enterprise,
         zip_package=zip_package,

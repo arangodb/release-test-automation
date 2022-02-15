@@ -48,6 +48,8 @@ class InstallerLinux(InstallerBase):
 
     @step
     def check_service_up(self):
+        if not self.instance:
+            return False
         for count in range(20):
             if not self.instance.detect_gone():
                 return True

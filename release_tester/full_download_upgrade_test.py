@@ -5,7 +5,7 @@ from copy import copy
 import sys
 
 import click
-from common_options import very_common_options, common_options, download_options, full_common_options
+from common_options import very_common_options, common_options, download_options, full_common_options, hotbackup_options
 
 from beautifultable import BeautifulTable, ALIGN_LEFT
 
@@ -14,7 +14,7 @@ from download import Download, DownloadOptions
 from test_driver import TestDriver
 from tools.killall import list_all_processes
 
-from arangodb.installers import EXECUTION_PLAN
+from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg
 
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
 def upgrade_package_test(
@@ -25,7 +25,7 @@ def upgrade_package_test(
     other_source,
     git_version,
     editions,
-    test_driver
+    test_driver,
 ):
     """process fetch & tests"""
 
@@ -68,6 +68,7 @@ def upgrade_package_test(
         # pylint: disable=unused-variable
         dl_new = Download(
             dl_opts,
+            test_driver.base_config.hb_cli_cfg,
             primary_version,
             props.enterprise,
             test_driver.base_config.zip_package,
@@ -82,13 +83,7 @@ def upgrade_package_test(
         this_test_dir = test_dir / props.directory_suffix
         test_driver.reset_test_data_dir(this_test_dir)
 
-        results.append(
-            test_driver.run_test(
-                "all",
-                [dl_new.cfg.version],
-                props
-            )
-        )
+        results.append(test_driver.run_test("all", [dl_new.cfg.version], props))
 
     for j in range(len(new_versions)):
         for props in EXECUTION_PLAN:
@@ -98,7 +93,7 @@ def upgrade_package_test(
 
     # Configure Chrome to accept self-signed SSL certs and certs signed by unknown CA.
     # FIXME: Add custom CA to Chrome to properly validate server cert.
-    #if props.ssl:
+    # if props.ssl:
     #    selenium_driver_args += ("ignore-certificate-errors",)
 
     for props in EXECUTION_PLAN:
@@ -108,6 +103,7 @@ def upgrade_package_test(
         # pylint: disable=unused-variable
         dl_old = Download(
             dl_opts,
+            test_driver.base_config.hb_cli_cfg,
             old_versions[j],
             props.enterprise,
             test_driver.base_config.zip_package,
@@ -119,6 +115,7 @@ def upgrade_package_test(
         )
         dl_new = Download(
             dl_opts,
+            test_driver.base_config.hb_cli_cfg,
             new_versions[j],
             props.enterprise,
             test_driver.base_config.zip_package,
@@ -134,23 +131,12 @@ def upgrade_package_test(
         this_test_dir = test_dir / props.directory_suffix
         test_driver.reset_test_data_dir(this_test_dir)
 
-        results.append(
-            test_driver.run_upgrade(
-                [
-                    dl_old.cfg.version,
-                    dl_new.cfg.version
-                ],
-                props
-            )
-        )
+        results.append(test_driver.run_upgrade([dl_old.cfg.version, dl_new.cfg.version], props))
 
     for use_enterprise in [True, False]:
         results.append(
             test_driver.run_conflict_tests(
-                [
-                    dl_old.cfg.version,
-                    dl_new.cfg.version
-                ],
+                [dl_old.cfg.version, dl_new.cfg.version],
                 enterprise=use_enterprise,
             )
         )
@@ -190,7 +176,7 @@ def upgrade_package_test(
 
     tablestr = str(table)
     print(tablestr)
-    Path("testfailures.txt").write_text(tablestr, encoding='utf8')
+    Path("testfailures.txt").write_text(tablestr, encoding="utf8")
     if not status:
         print("exiting with failure")
         sys.exit(1)
@@ -204,6 +190,7 @@ def upgrade_package_test(
     "--upgrade-matrix", default="", help="list of upgrade operations ala '3.6.15:3.7.15;3.7.14:3.7.15;3.7.15:3.8.1'"
 )
 @very_common_options()
+@hotbackup_options()
 @common_options(
     support_multi_version=False,
     support_old=False,
@@ -218,7 +205,10 @@ def main(
         editions,
         upgrade_matrix,
         #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package, src_testing, hot_backup,
+        new_version, verbose, enterprise, package_dir, zip_package, src_testing,
+        #hotbackup_options
+        hot_backup, hb_provider, hb_storage_path_prefix,
+        hb_aws_access_key_id, hb_aws_secret_access_key, hb_aws_region, hb_aws_acl,
         # common_options
         # old_version,
         test_data_dir, encryption_at_rest, alluredir, clean_alluredir, ssl, use_auto_certs,
@@ -248,7 +238,13 @@ def main(
         clean_alluredir,
         zip_package,
         src_testing,
-        hot_backup,
+        HotBackupCliCfg(hot_backup,
+                        hb_provider,
+                        hb_storage_path_prefix,
+                        hb_aws_access_key_id,
+                        hb_aws_secret_access_key,
+                        hb_aws_region,
+                        hb_aws_acl),
         False,  # interactive
         starter_mode,
         False,  # stress_upgrade,

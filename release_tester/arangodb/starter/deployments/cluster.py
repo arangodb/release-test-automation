@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
 import time
-import datetime
 import logging
 from pathlib import Path
 import semver

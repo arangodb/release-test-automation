@@ -10,8 +10,8 @@ from selenium.common.exceptions import TimeoutException
 class AnalyzerPage(NavigationBarPage):
     """ analyzer page object """
     # pylint: disable=too-many-instance-attributes
-    def __init__(self, webdriver):
-        super().__init__(webdriver)
+    def __init__(self, webdriver, cfg):
+        super().__init__(webdriver, cfg)
         self.analyzers_page = "analyzers"  # list of in-built analyzers
         self.in_built_analyzer = "icon_arangodb_settings2"
         self.add_new_analyzer_btn = '//*[@id="analyzersContent"]/div/div/div/div/button/i'
