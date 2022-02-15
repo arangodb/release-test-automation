@@ -284,7 +284,8 @@ class TestDriver:
                                     ]
                                     one_result["success"] = False
                                     one_result["messages"].append(
-                                        f'The following UI tests failed: {", ".join(failed_test_names)}. See allure report for details.'
+                                        f'The following UI tests failed: {", ".join(failed_test_names)}.' +
+                                        'See allure report for details.'
                                     )
                         lh.section("uninstall")
                         new_inst.un_install_server_package()

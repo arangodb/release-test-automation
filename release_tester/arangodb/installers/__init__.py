@@ -48,6 +48,7 @@ HB_PROVIDERS = {
 
 
 class HotBackupProviderCfg:
+    """ different hotbackup upload setups """
     ALLOWED_PROVIDERS = {
         HotBackupMode.DISABLED: [],
         HotBackupMode.DIRECTORY: [],
@@ -74,6 +75,7 @@ class HotBackupProviderCfg:
 
 class HotBackupCliCfg:
     """ map common_options hotbackup_options """
+    # pylint: disable=too-many-arguments
     def __init__(self,
                  hb_mode="",
                  hb_provider="",
@@ -92,7 +94,7 @@ class HotBackupCliCfg:
         self.hb_aws_secret_access_key = hb_aws_secret_access_key
         self.hb_aws_region = hb_aws_region
         self.hb_aws_acl = hb_aws_acl
-        
+
 
 class InstallerFrontend:
     """class describing frontend instances"""
@@ -171,8 +173,6 @@ class InstallerConfig:
         self.dbdir = Path()
         self.appdir = Path()
         self.cfgdir = Path()
-        winver = platform.win32_ver()
-
         self.hb_cli_cfg = hb_cli_cfg
         self.hot_backup_supported = (self.enterprise and
                                      not IS_WINDOWS and

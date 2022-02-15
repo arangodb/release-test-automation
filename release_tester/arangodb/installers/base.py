@@ -405,6 +405,7 @@ class InstallerBase(ABC):
     @step
     def load_config(self):
         """deserialize the config from disk"""
+        # pylint: disable=broad-except
         verbose = self.cfg.verbose
         try:
             with open(self.calc_config_file_name(), encoding='utf8') as fileh:
@@ -751,6 +752,7 @@ class InstallerBase(ABC):
         return False
 
     def find_crash(self, base_path):
+        """ search on the disk whether crash files exist """
         for i in base_path.glob(self.core_glob):
             print("Found coredump! " + str(i))
             return True

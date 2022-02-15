@@ -29,7 +29,6 @@ from reporting.reporting_utils import step
 
 from arangodb.async_client import CliExecutionException
 from arangodb.bench import load_scenarios
-from arangodb.installers import HotBackupMode
 from arangodb.instance import InstanceType, print_instances_table
 from arangodb.sh import ArangoshExecutor
 
