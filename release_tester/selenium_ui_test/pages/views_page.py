@@ -136,8 +136,7 @@ class ViewsPage(NavigationBarPage):
         time.sleep(2)
 
         print(f"Checking that we get the right results for {expected_text}\n")
-        version = self.get_current_package_version()
-        if semver.VersionInfo.parse(version) <= "3.8.0":
+        if self.current_package_version() <= semver.VersionInfo.parse("3.8.0"):
             if expected_text == "firstView":
                 found = self.locator_finder_by_xpath(search_locator).text
                 assert found == expected_text, f"Expected views title {expected_text} but got {found}"
@@ -296,19 +295,9 @@ class ViewsPage(NavigationBarPage):
         sorted_value_sitem = self.locator_finder_by_xpath(sorted_value)
         sorted_value_sitem.click()
         time.sleep(2)
+        self.wait_for_ajax()
 
-        # print(f'Select stored field for {view_name} \n')
-        # # stored_field = "//div[contains(@id,'s2id_field')]"
-        # stored_field = "/html/body/div[1]/div/div[2]/div[2]/div/div[2]/div/table/tbody/tr/th/table/tbody/tr/td[1]/div"
-        #
-        # stored_field_sitem = self.locator_finder_by_xpath(stored_field)
-        # stored_field_sitem.click()
-        # stored_field_sitem.clear()
-        # stored_field_sitem.send_keys('attr')
-        # stored_field_sitem.send_keys(Keys.ENTER)
-        # time.sleep(2)
-        version = self.get_current_package_version()
-        if semver.VersionInfo.parse(version) >= "3.9.0":
+        if self.current_package_version() >= semver.VersionInfo.parse("3.9.0"):
             print('stored value has been skipped.\n')
         else:
             print(f'Select stored field for {view_name} \n')
@@ -321,6 +310,7 @@ class ViewsPage(NavigationBarPage):
             stored_field_sitem.send_keys('attr')
             stored_field_sitem.send_keys(Keys.ENTER)
             time.sleep(2)
+            self.wait_for_ajax()
 
         print(f"Selecting stored direction for {view_name} \n")
         stored_direction = (
@@ -435,6 +425,7 @@ class ViewsPage(NavigationBarPage):
         json_sitem.click()
         time.sleep(1)
 
+        self.wait_for_ajax()
         print("Switch editor mode to Compact mode Code \n")
         compact = '//*[@id="JSON"]/div/div[2]/div/div/div/div/div[1]/button[2]'
         compact_sitem = self.locator_finder_by_xpath(compact)
@@ -469,6 +460,7 @@ class ViewsPage(NavigationBarPage):
     
     def delete_new_views(self, name):
         """this method will delete all the newer version views"""
+        self.wait_for_ajax()
         self.select_views_tab()
         try:
             views = ''
@@ -482,11 +474,13 @@ class ViewsPage(NavigationBarPage):
             views_sitem = self.locator_finder_by_xpath(views)
             views_sitem.click()
             time.sleep(2)
+            self.wait_for_ajax()
 
             settings_tab = "//*[text()='Settings']"
             settings_tab_sitem = self.locator_finder_by_xpath(settings_tab)
             settings_tab_sitem.click()
             time.sleep(2)
+            self.wait_for_ajax()
 
             delete_btn = '//*[@id="modal-dialog"]/div[2]/button[1]'
             delete_btn_sitem = self.locator_finder_by_xpath(delete_btn)
@@ -507,6 +501,7 @@ class ViewsPage(NavigationBarPage):
 
             self.webdriver.refresh()
             time.sleep(2)
+            self.wait_for_ajax()
 
         except TimeoutException as ex:
             print(f'Error found, Can not delete views {ex} \n')
@@ -568,23 +563,28 @@ class ViewsPage(NavigationBarPage):
     def delete_views(self, name, locator):
         """This method will delete views"""
         self.select_views_tab()
+        self.wait_for_ajax()
         print(f"Selecting {name} for deleting \n")
         try:
             select_view_sitem = self.locator_finder_by_xpath(locator)
             select_view_sitem.click()
             time.sleep(1)
+            self.wait_for_ajax()
 
             delete_views_btn_sitem = self.locator_finder_by_id(self.delete_views_btn_id)
             delete_views_btn_sitem.click()
             time.sleep(1)
+            self.wait_for_ajax()
 
             delete_views_confirm_btn_sitem = self.locator_finder_by_xpath(self.delete_views_confirm_btn_id)
             delete_views_confirm_btn_sitem.click()
             time.sleep(1)
+            self.wait_for_ajax()
 
             final_delete_confirmation_sitem = self.locator_finder_by_id(self.final_delete_confirmation_id)
             final_delete_confirmation_sitem.click()
             print(f"Selecting {name} for deleting completed \n")
             time.sleep(1)
+            self.wait_for_ajax()
         except TimeoutException as ex:
             print("FAIL: could not delete views properly", ex, "\n")

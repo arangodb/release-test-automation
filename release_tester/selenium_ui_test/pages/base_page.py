@@ -243,19 +243,12 @@ class BasePage:
 
     def current_package_version(self):
         """checking current package version from the dashboard"""
-        package_version = self.locator_finder_by_id("currentVersion").text
-        print("Package Version: ", package_version)
-        time.sleep(1)
-
-        version = semver.VersionInfo.parse(package_version)
-        return version
-    
-    def get_current_package_version(self):
-        """getting current package version"""
         package_version = "currentVersion"
         package_version = self.locator_finder_by_id(package_version).text
         print("Package Version: ", package_version)
-        return package_version
+        # version = float(package_version[0:3])
+
+        return semver.VersionInfo.parse(package_version)
 
     def current_user(self):
         """get the currently logged in user from the page upper middle"""

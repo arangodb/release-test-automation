@@ -25,20 +25,17 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
         print("Selecting Views tab\n")
         views.select_views_tab()
 
-        # checking 3.9 for improved views
-        version = views.get_current_package_version()
-
-        if semver.VersionInfo.parse(version) >= "3.9.0":
+        if self.current_package_version() >= semver.VersionInfo.parse("3.9.0"):
             print('Creating improved views start here \n')
             views.create_improved_views('improved_arangosearch_view_01', 0)
-            self.driver.refresh()
+            self.webdriver.refresh()
             self.wait_for_ajax()
-            time.sleep(4)
+            time.sleep(2)
             views.create_improved_views('improved_arangosearch_view_02', 1)
             print('Creating improved views completed \n')
 
-            # Checking improved views
-            if semver.VersionInfo.parse(version) > "3.9.0":
+            
+            if self.current_package_version() > semver.VersionInfo.parse("3.9.0"):
                 views.checking_modified_views(self.is_cluster)
 
                 if self.is_cluster:
@@ -66,7 +63,7 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
             print('Deleting views completed \n')
 
         # for package version less than 3.9
-        elif semver.VersionInfo.parse(version) <= "3.8.0":
+        elif self.current_package_version() <= semver.VersionInfo.parse("3.8.0"):
             views.create_new_views('firstView')
             views.create_new_views('secondView')
 

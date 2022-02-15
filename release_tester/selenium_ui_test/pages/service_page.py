@@ -177,7 +177,7 @@ class ServicePage(NavigationBarPage):
 
     def setup_demo_geo_s2_service(self):
         """checking general stuff of demo_geo_s2 service"""
-        self.driver.refresh()
+        self.webdriver.refresh()
         time.sleep(1)
         self.select_demo_geo_s2_service()
         github_link = '//*[@id="information"]/div/div[2]/div[1]/p[3]/span[2]/a'
@@ -225,7 +225,7 @@ class ServicePage(NavigationBarPage):
                 status = True
             else:
                 print('Could not locate the desired service! refreshing the UI \n')
-                self.driver.refresh()
+                self.webdriver.refresh()
                 time.sleep(1)
                 success_sitem = self.locator_finder_by_xpath(success).text
                 if success_sitem == 'demo-geo-s2':
@@ -299,7 +299,7 @@ class ServicePage(NavigationBarPage):
                     time.sleep(1)
 
                     self.select_service_page()
-                    self.driver.refresh()
+                    self.webdriver.refresh()
 
                     print('Selecting demo_geo_s2 service \n')
                     select_service = '//*[@id="installedList"]/div[2]/div/div[3]/span/div'
@@ -462,7 +462,7 @@ class ServicePage(NavigationBarPage):
                     self.locator_finder_by_id(pressing_yes).click()
                     time.sleep(1)
 
-                    self.driver.refresh()
+                    self.webdriver.refresh()
                     print(f'{service_sitem} service has been deleted successfully \n')
 
             except Exception:

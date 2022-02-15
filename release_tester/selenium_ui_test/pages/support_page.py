@@ -6,6 +6,7 @@ from selenium_ui_test.pages.navbar import NavigationBarPage
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=R0902 disable=R0915 disable=R0914
+# pylint: disable=line-too-long disable=too-many-instance-attributes disable=too-many-statements disable=too-many-locals
 
 
 class SupportPage(NavigationBarPage):
