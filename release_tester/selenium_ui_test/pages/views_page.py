@@ -135,7 +135,8 @@ class ViewsPage(NavigationBarPage):
         time.sleep(2)
 
         print(f"Checking that we get the right results for {expected_text}\n")
-        if self.current_package_version() <= 3.8:
+        version = self.current_package_version()
+        if semver.VersionInfo.parse(version) <= "3.8.0-nightly":
             if expected_text == "firstView":
                 found = self.locator_finder_by_xpath(search_locator).text
                 assert found == expected_text, f"Expected views title {expected_text} but got {found}"
