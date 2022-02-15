@@ -135,8 +135,8 @@ class ViewsPage(NavigationBarPage):
         time.sleep(2)
 
         print(f"Checking that we get the right results for {expected_text}\n")
-        version = self.current_package_version()
-        if semver.VersionInfo.parse(version) <= "3.8.0-nightly":
+        version = self.get_current_package_version()
+        if semver.VersionInfo.parse(version) <= "3.8.0":
             if expected_text == "firstView":
                 found = self.locator_finder_by_xpath(search_locator).text
                 assert found == expected_text, f"Expected views title {expected_text} but got {found}"
@@ -306,8 +306,8 @@ class ViewsPage(NavigationBarPage):
         # stored_field_sitem.send_keys('attr')
         # stored_field_sitem.send_keys(Keys.ENTER)
         # time.sleep(2)
-        version = self.current_package_version()
-        if semver.VersionInfo.parse(version) >= "3.9.0-nightly":
+        version = self.get_current_package_version()
+        if semver.VersionInfo.parse(version) >= "3.9.0":
             print('stored value has been skipped.\n')
         else:
             print(f'Select stored field for {view_name} \n')
