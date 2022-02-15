@@ -12,17 +12,17 @@ class DatabaseTestSuite(BaseSeleniumTestSuite):
     def test_database(self):
         """testing database page"""
         print("---------DataBase Page Test Begin--------- \n")
-        # login = LoginPage(self.webdriver)
+        # login = LoginPage(self.webdriver, self.cfg)
         # login.login('root', '')
 
-        user = UserPage(self.webdriver)
+        user = UserPage(self.webdriver, self.cfg)
         assert user.current_user() == "ROOT", "current user is root?"
         assert user.current_database() == "_SYSTEM", "current database is _system?"
         user.user_tab()
         user.add_new_user("tester")
         user.add_new_user("tester01")
 
-        database = DatabasePage(self.webdriver)
+        database = DatabasePage(self.webdriver, self.cfg)
         database.create_new_db("Sharded", 0, self.is_cluster)  # 0 = sharded DB
         database.create_new_db("OneShard", 1, self.is_cluster)  # 1 = one shard DB
 

@@ -62,7 +62,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
 #            + self.frontend.get_public_plain_url()
 #            + "/_db/_system/_admin/aardvark/index.html"
 #        )
-#        login_page = LoginPage(self.webdriver)
+#        login_page = LoginPage(self.webdriver, self.cfg)
 #        login_page.login_webif("root", frontend_instance[0].get_passvoid())
 #
 #    def close_tab_again(self):
@@ -84,7 +84,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
 #            + frontend_instance[0].get_public_plain_url()
 #            + "/_db/_system/_admin/aardvark/index.html"
 #        )
-#        login_page = LoginPage(self.webdriver)
+#        login_page = LoginPage(self.webdriver, self.cfg)
 #        login_page.login_webif("root", frontend_instance[0].get_passvoid())
 
     def go_to_index_page(self):
@@ -93,7 +93,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
         path = "/_db/_system/_admin/aardvark/index.html"
         self.goto_url_and_wait_until_loaded(path)
         if "#login" in self.webdriver.current_url:
-            login_page = LoginPage(self.webdriver)
+            login_page = LoginPage(self.webdriver, self.cfg)
             login_page.login_webif("root", self.root_passvoid, "_system")
             self.goto_url_and_wait_until_loaded(path)
 
@@ -102,14 +102,14 @@ class BaseSeleniumTestSuite(BaseTestSuite):
         path = "/_db/_system/_admin/aardvark/index.html#dashboard"
         self.webdriver.get(self.url + path)
         if not path in self.webdriver.current_url:
-            login_page = LoginPage(self.webdriver)
+            login_page = LoginPage(self.webdriver, self.cfg)
             login_page.login_webif(username, self.root_passvoid, database_name)
             self.webdriver.get(self.url + path)
 
     def goto_url_and_wait_until_loaded(self, path):
         """goto & wait for loaded"""
         self.webdriver.get(self.url + path)
-        BasePage(self.webdriver).wait_for_ajax()
+        BasePage(self.webdriver, self.cfg).wait_for_ajax()
 
     @run_before_suite
     def prepare_to_run_tests(self):
@@ -182,7 +182,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
 
     def check_version(self, expected_version: VersionInfo, is_enterprise: bool):
         """validate the version displayed in the UI"""
-        ver = NavigationBarPage(self.webdriver).detect_version()
+        ver = NavigationBarPage(self.webdriver, self.cfg).detect_version()
         self.progress(" %s ~= %s?" % (ver["version"].lower(), str(expected_version).lower()))
         assert ver["version"].lower().lower().startswith(str(expected_version)), (
             "UI-Test: wrong version: '" + str(ver["version"]).lower() + "' vs '" + str(expected_version).lower() + "'"

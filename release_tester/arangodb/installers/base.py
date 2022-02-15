@@ -100,12 +100,12 @@ class BinaryDescription:
             check_strings = [b'valid on disk', b'satisfies its Designated Requirement']
             with psutil.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
                 (_, codesign_str) = proc.communicate()
-                print(codesign_str)
                 if proc.returncode:
                     raise Exception("codesign exited nonzero " + str(cmd) + "\n" + str(codesign_str))
                 if codesign_str.find(check_strings[0]) < 0 or codesign_str.find(check_strings[1]) < 0:
-                    raise Exception("codesign didn't find signature: " + str(signtool_str))
+                    raise Exception("codesign didn't find signature: " + str(codesign_str))
 
+    # pylint: disable=too-many-arguments
     @step
     def check_installed(self, version, enterprise, check_stripped, check_symlink, check_notarized):
         """check all attributes of this file in reality"""
@@ -227,6 +227,7 @@ class InstallerBase(ABC):
         self.instance = None
         self.starter_versions = {}
         self.cli_executor = ArangoCLIprogressiveTimeoutExecutor(self.cfg, self.instance)
+        self.core_glob = "**/*core"
 
     def reset_version(self, version):
         """re-configure the version we work with"""
@@ -405,9 +406,16 @@ class InstallerBase(ABC):
     def load_config(self):
         """deserialize the config from disk"""
         verbose = self.cfg.verbose
-        with open(self.calc_config_file_name(), encoding='utf8') as fileh:
-            print("loading " + str(self.calc_config_file_name()))
-            self.cfg.set_from(yaml.load(fileh, Loader=yaml.Loader))
+        try:
+            with open(self.calc_config_file_name(), encoding='utf8') as fileh:
+                print("loading " + str(self.calc_config_file_name()))
+                cfg = yaml.load(fileh, Loader=yaml.Loader)
+                test_cfg = copy.deepcopy(self.cfg)
+                test_cfg.set_from(cfg)
+                self.cfg.set_from(test_cfg)
+        except Exception as ex:
+            print("failed to load saved config - skiping " + str(ex))
+            return
         self.cfg.semver = semver.VersionInfo.parse(self.cfg.version)
 
         self.instance = ArangodInstance(
@@ -740,4 +748,10 @@ class InstallerBase(ABC):
     # pylint: disable=:no-self-use
     def supports_backup(self):
         """Does this installer support automatic backup during minor upgrade?"""
+        return False
+
+    def find_crash(self, base_path):
+        for i in base_path.glob(self.core_glob):
+            print("Found coredump! " + str(i))
+            return True
         return False

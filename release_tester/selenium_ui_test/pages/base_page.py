@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """ base page object """
 import time
+import traceback
 
+import tools.interact as ti
 # from selenium import webdriver
 
 from selenium.webdriver.chrome.webdriver import WebDriver
@@ -35,9 +37,10 @@ class BasePage:
 
     driver: WebDriver
 
-    def __init__(self, webdriver):
+    def __init__(self, webdriver, cfg):
         """base initialization"""
         self.webdriver = webdriver
+        self.cfg = cfg
         self.query_execution_area = '//*[@id="aqlEditor"]'
         self.bindvalues_area = '//*[@id="bindParamAceEditor"]'
         self.locator = None
@@ -244,7 +247,7 @@ class BasePage:
         print("Package Version: ", package_version)
         time.sleep(1)
 
-        version = float(package_version[0:3])
+        version = semver.VersionInfo.parse(package_version)
         return version
     
     def get_current_package_version(self):
@@ -301,12 +304,23 @@ class BasePage:
             raise Exception(str(locator_name), " locator was not found.")
         return self.locator
 
-    def locator_finder_by_xpath(self, locator_name, timeout=10):
+    def locator_finder_by_xpath(self, locator_name, timeout=10, expec_fail=False):
         """This method will used for finding all the locators by their xpath"""
-        self.locator = WebDriverWait(self.webdriver, timeout).until(
-            EC.element_to_be_clickable((BY.XPATH, locator_name)),
-            message="UI-Test: " + locator_name + " locator was not found.",
-        )
+        try:
+            self.locator = WebDriverWait(self.webdriver, timeout).until(
+                EC.element_to_be_clickable((BY.XPATH, locator_name)),
+                message="UI-Test: " + locator_name + " locator was not found.",
+            )
+        except Exception as ex:
+            if expec_fail:
+                raise ex
+            ti.prompt_user(self.cfg,
+                           "ERROR " * 10 +
+                           "\nError while wating for web element:\n" +
+                           str(ex) + "\n" +
+                           "".join(traceback.format_stack(ex.__traceback__.tb_frame))
+                           )
+            raise ex
         if self.locator is None:
             raise Exception("UI-Test: ", locator_name, " locator was not found.")
         return self.locator

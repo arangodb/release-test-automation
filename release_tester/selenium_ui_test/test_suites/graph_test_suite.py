@@ -12,7 +12,7 @@ class GraphTestSuite(BaseSeleniumTestSuite):
     def test_graph(self):
         """testing graph page"""
         print("---------Checking Graphs started--------- \n")
-        this_graph = GraphPage(self.webdriver)
+        this_graph = GraphPage(self.webdriver, self.cfg)
         assert this_graph.current_user() == "ROOT", "current user is root?"
         assert this_graph.current_database() == "_SYSTEM", "current database is _system?"
         print("Manual Graph creation started \n")
