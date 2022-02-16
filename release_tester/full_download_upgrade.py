@@ -162,7 +162,6 @@ def upgrade_package_test(
 @download_options(default_source="ftp:stage2", double_source=True)
 def main(**kwargs):
     """ main """
-    print(kwargs)
     kwargs['interactive'] = False
     kwargs['abort_on_error'] = False
     kwargs['package_dir'] = Path(kwargs['package_dir'])
@@ -184,7 +183,6 @@ def main(**kwargs):
         kwargs['editions'],
         test_driver
     )
-
 
 if __name__ == "__main__":
     # pylint: disable=no-value-for-parameter # fix clickiness.

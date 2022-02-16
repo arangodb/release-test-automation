@@ -352,42 +352,26 @@ class Download:
 @very_common_options()
 @download_options()
 # fmt: off
-# pylint: disable=too-many-arguments disable=unused-argument
-def main(
-        #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package, src_testing,
-        hot_backup, hb_provider, hb_storage_path_prefix,
-        hb_aws_access_key_id, hb_aws_secret_access_key, hb_aws_region, hb_aws_acl,
-        # download options:
-        enterprise_magic, force, source,
-        httpuser, httppassvoid, remote_host):
-# fmt: on
-    """ main wrapper """
-    hb_cli_cfg = HotBackupCliCfg(hot_backup,
-                                 hb_provider,
-                                 hb_storage_path_prefix,
-                                 hb_aws_access_key_id,
-                                 hb_aws_secret_access_key,
-                                 hb_aws_region,
-                                 hb_aws_acl)
-    dl_opts = DownloadOptions(force,
-                              verbose,
-                              Path(package_dir),
-                              enterprise_magic,
-                              httpuser,
-                              httppassvoid,
-                              remote_host)
+def main(**kwargs):
+    """ main """
+    kwargs['interactive'] = False
+    kwargs['abort_on_error'] = False
+    kwargs['package_dir'] = Path(kwargs['package_dir'])
+    kwargs['test_data_dir'] = Path(kwargs['test_data_dir'])
+    kwargs['alluredir'] = Path(kwargs['alluredir'])
 
-    lh.configure_logging(verbose)
+    hb_cli_cfg = HotBackupCliCfg(**kwargs)
+    dl_opts = DownloadOptions(**kwargs)
+    lh.configure_logging(kwargs['verbose'])
     downloader = Download(
         options=dl_opts,
         hb_cli_cfg=hb_cli_cfg,
-        version=new_version,
-        enterprise=enterprise,
-        zip_package=zip_package,
-        src_testing=src_testing,
-        source=source)
-    return downloader.get_packages(force)
+        version=kwargs['new_version'],
+        enterprise=kwargs['enterprise'],
+        zip_package=kwargs['zip_package'],
+        src_testing=kwargs['src_testing'],
+        source=kwargs['source'])
+    return downloader.get_packages(kwargs['force'])
 
 
 if __name__ == "__main__":

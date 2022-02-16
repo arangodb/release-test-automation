@@ -14,30 +14,30 @@ from test_driver import TestDriver
 def run_test(zip_package, src_testing):
     """Wrapper..."""
     lh.configure_logging(True)
-    test_driver = TestDriver(
-        False,
-        Path(""),
-        Path(""),
-        Path(""),
-        True,
-        zip_package,
-        src_testing,
-        HotBackupCliCfg("",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        ""),
-        False,  # interactive,
-        "all",  # starter_mode,
-        False,  # stress_upgrade,
-        False,  # abort_on_error,
-        "127.0.0.1",
-        "none",
-        [],
-        False,
-    )
+
+    kwargs['verbose']=False
+    kwargs['package_dir']=""
+    kwargs['test_data_dir']=""
+    kwargs['alluredir)']=""
+    kwargs['clean_alluredir']=True
+    # kwargs['zip_package']=""
+    # kwargs['src_testing']=""
+    kwargs['hb_mode']=""
+    kwargs['hb_provider']=""
+    kwargs['hb_storage_path_prefix']=""
+    kwargs['hb_aws_access_key_id']=""
+    kwargs['hb_aws_secret_access_key']=""
+    kwargs['hb_aws_region']=""
+    kwargs['hb_aws_acl']=""
+    kwargs['interactive']=False
+    kwargs['starter_mode']="all"
+    kwargs['stress_upgrade']=False
+    kwargs['abort_on_error']=False
+    kwargs['publicip']="127.0.0.1"
+    kwargs['selenium']="none"
+    kwargs['selenium_driver_args']=[]
+    kwargs['use_auto_certs']=False
+
     test_driver.set_r_limits()
     test_driver.run_cleanup(RunProperties(False, False, False))
 
