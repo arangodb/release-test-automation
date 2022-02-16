@@ -12,3 +12,4 @@ allure_python_commons
 certifi
 mss
 distro
+dataclasses
