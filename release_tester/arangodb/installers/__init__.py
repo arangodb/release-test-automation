@@ -3,6 +3,7 @@
 import copy
 import os
 import platform
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 
@@ -61,8 +62,8 @@ class HotBackupProviderCfg:
         HotBackupMode.S3BUCKET: HotBackupProviders.MINIO,
     }
 
-    def __init__(self, mode: HotBackupMode, provider: HotBackupProviders = None, path_prefix: str = None):
-        self.mode = mode
+    def __init__(self, mode: str, provider: HotBackupProviders = None, path_prefix: str = None):
+        self.mode = HB_MODES[mode]
         if provider and provider not in HotBackupProviderCfg.ALLOWED_PROVIDERS[mode]:
             raise Exception(f"Storage provider {provider} is not allowed for rclone config type {mode}!")
         if provider:
@@ -73,23 +74,24 @@ class HotBackupProviderCfg:
         while self.path_prefix and "//" in self.path_prefix:
             self.path_prefix = self.path_prefix.replace("//", "/")
 
-class HotBackupCliCfg:
-    """ map common_options hotbackup_options """
-    # pylint: disable=too-many-arguments
-    def __init__(self,
-                 **kwargs):
-        print(kwargs)
-        self.hb_provider = kwargs['hb_provider']
-        self.hb_mode = HB_MODES[kwargs['hb_mode']]
-        self.hb_provider = kwargs['hb_provider']
-        self.hb_storage_path_prefix = kwargs['hb_storage_path_prefix']
-        self.hb_aws_access_key_id = kwargs['hb_aws_access_key_id']
-        self.hb_aws_secret_access_key = kwargs['hb_aws_secret_access_key']
-        self.hb_aws_region = kwargs['hb_aws_region']
-        self.hb_aws_acl = kwargs['hb_aws_acl']
-        self.hb_provider_cfg = HotBackupProviderCfg(
-            self.hb_mode, HB_PROVIDERS[self.hb_provider] if self.hb_provider else None, self.hb_storage_path_prefix
+class OptionGroup:
+    @classmethod
+    def from_dict(cls, **options):
+        return cls(
+            **{k: v for k, v in options.items() if k in cls.__dataclass_fields__}
         )
+
+@dataclass
+class HotBackupCliCfg(OptionGroup):
+    """ map hotbackup_options """
+    hb_provider: str
+    hb_mode: str
+    hb_provider: str
+    hb_storage_path_prefix: str
+    hb_aws_access_key_id: str
+    hb_aws_secret_access_key: str
+    hb_aws_region: str
+    hb_aws_acl: str
 
 
 class InstallerFrontend:
@@ -170,9 +172,13 @@ class InstallerConfig:
         self.appdir = Path()
         self.cfgdir = Path()
         self.hb_cli_cfg = hb_cli_cfg
+        print(hb_cli_cfg)
+        self.hb_provider_cfg = HotBackupProviderCfg(
+             hb_cli_cfg.hb_mode, HB_PROVIDERS[hb_cli_cfg.hb_provider] if hb_cli_cfg.hb_provider else None, hb_cli_cfg.hb_storage_path_prefix
+         )
         self.hot_backup_supported = (self.enterprise and
                                      not IS_WINDOWS and
-                                     hb_cli_cfg.hb_provider_cfg.mode != HotBackupMode.DISABLED)
+                                     self.hb_provider_cfg.mode != HotBackupMode.DISABLED)
 
     def __repr__(self):
         return """

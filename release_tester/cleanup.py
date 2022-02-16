@@ -38,7 +38,7 @@ def main(**kwargs):
     kwargs['selenium_driver_args']=[]
     kwargs['use_auto_certs']=False
 
-    kwargs['hb_cli_cfg'] = HotBackupCliCfg(**kwargs)
+    kwargs['hb_cli_cfg'] = HotBackupCliCfg.from_dict(**kwargs)
     test_driver = TestDriver(**kwargs)
     test_driver.set_r_limits()
     test_driver.run_cleanup(RunProperties(False, False, False))

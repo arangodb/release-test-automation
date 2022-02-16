@@ -359,7 +359,7 @@ def main(**kwargs):
     kwargs['test_data_dir'] = Path(kwargs['test_data_dir'])
     kwargs['alluredir'] = Path(kwargs['alluredir'])
 
-    hb_cli_cfg = HotBackupCliCfg(**kwargs)
+    kwargs['hb_cli_cfg'] = HotBackupCliCfg.from_dict(**kwargs)
     dl_opts = DownloadOptions(**kwargs)
     lh.configure_logging(kwargs['verbose'])
     downloader = Download(
