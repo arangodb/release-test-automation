@@ -166,7 +166,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
     def restore(self, backup_name):
         """restore an existing hot backup"""
         args = ["restore", "--identifier", backup_name]
-        self.run_backup(args, backup_name)
+        self.run_backup(args, backup_name, timeout=120)
 
     @step
     def delete(self, backup_name):
