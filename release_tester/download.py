@@ -364,7 +364,7 @@ def main(**kwargs):
     lh.configure_logging(kwargs['verbose'])
     downloader = Download(
         options=dl_opts,
-        hb_cli_cfg=hb_cli_cfg,
+        hb_cli_cfg=kwargs['hb_cli_cfg'],
         version=kwargs['new_version'],
         enterprise=kwargs['enterprise'],
         zip_package=kwargs['zip_package'],

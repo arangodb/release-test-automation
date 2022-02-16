@@ -75,8 +75,12 @@ class HotBackupProviderCfg:
             self.path_prefix = self.path_prefix.replace("//", "/")
 
 class OptionGroup:
+    """ wrapper class to init from kwargs """
     @classmethod
     def from_dict(cls, **options):
+        """ invoke init from kwargs """
+        # these members will be added by derivative classes:
+        # pylint: disable=no-member
         return cls(
             **{k: v for k, v in options.items() if k in cls.__dataclass_fields__}
         )
@@ -383,10 +387,10 @@ EXECUTION_PLAN = [
     RunProperties(False, False, False, "Community", "C"),
 ]
 
-
 @dataclass
 class InstallerBaseConfig(OptionGroup):
     """commandline argument config settings"""
+    # pylint: disable=too-many-instance-attributes
     verbose: bool
     zip_package: bool
     src_testing: bool
