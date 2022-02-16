@@ -7,7 +7,7 @@ import re
 import click
 from common_options import very_common_options, common_options
 from tools.killall import kill_all_processes
-from arangodb.installers import create_config_installer_set, RunProperties, HotBackupCliCfg
+from arangodb.installers import create_config_installer_set, RunProperties, HotBackupCliCfg, InstallerBaseConfig
 from arangodb.starter.deployments.cluster_perf import ClusterPerf
 from arangodb.starter.deployments import RunnerType
 import tools.loghelper as lh
@@ -42,6 +42,7 @@ def main(**kwargs):
     kwargs['alluredir'] = Path(kwargs['alluredir'])
 
     kwargs['hb_cli_cfg'] = HotBackupCliCfg.from_dict(**kwargs)
+    kwargs['base_config'] = InstallerBaseConfig.from_dict(**kwargs)
 
     test_driver = TestDriver(**kwargs)
 

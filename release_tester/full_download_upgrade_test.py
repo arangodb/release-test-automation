@@ -14,7 +14,7 @@ from download import Download, DownloadOptions
 from test_driver import TestDriver
 from tools.killall import list_all_processes
 
-from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg
+from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig
 
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
 def upgrade_package_test(
@@ -210,6 +210,7 @@ def main(**kwargs):
     kwargs['alluredir'] = Path(kwargs['alluredir'])
 
     kwargs['hb_cli_cfg'] = HotBackupCliCfg.from_dict(**kwargs)
+    kwargs['base_config'] = InstallerBaseConfig.from_dict(**kwargs)
     dl_opts = DownloadOptions(**kwargs)
 
     test_driver = TestDriver(**kwargs)

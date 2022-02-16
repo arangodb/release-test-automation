@@ -7,7 +7,7 @@ import click
 
 from common_options import very_common_options, common_options, hotbackup_options
 from test_driver import TestDriver
-from arangodb.installers import HotBackupCliCfg
+from arangodb.installers import HotBackupCliCfg, InstallerBaseConfig
 
 @click.command()
 # pylint: disable=too-many-arguments disable=too-many-locals disable=unused-argument
@@ -24,6 +24,8 @@ def main(**kwargs):
     kwargs['alluredir'] = Path(kwargs['alluredir'])
 
     kwargs['hb_cli_cfg'] = HotBackupCliCfg.from_dict(**kwargs)
+    kwargs['base_config'] = InstallerBaseConfig.from_dict(**kwargs)
+
     test_driver = TestDriver(**kwargs)
     test_driver.set_r_limits()
     results = test_driver.run_license_manager_tests(kwargs['new_version'])

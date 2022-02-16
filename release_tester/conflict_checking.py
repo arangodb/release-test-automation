@@ -6,7 +6,7 @@ from pathlib import Path
 import click
 import semver
 
-from arangodb.installers import HotBackupCliCfg
+from arangodb.installers import HotBackupCliCfg, InstallerBaseConfig
 from common_options import very_common_options, common_options, hotbackup_options
 from test_driver import TestDriver
 
@@ -26,6 +26,7 @@ def main(**kwargs):
     kwargs['alluredir'] = Path(kwargs['alluredir'])
 
     kwargs['hb_cli_cfg'] = HotBackupCliCfg(**kwargs)
+    kwargs['base_config'] = InstallerBaseConfig.from_dict(**kwargs)
 
     test_driver = TestDriver(**kwargs)
 

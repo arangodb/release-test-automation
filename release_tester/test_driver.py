@@ -14,7 +14,7 @@ from allure_commons.model2 import Status, StatusDetails
 from allure_commons._allure import attach
 
 import tools.loghelper as lh
-from arangodb.installers import create_config_installer_set, RunProperties, InstallerBaseConfig
+from arangodb.installers import create_config_installer_set, RunProperties
 from arangodb.starter.deployments import (
     RunnerType,
     make_runner,
@@ -56,18 +56,7 @@ class TestDriver:
         if not kwargs['package_dir'].exists():
             kwargs['package_dir'].mkdir(parents=True, exist_ok=True)
 
-        self.base_config = InstallerBaseConfig(
-            kwargs['verbose'],
-            kwargs['zip_package'],
-            kwargs['src_testing'],
-            kwargs['hb_cli_cfg'],
-            kwargs['package_dir'],
-            kwargs['test_data_dir'],
-            kwargs['starter_mode'],
-            kwargs['publicip'],
-            kwargs['interactive'],
-            kwargs['stress_upgrade'],
-        )
+        self.base_config = kwargs['base_config']
         lh.configure_logging(kwargs['verbose'])
         self.abort_on_error = kwargs['abort_on_error']
 

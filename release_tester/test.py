@@ -9,7 +9,7 @@ import semver
 
 from common_options import very_common_options, common_options, hotbackup_options
 from test_driver import TestDriver
-from arangodb.installers import RunProperties, HotBackupCliCfg
+from arangodb.installers import RunProperties, HotBackupCliCfg, InstallerBaseConfig
 
 
 @click.command()
@@ -37,6 +37,7 @@ def main(**kwargs):
     kwargs['alluredir'] = Path(kwargs['alluredir'])
 
     kwargs['hb_cli_cfg'] = HotBackupCliCfg.from_dict(**kwargs)
+    kwargs['base_config'] = InstallerBaseConfig.from_dict(**kwargs)
 
     test_driver = TestDriver(**kwargs)
 

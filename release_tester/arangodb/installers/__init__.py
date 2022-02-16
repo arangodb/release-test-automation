@@ -173,7 +173,9 @@ class InstallerConfig:
         self.cfgdir = Path()
         self.hb_cli_cfg = hb_cli_cfg
         self.hb_provider_cfg = HotBackupProviderCfg(
-             hb_cli_cfg.hb_mode, HB_PROVIDERS[hb_cli_cfg.hb_provider] if hb_cli_cfg.hb_provider else None, hb_cli_cfg.hb_storage_path_prefix
+             hb_cli_cfg.hb_mode,
+            HB_PROVIDERS[hb_cli_cfg.hb_provider] if hb_cli_cfg.hb_provider else None,
+            hb_cli_cfg.hb_storage_path_prefix
          )
         self.hot_backup_supported = (self.enterprise and
                                      not IS_WINDOWS and
@@ -382,50 +384,19 @@ EXECUTION_PLAN = [
 ]
 
 
-class InstallerBaseConfig:
+@dataclass
+class InstallerBaseConfig(OptionGroup):
     """commandline argument config settings"""
-
-    # pylint: disable=too-many-instance-attributes disable=too-many-arguments
-    def __init__(
-        self,
-        verbose: bool,
-        zip_package: bool,
-        src_testing: bool,
-        hb_cli_cfg: HotBackupCliCfg,
-        package_dir: Path,
-        test_data_dir: Path,
-        starter_mode: str,
-        publicip: str,
-        interactive: bool,
-        stress_upgrade: bool,
-    ):
-        self.verbose = verbose
-        self.zip_package = zip_package
-        self.src_testing = src_testing
-        self.hb_cli_cfg = hb_cli_cfg
-        self.package_dir = package_dir
-        self.test_data_dir = test_data_dir
-        self.starter_mode = starter_mode
-        self.publicip = publicip
-        self.interactive = interactive
-        self.stress_upgrade = stress_upgrade
-
-    def __repr__(self):
-        return """
-verbose : {0.verbose}
-zip_package : {0.zip_package}
-src_testing : {0.src_testing}
-hot_backup : {0.hb_cli_cfg.hot_backup}
-package_dir : {0.package_dir}
-test_data_dir : {0.test_data_dir}
-starter_mode : {0.starter_mode}
-publicip : {0.publicip}
-interactive : {0.interactive}
-stress_upgrade : {0.stress_upgrade}
-""".format(
-            self
-        )
-
+    verbose: bool
+    zip_package: bool
+    src_testing: bool
+    hb_cli_cfg: HotBackupCliCfg
+    package_dir: Path
+    test_data_dir: Path
+    starter_mode: str
+    publicip: str
+    interactive: bool
+    stress_upgrade: bool
 
 # pylint: disable=too-many-locals
 def create_config_installer_set(

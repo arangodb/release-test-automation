@@ -4,7 +4,7 @@
 from pathlib import Path
 import click
 import tools.loghelper as lh
-from arangodb.installers import RunProperties, HotBackupCliCfg
+from arangodb.installers import RunProperties, HotBackupCliCfg, InstallerBaseConfig
 from common_options import zip_common_options
 from test_driver import TestDriver
 
@@ -39,6 +39,7 @@ def main(**kwargs):
     kwargs['use_auto_certs']=False
 
     kwargs['hb_cli_cfg'] = HotBackupCliCfg.from_dict(**kwargs)
+    kwargs['base_config'] = InstallerBaseConfig.from_dict(**kwargs)
     test_driver = TestDriver(**kwargs)
     test_driver.set_r_limits()
     test_driver.run_cleanup(RunProperties(False, False, False))
