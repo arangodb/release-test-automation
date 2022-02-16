@@ -266,6 +266,9 @@ class TestDriver:
                                     )
                                     if self.abort_on_error:
                                         raise ex
+                                    one_result["progress"] += (
+                                        str(ex) +
+                                        "".join(traceback.TracebackException.from_exception(ex).format()))
                                     traceback.print_exc()
                                     lh.section("uninstall on error")
                                     old_inst.un_install_debug_package()
@@ -275,6 +278,7 @@ class TestDriver:
                                         runner.cleanup()
                                     finally:
                                         pass
+                                    results.append(one_result)
                                     continue
                                 if runner.ui_tests_failed:
                                     failed_test_names = [
@@ -428,6 +432,7 @@ class TestDriver:
                             runner.cleanup()
                         finally:
                             pass
+                        results.append(one_result)
                         continue
 
                     if runner.ui_tests_failed:
