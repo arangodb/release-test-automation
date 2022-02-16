@@ -137,7 +137,7 @@ def upgrade_package_test(
         print("exiting with failure")
         sys.exit(1)
 
-    if dl_opts.force_dl:
+    if dl_opts.force:
         touch_all_tars_in_dir(version_state_tar)
     else:
         write_version_tar(version_state_tar, fresh_versions)
