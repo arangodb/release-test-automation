@@ -172,7 +172,6 @@ class InstallerConfig:
         self.appdir = Path()
         self.cfgdir = Path()
         self.hb_cli_cfg = hb_cli_cfg
-        print(hb_cli_cfg)
         self.hb_provider_cfg = HotBackupProviderCfg(
              hb_cli_cfg.hb_mode, HB_PROVIDERS[hb_cli_cfg.hb_provider] if hb_cli_cfg.hb_provider else None, hb_cli_cfg.hb_storage_path_prefix
          )
