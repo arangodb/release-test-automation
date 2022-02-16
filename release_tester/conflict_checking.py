@@ -7,7 +7,7 @@ import click
 import semver
 
 from arangodb.installers import HotBackupCliCfg
-from common_options import very_common_options, common_options
+from common_options import very_common_options, common_options, hotbackup_options
 from test_driver import TestDriver
 
 

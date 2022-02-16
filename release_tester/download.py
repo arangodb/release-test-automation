@@ -54,7 +54,6 @@ def read_versions_tar(tar_file, versions):
                 tar.close()
         except tarfile.ReadError as ex:
             print("Ignoring exception during reading the tar file: " + str(ex))
-            pass
         fdesc.close()
     except FileNotFoundError:
         pass

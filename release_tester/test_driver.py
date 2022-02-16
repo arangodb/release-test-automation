@@ -46,7 +46,7 @@ class TestDriver:
             self.launch_dir = Path(os.environ["WORKSPACE"])
 
         if not kwargs['test_data_dir'].is_absolute():
-            kwargs['test_data_dir'] = self.launch_dir / test_data_dir
+            kwargs['test_data_dir'] = self.launch_dir / kwargs['test_data_dir']
         if not kwargs['test_data_dir'].exists():
             kwargs['test_data_dir'].mkdir(parents=True, exist_ok=True)
         os.chdir(kwargs['test_data_dir'])
@@ -74,7 +74,9 @@ class TestDriver:
         self.use_auto_certs = kwargs['use_auto_certs']
         self.selenium = kwargs['selenium']
         self.selenium_driver_args = kwargs['selenium_driver_args']
-        init_allure(results_dir=kwargs['alluredir'], clean=kwargs['clean_alluredir'], zip_package=self.base_config.zip_package)
+        init_allure(results_dir=kwargs['alluredir'],
+                    clean=kwargs['clean_alluredir'],
+                    zip_package=self.base_config.zip_package)
         self.installer_type = None
 
     # pylint: disable=no-self-use

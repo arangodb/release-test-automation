@@ -16,9 +16,9 @@ def main(**kwargs):
     lh.configure_logging(True)
 
     kwargs['verbose']=False
-    kwargs['package_dir']=""
-    kwargs['test_data_dir']=""
-    kwargs['alluredir)']=""
+    kwargs['package_dir']=Path("")
+    kwargs['test_data_dir']=Path("")
+    kwargs['alluredir']=Path("")
     kwargs['clean_alluredir']=True
     # kwargs['zip_package']=""
     # kwargs['src_testing']=""
@@ -46,4 +46,4 @@ def main(**kwargs):
 
 if __name__ == "__main__":
     # pylint: disable=no-value-for-parameter # fix clickiness.
-    run_test()
+    main()
