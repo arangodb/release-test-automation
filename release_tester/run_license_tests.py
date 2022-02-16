@@ -16,8 +16,8 @@ from arangodb.installers import HotBackupCliCfg
 def main(**kwargs):
     """ main """
     kwargs['stress_upgrade'] = False
-    kwargs['selenium']="none",
-    kwargs['selenium_driver_args']=[],
+    kwargs['selenium']="none"
+    kwargs['selenium_driver_args']=[]
     kwargs['package_dir'] = Path(kwargs['package_dir'])
     kwargs['test_data_dir'] = Path(kwargs['test_data_dir'])
     kwargs['alluredir'] = Path(kwargs['alluredir'])
@@ -25,7 +25,7 @@ def main(**kwargs):
     kwargs['hb_cli_cfg'] = HotBackupCliCfg(**kwargs)
     test_driver = TestDriver(**kwargs)
     test_driver.set_r_limits()
-    results = test_driver.run_license_manager_tests(new_version)
+    results = test_driver.run_license_manager_tests(kwargs['new_version'])
     for result in results:
         if not result["success"]:
             raise Exception("There are failed tests")

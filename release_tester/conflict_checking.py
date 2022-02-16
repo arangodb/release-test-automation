@@ -6,6 +6,7 @@ from pathlib import Path
 import click
 import semver
 
+from arangodb.installers import HotBackupCliCfg
 from common_options import very_common_options, common_options
 from test_driver import TestDriver
 

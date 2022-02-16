@@ -11,7 +11,7 @@ from test_driver import TestDriver
 
 @click.command()
 @zip_common_options
-def run_test(zip_package, src_testing):
+def main(**kwargs):
     """Wrapper..."""
     lh.configure_logging(True)
 
@@ -38,6 +38,8 @@ def run_test(zip_package, src_testing):
     kwargs['selenium_driver_args']=[]
     kwargs['use_auto_certs']=False
 
+    kwargs['hb_cli_cfg'] = HotBackupCliCfg(**kwargs)
+    test_driver = TestDriver(**kwargs)
     test_driver.set_r_limits()
     test_driver.run_cleanup(RunProperties(False, False, False))
 

@@ -89,7 +89,7 @@ class DownloadOptions:
         self.httpuser = kwargs['httpuser']
         self.httppassvoid = kwargs['httppassvoid']
         self.remote_host = kwargs['remote_host']
-        
+
         self.launch_dir = Path.cwd()
         if "WORKSPACE" in os.environ:
             self.launch_dir = Path(os.environ["WORKSPACE"])
