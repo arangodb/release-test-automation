@@ -5,7 +5,6 @@ import os
 import platform
 from enum import Enum
 from pathlib import Path
-from dataclasses import dataclass
 
 import semver
 
@@ -74,7 +73,6 @@ class HotBackupProviderCfg:
         while self.path_prefix and "//" in self.path_prefix:
             self.path_prefix = self.path_prefix.replace("//", "/")
 
-@dataclass
 class HotBackupCliCfg:
     """ map common_options hotbackup_options """
     # pylint: disable=too-many-arguments
