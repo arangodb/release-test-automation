@@ -170,7 +170,7 @@ def main(**kwargs):
 
     kwargs['hb_cli_cfg'] = HotBackupCliCfg.from_dict(**kwargs)
     kwargs['base_config'] = InstallerBaseConfig.from_dict(**kwargs)
-    dl_opts = DownloadOptions(**kwargs)
+    dl_opts = DownloadOptions.from_dict(**kwargs)
 
     test_driver = TestDriver(**kwargs)
 

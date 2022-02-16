@@ -2,6 +2,7 @@
 # pylint: disable=line-too-long
 # have long strings, need long lines.
 """ Release testing script"""
+from dataclasses import dataclass
 from ftplib import FTP
 from io import BytesIO
 import os
@@ -11,7 +12,7 @@ import sys
 import tarfile
 
 import click
-from arangodb.installers import make_installer, InstallerConfig, HotBackupCliCfg, InstallerBaseConfig
+from arangodb.installers import make_installer, InstallerConfig, HotBackupCliCfg, InstallerBaseConfig, OptionGroup
 import tools.loghelper as lh
 
 import requests
@@ -75,27 +76,16 @@ def write_version_tar(tar_file, versions):
         tar.close()
     fdesc.close()
 
-
-class DownloadOptions:
+@dataclass
+class DownloadOptions(OptionGroup):
     """bearer class for base download options"""
-
-    # pylint: disable=too-many-arguments disable=too-few-public-methods disable=too-many-instance-attributes
-    def __init__(self, **kwargs):
-        self.force_dl = kwargs['force']
-        self.verbose = kwargs['verbose']
-        self.package_dir = kwargs['package_dir']
-        self.enterprise_magic = kwargs['enterprise_magic']
-        self.httpuser = kwargs['httpuser']
-        self.httppassvoid = kwargs['httppassvoid']
-        self.remote_host = kwargs['remote_host']
-
-        self.launch_dir = Path.cwd()
-        if "WORKSPACE" in os.environ:
-            self.launch_dir = Path(os.environ["WORKSPACE"])
-
-        if not self.package_dir.is_absolute():
-            self.package_dir = (self.launch_dir / self.package_dir).resolve()
-
+    force: bool
+    verbose: bool
+    package_dir: Path
+    enterprise_magic: str
+    httpuser: str
+    httppassvoid: str
+    remote_host:str
 
 class Download:
     """manage package downloading from any known arango package source"""
@@ -116,6 +106,14 @@ class Download:
     ):
         """main"""
         lh.section("configuration")
+
+        self.launch_dir = Path.cwd()
+        if "WORKSPACE" in os.environ:
+            self.launch_dir = Path(os.environ["WORKSPACE"])
+
+        if not options.package_dir.is_absolute():
+            options.package_dir = (self.launch_dir / options.package_dir).resolve()
+
         print("version: " + str(version))
         print("using enterpise: " + str(enterprise))
         print("using zip: " + str(zip_package))
@@ -362,7 +360,7 @@ def main(**kwargs):
     kwargs['hb_cli_cfg'] = HotBackupCliCfg.from_dict(**kwargs)
     kwargs['base_config'] = InstallerBaseConfig.from_dict(**kwargs)
 
-    dl_opts = DownloadOptions(**kwargs)
+    dl_opts = DownloadOptions.from_dict(**kwargs)
     lh.configure_logging(kwargs['verbose'])
     downloader = Download(
         options=dl_opts,
