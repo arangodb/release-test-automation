@@ -5,7 +5,7 @@ from pathlib import Path
 
 import click
 
-from common_options import very_common_options, common_options
+from common_options import very_common_options, common_options, hotbackup_options
 from test_driver import TestDriver
 from arangodb.installers import HotBackupCliCfg
 
@@ -13,6 +13,7 @@ from arangodb.installers import HotBackupCliCfg
 # pylint: disable=too-many-arguments disable=too-many-locals disable=unused-argument
 @very_common_options()
 @common_options(support_old=True, interactive=True)
+@hotbackup_options()
 def main(**kwargs):
     """ main """
     kwargs['stress_upgrade'] = False
