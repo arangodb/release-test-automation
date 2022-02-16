@@ -22,7 +22,7 @@ def main(**kwargs):
     kwargs['clean_alluredir']=True
     # kwargs['zip_package']=""
     # kwargs['src_testing']=""
-    kwargs['hb_mode']=""
+    kwargs['hb_mode']="disabled"
     kwargs['hb_provider']=""
     kwargs['hb_storage_path_prefix']=""
     kwargs['hb_aws_access_key_id']=""
