@@ -144,7 +144,6 @@ def upgrade_package_test(
 
     return 0
 
-
 @click.command()
 @click.option(
     "--version-state-tar",
@@ -161,67 +160,28 @@ def upgrade_package_test(
     test_data_dir="/home/test_dir",
 )
 @download_options(default_source="ftp:stage2", double_source=True)
-# fmt: off
-# pylint: disable=too-many-arguments, disable=unused-argument
-def main(
-        version_state_tar,
-        git_version,
-        editions,
-        #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package, src_testing,
-        #hotbackup_options
-        hot_backup, hb_provider, hb_storage_path_prefix,
-        hb_aws_access_key_id, hb_aws_secret_access_key, hb_aws_region, hb_aws_acl,
-        # common_options
-        old_version, test_data_dir, encryption_at_rest, alluredir, clean_alluredir, ssl, use_auto_certs,
-        # no-interactive!
-        starter_mode, stress_upgrade, abort_on_error, publicip,
-        selenium, selenium_driver_args,
-        # download options:
-        enterprise_magic, force, new_source, old_source,
-        httpuser, httppassvoid, remote_host):
-# fmt: on
+def main(**kwargs):
     """ main """
-    dl_opts = DownloadOptions(force,
-                              verbose,
-                              Path(package_dir),
-                              enterprise_magic,
-                              httpuser,
-                              httppassvoid,
-                              remote_host)
+    print(kwargs)
+    kwargs['interactive'] = False
+    kwargs['abort_on_error'] = False
+    kwargs['package_dir'] = Path(kwargs['package_dir'])
+    kwargs['test_data_dir'] = Path(kwargs['test_data_dir'])
+    kwargs['alluredir'] = Path(kwargs['alluredir'])
 
-    test_driver = TestDriver(
-        verbose,
-        Path(package_dir),
-        Path(test_data_dir),
-        Path(alluredir),
-        clean_alluredir,
-        zip_package,
-        src_testing,
-        HotBackupCliCfg(hot_backup,
-                        hb_provider,
-                        hb_storage_path_prefix,
-                        hb_aws_access_key_id,
-                        hb_aws_secret_access_key,
-                        hb_aws_region,
-                        hb_aws_acl),
-        False,  # interactive
-        starter_mode,
-        stress_upgrade,
-        False,  # abort_on_error
-        publicip,
-        selenium,
-        selenium_driver_args,
-        use_auto_certs)
+    kwargs['hb_cli_cfg'] = HotBackupCliCfg(**kwargs)
+    dl_opts = DownloadOptions(**kwargs)
+
+    test_driver = TestDriver(**kwargs)
 
     return upgrade_package_test(
         dl_opts,
-        new_version,
-        old_version,
-        new_source,
-        old_source,
-        git_version,
-        editions,
+        kwargs['new_version'],
+        kwargs['old_version'],
+        kwargs['new_source'],
+        kwargs['old_source'],
+        kwargs['git_version'],
+        kwargs['editions'],
         test_driver
     )
 

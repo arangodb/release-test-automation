@@ -5,6 +5,7 @@ import os
 import platform
 from enum import Enum
 from pathlib import Path
+from dataclasses import dataclass
 
 import semver
 
@@ -73,27 +74,24 @@ class HotBackupProviderCfg:
         while self.path_prefix and "//" in self.path_prefix:
             self.path_prefix = self.path_prefix.replace("//", "/")
 
+@dataclass
 class HotBackupCliCfg:
     """ map common_options hotbackup_options """
     # pylint: disable=too-many-arguments
     def __init__(self,
-                 hb_mode="",
-                 hb_provider="",
-                 hb_storage_path_prefix="",
-                 hb_aws_access_key_id="",
-                 hb_aws_secret_access_key="",
-                 hb_aws_region="",
-                 hb_aws_acl=""):
-        self.hb_mode = HB_MODES[hb_mode]
+                 **kwargs):
+        print(kwargs)
+        self.hb_provider = kwargs['hb_provider']
+        self.hb_mode = HB_MODES[kwargs['hb_mode']]
+        self.hb_provider = kwargs['hb_provider']
+        self.hb_storage_path_prefix = kwargs['hb_storage_path_prefix']
+        self.hb_aws_access_key_id = kwargs['hb_aws_access_key_id']
+        self.hb_aws_secret_access_key = kwargs['hb_aws_secret_access_key']
+        self.hb_aws_region = kwargs['hb_aws_region']
+        self.hb_aws_acl = kwargs['hb_aws_acl']
         self.hb_provider_cfg = HotBackupProviderCfg(
-            self.hb_mode, HB_PROVIDERS[hb_provider] if hb_provider else None, hb_storage_path_prefix
+            self.hb_mode, HB_PROVIDERS[self.hb_provider] if self.hb_provider else None, self.hb_storage_path_prefix
         )
-        self.hb_provider = hb_provider
-        self.hb_storage_path_prefix = hb_storage_path_prefix
-        self.hb_aws_access_key_id = hb_aws_access_key_id
-        self.hb_aws_secret_access_key = hb_aws_secret_access_key
-        self.hb_aws_region = hb_aws_region
-        self.hb_aws_acl = hb_aws_acl
 
 
 class InstallerFrontend:

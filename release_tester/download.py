@@ -81,28 +81,21 @@ class DownloadOptions:
     """bearer class for base download options"""
 
     # pylint: disable=too-many-arguments disable=too-few-public-methods disable=too-many-instance-attributes
-    def __init__(
-        self,
-        force_dl: bool,
-        verbose: bool,
-        package_dir: Path,
-        enterprise_magic: str,
-        httpuser: str,
-        httppassvoid: str,
-        remote_host: str,
-    ):
+    def __init__(self, **kwargs):
+        self.force_dl = kwargs['force']
+        self.verbose = kwargs['verbose']
+        self.package_dir = kwargs['package_dir']
+        self.enterprise_magic = kwargs['enterprise_magic']
+        self.httpuser = kwargs['httpuser']
+        self.httppassvoid = kwargs['httppassvoid']
+        self.remote_host = kwargs['remote_host']
+        
         self.launch_dir = Path.cwd()
         if "WORKSPACE" in os.environ:
             self.launch_dir = Path(os.environ["WORKSPACE"])
-        self.force_dl = force_dl
-        self.verbose = verbose
-        if not package_dir.is_absolute():
-            package_dir = (self.launch_dir / package_dir).resolve()
-        self.package_dir = package_dir
-        self.enterprise_magic = enterprise_magic
-        self.httpuser = httpuser
-        self.httppassvoid = httppassvoid
-        self.remote_host = remote_host
+
+        if not self.package_dir.is_absolute():
+            self.package_dir = (self.launch_dir / self.package_dir).resolve()
 
 
 class Download:
