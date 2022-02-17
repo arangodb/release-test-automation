@@ -3,6 +3,7 @@
 import copy
 import os
 import platform
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 
@@ -61,8 +62,8 @@ class HotBackupProviderCfg:
         HotBackupMode.S3BUCKET: HotBackupProviders.MINIO,
     }
 
-    def __init__(self, mode: HotBackupMode, provider: HotBackupProviders = None, path_prefix: str = None):
-        self.mode = mode
+    def __init__(self, mode: str, provider: HotBackupProviders = None, path_prefix: str = None):
+        self.mode = HB_MODES[mode]
         if provider and provider not in HotBackupProviderCfg.ALLOWED_PROVIDERS[mode]:
             raise Exception(f"Storage provider {provider} is not allowed for rclone config type {mode}!")
         if provider:
@@ -73,27 +74,28 @@ class HotBackupProviderCfg:
         while self.path_prefix and "//" in self.path_prefix:
             self.path_prefix = self.path_prefix.replace("//", "/")
 
-class HotBackupCliCfg:
-    """ map common_options hotbackup_options """
-    # pylint: disable=too-many-arguments
-    def __init__(self,
-                 hb_mode="",
-                 hb_provider="",
-                 hb_storage_path_prefix="",
-                 hb_aws_access_key_id="",
-                 hb_aws_secret_access_key="",
-                 hb_aws_region="",
-                 hb_aws_acl=""):
-        self.hb_mode = HB_MODES[hb_mode]
-        self.hb_provider_cfg = HotBackupProviderCfg(
-            self.hb_mode, HB_PROVIDERS[hb_provider] if hb_provider else None, hb_storage_path_prefix
+class OptionGroup:
+    """ wrapper class to init from kwargs """
+    @classmethod
+    def from_dict(cls, **options):
+        """ invoke init from kwargs """
+        # these members will be added by derivative classes:
+        # pylint: disable=no-member
+        return cls(
+            **{k: v for k, v in options.items() if k in cls.__dataclass_fields__}
         )
-        self.hb_provider = hb_provider
-        self.hb_storage_path_prefix = hb_storage_path_prefix
-        self.hb_aws_access_key_id = hb_aws_access_key_id
-        self.hb_aws_secret_access_key = hb_aws_secret_access_key
-        self.hb_aws_region = hb_aws_region
-        self.hb_aws_acl = hb_aws_acl
+
+@dataclass
+class HotBackupCliCfg(OptionGroup):
+    """ map hotbackup_options """
+    hb_provider: str
+    hb_mode: str
+    hb_provider: str
+    hb_storage_path_prefix: str
+    hb_aws_access_key_id: str
+    hb_aws_secret_access_key: str
+    hb_aws_region: str
+    hb_aws_acl: str
 
 
 class InstallerFrontend:
@@ -174,9 +176,14 @@ class InstallerConfig:
         self.appdir = Path()
         self.cfgdir = Path()
         self.hb_cli_cfg = hb_cli_cfg
+        self.hb_provider_cfg = HotBackupProviderCfg(
+             hb_cli_cfg.hb_mode,
+            HB_PROVIDERS[hb_cli_cfg.hb_provider] if hb_cli_cfg.hb_provider else None,
+            hb_cli_cfg.hb_storage_path_prefix
+         )
         self.hot_backup_supported = (self.enterprise and
                                      not IS_WINDOWS and
-                                     hb_cli_cfg.hb_provider_cfg.mode != HotBackupMode.DISABLED)
+                                     self.hb_provider_cfg.mode != HotBackupMode.DISABLED)
 
     def __repr__(self):
         return """
@@ -380,51 +387,20 @@ EXECUTION_PLAN = [
     RunProperties(False, False, False, "Community", "C"),
 ]
 
-
-class InstallerBaseConfig:
+@dataclass
+class InstallerBaseConfig(OptionGroup):
     """commandline argument config settings"""
-
-    # pylint: disable=too-many-instance-attributes disable=too-many-arguments
-    def __init__(
-        self,
-        verbose: bool,
-        zip_package: bool,
-        src_testing: bool,
-        hb_cli_cfg: HotBackupCliCfg,
-        package_dir: Path,
-        test_data_dir: Path,
-        starter_mode: str,
-        publicip: str,
-        interactive: bool,
-        stress_upgrade: bool,
-    ):
-        self.verbose = verbose
-        self.zip_package = zip_package
-        self.src_testing = src_testing
-        self.hb_cli_cfg = hb_cli_cfg
-        self.package_dir = package_dir
-        self.test_data_dir = test_data_dir
-        self.starter_mode = starter_mode
-        self.publicip = publicip
-        self.interactive = interactive
-        self.stress_upgrade = stress_upgrade
-
-    def __repr__(self):
-        return """
-verbose : {0.verbose}
-zip_package : {0.zip_package}
-src_testing : {0.src_testing}
-hot_backup : {0.hb_cli_cfg.hot_backup}
-package_dir : {0.package_dir}
-test_data_dir : {0.test_data_dir}
-starter_mode : {0.starter_mode}
-publicip : {0.publicip}
-interactive : {0.interactive}
-stress_upgrade : {0.stress_upgrade}
-""".format(
-            self
-        )
-
+    # pylint: disable=too-many-instance-attributes
+    verbose: bool
+    zip_package: bool
+    src_testing: bool
+    hb_cli_cfg: HotBackupCliCfg
+    package_dir: Path
+    test_data_dir: Path
+    starter_mode: str
+    publicip: str
+    interactive: bool
+    stress_upgrade: bool
 
 # pylint: disable=too-many-locals
 def create_config_installer_set(

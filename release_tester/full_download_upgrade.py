@@ -20,7 +20,7 @@ from download import (
 from test_driver import TestDriver
 from tools.killall import list_all_processes
 
-from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg
+from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig
 
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
 def upgrade_package_test(
@@ -137,13 +137,12 @@ def upgrade_package_test(
         print("exiting with failure")
         sys.exit(1)
 
-    if dl_opts.force_dl:
+    if dl_opts.force:
         touch_all_tars_in_dir(version_state_tar)
     else:
         write_version_tar(version_state_tar, fresh_versions)
 
     return 0
-
 
 @click.command()
 @click.option(
@@ -161,70 +160,30 @@ def upgrade_package_test(
     test_data_dir="/home/test_dir",
 )
 @download_options(default_source="ftp:stage2", double_source=True)
-# fmt: off
-# pylint: disable=too-many-arguments, disable=unused-argument
-def main(
-        version_state_tar,
-        git_version,
-        editions,
-        #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package, src_testing,
-        #hotbackup_options
-        hot_backup, hb_provider, hb_storage_path_prefix,
-        hb_aws_access_key_id, hb_aws_secret_access_key, hb_aws_region, hb_aws_acl,
-        # common_options
-        old_version, test_data_dir, encryption_at_rest, alluredir, clean_alluredir, ssl, use_auto_certs,
-        # no-interactive!
-        starter_mode, stress_upgrade, abort_on_error, publicip,
-        selenium, selenium_driver_args,
-        # download options:
-        enterprise_magic, force, new_source, old_source,
-        httpuser, httppassvoid, remote_host):
-# fmt: on
+def main(**kwargs):
     """ main """
-    dl_opts = DownloadOptions(force,
-                              verbose,
-                              Path(package_dir),
-                              enterprise_magic,
-                              httpuser,
-                              httppassvoid,
-                              remote_host)
+    kwargs['interactive'] = False
+    kwargs['abort_on_error'] = False
+    kwargs['package_dir'] = Path(kwargs['package_dir'])
+    kwargs['test_data_dir'] = Path(kwargs['test_data_dir'])
+    kwargs['alluredir'] = Path(kwargs['alluredir'])
 
-    test_driver = TestDriver(
-        verbose,
-        Path(package_dir),
-        Path(test_data_dir),
-        Path(alluredir),
-        clean_alluredir,
-        zip_package,
-        src_testing,
-        HotBackupCliCfg(hot_backup,
-                        hb_provider,
-                        hb_storage_path_prefix,
-                        hb_aws_access_key_id,
-                        hb_aws_secret_access_key,
-                        hb_aws_region,
-                        hb_aws_acl),
-        False,  # interactive
-        starter_mode,
-        stress_upgrade,
-        False,  # abort_on_error
-        publicip,
-        selenium,
-        selenium_driver_args,
-        use_auto_certs)
+    kwargs['hb_cli_cfg'] = HotBackupCliCfg.from_dict(**kwargs)
+    kwargs['base_config'] = InstallerBaseConfig.from_dict(**kwargs)
+    dl_opts = DownloadOptions.from_dict(**kwargs)
+
+    test_driver = TestDriver(**kwargs)
 
     return upgrade_package_test(
         dl_opts,
-        new_version,
-        old_version,
-        new_source,
-        old_source,
-        git_version,
-        editions,
+        kwargs['new_version'],
+        kwargs['old_version'],
+        kwargs['new_source'],
+        kwargs['old_source'],
+        kwargs['git_version'],
+        kwargs['editions'],
         test_driver
     )
-
 
 if __name__ == "__main__":
     # pylint: disable=no-value-for-parameter # fix clickiness.

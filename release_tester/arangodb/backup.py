@@ -29,7 +29,8 @@ class HotBackupConfig:
     def __init__(self, basecfg, name, raw_install_prefix):
         self.hb_timeout = 20
         hbcfg = basecfg.hb_cli_cfg
-        self.hb_provider_cfg = hbcfg.hb_provider_cfg
+        self.hb_provider_cfg = basecfg.hb_provider_cfg
+
         self.install_prefix = raw_install_prefix
         self.cfg_type = HB_2_RCLONE_TYPE[self.hb_provider_cfg.mode]
         self.name = str(name).replace("/", "_").replace(".", "_")
@@ -166,7 +167,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
     def restore(self, backup_name):
         """restore an existing hot backup"""
         args = ["restore", "--identifier", backup_name]
-        self.run_backup(args, backup_name)
+        self.run_backup(args, backup_name, timeout=120)
 
     @step
     def delete(self, backup_name):

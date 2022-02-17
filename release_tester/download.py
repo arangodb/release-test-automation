@@ -2,6 +2,7 @@
 # pylint: disable=line-too-long
 # have long strings, need long lines.
 """ Release testing script"""
+from dataclasses import dataclass
 from ftplib import FTP
 from io import BytesIO
 import os
@@ -11,7 +12,7 @@ import sys
 import tarfile
 
 import click
-from arangodb.installers import make_installer, InstallerConfig, HotBackupCliCfg
+from arangodb.installers import make_installer, InstallerConfig, HotBackupCliCfg, InstallerBaseConfig, OptionGroup
 import tools.loghelper as lh
 
 import requests
@@ -54,7 +55,6 @@ def read_versions_tar(tar_file, versions):
                 tar.close()
         except tarfile.ReadError as ex:
             print("Ignoring exception during reading the tar file: " + str(ex))
-            pass
         fdesc.close()
     except FileNotFoundError:
         pass
@@ -76,34 +76,16 @@ def write_version_tar(tar_file, versions):
         tar.close()
     fdesc.close()
 
-
-class DownloadOptions:
+@dataclass
+class DownloadOptions(OptionGroup):
     """bearer class for base download options"""
-
-    # pylint: disable=too-many-arguments disable=too-few-public-methods disable=too-many-instance-attributes
-    def __init__(
-        self,
-        force_dl: bool,
-        verbose: bool,
-        package_dir: Path,
-        enterprise_magic: str,
-        httpuser: str,
-        httppassvoid: str,
-        remote_host: str,
-    ):
-        self.launch_dir = Path.cwd()
-        if "WORKSPACE" in os.environ:
-            self.launch_dir = Path(os.environ["WORKSPACE"])
-        self.force_dl = force_dl
-        self.verbose = verbose
-        if not package_dir.is_absolute():
-            package_dir = (self.launch_dir / package_dir).resolve()
-        self.package_dir = package_dir
-        self.enterprise_magic = enterprise_magic
-        self.httpuser = httpuser
-        self.httppassvoid = httppassvoid
-        self.remote_host = remote_host
-
+    force: bool
+    verbose: bool
+    package_dir: Path
+    enterprise_magic: str
+    httpuser: str
+    httppassvoid: str
+    remote_host:str
 
 class Download:
     """manage package downloading from any known arango package source"""
@@ -124,6 +106,14 @@ class Download:
     ):
         """main"""
         lh.section("configuration")
+
+        self.launch_dir = Path.cwd()
+        if "WORKSPACE" in os.environ:
+            self.launch_dir = Path(os.environ["WORKSPACE"])
+
+        if not options.package_dir.is_absolute():
+            options.package_dir = (self.launch_dir / options.package_dir).resolve()
+
         print("version: " + str(version))
         print("using enterpise: " + str(enterprise))
         print("using zip: " + str(zip_package))
@@ -359,42 +349,28 @@ class Download:
 @very_common_options()
 @download_options()
 # fmt: off
-# pylint: disable=too-many-arguments disable=unused-argument
-def main(
-        #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package, src_testing,
-        hot_backup, hb_provider, hb_storage_path_prefix,
-        hb_aws_access_key_id, hb_aws_secret_access_key, hb_aws_region, hb_aws_acl,
-        # download options:
-        enterprise_magic, force, source,
-        httpuser, httppassvoid, remote_host):
-# fmt: on
-    """ main wrapper """
-    hb_cli_cfg = HotBackupCliCfg(hot_backup,
-                                 hb_provider,
-                                 hb_storage_path_prefix,
-                                 hb_aws_access_key_id,
-                                 hb_aws_secret_access_key,
-                                 hb_aws_region,
-                                 hb_aws_acl)
-    dl_opts = DownloadOptions(force,
-                              verbose,
-                              Path(package_dir),
-                              enterprise_magic,
-                              httpuser,
-                              httppassvoid,
-                              remote_host)
+def main(**kwargs):
+    """ main """
+    kwargs['interactive'] = False
+    kwargs['abort_on_error'] = False
+    kwargs['package_dir'] = Path(kwargs['package_dir'])
+    kwargs['test_data_dir'] = Path(kwargs['test_data_dir'])
+    kwargs['alluredir'] = Path(kwargs['alluredir'])
 
-    lh.configure_logging(verbose)
+    kwargs['hb_cli_cfg'] = HotBackupCliCfg.from_dict(**kwargs)
+    kwargs['base_config'] = InstallerBaseConfig.from_dict(**kwargs)
+
+    dl_opts = DownloadOptions.from_dict(**kwargs)
+    lh.configure_logging(kwargs['verbose'])
     downloader = Download(
         options=dl_opts,
-        hb_cli_cfg=hb_cli_cfg,
-        version=new_version,
-        enterprise=enterprise,
-        zip_package=zip_package,
-        src_testing=src_testing,
-        source=source)
-    return downloader.get_packages(force)
+        hb_cli_cfg=kwargs['hb_cli_cfg'],
+        version=kwargs['new_version'],
+        enterprise=kwargs['enterprise'],
+        zip_package=kwargs['zip_package'],
+        src_testing=kwargs['src_testing'],
+        source=kwargs['source'])
+    return downloader.get_packages(kwargs['force'])
 
 
 if __name__ == "__main__":

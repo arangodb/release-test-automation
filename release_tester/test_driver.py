@@ -14,7 +14,7 @@ from allure_commons.model2 import Status, StatusDetails
 from allure_commons._allure import attach
 
 import tools.loghelper as lh
-from arangodb.installers import create_config_installer_set, RunProperties, InstallerBaseConfig
+from arangodb.installers import create_config_installer_set, RunProperties
 from arangodb.starter.deployments import (
     RunnerType,
     make_runner,
@@ -40,59 +40,32 @@ class TestDriver:
     """driver base class to run different tests"""
 
     # pylint: disable=too-many-arguments disable=too-many-locals
-    def __init__(
-        self,
-        verbose,
-        package_dir: Path,
-        test_data_dir: Path,
-        alluredir: Path,
-        clean_alluredir,
-        zip_package,
-        src_testing,
-        hb_cli_cfg,
-        interactive,
-        starter_mode,
-        stress_upgrade,
-        abort_on_error,
-        publicip,
-        selenium,
-        selenium_driver_args,
-        use_auto_certs,
-    ):
+    def __init__(self, **kwargs):
         self.launch_dir = Path.cwd()
         if "WORKSPACE" in os.environ:
             self.launch_dir = Path(os.environ["WORKSPACE"])
 
-        if not test_data_dir.is_absolute():
-            test_data_dir = self.launch_dir / test_data_dir
-        if not test_data_dir.exists():
-            test_data_dir.mkdir(parents=True, exist_ok=True)
-        os.chdir(test_data_dir)
+        if not kwargs['test_data_dir'].is_absolute():
+            kwargs['test_data_dir'] = self.launch_dir / kwargs['test_data_dir']
+        if not kwargs['test_data_dir'].exists():
+            kwargs['test_data_dir'].mkdir(parents=True, exist_ok=True)
+        os.chdir(kwargs['test_data_dir'])
 
-        if not package_dir.is_absolute():
-            package_dir = (self.launch_dir / package_dir).resolve()
-        if not package_dir.exists():
-            package_dir.mkdir(parents=True, exist_ok=True)
+        if not kwargs['package_dir'].is_absolute():
+            kwargs['package_dir'] = (self.launch_dir / kwargs['package_dir']).resolve()
+        if not kwargs['package_dir'].exists():
+            kwargs['package_dir'].mkdir(parents=True, exist_ok=True)
 
-        self.base_config = InstallerBaseConfig(
-            verbose,
-            zip_package,
-            src_testing,
-            hb_cli_cfg,
-            package_dir,
-            test_data_dir,
-            starter_mode,
-            publicip,
-            interactive,
-            stress_upgrade,
-        )
-        lh.configure_logging(verbose)
-        self.abort_on_error = abort_on_error
+        self.base_config = kwargs['base_config']
+        lh.configure_logging(kwargs['verbose'])
+        self.abort_on_error = kwargs['abort_on_error']
 
-        self.use_auto_certs = use_auto_certs
-        self.selenium = selenium
-        self.selenium_driver_args = selenium_driver_args
-        init_allure(results_dir=Path(alluredir), clean=clean_alluredir, zip_package=self.base_config.zip_package)
+        self.use_auto_certs = kwargs['use_auto_certs']
+        self.selenium = kwargs['selenium']
+        self.selenium_driver_args = kwargs['selenium_driver_args']
+        init_allure(results_dir=kwargs['alluredir'],
+                    clean=kwargs['clean_alluredir'],
+                    zip_package=self.base_config.zip_package)
         self.installer_type = None
 
     # pylint: disable=no-self-use
