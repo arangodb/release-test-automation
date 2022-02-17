@@ -62,21 +62,7 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
 
     def add_crash_data_to_report(self):
         """save data dir and logs in case a test failed"""
-        self.save_log_file()
-        self.save_data_dir()
-
-    def save_log_file(self):
-        """add log file to the report"""
-        if self.installer.instance and self.installer.instance.logfile.exists():
-            log = open(self.installer.instance.logfile, "r").read()
-            attach(log, "Log file " + str(self.installer.instance.logfile))
-
-    def save_data_dir(self):
-        """add datadir archive to the report"""
-        data_dir = self.installer.cfg.dbdir
-        if data_dir.exists():
-            archive = shutil.make_archive("datadir", "bztar", data_dir, data_dir)
-            attach.file(archive, "data directory archive", "application/x-bzip2", "tar.bz2")
+        self.runner.zip_test_dir()
 
     @step
     def check_that_license_is_not_expired(self, time_left_threshold=0):
