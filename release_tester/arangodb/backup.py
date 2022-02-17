@@ -273,7 +273,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
 
             print(size)
             print(count)
-            if hasattr(content, 'countIncludesDirectories'):
+            if hasattr(content, 'countIncludesFilesOnly'):
                 if size != content['sizeInBytes']:
                     raise Exception("Backup has different size than its META indicated! " + str(size) +
                                     " - " + str(content))
