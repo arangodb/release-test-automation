@@ -285,6 +285,7 @@ class Runner(ABC):
             if self.hot_backup:
                 self.progress(False, "TESTING HOTBACKUP")
                 self.backup_name = self.create_backup("thy_name_is_" + self.name)
+                self.validate_local_backup(self.backup_name)
                 self.tcp_ping_all_nodes()
                 self.create_non_backup_data()
                 backups = self.list_backup()
@@ -833,6 +834,16 @@ class Runner(ABC):
             return starter.hb_instance.upload_status(name, hb_id, self.backup_instance_count)
         raise Exception("no frontend found.")
 
+    def validate_local_backup(self, name):
+        """validate the local backup"""
+        for starter in self.makedata_instances:
+            if not starter.is_leader:
+                continue
+            assert starter.hb_instance, "download backup: this starter doesn't have an hb instance!"
+            starter.hb_instance.validate_local_backup(starter.basedir, name)
+            return
+        raise Exception("no frontend found.")
+        
     @step
     def search_for_warnings(self):
         """search for any warnings in any logfiles and dump them to the screen"""
