@@ -54,7 +54,7 @@ def hotbackup_options():
     def inner_func(function):
         function = click.option(
             "--hb-mode",
-            "hot_backup",
+            "hb_mode",
             default="directory",
             type=click.Choice(HB_MODES.keys()),
             help="which type of hot backup to use",
