@@ -298,6 +298,7 @@ class Runner(ABC):
                 if len(backups) != 0:
                     raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
                 self.download_backup(self.backup_name)
+                self.validate_local_backup(self.backup_name):
                 self.tcp_ping_all_nodes()
                 backups = self.list_backup()
                 if backups[0] != self.backup_name:
@@ -346,6 +347,7 @@ class Runner(ABC):
                 if len(backups) != 0:
                     raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
                 self.download_backup(self.backup_name)
+                self.validate_local_backup(self.backup_name):
                 self.tcp_ping_all_nodes()
                 backups = self.list_backup()
                 if backups[0] != self.backup_name:
