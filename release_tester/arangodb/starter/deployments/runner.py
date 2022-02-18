@@ -836,12 +836,9 @@ class Runner(ABC):
 
     def validate_local_backup(self, name):
         """validate the local backup"""
-        for starter in self.makedata_instances:
-            if not starter.is_leader:
-                continue
+        for starter in self.starter_instances:
             assert starter.hb_instance, "download backup: this starter doesn't have an hb instance!"
             starter.hb_instance.validate_local_backup(starter.basedir, name)
-            return
         raise Exception("no frontend found.")
         
     @step
