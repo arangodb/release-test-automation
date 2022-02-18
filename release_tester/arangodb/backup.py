@@ -277,6 +277,6 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
                         raise Exception("Backup count of files doesn't match! " + str(count) + " - " + str(content))
                     continue
             except KeyError:
-                continue
+                pass
             print("validation with META not supported. Size: " + str(size) + " META: " + str(content))
         print(str(backups_validated) + " Backups validated: OK")
