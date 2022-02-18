@@ -257,23 +257,17 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
 
     def validate_backup(self, directory, backup_name):
         """ search on the disk whether crash files exist """
+        backups_validated = 0
         for meta_file in directory.glob( "**/*META"):
-            print(meta_file)
             content = json.loads(meta_file.read_text())
-            
-            print(content)
             size = 0
             count = 0
             for one_file in meta_file.parent.glob( "**/*"):
-                print(one_file.name)
                 if one_file.is_dir() or one_file.name == "META":
                     continue
-                print(one_file)
                 size += one_file.stat().st_size
                 count += 1
-
-            print(size)
-            print(count)
+            backups_validated += 1
             try:
                 if content['countIncludesFilesOnly']:
                     if size != content['sizeInBytes']:
@@ -285,4 +279,4 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
             except KeyError:
                 continue
             print("validation with META not supported. Size: " + str(size) + " META: " + str(content))
-        print("Backup validation: OK")
+        print(str(backups_validated) + " Backups validated: OK")
