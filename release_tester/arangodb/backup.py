@@ -266,12 +266,11 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
             count = 0
             for one_file in meta_file.parent.glob( "**/*"):
                 print(one_file.name)
-                if one_file.is_dir():
+                if one_file.is_dir() or one_file.name == "META":
                     continue
-                if one_file.name != "META":
-                    print(one_file)
-                    size += one_file.stat().st_size
-                    count += 1
+                print(one_file)
+                size += one_file.stat().st_size
+                count += 1
 
             print(size)
             print(count)
