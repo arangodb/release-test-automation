@@ -266,6 +266,8 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
             count = 0
             for one_file in meta_file.parent.glob( "**/*"):
                 print(one_file.name)
+                if one_file.is_dir():
+                    continue
                 if one_file.name != "META":
                     print(one_file)
                     size += one_file.stat().st_size
@@ -284,3 +286,4 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
             except KeyError:
                 continue
             print("validation with META not supported. Size: " + str(size) + " META: " + str(content))
+        print("Backup validation: OK")
