@@ -836,6 +836,7 @@ class Runner(ABC):
             return starter.hb_instance.upload_status(name, hb_id, self.backup_instance_count)
         raise Exception("no frontend found.")
 
+    @step
     def validate_local_backup(self, name):
         """validate the local backup"""
         for starter in self.starter_instances:
