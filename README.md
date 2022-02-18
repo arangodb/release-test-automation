@@ -716,7 +716,7 @@ If `--enterprise` is specfied, RTA treats this as an enterprise deployment, HotB
 Additionally the enterprise javascript files are added via cli parameters to arangosh and arangod / starter.
 
 ```
-./release-tester/test.py --src \
+./release_tester/test.py --src \
   --enterprise \
   --package-dir ../devel \
   --new-version 3.10.0-devel \
@@ -732,7 +732,7 @@ cd arangoversions
 ln -s /home/willi/src/stable-3.9 E_3.9.0
 ln -s /home/willi/src/devel E_3.10.0-devel
 cd ..
-./release-tester/upgrade.py --src \
+./release_tester/upgrade.py --src \
   --enterprise \
   --package-dir $(pwd)/arangoversions \
   --new-version 3.10.0-devel \
