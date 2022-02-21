@@ -702,7 +702,7 @@ via an installer at all, but rather choose a source directory with compiled bina
 The source directory (directories in case of running upgrade) should contain `build/bin` with the compiled result binaries inside.
 
 Several binaries are not built from with the arangodb source. They have to be added as copy or symlink to the bin directory.
-They can easily be obtained through nightry zip/tar packages or be build from their respective source directories and symlinked into the `build/bin` directories:
+They can easily be obtained through nightly zip/tar packages or be build from their respective source directories and symlinked into the `build/bin` directories:
 - arangodb - the starter.
 - arangosync - the arangosync binary for dc2dc replication
 - rclone-arangodb 
