@@ -88,8 +88,8 @@ class OptionGroup:
 @dataclass
 class HotBackupCliCfg(OptionGroup):
     """ map hotbackup_options """
-    hb_provider: str
     hb_mode: str
+    hb_provider: str
     hb_provider: str
     hb_storage_path_prefix: str
     hb_aws_access_key_id: str

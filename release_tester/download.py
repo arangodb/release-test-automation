@@ -354,10 +354,13 @@ def main(**kwargs):
     kwargs['interactive'] = False
     kwargs['abort_on_error'] = False
     kwargs['package_dir'] = Path(kwargs['package_dir'])
-    kwargs['test_data_dir'] = Path(kwargs['test_data_dir'])
-    kwargs['alluredir'] = Path(kwargs['alluredir'])
+    kwargs['test_data_dir'] = Path()
+    kwargs['alluredir'] = Path()
+    kwargs['starter_mode'] = 'all'
+    kwargs['stress_upgrade'] = False
+    kwargs['publicip'] = "127.0.0.1"
 
-    kwargs['hb_cli_cfg'] = HotBackupCliCfg.from_dict(**kwargs)
+    kwargs['hb_cli_cfg'] = HotBackupCliCfg("disabled","","","","","","")
     kwargs['base_config'] = InstallerBaseConfig.from_dict(**kwargs)
 
     dl_opts = DownloadOptions.from_dict(**kwargs)
