@@ -85,15 +85,6 @@ def upgrade_package_test(
 
         results.append(test_driver.run_test("all", [dl_new.cfg.version], props))
 
-    for use_enterprise in [True, False]:
-        results.append(
-            test_driver.run_conflict_tests(
-                [dl_old.cfg.version, dl_new.cfg.version],
-                enterprise=use_enterprise,
-            )
-        )
-
-
     for j in range(len(new_versions)):
         for props in EXECUTION_PLAN:
             print("Cleaning up" + props.testrun_name)
@@ -141,6 +132,14 @@ def upgrade_package_test(
             test_driver.reset_test_data_dir(this_test_dir)
 
             results.append(test_driver.run_upgrade([dl_old.cfg.version, dl_new.cfg.version], props))
+
+            for use_enterprise in [True, False]:
+                results.append(
+                    test_driver.run_conflict_tests(
+                        [dl_old.cfg.version, dl_new.cfg.version],
+                        enterprise=use_enterprise,
+                    )
+                )
 
     print("V" * 80)
     status = True
