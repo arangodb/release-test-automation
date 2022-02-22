@@ -702,7 +702,7 @@ via an installer at all, but rather choose a source directory with compiled bina
 The source directory (directories in case of running upgrade) should contain `build/bin` with the compiled result binaries inside.
 
 Several binaries are not built from with the arangodb source. They have to be added as copy or symlink to the bin directory.
-They can easily be obtained through nightry zip/tar packages or be build from their respective source directories and symlinked into the `build/bin` directories:
+They can easily be obtained through nightly zip/tar packages or be build from their respective source directories and symlinked into the `build/bin` directories:
 - arangodb - the starter.
 - arangosync - the arangosync binary for dc2dc replication
 - rclone-arangodb 
@@ -716,7 +716,7 @@ If `--enterprise` is specfied, RTA treats this as an enterprise deployment, HotB
 Additionally the enterprise javascript files are added via cli parameters to arangosh and arangod / starter.
 
 ```
-./release-tester/test.py --src \
+./release_tester/test.py --src \
   --enterprise \
   --package-dir ../devel \
   --new-version 3.10.0-devel \
@@ -732,7 +732,7 @@ cd arangoversions
 ln -s /home/willi/src/stable-3.9 E_3.9.0
 ln -s /home/willi/src/devel E_3.10.0-devel
 cd ..
-./release-tester/upgrade.py --src \
+./release_tester/upgrade.py --src \
   --enterprise \
   --package-dir $(pwd)/arangoversions \
   --new-version 3.10.0-devel \

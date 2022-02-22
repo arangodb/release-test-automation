@@ -89,57 +89,57 @@ def upgrade_package_test(
         for props in EXECUTION_PLAN:
             print("Cleaning up" + props.testrun_name)
             test_driver.run_cleanup(props)
-        print("Cleanup done")
+        print("Cleanup done now running upgrade: " + str(old_versions[j]) + " -> " + new_versions[j])
 
-    # Configure Chrome to accept self-signed SSL certs and certs signed by unknown CA.
-    # FIXME: Add custom CA to Chrome to properly validate server cert.
-    # if props.ssl:
-    #    selenium_driver_args += ("ignore-certificate-errors",)
+        # Configure Chrome to accept self-signed SSL certs and certs signed by unknown CA.
+        # FIXME: Add custom CA to Chrome to properly validate server cert.
+        # if props.ssl:
+        #    selenium_driver_args += ("ignore-certificate-errors",)
 
-    for props in EXECUTION_PLAN:
-        if props.directory_suffix not in editions:
-            print("skipping " + props.directory_suffix)
-            continue
-        # pylint: disable=unused-variable
-        dl_old = Download(
-            dl_opts,
-            test_driver.base_config.hb_cli_cfg,
-            old_versions[j],
-            props.enterprise,
-            test_driver.base_config.zip_package,
-            test_driver.base_config.src_testing,
-            old_dlstages[j],
-            versions,
-            fresh_versions,
-            git_version,
-        )
-        dl_new = Download(
-            dl_opts,
-            test_driver.base_config.hb_cli_cfg,
-            new_versions[j],
-            props.enterprise,
-            test_driver.base_config.zip_package,
-            test_driver.base_config.src_testing,
-            new_dlstages[j],
-            versions,
-            fresh_versions,
-            git_version,
-        )
-        dl_old.get_packages(dl_opts.force)
-        dl_new.get_packages(dl_opts.force)
-
-        this_test_dir = test_dir / props.directory_suffix
-        test_driver.reset_test_data_dir(this_test_dir)
-
-        results.append(test_driver.run_upgrade([dl_old.cfg.version, dl_new.cfg.version], props))
-
-    for use_enterprise in [True, False]:
-        results.append(
-            test_driver.run_conflict_tests(
-                [dl_old.cfg.version, dl_new.cfg.version],
-                enterprise=use_enterprise,
+        for props in EXECUTION_PLAN:
+            if props.directory_suffix not in editions:
+                print("skipping " + props.directory_suffix)
+                continue
+            # pylint: disable=unused-variable
+            dl_old = Download(
+                dl_opts,
+                test_driver.base_config.hb_cli_cfg,
+                old_versions[j],
+                props.enterprise,
+                test_driver.base_config.zip_package,
+                test_driver.base_config.src_testing,
+                old_dlstages[j],
+                versions,
+                fresh_versions,
+                git_version,
             )
-        )
+            dl_new = Download(
+                dl_opts,
+                test_driver.base_config.hb_cli_cfg,
+                new_versions[j],
+                props.enterprise,
+                test_driver.base_config.zip_package,
+                test_driver.base_config.src_testing,
+                new_dlstages[j],
+                versions,
+                fresh_versions,
+                git_version,
+            )
+            dl_old.get_packages(dl_opts.force)
+            dl_new.get_packages(dl_opts.force)
+
+            this_test_dir = test_dir / props.directory_suffix
+            test_driver.reset_test_data_dir(this_test_dir)
+
+            results.append(test_driver.run_upgrade([dl_old.cfg.version, dl_new.cfg.version], props))
+
+            for use_enterprise in [True, False]:
+                results.append(
+                    test_driver.run_conflict_tests(
+                        [dl_old.cfg.version, dl_new.cfg.version],
+                        enterprise=use_enterprise,
+                    )
+                )
 
     print("V" * 80)
     status = True

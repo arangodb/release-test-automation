@@ -64,7 +64,7 @@ class HotBackupProviderCfg:
 
     def __init__(self, mode: str, provider: HotBackupProviders = None, path_prefix: str = None):
         self.mode = HB_MODES[mode]
-        if provider and provider not in HotBackupProviderCfg.ALLOWED_PROVIDERS[mode]:
+        if provider and provider not in HotBackupProviderCfg.ALLOWED_PROVIDERS[self.mode]:
             raise Exception(f"Storage provider {provider} is not allowed for rclone config type {mode}!")
         if provider:
             self.provider = provider
@@ -88,8 +88,8 @@ class OptionGroup:
 @dataclass
 class HotBackupCliCfg(OptionGroup):
     """ map hotbackup_options """
-    hb_provider: str
     hb_mode: str
+    hb_provider: str
     hb_provider: str
     hb_storage_path_prefix: str
     hb_aws_access_key_id: str

@@ -251,3 +251,33 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
             if match:
                 return match.group(1)
         raise Exception("couldn't locate name of the upload process!")
+
+    def validate_local_backup(self, starter_basedir, backup_name):
+        """ validate backups in the local installation """
+        self.validate_backup(starter_basedir, backup_name)
+
+    def validate_backup(self, directory, backup_name):
+        """ search on the disk whether crash files exist """
+        backups_validated = 0
+        for meta_file in directory.glob( "**/*META"):
+            content = json.loads(meta_file.read_text())
+            size = 0
+            count = 0
+            for one_file in meta_file.parent.glob( "**/*"):
+                if one_file.is_dir() or one_file.name == "META":
+                    continue
+                size += one_file.stat().st_size
+                count += 1
+            backups_validated += 1
+            try:
+                if content['countIncludesFilesOnly']:
+                    if size != content['sizeInBytes']:
+                        raise Exception("Backup has different size than its META indicated! " + str(size) +
+                                        " - " + str(content))
+                    if count != content['nrFiles']:
+                        raise Exception("Backup count of files doesn't match! " + str(count) + " - " + str(content))
+                    continue
+            except KeyError:
+                pass
+            print("validation with META not supported. Size: " + str(size) + " META: " + str(content))
+        print(str(backups_validated) + " Backups validated: OK")
