@@ -61,7 +61,7 @@ class InstallerDeb(InstallerLinux):
                 semdict["prerelease"] = "~{prerelease}".format(**semdict)
             elif semdict["prerelease"].startswith("rc"):
                 semdict["prerelease"] = "~{prerelease}".format(**semdict)
-            elif re.match("\d{1,2}", semdict["prerelease"]):
+            elif re.match(r"\d{1,2}", semdict["prerelease"]):
                 semdict["prerelease"] = ".{prerelease}".format(**semdict)
             elif len(semdict["prerelease"]) > 0:
                 # semdict["prerelease"] = semdict["prerelease"]
