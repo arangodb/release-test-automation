@@ -450,17 +450,17 @@ class BasePage:
             time.sleep(2)
 
             version = self.current_package_version()
-            if version == 3.8:
+            if semver.VersionInfo.parse("3.8.0") <= self.current_package_version() <= semver.VersionInfo.parse("3.8.100"):
                 locator_sitem.send_keys(Keys.TAB)
                 time.sleep(2)
             try:
                 # trying to create the db for 3.9 version
-                if value is False and version == 3.9:
+                if value is False and self.current_package_version() >= semver.VersionInfo.parse("3.9.0"):
                     self.locator_finder_by_xpath('//*[@id="modalButton1"]').click()
                     time.sleep(2)
                     # placeholder's error message id for 3.9
                     error_sitem = self.locator_finder_by_xpath(error_message_id).text
-                elif value is False and version == 3.8:
+                elif value is False and self.current_package_version() == semver.VersionInfo.parse("3.8.0"):
                     error_sitem = self.locator_finder_by_xpath(error_message_id).text
                 else:
                     error_sitem = self.locator_finder_by_xpath(error_message_id).text
@@ -476,7 +476,7 @@ class BasePage:
                 time.sleep(2)
 
                 # getting out from the db creation for the next check
-                if value is False and version == 3.9:
+                if value is False and self.current_package_version() == semver.VersionInfo.parse("3.9.0"):
                     self.webdriver.refresh()
                     self.locator_finder_by_id("createDatabase").click()
                     time.sleep(1)

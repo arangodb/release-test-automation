@@ -169,8 +169,9 @@ class ServicePage(NavigationBarPage):
 
     def select_demo_geo_s2_service(self):
         """Selecting demo geo s2 service from the list"""
+        self.webdriver.refresh()
         print('Selecting demo_geo_s2 service \n')
-        geo_service = '//*[@id="availableFoxxes"]/div[1]/div/div[3]'
+        geo_service = "//*[text()='geo,service']"
         geo_service_sitem = self.locator_finder_by_xpath(geo_service)
         geo_service_sitem.click()
         time.sleep(2)
@@ -180,7 +181,7 @@ class ServicePage(NavigationBarPage):
         self.webdriver.refresh()
         time.sleep(1)
         self.select_demo_geo_s2_service()
-        github_link = '//*[@id="information"]/div/div[2]/div[1]/p[3]/span[2]/a'
+        github_link = "//*[text()='demo-geo-s2']"
         github_link_sitem = self.locator_finder_by_xpath(github_link)
         page_title = super().switch_tab(github_link_sitem)
 

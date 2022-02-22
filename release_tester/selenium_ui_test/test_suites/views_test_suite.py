@@ -62,7 +62,7 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
             print('Deleting views completed \n')
 
         # for package version less than 3.9
-        elif views.current_package_version() <= semver.VersionInfo.parse("3.8.0"):
+        elif views.current_package_version() <= semver.VersionInfo.parse("3.8.100"):
             views.create_new_views('firstView')
             views.create_new_views('secondView')
 
