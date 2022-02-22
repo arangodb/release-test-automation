@@ -641,14 +641,14 @@ class CollectionPage(NavigationBarPage):
 
     def select_settings_unload_btn(self):
         """Loading and Unloading collection"""
-        select_settings_unload_btn_sitem = self.locator_finder_by_xpath(self.select_settings_unload_btn_id)
+        select_settings_unload_btn_sitem = self.locator_finder_by_id(self.select_settings_unload_btn_id)
         select_settings_unload_btn_sitem.click()
         time.sleep(2)
         self.wait_for_ajax()
 
     def select_truncate_btn(self):
         """Loading and Unloading collection"""
-        select_truncate_btn_sitem = self.locator_finder_by_xpath(self.select_truncate_btn_id)
+        select_truncate_btn_sitem = self.locator_finder_by_id(self.select_truncate_btn_id)
         select_truncate_btn_sitem.click()
         time.sleep(1)
         select_truncate_confirm_btn_sitem = self.locator_finder_by_xpath(self.select_truncate_confirm_btn_id)
