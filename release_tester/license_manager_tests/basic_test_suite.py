@@ -3,23 +3,28 @@
 import platform
 
 from license_manager_tests.afo import LicenseManagerAfoTestSuite
+from license_manager_tests.base.license_manager_base_test_suite import LicenseManagerBaseTestSuite
 from license_manager_tests.cluster import LicenseManagerClusterTestSuite
+from license_manager_tests.dc2dc import LicenseManagerDc2DcTestSuite
 from license_manager_tests.leader_follower import LicenseManagerLeaderFollowerTestSuite
-from license_manager_tests.license_manager_base_test_suite import LicenseManagerBaseTestSuite
 from license_manager_tests.single_server import LicenseManagerSingleServerTestSuite
 from selenium_ui_test.test_suites.base_test_suite import run_before_suite, run_after_suite
 
 IS_WINDOWS = platform.win32_ver()[0] != ""
 
 
-class MainLicenseManagerTestSuite(LicenseManagerBaseTestSuite):
+class BasicLicenseManagerTestSuite(LicenseManagerBaseTestSuite):
     """testsuites entrypoint"""
 
     def __init__(
-        self,
-        new_version,
-        installer_base_config,
+            self,
+            versions,
+            installer_base_config,
     ):
+        if len(versions) > 1:
+            new_version = versions[1]
+        else:
+            new_version = versions[0]
         child_classes = [
             LicenseManagerSingleServerTestSuite,
             LicenseManagerLeaderFollowerTestSuite,
@@ -27,8 +32,7 @@ class MainLicenseManagerTestSuite(LicenseManagerBaseTestSuite):
             LicenseManagerClusterTestSuite,
         ]
         if not IS_WINDOWS:
-            pass
-            # child_classes.append(LicenseManagerDc2DcTestSuite)
+            child_classes.append(LicenseManagerDc2DcTestSuite)
         super().__init__(
             new_version,
             installer_base_config,

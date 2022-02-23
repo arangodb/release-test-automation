@@ -10,8 +10,8 @@ import traceback
 from pathlib import Path
 
 import semver
-from allure_commons.model2 import Status, StatusDetails
 from allure_commons._allure import attach
+from allure_commons.model2 import Status, StatusDetails
 
 import tools.loghelper as lh
 from arangodb.installers import create_config_installer_set, RunProperties
@@ -21,12 +21,14 @@ from arangodb.starter.deployments import (
     runner_strings,
     STARTER_MODES,
 )
-from license_manager_tests.main_test_suite import MainLicenseManagerTestSuite
+from license_manager_tests.basic_test_suite import BasicLicenseManagerTestSuite
+from license_manager_tests.upgrade.upgrade_test_suite import UpgradeLicenseManagerTestSuite
 from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext, init_allure
 from tools.killall import kill_all_processes
 
 try:
     from tools.external_helpers.license_generator.license_generator import create_license
+
     EXTERNAL_HELPERS_LOADED = True
 except ModuleNotFoundError as exc:
     print("External helpers not found. License manager tests will not run.")
@@ -45,27 +47,27 @@ class TestDriver:
         if "WORKSPACE" in os.environ:
             self.launch_dir = Path(os.environ["WORKSPACE"])
 
-        if not kwargs['test_data_dir'].is_absolute():
-            kwargs['test_data_dir'] = self.launch_dir / kwargs['test_data_dir']
-        if not kwargs['test_data_dir'].exists():
-            kwargs['test_data_dir'].mkdir(parents=True, exist_ok=True)
-        os.chdir(kwargs['test_data_dir'])
+        if not kwargs["test_data_dir"].is_absolute():
+            kwargs["test_data_dir"] = self.launch_dir / kwargs["test_data_dir"]
+        if not kwargs["test_data_dir"].exists():
+            kwargs["test_data_dir"].mkdir(parents=True, exist_ok=True)
+        os.chdir(kwargs["test_data_dir"])
 
-        if not kwargs['package_dir'].is_absolute():
-            kwargs['package_dir'] = (self.launch_dir / kwargs['package_dir']).resolve()
-        if not kwargs['package_dir'].exists():
-            kwargs['package_dir'].mkdir(parents=True, exist_ok=True)
+        if not kwargs["package_dir"].is_absolute():
+            kwargs["package_dir"] = (self.launch_dir / kwargs["package_dir"]).resolve()
+        if not kwargs["package_dir"].exists():
+            kwargs["package_dir"].mkdir(parents=True, exist_ok=True)
 
-        self.base_config = kwargs['base_config']
-        lh.configure_logging(kwargs['verbose'])
-        self.abort_on_error = kwargs['abort_on_error']
+        self.base_config = kwargs["base_config"]
+        lh.configure_logging(kwargs["verbose"])
+        self.abort_on_error = kwargs["abort_on_error"]
 
-        self.use_auto_certs = kwargs['use_auto_certs']
-        self.selenium = kwargs['selenium']
-        self.selenium_driver_args = kwargs['selenium_driver_args']
-        init_allure(results_dir=kwargs['alluredir'],
-                    clean=kwargs['clean_alluredir'],
-                    zip_package=self.base_config.zip_package)
+        self.use_auto_certs = kwargs["use_auto_certs"]
+        self.selenium = kwargs["selenium"]
+        self.selenium_driver_args = kwargs["selenium_driver_args"]
+        init_allure(
+            results_dir=kwargs["alluredir"], clean=kwargs["clean_alluredir"], zip_package=self.base_config.zip_package
+        )
         self.installer_type = None
 
     # pylint: disable=no-self-use
@@ -78,23 +80,29 @@ class TestDriver:
             resource.setrlimit(resource.RLIMIT_CORE, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
 
     def copy_packages_to_result(self, installers):
-        """ copy packages in test to the report directory (including debug symbols) """
+        """copy packages in test to the report directory (including debug symbols)"""
         if not installers[0][1].find_crash(installers[0][0].base_test_dir):
             return
         for installer_set in installers:
             for package in [
-                    installer_set[1].server_package,
-                    installer_set[1].debug_package,
-                    installer_set[1].client_package]:
+                installer_set[1].server_package,
+                installer_set[1].debug_package,
+                installer_set[1].client_package,
+            ]:
                 if package is not None:
                     print(Path.cwd())
-                    print("Copying package into result: " + str(installer_set[1].cfg.package_dir / package) +
-                          " => " + str(Path.cwd()))
-                    shutil.copyfile(installer_set[1].cfg.package_dir / package,
-                                    Path.cwd() / package)
-                    attach.file(Path.cwd() / package,
-                                "source archive used in tests: " + str(package),
-                                installer_set[1].extension)
+                    print(
+                        "Copying package into result: "
+                        + str(installer_set[1].cfg.package_dir / package)
+                        + " => "
+                        + str(Path.cwd())
+                    )
+                    shutil.copyfile(installer_set[1].cfg.package_dir / package, Path.cwd() / package)
+                    attach.file(
+                        Path.cwd() / package,
+                        "source archive used in tests: " + str(package),
+                        installer_set[1].extension,
+                    )
 
     def get_packaging_shorthand(self):
         """get the [DEB|RPM|EXE|DMG|ZIP|targz] from the installer"""
@@ -239,9 +247,9 @@ class TestDriver:
                                     )
                                     if self.abort_on_error:
                                         raise ex
-                                    one_result["progress"] += (
-                                        str(ex) +
-                                        "".join(traceback.TracebackException.from_exception(ex).format()))
+                                    one_result["progress"] += str(ex) + "".join(
+                                        traceback.TracebackException.from_exception(ex).format()
+                                    )
                                     traceback.print_exc()
                                     lh.section("uninstall on error")
                                     old_inst.un_install_debug_package()
@@ -261,8 +269,8 @@ class TestDriver:
                                     ]
                                     one_result["success"] = False
                                     one_result["messages"].append(
-                                        f'The following UI tests failed: {", ".join(failed_test_names)}.' +
-                                        'See allure report for details.'
+                                        f'The following UI tests failed: {", ".join(failed_test_names)}.'
+                                        + "See allure report for details."
                                     )
                         lh.section("uninstall")
                         new_inst.un_install_server_package()
@@ -318,7 +326,7 @@ class TestDriver:
                  deployment_mode,
                  versions: list,
                  run_props: RunProperties):
-    # fmt: on
+        # fmt: on
         """ main """
         results = []
 
@@ -375,7 +383,8 @@ class TestDriver:
                     # install on first run:
                     runner.do_install = (count == 1) and do_install
                     # only uninstall after the last test:
-                    runner.do_uninstall = (count == len(STARTER_MODES[deployment_mode])) and do_uninstall
+                    runner.do_uninstall = (count == len(
+                        STARTER_MODES[deployment_mode])) and do_uninstall
                     try:
                         runner.run()
                         runner.cleanup()
@@ -415,7 +424,7 @@ class TestDriver:
                         one_result["success"] = False
                         one_result[
                             "messages"].append(
-    f'The following UI tests failed: {", ".join(failed_test_names)}. See allure report for details.')
+                            f'The following UI tests failed: {", ".join(failed_test_names)}. See allure report for details.')
 
                     kill_all_processes()
                     count += 1
@@ -458,7 +467,7 @@ class TestDriver:
             return [
                 {
                     "testrun name": "Package installation/uninstallation tests are temporarily" +
-                      "disabled for debian-based linux distros. Waiting for BTS-684",
+                                    "disabled for debian-based linux distros. Waiting for BTS-684",
                     "testscenario": "",
                     "success": True,
                     "messages": [],
@@ -493,9 +502,14 @@ class TestDriver:
 
     def run_license_manager_tests(
             self,
-            new_version,
+            versions
     ):
         """run license manager tests"""
+        if(len(versions)==1):
+            new_version=versions[0]
+        elif(len(versions)>1):
+            old_version = versions[1]
+            new_version = versions[1]
         if semver.VersionInfo.parse(new_version) < "3.9.0-nightly":
             logging.info("License manager test suite is only applicable to versions 3.9 and newer.")
             return [
@@ -508,7 +522,8 @@ class TestDriver:
                 }
             ]
         if not EXTERNAL_HELPERS_LOADED:
-            logging.info("License manager test suite cannot run, because external helpers are not present.")
+            logging.info(
+                "License manager test suite cannot run, because external helpers are not present.")
             return [
                 {
                     "testrun name": "License manager test suite cannot run, because external helpers are not present.",
@@ -518,15 +533,15 @@ class TestDriver:
                     "progress": "",
                 }
             ]
-        args = (
-            new_version,
-            self.base_config,
-        )
-        suites = [
-            MainLicenseManagerTestSuite(*args),
-        ]
         results = []
-        for suite in suites:
+        suites_classes = []
+        suites_classes.append(BasicLicenseManagerTestSuite)
+        if(len(versions)>1):
+            suites_classes.append(UpgradeLicenseManagerTestSuite)
+        args = (versions, self.base_config)
+
+        for suites_class in suites_classes:
+            suite = suites_class(*args)
             suite.run()
             result = {
                 "testrun name": suite.suite_name,
