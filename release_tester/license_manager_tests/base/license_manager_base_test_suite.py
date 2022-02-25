@@ -9,6 +9,7 @@ from arangodb.async_client import CliExecutionException
 from arangodb.installers import create_config_installer_set, RunProperties
 from reporting.reporting_utils import step
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, run_after_suite, run_before_each_testcase
+from tools.killall import kill_all_processes
 
 try:
     from tools.external_helpers.license_generator.license_generator import create_license
@@ -63,6 +64,7 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
 
     def add_crash_data_to_report(self):
         """save data dir and logs in case a test failed"""
+        kill_all_processes()
         self.runner.zip_test_dir()
 
     @step
