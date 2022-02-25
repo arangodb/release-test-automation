@@ -228,10 +228,12 @@ class Runner(ABC):
             with step("Progress: " + msg):
                 pass
 
-    def ask_continue_or_exit(self, msg, output, default=True, status=1):
+    def ask_continue_or_exit(self, msg, output, default=True, status=1, invoking_exc=None):
         """ask the user whether to abort the execution or continue anyways"""
         self.progress(False, msg)
         if not self.basecfg.interactive:
+            if invoking_exc:
+                raise Exception("%s:\n%s" % (msg, output)) from invoking_exc
             raise Exception("%s:\n%s" % (msg, output))
         if not eh.ask_continue(msg, self.basecfg.interactive, default):
             print()
@@ -691,6 +693,7 @@ class Runner(ABC):
                         "make_data failed for {0.name}".format(self),
                         exc.execution_result[1],
                         False,
+                        exc
                     )
                 self.has_makedata_data = True
             self.check_data_impl_sh(arangosh, starter.supports_foxx_tests)
@@ -710,6 +713,7 @@ class Runner(ABC):
                     "check_data has data failed for {0.name}".format(self),
                     exc.execution_result[1],
                     False,
+                    exc
                 )
 
     @step
