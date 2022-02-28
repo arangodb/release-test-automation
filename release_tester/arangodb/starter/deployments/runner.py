@@ -846,7 +846,7 @@ class Runner(ABC):
         for starter in self.starter_instances:
             assert starter.hb_instance, "download backup: this starter doesn't have an hb instance!"
             starter.hb_instance.validate_local_backup(starter.basedir, name)
-        
+
     @step
     def search_for_warnings(self):
         """search for any warnings in any logfiles and dump them to the screen"""
