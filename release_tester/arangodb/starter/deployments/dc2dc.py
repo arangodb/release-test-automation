@@ -377,9 +377,10 @@ class Dc2Dc(Runner):
         elif last_sync_output.find("Shard is not turned on for synchronizing") >= 0:
             self.progress(True, "arangosync: sync in progress.")
         # we want to research this to find an actual cure, so we want to see these errors:
-        #elif re.match(USERS_ERROR_RX, last_sync_output):
-        #    self.progress(True, "arangosync: resetting users collection...")
-        #    self.sync_manager.reset_failed_shard("_system", "_users")
+        # BTS-366 now has these informations, we're working on a fix, re-enable workaround for now.
+        elif re.match(USERS_ERROR_RX, last_sync_output):
+            self.progress(True, "arangosync: resetting users collection...")
+            self.sync_manager.reset_failed_shard("_system", "_users")
         else:
             self.progress(True, "arangosync: unknown error condition, doing nothing.")
 
