@@ -1,11 +1,10 @@
-/* global print, fs, db, internal, arango */
+/* global print, fs, db, internal, arango, assertTrue */
 
 // inspired by shell-foxx-api-spec.js
 
 const utils = require('@arangodb/foxx/manager-utils');
 const download = internal.download;
 const path = require('path');
-const expect = require('chai').expect;
 
 const {
   assertTrue,
@@ -62,19 +61,19 @@ function installFoxx (mountpoint, which, mode, options) {
                            username: 'root',
                            password: options.passvoid
                          });
-    expect(reply.code).to.equal(201);
+    assertEqual(reply.code, 201, "Reply was: " + JSON.stringify(reply));
     crudResp = JSON.parse(reply.body);
   }
-  expect(crudResp).to.have.property('manifest');
+  assertTrue(crudResp.hasOwnProperty('manifest'), "Manifest broken: " + JSON.stringify(crudResp));
   return crudResp;
 }
 
 function deleteFoxx (mountpoint) {
   print(mountpoint)
   const deleteResp = arango.DELETE('/_api/foxx/service?force=true&mount=' + mountpoint);
-  expect(deleteResp).to.have.property('code');
-  expect(deleteResp.code).to.equal(204);
-  expect(deleteResp.error).to.equal(false);
+  assertTrue(deleteResp.hasOwnProperty('code'), "reply without code: " + JSON.stringify(deleteResp));
+  assertEqual(deleteResp.code, 204, "Reply was: " + JSON.stringify(deleteResp));
+  assertFalse(deleteResp.error, "Reply was: " + JSON.stringify(deleteResp));
 }
 
 const itzpapalotlPath = path.resolve(internal.pathForTesting('common'), 'test-data', 'apps', 'itzpapalotl');
