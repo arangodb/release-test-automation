@@ -397,6 +397,10 @@ class TestDriver:
                                                                        trace="".join(
                                                                            traceback.TracebackException.from_exception(
                                                                                ex).format()))
+                        lh.section("uninstall on error")
+                        installers[0][1].un_install_debug_package()
+                        installers[0][1].un_install_server_package()
+                        installers[0][1].cleanup_system()
                         if self.abort_on_error:
                             raise ex
                         traceback.print_exc()

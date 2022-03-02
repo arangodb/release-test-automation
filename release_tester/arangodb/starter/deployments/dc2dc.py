@@ -26,7 +26,7 @@ SYNC_VERSIONS = {
 }
 
 STARTER_VERSIONS = {"152": semver.VersionInfo.parse("0.15.2")}
-USERS_ERROR_RX = re.compile(".*\n*.*\n*.*\n*.*(_users).*DIFFERENT.*", re.MULTILINE)
+USERS_ERROR_RX = re.compile(".*_system.*_users.*DIFFERENT.*")
 STATUS_INACTIVE = "inactive"
 
 
@@ -376,13 +376,24 @@ class Dc2Dc(Runner):
                 self.cluster2["instance"].detect_instances()
         elif last_sync_output.find("Shard is not turned on for synchronizing") >= 0:
             self.progress(True, "arangosync: sync in progress.")
-        # we want to research this to find an actual cure, so we want to see these errors:
-        # BTS-366 now has these informations, we're working on a fix, re-enable workaround for now.
-        elif re.match(USERS_ERROR_RX, last_sync_output):
-            self.progress(True, "arangosync: resetting users collection...")
-            self.sync_manager.reset_failed_shard("_system", "_users")
         else:
-            self.progress(True, "arangosync: unknown error condition, doing nothing.")
+            # we want to research this to find an actual cure, so we want to see these errors:
+            # BTS-366 now has these informations, we're working on a fix, re-enable workaround for now.
+            dbline_seen = False
+            userline_seen = False
+            coll_count = 0
+            for line in last_sync_output.splitlines():
+                if not dbline_seen:
+                    dbline_seen = line.startswith('Database')
+                else:
+                    coll_count += 1
+                    if re.match(USERS_ERROR_RX, line):
+                        userline_seen = True
+            if dbline_seen and userline_seen and coll_count < 5:
+                self.progress(True, "arangosync: resetting users collection...")
+                self.sync_manager.reset_failed_shard("_system", "_users")
+            else:
+                self.progress(True, "arangosync: unknown error condition, doing nothing.")
 
     def _get_in_sync(self, attempts):
         self.progress(True, "waiting for the DCs to get in sync")
