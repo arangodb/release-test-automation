@@ -104,7 +104,7 @@ class InstallerW(InstallerBase):
 
     @step
     def upgrade_server_package(self, old_installer):
-        if not self.server_package.exists():
+        if not (self.cfg.package_dir / self.server_package).exists():
             raise Exception("Package not found: " + str(self.server_package))
         self._verify_signature(self.server_package)
         self.backup_dirs_number_before_upgrade = self.count_backup_dirs()
@@ -155,7 +155,7 @@ class InstallerW(InstallerBase):
 
     @step
     def install_server_package_impl(self):
-        if not self.server_package.exists():
+        if not (self.cfg.package_dir / self.server_package).exists():
             raise Exception("Package not found: " + str(self.server_package))
         self._verify_signature(self.server_package)
         cmd = [
@@ -204,7 +204,7 @@ class InstallerW(InstallerBase):
     @step
     def install_client_package_impl(self):
         """Install client package"""
-        if not self.server_package.exists():
+        if not (self.cfg.package_dir / self.server_package).exists():
             raise Exception("Package not found: " + str(self.client_package))
         self._verify_signature(self.client_package)
         cmd = [
