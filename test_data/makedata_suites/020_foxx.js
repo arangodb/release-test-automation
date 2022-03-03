@@ -101,6 +101,22 @@ const crudTestServiceSource = {
     'accept': 'application/json',
     'accept-content-type': 'application/json'
   };
+  let testFoxxRoutingReady = function() {
+    for (let i = 0; i < 200; i++) {
+      try {
+        reply = arango.GET_RAW('/this_route_is_not_here', onlyJson);
+        if (reply.code === 404) {
+          print("selfHeal was already executed - Foxx is ready!");
+          return 0;
+        }
+        print(" Not yet ready, retrying: " + msg);
+      } catch (e) {
+        print(" Caught - need to retry. " + JSON.stringify(e));
+      }
+      internal.sleep(3);
+    }
+    throw new Error("foxx routeing not ready on time!");
+  };
   let testFoxxReady = function(route) {
     for (let i = 0; i < 200; i++) {
       try {
@@ -127,6 +143,7 @@ const crudTestServiceSource = {
     },
     makeDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
       // All items created must contain dbCount
+      testFoxxRoutingReady();
       testFoxxReady(aardvarkRoute);
       print(`making per database data ${dbCount}`);
       print("installing Itzpapalotl");
