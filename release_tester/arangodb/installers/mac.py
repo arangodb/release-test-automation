@@ -193,20 +193,14 @@ class InstallerMac(InstallerBase):
         elif prerelease == "nightly":
             semdict["prerelease"] = ".{prerelease}".format(**semdict)
         elif prerelease.startswith("alpha"):
-            # TODO: is this right?
             semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
         elif prerelease.startswith("beta"):
-            # TODO: is this right?
             semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
         elif prerelease.startswith("rc"):
-            # TODO: is this right?
-            # remove dots, but prepend one:
             semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
         elif len(prerelease) > 0:
             semdict["build"] = "." + semdict["prerelease"]
             semdict["prerelease"] = ""
-            # remove dots, but prepend one:
-            # once was: semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
 
         version = "{major}.{minor}.{patch}{build}{prerelease}".format(**semdict)
 
