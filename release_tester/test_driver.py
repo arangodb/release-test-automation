@@ -3,6 +3,7 @@
 import logging
 import os
 import platform
+import re
 import shutil
 import sys
 import time
@@ -15,6 +16,7 @@ from allure_commons._allure import attach
 
 import tools.loghelper as lh
 from arangodb.installers import create_config_installer_set, RunProperties
+from arangodb.starter.deployments.cluster_perf import ClusterPerf
 from arangodb.starter.deployments import (
     RunnerType,
     make_runner,
@@ -26,6 +28,7 @@ from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext, init_
 from tools.killall import kill_all_processes
 
 try:
+    # pylint: disable=unused-import
     from tools.external_helpers.license_generator.license_generator import create_license
     EXTERNAL_HELPERS_LOADED = True
 except ModuleNotFoundError as exc:
@@ -425,6 +428,64 @@ class TestDriver:
                     count += 1
 
         return results
+
+    # fmt: off
+    # pylint: disable=too-many-arguments disable=too-many-locals
+    def run_perf_test(self,
+                 deployment_mode,
+                 versions: list,
+                 frontends,
+                 scenario,
+                 run_props: RunProperties):
+    # fmt: on
+        """ main """
+        do_install = deployment_mode in ["all", "install"]
+        do_uninstall = deployment_mode in ["all", "uninstall"]
+
+        installers = create_config_installer_set(
+            versions,
+            self.base_config,
+            deployment_mode,
+            run_props
+        )
+        lh.section("configuration")
+        print(
+            """
+        mode: {mode}
+        {cfg_repr}
+        """.format(
+                **{"mode": str(deployment_mode), "cfg_repr": repr(installers[0][0])}
+            )
+        )
+        inst=installers[0][1]
+
+        split_host = re.compile(r"([a-z]*)://([0-9.:]*):(\d*)")
+
+        if len(frontends) > 0:
+            for frontend in frontends:
+                print("remote")
+                host_parts = re.split(split_host, frontend)
+                inst.cfg.add_frontend(host_parts[1], host_parts[2], host_parts[3])
+        inst.cfg.scenario = Path(scenario)
+        runner = ClusterPerf(
+            RunnerType.CLUSTER,
+            self.abort_on_error,
+            installers,
+            self.selenium,
+            self.selenium_driver_args,
+            "perf",
+            run_props,
+            use_auto_certs=self.use_auto_certs
+        )
+        runner.do_install = do_install
+        runner.do_uninstall = do_uninstall
+        failed = False
+        if not runner.run():
+            failed = True
+
+        if len(frontends) == 0:
+            kill_all_processes()
+        return failed
 
     # pylint: disable=too-many-arguments disable=too-many-locals, disable=broad-except, disable=too-many-branches, disable=too-many-statements
     def run_conflict_tests(
