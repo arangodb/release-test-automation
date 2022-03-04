@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 """License manager tests runner script"""
+#pylint: disable=duplicate-code
 from pathlib import Path
 
 import click
