@@ -292,6 +292,7 @@ class Testing(Runner):
         pass # we do this later.
     def check_data_impl(self):
         pass
+    # pylint: disable=no-self-use
     def supports_backup_impl(self):
         """ nope """
         return False # we want to do this on our own.
@@ -313,10 +314,6 @@ class Testing(Runner):
 
     def upgrade_arangod_version_manual_impl(self):
         pass
-
-    def starter_prepare_env_impl(self):
-        pass
-
 
     def shutdown_impl(self):
         for node in self.starter_instances:
