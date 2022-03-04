@@ -1,11 +1,10 @@
-/* global print, fs, db, internal, arango */
+/* global print, fs, db, internal, arango, assertTrue */
 
 // inspired by shell-foxx-api-spec.js
 
 const utils = require('@arangodb/foxx/manager-utils');
 const download = internal.download;
 const path = require('path');
-const expect = require('chai').expect;
 
 const {
   assertTrue,
@@ -62,19 +61,19 @@ function installFoxx (mountpoint, which, mode, options) {
                            username: 'root',
                            password: options.passvoid
                          });
-    expect(reply.code).to.equal(201);
+    assertEqual(reply.code, 201, "Reply was: " + JSON.stringify(reply));
     crudResp = JSON.parse(reply.body);
   }
-  expect(crudResp).to.have.property('manifest');
+  assertTrue(crudResp.hasOwnProperty('manifest'), "Manifest broken: " + JSON.stringify(crudResp));
   return crudResp;
 }
 
 function deleteFoxx (mountpoint) {
   print(mountpoint)
   const deleteResp = arango.DELETE('/_api/foxx/service?force=true&mount=' + mountpoint);
-  expect(deleteResp).to.have.property('code');
-  expect(deleteResp.code).to.equal(204);
-  expect(deleteResp.error).to.equal(false);
+  assertTrue(deleteResp.hasOwnProperty('code'), "reply without code: " + JSON.stringify(deleteResp));
+  assertEqual(deleteResp.code, 204, "Reply was: " + JSON.stringify(deleteResp));
+  assertFalse(deleteResp.error, "Reply was: " + JSON.stringify(deleteResp));
 }
 
 const itzpapalotlPath = path.resolve(internal.pathForTesting('common'), 'test-data', 'apps', 'itzpapalotl');
@@ -96,13 +95,56 @@ const crudTestServiceSource = {
 };
 
 (function () {
+  let aardvarkRoute = '/_db/_system/_admin/aardvark/index.html';
   let shouldValidateFoxx;
+  const onlyJson = {
+    'accept': 'application/json',
+    'accept-content-type': 'application/json'
+  };
+  let testFoxxRoutingReady = function() {
+    for (let i = 0; i < 200; i++) {
+      try {
+        reply = arango.GET_RAW('/this_route_is_not_here', onlyJson);
+        if (reply.code === 404) {
+          print("selfHeal was already executed - Foxx is ready!");
+          return 0;
+        }
+        print(" Not yet ready, retrying: " + msg);
+      } catch (e) {
+        print(" Caught - need to retry. " + JSON.stringify(e));
+      }
+      internal.sleep(3);
+    }
+    throw new Error("foxx routeing not ready on time!");
+  };
+  let testFoxxReady = function(route) {
+    for (let i = 0; i < 200; i++) {
+      try {
+        reply = arango.GET_RAW(route, onlyJson);
+        if (reply.code === 200) {
+          print(route + " OK");
+          return 0;
+        }
+        let msg = JSON.stringify(reply);
+        if (reply.hasOwnProperty('parsedBody')) {
+          msg = " '" + reply.parsedBody.errorNum + "' - " + reply.parsedBody.errorMessage;
+        }
+        print(route + " Not yet ready, retrying: " + msg);
+      } catch (e) {
+        print(route + " Caught - need to retry. " + JSON.stringify(e));
+      }
+      internal.sleep(3);
+    }
+    throw new Error("foxx route '" + route + "' not ready on time!");
+  };    
   return {
     isSupported: function (version, oldVersion, options, enterprise, cluster) {
       return options.testFoxx;
     },
     makeDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
       // All items created must contain dbCount
+      testFoxxRoutingReady();
+      testFoxxReady(aardvarkRoute);
       print(`making per database data ${dbCount}`);
       print("installing Itzpapalotl");
       // installFoxx('/itz', itzpapalotlZip, "install", options);
@@ -115,37 +157,14 @@ const crudTestServiceSource = {
     },
     checkDataDB: function (options, isCluster, isEnterprise, database, dbCount, readOnly) {
       print(`checking data ${dbCount} `);
-      const onlyJson = {
-        'accept': 'application/json',
-        'accept-content-type': 'application/json'
-      };
       let reply;
       db._useDatabase("_system");
 
       [
-        '/_db/_system/_admin/aardvark/index.html',
+        aardvarkRoute,
         `/_db/_system/itz_${dbCount}/index`,
         `/_db/_system/crud_${dbCount}/xxx`
-      ].forEach(route => {
-        for (let i = 0; i < 200; i++) {
-          try {
-            reply = arango.GET_RAW(route, onlyJson);
-            if (reply.code === 200) {
-              print(route + " OK");
-              return 0;
-            }
-            let msg = JSON.stringify(reply);
-            if (reply.hasOwnProperty('parsedBody')) {
-              msg = " '" + reply.parsedBody.errorNum + "' - " + reply.parsedBody.errorMessage;
-            }
-            print(route + " Not yet ready, retrying: " + msg);
-          } catch (e) {
-            print(route + " Caught - need to retry. " + JSON.stringify(e));
-          }
-          internal.sleep(3);
-        }
-        throw new Error("foxx route '" + route + "' not ready on time!");
-      });
+      ].forEach(route => testFoxxReady(route));
 
       print("Foxx: Itzpapalotl getting the root of the gods");
       reply = arango.GET_RAW(`/_db/_system/itz_${dbCount}`);

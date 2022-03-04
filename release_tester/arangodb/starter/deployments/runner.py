@@ -126,7 +126,7 @@ class Runner(ABC):
         self.basecfg.passvoid = ""
         self.versionstr = ""
         if self.new_cfg:
-            self.new_cfg.passvoid = ""  # TODO
+            self.new_cfg.passvoid = ""
             self.versionstr = "OLD[" + self.cfg.version + "] "
 
         self.basedir = Path(properties.short_name)
@@ -228,10 +228,12 @@ class Runner(ABC):
             with step("Progress: " + msg):
                 pass
 
-    def ask_continue_or_exit(self, msg, output, default=True, status=1):
+    def ask_continue_or_exit(self, msg, output, default=True, status=1, invoking_exc=None):
         """ask the user whether to abort the execution or continue anyways"""
         self.progress(False, msg)
         if not self.basecfg.interactive:
+            if invoking_exc:
+                raise Exception("%s:\n%s" % (msg, output)) from invoking_exc
             raise Exception("%s:\n%s" % (msg, output))
         if not eh.ask_continue(msg, self.basecfg.interactive, default):
             print()
@@ -333,7 +335,6 @@ class Runner(ABC):
             self.old_installer.un_install_server_package_for_upgrade()
             if self.is_minor_upgrade() and self.new_installer.supports_backup():
                 self.new_installer.check_backup_is_created()
-            self.make_data_after_upgrade()
             if self.hot_backup:
                 self.check_data_impl()
                 self.progress(False, "TESTING HOTBACKUP AFTER UPGRADE")
@@ -540,12 +541,6 @@ class Runner(ABC):
         self.make_data_impl()
 
     @step
-    def make_data_after_upgrade(self):
-        """check if setup is functional"""
-        self.progress(True, "{0} - make data after upgrade".format(str(self.name)))
-        self.make_data_wait_for_upgrade_impl()
-
-    @step
     def test_setup(self):
         """setup steps after the basic instances were launched"""
         self.progress(True, "{0} - basic test after startup".format(str(self.name)))
@@ -691,6 +686,7 @@ class Runner(ABC):
                         "make_data failed for {0.name}".format(self),
                         exc.execution_result[1],
                         False,
+                        exc
                     )
                 self.has_makedata_data = True
             self.check_data_impl_sh(arangosh, starter.supports_foxx_tests)
@@ -710,6 +706,7 @@ class Runner(ABC):
                     "check_data has data failed for {0.name}".format(self),
                     exc.execution_result[1],
                     False,
+                    exc
                 )
 
     @step
@@ -742,10 +739,6 @@ class Runner(ABC):
             arangosh = starter.arangosh
             return arangosh.hotbackup_check_for_nonbackup_data()
         raise Exception("no frontend found.")
-
-    # TODO test make data after upgrade@abstractmethod
-    def make_data_wait_for_upgrade_impl(self):
-        """check the data after the upgrade"""
 
     @step
     def before_backup(self):
@@ -842,7 +835,7 @@ class Runner(ABC):
         for starter in self.starter_instances:
             assert starter.hb_instance, "download backup: this starter doesn't have an hb instance!"
             starter.hb_instance.validate_local_backup(starter.basedir, name)
-        
+
     @step
     def search_for_warnings(self):
         """search for any warnings in any logfiles and dump them to the screen"""

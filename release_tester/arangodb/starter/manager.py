@@ -462,10 +462,7 @@ class StarterManager:
         logging.info("StarterManager: waiting for process to exit")
         exit_code = self.instance.wait()
         self.add_logfile_to_report()
-        if ON_WINDOWS:
-            if exit_code == 15:
-                # TODO: remove wintendo starter bug workaround!
-                exit_code = 0
+        # removed wintendo starter bug workaround exit code 15 => 0, it seems to be fixed.
 
         if exit_code != 0:
             raise Exception("Starter %s exited with %d" % (self.basedir, exit_code))

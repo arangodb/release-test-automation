@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 """ fetch nightly packages, process upgrade """
+#pylint: disable=duplicate-code
 from pathlib import Path
 from copy import copy
 import sys
@@ -85,6 +86,7 @@ def upgrade_package_test(
 
         results.append(test_driver.run_test("all", [dl_new.cfg.version], props))
 
+    # pylint: disable=consider-using-enumerate
     for j in range(len(new_versions)):
         for props in EXECUTION_PLAN:
             print("Cleaning up" + props.testrun_name)

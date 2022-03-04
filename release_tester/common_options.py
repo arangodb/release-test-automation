@@ -45,7 +45,8 @@ def zip_common_options(function):
     return function
 
 def hotbackup_options():
-    """ all of these hot backup options """
+    """ all of these hot backup options
+        => arangodb.installers.HotBackupCliCfg """
     access_key_id = get_default_value("AWS_ACCESS_KEY_ID", "", "")
     secret_access_key = get_default_value("AWS_SECRET_ACCESS_KEY", "", "")
     region = get_default_value("AWS_REGION", "", "")
@@ -102,7 +103,8 @@ def hotbackup_options():
 
 
 def very_common_options(support_multi_version=False):
-    """These options are in all scripts"""
+    """ These options are in all scripts
+        most => arangodb.installers.InstallerBaseConfig """
     package_dir = Path("/home/package_cache/")
 
     if not package_dir.exists():
@@ -152,7 +154,8 @@ def common_options(
     test_data_dir="/tmp/",
     support_multi_version=False,
 ):
-    """these options are common to most scripts"""
+    """ these options are common to most scripts
+        most => arangodb.installers.InstallerBaseConfig """
 
     test_data_dir = get_default_path_value("WORKSPACE", "test_dir", test_data_dir)
     default_allure_dir = Path("/home/allure-results")

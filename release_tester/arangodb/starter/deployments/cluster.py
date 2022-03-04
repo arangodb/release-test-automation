@@ -48,15 +48,28 @@ class Cluster(Runner):
         self.jwtdatastr = str(timestamp())
         self.create_test_collection = ""
         self.min_replication_factor = 2
+        self.check_collections_in_sync = (
+            "check whether all collections are in sync",
+            """
+let colInSync=true;
+do {
+  colInSync=true;
+  arango.GET('/_api/replication/clusterInventory').collections.forEach(col => {colInSync &=col.allInSync});
+  require('internal').sleep(1);
+  print('.');
+} while (!colInSync);
+            """
+        )
 
     def starter_prepare_env_impl(self):
         self.create_test_collection = (
+            "create test collection",
             """
 db._create("testCollection",  { numberOfShards: 6, replicationFactor: 2});
 db.testCollection.save({test: "document"})
-""",
-            "create test collection",
+"""
         )
+
         node1_opts = []
         node2_opts = ["--starter.join", "127.0.0.1:9528"]
         node3_opts = ["--starter.join", "127.0.0.1:9528"]
@@ -163,6 +176,11 @@ db.testCollection.save({test: "document"})
 
     def upgrade_arangod_version_manual_impl(self):
         """manual upgrade this installation"""
+        lh.subsubsection("wait for all shards to be in sync")
+        retval = self.starter_instances[0].execute_frontend(self.check_collections_in_sync)
+        if not retval:
+            raise Exception("Failed to ensure the cluster is in sync: %s %s" % (
+                retval, str(self.check_collections_in_sync)))
         self.progress(True, "manual upgrade step 1 - stop instances")
         self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
         for node in self.starter_instances:
@@ -224,6 +242,12 @@ db.testCollection.save({test: "document"})
         # pylint: disable=too-many-statements
         # this is simply to slow to be worth wile:
         # collections = self.get_collection_list()
+        lh.subsubsection("wait for all shards to be in sync")
+        retval = self.starter_instances[0].execute_frontend(self.check_collections_in_sync)
+        if not retval:
+            raise Exception("Failed to ensure the cluster is in sync: %s %s" % (
+                retval, str(self.check_collections_in_sync)))
+        print("all in sync.")
         agency_leader = self.agency_get_leader()
         terminate_instance = 2
         survive_instance = 1
