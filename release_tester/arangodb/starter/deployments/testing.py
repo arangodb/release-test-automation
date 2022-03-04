@@ -311,6 +311,12 @@ class Testing(Runner):
     def upgrade_arangod_version_impl(self):
         pass
 
+    def upgrade_arangod_version_manual_impl(self):
+        pass
+
+    def starter_prepare_env_impl(self):
+        pass
+
 
     def shutdown_impl(self):
         for node in self.starter_instances:

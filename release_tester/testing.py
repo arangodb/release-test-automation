@@ -2,121 +2,106 @@
 
 """ Release testing script"""
 from pathlib import Path
+import os
 import sys
-import re
 import click
 from tools.killall import kill_all_processes
-from arangodb.installers import make_installer, InstallerConfig
+from arangodb.installers import make_installer, InstallerConfig,  HotBackupCliCfg, InstallerBaseConfig
 from arangodb.starter.deployments.testing import Testing
 from arangodb.starter.deployments import RunnerType
 import tools.loghelper as lh
+from reporting.reporting_utils import init_allure
+
+from common_options import very_common_options, common_options
 
 @click.command()
-@click.option('--old-version', help='unused')
-@click.option('--new-version', help='ArangoDB version number.', default="3.9.0")
-@click.option('--verbose/--no-verbose',
-              is_flag=True,
-              default=False,
-              help='switch starter to verbose logging mode.')
-@click.option('--enterprise/--no-enterprise',
-              is_flag=True,
-              default=False,
-              help='Enterprise or community?')
-@click.option('--encryption-at-rest/--no-encryption-at-rest',
-              is_flag=True,
-              default=False,
-              help='turn on encryption at rest for Enterprise packages')
-@click.option('--zip/--no-zip', 'zip_package',
-              is_flag=True,
-              default=False,
-              help='switch to zip or tar.gz package instead of default OS package')
-@click.option('--interactive/--no-interactive',
-              is_flag=True,
-              default=False,
-              help='wait for the user to hit Enter?')
-@click.option('--package-dir',
-              default='/home/willi/src/devel5',
-              help='directory to load the packages from.')
-@click.option('--test-data-dir',
-              default='/tmp/',
-              help='directory create databases etc. in.')
-@click.option('--mode',
-              default='all',
-              help='operation mode - [all|install|uninstall|tests].')
-@click.option('--starter-mode',
-              default='all',
-              help='which starter deployments modes to use - ' +
-              '[all|LF|AFO|CL|DC|none].')
-@click.option('--publicip',
-              default='127.0.0.1',
-              help='IP for the click to browser hints.')
-
+@click.option(
+    "--mode",
+    type=click.Choice(
+        [
+            "all",
+            "install",
+            "uninstall",
+            "tests",
+        ]
+    ),
+    default="all",
+    help="operation mode.",
+)
 @click.option('--scenario',
               default='scenarios/testing.js/',
               help='test configuration yaml file, default written & exit if not there.')
-@click.option('--frontends',
-              multiple=True,
-              help='Connection strings of remote clusters')
-@click.option('--selenium',
-              default='none',
-              help='if non-interactive chose the selenium target')
-@click.option('--selenium-driver-args',
-              default=[],
-              multiple=True,
-              help='options to the selenium web driver')
-# pylint: disable=R0913
-def run_test(old_version, new_version, verbose, package_dir, test_data_dir,
-             enterprise, encryption_at_rest, zip_package,
-             interactive, mode, starter_mode, publicip, scenario, frontends,
-             selenium, selenium_driver_args):
+@click.option("--frontends", multiple=True, help="Connection strings of remote clusters")
+@very_common_options
+@common_options(support_old=False)
+def main(**kwargs):
     """ main """
-    lh.configure_logging(verbose)
+    kwargs['stress_upgrade'] = False
+    kwargs['package_dir'] = Path(kwargs['package_dir'])
+    kwargs['test_data_dir'] = Path(kwargs['test_data_dir'])
+    kwargs['alluredir'] = Path(kwargs['alluredir'])
 
-    lh.section("configuration")
-    print("version: " + str(new_version))
-    print("using enterpise: " + str(enterprise))
-    print("using zip: " + str(zip_package))
-    print("package directory: " + str(package_dir))
-    print("mode: " + str(mode))
-    print("starter mode: " + str(starter_mode))
-    print("public ip: " + str(publicip))
-    print("interactive: " + str(interactive))
-    print("scenario: " + str(scenario))
-    print("verbose: " + str(verbose))
+    kwargs['hb_cli_cfg'] = HotBackupCliCfg("disabled","","","","","","")
+    kwargs['base_config'] = InstallerBaseConfig.from_dict(**kwargs)
 
-    if mode not in ['all', 'install', 'system', 'tests', 'uninstall']:
-        raise Exception("unsupported mode %s!" % mode)
+    do_install = kwargs['mode'] in ["all", "install"]
+    do_uninstall = kwargs['mode'] in ["all", "uninstall"]
 
-    do_install = mode in ["all", "install"]
-    do_uninstall = mode in ["all", "uninstall"]
+    launch_dir = Path.cwd()
+    if "WORKSPACE" in os.environ:
+        launch_dir = Path(os.environ["WORKSPACE"])
+
+    if not kwargs['test_data_dir'].is_absolute():
+        kwargs['test_data_dir'] = launch_dir / kwargs['test_data_dir']
+    if not kwargs['test_data_dir'].exists():
+        kwargs['test_data_dir'].mkdir(parents=True, exist_ok=True)
+    os.chdir(kwargs['test_data_dir'])
+
+    if not kwargs['package_dir'].is_absolute():
+        kwargs['package_dir'] = (launch_dir / kwargs['package_dir']).resolve()
+    if not kwargs['package_dir'].exists():
+        kwargs['package_dir'].mkdir(parents=True, exist_ok=True)
+
+    init_allure(results_dir=kwargs['alluredir'],
+                clean=kwargs['clean_alluredir'],
+                zip_package=kwargs['zip_package'])
+
 
     lh.section("startup")
 
-    install_config = InstallerConfig(new_version,
-                                     verbose,
-                                     enterprise,
-                                     encryption_at_rest,
-                                     zip_package,
-                                     Path(package_dir),
-                                     Path(test_data_dir),
-                                     mode,
-                                     publicip,
-                                     interactive,
-                                     False)
+    install_config = InstallerConfig(kwargs['new_version'],
+                                     kwargs['verbose'],
+                                     kwargs['enterprise'],
+                                     kwargs['encryption_at_rest'],
+                                     kwargs['zip_package'],
+                                     kwargs['src_testing'],
+                                     kwargs['hb_cli_cfg'],
+                                     kwargs['package_dir'],
+                                     kwargs['test_data_dir'],
+                                     kwargs['mode'],
+                                     kwargs['publicip'],
+                                     kwargs['interactive'],
+                                     False, False)
     install_config.source = True
-    split_host = re.compile(r'([a-z]*)://([0-9.:]*):(\d*)')
 
     inst = make_installer(install_config)
 
-    inst.cfg.scenario = Path(scenario)
-    runner = Testing(RunnerType.TESTING, inst.cfg, inst, None, None, selenium, selenium_driver_args)
+    inst.cfg.scenario = Path(kwargs['scenario'])
+    runner = Testing(RunnerType.TESTING,
+                     False,
+                     inst,
+                     kwargs['selenium'],
+                     kwargs['selenium_driver_args'],
+                     "bla",
+                     False,
+                     False)
     runner.do_install = do_install
     runner.do_uninstall = do_uninstall
     failed = False
     if not runner.starter_prepare_env_impl():
         failed = True
 
-    if len(frontends) == 0:
+    if len(kwargs['frontends']) == 0:
         kill_all_processes()
 
     return 0 if not failed else 1
@@ -124,4 +109,4 @@ def run_test(old_version, new_version, verbose, package_dir, test_data_dir,
 
 if __name__ == "__main__":
 # pylint: disable=E1120 # fix clickiness.
-    sys.exit(run_test())
+    sys.exit(main())
