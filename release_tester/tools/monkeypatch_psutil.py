@@ -109,6 +109,13 @@ if winver[0]:
             self.__subproc = subprocess.Popen(*args, **kwargs)
             self._init(self.__subproc.pid, _ignore_nsp=True)
 
+        def wait(self):
+            ret = super().wait()
+            # work around starter bug BTS-815:
+            if ret == 15:
+                ret = 0
+            return ret
+            
     from psutil import Popen as patchme_popen
 
     patchme_popen.__init__ = Popen.__init__
