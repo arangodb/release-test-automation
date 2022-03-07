@@ -108,13 +108,6 @@ if winver[0]:
             kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
             self.__subproc = subprocess.Popen(*args, **kwargs)
             self._init(self.__subproc.pid, _ignore_nsp=True)
-
-        def wait(self):
-            ret = super().wait()
-            # work around starter bug BTS-815:
-            if ret == 15:
-                ret = 0
-            return ret
             
     from psutil import Popen as patchme_popen
 

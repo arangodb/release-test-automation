@@ -38,7 +38,7 @@ from arangodb.bench import ArangoBenchManager
 
 from reporting.reporting_utils import attach_table, step, attach_http_request_to_report, attach_http_response_to_report
 
-ON_WINDOWS = sys.platform == "win32"
+IS_WINDOWS = sys.platform == "win32"
 
 # pylint: disable=too-many-lines
 class StarterManager:
@@ -462,8 +462,10 @@ class StarterManager:
         logging.info("StarterManager: waiting for process to exit")
         exit_code = self.instance.wait()
         self.add_logfile_to_report()
-        # removed wintendo starter bug workaround exit code 15 => 0, it seems to be fixed.
-
+        # workaround BTS-815: starter exits 15 on the wintendo:
+        if IS_WINDOWS and exit_code == 15:
+            exit_code = 0
+    
         if exit_code != 0:
             raise Exception("Starter %s exited with %d" % (self.basedir, exit_code))
 
