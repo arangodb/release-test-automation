@@ -22,7 +22,7 @@ fi
 if test -n "$SOURCE"; then
     force_arg+=(--old-source "$SOURCE" --new-source "$SOURCE")
 else
-    force_arg+=(--remote-host "$(host nas02.arangodb.biz |sed "s;.* ;;")")
+    force_arg+=(--remote-host "172.16.1.22")
 fi
 
 VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_rpm_version.tar"
