@@ -18,7 +18,6 @@ from allure_commons._allure import attach
 import certifi
 from beautifultable import BeautifulTable
 import requests
-import semver
 
 import tools.errorhelper as eh
 import tools.interact as ti
@@ -164,12 +163,7 @@ class Runner(ABC):
         self.old_installer = old_inst
         self.new_installer = new_inst
         self.backup_name = None
-        bts_811_workaround = (
-            self.new_cfg is None and
-            self.cfg.semver >= semver.VersionInfo.parse("3.10.0-nightly") and
-            self.cfg.encryption_at_rest)  # BTS-811
         self.hot_backup = (
-            cfg.hot_backup_supported
             and not bts_811_workaround
             and properties.supports_hotbackup
             and self.old_installer.supports_hot_backup()
