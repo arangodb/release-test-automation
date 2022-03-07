@@ -13,3 +13,4 @@ certifi
 mss
 distro
 dataclasses
+statsd
