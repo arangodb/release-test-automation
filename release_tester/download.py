@@ -128,7 +128,7 @@ class Download:
         else:
             # dns split horizon...
             if source in ["ftp:stage1", "ftp:stage2"]:
-                self.remote_host = "Nas02.arangodb.biz"
+                self.remote_host = "172.16.1.22"
             elif source in ["http:stage1", "http:stage2"]:
                 self.remote_host = "fileserver.arangodb.com"
             else:

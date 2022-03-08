@@ -48,7 +48,9 @@ RUN if [ -z "$CHROME_DRIVER_VERSION" ]; \
 #VOLUME ["/sys/fs/cgroup"]
 # STOPSIGNAL SIGRTMIN+3
 
-RUN pip3 install semver beautifultable allure_python_commons mss tabulate
+COPY requirements.txt /tmp/
+RUN pip3 install -r /tmp/requirements.txt
+
 RUN mkdir -p /home/entrypoint /home/release-test-automation /home/package_cache /home/versions /home/test_dir
 # ADD tarball_nightly_test.py /home/entrypoint/tarball_nightly_test.py
 # ENTRYPOINT ["/home/entrypoint/tarball_nightly_test.py"]
