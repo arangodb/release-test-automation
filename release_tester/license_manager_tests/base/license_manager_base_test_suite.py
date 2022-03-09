@@ -8,7 +8,8 @@ import requests
 from arangodb.async_client import CliExecutionException
 from arangodb.installers import create_config_installer_set, RunProperties
 from reporting.reporting_utils import step
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, run_after_suite, run_before_each_testcase
+from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, run_after_suite, run_before_each_testcase, \
+    collect_crash_data
 from tools.killall import kill_all_processes
 
 try:
@@ -62,7 +63,8 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
         """shutdown instance(s)"""
         self.runner.starter_shutdown()
 
-    def add_crash_data_to_report(self):
+    @collect_crash_data
+    def save_data_dir(self):
         """save data dir and logs in case a test failed"""
         kill_all_processes()
         self.runner.zip_test_dir()
@@ -126,7 +128,8 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
         license = create_license(new_timestamp, server_id)
         self.set_license(license)
 
-    @run_before_each_testcase
+# FIXME: set valid license before each test case
+#    @run_before_each_testcase
     def set_valid_license(self):
         """set valid license"""
         new_timestamp = str(int(time() + 59 * 60))

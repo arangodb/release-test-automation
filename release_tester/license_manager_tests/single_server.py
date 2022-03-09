@@ -10,7 +10,7 @@ from arangodb.instance import InstanceType
 from arangodb.starter.manager import StarterManager
 from license_manager_tests.base.license_manager_base_test_suite import LicenseManagerBaseTestSuite
 from reporting.reporting_utils import step
-from selenium_ui_test.test_suites.base_test_suite import testcase, run_before_suite, run_after_suite
+from selenium_ui_test.test_suites.base_test_suite import testcase, run_before_suite, run_after_suite, collect_crash_data
 from tools.killall import kill_all_processes
 
 
@@ -30,7 +30,8 @@ class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
         """get the instance type we should communicate with"""
         return InstanceType.SINGLE
 
-    def add_crash_data_to_report(self):
+    @collect_crash_data
+    def save_data_dir(self):
         """save data dir and logs in case a test failed"""
         kill_all_processes()
         if self.starter.basedir.exists():
