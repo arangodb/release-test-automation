@@ -62,6 +62,7 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
     def shutdown(self):
         """shutdown instance(s)"""
         self.runner.starter_shutdown()
+        kill_all_processes()
 
     @collect_crash_data
     def save_data_dir(self):
