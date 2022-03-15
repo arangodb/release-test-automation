@@ -99,7 +99,7 @@ class InstallerW(InstallerBase):
             version,
             architecture,
         )
-        self.cfg.client_install_prefix = self.basedir / "arangodb3{ep}-client-{arch}_{ver}".format(
+        self.cfg.client_install_prefix = self.cfg.basedir / "arangodb3{ep}-client-{arch}_{ver}".format(
             **self.desc)
         self.debug_package =  "ArangoDB3{ep}-{ver}.pdb.zip".format(**self.desc)
 
