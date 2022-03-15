@@ -10,8 +10,8 @@ from selenium.common.exceptions import TimeoutException
 class ServicePage(NavigationBarPage):
     """service page object"""
     # pylint: disable=too-many-instance-attributes
-    def __init__(self, webdriver):
-        super().__init__(webdriver)
+    def __init__(self, driver, cfg):
+        super().__init__(driver, cfg)
         self.service_page = 'services'
 
     def select_service_page(self):
@@ -169,6 +169,7 @@ class ServicePage(NavigationBarPage):
 
     def select_demo_geo_s2_service(self):
         """Selecting demo geo s2 service from the list"""
+        print('I am herer driver....')
         self.webdriver.refresh()
         print('Selecting demo_geo_s2 service \n')
         geo_service = "//*[text()='geo,service']"
@@ -189,7 +190,7 @@ class ServicePage(NavigationBarPage):
                          'example using the new (v3.4+) s2 geospatial index'
 
         assert page_title == expected_title, f"Expected text{expected_title} but got {page_title}"
-        self.driver.back()
+        self.webdriver.back()
 
     def install_demo_geo_s2_service(self, mount_path, test_data_dir):
         """Installing demo geo s2 service from the list"""
@@ -217,7 +218,8 @@ class ServicePage(NavigationBarPage):
         time.sleep(5)
 
         # checking service has been created successfully
-        success = '//*[@id="installedList"]/div[2]/div/div[1]/p[2]/span'
+        # success = '//*[@id="installedList"]/div[2]/div/div[1]/p[2]/span'
+        success = '//*[@id="installedList"]/div[6]/div/div[1]/p[2]/span'
 
         try:
             success_sitem = self.locator_finder_by_xpath(success).text
@@ -267,13 +269,12 @@ class ServicePage(NavigationBarPage):
                     self.locator_finder_by_id(confirm_btn).click()
                     time.sleep(1)
                     # going back to collection tab
-                    self.driver.back()
+                    self.webdriver.back()
 
                 else:
                     raise Exception('neighbourhood Collection not found!')
 
-                    # looking for restaurants collection has been created or not
-
+                # looking for restaurants collection has been created or not
                 restaurants_collection = '//*[@id="collection_restaurants"]/div/h5'
                 restaurants_collection_sitem = self.locator_finder_by_xpath(restaurants_collection)
                 time.sleep(1)
@@ -303,7 +304,8 @@ class ServicePage(NavigationBarPage):
                     self.webdriver.refresh()
 
                     print('Selecting demo_geo_s2 service \n')
-                    select_service = '//*[@id="installedList"]/div[2]/div/div[3]/span/div'
+                    # select_service = '//*[@id="installedList"]/div[2]/div/div[3]/span/div'
+                    select_service = "//*[text()='demo-geo-s2']"
                     self.locator_finder_by_xpath(select_service).click()
                     time.sleep(1)
 
@@ -313,7 +315,7 @@ class ServicePage(NavigationBarPage):
                     time.sleep(4)
 
                     print('Switching interface tab \n')
-                    self.driver.switch_to.window(self.driver.window_handles[1])
+                    self.webdriver.switch_to.window(self.webdriver.window_handles[1])
 
                     # inspecting from the service interface started here
                     print('Visualize random Restaurant \n')
@@ -347,7 +349,7 @@ class ServicePage(NavigationBarPage):
                     time.sleep(3)
 
                     print('Switching back to original window \n')
-                    self.driver.switch_to.window(self.driver.window_handles[0])
+                    self.webdriver.switch_to.window(self.webdriver.window_handles[0])
 
                 else:
                     raise Exception('restaurants Collection not found!')
@@ -360,7 +362,8 @@ class ServicePage(NavigationBarPage):
         self.select_service_page()
 
         print('Selecting demo_geo_s2 service \n')
-        select_service = '//*[@id="installedList"]/div[2]/div/div[3]/span/div'
+        # select_service = '//*[@id="installedList"]/div[2]/div/div[3]/span/div'
+        select_service = "//*[text()='demo-geo-s2']"
         self.locator_finder_by_xpath(select_service).click()
         time.sleep(1)
 
@@ -397,7 +400,7 @@ class ServicePage(NavigationBarPage):
         """Checking iframe elements of foxx and leaflets"""
         print('Switching to IFrame \n')
         iframe_id = 'swaggerIframe'
-        self.driver.switch_to.frame(self.locator_finder_by_id(iframe_id))
+        self.webdriver.switch_to.frame(self.locator_finder_by_id(iframe_id))
         time.sleep(1)
 
         print("Checking default view \n")
@@ -422,7 +425,7 @@ class ServicePage(NavigationBarPage):
         self.checking_function_for_fox_leaflet(id_list)
 
         print('Getting out of IFrame \n')
-        self.driver.switch_to.default_content()
+        self.webdriver.switch_to.default_content()
         time.sleep(1)
 
     def select_service_settings(self):
@@ -439,7 +442,8 @@ class ServicePage(NavigationBarPage):
 
             try:
                 # try to determine service has already been created
-                service = '//*[@id="installedList"]/div[2]/div/div[1]/p[2]/span'
+                # service = '//*[@id="installedList"]/div[2]/div/div[1]/p[2]/span'
+                service = "//*[text()='demo-geo-s2']"
                 service_sitem = self.locator_finder_by_xpath(service).text
                 time.sleep(1)
 
