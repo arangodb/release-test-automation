@@ -431,6 +431,25 @@ class ServicePage(NavigationBarPage):
         settings = 'service-settings'
         self.locator_finder_by_id(settings).click()
 
+    def collection_deletion(self, col_id):
+        """Collection will be deleted by this method"""
+        print(f'Deleting {col_id} collections \n')
+        self.locator_finder_by_id(col_id).click()
+        time.sleep(1)
+
+        settings = "//*[text()='Settings']"
+        self.locator_finder_by_xpath(settings).click()
+        time.sleep(1)
+
+        delete = "//*[text()='Delete']"
+        self.locator_finder_by_xpath(delete).click()
+        time.sleep(1)
+
+        confirm_delete = '//*[@id="modal-confirm-delete"]'
+        self.locator_finder_by_xpath(confirm_delete).click()
+        print(f'Deleting {col_id} collections completed \n')
+        time.sleep(1)
+    
     def delete_service(self, service_name):
         """Delete all the services"""
         self.select_service_page()
@@ -465,6 +484,12 @@ class ServicePage(NavigationBarPage):
 
                     self.webdriver.refresh()
                     print(f'{service_sitem} service has been deleted successfully \n')
+
+                    self.navbar_goto("collections")
+
+                    # deleting neighborhood collection
+                    self.collection_deletion('collection_neighborhoods')
+                    self.collection_deletion('collection_restaurants')
 
             except Exception:
                 raise Exception(f'No service found named {service_name}')
