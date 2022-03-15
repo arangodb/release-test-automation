@@ -42,21 +42,21 @@ class ServicePage(NavigationBarPage):
 
         # checking search find the correct demo services
         if search_keyword == 'demo':
-            search_item = '//*[@id="availableFoxxes"]/div[2]/div/div[1]/p[1]/span'
+            search_item = "//*[text()='demo-graphql']"
             expected_text = 'demo-graphql'
             demo_graphql_stiem = self.locator_finder_by_xpath(search_item)
             # print(f'{demo_graphql_stiem}')
             assert demo_graphql_stiem.text == expected_text, f"Expected text{expected_text} " \
                                                              f"but got {demo_graphql_stiem.text}"
         if search_keyword == 'tab':
-            search_item = '//*[@id="availableFoxxes"]/div[7]/div/div[1]/p[1]/span'
+            search_item = "//*[text()='tableau-connector']"
             expected_text = 'tableau-connector'
             demo_graphql_stiem = self.locator_finder_by_xpath(search_item)
             # print(f'{demo_graphql_stiem}')
             assert demo_graphql_stiem.text == expected_text, f"Expected text{expected_text} " \
                                                              f"but got {demo_graphql_stiem.text}"
         if search_keyword == 'grafana':
-            search_item = '//*[@id="availableFoxxes"]/div[3]/div/div[1]/p[1]/span'
+            search_item = "//*[text()='grafana-connector']"
             expected_text = 'grafana-connector'
             demo_graphql_stiem = self.locator_finder_by_xpath(search_item)
             assert demo_graphql_stiem.text == expected_text, f"Expected text{expected_text} " \
@@ -169,7 +169,6 @@ class ServicePage(NavigationBarPage):
 
     def select_demo_geo_s2_service(self):
         """Selecting demo geo s2 service from the list"""
-        print('I am herer driver....')
         self.webdriver.refresh()
         print('Selecting demo_geo_s2 service \n')
         geo_service = "//*[text()='geo,service']"
@@ -304,7 +303,6 @@ class ServicePage(NavigationBarPage):
                     self.webdriver.refresh()
 
                     print('Selecting demo_geo_s2 service \n')
-                    # select_service = '//*[@id="installedList"]/div[2]/div/div[3]/span/div'
                     select_service = "//*[text()='demo-geo-s2']"
                     self.locator_finder_by_xpath(select_service).click()
                     time.sleep(1)
@@ -362,7 +360,6 @@ class ServicePage(NavigationBarPage):
         self.select_service_page()
 
         print('Selecting demo_geo_s2 service \n')
-        # select_service = '//*[@id="installedList"]/div[2]/div/div[3]/span/div'
         select_service = "//*[text()='demo-geo-s2']"
         self.locator_finder_by_xpath(select_service).click()
         time.sleep(1)
@@ -442,7 +439,6 @@ class ServicePage(NavigationBarPage):
 
             try:
                 # try to determine service has already been created
-                # service = '//*[@id="installedList"]/div[2]/div/div[1]/p[2]/span'
                 service = "//*[text()='demo-geo-s2']"
                 service_sitem = self.locator_finder_by_xpath(service).text
                 time.sleep(1)

@@ -20,7 +20,7 @@ class ServiceTestSuite(BaseSeleniumTestSuite):
         service.select_add_service_button()
         service.service_search_option('demo')
         service.service_search_option('tab')
-        # service.service_search_option('grafana')
+        service.service_search_option('grafana')
         service.service_category_option()
         service.select_category_option_from_list('connector')
         service.select_category_option_from_list('service')
