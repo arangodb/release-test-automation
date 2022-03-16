@@ -171,7 +171,7 @@ class InstallerW(InstallerBase):
         ]
         logging.info("running windows package installer:")
         logging.info(str(cmd))
-        attach("Command", str(cmd))
+        attach(str(cmd), "Command")
         install = psutil.Popen(cmd)
         try:
             install.wait(600)
