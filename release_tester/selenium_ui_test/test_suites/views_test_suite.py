@@ -84,14 +84,14 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
             print("Selecting expand button \n")
             views.select_expand_btn()
             print("Selecting editor mode \n")
-            views.select_editor_mode_btn()
+            views.select_editor_mode_btn(0)
             print("Switch editor mode to Code \n")
             views.switch_to_code_editor_mode()
             print("Switch editor mode to Compact mode Code \n")
             views.compact_json_data()
 
             print("Selecting editor mode \n")
-            views.select_editor_mode_btn()
+            views.select_editor_mode_btn(1)
             print("Switch editor mode to Tree \n")
             views.switch_to_tree_editor_mode()
 
@@ -111,7 +111,7 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
                 views.rename_views_name("thirdView")
                 views.rename_views_name_confirm()
                 print("Rename the current Views completed \n")
-            self.driver.back()
+            self.webdriver.back()
 
             print("Deleting views started \n")
             if self.is_cluster:

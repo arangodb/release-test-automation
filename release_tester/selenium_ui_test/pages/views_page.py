@@ -25,9 +25,9 @@ class ViewsPage(NavigationBarPage):
     select_renamed_view_id = "/html//div[@id='thirdView']"
     select_second_view_id = "//div[@id='secondView']//h5[@class='collectionName']"
 
-    def __init__(self, webdriver, cfg):
+    def __init__(self, driver, cfg):
         """View page initialization"""
-        super().__init__(webdriver, cfg)
+        super().__init__(driver, cfg)
         self.select_views_tab_id = "/html//a[@id='views']"
         self.create_new_views_id = "/html//a[@id='createView']"
         self.naming_new_view_id = "/html//input[@id='newName']"
@@ -44,40 +44,14 @@ class ViewsPage(NavigationBarPage):
         self.select_editor_mode_btn_id = (
             "//div[@id='propertiesEditor']//div[@class='jsoneditor-modes']/button[@title='Switch editor mode']"
         )
-        self.switch_to_code_editor_mode_id = (
-            "//div[@id='propertiesEditor']//div[@class='jsoneditor-anchor']"
-            "//div[@class='jsoneditor-contextmenu']/ul[@class='jsoneditor-menu']"
-            "//button[@title='Switch to code highlighter']"
-        )
-        self.compact_json_data_id = (
-            "/html//div[@id='propertiesEditor']//button[@title='Compact JSON data, "
-            "remove all whitespaces (Ctrl+Shift+\\)']"
-        )
-        self.switch_to_tree_editor_mode_id = (
-            "//div[@id='propertiesEditor']/div[@class='jsoneditor "
-            "jsoneditor-mode-code']//div[@class='jsoneditor-anchor']//"
-            "ul[@class='jsoneditor-menu']//button[@title='Switch to tree editor']"
-        )
-        self.click_arangosearch_documentation_link_id = (
-            "//div[@id='viewDocumentation']//a[@href="
-            "'https://www.arangodb.com/docs/stable"
-            "/arangosearch-views.html']"
-        )
+        self.switch_to_code_editor_mode_id = "//*[text()='Code']"
+        self.compact_json_data_id = "jsoneditor-compact"
+        self.switch_to_tree_editor_mode_id = "//*[text()='Tree']"
         self.select_inside_search_id = (
             "//*[@id='propertiesEditor']/div/div[1]/table/tbody/tr/td[2]/div/table/tbody/tr/td[2]/input"
         )
-        self.search_result_traverse_up_id = (
-            "/html//div[@id='propertiesEditor']/div[@class='jsoneditor "
-            "jsoneditor-mode-tree']//table[@class='jsoneditor-search']"
-            "//div[@title='Search fields and values']/table//button[@title="
-            "'Previous result (Shift+Enter)']"
-        )
-        self.search_result_traverse_down_id = (
-            "/html//div[@id='propertiesEditor']/div[@class="
-            "'jsoneditor jsoneditor-mode-tree']//table[@class="
-            "'jsoneditor-search']//div[@title="
-            "'Search fields and values']/table//button[@title='Next result (Enter)']"
-        )
+        self.search_result_traverse_up_id = "jsoneditor-previous"
+        self.search_result_traverse_down_id = "jsoneditor-next"
         self.change_consolidation_policy_id = (
             "/html//div[@id='propertiesEditor']/div[@class="
             "'jsoneditor jsoneditor-mode-tree']/div[3]/div[@class="
@@ -169,9 +143,12 @@ class ViewsPage(NavigationBarPage):
         select_expand_btn_sitem.click()
         time.sleep(3)
 
-    def select_editor_mode_btn(self):
+    def select_editor_mode_btn(self, value):
         """selecting object tabs"""
-        select_editor_btn_sitem = self.locator_finder_by_xpath(self.select_editor_mode_btn_id)
+        if value == 0:
+            select_editor_btn_sitem = self.locator_finder_by_xpath("//*[text()='Tree ▾']")
+        else:
+            select_editor_btn_sitem = self.locator_finder_by_xpath("//*[text()='Code ▾']")
         select_editor_btn_sitem.click()
         time.sleep(3)
 
@@ -183,7 +160,7 @@ class ViewsPage(NavigationBarPage):
 
     def compact_json_data(self):
         """switching editor mode to Code compact view"""
-        compact_json_data_sitem = self.locator_finder_by_xpath(self.compact_json_data_id)
+        compact_json_data_sitem = self.locator_finder_by_class(self.compact_json_data_id)
         compact_json_data_sitem.click()
         time.sleep(3)
 
@@ -195,11 +172,11 @@ class ViewsPage(NavigationBarPage):
 
     def click_arangosearch_documentation_link(self):
         """Clicking on arangosearch documentation link"""
-        self.click_arangosearch_documentation_link_id = self.locator_finder_by_xpath(
-            self.click_arangosearch_documentation_link_id
-        )
-        title = self.switch_tab(self.click_arangosearch_documentation_link_id)
-        expected_title = "Views Reference | ArangoSearch | Indexing | Manual | ArangoDB Documentation"
+        click_arangosearch_documentation_link_id = \
+            self.webdriver.find_element_by_link_text('ArangoSearch Views documentation')
+
+        title = self.switch_tab(click_arangosearch_documentation_link_id)
+        expected_title = 'Views Reference | ArangoSearch | Indexing | Manual | ArangoDB Documentation'
         assert title in expected_title, f"Expected page title {expected_title} but got {title}"
 
     def select_inside_search(self, keyword):
@@ -211,14 +188,14 @@ class ViewsPage(NavigationBarPage):
 
     def search_result_traverse_down(self):
         """traverse search results down"""
-        search_result_traverse_down_sitem = self.locator_finder_by_xpath(self.search_result_traverse_down_id)
+        search_result_traverse_down_sitem = self.locator_finder_by_class(self.search_result_traverse_down_id)
         for _ in range(8):
             search_result_traverse_down_sitem.click()
             time.sleep(1)
 
     def search_result_traverse_up(self):
         """traverse search results up"""
-        search_result_traverse_up_sitem = self.locator_finder_by_xpath(self.search_result_traverse_up_id)
+        search_result_traverse_up_sitem = self.locator_finder_by_class(self.search_result_traverse_up_id)
         for _ in range(8):
             search_result_traverse_up_sitem.click()
             time.sleep(1)
@@ -531,14 +508,14 @@ class ViewsPage(NavigationBarPage):
         print("Selecting expand button \n")
         self.select_expand_btn()
         print("Selecting editor mode \n")
-        self.select_editor_mode_btn()
+        self.select_editor_mode_btn(0)
         print("Switch editor mode to Code \n")
         self.switch_to_code_editor_mode()
         print("Switch editor mode to Compact mode Code \n")
         self.compact_json_data()
 
         print("Selecting editor mode \n")
-        self.select_editor_mode_btn()
+        self.select_editor_mode_btn(1)
         print("Switch editor mode to Tree \n")
         self.switch_to_tree_editor_mode()
 
