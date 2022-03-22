@@ -94,13 +94,14 @@ class InstallerW(InstallerBase):
             version,
             architecture,
         )
-        self.client_package = "ArangoDB3%s-client-%s_%s.exe" % (
-            enterprise,
-            version,
-            architecture,
-        )
-        self.cfg.client_install_prefix = self.cfg.base_test_dir / "arangodb3{ep}-client-{arch}_{ver}".format(
-            **self.desc)
+        if (self.cfg.smver >= semver.VersionInfo.parse("3.7.15"):
+            self.client_package = "ArangoDB3%s-client-%s_%s.exe" % (
+                enterprise,
+                version,
+                architecture,
+            )
+            self.cfg.client_install_prefix = self.cfg.base_test_dir / "arangodb3{ep}-client-{arch}_{ver}".format(
+                **self.desc)
         self.debug_package =  "ArangoDB3{ep}-{ver}.pdb.zip".format(**self.desc)
 
     @step
