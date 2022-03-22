@@ -48,6 +48,10 @@ class BaseTestSuite(ABC):
         if hasattr(self, "generate_custom_suite_name"):
             #pylint: disable=no-member
             self.suite_name = self.generate_custom_suite_name()
+        if self.use_subsuite:
+            self.sub_suite_name = self.__doc__ if self.__doc__ else self.__class__.__name__
+        else:
+            self.sub_suite_name = None
         self.test_suite_context = AllureTestSuiteContext(
                 properties=RunProperties(self.enterprise,
                                          self.enc_at_rest,
@@ -58,6 +62,7 @@ class BaseTestSuite(ABC):
                 if not hasattr(self, "auto_generate_parent_test_suite_name")
                 else self.auto_generate_parent_test_suite_name,
                 suite_name=None if not self.suite_name else self.suite_name,
+                sub_suite_name=None if not self.sub_suite_name else self.sub_suite_name,
                 runner_type=None if not self.runner_type else self.runner_type,
                 installer_type=None if not self.installer_type else self.installer_type,
             )
@@ -256,11 +261,7 @@ def testcase(title=None, disable=False):
                         name = func.__doc__
                     else:
                         name = func.__name__
-            labels = []
-            if self.use_subsuite:
-                sub_suite_name = self.__doc__ if self.__doc__ else self.__class__.__name__
-                labels.append(Label(name=LabelType.SUB_SUITE, value=sub_suite_name))
-            with RtaTestcase(name, labels=labels) as my_testcase:
+            with RtaTestcase(name) as my_testcase:
                 if disable:
                     test_result = RtaTestResult(name, True, "test is skipped", None)
                     my_testcase.context.status = Status.SKIPPED

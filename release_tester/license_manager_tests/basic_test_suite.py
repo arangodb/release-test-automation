@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-""" license manager test suites entrypoint """
+"""License manager test suite(clean installation)"""
 import platform
 
 from license_manager_tests.afo import LicenseManagerAfoTestSuite
@@ -14,7 +14,7 @@ IS_WINDOWS = platform.win32_ver()[0] != ""
 
 
 class BasicLicenseManagerTestSuite(LicenseManagerBaseTestSuite):
-    """testsuites entrypoint"""
+    """License manager test suite(clean installation)"""
 
     def __init__(
             self,

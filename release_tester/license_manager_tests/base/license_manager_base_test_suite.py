@@ -59,10 +59,11 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
         return child_class(self.new_version, self.base_cfg)
 
     @run_after_suite
-    def shutdown(self):
-        """shutdown instance(s)"""
+    def teardown_suite(self):
+        """kill all processes and cleanup system"""
         self.runner.starter_shutdown()
         kill_all_processes()
+        self.installer.cleanup_system()
 
     @collect_crash_data
     def save_data_dir(self):

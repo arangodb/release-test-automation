@@ -49,11 +49,10 @@ class LicenseManagerUpgradeBaseTestSuite(LicenseManagerBaseTestSuite):
         return child_class(self.new_version, self.base_cfg, self.old_version)
 
     @run_after_suite
-    def shutdown(self):
-        """shutdown instance(s)"""
+    def teardown(self):
+        """teardown test suite"""
         self.runner.starter_shutdown()
         self.new_installer.un_install_server_package()
-        self.old_installer.un_install_server_package()
 
     @run_before_suite
     def install_package(self):
