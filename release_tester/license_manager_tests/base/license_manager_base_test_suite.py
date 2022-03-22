@@ -60,7 +60,7 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
 
     @run_after_suite
     def teardown_suite(self):
-        """kill all processes and cleanup system"""
+        """License manager base test suite: teardown"""
         self.runner.starter_shutdown()
         kill_all_processes()
 

@@ -136,6 +136,7 @@ class AllureListener:
         self._cache.push(container, self.current_testcase_container_uuid)
         self.allure_logger.start_group(self.current_testcase_container_uuid, container)
         self.allure_logger.update_group(self.current_testcase_container_uuid, start=now())
+        self.allure_logger.update_group(self.current_testcase_container_uuid, children=uuid)
 
 
     # pylint: disable=too-many-arguments
