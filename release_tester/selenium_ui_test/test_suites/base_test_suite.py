@@ -80,6 +80,7 @@ class BaseTestSuite(ABC):
                 self.setup_test_suite()
             except:
                 setup_failed = True
+                self.add_crash_data_to_report()
         if self.has_own_testcases():
             self.test_results += self.run_own_testscases(suite_is_broken=setup_failed)
         for suite_class in self.child_classes:
@@ -92,6 +93,7 @@ class BaseTestSuite(ABC):
             self.tear_down_test_suite()
         except:
             tear_down_failed = True
+            self.add_crash_data_to_report()
         self.test_suite_context.destroy()
         return self.test_results
 
