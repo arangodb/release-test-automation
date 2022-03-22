@@ -50,5 +50,5 @@ class BasicLicenseManagerTestSuite(LicenseManagerBaseTestSuite):
         self.installer.install_server_package()
         self.installer.stop_service()
 
-    def shutdown(self):
+    def teardown_suite(self):
         """mute parent method"""
