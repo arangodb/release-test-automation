@@ -158,6 +158,7 @@ class BaseTestSuite(ABC):
 
     def run_after_fixtures(self, funcs):
         """run a set of fixtures after the test suite or test case"""
+        fixture_failed = False
         for func in funcs:
             name = func.__doc__ if func.__doc__ else func.__name__
             with step(name):
@@ -174,7 +175,9 @@ class BaseTestSuite(ABC):
             self.test_suite_context.test_listener.stop_after_fixture(fixture_uuid, exc_type,
                                                                      exc_val, exc_tb)
             if exc_val:
-                raise Exception("Fixture failed.") from exc_val
+                fixture_failed = True
+        if fixture_failed:
+            raise Exception("Some fixture(s) failed")
 
     def setup_test_suite(self):
         """prepare to run test suite"""
