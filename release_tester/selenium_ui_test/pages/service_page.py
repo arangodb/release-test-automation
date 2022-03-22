@@ -253,9 +253,7 @@ class ServicePage(NavigationBarPage):
                     upload = '//*[@id="importCollection"]/span/i'
                     self.locator_finder_by_xpath(upload).click()
                     time.sleep(1)
-                    
-                    # for windows machine
-                    # path = 'C:\\Users\\rearf\\Desktop\\collections\\geo_s2_collections\\neighborhoods.json'
+
                     path1 = test_data_dir / "ui_data" / "service_page" / "demo_geo_s2" / "neighborhoods.json"
                     print(f'Providing neighborhood collection path {path1} \n')
                     choose_file_btn = 'importDocuments'
@@ -286,7 +284,6 @@ class ServicePage(NavigationBarPage):
                     self.locator_finder_by_xpath(upload).click()
                     time.sleep(1)
 
-                    # path = 'C:\\Users\\rearf\\Desktop\\collections\\geo_s2_collections\\restaurants.json'
                     path2 = test_data_dir / "ui_data" / "service_page" / "demo_geo_s2" / "neighborhoods.json"
                     print(f'Providing restaurants collection path {path2} \n')
                     choose_file_btn = 'importDocuments'
@@ -407,18 +404,19 @@ class ServicePage(NavigationBarPage):
         self.locator_finder_by_id(default_view).click()
 
         print('inspecting documentation through Foxx and leaflet \n')
-        first = '//*[@id="operations-default-GET_restaurants"]/div/span[1]'
-        second = '//*[@id="operations-default-GET_neighborhoods"]/div/span[1]'
-        third = '//*[@id="operations-default-GET_pointsInNeighborhood_id"]/div/span[1]'
-        fourth = '//*[@id="operations-default-GET_geoContainsBenchmark_count"]/div/span[1]'
-        fifth = '//*[@id="operations-default-GET_geoIntersection"]/div/span[1]'
-        sixth = '//*[@id="operations-default-GET_geoDistanceNearest"]/div/span[1]'
-        seventh = '//*[@id="operations-default-GET_geoDistanceBetween"]/div/span[1]'
-        eighth = '//*[@id="operations-default-GET_geoDistance"]/div/span[1]'
-        ninth = '//*[@id="operations-default-GET_geoDistanceBenchmark_count"]/div/span[1]'
-        tenth = '//*[@id="operations-default-GET_geoNearBenchmark_count"]/div/span[1]'
+        template_str = lambda leaflet: f'//*[@id="operations-default-GET_{leaflet}"]/div/span[1]'
+        
+        id_list = [template_str('restaurants'),
+                   template_str('neighborhoods'),
+                   template_str('pointsInNeighborhood_id'),
+                   template_str('geoContainsBenchmark_count'),
+                   template_str('geoIntersection'),
+                   template_str('geoDistanceNearest'),
+                   template_str('geoDistanceBetween'),
+                   template_str('geoDistance'),
+                   template_str('geoDistanceBenchmark_count'),
+                   template_str('geoNearBenchmark_count')]
 
-        id_list = [first, second, third, fourth, fifth, sixth, seventh, eighth, ninth, tenth]
         self.checking_function_for_fox_leaflet(id_list)
 
         print('Getting out of IFrame \n')
@@ -430,7 +428,7 @@ class ServicePage(NavigationBarPage):
         print('Selecting settings options \n')
         settings = 'service-settings'
         self.locator_finder_by_id(settings).click()
-
+    
     def collection_deletion(self, col_id):
         """Collection will be deleted by this method"""
         print(f'Deleting {col_id} collections \n')
@@ -449,7 +447,8 @@ class ServicePage(NavigationBarPage):
         self.locator_finder_by_xpath(confirm_delete).click()
         print(f'Deleting {col_id} collections completed \n')
         time.sleep(1)
-    
+
+
     def delete_service(self, service_name):
         """Delete all the services"""
         self.select_service_page()
@@ -486,7 +485,6 @@ class ServicePage(NavigationBarPage):
                     print(f'{service_sitem} service has been deleted successfully \n')
 
                     self.navbar_goto("collections")
-
                     # deleting neighborhood collection
                     self.collection_deletion('collection_neighborhoods')
                     self.collection_deletion('collection_restaurants')

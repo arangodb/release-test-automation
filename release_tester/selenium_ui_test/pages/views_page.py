@@ -280,7 +280,6 @@ class ViewsPage(NavigationBarPage):
             print(f'Select stored field for {view_name} \n')
             # stored_field = "//div[contains(@id,'s2id_field')]"
             stored_field = "/html/body/div[1]/div/div[2]/div[2]/div/div[2]/div/table/tbody/tr/th/table/tbody/tr/td[1]/div"
-
             stored_field_sitem = self.locator_finder_by_xpath(stored_field)
             stored_field_sitem.click()
             stored_field_sitem.clear()
@@ -338,7 +337,7 @@ class ViewsPage(NavigationBarPage):
         time.sleep(2)
         self.webdriver.refresh()
     
-    def checking_modified_views(self, deployment):
+    def checking_modified_views(self, is_cluster):
         """This method will check views for 3.10.x package version"""
         print('Selecting improved views \n')
         views = "//*[text()='improved_arangosearch_view_01']"
@@ -414,7 +413,7 @@ class ViewsPage(NavigationBarPage):
         normal_sitem = self.locator_finder_by_xpath(normal)
         normal_sitem.click()
 
-        if deployment:
+        if is_cluster:
             print('Changing name of the view is disabled for cluster deployment \n')
         else:
             print('Select Settings tab \n')
@@ -484,7 +483,7 @@ class ViewsPage(NavigationBarPage):
             print(f'Error found, Can not delete views {ex} \n')
 
 
-    def checking_improved_views(self, name, locator, deployment):
+    def checking_improved_views(self, name, locator, is_cluster):
         """This method will check improved views"""
         print(f"Checking {name} started \n")
 
@@ -527,7 +526,7 @@ class ViewsPage(NavigationBarPage):
         self.search_result_traverse_down()
         self.search_result_traverse_up()
 
-        if deployment:
+        if is_cluster:
             print("Renaming views are disabled for the Cluster deployment")
         else:
             print(f"Rename {name} to modified_name started \n")
