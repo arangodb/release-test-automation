@@ -49,10 +49,18 @@ class LicenseManagerUpgradeBaseTestSuite(LicenseManagerBaseTestSuite):
         return child_class(self.new_version, self.base_cfg, self.old_version)
 
     @run_after_suite
-    def teardown(self):
-        """teardown test suite"""
+    def teardown_step_1(self):
+        """teardown test suite: step 1"""
         self.runner.starter_shutdown()
-        self.new_installer.un_install_server_package()
+
+    @run_after_suite
+    def teardown_step_2(self):
+        """teardown test suite: step 2"""
+        if self.new_installer.server_package_is_installed:
+            self.new_installer.un_install_server_package()
+        if self.old_installer.server_package_is_installed:
+            self.old_installer.un_install_server_package()
+        self.old_installer.cleanup_system()
 
     @run_before_suite
     def install_package(self):

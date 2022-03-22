@@ -43,6 +43,7 @@ class BasicLicenseManagerTestSuite(LicenseManagerBaseTestSuite):
     def uninstall_package(self):
         """uninstall package"""
         self.installer.un_install_server_package()
+        self.installer.cleanup_system()
 
     @run_before_suite
     def install_package(self):
