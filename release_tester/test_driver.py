@@ -601,7 +601,7 @@ class TestDriver:
         results = []
         suites_classes = []
         suites_classes.append(BasicLicenseManagerTestSuite)
-        if(len(versions)>1):
+        if len(versions)>1 and semver.VersionInfo.parse(old_version) > "3.9.0-nightly" and semver.VersionInfo.parse(new_version) > "3.9.0-nightly":
             suites_classes.append(UpgradeLicenseManagerTestSuite)
         args = (versions, self.base_config)
 
