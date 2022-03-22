@@ -56,9 +56,9 @@ class LicenseManagerUpgradeBaseTestSuite(LicenseManagerBaseTestSuite):
     @run_after_suite
     def teardown_step_2(self):
         """teardown test suite: step 2"""
-        if self.new_installer.server_package_is_installed:
+        if self.new_installer.cfg.server_package_is_installed:
             self.new_installer.un_install_server_package()
-        if self.old_installer.server_package_is_installed:
+        if self.old_installer.cfg.server_package_is_installed:
             self.old_installer.un_install_server_package()
         self.old_installer.cleanup_system()
 
