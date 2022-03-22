@@ -80,7 +80,10 @@ class BaseTestSuite(ABC):
                 self.setup_test_suite()
             except:
                 setup_failed = True
-                self.add_crash_data_to_report()
+                try:
+                    self.add_crash_data_to_report()
+                except:
+                    pass
         if self.has_own_testcases():
             self.test_results += self.run_own_testscases(suite_is_broken=setup_failed)
         for suite_class in self.child_classes:
@@ -93,7 +96,10 @@ class BaseTestSuite(ABC):
             self.tear_down_test_suite()
         except:
             tear_down_failed = True
-            self.add_crash_data_to_report()
+            try:
+                self.add_crash_data_to_report()
+            except:
+                pass
         self.test_suite_context.destroy()
         return self.test_results
 
@@ -287,11 +293,17 @@ def testcase(title=None, disable=False):
                         traceback_instance = "".join(traceback.TracebackException.from_exception(ex).format())
                         print(message)
                         print(traceback_instance)
-                        self.add_crash_data_to_report()
+                        try:
+                            self.add_crash_data_to_report()
+                        except:
+                            pass
                         my_testcase.context.status = Status.FAILED
                         my_testcase.context.statusDetails = StatusDetails(message=message, trace=traceback_instance)
                     finally:
-                        self.teardown_testcase()
+                        try:
+                            self.teardown_testcase()
+                        except:
+                            pass
                     test_result = RtaTestResult(name, success, message, traceback_instance)
                 return test_result
 
