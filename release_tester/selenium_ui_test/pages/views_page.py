@@ -33,8 +33,6 @@ class ViewsPage(NavigationBarPage):
         self.naming_new_view_id = "/html//input[@id='newName']"
         self.select_create_btn_id = "//div[@id='modal-dialog']//button[@class='button-success']"
         self.select_views_settings_id = "//a[@id='viewsToggle']/span[@title='Settings']"
-
-        # self.select_sorting_views_id = "//div[@id='viewsDropdown']/ul//label[@class='checkbox checkboxLabel']"
         self.select_sorting_views_id = '//*[@id="viewsDropdown"]/ul/li[2]/a/label/i'
 
         self.search_views_id = "/html//input[@id='viewsSearchInput']"
@@ -174,7 +172,6 @@ class ViewsPage(NavigationBarPage):
         """Clicking on arangosearch documentation link"""
         click_arangosearch_documentation_link_id = \
             self.webdriver.find_element_by_link_text('ArangoSearch Views documentation')
-
         title = self.switch_tab(click_arangosearch_documentation_link_id)
         expected_title = 'Views Reference | ArangoSearch | Indexing | Manual | ArangoDB Documentation'
         assert title in expected_title, f"Expected page title {expected_title} but got {title}"
@@ -263,7 +260,7 @@ class ViewsPage(NavigationBarPage):
 
         self.wait_for_ajax()
         print(f"Selecting direction for {view_name} \n")
-        direction = "/html/body/div[1]/div/div[2]/div[1]/div/div[2]/div/table/tbody/tr/th/table/tbody/tr/td[2]/select"
+        direction = '(//select)[2]'
         self.locator_finder_by_select_using_xpath(direction, types)  # keep it default choice
 
         self.wait_for_ajax()
@@ -278,8 +275,7 @@ class ViewsPage(NavigationBarPage):
             print('stored value has been skipped.\n')
         else:
             print(f'Select stored field for {view_name} \n')
-            # stored_field = "//div[contains(@id,'s2id_field')]"
-            stored_field = "/html/body/div[1]/div/div[2]/div[2]/div/div[2]/div/table/tbody/tr/th/table/tbody/tr/td[1]/div"
+            stored_field = "(//a[@class='accordion-toggle collapsed'])[2]"
             stored_field_sitem = self.locator_finder_by_xpath(stored_field)
             stored_field_sitem.click()
             stored_field_sitem.clear()
@@ -289,9 +285,7 @@ class ViewsPage(NavigationBarPage):
             self.wait_for_ajax()
 
         print(f"Selecting stored direction for {view_name} \n")
-        stored_direction = (
-            "/html/body/div[1]/div/div[2]/div[2]/div/div[2]/div/table/tbody/tr/th/table/tbody/tr/td[2]/select"
-        )
+        stored_direction = "(//select)[3]"
         self.locator_finder_by_select_using_xpath(stored_direction, types)  # keep it default choice
         time.sleep(2)
 
@@ -330,10 +324,9 @@ class ViewsPage(NavigationBarPage):
 
         self.wait_for_ajax()
         print(f"Selecting creation button for {view_name} \n")
-        max_buffer_size = "modalButton1"
-        max_buffer_size_sitem = self.locator_finder_by_id(max_buffer_size)
-        max_buffer_size_sitem.click()
-        max_buffer_size_sitem.send_keys("33554434")
+        create = 'modalButton1'
+        create_sitem = self.locator_finder_by_id(create)
+        create_sitem.click()
         time.sleep(2)
         self.webdriver.refresh()
     
@@ -354,7 +347,7 @@ class ViewsPage(NavigationBarPage):
 
         self.wait_for_ajax()
         print('Selecting segments min value \n')
-        segment_min = "/html/body/div[2]/div/div[2]/div[2]/div/div/div[1]/div/div/table/tbody/tr[2]/th[2]/input"
+        segment_min = "(//input[@value='1'])[1]"
         segment_min_sitem = self.locator_finder_by_xpath(segment_min)
         segment_min_sitem.click()
         segment_min_sitem.clear()
@@ -363,7 +356,7 @@ class ViewsPage(NavigationBarPage):
         self.wait_for_ajax()
 
         print('Selecting segments max value \n')
-        segment_max = "/html/body/div[2]/div/div[2]/div[2]/div/div/div[1]/div/div/table/tbody/tr[3]/th[2]/input"
+        segment_max = "(//input[@value='10'])[1]"
         segment_max_sitem = self.locator_finder_by_xpath(segment_max)
         segment_max_sitem.click()
         segment_max_sitem.clear()
@@ -372,7 +365,7 @@ class ViewsPage(NavigationBarPage):
 
         self.wait_for_ajax()
         print('Selecting bytes value \n')
-        segment_bytes = "/html/body/div[2]/div/div[2]/div[2]/div/div/div[1]/div/div/table/tbody/tr[4]/th[2]/input"
+        segment_bytes = "(//input[@value='5368709120'])[1]"
         segment_bytes_sitem = self.locator_finder_by_xpath(segment_bytes)
         segment_bytes_sitem.click()
         segment_bytes_sitem.clear()
@@ -381,7 +374,7 @@ class ViewsPage(NavigationBarPage):
 
         self.wait_for_ajax()
         print('Selecting bytes floor value \n')
-        segment_floor = "/html/body/div[2]/div/div[2]/div[2]/div/div/div[1]/div/div/table/tbody/tr[5]/th[2]/input"
+        segment_floor = "(//input[@value='2097152'])[1]"
         segment_floor_sitem = self.locator_finder_by_xpath(segment_floor)
         segment_floor_sitem.click()
         segment_floor_sitem.clear()
@@ -422,7 +415,7 @@ class ViewsPage(NavigationBarPage):
             settings_sitem.click()
 
             print('Change view name \n')
-            name = '/html/body/div[2]/div/div[2]/div[2]/div/div/div[1]/div/div/table/tbody/tr[1]/th[2]/input'
+            name = "//input[@value='improved_arangosearch_view_01']"
             name_stiem = self.locator_finder_by_xpath(name)
             name_stiem.click()
             name_stiem.clear()
