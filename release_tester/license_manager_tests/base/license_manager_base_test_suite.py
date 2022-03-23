@@ -1,22 +1,25 @@
 """base class for license manager test suites"""
 import json
-import shutil
 from time import time
 
 import requests
-from allure_commons._allure import attach
 
 # pylint: disable=import-error
 from arangodb.async_client import CliExecutionException
 from arangodb.installers import create_config_installer_set, RunProperties
 from reporting.reporting_utils import step
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, run_after_suite, run_before_each_testcase
+from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, run_after_suite, run_before_each_testcase, \
+    collect_crash_data
+from tools.killall import kill_all_processes
+
 try:
     from tools.external_helpers.license_generator.license_generator import create_license
+
     EXTERNAL_HELPERS_LOADED = True
 except ModuleNotFoundError as exc:
     print("External helpers not found. License manager tests will not run.")
     EXTERNAL_HELPERS_LOADED = False
+
 
 class LicenseManagerBaseTestSuite(BaseTestSuite):
     """base class for license manager test suites"""
@@ -56,27 +59,16 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
         return child_class(self.new_version, self.base_cfg)
 
     @run_after_suite
-    def shutdown(self):
-        """shutdown instance(s)"""
+    def teardown_suite(self):
+        """License manager base test suite: teardown"""
         self.runner.starter_shutdown()
+        kill_all_processes()
 
-    def add_crash_data_to_report(self):
-        """save data dir and logs in case a test failed"""
-        self.save_log_file()
-        self.save_data_dir()
-
-    def save_log_file(self):
-        """add log file to the report"""
-        if self.installer.instance and self.installer.instance.logfile.exists():
-            log = open(self.installer.instance.logfile, "r").read()
-            attach(log, "Log file " + str(self.installer.instance.logfile))
-
+    @collect_crash_data
     def save_data_dir(self):
-        """add datadir archive to the report"""
-        data_dir = self.installer.cfg.dbdir
-        if data_dir.exists():
-            archive = shutil.make_archive("datadir", "bztar", data_dir, data_dir)
-            attach.file(archive, "data directory archive", "application/x-bzip2", "tar.bz2")
+        """save data dir and logs in case a test failed"""
+        kill_all_processes()
+        self.runner.zip_test_dir()
 
     @step
     def check_that_license_is_not_expired(self, time_left_threshold=0):
@@ -137,7 +129,8 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
         license = create_license(new_timestamp, server_id)
         self.set_license(license)
 
-    @run_before_each_testcase
+# FIXME: set valid license before each test case
+#    @run_before_each_testcase
     def set_valid_license(self):
         """set valid license"""
         new_timestamp = str(int(time() + 59 * 60))

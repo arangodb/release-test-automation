@@ -48,6 +48,10 @@ class BaseTestSuite(ABC):
         if hasattr(self, "generate_custom_suite_name"):
             #pylint: disable=no-member
             self.suite_name = self.generate_custom_suite_name()
+        if self.use_subsuite:
+            self.sub_suite_name = self.__doc__ if self.__doc__ else self.__class__.__name__
+        else:
+            self.sub_suite_name = None
         self.test_suite_context = AllureTestSuiteContext(
                 properties=RunProperties(self.enterprise,
                                          self.enc_at_rest,
@@ -58,6 +62,7 @@ class BaseTestSuite(ABC):
                 if not hasattr(self, "auto_generate_parent_test_suite_name")
                 else self.auto_generate_parent_test_suite_name,
                 suite_name=None if not self.suite_name else self.suite_name,
+                sub_suite_name=None if not self.sub_suite_name else self.sub_suite_name,
                 runner_type=None if not self.runner_type else self.runner_type,
                 installer_type=None if not self.installer_type else self.installer_type,
             )
@@ -67,26 +72,43 @@ class BaseTestSuite(ABC):
         """initialise the child class"""
         return child_class()
 
-    def run(self):
+    def run(self, parent_suite_setup_failed=False):
         """execute the test"""
-        self.setup_test_suite()
+        setup_failed = parent_suite_setup_failed
+        if not setup_failed:
+            try:
+                self.setup_test_suite()
+            except:
+                setup_failed = True
+                try:
+                    self.add_crash_data_to_report()
+                except:
+                    pass
         if self.has_own_testcases():
-            self.test_results += self.run_own_testscases()
+            self.test_results += self.run_own_testscases(suite_is_broken=setup_failed)
         for suite_class in self.child_classes:
             suite=self.init_child_class(suite_class)
             suite.test_suite_context.test_listener.parent_test_listener = self.test_suite_context.test_listener
             self.children.append(suite)
-            self.test_results += suite.run()
-        self.tear_down_test_suite()
+            self.test_results += suite.run(parent_suite_setup_failed=setup_failed)
+        tear_down_failed = False
+        try:
+            self.tear_down_test_suite()
+        except:
+            tear_down_failed = True
+            try:
+                self.add_crash_data_to_report()
+            except:
+                pass
         self.test_suite_context.destroy()
         return self.test_results
 
-    def run_own_testscases(self):
+    def run_own_testscases(self, suite_is_broken=False):
         """ run all tests local to the derived class """
         testcases = [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "is_testcase")]
         results = []
         for one_testcase in testcases:
-            results.append(one_testcase(self))
+            results.append(one_testcase(self, suite_is_broken=suite_is_broken))
         return results
 
     def has_own_testcases(self):
@@ -110,6 +132,10 @@ class BaseTestSuite(ABC):
         """ list methods that are marked to be ran before test suite """
         return [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "run_after_each_testcase")]
 
+    def get_collect_crash_data_methods(self):
+        """ list methods that are used to collect crash data in case a test failed"""
+        return [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "collect_crash_data")]
+
     def run_before_fixtures(self, funcs):
         """run a set of fixtures before the test suite or test case"""
         for func in funcs:
@@ -127,9 +153,12 @@ class BaseTestSuite(ABC):
                     exc_type, exc_val, exc_tb = sys.exc_info()
             self.test_suite_context.test_listener.stop_before_fixture(fixture_uuid, exc_type,
                                                                       exc_val, exc_tb)
+            if exc_val:
+                raise Exception("Fixture failed.") from exc_val
 
     def run_after_fixtures(self, funcs):
         """run a set of fixtures after the test suite or test case"""
+        fixture_failed = False
         for func in funcs:
             name = func.__doc__ if func.__doc__ else func.__name__
             with step(name):
@@ -145,6 +174,10 @@ class BaseTestSuite(ABC):
                     exc_type, exc_val, exc_tb = sys.exc_info()
             self.test_suite_context.test_listener.stop_after_fixture(fixture_uuid, exc_type,
                                                                      exc_val, exc_tb)
+            if exc_val:
+                fixture_failed = True
+        if fixture_failed:
+            raise Exception("Some fixture(s) failed")
 
     def setup_test_suite(self):
         """prepare to run test suite"""
@@ -164,6 +197,7 @@ class BaseTestSuite(ABC):
 
     def add_crash_data_to_report(self):
         """add eventual crash data"""
+        self.run_after_fixtures(self.get_collect_crash_data_methods())
 
     def there_are_failed_tests(self):
         """check whether there are failed tests"""
@@ -200,8 +234,24 @@ def run_after_each_testcase(func):
         return func
     raise Exception("Only functions can be marked with @run_after_each_testcase decorator")
 
+def collect_crash_data(func):
+    """mark methods that are used to collect crash data in case a test failed"""
+    if callable(func):
+        func.collect_crash_data = True
+        return func
+    raise Exception("Only functions can be marked with @collect_crash_data decorator")
+
 def testcase(title=None, disable=False):
     """ base testcase class decorator """
+
+    def sanitize_kwargs_for_testcase(kwargs_dict):
+        dict = kwargs_dict.copy()
+        args_to_delete = ["suite_is_broken"]
+        for arg in args_to_delete:
+            if arg in dict:
+                del dict[arg]
+        return dict
+
     def decorator(func):
         def wrapper(self, *args, **kwargs):
             # pylint: disable=broad-except disable=too-many-branches
@@ -222,20 +272,20 @@ def testcase(title=None, disable=False):
                         name = func.__doc__
                     else:
                         name = func.__name__
-            labels = []
-            if self.use_subsuite:
-                sub_suite_name = self.__doc__ if self.__doc__ else self.__class__.__name__
-                labels.append(Label(name=LabelType.SUB_SUITE, value=sub_suite_name))
-            with RtaTestcase(name, labels=labels) as my_testcase:
+            with RtaTestcase(name) as my_testcase:
                 if disable:
                     test_result = RtaTestResult(name, True, "test is skipped", None)
                     my_testcase.context.status = Status.SKIPPED
                     if isinstance(disable, str):
                         my_testcase.context.statusDetails = StatusDetails(message=disable)
+                elif kwargs["suite_is_broken"]:
+                    test_result = RtaTestResult(name, False, "test suite is broken", None)
+                    my_testcase.context.status = Status.BROKEN
                 else:
                     try:
+                        self.setup_testcase()
                         print('Running test case "%s"...' % name)
-                        func(*args, **kwargs)
+                        func(*args, **sanitize_kwargs_for_testcase(kwargs))
                         success = True
                         print('Test case "%s" passed!' % name)
                         my_testcase.context.status = Status.PASSED
@@ -246,11 +296,17 @@ def testcase(title=None, disable=False):
                         traceback_instance = "".join(traceback.TracebackException.from_exception(ex).format())
                         print(message)
                         print(traceback_instance)
-                        self.add_crash_data_to_report()
+                        try:
+                            self.add_crash_data_to_report()
+                        except:
+                            pass
                         my_testcase.context.status = Status.FAILED
                         my_testcase.context.statusDetails = StatusDetails(message=message, trace=traceback_instance)
                     finally:
-                        self.teardown_testcase()
+                        try:
+                            self.teardown_testcase()
+                        except:
+                            pass
                     test_result = RtaTestResult(name, success, message, traceback_instance)
                 return test_result
 

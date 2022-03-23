@@ -6,7 +6,7 @@ from allure_commons._allure import attach
 
 from arangodb.installers import create_config_installer_set, RunProperties, InstallerBaseConfig
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, run_before_suite, \
-    run_after_suite, run_after_each_testcase
+    run_after_suite, run_after_each_testcase, collect_crash_data
 
 
 class BasePackageInstallationTestSuite(BaseTestSuite):
@@ -62,7 +62,9 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
             installer.cfg.debug_package_is_installed = False
             installer.cfg.client_package_is_installed = False
 
-    def add_crash_data_to_report(self):
+    @collect_crash_data
+    def save_log_file_and_data_dir(self):
+        """save log file and data dir"""
         self.save_log_file()
         self.save_data_dir()
 

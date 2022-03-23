@@ -34,11 +34,12 @@ class StepData:
 class AllureListener:
     """allure plugin implementation"""
 
-    def __init__(self, default_test_suite_name=None, default_parent_test_suite_name=None):
+    def __init__(self, default_test_suite_name=None, default_parent_test_suite_name=None, default_sub_suite_name=None):
         self.allure_logger = AllureReporter()
         self._cache = ItemCache()
         self.default_test_suite_name = default_test_suite_name
         self.default_parent_test_suite_name = default_parent_test_suite_name
+        self.default_sub_suite_name = default_sub_suite_name
         self.container_uuid=str(uuid4())
         self.current_testcase_container_uuid = None
         self.parent_test_listener = None
@@ -118,6 +119,8 @@ class AllureListener:
             test_result.labels.append(Label(name=LabelType.SUITE, value=self.default_test_suite_name))
         if self.default_parent_test_suite_name:
             test_result.labels.append(Label(name=LabelType.PARENT_SUITE, value=self.default_parent_test_suite_name))
+        if self.default_sub_suite_name:
+            test_result.labels.append(Label(name=LabelType.SUB_SUITE, value=self.default_sub_suite_name))
         test_result.labels.append(Label(name=LabelType.FRAMEWORK, value="ArangoDB Release Test Automation"))
         self.allure_logger.schedule_test(uuid, test_result)
         self._cache.push(test_result, uuid)
@@ -133,6 +136,7 @@ class AllureListener:
         self._cache.push(container, self.current_testcase_container_uuid)
         self.allure_logger.start_group(self.current_testcase_container_uuid, container)
         self.allure_logger.update_group(self.current_testcase_container_uuid, start=now())
+        self.allure_logger.update_group(self.current_testcase_container_uuid, children=uuid)
 
 
     # pylint: disable=too-many-arguments
@@ -159,14 +163,14 @@ class AllureListener:
         self.allure_logger.stop_group(self.current_testcase_container_uuid)
         self.current_testcase_container_uuid = None
 
-    def start_suite(self, suite_name):
+    def start_suite_container(self, suite_name):
         """start a test suite"""
         container = TestResultContainer(uuid=self.container_uuid, name=suite_name)
         self._cache.push(container, self.container_uuid)
         self.allure_logger.start_group(self.container_uuid, container)
         self.allure_logger.update_group(self.container_uuid, start=now())
 
-    def stop_suite(self):
+    def stop_suite_container(self):
         """stop running test suite"""
         self.allure_logger.stop_group(self.container_uuid)
 

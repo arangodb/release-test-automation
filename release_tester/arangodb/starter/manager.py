@@ -582,11 +582,11 @@ class StarterManager:
                     )
 
     @step
-    def temporarily_replace_instances(self, which_instances, moreargs):
-        """halt starter, launch instance, wait for it to exit, continue starter"""
-        self.instance.suspend()
-        self.manually_launch_instances(which_instances, moreargs, waitpid=True, kill_instance=True)
-        self.instance.resume()
+    def restart_arangods(self):
+        """Terminate arangod(s). Let the starter restart them."""
+        for instance in self.all_instances:
+            instance.kill_instance()
+            instance.rename_logfile()
         self.detect_instances()
 
     @step
