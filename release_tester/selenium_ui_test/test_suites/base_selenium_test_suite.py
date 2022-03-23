@@ -14,7 +14,7 @@ from selenium_ui_test.pages.base_page import BasePage
 from selenium_ui_test.pages.login_page import LoginPage
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, run_before_suite, \
-    run_after_suite, run_after_each_testcase
+    run_after_suite, run_after_each_testcase, collect_crash_data
 from reporting.reporting_utils import attach_table
 
 
@@ -131,7 +131,9 @@ class BaseSeleniumTestSuite(BaseTestSuite):
         """state print todo"""
         print(arg)
 
-    def add_crash_data_to_report(self):
+    @collect_crash_data
+    def save_browser_data(self):
+        """save page source, screenshot and browser console log"""
         self.save_page_source()
         self.take_screenshot()
         self.save_browser_console_log()

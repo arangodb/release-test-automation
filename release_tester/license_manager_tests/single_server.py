@@ -4,11 +4,14 @@ import shutil
 from pathlib import Path
 
 # pylint: disable=import-error
+from allure_commons._allure import attach
+
 from arangodb.instance import InstanceType
 from arangodb.starter.manager import StarterManager
-from license_manager_tests.license_manager_base_test_suite import LicenseManagerBaseTestSuite
+from license_manager_tests.base.license_manager_base_test_suite import LicenseManagerBaseTestSuite
 from reporting.reporting_utils import step
-from selenium_ui_test.test_suites.base_test_suite import testcase, run_before_suite, run_after_suite
+from selenium_ui_test.test_suites.base_test_suite import testcase, run_before_suite, run_after_suite, collect_crash_data
+from tools.killall import kill_all_processes
 
 
 class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
@@ -27,6 +30,18 @@ class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
         """get the instance type we should communicate with"""
         return InstanceType.SINGLE
 
+    @collect_crash_data
+    def save_data_dir(self):
+        """save data dir and logs in case a test failed"""
+        kill_all_processes()
+        if self.starter.basedir.exists():
+            archive = shutil.make_archive(
+                f"LicenseManagerSingleServerTestSuite(v. {self.base_cfg.version})", "bztar", self.starter.basedir
+            )
+            attach.file(archive, "test dir archive", "application/x-bzip2", "tar.bz2")
+        else:
+            print("test basedir doesn't exist, won't create report tar")
+
     @run_before_suite
     def start(self):
         """clean up the system before running license manager tests on a single server setup"""
@@ -34,9 +49,10 @@ class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
         self.start_single_server()
 
     @run_after_suite
-    def shutdown(self):
-        """shutdown instance"""
+    def teardown_suite(self):
+        """Teardown suite environment: single server"""
         self.starter.terminate_instance()
+        kill_all_processes()
 
     def get_server_id(self):
         """read server ID from data directory"""
