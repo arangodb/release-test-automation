@@ -45,17 +45,9 @@ class ViewsPage(NavigationBarPage):
         self.switch_to_code_editor_mode_id = "//*[text()='Code']"
         self.compact_json_data_id = "jsoneditor-compact"
         self.switch_to_tree_editor_mode_id = "//*[text()='Tree']"
-        self.select_inside_search_id = (
-            "//*[@id='propertiesEditor']/div/div[1]/table/tbody/tr/td[2]/div/table/tbody/tr/td[2]/input"
-        )
+        self.select_inside_search_id = '//tbody//tr//td//input'
         self.search_result_traverse_up_id = "jsoneditor-previous"
         self.search_result_traverse_down_id = "jsoneditor-next"
-        self.change_consolidation_policy_id = (
-            "/html//div[@id='propertiesEditor']/div[@class="
-            "'jsoneditor jsoneditor-mode-tree']/div[3]/div[@class="
-            "'jsoneditor-tree']//table[@class='jsoneditor-tree']"
-            "/tbody/tr[16]/td[3]/table[@class='jsoneditor-values']//tr/td[4]/div"
-        )
         self.clicking_rename_views_btn_id = "renameViewButton"
 
         self.rename_views_name_id = "/html//input[@id='editCurrentName']"
@@ -347,6 +339,7 @@ class ViewsPage(NavigationBarPage):
 
         self.wait_for_ajax()
         print('Selecting segments min value \n')
+        # snapping to the default value of the input field: Segments Min
         segment_min = "(//input[@value='1'])[1]"
         segment_min_sitem = self.locator_finder_by_xpath(segment_min)
         segment_min_sitem.click()
@@ -356,6 +349,7 @@ class ViewsPage(NavigationBarPage):
         self.wait_for_ajax()
 
         print('Selecting segments max value \n')
+        # snapping to the default value of the input field: Segments Max
         segment_max = "(//input[@value='10'])[1]"
         segment_max_sitem = self.locator_finder_by_xpath(segment_max)
         segment_max_sitem.click()
@@ -365,6 +359,7 @@ class ViewsPage(NavigationBarPage):
 
         self.wait_for_ajax()
         print('Selecting bytes value \n')
+        # snapping to the default value of the input field: Segments Bytes Max
         segment_bytes = "(//input[@value='5368709120'])[1]"
         segment_bytes_sitem = self.locator_finder_by_xpath(segment_bytes)
         segment_bytes_sitem.click()
@@ -374,6 +369,7 @@ class ViewsPage(NavigationBarPage):
 
         self.wait_for_ajax()
         print('Selecting bytes floor value \n')
+        # snapping to the default value of the input field: Segments Bytes Floor
         segment_floor = "(//input[@value='2097152'])[1]"
         segment_floor_sitem = self.locator_finder_by_xpath(segment_floor)
         segment_floor_sitem.click()
