@@ -7,6 +7,7 @@ import traceback
 from selenium.common.exceptions import ElementNotInteractableException, TimeoutException
 
 from selenium_ui_test.pages.navbar import NavigationBarPage
+import semver
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=line-too-long disable=too-many-instance-attributes disable=too-many-statements disable=too-many-public-methods
@@ -114,8 +115,8 @@ class CollectionPage(NavigationBarPage):
         self.select_new_settings_save_btn_id = "modalButton5"
 
         self.select_load_index_into_memory_id = "//*[@id='modalButton2']"
-        self.select_settings_unload_btn_id = "//*[@id='modalButton3']"
-        self.select_truncate_btn_id = "//*[@id='modalButton1']"
+        self.select_settings_unload_btn_id = "modalButton3"
+        self.select_truncate_btn_id = "modalButton1"
         self.select_truncate_confirm_btn_id = "//*[@id='modal-confirm-delete']"
         self.delete_collection_id = "//*[@id='modalButton0']"
         self.delete_collection_confirm_id = "//*[@id='modal-confirm-delete']"
@@ -640,14 +641,14 @@ class CollectionPage(NavigationBarPage):
 
     def select_settings_unload_btn(self):
         """Loading and Unloading collection"""
-        select_settings_unload_btn_sitem = self.locator_finder_by_xpath(self.select_settings_unload_btn_id)
+        select_settings_unload_btn_sitem = self.locator_finder_by_id(self.select_settings_unload_btn_id)
         select_settings_unload_btn_sitem.click()
         time.sleep(2)
         self.wait_for_ajax()
 
     def select_truncate_btn(self):
         """Loading and Unloading collection"""
-        select_truncate_btn_sitem = self.locator_finder_by_xpath(self.select_truncate_btn_id)
+        select_truncate_btn_sitem = self.locator_finder_by_id(self.select_truncate_btn_id)
         select_truncate_btn_sitem.click()
         time.sleep(1)
         select_truncate_confirm_btn_sitem = self.locator_finder_by_xpath(self.select_truncate_confirm_btn_id)

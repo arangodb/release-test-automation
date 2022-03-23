@@ -5,6 +5,7 @@ import semver
 
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.keys import Keys
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=line-too-long disable=too-many-instance-attributes disable=too-many-statements disable=too-many-public-methods
@@ -24,16 +25,14 @@ class ViewsPage(NavigationBarPage):
     select_renamed_view_id = "/html//div[@id='thirdView']"
     select_second_view_id = "//div[@id='secondView']//h5[@class='collectionName']"
 
-    def __init__(self, webdriver, cfg):
+    def __init__(self, driver, cfg):
         """View page initialization"""
-        super().__init__(webdriver, cfg)
+        super().__init__(driver, cfg)
         self.select_views_tab_id = "/html//a[@id='views']"
         self.create_new_views_id = "/html//a[@id='createView']"
         self.naming_new_view_id = "/html//input[@id='newName']"
         self.select_create_btn_id = "//div[@id='modal-dialog']//button[@class='button-success']"
         self.select_views_settings_id = "//a[@id='viewsToggle']/span[@title='Settings']"
-
-        # self.select_sorting_views_id = "//div[@id='viewsDropdown']/ul//label[@class='checkbox checkboxLabel']"
         self.select_sorting_views_id = '//*[@id="viewsDropdown"]/ul/li[2]/a/label/i'
 
         self.search_views_id = "/html//input[@id='viewsSearchInput']"
@@ -43,46 +42,12 @@ class ViewsPage(NavigationBarPage):
         self.select_editor_mode_btn_id = (
             "//div[@id='propertiesEditor']//div[@class='jsoneditor-modes']/button[@title='Switch editor mode']"
         )
-        self.switch_to_code_editor_mode_id = (
-            "//div[@id='propertiesEditor']//div[@class='jsoneditor-anchor']"
-            "//div[@class='jsoneditor-contextmenu']/ul[@class='jsoneditor-menu']"
-            "//button[@title='Switch to code highlighter']"
-        )
-        self.compact_json_data_id = (
-            "/html//div[@id='propertiesEditor']//button[@title='Compact JSON data, "
-            "remove all whitespaces (Ctrl+Shift+\\)']"
-        )
-        self.switch_to_tree_editor_mode_id = (
-            "//div[@id='propertiesEditor']/div[@class='jsoneditor "
-            "jsoneditor-mode-code']//div[@class='jsoneditor-anchor']//"
-            "ul[@class='jsoneditor-menu']//button[@title='Switch to tree editor']"
-        )
-        self.click_arangosearch_documentation_link_id = (
-            "//div[@id='viewDocumentation']//a[@href="
-            "'https://www.arangodb.com/docs/stable"
-            "/arangosearch-views.html']"
-        )
-        self.select_inside_search_id = (
-            "//*[@id='propertiesEditor']/div/div[1]/table/tbody/tr/td[2]/div/table/tbody/tr/td[2]/input"
-        )
-        self.search_result_traverse_up_id = (
-            "/html//div[@id='propertiesEditor']/div[@class='jsoneditor "
-            "jsoneditor-mode-tree']//table[@class='jsoneditor-search']"
-            "//div[@title='Search fields and values']/table//button[@title="
-            "'Previous result (Shift+Enter)']"
-        )
-        self.search_result_traverse_down_id = (
-            "/html//div[@id='propertiesEditor']/div[@class="
-            "'jsoneditor jsoneditor-mode-tree']//table[@class="
-            "'jsoneditor-search']//div[@title="
-            "'Search fields and values']/table//button[@title='Next result (Enter)']"
-        )
-        self.change_consolidation_policy_id = (
-            "/html//div[@id='propertiesEditor']/div[@class="
-            "'jsoneditor jsoneditor-mode-tree']/div[3]/div[@class="
-            "'jsoneditor-tree']//table[@class='jsoneditor-tree']"
-            "/tbody/tr[16]/td[3]/table[@class='jsoneditor-values']//tr/td[4]/div"
-        )
+        self.switch_to_code_editor_mode_id = "//*[text()='Code']"
+        self.compact_json_data_id = "jsoneditor-compact"
+        self.switch_to_tree_editor_mode_id = "//*[text()='Tree']"
+        self.select_inside_search_id = '//tbody//tr//td//input'
+        self.search_result_traverse_up_id = "jsoneditor-previous"
+        self.search_result_traverse_down_id = "jsoneditor-next"
         self.clicking_rename_views_btn_id = "renameViewButton"
 
         self.rename_views_name_id = "/html//input[@id='editCurrentName']"
@@ -168,9 +133,12 @@ class ViewsPage(NavigationBarPage):
         select_expand_btn_sitem.click()
         time.sleep(3)
 
-    def select_editor_mode_btn(self):
+    def select_editor_mode_btn(self, value):
         """selecting object tabs"""
-        select_editor_btn_sitem = self.locator_finder_by_xpath(self.select_editor_mode_btn_id)
+        if value == 0:
+            select_editor_btn_sitem = self.locator_finder_by_xpath("//*[text()='Tree ▾']")
+        else:
+            select_editor_btn_sitem = self.locator_finder_by_xpath("//*[text()='Code ▾']")
         select_editor_btn_sitem.click()
         time.sleep(3)
 
@@ -182,7 +150,7 @@ class ViewsPage(NavigationBarPage):
 
     def compact_json_data(self):
         """switching editor mode to Code compact view"""
-        compact_json_data_sitem = self.locator_finder_by_xpath(self.compact_json_data_id)
+        compact_json_data_sitem = self.locator_finder_by_class(self.compact_json_data_id)
         compact_json_data_sitem.click()
         time.sleep(3)
 
@@ -194,11 +162,10 @@ class ViewsPage(NavigationBarPage):
 
     def click_arangosearch_documentation_link(self):
         """Clicking on arangosearch documentation link"""
-        self.click_arangosearch_documentation_link_id = self.locator_finder_by_xpath(
-            self.click_arangosearch_documentation_link_id
-        )
-        title = self.switch_tab(self.click_arangosearch_documentation_link_id)
-        expected_title = "Views Reference | ArangoSearch | Indexing | Manual | ArangoDB Documentation"
+        click_arangosearch_documentation_link_id = \
+            self.webdriver.find_element_by_link_text('ArangoSearch Views documentation')
+        title = self.switch_tab(click_arangosearch_documentation_link_id)
+        expected_title = 'Views Reference | ArangoSearch | Indexing | Manual | ArangoDB Documentation'
         assert title in expected_title, f"Expected page title {expected_title} but got {title}"
 
     def select_inside_search(self, keyword):
@@ -210,14 +177,14 @@ class ViewsPage(NavigationBarPage):
 
     def search_result_traverse_down(self):
         """traverse search results down"""
-        search_result_traverse_down_sitem = self.locator_finder_by_xpath(self.search_result_traverse_down_id)
+        search_result_traverse_down_sitem = self.locator_finder_by_class(self.search_result_traverse_down_id)
         for _ in range(8):
             search_result_traverse_down_sitem.click()
             time.sleep(1)
 
     def search_result_traverse_up(self):
         """traverse search results up"""
-        search_result_traverse_up_sitem = self.locator_finder_by_xpath(self.search_result_traverse_up_id)
+        search_result_traverse_up_sitem = self.locator_finder_by_class(self.search_result_traverse_up_id)
         for _ in range(8):
             search_result_traverse_up_sitem.click()
             time.sleep(1)
@@ -285,7 +252,7 @@ class ViewsPage(NavigationBarPage):
 
         self.wait_for_ajax()
         print(f"Selecting direction for {view_name} \n")
-        direction = "/html/body/div[1]/div/div[2]/div[1]/div/div[2]/div/table/tbody/tr/th/table/tbody/tr/td[2]/select"
+        direction = '(//select)[2]'
         self.locator_finder_by_select_using_xpath(direction, types)  # keep it default choice
 
         self.wait_for_ajax()
@@ -294,22 +261,23 @@ class ViewsPage(NavigationBarPage):
         sorted_value_sitem = self.locator_finder_by_xpath(sorted_value)
         sorted_value_sitem.click()
         time.sleep(2)
+        self.wait_for_ajax()
 
-        # print(f'Select stored field for {view_name} \n')
-        # # stored_field = "//div[contains(@id,'s2id_field')]"
-        # stored_field = "/html/body/div[1]/div/div[2]/div[2]/div/div[2]/div/table/tbody/tr/th/table/tbody/tr/td[1]/div"
-        #
-        # stored_field_sitem = self.locator_finder_by_xpath(stored_field)
-        # stored_field_sitem.click()
-        # stored_field_sitem.clear()
-        # stored_field_sitem.send_keys('attr')
-        # stored_field_sitem.send_keys(Keys.ENTER)
-        # time.sleep(2)
+        if self.current_package_version() >= semver.VersionInfo.parse("3.9.0"):
+            print('stored value has been skipped.\n')
+        else:
+            print(f'Select stored field for {view_name} \n')
+            stored_field = "(//a[@class='accordion-toggle collapsed'])[2]"
+            stored_field_sitem = self.locator_finder_by_xpath(stored_field)
+            stored_field_sitem.click()
+            stored_field_sitem.clear()
+            stored_field_sitem.send_keys('attr')
+            stored_field_sitem.send_keys(Keys.ENTER)
+            time.sleep(2)
+            self.wait_for_ajax()
 
         print(f"Selecting stored direction for {view_name} \n")
-        stored_direction = (
-            "/html/body/div[1]/div/div[2]/div[2]/div/div[2]/div/table/tbody/tr/th/table/tbody/tr/td[2]/select"
-        )
+        stored_direction = "(//select)[3]"
         self.locator_finder_by_select_using_xpath(stored_direction, types)  # keep it default choice
         time.sleep(2)
 
@@ -348,14 +316,163 @@ class ViewsPage(NavigationBarPage):
 
         self.wait_for_ajax()
         print(f"Selecting creation button for {view_name} \n")
-        max_buffer_size = "modalButton1"
-        max_buffer_size_sitem = self.locator_finder_by_id(max_buffer_size)
-        max_buffer_size_sitem.click()
-        max_buffer_size_sitem.send_keys("33554434")
+        create = 'modalButton1'
+        create_sitem = self.locator_finder_by_id(create)
+        create_sitem.click()
         time.sleep(2)
         self.webdriver.refresh()
+    
+    def checking_modified_views(self, is_cluster):
+        """This method will check views for 3.10.x package version"""
+        print('Selecting improved views \n')
+        views = "//*[text()='improved_arangosearch_view_01']"
+        views_sitem = self.locator_finder_by_xpath(views)
+        views_sitem.click()
+        time.sleep(2)
+        self.wait_for_ajax()
 
-    def checking_improved_views(self, name, locator, deployment):
+        print('Selecting Consolidation Policy \n')
+        policy = "//*[text()='Consolidation Policy']"
+        policy_sitem = self.locator_finder_by_xpath(policy)
+        policy_sitem.click()
+        time.sleep(2)
+
+        self.wait_for_ajax()
+        print('Selecting segments min value \n')
+        # snapping to the default value of the input field: Segments Min
+        segment_min = "(//input[@value='1'])[1]"
+        segment_min_sitem = self.locator_finder_by_xpath(segment_min)
+        segment_min_sitem.click()
+        segment_min_sitem.clear()
+        segment_min_sitem.send_keys('4')
+        time.sleep(2)
+        self.wait_for_ajax()
+
+        print('Selecting segments max value \n')
+        # snapping to the default value of the input field: Segments Max
+        segment_max = "(//input[@value='10'])[1]"
+        segment_max_sitem = self.locator_finder_by_xpath(segment_max)
+        segment_max_sitem.click()
+        segment_max_sitem.clear()
+        segment_max_sitem.send_keys('14')
+        time.sleep(2)
+
+        self.wait_for_ajax()
+        print('Selecting bytes value \n')
+        # snapping to the default value of the input field: Segments Bytes Max
+        segment_bytes = "(//input[@value='5368709120'])[1]"
+        segment_bytes_sitem = self.locator_finder_by_xpath(segment_bytes)
+        segment_bytes_sitem.click()
+        segment_bytes_sitem.clear()
+        segment_bytes_sitem.send_keys('5368709128')
+        time.sleep(2)
+
+        self.wait_for_ajax()
+        print('Selecting bytes floor value \n')
+        # snapping to the default value of the input field: Segments Bytes Floor
+        segment_floor = "(//input[@value='2097152'])[1]"
+        segment_floor_sitem = self.locator_finder_by_xpath(segment_floor)
+        segment_floor_sitem.click()
+        segment_floor_sitem.clear()
+        segment_floor_sitem.send_keys('2097158')
+        time.sleep(2)
+
+        print('Saving the consolidation policy with new value \n')
+        save = '//*[@id="modal-dialog"]/div[2]/button/i'
+        save_sitem = self.locator_finder_by_xpath(save)
+        save_sitem.click()
+        time.sleep(3)
+
+        self.wait_for_ajax()
+        print('Select JSON tab \n')
+        json = '//*[@id="subNavigationBar"]/ul[2]/li[5]/a'
+        json_sitem = self.locator_finder_by_xpath(json)
+        json_sitem.click()
+        time.sleep(1)
+
+        self.wait_for_ajax()
+        print("Switch editor mode to Compact mode Code \n")
+        compact = '//*[@id="JSON"]/div/div[2]/div/div/div/div/div[1]/button[2]'
+        compact_sitem = self.locator_finder_by_xpath(compact)
+        compact_sitem.click()
+        time.sleep(1)
+
+        print("Switch editor mode to normal mode Code \n")
+        normal = '//*[@id="JSON"]/div/div[2]/div/div/div/div/div[1]/button[1]'
+        normal_sitem = self.locator_finder_by_xpath(normal)
+        normal_sitem.click()
+
+        if is_cluster:
+            print('Changing name of the view is disabled for cluster deployment \n')
+        else:
+            print('Select Settings tab \n')
+            settings = "//*[text()='Settings']"
+            settings_sitem = self.locator_finder_by_xpath(settings)
+            settings_sitem.click()
+
+            print('Change view name \n')
+            name = "//input[@value='improved_arangosearch_view_01']"
+            name_stiem = self.locator_finder_by_xpath(name)
+            name_stiem.click()
+            name_stiem.clear()
+            name_stiem.send_keys('modified_views_name')
+            time.sleep(2)
+
+            save_btn = '//*[@id="modal-dialog"]/div[2]/button[2]'
+            save_btn_sitem = self.locator_finder_by_xpath(save_btn)
+            save_btn_sitem.click()
+            time.sleep(2)
+    
+    def delete_new_views(self, name):
+        """this method will delete all the newer version views"""
+        self.wait_for_ajax()
+        self.select_views_tab()
+        try:
+            views = ''
+            if name == 'modified_views_name':
+                views = "//*[text()='modified_views_name']"
+            elif name == 'improved_arangosearch_view_01':
+                views = "//*[text()='improved_arangosearch_view_01']"
+            elif name == 'improved_arangosearch_view_02':
+                views = "//*[text()='improved_arangosearch_view_02']"
+
+            views_sitem = self.locator_finder_by_xpath(views)
+            views_sitem.click()
+            time.sleep(2)
+            self.wait_for_ajax()
+
+            settings_tab = "//*[text()='Settings']"
+            settings_tab_sitem = self.locator_finder_by_xpath(settings_tab)
+            settings_tab_sitem.click()
+            time.sleep(2)
+            self.wait_for_ajax()
+
+            delete_btn = '//*[@id="modal-dialog"]/div[2]/button[1]'
+            delete_btn_sitem = self.locator_finder_by_xpath(delete_btn)
+            delete_btn_sitem.click()
+            time.sleep(2)
+
+            confirm_delete_btn = ''
+            if name == 'modified_views_name':
+                confirm_delete_btn = '//*[@id="modal-content-delete-modified_views_name"]/div[3]/button[2]'
+            elif name == 'improved_arangosearch_view_01':
+                confirm_delete_btn = '//*[@id="modal-content-delete-improved_arangosearch_view_01"]/div[3]/button[2]'
+            elif name == 'improved_arangosearch_view_02':
+                confirm_delete_btn = '//*[@id="modal-content-delete-improved_arangosearch_view_02"]/div[3]/button[2]'
+
+            confirm_delete_btn_sitem = self.locator_finder_by_xpath(confirm_delete_btn)
+            confirm_delete_btn_sitem.click()
+            time.sleep(2)
+
+            self.webdriver.refresh()
+            time.sleep(2)
+            self.wait_for_ajax()
+
+        except TimeoutException as ex:
+            print(f'Error found, Can not delete views {ex} \n')
+
+
+    def checking_improved_views(self, name, locator, is_cluster):
         """This method will check improved views"""
         print(f"Checking {name} started \n")
 
@@ -379,14 +496,14 @@ class ViewsPage(NavigationBarPage):
         print("Selecting expand button \n")
         self.select_expand_btn()
         print("Selecting editor mode \n")
-        self.select_editor_mode_btn()
+        self.select_editor_mode_btn(0)
         print("Switch editor mode to Code \n")
         self.switch_to_code_editor_mode()
         print("Switch editor mode to Compact mode Code \n")
         self.compact_json_data()
 
         print("Selecting editor mode \n")
-        self.select_editor_mode_btn()
+        self.select_editor_mode_btn(1)
         print("Switch editor mode to Tree \n")
         self.switch_to_tree_editor_mode()
 
@@ -398,8 +515,7 @@ class ViewsPage(NavigationBarPage):
         self.search_result_traverse_down()
         self.search_result_traverse_up()
 
-        if deployment:
-            print("Current Deployment ->", deployment)  # will delete later
+        if is_cluster:
             print("Renaming views are disabled for the Cluster deployment")
         else:
             print(f"Rename {name} to modified_name started \n")
@@ -412,23 +528,28 @@ class ViewsPage(NavigationBarPage):
     def delete_views(self, name, locator):
         """This method will delete views"""
         self.select_views_tab()
+        self.wait_for_ajax()
         print(f"Selecting {name} for deleting \n")
         try:
             select_view_sitem = self.locator_finder_by_xpath(locator)
             select_view_sitem.click()
             time.sleep(1)
+            self.wait_for_ajax()
 
             delete_views_btn_sitem = self.locator_finder_by_id(self.delete_views_btn_id)
             delete_views_btn_sitem.click()
             time.sleep(1)
+            self.wait_for_ajax()
 
             delete_views_confirm_btn_sitem = self.locator_finder_by_xpath(self.delete_views_confirm_btn_id)
             delete_views_confirm_btn_sitem.click()
             time.sleep(1)
+            self.wait_for_ajax()
 
             final_delete_confirmation_sitem = self.locator_finder_by_id(self.final_delete_confirmation_id)
             final_delete_confirmation_sitem.click()
             print(f"Selecting {name} for deleting completed \n")
             time.sleep(1)
+            self.wait_for_ajax()
         except TimeoutException as ex:
             print("FAIL: could not delete views properly", ex, "\n")
