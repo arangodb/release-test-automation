@@ -38,8 +38,7 @@ class LicenseManagerLeaderFollowerBaseTestSuite(LicenseManagerBaseTestSuite):
         with open(datadir / ".license", "w") as license_file:
             license_file.truncate()
             license_file.write(license)
-        starter_instance.terminate_instance()
-        starter_instance.respawn_instance()
+        starter_instance.restart_arangods()
 
     @step
     def start_leader_follower(self):
