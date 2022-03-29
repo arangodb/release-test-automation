@@ -96,7 +96,7 @@ class BasePage:
 
     def switch_to_iframe(self, iframe_id):
         """This method will switch to IFrame window"""
-        self.webdriver.switch_to.frame(self.webdriver.find_element_by_xpath(iframe_id))
+        self.webdriver.switch_to.frame(self.webdriver.find_element(BY.XPATH, iframe_id))
         time.sleep(1)
 
     def switch_back_to_origin_window(self):
@@ -246,33 +246,31 @@ class BasePage:
         package_version = "currentVersion"
         package_version = self.locator_finder_by_id(package_version).text
         print("Package Version: ", package_version)
-        # version = float(package_version[0:3])
-
         return semver.VersionInfo.parse(package_version)
 
     def current_user(self):
         """get the currently logged in user from the page upper middle"""
         self.wait_for_ajax()
         userbar_sitem = self.locator_finder_by_id("userBar")
-        return str(userbar_sitem.find_element_by_class_name("toggle").text)
+        return str(userbar_sitem.find_element(BY.CLASS_NAME, "toggle").text)
 
     def current_database(self):
         """get the currently used database from the page upper middle"""
         self.wait_for_ajax()
         database_sitem = self.locator_finder_by_id("dbStatus")
-        return database_sitem.find_element_by_class_name("state").text
+        return database_sitem.find_element(BY.CLASS_NAME, "state").text
 
     def scroll(self, down=0):
         """This method will be used to scroll up and down to any page"""
         # TODO: do this instead of sleep?
         # https://sqa.stackexchange.com/questions/35589/how-to-wait-for-javascript-scroll-action-to-finish-in-selenium
         if down == 1:
-            self.webdriver.find_element_by_tag_name("html").send_keys(Keys.END)
+            self.webdriver.find_element(BY.TAG_NAME, "html").send_keys(Keys.END)
             print("")
             time.sleep(3)
         else:
             time.sleep(5)
-            self.webdriver.find_element_by_tag_name("html").send_keys(Keys.HOME)
+            self.webdriver.find_element(BY.TAG_NAME, "html").send_keys(Keys.HOME)
         # self.webdriver.execute_script("window.scrollTo(0,500)")
 
     def locator_finder_by_idx(self, locator_name, timeout=10):
@@ -320,7 +318,7 @@ class BasePage:
 
     def locator_finder_by_select(self, locator_name, value):
         """This method will used for finding all the locators in drop down menu with options"""
-        self.select = Select(self.webdriver.find_element_by_id(locator_name))
+        self.select = Select(self.webdriver.find_element(BY.ID, locator_name))
         self.select.select_by_index(value)
         if self.select is None:
             raise Exception("UI-Test: ", locator_name, " locator was not found.")
@@ -328,14 +326,14 @@ class BasePage:
 
     def select_value(self, locator_name, value):
         """Select given value in drop down menu"""
-        self.select = Select(self.webdriver.find_element_by_id(locator_name))
+        self.select = Select(self.webdriver.find_element(BY.ID, locator_name))
         if self.select is None:
             raise Exception("UI-Test: ", locator_name, " locator was not found.")
         self.select.select_by_value(value)
 
     def locator_finder_by_select_using_xpath(self, locator_name, value):
         """This method will used for finding all the locators in drop down menu with options using xpath"""
-        self.select = Select(self.webdriver.find_element_by_xpath(locator_name))
+        self.select = Select(self.webdriver.find_element(BY.XPATH, locator_name))
         self.select.select_by_index(value)
         if self.select is None:
             print("UI-Test: ", locator_name, " locator has not found.")
@@ -352,7 +350,7 @@ class BasePage:
 
     def locator_finder_by_hover_item_id(self, locator):
         """This method will used for finding all the locators and hover the mouse by id"""
-        item = self.webdriver.find_element_by_id(locator)
+        item = self.webdriver.find_element(BY.ID, locator)
         action = ActionChains(self.webdriver)
         action.move_to_element(item).click().perform()
         time.sleep(1)
@@ -365,7 +363,7 @@ class BasePage:
 
     def locator_finder_by_hover_item(self, locator):
         """This method will used for finding all the locators and hover the mouse by xpath"""
-        item = self.webdriver.find_element_by_xpath(locator)
+        item = self.webdriver.find_element(BY.XPATH, locator)
         action = ActionChains(self.webdriver)
         action.move_to_element(item).click().perform()
         time.sleep(1)
@@ -521,8 +519,8 @@ class BasePage:
 
     def xpath(self, path):
         """shortcut xpath"""
-        return self.webdriver.find_element_by_xpath(path)
+        return self.webdriver.find_element(BY.XPATH, path)
 
     def by_class(self, classname):
         """shortcut class-id"""
-        return self.webdriver.find_element_by_class_name(classname)
+        return self.webdriver.find_element(BY.CLASS_NAME, classname)
