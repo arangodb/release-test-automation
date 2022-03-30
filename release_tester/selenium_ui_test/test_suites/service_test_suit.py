@@ -39,7 +39,7 @@ class ServiceTestSuite(BaseSeleniumTestSuite):
         service.install_demo_graph_hql_service('/graphql')
         service.replace_service()
         service.delete_service('/geo')
-        service.delete_service('graphql')
+        service.delete_service('/graphql')
         
 
         del service

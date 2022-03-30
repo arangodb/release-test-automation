@@ -482,30 +482,20 @@ class ServicePage(NavigationBarPage):
         graphql_service_sitem.click()
         time.sleep(2)
 
-        # print('Opening graphql interface \n')
-        # graphql_interface = '//*[@id="information"]/div/div[2]/div[2]/input'
-        # graphql_interface_stiem = self.locator_finder_by_xpath(graphql_interface)
-        # graphql_interface_stiem.click()
-        #
-        # print('Switching to code mirror windows of graphql \n')
-        # self.driver.switch_to.window(self.driver.window_handles[1])
-        #
-        # graphql_interface_execute_btn = '//*[@id="graphiql-container"]/div[1]/div[1]/div/div[2]/button'
-        # graphql_interface_execute_btn_sitem = \
-        #     self.locator_finder_by_xpath(graphql_interface_execute_btn)
-        # graphql_interface_execute_btn_sitem.click()
+        print('Opening graphql interface \n')
+        graphql_interface = '//*[@id="information"]/div/div[2]/div[2]/input'
+        graphql_interface_stiem = self.locator_finder_by_xpath(graphql_interface)
+        graphql_interface_stiem.click()
 
-        # fixme it's hard to access code mirror textarea.
-
-        # print('Executing example query on graphql interface \n')
-        # graphql_code_mirror = '//*[@id="graphiql-container"]/div[1]/div[2]/div[1]/div[1]/div/div[6]'
-        # graphql_code_mirror_sitem = self.locator_finder_by_xpath(graphql_code_mirror)
-        # graphql_code_mirror_sitem.click()
-        # graphql_code_mirror_sitem.send_keys('hellow')
-        # time.sleep(2)
-        #
-        # print('Return back to original window \n')
-        # self.driver.switch_to.window(self.driver.window_handles[0])
+        print('Switching to code mirror windows of graphql \n')
+        self.webdriver.switch_to.window(self.webdriver.window_handles[1])
+        
+        graphql_interface_execute_btn = '//*[@id="graphiql-container"]/div[1]/div[1]/div/div[2]/button'
+        graphql_interface_execute_btn_sitem = \
+            self.locator_finder_by_xpath(graphql_interface_execute_btn)
+        graphql_interface_execute_btn_sitem.click()
+        print('Return back to original window \n')
+        self.webdriver.switch_to.window(self.webdriver.window_handles[0])
 
         print('Checking API tab of graphql service \n')
         graphql_api_name = 'service-api'
@@ -574,7 +564,6 @@ class ServicePage(NavigationBarPage):
         try:
             success_notification = self.handle_red_bar()
             time.sleep(2)
-            print('Checking service replaced successfully \n')
             expected_msg = 'Services: Service demo-graphql installed.'
             assert expected_msg == success_notification, f"Expected {expected_msg} but got {success_notification}"
         except Exception:
@@ -586,7 +575,22 @@ class ServicePage(NavigationBarPage):
         """Selecting service settings tab"""
         print('Selecting settings options \n')
         settings = 'service-settings'
-        self.locator_finder_by_id(settings).click()
+        self.locator_finder_by_id(settings).click()\
+    
+    def delete_service_from_setting_tab(self):
+        delete_service = '//*[@id="settings"]/div/button[1]'
+        self.locator_finder_by_xpath(delete_service).click()
+        time.sleep(1)
+
+        confirm_delete = 'modalButton1'
+        self.locator_finder_by_id(confirm_delete).click()
+        time.sleep(1)
+
+        pressing_yes = 'modal-confirm-delete'
+        self.locator_finder_by_id(pressing_yes).click()
+        time.sleep(1)
+
+        self.webdriver.refresh()
     
     def collection_deletion(self, col_id):
         """Collection will be deleted by this method"""
@@ -620,7 +624,7 @@ class ServicePage(NavigationBarPage):
                 service_sitem = self.locator_finder_by_xpath(service).text
                 time.sleep(1)
 
-                if service_sitem == 'demo-geo-s2':
+                if service_sitem == '/geo':
                     print(f'{service_sitem} service has been found and ready to delete \n')
                     self.locator_finder_by_xpath(service).click()
                     time.sleep(1)
@@ -650,3 +654,25 @@ class ServicePage(NavigationBarPage):
 
             except Exception:
                 raise Exception(f'No service found named {service_name}')
+        
+        if service_name == '/graphql':
+            # try to determine service has already been created
+            service = "//*[text()='/graphql']"
+            service_sitem = self.locator_finder_by_xpath(service).text
+            time.sleep(1)
+
+            try:
+                if service_sitem == '/graphql':
+                    print(f'{service_sitem} service has been found and ready to delete \n')
+                    self.locator_finder_by_xpath(service).click()
+                    time.sleep(1)
+                    # move to settings tab
+                    self.select_service_settings()
+                    time.sleep(1)
+
+                    self.delete_service_from_setting_tab()
+                    print(f'{service_sitem} service has been deleted successfully \n')
+
+            except Exception:
+                raise Exception(f'No service found named {service_name}')
+
