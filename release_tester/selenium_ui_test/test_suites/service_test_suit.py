@@ -29,18 +29,18 @@ class ServiceTestSuite(BaseSeleniumTestSuite):
         service.select_category_option_from_list('graphql')
         service.select_category_option_from_list('prometheus')
         service.select_category_option_from_list('monitoring')
-
         service.select_category_option_search_filter('geo')
         service.select_category_option_search_filter('demo')
         service.select_category_option_search_filter('connector')
-
-        # service.setup_demo_geo_s2_service()
-        # need to provide service mount path and collection dir path
-        service.install_demo_geo_s2_service('/myservice', self.test_data_dir)
+        # service.checking_demo_geo_s2_service_github()
+        service.install_demo_geo_s2_service('/geo', self.test_data_dir)
         service.check_demo_geo_s2_service_api()
         service.inspect_foxx_leaflet_iframe()
-
-        service.delete_service('demo_geo_s2')
+        service.install_demo_graph_hql_service('/graphql')
+        service.replace_service()
+        service.delete_service('/geo')
+        service.delete_service('graphql')
+        
 
         del service
 

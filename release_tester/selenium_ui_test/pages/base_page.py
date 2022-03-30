@@ -224,7 +224,7 @@ class BasePage:
         """This method will change tab and close it and finally return to origin tab"""
         print("switching tab method \n")
         self.locator = locator
-        self.locator.send_keys(Keys.CONTROL + Keys.RETURN)  # this will open new tab on top of current
+        self.locator.send_keys(Keys.CONTROL, Keys.RETURN)  # this will open new tab on top of current
         self.webdriver.switch_to.window(self.webdriver.window_handles[1])  # switch to new tab according to index value
         title = self.webdriver.title
         print("Current page title: ", title, "\n")
@@ -524,3 +524,17 @@ class BasePage:
     def by_class(self, classname):
         """shortcut class-id"""
         return self.webdriver.find_element(BY.CLASS_NAME, classname)
+    
+    def handle_red_bar(self):
+        """It will check for any red bar error notification"""
+        try:
+            notification = 'noty_body'
+            notification = (self.locator_finder_by_class(notification))
+            time.sleep(2)
+            print("*" * 100)
+            print(notification.text)
+            print("*" * 100)
+            return notification.text
+        except TimeoutException:
+            print('No error/warning found!')
+            return None

@@ -171,12 +171,12 @@ class ServicePage(NavigationBarPage):
         """Selecting demo geo s2 service from the list"""
         self.webdriver.refresh()
         print('Selecting demo_geo_s2 service \n')
-        geo_service = "//*[text()='geo,service']"
+        geo_service = "//*[text()='demo-geo-s2']"
         geo_service_sitem = self.locator_finder_by_xpath(geo_service)
         geo_service_sitem.click()
         time.sleep(2)
 
-    def setup_demo_geo_s2_service(self):
+    def checking_demo_geo_s2_service_github(self):
         """checking general stuff of demo_geo_s2 service"""
         self.webdriver.refresh()
         time.sleep(1)
@@ -201,7 +201,6 @@ class ServicePage(NavigationBarPage):
         service_sitem.click()
         time.sleep(2)
 
-        # select a mount point FIXME
         print(f'Selecting service mount point at {mount_path} \n')
         mount_point = 'new-app-mount'
         mount_point_sitem = self.locator_finder_by_id(mount_point)
@@ -430,7 +429,7 @@ class ServicePage(NavigationBarPage):
         self.select_add_service_button()
 
         print('Selecting graphql service \n')
-        graphql = '//*[@id="availableFoxxes"]/div[2]/div/div[1]/p[1]/span'
+        graphql = "//*[text()='demo-graphql']"
         graphql_sitem = self.locator_finder_by_xpath(graphql)
         graphql_sitem.click()
         time.sleep(2)
@@ -543,6 +542,45 @@ class ServicePage(NavigationBarPage):
         self.webdriver.switch_to.default_content()
         time.sleep(1)
 
+    def replace_service(self):
+        """This method will replace the service"""""
+        self.select_service_page()
+        self.select_demo_geo_s2_service()
+        self.select_service_settings()
+
+        print('Replacing demo_geo_s2 service with demo-graphql service \n')
+        replace_btn = "(//button[@class='app-replace upgrade button-warning'][normalize-space()='Replace'])[2]"
+        self.locator_finder_by_xpath(replace_btn).click()
+        time.sleep(1)
+
+        new_service = "(//button[@appid='demo-graphql'])[1]"
+        self.locator_finder_by_xpath(new_service).click()
+        time.sleep(2)
+
+        print("Run teardown before replacing service \n")
+        tear_down = "(//input[@value='false'])[1]"
+        self.locator_finder_by_xpath(tear_down).click()
+        time.sleep(1)
+
+        print("discard configuration before replacing service \n")
+        configuration = "(//input[@value='false'])[2]"
+        self.locator_finder_by_xpath(configuration).click()
+        time.sleep(1)
+
+        print("replacing begins with graphql service \n")
+        replace = 'modalButton1'
+        self.locator_finder_by_id(replace).click()
+        time.sleep(3)
+        try:
+            success_notification = self.handle_red_bar()
+            time.sleep(2)
+            print('Checking service replaced successfully \n')
+            expected_msg = 'Services: Service demo-graphql installed.'
+            assert expected_msg == success_notification, f"Expected {expected_msg} but got {success_notification}"
+        except Exception:
+            raise Exception('Error occurred!! required manual inspection.\n')
+        print('Service successfully replaced \n')
+
 
     def select_service_settings(self):
         """Selecting service settings tab"""
@@ -574,11 +612,11 @@ class ServicePage(NavigationBarPage):
         """Delete all the services"""
         self.select_service_page()
 
-        if service_name == 'demo_geo_s2':
+        if service_name == '/geo':
 
             try:
                 # try to determine service has already been created
-                service = "//*[text()='demo-geo-s2']"
+                service = "//*[text()='/geo']"
                 service_sitem = self.locator_finder_by_xpath(service).text
                 time.sleep(1)
 
