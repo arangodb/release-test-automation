@@ -132,7 +132,6 @@ def upgrade_package_test(
     table.columns.alignment["Message + Progress"] = ALIGN_LEFT
 
     tablestr = str(table)
-    print(tablestr)
     Path("testfailures.txt").write_text(tablestr, encoding="utf8")
     if not status:
         print("exiting with failure")
@@ -142,6 +141,7 @@ def upgrade_package_test(
         touch_all_tars_in_dir(version_state_tar)
     else:
         write_version_tar(version_state_tar, fresh_versions)
+    print(tablestr)
 
     return 0
 
