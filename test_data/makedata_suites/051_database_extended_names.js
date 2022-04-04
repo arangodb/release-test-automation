@@ -4,8 +4,9 @@
   let extendedDbNames = ["ᇤ፼ᢟ⚥㑸ন", "に楽しい新習慣", "うっとりとろける", "זַרקוֹר", "ስፖትላይት", "بقعة ضوء", "ուշադրության կենտրոնում", "🌸🌲🌵 🍃💔"];
   return {
     isSupported: function (currentVersion, oldVersion, options, enterprise, cluster) {
-      let ver = semver.parse(semver.coerce(currentVersion));
-      return semver.gte(ver, "3.9.0");
+      let currentVersionSemver = semver.parse(semver.coerce(currentVersion));
+      let oldVersionSemver = semver.parse(semver.coerce(oldVersion));
+      return semver.gte(currentVersionSemver, "3.9.0") && semver.gte(oldVersionSemver, "3.9.0");
     },
 
     makeDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
