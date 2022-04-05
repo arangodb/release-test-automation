@@ -6,11 +6,13 @@ from pathlib import Path, PureWindowsPath
 import shutil
 import subprocess
 import time
+
 # pylint: disable=import-error
 import winreg
 import os
 import re
 
+import semver
 from allure_commons._allure import attach
 from allure_commons.types import AttachmentType
 from mss import mss
@@ -61,8 +63,8 @@ class InstallerW(InstallerBase):
     def _verify_signature(self, programm):
         fulldir = self.cfg.package_dir / programm
         fulldir = fulldir.resolve()
-        success_string = b'Successfully verified'
-        cmd = ['signtool', 'verify', '/pa', str(fulldir)]
+        success_string = b"Successfully verified"
+        cmd = ["signtool", "verify", "/pa", str(fulldir)]
         print(cmd)
         with psutil.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
             (signtool_str, _) = proc.communicate()
@@ -94,14 +96,16 @@ class InstallerW(InstallerBase):
             version,
             architecture,
         )
-        self.client_package = "ArangoDB3%s-client-%s_%s.exe" % (
-            enterprise,
-            version,
-            architecture,
-        )
-        self.cfg.client_install_prefix = self.cfg.base_test_dir / "arangodb3{ep}-client-{arch}_{ver}".format(
-            **self.desc)
-        self.debug_package =  "ArangoDB3{ep}-{ver}.pdb.zip".format(**self.desc)
+        if self.cfg.semver >= semver.VersionInfo.parse("3.7.15"):
+            self.client_package = "ArangoDB3%s-client-%s_%s.exe" % (
+                enterprise,
+                version,
+                architecture,
+            )
+            self.cfg.client_install_prefix = self.cfg.base_test_dir / "arangodb3{ep}-client-{arch}_{ver}".format(
+                **self.desc
+            )
+        self.debug_package = "ArangoDB3{ep}-{ver}.pdb.zip".format(**self.desc)
 
     @step
     def upgrade_server_package(self, old_installer):
@@ -172,7 +176,7 @@ class InstallerW(InstallerBase):
         ]
         logging.info("running windows package installer:")
         logging.info(str(cmd))
-        attach("Command", str(cmd))
+        attach(str(cmd), "Command")
         install = psutil.Popen(cmd)
         try:
             install.wait(600)

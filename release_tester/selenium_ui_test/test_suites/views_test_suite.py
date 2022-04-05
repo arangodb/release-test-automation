@@ -5,6 +5,8 @@ import semver
 from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 from selenium_ui_test.test_suites.base_test_suite import testcase
 from selenium_ui_test.pages.views_page import ViewsPage
+import time
+import semver
 
 
 class ViewsTestSuite(BaseSeleniumTestSuite):
@@ -23,30 +25,46 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
         print("Selecting Views tab\n")
         views.select_views_tab()
 
-        # checking 3.9 for improved views
-        version = views.current_package_version()
+        if views.current_package_version() >= semver.VersionInfo.parse("3.9.0"):
+            print('Creating improved views start here \n')
+            views.create_improved_views('improved_arangosearch_view_01', 0)
+            self.webdriver.refresh()
+            time.sleep(2)
+            views.create_improved_views('improved_arangosearch_view_02', 1)
+            print('Creating improved views completed \n')
 
-        if version >= semver.VersionInfo.parse("3.9.0"):
-            print("Creating improved views start here \n")
-            views.create_improved_views("improved_arangosearch_view_01", 0)
-            views.create_improved_views("improved_arangosearch_view_02", 1)
-            print("Creating improved views completed \n")
+            
+            if views.current_package_version() > semver.VersionInfo.parse("3.9.0"):
+                views.checking_modified_views(self.is_cluster)
 
-            # Checking improved views
-            views.checking_improved_views(
-                "improved_arangosearch_view", views.select_improved_arangosearch_view_01, self.is_cluster
-            )
+                if self.is_cluster:
+                    views.delete_new_views('improved_arangosearch_view_01')
+                    views.delete_new_views('improved_arangosearch_view_02')
+                else:
+                    views.delete_new_views('modified_views_name')
+                    views.delete_new_views('improved_arangosearch_view_02')
 
-            print("Deleting views started \n")
-            if self.is_cluster:
-                views.delete_views("improved_arangosearch_view_01", views.select_improved_arangosearch_view_01)
             else:
-                views.delete_views("modified_views_name", views.select_modified_views_name)
-            views.delete_views("improved_arangosearch_view_02", views.select_improved_arangosearch_view_02)
-            print("Deleting views completed \n")
-        else:            # for package version less than 3.9e
-            views.create_new_views("firstView")
-            views.create_new_views("secondView")
+                views.checking_improved_views('improved_arangosearch_view_01',
+                                                   views.select_improved_arangosearch_view_01, self.is_cluster)
+                print('Deleting views started \n')
+                if self.is_cluster:
+                    views.delete_views('improved_arangosearch_view_01',
+                                            views.select_improved_arangosearch_view_01)
+                    views.delete_views('improved_arangosearch_view_02',
+                                            views.select_improved_arangosearch_view_02)
+
+                else:
+                    views.delete_views('modified_views_name', views.select_modified_views_name)
+                    views.delete_views('improved_arangosearch_view_02',
+                                            views.select_improved_arangosearch_view_02)
+
+            print('Deleting views completed \n')
+
+        # for package version less than 3.9
+        elif views.current_package_version() <= semver.VersionInfo.parse("3.8.100"):
+            views.create_new_views('firstView')
+            views.create_new_views('secondView')
 
             views.select_views_settings()
 
@@ -66,14 +84,14 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
             print("Selecting expand button \n")
             views.select_expand_btn()
             print("Selecting editor mode \n")
-            views.select_editor_mode_btn()
+            views.select_editor_mode_btn(0)
             print("Switch editor mode to Code \n")
             views.switch_to_code_editor_mode()
             print("Switch editor mode to Compact mode Code \n")
             views.compact_json_data()
 
             print("Selecting editor mode \n")
-            views.select_editor_mode_btn()
+            views.select_editor_mode_btn(1)
             print("Switch editor mode to Tree \n")
             views.switch_to_tree_editor_mode()
 
@@ -86,22 +104,24 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
             views.search_result_traverse_up()
 
             if self.is_cluster:
-                print("View rename is disabled in Cluster mode \n")
+                print('View rename is disabled in Cluster mode \n')
             else:
                 print("Rename firstViews to thirdViews started \n")
                 views.clicking_rename_views_btn()
                 views.rename_views_name("thirdView")
                 views.rename_views_name_confirm()
                 print("Rename the current Views completed \n")
+            self.webdriver.back()
 
             print("Deleting views started \n")
             if self.is_cluster:
-                views.delete_views("first_view", views.select_first_view_id)
+                views.delete_views('first_view', views.select_first_view_id)
             else:
-                views.delete_views("renamed_view", views.select_renamed_view_id)
+                views.delete_views('renamed_view', views.select_renamed_view_id)
 
-            views.delete_views("second_view", views.select_second_view_id)
+            views.delete_views('second_view', views.select_second_view_id)
 
-        # print("Deleting views completed\n")
+        print("Deleting views completed\n")
+        
         del views
         print("---------Checking Views completed--------- \n")

@@ -134,9 +134,11 @@ class DatabasePage(NavigationBarPage):
 
         # ---------------------------------------database name convention test---------------------------------------
         print("Expected error scenario for the Database name Started \n")
+
         ver_db_names = semver.VersionInfo.parse("3.9.0")
         ver_db_replf = semver.VersionInfo.parse("3.8.0")
         version = self.current_package_version()
+        
         if version >= ver_db_names:
             db_name_error_input = ["@", "1", "שלום"]  # name must be 64 bit thus 65 character won't work too.
             db_name_print_statement = [

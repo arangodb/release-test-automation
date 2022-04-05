@@ -175,6 +175,7 @@ class AllureTestSuiteContext:
             parent_test_suite_name=None,
             auto_generate_parent_test_suite_name=True,
             suite_name=None,
+            sub_suite_name=None,
             runner_type=None,
             installer_type=None
     ):
@@ -237,6 +238,7 @@ class AllureTestSuiteContext:
                 self.parent_test_suite_name = generate_suite_name()
             else:
                 self.parent_test_suite_name = None
+        self.sub_suite_name=sub_suite_name
 
         if not self.file_logger:
             if AllureTestSuiteContext.test_suite_count == 0:
@@ -247,14 +249,24 @@ class AllureTestSuiteContext:
 
         if self.previous_test_listener:
             allure_commons.plugin_manager.unregister(self.previous_test_listener)
-
         self.test_listener = AllureListener(
             default_test_suite_name=self.test_suite_name,
-            default_parent_test_suite_name=self.parent_test_suite_name
+            default_parent_test_suite_name=self.parent_test_suite_name,
+            default_sub_suite_name=self.sub_suite_name,
         )
         allure_commons.plugin_manager.register(self.test_listener)
-        self.test_listener.start_suite(self.test_suite_name)
+        self.test_listener.start_suite_container(self.generate_container_name())
         AllureTestSuiteContext.test_suite_count += 1
+
+    def generate_container_name(self):
+        if self.sub_suite_name:
+            return self.sub_suite_name
+        elif self.test_suite_name:
+            return self.sub_suite_name
+        elif self.parent_test_suite_name:
+            return self.parent_test_suite_name
+        else:
+            return "Container name is undefined"
 
     def destroy(self):
         """close test suite context"""
@@ -264,7 +276,7 @@ class AllureTestSuiteContext:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.test_listener.stop_suite()
+        self.test_listener.stop_suite_container()
         if self.previous_test_listener:
             allure_commons.plugin_manager.unregister(self.test_listener)
             allure_commons.plugin_manager.register(self.previous_test_listener)

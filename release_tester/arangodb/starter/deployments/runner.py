@@ -954,7 +954,7 @@ class Runner(ABC):
     @step
     def agency_acquire_dump(self):
         """turns on logging on the agency"""
-        print("Duming agency")
+        print("Dumping agency")
         commands = [
             {
                 "URL": "/_api/agency/config",

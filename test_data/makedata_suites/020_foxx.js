@@ -8,6 +8,7 @@ const path = require('path');
 
 const {
   assertTrue,
+  assertFalse,
   assertEqual
 } = require("jsunity").jsUnity.assertions;
 

@@ -96,7 +96,7 @@ def upgrade_package_test(
             )
         )
 
-    results.append(test_driver.run_license_manager_tests(dl_new.cfg.version))
+    results.append(test_driver.run_license_manager_tests([dl_old.cfg.version, dl_new.cfg.version]))
 
     print("V" * 80)
     status = True
@@ -132,7 +132,6 @@ def upgrade_package_test(
     table.columns.alignment["Message + Progress"] = ALIGN_LEFT
 
     tablestr = str(table)
-    print(tablestr)
     Path("testfailures.txt").write_text(tablestr, encoding="utf8")
     if not status:
         print("exiting with failure")
@@ -142,8 +141,10 @@ def upgrade_package_test(
         touch_all_tars_in_dir(version_state_tar)
     else:
         write_version_tar(version_state_tar, fresh_versions)
+    print(tablestr)
 
     return 0
+
 
 @click.command()
 @click.option(
@@ -162,29 +163,30 @@ def upgrade_package_test(
 )
 @download_options(default_source="ftp:stage2", double_source=True)
 def main(**kwargs):
-    """ main """
-    kwargs['interactive'] = False
-    kwargs['abort_on_error'] = False
-    kwargs['package_dir'] = Path(kwargs['package_dir'])
-    kwargs['test_data_dir'] = Path(kwargs['test_data_dir'])
-    kwargs['alluredir'] = Path(kwargs['alluredir'])
+    """main"""
+    kwargs["interactive"] = False
+    kwargs["abort_on_error"] = False
+    kwargs["package_dir"] = Path(kwargs["package_dir"])
+    kwargs["test_data_dir"] = Path(kwargs["test_data_dir"])
+    kwargs["alluredir"] = Path(kwargs["alluredir"])
 
-    kwargs['hb_cli_cfg'] = HotBackupCliCfg.from_dict(**kwargs)
-    kwargs['base_config'] = InstallerBaseConfig.from_dict(**kwargs)
+    kwargs["hb_cli_cfg"] = HotBackupCliCfg.from_dict(**kwargs)
+    kwargs["base_config"] = InstallerBaseConfig.from_dict(**kwargs)
     dl_opts = DownloadOptions.from_dict(**kwargs)
 
     test_driver = TestDriver(**kwargs)
 
     return upgrade_package_test(
         dl_opts,
-        kwargs['new_version'],
-        kwargs['old_version'],
-        kwargs['new_source'],
-        kwargs['old_source'],
-        kwargs['git_version'],
-        kwargs['editions'],
-        test_driver
+        kwargs["new_version"],
+        kwargs["old_version"],
+        kwargs["new_source"],
+        kwargs["old_source"],
+        kwargs["git_version"],
+        kwargs["editions"],
+        test_driver,
     )
+
 
 if __name__ == "__main__":
     # pylint: disable=no-value-for-parameter # fix clickiness.

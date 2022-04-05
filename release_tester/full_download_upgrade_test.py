@@ -177,11 +177,11 @@ def upgrade_package_test(
     table.columns.alignment["Message + Progress"] = ALIGN_LEFT
 
     tablestr = str(table)
-    print(tablestr)
     Path("testfailures.txt").write_text(tablestr, encoding="utf8")
     if not status:
         print("exiting with failure")
         sys.exit(1)
+    print(tablestr)
 
     return 0
 

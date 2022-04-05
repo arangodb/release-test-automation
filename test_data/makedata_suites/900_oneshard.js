@@ -85,9 +85,12 @@
       db._useDatabase('_system');
       return 0;
     },
-    clearDataDB: function (options, isCluster, isEnterprise, dbCount, database) {
+    clearDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
       // check per DB
       progress("Test OneShard teardown");
+      if (database === "_system") {
+        database = "system";
+      }
       let baseName = database;
       const databaseName = `${baseName}_${dbCount}_oneShard`;
       db._useDatabase('_system');
