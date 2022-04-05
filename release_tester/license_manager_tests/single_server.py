@@ -53,6 +53,7 @@ class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
         """Teardown suite environment: single server"""
         self.starter.terminate_instance()
         kill_all_processes()
+        self.cleanup()
 
     def get_server_id(self):
         """read server ID from data directory"""
