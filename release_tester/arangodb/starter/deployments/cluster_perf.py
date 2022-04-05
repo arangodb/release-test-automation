@@ -8,7 +8,7 @@ from queue import Queue, Empty
 from threading import Thread
 
 import psutil
-import statsd
+# import statsd
 import yaml
 
 from arangodb.instance import InstanceType
@@ -39,7 +39,7 @@ class TestConfig:
         self.progressive_timeout = 100
 
 # pylint: disable=global-variable-not-assigned
-statsdc = statsd.StatsClient("localhost", 8125)
+#statsdc = statsd.StatsClient("localhost", 8125)
 RESULTS_TXT = None
 OTHER_SH_OUTPUT = None
 
@@ -57,10 +57,10 @@ def result_line(line_tp):
                 str_line = ",".join(segments) + "\n"
                 print(str_line)
                 RESULTS_TXT.write(str_line)
-                statsdc.timing(segments[0], float(segments[2]))
+                # statsdc.timing(segments[0], float(segments[2]))
         else:
             OTHER_SH_OUTPUT.write(line_tp[1].get_endpoint() + " - " + str(line_tp[0]) + "\n")
-            statsdc.incr("completed")
+            #statsdc.incr("completed")
 
 
 def makedata_runner(queue, resq, arangosh, progressive_timeout):
