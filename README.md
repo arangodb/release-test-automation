@@ -62,6 +62,7 @@ Typical arguments that may make chrome work:
 
 ## Windows
 
+On Windows we require `PYTHONUTF8=1` in the OS-Environment in order to avoid non supported conversions in print statements.
 TBD
 
 # specifying versions

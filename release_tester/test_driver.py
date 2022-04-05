@@ -47,6 +47,8 @@ class TestDriver:
     # pylint: disable=too-many-arguments disable=too-many-locals
     def __init__(self, **kwargs):
         self.launch_dir = Path.cwd()
+        if IS_WINDOWS and 'PYTHONUTF8' not in os.environ:
+            raise Exception("require PYTHONUTF8=1 in the environment")
         if "WORKSPACE" in os.environ:
             self.launch_dir = Path(os.environ["WORKSPACE"])
 
