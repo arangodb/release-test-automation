@@ -143,6 +143,8 @@ def upgrade_package_test(
                     )
                 )
 
+            results.append(test_driver.run_license_manager_tests([dl_old.cfg.version, dl_new.cfg.version]))
+
     print("V" * 80)
     status = True
     table = BeautifulTable(maxwidth=140)
