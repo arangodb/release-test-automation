@@ -46,20 +46,20 @@ class ServicePage(NavigationBarPage):
             expected_text = 'demo-graphql'
             demo_graphql_stiem = self.locator_finder_by_xpath(search_item)
             # print(f'{demo_graphql_stiem}')
-            assert demo_graphql_stiem.text == expected_text, f"Expected text{expected_text} " \
+            assert demo_graphql_stiem.text == expected_text, f"Expected text {expected_text} " \
                                                              f"but got {demo_graphql_stiem.text}"
         if search_keyword == 'tab':
             search_item = "//*[text()='tableau-connector']"
             expected_text = 'tableau-connector'
             demo_graphql_stiem = self.locator_finder_by_xpath(search_item)
             # print(f'{demo_graphql_stiem}')
-            assert demo_graphql_stiem.text == expected_text, f"Expected text{expected_text} " \
+            assert demo_graphql_stiem.text == expected_text, f"Expected text {expected_text} " \
                                                              f"but got {demo_graphql_stiem.text}"
         if search_keyword == 'grafana':
             search_item = "//*[text()='grafana-connector']"
             expected_text = 'grafana-connector'
             demo_graphql_stiem = self.locator_finder_by_xpath(search_item)
-            assert demo_graphql_stiem.text == expected_text, f"Expected text{expected_text} " \
+            assert demo_graphql_stiem.text == expected_text, f"Expected text {expected_text} " \
                                                              f"but got {demo_graphql_stiem.text}"
 
     def service_category_option(self):
@@ -150,33 +150,33 @@ class ServicePage(NavigationBarPage):
             search_category = '//*[@id="geo-option"]/span[3]'
             search_category_sitem = self.locator_finder_by_xpath(search_category)
             expected_text = 'geo'
-            assert search_category_sitem.text == expected_text, f"Expected text{expected_text} " \
+            assert search_category_sitem.text == expected_text, f"Expected text {expected_text} " \
                                                                 f"but got {search_category_sitem.text}"
 
         if keyword == 'demo':
             search_category = '//*[@id="demo-option"]/span[3]'
             search_category_sitem = self.locator_finder_by_xpath(search_category)
             expected_text = 'demo'
-            assert search_category_sitem.text == expected_text, f"Expected text{expected_text} " \
+            assert search_category_sitem.text == expected_text, f"Expected text {expected_text} " \
                                                                 f"but got {search_category_sitem.text}"
 
         if keyword == 'connector':
             search_category = '//*[@id="connector-option"]/span[3]'
             search_category_sitem = self.locator_finder_by_xpath(search_category)
             expected_text = 'connector'
-            assert search_category_sitem.text == expected_text, f"Expected text{expected_text} " \
+            assert search_category_sitem.text == expected_text, f"Expected text {expected_text} " \
                                                                 f"but got {search_category_sitem.text}"
 
     def select_demo_geo_s2_service(self):
         """Selecting demo geo s2 service from the list"""
         self.webdriver.refresh()
         print('Selecting demo_geo_s2 service \n')
-        geo_service = "//*[text()='geo,service']"
+        geo_service = "//*[text()='demo-geo-s2']"
         geo_service_sitem = self.locator_finder_by_xpath(geo_service)
         geo_service_sitem.click()
         time.sleep(2)
 
-    def setup_demo_geo_s2_service(self):
+    def checking_demo_geo_s2_service_github(self):
         """checking general stuff of demo_geo_s2 service"""
         self.webdriver.refresh()
         time.sleep(1)
@@ -188,7 +188,7 @@ class ServicePage(NavigationBarPage):
         expected_title = 'GitHub - arangodb-foxx/demo-geo-s2: A Foxx based geo ' \
                          'example using the new (v3.4+) s2 geospatial index'
 
-        assert page_title == expected_title, f"Expected text{expected_title} but got {page_title}"
+        assert page_title == expected_title, f"Expected text {expected_title} but got {page_title}"
         self.webdriver.back()
 
     def install_demo_geo_s2_service(self, mount_path, test_data_dir):
@@ -201,7 +201,6 @@ class ServicePage(NavigationBarPage):
         service_sitem.click()
         time.sleep(2)
 
-        # select a mount point FIXME
         print(f'Selecting service mount point at {mount_path} \n')
         mount_point = 'new-app-mount'
         mount_point_sitem = self.locator_finder_by_id(mount_point)
@@ -405,7 +404,7 @@ class ServicePage(NavigationBarPage):
 
         print('inspecting documentation through Foxx and leaflet \n')
         template_str = lambda leaflet: f'//*[@id="operations-default-GET_{leaflet}"]/div/span[1]'
-        
+
         id_list = [template_str('restaurants'),
                    template_str('neighborhoods'),
                    template_str('pointsInNeighborhood_id'),
@@ -423,11 +422,175 @@ class ServicePage(NavigationBarPage):
         self.webdriver.switch_to.default_content()
         time.sleep(1)
 
+    
+    def install_demo_graph_hql_service(self, mount_path):
+        """Installing demo_graph_hql_service from the list"""
+        self.select_service_page()
+        self.select_add_service_button()
+
+        print('Selecting graphql service \n')
+        graphql = "//*[text()='demo-graphql']"
+        graphql_sitem = self.locator_finder_by_xpath(graphql)
+        graphql_sitem.click()
+        time.sleep(2)
+
+        # ---------------checking graphql's links started here---------------
+
+        # Fixme need to be fixed as github link removed from the website
+        # print('Checking graphql Github link \n')
+        # github_link = "//*[text()='graphql-sync wrapper for graphql-js']"
+        # github_link_sitem = self.locator_finder_by_xpath(github_link)
+        # page_title = super().switch_tab(github_link_sitem)
+
+        # expected_title = 'GitHub - arangodb-foxx/demo-graphql: Example Foxx Service using GraphQL'
+
+        # assert page_title == expected_title, f"Expected text {expected_title} but got {page_title}"
+
+        print('Checking graphql documentation link \n')
+        foxx_graphql_link = '//*[@id="readme"]/p[1]/a[2]'
+        foxx_graphql_link_sitem = self.locator_finder_by_xpath(foxx_graphql_link)
+        page_title = super().switch_tab(foxx_graphql_link_sitem)
+
+        expected_title = 'Documentation Overview - ArangoDB the native multi-model, open-source database'
+
+        assert page_title == expected_title, f"Expected text {expected_title} but got {page_title}"
+        # ---------------checking graphql's links end here---------------
+
+        print('Installing the graphql service started \n')
+        install_graphql = 'installService'
+        install_graphql_sitem = self.locator_finder_by_id(install_graphql)
+        install_graphql_sitem.click()
+        time.sleep(3)
+
+        print('Mounting the demo graphql service \n')
+        mount_point = 'new-app-mount'
+        mount_point_sitem = self.locator_finder_by_id(mount_point)
+        mount_point_sitem.click()
+        mount_point_sitem.send_keys(mount_path)
+        time.sleep(1)
+
+        print('Install the service \n')
+        install_btn = 'modalButton1'
+        install_btn_sitem = self.locator_finder_by_id(install_btn)
+        install_btn_sitem.click()
+        time.sleep(2)
+
+        # at this point it will be back to service page
+        print('Selecting graphql service \n')
+        graphql_service = "//*[text()='demo-graphql']"
+        graphql_service_sitem = self.locator_finder_by_xpath(graphql_service)
+        graphql_service_sitem.click()
+        time.sleep(2)
+
+        print('Opening graphql interface \n')
+        graphql_interface = '//*[@id="information"]/div/div[2]/div[2]/input'
+        graphql_interface_stiem = self.locator_finder_by_xpath(graphql_interface)
+        graphql_interface_stiem.click()
+
+        print('Switching to code mirror windows of graphql \n')
+        self.webdriver.switch_to.window(self.webdriver.window_handles[1])
+        
+        graphql_interface_execute_btn = '//*[@id="graphiql-container"]/div[1]/div[1]/div/div[2]/button'
+        graphql_interface_execute_btn_sitem = \
+            self.locator_finder_by_xpath(graphql_interface_execute_btn)
+        graphql_interface_execute_btn_sitem.click()
+        print('Return back to original window \n')
+        self.webdriver.switch_to.window(self.webdriver.window_handles[0])
+
+        print('Checking API tab of graphql service \n')
+        graphql_api_name = 'service-api'
+        graphql_api_sitem = self.locator_finder_by_id(graphql_api_name)
+        graphql_api_sitem.click()
+        time.sleep(1)
+
+        print('Selecting Swagger view \n')
+        swagger_view = 'jsonLink'
+        self.locator_finder_by_id(swagger_view).click()
+        time.sleep(2)
+        self.locator_finder_by_id(swagger_view).click()
+        time.sleep(2)
+
+        print('Switching to IFrame \n')
+        iframe_id = 'swaggerIframe'
+        self.webdriver.switch_to.frame(self.locator_finder_by_id(iframe_id))
+        time.sleep(1)
+
+        print("Checking default view \n")
+        default_view = "operations-tag-default"
+        self.locator_finder_by_id(default_view).click()
+        time.sleep(2)
+        self.locator_finder_by_id(default_view).click()
+
+        print('inspecting documentation through Foxx and leaflet \n')
+        first = '//*[@id="operations-default-get"]/div/span[1]'
+        second = '//*[@id="operations-default-post"]/div/span[1]'
+
+        id_list = [first, second]
+        self.checking_function_for_fox_leaflet(id_list)
+
+        print('Getting out of IFrame \n')
+        self.webdriver.switch_to.default_content()
+        time.sleep(1)
+
+    def replace_service(self):
+        """This method will replace the service"""""
+        self.select_service_page()
+        self.select_demo_geo_s2_service()
+        self.select_service_settings()
+
+        print('Replacing demo_geo_s2 service with demo-graphql service \n')
+        replace_btn = "(//button[@class='app-replace upgrade button-warning'][normalize-space()='Replace'])[2]"
+        self.locator_finder_by_xpath(replace_btn).click()
+        time.sleep(1)
+
+        new_service = "(//button[@appid='demo-graphql'])[1]"
+        self.locator_finder_by_xpath(new_service).click()
+        time.sleep(2)
+
+        print("Run teardown before replacing service \n")
+        tear_down = "(//input[@value='false'])[1]"
+        self.locator_finder_by_xpath(tear_down).click()
+        time.sleep(1)
+
+        print("discard configuration before replacing service \n")
+        configuration = "(//input[@value='false'])[2]"
+        self.locator_finder_by_xpath(configuration).click()
+        time.sleep(1)
+
+        print("replacing begins with graphql service \n")
+        replace = 'modalButton1'
+        self.locator_finder_by_id(replace).click()
+        time.sleep(3)
+        try:
+            success_notification = self.handle_red_bar()
+            time.sleep(2)
+            expected_msg = 'Services: Service demo-graphql installed.'
+            assert expected_msg == success_notification, f"Expected {expected_msg} but got {success_notification}"
+        except Exception:
+            raise Exception('Error occurred!! required manual inspection.\n')
+        print('Service successfully replaced \n')
+
+
     def select_service_settings(self):
         """Selecting service settings tab"""
         print('Selecting settings options \n')
         settings = 'service-settings'
-        self.locator_finder_by_id(settings).click()
+        self.locator_finder_by_id(settings).click()\
+    
+    def delete_service_from_setting_tab(self):
+        delete_service = '//*[@id="settings"]/div/button[1]'
+        self.locator_finder_by_xpath(delete_service).click()
+        time.sleep(1)
+
+        confirm_delete = 'modalButton1'
+        self.locator_finder_by_id(confirm_delete).click()
+        time.sleep(1)
+
+        pressing_yes = 'modal-confirm-delete'
+        self.locator_finder_by_id(pressing_yes).click()
+        time.sleep(1)
+
+        self.webdriver.refresh()
     
     def collection_deletion(self, col_id):
         """Collection will be deleted by this method"""
@@ -453,15 +616,15 @@ class ServicePage(NavigationBarPage):
         """Delete all the services"""
         self.select_service_page()
 
-        if service_name == 'demo_geo_s2':
+        if service_name == '/geo':
 
             try:
                 # try to determine service has already been created
-                service = "//*[text()='demo-geo-s2']"
+                service = "//*[text()='/geo']"
                 service_sitem = self.locator_finder_by_xpath(service).text
                 time.sleep(1)
 
-                if service_sitem == 'demo-geo-s2':
+                if service_sitem == '/geo':
                     print(f'{service_sitem} service has been found and ready to delete \n')
                     self.locator_finder_by_xpath(service).click()
                     time.sleep(1)
@@ -491,3 +654,25 @@ class ServicePage(NavigationBarPage):
 
             except Exception:
                 raise Exception(f'No service found named {service_name}')
+        
+        if service_name == '/graphql':
+            # try to determine service has already been created
+            service = "//*[text()='/graphql']"
+            service_sitem = self.locator_finder_by_xpath(service).text
+            time.sleep(1)
+
+            try:
+                if service_sitem == '/graphql':
+                    print(f'{service_sitem} service has been found and ready to delete \n')
+                    self.locator_finder_by_xpath(service).click()
+                    time.sleep(1)
+                    # move to settings tab
+                    self.select_service_settings()
+                    time.sleep(1)
+
+                    self.delete_service_from_setting_tab()
+                    print(f'{service_sitem} service has been deleted successfully \n')
+
+            except Exception:
+                raise Exception(f'No service found named {service_name}')
+
