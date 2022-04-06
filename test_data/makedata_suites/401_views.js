@@ -8,10 +8,10 @@
     makeData: function (options, isCluster, isEnterprise, dbCount, loopCount) {
       // All items created must contain dbCount and loopCount
       print(`making data ${dbCount} ${loopCount}`);
-      let viewCollectionName = `old_cview1_${loopCount}`;
+      let viewCollectionName = `cview1_${loopCount}`;
       let cview1 = createCollectionSafe(viewCollectionName, 3, 1);
       progress('createView1');
-      let viewName1 = `old_view1_${loopCount}`;
+      let viewName1 = `view1_${loopCount}`;
       let view1 = createSafe(viewName1,
                              viewname => {
                                return db._createView(viewname, "arangosearch", {});
