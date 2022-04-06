@@ -3,7 +3,7 @@
 (function () {
   return {
     isSupported: function (version, oldVersion, enterprise, cluster) {
-      return semver.gt(oldVersion,  '3.7.0');
+      return true;
     },
     makeData: function (options, isCluster, isEnterprise, dbCount, loopCount) {
       // All items created must contain dbCount and loopCount
