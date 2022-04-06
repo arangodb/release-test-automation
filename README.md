@@ -3,11 +3,7 @@
 - python 3
 - python requests to talk to the instances https://requests.readthedocs.io/en/latest/
 - Python expect - https://github.com/pexpect/pexpect https://pexpect.readthedocs.io/en/stable/ (linux only)
-- PS-util  https://psutil.readthedocs.io/en/latest/#windows-services on windows `_pswindows.py` needs to be copied
- into the python installation after the pip run:
-   - python install root (i.e. Users/willi/AppData/Local/Programs/Python)
-   -  /Python38-32/Lib/site-packages/psutil/_pswindows.py
- the upstream distribution doesn't enable the wrappers to start/stop service
+- PS-util  https://psutil.readthedocs.io/en/latest/#windows-services 
 - pyyaml - for parsing saved data.
 - click - for commandline parsing https://click.palletsprojects.com/en/7.x/
 - semver - semantic versioning.
@@ -63,7 +59,10 @@ Typical arguments that may make chrome work:
 ## Windows
 
 On Windows we require `PYTHONUTF8=1` in the OS-Environment in order to avoid non supported conversions in print statements.
-TBD
+
+  `pip install -r requirements.txt`
+
+should be used to install the python dependencies.
 
 # specifying versions
 
