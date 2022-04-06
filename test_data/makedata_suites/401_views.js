@@ -24,7 +24,11 @@
         links: {}
       };
       meta.links[viewCollectionName] = {
-        includeAllFields: true
+        includeAllFields: false,
+        fields: {
+          animal:{},
+          name:{}
+        }
       };
       view1.properties(meta);
 
