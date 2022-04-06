@@ -38,7 +38,7 @@
     checkData: function (options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
       print(`checking data ${dbCount} ${loopCount}`);
       // Check view:
-      let view1 = db._view(`view1_${loopCount}`);
+      let view1 = db._view(`old_view1_${loopCount}`);
       if (!view1.properties().links.hasOwnProperty(`cview1_${loopCount}`)) {
         throw new Error("Hass");
       }
@@ -48,13 +48,13 @@
       print(`checking data ${dbCount} ${loopCount}`);
 
       try {
-        db._dropView(`view1_${loopCount}`);
+        db._dropView(`old_view1_${loopCount}`);
       } catch (e) {
         print(e);
       }
       progress();
       try {
-        db._drop(`cview1_${loopCount}`);
+        db._drop(`old_cview1_${loopCount}`);
       } catch (e) {
         print(e);
       }
