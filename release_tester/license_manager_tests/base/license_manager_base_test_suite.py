@@ -32,11 +32,9 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
         child_classes=[],
     ):
         self.new_version = new_version
-        self.base_cfg = installer_base_config
-        package_type = ".tar.gz" if installer_base_config.zip_package else ".deb/.rpm/NSIS"
+        package_type = ".tar.gz" if installer_base_config.zip_package else ".deb/.rpm/.dmg/NSIS"
         self.suite_name = f"Licence manager test suite: ArangoDB v. {str(new_version)} ({package_type})"
         self.auto_generate_parent_test_suite_name = False
-        super().__init__(child_classes=child_classes)
         self.use_subsuite = True
         run_props = RunProperties(
             enterprise=True,
@@ -46,7 +44,9 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
         self.installer_set = create_config_installer_set(
             versions=[new_version], base_config=self.base_cfg, deployment_mode="all", run_properties=run_props
         )
+        self.base_cfg = self.installer_set[0][0]
         self.installer = self.installer_set[0][1]
+        super().__init__(child_classes=child_classes)
         self.starter = None
         self.instance = None
         self.runner = None
