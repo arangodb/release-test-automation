@@ -39,7 +39,7 @@
       print(`checking data ${dbCount} ${loopCount}`);
       // Check view:
       let view1 = db._view(`old_view1_${loopCount}`);
-      if (!view1.properties().links.hasOwnProperty(`cview1_${loopCount}`)) {
+      if (!view1.properties().links.hasOwnProperty(`old_cview1_${loopCount}`)) {
         throw new Error("Hass");
       }
       progress();
