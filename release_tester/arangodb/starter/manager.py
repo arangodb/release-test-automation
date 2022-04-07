@@ -70,6 +70,8 @@ class StarterManager:
         # self.moreopts += ["--all.log.level=engines=trace"]
         # self.moreopts += ["--all.log.escape-control-chars=true"]
         # self.moreopts += ["--all.log.escape-unicode-chars=true"]
+        if (basecfg.semver.major==3 and basecfg.semver.minor>=9) or (basecfg.semver.major>3):
+            self.moreopts += ["--args.all.database.extended-names-databases=true"]
 
         # directories
         self.raw_basedir = install_prefix
