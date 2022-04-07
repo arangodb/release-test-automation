@@ -483,6 +483,46 @@ class BasePage:
                 raise Exception("*****-->Error occurred. Manual inspection required<--***** \n") from ex
 
             i = i + 1
+    
+    def check_expected_error_messages_for_views(self,
+                                                error_input,
+                                                print_statement,
+                                                error_message,
+                                                locators_id,
+                                                error_message_id):
+        """This method will take three lists and check for expected error condition against user's inputs"""
+        # looping through all the error scenario for test
+        i = 0
+        while i < len(error_input):  # error_input list will hold a list of error inputs from the users
+            print(print_statement[i])  # print_statement will hold a list of all general print statements for the test
+            locators = locators_id  # locator id of the input placeholder where testing will take place
+            locator_sitem = self.locator_finder_by_xpath(locators)
+            locator_sitem.click()
+            locator_sitem.clear()
+            locator_sitem.send_keys(error_input[i])
+            time.sleep(2)
+
+            if self.current_package_version() >= semver.VersionInfo.parse("3.8.0"):
+                locator_sitem.send_keys(Keys.TAB)
+                time.sleep(2)
+            try:
+                # trying to create the views
+                error_sitem = self.locator_finder_by_xpath(error_message_id).text
+
+                # error_message list will hold expected error messages
+                assert error_sitem == error_message[i], \
+                    f"FAIL: Expected error message {error_message[i]} but got {error_sitem}"
+
+                print('x' * (len(error_sitem) + 29))
+                print('OK: Expected error found: ', error_sitem)
+                print('x' * (len(error_sitem) + 29), '\n')
+                time.sleep(2)
+
+            except TimeoutException:
+                raise Exception('*****-->Error occurred. Manual inspection required<--***** \n')
+
+            i = i + 1
+
 
     def check_server_package(self):
         """This will determine the current server package type"""

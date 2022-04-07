@@ -525,6 +525,41 @@ class ViewsPage(NavigationBarPage):
             print("Rename the current Views completed \n")
         print(f"Checking {name} Completed \n")
 
+    
+    def checking_views_negative_scenario_for_views(self):
+        """This method will check negative input for views name during creation"""
+        self.select_views_tab()
+        print('Selecting views create button \n')
+        create_new_views_id = self.locator_finder_by_xpath(self.create_new_views_id)
+        create_new_views_id.click()
+        time.sleep(2)
+
+        print('Expected error scenario for the Views name \n')
+        error_input = ['@', '/', 'שלום']
+        print_statement = ['Checking views name with "@"',
+                           'Checking views name with "/"',
+                           'Checking views name with "שלום"']
+        error = 'Only symbols, "_" and "-" are allowed.'
+        error_message = [error, error, error]
+
+        locator_id = '//*[@id="newName"]'
+        error_locator_id = "//p[@class='errorMessage']"
+
+        # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
+        self.check_expected_error_messages_for_views(error_input,
+                                                     print_statement,
+                                                     error_message,
+                                                     locator_id,
+                                                     error_locator_id)
+        print('Expected error scenario for the Database Write Concern Completed \n')
+
+        print('Closing the views creation \n')
+        close_btn = '//*[@id="modalButton0"]'
+        close_btn_sitem = self.locator_finder_by_xpath(close_btn)
+        close_btn_sitem.click()
+        time.sleep(3)
+
+
     def delete_views(self, name, locator):
         """This method will delete views"""
         self.select_views_tab()

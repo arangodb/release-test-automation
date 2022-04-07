@@ -122,6 +122,8 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
             views.delete_views('second_view', views.select_second_view_id)
 
         print("Deleting views completed\n")
+
+        views.checking_views_negative_scenario_for_views()
         
         del views
         print("---------Checking Views completed--------- \n")
