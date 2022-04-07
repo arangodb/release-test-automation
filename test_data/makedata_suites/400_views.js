@@ -24,7 +24,7 @@
         links: {}
       };
       meta.links[viewCollectionName] = {
-        includeAllFields: true
+        // includeAllFields: true
       };
       view1.properties(meta);
 
