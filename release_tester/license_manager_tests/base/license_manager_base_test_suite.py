@@ -42,7 +42,10 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
             ssl=False,
         )
         self.installer_set = create_config_installer_set(
-            versions=[new_version], base_config=self.base_cfg, deployment_mode="all", run_properties=run_props
+            versions=[new_version],
+            base_config=installer_base_config,
+            deployment_mode="all",
+            run_properties=run_props
         )
         self.base_cfg = self.installer_set[0][0]
         self.installer = self.installer_set[0][1]
