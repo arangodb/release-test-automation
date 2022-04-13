@@ -393,7 +393,21 @@ class Dc2Dc(Runner):
                 self.progress(True, "arangosync: resetting users collection...")
                 self.sync_manager.reset_failed_shard("_system", "_users")
             else:
+                self.progress(True, "arangosync: _users collection dump. Source DC:")
+                self._print_users(self.cluster1)
+                self.progress(True, "arangosync: _users collection dump. Target DC:")
+                self._print_users(self.cluster2)
                 self.progress(True, "arangosync: unknown error condition, doing nothing.")
+
+    def _print_users(self, cluster):
+        output = cluster["instance"].arangosh.run_command(
+            ("print _users",
+             "q = db._collection('_users').all(); while (q.hasNext()) print(q.next());",
+             "--server.jwt-secret-keyfile", cluster["JWTSecret"]),
+            True,
+            use_default_auth=False
+        )
+        print(str(output))
 
     def _get_in_sync(self, attempts):
         self.progress(True, "waiting for the DCs to get in sync")
