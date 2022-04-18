@@ -315,6 +315,16 @@ class BasePage:
         if self.locator is None:
             raise Exception("UI-Test: ", locator_name, " locator was not found.")
         return self.locator
+    
+    def locator_finder_by_link_text(self, locator_name):
+        """This method will be used for finding all the locators by their xpath"""
+        self.locator = WebDriverWait(self.webdriver, 10).until(
+            EC.element_to_be_clickable((BY.LINK_TEXT, locator_name))
+        )
+        if self.locator is None:
+            print("UI-Test: ", locator_name, " locator has not found.")
+        else:
+            return self.locator
 
     def locator_finder_by_select(self, locator_name, value):
         """This method will used for finding all the locators in drop down menu with options"""
@@ -495,8 +505,8 @@ class BasePage:
         i = 0
         while i < len(error_input):  # error_input list will hold a list of error inputs from the users
             print(print_statement[i])  # print_statement will hold a list of all general print statements for the test
-            locators = locators_id  # locator id of the input placeholder where testing will take place
-            locator_sitem = self.locator_finder_by_xpath(locators)
+            # locator id of the input placeholder where testing will take place
+            locator_sitem = self.locator_finder_by_xpath(locators_id)
             locator_sitem.click()
             locator_sitem.clear()
             locator_sitem.send_keys(error_input[i])

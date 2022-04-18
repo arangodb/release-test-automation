@@ -25,39 +25,57 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
         print("Selecting Views tab\n")
         views.select_views_tab()
 
+        # checking 3.9 for improved views
         if views.current_package_version() >= semver.VersionInfo.parse("3.9.0"):
             print('Creating improved views start here \n')
             views.create_improved_views('improved_arangosearch_view_01', 0)
             self.webdriver.refresh()
-            time.sleep(2)
+            time.sleep(4)
             views.create_improved_views('improved_arangosearch_view_02', 1)
             print('Creating improved views completed \n')
 
             
-            if views.current_package_version() > semver.VersionInfo.parse("3.9.0"):
-                views.checking_modified_views(self.is_cluster)
+            # checking imrproved view for 3.9.0
+            # if semver.VersionInfo.parse("3.8.100") < views.current_package_version() < semver.VersionInfo.parse("3.9.100"):
+            #     views.checking_modified_views(self.is_cluster)
+            if semver.VersionInfo.parse("3.8.100") < views.current_package_version() < semver.VersionInfo.parse("3.9.100"):
+                views.checking_improved_views('improved_arangosearch_view_01',views.select_improved_arangosearch_view_01, self.is_cluster)
 
-                if self.is_cluster:
-                    views.delete_new_views('improved_arangosearch_view_01')
-                    views.delete_new_views('improved_arangosearch_view_02')
-                else:
-                    views.delete_new_views('modified_views_name')
-                    views.delete_new_views('improved_arangosearch_view_02')
-
-            else:
-                views.checking_improved_views('improved_arangosearch_view_01',
-                                                   views.select_improved_arangosearch_view_01, self.is_cluster)
                 print('Deleting views started \n')
                 if self.is_cluster:
+                    # views.delete_new_views('improved_arangosearch_view_01')
+                    # views.delete_new_views('improved_arangosearch_view_02')
                     views.delete_views('improved_arangosearch_view_01',
                                             views.select_improved_arangosearch_view_01)
                     views.delete_views('improved_arangosearch_view_02',
                                             views.select_improved_arangosearch_view_02)
-
                 else:
+                    # views.delete_new_views('modified_views_name')
+                    # views.delete_new_views('improved_arangosearch_view_02')
                     views.delete_views('modified_views_name', views.select_modified_views_name)
                     views.delete_views('improved_arangosearch_view_02',
                                             views.select_improved_arangosearch_view_02)
+
+            # checking improved view for 3.10.0
+            if views.current_package_version() >= semver.VersionInfo.parse("3.10.0"):
+                # views.checking_improved_views('improved_arangosearch_view_01',
+                #                                    views.select_improved_arangosearch_view_01, self.is_cluster)
+                views.checking_modified_views(self.is_cluster)
+                print('Deleting views started \n')
+                if self.is_cluster:
+                    # views.delete_views('improved_arangosearch_view_01',
+                    #                         views.select_improved_arangosearch_view_01)
+                    # views.delete_views('improved_arangosearch_view_02',
+                    #                         views.select_improved_arangosearch_view_02)
+                    views.delete_new_views('improved_arangosearch_view_01')
+                    views.delete_new_views('improved_arangosearch_view_02')
+
+                else:
+                    # views.delete_views('modified_views_name', views.select_modified_views_name)
+                    # views.delete_views('improved_arangosearch_view_02',
+                    #                         views.select_improved_arangosearch_view_02)
+                    views.delete_new_views('modified_views_name')
+                    views.delete_new_views('improved_arangosearch_view_02')
 
             print('Deleting views completed \n')
 
