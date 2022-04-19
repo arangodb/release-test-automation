@@ -110,10 +110,6 @@ Supported Parameters:
  - `--[no-]ssl` use SSL (default = False)
  - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl) 
  - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
- - `--hb-mode` - Hot backup mode. Possible values: disabled, directory or s3bucket. 
- - `--hb-provider` - Cloud storage provider. Possible values for s3bucket: minio, aws.
- - `--hb-storage-path-prefix` - Bucket name and subdirectory to store hot backups in cloud.
-
 Example usage:
  - Windows: `python ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
  - Linux (ubuntu|debian) `python3 ./release_tester/test.py --new-version 3.6.2 --no-enterprise --package-dir /home/willi/Downloads`
@@ -153,9 +149,6 @@ Supported Parameters:
  - `--[no-]ssl` use SSL (default = False)
  - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl)
  - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
- - `--hb-mode` - Hot backup mode. Possible values: disabled, directory or s3bucket. 
- - `--hb-provider` - Cloud storage provider. Possible values for s3bucket: minio, aws.
- - `--hb-storage-path-prefix` - Bucket name and subdirectory to store hot backups in cloud.
  
 Example usage:
  - Windows: `python ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
@@ -273,9 +266,6 @@ Supported Parameters:
  - `--[no-]ssl` use SSL (default = False)
  - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl)
  - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
- - `--hb-mode` - Hot backup mode. Possible values: disabled, directory or s3bucket. 
- - `--hb-provider` - Cloud storage provider. Possible values for s3bucket: minio, aws.
- - `--hb-storage-path-prefix` - Bucket name and subdirectory to store hot backups in cloud.
 
 Example usage: 
 
@@ -334,10 +324,6 @@ Supported Parameters:
  - `--[no-]ssl` use SSL (default = False)
  - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl)
  - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
- - `--hb-mode` - Hot backup mode. Possible values: disabled, directory or s3bucket. 
- - `--hb-provider` - Cloud storage provider. Possible values for s3bucket: minio, aws.
- - `--hb-storage-path-prefix` - Bucket name and subdirectory to store hot backups in cloud.
-
 Example usage: 
 
 - [jenkins/nightly_tar.sh](jenkins/nightly_tar.sh) Download nightly tarball packages, and run it with selenium in `containers/docker_tar` ubuntu container
@@ -433,7 +419,7 @@ if this repository is checked out next to it:
 During the test scenarios hot backups will be created/restored and uploaded/downloaded to/from an external storage using the bundled rclone. 
 RTA supports different types of external storage. By default the backups will be just copied to another directory using rclone. 
 Other options include running minio(S3-compatible open-source storage) locally and uploading backups to a real cloud provider. 
-This is controlled using the following 3 command line parameters:
+This is controlled using the following command line parameters:
  - `--hb-mode` - Hot backup mode. Possible values: disabled, directory or s3bucket. 
  - `--hb-provider` - Cloud storage provider. Possible values for s3bucket: minio, aws.
  - `--hb-storage-path-prefix` - Bucket name and subdirectory to store hot backups in cloud.
@@ -441,6 +427,19 @@ This is controlled using the following 3 command line parameters:
  - `--hb-aws-secret-access-key` [env `AWS_SECRET_ACCESS_KEY`] - secret access key (mandatory parameter)
  - `--hb-aws-region` [env `AWS_REGION`] - region (mandatory parameter)
  - `--hb-aws-acl` [env `AWS_ACL`] - ACL (default value: `private`)
+ - `--hb-use-cloud-preset` (string) - Load saved hotbackup settings. To use this, create a file release_tester/tools/external_helpers/cloud_secrets.py. Inside this file define dict variables. The name of the variable is the name of the preset. The dict must contain all the hb parameters. If --hb-use-cloud-preset is set, then all other parameters which names start with hb- are ignored. 
+   Example of cloud_secrets.py: 
+```python
+aws = {
+    "hb_storage_path_prefix": "/path/inside/bucket",
+    "hb_mode": "s3bucket",
+    "hb_provider": "aws",
+    "hb_aws_access_key_id": "SECRET_KEY",
+    "hb_aws_secret_access_key": "ACCESS_KEY",
+    "hb_aws_region": "eu-central-1",
+    "hb_aws_acl": "private",
+}
+```
 
 Each cloud storage may also have some specific configuration parameters, which must be set as environment variables.
 

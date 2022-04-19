@@ -10,6 +10,7 @@ from pathlib import Path
 import semver
 
 from reporting.reporting_utils import step
+from tools.external_helpers import cloud_secrets
 
 # pylint: disable=too-few-public-methods
 
@@ -88,6 +89,20 @@ class OptionGroup:
 @dataclass
 class HotBackupCliCfg(OptionGroup):
     """ map hotbackup_options """
+    @classmethod
+    def from_dict(cls, **options):
+        """ invoke init from kwargs """
+        if "hb_use_cloud_preset" in options.keys():
+            if hasattr(cloud_secrets, options["hb_use_cloud_preset"]):
+                return cls(
+                    **{k: v for k, v in getattr(cloud_secrets, options["hb_use_cloud_preset"]).items() if k in cls.__dataclass_fields__}
+                )
+            else:
+                raise Exception("Presaved cloud profile with this name not found: " + options["hb_use_cloud_preset"])
+        else:
+            return cls(
+                **{k: v for k, v in options.items() if k in cls.__dataclass_fields__}
+            )
     hb_mode: str
     hb_provider: str
     hb_provider: str

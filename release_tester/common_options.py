@@ -97,6 +97,12 @@ def hotbackup_options():
             default=acl,
             help="AWS  ACL (default value: 'private')",
         )(function)
+        function = click.option(
+            "--hb-use-cloud-preset",
+            "hb_use_cloud_preset",
+            default=None,
+            help="Use hotbackup options presaved in a secret location.",
+        )(function)
         return function
     return inner_func
 
