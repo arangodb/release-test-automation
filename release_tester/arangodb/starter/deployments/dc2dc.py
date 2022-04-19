@@ -390,14 +390,13 @@ class Dc2Dc(Runner):
                     if re.match(USERS_ERROR_RX, line):
                         userline_seen = True
             if dbline_seen and userline_seen and coll_count < 5:
-                self.progress(True, "arangosync: resetting users collection...")
-                self.sync_manager.reset_failed_shard("_system", "_users")
-            else:
                 self.progress(True, "arangosync: _users collection dump. Source DC:")
                 self._print_users(self.cluster1)
                 self.progress(True, "arangosync: _users collection dump. Target DC:")
                 self._print_users(self.cluster2)
                 self.progress(True, "arangosync: unknown error condition, doing nothing.")
+                self.progress(True, "arangosync: resetting users collection...")
+                self.sync_manager.reset_failed_shard("_system", "_users")
 
     def _print_users(self, cluster):
         output = cluster["instance"].arangosh.run_command(
