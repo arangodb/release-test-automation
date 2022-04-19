@@ -176,7 +176,7 @@ class DatabasePage(NavigationBarPage):
         )
         print("Expected error scenario for the Database name Completed \n")
 
-        if version >= ver_db_names:
+        if cluster and version >= ver_db_names:
             db_sitem = self.locator_finder_by_id("newDatabaseName")
             db_sitem.click()
             db_sitem.clear()
@@ -230,7 +230,7 @@ class DatabasePage(NavigationBarPage):
             )
             print("Expected error scenario for the Database Write Concern Completed \n")
 
-        if cluster and version >= ver_db_replf:
+        if cluster and version == ver_db_replf:
             # -------------------------------database Replication Factor convention test------------------------------
             print("Expected error scenario for the Database Replication Factor Started \n")
             rf_error_input = ["@", "a", "11", "שלום"]

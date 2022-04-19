@@ -451,7 +451,6 @@ class BasePage:
             print(print_statement[i])  # print_statement will hold a list of all general print statements for the test
             locators = locators_id  # locator id of the input placeholder where testing will take place
             locator_sitem = self.locator_finder_by_id(locators)
-
             locator_sitem.click()
             locator_sitem.clear()
             locator_sitem.send_keys(error_input[i])
@@ -462,7 +461,7 @@ class BasePage:
                 locator_sitem.send_keys(Keys.TAB)
                 time.sleep(2)
             try:
-                # trying to create the db for 3.9 version
+                # trying to create the db for >= v3.9.x
                 if value is False and self.current_package_version() >= semver.VersionInfo.parse("3.9.0"):
                     self.locator_finder_by_xpath('//*[@id="modalButton1"]').click()
                     time.sleep(2)
@@ -484,7 +483,7 @@ class BasePage:
                 time.sleep(2)
 
                 # getting out from the db creation for the next check
-                if value is False and self.current_package_version() == semver.VersionInfo.parse("3.9.0"):
+                if value is False and self.current_package_version() >= semver.VersionInfo.parse("3.9.0"):
                     self.webdriver.refresh()
                     self.locator_finder_by_id("createDatabase").click()
                     time.sleep(1)
