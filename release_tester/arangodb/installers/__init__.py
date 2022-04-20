@@ -92,7 +92,7 @@ class HotBackupCliCfg(OptionGroup):
     @classmethod
     def from_dict(cls, **options):
         """ invoke init from kwargs """
-        if "hb_use_cloud_preset" in options.keys():
+        if "hb_use_cloud_preset" in options.keys() and options["hb_use_cloud_preset"] is not None:
             if hasattr(cloud_secrets, options["hb_use_cloud_preset"]):
                 return cls(
                     **{k: v for k, v in getattr(cloud_secrets, options["hb_use_cloud_preset"]).items() if k in cls.__dataclass_fields__}
