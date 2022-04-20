@@ -26,6 +26,9 @@ HB_2_RCLONE_TYPE = {
 class HotBackupConfig:
     """manage rclone setup"""
 
+    #values inside this list must be lower case
+    SECRET_PARAMETERS = ["access_key_id", "secret_access_key"]
+
     def __init__(self, basecfg, name, raw_install_prefix):
         self.hb_timeout = 20
         hbcfg = basecfg.hb_cli_cfg
@@ -68,19 +71,30 @@ class HotBackupConfig:
             config["one_file_system"] = "true"
         self.config = {self.name: config}
 
+    def get_config_json(self):
+        return json.dumps(self.config)
+
+    def get_config_json_sanitized(self):
+        cfg_copy = copy.deepcopy(self.config)
+        for cfg_name in cfg_copy:
+            for param_name in cfg_copy[cfg_name]:
+                if param_name.lower() in HotBackupConfig.SECRET_PARAMETERS:
+                    cfg_copy[cfg_name][param_name] = "***"
+        return json.dumps(cfg_copy)
+
     def save_config(self, filename):
         """writes a hotbackup rclone configuration file"""
         fhandle = self.install_prefix / filename
         lh.subsubsection("Writing RClone config:")
-        print(json.dumps(self.config))
-        fhandle.write_text(json.dumps(self.config))
+        print(self.get_config_json_sanitized())
+        fhandle.write_text(self.get_config_json())
         return str(fhandle)
 
     @step
     def get_rclone_config_file(self):
         """create a config file and return its full name"""
         filename = self.save_config("rclone_config.json")
-        attach.file(filename, "rclone_config.json", "application/json", "rclone_config.json")
+        attach(self.get_config_json_sanitized(), "rclone_config.json", "application/json", "rclone_config.json")
         return filename
 
     def construct_remote_storage_path(self, postfix):
