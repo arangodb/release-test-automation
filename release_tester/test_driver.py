@@ -431,6 +431,7 @@ class TestDriver:
                                              runner.ui_test_results_table if
                                              not row["Result"] == "PASSED"]
                         one_result["success"] = False
+                        # pylint: disable=line-too-long
                         one_result[
                             "messages"].append(
                             f'The following UI tests failed: {", ".join(failed_test_names)}. See allure report for details.')
@@ -572,9 +573,9 @@ class TestDriver:
             versions
     ):
         """run license manager tests"""
-        if(len(versions)==1):
+        if len(versions)==1:
             new_version=versions[0]
-        elif(len(versions)>1):
+        elif len(versions)>1:
             old_version = versions[1]
             new_version = versions[1]
         if semver.VersionInfo.parse(new_version) < "3.9.0-nightly":
@@ -603,7 +604,9 @@ class TestDriver:
         results = []
         suites_classes = []
         suites_classes.append(BasicLicenseManagerTestSuite)
-        if len(versions)>1 and semver.VersionInfo.parse(old_version) > "3.9.0-nightly" and semver.VersionInfo.parse(new_version) > "3.9.0-nightly":
+        if (len(versions)>1 and
+            semver.VersionInfo.parse(old_version) > "3.9.0-nightly" and
+            semver.VersionInfo.parse(new_version) > "3.9.0-nightly"):
             suites_classes.append(UpgradeLicenseManagerTestSuite)
         args = (versions, self.base_config)
 

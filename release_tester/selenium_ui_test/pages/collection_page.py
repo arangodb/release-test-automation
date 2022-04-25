@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """ collection page object """
 import time
-import semver
 import traceback
 
 from selenium.common.exceptions import ElementNotInteractableException, TimeoutException
+import semver
 
 from selenium_ui_test.pages.navbar import NavigationBarPage
-import semver
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=line-too-long disable=too-many-instance-attributes disable=too-many-statements disable=too-many-public-methods
@@ -294,12 +293,11 @@ class CollectionPage(NavigationBarPage):
         """getting_total_row_count"""
         # ATTENTION: this will only be visible & successfull if the browser window is wide enough!
         size = self.webdriver.get_window_size()
-        if (size["width"] > 1000):
+        if size["width"] > 1000:
             getting_total_row_count_sitem = self.locator_finder_by_xpath(self.getting_total_row_count_id, 20)
             return getting_total_row_count_sitem.text
-        else:
-            print("your browser window is to narrow! " + str(size))
-            return "-1"
+        print("your browser window is to narrow! " + str(size))
+        return "-1"
 
 
     def download_doc_as_json(self):

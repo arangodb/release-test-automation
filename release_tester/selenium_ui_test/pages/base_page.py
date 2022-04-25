@@ -447,7 +447,6 @@ class BasePage:
             locator_sitem.send_keys(error_input[i])
             time.sleep(2)
 
-            version = self.current_package_version()
             if semver.VersionInfo.parse("3.8.0") <= self.current_package_version() <= semver.VersionInfo.parse("3.8.100"):
                 locator_sitem.send_keys(Keys.TAB)
                 time.sleep(2)
@@ -524,7 +523,7 @@ class BasePage:
     def by_class(self, classname):
         """shortcut class-id"""
         return self.webdriver.find_element(BY.CLASS_NAME, classname)
-    
+
     def handle_red_bar(self):
         """It will check for any red bar error notification"""
         try:

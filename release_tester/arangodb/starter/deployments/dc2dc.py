@@ -398,6 +398,7 @@ class Dc2Dc(Runner):
                 self.progress(True, "arangosync: resetting users collection...")
                 self.sync_manager.reset_failed_shard("_system", "_users")
 
+    # pylint: disable=no-self-use
     def _print_users(self, cluster):
         output = cluster["instance"].arangosh.run_command(
             ("print _users",

@@ -467,7 +467,7 @@ class StarterManager:
         # workaround BTS-815: starter exits 15 on the wintendo:
         if IS_WINDOWS and exit_code == 15:
             exit_code = 0
-    
+
         if exit_code != 0:
             raise Exception("Starter %s exited with %d" % (self.basedir, exit_code))
 

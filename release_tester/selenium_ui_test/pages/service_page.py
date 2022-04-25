@@ -2,9 +2,7 @@
 """ service page object """
 import time
 
-from selenium_ui_test.pages.base_page import Keys
 from selenium_ui_test.pages.navbar import NavigationBarPage
-from selenium.common.exceptions import TimeoutException
 
 
 class ServicePage(NavigationBarPage):
@@ -348,8 +346,8 @@ class ServicePage(NavigationBarPage):
                 else:
                     raise Exception('restaurants Collection not found!')
 
-        except Exception:
-            raise Exception('Failed to create the service!!')
+        except Exception as ex:
+            raise Exception('Failed to create the service!!') from ex
 
     def check_demo_geo_s2_service_api(self):
         """Checking demo_geo_s2 service's API"""
@@ -422,7 +420,6 @@ class ServicePage(NavigationBarPage):
         self.webdriver.switch_to.default_content()
         time.sleep(1)
 
-    
     def install_demo_graph_hql_service(self, mount_path):
         """Installing demo_graph_hql_service from the list"""
         self.select_service_page()
@@ -489,7 +486,7 @@ class ServicePage(NavigationBarPage):
 
         print('Switching to code mirror windows of graphql \n')
         self.webdriver.switch_to.window(self.webdriver.window_handles[1])
-        
+
         graphql_interface_execute_btn = '//*[@id="graphiql-container"]/div[1]/div[1]/div/div[2]/button'
         graphql_interface_execute_btn_sitem = \
             self.locator_finder_by_xpath(graphql_interface_execute_btn)
@@ -566,18 +563,19 @@ class ServicePage(NavigationBarPage):
             time.sleep(2)
             expected_msg = 'Services: Service demo-graphql installed.'
             assert expected_msg == success_notification, f"Expected {expected_msg} but got {success_notification}"
-        except Exception:
-            raise Exception('Error occurred!! required manual inspection.\n')
+        except Exception as ex:
+            raise Exception('Error occurred!! required manual inspection.\n'
+                            ) from ex
         print('Service successfully replaced \n')
-
 
     def select_service_settings(self):
         """Selecting service settings tab"""
         print('Selecting settings options \n')
         settings = 'service-settings'
         self.locator_finder_by_id(settings).click()\
-    
+
     def delete_service_from_setting_tab(self):
+        """will remove a service"""
         delete_service = '//*[@id="settings"]/div/button[1]'
         self.locator_finder_by_xpath(delete_service).click()
         time.sleep(1)
@@ -591,7 +589,7 @@ class ServicePage(NavigationBarPage):
         time.sleep(1)
 
         self.webdriver.refresh()
-    
+
     def collection_deletion(self, col_id):
         """Collection will be deleted by this method"""
         print(f'Deleting {col_id} collections \n')
@@ -610,7 +608,6 @@ class ServicePage(NavigationBarPage):
         self.locator_finder_by_xpath(confirm_delete).click()
         print(f'Deleting {col_id} collections completed \n')
         time.sleep(1)
-
 
     def delete_service(self, service_name):
         """Delete all the services"""
@@ -652,9 +649,10 @@ class ServicePage(NavigationBarPage):
                     self.collection_deletion('collection_neighborhoods')
                     self.collection_deletion('collection_restaurants')
 
-            except Exception:
-                raise Exception(f'No service found named {service_name}')
-        
+            except Exception as ex:
+                raise Exception(f'No service found named {service_name}'
+                                ) from ex
+
         if service_name == '/graphql':
             # try to determine service has already been created
             service = "//*[text()='/graphql']"
@@ -673,6 +671,6 @@ class ServicePage(NavigationBarPage):
                     self.delete_service_from_setting_tab()
                     print(f'{service_sitem} service has been deleted successfully \n')
 
-            except Exception:
-                raise Exception(f'No service found named {service_name}')
-
+            except Exception as ex:
+                raise Exception(f'No service found named {service_name}'
+                                ) from ex

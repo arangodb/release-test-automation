@@ -321,7 +321,8 @@ class ViewsPage(NavigationBarPage):
         create_sitem.click()
         time.sleep(2)
         self.webdriver.refresh()
-    
+
+    # pylint: disable=too-many-locals
     def checking_modified_views(self, is_cluster):
         """This method will check views for 3.10.x package version"""
         print('Selecting improved views \n')
@@ -422,7 +423,7 @@ class ViewsPage(NavigationBarPage):
             save_btn_sitem = self.locator_finder_by_xpath(save_btn)
             save_btn_sitem.click()
             time.sleep(2)
-    
+
     def delete_new_views(self, name):
         """this method will delete all the newer version views"""
         self.wait_for_ajax()

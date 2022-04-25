@@ -72,9 +72,11 @@ class HotBackupConfig:
         self.config = {self.name: config}
 
     def get_config_json(self):
+        """json serializer"""
         return json.dumps(self.config)
 
     def get_config_json_sanitized(self):
+        """json serializer"""
         cfg_copy = copy.deepcopy(self.config)
         for cfg_name in cfg_copy:
             for param_name in cfg_copy[cfg_name]:
@@ -266,6 +268,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
                 return match.group(1)
         raise Exception("couldn't locate name of the upload process!")
 
+    # pylint: disable=unused-argument disable=no-self-use
     def validate_local_backup(self, starter_basedir, backup_name):
         """ validate backups in the local installation """
         self.validate_backup(starter_basedir, backup_name)
