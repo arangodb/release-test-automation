@@ -10,7 +10,11 @@ from pathlib import Path
 import semver
 
 from reporting.reporting_utils import step
-from tools.external_helpers import cloud_secrets
+try:
+    from tools.external_helpers import cloud_secrets
+#pylint: disable=bare-except
+except:
+    cloud_secrets = None
 
 # pylint: disable=too-few-public-methods
 
