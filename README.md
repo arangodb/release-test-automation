@@ -739,5 +739,5 @@ cd ..
   --starter-mode DC
 ```
 
-Will search for `/home/willi/src/E_3.9.0/build/bin` to launch the deployment initially, and upgrade to `/home/willi/src/E_3.10.0-devel/build/bin`.
+Will search for `/home/willi/src/rta/arangoversions/E_3.9.0/build/bin` to launch the deployment initially, and upgrade to `/home/willi/src/rta/arangoversions/E_3.10.0-devel/build/bin`.
 
