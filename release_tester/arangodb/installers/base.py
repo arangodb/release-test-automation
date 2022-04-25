@@ -754,6 +754,7 @@ class InstallerBase(ABC):
     def find_crash(self, base_path):
         """ search on the disk whether crash files exist """
         for i in base_path.glob(self.core_glob):
-            print("Found coredump! " + str(i))
-            return True
+            if i.find('node_modules') == -1:
+                print("Found coredump! " + str(i))
+                return True
         return False
