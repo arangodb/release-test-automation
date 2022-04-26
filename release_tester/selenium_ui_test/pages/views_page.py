@@ -6,6 +6,7 @@ import semver
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=line-too-long disable=too-many-instance-attributes disable=too-many-statements disable=too-many-public-methods
@@ -92,26 +93,26 @@ class ViewsPage(NavigationBarPage):
         time.sleep(3)
 
     def search_views(self, expected_text, search_locator):
-        """searching views"""
-        search_views_sitem = self.locator_finder_by_xpath(self.search_views_id)
+        search_views = self.search_views_id
+        search_views_sitem = self.locator_finder_by_xpath(search_views)
         search_views_sitem.click()
         search_views_sitem.clear()
         search_views_sitem.send_keys(expected_text)
         time.sleep(2)
 
-        print(f"Checking that we get the right results for {expected_text}\n")
+        print(f'Checking that we get the right results for {expected_text}\n')
         if self.current_package_version() <= semver.VersionInfo.parse("3.8.0"):
-            if expected_text == "firstView":
+            if expected_text == 'firstView':
                 found = self.locator_finder_by_xpath(search_locator).text
                 assert found == expected_text, f"Expected views title {expected_text} but got {found}"
-            elif expected_text == "secondView":
+            elif expected_text == 'secondView':
                 found = self.locator_finder_by_xpath(search_locator).text
                 assert found == expected_text, f"Expected views title {expected_text} but got {found}"
         else:
-            if expected_text == "improved_arangosearch_view_01":
+            if expected_text == 'improved_arangosearch_view_01':
                 found = self.locator_finder_by_xpath(search_locator).text
                 assert found == expected_text, f"Expected views title {expected_text} but got {found}"
-            elif expected_text == "improved_arangosearch_view_02":
+            elif expected_text == 'improved_arangosearch_view_02':
                 found = self.locator_finder_by_xpath(search_locator).text
                 assert found == expected_text, f"Expected views title {expected_text} but got {found}"
         self.webdriver.refresh()
@@ -163,7 +164,7 @@ class ViewsPage(NavigationBarPage):
     def click_arangosearch_documentation_link(self):
         """Clicking on arangosearch documentation link"""
         click_arangosearch_documentation_link_id = \
-            self.webdriver.find_element_by_link_text('ArangoSearch Views documentation')
+            self.locator_finder_by_link_text('ArangoSearch Views documentation')
         title = self.switch_tab(click_arangosearch_documentation_link_id)
         expected_title = 'Views Reference | ArangoSearch | Indexing | Manual | ArangoDB Documentation'
         assert title in expected_title, f"Expected page title {expected_title} but got {title}"
@@ -298,20 +299,22 @@ class ViewsPage(NavigationBarPage):
         time.sleep(2)
 
         self.wait_for_ajax()
-        print(f"Select write buffer value for {view_name} \n")
-        write_buffer_active = "newWriteBufferActive"
+        print(f'Select write buffer active value for {view_name} \n')
+        write_buffer_active = 'newWriteBufferActive'
         write_buffer_active_sitem = self.locator_finder_by_id(write_buffer_active)
         write_buffer_active_sitem.click()
         write_buffer_active_sitem.clear()
-        write_buffer_active_sitem.send_keys("8")
+        write_buffer_active_sitem.send_keys('8')
         time.sleep(2)
 
-        self.wait_for_ajax()
-        print(f"Select max write buffer value for {view_name} \n")
-        max_buffer_size = "newWriteBufferSizeMax"
-        max_buffer_size_sitem = self.locator_finder_by_id(max_buffer_size)
+        print(f'Select max write buffer size max value for {view_name} \n')
+        max_buffer_size = "//input[@value='33554432']"
+        max_buffer_size_sitem = self.locator_finder_by_xpath(max_buffer_size)
         max_buffer_size_sitem.click()
-        max_buffer_size_sitem.send_keys("33554434")
+
+        a = ActionChains(self.webdriver)
+        a.key_down(Keys.CONTROL).send_keys('A').key_up(Keys.CONTROL).send_keys(Keys.DELETE)\
+            .send_keys('33554434').perform()
         time.sleep(2)
 
         self.wait_for_ajax()
@@ -525,6 +528,68 @@ class ViewsPage(NavigationBarPage):
             self.rename_views_name_confirm()
             print("Rename the current Views completed \n")
         print(f"Checking {name} Completed \n")
+
+    
+    def checking_views_negative_scenario_for_views(self):
+        """This method will check negative input for views name during creation"""
+        self.select_views_tab()
+        print('Selecting views create button \n')
+        create_new_views_id = self.locator_finder_by_xpath(self.create_new_views_id)
+        create_new_views_id.click()
+        time.sleep(2)
+
+        print('Expected error scenario for the Views name started \n')
+        error_input = ['@', '/', 'שלום']
+        print_statement = ['Checking views name with "@"',
+                           'Checking views name with "/"',
+                           'Checking views name with "שלום"']
+        error = 'Only symbols, "_" and "-" are allowed.'
+        error_message = [error, error, error]
+
+        locator_id = '//*[@id="newName"]'
+        error_locator_id = "//p[@class='errorMessage']"
+
+        # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
+        self.check_expected_error_messages_for_views(error_input,
+                                                     print_statement,
+                                                     error_message,
+                                                     locator_id,
+                                                     error_locator_id)
+        print('Expected error scenario for the Views name completed \n')
+
+        print('Expected error scenario for the Views write buffer idle started \n')
+        error_input = ['@', '/', 'שלום', '9999999999999999']
+        print_statement = ['Checking views name with "@"',
+                           'Checking views name with "/"',
+                           'Checking views name with "שלום"',
+                           'Checking views name with "9999999999999999"']
+        error = 'Only non-negative integers allowed.'
+        error_message = [error, error, error, error]
+
+        print(f'Select advance options \n')
+        advance_option = '//*[@id="accordion4"]/div/div[1]/a/span[2]/b'
+        advance_option_sitem = self.locator_finder_by_xpath(advance_option)
+        advance_option_sitem.click()
+        time.sleep(2)
+
+        print(f'Select write buffer idle value\n')
+        buffer_locator_id = "//input[@value='64']"
+        error_locator_id = '//*[@id="row_newWriteBufferIdle"]/th[2]/p'
+
+        # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
+        self.check_expected_error_messages_for_views(error_input,
+                                                     print_statement,
+                                                     error_message,
+                                                     buffer_locator_id,
+                                                     error_locator_id)
+        print('Expected error scenario for the Views write buffer idle completed \n')
+
+        print('Closing the views creation \n')
+        close_btn = '//*[@id="modalButton0"]'
+        close_btn_sitem = self.locator_finder_by_xpath(close_btn)
+        close_btn_sitem.click()
+        time.sleep(3)
+
 
     def delete_views(self, name, locator):
         """This method will delete views"""
