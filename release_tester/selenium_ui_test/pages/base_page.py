@@ -527,8 +527,8 @@ class BasePage:
                 print('x' * (len(error_sitem) + 29), '\n')
                 time.sleep(2)
 
-            except TimeoutException:
-                raise Exception('*****-->Error occurred. Manual inspection required<--***** \n')
+            except TimeoutException as ex:
+                raise Exception("*****-->Error occurred. Manual inspection required<--***** \n") from ex
 
             i = i + 1
 
