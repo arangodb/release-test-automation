@@ -427,7 +427,10 @@ This is controlled using the following command line parameters:
  - `--hb-aws-secret-access-key` [env `AWS_SECRET_ACCESS_KEY`] - secret access key (mandatory parameter)
  - `--hb-aws-region` [env `AWS_REGION`] - region (mandatory parameter)
  - `--hb-aws-acl` [env `AWS_ACL`] - ACL (default value: `private`)
- - `--hb-use-cloud-preset` (string) - Load saved hotbackup settings. To use this, create a file release_tester/tools/external_helpers/cloud_secrets.py. Inside this file define dict variables. The name of the variable is the name of the preset. The dict must contain all the hb parameters. If --hb-use-cloud-preset is set, then all other parameters which names start with hb- are ignored. 
+ - `--hb-use-cloud-preset` (string) - Load saved hotbackup settings. To use this, create a file release_tester/tools/external_helpers/cloud_secrets.py. Inside this file define dict variables. The name of the variable is the name of the preset. The dict must contain all the hb parameters. If --hb-use-cloud-preset is set, then all other parameters which names start with hb- are ignored.
+ - `--hb-gce-service-account-credentials` - GCE service account credentials(JSON string).
+ - `--hb-gce-service-account-file` - Path to a JSON file containing GCE service account credentials.
+ - `--hb-gce-project-number` - GCE project ID.  
    Example of cloud_secrets.py: 
 ```python
 aws = {

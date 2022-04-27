@@ -30,6 +30,9 @@ def main(**kwargs):
     kwargs['hb_aws_secret_access_key']=""
     kwargs['hb_aws_region']=""
     kwargs['hb_aws_acl']=""
+    kwargs['hb_gce_service_account_credentials']=""
+    kwargs['hb_gce_service_account_file']=""
+    kwargs['hb_gce_project_number']=""
     kwargs['interactive']=False
     kwargs['starter_mode']="all"
     kwargs['stress_upgrade']=False

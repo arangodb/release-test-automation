@@ -21,13 +21,14 @@ HB_2_RCLONE_TYPE = {
     HotBackupMode.DISABLED: "disabled",
     HotBackupMode.DIRECTORY: "local",
     HotBackupMode.S3BUCKET: "S3",
+    HotBackupMode.GCS: "google cloud storage",
 }
 
 class HotBackupConfig:
     """manage rclone setup"""
 
     #values inside this list must be lower case
-    SECRET_PARAMETERS = ["access_key_id", "secret_access_key"]
+    SECRET_PARAMETERS = ["access_key_id", "secret_access_key", "service_account_credentials"]
 
     def __init__(self, basecfg, name, raw_install_prefix):
         self.hb_timeout = 20
@@ -45,7 +46,7 @@ class HotBackupConfig:
             and self.hb_provider_cfg.provider == HotBackupProviders.MINIO
         ):
             self.name = "S3"
-            config["type"] = "s3"
+            config["type"] = HB_2_RCLONE_TYPE[self.hb_provider_cfg.mode]
             config["provider"] = "minio"
             config["env_auth"] = "false"
             config["access_key_id"] = "minio"
@@ -58,7 +59,7 @@ class HotBackupConfig:
         ):
             self.name = "S3"
             self.hb_timeout = 120
-            config["type"] = "s3"
+            config["type"] = HB_2_RCLONE_TYPE[self.hb_provider_cfg.mode]
             config["provider"] = "AWS"
             config["env_auth"] = "false"
             config["access_key_id"] = hbcfg.hb_aws_access_key_id
@@ -69,6 +70,17 @@ class HotBackupConfig:
             config["copy-links"] = "false"
             config["links"] = "false"
             config["one_file_system"] = "true"
+        elif self.hb_provider_cfg.mode == HotBackupMode.GCS and self.hb_provider_cfg.provider == HotBackupProviders.GCE:
+            self.name = "GCE"
+            self.hb_timeout = 240
+            config["type"] = HB_2_RCLONE_TYPE[self.hb_provider_cfg.mode]
+            config["project_number"] = hbcfg.hb_gce_project_number
+            if hbcfg.hb_gce_service_account_credentials:
+                config["service_account_credentials"] = hbcfg.hb_gce_service_account_credentials
+            elif hbcfg.hb_gce_service_account_file:
+                config["service_account_file"] = hbcfg.hb_gce_service_account_file
+            else:
+                raise Exception("Either \"service_account_credentials\" or \"service_account_file\" parameter must be specified for Google Cloud Storage.")
         self.config = {self.name: config}
 
     def get_config_json(self):

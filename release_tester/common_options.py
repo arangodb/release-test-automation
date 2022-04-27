@@ -103,6 +103,24 @@ def hotbackup_options():
             default=None,
             help="Use hotbackup options presaved in a secret location.",
         )(function)
+        function = click.option(
+            "--hb-gce-service-account-credentials",
+            "hb_gce_service_account_credentials",
+            default=None,
+            help="GCE service account credentials(JSON string).",
+        )(function)
+        function = click.option(
+            "--hb-gce-service-account-file",
+            "hb_gce_service_account_file",
+            default=None,
+            help="Path to a JSON file containing GCE service account credentials.",
+        )(function)
+        function = click.option(
+            "--hb-gce-project-number",
+            "hb_gce_project_number",
+            default=None,
+            help="GCE project ID.",
+        )(function)
         return function
     return inner_func
 

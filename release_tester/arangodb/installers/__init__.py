@@ -27,6 +27,7 @@ class HotBackupMode(Enum):
     DISABLED = 0
     DIRECTORY = 1
     S3BUCKET = 2
+    GCS = 3
 
 
 class HotBackupProviders(Enum):
@@ -34,22 +35,26 @@ class HotBackupProviders(Enum):
 
     MINIO = 0
     AWS = 1
+    GCE = 2
 
 
 hb_strings = {
     HotBackupMode.DISABLED: "disabled",
     HotBackupMode.DIRECTORY: "directory",
     HotBackupMode.S3BUCKET: "s3bucket",
+    HotBackupMode.GCS: "googleCloudStorage",
 }
 HB_MODES = {
     "disabled": HotBackupMode.DISABLED,
     "directory": HotBackupMode.DIRECTORY,
     "s3bucket": HotBackupMode.S3BUCKET,
+    "googleCloudStorage": HotBackupMode.GCS,
 }
 
 HB_PROVIDERS = {
     "minio": HotBackupProviders.MINIO,
     "aws": HotBackupProviders.AWS,
+    "gce": HotBackupProviders.GCE,
 }
 
 
@@ -59,12 +64,14 @@ class HotBackupProviderCfg:
         HotBackupMode.DISABLED: [],
         HotBackupMode.DIRECTORY: [],
         HotBackupMode.S3BUCKET: [HotBackupProviders.MINIO, HotBackupProviders.AWS],
+        HotBackupMode.GCS: [HotBackupProviders.GCE],
     }
 
     HB_PROVIDER_DEFAULT = {
         HotBackupMode.DISABLED: None,
         HotBackupMode.DIRECTORY: None,
         HotBackupMode.S3BUCKET: HotBackupProviders.MINIO,
+        HotBackupMode.GCS: HotBackupProviders.GCE,
     }
 
     def __init__(self, mode: str, provider: HotBackupProviders = None, path_prefix: str = None):
@@ -109,12 +116,18 @@ class HotBackupCliCfg(OptionGroup):
             )
     hb_mode: str
     hb_provider: str
-    hb_provider: str
     hb_storage_path_prefix: str
-    hb_aws_access_key_id: str
-    hb_aws_secret_access_key: str
-    hb_aws_region: str
-    hb_aws_acl: str
+
+    #specific params for AWS
+    hb_aws_access_key_id: str = None
+    hb_aws_secret_access_key: str = None
+    hb_aws_region: str = None
+    hb_aws_acl: str = None
+
+    #specific params for GCE
+    hb_gce_service_account_credentials: str = None
+    hb_gce_service_account_file: str = None
+    hb_gce_project_number: str = None
 
 
 class InstallerFrontend:
