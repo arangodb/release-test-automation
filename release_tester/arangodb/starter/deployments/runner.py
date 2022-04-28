@@ -164,7 +164,8 @@ class Runner(ABC):
         self.new_installer = new_inst
         self.backup_name = None
         self.hot_backup = (
-            properties.supports_hotbackup
+            cfg.hot_backup_supported
+            and properties.supports_hotbackup
             and self.old_installer.supports_hot_backup()
         )
         self.backup_instance_count = 3
