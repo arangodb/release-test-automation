@@ -20,7 +20,7 @@ from arangodb.installers import HotBackupMode, HotBackupProviders
 HB_2_RCLONE_TYPE = {
     HotBackupMode.DISABLED: "disabled",
     HotBackupMode.DIRECTORY: "local",
-    HotBackupMode.S3BUCKET: "S3",
+    HotBackupMode.S3BUCKET: "s3",
     HotBackupMode.GCS: "google cloud storage",
 }
 
