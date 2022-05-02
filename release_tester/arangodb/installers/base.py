@@ -228,6 +228,7 @@ class InstallerBase(ABC):
         self.starter_versions = {}
         self.cli_executor = ArangoCLIprogressiveTimeoutExecutor(self.cfg, self.instance)
         self.core_glob = "**/*core"
+        self.machine = platform.machine()
 
     def reset_version(self, version):
         """re-configure the version we work with"""

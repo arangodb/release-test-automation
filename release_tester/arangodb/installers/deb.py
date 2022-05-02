@@ -48,7 +48,7 @@ class InstallerDeb(InstallerLinux):
     def calculate_package_names(self):
         enterprise = "e" if self.cfg.enterprise else ""
         package_version = "1"
-        architecture = "amd64"
+        architecture = "amd64" if self.machine is "x86_64" else self.machine
 
         semdict = dict(self.cfg.semver.to_dict())
 
