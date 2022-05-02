@@ -16,76 +16,72 @@ from selenium_ui_test.test_suites.base_test_suite import testcase
 
 class CommunityPackageInstallationTestSuite(BasePackageInstallationTestSuite):
     """testsuite for community packages"""
+
     # pylint: disable=too-many-arguments disable=line-too-long
-    def __init__(
-        self,
-        versions: list,
-        base_config: InstallerBaseConfig
-    ):
-        super().__init__(
-            versions=versions,
-            base_config=base_config
-        )
+    def __init__(self, versions: list, base_config: InstallerBaseConfig):
+        super().__init__(versions=versions, base_config=base_config)
+
+    disable_test = BasePackageInstallationTestSuite.disable_installation_tests
 
     def generate_custom_suite_name(self):
         return f"Test package installation/uninstallation. New version: {self.new_version}. Old version: {self.old_version}. Package type: {str(self.new_inst_e.installer_type)}. Community edition."
 
-    @testcase
+    @testcase(disable=disable_test)
     def test1(self):
         """Check that new community server package cannot be installed over an enterprise package of previous version"""
         check_if_server_packages_can_be_installed_consequentially(self.old_inst_e, self.new_inst_c, False)
 
-    @testcase
+    @testcase(disable=disable_test)
     def test2(self):
         """Check that new community server package cannot be installed over an enterprise package of the same version"""
         check_if_server_packages_can_be_installed_consequentially(self.new_inst_e, self.new_inst_c, False)
 
-    @testcase
+    @testcase(disable=disable_test)
     def test3(self):
         """Check that community debug package cannot be installed when enterprise server package of current version is present"""
         check_if_debug_package_can_be_installed_over_server_package(self.new_inst_c, self.new_inst_e, False)
 
-    @testcase
+    @testcase(disable=disable_test)
     def test4(self):
         """Check that community debug package cannot be installed when enterprise server package of previous version is present"""
         check_if_debug_package_can_be_installed_over_server_package(self.new_inst_c, self.old_inst_e, False)
 
-    @testcase
+    @testcase(disable=disable_test)
     def test5(self):
         """Check that community debug package cannot be installed if server package is not present."""
         check_if_debug_package_can_be_installed(self.new_inst_c, False)
 
-    @testcase
+    @testcase(disable=disable_test)
     def test6(self):
         """Check that community debug package can be installed/uninstalled if community server package of the same version is present"""
         check_if_debug_package_can_be_installed_over_server_package(self.new_inst_c, self.new_inst_c, True)
 
-    @testcase
+    @testcase(disable=disable_test)
     def test7(self):
         """Check that new community client package cannot be installed over an enterprise package of previous version"""
         check_if_client_packages_can_be_installed_consequentially(self.old_inst_e, self.new_inst_c, False)
 
-    @testcase
+    @testcase(disable=disable_test)
     def test8(self):
         """Check that new community client package cannot be installed over an enterprise package of the same version"""
         check_if_client_packages_can_be_installed_consequentially(self.new_inst_e, self.new_inst_c, False)
 
-    @testcase()
+    @testcase(disable=disable_test)
     def test9(self):
         """Check that new community client package cannot be installed when server package is installed"""
         check_if_client_package_can_be_installed_over_server_package(self.new_inst_c, self.new_inst_c, False)
 
-    @testcase()
+    @testcase
     def test10(self):
         """Check that community client package can be installed/uninstalled."""
         check_if_client_package_can_be_installed(self.new_inst_c, True)
 
-    @testcase
+    @testcase(disable=disable_test)
     def test11(self):
         """Check that new community server package can be installed"""
         check_if_server_package_can_be_installed(self.new_inst_c)
 
-    @testcase
+    @testcase(disable=disable_test)
     def test12(self):
         """Check that community server package can be upgraded"""
         check_if_server_packages_can_be_installed_consequentially(self.old_inst_c, self.new_inst_c, True)

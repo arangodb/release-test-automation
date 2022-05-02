@@ -1,22 +1,24 @@
 #!/usr/bin/env python3
 """base class for package conflict checking"""
 import shutil
-
 from allure_commons._allure import attach
-
 from arangodb.installers import create_config_installer_set, RunProperties, InstallerBaseConfig
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, run_before_suite, \
-    run_after_suite, run_after_each_testcase, collect_crash_data
+from selenium_ui_test.test_suites.base_test_suite import (
+    BaseTestSuite,
+    run_before_suite,
+    run_after_suite,
+    run_after_each_testcase,
+    collect_crash_data,
+)
+import distro
+import platform
 
 
 class BasePackageInstallationTestSuite(BaseTestSuite):
     # pylint: disable=too-many-instance-attributes disable=too-many-arguments
     """base class for package conflict checking"""
-    def __init__(
-            self,
-            versions: list,
-            base_config: InstallerBaseConfig
-    ):
+
+    def __init__(self, versions: list, base_config: InstallerBaseConfig):
         self.new_version = versions[1]
         self.old_version = versions[0]
         self.zip_package = base_config.zip_package
@@ -32,23 +34,45 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
             versions=versions,
             base_config=base_config,
             deployment_mode="all",
-            run_properties=RunProperties(enterprise=False,
-                                         encryption_at_rest=False,
-                                         ssl=False)
+            run_properties=RunProperties(enterprise=False, encryption_at_rest=False, ssl=False),
         )
         self.installers["enterprise"] = create_config_installer_set(
             versions=versions,
             base_config=base_config,
             deployment_mode="all",
-            run_properties=RunProperties(enterprise=True,
-                                         encryption_at_rest=False,
-                                         ssl=False)
+            run_properties=RunProperties(enterprise=True, encryption_at_rest=False, ssl=False),
         )
         self.old_inst_e = self.installers["enterprise"][0][1]
         self.new_inst_e = self.installers["enterprise"][1][1]
         self.old_inst_c = self.installers["community"][0][1]
         self.new_inst_c = self.installers["community"][1][1]
         super().__init__()
+
+    @staticmethod
+    def detect_linux_distro() -> str:
+        return distro.linux_distribution(full_distribution_name=False)[0]
+
+    @staticmethod
+    def os_is_debian_based() -> bool:
+        return BasePackageInstallationTestSuite.detect_linux_distro() in ["debian", "ubuntu"]
+
+    @staticmethod
+    def os_is_mac() -> bool:
+        return platform.mac_ver()[0] != ""
+
+    @staticmethod
+    def os_is_win() -> bool:
+        return platform.win32_ver()[0] != ""
+
+    def disable_installation_tests(self):
+        if BasePackageInstallationTestSuite.os_is_debian_based():
+            return "Package installation/uninstallation tests are temporarily disabled for debian-based linux distros. Waiting for BTS-684."
+        elif BasePackageInstallationTestSuite.os_is_win() or BasePackageInstallationTestSuite.os_is_mac():
+            return "Package installation/uninstallation tests were skipped because OS is not Linux."
+        elif self.zip_package:
+            return "Package installation/uninstallation tests were skipped for zip packages."
+        else:
+            return False
 
     @run_before_suite
     @run_after_suite
@@ -72,7 +96,7 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
         """upload a logfile into the report."""
         inst = self.installers["enterprise"][0][1]
         if inst.instance and inst.instance.logfile.exists():
-            with open(inst.instance.logfile, "r", encoding='utf8').read() as log:
+            with open(inst.instance.logfile, "r", encoding="utf8").read() as log:
                 attach(log, "Log file " + str(inst.instance.logfile))
 
     def save_data_dir(self):
