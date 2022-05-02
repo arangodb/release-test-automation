@@ -893,12 +893,16 @@ class Runner(ABC):
         self.progress(True, "AGENCY pausing leader to trigger a failover\n%s" % repr(old_leader))
         old_leader.suspend_instance()
         time.sleep(1)
+        count = 0
         while True:
             new_leader = self.agency_get_leader()
             if old_leader != new_leader:
                 self.progress(True, "AGENCY failover has happened")
                 break
+            if count == 500:
+                raise Exception("agency failoverdidn't happen in 5 minutes!")
             time.sleep(1)
+            count += 1
         old_leader.resume_instance()
         if WINVER[0]:
             leader_mgr = None
