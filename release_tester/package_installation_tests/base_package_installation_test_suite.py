@@ -74,6 +74,9 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
         else:
             return False
 
+    def disable_client_package_tests(self):
+        return "Client package tests are not applicable for MacOS." if BasePackageInstallationTestSuite.os_is_mac() else False
+
     @run_before_suite
     @run_after_suite
     @run_after_each_testcase
