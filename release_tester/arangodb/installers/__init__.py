@@ -28,6 +28,7 @@ class HotBackupMode(Enum):
     DIRECTORY = 1
     S3BUCKET = 2
     GCS = 3
+    AZUREBLOBSTORAGE = 4
 
 
 class HotBackupProviders(Enum):
@@ -36,6 +37,7 @@ class HotBackupProviders(Enum):
     MINIO = 0
     AWS = 1
     GCE = 2
+    AZURE = 3
 
 
 hb_strings = {
@@ -43,18 +45,21 @@ hb_strings = {
     HotBackupMode.DIRECTORY: "directory",
     HotBackupMode.S3BUCKET: "s3bucket",
     HotBackupMode.GCS: "googleCloudStorage",
+    HotBackupMode.AZUREBLOBSTORAGE: "azureBlobStorage",
 }
 HB_MODES = {
     "disabled": HotBackupMode.DISABLED,
     "directory": HotBackupMode.DIRECTORY,
     "s3bucket": HotBackupMode.S3BUCKET,
     "googleCloudStorage": HotBackupMode.GCS,
+    "azureBlobStorage": HotBackupMode.AZUREBLOBSTORAGE,
 }
 
 HB_PROVIDERS = {
     "minio": HotBackupProviders.MINIO,
     "aws": HotBackupProviders.AWS,
     "gce": HotBackupProviders.GCE,
+    "azure": HotBackupProviders.AZURE,
 }
 
 
@@ -65,6 +70,7 @@ class HotBackupProviderCfg:
         HotBackupMode.DIRECTORY: [],
         HotBackupMode.S3BUCKET: [HotBackupProviders.MINIO, HotBackupProviders.AWS],
         HotBackupMode.GCS: [HotBackupProviders.GCE],
+        HotBackupMode.AZUREBLOBSTORAGE: [HotBackupProviders.AZURE],
     }
 
     HB_PROVIDER_DEFAULT = {
@@ -72,6 +78,7 @@ class HotBackupProviderCfg:
         HotBackupMode.DIRECTORY: None,
         HotBackupMode.S3BUCKET: HotBackupProviders.MINIO,
         HotBackupMode.GCS: HotBackupProviders.GCE,
+        HotBackupMode.AZUREBLOBSTORAGE: HotBackupProviders.AZURE,
     }
 
     def __init__(self, mode: str, provider: HotBackupProviders = None, path_prefix: str = None):
@@ -129,6 +136,9 @@ class HotBackupCliCfg(OptionGroup):
     hb_gce_service_account_file: str = None
     hb_gce_project_number: str = None
 
+    #specific params for Azure
+    hb_azure_account: str = None
+    hb_azure_key: str = None
 
 class InstallerFrontend:
     """class describing frontend instances"""

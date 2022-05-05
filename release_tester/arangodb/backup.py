@@ -22,6 +22,7 @@ HB_2_RCLONE_TYPE = {
     HotBackupMode.DIRECTORY: "local",
     HotBackupMode.S3BUCKET: "s3",
     HotBackupMode.GCS: "google cloud storage",
+    HotBackupMode.AZUREBLOBSTORAGE: "azureblob",
 }
 
 class HotBackupConfig:
@@ -81,6 +82,12 @@ class HotBackupConfig:
                 config["service_account_file"] = hbcfg.hb_gce_service_account_file
             else:
                 raise Exception("Either \"service_account_credentials\" or \"service_account_file\" parameter must be specified for Google Cloud Storage.")
+        elif self.hb_provider_cfg.mode == HotBackupMode.AZUREBLOBSTORAGE and self.hb_provider_cfg.provider == HotBackupProviders.AZURE:
+            self.name = "azure"
+            self.hb_timeout = 240
+            config["type"] = HB_2_RCLONE_TYPE[self.hb_provider_cfg.mode]
+            config["account"] = hbcfg.hb_azure_account
+            config["key"] = hbcfg.hb_azure_key
         self.config = {self.name: config}
 
     def get_config_json(self):

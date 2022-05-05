@@ -121,6 +121,18 @@ def hotbackup_options():
             default=None,
             help="GCE project ID.",
         )(function)
+        function = click.option(
+            "--hb-azure-account",
+            "hb_azure_account",
+            default=None,
+            help="Azure storage account.",
+        )(function)
+        function = click.option(
+            "--hb-azure-key",
+            "hb_azure_key",
+            default=None,
+            help="Azure storage account access key.",
+        )(function)
         return function
     return inner_func
 
