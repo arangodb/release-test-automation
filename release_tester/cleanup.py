@@ -33,6 +33,8 @@ def main(**kwargs):
     kwargs['hb_gce_service_account_credentials']=""
     kwargs['hb_gce_service_account_file']=""
     kwargs['hb_gce_project_number']=""
+    kwargs['hb_azure_key'] = ""
+    kwargs['hb_azure_account'] = ""
     kwargs['interactive']=False
     kwargs['starter_mode']="all"
     kwargs['stress_upgrade']=False
