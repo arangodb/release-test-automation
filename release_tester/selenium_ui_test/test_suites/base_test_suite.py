@@ -13,6 +13,8 @@ from allure_commons.types import LabelType
 from arangodb.installers import RunProperties
 from reporting.reporting_utils import AllureTestSuiteContext, RtaTestcase, step
 from selenium_ui_test.models import RtaTestResult
+import distro
+import platform
 
 
 class BaseTestSuite(ABC):
@@ -204,6 +206,22 @@ class BaseTestSuite(ABC):
                 return True
         return False
 
+    @staticmethod
+    def detect_linux_distro() -> str:
+        return distro.linux_distribution(full_distribution_name=False)[0]
+
+    @staticmethod
+    def os_is_debian_based() -> bool:
+        return BaseTestSuite.detect_linux_distro() in ["debian", "ubuntu"]
+
+    @staticmethod
+    def os_is_mac() -> bool:
+        return platform.mac_ver()[0] != ""
+
+    @staticmethod
+    def os_is_win() -> bool:
+        return platform.win32_ver()[0] != ""
+
 
 def run_before_suite(func):
     """mark method to be ran before test suite"""
@@ -245,7 +263,42 @@ def collect_crash_data(func):
     raise Exception("Only functions can be marked with @collect_crash_data decorator")
 
 
-def testcase(title=None, disable=False):
+def disable(arg):
+    if callable(arg):
+        testcase_func = arg
+        testcase_func.is_disabled = True
+        return testcase_func
+    else:
+        reason = arg
+
+        def set_disable_reason(func):
+            func.is_disabled = True
+            func.disable_reasons.append(reason)
+            return func
+
+    return set_disable_reason
+
+
+def disable_if_true(value, reason=None):
+    def set_disable_reason(testcase_func):
+        if value:
+            testcase_func.is_disabled = True
+            if reason:
+                testcase_func.disable_reasons.append(reason)
+        return testcase_func
+
+    return set_disable_reason
+
+
+def disable_if_returns_true_at_runtime(function, reason=None):
+    def set_disable_func_and_reason(testcase_func):
+        testcase_func.disable_functions.append((function, reason))
+        return testcase_func
+
+    return set_disable_func_and_reason
+
+
+def testcase(title=None):
     """base testcase class decorator"""
 
     def sanitize_kwargs_for_testcase(kwargs_dict):
@@ -276,16 +329,18 @@ def testcase(title=None, disable=False):
                         name = func.__doc__
                     else:
                         name = func.__name__
-            if callable(disable):
-                disable_val = disable(self)
-            else:
-                disable_val = disable
+            for function, reason in wrapper.disable_functions:
+                if function(self):
+                    wrapper.is_disabled = True
+                    if reason:
+                        wrapper.disable_reasons.append(reason)
             with RtaTestcase(name) as my_testcase:
-                if disable_val:
+                if wrapper.is_disabled:
                     test_result = RtaTestResult(name, True, "test is skipped", None)
                     my_testcase.context.status = Status.SKIPPED
-                    if isinstance(disable_val, str):
-                        my_testcase.context.statusDetails = StatusDetails(message=disable_val)
+                    if len(wrapper.disable_reasons)>0:
+                        message = "\n".join(wrapper.disable_reasons)
+                        my_testcase.context.statusDetails = StatusDetails(message=message)
                 elif kwargs["suite_is_broken"]:
                     test_result = RtaTestResult(name, False, "test suite is broken", None)
                     my_testcase.context.status = Status.BROKEN
@@ -319,7 +374,14 @@ def testcase(title=None, disable=False):
                 return test_result
 
         wrapper.is_testcase = True
-        wrapper.disable = disable
+        wrapper.is_disabled = False
+        wrapper.disable_reasons = []
+
+        #This list must contain pairs of functions and corresponding reasons.
+        #The function must take one argument(the test suite object) and return a boolean value.
+        #If this value is true, than the testcase is skipped and the corresponding reason will be seen in the report.
+        wrapper.disable_functions = []
+
         return wrapper
 
     if callable(title):

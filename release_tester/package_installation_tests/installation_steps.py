@@ -72,7 +72,7 @@ def check_if_debug_package_can_be_installed_over_server_package(debug_installer,
 def check_if_client_package_can_be_installed_over_server_package(
     client_installer, server_installer, expect_success=False
 ):
-    """check if debug package can be installed after server package"""
+    """check if client package can be installed after server package"""
     client_package_name = client_installer.client_package
     server_package_name = server_installer.server_package
     server_installer.install_server_package()

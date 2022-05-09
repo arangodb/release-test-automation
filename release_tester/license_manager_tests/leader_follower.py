@@ -4,7 +4,7 @@
 from arangodb.async_client import CliExecutionException
 from license_manager_tests.base.leader_follower_base import LicenseManagerLeaderFollowerBaseTestSuite
 from reporting.reporting_utils import step
-from selenium_ui_test.test_suites.base_test_suite import testcase
+from selenium_ui_test.test_suites.base_test_suite import testcase, disable
 
 
 class LicenseManagerLeaderFollowerTestSuite(LicenseManagerLeaderFollowerBaseTestSuite):
@@ -21,7 +21,8 @@ class LicenseManagerLeaderFollowerTestSuite(LicenseManagerLeaderFollowerBaseTest
         self.expire_license()
         self.check_readonly()
 
-    @testcase(disable=True)
+    @disable
+    @testcase
     def expire_license_on_follower(self):
         """Check that follower goes to read-only mode when license is expired"""
         with step("Expire license on follower"):

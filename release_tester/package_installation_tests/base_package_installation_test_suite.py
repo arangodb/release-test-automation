@@ -10,8 +10,6 @@ from selenium_ui_test.test_suites.base_test_suite import (
     run_after_each_testcase,
     collect_crash_data,
 )
-import distro
-import platform
 
 
 class BasePackageInstallationTestSuite(BaseTestSuite):
@@ -48,26 +46,13 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
         self.new_inst_c = self.installers["community"][1][1]
         super().__init__()
 
-    @staticmethod
-    def detect_linux_distro() -> str:
-        return distro.linux_distribution(full_distribution_name=False)[0]
-
-    @staticmethod
-    def os_is_debian_based() -> bool:
-        return BasePackageInstallationTestSuite.detect_linux_distro() in ["debian", "ubuntu"]
-
-    @staticmethod
-    def os_is_mac() -> bool:
-        return platform.mac_ver()[0] != ""
-
-    @staticmethod
-    def os_is_win() -> bool:
-        return platform.win32_ver()[0] != ""
+    def is_zip(self):
+        return self.zip_package
 
     def disable_installation_tests(self):
-        if BasePackageInstallationTestSuite.os_is_debian_based():
+        if BaseTestSuite.os_is_debian_based():
             return "Package installation/uninstallation tests are temporarily disabled for debian-based linux distros. Waiting for BTS-684."
-        elif BasePackageInstallationTestSuite.os_is_win() or BasePackageInstallationTestSuite.os_is_mac():
+        elif BaseTestSuite.os_is_win() or BaseTestSuite.os_is_mac():
             return "Package installation/uninstallation tests were skipped because OS is not Linux."
         elif self.zip_package:
             return "Package installation/uninstallation tests were skipped for zip packages."
@@ -75,7 +60,7 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
             return False
 
     def disable_client_package_tests(self):
-        return "Client package tests are not applicable for MacOS." if BasePackageInstallationTestSuite.os_is_mac() else False
+        return "Client package tests are not applicable for MacOS." if BaseTestSuite.os_is_mac() else False
 
     @run_before_suite
     @run_after_suite
