@@ -420,17 +420,19 @@ During the test scenarios hot backups will be created/restored and uploaded/down
 RTA supports different types of external storage. By default the backups will be just copied to another directory using rclone. 
 Other options include running minio(S3-compatible open-source storage) locally and uploading backups to a real cloud provider. 
 This is controlled using the following command line parameters:
- - `--hb-mode` - Hot backup mode. Possible values: disabled, directory or s3bucket. 
- - `--hb-provider` - Cloud storage provider. Possible values for s3bucket: minio, aws.
- - `--hb-storage-path-prefix` - Bucket name and subdirectory to store hot backups in cloud.
- - `--hb-aws-access-key-id` [env `AWS_ACCESS_KEY_ID`] - access key id (mandatory parameter)
- - `--hb-aws-secret-access-key` [env `AWS_SECRET_ACCESS_KEY`] - secret access key (mandatory parameter)
- - `--hb-aws-region` [env `AWS_REGION`] - region (mandatory parameter)
- - `--hb-aws-acl` [env `AWS_ACL`] - ACL (default value: `private`)
- - `--hb-use-cloud-preset` (string) - Load saved hotbackup settings. To use this, create a file release_tester/tools/external_helpers/cloud_secrets.py. Inside this file define dict variables. The name of the variable is the name of the preset. The dict must contain all the hb parameters. If --hb-use-cloud-preset is set, then all other parameters which names start with hb- are ignored.
+ - `--hb-mode` - Hot backup mode. Possible values: disabled, directory, s3bucket, googleCloudStorage, azureBlobStorage. 
+ - `--hb-provider` - Cloud storage provider. Possible values for s3bucket: minio, aws, gce, azure.
+ - `--hb-storage-path-prefix` - Subdirectory to store hot backups in cloud.
+ - `--hb-aws-access-key-id` [env `AWS_ACCESS_KEY_ID`] - AWS access key id
+ - `--hb-aws-secret-access-key` [env `AWS_SECRET_ACCESS_KEY`] - AWS secret access key
+ - `--hb-aws-region` [env `AWS_REGION`] - AWS region
+ - `--hb-aws-acl` [env `AWS_ACL`] - AWS ACL (default value: `private`)
  - `--hb-gce-service-account-credentials` - GCE service account credentials(JSON string).
  - `--hb-gce-service-account-file` - Path to a JSON file containing GCE service account credentials.
  - `--hb-gce-project-number` - GCE project ID.  
+ - `--hb-azure-account` - Azure storage account.
+ - `--hb-azure-key` - Azure storage account access key.   
+ - `--hb-use-cloud-preset` (string) - Load saved hotbackup settings. To use this, create a file release_tester/tools/external_helpers/cloud_secrets.py. Inside this file define dict variables. The name of the variable is the name of the preset. The dict must contain all the hb parameters. If --hb-use-cloud-preset is set, then all other parameters which names start with hb- are ignored.
    Example of cloud_secrets.py: 
 ```python
 aws = {
