@@ -29,7 +29,7 @@ class HotBackupConfig:
     """manage rclone setup"""
 
     #values inside this list must be lower case
-    SECRET_PARAMETERS = ["access_key_id", "secret_access_key", "service_account_credentials"]
+    SECRET_PARAMETERS = ["access_key_id", "secret_access_key", "service_account_credentials", "key"]
 
     def __init__(self, basecfg, name, raw_install_prefix):
         self.hb_timeout = 20
