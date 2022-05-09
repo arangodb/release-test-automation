@@ -338,7 +338,7 @@ def testcase(title=None):
                 if wrapper.is_disabled:
                     test_result = RtaTestResult(name, True, "test is skipped", None)
                     my_testcase.context.status = Status.SKIPPED
-                    if len(wrapper.disable_reasons)>0:
+                    if len(wrapper.disable_reasons) > 0:
                         message = "\n".join(wrapper.disable_reasons)
                         my_testcase.context.statusDetails = StatusDetails(message=message)
                 elif kwargs["suite_is_broken"]:
@@ -377,9 +377,9 @@ def testcase(title=None):
         wrapper.is_disabled = False
         wrapper.disable_reasons = []
 
-        #This list must contain pairs of functions and corresponding reasons.
-        #The function must take one argument(the test suite object) and return a boolean value.
-        #If this value is true, than the testcase is skipped and the corresponding reason will be seen in the report.
+        # This list must contain pairs of functions and corresponding reasons.
+        # The function must take one argument(the test suite object) and return a boolean value.
+        # If this value is true, than the testcase is skipped and the corresponding reason will be seen in the report.
         wrapper.disable_functions = []
 
         return wrapper

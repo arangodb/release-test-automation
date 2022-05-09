@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """steps for the installation"""
 from reporting.reporting_utils import step
+
 # pylint: disable=broad-except
+
 
 @step
 def check_if_server_packages_can_be_installed_consequentially(installer1, installer2, expect_success=True):

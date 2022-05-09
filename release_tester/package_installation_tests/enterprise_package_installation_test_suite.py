@@ -11,8 +11,13 @@ from package_installation_tests.installation_steps import (
     check_if_client_package_can_be_installed,
     check_if_server_package_can_be_installed,
 )
-from selenium_ui_test.test_suites.base_test_suite import testcase, disable, BaseTestSuite, disable_if_true, \
-    disable_if_returns_true_at_runtime
+from selenium_ui_test.test_suites.base_test_suite import (
+    testcase,
+    disable,
+    BaseTestSuite,
+    disable_if_true,
+    disable_if_returns_true_at_runtime,
+)
 
 
 class EnterprisePackageInstallationTestSuite(BasePackageInstallationTestSuite):
