@@ -27,9 +27,6 @@ class EnterprisePackageInstallationTestSuite(BasePackageInstallationTestSuite):
     def __init__(self, versions: list, base_config: InstallerBaseConfig):
         super().__init__(versions=versions, base_config=base_config)
 
-    disable_for_debian_bts_684 = disable_for_debian(
-        "Package installation/uninstallation tests are temporarily disabled for debian-based linux distros. Waiting for BTS-684."
-    )
     disable_for_zip_packages = disable_if_returns_true_at_runtime(
         BasePackageInstallationTestSuite.is_zip, "This test case is not applicable for .zip packages."
     )
@@ -42,7 +39,6 @@ class EnterprisePackageInstallationTestSuite(BasePackageInstallationTestSuite):
     def generate_custom_suite_name(self):
         return f"Test package installation/uninstallation. New version: {self.new_version}. Old version: {self.old_version}. Package type: {str(self.new_inst_e.installer_type)}. Enterprise edition."
 
-    @disable_for_debian_bts_684
     @disable_for_windows
     @disable_for_mac
     @disable_for_zip_packages
@@ -51,7 +47,6 @@ class EnterprisePackageInstallationTestSuite(BasePackageInstallationTestSuite):
         """Check that new enterprise server package cannot be installed over a community package of previous version"""
         check_if_server_packages_can_be_installed_consequentially(self.old_inst_c, self.new_inst_e, False)
 
-    @disable_for_debian_bts_684
     @disable_for_windows
     @disable_for_mac
     @disable_for_zip_packages
@@ -60,7 +55,6 @@ class EnterprisePackageInstallationTestSuite(BasePackageInstallationTestSuite):
         """Check that new enterprise server package cannot be installed over a community package of the same version"""
         check_if_server_packages_can_be_installed_consequentially(self.new_inst_c, self.new_inst_e, False)
 
-    @disable_for_debian_bts_684
     @disable_for_windows
     @disable_for_mac
     @disable_for_zip_packages
@@ -69,7 +63,6 @@ class EnterprisePackageInstallationTestSuite(BasePackageInstallationTestSuite):
         """Check that enterprise debug package cannot be installed when community server package of current version is present"""
         check_if_debug_package_can_be_installed_over_server_package(self.new_inst_e, self.new_inst_c, False)
 
-    @disable_for_debian_bts_684
     @disable_for_windows
     @disable_for_mac
     @disable_for_zip_packages
@@ -78,7 +71,6 @@ class EnterprisePackageInstallationTestSuite(BasePackageInstallationTestSuite):
         """Check that enterprise debug package cannot be installed when community server package of previous version is present"""
         check_if_debug_package_can_be_installed_over_server_package(self.new_inst_e, self.old_inst_c, False)
 
-    @disable_for_debian_bts_684
     @disable_for_windows
     @disable_for_mac
     @disable_for_zip_packages
@@ -87,7 +79,6 @@ class EnterprisePackageInstallationTestSuite(BasePackageInstallationTestSuite):
         """Check that enterprise debug package cannot be installed if server package is not present."""
         check_if_debug_package_can_be_installed(self.new_inst_e, False)
 
-    @disable_for_debian_bts_684
     @disable_for_windows
     @disable_for_mac
     @disable_for_zip_packages
@@ -130,7 +121,6 @@ class EnterprisePackageInstallationTestSuite(BasePackageInstallationTestSuite):
         """Check that enterprise client package can be installed/uninstalled."""
         check_if_client_package_can_be_installed(self.new_inst_e, True)
 
-    @disable_for_debian_bts_684
     @disable_for_windows
     @disable_for_mac
     @disable_for_zip_packages
@@ -139,7 +129,6 @@ class EnterprisePackageInstallationTestSuite(BasePackageInstallationTestSuite):
         """Check that new enterprise server package can be installed"""
         check_if_server_package_can_be_installed(self.new_inst_e)
 
-    @disable_for_debian_bts_684
     @disable_for_windows
     @disable_for_mac
     @disable_for_zip_packages
