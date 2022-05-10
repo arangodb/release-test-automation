@@ -47,7 +47,7 @@ class TestDriver:
     # pylint: disable=too-many-arguments disable=too-many-locals
     def __init__(self, **kwargs):
         self.launch_dir = Path.cwd()
-        if IS_WINDOWS and 'PYTHONUTF8' not in os.environ:
+        if IS_WINDOWS and "PYTHONUTF8" not in os.environ:
             raise Exception("require PYTHONUTF8=1 in the environment")
         if "WORKSPACE" in os.environ:
             self.launch_dir = Path(os.environ["WORKSPACE"])
@@ -506,43 +506,6 @@ class TestDriver:
             enterprise: bool
     ):
         """run package conflict tests"""
-        # disable conflict tests for Windows and MacOS
-        if not IS_LINUX:
-            return [
-                {
-                    "testrun name": "Package installation/uninstallation tests were skipped because OS is not Linux.",
-                    "testscenario": "",
-                    "success": True,
-                    "messages": [],
-                    "progress": "",
-                }
-            ]
-        # disable conflict tests for zip packages
-        if self.base_config.zip_package:
-            return [
-                {
-                    "testrun name": "Package installation/uninstallation tests were skipped for zip packages.",
-                    "testscenario": "",
-                    "success": True,
-                    "messages": [],
-                    "progress": "",
-                }
-            ]
-        # disable conflict tests for deb packages for now.
-        # pylint: disable=import-outside-toplevel
-        import distro
-        if distro.linux_distribution(full_distribution_name=False)[0] in ["debian", "ubuntu"]:
-            return [
-                {
-                    "testrun name": "Package installation/uninstallation tests are temporarily" +
-                                    "disabled for debian-based linux distros. Waiting for BTS-684",
-                    "testscenario": "",
-                    "success": True,
-                    "messages": [],
-                    "progress": "",
-                }
-            ]
-        suite = None
         # pylint: disable=import-outside-toplevel
         if enterprise:
             from package_installation_tests.enterprise_package_installation_test_suite import \

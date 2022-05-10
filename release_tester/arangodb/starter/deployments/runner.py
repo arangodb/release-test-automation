@@ -445,13 +445,6 @@ class Runner(ABC):
 
         kill_all_processes(False)
         if self.do_install:
-            if inst.client_package:
-                lh.subsubsection("installing client package")
-                inst.install_client_package()
-                lh.subsubsection("checking files")
-                inst.check_installed_files()
-                lh.subsubsection("uninstalling client package")
-                inst.un_install_client_package()
             lh.subsubsection("installing server package")
             inst.install_server_package()
             self.cfg.set_directories(inst.cfg)

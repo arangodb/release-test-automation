@@ -379,6 +379,12 @@ class InstallerW(InstallerBase):
             tmp_uninstaller.unlink()
 
     @step
+    def uninstall_everything_impl(self):
+        """uninstall all arango packages present in the system(including those installed outside this installer)"""
+        self.un_install_server_package_impl()
+        self.un_install_client_package_impl()
+
+    @step
     def check_service_up(self):
         self.get_service()
         return self.service and self.service.status() == "running"

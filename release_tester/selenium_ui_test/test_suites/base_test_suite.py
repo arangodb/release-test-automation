@@ -8,21 +8,25 @@ from uuid import uuid4
 
 from allure_commons.model2 import Status, Label, StatusDetails
 from allure_commons.types import LabelType
-#pylint: disable=import-error
+
+# pylint: disable=import-error
 from arangodb.installers import RunProperties
 from reporting.reporting_utils import AllureTestSuiteContext, RtaTestcase, step
 from selenium_ui_test.models import RtaTestResult
+import distro
+import platform
 
 
 class BaseTestSuite(ABC):
     """base class for testsuites"""
+
     # pylint: disable=dangerous-default-value disable=too-many-instance-attributes
     def __init__(self, child_classes=[]):
         self.test_results = []
         self.child_classes = child_classes
         self.children = []
         self.parent = None
-        self.child_classes=child_classes
+        self.child_classes = child_classes
         self.enterprise = False
         if not hasattr(self, "new_version"):
             self.new_version = None
@@ -46,26 +50,24 @@ class BaseTestSuite(ABC):
         if self.new_version:
             versions.append(self.new_version)
         if hasattr(self, "generate_custom_suite_name"):
-            #pylint: disable=no-member
+            # pylint: disable=no-member
             self.suite_name = self.generate_custom_suite_name()
         if self.use_subsuite:
             self.sub_suite_name = self.__doc__ if self.__doc__ else self.__class__.__name__
         else:
             self.sub_suite_name = None
         self.test_suite_context = AllureTestSuiteContext(
-                properties=RunProperties(self.enterprise,
-                                         self.enc_at_rest,
-                                         self.ssl),
-                versions=versions,
-                parent_test_suite_name=None if not self.parent_test_suite_name else self.parent_test_suite_name,
-                auto_generate_parent_test_suite_name=True
-                if not hasattr(self, "auto_generate_parent_test_suite_name")
-                else self.auto_generate_parent_test_suite_name,
-                suite_name=None if not self.suite_name else self.suite_name,
-                sub_suite_name=None if not self.sub_suite_name else self.sub_suite_name,
-                runner_type=None if not self.runner_type else self.runner_type,
-                installer_type=None if not self.installer_type else self.installer_type,
-            )
+            properties=RunProperties(self.enterprise, self.enc_at_rest, self.ssl),
+            versions=versions,
+            parent_test_suite_name=None if not self.parent_test_suite_name else self.parent_test_suite_name,
+            auto_generate_parent_test_suite_name=True
+            if not hasattr(self, "auto_generate_parent_test_suite_name")
+            else self.auto_generate_parent_test_suite_name,
+            suite_name=None if not self.suite_name else self.suite_name,
+            sub_suite_name=None if not self.sub_suite_name else self.sub_suite_name,
+            runner_type=None if not self.runner_type else self.runner_type,
+            installer_type=None if not self.installer_type else self.installer_type,
+        )
 
     # pylint: disable=no-self-use
     def init_child_class(self, child_class):
@@ -78,22 +80,25 @@ class BaseTestSuite(ABC):
         if not setup_failed:
             try:
                 self.setup_test_suite()
+            # pylint: disable=bare-except
             except:
                 setup_failed = True
                 try:
                     self.add_crash_data_to_report()
+                # pylint: disable=bare-except
                 except:
                     pass
         if self.has_own_testcases():
             self.test_results += self.run_own_testscases(suite_is_broken=setup_failed)
         for suite_class in self.child_classes:
-            suite=self.init_child_class(suite_class)
+            suite = self.init_child_class(suite_class)
             suite.test_suite_context.test_listener.parent_test_listener = self.test_suite_context.test_listener
             self.children.append(suite)
             self.test_results += suite.run(parent_suite_setup_failed=setup_failed)
         tear_down_failed = False
         try:
             self.tear_down_test_suite()
+        # pylint: disable=bare-except
         except:
             tear_down_failed = True
             try:
@@ -104,7 +109,7 @@ class BaseTestSuite(ABC):
         return self.test_results
 
     def run_own_testscases(self, suite_is_broken=False):
-        """ run all tests local to the derived class """
+        """run all tests local to the derived class"""
         testcases = [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "is_testcase")]
         results = []
         for one_testcase in testcases:
@@ -112,28 +117,28 @@ class BaseTestSuite(ABC):
         return results
 
     def has_own_testcases(self):
-        """ do we have own testcases? """
+        """do we have own testcases?"""
         testcases = [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "is_testcase")]
         return len(testcases) > 0
 
     def get_run_before_suite_methods(self):
-        """ list methods that are marked to be ran before test suite """
+        """list methods that are marked to be ran before test suite"""
         return [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "run_before_suite")]
 
     def get_run_after_suite_methods(self):
-        """ list methods that are marked to be ran before test suite """
+        """list methods that are marked to be ran before test suite"""
         return [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "run_after_suite")]
 
     def get_run_before_each_testcase_methods(self):
-        """ list methods that are marked to be ran before test suite """
+        """list methods that are marked to be ran before test suite"""
         return [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "run_before_each_testcase")]
 
     def get_run_after_each_testcase_methods(self):
-        """ list methods that are marked to be ran before test suite """
+        """list methods that are marked to be ran before test suite"""
         return [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "run_after_each_testcase")]
 
     def get_collect_crash_data_methods(self):
-        """ list methods that are used to collect crash data in case a test failed"""
+        """list methods that are used to collect crash data in case a test failed"""
         return [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "collect_crash_data")]
 
     def run_before_fixtures(self, funcs):
@@ -148,11 +153,10 @@ class BaseTestSuite(ABC):
                 exc_tb = None
                 try:
                     func()
-                #pylint: disable=bare-except
+                # pylint: disable=bare-except
                 except:
                     exc_type, exc_val, exc_tb = sys.exc_info()
-            self.test_suite_context.test_listener.stop_before_fixture(fixture_uuid, exc_type,
-                                                                      exc_val, exc_tb)
+            self.test_suite_context.test_listener.stop_before_fixture(fixture_uuid, exc_type, exc_val, exc_tb)
             if exc_val:
                 raise Exception("Fixture failed.") from exc_val
 
@@ -172,8 +176,7 @@ class BaseTestSuite(ABC):
                 # pylint: disable=bare-except
                 except:
                     exc_type, exc_val, exc_tb = sys.exc_info()
-            self.test_suite_context.test_listener.stop_after_fixture(fixture_uuid, exc_type,
-                                                                     exc_val, exc_tb)
+            self.test_suite_context.test_listener.stop_after_fixture(fixture_uuid, exc_type, exc_val, exc_tb)
             if exc_val:
                 fixture_failed = True
         if fixture_failed:
@@ -206,12 +209,31 @@ class BaseTestSuite(ABC):
                 return True
         return False
 
+    # pylint: disable=missing-function-docstring
+    @staticmethod
+    def detect_linux_distro() -> str:
+        return distro.linux_distribution(full_distribution_name=False)[0]
+
+    @staticmethod
+    def os_is_debian_based() -> bool:
+        return BaseTestSuite.detect_linux_distro() in ["debian", "ubuntu"]
+
+    @staticmethod
+    def os_is_mac() -> bool:
+        return platform.mac_ver()[0] != ""
+
+    @staticmethod
+    def os_is_win() -> bool:
+        return platform.win32_ver()[0] != ""
+
+
 def run_before_suite(func):
     """mark method to be ran before test suite"""
     if callable(func):
         func.run_before_suite = True
         return func
     raise Exception("Only functions can be marked with @run_before_suite decorator")
+
 
 def run_after_suite(func):
     """mark method to be ran after test suite"""
@@ -220,12 +242,14 @@ def run_after_suite(func):
         return func
     raise Exception("Only functions can be marked with @run_after_suite decorator")
 
+
 def run_before_each_testcase(func):
     """mark method to be ran before each testcase in its test suite"""
     if callable(func):
         func.run_before_each_testcase = True
         return func
     raise Exception("Only functions can be marked with @run_before_each_testcase decorator")
+
 
 def run_after_each_testcase(func):
     """mark method to be ran before each testcase in its test suite"""
@@ -234,6 +258,7 @@ def run_after_each_testcase(func):
         return func
     raise Exception("Only functions can be marked with @run_after_each_testcase decorator")
 
+
 def collect_crash_data(func):
     """mark methods that are used to collect crash data in case a test failed"""
     if callable(func):
@@ -241,8 +266,101 @@ def collect_crash_data(func):
         return func
     raise Exception("Only functions can be marked with @collect_crash_data decorator")
 
-def testcase(title=None, disable=False):
-    """ base testcase class decorator """
+
+def disable(arg):
+    if callable(arg):
+        testcase_func = arg
+        testcase_func.is_disabled = True
+        return testcase_func
+    else:
+        reason = arg
+
+        def set_disable_reason(func):
+            func.is_disabled = True
+            func.disable_reasons.append(reason)
+            return func
+
+    return set_disable_reason
+
+
+def disable_for_windows(arg):
+    if callable(arg):
+        testcase_func = arg
+        if BaseTestSuite.os_is_win():
+            testcase_func.is_disabled = True
+            testcase_func.disable_reasons.append("This test case is disabled for Windows.")
+        return testcase_func
+    else:
+        reason = arg
+
+        def set_disable_reason(func):
+            if BaseTestSuite.os_is_win():
+                func.is_disabled = True
+                func.disable_reasons.append(reason)
+            return func
+
+    return set_disable_reason
+
+
+def disable_for_mac(arg):
+    if callable(arg):
+        testcase_func = arg
+        if BaseTestSuite.os_is_mac():
+            testcase_func.is_disabled = True
+            testcase_func.disable_reasons.append("This test case is disabled for MacOS.")
+        return testcase_func
+    else:
+        reason = arg
+
+        def set_disable_reason(func):
+            if BaseTestSuite.os_is_mac():
+                func.is_disabled = True
+                func.disable_reasons.append(reason)
+            return func
+
+    return set_disable_reason
+
+
+def disable_for_debian(arg):
+    if callable(arg):
+        testcase_func = arg
+        if BaseTestSuite.os_is_debian_based():
+            testcase_func.is_disabled = True
+            testcase_func.disable_reasons.append("This test case is disabled for Debian-based linux distros.")
+        return testcase_func
+    else:
+        reason = arg
+
+        def set_disable_reason(func):
+            if BaseTestSuite.os_is_debian_based():
+                func.is_disabled = True
+                func.disable_reasons.append(reason)
+            return func
+
+    return set_disable_reason
+
+
+def disable_if_true(value, reason=None):
+    def set_disable_reason(testcase_func):
+        if value:
+            testcase_func.is_disabled = True
+            if reason:
+                testcase_func.disable_reasons.append(reason)
+        return testcase_func
+
+    return set_disable_reason
+
+
+def disable_if_returns_true_at_runtime(function, reason=None):
+    def set_disable_func_and_reason(testcase_func):
+        testcase_func.disable_functions.append((function, reason))
+        return testcase_func
+
+    return set_disable_func_and_reason
+
+
+def testcase(title=None):
+    """base testcase class decorator"""
 
     def sanitize_kwargs_for_testcase(kwargs_dict):
         dict = kwargs_dict.copy()
@@ -272,12 +390,18 @@ def testcase(title=None, disable=False):
                         name = func.__doc__
                     else:
                         name = func.__name__
+            for function, reason in wrapper.disable_functions:
+                if function(self):
+                    wrapper.is_disabled = True
+                    if reason:
+                        wrapper.disable_reasons.append(reason)
             with RtaTestcase(name) as my_testcase:
-                if disable:
+                if wrapper.is_disabled:
                     test_result = RtaTestResult(name, True, "test is skipped", None)
                     my_testcase.context.status = Status.SKIPPED
-                    if isinstance(disable, str):
-                        my_testcase.context.statusDetails = StatusDetails(message=disable)
+                    if len(wrapper.disable_reasons) > 0:
+                        message = "\n".join(wrapper.disable_reasons)
+                        my_testcase.context.statusDetails = StatusDetails(message=message)
                 elif kwargs["suite_is_broken"]:
                     test_result = RtaTestResult(name, False, "test suite is broken", None)
                     my_testcase.context.status = Status.BROKEN
@@ -311,7 +435,14 @@ def testcase(title=None, disable=False):
                 return test_result
 
         wrapper.is_testcase = True
-        wrapper.disable = disable
+        wrapper.is_disabled = False
+        wrapper.disable_reasons = []
+
+        # This list must contain pairs of functions and corresponding reasons.
+        # The function must take one argument(the test suite object) and return a boolean value.
+        # If this value is true, than the testcase is skipped and the corresponding reason will be seen in the report.
+        wrapper.disable_functions = []
+
         return wrapper
 
     if callable(title):

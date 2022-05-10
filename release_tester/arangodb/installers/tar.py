@@ -223,6 +223,11 @@ class InstallerTAR(InstallerBase):
         """ purge client package """
         self.purge_install_dir()
 
+    @step
+    def uninstall_everything_impl(self):
+        """uninstall all arango packages present in the system(including those installed outside this installer)"""
+        self.purge_install_dir()
+
     def purge_install_dir(self):
         """ remove the install directory """
         if self.cfg.install_prefix.exists():
