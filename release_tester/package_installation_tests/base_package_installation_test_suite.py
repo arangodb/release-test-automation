@@ -48,9 +48,11 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
         self.new_inst_c = self.installers["community"][1][1]
         super().__init__()
 
+    # pylint: disable=missing-function-docstring
     def is_zip(self):
         return self.zip_package
 
+    # pylint: disable=missing-function-docstring
     def client_package_is_present(self) -> bool:
         return (
             self.old_inst_e.client_package
@@ -59,6 +61,7 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
             and self.new_inst_c.client_package
         )
 
+    # pylint: disable=missing-function-docstring
     def client_package_is_not_present(self) -> bool:
         return not self.client_package_is_present()
 

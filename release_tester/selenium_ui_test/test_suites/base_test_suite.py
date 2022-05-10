@@ -80,10 +80,12 @@ class BaseTestSuite(ABC):
         if not setup_failed:
             try:
                 self.setup_test_suite()
+            # pylint: disable=bare-except
             except:
                 setup_failed = True
                 try:
                     self.add_crash_data_to_report()
+                # pylint: disable=bare-except
                 except:
                     pass
         if self.has_own_testcases():
@@ -96,6 +98,7 @@ class BaseTestSuite(ABC):
         tear_down_failed = False
         try:
             self.tear_down_test_suite()
+        # pylint: disable=bare-except
         except:
             tear_down_failed = True
             try:
@@ -206,6 +209,7 @@ class BaseTestSuite(ABC):
                 return True
         return False
 
+    # pylint: disable=missing-function-docstring
     @staticmethod
     def detect_linux_distro() -> str:
         return distro.linux_distribution(full_distribution_name=False)[0]

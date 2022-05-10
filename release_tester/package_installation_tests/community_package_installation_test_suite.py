@@ -37,7 +37,7 @@ class CommunityPackageInstallationTestSuite(BasePackageInstallationTestSuite):
         BasePackageInstallationTestSuite.client_package_is_not_present,
         "Test case is skipped because client package is not present for given installer type.",
     )
-
+    # pylint: disable=missing-function-docstring
     def generate_custom_suite_name(self):
         return f"Test package installation/uninstallation. New version: {self.new_version}. Old version: {self.old_version}. Package type: {str(self.new_inst_e.installer_type)}. Community edition."
 
