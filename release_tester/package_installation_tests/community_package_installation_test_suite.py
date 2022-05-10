@@ -101,6 +101,7 @@ class CommunityPackageInstallationTestSuite(BasePackageInstallationTestSuite):
 
     @disable_if_true(is_mac, mac_message)
     @disable_if_returns_true_at_runtime(is_zip, zip_message)
+    @disable_if_true(is_windows, win_message)
     @testcase
     def test8(self):
         """Check that new community client package cannot be installed over an enterprise package of the same version"""
@@ -108,6 +109,7 @@ class CommunityPackageInstallationTestSuite(BasePackageInstallationTestSuite):
 
     @disable_if_true(is_mac, mac_message)
     @disable_if_returns_true_at_runtime(is_zip, zip_message)
+    @disable_if_true(is_windows, win_message)
     @testcase
     def test9(self):
         """Check that new community client package cannot be installed when server package is installed"""
