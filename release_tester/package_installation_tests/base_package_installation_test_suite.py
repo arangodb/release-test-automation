@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """base class for package conflict checking"""
 import shutil
+
 from allure_commons._allure import attach
+
 from arangodb.installers import create_config_installer_set, RunProperties, InstallerBaseConfig
 from selenium_ui_test.test_suites.base_test_suite import (
     BaseTestSuite,
@@ -9,6 +11,8 @@ from selenium_ui_test.test_suites.base_test_suite import (
     run_after_suite,
     run_after_each_testcase,
     collect_crash_data,
+    disable_for_debian,
+    disable_if_returns_true_at_runtime,
 )
 
 
@@ -50,23 +54,15 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
         return self.zip_package
 
     def client_package_is_present(self) -> bool:
-        return self.old_inst_e.client_package and self.new_inst_e.client_package and self.old_inst_c.client_package and self.new_inst_c.client_package
+        return (
+            self.old_inst_e.client_package
+            and self.new_inst_e.client_package
+            and self.old_inst_c.client_package
+            and self.new_inst_c.client_package
+        )
 
     def client_package_is_not_present(self) -> bool:
         return not self.client_package_is_present()
-
-    def disable_installation_tests(self):
-        if BaseTestSuite.os_is_debian_based():
-            return "Package installation/uninstallation tests are temporarily disabled for debian-based linux distros. Waiting for BTS-684."
-        elif BaseTestSuite.os_is_win() or BaseTestSuite.os_is_mac():
-            return "Package installation/uninstallation tests were skipped because OS is not Linux."
-        elif self.zip_package:
-            return "Package installation/uninstallation tests were skipped for zip packages."
-        else:
-            return False
-
-    def disable_client_package_tests(self):
-        return "Client package tests are not applicable for MacOS." if BaseTestSuite.os_is_mac() else False
 
     @run_before_suite
     @run_after_suite

@@ -279,6 +279,63 @@ def disable(arg):
     return set_disable_reason
 
 
+def disable_for_windows(arg):
+    if callable(arg):
+        testcase_func = arg
+        if BaseTestSuite.os_is_win():
+            testcase_func.is_disabled = True
+            testcase_func.disable_reasons.append("This test case is disabled for Windows.")
+        return testcase_func
+    else:
+        reason = arg
+
+        def set_disable_reason(func):
+            if BaseTestSuite.os_is_win():
+                func.is_disabled = True
+                func.disable_reasons.append(reason)
+            return func
+
+    return set_disable_reason
+
+
+def disable_for_mac(arg):
+    if callable(arg):
+        testcase_func = arg
+        if BaseTestSuite.os_is_mac():
+            testcase_func.is_disabled = True
+            testcase_func.disable_reasons.append("This test case is disabled for MacOS.")
+        return testcase_func
+    else:
+        reason = arg
+
+        def set_disable_reason(func):
+            if BaseTestSuite.os_is_mac():
+                func.is_disabled = True
+                func.disable_reasons.append(reason)
+            return func
+
+    return set_disable_reason
+
+
+def disable_for_debian(arg):
+    if callable(arg):
+        testcase_func = arg
+        if BaseTestSuite.os_is_debian_based():
+            testcase_func.is_disabled = True
+            testcase_func.disable_reasons.append("This test case is disabled for Debian-based linux distros.")
+        return testcase_func
+    else:
+        reason = arg
+
+        def set_disable_reason(func):
+            if BaseTestSuite.os_is_debian_based():
+                func.is_disabled = True
+                func.disable_reasons.append(reason)
+            return func
+
+    return set_disable_reason
+
+
 def disable_if_true(value, reason=None):
     def set_disable_reason(testcase_func):
         if value:
