@@ -34,7 +34,9 @@ class EnterprisePackageInstallationTestSuite(BasePackageInstallationTestSuite):
     is_mac = BaseTestSuite.os_is_mac()
     mac_message = "Package installation/uninstallation tests are disabled for MacOS."
     is_zip = BasePackageInstallationTestSuite.is_zip
-    zip_message = "Package installation/uninstallation tests are disabled for .zip packages."
+    zip_message = "This test case is not applicable for .zip packages."
+    is_not_client_package = BasePackageInstallationTestSuite.client_package_is_not_present
+    client_package_message = "Test case is skipped because client package is not present for given installer type."
 
     def generate_custom_suite_name(self):
         return f"Test package installation/uninstallation. New version: {self.new_version}. Old version: {self.old_version}. Package type: {str(self.new_inst_e.installer_type)}. Enterprise edition."
@@ -98,6 +100,7 @@ class EnterprisePackageInstallationTestSuite(BasePackageInstallationTestSuite):
 
     @disable_if_true(is_mac, mac_message)
     @disable_if_returns_true_at_runtime(is_zip, zip_message)
+    @disable_if_returns_true_at_runtime(is_not_client_package, client_package_message)
     @testcase
     def test7(self):
         """Check that new enterprise client package cannot be installed over an community package of previous version"""
@@ -106,6 +109,7 @@ class EnterprisePackageInstallationTestSuite(BasePackageInstallationTestSuite):
     @disable_if_true(is_mac, mac_message)
     @disable_if_returns_true_at_runtime(is_zip, zip_message)
     @disable_if_true(is_windows, win_message)
+    @disable_if_returns_true_at_runtime(is_not_client_package, client_package_message)
     @testcase
     def test8(self):
         """Check that new enterprise client package cannot be installed over an community package of the same version"""
@@ -114,12 +118,14 @@ class EnterprisePackageInstallationTestSuite(BasePackageInstallationTestSuite):
     @disable_if_true(is_mac, mac_message)
     @disable_if_returns_true_at_runtime(is_zip, zip_message)
     @disable_if_true(is_windows, win_message)
+    @disable_if_returns_true_at_runtime(is_not_client_package, client_package_message)
     @testcase
     def test9(self):
         """Check that new enterprise client package cannot be installed when server package is installed"""
         check_if_client_package_can_be_installed_over_server_package(self.new_inst_e, self.new_inst_e, False)
 
     @disable_if_true(is_mac, mac_message)
+    @disable_if_returns_true_at_runtime(is_not_client_package, client_package_message)
     @testcase
     def test10(self):
         """Check that enterprise client package can be installed/uninstalled."""
@@ -144,6 +150,7 @@ class EnterprisePackageInstallationTestSuite(BasePackageInstallationTestSuite):
         check_if_server_packages_can_be_installed_consequentially(self.old_inst_e, self.new_inst_e, True)
 
     @disable_if_true(is_mac, mac_message)
+    @disable_if_returns_true_at_runtime(is_not_client_package, client_package_message)
     @testcase
     def test13(self):
         """Check that enterprise client package can be upgraded"""

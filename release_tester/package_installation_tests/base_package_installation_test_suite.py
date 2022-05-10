@@ -49,6 +49,12 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
     def is_zip(self):
         return self.zip_package
 
+    def client_package_is_present(self) -> bool:
+        return self.old_inst_e.client_package and self.new_inst_e.client_package and self.old_inst_c.client_package and self.new_inst_c.client_package
+
+    def client_package_is_not_present(self) -> bool:
+        return not self.client_package_is_present()
+
     def disable_installation_tests(self):
         if BaseTestSuite.os_is_debian_based():
             return "Package installation/uninstallation tests are temporarily disabled for debian-based linux distros. Waiting for BTS-684."
