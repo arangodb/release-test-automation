@@ -201,7 +201,7 @@ def upgrade_package_test(
     interactive=False,
     test_data_dir="/home/test_dir",
 )
-@download_options(default_source="ftp:stage2", other_source=True)
+@download_options(default_source="http:stage2", other_source=True)
 # fmt: off
 # pylint: disable=too-many-arguments, disable=unused-argument
 def main(**kwargs):

@@ -130,7 +130,7 @@ def package_test(dl_opts: DownloadOptions, new_version, new_dlstage, git_version
     interactive=False,
     test_data_dir="/home/test_dir",
 )
-@download_options(default_source="ftp:stage2", double_source=True)
+@download_options(default_source="http:stage2", double_source=True)
 # fmt: off
 # pylint: disable=too-many-arguments, disable=unused-argument
 def main(**kwargs):
