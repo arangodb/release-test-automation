@@ -284,9 +284,10 @@ def common_options(
 
 def download_options(default_source="public", double_source=False, other_source=False):
     """these are options available in scripts downloading packages"""
-    download_sources = ["ftp:stage1", "http:stage1", "ftp:stage2", "http:stage2", "nightlypublic", "public", "local"]
+    download_sources = ["http:stage1", "http:stage2", "nightlypublic", "public", "local"]
 
     def inner_func(function):
+        default_local_httpuser = get_default_value("RTA_LOCAL_HTTPUSER", "", "")
         function = click.option("--enterprise-magic", default="", help="Enterprise or community?")(function)
         function = click.option(
             "--force/--no-force",
@@ -321,7 +322,7 @@ def download_options(default_source="public", double_source=False, other_source=
                 type=click.Choice(download_sources),
                 help="where to download the secondary package from",
             )(function)
-        function = click.option("--httpuser", default="", help="user for external http download")(function)
+        function = click.option("--httpuser", default=default_local_httpuser, help="user for external http download")(function)
         function = click.option("--remote-host", default="", help="remote host to acquire packages from")(function)
         return function
 
