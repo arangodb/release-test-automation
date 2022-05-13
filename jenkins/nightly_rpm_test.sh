@@ -18,8 +18,6 @@ fi
 
 if test -n "$SOURCE"; then
     force_arg+=(--new-source "$SOURCE")
-else
-    force_arg+=(--remote-host "172.17.1.4")
 fi
 
 VERSION_TAR_NAME="${NEW_VERSION}_rpm_version.tar"

@@ -14,7 +14,6 @@ force_arg=()
 if test -n "$FORCE" -o "$TEST_BRANCH" != 'master'; then
   force_arg=(--force)
 fi
-#     force_arg+=(--remote-host "172.17.1.4")
 
 VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_tar_version.tar"
 mkdir -p "${PACKAGE_CACHE}"

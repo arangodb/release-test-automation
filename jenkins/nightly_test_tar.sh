@@ -19,8 +19,6 @@ fi
 
 if test -n "$SOURCE"; then
     force_arg+=(--new-source "$SOURCE")
-else
-    force_arg+=(--remote-host "172.17.1.4")
 fi
 
 mkdir -p "${PACKAGE_CACHE}"
