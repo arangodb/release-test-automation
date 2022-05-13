@@ -322,7 +322,6 @@ def download_options(default_source="public", double_source=False, other_source=
                 help="where to download the secondary package from",
             )(function)
         function = click.option("--httpuser", default="", help="user for external http download")(function)
-        function = click.option("--httppassvoid", default="", help="passvoid for external http download")(function)
         function = click.option("--remote-host", default="", help="remote host to acquire packages from")(function)
         return function
 
