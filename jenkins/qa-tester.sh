@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# ./jenkins/qa-tester.sh 3.7.15 "3.6.15:3.7.15;3.7.14:3.7.15;3.7.15:3.8.1" ftp:stage2 --zip
+# ./jenkins/qa-tester.sh 3.7.15 "3.6.15:3.7.15;3.7.14:3.7.15;3.7.15:3.8.1" http:stage2 --zip
 
 TEST_VERSION=$1
 shift
