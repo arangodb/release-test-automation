@@ -210,6 +210,7 @@ class InstallerBase(ABC):
     """this is the prototype for the operation system agnostic installers"""
 
     def __init__(self, cfg: InstallerConfig):
+        self.machine = platform.machine()
         self.arango_binaries = []
         self.cfg = copy.deepcopy(cfg)
         self.calculate_package_names()
@@ -228,7 +229,6 @@ class InstallerBase(ABC):
         self.starter_versions = {}
         self.cli_executor = ArangoCLIprogressiveTimeoutExecutor(self.cfg, self.instance)
         self.core_glob = "**/*core"
-        self.machine = platform.machine()
 
     def reset_version(self, version):
         """re-configure the version we work with"""
