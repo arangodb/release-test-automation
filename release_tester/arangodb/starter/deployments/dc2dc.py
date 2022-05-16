@@ -193,6 +193,8 @@ class Dc2Dc(Runner):
             opts = [
                     '--all.log.level=backup=trace',
                     '--all.log.level=requests=debug',
+                    '--args.syncmasters.log.level=debug',
+                    '--args.syncworkers.log.level=debug',
                     '--starter.sync',
                     '--starter.local',
                     '--auth.jwt-secret=' +           str(val["JWTSecret"]),
