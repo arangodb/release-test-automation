@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """ collection page object """
 import time
+import semver
 import traceback
 
 from selenium.common.exceptions import ElementNotInteractableException, TimeoutException
-import semver
 
 from selenium_ui_test.pages.navbar import NavigationBarPage
+import semver
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=line-too-long disable=too-many-instance-attributes disable=too-many-statements disable=too-many-public-methods
@@ -198,6 +199,73 @@ class CollectionPage(NavigationBarPage):
         create_new_collection_btn_sitem = self.locator_finder_by_id(self.create_new_collection_btn_id)
         create_new_collection_btn_sitem.click()
         time.sleep(3)
+    
+    def create_new_collections(self, name, doc_type, is_cluster):
+        """This method will create new collection based on their name and type"""
+        print('selecting collection tab \n')
+        select_collection_page_sitem = self.locator_finder_by_id(self.select_collection_page_id)
+        select_collection_page_sitem.click()
+        time.sleep(1)
+
+        print('Clicking on create new collection box \n')
+        select_create_collection_sitem = self.locator_finder_by_id(self.select_create_collection_id)
+        select_create_collection_sitem.click()
+        time.sleep(1)
+
+        print('Selecting new collection name \n')
+        select_new_collection_name_sitem = self.locator_finder_by_id(self.select_new_collection_name_id)
+        select_new_collection_name_sitem.click()
+        select_new_collection_name_sitem.send_keys(name)
+        time.sleep(1)
+
+        print(f'Selecting collection type for {name} \n')  # collection Document type where # '2' = Document, '3' = Edge
+        self.locator_finder_by_select(self.select_collection_type_id, doc_type)
+        time.sleep(1)
+
+        if is_cluster:
+            print(f'selecting number of Shards for the {name} \n')
+            shards = 'new-collection-shards'
+            shards_sitem = self.locator_finder_by_id(shards)
+            shards_sitem.click()
+            shards_sitem.clear()
+            shards_sitem.send_keys(9)
+            time.sleep(2)
+
+            print(f'selecting number of replication factor for {name} \n')
+            rf = 'new-replication-factor'
+            rf_sitem = self.locator_finder_by_id(rf)
+            rf_sitem.click()
+            rf_sitem.clear()
+            rf_sitem.send_keys(3)
+            time.sleep(2)
+
+        print(f'Selecting collection advance options for {name} \n')
+        select_advance_option_sitem = self.locator_finder_by_xpath(self.select_advance_option_id)
+        select_advance_option_sitem.click()
+        time.sleep(1)
+
+        # Selecting collection wait type where value # 0 = YES, '1' = NO)
+        self.locator_finder_by_select(self.wait_for_sync_id, 0)
+        time.sleep(1)
+
+        print(f'Selecting create button for {name} \n')
+        create_new_collection_btn_sitem = self.locator_finder_by_id(self.create_new_collection_btn_id)
+        create_new_collection_btn_sitem.click()
+        time.sleep(3)
+        self.webdriver.refresh()
+
+        # if name == 'TestDoc':
+        #     return [name, self.select_doc_collection_id]
+        # elif name == 'TestEdge':
+        #     return [name, self.select_edge_collection_id]
+        # elif name == 'Test':
+        #     return [name, self.select_test_doc_collection_id]
+        # else:
+        #     print('Collection is not existed!! \n')
+
+        # if is_cluster:
+        #     return ['TestDocRenamed', self.select_renamed_doc_collection_id]
+
 
     def checking_search_options(self, search):
         """Checking search functionality"""
@@ -293,11 +361,12 @@ class CollectionPage(NavigationBarPage):
         """getting_total_row_count"""
         # ATTENTION: this will only be visible & successfull if the browser window is wide enough!
         size = self.webdriver.get_window_size()
-        if size["width"] > 1000:
+        if (size["width"] > 1000):
             getting_total_row_count_sitem = self.locator_finder_by_xpath(self.getting_total_row_count_id, 20)
             return getting_total_row_count_sitem.text
-        print("your browser window is to narrow! " + str(size))
-        return "-1"
+        else:
+            print("your browser window is to narrow! " + str(size))
+            return "-1"
 
 
     def download_doc_as_json(self):
@@ -490,7 +559,7 @@ class CollectionPage(NavigationBarPage):
     #     time.sleep(2)
     #     self.wait_for_ajax()
 
-    def create_new_index(self, index_name, value, cluster_status):
+    def create_new_index(self, index_name, value, is_cluster):
         """ create a new Index """
         print(f"Creating {index_name} index started \n")
         create_new_index_btn_sitem = self.locator_finder_by_id(self.create_new_index_btn_id)
@@ -508,7 +577,7 @@ class CollectionPage(NavigationBarPage):
             self.select_persistent_name_id.send_keys("pname").perform()
             time.sleep(1)
 
-            if not cluster_status:
+            if not is_cluster:
                 self.select_persistent_unique_id = self.locator_finder_by_hover_item_id(
                     self.select_persistent_unique_id
                 )
@@ -681,7 +750,7 @@ class CollectionPage(NavigationBarPage):
         selector = """//div[contains(@class, 'tile')][@id='collection_%s']""" % collection_name
         self.locator_finder_by_xpath(selector).click()
 
-    def delete_collection(self, collection_name, collection_locator):
+    def delete_collection(self, collection_name, collection_locator, is_cluster):
         """This method will delete all the collection"""
         print(f"Deleting {collection_name} collection started \n")
         self.select_collection_page()
@@ -690,7 +759,7 @@ class CollectionPage(NavigationBarPage):
             self.locator_finder_by_xpath(collection_locator).click()
 
             # we don't care about the cluster specific things:
-            self.select_settings_tab(False)
+            self.select_settings_tab(is_cluster)
             self.select_delete_collection()
 
             print(f"Deleting {collection_name} collection Completed \n")
