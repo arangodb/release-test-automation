@@ -26,67 +26,6 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
         self.exception = False
         self.error = None
 
-        # print("Selecting collection tab\n")
-        # col.select_collection_page()
-
-        # print("Creating new collection started \n")
-        # col.select_create_collection()
-        # print("Creating Document collection \n")
-        # col.select_new_collection_name("TestDoc")
-        # print("Creating Document type collection started \n")
-        # col.select_collection_type(0)  # 0 for Doc type document
-
-        # if self.is_cluster:
-        #     print("Selecting number of shards for the current collection \n")
-        #     col.select_number_of_shards(9)  # it takes number of shards as an argument
-
-        #     print("Selecting replication factor for the current collection \n")
-        #     col.select_replication_factor(3)  # it takes number of replication factor as an argument
-
-        # col.select_advance_option()
-        # print("Choosing wait type to YES \n")
-        # col.wait_for_sync(1)
-        # col.create_new_collection_btn()
-        # print("Creating Document type collection completed \n")
-
-        # print("Creating Edge type collection\n")
-        # col.select_create_collection()
-        # col.select_new_collection_name("TestEdge")
-        # col.select_collection_type(1)  # 1 for Edge type document
-
-        # if self.is_cluster:
-        #     print("Selecting number of shards for the current collection \n")
-        #     col.select_number_of_shards(9)  # it takes number of shards as an argument
-
-        #     print("Selecting replication factor for the current collection \n")
-        #     col.select_replication_factor(3)  # it takes number of replication factor as an argument
-
-        # col.select_advance_option()
-        # print("Choosing wait type to YES \n")
-        # col.wait_for_sync(1)
-        # col.create_new_collection_btn()
-        # print("Creating new Edge collection completed \n")
-
-        # print("Creating new collection started \n")
-        # col.select_create_collection()
-        # print("Creating Document collection \n")
-        # col.select_new_collection_name("Test")
-        # print("Creating Document type collection started \n")
-        # col.select_collection_type(0)  # 0 for Doc type document
-
-        # if self.is_cluster:
-        #     print("Selecting number of shards for the current collection \n")
-        #     col.select_number_of_shards(9)  # it takes number of shards as an argument
-
-        #     print("Selecting replication factor for the current collection \n")
-        #     col.select_replication_factor(3)  # it takes number of replication factor as an argument
-
-        # col.select_advance_option()
-        # print("Choosing wait type to YES \n")
-        # col.wait_for_sync(1)
-        # col.create_new_collection_btn()
-        # print("Creating Document type collection completed \n")
-
         try:
             col.create_new_collections('TestDoc', 0, self.is_cluster)
             col.create_new_collections('TestEdge', 1, self.is_cluster)
@@ -218,32 +157,6 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
             print("Truncate collection\n")
             col.select_truncate_btn()
             self.webdriver.refresh()
-            
-            
-            # print("Deleting Collection started\n")
-            # col.delete_collection()
-            # #
-            # print("Selecting TestEdge Collection for deleting\n")
-            # col.select_edge_collection()
-            # col.delete_collection()
-
-            # print("Selecting Test Collection for deleting\n")
-            # col.select_test_doc_collection()
-            # col.delete_collection()
-            # print("Deleting Collection completed\n")
-
-            # # these will clearup the resources even in failed test case scenario
-            # if self.is_cluster:
-            #     col.delete_collection("TestDoc", col.select_doc_collection_id)
-            # else:
-            #     col.delete_collection("TestDocRenamed", col.select_renamed_doc_collection_id)
-            # col.delete_collection("TestEdge", col.select_edge_collection_id)
-            # col.delete_collection("Test", col.select_test_doc_collection_id)
-
-
-
-            # login.logout_button()
-            # del login
             print("---------Checking Collection Completed--------- \n")
         
         except BaseException:
