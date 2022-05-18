@@ -3,11 +3,9 @@
 import time
 import semver
 import traceback
-
-from selenium.common.exceptions import ElementNotInteractableException, TimeoutException
-
+from selenium.common.exceptions import ElementNotInteractableException, TimeoutException, NoSuchElementException
 from selenium_ui_test.pages.navbar import NavigationBarPage
-import semver
+
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=line-too-long disable=too-many-instance-attributes disable=too-many-statements disable=too-many-public-methods
@@ -690,6 +688,8 @@ class CollectionPage(NavigationBarPage):
         except TimeoutException:
             print("TimeoutException occurred! \n")
             print("Info: Collection has already been deleted or never created. \n")
+        except NoSuchElementException:
+            print('Element not found, which might be happen due to force cleanup.')
         except Exception as ex:
             traceback.print_exc()
             raise Exception("Critical Error occurred and need manual inspection!! \n") from ex
