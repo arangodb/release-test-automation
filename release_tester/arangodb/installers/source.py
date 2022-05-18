@@ -27,10 +27,10 @@ class InstallerSource(InstallerBase):
             test_dir = test_dir.readlink()
         print("identified this source directory: " + str(test_dir))
         # no installing... its there...
-        cfg.bin_dir = cfg.package_dir / "build" / "bin"
+        cfg.bin_dir = test_dir / "build" / "bin"
         if (cfg.bin_dir / 'RelWithDebInfo').exists():
             cfg.bin_dir = cfg.bin_dir / 'RelWithDebInfo'
-        cfg.sbin_dir = cfg.package_dir / "build" / "bin"
+        cfg.sbin_dir = test_dir / "build" / "bin"
         cfg.real_bin_dir = cfg.bin_dir
         cfg.real_sbin_dir = cfg.sbin_dir
         print(cfg.bin_dir)
@@ -41,18 +41,18 @@ class InstallerSource(InstallerBase):
         cfg.log_dir = cfg.bin_dir
         cfg.dbdir = cfg.bin_dir
         cfg.appdir = cfg.bin_dir
-        cfg.cfgdir = cfg.package_dir / 'etc' / 'relative'
-        js_dir = str(cfg.package_dir / 'js')
+        cfg.cfgdir = test_dir / 'etc' / 'relative'
+        js_dir = str(test_dir / 'js')
         js_enterprise = []
         js_enterprise_server = []
         if cfg.enterprise:
             js_enterprise = [
                 '--javascript.module-directory',
-                str(cfg.package_dir / 'enterprise' / 'js')
+                str(test_dir / 'enterprise' / 'js')
                 ]
             js_enterprise_server = [
                 '--all.javascript.module-directory',
-                str(cfg.package_dir / 'enterprise' / 'js')
+                str(test_dir / 'enterprise' / 'js')
                 ]
         cfg.default_backup_args = [
             '-c', str(cfg.cfgdir / 'arangobackup.conf'),
