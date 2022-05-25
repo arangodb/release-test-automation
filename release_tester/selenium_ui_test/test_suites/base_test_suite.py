@@ -17,16 +17,23 @@ import distro
 import platform
 
 
-class BaseTestSuite(ABC):
+class MetaTestSuite(type):
+    def __new__(mcs, name, bases, dct):
+        suite_class = super().__new__(mcs, name, bases, dct)
+        if "child_test_suites" not in dct.keys():
+            suite_class.child_test_suites = []
+        return suite_class
+
+
+class BaseTestSuite(metaclass=MetaTestSuite):
     """base class for testsuites"""
 
     # pylint: disable=dangerous-default-value disable=too-many-instance-attributes
-    def __init__(self, child_classes=[]):
+    def __init__(self):
         self.test_results = []
-        self.child_classes = child_classes
+        self.child_classes = self.get_child_test_suite_classes()
         self.children = []
         self.parent = None
-        self.child_classes = child_classes
         self.enterprise = False
         if not hasattr(self, "new_version"):
             self.new_version = None
@@ -68,6 +75,10 @@ class BaseTestSuite(ABC):
             runner_type=None if not self.runner_type else self.runner_type,
             installer_type=None if not self.installer_type else self.installer_type,
         )
+
+    @classmethod
+    def get_child_test_suite_classes(cls):
+        return cls.child_test_suites
 
     # pylint: disable=no-self-use
     def init_child_class(self, child_class):

@@ -25,6 +25,8 @@ from arangodb.starter.deployments import (
 )
 from license_manager_tests.basic_test_suite import BasicLicenseManagerTestSuite
 from license_manager_tests.upgrade.upgrade_test_suite import UpgradeLicenseManagerTestSuite
+from package_installation_tests.community_package_installation_test_suite import CommunityPackageInstallationTestSuite
+from package_installation_tests.enterprise_package_installation_test_suite import EnterprisePackageInstallationTestSuite
 from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext, init_allure
 from tools.killall import kill_all_processes
 
@@ -39,6 +41,13 @@ except ModuleNotFoundError as exc:
 
 IS_WINDOWS = platform.win32_ver()[0] != ""
 IS_LINUX = sys.platform == "linux"
+
+FULL_TEST_SUITE_LIST = [
+    EnterprisePackageInstallationTestSuite,
+    CommunityPackageInstallationTestSuite,
+    BasicLicenseManagerTestSuite,
+    UpgradeLicenseManagerTestSuite,
+]
 
 
 class TestDriver:
@@ -444,12 +453,12 @@ class TestDriver:
     # fmt: off
     # pylint: disable=too-many-arguments disable=too-many-locals
     def run_perf_test(self,
-                 deployment_mode,
-                 versions: list,
-                 frontends,
-                 scenario,
-                 run_props: RunProperties):
-    # fmt: on
+                      deployment_mode,
+                      versions: list,
+                      frontends,
+                      scenario,
+                      run_props: RunProperties):
+        # fmt: on
         """ main """
         do_install = deployment_mode in ["all", "install"]
         do_uninstall = deployment_mode in ["all", "uninstall"]
@@ -469,7 +478,7 @@ class TestDriver:
                 **{"mode": str(deployment_mode), "cfg_repr": repr(installers[0][0])}
             )
         )
-        inst=installers[0][1]
+        inst = installers[0][1]
 
         split_host = re.compile(r"([a-z]*)://([0-9.:]*):(\d*)")
 
@@ -536,9 +545,9 @@ class TestDriver:
             versions
     ):
         """run license manager tests"""
-        if len(versions)==1:
-            new_version=versions[0]
-        elif len(versions)>1:
+        if len(versions) == 1:
+            new_version = versions[0]
+        elif len(versions) > 1:
             old_version = versions[1]
             new_version = versions[1]
         if new_version < "3.9.0-nightly":
@@ -567,9 +576,9 @@ class TestDriver:
         results = []
         suites_classes = []
         suites_classes.append(BasicLicenseManagerTestSuite)
-        if (len(versions)>1 and
-            old_version > "3.9.0-nightly" and
-            new_version > "3.9.0-nightly"):
+        if (len(versions) > 1 and
+                old_version > "3.9.0-nightly" and
+                new_version > "3.9.0-nightly"):
             suites_classes.append(UpgradeLicenseManagerTestSuite)
         args = (versions, self.base_config)
 
@@ -595,4 +604,42 @@ class TestDriver:
         results = []
         results.extend(self.run_conflict_tests(versions, enterprise))
         results.extend(self.run_license_manager_tests(versions))
+        return results
+
+    def run_test_suites(self, versions: list[semver.VersionInfo], enterprise: bool, include_suites: tuple[str]=[], exclude_suites: tuple[str]=[]):
+        suite_classes=[]
+        if len(include_suites)==0 and len(exclude_suites)==0:
+            return self.run_all_test_suites(versions, enterprise)
+        elif len(include_suites)>0 and len(exclude_suites)==0:
+            for suite_class in FULL_TEST_SUITE_LIST:
+                if suite_class.__name__ in include_suites:
+                    suite_classes.append(suite_class)
+        elif len(exclude_suites)>0 and len(include_suites)==0:
+            suite_classes.extend(FULL_TEST_SUITE_LIST)
+            for exclude_suite_class in exclude_suites:
+                for suite_class in suite_classes:
+                    if suite_class.__name__ == exclude_suite_class:
+                        suite_classes.remove(suite_class)
+                        break
+        else:
+            raise Exception(
+                "Please specify one or none of the following parameters: --exclude-test-suite, --include-test-suite.")
+
+        results = []
+        args = (versions, self.base_config)
+        for suites_class in suite_classes:
+            suite = suites_class(*args)
+            suite.run()
+            result = {
+                "testrun name": suite.suite_name,
+                "testscenario": "",
+                "success": True,
+                "messages": [],
+                "progress": "",
+            }
+            if suite.there_are_failed_tests():
+                result["success"] = False
+                for one_result in suite.test_results:
+                    result["messages"].append(one_result.message)
+            results.append(result)
         return results

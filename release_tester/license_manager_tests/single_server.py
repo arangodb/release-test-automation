@@ -18,11 +18,10 @@ class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
     """License manager tests: single server"""
 
     # pylint: disable=dangerous-default-value
-    def __init__(self, new_version, installer_base_config, child_classes=[]):
+    def __init__(self, new_version, installer_base_config):
         super().__init__(
             new_version,
             installer_base_config,
-            child_classes,
         )
         self.short_name = "SingleServer"
 

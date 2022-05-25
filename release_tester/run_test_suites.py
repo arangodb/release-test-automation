@@ -8,7 +8,7 @@ import click
 import semver
 
 from arangodb.installers import HotBackupCliCfg, InstallerBaseConfig
-from common_options import very_common_options, common_options, hotbackup_options
+from common_options import very_common_options, common_options, hotbackup_options, test_suite_filtering_options
 from test_driver import TestDriver
 
 
@@ -17,6 +17,7 @@ from test_driver import TestDriver
 # pylint: disable=too-many-arguments disable=too-many-locals
 @very_common_options()
 @hotbackup_options()
+@test_suite_filtering_options()
 @common_options(support_old=True, interactive=True)
 def main(**kwargs):
     """main"""
@@ -33,9 +34,11 @@ def main(**kwargs):
 
     test_driver.set_r_limits()
 
-    results = test_driver.run_all_test_suites(
-        [semver.VersionInfo.parse(kwargs["old_version"]), semver.VersionInfo.parse(kwargs["new_version"])],
-        kwargs["enterprise"],
+    results = test_driver.run_test_suites(
+        versions=[semver.VersionInfo.parse(kwargs["old_version"]), semver.VersionInfo.parse(kwargs["new_version"])],
+        enterprise=kwargs["enterprise"],
+        include_suites=kwargs["include_test_suites"],
+        exclude_suites=kwargs["exclude_test_suites"],
     )
     for result in results:
         if not result["success"]:

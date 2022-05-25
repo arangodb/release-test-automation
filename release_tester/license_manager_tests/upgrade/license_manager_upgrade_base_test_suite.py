@@ -23,12 +23,11 @@ class LicenseManagerUpgradeBaseTestSuite(LicenseManagerBaseTestSuite):
         old_version,
         new_version,
         installer_base_config,
-        child_classes=[],
     ):
         package_type = ".tar.gz" if installer_base_config.zip_package else ".deb/.rpm/NSIS"
         self.suite_name = f"Licence manager test suite: ArangoDB v. {str(new_version)} ({package_type})"
         self.auto_generate_parent_test_suite_name = False
-        super().__init__(new_version, installer_base_config, child_classes)
+        super().__init__(new_version, installer_base_config)
         self.old_version = old_version
         run_props = RunProperties(
             enterprise=True,
