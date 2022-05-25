@@ -3,7 +3,7 @@
 from selenium_ui_test.pages.database_page import DatabasePage
 from selenium_ui_test.pages.user_page import UserPage
 from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
-from selenium_ui_test.test_suites.base_test_suite import testcase
+from test_suites_core.base_test_suite import testcase
 
 
 class DatabaseTestSuite(BaseSeleniumTestSuite):

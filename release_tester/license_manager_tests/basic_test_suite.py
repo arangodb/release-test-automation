@@ -8,7 +8,7 @@ from license_manager_tests.cluster import LicenseManagerClusterTestSuite
 from license_manager_tests.dc2dc import LicenseManagerDc2DcTestSuite
 from license_manager_tests.leader_follower import LicenseManagerLeaderFollowerTestSuite
 from license_manager_tests.single_server import LicenseManagerSingleServerTestSuite
-from selenium_ui_test.test_suites.base_test_suite import run_before_suite, run_after_suite
+from test_suites_core.base_test_suite import run_before_suite, run_after_suite
 
 IS_WINDOWS = platform.win32_ver()[0] != ""
 

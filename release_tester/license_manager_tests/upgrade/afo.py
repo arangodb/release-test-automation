@@ -5,7 +5,7 @@ from arangodb.async_client import CliExecutionException
 from license_manager_tests.base.afo_base import LicenseManagerAfoBaseTestSuite
 from license_manager_tests.upgrade.license_manager_upgrade_base_test_suite import LicenseManagerUpgradeBaseTestSuite
 from reporting.reporting_utils import step
-from selenium_ui_test.test_suites.base_test_suite import testcase
+from test_suites_core.base_test_suite import testcase
 
 
 class LicenseManagerAfoUpgradeTestSuite(LicenseManagerAfoBaseTestSuite, LicenseManagerUpgradeBaseTestSuite):

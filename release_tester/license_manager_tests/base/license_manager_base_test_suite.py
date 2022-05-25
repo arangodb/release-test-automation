@@ -8,10 +8,9 @@ import requests
 from arangodb.async_client import CliExecutionException
 from arangodb.installers import create_config_installer_set, RunProperties
 from reporting.reporting_utils import step
-from selenium_ui_test.test_suites.base_test_suite import (
+from test_suites_core.base_test_suite import (
     BaseTestSuite,
     run_after_suite,
-    run_before_each_testcase,
     collect_crash_data,
 )
 from tools.killall import kill_all_processes

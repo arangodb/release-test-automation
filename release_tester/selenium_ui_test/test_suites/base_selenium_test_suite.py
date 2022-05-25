@@ -13,7 +13,7 @@ from semver import VersionInfo
 from selenium_ui_test.pages.base_page import BasePage
 from selenium_ui_test.pages.login_page import LoginPage
 from selenium_ui_test.pages.navbar import NavigationBarPage
-from selenium_ui_test.test_suites.base_test_suite import (
+from test_suites_core.base_test_suite import (
     BaseTestSuite,
     run_before_suite,
     run_after_suite,

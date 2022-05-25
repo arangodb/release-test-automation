@@ -6,7 +6,7 @@ from license_manager_tests.upgrade.afo import LicenseManagerAfoUpgradeTestSuite
 from license_manager_tests.upgrade.cluster import LicenseManagerClusterUpgradeTestSuite
 from license_manager_tests.upgrade.dc2dc import LicenseManagerDc2DcUpgradeTestSuite
 from license_manager_tests.upgrade.leader_follower import LicenseManagerLeaderFollowerUpgradeTestSuite
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite
+from test_suites_core.base_test_suite import BaseTestSuite
 
 IS_WINDOWS = platform.win32_ver()[0] != ""
 

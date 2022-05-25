@@ -4,7 +4,7 @@
 from arangodb.async_client import CliExecutionException
 from license_manager_tests.base.leader_follower_base import LicenseManagerLeaderFollowerBaseTestSuite
 from reporting.reporting_utils import step
-from selenium_ui_test.test_suites.base_test_suite import testcase, disable
+from test_suites_core.base_test_suite import testcase, disable
 
 
 class LicenseManagerLeaderFollowerTestSuite(LicenseManagerLeaderFollowerBaseTestSuite):

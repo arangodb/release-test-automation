@@ -10,7 +10,7 @@ from arangodb.instance import InstanceType
 from arangodb.starter.manager import StarterManager
 from license_manager_tests.base.license_manager_base_test_suite import LicenseManagerBaseTestSuite
 from reporting.reporting_utils import step
-from selenium_ui_test.test_suites.base_test_suite import testcase, run_before_suite, run_after_suite, collect_crash_data
+from test_suites_core.base_test_suite import testcase, run_before_suite, run_after_suite, collect_crash_data
 from tools.killall import kill_all_processes
 
 

@@ -2,7 +2,7 @@
 
 # pylint: disable=import-error
 from license_manager_tests.base.afo_base import LicenseManagerAfoBaseTestSuite
-from selenium_ui_test.test_suites.base_test_suite import testcase
+from test_suites_core.base_test_suite import testcase
 
 
 class LicenseManagerAfoTestSuite(LicenseManagerAfoBaseTestSuite):

@@ -3,7 +3,7 @@
 # pylint: disable=import-error
 from arangodb.installers import create_config_installer_set, RunProperties
 from license_manager_tests.base.license_manager_base_test_suite import LicenseManagerBaseTestSuite
-from selenium_ui_test.test_suites.base_test_suite import run_after_suite, run_before_suite
+from test_suites_core.base_test_suite import run_after_suite, run_before_suite
 
 try:
     from tools.external_helpers.license_generator.license_generator import create_license

@@ -5,7 +5,7 @@ import time
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium_ui_test.pages.nodes_page import NodesPage
-from selenium_ui_test.test_suites.base_test_suite import testcase
+from test_suites_core.base_test_suite import testcase
 
 from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 
