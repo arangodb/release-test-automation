@@ -58,7 +58,7 @@ do {
   require('internal').sleep(1);
   print('.');
 } while (!colInSync);
-            """
+            """,
         )
 
     def starter_prepare_env_impl(self):
@@ -67,7 +67,7 @@ do {
             """
 db._create("testCollection",  { numberOfShards: 6, replicationFactor: 2});
 db.testCollection.save({test: "document"})
-"""
+""",
         )
 
         node1_opts = []
@@ -179,8 +179,9 @@ db.testCollection.save({test: "document"})
         lh.subsubsection("wait for all shards to be in sync")
         retval = self.starter_instances[0].execute_frontend(self.check_collections_in_sync)
         if not retval:
-            raise Exception("Failed to ensure the cluster is in sync: %s %s" % (
-                retval, str(self.check_collections_in_sync)))
+            raise Exception(
+                "Failed to ensure the cluster is in sync: %s %s" % (retval, str(self.check_collections_in_sync))
+            )
         self.progress(True, "manual upgrade step 1 - stop instances")
         self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
         for node in self.starter_instances:
@@ -245,8 +246,9 @@ db.testCollection.save({test: "document"})
         lh.subsubsection("wait for all shards to be in sync")
         retval = self.starter_instances[0].execute_frontend(self.check_collections_in_sync)
         if not retval:
-            raise Exception("Failed to ensure the cluster is in sync: %s %s" % (
-                retval, str(self.check_collections_in_sync)))
+            raise Exception(
+                "Failed to ensure the cluster is in sync: %s %s" % (retval, str(self.check_collections_in_sync))
+            )
         print("all in sync.")
         agency_leader = self.agency_get_leader()
         terminate_instance = 2
@@ -283,9 +285,13 @@ db.testCollection.save({test: "document"})
         # respawn instance, and get its state fixed
         self.starter_instances[terminate_instance].respawn_instance()
         self.set_frontend_instances()
+        counter = 300
         while not self.starter_instances[terminate_instance].is_instance_up():
+            if counter <= 0:
+                raise Exception("Instance did not respawn in 5 minutes!")
             progress(".")
             time.sleep(1)
+            counter -= 1
         print()
         self.starter_instances[terminate_instance].detect_instances()
         self.starter_instances[terminate_instance].detect_instance_pids()
@@ -353,7 +359,7 @@ db.testCollection.save({test: "document"})
         )
 
     def generate_keyfile(self, keyfile):
-        """ generate the ssl certificate file """
+        """generate the ssl certificate file"""
         self.cert_op(
             [
                 "tls",
