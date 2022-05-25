@@ -129,9 +129,9 @@ class TestDriver:
             time.sleep(1)
 
     # pylint: disable=broad-except
-    def run_cleanup(self, run_properties: RunProperties):
+    def run_cleanup(self, run_properties: RunProperties, versions: list[str] = ["3.3.3"]):
         """main"""
-        installer_set = create_config_installer_set(["3.3.3"], self.base_config, "all", run_properties)
+        installer_set = create_config_installer_set(versions, self.base_config, "all", run_properties)
         inst = installer_set[0][1]
         if inst.calc_config_file_name().is_file():
             inst.load_config()
