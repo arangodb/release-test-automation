@@ -13,10 +13,11 @@
         // All items created must contain dbCount and loopCount
         print(`making data ${dbCount} ${loopCount}`);
         progress('create n-gram analyzer');
-        let analyzer1 = `ngram_${loopCount}`;
-        let ngram = createSafe(analyzer1,
+        let analyzerName = `trigram_${dbCount}`
+
+        let trigram = createSafe(analyzerName,
                                 analyzer => {
-                                return a.save("trigram", "ngram", {min: 3, max: 3, preserveOriginal: false, streamType: "utf8"}, ["frequency", "norm", "position"]);
+                                return a.save(`${analyzerName}`, "ngram", {min: 3, max: 3, preserveOriginal: false, streamType: "utf8"}, ["frequency", "norm", "position"]);
                                 }, analyzer => {
                                 return a.analyzer('trigram');
                                 }
@@ -26,27 +27,43 @@
         checkData: function (options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
         print(`checking data ${dbCount} ${loopCount}`);
         // Check analyzer:  analyzers.analyzer("trigram").properties();
-        let analyzer1 = `ngram_${loopCount}`;
+        let analyzerName = `trigram_${dbCount}`
         print(`Listing all analyzers in current database`)
         a.toArray();
 
         print(`Checking number of analyzer is correct`)
         if (a.toArray().length !== 14) {
-            throw new Error("Analyzer");
+            throw new Error("Analyzer not created!");
         }
         progress();
         
+        if (a.analyzer("trigram_0") == null)
+        {
+            throw new Error("Analyzer not found!");
+        }
+        
         print(`Create and use a trigram Analyzer with preserveOriginal disabled:`)
-        db._query(`RETURN TOKENS("foobar", "_system::trigram")`).toArray();
+        db._query(`RETURN TOKENS("foobar", "${analyzerName}")`).toArray();
         
         print(`Checking trigram analyzer properties.`)
-        a.analyzer("_system::trigram").properties();
+        a.analyzer(`${analyzerName}`).properties();
         },
 
         clearData: function (options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
         print(`checking data ${dbCount} ${loopCount}`);
+        
+        let analyzerName = `trigram_${dbCount}`
+        
         try {
-            a.remove("_system::trigram");
+            const array = a.toArray();
+            for (let i=0; i<array.length; i++)
+            {
+                const name = array[i];
+                if (name == analyzerName)
+                {
+                    a.remove(analyzerName);
+                }
+            }
         } catch (e) {
             print(e);
         }
