@@ -138,7 +138,7 @@ class TestDriver:
             time.sleep(1)
 
     # pylint: disable=broad-except
-    def run_cleanup(self, run_properties: RunProperties, versions: list[str] = ["3.3.3"]):
+    def run_cleanup(self, run_properties: RunProperties, versions: list = ["3.3.3"]):
         """main"""
         installer_set = create_config_installer_set(versions, self.base_config, "all", run_properties)
         inst = installer_set[0][1]
@@ -599,17 +599,18 @@ class TestDriver:
             results.append(result)
         return results
 
-    def run_all_test_suites(self, versions, enterprise):
+    def run_all_test_suites(self, versions):
         """Run all independent test suites"""
         results = []
-        results.extend(self.run_conflict_tests(versions, enterprise))
+        results.extend(self.run_conflict_tests(versions, True))
+        results.extend(self.run_conflict_tests(versions, False))
         results.extend(self.run_license_manager_tests(versions))
         return results
 
-    def run_test_suites(self, versions: list[semver.VersionInfo], enterprise: bool, include_suites: tuple[str]=[], exclude_suites: tuple[str]=[]):
+    def run_test_suites(self, versions: list, include_suites=(), exclude_suites=()):
         suite_classes=[]
         if len(include_suites)==0 and len(exclude_suites)==0:
-            return self.run_all_test_suites(versions, enterprise)
+            return self.run_all_test_suites(versions)
         elif len(include_suites)>0 and len(exclude_suites)==0:
             for suite_class in FULL_TEST_SUITE_LIST:
                 if suite_class.__name__ in include_suites:

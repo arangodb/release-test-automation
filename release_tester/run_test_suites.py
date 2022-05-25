@@ -36,7 +36,6 @@ def main(**kwargs):
 
     results = test_driver.run_test_suites(
         versions=[semver.VersionInfo.parse(kwargs["old_version"]), semver.VersionInfo.parse(kwargs["new_version"])],
-        enterprise=kwargs["enterprise"],
         include_suites=kwargs["include_test_suites"],
         exclude_suites=kwargs["exclude_test_suites"],
     )
