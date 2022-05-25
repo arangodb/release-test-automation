@@ -541,7 +541,7 @@ class TestDriver:
         elif len(versions)>1:
             old_version = versions[1]
             new_version = versions[1]
-        if semver.VersionInfo.parse(new_version) < "3.9.0-nightly":
+        if new_version < "3.9.0-nightly":
             logging.info("License manager test suite is only applicable to versions 3.9 and newer.")
             return [
                 {
@@ -568,8 +568,8 @@ class TestDriver:
         suites_classes = []
         suites_classes.append(BasicLicenseManagerTestSuite)
         if (len(versions)>1 and
-            semver.VersionInfo.parse(old_version) > "3.9.0-nightly" and
-            semver.VersionInfo.parse(new_version) > "3.9.0-nightly"):
+            old_version > "3.9.0-nightly" and
+            new_version > "3.9.0-nightly"):
             suites_classes.append(UpgradeLicenseManagerTestSuite)
         args = (versions, self.base_config)
 
@@ -588,4 +588,11 @@ class TestDriver:
                 for one_result in suite.test_results:
                     result["messages"].append(one_result.message)
             results.append(result)
+        return results
+
+    def run_all_test_suites(self, versions, enterprise):
+        """Run all independent test suites"""
+        results = []
+        results.extend(self.run_conflict_tests(versions, enterprise))
+        results.extend(self.run_license_manager_tests(versions))
         return results
