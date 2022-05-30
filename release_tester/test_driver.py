@@ -609,13 +609,13 @@ class TestDriver:
 
     def run_test_suites(self, versions: list, include_suites=(), exclude_suites=()):
         suite_classes=[]
-        if len(include_suites)==0 and len(exclude_suites)==0:
+        if len(include_suites) == 0 and len(exclude_suites) == 0:
             return self.run_all_test_suites(versions)
-        elif len(include_suites)>0 and len(exclude_suites)==0:
+        elif len(include_suites) > 0 and len(exclude_suites) == 0:
             for suite_class in FULL_TEST_SUITE_LIST:
                 if suite_class.__name__ in include_suites:
                     suite_classes.append(suite_class)
-        elif len(exclude_suites)>0 and len(include_suites)==0:
+        elif len(exclude_suites) > 0 and len(include_suites) == 0:
             suite_classes.extend(FULL_TEST_SUITE_LIST)
             for exclude_suite_class in exclude_suites:
                 for suite_class in suite_classes:
