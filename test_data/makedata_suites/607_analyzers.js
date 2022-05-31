@@ -6,24 +6,28 @@
     isSupported: function (currentVersion, oldVersion, options, enterprise, cluster) {
       let currentVersionSemver = semver.parse(semver.coerce(currentVersion));
       let oldVersionSemver = semver.parse(semver.coerce(oldVersion));
-      return semver.gt(currentVersionSemver, "3.8.0") && semver.lt(oldVersionSemver, "3.8.100");
+      return semver.gt(currentVersionSemver, "3.7.0") && semver.lt(oldVersionSemver, "3.7.100");
     },
 
     makeDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
       // All items created must contain dbCount
       print(`making per database data ${dbCount}`);
       progress('create pipeline analyzer');
-      let analyzerName = `pipeline_${dbCount}`
-      let trigram = createSafe(analyzerName,
+      let analyzerName = `text_${dbCount}`
+      let text = createSafe(analyzerName,
         analyzer => {
-          return a.save(`${analyzerName}`, "pipeline", { pipeline: [{ type: "norm", properties: { locale: "en.utf-8", case: "upper" } },{ type: "ngram", properties: { min: 2, max: 2, preserveOriginal: false, streamType: "utf8" } }] }, ["frequency", "norm", "position"]);
+          return a.save(`${analyzerName}`, "text", {locale: "el.utf-8",
+          stemming: true,
+          case: "lower",
+          accent: false,
+          stopwords: []
+        }, ["frequency", "norm", "position"]);
         }, analyzer => {
-          return a.analyzer(`pipeline_0`);
+          return a.analyzer(`text_0`);
         });
     },
     checkDataDB: function (options, isCluster, isEnterprise, dbCount, readOnly) {
       print(`checking data ${dbCount}`);
-      // Check analyzer:  analyzers.analyzer("trigram").properties();
       print(`Listing all analyzers in current database`)
       a.toArray();
       print(`Checking number of analyzer is correct`)
@@ -32,13 +36,13 @@
       }
       progress();
 
-      if (a.analyzer("pipeline_0") == null) {
+      if (a.analyzer("text_0") == null) {
         throw new Error("Analyzer not found!");
       }
-      // print(`Create and use a pipeline Analyzer with preserveOriginal disabled:`)
-      db._query(`RETURN TOKENS("Quick brown foX", "pipeline_0")`).toArray();
-      // print(`Checking pipeline analyzer properties.`)
-      a.analyzer(`pipeline_0`).properties();
+      // print(`Create and use a text Analyzer with preserveOriginal disabled:`)
+      db._query(`RETURN TOKENS("αυτοκινητουσ πρωταγωνιστούσαν", "text_0")`)
+      // print(`Checking text analyzer properties.`)
+      a.analyzer(`text_0`).properties();
     },
     clearDataDB: function (options, isCluster, isEnterprise, dbCount, database) {
       print(`checking data ${dbCount}`);
@@ -46,8 +50,8 @@
         const array = a.toArray();
         for (let i = 0; i < array.length; i++) {
           const name = array[i];
-          if (name == `pipeline_0`) {
-            a.remove(`pipeline_0`);
+          if (name == `text_0`) {
+            a.remove(`text_0`);
           }
         }
       } catch (e) {
