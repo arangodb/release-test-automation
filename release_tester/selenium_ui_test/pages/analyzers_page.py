@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ analyzer page object """
 import time
-import traceback
+
 from selenium_ui_test.pages.base_page import Keys
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import TimeoutException
@@ -183,7 +183,7 @@ class AnalyzerPage(NavigationBarPage):
         print(f"selecting value for the placeholder for {name} \n")
         # for delimiter
         if index == 1:
-            delimiter = "/html/body/div[20]/div/div[2]/div/div[4]/fieldset/div/div/input"
+            delimiter = "/html/body/div[16]/div/div[2]/div/div[4]/fieldset/div/div/input"
             value = "_"
             delimiter_sitem = self.locator_finder_by_xpath(delimiter)
             delimiter_sitem.click()
@@ -191,7 +191,7 @@ class AnalyzerPage(NavigationBarPage):
             delimiter_sitem.send_keys(value)
         # for stem
         elif index == 2:
-            locale = "/html/body/div[24]/div/div[2]/div/div[4]/fieldset/div/div/input"
+            locale = "/html/body/div[20]/div/div[2]/div/div[4]/fieldset/div/div/input"
             value = "en_US.utf-8"
             locale_sitem = self.locator_finder_by_xpath(locale)
             locale_sitem.click()
@@ -199,7 +199,7 @@ class AnalyzerPage(NavigationBarPage):
             locale_sitem.send_keys(value)
         # for norm
         elif index == 3:
-            locale = "/html/body/div[28]/div/div[2]/div/div[4]/fieldset/div/div[1]/input"
+            locale = "/html/body/div[24]/div/div[2]/div/div[4]/fieldset/div/div[1]/input"
             value = "en_US.utf-8"
             locale_sitem = self.locator_finder_by_xpath(locale)
             locale_sitem.click()
@@ -207,11 +207,11 @@ class AnalyzerPage(NavigationBarPage):
             locale_sitem.send_keys(value)
 
             print("Selecting case for norm analyzer using index value \n")
-            case = "/html/body/div[28]/div/div[2]/div/div[4]/fieldset/div/div[2]/select"
+            case = "/html/body/div[24]/div/div[2]/div/div[4]/fieldset/div/div[2]/select"
             self.locator_finder_by_select_using_xpath(case, 0)
 
             print("Selecting accent for norm analyzer \n")
-            accent = "/html/body/div[28]/div/div[2]/div/div[4]/fieldset/div/div[3]/input"
+            accent = "/html/body/div[24]/div/div[2]/div/div[4]/fieldset/div/div[3]/input"
             accent_sitem = self.locator_finder_by_xpath(accent)
             accent_sitem.click()
             time.sleep(2)
@@ -219,7 +219,7 @@ class AnalyzerPage(NavigationBarPage):
         # for N-Gram
         elif index == 4:
             print(f"Adding minimum n-gram length for {name} \n")
-            min_length = "/html/body/div[32]/div/div[2]/div/div[4]/fieldset/div/div[1]/div/div[1]/input"
+            min_length = "/html/body/div[28]/div/div[2]/div/div[4]/fieldset/div/div[1]/div/div[1]/input"
             min_length_sitem = self.locator_finder_by_xpath(min_length)
             min_length_sitem.click()
             min_length_sitem.clear()
@@ -227,7 +227,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             print(f"Adding maximum n-gram length for {name} \n")
-            max_length = "/html/body/div[32]/div/div[2]/div/div[4]/fieldset/div/div[1]/div/div[1]/input"
+            max_length = "/html/body/div[28]/div/div[2]/div/div[4]/fieldset/div/div[1]/div/div[1]/input"
             max_length_sitem = self.locator_finder_by_xpath(max_length)
             max_length_sitem.click()
             max_length_sitem.clear()
@@ -235,13 +235,13 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             print(f"Preserve original value for {name}\n")
-            preserve = "/html/body/div[32]/div/div[2]/div/div[4]/fieldset/div/div[1]/div/div[3]/input"
+            preserve = "/html/body/div[28]/div/div[2]/div/div[4]/fieldset/div/div[1]/div/div[3]/input"
             preserve_sitem = self.locator_finder_by_xpath(preserve)
             preserve_sitem.click()
             time.sleep(2)
 
             print(f"Start marker value {name}\n")
-            start_marker = "/html/body/div[32]/div/div[2]/div/div[4]/fieldset/div/div[2]/input"
+            start_marker = "/html/body/div[28]/div/div[2]/div/div[4]/fieldset/div/div[2]/input"
             start_marker_sitem = self.locator_finder_by_xpath(start_marker)
             start_marker_sitem.click()
             start_marker_sitem.clear()
@@ -249,7 +249,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             print(f"End marker value for {name} \n")
-            end_marker = "/html/body/div[32]/div/div[2]/div/div[4]/fieldset/div/div[3]/input"
+            end_marker = "/html/body/div[28]/div/div[2]/div/div[4]/fieldset/div/div[3]/input"
             end_marker_sitem = self.locator_finder_by_xpath(end_marker)
             end_marker_sitem.click()
             end_marker_sitem.clear()
@@ -257,12 +257,12 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             print(f"Stream type selection using index value for {name}\n")
-            stream_type = "/html/body/div[32]/div/div[2]/div/div[4]/fieldset/div/div[4]/select"
+            stream_type = "/html/body/div[28]/div/div[2]/div/div[4]/fieldset/div/div[4]/select"
             self.locator_finder_by_select_using_xpath(stream_type, 1)
             time.sleep(2)
         # for text
         elif index == 5:
-            locale = "/html/body/div[36]/div/div[2]/div/div[4]/fieldset/div/div[1]/div/div[1]/input"
+            locale = "/html/body/div[32]/div/div[2]/div/div[4]/fieldset/div/div[1]/div/div[1]/input"
             value = "en_US.utf-8"
             locale_sitem = self.locator_finder_by_xpath(locale)
             locale_sitem.click()
@@ -279,7 +279,7 @@ class AnalyzerPage(NavigationBarPage):
             # stopwords_path_sitem.send_keys('/home/username/Desktop/')
 
             print(f"Selecting stopwords for the {name} \n")
-            stopwords = "/html/body/div[36]/div/div[2]/div/div[4]/fieldset/div/div[1]/div/div[2]/textarea"
+            stopwords = "/html/body/div[32]/div/div[2]/div/div[4]/fieldset/div/div[1]/div/div[2]/textarea"
             stopwords_sitem = self.locator_finder_by_xpath(stopwords)
             stopwords_sitem.clear()
             stopwords_sitem.send_keys("dog")
@@ -293,23 +293,23 @@ class AnalyzerPage(NavigationBarPage):
             stopwords_sitem.send_keys("the")
 
             print(f"Selecting case for the analyzer from the dropdown menu for {name} \n")
-            case = "/html/body/div[36]/div/div[2]/div/div[4]/fieldset/div/div[2]/div/div[2]/select"
+            case = "/html/body/div[32]/div/div[2]/div/div[4]/fieldset/div/div[2]/div/div[2]/select"
             self.locator_finder_by_select_using_xpath(case, 1)
 
             print("Selecting stem for the analyzer \n")
-            stem = "/html/body/div[36]/div/div[2]/div/div[4]/fieldset/div/div[2]/div/div[3]/input"
+            stem = "/html/body/div[32]/div/div[2]/div/div[4]/fieldset/div/div[2]/div/div[3]/input"
             stem_sitem = self.locator_finder_by_xpath(stem)
             stem_sitem.click()
             time.sleep(2)
 
             print("Selecting accent for the analyzer \n")
-            accent = "/html/body/div[36]/div/div[2]/div/div[4]/fieldset/div/div[2]/div/div[4]/input"
+            accent = "/html/body/div[32]/div/div[2]/div/div[4]/fieldset/div/div[2]/div/div[4]/input"
             accent_sitem = self.locator_finder_by_xpath(accent)
             accent_sitem.click()
             time.sleep(2)
 
             print(f"Selecting minimum N-Gram length for {name} \n")
-            ngram_length_min = "/html/body/div[36]/div/div[2]/div/div[4]/fieldset/div/div[4]/fieldset/div/div[1]/input"
+            ngram_length_min = "/html/body/div[32]/div/div[2]/div/div[4]/fieldset/div/div[4]/fieldset/div/div[1]/input"
             ngram_length_min_sitem = self.locator_finder_by_xpath(ngram_length_min)
             ngram_length_min_sitem.click()
             ngram_length_min_sitem.send_keys("2")
@@ -317,7 +317,7 @@ class AnalyzerPage(NavigationBarPage):
 
             print(f"Selecting maximum N-Gram length for {name} \n")
             ngram_length_max_length = (
-                "/html/body/div[36]/div/div[2]/div/div[4]/fieldset/div/div[4]/fieldset/div/div[2]/input"
+                "/html/body/div[32]/div/div[2]/div/div[4]/fieldset/div/div[4]/fieldset/div/div[2]/input"
             )
             ngram_length_max_length_sitem = self.locator_finder_by_xpath(ngram_length_max_length)
             ngram_length_max_length_sitem.click()
@@ -325,7 +325,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             print(f"Selecting preserve original for {name} \n")
-            ngram_length = "/html/body/div[36]/div/div[2]/div/div[4]/fieldset/div/div[4]/fieldset/div/div[3]/input"
+            ngram_length = "/html/body/div[32]/div/div[2]/div/div[4]/fieldset/div/div[4]/fieldset/div/div[3]/input"
             ngram_length_sitem = self.locator_finder_by_xpath(ngram_length)
             ngram_length_sitem.click()
             ngram_length_sitem.send_keys("3")
@@ -333,13 +333,13 @@ class AnalyzerPage(NavigationBarPage):
         # for AQL analyzer
         elif index == 6:
             print(f"Selecting query string for {name} \n")
-            query_string = "/html/body/div[40]/div/div[2]/div/div[4]/fieldset/div/div[1]/textarea"
+            query_string = "/html/body/div[36]/div/div[2]/div/div[4]/fieldset/div/div[1]/textarea"
             query_string_sitem = self.locator_finder_by_xpath(query_string)
             query_string_sitem.send_keys("FOR year IN 2010..2015 RETURN year")
             time.sleep(2)
 
             print(f"Selecting batch size for {name} \n")
-            batch_size = "/html/body/div[40]/div/div[2]/div/div[4]/fieldset/div/div[2]/div/div[1]/input"
+            batch_size = "/html/body/div[36]/div/div[2]/div/div[4]/fieldset/div/div[2]/div/div[1]/input"
             batch_size_sitem = self.locator_finder_by_xpath(batch_size)
             batch_size_sitem.click()
             batch_size_sitem.clear()
@@ -347,7 +347,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             print(f"Selecting memory limit for {name} \n")
-            memory_limit = "/html/body/div[40]/div/div[2]/div/div[4]/fieldset/div/div[2]/div/div[2]/input"
+            memory_limit = "/html/body/div[36]/div/div[2]/div/div[4]/fieldset/div/div[2]/div/div[2]/input"
             memory_limit_sitem = self.locator_finder_by_xpath(memory_limit)
             memory_limit_sitem.click()
             memory_limit_sitem.clear()
@@ -355,25 +355,25 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             print(f"Selecting collapse position for {name} \n")
-            collapse = "/html/body/div[40]/div/div[2]/div/div[4]/fieldset/div/div[3]/div/div[1]/input"
+            collapse = "/html/body/div[36]/div/div[2]/div/div[4]/fieldset/div/div[3]/div/div[1]/input"
             collapse_sitem = self.locator_finder_by_xpath(collapse)
             collapse_sitem.click()
             time.sleep(2)
 
             print(f"Selecting keep null for {name} \n")
-            keep_null = "/html/body/div[40]/div/div[2]/div/div[4]/fieldset/div/div[3]/div/div[2]/input"
+            keep_null = "/html/body/div[36]/div/div[2]/div/div[4]/fieldset/div/div[3]/div/div[2]/input"
             keep_null_sitem = self.locator_finder_by_xpath(keep_null)
             keep_null_sitem.click()
             time.sleep(2)
 
             print(f"Selecting Return type for {name} \n")
-            return_type = "/html/body/div[40]/div/div[2]/div/div[4]/fieldset/div/div[3]/div/div[3]/select"
+            return_type = "/html/body/div[36]/div/div[2]/div/div[4]/fieldset/div/div[3]/div/div[3]/select"
             self.locator_finder_by_select_using_xpath(return_type, 1)
             time.sleep(2)
         # for stopwords
         elif index == 7:
             print(f"Selecting stopwords for {name} \n")
-            stop = "/html/body/div[44]/div/div[2]/div/div[4]/fieldset/div/div[1]/textarea"
+            stop = "/html/body/div[40]/div/div[2]/div/div[4]/fieldset/div/div[1]/textarea"
             stop_sitem = self.locator_finder_by_xpath(stop)
             stop_sitem.click()
             stop_sitem.clear()
@@ -385,7 +385,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(1)
 
             print(f"Selecting hex value for {name} \n")
-            hex_value = "/html/body/div[44]/div/div[2]/div/div[4]/fieldset/div/div[2]/input"
+            hex_value = "/html/body/div[40]/div/div[2]/div/div[4]/fieldset/div/div[2]/input"
             hex_sitem = self.locator_finder_by_xpath(hex_value)
             hex_sitem.click()
             time.sleep(2)
@@ -393,7 +393,7 @@ class AnalyzerPage(NavigationBarPage):
         # Collation
         elif index == 8:
             print(f"Selecting locale for {name} \n")
-            locale = "/html/body/div[48]/div/div[2]/div/div[4]/fieldset/div/div/input"
+            locale = "/html/body/div[44]/div/div[2]/div/div[4]/fieldset/div/div/input"
             value = "en_US.utf-8"
             locale_sitem = self.locator_finder_by_xpath(locale)
             locale_sitem.click()
@@ -402,12 +402,12 @@ class AnalyzerPage(NavigationBarPage):
         # Segmentation alpha
         elif index == 9:
             print(f"Selecting segmentation break as alpha for {name} \n")
-            alpha_break = "/html/body/div[52]/div/div[2]/div/div[4]/fieldset/div/div[1]/select"
+            alpha_break = "/html/body/div[48]/div/div[2]/div/div[4]/fieldset/div/div[1]/select"
             self.locator_finder_by_select_using_xpath(alpha_break, 1)
             time.sleep(2)
 
             print(f"Selecting segmentation case as lower for {name} \n")
-            case_lower = "/html/body/div[52]/div/div[2]/div/div[4]/fieldset/div/div[2]/select"
+            case_lower = "/html/body/div[48]/div/div[2]/div/div[4]/fieldset/div/div[2]/select"
             self.locator_finder_by_select_using_xpath(case_lower, 0)
             time.sleep(2)
 
@@ -422,7 +422,7 @@ class AnalyzerPage(NavigationBarPage):
 
             print(f"Selecting first pipeline analyzer as Norm for {name} \n")
             norm = (
-                "/html/body/div[56]/div/div[2]/div/div[4]/fieldset/div/div[2]/table/tbody/tr/td[2]"
+                "/html/body/div[52]/div/div[2]/div/div[4]/fieldset/div/div[2]/table/tbody/tr/td[2]"
                 "/div/div[1]/label/select"
             )
             self.locator_finder_by_select_using_xpath(norm, 2)  # 2 for norm from the drop down list
@@ -430,7 +430,7 @@ class AnalyzerPage(NavigationBarPage):
 
             print(f"Selecting locale value for Norm analyzer of {name} \n")
             locale = (
-                "/html/body/div[56]/div/div[2]/div/div[4]/fieldset/div"
+                "/html/body/div[52]/div/div[2]/div/div[4]/fieldset/div"
                 "/div[2]/table/tbody/tr/td[2]/div/div[3]/div/div[1]/input"
             )
             value = "en_US.utf-8"
@@ -441,7 +441,7 @@ class AnalyzerPage(NavigationBarPage):
 
             print(f"Selecting case value to upper for Norm analyzer of {name} \n")
             case = (
-                "/html/body/div[56]/div/div[2]/div/div[4]/fieldset/div"
+                "/html/body/div[52]/div/div[2]/div/div[4]/fieldset/div"
                 "/div[2]/table/tbody/tr/td[2]/div/div[3]/div/div[2]/select"
             )
             self.locator_finder_by_select_using_xpath(case, 1)  # 1 represents upper from the dropdown
@@ -449,14 +449,14 @@ class AnalyzerPage(NavigationBarPage):
 
             # ----------------------adding second pipeline analyzer as N-Gram analyzer--------------------------
             print(f"Selecting add analyzer button for {name} \n")
-            new_analyzer = "/html/body/div[56]/div/div[2]/div/div[4]/fieldset/div/div[3]/button"
+            new_analyzer = "/html/body/div[52]/div/div[2]/div/div[4]/fieldset/div/div[3]/button"
             new_analyzer_sitem = self.locator_finder_by_xpath(new_analyzer)
             new_analyzer_sitem.click()
             time.sleep(2)
 
             print(f"Selecting second pipeline analyzer as N-Gram for {name} \n")
             ngram = (
-                "/html/body/div[56]/div/div[2]/div/div[4]/fieldset/div"
+                "/html/body/div[52]/div/div[2]/div/div[4]/fieldset/div"
                 "/div[2]/table/tbody/tr[2]/td[2]/div/div[1]/label/select"
             )
             self.locator_finder_by_select_using_xpath(ngram, 3)  # 3 represents N-Gram from the dropdown
@@ -464,7 +464,7 @@ class AnalyzerPage(NavigationBarPage):
 
             print(f"Selecting N-Gram minimum length for {name} \n")
             minimum_length = (
-                "/html/body/div[56]/div/div[2]/div/div[4]/fieldset"
+                "/html/body/div[52]/div/div[2]/div/div[4]/fieldset"
                 "/div/div[2]/table/tbody/tr[2]/td[2]/div/div[3]/div/div[1]/div/div[1]/input"
             )
             minimum_length_sitem = self.locator_finder_by_xpath(minimum_length)
@@ -475,7 +475,7 @@ class AnalyzerPage(NavigationBarPage):
 
             print(f"Selecting N-Gram maximum length for {name} \n")
             maximum_length = (
-                "/html/body/div[56]/div/div[2]/div/div[4]/fieldset"
+                "/html/body/div[52]/div/div[2]/div/div[4]/fieldset"
                 "/div/div[2]/table/tbody/tr[2]/td[2]/div/div[3]/div/div[1]/div/div[2]/input"
             )
             maximum_length_sitem = self.locator_finder_by_xpath(maximum_length)
@@ -485,7 +485,7 @@ class AnalyzerPage(NavigationBarPage):
 
             print(f"Selecting Preserve original value for {name}\n")
             preserve = (
-                "/html/body/div[56]/div/div[2]/div/div[4]/fieldset"
+                "/html/body/div[52]/div/div[2]/div/div[4]/fieldset"
                 "/div/div[2]/table/tbody/tr[2]/td[2]/div/div[3]/div/div[1]/div/div[3]/input"
             )
             preserve_sitem = self.locator_finder_by_xpath(preserve)
@@ -494,7 +494,7 @@ class AnalyzerPage(NavigationBarPage):
 
             print(f"Start marker value {name}\n")
             start_marker = (
-                "/html/body/div[56]/div/div[2]/div/div[4]"
+                "/html/body/div[52]/div/div[2]/div/div[4]"
                 "/fieldset/div/div[2]/table/tbody/tr[2]/td[2]/div/div[3]/div/div[2]/input"
             )
             start_marker_sitem = self.locator_finder_by_xpath(start_marker)
@@ -505,7 +505,7 @@ class AnalyzerPage(NavigationBarPage):
 
             print(f"End marker value for {name} \n")
             end_marker = (
-                "/html/body/div[56]/div/div[2]/div/div[4]/fieldset"
+                "/html/body/div[52]/div/div[2]/div/div[4]/fieldset"
                 "/div/div[2]/table/tbody/tr[2]/td[2]/div/div[3]/div/div[3]/input"
             )
             end_marker_sitem = self.locator_finder_by_xpath(end_marker)
@@ -521,13 +521,13 @@ class AnalyzerPage(NavigationBarPage):
         # GeoJson
         elif index == 11:
             print(f"Selecting type for {name} \n")
-            types = "/html/body/div[60]/div/div[2]/div/div[4]/fieldset/div/div[1]/select"
+            types = "/html/body/div[56]/div/div[2]/div/div[4]/fieldset/div/div[1]/select"
             types_sitem = self.locator_finder_by_xpath(types)
             types_sitem.click()
             time.sleep(2)
 
             print(f"Selecting max S2 cells value for {name} \n")
-            max_s2_cells = "/html/body/div[60]/div/div[2]/div/div[4]/fieldset/div/div[2]/fieldset/div/div[1]/input"
+            max_s2_cells = "/html/body/div[56]/div/div[2]/div/div[4]/fieldset/div/div[2]/fieldset/div/div[1]/input"
             max_s2_cells_sitem = self.locator_finder_by_xpath(max_s2_cells)
             max_s2_cells_sitem.click()
             max_s2_cells_sitem.clear()
@@ -535,7 +535,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             print(f"Selecting least precise S2 levels for {name} \n")
-            least_precise = "/html/body/div[60]/div/div[2]/div/div[4]/fieldset/div/div[2]/fieldset/div/div[2]/input"
+            least_precise = "/html/body/div[56]/div/div[2]/div/div[4]/fieldset/div/div[2]/fieldset/div/div[2]/input"
             least_precise_sitem = self.locator_finder_by_xpath(least_precise)
             least_precise_sitem.click()
             least_precise_sitem.clear()
@@ -543,7 +543,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             print(f"Selecting most precise S2 levels for {name} \n")
-            most_precise = "/html/body/div[60]/div/div[2]/div/div[4]/fieldset/div/div[2]/fieldset/div/div[3]/input"
+            most_precise = "/html/body/div[56]/div/div[2]/div/div[4]/fieldset/div/div[2]/fieldset/div/div[3]/input"
             most_precise_sitem = self.locator_finder_by_xpath(most_precise)
             most_precise_sitem.click()
             most_precise_sitem.send_keys("30")
@@ -551,35 +551,35 @@ class AnalyzerPage(NavigationBarPage):
             # GeoJson
         elif index == 12:
             print(f"Selecting Latitude Path for {name} \n")
-            latitude_paths = "/html/body/div[64]/div/div[2]/div/div[4]/fieldset/div/div[1]/input"
+            latitude_paths = "/html/body/div[60]/div/div[2]/div/div[4]/fieldset/div/div[1]/input"
             latitude_paths_sitem = self.locator_finder_by_xpath(latitude_paths)
             latitude_paths_sitem.click()
             latitude_paths_sitem.send_keys("40.78")
             time.sleep(2)
 
             print(f"Selecting Longitude Path for {name} \n")
-            longitude_paths = "/html/body/div[64]/div/div[2]/div/div[4]/fieldset/div/div[2]/input"
+            longitude_paths = "/html/body/div[60]/div/div[2]/div/div[4]/fieldset/div/div[2]/input"
             longitude_paths_sitem = self.locator_finder_by_xpath(longitude_paths)
             longitude_paths_sitem.click()
             longitude_paths_sitem.send_keys("-73.97")
             time.sleep(2)
 
             print(f"Selecting max S2 cells value for {name} \n")
-            max_s2_cells = "/html/body/div[64]/div/div[2]/div/div[4]/fieldset/div/div[3]/fieldset/div/div[1]/input"
+            max_s2_cells = "/html/body/div[60]/div/div[2]/div/div[4]/fieldset/div/div[3]/fieldset/div/div[1]/input"
             max_s2_cells_sitem = self.locator_finder_by_xpath(max_s2_cells)
             max_s2_cells_sitem.click()
             max_s2_cells_sitem.send_keys("20")
             time.sleep(2)
 
             print(f"Selecting least precise S2 levels for {name} \n")
-            least_precise = "/html/body/div[64]/div/div[2]/div/div[4]/fieldset/div/div[3]/fieldset/div/div[2]/input"
+            least_precise = "/html/body/div[60]/div/div[2]/div/div[4]/fieldset/div/div[3]/fieldset/div/div[2]/input"
             least_precise_sitem = self.locator_finder_by_xpath(least_precise)
             least_precise_sitem.click()
             least_precise_sitem.send_keys("4")
             time.sleep(2)
 
             print(f"Selecting most precise S2 levels for {name} \n")
-            most_precise = "/html/body/div[64]/div/div[2]/div/div[4]/fieldset/div/div[3]/fieldset/div/div[3]/input"
+            most_precise = "/html/body/div[60]/div/div[2]/div/div[4]/fieldset/div/div[3]/fieldset/div/div[3]/input"
             most_precise_sitem = self.locator_finder_by_xpath(most_precise)
             most_precise_sitem.click()
             most_precise_sitem.send_keys("23")
@@ -663,223 +663,214 @@ class AnalyzerPage(NavigationBarPage):
         self.select_analyzers_page()
         self.webdriver.refresh()
 
-        try:
-            print("Selecting add new analyzer button \n")
-            add_analyzer = self.add_new_analyzer_btn
-            add_analyzer_sitem = self.locator_finder_by_xpath(add_analyzer)
-            add_analyzer_sitem.click()
+        print("Selecting add new analyzer button \n")
+        add_analyzer = self.add_new_analyzer_btn
+        add_analyzer_sitem = self.locator_finder_by_xpath(add_analyzer)
+        add_analyzer_sitem.click()
+        time.sleep(2)
+
+        print(f"checking {name} started \n")
+        # common attributes for all the analyzers
+        analyzer_type = f"/html/body/div[{div_id}]/div/div[2]/div/div[1]/fieldset/div/div[2]/select"
+        analyzer_name_error_id = "//div[@class='noty_body']"
+
+        print("Selecting analyzer type \n")
+        self.locator_finder_by_select_using_xpath(analyzer_type, index)
+        time.sleep(2)
+
+        if index == 0:
+            print(f"Expected error scenario for the {name} Started \n")
+            analyzer_name_error_input = ["", "@", "1", "שלום"]
+            analyzer_name_print_statement = [
+                f'Checking blank {name} with " "',
+                f'Checking {name} with symbol " @ "',
+                f'Checking numeric value for {name} " 1 "',
+                'Checking Non-ASCII Hebrew Characters "שלום"',
+            ]
+            analyzer_name_error_message = [
+                "Failure: Got unexpected server response: invalid characters in analyzer name ''",
+                "Failure: Got unexpected server response: invalid characters in analyzer name '@'",
+                "Failure: Got unexpected server response: invalid characters in analyzer name '1'",
+                "Failure: Got unexpected server response: invalid characters in analyzer name 'שלום'",
+            ]
+
+            # for identity analyzer name placeholder
+            analyzer_name_id = f"/html/body/div[{div_id}]/div/div[2]/div/div[1]/fieldset/div/div[1]/input"
+
+            # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
+            self.check_expected_error_messages_for_analyzer(
+                analyzer_name_error_input,
+                analyzer_name_print_statement,
+                analyzer_name_error_message,
+                analyzer_name_id,
+                analyzer_name_error_id,
+                div_id,
+            )
+
+        # ------------------------------------Stem analyzer's Locale value test------------------------------------
+        if index == 2:
+            print(f"Expected error scenario for the {name} Started \n")
+
+            # filling out the name placeholder first
+            stem_analyzer = "/html/body/div[64]/div/div[2]/div/div[1]/fieldset/div/div[1]/input"
+            stem_analyzer_sitem = self.locator_finder_by_xpath(stem_analyzer)
+            stem_analyzer_sitem.click()
+            stem_analyzer_sitem.clear()
+            stem_analyzer_sitem.send_keys(name)
+
+            analyzer_name_error_input = ["aaaaaaaaaa12"]
+            analyzer_name_print_statement = [f'Checking {name} with input "aaaaaaaaaa12"']
+            analyzer_name_error_message = [
+                "Failure: Got unexpected server response: Failure initializing an "
+                "arangosearch analyzer instance for name '_system::stem_analyzer' type "
+                "'stem'. Properties '{ \"locale\" : \"aaaaaaaaaa12\" }' was rejected by "
+                "analyzer. Please check documentation for corresponding analyzer type."
+            ]
+
+            # for stem analyzer locale placeholder
+            analyzer_locale_id = f"/html/body/div[{div_id}]/div/div[2]/div/div[4]/fieldset/div/div/input"
+
+            # method template (self, error_input, print_statement, error_message, locators_id, error_message_id, div_id)
+            self.check_expected_error_messages_for_analyzer(
+                analyzer_name_error_input,
+                analyzer_name_print_statement,
+                analyzer_name_error_message,
+                analyzer_locale_id,
+                analyzer_name_error_id,
+                div_id,
+            )
+
+        # ------------------------------------Stem analyzer's Locale value test------------------------------------
+        if index == 4:
+            print(f"Expected error scenario for the {name} Started \n")
+
+            # filling out the name placeholder first
+            ngram_analyzer = f"/html/body/div[{div_id}]/div/div[2]/div/div[1]/fieldset/div/div[1]/input"
+            ngram_analyzer_sitem = self.locator_finder_by_xpath(ngram_analyzer)
+            ngram_analyzer_sitem.click()
+            ngram_analyzer_sitem.clear()
+            ngram_analyzer_sitem.send_keys(name)
+
+            # fill up the max_ngram value beforehand
+            max_ngram_length = f"/html/body/div[{div_id}]/div/div[2]/div/div[4]/fieldset/div/div[1]/div/div[2]/input"
+            max_ngram_length_sitem = self.locator_finder_by_xpath(max_ngram_length)
+            max_ngram_length_sitem.click()
+            max_ngram_length_sitem.clear()
+            max_ngram_length_sitem.send_keys("4")
+
+            analyzer_name_error_input = ["-1", "100000000000000000000000"]
+            analyzer_name_print_statement = [
+                f'Checking {name} with input "-1"',
+                f'Checking {name} with input "100000000000000000000000"',
+            ]
+            analyzer_name_error_message = [
+                "Failure: Got unexpected server response: Failure initializing "
+                "an arangosearch analyzer instance for "
+                "name '_system::n-gram_analyzer' type 'ngram'. Properties "
+                '\'{ "min" : -1, "max" : 4, "preserveOriginal" : false }\' '
+                "was rejected by analyzer. Please check documentation for "
+                "corresponding analyzer type.",
+                "Failure: Got unexpected server response: Failure initializing an "
+                "arangosearch analyzer instance for name '_system::n-gram_analyzer' type "
+                '\'ngram\'. Properties \'{ "min" : 99999999999999990000000, "max" : 4, '
+                '"preserveOriginal" : false }\' was rejected by analyzer. Please check '
+                "documentation for corresponding analyzer type.",
+            ]
+
+            # for stem analyzer locale placeholder
+            min_ngram_length_id = f"/html/body/div[{div_id}]/div/div[2]/div/div[4]/fieldset/div/div[1]/div/div[1]/input"
+
+            # method template (self, error_input, print_statement, error_message, locators_id, error_message_id, div_id)
+            self.check_expected_error_messages_for_analyzer(
+                analyzer_name_error_input,
+                analyzer_name_print_statement,
+                analyzer_name_error_message,
+                min_ngram_length_id,
+                analyzer_name_error_id,
+                div_id,
+            )
+
+        # ---------------------------------------------AQL analyzer's---------------------------------------------
+        if index == 6:
+            print(f"Expected error scenario for the {name} Started \n")
+            # filling out the name placeholder first
+            aql_analyzer = f"/html/body/div[{div_id}]/div/div[2]/div/div[1]/fieldset/div/div[1]/input"
+            aql_analyzer_sitem = self.locator_finder_by_xpath(aql_analyzer)
+            aql_analyzer_sitem.click()
+            aql_analyzer_sitem.clear()
+            aql_analyzer_sitem.send_keys(name)
+
+            print(f"Selecting query string for {name} \n")
+            query_string = f"/html/body/div[{div_id}]/div/div[2]/div/div[4]/fieldset/div/div[1]/textarea"
+            query_string_sitem = self.locator_finder_by_xpath(query_string)
+            query_string_sitem.send_keys("FOR year IN 2010..2015 RETURN year")
             time.sleep(2)
 
-            print(f"checking {name} started \n")
-            # common attributes for all the analyzers
-            analyzer_type = f"/html/body/div[{div_id}]/div/div[2]/div/div[1]/fieldset/div/div[2]/select"
-            analyzer_name_error_id = "//div[@class='noty_body']"
-
-            print("Selecting analyzer type \n")
-            self.locator_finder_by_select_using_xpath(analyzer_type, index)
+            print(f"Selecting memory limit for {name} \n")
+            memory_limit = f"/html/body/div[{div_id}]/div/div[2]/div/div[4]/fieldset/div/div[2]/div/div[2]/input"
+            memory_limit_sitem = self.locator_finder_by_xpath(memory_limit)
+            memory_limit_sitem.click()
+            memory_limit_sitem.clear()
+            memory_limit_sitem.send_keys("200")
             time.sleep(2)
 
-            if index == 0:
-                print(f"Expected error scenario for the {name} Started \n")
-                analyzer_name_error_input = ["", "@", "1", "שלום"]
-                analyzer_name_print_statement = [
-                    f'Checking blank {name} with " "',
-                    f'Checking {name} with symbol " @ "',
-                    f'Checking numeric value for {name} " 1 "',
-                    'Checking Non-ASCII Hebrew Characters "שלום"',
-                ]
-                analyzer_name_error_message = [
-                    "Failure: Got unexpected server response: invalid characters in analyzer name ''",
-                    "Failure: Got unexpected server response: invalid characters in analyzer name '@'",
-                    "Failure: Got unexpected server response: invalid characters in analyzer name '1'",
-                    "Failure: Got unexpected server response: invalid characters in analyzer name 'שלום'",
-                ]
+            print(f"Selecting greater number for batch size {name} \n")
 
-                # for identity analyzer name placeholder
-                analyzer_name_id = f"/html/body/div[{div_id}]/div/div[2]/div/div[1]/fieldset/div/div[1]/input"
+            analyzer_name_error_input = ["1001", "-1"]
+            analyzer_name_print_statement = [f'Checking {name} with input "1001"', f'Checking {name} with input "-1"']
+            analyzer_name_error_message = [
+                "Failure: Got unexpected server response: Failure initializing an "
+                "arangosearch analyzer instance for name '_system::AQL_analyzer' type "
+                "'aql'. Properties '{ \"queryString\" : \"FOR year IN 2010..2015 RETURN "
+                'year", "memoryLimit" : 200, "batchSize" : 1001 }\' was rejected by '
+                "analyzer. Please check documentation for corresponding analyzer type.",
+                "Failure: Got unexpected server response: Failure initializing an "
+                "arangosearch analyzer instance for name '_system::AQL_analyzer' type "
+                "'aql'. Properties '{ \"queryString\" : \"FOR year IN 2010..2015 RETURN "
+                'year", "memoryLimit" : 200, "batchSize" : -1 }\' was rejected by '
+                "analyzer. Please check documentation for corresponding analyzer type.",
+            ]
 
-                # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
-                self.check_expected_error_messages_for_analyzer(
-                    analyzer_name_error_input,
-                    analyzer_name_print_statement,
-                    analyzer_name_error_message,
-                    analyzer_name_id,
-                    analyzer_name_error_id,
-                    div_id,
-                )
+            # for AQL analyzer batch size placeholder
+            batch_size_id = f"/html/body/div[{div_id}]/div/div[2]/div/div[4]/fieldset/div/div[2]/div/div[1]/input"
 
-            # ------------------------------------Stem analyzer's Locale value test------------------------------------
-            if index == 2:
-                print(f"Expected error scenario for the {name} Started \n")
+            # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
+            self.check_expected_error_messages_for_analyzer(
+                analyzer_name_error_input,
+                analyzer_name_print_statement,
+                analyzer_name_error_message,
+                batch_size_id,
+                analyzer_name_error_id,
+                div_id,
+            )
 
-                # filling out the name placeholder first
-                stem_analyzer = "/html/body/div[68]/div/div[2]/div/div[1]/fieldset/div/div[1]/input"
-                stem_analyzer_sitem = self.locator_finder_by_xpath(stem_analyzer)
-                stem_analyzer_sitem.click()
-                stem_analyzer_sitem.clear()
-                stem_analyzer_sitem.send_keys(name)
-                analyzer_name_error_input = ["aaaaaaaaaa12"]
-                analyzer_name_print_statement = [f'Checking {name} with input "aaaaaaaaaa12"']
-                analyzer_name_error_message = [
-                    "Failure: Got unexpected server response: Failure initializing an "
-                    "arangosearch analyzer instance for name '_system::stem_analyzer' type "
-                    "'stem'. Properties '{ \"locale\" : \"aaaaaaaaaa12\" }' was rejected by "
-                    "analyzer. Please check documentation for corresponding analyzer type."
-                ]
+        print(f"Closing the {name} check \n")
+        close_btn = '//*[@id="modal-content-add-analyzer"]/div[3]/button[1]'
+        close_btn_sitem = self.locator_finder_by_xpath(close_btn)
+        close_btn_sitem.click()
+        time.sleep(2)
 
-                # for stem analyzer locale placeholder
-                analyzer_locale_id = f"/html/body/div[{div_id}]/div/div[2]/div/div[4]/fieldset/div/div/input"
-
-                # method template (self, error_input, print_statement, error_message, locators_id, error_message_id, div_id)
-                self.check_expected_error_messages_for_analyzer(
-                    analyzer_name_error_input,
-                    analyzer_name_print_statement,
-                    analyzer_name_error_message,
-                    analyzer_locale_id,
-                    analyzer_name_error_id,
-                    div_id,
-                )
-
-            # ------------------------------------Stem analyzer's Locale value test------------------------------------
-            if index == 4:
-                print(f"Expected error scenario for the {name} Started \n")
-
-                # filling out the name placeholder first
-                ngram_analyzer = f"/html/body/div[{div_id}]/div/div[2]/div/div[1]/fieldset/div/div[1]/input"
-                ngram_analyzer_sitem = self.locator_finder_by_xpath(ngram_analyzer)
-                ngram_analyzer_sitem.click()
-                ngram_analyzer_sitem.clear()
-                ngram_analyzer_sitem.send_keys(name)
-
-                # fill up the max_ngram value beforehand
-                max_ngram_length = f"/html/body/div[{div_id}]/div/div[2]/div/div[4]/fieldset/div/div[1]/div/div[2]/input"
-                max_ngram_length_sitem = self.locator_finder_by_xpath(max_ngram_length)
-                max_ngram_length_sitem.click()
-                max_ngram_length_sitem.clear()
-                max_ngram_length_sitem.send_keys("4")
-
-                analyzer_name_error_input = ["-1", "100000000000000000000000"]
-                analyzer_name_print_statement = [
-                    f'Checking {name} with input "-1"',
-                    f'Checking {name} with input "100000000000000000000000"',
-                ]
-                analyzer_name_error_message = [
-                    "Failure: Got unexpected server response: Failure initializing "
-                    "an arangosearch analyzer instance for "
-                    "name '_system::n-gram_analyzer' type 'ngram'. Properties "
-                    '\'{ "min" : -1, "max" : 4, "preserveOriginal" : false }\' '
-                    "was rejected by analyzer. Please check documentation for "
-                    "corresponding analyzer type.",
-                    "Failure: Got unexpected server response: Failure initializing an "
-                    "arangosearch analyzer instance for name '_system::n-gram_analyzer' type "
-                    '\'ngram\'. Properties \'{ "min" : 99999999999999990000000, "max" : 4, '
-                    '"preserveOriginal" : false }\' was rejected by analyzer. Please check '
-                    "documentation for corresponding analyzer type.",
-                ]
-
-                # for stem analyzer locale placeholder
-                min_ngram_length_id = f"/html/body/div[{div_id}]/div/div[2]/div/div[4]/fieldset/div/div[1]/div/div[1]/input"
-
-                # method template (self, error_input, print_statement, error_message, locators_id, error_message_id, div_id)
-                self.check_expected_error_messages_for_analyzer(
-                    analyzer_name_error_input,
-                    analyzer_name_print_statement,
-                    analyzer_name_error_message,
-                    min_ngram_length_id,
-                    analyzer_name_error_id,
-                    div_id,
-                )
-
-            # ---------------------------------------------AQL analyzer's---------------------------------------------
-            if index == 6:
-                print(f"Expected error scenario for the {name} Started \n")
-                # filling out the name placeholder first
-                aql_analyzer = f"/html/body/div[{div_id}]/div/div[2]/div/div[1]/fieldset/div/div[1]/input"
-                aql_analyzer_sitem = self.locator_finder_by_xpath(aql_analyzer)
-                aql_analyzer_sitem.click()
-                aql_analyzer_sitem.clear()
-                aql_analyzer_sitem.send_keys(name)
-
-                print(f"Selecting query string for {name} \n")
-                query_string = f"/html/body/div[{div_id}]/div/div[2]/div/div[4]/fieldset/div/div[1]/textarea"
-                query_string_sitem = self.locator_finder_by_xpath(query_string)
-                query_string_sitem.send_keys("FOR year IN 2010..2015 RETURN year")
-                time.sleep(2)
-
-                print(f"Selecting memory limit for {name} \n")
-                memory_limit = f"/html/body/div[{div_id}]/div/div[2]/div/div[4]/fieldset/div/div[2]/div/div[2]/input"
-                memory_limit_sitem = self.locator_finder_by_xpath(memory_limit)
-                memory_limit_sitem.click()
-                memory_limit_sitem.clear()
-                memory_limit_sitem.send_keys("200")
-                time.sleep(2)
-
-                print(f"Selecting greater number for batch size {name} \n")
-
-                analyzer_name_error_input = ["1001", "-1"]
-                analyzer_name_print_statement = [f'Checking {name} with input "1001"', f'Checking {name} with input "-1"']
-                analyzer_name_error_message = [
-                    "Failure: Got unexpected server response: Failure initializing an "
-                    "arangosearch analyzer instance for name '_system::AQL_analyzer' type "
-                    "'aql'. Properties '{ \"queryString\" : \"FOR year IN 2010..2015 RETURN "
-                    'year", "memoryLimit" : 200, "batchSize" : 1001 }\' was rejected by '
-                    "analyzer. Please check documentation for corresponding analyzer type.",
-                    "Failure: Got unexpected server response: Failure initializing an "
-                    "arangosearch analyzer instance for name '_system::AQL_analyzer' type "
-                    "'aql'. Properties '{ \"queryString\" : \"FOR year IN 2010..2015 RETURN "
-                    'year", "memoryLimit" : 200, "batchSize" : -1 }\' was rejected by '
-                    "analyzer. Please check documentation for corresponding analyzer type.",
-                ]
-
-                # for AQL analyzer batch size placeholder
-                batch_size_id = f"/html/body/div[{div_id}]/div/div[2]/div/div[4]/fieldset/div/div[2]/div/div[1]/input"
-
-                # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
-                self.check_expected_error_messages_for_analyzer(
-                    analyzer_name_error_input,
-                    analyzer_name_print_statement,
-                    analyzer_name_error_message,
-                    batch_size_id,
-                    analyzer_name_error_id,
-                    div_id,
-                )
-
-            print(f"Closing the {name} check \n")
-            close_btn = '//*[@id="modal-content-add-analyzer"]/div[3]/button[1]'
-            close_btn_sitem = self.locator_finder_by_xpath(close_btn)
-            close_btn_sitem.click()
-            time.sleep(2)
-
-            print(f"Expected error scenario for the {name} Completed \n")
-        except Exception:
-            print('Info: Error occured during checking expected error!')
-
+        print(f"Expected error scenario for the {name} Completed \n")
 
     def delete_analyzer(self, analyzer_name):
         """Deleting all the analyzer using their ID"""
         self.select_analyzers_page()
         self.webdriver.refresh()
 
-        try:
-            print(f'Deletion of {analyzer_name} started \n')
-            analyzer_delete_icon = '//*[@id="analyzersContent"]/div/div/table/tbody/tr[1]/td[4]/button[2]/i'
+        print(f"Deletion of {analyzer_name} started \n")
+        analyzer_delete_icon = '//*[@id="analyzersContent"]/div/div/table/tbody/tr[1]/td[4]/button[2]/i'
 
-            analyzer_delete_icon_sitem = self.locator_finder_by_xpath(analyzer_delete_icon)
-            analyzer_delete_icon_sitem.click()
-            time.sleep(2)
+        analyzer_delete_icon_sitem = self.locator_finder_by_xpath(analyzer_delete_icon)
+        analyzer_delete_icon_sitem.click()
+        time.sleep(2)
 
-            # force_delete = '//*[@id="force-delete"]'
-            # force_delete.sitem = self.locator_finder_by_xpath(self, force_delete)
-            # force_delete.sitem.click()
+        # force_delete = '//*[@id="force-delete"]'
+        # force_delete.sitem = self.locator_finder_by_xpath(force_delete)
+        # force_delete.sitem.click()
 
-            delete_btn = f'//*[@id="modal-content-delete-0"]/div[3]/button[2]'
-            delete_btn_sitem = self.locator_finder_by_xpath(delete_btn)
-            delete_btn_sitem.click()
-            time.sleep(2)
-            print(f'Deletion of {analyzer_name} completed \n')
-        except TimeoutException:
-            print('TimeoutException occurred! \n')
-            print('Info: Analyzer has already been deleted or never created. \n')
-        except Exception:
-            # traceback.print_exc()
-            raise Exception('Critical Error occurred and need manual inspection!! \n')
+        delete_btn = '//*[@id="modal-content-delete-0"]/div[3]/button[2]'
+        delete_btn_sitem = self.locator_finder_by_xpath(delete_btn)
+        delete_btn_sitem.click()
+        time.sleep(2)
+
+        print(f"Deletion of {analyzer_name} completed \n")
