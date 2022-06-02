@@ -33,6 +33,7 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
                 analyzers.select_built_in_analyzers_open()
 
                 print("Checking in-built identity analyzer \n")
+                # this one is commented due to https://arangodb.atlassian.net/browse/BTS-608.
                 # analyzers.select_analyzer_to_check(analyzers.identity_analyzer, analyzers.identity_switch_view)
                 print("Checking in-built text_de analyzer \n")
                 analyzers.select_analyzer_to_check(analyzers.text_de, analyzers.text_de_switch_view)
