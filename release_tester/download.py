@@ -85,7 +85,6 @@ class DownloadOptions(OptionGroup):
     package_dir: Path
     enterprise_magic: str
     httpuser: str
-    httppassvoid: str
     remote_host:str
 
 class Download:
@@ -247,7 +246,6 @@ class Download:
         url = "https://{user}:{passvoid}@{remote_host}:8529/{dir}{pkg}".format(
             **{
                 "remote_host": self.remote_host,
-                "passvoid": self.options.httppassvoid,
                 "user": self.options.httpuser,
                 "dir": directory,
                 "pkg": package,
