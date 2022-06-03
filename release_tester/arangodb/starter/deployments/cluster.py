@@ -237,6 +237,69 @@ db.testCollection.save({test: "document"})
         if self.selenium:
             self.selenium.test_wait_for_upgrade()  # * 5s
 
+    def downgrade_arangod_version_manual_impl(self):
+        """manual upgrade this installation"""
+        lh.subsubsection("wait for all shards to be in sync")
+        retval = self.starter_instances[0].execute_frontend(self.check_collections_in_sync)
+        if not retval:
+            raise Exception("Failed to ensure the cluster is in sync: %s %s" % (
+                retval, str(self.check_collections_in_sync)))
+        self.progress(True, "manual upgrade step 1 - stop instances")
+        self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
+        for node in self.starter_instances:
+            node.replace_binary_for_upgrade(self.new_cfg, False)
+        for node in self.starter_instances:
+            node.detect_instance_pids_still_alive()
+
+        # fmt: off
+        self.progress(True, "step 2 - upgrade agents")
+        for node in self.starter_instances:
+            node.upgrade_instances(
+                [
+                    InstanceType.AGENT
+                ], [
+                    '--database.auto-upgrade', 'true',
+                    '--log.foreground-tty', 'true'
+                ],
+                # mitigate 3.6x agency shutdown issues:
+                self.cfg.version >= arangoversions['370'])
+        self.progress(True, "step 3 - upgrade db-servers")
+        for node in self.starter_instances:
+            node.upgrade_instances([
+                InstanceType.DBSERVER
+            ], ['--database.auto-upgrade', 'true',
+                '--log.foreground-tty', 'true'])
+        self.progress(True, "step 4 - coordinator upgrade")
+        # now the new cluster is running. we will now run the coordinator upgrades
+        for node in self.starter_instances:
+            logging.info("upgrading coordinator instances\n" + str(node))
+            node.upgrade_instances([
+                InstanceType.COORDINATOR
+            ], [
+                '--database.auto-upgrade', 'true',
+                '--javascript.copy-installation', 'true',
+                '--server.rest-server', 'false',
+            ])
+        # fmt: on
+        self.progress(True, "step 5 restart the full cluster ")
+        for node in self.starter_instances:
+            node.respawn_instance()
+        self.progress(True, "step 6 wait for the cluster to be up")
+        for node in self.starter_instances:
+            node.detect_instances()
+            node.wait_for_version_reply()
+
+        # now the upgrade should be done.
+        for node in self.starter_instances:
+            node.detect_instances()
+            node.wait_for_version_reply()
+            node.probe_leader()
+        self.set_frontend_instances()
+        self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
+
+        if self.selenium:
+            self.selenium.test_wait_for_upgrade()  # * 5s
+
     @step
     def jam_attempt_impl(self):
         # pylint: disable=too-many-statements

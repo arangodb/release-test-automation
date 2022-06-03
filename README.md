@@ -16,7 +16,7 @@
 ## Linux
 
 - **debian** / **ubuntu**:
-  `apt-get install python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect python3-statsd python3-selenium python3-pip gdb`
+  `apt-get install python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect python3-pyftpdlib python3-statsd python3-selenium python3-pip gdb`
   
   the `python3-semver` on debian is to old - need to use the pip version instead:
   `pip3 install semver beautifultable allure_python_commons certifi tabulate`
@@ -27,10 +27,10 @@
   `pip install distro semver pexpect psutil beautifultable allure_python_commons certifi`
   
 - **centos**:
-   `yum update ; yum install python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect; pip3 install psutil semver beautifultable` 
+   `yum update ; yum install python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect python3-pyftpdlib; pip3 install psutil semver beautifultable` 
    `sudo yum install gdb`
 - **plain pip**:
-  `pip3 install psutil pyyaml pexpect requests click semver selenium beautifultable tabulate allure_python_commons certifi`
+  `pip3 install psutil pyyaml pexpect requests click semver ftplib selenium beautifultable tabulate allure_python_commons certifi`
   or:
   `pip install -r requirements.txt`
 
@@ -39,7 +39,8 @@
     `brew install gnu-tar`
     `pip3 install click psutil requests pyyaml semver pexpect selenium beautifultable tabulate allure_python_commons certifi`
     `brew install gdb`
-    `pip3 install click`
+if `python --version` is below 3.9 you also have to download ftplib:
+    `pip3 install click ftplib`
 
 ## Selenium dependencies
 ### chrome
@@ -198,12 +199,13 @@ Supported Parameters:
  - `--enterprise-magic` specify your secret enterprise download key here.
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--package-dir` The directory where we will download the nsis .exe / deb / rpm [/ dmg WIP] to
- - `--source [public|nightlypublic|http:stage1|http:stage2]`
+ - `--source [public|nightlypublic|[ftp|http]:stage1|[ftp|http]:stage2]`
    - `nightlypublic` will download the packages from the nightly builds at downloads.arangodb.com
    - `public` (default) will download the packages from downloads.arangodb.com
-   - `stage1` will download the files from the staging fileserver - level 1 - Internal only http with `httpuser`
-   - `stage2` will download the files from the staging fileserver - level 2 - Internal only http with `httpuser`
- - `--httpuser` username for stage http access, defaults to `RTA_LOCAL_HTTPUSER`
+   - `stage1` will download the files from the staging fileserver - level 1 - ftp: internal http external requires credentials
+   - `stage2` will download the files from the staging fileserver - level 2 - ftp: internal http external requires credentials
+ - `--httpuser` username for stage http access
+ - `--httppassvoid` secret for stage http access
  - `--verbose` if specified more logging is done
  - `--force` overwrite readily existing downloaded packages
 
@@ -213,7 +215,7 @@ example usage:
                                     --enterprise-magic <enterprisekey> \
                                     --package-dir /home/willi/Downloads/ \
                                     --force \
-                                    --source http:stage2`
+                                    --source ftp:stage2`
 
 # Using `full_download_upgrade.py` for automated upgrade testing
 
@@ -239,13 +241,14 @@ Supported Parameters:
  - `--[no-]encryption-at-rest` turn on encryption at rest for Enterprise packages
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--enterprise-magic` specify your secret enterprise download key here.
- - `--[new|old]-source [public|nightlypublic|http:stage1|http:stage2]`
+ - `--[new|old]-source [public|nightlypublic|[ftp|http]:stage1|[ftp|http]:stage2]`
    - `nightlypublic` will download the packages from the nightly builds at downloads.arangodb.com
    - `local` no packages will be downloaded at all, but rather are expected to be found in `package-dir`.
    - `public` (default) will download the packages from downloads.arangodb.com
-   - `http:stage1` will download the files from the staging fileserver - level 1 - Internal only http with `httpuser`
-   - `http:stage2` will download the files from the staging fileserver - level 2 - Internal only http with `httpuser`
+   - `stage1` will download the files from the staging fileserver - level 1 - ftp: internal http external requires credentials
+   - `stage2` will download the files from the staging fileserver - level 2 - ftp: internal http external requires credentials
  - `--httpuser` username for stage http access
+ - `--httppassvoid` secret for stage http access
  - `--force` overwrite readily existing downloaded packages
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
@@ -297,13 +300,14 @@ Supported Parameters:
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--enterprise-magic` specify your secret enterprise download key here.
- - `--[other-]source [public|nightlypublic|http:stage1|http:stage2]`
+ - `--[other-]source [public|nightlypublic|[ftp|http]:stage1|[ftp|http]:stage2]`
    - `nightlypublic` will download the packages from the nightly builds at downloads.arangodb.com
    - `local` no packages will be downloaded at all, but rather are expected to be found in `package-dir`.
    - `public` (default) will download the packages from downloads.arangodb.com
-   - `http:stage1` will download the files from the staging fileserver - level 1 - Internal only http with `httpuser`
-   - `http:stage2` will download the files from the staging fileserver - level 2 - Internal only http with `httpuser`
+   - `stage1` will download the files from the staging fileserver - level 1 - ftp: internal http external requires credentials
+   - `stage2` will download the files from the staging fileserver - level 2 - ftp: internal http external requires credentials
  - `--httpuser` username for stage http access
+ - `--httppassvoid` secret for stage http access
  - `--force` overwrite readily existing downloaded packages
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
  - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
