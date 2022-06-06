@@ -13,22 +13,22 @@ from selenium_ui_test.test_suites.views_test_suite import ViewsTestSuite
 
 from selenium_ui_test.test_suites.analyzers_test_suite import AnalyzersTestSuite
 
-child_test_suites = [
-    UserPageTestSuite,
-    CollectionsTestSuite,
-    ViewsTestSuite,
-    GraphTestSuite,
-    QueryTestSuite,
-    AnalyzersTestSuite,
-    DatabaseTestSuite,
-    LogInTestSuite,
-    DashboardTestSuite,
-    SupportTestSuite,
-]
-
 
 class BasicTestSuite(BaseSeleniumTestSuite):
     """testsuites entrypoint"""
+
+    child_test_suites = [
+        UserPageTestSuite,
+        CollectionsTestSuite,
+        ViewsTestSuite,
+        GraphTestSuite,
+        QueryTestSuite,
+        AnalyzersTestSuite,
+        DatabaseTestSuite,
+        LogInTestSuite,
+        DashboardTestSuite,
+        SupportTestSuite,
+    ]
 
     def __init__(self, selenium_runner):
         super().__init__(
