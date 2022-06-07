@@ -10,19 +10,18 @@ import time
 import traceback
 from pathlib import Path
 
-import semver
 from allure_commons._allure import attach
 from allure_commons.model2 import Status, StatusDetails
 
 import tools.loghelper as lh
 from arangodb.installers import create_config_installer_set, RunProperties
-from arangodb.starter.deployments.cluster_perf import ClusterPerf
 from arangodb.starter.deployments import (
     RunnerType,
     make_runner,
     runner_strings,
     STARTER_MODES,
 )
+from arangodb.starter.deployments.cluster_perf import ClusterPerf
 from license_manager_tests.basic_test_suite import BasicLicenseManagerTestSuite
 from license_manager_tests.upgrade.upgrade_test_suite import UpgradeLicenseManagerTestSuite
 from package_installation_tests.community_package_installation_test_suite import CommunityPackageInstallationTestSuite

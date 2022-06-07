@@ -158,6 +158,8 @@ Example usage:
 
 This entrypoint file is used to run tests that are organized in test suites.
 Supported Parameters:
+ - `--include-test-suite` Test suite name to include in the test run. Multiple test suites can be ran by providing this parameter multiple times. This parameter cannot be used if --exclude-test-suite is set.
+ - `--exclude-test-suite` Run all test suites except for this one. Multiple test suites can be excluded by providing this parameter multiple times. This parameter cannot be used if --include-test-suite is set.
  - `--new-version` which Arangodb Version you want to run the test on
  - `--old-version` old version of ArangoDB to be used in tests where an older version is required.
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
