@@ -161,14 +161,17 @@ def upgrade_package_test(
                         ]
                     )
                 else:
-                    table.rows.append(
-                        [
+                    # pylint: disable=broad-except
+                    try:
+                        table.rows.append([
                             one_result["testrun name"],
                             one_result["testscenario"],
                             # one_result['success'],
                             "\n".join(one_result["messages"]) + "\n" + "H" * 40 + "\n" + one_result["progress"],
-                        ]
-                    )
+                        ])
+                    except Exception as ex:
+                        print("result error while syntesizing " + str(one_result))
+                        print(ex)
                 status = status and one_result["success"]
     table.columns.header = [
         "Testrun",
