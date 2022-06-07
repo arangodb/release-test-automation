@@ -19,8 +19,8 @@ class ClusterJamStepOneSuite(BaseSeleniumTestSuite):
         """check for one set of instances to go away"""
         self.webdriver.refresh()
         time.sleep(2)
-        NavigationBarPage(self.webdriver, self.cfg).navbar_goto("cluster")
-        cluster_page = ClusterPage(self.webdriver, self.cfg)
+        NavigationBarPage(self.webdriver).navbar_goto("cluster")
+        cluster_page = ClusterPage(self.webdriver)
         node_count = None
         done = False
         retry_count = 0
@@ -50,8 +50,8 @@ class ClusterJamStepOneSuite(BaseSeleniumTestSuite):
         health_state = cluster_page.get_health_state()
         self.ui_assert(health_state != "NODES OK", "UI-Test: expected health to be NODES OK, have: " + health_state)
 
-        NavigationBarPage(self.webdriver, self.cfg).navbar_goto("nodes")
-        nodes_page = NodesPage(self.webdriver, self.cfg)
+        NavigationBarPage(self.webdriver).navbar_goto("nodes")
+        nodes_page = NodesPage(self.webdriver)
         row_count = 0
         retry_count = 0
         while row_count != 4 and retry_count < 10:
