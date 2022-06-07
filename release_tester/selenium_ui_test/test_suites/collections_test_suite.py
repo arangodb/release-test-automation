@@ -3,7 +3,7 @@
 import semver
 import traceback
 from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
-from selenium_ui_test.test_suites.base_test_suite import testcase
+from test_suites_core.base_test_suite import testcase
 
 
 # from selenium_ui_test.models import IndexType

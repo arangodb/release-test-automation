@@ -1,11 +1,10 @@
 """License manager tests: DC2DC"""
-import platform
 
 # pylint: disable=import-error
 from arangodb.async_client import CliExecutionException
 from license_manager_tests.base.dc2dc_base import LicenseManagerDc2DcBaseTestSuite
 from reporting.reporting_utils import step
-from selenium_ui_test.test_suites.base_test_suite import testcase, disable
+from test_suites_core.base_test_suite import testcase, disable
 
 
 class LicenseManagerDc2DcTestSuite(LicenseManagerDc2DcBaseTestSuite):

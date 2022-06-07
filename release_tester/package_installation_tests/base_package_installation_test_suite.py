@@ -5,7 +5,7 @@ import shutil
 from allure_commons._allure import attach
 
 from arangodb.installers import create_config_installer_set, RunProperties, InstallerBaseConfig
-from selenium_ui_test.test_suites.base_test_suite import (
+from test_suites_core.base_test_suite import (
     BaseTestSuite,
     run_before_suite,
     run_after_suite,
