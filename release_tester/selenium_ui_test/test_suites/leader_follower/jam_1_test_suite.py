@@ -15,8 +15,8 @@ class LeaderFollowerJamStepOneSuite(BaseSeleniumTestSuite):
     def test(self):
         """check for one set of instances to go away"""
         self.go_to_index_page()
-        NavigationBarPage(self.webdriver).navbar_goto("replication")
-        replication_page = ReplicationPage(self.webdriver)
+        NavigationBarPage(self.webdriver, self.cfg).navbar_goto("replication")
+        replication_page = ReplicationPage(self.webdriver, self.cfg)
         replication_table = replication_page.get_replication_screen(True)
         print(replication_table)
         # head and one follower should be there:
