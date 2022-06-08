@@ -4,7 +4,7 @@
 """ Release testing script"""
 #pylint: disable=duplicate-code
 from dataclasses import dataclass
-from ftplib import FTP
+from ftplib import FTP # _TLS
 from io import BytesIO
 import os
 from pathlib import Path
@@ -128,8 +128,8 @@ class Download:
             # dns split horizon...
             if source in ["ftp:stage1", "ftp:stage2"]:
                 self.remote_host = "nas01.arangodb.biz"
-            elif source in ["http:stage1", "http:stage2"]:
-                self.remote_host = "fileserver.arangodb.com"
+            elif source in ["http:stage2"]:
+                self.remote_host = "download.arangodb.com"
             else:
                 self.remote_host = "download.arangodb.com"
         lh.section("startup")
@@ -197,9 +197,6 @@ class Download:
             "ftp:stage2": "/stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/".format(
                 **self.params
             ),
-            "http:stage1": "stage1/{full_version}/release/packages/{enterprise}/{remote_package_dir}/".format(
-                **self.params
-            ),
             "http:stage2": "stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/".format(
                 **self.params
             ),
@@ -212,7 +209,6 @@ class Download:
             "local": None,
         }
         self.funcs = {
-            "http:stage1": self.acquire_stage1_http,
             "http:stage2": self.acquire_stage2_http,
             "ftp:stage1": self.acquire_stage1_ftp,
             "ftp:stage2": self.acquire_stage2_ftp,
@@ -271,10 +267,6 @@ class Download:
                     **{"url": url, "error": res.status_code, "msg": res.text}
                 )
             )
-
-    def acquire_stage1_http(self, directory, package, local_dir, force):
-        """download stage 1 from http"""
-        self.acquire_stage_http(directory, package, local_dir, force, "STAGE_1_HTTP")
 
     def acquire_stage2_http(self, directory, package, local_dir, force):
         """download stage 2 from http"""
