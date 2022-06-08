@@ -15,6 +15,9 @@ DOCKER_RPM_TAG=arangodb/release-test-automation-rpm:$(cat VERSION.json)
 if test -n "$FORCE" -o "$TEST_BRANCH" != 'main'; then
   force_arg='--force'
 fi
+if test -n "$SOURCE"; then
+    force_arg+=(--new-source "$SOURCE" --remote-host 172.17.4.0)
+fi
 
 
 trap "docker kill $DOCKER_DEB_NAME; \
