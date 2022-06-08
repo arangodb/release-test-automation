@@ -51,10 +51,10 @@
             if (name == `pipeline_0`) {
                 a.remove(`pipeline_0`);
             }
+        }
         // checking created analyzer is deleted or not  
         if (a.analyzer("pipeline_0") != null) {
           throw new Error("pipeline_0 analyzer isn't deleted yet!");
-        }
         }
       } catch (e) {
         print(e);

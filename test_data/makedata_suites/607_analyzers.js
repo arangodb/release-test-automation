@@ -1,4 +1,5 @@
 /* global print */
+/*jslint maxlen: 130 */
 
 (function () {
   const a = require("@arangodb/analyzers");
@@ -11,26 +12,26 @@
 
     makeDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
       // All items created must contain dbCount
-      print(`making per database data ${dbCount}`);
-      progress('create pipeline analyzer');
-      let analyzerName = `text_${dbCount}`
+      print("making per database data ${dbCount}");
+      progress("create pipeline analyzer");
+      let analyzerName = `text_${dbCount}`;
       let text = createSafe(analyzerName,
-        analyzer => {
+        function () {
           return a.save(`${analyzerName}`, "text", {locale: "el.utf-8",
           stemming: true,
           case: "lower",
           accent: false,
           stopwords: []
         }, ["frequency", "norm", "position"]);
-        }, analyzer => {
+        }, function () {
           return a.analyzer(`text_0`);
         });
     },
     checkDataDB: function (options, isCluster, isEnterprise, dbCount, readOnly) {
       print(`checking data ${dbCount}`);
-      print(`Listing all analyzers in current database`)
+      print(`Listing all analyzers in current database`);
       a.toArray();
-      print(`Checking number of analyzer is correct`)
+      print(`Checking number of analyzer is correct`);
       if (a.toArray().length !== 14) {
         throw new Error("Analyzer not created!");
       }
@@ -40,7 +41,7 @@
         throw new Error("Analyzer not found!");
       }
       // print(`Create and use a text Analyzer with preserveOriginal disabled:`)
-      db._query(`RETURN TOKENS("αυτοκινητουσ πρωταγωνιστούσαν", "text_0")`)
+      db._query(`RETURN TOKENS("αυτοκινητουσ πρωταγωνιστούσαν", "text_0")`);
       // print(`Checking text analyzer properties.`)
       a.analyzer(`text_0`).properties();
     },
@@ -53,6 +54,10 @@
           if (name == `text_0`) {
             a.remove(`text_0`);
           }
+        }
+        // checking created analyzer is deleted or not
+        if (a.analyzer("text_0") != null) {
+          throw new Error("text_0 analyzer isn't deleted yet!");
         }
       } catch (e) {
         print(e);

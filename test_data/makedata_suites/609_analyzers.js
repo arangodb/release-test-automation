@@ -1,4 +1,5 @@
 /* global print */
+/*jslint maxlen: 130 */
 
 (function () {
   const a = require("@arangodb/analyzers");
@@ -12,19 +13,19 @@
     makeDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
       // All items created must contain dbCount
       print(`making per database data ${dbCount}`);
-      progress('create n-gram analyzer');
-      let analyzerName = `trigram_${dbCount}`
+      progress("create n-gram analyzer");
+      let analyzerName = `trigram_${dbCount}`;
       let trigram = createSafe(analyzerName,
-        analyzer => {
+        function () {
           return a.save(`${analyzerName}`, "ngram", { min: 3, max: 3, preserveOriginal: false, streamType: "utf8" }, ["frequency", "norm", "position"]);
-        }, analyzer => {
+        }, function () {
           return a.analyzer(`trigram_0`);
         });
     },
     checkDataDB: function (options, isCluster, isEnterprise, dbCount, readOnly) {
       print(`checking data ${dbCount}`);
       // Check analyzer:  analyzers.analyzer("trigram").properties();
-      print(`Listing all analyzers in current database`)
+      print(`Listing all analyzers in current database`);
       a.toArray();
       // print(`Checking number of analyzer is correct`)
       if (a.toArray().length !== 14) {
@@ -49,6 +50,10 @@
           if (name == `trigram_0`) {
             a.remove(`trigram_0`);
           }
+        }
+        // checking created analyzer is deleted or not  
+        if (a.analyzer("trigram_0") != null) {
+          throw new Error("trigram_0 analyzer isn't deleted yet!");
         }
       } catch (e) {
         print(e);
