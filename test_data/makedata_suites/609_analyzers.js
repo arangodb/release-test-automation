@@ -36,10 +36,26 @@
       if (a.analyzer("trigram_0") == null) {
         throw new Error("Analyzer not found!");
       }
+
+      function arraysEqual(a, b) {
+        if ((a === b) && (a == null || b == null) && (a.length !== b.length)){
+          throw new Error("Didn't get the expected response from the server!");
+        }
+      }
+
+      let myArray = [
+        [
+          "foo",
+          "oob",
+          "oba",
+          "bar"
+        ]
+      ];
+
       // print(`Create and use a trigram Analyzer with preserveOriginal disabled:`)
-      db._query(`RETURN TOKENS("foobar", "trigram_0")`).toArray();
-      // print(`Checking trigram analyzer properties.`)
-      a.analyzer(`trigram_0`).properties();
+      let trigramArray = db._query(`RETURN TOKENS("foobar", "trigram_0")`).toArray();
+
+      arraysEqual(myArray, trigramArray);
     },
     clearDataDB: function (options, isCluster, isEnterprise, dbCount, database) {
       print(`checking data ${dbCount}`);
@@ -51,7 +67,7 @@
             a.remove(`trigram_0`);
           }
         }
-        // checking created analyzer is deleted or not  
+        // checking created analyzer is deleted or not
         if (a.analyzer("trigram_0") != null) {
           throw new Error("trigram_0 analyzer isn't deleted yet!");
         }

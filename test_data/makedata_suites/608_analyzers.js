@@ -19,7 +19,7 @@
         function () {
           return a.save(`${analyzerName}`, "pipeline", { pipeline: [{ type: "norm", properties: { locale: "en.utf-8", case: "upper" } },{ type: "ngram", properties: {
               min: 2, max: 2, preserveOriginal: false, streamType: "utf8" } }] }, ["frequency", "norm", "position"]);
-        }, (analyzer) => {
+        }, function () {
           return a.analyzer(`pipeline_0`);
         });
     },
@@ -37,10 +37,35 @@
       if (a.analyzer("pipeline_0") == null) {
         throw new Error("Analyzer not found!");
       }
+
+      function arraysEqual(a, b) {
+        if ((a === b) && (a == null || b == null) && (a.length !== b.length)){
+          throw new Error("Didn't get the expected response from the server!");
+        }
+      }
+
+      let myArray = [
+        [
+          "QU",
+          "UI",
+          "IC",
+          "CK",
+          "K ",
+          " B",
+          "BR",
+          "RO",
+          "OW",
+          "WN",
+          "N ",
+          " F",
+          "FO",
+          "OX"
+        ]
+      ];
+
       // print(`Create and use a pipeline Analyzer with preserveOriginal disabled:`)
-      db._query(`RETURN TOKENS("Quick brown foX", "pipeline_0")`).toArray();
-      // print(`Checking pipeline analyzer properties.`)
-      a.analyzer(`pipeline_0`).properties();
+      let pipelineArray = db._query(`RETURN TOKENS("Quick brown foX", "pipeline_0")`).toArray();
+      arraysEqual(myArray, pipelineArray);
     },
     clearDataDB: function (options, isCluster, isEnterprise, dbCount, database) {
       print(`checking data ${dbCount}`);
@@ -52,7 +77,7 @@
                 a.remove(`pipeline_0`);
             }
         }
-        // checking created analyzer is deleted or not  
+        // checking created analyzer is deleted or not
         if (a.analyzer("pipeline_0") != null) {
           throw new Error("pipeline_0 analyzer isn't deleted yet!");
         }

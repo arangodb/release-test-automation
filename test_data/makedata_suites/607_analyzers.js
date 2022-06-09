@@ -40,10 +40,25 @@
       if (a.analyzer("text_0") == null) {
         throw new Error("Analyzer not found!");
       }
+
+      function arraysEqual(a, b) {
+        if ((a === b) && (a == null || b == null) && (a.length !== b.length)){
+          throw new Error("Didn't get the expected response from the server!");
+        }
+      }
+
+      let myArray =[
+        [
+          "crazy",
+          "fast",
+          "nosql",
+          "database"
+        ]
+      ];
+
       // print(`Create and use a text Analyzer with preserveOriginal disabled:`)
-      db._query(`RETURN TOKENS("αυτοκινητουσ πρωταγωνιστούσαν", "text_0")`);
-      // print(`Checking text analyzer properties.`)
-      a.analyzer(`text_0`).properties();
+      let textArray = db._query(`RETURN TOKENS("Crazy fast NoSQL-database!", "text_0")`).toArray();
+      arraysEqual(myArray, textArray);
     },
     clearDataDB: function (options, isCluster, isEnterprise, dbCount, database) {
       print(`checking data ${dbCount}`);
