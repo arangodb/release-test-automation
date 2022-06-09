@@ -18,7 +18,9 @@ if test -n "$FORCE" -o "$TEST_BRANCH" != 'main'; then
 fi
 
 if test -n "$SOURCE"; then
-    force_arg+=(--new-source "$SOURCE" --remote-host 172.17.4.0)
+    force_arg+=(--new-source "$SOURCE")
+else
+    force_arg+=(--remote-host 172.17.4.0)
 fi
 
 mkdir -p "${PACKAGE_CACHE}"

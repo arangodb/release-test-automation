@@ -20,7 +20,9 @@ if test -n "$FORCE" -o "$TEST_BRANCH" != 'main'; then
 fi
 
 if test -n "$SOURCE"; then
-    force_arg+=(--old-source "$SOURCE" --new-source "$SOURCE" --remote-host 172.17.4.0)
+    force_arg+=(--old-source "$SOURCE" --new-source "$SOURCE")
+else
+    force_arg+=(--remote-host 172.17.4.0)
 fi
 
 VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_rpm_version.tar"
