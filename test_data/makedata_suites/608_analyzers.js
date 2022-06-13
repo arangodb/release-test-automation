@@ -20,13 +20,15 @@
           return a.save(`${analyzerName}`, "pipeline", { pipeline: [{ type: "norm", properties: { locale: "en.utf-8", case: "upper" } },{ type: "ngram", properties: {
               min: 2, max: 2, preserveOriginal: false, streamType: "utf8" } }] }, ["frequency", "norm", "position"]);
         }, function () {
-          return a.analyzer(`pipeline_0`);
+          if (a.analyzer(analyzerName) === null){
+            throw new Error("Analyzer creation failed!");
+          }
         });
     },
     checkDataDB: function (options, isCluster, isEnterprise, dbCount, readOnly) {
       print(`checking data ${dbCount}`);
       // checking analyzer's name
-      let testName = a.analyzer("pipeline_0").name();
+      let testName = a.analyzer(`pipeline_0`).name();
       let expectedName = "_system::pipeline_0";
       if (testName !== expectedName){
         throw new Error("Analyzer name not found!");
@@ -120,12 +122,12 @@
         const array = a.toArray();
         for (let i = 0; i < array.length; i++) {
             const name = array[i];
-            if (name == `pipeline_0`) {
-                a.remove(`pipeline_0`);
+            if (name == `pipeline_${dbCount}`) {
+                a.remove(`pipeline_${dbCount}`);
             }
         }
         // checking created analyzer is deleted or not
-        if (a.analyzer("pipeline_0") != null) {
+        if (a.analyzer(`pipeline_${dbCount}`) != null) {
           throw new Error("pipeline_0 analyzer isn't deleted yet!");
         }
       } catch (e) {

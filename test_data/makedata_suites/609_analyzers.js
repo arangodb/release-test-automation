@@ -1,5 +1,5 @@
 /* global print */
-/*jslint maxlen: 100 */
+/*jslint maxlen: 130 */
 
 (function () {
   const a = require("@arangodb/analyzers");
@@ -19,7 +19,9 @@
         function () {
           return a.save(`${analyzerName}`, "ngram", { min: 3, max: 3, preserveOriginal: false, streamType: "utf8" }, ["frequency", "norm", "position"]);
         }, function () {
-          return a.analyzer(`trigram_0`);
+          if (a.analyzer(analyzerName) === null){
+            throw new Error("Analyzer creation failed!");
+          }
         });
     },
     checkDataDB: function (options, isCluster, isEnterprise, dbCount, readOnly) {
@@ -52,7 +54,7 @@
         }else{
           throw new Error("Analyzer type missmatched!");
         }
-    }
+    };
 
       let testProperties = a.analyzer("trigram_0").properties();
       let expectedProperties = {
@@ -95,12 +97,12 @@
         const array = a.toArray();
         for (let i = 0; i < array.length; i++) {
           const name = array[i];
-          if (name === `trigram_0`) {
-            a.remove(`trigram_0`);
+          if (name === `trigram_${dbCount}`) {
+            a.remove(`trigram_${dbCount}`);
           }
         }
         // checking created analyzer is deleted or not
-        if (a.analyzer("trigram_0") !== null) {
+        if (a.analyzer(`trigram_${dbCount}`) !== null) {
           throw new Error("trigram_0 analyzer isn't deleted yet!");
         }
       } catch (e) {

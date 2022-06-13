@@ -1,5 +1,5 @@
 /* global print */
-/*jslint maxlen: 130 */
+/*jslint maxlen: 100 */
 
 (function () {
   const a = require("@arangodb/analyzers");
@@ -24,16 +24,18 @@
           stopwords: []
         }, ["frequency", "norm", "position"]);
         }, function () {
-          return a.analyzer(`text_0`);
+          if (a.analyzer(analyzerName) === null){
+            throw new Error("Analyzer creation failed!");
+          }
         });
     },
     checkDataDB: function (options, isCluster, isEnterprise, dbCount, readOnly) {
       print(`checking data ${dbCount}`);
       // checking analyzer's name
-      let testName = a.analyzer("text_0").name();
+      let testName = a.analyzer(`text_0`).name();
       let expectedName = "_system::text_0";
       if (testName !== expectedName){
-        throw new Error("Analyzer name not found!");
+        throw new Error(`Analyzer name not found!`);
       }
       progress();
 
@@ -57,7 +59,7 @@
         }else{
           throw new Error("Analyzer type missmatched!");
         }
-    };
+      };
 
       let testProperties = a.analyzer("text_0").properties();
       let expectedProperties = {
@@ -100,12 +102,12 @@
         const array = a.toArray();
         for (let i = 0; i < array.length; i++) {
           const name = array[i];
-          if (name == `text_0`) {
-            a.remove(`text_0`);
+          if (name === `text_${dbCount}`) {
+            a.remove(`text_${dbCount}`);
           }
         }
         // checking created analyzer is deleted or not
-        if (a.analyzer("text_0") != null) {
+        if (a.analyzer(`text_${dbCount}`) != null) {
           throw new Error("text_0 analyzer isn't deleted yet!");
         }
       } catch (e) {
