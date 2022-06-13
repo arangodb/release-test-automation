@@ -25,21 +25,68 @@
     },
     checkDataDB: function (options, isCluster, isEnterprise, dbCount, readOnly) {
       print(`checking data ${dbCount}`);
-      // Check analyzer:  analyzers.analyzer("trigram").properties();
-      print(`Listing all analyzers in current database`);
-      a.toArray();
-      print(`Checking number of analyzer is correct`);
-      if (a.toArray().length !== 14) {
-        throw new Error("Analyzer not created!");
+      // checking analyzer's name
+      let testName = a.analyzer("pipeline_0").name();
+      let expectedName = "_system::pipeline_0";
+      if (testName !== expectedName){
+        throw new Error("Analyzer name not found!");
       }
       progress();
 
-      if (a.analyzer("pipeline_0") == null) {
+      //checking analyzer's type
+      let testType = a.analyzer("pipeline_0").type();
+      let expectedType = "pipeline";
+      if (testType !== expectedType){
+        throw new Error("Analyzer type missmatched!");
+      }
+      progress();
+
+      //checking analyzer's properties
+      const checkProperties = function(obj1, obj2) {
+        const obj1Length = Object.keys(obj1).length;
+        const obj2Length = Object.keys(obj2).length;
+
+        if(obj1Length === obj2Length) {
+            return Object.keys(obj1).every(
+                (key) => obj2.hasOwnProperty(key)
+                   && obj2[key] === obj1[key]);
+        }else{
+          throw new Error("Analyzer type missmatched!");
+        }
+    };
+
+      let testProperties = a.analyzer("pipeline_0").properties();
+      let expectedProperties = {
+        "pipeline" : [
+          {
+            "type" : "norm",
+            "properties" : {
+              "locale" : "en.utf-8",
+              "case" : "upper",
+              "accent" : true
+            }
+          },
+          {
+            "type" : "ngram",
+            "properties" : {
+              "min" : 2,
+              "max" : 2,
+              "preserveOriginal" : false,
+              "streamType" : "utf8"
+            }
+          }
+        ]
+      };
+
+      checkProperties(testProperties, expectedProperties);
+      progress();
+
+      if (a.analyzer("pipeline_0") === null) {
         throw new Error("Analyzer not found!");
       }
 
       function arraysEqual(a, b) {
-        if ((a === b) && (a == null || b == null) && (a.length !== b.length)){
+        if ((a === b) && (a === null || b === null) && (a.length !== b.length)){
           throw new Error("Didn't get the expected response from the server!");
         }
       }

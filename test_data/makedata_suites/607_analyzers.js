@@ -29,12 +29,46 @@
     },
     checkDataDB: function (options, isCluster, isEnterprise, dbCount, readOnly) {
       print(`checking data ${dbCount}`);
-      print(`Listing all analyzers in current database`);
-      a.toArray();
-      print(`Checking number of analyzer is correct`);
-      if (a.toArray().length !== 14) {
-        throw new Error("Analyzer not created!");
+      // checking analyzer's name
+      let testName = a.analyzer("text_0").name();
+      let expectedName = "_system::text_0";
+      if (testName !== expectedName){
+        throw new Error("Analyzer name not found!");
       }
+      progress();
+
+      //checking analyzer's type
+      let testType = a.analyzer("text_0").type();
+      let expectedType = "text";
+      if (testType !== expectedType){
+        throw new Error("Analyzer type missmatched!");
+      }
+      progress();
+
+      //checking analyzer's properties
+      const checkProperties = function(obj1, obj2) {
+        const obj1Length = Object.keys(obj1).length;
+        const obj2Length = Object.keys(obj2).length;
+
+        if(obj1Length === obj2Length) {
+            return Object.keys(obj1).every(
+                (key) => obj2.hasOwnProperty(key)
+                   && obj2[key] === obj1[key]);
+        }else{
+          throw new Error("Analyzer type missmatched!");
+        }
+    };
+
+      let testProperties = a.analyzer("text_0").properties();
+      let expectedProperties = {
+        "locale" : "el.utf-8",
+        "case" : "lower",
+        "stopwords" : [ ],
+        "accent" : false,
+        "stemming" : true
+      };
+
+      checkProperties(testProperties, expectedProperties);
       progress();
 
       if (a.analyzer("text_0") == null) {
