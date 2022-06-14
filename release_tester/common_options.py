@@ -44,9 +44,10 @@ def zip_common_options(function):
     )(function)
     return function
 
+
 def hotbackup_options():
-    """ all of these hot backup options
-        => arangodb.installers.HotBackupCliCfg """
+    """all of these hot backup options
+    => arangodb.installers.HotBackupCliCfg"""
     access_key_id = get_default_value("AWS_ACCESS_KEY_ID", "", "")
     secret_access_key = get_default_value("AWS_SECRET_ACCESS_KEY", "", "")
     region = get_default_value("AWS_REGION", "", "")
@@ -134,13 +135,38 @@ def hotbackup_options():
             help="Azure storage account access key.",
         )(function)
         return function
+
     return inner_func
 
 
+def test_suite_filtering_options():
+    """options for running arbitrary sets of test suites, test cases"""
+
+    def inner_func(function):
+        function = click.option(
+            "--include-test-suite",
+            "include_test_suites",
+            default=[],
+            type=click.STRING,
+            multiple=True,
+            help="List of test suite names to run. To define a list of suites, ",
+        )(function)
+        function = click.option(
+            "--exclude-test-suite",
+            "exclude_test_suites",
+            default=[],
+            type=click.STRING,
+            multiple=True,
+            help="Run all known test suites except these.",
+        )(function)
+        return function
+
+    return inner_func
+
 
 def very_common_options(support_multi_version=False):
-    """ These options are in all scripts
-        most => arangodb.installers.InstallerBaseConfig """
+    """These options are in all scripts
+    most => arangodb.installers.InstallerBaseConfig"""
     package_dir = Path("/home/package_cache/")
 
     if not package_dir.exists():
@@ -190,8 +216,8 @@ def common_options(
     test_data_dir="/tmp/",
     support_multi_version=False,
 ):
-    """ these options are common to most scripts
-        most => arangodb.installers.InstallerBaseConfig """
+    """these options are common to most scripts
+    most => arangodb.installers.InstallerBaseConfig"""
 
     test_data_dir = get_default_path_value("WORKSPACE", "test_dir", test_data_dir)
     default_allure_dir = Path("/home/allure-results")
@@ -284,7 +310,7 @@ def common_options(
 
 def download_options(default_source="public", double_source=False, other_source=False):
     """these are options available in scripts downloading packages"""
-    download_sources = ["http:stage1", "http:stage2", "nightlypublic", "public", "local"]
+    download_sources = ["ftp:stage1", "ftp:stage2", "nightlypublic", "public", "local"]
 
     def inner_func(function):
         default_local_httpuser = get_default_value("RTA_LOCAL_HTTPUSER", "", "")
@@ -322,7 +348,9 @@ def download_options(default_source="public", double_source=False, other_source=
                 type=click.Choice(download_sources),
                 help="where to download the secondary package from",
             )(function)
-        function = click.option("--httpuser", default=default_local_httpuser, help="user for external http download")(function)
+        function = click.option("--httpuser", default=default_local_httpuser, help="user for external http download")(
+            function
+        )
         function = click.option("--remote-host", default="", help="remote host to acquire packages from")(function)
         return function
 

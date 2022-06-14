@@ -9,7 +9,7 @@ selenium >= 4.0.0
 beautifultable
 tabulate
 markdown
-allure_python_commons
+allure_python_commons==2.9.45
 certifi
 mss
 distro

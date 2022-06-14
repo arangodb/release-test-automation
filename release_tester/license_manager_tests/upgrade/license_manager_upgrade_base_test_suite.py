@@ -3,7 +3,7 @@
 # pylint: disable=import-error
 from arangodb.installers import create_config_installer_set, RunProperties
 from license_manager_tests.base.license_manager_base_test_suite import LicenseManagerBaseTestSuite
-from selenium_ui_test.test_suites.base_test_suite import run_after_suite, run_before_suite
+from test_suites_core.base_test_suite import run_after_suite, run_before_suite
 
 try:
     from tools.external_helpers.license_generator.license_generator import create_license
@@ -23,12 +23,11 @@ class LicenseManagerUpgradeBaseTestSuite(LicenseManagerBaseTestSuite):
         old_version,
         new_version,
         installer_base_config,
-        child_classes=[],
     ):
         package_type = ".tar.gz" if installer_base_config.zip_package else ".deb/.rpm/NSIS"
         self.suite_name = f"Licence manager test suite: ArangoDB v. {str(new_version)} ({package_type})"
         self.auto_generate_parent_test_suite_name = False
-        super().__init__(new_version, installer_base_config, child_classes)
+        super().__init__(new_version, installer_base_config)
         self.old_version = old_version
         run_props = RunProperties(
             enterprise=True,

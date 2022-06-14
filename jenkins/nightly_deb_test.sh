@@ -18,6 +18,8 @@ fi
 
 if test -n "$SOURCE"; then
     force_arg+=(--new-source "$SOURCE")
+else
+    force_arg+=(--remote-host 172.17.4.0)
 fi
 
 VERSION_TAR_NAME="${NEW_VERSION}_deb_version.tar"

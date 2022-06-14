@@ -9,7 +9,7 @@ from arangodb.instance import InstanceType
 from arangodb.starter.deployments import make_runner, RunnerType
 from license_manager_tests.base.license_manager_base_test_suite import LicenseManagerBaseTestSuite
 from reporting.reporting_utils import step
-from selenium_ui_test.test_suites.base_test_suite import run_before_suite
+from test_suites_core.base_test_suite import run_before_suite
 
 
 class LicenseManagerClusterBaseTestSuite(LicenseManagerBaseTestSuite):

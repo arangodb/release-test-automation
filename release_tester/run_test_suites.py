@@ -1,25 +1,28 @@
 #!/usr/bin/env python3
 
-"""License manager tests runner script"""
-#pylint: disable=duplicate-code
+"""Release testing script"""
+# pylint: disable=duplicate-code
+from pathlib import Path
+
 import click
 import semver
-from pathlib import Path
-from common_options import very_common_options, common_options, hotbackup_options
-from test_driver import TestDriver
+
 from arangodb.installers import HotBackupCliCfg, InstallerBaseConfig
+from common_options import very_common_options, common_options, hotbackup_options, test_suite_filtering_options
+from test_driver import TestDriver
 
 
 @click.command()
-# pylint: disable=too-many-arguments disable=too-many-locals disable=unused-argument
+# we ignore some params, since this is a test-only toplevel tool:
+# pylint: disable=too-many-arguments disable=too-many-locals
 @very_common_options()
-@common_options(support_old=True, interactive=True)
 @hotbackup_options()
+@test_suite_filtering_options()
+@common_options(support_old=True, interactive=True)
 def main(**kwargs):
     """main"""
-    kwargs["stress_upgrade"] = False
-    kwargs["selenium"] = "none"
-    kwargs["selenium_driver_args"] = []
+    kwargs["interactive"] = False
+    kwargs["abort_on_error"] = False
     kwargs["package_dir"] = Path(kwargs["package_dir"])
     kwargs["test_data_dir"] = Path(kwargs["test_data_dir"])
     kwargs["alluredir"] = Path(kwargs["alluredir"])
@@ -28,13 +31,14 @@ def main(**kwargs):
     kwargs["base_config"] = InstallerBaseConfig.from_dict(**kwargs)
 
     test_driver = TestDriver(**kwargs)
+
     test_driver.set_r_limits()
-    versions = []
-    if kwargs["old_version"]:
-        versions.append(semver.VersionInfo.parse(kwargs["old_version"]))
-    if kwargs["new_version"]:
-        versions.append(semver.VersionInfo.parse(kwargs["new_version"]))
-    results = test_driver.run_license_manager_tests(versions)
+
+    results = test_driver.run_test_suites(
+        versions=[semver.VersionInfo.parse(kwargs["old_version"]), semver.VersionInfo.parse(kwargs["new_version"])],
+        include_suites=kwargs["include_test_suites"],
+        exclude_suites=kwargs["exclude_test_suites"],
+    )
     for result in results:
         if not result["success"]:
             raise Exception("There are failed tests")

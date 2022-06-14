@@ -8,8 +8,11 @@ import requests
 from arangodb.async_client import CliExecutionException
 from arangodb.installers import create_config_installer_set, RunProperties
 from reporting.reporting_utils import step
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, run_after_suite, run_before_each_testcase, \
-    collect_crash_data
+from test_suites_core.base_test_suite import (
+    BaseTestSuite,
+    run_after_suite,
+    collect_crash_data,
+)
 from tools.killall import kill_all_processes
 
 try:
@@ -25,18 +28,13 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
     """base class for license manager test suites"""
 
     # pylint: disable=too-many-instance-attributes disable=dangerous-default-value
-    def __init__(
-        self,
-        new_version,
-        installer_base_config,
-        child_classes=[],
-    ):
+    def __init__(self, new_version, installer_base_config):
         self.new_version = new_version
         self.base_cfg = installer_base_config
         package_type = ".tar.gz" if installer_base_config.zip_package else ".deb/.rpm/NSIS"
         self.suite_name = f"Licence manager test suite: ArangoDB v. {str(new_version)} ({package_type})"
         self.auto_generate_parent_test_suite_name = False
-        super().__init__(child_classes=child_classes)
+        super().__init__()
         self.use_subsuite = True
         run_props = RunProperties(
             enterprise=True,
@@ -129,8 +127,8 @@ class LicenseManagerBaseTestSuite(BaseTestSuite):
         license = create_license(new_timestamp, server_id)
         self.set_license(license)
 
-# FIXME: set valid license before each test case
-#    @run_before_each_testcase
+    # FIXME: set valid license before each test case
+    #    @run_before_each_testcase
     def set_valid_license(self):
         """set valid license"""
         new_timestamp = str(int(time() + 59 * 60))

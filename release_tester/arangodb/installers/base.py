@@ -92,12 +92,12 @@ class BinaryDescription:
         )
 
     def _validate_notarization(self, enterprise):
-        """ check whether this binary is notarized """
+        """check whether this binary is notarized"""
         if not enterprise and self.enterprise:
             return
         if IS_MAC:
-            cmd = ['codesign', '--verify', '--verbose', str(self.path)]
-            check_strings = [b'valid on disk', b'satisfies its Designated Requirement']
+            cmd = ["codesign", "--verify", "--verbose", str(self.path)]
+            check_strings = [b"valid on disk", b"satisfies its Designated Requirement"]
             with psutil.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
                 (_, codesign_str) = proc.communicate()
                 if proc.returncode:
@@ -130,13 +130,11 @@ class BinaryDescription:
         is_there = self.path.is_file()
         if enterprise and self.enterprise:
             if not is_there and in_version:
-                raise Exception("Binary missing from enterprise package! "
-                                + str(self.path))
+                raise Exception("Binary missing from enterprise package! " + str(self.path))
         # file must not exist
         if not enterprise and self.enterprise:
             if is_there:
-                raise Exception("Enterprise binary found in community package! "
-                                + str(self.path))
+                raise Exception("Enterprise binary found in community package! " + str(self.path))
         elif not is_there:
             raise Exception("binary was not found! " + str(self.path))
 
@@ -231,7 +229,7 @@ class InstallerBase(ABC):
 
     def reset_version(self, version):
         """re-configure the version we work with"""
-        if version.find('nightly') >=0:
+        if version.find("nightly") >= 0:
             version = version.split("~")[0]
             version = ".".join(version.split(".")[:3])
         self.semver = semver.VersionInfo.parse(version)
@@ -246,7 +244,7 @@ class InstallerBase(ABC):
 
     @step
     def un_install_server_package(self):
-        """ uninstall the server package """
+        """uninstall the server package"""
         if self.cfg.debug_package_is_installed:
             self.un_install_debug_package()
         self.un_install_server_package_impl()
@@ -281,24 +279,25 @@ class InstallerBase(ABC):
 
     @step
     def un_install_server_package_for_upgrade(self):
-        """ if we need to do something to the old installation on upgrade, do it here. """
+        """if we need to do something to the old installation on upgrade, do it here."""
 
     # pylint: disable=no-self-use
     def install_debug_package_impl(self):
-        """ install the debug package """
+        """install the debug package"""
         return False
 
     # pylint: disable=no-self-use
     def un_install_debug_package_impl(self):
-        """ uninstall the debug package """
+        """uninstall the debug package"""
         return False
 
     def __repr__(self):
-        return ("Installer type: {0.installer_type}\n"+
-                "Server package: {0.server_package}\n"+
-                "Debug package: {0.debug_package}\n"+
-                "Client package: {0.client_package}").format(
-                    self)
+        return (
+            "Installer type: {0.installer_type}\n"
+            + "Server package: {0.server_package}\n"
+            + "Debug package: {0.debug_package}\n"
+            + "Client package: {0.client_package}"
+        ).format(self)
 
     @abstractmethod
     def calculate_package_names(self):
@@ -349,15 +348,15 @@ class InstallerBase(ABC):
 
     @abstractmethod
     def un_install_server_package_impl(self):
-        """ installer specific server uninstall function """
+        """installer specific server uninstall function"""
 
     @abstractmethod
     def install_client_package_impl(self):
-        """ installer specific client uninstall function """
+        """installer specific client uninstall function"""
 
     @abstractmethod
     def un_install_client_package_impl(self):
-        """ installer specific client uninstall function """
+        """installer specific client uninstall function"""
 
     @abstractmethod
     def cleanup_system(self):
@@ -373,7 +372,8 @@ class InstallerBase(ABC):
         return semver.compare(self.cfg.version, "3.5.1") >= 0
 
     # pylint: disable=:no-self-use
-    def calc_config_file_name(self):
+    @staticmethod
+    def calc_config_file_name():
         """store our config to disk - so we can be invoked partly"""
         cfg_file = Path()
         if IS_WINDOWS:
@@ -399,8 +399,17 @@ class InstallerBase(ABC):
                 self.cfg.semver = semver.VersionInfo.parse(self.cfg.version)
                 print("Ignoring non deleteable " + str(cfg_file))
                 return
-        cfg_file.write_text(yaml.dump(self.cfg), encoding='utf8')
+        cfg_file.write_text(yaml.dump(self.cfg), encoding="utf8")
         self.cfg.semver = semver.VersionInfo.parse(self.cfg.version)
+
+    @staticmethod
+    def load_config_from_file(filename=None):
+        if not filename:
+            filename = InstallerBase.calc_config_file_name()
+        with open(filename, encoding="utf8") as fileh:
+            print("loading " + str(filename))
+            cfg = yaml.load(fileh, Loader=yaml.Loader)
+            return cfg
 
     @step
     def load_config(self):
@@ -408,17 +417,14 @@ class InstallerBase(ABC):
         # pylint: disable=broad-except
         verbose = self.cfg.verbose
         try:
-            with open(self.calc_config_file_name(), encoding='utf8') as fileh:
-                print("loading " + str(self.calc_config_file_name()))
-                cfg = yaml.load(fileh, Loader=yaml.Loader)
-                test_cfg = copy.deepcopy(self.cfg)
-                test_cfg.set_from(cfg)
-                self.cfg.set_from(test_cfg)
+            ext_cfg = InstallerBase.load_config_from_file()
+            test_cfg = copy.deepcopy(self.cfg)
+            test_cfg.set_from(ext_cfg)
+            self.cfg.set_from(test_cfg)
         except Exception as ex:
             print("failed to load saved config - skiping " + str(ex))
             return
         self.cfg.semver = semver.VersionInfo.parse(self.cfg.version)
-
         self.instance = ArangodInstance(
             "single",
             self.cfg.port,
@@ -675,11 +681,7 @@ class InstallerBase(ABC):
         for binary in self.arango_binaries:
             progress("S" if binary.stripped else "s")
             binary.check_installed(
-                self.cfg.version,
-                self.cfg.enterprise,
-                self.check_stripped,
-                self.check_symlink,
-                self.check_notarized
+                self.cfg.version, self.cfg.enterprise, self.check_stripped, self.check_symlink, self.check_notarized
             )
         print("\nran file commands with PID:" + str(FILE_PIDS) + "\n")
         FILE_PIDS = []
@@ -752,9 +754,9 @@ class InstallerBase(ABC):
         return False
 
     def find_crash(self, base_path):
-        """ search on the disk whether crash files exist """
+        """search on the disk whether crash files exist"""
         for i in base_path.glob(self.core_glob):
-            if str(i).find('node_modules') == -1:
+            if str(i).find("node_modules") == -1:
                 print("Found coredump! " + str(i))
                 return True
         return False
