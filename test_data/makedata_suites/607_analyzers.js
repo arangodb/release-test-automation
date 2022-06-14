@@ -28,12 +28,13 @@
             throw new Error("Analyzer creation failed!");
           }
         });
+      return 0;
     },
     checkDataDB: function (options, isCluster, isEnterprise, dbCount, readOnly) {
       print(`checking data ${dbCount}`);
       // checking analyzer's name
-      let testName = a.analyzer(`text_0`).name();
-      let expectedName = "_system::text_0";
+      let testName = a.analyzer(`text_${dbCount}`).name();
+      let expectedName = "_system::text_${dbCount}";
       if (testName !== expectedName){
         throw new Error(`Analyzer name not found!`);
       }

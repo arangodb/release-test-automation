@@ -24,6 +24,7 @@
             throw new Error("Analyzer creation failed!");
           }
         });
+      return 0;
     },
     checkDataDB: function (options, isCluster, isEnterprise, dbCount, readOnly) {
       print(`checking data ${dbCount}`);
