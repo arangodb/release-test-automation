@@ -334,6 +334,10 @@ Supported Parameters:
    - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
    - `DC` - setup 2 clusters, connect them with arangosync (enterprise only)
+ - `edition` which type to launch:
+   - `C` community
+   - `EP` enterprise
+   - `EE` enterprise with encryption at rest
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
