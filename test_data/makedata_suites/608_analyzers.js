@@ -29,15 +29,15 @@
     checkDataDB: function (options, isCluster, isEnterprise, dbCount, readOnly) {
       print(`checking data ${dbCount}`);
       // checking analyzer's name
-      let testName = a.analyzer(`pipeline_0`).name();
-      let expectedName = "_system::pipeline_0";
+      let testName = a.analyzer(`pipeline_${dbCount}`).name();
+      let expectedName = `_system::pipeline_${dbCount}`;
       if (testName !== expectedName){
         throw new Error("Analyzer name not found!");
       }
       progress();
 
       //checking analyzer's type
-      let testType = a.analyzer("pipeline_0").type();
+      let testType = a.analyzer(`pipeline_${dbCount}`).type();
       let expectedType = "pipeline";
       if (testType !== expectedType){
         throw new Error("Analyzer type missmatched!");
@@ -49,16 +49,16 @@
         const obj1Length = Object.keys(obj1).length;
         const obj2Length = Object.keys(obj2).length;
 
-        if(obj1Length === obj2Length) {
+        if (obj1Length === obj2Length) {
             return Object.keys(obj1).every(
                 (key) => obj2.hasOwnProperty(key)
                    && obj2[key] === obj1[key]);
-        }else{
+        } else {
           throw new Error("Analyzer type missmatched!");
         }
-    };
+      };
 
-      let testProperties = a.analyzer("pipeline_0").properties();
+      let testProperties = a.analyzer(`pipeline_${dbCount}`).properties();
       let expectedProperties = {
         "pipeline" : [
           {
@@ -114,8 +114,9 @@
       ];
 
       // print(`Create and use a pipeline Analyzer with preserveOriginal disabled:`)
-      let pipelineArray = db._query(`RETURN TOKENS("Quick brown foX", "pipeline_0")`).toArray();
+      let pipelineArray = db._query(`RETURN TOKENS("Quick brown foX", "pipeline_${dbCount}")`).toArray();
       arraysEqual(myArray, pipelineArray);
+      return 0;
     },
     clearDataDB: function (options, isCluster, isEnterprise, dbCount, database) {
       print(`checking data ${dbCount}`);

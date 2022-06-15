@@ -28,15 +28,15 @@
     checkDataDB: function (options, isCluster, isEnterprise, dbCount, readOnly) {
       print(`checking data ${dbCount}`);
       // checking analyzer's name
-      let testName = a.analyzer("trigram_0").name();
-      let expectedName = "_system::trigram_0";
+      let testName = a.analyzer(`trigram_${dbCount}`).name();
+      let expectedName = `_system::trigram_${dbCount}`;
       if (testName !== expectedName){
         throw new Error("Analyzer name not found!");
       }
       progress();
 
       //checking analyzer's type
-      let testType = a.analyzer("trigram_0").type();
+      let testType = a.analyzer(`trigram_${dbCount}`).type();
       let expectedType = "ngram";
       if (testType !== expectedType){
         throw new Error("Analyzer type missmatched!");
@@ -48,16 +48,16 @@
         const obj1Length = Object.keys(obj1).length;
         const obj2Length = Object.keys(obj2).length;
 
-        if(obj1Length === obj2Length) {
+        if (obj1Length === obj2Length) {
             return Object.keys(obj1).every(
                 (key) => obj2.hasOwnProperty(key)
                    && obj2[key] === obj1[key]);
-        }else{
+        } else {
           throw new Error("Analyzer type missmatched!");
         }
-    };
+      };
 
-      let testProperties = a.analyzer("trigram_0").properties();
+      let testProperties = a.analyzer(`trigram_${dbCount}`).properties();
       let expectedProperties = {
           "min" : 2,
           "max" : 3,
@@ -70,7 +70,7 @@
       checkProperties(testProperties, expectedProperties);
       progress();
 
-      if (a.analyzer("trigram_0") === null) {
+      if (a.analyzer(`trigram_${dbCount}`) === null) {
         throw new Error("Analyzer not found!");
       }
 
@@ -88,9 +88,10 @@
           "bar"
         ]
       ];
-      let trigramArray = db._query(`RETURN TOKENS("foobar", "trigram_0")`).toArray();
+      let trigramArray = db._query(`RETURN TOKENS("foobar", "trigram_${dbCount}")`).toArray();
 
       arraysEqual(myArray, trigramArray);
+      return 0;
     },
     clearDataDB: function (options, isCluster, isEnterprise, dbCount, database) {
       print(`checking data ${dbCount}`);

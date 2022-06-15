@@ -34,14 +34,14 @@
       progress(`checking analyzer in checkdata with ${dbCount}`);
       // checking analyzer's name
       let testName = a.analyzer(`text_${dbCount}`).name();
-      let expectedName = `_system::text_0`;
+      let expectedName = `_system::text_${dbCount}`;
       if (testName !== expectedName){
         throw new Error(`Analyzer name not found!`);
       }
       progress();
 
       //checking analyzer's type
-      let testType = a.analyzer("text_0").type();
+      let testType = a.analyzer(`text_${dbCount}`).type();
       let expectedType = "text";
       if (testType !== expectedType){
         throw new Error("Analyzer type missmatched!");
@@ -62,7 +62,7 @@
         }
       };
 
-      let testProperties = a.analyzer("text_0").properties();
+      let testProperties = a.analyzer(`text_${dbCount}`).properties();
       let expectedProperties = {
         "locale" : "el.utf-8",
         "case" : "lower",
@@ -74,7 +74,7 @@
       checkProperties(testProperties, expectedProperties);
       progress();
 
-      if (a.analyzer("text_0") == null) {
+      if (a.analyzer(`text_${dbCount}`) == null) {
         throw new Error("Analyzer not found!");
       }
 
@@ -94,7 +94,7 @@
       ];
 
       // print(`Create and use a text Analyzer with preserveOriginal disabled:`)
-      let textArray = db._query(`RETURN TOKENS("Crazy fast NoSQL-database!", "text_0")`).toArray();
+      let textArray = db._query(`RETURN TOKENS("Crazy fast NoSQL-database!", "text_${dbCount}")`).toArray();
       arraysEqual(myArray, textArray);
       return 0;
     },
