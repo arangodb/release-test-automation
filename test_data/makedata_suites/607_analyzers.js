@@ -28,13 +28,13 @@
             throw new Error("Analyzer creation failed!");
           }
         });
-      return 0;
     },
     checkDataDB: function (options, isCluster, isEnterprise, dbCount, readOnly) {
       print(`checking data ${dbCount}`);
+      progress(`checking analyzer in checkdata with ${dbCount}`);
       // checking analyzer's name
       let testName = a.analyzer(`text_${dbCount}`).name();
-      let expectedName = "_system::text_${dbCount}";
+      let expectedName = `_system::text_0`;
       if (testName !== expectedName){
         throw new Error(`Analyzer name not found!`);
       }
@@ -96,6 +96,7 @@
       // print(`Create and use a text Analyzer with preserveOriginal disabled:`)
       let textArray = db._query(`RETURN TOKENS("Crazy fast NoSQL-database!", "text_0")`).toArray();
       arraysEqual(myArray, textArray);
+      return 0;
     },
     clearDataDB: function (options, isCluster, isEnterprise, dbCount, database) {
       print(`checking data ${dbCount}`);
