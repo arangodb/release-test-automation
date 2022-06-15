@@ -29,7 +29,7 @@
           }
         });
     },
-    checkDataDB: function (options, isCluster, isEnterprise, dbCount, readOnly) {
+    checkDataDB: function (options, isCluster, isEnterprise, database, dbCount, readOnly) {
       print(`checking data ${dbCount}`);
       progress(`checking analyzer in checkdata with ${dbCount}`);
       // checking analyzer's name

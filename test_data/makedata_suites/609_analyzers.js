@@ -25,7 +25,7 @@
         });
       return 0;
     },
-    checkDataDB: function (options, isCluster, isEnterprise, dbCount, readOnly) {
+    checkDataDB: function (options, isCluster, isEnterprise, database, dbCount, readOnly) {
       print(`checking data ${dbCount}`);
       // checking analyzer's name
       let testName = a.analyzer(`trigram_${dbCount}`).name();

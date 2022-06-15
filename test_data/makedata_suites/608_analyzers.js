@@ -13,8 +13,8 @@
     makeDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
       // All items created must contain dbCount
       print(`making per database data ${dbCount}`);
-      progress("create pipeline analyzer");
       let analyzerName = `pipeline_${dbCount}`;
+      progress("create pipeline analyzer " + analyzerName);
       let trigram = createSafe(analyzerName,
         function () {
           return a.save(`${analyzerName}`, "pipeline", { pipeline: [{ type: "norm", properties: { locale: "en.utf-8", case: "upper" } },{ type: "ngram", properties: {
@@ -26,7 +26,7 @@
         });
       return 0;
     },
-    checkDataDB: function (options, isCluster, isEnterprise, dbCount, readOnly) {
+    checkDataDB: function (options, isCluster, isEnterprise, database, dbCount, readOnly) {
       print(`checking data ${dbCount}`);
       // checking analyzer's name
       let testName = a.analyzer(`pipeline_${dbCount}`).name();
