@@ -4,7 +4,7 @@
 """ Release testing script"""
 #pylint: disable=duplicate-code
 from dataclasses import dataclass
-from ftplib import FTP # _TLS
+from ftplib import FTP_TLS
 from io import BytesIO
 import os
 from pathlib import Path
@@ -228,7 +228,7 @@ class Download:
         if out.exists() and not force:
             print(stage + ": not overwriting {file} since not forced to overwrite!".format(**{"file": str(out)}))
             return
-        ftp = FTP(self.remote_host)
+        ftp = FTP_TLS(self.remote_host)
         print(stage + ": " + ftp.login(user="anonymous", passwd="anonymous", acct="anonymous"))
         print(stage + ": Downloading from " + directory)
         print(stage + ": " + ftp.cwd(directory))
