@@ -547,7 +547,7 @@ class TestDriver:
         if len(versions) == 1:
             new_version = versions[0]
         elif len(versions) > 1:
-            old_version = versions[1]
+            old_version = versions[0]
             new_version = versions[1]
         if new_version < "3.9.0-nightly":
             logging.info("License manager test suite is only applicable to versions 3.9 and newer.")

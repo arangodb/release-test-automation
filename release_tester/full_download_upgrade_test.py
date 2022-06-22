@@ -6,6 +6,8 @@ from copy import copy
 import sys
 
 import click
+import semver
+
 from common_options import very_common_options, common_options, download_options, full_common_options, hotbackup_options
 
 from beautifultable import BeautifulTable, ALIGN_LEFT
@@ -142,8 +144,8 @@ def upgrade_package_test(
                         enterprise=use_enterprise,
                     )
                 )
-
-            results.append(test_driver.run_license_manager_tests([dl_old.cfg.version, dl_new.cfg.version]))
+            results.append(test_driver.run_license_manager_tests(
+                [semver.VersionInfo.parse(dl_old.cfg.version), semver.VersionInfo.parse(dl_new.cfg.version)]))
 
     print("V" * 80)
     status = True
