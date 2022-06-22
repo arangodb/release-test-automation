@@ -32,7 +32,7 @@
       // checking analyzer's name
       let analyzerName = `pipeline_${dbCount}`;
       if (a.analyzer(analyzerName) === null) {
-        throw new Error(`Analyzer %{analyzerName} not found!`);
+        throw new Error(`Analyzer ${analyzerName} not found!`);
       }
 
       let testName = a.analyzer(analyzerName).name();
