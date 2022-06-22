@@ -1,4 +1,4 @@
-/* global print */
+/* global print, semver, progress, createSafe, db */
 /*jslint maxlen: 130 */
 
 (function () {
@@ -28,18 +28,23 @@
     checkDataDB: function (options, isCluster, isEnterprise, database, dbCount, readOnly) {
       print(`checking data ${dbCount}`);
       // checking analyzer's name
-      let testName = a.analyzer(`trigram_${dbCount}`).name();
+      let analyzerName = `trigram_${dbCount}`;
+      if (a.analyzer(analyzerName) === null) {
+        throw new Error(`Analyzer ${analyzerName} not found!`);
+      }
+
+      let testName = a.analyzer(analyzerName).name();
       let expectedName = `_system::trigram_${dbCount}`;
       if (testName !== expectedName){
-        throw new Error("Analyzer name not found!");
+        throw new Error(`Analyzer name of ${analyzerName} not found!`);
       }
       progress();
 
       //checking analyzer's type
-      let testType = a.analyzer(`trigram_${dbCount}`).type();
+      let testType = a.analyzer(analyzerName).type();
       let expectedType = "ngram";
       if (testType !== expectedType){
-        throw new Error("Analyzer type missmatched!");
+        throw new Error(`Analyzer ${analyzerName} type missmatched!`);
       }
       progress();
 
@@ -53,11 +58,11 @@
                 (key) => obj2.hasOwnProperty(key)
                    && obj2[key] === obj1[key]);
         } else {
-          throw new Error("Analyzer type missmatched!");
+          throw new Error(`Analyzer type ${analyzerName} missmatched!`);
         }
       };
 
-      let testProperties = a.analyzer(`trigram_${dbCount}`).properties();
+      let testProperties = a.analyzer(analyzerName).properties();
       let expectedProperties = {
           "min" : 2,
           "max" : 3,
@@ -69,10 +74,6 @@
 
       checkProperties(testProperties, expectedProperties);
       progress();
-
-      if (a.analyzer(`trigram_${dbCount}`) === null) {
-        throw new Error("Analyzer not found!");
-      }
 
       function arraysEqual(a, b) {
         if ((a === b) && (a === null || b === null) && (a.length !== b.length)){
@@ -88,7 +89,7 @@
           "bar"
         ]
       ];
-      let trigramArray = db._query(`RETURN TOKENS("foobar", "trigram_${dbCount}")`).toArray();
+      let trigramArray = db._query(`RETURN TOKENS("foobar", "${analyzerName}")`).toArray();
 
       arraysEqual(myArray, trigramArray);
       return 0;
