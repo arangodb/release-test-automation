@@ -12,8 +12,8 @@
 
     makeDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
       // All items created must contain dbCount
-      print("making per database data ${dbCount}");
-      progress("create pipeline analyzer");
+      print(`making per database data ${dbCount}`);
+      progress("create text analyzer");
       let analyzerName = `text_${dbCount}`;
       let text = createSafe(analyzerName,
         function () {
@@ -28,10 +28,11 @@
             throw new Error("Analyzer creation failed!");
           }
         });
+      return 0;
     },
     checkDataDB: function (options, isCluster, isEnterprise, database, dbCount, readOnly) {
       print(`checking data ${dbCount}`);
-      progress(`checking analyzer in checkdata with ${dbCount}`);
+      progress(`checking data with ${dbCount}`);
       // checking analyzer's name
       let testName = a.analyzer(`text_${dbCount}`).name();
       let expectedName = `_system::text_${dbCount}`;
@@ -74,12 +75,12 @@
       checkProperties(testProperties, expectedProperties);
       progress();
 
-      if (a.analyzer(`text_${dbCount}`) == null) {
+      if (a.analyzer(`text_${dbCount}`) === null) {
         throw new Error("Analyzer not found!");
       }
 
       function arraysEqual(a, b) {
-        if ((a === b) && (a == null || b == null) && (a.length !== b.length)){
+        if ((a === b) && (a === null || b === null) && (a.length !== b.length)){
           throw new Error("Didn't get the expected response from the server!");
         }
       }
@@ -116,6 +117,7 @@
         print(e);
       }
       progress();
+      return 0;
     },
   };
 

@@ -1,5 +1,5 @@
 /* global print */
-/*jslint maxlen: 130 */
+/*jslint maxlen: 100*/
 
 (function () {
   const a = require("@arangodb/analyzers");
@@ -13,9 +13,10 @@
     makeDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
       // All items created must contain dbCount
       print(`making per database data ${dbCount}`);
+      progress("create pipeline analyzer");
+      progress(`making data with ${dbCount}`);
       let analyzerName = `pipeline_${dbCount}`;
-      progress("create pipeline analyzer " + analyzerName);
-      let trigram = createSafe(analyzerName,
+      let pipeline = createSafe(analyzerName,
         function () {
           return a.save(`${analyzerName}`, "pipeline", { pipeline: [{ type: "norm", properties: { locale: "en.utf-8", case: "upper" } },{ type: "ngram", properties: {
               min: 2, max: 2, preserveOriginal: false, streamType: "utf8" } }] }, ["frequency", "norm", "position"]);
@@ -136,6 +137,7 @@
         print(e);
       }
       progress();
+      return 0;
     }
   };
 

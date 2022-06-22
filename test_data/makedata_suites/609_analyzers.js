@@ -13,7 +13,7 @@
     makeDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
       // All items created must contain dbCount
       print(`making per database data ${dbCount}`);
-      progress("create n-gram analyzer");
+      progress("create trigram analyzer");
       let analyzerName = `trigram_${dbCount}`;
       let trigram = createSafe(analyzerName,
         function () {
@@ -111,6 +111,7 @@
         print(e);
       }
       progress();
+      return 0;
     },
   };
 
