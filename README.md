@@ -405,6 +405,9 @@ It consists of these files in test_data:
    - `550_enterprise_graph.js` creates an enterprise patent graph
    - `560_smartgraph_validator.js` on top of the enterprise graph, this will check the integrity check of the server.
    - `900_oneshard.js` creates oneshard database and does stuff with it.
+   - `607_analyzers.js` creates suported analyzers for 3.7.x version and check it's functionality.
+   - `608_analyzers.js` creates suported analyzers for 3.8.x version and check it's functionality.
+   - `609_analyzers.js` creates suported analyzers for 3.9.x version and check it's functionality.
 
 It should be considered to provide a set of hooks (000_dummy.js can be considered being a template for this):
 
