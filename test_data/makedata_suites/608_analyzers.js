@@ -1,4 +1,4 @@
-/* global print */
+/* global print, semver, progress, createSafe, db */
 /*jslint maxlen: 100*/
 
 (function () {
@@ -30,7 +30,12 @@
     checkDataDB: function (options, isCluster, isEnterprise, database, dbCount, readOnly) {
       print(`checking data ${dbCount}`);
       // checking analyzer's name
-      let testName = a.analyzer(`pipeline_${dbCount}`).name();
+      let analyzerName = `pipeline_${dbCount}`;
+      if (a.analyzer(analyzerName) === null) {
+        throw new Error(`Analyzer %{analyzerName} not found!`);
+      }
+
+      let testName = a.analyzer(analyzerName).name();
       let expectedName = `_system::pipeline_${dbCount}`;
       if (testName !== expectedName){
         throw new Error("Analyzer name not found!");
@@ -38,9 +43,9 @@
       progress();
 
       //checking analyzer's type
-      let testType = a.analyzer(`pipeline_${dbCount}`).type();
+      let testType = a.analyzer(analyzerName).type();
       let expectedType = "pipeline";
-      if (testType !== expectedType){
+      if (testType !== expectedType) {
         throw new Error("Analyzer type missmatched!");
       }
       progress();
@@ -59,7 +64,7 @@
         }
       };
 
-      let testProperties = a.analyzer(`pipeline_${dbCount}`).properties();
+      let testProperties = a.analyzer(analyzerName).properties();
       let expectedProperties = {
         "pipeline" : [
           {
@@ -84,10 +89,6 @@
 
       checkProperties(testProperties, expectedProperties);
       progress();
-
-      if (a.analyzer("pipeline_0") === null) {
-        throw new Error("Analyzer not found!");
-      }
 
       function arraysEqual(a, b) {
         if ((a === b) && (a === null || b === null) && (a.length !== b.length)){
@@ -125,7 +126,7 @@
         const array = a.toArray();
         for (let i = 0; i < array.length; i++) {
             const name = array[i];
-            if (name == `pipeline_${dbCount}`) {
+            if (name === `pipeline_${dbCount}`) {
                 a.remove(`pipeline_${dbCount}`);
             }
         }
