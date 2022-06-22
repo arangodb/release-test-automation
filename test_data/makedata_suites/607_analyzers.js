@@ -1,4 +1,4 @@
-/* global print */
+/* global print, semver, progress, createSafe, db */
 /*jslint maxlen: 100 */
 
 (function () {
@@ -24,7 +24,7 @@
           stopwords: []
         }, ["frequency", "norm", "position"]);
         }, function () {
-          if (a.analyzer(analyzerName) === null){
+          if (a.analyzer(analyzerName) === null) {
             throw new Error("Analyzer creation failed!");
           }
         });
@@ -34,15 +34,20 @@
       print(`checking data ${dbCount}`);
       progress(`checking data with ${dbCount}`);
       // checking analyzer's name
-      let testName = a.analyzer(`text_${dbCount}`).name();
+      let analyzerName = `text_${dbCount}`;
+      if (a.analyzer(analyzerName) === null) {
+        throw new Error("Analyzer not found!");
+      }
+
+      let testName = a.analyzer(analyzerName).name();
       let expectedName = `_system::text_${dbCount}`;
-      if (testName !== expectedName){
+      if (testName !== expectedName) {
         throw new Error(`Analyzer name not found!`);
       }
       progress();
 
       //checking analyzer's type
-      let testType = a.analyzer(`text_${dbCount}`).type();
+      let testType = a.analyzer(analyzerName).type();
       let expectedType = "text";
       if (testType !== expectedType){
         throw new Error("Analyzer type missmatched!");
@@ -54,16 +59,16 @@
         const obj1Length = Object.keys(obj1).length;
         const obj2Length = Object.keys(obj2).length;
 
-        if(obj1Length === obj2Length) {
+        if (obj1Length === obj2Length) {
             return Object.keys(obj1).every(
                 (key) => obj2.hasOwnProperty(key)
                    && obj2[key] === obj1[key]);
-        }else{
+        } else {
           throw new Error("Analyzer type missmatched!");
         }
       };
 
-      let testProperties = a.analyzer(`text_${dbCount}`).properties();
+      let testProperties = a.analyzer(analyzerName).properties();
       let expectedProperties = {
         "locale" : "el.utf-8",
         "case" : "lower",
@@ -75,17 +80,13 @@
       checkProperties(testProperties, expectedProperties);
       progress();
 
-      if (a.analyzer(`text_${dbCount}`) === null) {
-        throw new Error("Analyzer not found!");
-      }
-
       function arraysEqual(a, b) {
         if ((a === b) && (a === null || b === null) && (a.length !== b.length)){
           throw new Error("Didn't get the expected response from the server!");
         }
       }
 
-      let myArray =[
+      let myArray = [
         [
           "crazy",
           "fast",
@@ -95,7 +96,7 @@
       ];
 
       // print(`Create and use a text Analyzer with preserveOriginal disabled:`)
-      let textArray = db._query(`RETURN TOKENS("Crazy fast NoSQL-database!", "text_${dbCount}")`).toArray();
+      let textArray = db._query(`RETURN TOKENS("Crazy fast NoSQL-database!", "${analyzerName}")`).toArray();
       arraysEqual(myArray, textArray);
       return 0;
     },
