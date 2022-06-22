@@ -12,9 +12,10 @@ from allure_commons.types import LabelType
 # pylint: disable=import-error
 from arangodb.installers import RunProperties
 from reporting.reporting_utils import AllureTestSuiteContext, RtaTestcase, step
-from selenium_ui_test.models import RtaTestResult
 import distro
 import platform
+
+from test_suites_core.models import RtaTestResult
 
 
 class MetaTestSuite(type):
@@ -386,7 +387,7 @@ def testcase(title=None):
             # pylint: disable=broad-except disable=too-many-branches
             name = None
             success = None
-            message = None
+            message = ""
             traceback_instance = None
             if callable(title):
                 if title.__doc__:
