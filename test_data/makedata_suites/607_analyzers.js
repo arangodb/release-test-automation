@@ -7,7 +7,7 @@
     isSupported: function (currentVersion, oldVersion, options, enterprise, cluster) {
       let currentVersionSemver = semver.parse(semver.coerce(currentVersion));
       let oldVersionSemver = semver.parse(semver.coerce(oldVersion));
-      return semver.gt(currentVersionSemver, "3.7.0");
+      return semver.gt(oldVersionSemver, "3.7.0");
     },
 
     makeDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
