@@ -27,6 +27,7 @@ class UpgradeLicenseManagerTestSuite(BaseTestSuite):
         self,
         versions,
         installer_base_config,
+        **kwargs,
     ):
         self.new_version = versions[1]
         self.old_version = versions[0]

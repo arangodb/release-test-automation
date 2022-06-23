@@ -24,7 +24,7 @@ class EnterprisePackageInstallationTestSuite(BasePackageInstallationTestSuite):
     """enterprise package conflict checking suite"""
 
     # pylint: disable=too-many-arguments disable=line-too-long
-    def __init__(self, versions: list, base_config: InstallerBaseConfig):
+    def __init__(self, versions: list, base_config: InstallerBaseConfig, **kwargs):
         super().__init__(versions=versions, base_config=base_config)
 
     disable_for_debian_bts_684 = disable_for_debian(

@@ -22,6 +22,7 @@ from arangodb.starter.deployments import (
     STARTER_MODES,
 )
 from arangodb.starter.deployments.cluster_perf import ClusterPerf
+from debugger_tests.debugger_test_suite import DebuggerTestSuite
 from license_manager_tests.basic_test_suite import BasicLicenseManagerTestSuite
 from license_manager_tests.upgrade.upgrade_test_suite import UpgradeLicenseManagerTestSuite
 from package_installation_tests.community_package_installation_test_suite import CommunityPackageInstallationTestSuite
@@ -46,6 +47,7 @@ FULL_TEST_SUITE_LIST = [
     CommunityPackageInstallationTestSuite,
     BasicLicenseManagerTestSuite,
     UpgradeLicenseManagerTestSuite,
+    DebuggerTestSuite,
 ]
 
 
@@ -537,6 +539,32 @@ class TestDriver:
                 result["messages"].append(one_result.message)
         return [result]
 
+    def run_debugger_tests(
+            self,
+            versions: list,
+            **kwargs
+    ):
+        """run package conflict tests"""
+        # pylint: disable=import-outside-toplevel
+        suite = DebuggerTestSuite(
+            versions=versions,
+            base_config=self.base_config,
+            **kwargs
+        )
+        suite.run()
+        result = {
+            "testrun name": suite.suite_name,
+            "testscenario": "",
+            "success": True,
+            "messages": [],
+            "progress": "",
+        }
+        if suite.there_are_failed_tests():
+            result["success"] = False
+            for one_result in suite.test_results:
+                result["messages"].append(one_result.message)
+        return [result]
+
     def run_license_manager_tests(
             self,
             versions
@@ -602,9 +630,11 @@ class TestDriver:
         results.extend(self.run_conflict_tests(versions, True))
         results.extend(self.run_conflict_tests(versions, False))
         results.extend(self.run_license_manager_tests(versions))
+        results.extend(self.run_debugger_tests(versions, True))
+        results.extend(self.run_debugger_tests(versions, False))
         return results
 
-    def run_test_suites(self, versions: list, include_suites=(), exclude_suites=()):
+    def run_test_suites(self, versions: list, include_suites=(), exclude_suites=(), **kwargs):
         """run a testsuite"""
         suite_classes=[]
         if len(include_suites) == 0 and len(exclude_suites) == 0:
@@ -626,8 +656,8 @@ class TestDriver:
 
         results = []
         args = (versions, self.base_config)
-        for suites_class in suite_classes:
-            suite = suites_class(*args)
+        for suite_class in suite_classes:
+            suite = suite_class(*args, **kwargs)
             suite.run()
             result = {
                 "testrun name": suite.suite_name,

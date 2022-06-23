@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ fetch nightly packages, process upgrade """
-#pylint: disable=duplicate-code
+# pylint: disable=duplicate-code
 from pathlib import Path
 import sys
 
@@ -23,7 +23,8 @@ from download import (
 from test_driver import TestDriver
 from tools.killall import list_all_processes
 
-from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig
+from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig, RunProperties
+
 
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
 def upgrade_package_test(
@@ -98,8 +99,23 @@ def upgrade_package_test(
             )
         )
 
-    results.append(test_driver.run_license_manager_tests(
-        [semver.VersionInfo.parse(dl_old.cfg.version), semver.VersionInfo.parse(dl_new.cfg.version)]))
+    results.append(
+        test_driver.run_license_manager_tests(
+            [semver.VersionInfo.parse(dl_old.cfg.version), semver.VersionInfo.parse(dl_new.cfg.version)]
+        )
+    )
+    results.append(
+        test_driver.run_debugger_tests(
+            [semver.VersionInfo.parse(dl_old.cfg.version), semver.VersionInfo.parse(dl_new.cfg.version)],
+            run_props=RunProperties(True, False, False),
+        )
+    )
+    results.append(
+        test_driver.run_debugger_tests(
+            [semver.VersionInfo.parse(dl_old.cfg.version), semver.VersionInfo.parse(dl_new.cfg.version)],
+            run_props=RunProperties(False, False, False),
+        )
+    )
 
     print("V" * 80)
     status = True

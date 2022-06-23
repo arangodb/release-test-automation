@@ -67,7 +67,6 @@ def check_if_debug_package_can_be_installed_over_server_package(debug_installer,
             raise Exception(
                 f"Package {debug_package_name} can not be installed over {server_package_name}. Success was expected!"
             ) from ex
-    debug_installer.gdb_test()
 
 
 @step
@@ -129,7 +128,7 @@ def check_if_server_package_can_be_installed(server_installer, expect_success=Tr
 
 @step
 def check_if_debug_package_can_be_installed(debug_installer, expect_success=True):
-    """check if debug package can be installed after server package"""
+    """check if debug package can be installed"""
     debug_package_name = debug_installer.debug_package
     try:
         debug_installer.install_debug_package()
