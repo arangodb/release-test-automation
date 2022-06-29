@@ -409,13 +409,13 @@ def testcase(title=None):
                         wrapper.disable_reasons.append(reason)
             with RtaTestcase(name) as my_testcase:
                 if wrapper.is_disabled:
-                    test_result = RtaTestResult(name, True, "test is skipped", None)
+                    test_result = RtaTestResult(True, name, "test is skipped", None)
                     my_testcase.context.status = Status.SKIPPED
                     if len(wrapper.disable_reasons) > 0:
                         message = "\n".join(wrapper.disable_reasons)
                         my_testcase.context.statusDetails = StatusDetails(message=message)
                 elif kwargs["suite_is_broken"]:
-                    test_result = RtaTestResult(name, False, "test suite is broken", None)
+                    test_result = RtaTestResult(False, name, "test suite is broken", None)
                     my_testcase.context.status = Status.BROKEN
                 else:
                     try:
@@ -443,7 +443,7 @@ def testcase(title=None):
                             self.teardown_testcase()
                         except:
                             pass
-                    test_result = RtaTestResult(name, success, message, traceback_instance)
+                    test_result = RtaTestResult(success, name, message, traceback_instance)
                 return test_result
 
         wrapper.is_testcase = True
