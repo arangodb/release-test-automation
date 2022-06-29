@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """ service page object """
 import time
-
+import semver
+from selenium.common.exceptions import TimeoutException
 from selenium_ui_test.pages.navbar import NavigationBarPage
 
 
@@ -211,11 +212,12 @@ class ServicePage(NavigationBarPage):
         install_btn = 'modalButton1'
         install_btn_sitem = self.locator_finder_by_id(install_btn)
         install_btn_sitem.click()
-        time.sleep(5)
+        time.sleep(6)
 
         # checking service has been created successfully
         # success = '//*[@id="installedList"]/div[2]/div/div[1]/p[2]/span'
-        success = '//*[@id="installedList"]/div[6]/div/div[1]/p[2]/span'
+        # success = '//*[@id="installedList"]/div[6]/div/div[1]/p[2]/span'
+        success = "//*[text()='demo-geo-s2']"
 
         try:
             success_sitem = self.locator_finder_by_xpath(success).text
@@ -238,6 +240,7 @@ class ServicePage(NavigationBarPage):
                 # got to collection tab
                 collection_page = 'collections'
                 self.locator_finder_by_id(collection_page).click()
+                time.sleep(2)
 
                 # looking for default collection has been created or not
                 neighbourhood_collection = '//*[@id="collection_neighborhoods"]/div/h5'
@@ -339,7 +342,7 @@ class ServicePage(NavigationBarPage):
                     intersection = 'geoIntersection'
                     self.locator_finder_by_id(intersection).click()
                     time.sleep(3)
-
+                    self.webdriver.close() # closes the browser active window
                     print('Switching back to original window \n')
                     self.webdriver.switch_to.window(self.webdriver.window_handles[0])
 
@@ -448,7 +451,7 @@ class ServicePage(NavigationBarPage):
         foxx_graphql_link_sitem = self.locator_finder_by_xpath(foxx_graphql_link)
         page_title = super().switch_tab(foxx_graphql_link_sitem)
 
-        expected_title = 'Documentation Overview - ArangoDB the native multi-model, open-source database'
+        expected_title = 'Introduction to ArangoDB Documentation | ArangoDB Documentation'
 
         assert page_title == expected_title, f"Expected text {expected_title} but got {page_title}"
         # ---------------checking graphql's links end here---------------
@@ -492,6 +495,7 @@ class ServicePage(NavigationBarPage):
             self.locator_finder_by_xpath(graphql_interface_execute_btn)
         graphql_interface_execute_btn_sitem.click()
         print('Return back to original window \n')
+        self.webdriver.close() # closes the browser active window
         self.webdriver.switch_to.window(self.webdriver.window_handles[0])
 
         print('Checking API tab of graphql service \n')
@@ -545,12 +549,18 @@ class ServicePage(NavigationBarPage):
         time.sleep(2)
 
         print("Run teardown before replacing service \n")
-        tear_down = "(//input[@value='false'])[1]"
+
+        if self.current_package_version() >= semver.VersionInfo.parse("3.9.0"):
+            tear_down = '//*[@id="new-app-flag-teardown"]' 
+            configuration = '//*[@id="new-app-flag-replace"]'
+        else:
+            tear_down = "(//input[@value='false'])[1]"    
+            configuration = "(//input[@value='false'])[2]"
+
         self.locator_finder_by_xpath(tear_down).click()
         time.sleep(1)
 
         print("discard configuration before replacing service \n")
-        configuration = "(//input[@value='false'])[2]"
         self.locator_finder_by_xpath(configuration).click()
         time.sleep(1)
 
@@ -648,18 +658,18 @@ class ServicePage(NavigationBarPage):
                     # deleting neighborhood collection
                     self.collection_deletion('collection_neighborhoods')
                     self.collection_deletion('collection_restaurants')
-
-            except Exception as ex:
-                raise Exception(f'No service found named {service_name}'
-                                ) from ex
+            except TimeoutException:
+                print('TimeoutException occurred! \n')
+                print(f'Info: {service_name} has already been deleted or never created. \n')
+            except Exception:
+                raise Exception('Critical Error occurred and need manual inspection!! \n')
 
         if service_name == '/graphql':
             # try to determine service has already been created
-            service = "//*[text()='/graphql']"
-            service_sitem = self.locator_finder_by_xpath(service).text
-            time.sleep(1)
-
             try:
+                service = "//*[text()='/graphql']"
+                service_sitem = self.locator_finder_by_xpath(service).text
+                time.sleep(1)
                 if service_sitem == '/graphql':
                     print(f'{service_sitem} service has been found and ready to delete \n')
                     self.locator_finder_by_xpath(service).click()
@@ -671,6 +681,8 @@ class ServicePage(NavigationBarPage):
                     self.delete_service_from_setting_tab()
                     print(f'{service_sitem} service has been deleted successfully \n')
 
-            except Exception as ex:
-                raise Exception(f'No service found named {service_name}'
-                                ) from ex
+            except TimeoutException:
+                print('TimeoutException occurred! \n')
+                print(f'Info: {service_name} has already been deleted or never created. \n')
+            except Exception:
+                raise Exception('Critical Error occurred and need manual inspection!! \n')

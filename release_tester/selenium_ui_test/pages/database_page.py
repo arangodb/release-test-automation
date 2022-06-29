@@ -140,11 +140,11 @@ class DatabasePage(NavigationBarPage):
         version = self.current_package_version()
         
         if version >= ver_db_names:
-            db_name_error_input = ["@", "1", "שלום"]  # name must be 64 bit thus 65 character won't work too.
+            db_name_error_input = ["1", ".", "/"]  # name must be 64 bit thus 65 character won't work too.
             db_name_print_statement = [
-                'Checking Db name with symbol " @ "',
                 'Checking numeric value for DB name " 1 "',
-                'Checking Non-ASCII Hebrew Characters "שלום"',
+                'Checking with dot value "."',
+                'Checking with slash "/"',
             ]
             db_name_error_message = [
                 "DB: Invalid Parameters: database name invalid",
