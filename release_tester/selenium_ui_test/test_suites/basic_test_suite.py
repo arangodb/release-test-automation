@@ -10,8 +10,8 @@ from selenium_ui_test.test_suites.collections_test_suite import CollectionsTestS
 from selenium_ui_test.test_suites.graph_test_suite import GraphTestSuite
 from selenium_ui_test.test_suites.query_test_suite import QueryTestSuite
 from selenium_ui_test.test_suites.views_test_suite import ViewsTestSuite
-
 from selenium_ui_test.test_suites.analyzers_test_suite import AnalyzersTestSuite
+from selenium_ui_test.test_suites.service_test_suit import ServiceTestSuite
 
 
 class BasicTestSuite(BaseSeleniumTestSuite):
@@ -28,6 +28,7 @@ class BasicTestSuite(BaseSeleniumTestSuite):
         LogInTestSuite,
         DashboardTestSuite,
         SupportTestSuite,
+        ServiceTestSuite,
     ]
 
     def __init__(self, selenium_runner):
