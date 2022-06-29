@@ -2,7 +2,6 @@
 """ analyzer page testsuite """
 import semver
 import traceback
-import time
 
 from selenium_ui_test.pages.analyzers_page import AnalyzerPage
 from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
@@ -65,53 +64,53 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
                 analyzers.select_built_in_analyzers_close()
 
                 print("Adding Identity analyzer \n")
-                analyzers.add_new_analyzer("My_Identity_Analyzer", 0, 24)  # 24 represents the required div_id in the method
+                analyzers.add_new_analyzer("My_Identity_Analyzer", 0, 16)  # 16 represents the required div_id in the method
 
                 print("Adding Delimiter analyzer \n")
-                analyzers.add_new_analyzer("My_Delimiter_Analyzer", 1, 28)
+                analyzers.add_new_analyzer("My_Delimiter_Analyzer", 1, 20)
 
                 print("Adding Stem analyzer \n")
-                analyzers.add_new_analyzer("My_Stem_Analyzer", 2, 32)
+                analyzers.add_new_analyzer("My_Stem_Analyzer", 2, 24)
 
                 print("Adding Norm analyzer \n")
-                analyzers.add_new_analyzer("My_Norm_Analyzer", 3, 36)
+                analyzers.add_new_analyzer("My_Norm_Analyzer", 3, 28)
 
                 print("Adding N-Gram analyzer \n")
-                analyzers.add_new_analyzer("My_N-Gram_Analyzer", 4, 40)
+                analyzers.add_new_analyzer("My_N-Gram_Analyzer", 4, 32)
 
                 print("Adding Text analyzer \n")
-                analyzers.add_new_analyzer("My_Text_Analyzer", 5, 44)
+                analyzers.add_new_analyzer("My_Text_Analyzer", 5, 36)
 
                 print("Adding AQL analyzer \n")
-                analyzers.add_new_analyzer("My_AQL_Analyzer", 6, 48)
+                analyzers.add_new_analyzer("My_AQL_Analyzer", 6, 40)
 
                 print("Adding Stopwords analyzer \n")
-                analyzers.add_new_analyzer("My_Stopwords_Analyzer", 7, 52)
+                analyzers.add_new_analyzer("My_Stopwords_Analyzer", 7, 44)
 
                 print("Adding Collation analyzer \n")
-                analyzers.add_new_analyzer("My_Collation_Analyzer", 8, 56)
+                analyzers.add_new_analyzer("My_Collation_Analyzer", 8, 48)
 
                 print("Adding Segmentation analyzer \n")
-                analyzers.add_new_analyzer("My_Segmentation_Alpha_Analyzer", 9, 60)
+                analyzers.add_new_analyzer("My_Segmentation_Alpha_Analyzer", 9, 52)
 
                 print("Adding Pipeline analyzer \n")
-                analyzers.add_new_analyzer("My_Pipeline_Analyzer", 10, 64)
+                analyzers.add_new_analyzer("My_Pipeline_Analyzer", 10, 56)
 
                 print("Adding GeoJSON analyzer \n")
-                analyzers.add_new_analyzer("My_GeoJSON_Analyzer", 11, 68)
+                analyzers.add_new_analyzer("My_GeoJSON_Analyzer", 11, 60)
 
                 print("Adding GeoJSON analyzer \n")
-                analyzers.add_new_analyzer("My_GeoPoint_Analyzer", 12, 72)
+                analyzers.add_new_analyzer("My_GeoPoint_Analyzer", 12, 64)
 
                 # only going to work if and only all the possible type of analyzers are done creating
                 print("Checking negative scenario for the identity analyzers name \n")
-                analyzers.test_analyzer_expected_error("identity_analyzer", 0, 76)
+                analyzers.test_analyzer_expected_error("identity_analyzer", 0, 68)
                 print("Checking negative scenario for the stem analyzers locale value \n")
-                analyzers.test_analyzer_expected_error("stem_analyzer", 2, 76)
+                analyzers.test_analyzer_expected_error("stem_analyzer", 2, 68)
                 print("Checking negative scenario for the stem analyzers locale value \n")
-                analyzers.test_analyzer_expected_error("n-gram_analyzer", 4, 76)
+                analyzers.test_analyzer_expected_error("n-gram_analyzer", 4, 68)
                 print("Checking negative scenario for the AQL analyzers \n")
-                analyzers.test_analyzer_expected_error("AQL_analyzer", 6, 76)
+                analyzers.test_analyzer_expected_error("AQL_analyzer", 6, 68)
 
                 print("Checking analyzer search filter options started \n")
                 analyzers.checking_search_filter_option("de")
