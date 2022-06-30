@@ -32,5 +32,4 @@ class ActiveFailoverJamStepOneSuite(ActiveFailoverBaseTestSuite):
     @testcase
     def replication_tab_check(self):
         """check that replication tab is reporting correct information"""
-        print('I am here in replication tab check........................>>!!!!!')
         self.check_replication_tab()
