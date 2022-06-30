@@ -28,3 +28,9 @@ class ActiveFailoverJamStepOneSuite(ActiveFailoverBaseTestSuite):
     def check_follower_count_testcase(self):
         """check the integrity of the system"""
         self.check_follower_count(expect_follower_count=1)
+
+    @testcase
+    def replication_tab_check(self):
+        """check that replication tab is reporting correct information"""
+        print('I am here in replication tab check........................>>!!!!!')
+        self.check_replication_tab()

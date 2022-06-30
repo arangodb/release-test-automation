@@ -32,3 +32,8 @@ class ActiveFailoverBaseTestSuite(BaseSeleniumTestSuite):
             len(replication_table["follower_table"]) == expect_follower_count + 1,
             "UI-Test:\nexpect 1 follower in:\n%s" % pprint.pformat(replication_table),
         )
+    
+    def check_replication_tab(self):
+        """checking replication tab information"""
+        replication_page = ReplicationPage(self.webdriver, self.cfg)
+        replication_page.get_replication_information()
