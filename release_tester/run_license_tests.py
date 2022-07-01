@@ -2,9 +2,9 @@
 
 """License manager tests runner script"""
 #pylint: disable=duplicate-code
+from pathlib import Path
 import click
 import semver
-from pathlib import Path
 from common_options import very_common_options, common_options, hotbackup_options
 from test_driver import TestDriver
 from arangodb.installers import HotBackupCliCfg, InstallerBaseConfig
