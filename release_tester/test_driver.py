@@ -516,11 +516,9 @@ class TestDriver:
         """run package conflict tests"""
         # pylint: disable=import-outside-toplevel
         if enterprise:
-            from package_installation_tests.enterprise_package_installation_test_suite import \
-                EnterprisePackageInstallationTestSuite as testSuite
+            testSuite = EnterprisePackageInstallationTestSuite
         else:
-            from package_installation_tests.community_package_installation_test_suite import \
-                CommunityPackageInstallationTestSuite as testSuite
+            testSuite = CommunityPackageInstallationTestSuite
         suite = testSuite(
             versions=versions,
             base_config=self.base_config
@@ -607,10 +605,11 @@ class TestDriver:
         return results
 
     def run_test_suites(self, versions: list, include_suites=(), exclude_suites=()):
+        """run a testsuite"""
         suite_classes=[]
         if len(include_suites) == 0 and len(exclude_suites) == 0:
             return self.run_all_test_suites(versions)
-        elif len(include_suites) > 0 and len(exclude_suites) == 0:
+        if len(include_suites) > 0 and len(exclude_suites) == 0:
             for suite_class in FULL_TEST_SUITE_LIST:
                 if suite_class.__name__ in include_suites:
                     suite_classes.append(suite_class)
