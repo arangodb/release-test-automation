@@ -34,14 +34,14 @@ class Single(Runner):
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("Single", 400, 500, False, ssl, use_auto_certs),
+            RunnerProperties("Single", 400, 500, True, ssl, use_auto_certs),
             selenium,
             selenium_driver_args,
             testrun_name,
         )
 
         self.starter_instance = None
-
+        self.backup_instance_count = 1
         self.success = False
 
     def starter_prepare_env_impl(self):
