@@ -42,6 +42,13 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
                         "3.9.100"):
                     views.checking_improved_views('improved_arangosearch_view_01',
                                                        views.select_improved_arangosearch_view_01, self.is_cluster)
+                 
+                 # Checking improved views for v3.10.x
+                if views.current_package_version() > semver.VersionInfo.parse("3.9.100"):
+                    views.checking_improved_views_for_v310('improved_arangosearch_view_01',
+                                                                self.views.select_improved_arangosearch_view_01,
+                                                                self.deployment)
+
 
             elif views.current_package_version() <= semver.VersionInfo.parse("3.8.100"):
                 views.create_new_views('firstView')
@@ -102,9 +109,17 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
             self.error = traceback.format_exc()
 
         finally:
-            # checking and deleting improved view for v3.9.x
-            if semver.VersionInfo.parse("3.8.100") < views.current_package_version() < semver.VersionInfo.parse(
-                    "3.9.100"):
+            # deleting views for <= v3.8.x
+            if views.current_package_version() < semver.VersionInfo.parse("3.9.0"):
+                print("Deleting views started for <= v3.8.x\n")
+                views.delete_views('first_view', views.select_first_view_id)
+                views.delete_views('renamed_view', views.select_renamed_view_id)
+                views.delete_views('second_view', views.select_second_view_id)
+                print('Deleting views completed for <= v3.8.x \n')
+
+            elif semver.VersionInfo.parse("3.8.100") < views.current_package_version() \
+                    < semver.VersionInfo.parse("3.9.100"):
+                print("I am here in line 371 \n")
                 print("Views deletion started for >= v3.9.x \n")
                 views.delete_views('improved_arangosearch_view_01',
                                         views.select_improved_arangosearch_view_01)
@@ -114,21 +129,16 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
                 print("Views deletion completed for >= v3.9.x \n")
 
             # deleting improved views for v3.10.x
-            elif views.current_package_version() >= semver.VersionInfo.parse("3.10.0"):
-                views.checking_modified_views(self.is_cluster)
+            elif views.current_package_version() > semver.VersionInfo.parse("3.9.100"):
+                # self.views.checking_modified_views(self.deployment)
+                print("Selecting Views tab\n")
+                views.select_views_tab()
+
                 print('Deleting views started for >= v3.10.x\n')
                 views.delete_new_views('improved_arangosearch_view_01')
                 views.delete_new_views('modified_views_name')
                 views.delete_new_views('improved_arangosearch_view_02')
                 print('Deleting views completed for >= v3.10.x\n')
-
-            # deleting views for <= v3.8.x
-            if views.current_package_version() <= semver.VersionInfo.parse("3.8.100"):
-                print("Deleting views started for <= v3.8.x\n")
-                views.delete_views('first_view', views.select_first_view_id)
-                views.delete_views('renamed_view', views.select_renamed_view_id)
-                views.delete_views('second_view', views.select_second_view_id)
-                print('Deleting views completed for <= v3.8.x \n')
 
             del views
             print("---------Checking Views completed--------- \n")
