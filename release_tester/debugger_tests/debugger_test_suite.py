@@ -84,7 +84,7 @@ class DebuggerTestSuite(BaseTestSuite):
     def clear_cache_dir(self):
         """clear symsrv cache dir"""
         if DebuggerTestSuite.SYMSRV_CACHE_DIR.exists():
-            shutil.rmtree(str(DebuggerTestSuite.TEST_DATA_DIR))
+            shutil.rmtree(str(DebuggerTestSuite.SYMSRV_CACHE_DIR))
             DebuggerTestSuite.SYMSRV_CACHE_DIR.mkdir(parents=True)
 
     @run_before_suite
