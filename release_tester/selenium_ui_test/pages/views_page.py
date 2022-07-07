@@ -405,8 +405,12 @@ class ViewsPage(NavigationBarPage):
             time.sleep(2)
             self.wait_for_ajax()
 
-        except TimeoutException as ex:
-            print(f'Error found, Can not delete views {ex} \n')
+        except TimeoutException as e:
+            print('TimeoutException occurred! \n')
+            print('Info: Views has already been deleted or never created. \n')
+        except Exception:
+            traceback.print_exc()
+            raise Exception('Critical Error occurred and need manual inspection!! \n')
 
 
     def checking_improved_views(self, name, locator, is_cluster):
@@ -466,9 +470,12 @@ class ViewsPage(NavigationBarPage):
     def creating_black_collection_and_analyzer(self):
         """Creating blank col and analyzer for testing"""
         print('creating blank collection and analyzer for link tab\n')
-        collection = 'collections'  # TODO add navbar navigation here
-        collection_sitem = self.locator_finder_by_id(collection)
-        collection_sitem.click()
+        # collection = 'collections'  # TODO add navbar navigation here
+        # collection_sitem = self.locator_finder_by_id(collection)
+        # collection_sitem.click()
+
+        self.navbar_goto("collections")
+
         time.sleep(1)
         create_col = 'createCollection'
         create_col_sitem = self.locator_finder_by_id(create_col)
@@ -487,10 +494,13 @@ class ViewsPage(NavigationBarPage):
         time.sleep(2)
 
         # print('creating analyzer for links tab\n')
-        # analyzer = "analyzers"  # TODO add navbar navigation here
-        # analyzer_sitem = self.locator_finder_by_id(analyzer)
-        # analyzer_sitem.click()
-        # time.sleep(1)
+        # # analyzer = "analyzers"  # TODO add navbar navigation here
+        # # analyzer_sitem = self.locator_finder_by_id(analyzer)
+        # # analyzer_sitem.click()
+        # # time.sleep(1)
+
+        self.navbar_goto("analyzers")
+
         #
         # add_analyzer = '//*[@id="analyzersContent"]/div/div/div/div/button/i'
         # add_analyzer_sitem = self.locator_finder_by_xpath(add_analyzer)
@@ -563,9 +573,10 @@ class ViewsPage(NavigationBarPage):
         self.wait_for_ajax()
 
         print(f'Checking unsaved changes pop-up dialogue \n')
-        graphs = "graphs"  # TODO add navbar navigation here
-        graphs_sitem = self.locator_finder_by_id(graphs)
-        graphs_sitem.click()
+        # graphs = "graphs"  # TODO add navbar navigation here
+        # graphs_sitem = self.locator_finder_by_id(graphs)
+        # graphs_sitem.click()
+        self.navbar_goto("graphs")
         time.sleep(3)
         self.wait_for_ajax()
 
@@ -837,7 +848,7 @@ class ViewsPage(NavigationBarPage):
             delete_sitem.click()
             time.sleep(1)
 
-            confirm = "//*[text()='Yes']"
+            confirm = "/html/body/div[2]/div/div[2]/div[2]/div/div[3]/button[1]"
             confirm_sitem = self.locator_finder_by_xpath(confirm)
             confirm_sitem.click()
             time.sleep(1)
