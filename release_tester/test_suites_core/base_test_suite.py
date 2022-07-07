@@ -1,20 +1,17 @@
 #!/usr/bin/env python3
 """ base class for all testsuites """
 
+import platform
 import sys
 import traceback
-from abc import ABC
 from uuid import uuid4
 
-from allure_commons.model2 import Status, Label, StatusDetails
-from allure_commons.types import LabelType
+import distro
+from allure_commons.model2 import Status, StatusDetails
 
 # pylint: disable=import-error
 from arangodb.installers import RunProperties
 from reporting.reporting_utils import AllureTestSuiteContext, RtaTestcase, step
-import distro
-import platform
-
 from test_suites_core.models import RtaTestResult
 
 
@@ -221,22 +218,26 @@ class BaseTestSuite(metaclass=MetaTestSuite):
                 return True
         return False
 
-    # pylint: disable=missing-function-docstring
-    @staticmethod
-    def detect_linux_distro() -> str:
-        return distro.linux_distribution(full_distribution_name=False)[0]
 
-    @staticmethod
-    def os_is_debian_based() -> bool:
-        return BaseTestSuite.detect_linux_distro() in ["debian", "ubuntu"]
+# pylint: disable=missing-function-docstring
+def detect_linux_distro() -> str:
+    return distro.linux_distribution(full_distribution_name=False)[0]
 
-    @staticmethod
-    def os_is_mac() -> bool:
-        return platform.mac_ver()[0] != ""
 
-    @staticmethod
-    def os_is_win() -> bool:
-        return platform.win32_ver()[0] != ""
+def os_is_debian_based() -> bool:
+    return detect_linux_distro() in ["debian", "ubuntu"]
+
+
+def os_is_mac() -> bool:
+    return platform.mac_ver()[0] != ""
+
+
+def os_is_win() -> bool:
+    return platform.win32_ver()[0] != ""
+
+
+def os_is_linux() -> bool:
+    return sys.platform == "linux"
 
 
 def run_before_suite(func):
@@ -298,7 +299,7 @@ def disable(arg):
 def disable_for_windows(arg):
     if callable(arg):
         testcase_func = arg
-        if BaseTestSuite.os_is_win():
+        if os_is_win():
             testcase_func.is_disabled = True
             testcase_func.disable_reasons.append("This test case is disabled for Windows.")
         return testcase_func
@@ -306,7 +307,7 @@ def disable_for_windows(arg):
         reason = arg
 
         def set_disable_reason(func):
-            if BaseTestSuite.os_is_win():
+            if os_is_win():
                 func.is_disabled = True
                 func.disable_reasons.append(reason)
             return func
@@ -317,7 +318,7 @@ def disable_for_windows(arg):
 def disable_for_mac(arg):
     if callable(arg):
         testcase_func = arg
-        if BaseTestSuite.os_is_mac():
+        if os_is_mac():
             testcase_func.is_disabled = True
             testcase_func.disable_reasons.append("This test case is disabled for MacOS.")
         return testcase_func
@@ -325,7 +326,7 @@ def disable_for_mac(arg):
         reason = arg
 
         def set_disable_reason(func):
-            if BaseTestSuite.os_is_mac():
+            if os_is_mac():
                 func.is_disabled = True
                 func.disable_reasons.append(reason)
             return func
@@ -336,7 +337,7 @@ def disable_for_mac(arg):
 def disable_for_debian(arg):
     if callable(arg):
         testcase_func = arg
-        if BaseTestSuite.os_is_debian_based():
+        if os_is_debian_based():
             testcase_func.is_disabled = True
             testcase_func.disable_reasons.append("This test case is disabled for Debian-based linux distros.")
         return testcase_func
@@ -344,7 +345,7 @@ def disable_for_debian(arg):
         reason = arg
 
         def set_disable_reason(func):
-            if BaseTestSuite.os_is_debian_based():
+            if os_is_debian_based():
                 func.is_disabled = True
                 func.disable_reasons.append(reason)
             return func
@@ -369,6 +370,10 @@ def disable_if_returns_true_at_runtime(function, reason=None):
         return testcase_func
 
     return set_disable_func_and_reason
+
+
+linux_only = disable_if_true(not os_is_linux(), reason="This testcase must run only on Linux.")
+windows_only = disable_if_true(not os_is_win(), reason="This testcase must run only on Windows.")
 
 
 def testcase(title=None):

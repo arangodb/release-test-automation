@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ fetch nightly packages, process upgrade """
-#pylint: disable=duplicate-code
+# pylint: disable=duplicate-code
 from pathlib import Path
 from copy import copy
 import sys
@@ -144,8 +144,23 @@ def upgrade_package_test(
                         enterprise=use_enterprise,
                     )
                 )
-            results.append(test_driver.run_license_manager_tests(
-                [semver.VersionInfo.parse(dl_old.cfg.version), semver.VersionInfo.parse(dl_new.cfg.version)]))
+            results.append(
+                test_driver.run_license_manager_tests(
+                    [semver.VersionInfo.parse(dl_old.cfg.version), semver.VersionInfo.parse(dl_new.cfg.version)]
+                )
+            )
+            results.append(
+                test_driver.run_debugger_tests(
+                    [semver.VersionInfo.parse(dl_old.cfg.version), semver.VersionInfo.parse(dl_new.cfg.version)],
+                    run_props=RunProperties(True, False, False),
+                )
+            )
+            results.append(
+                test_driver.run_debugger_tests(
+                    [semver.VersionInfo.parse(dl_old.cfg.version), semver.VersionInfo.parse(dl_new.cfg.version)],
+                    run_props=RunProperties(False, False, False),
+                )
+            )
 
     print("V" * 80)
     status = True
@@ -165,12 +180,14 @@ def upgrade_package_test(
                 else:
                     # pylint: disable=broad-except
                     try:
-                        table.rows.append([
-                            one_result["testrun name"],
-                            one_result["testscenario"],
-                            # one_result['success'],
-                            "\n".join(one_result["messages"]) + "\n" + "H" * 40 + "\n" + one_result["progress"],
-                        ])
+                        table.rows.append(
+                            [
+                                one_result["testrun name"],
+                                one_result["testscenario"],
+                                # one_result['success'],
+                                "\n".join(one_result["messages"]) + "\n" + "H" * 40 + "\n" + one_result["progress"],
+                            ]
+                        )
                     except Exception as ex:
                         print("result error while syntesizing " + str(one_result))
                         print(ex)

@@ -17,6 +17,8 @@ from allure_commons._allure import attach
 from allure_commons.types import AttachmentType
 from mss import mss
 import psutil
+
+from arangodb.installers.windows import InstallerWin
 from reporting.reporting_utils import step
 
 from arangodb.installers.base import InstallerBase
@@ -26,7 +28,7 @@ from arangodb.installers.base import InstallerBase
 import tools.monkeypatch_psutil
 
 
-class InstallerW(InstallerBase):
+class InstallerNsis(InstallerWin):
     """install the windows NSIS package"""
 
     # pylint: disable=too-many-arguments disable=too-many-instance-attributes
