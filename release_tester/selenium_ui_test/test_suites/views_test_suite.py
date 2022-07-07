@@ -46,7 +46,7 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
                  # Checking improved views for v3.10.x
                 if views.current_package_version() > semver.VersionInfo.parse("3.9.100"):
                     views.checking_improved_views_for_v310('improved_arangosearch_view_01',
-                                                                self.views.select_improved_arangosearch_view_01,
+                                                                views.select_improved_arangosearch_view_01,
                                                                 self.is_cluster)
 
 
