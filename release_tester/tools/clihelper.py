@@ -7,10 +7,15 @@ import psutil
 
 
 # pylint: disable=logging-fstring-interpolation
+from reporting.reporting_utils import step
+
+
+@step
 def run_cmd_and_log_stdout(cmd, timeout=1200):
-    """run and collect the output of cmd"""
+    """run command and save output"""
+    logging.info(f"Running command:\n{cmd}")
     run = psutil.Popen(cmd, stdout=PIPE, stderr=PIPE)
-    logging.info(f"running command:\n{cmd}\nwith PID: {run.pid}")
+    logging.info(f"Command started with PID: {run.pid}")
     try:
         run.wait(timeout)
     except psutil.TimeoutExpired as exc:
