@@ -5,7 +5,7 @@ import semver
 import traceback
 
 from selenium_ui_test.pages.navbar import NavigationBarPage
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import StaleElementReferenceException, NoSuchElementException, TimeoutException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 
@@ -105,8 +105,12 @@ class ViewsPage(NavigationBarPage):
                 search_views_sitem.send_keys(expected_text)
                 time.sleep(2)
                 break
-            except Exception:
+            except StaleElementReferenceException:
                 print('stale element found, trying again\n')
+            except NoSuchElementException:
+                print("Can't find the view, trying again\n")
+            except TimeoutException as ex:
+                raise ex
 
         print(f'Checking that we get the right results for {expected_text}\n')
         if self.current_package_version() <= semver.VersionInfo.parse("3.8.100"):
@@ -885,6 +889,43 @@ class ViewsPage(NavigationBarPage):
             traceback.print_exc()
             raise Exception('Critical Error occurred and need manual inspection!! \n')
 
+    def delete_created_collection(self, col_name):
+        """this method will delete all the collection created for views"""
+        try:
+            print('Selecting collection tab\n')
+            collections = 'collections'
+            collections_sitem = self.locator_finder_by_id(collections)
+            collections_sitem.click()
+            time.sleep(1)
+
+            print('Deleting collection started\n')
+            my_collection = f"//*[text()='{col_name}']"
+            my_collection_sitem = self.locator_finder_by_xpath(my_collection)
+            my_collection_sitem.click()
+            time.sleep(1)
+
+            setting = "//*[text()='Settings']"
+            setting_sitem = self.locator_finder_by_xpath(setting)
+            setting_sitem.click()
+            time.sleep(1)
+
+            delete = "//*[text()='Delete']"
+            delete_sitem = self.locator_finder_by_xpath(delete)
+            delete_sitem.click()
+            time.sleep(1)
+
+            confirm = "//*[text()='Yes']"
+            confirm_sitem = self.locator_finder_by_xpath(confirm)
+            confirm_sitem.click()
+            time.sleep(1)
+        except TimeoutException:
+            print('TimeoutException occurred! \n')
+            print(f'Info: {col_name} has already been deleted or never created. \n')
+        except Exception:
+            traceback.print_exc()
+            raise Exception('Critical Error occurred and need manual inspection!! \n')
+
+    
     def delete_new_views(self, name):
         """this method will delete all the newer version views"""
         self.select_views_tab()
