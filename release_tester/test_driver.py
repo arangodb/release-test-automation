@@ -202,7 +202,7 @@ class TestDriver:
                     if not run_props.supports_dc2dc() and runner_type == RunnerType.DC2DC:
                         testcase.context.status = Status.SKIPPED
                         testcase.context.statusDetails = StatusDetails(
-                            message="DC2DC is not applicable to Community packages."
+                            message="DC2DC is not applicable to Community packages.\nDC2DC is not supported on Windows."
                         )
                         continue
                     one_result = {
@@ -377,7 +377,7 @@ class TestDriver:
                     if not run_props.supports_dc2dc() and runner_type == RunnerType.DC2DC:
                         testcase.context.status = Status.SKIPPED
                         testcase.context.statusDetails = StatusDetails(
-                            message="DC2DC is not applicable to Community packages.")
+                            message="DC2DC is not applicable to Community packages.\nDC2DC is not supported on Windows.")
                         continue
                     one_result = {
                         "testrun name": run_props.testrun_name,
