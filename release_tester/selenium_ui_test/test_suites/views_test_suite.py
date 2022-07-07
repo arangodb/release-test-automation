@@ -47,7 +47,7 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
                 if views.current_package_version() > semver.VersionInfo.parse("3.9.100"):
                     views.checking_improved_views_for_v310('improved_arangosearch_view_01',
                                                                 self.views.select_improved_arangosearch_view_01,
-                                                                self.deployment)
+                                                                self.is_cluster)
 
 
             elif views.current_package_version() <= semver.VersionInfo.parse("3.8.100"):
@@ -129,7 +129,6 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
 
             # deleting improved views for v3.10.x
             elif views.current_package_version() > semver.VersionInfo.parse("3.9.100"):
-                # self.views.checking_modified_views(self.deployment)
                 print("Selecting Views tab\n")
                 views.select_views_tab()
 
