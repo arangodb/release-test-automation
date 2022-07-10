@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Debug symbols test suite"""
 import platform
+import re
 import shutil
 from pathlib import Path
 
@@ -9,7 +10,9 @@ from allure_commons._allure import attach
 from allure_commons.types import AttachmentType
 
 from arangodb.installers import InstallerBaseConfig, create_config_installer_set
-from debugger_tests.debug_test_steps import create_arangod_dump, store
+from arangodb.instance import InstanceType
+from arangodb.starter.manager import StarterManager
+from debugger_tests.debug_test_steps import create_arangod_dump, store, create_arangosh_dump
 from reporting.reporting_utils import step
 from test_suites_core.base_test_suite import (
     testcase,
@@ -19,7 +22,9 @@ from test_suites_core.base_test_suite import (
     run_before_suite,
     run_after_suite,
     run_after_each_testcase,
-    windows_only, collect_crash_data, disable,
+    windows_only,
+    collect_crash_data,
+    disable,
 )
 from tools.killall import kill_all_processes
 
@@ -40,6 +45,8 @@ class DebuggerTestSuite(BaseTestSuite):
     SYMSRV_CACHE_DIR = TEST_DATA_DIR / "symsrv_cache"
     DUMP_FILES_DIR = TEST_DATA_DIR / "dumps"
     STARTER_DIR = TEST_DATA_DIR / "starter"
+
+    CDB_PROMPT = re.compile(r"^\d{1,3}:\d{1,3}>", re.MULTILINE)
 
     def __init__(self, versions: list, base_config: InstallerBaseConfig, **kwargs):
         run_props = kwargs["run_props"]
@@ -74,6 +81,15 @@ class DebuggerTestSuite(BaseTestSuite):
         DebuggerTestSuite.DUMP_FILES_DIR.mkdir(parents=True)
         DebuggerTestSuite.STARTER_DIR.mkdir(parents=True)
 
+    @run_before_suite
+    def install_packages(self):
+        """install server package and debug package"""
+        self.installer.uninstall_everything()
+        self.installer.cleanup_system()
+        self.installer.install_server_package()
+        self.installer.stop_service()
+        self.installer.install_debug_package()
+
     @run_after_suite
     def delete_test_dirs(self):
         """delete test data directories"""
@@ -87,11 +103,11 @@ class DebuggerTestSuite(BaseTestSuite):
             shutil.rmtree(str(DebuggerTestSuite.SYMSRV_CACHE_DIR))
             DebuggerTestSuite.SYMSRV_CACHE_DIR.mkdir(parents=True)
 
-    @run_before_suite
     @run_after_suite
-    @run_after_each_testcase
     def uninstall_everything(self):
         """uninstall all packages"""
+        self.installer.un_install_server_package()
+        self.installer.un_install_debug_package()
         self.installer.uninstall_everything()
         self.installer.cleanup_system()
         self.installer.cfg.server_package_is_installed = False
@@ -120,26 +136,21 @@ class DebuggerTestSuite(BaseTestSuite):
     @testcase
     def test_debug_symbols_linux(self):
         """Check that debug symbols can be used to debug arangod executable (Linux)"""
-        self.installer.install_server_package()
-        self.installer.install_debug_package()
         self.installer.debugger_test()
 
     @windows_only
     @testcase
-    def test_debug_symbols_windows(self):
-        """Check that debug symbols can be used to debug arangod executable (Windows)"""
-        self.installer.install_server_package()
-        self.installer.stop_service()
-        self.installer.install_debug_package()
+    def test_arangod_debug_symbols_windows(self):
+        """Check that debug symbols can be used to debug arangod executable using a memory dump file (Windows)"""
         dump_file = create_arangod_dump(self.installer, DebuggerTestSuite.STARTER_DIR, DebuggerTestSuite.DUMP_FILES_DIR)
         pdb_dir = str(self.installer.cfg.debug_install_prefix)
         with step("Check that stack trace with function names and line numbers can be acquired from cdb"):
             cmd = " ".join(["cdb", "-z", dump_file, "-y", pdb_dir, "-lines", "-n"])
             attach(cmd, "CDB command", attachment_type=AttachmentType.TEXT)
             cdb = wexpect.spawn(cmd)
-            cdb.expect("0:000>")
+            cdb.expect(DebuggerTestSuite.CDB_PROMPT, timeout=180)
             cdb.sendline("k")
-            cdb.expect("0:000>")
+            cdb.expect(DebuggerTestSuite.CDB_PROMPT, timeout=180)
             stack = cdb.before
             cdb.sendline("q")
             attach(stack, "Stacktrace from cdb output", attachment_type=AttachmentType.TEXT)
@@ -148,11 +159,63 @@ class DebuggerTestSuite(BaseTestSuite):
 
     @windows_only
     @testcase
+    def test_arangosh_debug_symbols_windows(self):
+        """Check that debug symbols can be used to debug arangosh executable using a memory dump file (Windows)"""
+        dump_file = create_arangosh_dump(self.installer, DebuggerTestSuite.DUMP_FILES_DIR)
+        pdb_dir = str(self.installer.cfg.debug_install_prefix)
+        with step("Check that stack trace with function names and line numbers can be acquired from cdb"):
+            cmd = " ".join(["cdb", "-z", dump_file, "-y", pdb_dir, "-lines", "-n"])
+            attach(cmd, "CDB command", attachment_type=AttachmentType.TEXT)
+            cdb = wexpect.spawn(cmd)
+            cdb.expect(DebuggerTestSuite.CDB_PROMPT, timeout=180)
+            cdb.sendline("k")
+            cdb.expect(DebuggerTestSuite.CDB_PROMPT, timeout=180)
+            stack = cdb.before
+            cdb.sendline("q")
+            attach(stack, "Stacktrace from cdb output", attachment_type=AttachmentType.TEXT)
+            assert "arangosh!main" in stack, "Stack must contain real function names."
+            assert "arangosh.cpp" in stack, "Stack must contain real source file names."
+
+    @windows_only
+    @testcase
+    def test_debug_symbols_attach_to_process_windows(self):
+        """Check that debug symbols can be used to debug arangod executable by attaching debugger to a running process (Windows)"""
+        starter = StarterManager(
+            basecfg=self.installer.cfg,
+            install_prefix=Path(DebuggerTestSuite.STARTER_DIR),
+            instance_prefix="single",
+            expect_instances=[InstanceType.SINGLE],
+            mode="single",
+            jwt_str="single",
+        )
+        try:
+            with step("Start a single server deployment"):
+                starter.run_starter()
+                starter.detect_instances()
+                starter.detect_instance_pids()
+                starter.set_passvoid("")
+                pid = starter.all_instances[0].pid
+            pdb_dir = str(self.installer.cfg.debug_install_prefix)
+            with step("Check that stack trace with function names and line numbers can be acquired from cdb"):
+                cmd = " ".join(["cdb", "-pv", "-p", str(pid), "-y", pdb_dir, "-lines", "-n"])
+                attach(cmd, "CDB command", attachment_type=AttachmentType.TEXT)
+                cdb = wexpect.spawn(cmd)
+                cdb.expect(DebuggerTestSuite.CDB_PROMPT, timeout=300)
+                cdb.sendline("k")
+                cdb.expect(DebuggerTestSuite.CDB_PROMPT, timeout=300)
+                stack = cdb.before
+                cdb.sendline("q")
+                attach(stack, "Stacktrace from cdb output", attachment_type=AttachmentType.TEXT)
+                assert "arangod!main" in stack, "Stack must contain real function names."
+                assert "arangod.cpp" in stack, "Stack must contain real source file names."
+        finally:
+            starter.terminate_instance()
+            kill_all_processes()
+
+    @windows_only
+    @testcase
     def test_debug_symbols_symsrv_windows(self):
         """Check that debug symbols can be uploaded to symbol server and then used to debug arangod executable (Windows)"""
-        self.installer.install_server_package()
-        self.installer.stop_service()
-        self.installer.install_debug_package()
         symsrv_dir = str(DebuggerTestSuite.SYMSRV_DIR)
         store(str(self.installer.cfg.debug_install_prefix / "arangod.pdb"), symsrv_dir)
         dump_file = create_arangod_dump(
@@ -172,9 +235,9 @@ class DebuggerTestSuite(BaseTestSuite):
             )
             attach(cmd, "CDB command", attachment_type=AttachmentType.TEXT)
             cdb = wexpect.spawn(cmd)
-            cdb.expect("0:000>")
+            cdb.expect(DebuggerTestSuite.CDB_PROMPT, timeout=900)
             cdb.sendline("k")
-            cdb.expect("0:000>")
+            cdb.expect(DebuggerTestSuite.CDB_PROMPT, timeout=900)
             stack = cdb.before
             cdb.sendline("q")
             attach(stack, "Stacktrace from cdb output", attachment_type=AttachmentType.TEXT)
@@ -186,9 +249,7 @@ class DebuggerTestSuite(BaseTestSuite):
     @testcase
     def test_debug_network_symbol_server_windows(self):
         """Check that debug symbols can be found on the ArangoDB symbol server and then used to debug arangod executable"""
-        #This testcase is needed to check the state of the symbol server and is not meant to run during ArangoDB product testing.
-        self.installer.install_server_package()
-        self.installer.stop_service()
+        # This testcase is needed to check the state of the symbol server and is not meant to run during ArangoDB product testing.
         version = semver.VersionInfo.parse(self.installer.cfg.version)
         symsrv_dir = "\\\\symbol.arangodb.biz\\symbol\\symsrv_arangodb" + str(version.major) + str(version.minor)
         dump_file = create_arangod_dump(
@@ -208,9 +269,9 @@ class DebuggerTestSuite(BaseTestSuite):
             )
             attach(cmd, "CDB command", attachment_type=AttachmentType.TEXT)
             cdb = wexpect.spawn(cmd)
-            cdb.expect("0:000>")
+            cdb.expect(DebuggerTestSuite.CDB_PROMPT, timeout=900)
             cdb.sendline("k")
-            cdb.expect("0:000>")
+            cdb.expect(DebuggerTestSuite.CDB_PROMPT, timeout=900)
             stack = cdb.before
             cdb.sendline("q")
             attach(stack, "Stacktrace from cdb output", attachment_type=AttachmentType.TEXT)

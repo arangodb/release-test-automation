@@ -13,6 +13,7 @@ import tools.loghelper as lh
 from arangodb.instance import InstanceType
 from arangodb.starter.manager import StarterManager
 from reporting.reporting_utils import step
+
 # pylint: disable=broad-except
 from tools.clihelper import run_cmd_and_log_stdout
 from tools.killall import kill_all_processes
@@ -59,11 +60,39 @@ def create_arangod_dump(installer, starter_dir: str, dump_file_dir: str):
     return dump_filename
 
 
+@step
+def create_arangosh_dump(installer, dump_file_dir: str):
+    """create arangosh memory dump file"""
+    dump_filename = None
+    with step("Start arangosh process"):
+        exe_file = installer.cfg.bin_dir / "arangosh.exe"
+        cmd = [str(exe_file)]
+        arangosh_proc = psutil.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        arangosh_pid = arangosh_proc.pid
+    with step("Create a dump of arangosh process"):
+        cmd = ["procdump", "-ma", str(arangosh_pid), dump_file_dir]
+        lh.log_cmd(cmd)
+        with psutil.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
+            (procdump_out, procdump_err) = proc.communicate()
+            procdump_str = str(procdump_out, "UTF-8")
+            attach(procdump_str, "procdump sdtout")
+            attach(str(procdump_err), "procdump stderr")
+            success_string = "Dump 1 complete"
+            filename_regex = re.compile(r"^(\[\d{2}:\d{2}:\d{2}\] Dump 1 initiated: )(?P<filename>.*)$", re.MULTILINE)
+            match = re.search(filename_regex, procdump_str)
+            if procdump_str.find(success_string) < 0 or not match:
+                raise Exception("procdump wasn't able to create a dump file: " + procdump_str)
+            dump_filename = match.group("filename")
+    with step("Kill arangosh process"):
+        arangosh_proc.kill()
+    return dump_filename
+
+
 def store(pdb_filename: str, target_dir: str):
     """store pdb file in symbol server directory"""
     with step(f"Store pdb file {pdb_filename} in symbol server directory"):
         print(f"Storing file {pdb_filename}")
-        command = ["symstore.exe", "add", "/f", pdb_filename,  "/s", target_dir, "/t", "ArangoDB", "/compress"]
+        command = ["symstore.exe", "add", "/f", pdb_filename, "/s", target_dir, "/t", "ArangoDB", "/compress"]
         run_cmd_and_log_stdout(command)
         print(f"File {pdb_filename} successfully stored to {target_dir}")
 
