@@ -13,7 +13,7 @@
     makeDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
       // All items created must contain dbCount
       print(`making per database data ${dbCount}`);
-   
+
       // creating delimiter analyzer
       progress("create delimiter analyzer");
       let analyzerName01 = `delimiter_${dbCount}`;
@@ -61,7 +61,7 @@
         } else {
           throw new Error(`${analyzer_name} analyzer's type missmatched!`);
         }
-      };
+      }
 
       //This function will check any analyzer's equality with expected server response
       function arraysEqual(a, b) {
@@ -69,7 +69,7 @@
           throw new Error("Didn't get the expected response from the server!");
         }
       }
-      
+
       // this function will check everything regardin given analyzer
       function checkAnalyzer(analyzerName, expectedType, expectedProperties, expectedResult, queryResult){
         if (a.analyzer(analyzerName) === null) {
@@ -96,7 +96,7 @@
         checkProperties(analyzerName, testProperties, expectedProperties)
 
         progress();
-        
+
         //checking analyzer's query results
         arraysEqual(expectedResult, queryResult);
 
@@ -105,7 +105,7 @@
       }
 
       //-------------------------------Delimiter----------------------------------
-      
+
       let delimiterAnalyzer = `delimiter_${dbCount}`;
       let delimiterType = "delimiter";
       let delimiterProperties = {
@@ -120,7 +120,7 @@
       ];
 
       let delimiterQueryReuslt = db._query(`RETURN TOKENS("some-delimited-words", "${delimiterAnalyzer}")`).toArray();
-      
+
       checkAnalyzer(delimiterAnalyzer, delimiterType, delimiterProperties, delimiterExpectedResult, delimiterQueryReuslt)
 
       //-------------------------------Delimiter----------------------------------
@@ -172,7 +172,7 @@
           print(e);
         }
         progress();
-  
+
       }
 
       // declaring all the analyzer's name
@@ -184,7 +184,7 @@
       progress();
       deleteAnalyzer(text)
       progress();
-      
+
       return 0;
     },
   };
