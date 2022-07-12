@@ -124,8 +124,14 @@ class DebuggerTestSuite(BaseTestSuite):
         """save test data"""
         test_dir = DebuggerTestSuite.TEST_DATA_DIR
         if test_dir.exists():
-            archive = shutil.make_archive("debug_symbols_test_dir", "bztar", test_dir, test_dir)
-            attach.file(archive, "Debug symbols test suite directory", "application/x-bzip2", "tar.bz2")
+            archive = shutil.make_archive("debug_symbols_test_dir", "gztar", test_dir, test_dir)
+            attach.file(archive, "Debug symbols test suite directory", "application/x-tar", "tgz")
+        if self.installer.cfg.debug_install_prefix.exists():
+            archive = shutil.make_archive("debug_package_installation_dir", "gztar", self.installer.cfg.debug_install_prefix, self.installer.cfg.debug_install_prefix)
+            attach.file(archive, "Debug package installation directory", "application/x-tar", "tgz")
+        if self.installer.cfg.server_install_prefix.exists():
+            archive = shutil.make_archive("server_package_installation_dir", "gztar", self.installer.cfg.install_prefix, self.installer.cfg.install_prefix)
+            attach.file(archive, "Server package installation directory", "application/x-tar", "tgz")
 
     disable_for_tar_gz_packages = disable_if_returns_true_at_runtime(
         is_zip, "This test case is not applicable for .tar.gz packages"
