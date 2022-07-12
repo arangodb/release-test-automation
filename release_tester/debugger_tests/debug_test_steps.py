@@ -88,6 +88,28 @@ def create_arangosh_dump(installer, dump_file_dir: str):
     return dump_filename
 
 
+def create_dump_for_exe(exe_file: str, dump_file_dir: str):
+    """run given executable and create a memory dump at any point of execution"""
+    exe_file = Path(exe_file)
+    exe_name = exe_file.name
+    with step(f"Create a memory dump of the program: {exe_name}"):
+        dump_filename = None
+        cmd = ["procdump", "-ma", "-t", "-x", dump_file_dir, str(exe_file)]
+        lh.log_cmd(cmd)
+        with psutil.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
+            (procdump_out, procdump_err) = proc.communicate()
+            procdump_str = str(procdump_out, "UTF-8")
+            attach(procdump_str, "procdump sdtout")
+            attach(str(procdump_err), "procdump stderr")
+            success_string = "Dump 1 complete"
+            filename_regex = re.compile(r"^(\[\d{2}:\d{2}:\d{2}\] Dump 1 initiated: )(?P<filename>.*)$", re.MULTILINE)
+            match = re.search(filename_regex, procdump_str)
+            if procdump_str.find(success_string) < 0 or not match:
+                raise Exception("procdump wasn't able to create a dump file: " + procdump_str)
+            dump_filename = match.group("filename")
+        return dump_filename
+
+
 def store(pdb_filename: str, target_dir: str):
     """store pdb file in symbol server directory"""
     with step(f"Store pdb file {pdb_filename} in symbol server directory"):

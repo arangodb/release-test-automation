@@ -12,7 +12,7 @@ from allure_commons.types import AttachmentType
 from arangodb.installers import InstallerBaseConfig, create_config_installer_set
 from arangodb.instance import InstanceType
 from arangodb.starter.manager import StarterManager
-from debugger_tests.debug_test_steps import create_arangod_dump, store, create_arangosh_dump
+from debugger_tests.debug_test_steps import create_dump_for_exe, create_arangod_dump, create_arangosh_dump, store
 from reporting.reporting_utils import step
 from test_suites_core.base_test_suite import (
     testcase,
@@ -24,6 +24,7 @@ from test_suites_core.base_test_suite import (
     run_after_each_testcase,
     windows_only,
     collect_crash_data,
+    parameters,
     disable,
 )
 from tools.killall import kill_all_processes
@@ -127,10 +128,20 @@ class DebuggerTestSuite(BaseTestSuite):
             archive = shutil.make_archive("debug_symbols_test_dir", "gztar", test_dir, test_dir)
             attach.file(archive, "Debug symbols test suite directory", "application/x-tar", "tgz")
         if self.installer.cfg.debug_install_prefix.exists():
-            archive = shutil.make_archive("debug_package_installation_dir", "gztar", self.installer.cfg.debug_install_prefix, self.installer.cfg.debug_install_prefix)
+            archive = shutil.make_archive(
+                "debug_package_installation_dir",
+                "gztar",
+                self.installer.cfg.debug_install_prefix,
+                self.installer.cfg.debug_install_prefix,
+            )
             attach.file(archive, "Debug package installation directory", "application/x-tar", "tgz")
         if self.installer.cfg.server_install_prefix.exists():
-            archive = shutil.make_archive("server_package_installation_dir", "gztar", self.installer.cfg.install_prefix, self.installer.cfg.install_prefix)
+            archive = shutil.make_archive(
+                "server_package_installation_dir",
+                "gztar",
+                self.installer.cfg.install_prefix,
+                self.installer.cfg.install_prefix,
+            )
             attach.file(archive, "Server package installation directory", "application/x-tar", "tgz")
 
     disable_for_tar_gz_packages = disable_if_returns_true_at_runtime(
@@ -181,6 +192,29 @@ class DebuggerTestSuite(BaseTestSuite):
             attach(stack, "Stacktrace from cdb output", attachment_type=AttachmentType.TEXT)
             assert "arangosh!main" in stack, "Stack must contain real function names."
             assert "arangosh.cpp" in stack, "Stack must contain real source file names."
+
+    @windows_only
+    @parameters([{"executable": "arangoexport"}, {"executable": "arangovpack"}])
+    @testcase(
+        "Check that debug symbols can be used to debug $executable$ executable using a memory dump file (Windows)"
+    )
+    def test_debug_symbols_windows(self, executable):
+        """Check that debug symbols can be used to debug arango executable using a memory dump file (Windows)"""
+        exe_file = [str(f.path) for f in self.installer.arango_binaries if f.path.name == executable + ".exe"][0]
+        dump_file = create_dump_for_exe(exe_file, DebuggerTestSuite.DUMP_FILES_DIR)
+        pdb_dir = str(self.installer.cfg.debug_install_prefix)
+        with step("Check that stack trace with function names and line numbers can be acquired from cdb"):
+            cmd = " ".join(["cdb", "-z", dump_file, "-y", pdb_dir, "-lines", "-n"])
+            attach(cmd, "CDB command", attachment_type=AttachmentType.TEXT)
+            cdb = wexpect.spawn(cmd)
+            cdb.expect(DebuggerTestSuite.CDB_PROMPT, timeout=180)
+            cdb.sendline("k")
+            cdb.expect(DebuggerTestSuite.CDB_PROMPT, timeout=180)
+            stack = cdb.before
+            cdb.sendline("q")
+            attach(stack, "Stacktrace from cdb output", attachment_type=AttachmentType.TEXT)
+            assert f"{executable}!main" in stack, "Stack must contain real function names."
+            assert f"{executable}.cpp" in stack, "Stack must contain real source file names."
 
     @windows_only
     @testcase
