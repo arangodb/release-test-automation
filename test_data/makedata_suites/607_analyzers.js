@@ -50,7 +50,7 @@
       progress(`checking data with ${dbCount}`);
 
       //This function will check any analyzer's properties
-      function checkProperties(obj1, obj2, analyzer_name) {
+      function checkProperties(analyzer_name, obj1, obj2) {
         const obj1Length = Object.keys(obj1).length;
         const obj2Length = Object.keys(obj2).length;
 
@@ -69,40 +69,49 @@
           throw new Error("Didn't get the expected response from the server!");
         }
       }
+      
+      // this function will check everything regardin given analyzer
+      function checkAnalyzer(analyzerName, expectedType, expectedProperties, expectedResult, queryResult){
+        if (a.analyzer(analyzerName) === null) {
+          throw new Error(`${analyzerName} analyzer creation failed!`);
+        }
+
+        //checking analyzer's name
+        let testName = a.analyzer(analyzerName).name();
+        let expectedName = `_system::${analyzerName}`;
+        if (testName !== expectedName) {
+          throw new Error(`${analyzerName} analyzer not found`);
+        }
+        progress();
+
+        //checking analyzer's type
+        let testType = a.analyzer(analyzerName).type();
+        if (testType !== expectedType){
+          throw new Error(`${analyzerName} analyzer type missmatched!`);
+        }
+        progress();
+
+        //checking analyzer's properties
+        let testProperties = a.analyzer(analyzerName).properties();
+        checkProperties(analyzerName, testProperties, expectedProperties)
+
+        progress();
+        
+        //checking analyzer's query results
+        arraysEqual(expectedResult, queryResult);
+
+        progress();
+
+      }
 
       //-------------------------------Delimiter----------------------------------
       
-      // checking delimiter analyzer's name
-      let analyzerName01 = `delimiter_${dbCount}`;
-      if (a.analyzer(analyzerName01) === null) {
-        throw new Error(`${analyzerName01} analyzer creation failed!`);
-      }
-
-      let testName01 = a.analyzer(analyzerName01).name();
-      let expectedName01 = `_system::delimiter_${dbCount}`;
-      if (testName01 !== expectedName01) {
-        throw new Error(`${analyzerName01} analyzer not found`);
-      }
-      progress();
-
-      //checking delimiter analyzer's type
-      let testType01 = a.analyzer(analyzerName01).type();
-      let expectedType01 = "delimiter";
-      if (testType01 !== expectedType01){
-        throw new Error(`${analyzerName01} analyzer type missmatched!`);
-      }
-      progress();
-
-      //checking delimiter analyzer's prperties
-      let testProperties01 = a.analyzer(analyzerName01).properties();
-      let expectedProperties01 = {
+      let delimiterAnalyzer = `delimiter_${dbCount}`;
+      let delimiterType = "delimiter";
+      let delimiterProperties = {
         "delimiter" : "-"
       };
-
-      checkProperties(testProperties01, expectedProperties01, analyzerName01);
-      progress();
-
-      let myArray01 = [
+      let delimiterExpectedResult =[
         [
           "some",
           "delimited",
@@ -110,49 +119,25 @@
         ]
       ];
 
-      // print(`Create and use a text Analyzer with preserveOriginal disabled:`)
-      let textArray01 = db._query(`RETURN TOKENS("some-delimited-words", "${analyzerName01}")`).toArray();
-      arraysEqual(myArray01, textArray01);
+      let delimiterQueryReuslt = db._query(`RETURN TOKENS("some-delimited-words", "${delimiterAnalyzer}")`).toArray();
+      
+      checkAnalyzer(delimiterAnalyzer, delimiterType, delimiterProperties, delimiterExpectedResult, delimiterQueryReuslt)
 
       //-------------------------------Delimiter----------------------------------
 
 
-      //-------------------------------text----------------------------------
-      // checking text analyzer's name
-      let analyzerName = `text_${dbCount}`;
-      if (a.analyzer(analyzerName) === null) {
-        throw new Error("Analyzer not found!");
-      }
+      //---------------------------------text-------------------------------------
 
-      let testName = a.analyzer(analyzerName).name();
-      let expectedName = `_system::text_${dbCount}`;
-      if (testName !== expectedName) {
-        throw new Error(`Analyzer name not found!`);
-      }
-      progress();
-
-      //checking text analyzer's type
-      let testType = a.analyzer(analyzerName).type();
-      let expectedType = "text";
-      if (testType !== expectedType){
-        throw new Error("Analyzer type missmatched!");
-      }
-      progress();
-
-      //checking text analyzer's properties
-      let testProperties = a.analyzer(analyzerName).properties();
-      let expectedProperties = {
+      let textAnalyzer = `text_${dbCount}`;
+      let textType = "text";
+      let textProperties = {
         "locale" : "el.utf-8",
         "case" : "lower",
         "stopwords" : [ ],
         "accent" : false,
         "stemming" : true
       };
-
-      checkProperties(testProperties, expectedProperties, analyzerName);
-      progress();
-
-      let myArray = [
+      let textExpectedResult =[
         [
           "crazy",
           "fast",
@@ -161,43 +146,45 @@
         ]
       ];
 
-      // print(`Create and use a text Analyzer with preserveOriginal disabled:`)
-      let textArray = db._query(`RETURN TOKENS("Crazy fast NoSQL-database!", "${analyzerName}")`).toArray();
-      arraysEqual(myArray, textArray);
-      //-------------------------------text----------------------------------
+      let textQueryReuslt = db._query(`RETURN TOKENS("Crazy fast NoSQL-database!", "${textAnalyzer}")`).toArray();
+
+      //---------------------------------text-------------------------------------
 
       return 0;
     },
     clearDataDB: function (options, isCluster, isEnterprise, dbCount, database) {
       print(`checking data ${dbCount}`);
-      // declaring all the analyzer's name
-      let analyzerName01 = `delimiter_${dbCount}`;
-      let analyzerName = `text_${dbCount}`;
-
-      try {
-        const array = a.toArray();
-        for (let i = 0; i < array.length; i++) {
-          const name = array[i];
-          if (name === analyzerName01) {
-            a.remove(analyzerName01);
+      // deleting analyzer
+      function deleteAnalyzer(analyzerName){
+        try {
+          const array = a.toArray();
+          for (let i = 0; i < array.length; i++) {
+            const name = array[i];
+            if (name === analyzerName) {
+              a.remove(analyzerName);
+            }
           }
-
-          if (name === analyzerName) {
-            a.remove(analyzerName);
+          // checking created text analyzer is deleted or not
+          if (a.analyzer(analyzerName) != null) {
+            throw new Error(`${analyzerName} analyzer isn't deleted yet!`);
           }
+        } catch (e) {
+          print(e);
         }
-        // checking created text analyzer is deleted or not
-        if (a.analyzer(analyzerName01) != null) {
-          throw new Error(`${analyzerName01} analyzer isn't deleted yet!`);
-        }
-        if (a.analyzer(analyzerName) != null) {
-          throw new Error(`${analyzerName} analyzer isn't deleted yet!`);
-        }
-      } catch (e) {
-        print(e);
+        progress();
+  
       }
-      progress();
 
+      // declaring all the analyzer's name
+      let delimiter = `delimiter_${dbCount}`;
+      let text = `text_${dbCount}`;
+
+      // deleting delimiter analyzer
+      deleteAnalyzer(delimiter)
+      progress();
+      deleteAnalyzer(text)
+      progress();
+      
       return 0;
     },
   };
