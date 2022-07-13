@@ -1,5 +1,4 @@
 /* global print, semver, progress, createSafe, db */
-/*jslint maxlen: 100*/
 
 (function () {
   const a = require("@arangodb/analyzers");
@@ -12,36 +11,97 @@
 
     makeDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
       // All items created must contain dbCount
+      // documentation link: https://www.arangodb.com/docs/3.7/analyzers.html
+
       print(`making per database data ${dbCount}`);
+      function createAnalyzer(analyzerName, analyzerCreationQuery){
+        // creating analyzer
+        let text = createSafe(analyzerName,
+          function () {
+            return analyzerCreationQuery
+          }, function () {
+            if (a.analyzer(analyzerName) === null) {
+              throw new Error(`${analyzerName} analyzer creation failed!`);
+            }
+          });
+      }
 
-      // creating delimiter analyzer
-      progress("create delimiter analyzer");
-      let analyzerName01 = `delimiter_${dbCount}`;
-      let delimiter = createSafe(analyzerName01,
-        function () {
-          return a.save(`${analyzerName01}`, "delimiter", {delimiter: "-"}, ["frequency", "norm", "position"]);
-        }, function () {
-          if (a.analyzer(analyzerName01) === null) {
-            throw new Error(`${analyzerName01} analyzer creation failed!`);
-          }
-        });
+      //identity analyzer properties
+      let identity = `identity_${dbCount}`;
+      let identityQuery = a.save(`${identity}`, "identity");
 
-      // creating text analyzer
-      progress("create text analyzer");
-      let analyzerName = `text_${dbCount}`;
-      let text = createSafe(analyzerName,
-        function () {
-          return a.save(`${analyzerName}`, "text", {locale: "el.utf-8",
-          stemming: true,
-          case: "lower",
-          accent: false,
-          stopwords: []
-        }, ["frequency", "norm", "position"]);
-        }, function () {
-          if (a.analyzer(analyzerName) === null) {
-            throw new Error(`${analyzerName} analyzer creation failed!`);
-          }
-        });
+      //delimiter analyzer properties
+      let delimiter = `delimiter_${dbCount}`;
+      let delimiterQuery =
+      a.save(`${delimiter}`, "delimiter",
+      {delimiter: "-"}, ["frequency", "norm", "position"]);
+
+      //stem analyzer properties
+      let stem = `stem_${dbCount}`;
+      let stemQuery =
+      a.save(`${stem}`, "stem", {locale: "en.utf-8"}, ["frequency",
+      "norm", "position"]);
+
+      //norm upper analyzer properties
+      let normUpper = `normUpper_${dbCount}`;
+      let normUpperQuery =
+      a.save(`${normUpper}`, "norm", {locale: "en.utf-8", case: "upper"}, ["frequency",
+      "norm", "position"]);
+
+      //norm Accent analyzer properties
+      let normAccent = `normAccent_${dbCount}`;
+      let normAccentQuery =
+      a.save(`${normAccent}`, "norm", {locale: "en.utf-8",accent: false}, ["frequency",
+      "norm", "position"]);
+
+      //n-gram analyzer properties
+      let ngram = `ngram_${dbCount}`;
+      let ngramQuery =
+      a.save(`${ngram}`, "ngram", {min: 3,max: 3,preserveOriginal: false,streamType: "utf8"},
+      ["frequency", "norm", "position"]);
+
+      //n-gram bigram analyzer properties
+      let nBigramMarkers = `nBigramMarkers_${dbCount}`;
+      let nBigramMarkersQuery =
+      a.save(`${nBigramMarkers}`, "ngram", {min: 2, max: 2, preserveOriginal: true, startMarker: "^",
+      endMarker: "$", streamType: "utf8"}, ["frequency", "norm", "position"]);
+
+      //text edge n-gram analyzer properties
+      let textEdgeNgram = `textEdgeNgram_${dbCount}`;
+      let textEdgeNgramQuery =
+      a.save(`${textEdgeNgram}`, "text", {edgeNgram: { min: 3, max: 8, preserveOriginal: true },locale: "en.utf-8", 
+      case: "lower",accent: false,stemming: false,stopwords: [ "the" ]}, ["frequency","norm","position"])
+
+
+      //text analyzer properties
+      let text = `text_${dbCount}`;
+      let textQuery =
+      a.save(`${text}`, "text", {locale: "el.utf-8",
+      stemming: true,
+      case: "lower",
+      accent: false,
+      stopwords: []
+      }, ["frequency", "norm", "position"]);
+
+
+      //creating identity analyzer
+      createAnalyzer(identity, identityQuery)
+      //creating delimiter analyzer
+      createAnalyzer(delimiter, delimiterQuery)
+      //creating stem analyzer
+      createAnalyzer(stem, stemQuery)
+      //creating normUpper analyzer
+      createAnalyzer(normUpper, normUpperQuery)
+      //creating normAccent analyzer
+      createAnalyzer(normAccent, normAccentQuery)
+      //creating ngram analyzer
+      createAnalyzer(ngram, ngramQuery)
+      //creating ngram analyzer
+      createAnalyzer(nBigramMarkers, nBigramMarkersQuery)
+      //creating text analyzer
+      createAnalyzer(text, textQuery)
+      //creating textEdgeNgram analyzer
+      createAnalyzer(textEdgeNgram, textEdgeNgramQuery)
 
       return 0;
     },
@@ -61,7 +121,7 @@
         } else {
           throw new Error(`${analyzer_name} analyzer's type missmatched!`);
         }
-      }
+      };
 
       //This function will check any analyzer's equality with expected server response
       function arraysEqual(a, b) {
@@ -101,12 +161,26 @@
         arraysEqual(expectedResult, queryResult);
 
         progress();
-
       }
+
+      //-------------------------------identity----------------------------------
+
+      let identity = `identity_${dbCount}`;
+      let identityType = "identity";
+      let identityProperties = {};
+      let identityExpectedResult =[
+        [
+          "UPPER lower dïäcríticš"
+        ]
+      ];
+
+      let identityQueryReuslt = db._query(`RETURN TOKENS("UPPER lower dïäcríticš", "${identity}")`).toArray();
+
+      checkAnalyzer(identity, identityType, identityProperties, identityExpectedResult, identityQueryReuslt)
 
       //-------------------------------Delimiter----------------------------------
 
-      let delimiterAnalyzer = `delimiter_${dbCount}`;
+      let delimiter = `delimiter_${dbCount}`;
       let delimiterType = "delimiter";
       let delimiterProperties = {
         "delimiter" : "-"
@@ -119,16 +193,121 @@
         ]
       ];
 
-      let delimiterQueryReuslt = db._query(`RETURN TOKENS("some-delimited-words", "${delimiterAnalyzer}")`).toArray();
+      let delimiterQueryReuslt = db._query(`RETURN TOKENS("some-delimited-words", "${delimiter}")`).toArray();
 
-      checkAnalyzer(delimiterAnalyzer, delimiterType, delimiterProperties, delimiterExpectedResult, delimiterQueryReuslt)
+      checkAnalyzer(delimiter, delimiterType, delimiterProperties, delimiterExpectedResult, delimiterQueryReuslt)
 
-      //-------------------------------Delimiter----------------------------------
+      //-------------------------------stem----------------------------------
 
+      let stem = `stem_${dbCount}`;
+      let stemType = "stem";
+      let stemProperties = {
+        "locale" : "en"
+      };
+      let stemExpectedResult =[
+        [
+          "databas"
+        ]
+      ];
+
+      let stemAnalyzerQueryReuslt = db._query(`RETURN TOKENS("databases", "${stem}")`).toArray();
+
+      checkAnalyzer(stem, stemType, stemProperties, stemExpectedResult, stemAnalyzerQueryReuslt)
+
+      //-------------------------------norm upper----------------------------------
+
+      let normUpper = `normUpper_${dbCount}`;
+      let normType = "norm";
+      let normProperties = {
+        "locale" : "en",
+        "case" : "upper",
+        "accent" : true
+      };
+      let normExpectedResult =[
+        [
+          "UPPER LOWER DÏÄCRÍTICŠ"
+        ]
+      ];
+
+      let normQueryReuslt = db._query(`RETURN TOKENS("UPPER lower dïäcríticš", "${normUpper}")`).toArray();
+
+      checkAnalyzer(normUpper, normType, normProperties, normExpectedResult, normQueryReuslt)
+
+      //-------------------------------norm Accent----------------------------------
+
+      let normAccent = `normAccent_${dbCount}`;
+      let normAccentType = "norm";
+      let normAccentProperties = {
+        "locale" : "en",
+        "case" : "none",
+        "accent" : false
+      };
+      let normAccentExpectedResult =[
+        [
+          "UPPER lower diacritics"
+        ]
+      ];
+
+      let normAccentQueryReuslt = db._query(`RETURN TOKENS("UPPER lower dïäcríticš", "${normAccent}")`).toArray();
+
+      checkAnalyzer(normAccent, normAccentType, normAccentProperties, normAccentExpectedResult, normAccentQueryReuslt)
+
+      //-------------------------------ngram----------------------------------
+
+      let ngram = `ngram_${dbCount}`;
+      let ngramType = "ngram";
+      let ngramProperties = {
+        "min" : 3,
+        "max" : 3,
+        "preserveOriginal" : false,
+        "streamType" : "utf8",
+        "startMarker" : "",
+        "endMarker" : ""
+      };
+      let ngramExpectedResult =[
+        [
+          "foo",
+          "oob",
+          "oba",
+          "bar"
+        ]
+      ];
+
+      let ngramQueryReuslt = db._query(`RETURN TOKENS("foobar", "${ngram}")`).toArray();
+
+      checkAnalyzer(ngram, ngramType, ngramProperties, ngramExpectedResult, ngramQueryReuslt)
+
+      //-------------------------------nBigramMarkers----------------------------------
+
+      let nBigramMarkers = `nBigramMarkers_${dbCount}`;
+      let nBigramMarkersType = "ngram";
+      let nBigramMarkersProperties = {
+        "min" : 2,
+        "max" : 2,
+        "preserveOriginal" : true,
+        "streamType" : "utf8",
+        "startMarker" : "^",
+        "endMarker" : "$"
+      };
+      let nBigramMarkersExpectedResult =[
+        [
+          "^fo",
+          "^foobar",
+          "foobar$",
+          "oo",
+          "ob",
+          "ba",
+          "ar$"
+        ]
+      ];
+
+      let nBigramMarkersQueryReuslt = db._query(`RETURN TOKENS("foobar", "${nBigramMarkers}")`).toArray();
+
+      checkAnalyzer(nBigramMarkers, nBigramMarkersType, nBigramMarkersProperties, nBigramMarkersExpectedResult, nBigramMarkersQueryReuslt)
 
       //---------------------------------text-------------------------------------
 
-      let textAnalyzer = `text_${dbCount}`;
+      let text = `text_${dbCount}`;
       let textType = "text";
       let textProperties = {
         "locale" : "el.utf-8",
@@ -146,9 +325,56 @@
         ]
       ];
 
-      let textQueryReuslt = db._query(`RETURN TOKENS("Crazy fast NoSQL-database!", "${textAnalyzer}")`).toArray();
+      let textQueryReuslt = db._query(`RETURN TOKENS("Crazy fast NoSQL-database!", "${text}")`).toArray();
 
-      //---------------------------------text-------------------------------------
+      checkAnalyzer(text, textType, textProperties, textExpectedResult, textExpectedResult)
+
+      //-------------------------------TextedgeNgram----------------------------------
+
+      let textEdgeNgram = `textEdgeNgram_${dbCount}`;
+      let textEdgeNgramType = "text";
+      let textEdgeNgramProperties = {
+        "locale" : "en",
+        "case" : "lower",
+        "stopwords" : [
+          "the"
+        ],
+        "accent" : false,
+        "stemming" : false,
+        "edgeNgram" : {
+          "min" : 3,
+          "max" : 8,
+          "preserveOriginal" : true
+        }
+      };
+      let textEdgeNgramExpectedResult =[
+        [
+          "qui",
+          "quic",
+          "quick",
+          "bro",
+          "brow",
+          "brown",
+          "fox",
+          "jum",
+          "jump",
+          "jumps",
+          "ove",
+          "over",
+          "dog",
+          "dogw",
+          "dogwi",
+          "dogwit",
+          "dogwith",
+          "dogwitha",
+          "dogwithaverylongname"
+        ]
+      ];
+
+      let textEdgeNgramQueryReuslt = db._query(`RETURN TOKENS("The quick brown fox jumps over the dogWithAVeryLongName",
+      "${textEdgeNgram}")`).toArray();
+
+      checkAnalyzer(textEdgeNgram, textEdgeNgramType, textEdgeNgramProperties, textEdgeNgramExpectedResult, textEdgeNgramExpectedResult)
 
       return 0;
     },
@@ -172,17 +398,37 @@
           print(e);
         }
         progress();
-
       }
 
       // declaring all the analyzer's name
+      let identity = `identity_${dbCount}`;
       let delimiter = `delimiter_${dbCount}`;
+      let stem = `stem_${dbCount}`;
+      let normUpper = `normUpper_${dbCount}`;
+      let normAccent = `normAccent_${dbCount}`;
+      let ngram = `ngram_${dbCount}`;
+      let nBigramMarkers = `nBigramMarkers_${dbCount}`;
       let text = `text_${dbCount}`;
+      let textEdgeNgram = `textEdgeNgram_${dbCount}`;
 
       // deleting delimiter analyzer
+      deleteAnalyzer(identity)
+      progress();
       deleteAnalyzer(delimiter)
       progress();
+      deleteAnalyzer(stem)
+      progress();
+      deleteAnalyzer(normUpper)
+      progress();
+      deleteAnalyzer(normAccent)
+      progress();
+      deleteAnalyzer(nBigramMarkers)
+      progress();
+      deleteAnalyzer(ngram)
+      progress();
       deleteAnalyzer(text)
+      progress();
+      deleteAnalyzer(textEdgeNgram)
       progress();
 
       return 0;
