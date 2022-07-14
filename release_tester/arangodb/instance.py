@@ -151,9 +151,12 @@ class Instance(ABC):
         self.instance_arguments = []
         with self.instance_control_file.open(errors="backslashreplace") as filedesc:
             for line in filedesc.readlines():
+                if line.startswith("#"):
+                    continue
                 line = line.rstrip().rstrip(" \\")
-                self.analyze_starter_file_line(line)
-                self.instance_arguments.append(line)
+                if len(line) > 0:
+                    self.analyze_starter_file_line(line)
+                    self.instance_arguments.append(line)
 
     def launch_manual_from_instance_control_file(
         self, sbin_dir, old_install_prefix, new_install_prefix, moreargs, waitpid=True
