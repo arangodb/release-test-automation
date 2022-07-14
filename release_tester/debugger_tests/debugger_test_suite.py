@@ -50,7 +50,7 @@ class DebuggerTestSuite(BaseTestSuite):
     CDB_PROMPT = re.compile(r"^\d{1,3}:\d{1,3}>", re.MULTILINE)
 
     def __init__(self, versions: list, base_config: InstallerBaseConfig, **kwargs):
-        run_props = kwargs["run_props"]
+        self.run_props = kwargs["run_props"]
         if len(versions) > 1:
             self.new_version = versions[1]
         else:
@@ -59,10 +59,10 @@ class DebuggerTestSuite(BaseTestSuite):
         self.auto_generate_parent_test_suite_name = False
         self.use_subsuite = False
         self.installer_set = create_config_installer_set(
-            versions=[self.new_version], base_config=self.base_cfg, deployment_mode="all", run_properties=run_props
+            versions=[self.new_version], base_config=self.base_cfg, deployment_mode="all", run_properties=self.run_props
         )
         self.installer = self.installer_set[0][1]
-        ent = "Enterprise" if run_props.enterprise else "Community"
+        ent = "Enterprise" if self.run_props.enterprise else "Community"
         self.suite_name = (
             f"Debug symbols test suite: ArangoDB v. {str(self.new_version)} ({ent}) ({self.installer.installer_type})"
         )
@@ -70,6 +70,9 @@ class DebuggerTestSuite(BaseTestSuite):
 
     def is_zip(self):
         return self.base_cfg.zip_package
+
+    def is_community(self):
+        return not self.run_props.enterprise
 
     @run_before_suite
     def create_test_dirs(self):
@@ -152,23 +155,11 @@ class DebuggerTestSuite(BaseTestSuite):
     @disable_for_tar_gz_packages
     @testcase
     def test_debug_symbols_linux(self):
-        """Check that debug symbols can be used to debug arangod executable (Linux)"""
+        """Debug arangod executable (Linux)"""
         self.installer.debugger_test()
 
-    @windows_only
-    @parameters([{"executable": "arangoexport"},
-                 {"executable": "arangosh"},
-                 {"executable": "arangoimport"},
-                 {"executable": "arangodump"},
-                 {"executable": "arangorestore"},
-                 {"executable": "arangobench"},
-                 {"executable": "arangovpack"},
-                 {"executable": "arangod"},
-                 ])
-    @testcase("Check that debug symbols can be used to debug {executable} executable using a memory dump file (Windows)")
     def test_debug_symbols_windows(self, executable):
         """Check that debug symbols can be used to debug arango executable using a memory dump file (Windows)"""
-        raise Exception("DEBUG")
         exe_file = [str(file.path) for file in self.installer.arango_binaries if file.path.name == executable + ".exe"][0]
         dump_file = create_dump_for_exe(exe_file, DebuggerTestSuite.DUMP_FILES_DIR)
         pdb_dir = str(self.installer.cfg.debug_install_prefix)
@@ -185,10 +176,33 @@ class DebuggerTestSuite(BaseTestSuite):
             assert f"{executable}!main" in stack, "Stack must contain real function names."
             assert f"{executable}.cpp" in stack, "Stack must contain real source file names."
 
+    test_debug_symbols_windows_community = test_debug_symbols_windows
+
+    @parameters([{"executable": "arangoexport"},
+                 {"executable": "arangosh"},
+                 {"executable": "arangoimport"},
+                 {"executable": "arangodump"},
+                 {"executable": "arangorestore"},
+                 {"executable": "arangobench"},
+                 {"executable": "arangovpack"},
+                 {"executable": "arangod"},
+                 ])
+    @windows_only
+    @testcase("Debug {executable} executable using a memory dump file (Windows)")
+    def test_debug_symbols_windows_community(self, executable):
+        self.test_debug_symbols_windows(executable)
+
+    @parameters([{"executable": "arangobackup"}])
+    @disable_if_returns_true_at_runtime(is_community, "This testcase is not applicable to community packages.")
+    @windows_only
+    @testcase("Debug {executable} executable using a memory dump file (Windows)")
+    def test_debug_symbols_windows_enterprise(self, executable):
+        self.test_debug_symbols_windows(executable)
+
     @windows_only
     @testcase
     def test_debug_symbols_attach_to_process_windows(self):
-        """Check that debug symbols can be used to debug arangod executable by attaching debugger to a running process (Windows)"""
+        """Debug arangod executable by attaching debugger to a running process (Windows)"""
         starter = StarterManager(
             basecfg=self.installer.cfg,
             install_prefix=Path(DebuggerTestSuite.STARTER_DIR),
@@ -224,12 +238,11 @@ class DebuggerTestSuite(BaseTestSuite):
     @windows_only
     @testcase
     def test_debug_symbols_symsrv_windows(self):
-        """Check that debug symbols can be uploaded to symbol server and then used to debug arangod executable (Windows)"""
+        """Debug arangod executable using symbol server (Windows)"""
         symsrv_dir = str(DebuggerTestSuite.SYMSRV_DIR)
         store(str(self.installer.cfg.debug_install_prefix / "arangod.pdb"), symsrv_dir)
-        dump_file = create_arangod_dump(
-            self.installer, str(DebuggerTestSuite.STARTER_DIR), str(DebuggerTestSuite.DUMP_FILES_DIR)
-        )
+        exe_file = [str(file.path) for file in self.installer.arango_binaries if file.path.name == "arangod.exe"][0]
+        dump_file = create_dump_for_exe(exe_file, DebuggerTestSuite.DUMP_FILES_DIR)
         with step("Check that stack trace with function names and line numbers can be acquired from cdb"):
             cmd = " ".join(
                 [
