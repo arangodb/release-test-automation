@@ -392,10 +392,7 @@ def testcase(title=None):
     """base testcase class decorator"""
 
     def resolve_params_in_name(name: str, params: dict):
-        placeholder_regex = re.compile(r"(?P<placeholder>\$(?P<param_name>\w*)\$)")
-        for match in placeholder_regex.finditer(name):
-            name = name.replace(match.group("placeholder"), params[match.group("param_name")])
-        return name
+        return name.format(**params)
 
     def decorator(func):
         def wrapper(self, *args, **kwargs):

@@ -89,12 +89,12 @@ def create_arangosh_dump(installer, dump_file_dir: str):
 
 
 def create_dump_for_exe(exe_file: str, dump_file_dir: str):
-    """run given executable and create a memory dump at any point of execution"""
+    """run given executable with \"-?\" command line parameter and create a memory dump when it terminates"""
     exe_file = Path(exe_file)
     exe_name = exe_file.name
     with step(f"Create a memory dump of the program: {exe_name}"):
         dump_filename = None
-        cmd = ["procdump", "-ma", "-t", "-x", dump_file_dir, str(exe_file)]
+        cmd = ["procdump", "-ma", "-t", "-x", dump_file_dir, str(exe_file), "-?"]
         lh.log_cmd(cmd)
         with psutil.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
             (procdump_out, procdump_err) = proc.communicate()

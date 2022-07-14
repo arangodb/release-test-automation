@@ -135,7 +135,7 @@ class DebuggerTestSuite(BaseTestSuite):
                 self.installer.cfg.debug_install_prefix,
             )
             attach.file(archive, "Debug package installation directory", "application/x-tar", "tgz")
-        if self.installer.cfg.server_install_prefix.exists():
+        if self.installer.cfg.install_prefix.exists():
             archive = shutil.make_archive(
                 "server_package_installation_dir",
                 "gztar",
@@ -156,51 +156,20 @@ class DebuggerTestSuite(BaseTestSuite):
         self.installer.debugger_test()
 
     @windows_only
-    @testcase
-    def test_arangod_debug_symbols_windows(self):
-        """Check that debug symbols can be used to debug arangod executable using a memory dump file (Windows)"""
-        dump_file = create_arangod_dump(self.installer, DebuggerTestSuite.STARTER_DIR, DebuggerTestSuite.DUMP_FILES_DIR)
-        pdb_dir = str(self.installer.cfg.debug_install_prefix)
-        with step("Check that stack trace with function names and line numbers can be acquired from cdb"):
-            cmd = " ".join(["cdb", "-z", dump_file, "-y", pdb_dir, "-lines", "-n"])
-            attach(cmd, "CDB command", attachment_type=AttachmentType.TEXT)
-            cdb = wexpect.spawn(cmd)
-            cdb.expect(DebuggerTestSuite.CDB_PROMPT, timeout=180)
-            cdb.sendline("k")
-            cdb.expect(DebuggerTestSuite.CDB_PROMPT, timeout=180)
-            stack = cdb.before
-            cdb.sendline("q")
-            attach(stack, "Stacktrace from cdb output", attachment_type=AttachmentType.TEXT)
-            assert "arangod!main" in stack, "Stack must contain real function names."
-            assert "arangod.cpp" in stack, "Stack must contain real source file names."
-
-    @windows_only
-    @testcase
-    def test_arangosh_debug_symbols_windows(self):
-        """Check that debug symbols can be used to debug arangosh executable using a memory dump file (Windows)"""
-        dump_file = create_arangosh_dump(self.installer, DebuggerTestSuite.DUMP_FILES_DIR)
-        pdb_dir = str(self.installer.cfg.debug_install_prefix)
-        with step("Check that stack trace with function names and line numbers can be acquired from cdb"):
-            cmd = " ".join(["cdb", "-z", dump_file, "-y", pdb_dir, "-lines", "-n"])
-            attach(cmd, "CDB command", attachment_type=AttachmentType.TEXT)
-            cdb = wexpect.spawn(cmd)
-            cdb.expect(DebuggerTestSuite.CDB_PROMPT, timeout=180)
-            cdb.sendline("k")
-            cdb.expect(DebuggerTestSuite.CDB_PROMPT, timeout=180)
-            stack = cdb.before
-            cdb.sendline("q")
-            attach(stack, "Stacktrace from cdb output", attachment_type=AttachmentType.TEXT)
-            assert "arangosh!main" in stack, "Stack must contain real function names."
-            assert "arangosh.cpp" in stack, "Stack must contain real source file names."
-
-    @windows_only
-    @parameters([{"executable": "arangoexport"}, {"executable": "arangovpack"}])
-    @testcase(
-        "Check that debug symbols can be used to debug $executable$ executable using a memory dump file (Windows)"
-    )
+    @parameters([{"executable": "arangoexport"},
+                 {"executable": "arangosh"},
+                 {"executable": "arangoimport"},
+                 {"executable": "arangodump"},
+                 {"executable": "arangorestore"},
+                 {"executable": "arangobench"},
+                 {"executable": "arangovpack"},
+                 {"executable": "arangod"},
+                 ])
+    @testcase("Check that debug symbols can be used to debug {executable} executable using a memory dump file (Windows)")
     def test_debug_symbols_windows(self, executable):
         """Check that debug symbols can be used to debug arango executable using a memory dump file (Windows)"""
-        exe_file = [str(f.path) for f in self.installer.arango_binaries if f.path.name == executable + ".exe"][0]
+        raise Exception("DEBUG")
+        exe_file = [str(file.path) for file in self.installer.arango_binaries if file.path.name == executable + ".exe"][0]
         dump_file = create_dump_for_exe(exe_file, DebuggerTestSuite.DUMP_FILES_DIR)
         pdb_dir = str(self.installer.cfg.debug_install_prefix)
         with step("Check that stack trace with function names and line numbers can be acquired from cdb"):
