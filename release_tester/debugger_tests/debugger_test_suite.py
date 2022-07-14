@@ -122,6 +122,26 @@ class DebuggerTestSuite(BaseTestSuite):
     def teardown_suite(self):
         """Teardown suite environment: Debug symbols test suite"""
         kill_all_processes()
+        # If there are failed test cases, save the contents of the installation directories.
+        # This must be done not more than once per suite run to save space,
+        # therefore it shouldn't be done in a @collect_crash_data method.
+        if self.there_are_failed_tests():
+            if self.installer.cfg.debug_install_prefix.exists():
+                archive = shutil.make_archive(
+                    "debug_package_installation_dir",
+                    "gztar",
+                    self.installer.cfg.debug_install_prefix,
+                    self.installer.cfg.debug_install_prefix,
+                )
+                attach.file(archive, "Debug package installation directory", "application/x-tar", "tgz")
+            if self.installer.cfg.install_prefix.exists():
+                archive = shutil.make_archive(
+                    "server_package_installation_dir",
+                    "gztar",
+                    self.installer.cfg.install_prefix,
+                    self.installer.cfg.install_prefix,
+                )
+                attach.file(archive, "Server package installation directory", "application/x-tar", "tgz")
 
     @collect_crash_data
     def save_test_data(self):
@@ -130,22 +150,6 @@ class DebuggerTestSuite(BaseTestSuite):
         if test_dir.exists():
             archive = shutil.make_archive("debug_symbols_test_dir", "gztar", test_dir, test_dir)
             attach.file(archive, "Debug symbols test suite directory", "application/x-tar", "tgz")
-        if self.installer.cfg.debug_install_prefix.exists():
-            archive = shutil.make_archive(
-                "debug_package_installation_dir",
-                "gztar",
-                self.installer.cfg.debug_install_prefix,
-                self.installer.cfg.debug_install_prefix,
-            )
-            attach.file(archive, "Debug package installation directory", "application/x-tar", "tgz")
-        if self.installer.cfg.install_prefix.exists():
-            archive = shutil.make_archive(
-                "server_package_installation_dir",
-                "gztar",
-                self.installer.cfg.install_prefix,
-                self.installer.cfg.install_prefix,
-            )
-            attach.file(archive, "Server package installation directory", "application/x-tar", "tgz")
 
     disable_for_tar_gz_packages = disable_if_returns_true_at_runtime(
         is_zip, "This test case is not applicable for .tar.gz packages"
