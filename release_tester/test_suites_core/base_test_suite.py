@@ -2,6 +2,7 @@
 """ base class for all testsuites """
 
 import platform
+import re
 import sys
 import traceback
 from uuid import uuid4
@@ -122,7 +123,7 @@ class BaseTestSuite(metaclass=MetaTestSuite):
         testcases = [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "is_testcase")]
         results = []
         for one_testcase in testcases:
-            results.append(one_testcase(self, suite_is_broken=suite_is_broken))
+            results.extend(one_testcase(self, suite_is_broken=suite_is_broken))
         return results
 
     def has_own_testcases(self):
@@ -376,16 +377,22 @@ linux_only = disable_if_true(not os_is_linux(), reason="This testcase must run o
 windows_only = disable_if_true(not os_is_win(), reason="This testcase must run only on Windows.")
 
 
+def parameters(params):
+    def wrapper(func):
+        if not (func.is_testcase and callable(func)):
+            raise Exception('The "parameters" decorator can only be applied to a testcase function!')
+        func.is_parametrized = True
+        func.parameters = params
+        return func
+
+    return wrapper
+
+
 def testcase(title=None):
     """base testcase class decorator"""
 
-    def sanitize_kwargs_for_testcase(kwargs_dict):
-        dict = kwargs_dict.copy()
-        args_to_delete = ["suite_is_broken"]
-        for arg in args_to_delete:
-            if arg in dict:
-                del dict[arg]
-        return dict
+    def resolve_params_in_name(name: str, params: dict):
+        return name.format(**params)
 
     def decorator(func):
         def wrapper(self, *args, **kwargs):
@@ -412,48 +419,54 @@ def testcase(title=None):
                     wrapper.is_disabled = True
                     if reason:
                         wrapper.disable_reasons.append(reason)
-            with RtaTestcase(name) as my_testcase:
-                if wrapper.is_disabled:
-                    test_result = RtaTestResult(True, name, "test is skipped", None)
-                    my_testcase.context.status = Status.SKIPPED
-                    if len(wrapper.disable_reasons) > 0:
-                        message = "\n".join(wrapper.disable_reasons)
-                        my_testcase.context.statusDetails = StatusDetails(message=message)
-                elif kwargs["suite_is_broken"]:
-                    test_result = RtaTestResult(False, name, "test suite is broken", None)
-                    my_testcase.context.status = Status.BROKEN
-                else:
-                    try:
-                        self.setup_testcase()
-                        print('Running test case "%s"...' % name)
-                        func(*args, **sanitize_kwargs_for_testcase(kwargs))
-                        success = True
-                        print('Test case "%s" passed!' % name)
-                        my_testcase.context.status = Status.PASSED
-                    except Exception as ex:
-                        success = False
-                        print("Test failed!")
-                        message = str(ex)
-                        traceback_instance = "".join(traceback.TracebackException.from_exception(ex).format())
-                        print(message)
-                        print(traceback_instance)
+            test_results = []
+            for test_params in wrapper.parameters:
+                parametrized_testcase_name = resolve_params_in_name(name, test_params)
+                with RtaTestcase(parametrized_testcase_name) as my_testcase:
+                    if wrapper.is_disabled:
+                        test_result = RtaTestResult(True, parametrized_testcase_name, "test is skipped", None)
+                        my_testcase.context.status = Status.SKIPPED
+                        if len(wrapper.disable_reasons) > 0:
+                            message = "\n".join(wrapper.disable_reasons)
+                            my_testcase.context.statusDetails = StatusDetails(message=message)
+                    elif kwargs["suite_is_broken"]:
+                        test_result = RtaTestResult(False, parametrized_testcase_name, "test suite is broken", None)
+                        my_testcase.context.status = Status.BROKEN
+                    else:
                         try:
-                            self.add_crash_data_to_report()
-                        except:
-                            pass
-                        my_testcase.context.status = Status.FAILED
-                        my_testcase.context.statusDetails = StatusDetails(message=message, trace=traceback_instance)
-                    finally:
-                        try:
-                            self.teardown_testcase()
-                        except:
-                            pass
-                    test_result = RtaTestResult(success, name, message, traceback_instance)
-                return test_result
+                            self.setup_testcase()
+                            print('Running test case "%s"...' % parametrized_testcase_name)
+                            func(*args, **test_params)
+                            success = True
+                            print('Test case "%s" passed!' % parametrized_testcase_name)
+                            my_testcase.context.status = Status.PASSED
+                        except Exception as ex:
+                            success = False
+                            print("Test failed!")
+                            message = str(ex)
+                            traceback_instance = "".join(traceback.TracebackException.from_exception(ex).format())
+                            print(message)
+                            print(traceback_instance)
+                            try:
+                                self.add_crash_data_to_report()
+                            except:
+                                pass
+                            my_testcase.context.status = Status.FAILED
+                            my_testcase.context.statusDetails = StatusDetails(message=message, trace=traceback_instance)
+                        finally:
+                            try:
+                                self.teardown_testcase()
+                            except:
+                                pass
+                        test_result = RtaTestResult(success, parametrized_testcase_name, message, traceback_instance)
+                    test_results.append(test_result)
+            return test_results
 
         wrapper.is_testcase = True
         wrapper.is_disabled = False
         wrapper.disable_reasons = []
+        wrapper.is_parametrized = False
+        wrapper.parameters = [{}]
 
         # This list must contain pairs of functions and corresponding reasons.
         # The function must take one argument(the test suite object) and return a boolean value.

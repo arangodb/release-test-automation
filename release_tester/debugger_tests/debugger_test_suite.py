@@ -12,7 +12,7 @@ from allure_commons.types import AttachmentType
 from arangodb.installers import InstallerBaseConfig, create_config_installer_set
 from arangodb.instance import InstanceType
 from arangodb.starter.manager import StarterManager
-from debugger_tests.debug_test_steps import create_arangod_dump, store, create_arangosh_dump
+from debugger_tests.debug_test_steps import create_dump_for_exe, create_arangod_dump, create_arangosh_dump, store
 from reporting.reporting_utils import step
 from test_suites_core.base_test_suite import (
     testcase,
@@ -24,6 +24,7 @@ from test_suites_core.base_test_suite import (
     run_after_each_testcase,
     windows_only,
     collect_crash_data,
+    parameters,
     disable,
 )
 from tools.killall import kill_all_processes
@@ -49,7 +50,7 @@ class DebuggerTestSuite(BaseTestSuite):
     CDB_PROMPT = re.compile(r"^\d{1,3}:\d{1,3}>", re.MULTILINE)
 
     def __init__(self, versions: list, base_config: InstallerBaseConfig, **kwargs):
-        run_props = kwargs["run_props"]
+        self.run_props = kwargs["run_props"]
         if len(versions) > 1:
             self.new_version = versions[1]
         else:
@@ -58,10 +59,10 @@ class DebuggerTestSuite(BaseTestSuite):
         self.auto_generate_parent_test_suite_name = False
         self.use_subsuite = False
         self.installer_set = create_config_installer_set(
-            versions=[self.new_version], base_config=self.base_cfg, deployment_mode="all", run_properties=run_props
+            versions=[self.new_version], base_config=self.base_cfg, deployment_mode="all", run_properties=self.run_props
         )
         self.installer = self.installer_set[0][1]
-        ent = "Enterprise" if run_props.enterprise else "Community"
+        ent = "Enterprise" if self.run_props.enterprise else "Community"
         self.suite_name = (
             f"Debug symbols test suite: ArangoDB v. {str(self.new_version)} ({ent}) ({self.installer.installer_type})"
         )
@@ -69,6 +70,9 @@ class DebuggerTestSuite(BaseTestSuite):
 
     def is_zip(self):
         return self.base_cfg.zip_package
+
+    def is_community(self):
+        return not self.run_props.enterprise
 
     @run_before_suite
     def create_test_dirs(self):
@@ -118,6 +122,26 @@ class DebuggerTestSuite(BaseTestSuite):
     def teardown_suite(self):
         """Teardown suite environment: Debug symbols test suite"""
         kill_all_processes()
+        # If there are failed test cases, save the contents of the installation directories.
+        # This must be done not more than once per suite run to save space,
+        # therefore it shouldn't be done in a @collect_crash_data method.
+        if self.there_are_failed_tests():
+            if self.installer.cfg.debug_install_prefix.exists():
+                archive = shutil.make_archive(
+                    "debug_package_installation_dir",
+                    "gztar",
+                    self.installer.cfg.debug_install_prefix,
+                    self.installer.cfg.debug_install_prefix,
+                )
+                attach.file(archive, "Debug package installation directory", "application/x-tar", "tgz")
+            if self.installer.cfg.install_prefix.exists():
+                archive = shutil.make_archive(
+                    "server_package_installation_dir",
+                    "gztar",
+                    self.installer.cfg.install_prefix,
+                    self.installer.cfg.install_prefix,
+                )
+                attach.file(archive, "Server package installation directory", "application/x-tar", "tgz")
 
     @collect_crash_data
     def save_test_data(self):
@@ -126,12 +150,6 @@ class DebuggerTestSuite(BaseTestSuite):
         if test_dir.exists():
             archive = shutil.make_archive("debug_symbols_test_dir", "gztar", test_dir, test_dir)
             attach.file(archive, "Debug symbols test suite directory", "application/x-tar", "tgz")
-        if self.installer.cfg.debug_install_prefix.exists():
-            archive = shutil.make_archive("debug_package_installation_dir", "gztar", self.installer.cfg.debug_install_prefix, self.installer.cfg.debug_install_prefix)
-            attach.file(archive, "Debug package installation directory", "application/x-tar", "tgz")
-        if self.installer.cfg.server_install_prefix.exists():
-            archive = shutil.make_archive("server_package_installation_dir", "gztar", self.installer.cfg.install_prefix, self.installer.cfg.install_prefix)
-            attach.file(archive, "Server package installation directory", "application/x-tar", "tgz")
 
     disable_for_tar_gz_packages = disable_if_returns_true_at_runtime(
         is_zip, "This test case is not applicable for .tar.gz packages"
@@ -141,14 +159,13 @@ class DebuggerTestSuite(BaseTestSuite):
     @disable_for_tar_gz_packages
     @testcase
     def test_debug_symbols_linux(self):
-        """Check that debug symbols can be used to debug arangod executable (Linux)"""
+        """Debug arangod executable (Linux)"""
         self.installer.debugger_test()
 
-    @windows_only
-    @testcase
-    def test_arangod_debug_symbols_windows(self):
-        """Check that debug symbols can be used to debug arangod executable using a memory dump file (Windows)"""
-        dump_file = create_arangod_dump(self.installer, DebuggerTestSuite.STARTER_DIR, DebuggerTestSuite.DUMP_FILES_DIR)
+    def test_debug_symbols_windows(self, executable):
+        """Check that debug symbols can be used to debug arango executable using a memory dump file (Windows)"""
+        exe_file = [str(file.path) for file in self.installer.arango_binaries if file.path.name == executable + ".exe"][0]
+        dump_file = create_dump_for_exe(exe_file, DebuggerTestSuite.DUMP_FILES_DIR)
         pdb_dir = str(self.installer.cfg.debug_install_prefix)
         with step("Check that stack trace with function names and line numbers can be acquired from cdb"):
             cmd = " ".join(["cdb", "-z", dump_file, "-y", pdb_dir, "-lines", "-n"])
@@ -160,32 +177,36 @@ class DebuggerTestSuite(BaseTestSuite):
             stack = cdb.before
             cdb.sendline("q")
             attach(stack, "Stacktrace from cdb output", attachment_type=AttachmentType.TEXT)
-            assert "arangod!main" in stack, "Stack must contain real function names."
-            assert "arangod.cpp" in stack, "Stack must contain real source file names."
+            assert f"{executable}!main" in stack, "Stack must contain real function names."
+            assert f"{executable}.cpp" in stack, "Stack must contain real source file names."
 
+    test_debug_symbols_windows_community = test_debug_symbols_windows
+
+    @parameters([{"executable": "arangoexport"},
+                 {"executable": "arangosh"},
+                 {"executable": "arangoimport"},
+                 {"executable": "arangodump"},
+                 {"executable": "arangorestore"},
+                 {"executable": "arangobench"},
+                 {"executable": "arangovpack"},
+                 {"executable": "arangod"},
+                 ])
     @windows_only
-    @testcase
-    def test_arangosh_debug_symbols_windows(self):
-        """Check that debug symbols can be used to debug arangosh executable using a memory dump file (Windows)"""
-        dump_file = create_arangosh_dump(self.installer, DebuggerTestSuite.DUMP_FILES_DIR)
-        pdb_dir = str(self.installer.cfg.debug_install_prefix)
-        with step("Check that stack trace with function names and line numbers can be acquired from cdb"):
-            cmd = " ".join(["cdb", "-z", dump_file, "-y", pdb_dir, "-lines", "-n"])
-            attach(cmd, "CDB command", attachment_type=AttachmentType.TEXT)
-            cdb = wexpect.spawn(cmd)
-            cdb.expect(DebuggerTestSuite.CDB_PROMPT, timeout=180)
-            cdb.sendline("k")
-            cdb.expect(DebuggerTestSuite.CDB_PROMPT, timeout=180)
-            stack = cdb.before
-            cdb.sendline("q")
-            attach(stack, "Stacktrace from cdb output", attachment_type=AttachmentType.TEXT)
-            assert "arangosh!main" in stack, "Stack must contain real function names."
-            assert "arangosh.cpp" in stack, "Stack must contain real source file names."
+    @testcase("Debug {executable} executable using a memory dump file (Windows)")
+    def test_debug_symbols_windows_community(self, executable):
+        self.test_debug_symbols_windows(executable)
+
+    @parameters([{"executable": "arangobackup"}])
+    @disable_if_returns_true_at_runtime(is_community, "This testcase is not applicable to community packages.")
+    @windows_only
+    @testcase("Debug {executable} executable using a memory dump file (Windows)")
+    def test_debug_symbols_windows_enterprise(self, executable):
+        self.test_debug_symbols_windows(executable)
 
     @windows_only
     @testcase
     def test_debug_symbols_attach_to_process_windows(self):
-        """Check that debug symbols can be used to debug arangod executable by attaching debugger to a running process (Windows)"""
+        """Debug arangod executable by attaching debugger to a running process (Windows)"""
         starter = StarterManager(
             basecfg=self.installer.cfg,
             install_prefix=Path(DebuggerTestSuite.STARTER_DIR),
@@ -221,12 +242,11 @@ class DebuggerTestSuite(BaseTestSuite):
     @windows_only
     @testcase
     def test_debug_symbols_symsrv_windows(self):
-        """Check that debug symbols can be uploaded to symbol server and then used to debug arangod executable (Windows)"""
+        """Debug arangod executable using symbol server (Windows)"""
         symsrv_dir = str(DebuggerTestSuite.SYMSRV_DIR)
         store(str(self.installer.cfg.debug_install_prefix / "arangod.pdb"), symsrv_dir)
-        dump_file = create_arangod_dump(
-            self.installer, str(DebuggerTestSuite.STARTER_DIR), str(DebuggerTestSuite.DUMP_FILES_DIR)
-        )
+        exe_file = [str(file.path) for file in self.installer.arango_binaries if file.path.name == "arangod.exe"][0]
+        dump_file = create_dump_for_exe(exe_file, DebuggerTestSuite.DUMP_FILES_DIR)
         with step("Check that stack trace with function names and line numbers can be acquired from cdb"):
             cmd = " ".join(
                 [
