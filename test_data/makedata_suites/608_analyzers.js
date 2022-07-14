@@ -56,13 +56,19 @@
       max: 2, preserveOriginal: false, streamType: "utf8" } }] }, ["frequency", "norm", "position"]);
 
       //delimiterPipeline analyzer properties
-      //Split at delimiting characters , and ;, then stem the tokens:
+      //Split at delimiting characters , and ;, then stem the tokens.
       let delimiterPipeline = `delimiterPipeline_${dbCount}`;
       let delimiterPipelineQuery = a.save(`${delimiterPipeline}`, "pipeline",
       { pipeline: [{ type: "delimiter", properties: { delimiter: "," } },
       { type: "delimiter", properties: { delimiter: ";" } },
       { type: "stem", properties: { locale: "en.utf-8" } }] },
       ["frequency", "norm", "position"]);
+
+      //stopwords analyzer properties
+      //Create and use a stopword Analyzer that removes the tokens `and` and `the`
+      let stopwords = `stopwords_${dbCount}`;
+      let stopwordsQuery = a.save(`${stopwords}`, "stopwords", {stopwords: ["616e64","746865"],
+      hex: true}, ["frequency", "norm", "position"]);
 
       //creating aqlSoundex analyzer
       createAnalyzer(aqlSoundex, aqlSoundexQuery)
@@ -72,8 +78,11 @@
       createAnalyzer(aqlFilter, aqlFilterQuery)
       //creating nGramPipeline analyzer
       createAnalyzer(nGramPipeline, nGramPipelineQuery)
-      //creating nGramPipeline analyzer
+      //creating delimiterPipeline analyzer
       createAnalyzer(delimiterPipeline, delimiterPipelineQuery)
+      //creating stopwords analyzer
+      createAnalyzer(stopwords, stopwordsQuery)
+      
 
       return 0;
     },
@@ -300,6 +309,29 @@
 
       checkAnalyzer(delimiterPipeline, delimiterPipelineType, delimiterPipelineProperties, delimiterPipelineExpectedResult, delimiterPipelineQueryReuslt)
 
+      //-------------------------------stopwords----------------------------------
+
+      let stopwords = `stopwords_${dbCount}`;
+      let stopwordsType = "stopwords";
+      let stopwordsProperties = {
+        "stopwords" : [
+          "616e64",
+          "746865"
+        ],
+        "hex" : true
+      };
+      let stopwordsExpectedResult =[
+        [
+          "fox",
+          "dog",
+          "a",
+          "theater"
+        ]
+      ];
+
+      let stopwordsQueryReuslt = db._query(`RETURN FLATTEN(TOKENS(SPLIT('the fox and the dog and a theater', ' '), "${stopwords}"))`);
+
+      checkAnalyzer(stopwords, stopwordsType, stopwordsProperties, stopwordsExpectedResult, stopwordsQueryReuslt)
 
       return 0;
 
@@ -332,6 +364,7 @@
       let aqlFilter = `aqlFilter_${dbCount}`;
       let nGramPipeline = `nGramPipeline_${dbCount}`;
       let delimiterPipeline = `delimiterPipeline_${dbCount}`;
+      let stopwords = `stopwords_${dbCount}`;
       
       // deleting aqlSoundex analyzer
       deleteAnalyzer(aqlSoundex)
@@ -343,6 +376,8 @@
       deleteAnalyzer(nGramPipeline)
       // deleting delimiterPipeline analyzer
       deleteAnalyzer(delimiterPipeline)
+      // deleting stopwords analyzer
+      deleteAnalyzer(stopwords)
 
       return 0;
     }
