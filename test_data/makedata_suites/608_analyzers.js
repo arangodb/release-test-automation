@@ -32,7 +32,7 @@
       let aqlSoundexQuery = a.save(`${aqlSoundex}`, "aql", { queryString: "RETURN SOUNDEX(@param)" },["frequency", "norm", "position"]);
 
       //aqlConcat analyzer properties
-      //Concatenating Analyzer for conditionally adding a custom prefix or suffix:
+      //Concatenating Analyzer for conditionally adding a custom prefix or suffix
       let aqlConcat = `aqlConcat_${dbCount}`;
       let aqlConcatQuery = a.save(`${aqlConcat}`, "aql", { queryString: "RETURN LOWER(LEFT(@param, 5)) == 'inter' ? CONCAT(@param, 'ism') : CONCAT('inter', @param)"}, ["frequency", "norm", "position"]);
 
@@ -72,9 +72,9 @@
       let stopwordsQuery = a.save(`${stopwords}`, "stopwords", {stopwords: ["616e64","746865"],
       hex: true}, ["frequency", "norm", "position"]);
 
-      //stopwords analyzer properties
+      //stopwordsPipeline analyzer properties
       //Create and use an Analyzer pipeline that normalizes the input (convert to lower-case and base characters)
-      //and then discards the stopwords and and the
+      //and then discards the stopwords 'and' and 'the'
       let stopwordsPipeline = `stopwordsPipeline_${dbCount}`;
       let stopwordsPipelineQuery = a.save(`${stopwordsPipeline}`, "pipeline",
       { "pipeline": [{ type: "norm", properties: { locale: "en.utf-8", accent: false, case: "lower" } },
