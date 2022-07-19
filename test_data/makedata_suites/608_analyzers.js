@@ -1,5 +1,4 @@
 /* global print, semver, progress, createSafe, db */
-/*jslint maxlen: 130 */
 
 (function () {
   const a = require("@arangodb/analyzers");
@@ -36,16 +35,19 @@
       //Concatenating Analyzer for conditionally adding a custom prefix or suffix:
       let aqlConcat = `aqlConcat_${dbCount}`;
       let aqlConcatQuery = a.save(`${aqlConcat}`, "aql", { queryString: "RETURN LOWER(LEFT(@param, 5)) == 'inter' ? CONCAT(@param, 'ism') : CONCAT('inter', @param)"}, ["frequency", "norm", "position"]);
-      
+
       //aqlFilter analyzer properties
       //Filtering Analyzer that discards unwanted data based on the prefix "ir"
       let aqlFilter = `aqlFilter_${dbCount}`;
-      let aqlFilterQuery = a.save(`${aqlFilter}`, "aql", 
+      let aqlView = `aqlView_${dbCount}`;
+      let aqlcol = `aqlcol_${dbCount}`;
+
+      let aqlFilterQuery = a.save(`${aqlFilter}`, "aql",
       { queryString:"FILTER LOWER(LEFT(@param, 2)) != 'ir' RETURN @param"},
       ["frequency", "norm", "position"]); var coll = db._create("coll");
       var doc1 = db.coll.save({ value: "regular" });
       var doc2 = db.coll.save({ value: "irregular" });
-      var view = db._createView("view", "arangosearch", 
+      var view = db._createView(`${aqlView}`, "arangosearch",
       { links: { coll: { fields: { value: { analyzers: [`${aqlFilter}`] }}}}})
 
       //nGramPipeline analyzer properties
@@ -70,6 +72,42 @@
       let stopwordsQuery = a.save(`${stopwords}`, "stopwords", {stopwords: ["616e64","746865"],
       hex: true}, ["frequency", "norm", "position"]);
 
+      //stopwords analyzer properties
+      //Create and use an Analyzer pipeline that normalizes the input (convert to lower-case and base characters)
+      //and then discards the stopwords and and the
+      let stopwordsPipeline = `stopwordsPipeline_${dbCount}`;
+      let stopwordsPipelineQuery = a.save(`${stopwordsPipeline}`, "pipeline",
+      { "pipeline": [{ type: "norm", properties: { locale: "en.utf-8", accent: false, case: "lower" } },
+      { type: "stopwords", properties: { stopwords: ["and","the"], hex: false } },]},
+      ["frequency", "norm", "position"]);
+
+      //geoJson analyzer properties
+      //Create a collection with GeoJSON Points stored in an attribute location, a geojson Analyzer with default properties,
+      // and a View using the Analyzer. Then query for locations that are within a 3 kilometer radius of a given point and
+      // return the matched documents, including the calculated distance in meters. The stored coordinates and the GEO_POINT()
+      // arguments are expected in longitude, latitude order:
+      let geoJson = `geoJson_${dbCount}`;
+      let geoJsonView = `geoJsonView_${dbCount}`;
+      let geoJsonQuery = a.save(`${geoJson}`, "geojson", {}, ["frequency", "norm", "position"]);
+      db._create("geo");
+      db.geo.save([{ location: { type: "Point", coordinates: [6.937, 50.932] } },
+      { location: { type: "Point", coordinates: [6.956, 50.941] } },
+      { location: { type: "Point", coordinates: [6.962, 50.932] } },]);
+      db._createView(`${geoJsonView}`, "arangosearch", 
+      {links: {geo: {fields: {location: {analyzers: [`${geoJson}`]}}}}});
+
+      //geoPoint analyzer properties
+      //An Analyzer capable of breaking up JSON object describing a coordinate into a set
+      //of indexable tokens for further usage with ArangoSearch Geo functions.
+      let geoPoint = `geoPoint_${dbCount}`;
+      //create views
+      let geoPointView = `geoPointView_${dbCount}`;
+      let geoPointQuery = a.save(`${geoPoint}`, "geopoint", {}, ["frequency", "norm", "position"]);
+      db._create("geo01"); db.geo01.save([{ location: [50.932, 6.937] },{ location: [50.941, 6.956] },
+      { location: [50.932, 6.962] },]);
+      db._createView(`${geoPointView}`, "arangosearch", {links: {geo01: {fields: {location: {analyzers: [`${geoPoint}`]}}}}});
+
+
       //creating aqlSoundex analyzer
       createAnalyzer(aqlSoundex, aqlSoundexQuery)
       //creating aqlConcat analyzer
@@ -82,7 +120,13 @@
       createAnalyzer(delimiterPipeline, delimiterPipelineQuery)
       //creating stopwords analyzer
       createAnalyzer(stopwords, stopwordsQuery)
-      
+      //creating stopwordsPipeline analyzer
+      createAnalyzer(stopwordsPipeline, stopwordsPipelineQuery)
+      //creating geoJson analyzer
+      createAnalyzer(geoJson, geoJsonQuery)
+      //creating geoPoint analyzer
+      createAnalyzer(geoPoint, geoPointQuery)
+
 
       return 0;
     },
@@ -195,6 +239,7 @@
       //-------------------------------aqlFilter----------------------------------
 
       let aqlFilter = `aqlFilter_${dbCount}`;
+      let aqlView = `aqlView_${dbCount}`;
       let aqlFilterType = "aql";
       let aqlFilterProperties = {
         "queryString" : "FILTER LOWER(LEFT(@param, 2)) != 'ir' RETURN @param",
@@ -213,8 +258,8 @@
         }
       ];
 
-      let aqlFilterQueryReuslt = db._query(`FOR doc IN view SEARCH ANALYZER(doc.value IN ['regular', 'irregular'], '${aqlFilter}') RETURN doc`);
-      
+      let aqlFilterQueryReuslt = db._query(`FOR doc IN ${aqlView} SEARCH ANALYZER(doc.value IN ['regular', 'irregular'], '${aqlFilter}') RETURN doc`);
+
       checkAnalyzer(aqlFilter, aqlFilterType, aqlFilterProperties, aqlFilterExpectedResult, aqlFilterQueryReuslt)
 
 
@@ -333,6 +378,135 @@
 
       checkAnalyzer(stopwords, stopwordsType, stopwordsProperties, stopwordsExpectedResult, stopwordsQueryReuslt)
 
+      //-------------------------------stopwordsPipeline----------------------------------
+
+      let stopwordsPipeline = `stopwordsPipeline_${dbCount}`;
+      let stopwordsPipelineType = "pipeline";
+      let stopwordsPipelineProperties = {
+        "pipeline" : [
+          {
+            "type" : "norm",
+            "properties" : {
+              "locale" : "en",
+              "case" : "lower",
+              "accent" : false
+            }
+          },
+          {
+            "type" : "stopwords",
+            "properties" : {
+              "stopwords" : [
+                "and",
+                "the"
+              ],
+              "hex" : false
+            }
+          }
+        ]
+      };
+      let stopwordsPipelineExpectedResult =[
+        [
+          "fox",
+          "dog",
+          "a",
+          "theater"
+        ]
+      ];
+
+      let stopwordsPipelineQueryReuslt = db._query(`RETURN FLATTEN(TOKENS(SPLIT('The fox AND the dog äñḏ a ţhéäter', ' '), "${stopwordsPipeline}"))`);
+
+      checkAnalyzer(stopwordsPipeline, stopwordsPipelineType, stopwordsPipelineProperties, stopwordsPipelineExpectedResult, stopwordsPipelineQueryReuslt)
+
+      //-------------------------------geoJson----------------------------------
+
+      let geoJson = `geoJson_${dbCount}`;
+      let geoJsonView = `geoJsonView_${dbCount}`;
+      let geoJsonType = "geojson";
+      let geoJsonProperties = {
+        "type" : "shape",
+        "options" : {
+          "maxCells" : 20,
+          "minLevel" : 4,
+          "maxLevel" : 23
+        }
+      };
+      let geoJsonExpectedResult =[
+        {
+          "_id" : "geo/603",
+          "_key" : "603",
+          "_rev" : "_ef_mIDq--_",
+          "location" : {
+            "type" : "Point",
+            "coordinates" : [
+              6.937,
+              50.932
+            ]
+          },
+          "distance" : 1015.8355739436823
+        },
+        {
+          "_id" : "geo/604",
+          "_key" : "604",
+          "_rev" : "_ef_mIDq--A",
+          "location" : {
+            "type" : "Point",
+            "coordinates" : [
+              6.956,
+              50.941
+            ]
+          },
+          "distance" : 1825.1307183571266
+        }
+      ];
+
+      let geoJsonQueryReuslt = db._query(`LET point = GEO_POINT(6.93, 50.94) FOR doc IN ${geoJsonView} SEARCH ANALYZER(GEO_DISTANCE(doc.location, point) < 2000, "${geoJson}")
+      RETURN MERGE(doc, { distance: GEO_DISTANCE(doc.location, point) })`).toArray();
+
+      checkAnalyzer(geoJson, geoJsonType, geoJsonProperties, geoJsonExpectedResult, geoJsonQueryReuslt)
+
+      //-------------------------------geoPoint----------------------------------
+
+      let geoPoint = `geoPoint_${dbCount}`;
+      let geoPointView = `geoPointView_${dbCount}`;
+      let geoPointType = "geopoint";
+      let geoPointProperties = {
+        "latitude" : [ ],
+        "longitude" : [ ],
+        "options" : {
+          "maxCells" : 20,
+          "minLevel" : 4,
+          "maxLevel" : 23
+        }
+      };
+      let geoPointExpectedResult =[
+        {
+          "_id" : "geo01/2977",
+          "_key" : "2977",
+          "_rev" : "_efAhNE----",
+          "location" : [
+            50.932,
+            6.937
+          ],
+          "distance" : 1015.8355739436823
+        },
+        {
+          "_id" : "geo01/2978",
+          "_key" : "2978",
+          "_rev" : "_efAhNE---_",
+          "location" : [
+            50.941,
+            6.956
+          ],
+          "distance" : 1825.1307183571266
+        }
+      ];
+
+      let geoPointQueryReuslt = db._query(`LET point = GEO_POINT(6.93, 50.94) FOR doc IN ${geoPointView} SEARCH ANALYZER(GEO_DISTANCE(doc.location, point) < 2000, "${geoPoint}") RETURN MERGE(doc, { distance: GEO_DISTANCE([doc.location[1], doc.location[0]], point) })`).toArray();
+
+
+      checkAnalyzer(geoPoint, geoPointType, geoPointProperties, geoPointExpectedResult, geoPointQueryReuslt)
+
+
       return 0;
 
     },
@@ -365,7 +539,15 @@
       let nGramPipeline = `nGramPipeline_${dbCount}`;
       let delimiterPipeline = `delimiterPipeline_${dbCount}`;
       let stopwords = `stopwords_${dbCount}`;
-      
+      let stopwordsPipeline = `stopwordsPipeline_${dbCount}`;
+      let geoJson = `geoJson_${dbCount}`;
+      let geoPoint = `geoPoint_${dbCount}`;
+
+      // declaring all the views name
+      let aqlView = `aqlView_${dbCount}`;
+      let geoJsonView = `geoJsonView_${dbCount}`;
+      let geoPointView = `geoPointView_${dbCount}`;
+
       // deleting aqlSoundex analyzer
       deleteAnalyzer(aqlSoundex)
       // deleting aqlConcat analyzer
@@ -378,6 +560,30 @@
       deleteAnalyzer(delimiterPipeline)
       // deleting stopwords analyzer
       deleteAnalyzer(stopwords)
+      // deleting stopwordsPipeline analyzer
+      deleteAnalyzer(stopwordsPipeline)
+      // deleting geoJson analyzer
+      deleteAnalyzer(geoJson)
+      // deleting geoPoint analyzer
+      deleteAnalyzer(geoPoint)
+
+      // deleting created Views
+      try {
+        db._dropView(aqlView);
+        db._dropView(geoJsonView);
+        db._dropView(geoPointView);
+      } catch (e) {
+        print(e);
+      }
+
+      //deleting created collections
+      try {
+        db._drop("coll");
+        db._drop("geo");
+        db._drop("geo01");
+      } catch (e) {
+        print(e);
+      }
 
       return 0;
     }
