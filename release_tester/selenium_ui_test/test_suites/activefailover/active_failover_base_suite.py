@@ -14,8 +14,8 @@ class ActiveFailoverBaseTestSuite(BaseSeleniumTestSuite):
     def check_follower_count(self, expect_follower_count=2, retry_count=10):
         """check the integrity of the old system after the install"""
         while retry_count > 0:
-            NavigationBarPage(self.webdriver).navbar_goto("replication")
-            replication_page = ReplicationPage(self.webdriver)
+            NavigationBarPage(self.webdriver, self.cfg).navbar_goto("replication")
+            replication_page = ReplicationPage(self.webdriver, self.cfg)
             replication_table = replication_page.get_replication_screen(True)
             print(replication_table)
             if len(replication_table["follower_table"]) != expect_follower_count + 1:
@@ -32,3 +32,8 @@ class ActiveFailoverBaseTestSuite(BaseSeleniumTestSuite):
             len(replication_table["follower_table"]) == expect_follower_count + 1,
             "UI-Test:\nexpect 1 follower in:\n%s" % pprint.pformat(replication_table),
         )
+    
+    def check_replication_tab(self):
+        """checking replication tab information"""
+        replication_page = ReplicationPage(self.webdriver, self.cfg)
+        replication_page.get_replication_information()

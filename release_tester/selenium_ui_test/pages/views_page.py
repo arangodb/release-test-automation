@@ -2,6 +2,7 @@
 """page object for views editing"""
 import time
 import semver
+import traceback
 
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import TimeoutException
@@ -324,8 +325,7 @@ class ViewsPage(NavigationBarPage):
         create_sitem.click()
         time.sleep(2)
         self.webdriver.refresh()
-
-    # pylint: disable=too-many-locals
+    
     def checking_modified_views(self, is_cluster):
         """This method will check views for 3.10.x package version"""
         print('Selecting improved views \n')
@@ -426,7 +426,7 @@ class ViewsPage(NavigationBarPage):
             save_btn_sitem = self.locator_finder_by_xpath(save_btn)
             save_btn_sitem.click()
             time.sleep(2)
-
+    
     def delete_new_views(self, name):
         """this method will delete all the newer version views"""
         self.wait_for_ajax()
@@ -566,23 +566,24 @@ class ViewsPage(NavigationBarPage):
         error = 'Only non-negative integers allowed.'
         error_message = [error, error, error, error]
 
-        print(f'Select advance options \n')
-        advance_option = '//*[@id="accordion4"]/div/div[1]/a/span[2]/b'
-        advance_option_sitem = self.locator_finder_by_xpath(advance_option)
-        advance_option_sitem.click()
-        time.sleep(2)
+        if self.current_package_version() >= semver.VersionInfo.parse("3.9.0"):
+            print(f'Select advance options \n')
+            advance_option = '//*[@id="accordion4"]/div/div[1]/a/span[2]/b'
+            advance_option_sitem = self.locator_finder_by_xpath(advance_option)
+            advance_option_sitem.click()
+            time.sleep(2)
 
-        print(f'Select write buffer idle value\n')
-        buffer_locator_id = "//input[@value='64']"
-        error_locator_id = '//*[@id="row_newWriteBufferIdle"]/th[2]/p'
+            print(f'Select write buffer idle value\n')
+            buffer_locator_id = "//input[@value='64']"
+            error_locator_id = '//*[@id="row_newWriteBufferIdle"]/th[2]/p'
 
-        # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
-        self.check_expected_error_messages_for_views(error_input,
-                                                     print_statement,
-                                                     error_message,
-                                                     buffer_locator_id,
-                                                     error_locator_id)
-        print('Expected error scenario for the Views write buffer idle completed \n')
+            # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
+            self.check_expected_error_messages_for_views(error_input,
+                                                         print_statement,
+                                                         error_message,
+                                                         buffer_locator_id,
+                                                         error_locator_id)
+            print('Expected error scenario for the Views write buffer idle completed \n')
 
         print('Closing the views creation \n')
         close_btn = '//*[@id="modalButton0"]'
@@ -593,10 +594,11 @@ class ViewsPage(NavigationBarPage):
 
     def delete_views(self, name, locator):
         """This method will delete views"""
-        self.select_views_tab()
-        self.wait_for_ajax()
-        print(f"Selecting {name} for deleting \n")
+        
         try:
+            self.select_views_tab()
+            self.wait_for_ajax()
+            print(f"Selecting {name} for deleting \n")
             select_view_sitem = self.locator_finder_by_xpath(locator)
             select_view_sitem.click()
             time.sleep(1)
@@ -617,5 +619,9 @@ class ViewsPage(NavigationBarPage):
             print(f"Selecting {name} for deleting completed \n")
             time.sleep(1)
             self.wait_for_ajax()
-        except TimeoutException as ex:
-            print("FAIL: could not delete views properly", ex, "\n")
+        except TimeoutException as e:
+            print('TimeoutException occurred! \n')
+            print('Info: Views has already been deleted or never created. \n')
+        except Exception:
+            traceback.print_exc()
+            raise Exception('Critical Error occurred and need manual inspection!! \n')

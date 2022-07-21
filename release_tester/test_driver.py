@@ -10,21 +10,23 @@ import time
 import traceback
 from pathlib import Path
 
-import semver
 from allure_commons._allure import attach
 from allure_commons.model2 import Status, StatusDetails
 
 import tools.loghelper as lh
 from arangodb.installers import create_config_installer_set, RunProperties
-from arangodb.starter.deployments.cluster_perf import ClusterPerf
 from arangodb.starter.deployments import (
     RunnerType,
     make_runner,
     runner_strings,
     STARTER_MODES,
 )
+from arangodb.starter.deployments.cluster_perf import ClusterPerf
+from debugger_tests.debugger_test_suite import DebuggerTestSuite
 from license_manager_tests.basic_test_suite import BasicLicenseManagerTestSuite
 from license_manager_tests.upgrade.upgrade_test_suite import UpgradeLicenseManagerTestSuite
+from package_installation_tests.community_package_installation_test_suite import CommunityPackageInstallationTestSuite
+from package_installation_tests.enterprise_package_installation_test_suite import EnterprisePackageInstallationTestSuite
 from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext, init_allure
 from tools.killall import kill_all_processes
 
@@ -40,6 +42,14 @@ except ModuleNotFoundError as exc:
 IS_WINDOWS = platform.win32_ver()[0] != ""
 IS_LINUX = sys.platform == "linux"
 
+FULL_TEST_SUITE_LIST = [
+    EnterprisePackageInstallationTestSuite,
+    CommunityPackageInstallationTestSuite,
+    BasicLicenseManagerTestSuite,
+    UpgradeLicenseManagerTestSuite,
+    DebuggerTestSuite,
+]
+
 
 class TestDriver:
     """driver base class to run different tests"""
@@ -47,7 +57,7 @@ class TestDriver:
     # pylint: disable=too-many-arguments disable=too-many-locals
     def __init__(self, **kwargs):
         self.launch_dir = Path.cwd()
-        if IS_WINDOWS and 'PYTHONUTF8' not in os.environ:
+        if IS_WINDOWS and "PYTHONUTF8" not in os.environ:
             raise Exception("require PYTHONUTF8=1 in the environment")
         if "WORKSPACE" in os.environ:
             self.launch_dir = Path(os.environ["WORKSPACE"])
@@ -129,9 +139,9 @@ class TestDriver:
             time.sleep(1)
 
     # pylint: disable=broad-except
-    def run_cleanup(self, run_properties: RunProperties):
+    def run_cleanup(self, run_properties: RunProperties, versions: list = ["3.3.3"]):
         """main"""
-        installer_set = create_config_installer_set(["3.3.3"], self.base_config, "all", run_properties)
+        installer_set = create_config_installer_set(versions, self.base_config, "all", run_properties)
         inst = installer_set[0][1]
         if inst.calc_config_file_name().is_file():
             inst.load_config()
@@ -192,7 +202,7 @@ class TestDriver:
                     if not run_props.supports_dc2dc() and runner_type == RunnerType.DC2DC:
                         testcase.context.status = Status.SKIPPED
                         testcase.context.statusDetails = StatusDetails(
-                            message="DC2DC is not applicable to Community packages."
+                            message="DC2DC is not applicable to Community packages.\nDC2DC is not supported on Windows."
                         )
                         continue
                     one_result = {
@@ -367,7 +377,7 @@ class TestDriver:
                     if not run_props.supports_dc2dc() and runner_type == RunnerType.DC2DC:
                         testcase.context.status = Status.SKIPPED
                         testcase.context.statusDetails = StatusDetails(
-                            message="DC2DC is not applicable to Community packages.")
+                            message="DC2DC is not applicable to Community packages.\nDC2DC is not supported on Windows.")
                         continue
                     one_result = {
                         "testrun name": run_props.testrun_name,
@@ -444,12 +454,12 @@ class TestDriver:
     # fmt: off
     # pylint: disable=too-many-arguments disable=too-many-locals
     def run_perf_test(self,
-                 deployment_mode,
-                 versions: list,
-                 frontends,
-                 scenario,
-                 run_props: RunProperties):
-    # fmt: on
+                      deployment_mode,
+                      versions: list,
+                      frontends,
+                      scenario,
+                      run_props: RunProperties):
+        # fmt: on
         """ main """
         do_install = deployment_mode in ["all", "install"]
         do_uninstall = deployment_mode in ["all", "uninstall"]
@@ -469,7 +479,7 @@ class TestDriver:
                 **{"mode": str(deployment_mode), "cfg_repr": repr(installers[0][0])}
             )
         )
-        inst=installers[0][1]
+        inst = installers[0][1]
 
         split_host = re.compile(r"([a-z]*)://([0-9.:]*):(\d*)")
 
@@ -506,53 +516,40 @@ class TestDriver:
             enterprise: bool
     ):
         """run package conflict tests"""
-        # disable conflict tests for Windows and MacOS
-        if not IS_LINUX:
-            return [
-                {
-                    "testrun name": "Package installation/uninstallation tests were skipped because OS is not Linux.",
-                    "testscenario": "",
-                    "success": True,
-                    "messages": [],
-                    "progress": "",
-                }
-            ]
-        # disable conflict tests for zip packages
-        if self.base_config.zip_package:
-            return [
-                {
-                    "testrun name": "Package installation/uninstallation tests were skipped for zip packages.",
-                    "testscenario": "",
-                    "success": True,
-                    "messages": [],
-                    "progress": "",
-                }
-            ]
-        # disable conflict tests for deb packages for now.
-        # pylint: disable=import-outside-toplevel
-        import distro
-        if distro.linux_distribution(full_distribution_name=False)[0] in ["debian", "ubuntu"]:
-            return [
-                {
-                    "testrun name": "Package installation/uninstallation tests are temporarily" +
-                                    "disabled for debian-based linux distros. Waiting for BTS-684",
-                    "testscenario": "",
-                    "success": True,
-                    "messages": [],
-                    "progress": "",
-                }
-            ]
-        suite = None
         # pylint: disable=import-outside-toplevel
         if enterprise:
-            from package_installation_tests.enterprise_package_installation_test_suite import \
-                EnterprisePackageInstallationTestSuite as testSuite
+            testSuite = EnterprisePackageInstallationTestSuite
         else:
-            from package_installation_tests.community_package_installation_test_suite import \
-                CommunityPackageInstallationTestSuite as testSuite
+            testSuite = CommunityPackageInstallationTestSuite
         suite = testSuite(
             versions=versions,
             base_config=self.base_config
+        )
+        suite.run()
+        result = {
+            "testrun name": suite.suite_name,
+            "testscenario": "",
+            "success": True,
+            "messages": [],
+            "progress": "",
+        }
+        if suite.there_are_failed_tests():
+            result["success"] = False
+            for one_result in suite.test_results:
+                result["messages"].append(one_result.message)
+        return [result]
+
+    def run_debugger_tests(
+            self,
+            versions: list,
+            **kwargs
+    ):
+        """run package conflict tests"""
+        # pylint: disable=import-outside-toplevel
+        suite = DebuggerTestSuite(
+            versions=versions,
+            base_config=self.base_config,
+            **kwargs
         )
         suite.run()
         result = {
@@ -573,12 +570,12 @@ class TestDriver:
             versions
     ):
         """run license manager tests"""
-        if len(versions)==1:
-            new_version=versions[0]
-        elif len(versions)>1:
-            old_version = versions[1]
+        if len(versions) == 1:
+            new_version = versions[0]
+        elif len(versions) > 1:
+            old_version = versions[0]
             new_version = versions[1]
-        if semver.VersionInfo.parse(new_version) < "3.9.0-nightly":
+        if new_version < "3.9.0-nightly":
             logging.info("License manager test suite is only applicable to versions 3.9 and newer.")
             return [
                 {
@@ -604,14 +601,63 @@ class TestDriver:
         results = []
         suites_classes = []
         suites_classes.append(BasicLicenseManagerTestSuite)
-        if (len(versions)>1 and
-            semver.VersionInfo.parse(old_version) > "3.9.0-nightly" and
-            semver.VersionInfo.parse(new_version) > "3.9.0-nightly"):
+        if (len(versions) > 1 and
+                old_version > "3.9.0-nightly" and
+                new_version > "3.9.0-nightly"):
             suites_classes.append(UpgradeLicenseManagerTestSuite)
         args = (versions, self.base_config)
 
         for suites_class in suites_classes:
             suite = suites_class(*args)
+            suite.run()
+            result = {
+                "testrun name": suite.suite_name,
+                "testscenario": "",
+                "success": True,
+                "messages": [],
+                "progress": "",
+            }
+            if suite.there_are_failed_tests():
+                result["success"] = False
+                for one_result in suite.test_results:
+                    result["messages"].append(one_result.message)
+            results.append(result)
+        return results
+
+    def run_all_test_suites(self, versions):
+        """Run all independent test suites"""
+        results = []
+        results.extend(self.run_conflict_tests(versions, True))
+        results.extend(self.run_conflict_tests(versions, False))
+        results.extend(self.run_license_manager_tests(versions))
+        results.extend(self.run_debugger_tests(versions, True))
+        results.extend(self.run_debugger_tests(versions, False))
+        return results
+
+    def run_test_suites(self, versions: list, include_suites=(), exclude_suites=(), **kwargs):
+        """run a testsuite"""
+        suite_classes=[]
+        if len(include_suites) == 0 and len(exclude_suites) == 0:
+            return self.run_all_test_suites(versions)
+        if len(include_suites) > 0 and len(exclude_suites) == 0:
+            for suite_class in FULL_TEST_SUITE_LIST:
+                if suite_class.__name__ in include_suites:
+                    suite_classes.append(suite_class)
+        elif len(exclude_suites) > 0 and len(include_suites) == 0:
+            suite_classes.extend(FULL_TEST_SUITE_LIST)
+            for exclude_suite_class in exclude_suites:
+                for suite_class in suite_classes:
+                    if suite_class.__name__ == exclude_suite_class:
+                        suite_classes.remove(suite_class)
+                        break
+        else:
+            raise Exception(
+                "Please specify one or none of the following parameters: --exclude-test-suite, --include-test-suite.")
+
+        results = []
+        args = (versions, self.base_config)
+        for suite_class in suite_classes:
+            suite = suite_class(*args, **kwargs)
             suite.run()
             result = {
                 "testrun name": suite.suite_name,

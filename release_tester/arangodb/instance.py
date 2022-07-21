@@ -3,6 +3,7 @@
 import datetime
 import json
 import logging
+import platform
 import re
 import time
 from abc import abstractmethod, ABC
@@ -30,6 +31,7 @@ LOG_BLACKLIST = [
 
 # log tokens we ignore in system ugprades...
 LOG_SYSTEM_BLACKLIST = ["40e37"]  # -> upgrade required
+IS_WINDOWS = bool(platform.win32_ver()[0])
 
 
 class InstanceType(IntEnum):
@@ -48,7 +50,7 @@ INSTANCE_TYPE_STRING_MAP = {
     "coordinator": InstanceType.COORDINATOR,
     "resilientsingle": InstanceType.RESILIENT_SINGLE,
     "single": InstanceType.SINGLE,
-   "agent": InstanceType.AGENT,
+    "agent": InstanceType.AGENT,
     "dbserver": InstanceType.DBSERVER,
     "syncmaster": InstanceType.SYNCMASTER,
     "syncworker": InstanceType.SYNCWORKER,
@@ -149,9 +151,12 @@ class Instance(ABC):
         self.instance_arguments = []
         with self.instance_control_file.open(errors="backslashreplace") as filedesc:
             for line in filedesc.readlines():
+                if line.startswith("#"):
+                    continue
                 line = line.rstrip().rstrip(" \\")
-                self.analyze_starter_file_line(line)
-                self.instance_arguments.append(line)
+                if len(line) > 0:
+                    self.analyze_starter_file_line(line)
+                    self.instance_arguments.append(line)
 
     def launch_manual_from_instance_control_file(
         self, sbin_dir, old_install_prefix, new_install_prefix, moreargs, waitpid=True
@@ -316,7 +321,7 @@ class Instance(ABC):
             return
         print(str(self.logfile))
         count = 0
-        with open(self.logfile, errors="backslashreplace", encoding='utf8') as log_fh:
+        with open(self.logfile, errors="backslashreplace", encoding="utf8") as log_fh:
             for line in log_fh:
                 if self.is_line_relevant(line):
                     if self.is_suppressed_log_line(line):
@@ -504,7 +509,7 @@ class ArangodInstance(Instance):
         while True:
             log_file_content = ""
             last_line = ""
-            with open(self.logfile, errors="backslashreplace", encoding='utf8') as log_fh:
+            with open(self.logfile, errors="backslashreplace", encoding="utf8") as log_fh:
                 for line in log_fh:
                     # skip empty lines
                     if line == "":
@@ -549,7 +554,7 @@ class ArangodInstance(Instance):
     def detect_fatal_errors(self):
         """check whether we have FATAL lines in the logfile"""
         fatal_line = None
-        with open(self.logfile, errors="backslashreplace", encoding='utf8') as log_fh:
+        with open(self.logfile, errors="backslashreplace", encoding="utf8") as log_fh:
             for line in log_fh:
                 if fatal_line is not None:
                     fatal_line += "\n" + line
@@ -579,7 +584,7 @@ class ArangodInstance(Instance):
             else:
                 raise TimeoutError("instance logfile '" + str(self.logfile) + "' didn't show up in 20 seconds")
 
-            with open(self.logfile, errors="backslashreplace", encoding='utf8') as log_fh:
+            with open(self.logfile, errors="backslashreplace", encoding="utf8") as log_fh:
                 for line in log_fh:
                     # skip empty lines
                     if line == "":
@@ -663,7 +668,7 @@ class ArangodInstance(Instance):
         if not self.logfile.exists():
             print(str(self.logfile) + " doesn't exist, skipping.")
             return self.serving
-        with open(self.logfile, errors="backslashreplace", encoding='utf8') as log_fh:
+        with open(self.logfile, errors="backslashreplace", encoding="utf8") as log_fh:
             for line in log_fh:
                 if "a66dc" in line:
                     serving_line = line

@@ -155,6 +155,24 @@ Example usage:
  - Linux (ubuntu|debian) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
  - Linux (centos|fedora|sles) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
 
+# Using `run_test_suites.py` to run test suites
+
+This entrypoint file is used to run tests that are organized in test suites.
+Supported Parameters:
+ - `--include-test-suite` Test suite name to include in the test run. Multiple test suites can be ran by providing this parameter multiple times. This parameter cannot be used if --exclude-test-suite is set.
+ - `--exclude-test-suite` Run all test suites except for this one. Multiple test suites can be excluded by providing this parameter multiple times. This parameter cannot be used if --include-test-suite is set.
+ - `--new-version` which Arangodb Version you want to run the test on
+ - `--old-version` old version of ArangoDB to be used in tests where an older version is required.
+ - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
+ - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
+ - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
+ - `--verbose` if specified more logging is done
+ - `--alluredir` - directory to save test results in allure format (default = allure-results)
+ - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
+
+Example usage:
+ - Linux: `python3 ./release_tester/run_test_suites.py --new-version 3.10.0-nightly --old-version 3.9.1-nightly --verbose --no-enterprise --zip --package-dir /packages --include-test-suite EnterprisePackageInstallationTestSuite`
+
 # Using `conflict_checking.py` for testing of package installation process
 
 To run the tests you need to download older version packages in addition to the version you intend to test.
@@ -168,11 +186,6 @@ Supported Parameters:
  - `--verbose` if specified more logging is done
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
  - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
-
-Example usage:
- - Windows: `python ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
- - Linux (ubuntu|debian) `python3 ./release_tester/test.py --new-version 3.6.2 --no-enterprise --package-dir /home/willi/Downloads`
- - Linux (centos|fedora|sles) `python3 ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
 
 # Using `run_license_tests.py` to test the license manager feature
 
@@ -259,6 +272,10 @@ Supported Parameters:
    - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
    - `DC` - setup 2 clusters, connect them with arangosync (enterprise only)
+ - `edition` which type to launch:
+   - `C` community
+   - `EP` enterprise
+   - `EE` enterprise with encryption at rest
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
@@ -317,6 +334,10 @@ Supported Parameters:
    - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
    - `DC` - setup 2 clusters, connect them with arangosync (enterprise only)
+ - `edition` which type to launch:
+   - `C` community
+   - `EP` enterprise
+   - `EE` enterprise with encryption at rest
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
@@ -384,6 +405,9 @@ It consists of these files in test_data:
    - `550_enterprise_graph.js` creates an enterprise patent graph
    - `560_smartgraph_validator.js` on top of the enterprise graph, this will check the integrity check of the server.
    - `900_oneshard.js` creates oneshard database and does stuff with it.
+   - `607_analyzers.js` creates suported analyzers for 3.7.x version and check it's functionality.
+   - `608_analyzers.js` creates suported analyzers for 3.8.x version and check it's functionality.
+   - `609_analyzers.js` creates suported analyzers for 3.9.x version and check it's functionality.
 
 It should be considered to provide a set of hooks (000_dummy.js can be considered being a template for this):
 
@@ -420,17 +444,19 @@ During the test scenarios hot backups will be created/restored and uploaded/down
 RTA supports different types of external storage. By default the backups will be just copied to another directory using rclone. 
 Other options include running minio(S3-compatible open-source storage) locally and uploading backups to a real cloud provider. 
 This is controlled using the following command line parameters:
- - `--hb-mode` - Hot backup mode. Possible values: disabled, directory or s3bucket. 
- - `--hb-provider` - Cloud storage provider. Possible values for s3bucket: minio, aws.
- - `--hb-storage-path-prefix` - Bucket name and subdirectory to store hot backups in cloud.
- - `--hb-aws-access-key-id` [env `AWS_ACCESS_KEY_ID`] - access key id (mandatory parameter)
- - `--hb-aws-secret-access-key` [env `AWS_SECRET_ACCESS_KEY`] - secret access key (mandatory parameter)
- - `--hb-aws-region` [env `AWS_REGION`] - region (mandatory parameter)
- - `--hb-aws-acl` [env `AWS_ACL`] - ACL (default value: `private`)
- - `--hb-use-cloud-preset` (string) - Load saved hotbackup settings. To use this, create a file release_tester/tools/external_helpers/cloud_secrets.py. Inside this file define dict variables. The name of the variable is the name of the preset. The dict must contain all the hb parameters. If --hb-use-cloud-preset is set, then all other parameters which names start with hb- are ignored.
+ - `--hb-mode` - Hot backup mode. Possible values: disabled, directory, s3bucket, googleCloudStorage, azureBlobStorage. 
+ - `--hb-provider` - Cloud storage provider. Possible values for s3bucket: minio, aws, gce, azure.
+ - `--hb-storage-path-prefix` - Subdirectory to store hot backups in cloud.
+ - `--hb-aws-access-key-id` [env `AWS_ACCESS_KEY_ID`] - AWS access key id
+ - `--hb-aws-secret-access-key` [env `AWS_SECRET_ACCESS_KEY`] - AWS secret access key
+ - `--hb-aws-region` [env `AWS_REGION`] - AWS region
+ - `--hb-aws-acl` [env `AWS_ACL`] - AWS ACL (default value: `private`)
  - `--hb-gce-service-account-credentials` - GCE service account credentials(JSON string).
  - `--hb-gce-service-account-file` - Path to a JSON file containing GCE service account credentials.
  - `--hb-gce-project-number` - GCE project ID.  
+ - `--hb-azure-account` - Azure storage account.
+ - `--hb-azure-key` - Azure storage account access key.   
+ - `--hb-use-cloud-preset` (string) - Load saved hotbackup settings. To use this, create a file release_tester/tools/external_helpers/cloud_secrets.py. Inside this file define dict variables. The name of the variable is the name of the preset. The dict must contain all the hb parameters. If --hb-use-cloud-preset is set, then all other parameters which names start with hb- are ignored.
    Example of cloud_secrets.py: 
 ```python
 aws = {

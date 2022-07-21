@@ -3,9 +3,8 @@
 """License manager tests runner script"""
 #pylint: disable=duplicate-code
 from pathlib import Path
-
 import click
-
+import semver
 from common_options import very_common_options, common_options, hotbackup_options
 from test_driver import TestDriver
 from arangodb.installers import HotBackupCliCfg, InstallerBaseConfig
@@ -32,9 +31,9 @@ def main(**kwargs):
     test_driver.set_r_limits()
     versions = []
     if kwargs["old_version"]:
-        versions.append(kwargs["old_version"])
+        versions.append(semver.VersionInfo.parse(kwargs["old_version"]))
     if kwargs["new_version"]:
-        versions.append(kwargs["new_version"])
+        versions.append(semver.VersionInfo.parse(kwargs["new_version"]))
     results = test_driver.run_license_manager_tests(versions)
     for result in results:
         if not result["success"]:

@@ -5,7 +5,7 @@ import time
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium_ui_test.pages.nodes_page import NodesPage
-from selenium_ui_test.test_suites.base_test_suite import testcase
+from test_suites_core.base_test_suite import testcase
 
 from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 
@@ -20,7 +20,7 @@ class ClusterWaitForUpgradeTestSuite(BaseSeleniumTestSuite):
         new_cfg = self.selenium_runner.new_cfg
         old_ver = str(old_cfg.semver)
         new_ver = str(new_cfg.semver)
-        NavigationBarPage(self.webdriver).navbar_goto("nodes")
+        NavigationBarPage(self.webdriver, self.cfg).navbar_goto("nodes")
         print(old_ver)
         print(new_ver)
         upgrade_done = False
@@ -51,7 +51,7 @@ class ClusterWaitForUpgradeTestSuite(BaseSeleniumTestSuite):
                 raise TimeoutError("UI-Test: the cluster UI didn't show the new version in time")
         # the version doesn't update automatically, force refresh:
         self.webdriver.refresh()
-        ver = NavigationBarPage(self.webdriver).detect_version()
+        ver = NavigationBarPage(self.webdriver, self.cfg).detect_version()
         self.progress(" ver %s is %s?" % (str(ver), new_ver))
         self.ui_assert(ver["version"].lower().startswith(new_ver), "UI-Test: wrong version after upgrade")
         # TODO self.check_full_ui(new_cfg)

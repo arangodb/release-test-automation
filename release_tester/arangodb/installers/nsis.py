@@ -17,6 +17,8 @@ from allure_commons._allure import attach
 from allure_commons.types import AttachmentType
 from mss import mss
 import psutil
+
+from arangodb.installers.windows import InstallerWin
 from reporting.reporting_utils import step
 
 from arangodb.installers.base import InstallerBase
@@ -26,7 +28,7 @@ from arangodb.installers.base import InstallerBase
 import tools.monkeypatch_psutil
 
 
-class InstallerW(InstallerBase):
+class InstallerNsis(InstallerWin):
     """install the windows NSIS package"""
 
     # pylint: disable=too-many-arguments disable=too-many-instance-attributes
@@ -377,6 +379,12 @@ class InstallerW(InstallerBase):
             shutil.rmtree(self.cfg.log_dir)
         if tmp_uninstaller.exists():
             tmp_uninstaller.unlink()
+
+    @step
+    def uninstall_everything_impl(self):
+        """uninstall all arango packages present in the system(including those installed outside this installer)"""
+        self.un_install_server_package_impl()
+        self.un_install_client_package_impl()
 
     @step
     def check_service_up(self):
