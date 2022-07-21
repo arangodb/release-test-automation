@@ -151,12 +151,12 @@ class Download:
             stress_upgrade=False,
             ssl=False,
         )
-        self.path_architecture = ""
-        if self.cfg.semver > semver.VersionInfo.parse("3.9.99"):
-            self.path_architecture = platform.machine() + '/'
 
         self.inst = make_installer(self.cfg)
         self.is_nightly = self.inst.semver.prerelease == "nightly"
+        self.path_architecture = ""
+        if self.is_nightly or self.cfg.semver > semver.VersionInfo.parse("3.9.99"):
+            self.path_architecture = platform.machine() + '/'
         self.calculate_package_names()
         self.packages = []
 
