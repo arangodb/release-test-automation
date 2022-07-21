@@ -1,4 +1,5 @@
-# copy into containers using: for i in docker_deb docker_me docker_rpm docker_tar; do cp requirements.txt containers/$i; done
+
+# copy into containers using: for i in docker_deb-amd64 docker_deb-arm64v8 docker_me docker_rpm docker_tar-amd64 docker_tar-arm64v8; do cp requirements.txt containers/$i; done
 psutil >= 5.9
 pyyaml
 pexpect
