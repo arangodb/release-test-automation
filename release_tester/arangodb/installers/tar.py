@@ -67,9 +67,9 @@ class InstallerTAR(InstallerArchive):
         self.cfg.client_install_prefix = self.basedir / "arangodb3{ep}-client-{arch}{dashus}{ver}".format(**self.desc)
         self.cfg.server_install_prefix = self.basedir / "arangodb3{ep}-{arch}{dashus}{ver}".format(**self.desc)
         if self.cfg.client_package_is_installed:
-            self.cfg.install_prefix = self.basedir / "arangodb3{ep}-client-{arch}{dashus}{ver}".format(**self.desc)
+            self.cfg.install_prefix = self.basedir / "arangodb3{ep}-client-{os}{dashus}{ver}{arch}".format(**self.desc)
         else:
-            self.cfg.install_prefix = self.basedir / "arangodb3{ep}-{arch}{dashus}{ver}".format(**self.desc)
+            self.cfg.install_prefix = self.basedir / "arangodb3{ep}-{os}{dashus}{ver}{arch}".format(**self.desc)
         self.cfg.bin_dir = self.cfg.install_prefix / "bin"
         self.cfg.sbin_dir = self.cfg.install_prefix / "usr" / "sbin"
         self.cfg.real_bin_dir = self.cfg.install_prefix / "usr" / "bin"
