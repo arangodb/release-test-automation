@@ -156,7 +156,10 @@ class Download:
         self.is_nightly = self.inst.semver.prerelease == "nightly"
         self.path_architecture = ""
         if self.is_nightly or self.cfg.semver > semver.VersionInfo.parse("3.9.99"):
-            self.path_architecture = platform.machine() + '/'
+            machine = platform.machine()
+            if machine == 'AMD64':
+                machine = 'x86_64'
+            self.path_architecture = machine + '/'
         self.calculate_package_names()
         self.packages = []
 
