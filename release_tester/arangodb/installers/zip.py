@@ -51,7 +51,8 @@ class InstallerZip(InstallerArchive, InstallerWin):
         self.desc = {
             "ep": enterprise,
             "ver": version,
-            "os": self.architecture,
+            "os": self.os,
+            "arch": self.arch,
             "dashus": self.dash,
             "ext": self.extension,
         }
