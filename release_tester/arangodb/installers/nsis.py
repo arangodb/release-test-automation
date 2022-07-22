@@ -97,13 +97,9 @@ class InstallerNsis(InstallerWin):
             "ext": self.extension,
         }
 
-        self.server_package = "ArangoDB3{ep}-{ver}_{os}{arch}.exe".format(
-            self.desc
-        )
+        self.server_package = "ArangoDB3{ep}-{ver}_{os}{arch}.exe".format(**self.desc)
         if self.cfg.semver >= semver.VersionInfo.parse("3.7.15"):
-            self.client_package = "ArangoDB3{ep}-client-{ver}_{os}{arch}.exe".format(
-                self.desc
-            )
+            self.client_package = "ArangoDB3{ep}-client-{ver}_{os}{arch}.exe".format(**self.desc)
             self.cfg.client_install_prefix = self.cfg.base_test_dir / "arangodb3{ep}-client-{os}_{ver}{arch}".format(
                 **self.desc
             )
