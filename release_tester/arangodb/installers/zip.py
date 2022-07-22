@@ -3,6 +3,7 @@
 # pylint: disable=import-error
 import os
 from pathlib import Path
+import semver
 
 
 # pylint: disable=unused-import
