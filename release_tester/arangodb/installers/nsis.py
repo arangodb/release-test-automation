@@ -93,7 +93,7 @@ class InstallerNsis(InstallerWin):
             "ep": enterprise,
             "ver": version,
             "os": self.os,
-            "arch": self.architecture,
+            "arch": self.arch,
             "ext": self.extension,
         }
 
