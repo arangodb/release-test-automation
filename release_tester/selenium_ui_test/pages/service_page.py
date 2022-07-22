@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """ service page object """
 import time
-
-from selenium_ui_test.pages.base_page import Keys
-from selenium_ui_test.pages.navbar import NavigationBarPage
+import semver
 from selenium.common.exceptions import TimeoutException
+from selenium_ui_test.pages.navbar import NavigationBarPage
 
 
 class ServicePage(NavigationBarPage):
@@ -213,11 +212,12 @@ class ServicePage(NavigationBarPage):
         install_btn = 'modalButton1'
         install_btn_sitem = self.locator_finder_by_id(install_btn)
         install_btn_sitem.click()
-        time.sleep(5)
+        time.sleep(6)
 
         # checking service has been created successfully
         # success = '//*[@id="installedList"]/div[2]/div/div[1]/p[2]/span'
-        success = '//*[@id="installedList"]/div[6]/div/div[1]/p[2]/span'
+        # success = '//*[@id="installedList"]/div[6]/div/div[1]/p[2]/span'
+        success = "//*[text()='demo-geo-s2']"
 
         try:
             success_sitem = self.locator_finder_by_xpath(success).text
@@ -240,6 +240,7 @@ class ServicePage(NavigationBarPage):
                 # got to collection tab
                 collection_page = 'collections'
                 self.locator_finder_by_id(collection_page).click()
+                time.sleep(2)
 
                 # looking for default collection has been created or not
                 neighbourhood_collection = '//*[@id="collection_neighborhoods"]/div/h5'
@@ -341,15 +342,15 @@ class ServicePage(NavigationBarPage):
                     intersection = 'geoIntersection'
                     self.locator_finder_by_id(intersection).click()
                     time.sleep(3)
-
+                    self.webdriver.close() # closes the browser active window
                     print('Switching back to original window \n')
                     self.webdriver.switch_to.window(self.webdriver.window_handles[0])
 
                 else:
                     raise Exception('restaurants Collection not found!')
 
-        except Exception:
-            raise Exception('Failed to create the service!!')
+        except Exception as ex:
+            raise Exception('Failed to create the service!!') from ex
 
     def check_demo_geo_s2_service_api(self):
         """Checking demo_geo_s2 service's API"""
@@ -422,7 +423,6 @@ class ServicePage(NavigationBarPage):
         self.webdriver.switch_to.default_content()
         time.sleep(1)
 
-    
     def install_demo_graph_hql_service(self, mount_path):
         """Installing demo_graph_hql_service from the list"""
         self.select_service_page()
@@ -451,7 +451,7 @@ class ServicePage(NavigationBarPage):
         foxx_graphql_link_sitem = self.locator_finder_by_xpath(foxx_graphql_link)
         page_title = super().switch_tab(foxx_graphql_link_sitem)
 
-        expected_title = 'Documentation Overview - ArangoDB the native multi-model, open-source database'
+        expected_title = 'Introduction to ArangoDB Documentation | ArangoDB Documentation'
 
         assert page_title == expected_title, f"Expected text {expected_title} but got {page_title}"
         # ---------------checking graphql's links end here---------------
@@ -489,12 +489,13 @@ class ServicePage(NavigationBarPage):
 
         print('Switching to code mirror windows of graphql \n')
         self.webdriver.switch_to.window(self.webdriver.window_handles[1])
-        
+
         graphql_interface_execute_btn = '//*[@id="graphiql-container"]/div[1]/div[1]/div/div[2]/button'
         graphql_interface_execute_btn_sitem = \
             self.locator_finder_by_xpath(graphql_interface_execute_btn)
         graphql_interface_execute_btn_sitem.click()
         print('Return back to original window \n')
+        self.webdriver.close() # closes the browser active window
         self.webdriver.switch_to.window(self.webdriver.window_handles[0])
 
         print('Checking API tab of graphql service \n')
@@ -548,12 +549,18 @@ class ServicePage(NavigationBarPage):
         time.sleep(2)
 
         print("Run teardown before replacing service \n")
-        tear_down = "(//input[@value='false'])[1]"
+
+        if self.current_package_version() >= semver.VersionInfo.parse("3.9.0"):
+            tear_down = '//*[@id="new-app-flag-teardown"]' 
+            configuration = '//*[@id="new-app-flag-replace"]'
+        else:
+            tear_down = "(//input[@value='false'])[1]"    
+            configuration = "(//input[@value='false'])[2]"
+
         self.locator_finder_by_xpath(tear_down).click()
         time.sleep(1)
 
         print("discard configuration before replacing service \n")
-        configuration = "(//input[@value='false'])[2]"
         self.locator_finder_by_xpath(configuration).click()
         time.sleep(1)
 
@@ -566,18 +573,19 @@ class ServicePage(NavigationBarPage):
             time.sleep(2)
             expected_msg = 'Services: Service demo-graphql installed.'
             assert expected_msg == success_notification, f"Expected {expected_msg} but got {success_notification}"
-        except Exception:
-            raise Exception('Error occurred!! required manual inspection.\n')
+        except Exception as ex:
+            raise Exception('Error occurred!! required manual inspection.\n'
+                            ) from ex
         print('Service successfully replaced \n')
-
 
     def select_service_settings(self):
         """Selecting service settings tab"""
         print('Selecting settings options \n')
         settings = 'service-settings'
         self.locator_finder_by_id(settings).click()\
-    
+
     def delete_service_from_setting_tab(self):
+        """will remove a service"""
         delete_service = '//*[@id="settings"]/div/button[1]'
         self.locator_finder_by_xpath(delete_service).click()
         time.sleep(1)
@@ -591,7 +599,7 @@ class ServicePage(NavigationBarPage):
         time.sleep(1)
 
         self.webdriver.refresh()
-    
+
     def collection_deletion(self, col_id):
         """Collection will be deleted by this method"""
         print(f'Deleting {col_id} collections \n')
@@ -610,7 +618,6 @@ class ServicePage(NavigationBarPage):
         self.locator_finder_by_xpath(confirm_delete).click()
         print(f'Deleting {col_id} collections completed \n')
         time.sleep(1)
-
 
     def delete_service(self, service_name):
         """Delete all the services"""
@@ -651,17 +658,18 @@ class ServicePage(NavigationBarPage):
                     # deleting neighborhood collection
                     self.collection_deletion('collection_neighborhoods')
                     self.collection_deletion('collection_restaurants')
-
+            except TimeoutException:
+                print('TimeoutException occurred! \n')
+                print(f'Info: {service_name} has already been deleted or never created. \n')
             except Exception:
-                raise Exception(f'No service found named {service_name}')
-        
+                raise Exception('Critical Error occurred and need manual inspection!! \n')
+
         if service_name == '/graphql':
             # try to determine service has already been created
-            service = "//*[text()='/graphql']"
-            service_sitem = self.locator_finder_by_xpath(service).text
-            time.sleep(1)
-
             try:
+                service = "//*[text()='/graphql']"
+                service_sitem = self.locator_finder_by_xpath(service).text
+                time.sleep(1)
                 if service_sitem == '/graphql':
                     print(f'{service_sitem} service has been found and ready to delete \n')
                     self.locator_finder_by_xpath(service).click()
@@ -673,6 +681,8 @@ class ServicePage(NavigationBarPage):
                     self.delete_service_from_setting_tab()
                     print(f'{service_sitem} service has been deleted successfully \n')
 
+            except TimeoutException:
+                print('TimeoutException occurred! \n')
+                print(f'Info: {service_name} has already been deleted or never created. \n')
             except Exception:
-                raise Exception(f'No service found named {service_name}')
-
+                raise Exception('Critical Error occurred and need manual inspection!! \n')

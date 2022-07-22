@@ -11,6 +11,12 @@ import semver
 
 from reporting.reporting_utils import step
 
+try:
+    from tools.external_helpers import cloud_secrets
+# pylint: disable=bare-except
+except:
+    cloud_secrets = None
+
 # pylint: disable=too-few-public-methods
 
 IS_WINDOWS = platform.win32_ver()[0] != ""
@@ -22,6 +28,8 @@ class HotBackupMode(Enum):
     DISABLED = 0
     DIRECTORY = 1
     S3BUCKET = 2
+    GCS = 3
+    AZUREBLOBSTORAGE = 4
 
 
 class HotBackupProviders(Enum):
@@ -29,37 +37,50 @@ class HotBackupProviders(Enum):
 
     MINIO = 0
     AWS = 1
+    GCE = 2
+    AZURE = 3
 
 
 hb_strings = {
     HotBackupMode.DISABLED: "disabled",
     HotBackupMode.DIRECTORY: "directory",
     HotBackupMode.S3BUCKET: "s3bucket",
+    HotBackupMode.GCS: "googleCloudStorage",
+    HotBackupMode.AZUREBLOBSTORAGE: "azureBlobStorage",
 }
 HB_MODES = {
     "disabled": HotBackupMode.DISABLED,
     "directory": HotBackupMode.DIRECTORY,
     "s3bucket": HotBackupMode.S3BUCKET,
+    "googleCloudStorage": HotBackupMode.GCS,
+    "azureBlobStorage": HotBackupMode.AZUREBLOBSTORAGE,
 }
 
 HB_PROVIDERS = {
     "minio": HotBackupProviders.MINIO,
     "aws": HotBackupProviders.AWS,
+    "gce": HotBackupProviders.GCE,
+    "azure": HotBackupProviders.AZURE,
 }
 
 
 class HotBackupProviderCfg:
-    """ different hotbackup upload setups """
+    """different hotbackup upload setups"""
+
     ALLOWED_PROVIDERS = {
         HotBackupMode.DISABLED: [],
         HotBackupMode.DIRECTORY: [],
         HotBackupMode.S3BUCKET: [HotBackupProviders.MINIO, HotBackupProviders.AWS],
+        HotBackupMode.GCS: [HotBackupProviders.GCE],
+        HotBackupMode.AZUREBLOBSTORAGE: [HotBackupProviders.AZURE],
     }
 
     HB_PROVIDER_DEFAULT = {
         HotBackupMode.DISABLED: None,
         HotBackupMode.DIRECTORY: None,
         HotBackupMode.S3BUCKET: HotBackupProviders.MINIO,
+        HotBackupMode.GCS: HotBackupProviders.GCE,
+        HotBackupMode.AZUREBLOBSTORAGE: HotBackupProviders.AZURE,
     }
 
     def __init__(self, mode: str, provider: HotBackupProviders = None, path_prefix: str = None):
@@ -74,28 +95,57 @@ class HotBackupProviderCfg:
         while self.path_prefix and "//" in self.path_prefix:
             self.path_prefix = self.path_prefix.replace("//", "/")
 
+
 class OptionGroup:
-    """ wrapper class to init from kwargs """
+    """wrapper class to init from kwargs"""
+
     @classmethod
     def from_dict(cls, **options):
-        """ invoke init from kwargs """
+        """invoke init from kwargs"""
         # these members will be added by derivative classes:
         # pylint: disable=no-member
-        return cls(
-            **{k: v for k, v in options.items() if k in cls.__dataclass_fields__}
-        )
+        return cls(**{k: v for k, v in options.items() if k in cls.__dataclass_fields__})
+
 
 @dataclass
 class HotBackupCliCfg(OptionGroup):
-    """ map hotbackup_options """
+    """map hotbackup_options"""
+
+    @classmethod
+    def from_dict(cls, **options):
+        """invoke init from kwargs"""
+        if "hb_use_cloud_preset" in options.keys() and options["hb_use_cloud_preset"] is not None:
+            if hasattr(cloud_secrets, options["hb_use_cloud_preset"]):
+                return cls(
+                    **{
+                        k: v
+                        for k, v in getattr(cloud_secrets, options["hb_use_cloud_preset"]).items()
+                        if k in cls.__dataclass_fields__
+                    }
+                )
+            else:
+                raise Exception("Presaved cloud profile with this name not found: " + options["hb_use_cloud_preset"])
+        else:
+            return cls(**{k: v for k, v in options.items() if k in cls.__dataclass_fields__})
+
     hb_mode: str
     hb_provider: str
-    hb_provider: str
     hb_storage_path_prefix: str
-    hb_aws_access_key_id: str
-    hb_aws_secret_access_key: str
-    hb_aws_region: str
-    hb_aws_acl: str
+
+    # specific params for AWS
+    hb_aws_access_key_id: str = None
+    hb_aws_secret_access_key: str = None
+    hb_aws_region: str = None
+    hb_aws_acl: str = None
+
+    # specific params for GCE
+    hb_gce_service_account_credentials: str = None
+    hb_gce_service_account_file: str = None
+    hb_gce_project_number: str = None
+
+    # specific params for Azure
+    hb_azure_account: str = None
+    hb_azure_key: str = None
 
 
 class InstallerFrontend:
@@ -177,13 +227,13 @@ class InstallerConfig:
         self.cfgdir = Path()
         self.hb_cli_cfg = hb_cli_cfg
         self.hb_provider_cfg = HotBackupProviderCfg(
-             hb_cli_cfg.hb_mode,
+            hb_cli_cfg.hb_mode,
             HB_PROVIDERS[hb_cli_cfg.hb_provider] if hb_cli_cfg.hb_provider else None,
-            hb_cli_cfg.hb_storage_path_prefix
-         )
-        self.hot_backup_supported = (self.enterprise and
-                                     not IS_WINDOWS and
-                                     self.hb_provider_cfg.mode != HotBackupMode.DISABLED)
+            hb_cli_cfg.hb_storage_path_prefix,
+        )
+        self.hot_backup_supported = (
+            self.enterprise and not IS_WINDOWS and self.hb_provider_cfg.mode != HotBackupMode.DISABLED
+        )
 
     def __repr__(self):
         return """
@@ -320,20 +370,26 @@ def make_installer(install_config: InstallerConfig):
     """detect the OS and its distro,
     choose the proper installer
     and return it"""
+
     if install_config.src_testing:
         from arangodb.installers.source import InstallerSource
 
         return InstallerSource(install_config)
 
+    if IS_WINDOWS:
+        if install_config.zip_package:
+            from arangodb.installers.zip import InstallerZip
+
+            return InstallerZip(install_config)
+        else:
+            from arangodb.installers.nsis import InstallerNsis
+
+            return InstallerNsis(install_config)
+
     if install_config.zip_package:
         from arangodb.installers.tar import InstallerTAR
 
         return InstallerTAR(install_config)
-
-    if IS_WINDOWS:
-        from arangodb.installers.nsis import InstallerW
-
-        return InstallerW(install_config)
 
     macver = platform.mac_ver()
     if macver[0]:
@@ -387,9 +443,11 @@ EXECUTION_PLAN = [
     RunProperties(False, False, False, "Community", "C"),
 ]
 
+
 @dataclass
 class InstallerBaseConfig(OptionGroup):
     """commandline argument config settings"""
+
     # pylint: disable=too-many-instance-attributes
     verbose: bool
     zip_package: bool
@@ -401,6 +459,7 @@ class InstallerBaseConfig(OptionGroup):
     publicip: str
     interactive: bool
     stress_upgrade: bool
+
 
 # pylint: disable=too-many-locals
 def create_config_installer_set(

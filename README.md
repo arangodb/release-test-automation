@@ -3,11 +3,7 @@
 - python 3
 - python requests to talk to the instances https://requests.readthedocs.io/en/latest/
 - Python expect - https://github.com/pexpect/pexpect https://pexpect.readthedocs.io/en/stable/ (linux only)
-- PS-util  https://psutil.readthedocs.io/en/latest/#windows-services on windows `_pswindows.py` needs to be copied
- into the python installation after the pip run:
-   - python install root (i.e. Users/willi/AppData/Local/Programs/Python)
-   -  /Python38-32/Lib/site-packages/psutil/_pswindows.py
- the upstream distribution doesn't enable the wrappers to start/stop service
+- PS-util  https://psutil.readthedocs.io/en/latest/#windows-services 
 - pyyaml - for parsing saved data.
 - click - for commandline parsing https://click.palletsprojects.com/en/7.x/
 - semver - semantic versioning.
@@ -62,7 +58,11 @@ Typical arguments that may make chrome work:
 
 ## Windows
 
-TBD
+On Windows we require `PYTHONUTF8=1` in the OS-Environment in order to avoid non supported conversions in print statements.
+
+  `pip install -r requirements.txt`
+
+should be used to install the python dependencies.
 
 # specifying versions
 
@@ -110,10 +110,6 @@ Supported Parameters:
  - `--[no-]ssl` use SSL (default = False)
  - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl) 
  - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
- - `--hb-mode` - Hot backup mode. Possible values: disabled, directory or s3bucket. 
- - `--hb-provider` - Cloud storage provider. Possible values for s3bucket: minio, aws.
- - `--hb-storage-path-prefix` - Bucket name and subdirectory to store hot backups in cloud.
-
 Example usage:
  - Windows: `python ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
  - Linux (ubuntu|debian) `python3 ./release_tester/test.py --new-version 3.6.2 --no-enterprise --package-dir /home/willi/Downloads`
@@ -153,14 +149,29 @@ Supported Parameters:
  - `--[no-]ssl` use SSL (default = False)
  - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl)
  - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
- - `--hb-mode` - Hot backup mode. Possible values: disabled, directory or s3bucket. 
- - `--hb-provider` - Cloud storage provider. Possible values for s3bucket: minio, aws.
- - `--hb-storage-path-prefix` - Bucket name and subdirectory to store hot backups in cloud.
  
 Example usage:
  - Windows: `python ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
  - Linux (ubuntu|debian) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
  - Linux (centos|fedora|sles) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
+
+# Using `run_test_suites.py` to run test suites
+
+This entrypoint file is used to run tests that are organized in test suites.
+Supported Parameters:
+ - `--include-test-suite` Test suite name to include in the test run. Multiple test suites can be ran by providing this parameter multiple times. This parameter cannot be used if --exclude-test-suite is set.
+ - `--exclude-test-suite` Run all test suites except for this one. Multiple test suites can be excluded by providing this parameter multiple times. This parameter cannot be used if --include-test-suite is set.
+ - `--new-version` which Arangodb Version you want to run the test on
+ - `--old-version` old version of ArangoDB to be used in tests where an older version is required.
+ - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
+ - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
+ - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
+ - `--verbose` if specified more logging is done
+ - `--alluredir` - directory to save test results in allure format (default = allure-results)
+ - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
+
+Example usage:
+ - Linux: `python3 ./release_tester/run_test_suites.py --new-version 3.10.0-nightly --old-version 3.9.1-nightly --verbose --no-enterprise --zip --package-dir /packages --include-test-suite EnterprisePackageInstallationTestSuite`
 
 # Using `conflict_checking.py` for testing of package installation process
 
@@ -175,11 +186,6 @@ Supported Parameters:
  - `--verbose` if specified more logging is done
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
  - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
-
-Example usage:
- - Windows: `python ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
- - Linux (ubuntu|debian) `python3 ./release_tester/test.py --new-version 3.6.2 --no-enterprise --package-dir /home/willi/Downloads`
- - Linux (centos|fedora|sles) `python3 ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
 
 # Using `run_license_tests.py` to test the license manager feature
 
@@ -266,6 +272,10 @@ Supported Parameters:
    - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
    - `DC` - setup 2 clusters, connect them with arangosync (enterprise only)
+ - `edition` which type to launch:
+   - `C` community
+   - `EP` enterprise
+   - `EE` enterprise with encryption at rest
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
@@ -273,9 +283,6 @@ Supported Parameters:
  - `--[no-]ssl` use SSL (default = False)
  - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl)
  - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
- - `--hb-mode` - Hot backup mode. Possible values: disabled, directory or s3bucket. 
- - `--hb-provider` - Cloud storage provider. Possible values for s3bucket: minio, aws.
- - `--hb-storage-path-prefix` - Bucket name and subdirectory to store hot backups in cloud.
 
 Example usage: 
 
@@ -327,6 +334,10 @@ Supported Parameters:
    - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
    - `DC` - setup 2 clusters, connect them with arangosync (enterprise only)
+ - `edition` which type to launch:
+   - `C` community
+   - `EP` enterprise
+   - `EE` enterprise with encryption at rest
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
@@ -334,10 +345,6 @@ Supported Parameters:
  - `--[no-]ssl` use SSL (default = False)
  - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl)
  - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
- - `--hb-mode` - Hot backup mode. Possible values: disabled, directory or s3bucket. 
- - `--hb-provider` - Cloud storage provider. Possible values for s3bucket: minio, aws.
- - `--hb-storage-path-prefix` - Bucket name and subdirectory to store hot backups in cloud.
-
 Example usage: 
 
 - [jenkins/nightly_tar.sh](jenkins/nightly_tar.sh) Download nightly tarball packages, and run it with selenium in `containers/docker_tar` ubuntu container
@@ -398,6 +405,29 @@ It consists of these files in test_data:
    - `550_enterprise_graph.js` creates an enterprise patent graph
    - `560_smartgraph_validator.js` on top of the enterprise graph, this will check the integrity check of the server.
    - `900_oneshard.js` creates oneshard database and does stuff with it.
+   - `607_analyzers.js` creates suported analyzers for 3.7.x version and check it's functionality.
+      Added Analyzers: (documentation link: https://www.arangodb.com/docs/3.7/analyzers.html)
+      - identity: An Analyzer applying the identity transformation, i.e. returning the input unmodified.
+      - delimiter: An Analyzer capable of breaking up delimited text into tokens as per RFC 4180 (without starting new  records on newlines).
+      - stem : An Analyzer capable of stemming the text, treated as a single token, for supported languages.
+      - norm Upper : An Analyzer capable of normalizing the text, treated as a single token, i.e. case conversion and accent removal. This one will Convert input string to all upper-case characters.
+      - norm Accent : This analyzer is capable of convert accented characters to their base characters.
+      - ngram : An Analyzer capable of producing n-grams from a specified input in a range of min..max (inclusive). Can optionally preserve the original input.
+      - n-Bigram Markers: This analyzer is a bigram Analyzer with preserveOriginal enabled and with start and stop markers.
+      - text : An Analyzer capable of breaking up strings into individual words while also optionally filtering out stop-words, extracting word stems, applying case conversion and accent removal.
+      - text Edge ngram: This analyzer is a custom text Analyzer with the edge n-grams feature and normalization enabled, stemming disabled and "the" defined as stop-word to exclude it.
+   - `608_analyzers.js` creates suported analyzers for 3.8.x version and check it's functionality.
+      Added Analyzers: (documentation link: https://www.arangodb.com/docs/3.8/analyzers.html)
+      - Soundex: Analyzer for a phonetically similar term search.
+      - aqlConcat: Concatenating Analyzer for conditionally adding a custom prefix or suffix.
+      - aqlFilter: Filtering Analyzer that discards unwanted data based on the prefix.
+      - nGramPipeline: Normalize to all uppercase and compute bigrams.
+      - delimiterPipeline: Split at delimiting characters , and ;, then stem the tokens.
+      - stopwords: Create and use a stopword Analyzer that removes the tokens `and` and `the`
+      - stopwordsPipeline: An Analyzer capable of removing specified tokens from the input.
+      - geoJson: An Analyzer capable of breaking up a GeoJSON object into a set of indexable tokens for further usage with ArangoSearch Geo functions.
+      - geoPoint: An Analyzer capable of breaking up JSON object describing a coordinate into a set of indexable tokens for further usage with ArangoSearch Geo functions.
+   - `609_analyzers.js` creates suported analyzers for 3.9.x version and check it's functionality.
 
 It should be considered to provide a set of hooks (000_dummy.js can be considered being a template for this):
 
@@ -433,14 +463,32 @@ if this repository is checked out next to it:
 During the test scenarios hot backups will be created/restored and uploaded/downloaded to/from an external storage using the bundled rclone. 
 RTA supports different types of external storage. By default the backups will be just copied to another directory using rclone. 
 Other options include running minio(S3-compatible open-source storage) locally and uploading backups to a real cloud provider. 
-This is controlled using the following 3 command line parameters:
- - `--hb-mode` - Hot backup mode. Possible values: disabled, directory or s3bucket. 
- - `--hb-provider` - Cloud storage provider. Possible values for s3bucket: minio, aws.
- - `--hb-storage-path-prefix` - Bucket name and subdirectory to store hot backups in cloud.
- - `--hb-aws-access-key-id` [env `AWS_ACCESS_KEY_ID`] - access key id (mandatory parameter)
- - `--hb-aws-secret-access-key` [env `AWS_SECRET_ACCESS_KEY`] - secret access key (mandatory parameter)
- - `--hb-aws-region` [env `AWS_REGION`] - region (mandatory parameter)
- - `--hb-aws-acl` [env `AWS_ACL`] - ACL (default value: `private`)
+This is controlled using the following command line parameters:
+ - `--hb-mode` - Hot backup mode. Possible values: disabled, directory, s3bucket, googleCloudStorage, azureBlobStorage. 
+ - `--hb-provider` - Cloud storage provider. Possible values for s3bucket: minio, aws, gce, azure.
+ - `--hb-storage-path-prefix` - Subdirectory to store hot backups in cloud.
+ - `--hb-aws-access-key-id` [env `AWS_ACCESS_KEY_ID`] - AWS access key id
+ - `--hb-aws-secret-access-key` [env `AWS_SECRET_ACCESS_KEY`] - AWS secret access key
+ - `--hb-aws-region` [env `AWS_REGION`] - AWS region
+ - `--hb-aws-acl` [env `AWS_ACL`] - AWS ACL (default value: `private`)
+ - `--hb-gce-service-account-credentials` - GCE service account credentials(JSON string).
+ - `--hb-gce-service-account-file` - Path to a JSON file containing GCE service account credentials.
+ - `--hb-gce-project-number` - GCE project ID.  
+ - `--hb-azure-account` - Azure storage account.
+ - `--hb-azure-key` - Azure storage account access key.   
+ - `--hb-use-cloud-preset` (string) - Load saved hotbackup settings. To use this, create a file release_tester/tools/external_helpers/cloud_secrets.py. Inside this file define dict variables. The name of the variable is the name of the preset. The dict must contain all the hb parameters. If --hb-use-cloud-preset is set, then all other parameters which names start with hb- are ignored.
+   Example of cloud_secrets.py: 
+```python
+aws = {
+    "hb_storage_path_prefix": "/path/inside/bucket",
+    "hb_mode": "s3bucket",
+    "hb_provider": "aws",
+    "hb_aws_access_key_id": "SECRET_KEY",
+    "hb_aws_secret_access_key": "ACCESS_KEY",
+    "hb_aws_region": "eu-central-1",
+    "hb_aws_acl": "private",
+}
+```
 
 Each cloud storage may also have some specific configuration parameters, which must be set as environment variables.
 
@@ -740,5 +788,5 @@ cd ..
   --starter-mode DC
 ```
 
-Will search for `/home/willi/src/E_3.9.0/build/bin` to launch the deployment initially, and upgrade to `/home/willi/src/E_3.10.0-devel/build/bin`.
+Will search for `/home/willi/src/rta/arangoversions/E_3.9.0/build/bin` to launch the deployment initially, and upgrade to `/home/willi/src/rta/arangoversions/E_3.10.0-devel/build/bin`.
 

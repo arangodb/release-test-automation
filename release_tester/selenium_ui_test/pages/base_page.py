@@ -315,6 +315,16 @@ class BasePage:
         if self.locator is None:
             raise Exception("UI-Test: ", locator_name, " locator was not found.")
         return self.locator
+    
+    def locator_finder_by_link_text(self, locator_name):
+        """This method will be used for finding all the locators by their xpath"""
+        self.locator = WebDriverWait(self.webdriver, 10).until(
+            EC.element_to_be_clickable((BY.LINK_TEXT, locator_name))
+        )
+        if self.locator is None:
+            print("UI-Test: ", locator_name, " locator has not found.")
+        else:
+            return self.locator
 
     def locator_finder_by_select(self, locator_name, value):
         """This method will used for finding all the locators in drop down menu with options"""
@@ -441,18 +451,16 @@ class BasePage:
             print(print_statement[i])  # print_statement will hold a list of all general print statements for the test
             locators = locators_id  # locator id of the input placeholder where testing will take place
             locator_sitem = self.locator_finder_by_id(locators)
-
             locator_sitem.click()
             locator_sitem.clear()
             locator_sitem.send_keys(error_input[i])
             time.sleep(2)
 
-            version = self.current_package_version()
             if semver.VersionInfo.parse("3.8.0") <= self.current_package_version() <= semver.VersionInfo.parse("3.8.100"):
                 locator_sitem.send_keys(Keys.TAB)
                 time.sleep(2)
             try:
-                # trying to create the db for 3.9 version
+                # trying to create the db for >= v3.9.x
                 if value is False and self.current_package_version() >= semver.VersionInfo.parse("3.9.0"):
                     self.locator_finder_by_xpath('//*[@id="modalButton1"]').click()
                     time.sleep(2)
@@ -474,7 +482,7 @@ class BasePage:
                 time.sleep(2)
 
                 # getting out from the db creation for the next check
-                if value is False and self.current_package_version() == semver.VersionInfo.parse("3.9.0"):
+                if value is False and self.current_package_version() >= semver.VersionInfo.parse("3.9.0"):
                     self.webdriver.refresh()
                     self.locator_finder_by_id("createDatabase").click()
                     time.sleep(1)
@@ -483,6 +491,46 @@ class BasePage:
                 raise Exception("*****-->Error occurred. Manual inspection required<--***** \n") from ex
 
             i = i + 1
+    
+    def check_expected_error_messages_for_views(self,
+                                                error_input,
+                                                print_statement,
+                                                error_message,
+                                                locators_id,
+                                                error_message_id):
+        """This method will take three lists and check for expected error condition against user's inputs"""
+        # looping through all the error scenario for test
+        i = 0
+        while i < len(error_input):  # error_input list will hold a list of error inputs from the users
+            print(print_statement[i])  # print_statement will hold a list of all general print statements for the test
+            # locator id of the input placeholder where testing will take place
+            locator_sitem = self.locator_finder_by_xpath(locators_id)
+            locator_sitem.click()
+            locator_sitem.clear()
+            locator_sitem.send_keys(error_input[i])
+            time.sleep(2)
+
+            if self.current_package_version() >= semver.VersionInfo.parse("3.8.0"):
+                locator_sitem.send_keys(Keys.TAB)
+                time.sleep(2)
+            try:
+                # trying to create the views
+                error_sitem = self.locator_finder_by_xpath(error_message_id).text
+
+                # error_message list will hold expected error messages
+                assert error_sitem == error_message[i], \
+                    f"FAIL: Expected error message {error_message[i]} but got {error_sitem}"
+
+                print('x' * (len(error_sitem) + 29))
+                print('OK: Expected error found: ', error_sitem)
+                print('x' * (len(error_sitem) + 29), '\n')
+                time.sleep(2)
+
+            except TimeoutException as ex:
+                raise Exception("*****-->Error occurred. Manual inspection required<--***** \n") from ex
+
+            i = i + 1
+
 
     def check_server_package(self):
         """This will determine the current server package type"""
@@ -524,7 +572,7 @@ class BasePage:
     def by_class(self, classname):
         """shortcut class-id"""
         return self.webdriver.find_element(BY.CLASS_NAME, classname)
-    
+
     def handle_red_bar(self):
         """It will check for any red bar error notification"""
         try:

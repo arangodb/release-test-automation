@@ -97,3 +97,36 @@ class ReplicationPage(NavigationBarPage):
                 else:
                     self.webdriver.refresh()
                     time.sleep(1)
+    
+    def get_replication_information(self):
+        """checking replication information"""
+        print('checking replication tab is available\n')
+        replication = '//*[@id="replication"]'
+        replication_sitem = self.locator_finder_by_xpath(replication)
+        replication = replication_sitem.text
+        time.sleep(1)
+        assert replication == "REPLICATION", f"Expected REPLICATION but got {replication}"
+
+        
+        print('checking replication mode\n')
+        replication_mode = 'info-mode-id'
+        replication_mode_sitem = self.locator_finder_by_id(replication_mode)
+        replication_mode = replication_mode_sitem.text
+        time.sleep(1)
+        assert replication_mode == "Active Failover", f"Expected Active Failover but got {replication_mode}"
+
+        ip_list = ["tcp://localhost:9529", "tcp://localhost:9629", "tcp://localhost:9729"]
+
+        print('checking leader id\n')
+        leader_id = 'nodes-leader-id'
+        leader_id_sitem = self.locator_finder_by_id(leader_id)
+        leader = leader_id_sitem.text
+        time.sleep(1)
+        assert leader in ip_list, f"Error occcured, Couldn't find expected leader ip"
+
+        print('checking follower id\n')
+        follower_id = '//*[@id="nodes-followers-id"]/span'
+        follower_id_sitem = self.locator_finder_by_xpath(follower_id)
+        follower = follower_id_sitem.text
+        time.sleep(1)
+        assert follower in ip_list, f"Error occcured, Couldn't find expected follower ip"

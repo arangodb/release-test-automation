@@ -5,7 +5,7 @@ from selenium_ui_test.pages.nodes_page import NodesPage
 from selenium_ui_test.pages.cluster_page import ClusterPage
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
-from selenium_ui_test.test_suites.base_test_suite import testcase
+from test_suites_core.base_test_suite import testcase
 
 
 class ClusterJamStepTwoSuite(BaseSeleniumTestSuite):
@@ -14,8 +14,8 @@ class ClusterJamStepTwoSuite(BaseSeleniumTestSuite):
     @testcase
     def jam_step_2(self):
         """ step 2 jamming: check the instances are gone from the table """
-        NavigationBarPage(self.webdriver).navbar_goto("cluster")
-        cluster_page = ClusterPage(self.webdriver)
+        NavigationBarPage(self.webdriver, self.cfg).navbar_goto("cluster")
+        cluster_page = ClusterPage(self.webdriver, self.cfg)
         node_count = None
         done = False
         retry_count = 0
@@ -43,8 +43,8 @@ class ClusterJamStepTwoSuite(BaseSeleniumTestSuite):
         )
         self.check_version(version, self.is_enterprise)
 
-        NavigationBarPage(self.webdriver).navbar_goto("nodes")
-        nodes_page = NodesPage(self.webdriver)
+        NavigationBarPage(self.webdriver, self.cfg).navbar_goto("nodes")
+        nodes_page = NodesPage(self.webdriver, self.cfg)
         table = nodes_page.cluster_get_nodes_table()
         row_count = 0
         for row in table:
@@ -55,7 +55,7 @@ class ClusterJamStepTwoSuite(BaseSeleniumTestSuite):
         self.ui_assert(row_count == 6, "UI-Test: expected 6 instances")
 
         nodes_page.navbar_goto("cluster")
-        cluster_page = ClusterPage(self.webdriver)
+        cluster_page = ClusterPage(self.webdriver, self.cfg)
         node_count = cluster_page.cluster_dashboard_get_count()
         self.ui_assert(node_count["dbservers"] == "3", "UI-Test: expected 3 dbservers, got: " + node_count["dbservers"])
         self.ui_assert(

@@ -20,11 +20,16 @@ from arangodb.installers import HotBackupMode, HotBackupProviders
 HB_2_RCLONE_TYPE = {
     HotBackupMode.DISABLED: "disabled",
     HotBackupMode.DIRECTORY: "local",
-    HotBackupMode.S3BUCKET: "S3",
+    HotBackupMode.S3BUCKET: "s3",
+    HotBackupMode.GCS: "google cloud storage",
+    HotBackupMode.AZUREBLOBSTORAGE: "azureblob",
 }
 
 class HotBackupConfig:
     """manage rclone setup"""
+
+    #values inside this list must be lower case
+    SECRET_PARAMETERS = ["access_key_id", "secret_access_key", "service_account_credentials", "key"]
 
     def __init__(self, basecfg, name, raw_install_prefix):
         self.hb_timeout = 20
@@ -42,7 +47,7 @@ class HotBackupConfig:
             and self.hb_provider_cfg.provider == HotBackupProviders.MINIO
         ):
             self.name = "S3"
-            config["type"] = "s3"
+            config["type"] = HB_2_RCLONE_TYPE[self.hb_provider_cfg.mode]
             config["provider"] = "minio"
             config["env_auth"] = "false"
             config["access_key_id"] = "minio"
@@ -55,7 +60,7 @@ class HotBackupConfig:
         ):
             self.name = "S3"
             self.hb_timeout = 120
-            config["type"] = "s3"
+            config["type"] = HB_2_RCLONE_TYPE[self.hb_provider_cfg.mode]
             config["provider"] = "AWS"
             config["env_auth"] = "false"
             config["access_key_id"] = hbcfg.hb_aws_access_key_id
@@ -66,21 +71,51 @@ class HotBackupConfig:
             config["copy-links"] = "false"
             config["links"] = "false"
             config["one_file_system"] = "true"
+        elif self.hb_provider_cfg.mode == HotBackupMode.GCS and self.hb_provider_cfg.provider == HotBackupProviders.GCE:
+            self.name = "GCE"
+            self.hb_timeout = 240
+            config["type"] = HB_2_RCLONE_TYPE[self.hb_provider_cfg.mode]
+            config["project_number"] = hbcfg.hb_gce_project_number
+            if hbcfg.hb_gce_service_account_credentials:
+                config["service_account_credentials"] = hbcfg.hb_gce_service_account_credentials
+            elif hbcfg.hb_gce_service_account_file:
+                config["service_account_file"] = hbcfg.hb_gce_service_account_file
+            else:
+                raise Exception("Either \"service_account_credentials\" or \"service_account_file\" parameter must be specified for Google Cloud Storage.")
+        elif self.hb_provider_cfg.mode == HotBackupMode.AZUREBLOBSTORAGE and self.hb_provider_cfg.provider == HotBackupProviders.AZURE:
+            self.name = "azure"
+            self.hb_timeout = 240
+            config["type"] = HB_2_RCLONE_TYPE[self.hb_provider_cfg.mode]
+            config["account"] = hbcfg.hb_azure_account
+            config["key"] = hbcfg.hb_azure_key
         self.config = {self.name: config}
+
+    def get_config_json(self):
+        """json serializer"""
+        return json.dumps(self.config)
+
+    def get_config_json_sanitized(self):
+        """json serializer"""
+        cfg_copy = copy.deepcopy(self.config)
+        for cfg_name in cfg_copy:
+            for param_name in cfg_copy[cfg_name]:
+                if param_name.lower() in HotBackupConfig.SECRET_PARAMETERS:
+                    cfg_copy[cfg_name][param_name] = "***"
+        return json.dumps(cfg_copy)
 
     def save_config(self, filename):
         """writes a hotbackup rclone configuration file"""
         fhandle = self.install_prefix / filename
         lh.subsubsection("Writing RClone config:")
-        print(json.dumps(self.config))
-        fhandle.write_text(json.dumps(self.config))
+        print(self.get_config_json_sanitized())
+        fhandle.write_text(self.get_config_json())
         return str(fhandle)
 
     @step
     def get_rclone_config_file(self):
         """create a config file and return its full name"""
         filename = self.save_config("rclone_config.json")
-        attach.file(filename, "rclone_config.json", "application/json", "rclone_config.json")
+        attach(self.get_config_json_sanitized(), "rclone_config.json", "application/json", "rclone_config.json")
         return filename
 
     def construct_remote_storage_path(self, postfix):
@@ -252,6 +287,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
                 return match.group(1)
         raise Exception("couldn't locate name of the upload process!")
 
+    # pylint: disable=unused-argument disable=no-self-use
     def validate_local_backup(self, starter_basedir, backup_name):
         """ validate backups in the local installation """
         self.validate_backup(starter_basedir, backup_name)

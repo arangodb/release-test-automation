@@ -10,7 +10,7 @@ from arangodb.instance import InstanceType
 from arangodb.starter.manager import StarterManager
 from license_manager_tests.base.license_manager_base_test_suite import LicenseManagerBaseTestSuite
 from reporting.reporting_utils import step
-from selenium_ui_test.test_suites.base_test_suite import testcase, run_before_suite, run_after_suite, collect_crash_data
+from test_suites_core.base_test_suite import testcase, run_before_suite, run_after_suite, collect_crash_data
 from tools.killall import kill_all_processes
 
 
@@ -18,11 +18,10 @@ class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
     """License manager tests: single server"""
 
     # pylint: disable=dangerous-default-value
-    def __init__(self, new_version, installer_base_config, child_classes=[]):
+    def __init__(self, new_version, installer_base_config):
         super().__init__(
             new_version,
             installer_base_config,
-            child_classes,
         )
         self.short_name = "SingleServer"
 
@@ -53,6 +52,7 @@ class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
         """Teardown suite environment: single server"""
         self.starter.terminate_instance()
         kill_all_processes()
+        self.cleanup()
 
     def get_server_id(self):
         """read server ID from data directory"""

@@ -3,7 +3,6 @@
 import time
 from selenium.common.exceptions import TimeoutException
 from selenium_ui_test.pages.navbar import NavigationBarPage
-import semver
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=line-too-long disable=too-many-instance-attributes disable=too-many-statements

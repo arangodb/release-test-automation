@@ -4,15 +4,17 @@
 """ Release testing script"""
 #pylint: disable=duplicate-code
 from dataclasses import dataclass
-from ftplib import FTP
+from ftplib import FTP_TLS
 from io import BytesIO
 import os
 from pathlib import Path
+import platform
 import json
 import sys
 import tarfile
 
 import click
+import semver
 from arangodb.installers import make_installer, InstallerConfig, HotBackupCliCfg, InstallerBaseConfig, OptionGroup
 import tools.loghelper as lh
 
@@ -85,7 +87,6 @@ class DownloadOptions(OptionGroup):
     package_dir: Path
     enterprise_magic: str
     httpuser: str
-    httppassvoid: str
     remote_host:str
 
 class Download:
@@ -128,9 +129,9 @@ class Download:
         else:
             # dns split horizon...
             if source in ["ftp:stage1", "ftp:stage2"]:
-                self.remote_host = "172.16.1.22"
-            elif source in ["http:stage1", "http:stage2"]:
-                self.remote_host = "fileserver.arangodb.com"
+                self.remote_host = "nas01.arangodb.biz"
+            elif source in ["http:stage2"]:
+                self.remote_host = "download.arangodb.com"
             else:
                 self.remote_host = "download.arangodb.com"
         lh.section("startup")
@@ -150,8 +151,15 @@ class Download:
             stress_upgrade=False,
             ssl=False,
         )
+
         self.inst = make_installer(self.cfg)
         self.is_nightly = self.inst.semver.prerelease == "nightly"
+        self.path_architecture = ""
+        if self.is_nightly or self.cfg.semver > semver.VersionInfo.parse("3.9.99"):
+            machine = platform.machine()
+            if machine == 'AMD64':
+                machine = 'x86_64'
+            self.path_architecture = machine + '/'
         self.calculate_package_names()
         self.packages = []
 
@@ -183,6 +191,7 @@ class Download:
             "major_version": "arangodb{major}{minor}".format(**self.cfg.semver.to_dict()),
             "bare_major_version": "{major}.{minor}".format(**self.cfg.semver.to_dict()),
             "remote_package_dir": self.inst.remote_package_dir,
+            "path_architecture": self.path_architecture,
             "enterprise": "Enterprise" if self.cfg.enterprise else "Community",
             "enterprise_magic": self.options.enterprise_magic + "/" if self.cfg.enterprise else "",
             "packages": "" if self.is_nightly else "packages",
@@ -192,19 +201,16 @@ class Download:
             self.params["enterprise"] = ""
 
         self.directories = {
-            "ftp:stage1": "/buildfiles/stage1/{full_version}/release/packages/{enterprise}/{remote_package_dir}/".format(
+            "ftp:stage1": "/stage1/{full_version}/release/packages/{enterprise}/{remote_package_dir}/".format(
                 **self.params
             ),
-            "ftp:stage2": "/buildfiles/stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/".format(
+            "ftp:stage2": "/stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/{path_architecture}".format(
                 **self.params
             ),
-            "http:stage1": "stage1/{full_version}/release/packages/{enterprise}/{remote_package_dir}/".format(
+            "http:stage2": "stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/{path_architecture}".format(
                 **self.params
             ),
-            "http:stage2": "stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/".format(
-                **self.params
-            ),
-            "nightlypublic": "{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/".format(
+            "nightlypublic": "{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/{path_architecture}".format(
                 **self.params
             ).replace("///", "/"),
             "public": "{enterprise_magic}{major_version}/{enterprise}/{remote_package_dir}/".format(
@@ -213,7 +219,6 @@ class Download:
             "local": None,
         }
         self.funcs = {
-            "http:stage1": self.acquire_stage1_http,
             "http:stage2": self.acquire_stage2_http,
             "ftp:stage1": self.acquire_stage1_ftp,
             "ftp:stage2": self.acquire_stage2_ftp,
@@ -233,7 +238,7 @@ class Download:
         if out.exists() and not force:
             print(stage + ": not overwriting {file} since not forced to overwrite!".format(**{"file": str(out)}))
             return
-        ftp = FTP(self.remote_host)
+        ftp = FTP_TLS(self.remote_host)
         print(stage + ": " + ftp.login(user="anonymous", passwd="anonymous", acct="anonymous"))
         print(stage + ": Downloading from " + directory)
         print(stage + ": " + ftp.cwd(directory))
@@ -247,7 +252,6 @@ class Download:
         url = "https://{user}:{passvoid}@{remote_host}:8529/{dir}{pkg}".format(
             **{
                 "remote_host": self.remote_host,
-                "passvoid": self.options.httppassvoid,
                 "user": self.options.httpuser,
                 "dir": directory,
                 "pkg": package,
@@ -273,10 +277,6 @@ class Download:
                     **{"url": url, "error": res.status_code, "msg": res.text}
                 )
             )
-
-    def acquire_stage1_http(self, directory, package, local_dir, force):
-        """download stage 1 from http"""
-        self.acquire_stage_http(directory, package, local_dir, force, "STAGE_1_HTTP")
 
     def acquire_stage2_http(self, directory, package, local_dir, force):
         """download stage 2 from http"""

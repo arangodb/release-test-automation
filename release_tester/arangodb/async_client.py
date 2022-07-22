@@ -81,6 +81,7 @@ class ArangoCLIprogressiveTimeoutExecutor:
         result_line=dummy_line_result,
         verbose=False,
         expect_to_fail=False,
+        use_default_auth=True,
     ):
         """
         runs a script in background tracing with
@@ -102,8 +103,9 @@ class ArangoCLIprogressiveTimeoutExecutor:
         ]
         if self.connect_instance:
             run_cmd += ["--server.endpoint", self.connect_instance.get_endpoint()]
-            run_cmd += ["--server.username", str(self.cfg.username)]
-            run_cmd += ["--server.password", passvoid]
+            if use_default_auth:
+                run_cmd += ["--server.username", str(self.cfg.username)]
+                run_cmd += ["--server.password", passvoid]
 
         run_cmd += more_args
         return self.run_monitored(executeable, run_cmd, timeout, result_line, verbose, expect_to_fail)

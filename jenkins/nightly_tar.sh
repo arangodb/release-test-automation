@@ -23,7 +23,7 @@ fi
 if test -n "$SOURCE"; then
     force_arg+=(--old-source "$SOURCE" --new-source "$SOURCE")
 else
-    force_arg+=(--remote-host "172.16.1.22")
+    force_arg+=(--remote-host 172.17.4.0)
 fi
 
 VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_tar_version.tar"
@@ -83,6 +83,7 @@ docker run \
        -v /dev/shm:/dev/shm \
        --env="BUILD_NUMBER=${BUILD_NUMBER}" \
        --env="PYTHONUNBUFFERED=1" \
+       --env="RTA_LOCAL_HTTPUSER=${RTA_LOCAL_HTTPUSER}" \
        --env="WORKSPACE=/home/release-test-automation/" \
        --env="AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" \
        --env="AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" \

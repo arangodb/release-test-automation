@@ -1,11 +1,10 @@
 """License manager tests: DC2DC"""
-import platform
 
 # pylint: disable=import-error
 from arangodb.async_client import CliExecutionException
 from license_manager_tests.base.dc2dc_base import LicenseManagerDc2DcBaseTestSuite
 from reporting.reporting_utils import step
-from selenium_ui_test.test_suites.base_test_suite import testcase
+from test_suites_core.base_test_suite import testcase, disable
 
 
 class LicenseManagerDc2DcTestSuite(LicenseManagerDc2DcBaseTestSuite):
@@ -22,7 +21,8 @@ class LicenseManagerDc2DcTestSuite(LicenseManagerDc2DcBaseTestSuite):
         self.expire_license()
         self.check_readonly()
 
-    @testcase(disable=True)
+    @disable
+    @testcase
     def expire_license_on_follower_cluster(self):
         """Check that follower cluster goes to read-only mode when license is expired"""
         with step("Expire license on follower"):

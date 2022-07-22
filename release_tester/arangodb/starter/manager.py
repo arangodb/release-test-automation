@@ -70,6 +70,8 @@ class StarterManager:
         # self.moreopts += ["--all.log.level=engines=trace"]
         # self.moreopts += ["--all.log.escape-control-chars=true"]
         # self.moreopts += ["--all.log.escape-unicode-chars=true"]
+        if (basecfg.semver.major==3 and basecfg.semver.minor>=9) or (basecfg.semver.major>3):
+            self.moreopts += ["--args.all.database.extended-names-databases=true"]
 
         # directories
         self.raw_basedir = install_prefix
@@ -465,7 +467,7 @@ class StarterManager:
         # workaround BTS-815: starter exits 15 on the wintendo:
         if IS_WINDOWS and exit_code == 15:
             exit_code = 0
-    
+
         if exit_code != 0:
             raise Exception("Starter %s exited with %d" % (self.basedir, exit_code))
 

@@ -18,7 +18,6 @@ from allure_commons._allure import attach
 import certifi
 from beautifultable import BeautifulTable
 import requests
-import semver
 
 import tools.errorhelper as eh
 import tools.interact as ti
@@ -164,13 +163,8 @@ class Runner(ABC):
         self.old_installer = old_inst
         self.new_installer = new_inst
         self.backup_name = None
-        bts_811_workaround = (
-            self.new_cfg is None and
-            self.cfg.semver >= semver.VersionInfo.parse("3.10.0-nightly") and
-            self.cfg.encryption_at_rest)  # BTS-811
         self.hot_backup = (
             cfg.hot_backup_supported
-            and not bts_811_workaround
             and properties.supports_hotbackup
             and self.old_installer.supports_hot_backup()
         )
@@ -451,13 +445,6 @@ class Runner(ABC):
 
         kill_all_processes(False)
         if self.do_install:
-            if inst.client_package:
-                lh.subsubsection("installing client package")
-                inst.install_client_package()
-                lh.subsubsection("checking files")
-                inst.check_installed_files()
-                lh.subsubsection("uninstalling client package")
-                inst.un_install_client_package()
             lh.subsubsection("installing server package")
             inst.install_server_package()
             self.cfg.set_directories(inst.cfg)
@@ -899,12 +886,16 @@ class Runner(ABC):
         self.progress(True, "AGENCY pausing leader to trigger a failover\n%s" % repr(old_leader))
         old_leader.suspend_instance()
         time.sleep(1)
+        count = 0
         while True:
             new_leader = self.agency_get_leader()
             if old_leader != new_leader:
                 self.progress(True, "AGENCY failover has happened")
                 break
+            if count == 500:
+                raise Exception("agency failoverdidn't happen in 5 minutes!")
             time.sleep(1)
+            count += 1
         old_leader.resume_instance()
         if WINVER[0]:
             leader_mgr = None

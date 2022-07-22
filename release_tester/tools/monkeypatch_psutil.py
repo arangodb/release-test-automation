@@ -108,7 +108,7 @@ if winver[0]:
             kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
             self.__subproc = subprocess.Popen(*args, **kwargs)
             self._init(self.__subproc.pid, _ignore_nsp=True)
-            
+
     from psutil import Popen as patchme_popen
 
     patchme_popen.__init__ = Popen.__init__

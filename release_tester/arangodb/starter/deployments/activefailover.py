@@ -185,7 +185,7 @@ class ActiveFailover(Runner):
         logging.info(str(reply))
         logging.info(reply.text)
         replies.append(reply)
-        if reply.status_code != 503:
+        if reply.status_code != 503 or "not a leader" not in reply.text:
             self.success = False
 
         url = self.follower_nodes[1].get_frontend().get_local_url("")
@@ -193,7 +193,7 @@ class ActiveFailover(Runner):
         logging.info(str(reply))
         logging.info(reply.text)
         replies.append(reply)
-        if reply.status_code != 503:
+        if reply.status_code != 503 or "not a leader" not in reply.text:
             self.success = False
         logging.info("success" if self.success else "fail")
         if not self.success:

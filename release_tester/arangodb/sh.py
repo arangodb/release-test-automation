@@ -23,7 +23,13 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         super().__init__(config, connect_instance)
 
     # pylint: disable=too-many-arguments
-    def run_command(self, cmd, verbose=True, timeout=300, result_line=dummy_line_result, expect_to_fail=False):
+    def run_command(self,
+                    cmd,
+                    verbose=True,
+                    timeout=300,
+                    result_line=dummy_line_result,
+                    expect_to_fail=False,
+                    use_default_auth=True):
         """run a command in arangosh"""
         title = f"run a command in arangosh: {cmd[0]}"
         with step(title):
@@ -40,6 +46,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                 result_line=result_line,
                 verbose=verbose,
                 expect_to_fail=expect_to_fail,
+                use_default_auth=use_default_auth
             )
 
     @step

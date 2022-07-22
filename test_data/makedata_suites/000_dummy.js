@@ -15,7 +15,7 @@
       // All items created must contain dbCount and loopCount
       print(`making data ${dbCount} ${loopCount}`);
     },
-    checkDataDB: function (options, isCluster, isEnterprise, dbCount, readOnly) {
+    checkDataDB: function (options, isCluster, isEnterprise, database, dbCount, readOnly) {
       // check per DB
       return 0;
     },
