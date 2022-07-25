@@ -3,6 +3,7 @@
 # pylint: disable=import-error
 import os
 from pathlib import Path
+import semver
 
 
 # pylint: disable=unused-import
@@ -24,7 +25,11 @@ class InstallerZip(InstallerArchive, InstallerWin):
         self.dash = "_"
         cfg.localhost = "localhost"
         self.remote_package_dir = "Windows"
-        self.architecture = "win64"
+        self.os = "win64"
+        if cfg.semver > semver.VersionInfo.parse("3.9.99"):
+            self.arch = "_x86_64"
+        else:
+            self.arch = ""
         self.extension = "zip"
         self.hot_backup = False
         self.installer_type = ".zip Windows"
@@ -46,16 +51,17 @@ class InstallerZip(InstallerArchive, InstallerWin):
         self.desc = {
             "ep": enterprise,
             "ver": version,
-            "arch": self.architecture,
+            "os": self.os,
+            "arch": self.arch,
             "dashus": self.dash,
             "ext": self.extension,
         }
         self.debug_package = None
 
-        self.server_package = "ArangoDB3{ep}-{ver}{dashus}{arch}.{ext}".format(**self.desc)
+        self.server_package = "ArangoDB3{ep}-{ver}{dashus}{os}{arch}.{ext}".format(**self.desc)
         self.debug_package = "ArangoDB3{ep}-{ver}.pdb.{ext}".format(**self.desc)
         self.client_package = None
-        self.cfg.install_prefix = self.basedir / "arangodb3{ep}-{ver}{dashus}{arch}".format(**self.desc)
+        self.cfg.install_prefix = self.basedir / "arangodb3{ep}-{ver}{dashus}{os}{arch}".format(**self.desc)
         self.cfg.bin_dir = self.cfg.install_prefix / "usr" / "bin"
         self.cfg.sbin_dir = self.cfg.install_prefix / "usr" / "bin"
         self.cfg.real_bin_dir = self.cfg.bin_dir

@@ -7,6 +7,8 @@ from pathlib import Path
 import time
 import os
 
+import semver
+
 from reporting.reporting_utils import step
 from arangodb.installers.base import InstallerBase
 
@@ -29,7 +31,10 @@ class InstallerTAR(InstallerArchive):
         self.extension = "tar.gz"
         self.remote_package_dir = "Linux"
         cfg.localhost = "localhost"
-        self.architecture = "linux"
+        self.os = "linux"
+        self.architecture = ""
+        if cfg.semver > semver.VersionInfo.parse("3.9.99"):
+            self.architecture = '_' + platform.machine()
         self.dash = "-"
         self.installer_type = ".tar.gz Linux"
         self.hot_backup = True
@@ -49,20 +54,22 @@ class InstallerTAR(InstallerArchive):
         self.desc = {
             "ep": enterprise,
             "ver": version,
+            "os": self.os,
             "arch": self.architecture,
             "dashus": self.dash,
             "ext": self.extension,
         }
+        print(self.desc)
         self.debug_package = None
 
-        self.server_package = "arangodb3{ep}-{arch}{dashus}{ver}.{ext}".format(**self.desc)
-        self.client_package = "arangodb3{ep}-client-{arch}{dashus}{ver}.{ext}".format(**self.desc)
+        self.server_package = "arangodb3{ep}-{os}{dashus}{ver}{arch}.{ext}".format(**self.desc)
+        self.client_package = "arangodb3{ep}-client-{os}{dashus}{ver}{arch}.{ext}".format(**self.desc)
         self.cfg.client_install_prefix = self.basedir / "arangodb3{ep}-client-{arch}{dashus}{ver}".format(**self.desc)
         self.cfg.server_install_prefix = self.basedir / "arangodb3{ep}-{arch}{dashus}{ver}".format(**self.desc)
         if self.cfg.client_package_is_installed:
-            self.cfg.install_prefix = self.basedir / "arangodb3{ep}-client-{arch}{dashus}{ver}".format(**self.desc)
+            self.cfg.install_prefix = self.basedir / "arangodb3{ep}-client-{os}{dashus}{ver}{arch}".format(**self.desc)
         else:
-            self.cfg.install_prefix = self.basedir / "arangodb3{ep}-{arch}{dashus}{ver}".format(**self.desc)
+            self.cfg.install_prefix = self.basedir / "arangodb3{ep}-{os}{dashus}{ver}{arch}".format(**self.desc)
         self.cfg.bin_dir = self.cfg.install_prefix / "bin"
         self.cfg.sbin_dir = self.cfg.install_prefix / "usr" / "sbin"
         self.cfg.real_bin_dir = self.cfg.install_prefix / "usr" / "bin"
