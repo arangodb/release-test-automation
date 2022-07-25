@@ -428,6 +428,7 @@ It consists of these files in test_data:
       - geoJson: An Analyzer capable of breaking up a GeoJSON object into a set of indexable tokens for further usage with ArangoSearch Geo functions.
       - geoPoint: An Analyzer capable of breaking up JSON object describing a coordinate into a set of indexable tokens for further usage with ArangoSearch Geo functions.
    - `609_analyzers.js` creates suported analyzers for 3.9.x version and check it's functionality.
+      - An Analyzer capable of breaking up the input text into tokens in a language-agnostic manner as per Unicode  Standard Annex #29.
 
 It should be considered to provide a set of hooks (000_dummy.js can be considered being a template for this):
 

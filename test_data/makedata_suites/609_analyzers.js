@@ -27,21 +27,30 @@
           });
       }
 
-      //collation analyzer properties
-      //collation Analyzer for a phonetically similar term search
+      //collationEn analyzer properties
+      //collationEn Analyzer for a phonetically similar term search
       let collationEn = `collationEn_${dbCount}`;
-      let collationSv = `collationSv_${dbCount}`;
+      let collationEnView = `collationEnView_${dbCount}`;
 
-      let aCollationQuery = a.save(`${collationEn}`, "collation", { locale: "en.utf-8" }, ["frequency", "norm", "position"]);
-      let bCollationQuery = a.save(`${collationSv}`, "collation", { locale: "sv.utf-8" }, ["frequency", "norm", "position"]);
-      var test = db._create("test");
+      let CollationEnQuery = a.save(`${collationEn}`, "collation", { locale: "en.utf-8" }, ["frequency", "norm", "position"]);
+      var test = db._create("test"); 
       db.test.save([{ text: "a" },{ text: "å" },{ text: "b" },{ text: "z" },]);
-      var view = db._createView("viewEn", "arangosearch", { links: { test: { a: [ collationEn, collationSv ], includeAllFields: true }}});
-      var view = db._createView("viewSv", "arangosearch",{ links: { test: { analyzers: [ collationEn, collationSv ], includeAllFields: true }}});
+      var view = db._createView(`${collationEnView}`, "arangosearch",{ links: { test: { analyzers: [collationEn], includeAllFields: true }}});
 
-      //creating collation  analyzer
-      createAnalyzer(collationEn, aCollationQuery)
-      createAnalyzer(collationSv, bCollationQuery)
+      //collationSv_ analyzer properties
+      //collationSv_ Analyzer for a phonetically similar term search
+      let collationSv = `collationSv_${dbCount}`;
+      let collationSvView = `collationSvView_${dbCount}`;
+
+      let CollationSvQuery = a.save(`${collationSv}`, "collation", { locale: "en.utf-8" }, ["frequency", "norm", "position"]);
+      var test1 = db._create("test1"); 
+      db.test1.save([{ text: "a" },{ text: "å" },{ text: "b" },{ text: "z" },]);
+      var view = db._createView(`${collationSvView}`, "arangosearch",{ links: { test: { analyzers: [collationSv], includeAllFields: true }}});
+
+      //creating collationEn  analyzer
+      createAnalyzer(collationEn, CollationEnQuery)
+      //creating collationSv  analyzer
+      createAnalyzer(collationSv, CollationSvQuery)
 
       return 0;
     },
@@ -103,27 +112,44 @@
         progress();
       }
 
-      //-------------------------------collation----------------------------------
+      //-------------------------------collationEn----------------------------------
 
       let collationEn = `collationEn_${dbCount}`;
-      let collationEnType = "aql";
+      let collationEnView = `collationEnView_${dbCount}`;
+      let collationEnType = "collation";
       let collationEnProperties = {
-        "queryString" : "RETURN SOUNDEX(@param)",
-        "collapsePositions" : false,
-        "keepNull" : true,
-        "batchSize" : 10,
-        "memoryLimit" : 1048576,
-        "returnType" : "string"
+        "locale" : "en"
       };
       let collationEnExpectedResult =[
         [
-          "A652"
+          "a",
+          "å",
+          "b"
         ]
       ];
 
-      let collationEnQueryReuslt = db._query(`RETURN TOKENS("UPPER lower dïäcríticš", "${aqlSoundex}")`).toArray();
+      let collationEnQueryReuslt = db._query(`FOR doc IN ${collationEnView} SEARCH ANALYZER(doc.text < TOKENS('c', '${collationEn}')[0], '${collationEn}') RETURN doc.text`);
 
       checkAnalyzer(collationEn, collationEnType, collationEnProperties, collationEnExpectedResult, collationEnQueryReuslt)
+
+      //-------------------------------collationSv----------------------------------
+
+      let collationSv = `collationSv_${dbCount}`;
+      let collationSvView = `collationSvView_${dbCount}`;
+      let collationSvType = "collation";
+      let collationSvProperties = {
+        "locale" : "en"
+      };
+      let collationSvExpectedResult =[
+        [
+          "a",
+          "b"
+        ]
+      ];
+
+      let collationSvQueryReuslt = db._query(`FOR doc IN ${collationSvView} SEARCH ANALYZER(doc.text < TOKENS('c', '${collationSv}')[0], '${collationSv}') RETURN doc.text`);
+
+      checkAnalyzer(collationEn, collationSvType, collationSvProperties, collationSvExpectedResult, collationSvQueryReuslt)
 
       return 0;
 
@@ -151,27 +177,34 @@
       }
 
       // declaring all the analyzer's name
-      let aqlSoundex = `aqlSoundex_${dbCount}`;
+      let collationEn = `collationEn_${dbCount}`;
+      let collationSv = `collationSv_${dbCount}`;
 
       // declaring all the views name
-      let aqlView = `aqlView_${dbCount}`;
+      let collationEnView = `collationEnView_${dbCount}`;
+      let collationSvView = `collationSvView_${dbCount}`;
+  
 
-      // deleting aqlSoundex analyzer
-      deleteAnalyzer(aqlSoundex)
+      // deleting created Views
+      try {
+        db._dropView(collationEnView);
+        db._dropView(collationSvView);
+      } catch (e) {
+        print(e);
+      }
 
-      // // deleting created Views
-      // try {
-      //   db._dropView(aqlView);
-      // } catch (e) {
-      //   print(e);
-      // }
+      //deleting created collections
+      try {
+        db._drop("text");
+        db._drop("test1");
+      } catch (e) {
+        print(e);
+      }
 
-      // //deleting created collections
-      // try {
-      //   db._drop("coll");
-      // } catch (e) {
-      //   print(e);
-      // }
+      // deleting collationEn analyzer
+      deleteAnalyzer(collationEn)
+      // deleting collationSv analyzer
+      deleteAnalyzer(collationSv)
 
       return 0;
     }
