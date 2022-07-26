@@ -48,19 +48,19 @@
       var view = db._createView(`${collationSvView}`, "arangosearch",{ links: { test: { analyzers: [collationSv], includeAllFields: true }}});
 
       //segmentAll analyzer properties
-      //segmentAll Analyzer for a phonetically similar term search
+      //segmentAll Analyzers to show the behavior of the 'all' break options 
       let segmentAll = `segmentAll_${dbCount}`;
       var all = a.save(`${segmentAll}`, "segmentation", { break: "all" }, ["frequency", "norm", "position"]);
       let segmentAllQuery = all
 
       //segmentAlpha analyzer properties
-      //segmentAlpha Analyzer for a phonetically similar term search
+      //segmentAlpha Analyzers to show the behavior of the 'alpha' break options 
       let segmentAlpha = `segmentAlpha_${dbCount}`;
       var alpha = a.save(`${segmentAlpha}`, "segmentation", { break: "alpha" }, ["frequency", "norm", "position"]);
       let segmentAlphaQuery = alpha
 
       //segmentAlpha analyzer properties
-      //segmentAlpha Analyzer for a phonetically similar term search
+      //segmentAlpha Analyzers to show the behavior of the 'graphic' break options 
       let segmentGraphic = `segmentGraphic_${dbCount}`;
       var graphic = a.save(`${segmentGraphic}`, "segmentation", { break: "graphic" }, ["frequency", "norm", "position"]);
       let segmentGraphicQuery = graphic
