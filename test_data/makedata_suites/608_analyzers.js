@@ -44,7 +44,8 @@
 
       let aqlFilterQuery = a.save(`${aqlFilter}`, "aql",
       { queryString:"FILTER LOWER(LEFT(@param, 2)) != 'ir' RETURN @param"},
-      ["frequency", "norm", "position"]); var coll = db._create("coll");
+                                  ["frequency", "norm", "position"]);
+      var coll = createCollectionSafe(`views_coll_${dbCount}`, 1, 1);
       var doc1 = db.coll.save({ value: "regular" });
       var doc2 = db.coll.save({ value: "irregular" });
       var view = db._createView(`${aqlView}`, "arangosearch",
@@ -89,7 +90,7 @@
       let geoJson = `geoJson_${dbCount}`;
       let geoJsonView = `geoJsonView_${dbCount}`;
       let geoJsonQuery = a.save(`${geoJson}`, "geojson", {}, ["frequency", "norm", "position"]);
-      db._create("geo");
+      createCollectionSafe(`view_geo_${dbCount}`, 1, 1);
       db.geo.save([{ location: { type: "Point", coordinates: [6.937, 50.932] } },
       { location: { type: "Point", coordinates: [6.956, 50.941] } },
       { location: { type: "Point", coordinates: [6.962, 50.932] } },]);
@@ -103,7 +104,8 @@
       //create views
       let geoPointView = `geoPointView_${dbCount}`;
       let geoPointQuery = a.save(`${geoPoint}`, "geopoint", {}, ["frequency", "norm", "position"]);
-      db._create("geo01"); db.geo01.save([{ location: [50.932, 6.937] },{ location: [50.941, 6.956] },
+      createCollectionSafe(`view_geo01_${dbCount`, 1, 1);
+      db.geo01.save([{ location: [50.932, 6.937] },{ location: [50.941, 6.956] },
       { location: [50.932, 6.962] },]);
       db._createView(`${geoPointView}`, "arangosearch", {links: {geo01: {fields: {location: {analyzers: [`${geoPoint}`]}}}}});
 
