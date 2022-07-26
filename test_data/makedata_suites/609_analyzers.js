@@ -47,10 +47,34 @@
       db.test1.save([{ text: "a" },{ text: "å" },{ text: "b" },{ text: "z" },]);
       var view = db._createView(`${collationSvView}`, "arangosearch",{ links: { test: { analyzers: [collationSv], includeAllFields: true }}});
 
+      //segmentAll analyzer properties
+      //segmentAll Analyzer for a phonetically similar term search
+      let segmentAll = `segmentAll_${dbCount}`;
+      var all = a.save(`${segmentAll}`, "segmentation", { break: "all" }, ["frequency", "norm", "position"]);
+      let segmentAllQuery = all
+
+      //segmentAlpha analyzer properties
+      //segmentAlpha Analyzer for a phonetically similar term search
+      let segmentAlpha = `segmentAlpha_${dbCount}`;
+      var alpha = a.save(`${segmentAlpha}`, "segmentation", { break: "alpha" }, ["frequency", "norm", "position"]);
+      let segmentAlphaQuery = alpha
+
+      //segmentAlpha analyzer properties
+      //segmentAlpha Analyzer for a phonetically similar term search
+      let segmentGraphic = `segmentGraphic_${dbCount}`;
+      var graphic = a.save(`${segmentGraphic}`, "segmentation", { break: "graphic" }, ["frequency", "norm", "position"]);
+      let segmentGraphicQuery = graphic
+
       //creating collationEn  analyzer
       createAnalyzer(collationEn, CollationEnQuery)
       //creating collationSv  analyzer
       createAnalyzer(collationSv, CollationSvQuery)
+      //creating segmentAll  analyzer
+      createAnalyzer(segmentAll, segmentAllQuery)
+      //creating segmentAlpha  analyzer
+      createAnalyzer(segmentAlpha, segmentAlphaQuery)
+      //creating segmentGraphic  analyzer
+      createAnalyzer(segmentGraphic, segmentGraphicQuery)
 
       return 0;
     },
@@ -151,6 +175,93 @@
 
       checkAnalyzer(collationEn, collationSvType, collationSvProperties, collationSvExpectedResult, collationSvQueryReuslt)
 
+      //-------------------------------segmentAll----------------------------------
+
+      let segmentAll = `segmentAll_${dbCount}`;
+      let segmentAllType = "segmentation";
+      let segmentAllProperties = {
+        "case" : "lower",
+        "break" : "all"
+      };
+      let segmentAllExpectedResult =[
+        {
+          "all" : [
+            "test",
+            "\t",
+            "with",
+            " ",
+            "an_email",
+            "-",
+            "address",
+            "+",
+            "123",
+            "@",
+            "example.org"
+          ]
+        }
+      ];
+
+      let segmentAllQueryReuslt = db._query(`LET str = 'Test\twith An_EMAIL-address+123@example.org'RETURN {"all": TOKENS(str, '${segmentAll}'),}`);
+
+
+      checkAnalyzer(segmentAll, segmentAllType, segmentAllProperties, segmentAllQueryReuslt, segmentAllQueryReuslt)
+
+
+      //-------------------------------segmentAlpha----------------------------------
+
+      let segmentAlpha = `segmentAlpha_${dbCount}`;
+      let segmentAlphaType = "segmentation";
+      let segmentAlphaProperties = {
+        "case" : "lower",
+        "break" : "alpha"
+      };
+      let segmentAlphaExpectedResult =[
+        {
+          "alpha" : [
+            "test",
+            "with",
+            "an_email",
+            "address",
+            "123",
+            "example.org"
+          ]
+        }
+      ];
+
+      let segmentAlphaQueryReuslt = db._query(`LET str = 'Test\twith An_EMAIL-address+123@example.org'RETURN {"alpha": TOKENS(str, '${segmentAlpha}'),}`);
+
+
+      checkAnalyzer(segmentAlpha, segmentAlphaType, segmentAlphaProperties, segmentAlphaExpectedResult, segmentAlphaQueryReuslt)
+
+      //-------------------------------segmentGraphic----------------------------------
+
+      let segmentGraphic = `segmentGraphic_${dbCount}`;
+      let segmentGraphicType = "segmentation";
+      let segmentGraphicProperties = {
+        "case" : "lower",
+        "break" : "graphic"
+      };
+      let segmentGraphicExpectedResult =[
+        {
+          "graphic" : [
+            "test",
+            "with",
+            "an_email",
+            "-",
+            "address",
+            "+",
+            "123",
+            "@",
+            "example.org"
+          ]
+        }
+      ];
+
+      let segmentGraphicQueryReuslt = db._query(`LET str = 'Test\twith An_EMAIL-address+123@example.org'RETURN {"alpha": TOKENS(str, '${segmentGraphic}'),}`);
+
+
+      checkAnalyzer(segmentGraphic, segmentGraphicType, segmentGraphicProperties, segmentGraphicExpectedResult, segmentGraphicQueryReuslt)
+
       return 0;
 
     },
@@ -179,6 +290,9 @@
       // declaring all the analyzer's name
       let collationEn = `collationEn_${dbCount}`;
       let collationSv = `collationSv_${dbCount}`;
+      let segmentAll = `segmentAll_${dbCount}`;
+      let segmentAlpha = `segmentAlpha_${dbCount}`;
+      let segmentGraphic = `segmentGraphic_${dbCount}`;
 
       // declaring all the views name
       let collationEnView = `collationEnView_${dbCount}`;
@@ -205,6 +319,12 @@
       deleteAnalyzer(collationEn)
       // deleting collationSv analyzer
       deleteAnalyzer(collationSv)
+      // deleting segmentAll analyzer
+      deleteAnalyzer(segmentAll)
+      // deleting segmentAlpha analyzer
+      deleteAnalyzer(segmentAlpha)
+      // deleting segmentGraphic analyzer
+      deleteAnalyzer(segmentGraphic)
 
       return 0;
     }
