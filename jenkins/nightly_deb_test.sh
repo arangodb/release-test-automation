@@ -1,5 +1,13 @@
 #!/bin/bash
 
+ARCH="-$(uname -m)"
+
+if test "${ARCH}" == "-x86_64"; then
+    ARCH="-amd64"
+else
+    ARCH="-arm64v8"
+fi
+
 GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
 if test -z "$GIT_VERSION"; then
     GIT_VERSION=$VERSION
@@ -29,7 +37,7 @@ mkdir -p allure-results
 
 DOCKER_DEB_NAME=release-test-automation-deb
 
-DOCKER_DEB_TAG="${DOCKER_DEB_NAME}:$(cat containers/this_version.txt)"
+DOCKER_DEB_TAG="${DOCKER_DEB_NAME}:$(cat containers/this_version.txt)${arch}"
 
 docker kill "${DOCKER_DEB_NAME}" || true
 docker rm "${DOCKER_DEB_NAME}" || true

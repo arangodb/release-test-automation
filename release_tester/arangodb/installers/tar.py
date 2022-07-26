@@ -34,7 +34,10 @@ class InstallerTAR(InstallerArchive):
         self.os = "linux"
         self.architecture = ""
         if cfg.semver > semver.VersionInfo.parse("3.9.99"):
-            self.architecture = '_' + platform.machine()
+            arch = platform.machine()
+            if arch == 'aarch64':
+                arch = 'arm64'
+            self.architecture = '_' + arch 
         self.dash = "-"
         self.installer_type = ".tar.gz Linux"
         self.hot_backup = True
