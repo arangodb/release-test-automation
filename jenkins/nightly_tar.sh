@@ -46,7 +46,7 @@ mv $(pwd)/release-test-automation-helpers $(pwd)/release_tester/tools/external_h
 
 DOCKER_TAR_NAME=release-test-automation-tar
 
-DOCKER_TAR_TAG="${DOCKER_TAR_NAME}:$(cat containers/this_version.txt)%{ARCH}"
+DOCKER_TAR_TAG="${DOCKER_TAR_NAME}:$(cat containers/this_version.txt)${ARCH}"
 
 docker kill "$DOCKER_TAR_NAME" || true
 docker rm "$DOCKER_TAR_NAME" || true
