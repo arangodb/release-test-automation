@@ -1,4 +1,5 @@
-/* global print, semver, progress, createSafe, db */
+/* global print, semver, progress, createSafe, createCollectionSafe, db */
+/*jslint maxlen: 100*/
 
 (function () {
   const a = require("@arangodb/analyzers");
@@ -32,7 +33,7 @@
       let aqlSoundexQuery = a.save(`${aqlSoundex}`, "aql", { queryString: "RETURN SOUNDEX(@param)" },["frequency", "norm", "position"]);
 
       //aqlConcat analyzer properties
-      //Concatenating Analyzer for conditionally adding a custom prefix or suffix
+      //Concatenating Analyzer for conditionally adding a custom prefix or suffix:
       let aqlConcat = `aqlConcat_${dbCount}`;
       let aqlConcatQuery = a.save(`${aqlConcat}`, "aql", { queryString: "RETURN LOWER(LEFT(@param, 5)) == 'inter' ? CONCAT(@param, 'ism') : CONCAT('inter', @param)"}, ["frequency", "norm", "position"]);
 
@@ -40,16 +41,16 @@
       //Filtering Analyzer that discards unwanted data based on the prefix "ir"
       let aqlFilter = `aqlFilter_${dbCount}`;
       let aqlView = `aqlView_${dbCount}`;
-      let aqlcol = `aqlcol_${dbCount}`;
+      let aqlCol = `aqlCol_${dbCount}`;
 
       let aqlFilterQuery = a.save(`${aqlFilter}`, "aql",
       { queryString:"FILTER LOWER(LEFT(@param, 2)) != 'ir' RETURN @param"},
-                                  ["frequency", "norm", "position"]);
-      var coll = createCollectionSafe(`views_coll_${dbCount}`, 1, 1);
-      var doc1 = db.coll.save({ value: "regular" });
-      var doc2 = db.coll.save({ value: "irregular" });
-      var view = db._createView(`${aqlView}`, "arangosearch",
-      { links: { coll: { fields: { value: { analyzers: [`${aqlFilter}`] }}}}})
+      ["frequency", "norm", "position"]); 
+      let coll = createCollectionSafe(aqlCol, 1, 1);
+      coll.insert({ value: "regular" });
+      coll.insert({ value: "irregular" });
+      db._createView(`${aqlView}`, "arangosearch",
+      { links: { [aqlCol]: { fields: { value: { analyzers: [`${aqlFilter}`] }}}}})
 
       //nGramPipeline analyzer properties
       //Normalize to all uppercase and compute bigrams
@@ -73,7 +74,7 @@
       let stopwordsQuery = a.save(`${stopwords}`, "stopwords", {stopwords: ["616e64","746865"],
       hex: true}, ["frequency", "norm", "position"]);
 
-      //stopwordsPipeline analyzer properties
+      //stopwords analyzer properties
       //Create and use an Analyzer pipeline that normalizes the input (convert to lower-case and base characters)
       //and then discards the stopwords 'and' and 'the'
       let stopwordsPipeline = `stopwordsPipeline_${dbCount}`;
@@ -90,24 +91,26 @@
       let geoJson = `geoJson_${dbCount}`;
       let geoJsonView = `geoJsonView_${dbCount}`;
       let geoJsonQuery = a.save(`${geoJson}`, "geojson", {}, ["frequency", "norm", "position"]);
-      createCollectionSafe(`view_geo_${dbCount}`, 1, 1);
-      db.geo.save([{ location: { type: "Point", coordinates: [6.937, 50.932] } },
+      let geoJsonCol = `geoJsonCol_${dbCount}`;
+      let myCol = createCollectionSafe(geoJsonCol, 2, 1);
+      myCol.insert([{ location: { type: "Point", coordinates: [6.937, 50.932] } },
       { location: { type: "Point", coordinates: [6.956, 50.941] } },
       { location: { type: "Point", coordinates: [6.962, 50.932] } },]);
       db._createView(`${geoJsonView}`, "arangosearch", 
-      {links: {geo: {fields: {location: {analyzers: [`${geoJson}`]}}}}});
+      {links: {[geoJsonCol]: {fields: {location: {analyzers: [`${geoJson}`]}}}}});
 
       //geoPoint analyzer properties
       //An Analyzer capable of breaking up JSON object describing a coordinate into a set
       //of indexable tokens for further usage with ArangoSearch Geo functions.
       let geoPoint = `geoPoint_${dbCount}`;
-      //create views
       let geoPointView = `geoPointView_${dbCount}`;
       let geoPointQuery = a.save(`${geoPoint}`, "geopoint", {}, ["frequency", "norm", "position"]);
-      createCollectionSafe(`view_geo01_${dbCount`, 1, 1);
-      db.geo01.save([{ location: [50.932, 6.937] },{ location: [50.941, 6.956] },
+      
+      let geoPointCol = `geoPointCol_${dbCount}`;
+      let myCols = createCollectionSafe(geoPointCol, 3, 2);
+      myCols.insert([{ location: [50.932, 6.937] },{ location: [50.941, 6.956] },
       { location: [50.932, 6.962] },]);
-      db._createView(`${geoPointView}`, "arangosearch", {links: {geo01: {fields: {location: {analyzers: [`${geoPoint}`]}}}}});
+      db._createView(`${geoPointView}`, "arangosearch", {links: {[geoPointCol]: {fields: {location: {analyzers: [`${geoPoint}`]}}}}});
 
 
       //creating aqlSoundex analyzer
@@ -579,10 +582,14 @@
       }
 
       //deleting created collections
+      let aqlCol = `aqlCol_${dbCount}`;
+      let geoJsonCol = `geoJsonCol_${dbCount}`;
+      let geoPointCol = `geoPointCol_${dbCount}`;
+
       try {
-        db._drop("coll");
-        db._drop("geo");
-        db._drop("geo01");
+        db._drop(aqlCol);
+        db._drop(geoJsonCol);
+        db._drop(geoPointCol);
       } catch (e) {
         print(e);
       }
