@@ -31,36 +31,37 @@
       //collationEn Analyzer for a phonetically similar term search
       let collationEn = `collationEn_${dbCount}`;
       let collationEnView = `collationEnView_${dbCount}`;
-
+      let collationEnCol = `collationEnCol_${dbCount}`;
       let CollationEnQuery = a.save(`${collationEn}`, "collation", { locale: "en.utf-8" }, ["frequency", "norm", "position"]);
-      var test = db._create("test"); 
-      db.test.save([{ text: "a" },{ text: "å" },{ text: "b" },{ text: "z" },]);
-      var view = db._createView(`${collationEnView}`, "arangosearch",{ links: { test: { analyzers: [collationEn], includeAllFields: true }}});
+      let enCol = createCollectionSafe(collationEnCol, 2, 1);
+      enCol.insert([{ text: "a" },{ text: "å" },{ text: "b" },{ text: "z" },]);
+      db._createView(`${collationEnView}`, "arangosearch",{ links: { [collationEnCol]: { analyzers: [collationEn], includeAllFields: true }}});
 
       //collationSv_ analyzer properties
       //collationSv_ Analyzer for a phonetically similar term search
       let collationSv = `collationSv_${dbCount}`;
       let collationSvView = `collationSvView_${dbCount}`;
+      let collationSvCol = `collationSvCol_${dbCount}`;
 
       let CollationSvQuery = a.save(`${collationSv}`, "collation", { locale: "en.utf-8" }, ["frequency", "norm", "position"]);
-      var test1 = db._create("test1"); 
-      db.test1.save([{ text: "a" },{ text: "å" },{ text: "b" },{ text: "z" },]);
-      var view = db._createView(`${collationSvView}`, "arangosearch",{ links: { test: { analyzers: [collationSv], includeAllFields: true }}});
+      let svCol = createCollectionSafe(collationSvCol, 2, 1); 
+      svCol.insert([{ text: "a" },{ text: "å" },{ text: "b" },{ text: "z" },]);
+      db._createView(`${collationSvView}`, "arangosearch",{ links: { [collationSvCol]: { analyzers: [collationSv], includeAllFields: true }}});
 
       //segmentAll analyzer properties
-      //segmentAll Analyzers to show the behavior of the 'all' break options 
+      //segmentAll Analyzer for a phonetically similar term search
       let segmentAll = `segmentAll_${dbCount}`;
       var all = a.save(`${segmentAll}`, "segmentation", { break: "all" }, ["frequency", "norm", "position"]);
       let segmentAllQuery = all
 
       //segmentAlpha analyzer properties
-      //segmentAlpha Analyzers to show the behavior of the 'alpha' break options 
+      //segmentAlpha Analyzer for a phonetically similar term search
       let segmentAlpha = `segmentAlpha_${dbCount}`;
       var alpha = a.save(`${segmentAlpha}`, "segmentation", { break: "alpha" }, ["frequency", "norm", "position"]);
       let segmentAlphaQuery = alpha
 
       //segmentAlpha analyzer properties
-      //segmentAlpha Analyzers to show the behavior of the 'graphic' break options 
+      //segmentAlpha Analyzer for a phonetically similar term search
       let segmentGraphic = `segmentGraphic_${dbCount}`;
       var graphic = a.save(`${segmentGraphic}`, "segmentation", { break: "graphic" }, ["frequency", "norm", "position"]);
       let segmentGraphicQuery = graphic
@@ -308,9 +309,11 @@
       }
 
       //deleting created collections
+      let collationEnCol = `collationEnCol_${dbCount}`;
+      let collationSvCol = `collationSvCol_${dbCount}`;
       try {
-        db._drop("text");
-        db._drop("test1");
+        db._drop(collationEnCol);
+        db._drop(collationSvCol);
       } catch (e) {
         print(e);
       }
