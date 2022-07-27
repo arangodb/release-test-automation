@@ -327,7 +327,7 @@ class Runner(ABC):
             lh.subsection("outputting version")
             self.new_installer.output_arangod_version()
             self.new_installer.get_starter_version()
-            self.new_installer.get_syncer_version()
+            self.new_installer.get_sync_version()
             self.new_installer.stop_service()
             self.cfg.set_directories(self.new_installer.cfg)
             self.new_cfg.set_directories(self.new_installer.cfg)
@@ -462,7 +462,7 @@ class Runner(ABC):
             lh.subsubsection("outputting version")
             inst.output_arangod_version()
             inst.get_starter_version()
-            inst.get_syncer_version()
+            inst.get_sync_version()
 
             lh.subsubsection("starting service")
 
