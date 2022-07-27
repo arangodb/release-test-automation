@@ -27,7 +27,7 @@ class InstallerZip(InstallerArchive, InstallerWin):
         self.remote_package_dir = "Windows"
         self.os = "win64"
         if cfg.semver > semver.VersionInfo.parse("3.9.99"):
-            self.arch = "_x86_64"
+            self.arch = "_amd64"
         else:
             self.arch = ""
         self.extension = "zip"
