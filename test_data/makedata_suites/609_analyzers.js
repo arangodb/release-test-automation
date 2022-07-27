@@ -104,7 +104,7 @@
         }
       }
 
-      // this function will check everything regardin given analyzer
+      // this function will check everything regarding given analyzer
       function checkAnalyzer(analyzerName, expectedType, expectedProperties, expectedResult, queryResult){
         if (a.analyzer(analyzerName) === null) {
           throw new Error(`${analyzerName} analyzer creation failed!`);
