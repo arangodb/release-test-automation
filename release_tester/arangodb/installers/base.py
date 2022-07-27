@@ -225,6 +225,7 @@ class InstallerBase(ABC):
         self.client_package = ""
         self.instance = None
         self.starter_versions = {}
+        self.syncer_versions = {}
         self.cli_executor = ArangoCLIprogressiveTimeoutExecutor(self.cfg, self.instance)
         self.core_glob = "**/*core"
 
@@ -405,6 +406,7 @@ class InstallerBase(ABC):
 
     @staticmethod
     def load_config_from_file(filename=None):
+        """find config file on disk"""
         if not filename:
             filename = InstallerBase.calc_config_file_name()
         with open(filename, encoding="utf8") as fileh:
@@ -745,6 +747,29 @@ class InstallerBase(ABC):
                 self.starter_versions[splitted[0]] = splitted[1]
                 print("Starter version: " + str(self.starter_versions))
         return semver.VersionInfo.parse(self.starter_versions["Version"])
+
+    def get_sync_version(self):
+        """find out the version of the starter in this package"""
+        if self.cfg.enterprise and not self.syncer_versions:
+            syncer = self.cfg.sbin_dir / ("arangosync" + FILE_EXTENSION)
+            if not syncer.is_file():
+                print("syncer not found where we searched it? " + str(syncer))
+                return semver.VersionInfo.parse("0.0.0")
+            syncer_version_proc = psutil.Popen(
+                [str(syncer), "--version"],
+                stdout=subprocess.PIPE,
+                stdin=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True,
+            )
+            line = syncer_version_proc.stdout.readline()
+            syncer_version_proc.wait()
+            string_array = line.split(", ")
+            for one_str in string_array:
+                splitted = one_str.split(" ")
+                self.syncer_versions[splitted[0]] = splitted[1]
+                print("ArangoSync version: " + str(self.syncer_versions))
+        return semver.VersionInfo.parse(self.syncer_versions["Version"])
 
     def check_backup_is_created(self):
         """Check that backup was created after package upgrade"""
