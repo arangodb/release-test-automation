@@ -37,7 +37,7 @@ mkdir -p allure-results
 
 DOCKER_DEB_NAME=release-test-automation-deb
 
-DOCKER_DEB_TAG="${DOCKER_DEB_NAME}:$(cat containers/this_version.txt)${arch}"
+DOCKER_DEB_TAG="${DOCKER_DEB_NAME}:$(cat containers/this_version.txt)${ARCH}"
 
 docker kill "${DOCKER_DEB_NAME}" || true
 docker rm "${DOCKER_DEB_NAME}" || true
@@ -50,7 +50,7 @@ DOCKER_NAMESPACE="arangodb/"
 if docker pull "${DOCKER_NAMESPACE}${DOCKER_DEB_TAG}"; then
     echo "using ready built container"
 else
-    docker build containers/docker_deb -t "${DOCKER_DEB_TAG}" || exit
+    docker build containers/docker_deb${ARCH} -t "${DOCKER_DEB_TAG}" || exit
     DOCKER_NAMESPACE=""
 fi
 
