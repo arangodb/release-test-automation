@@ -764,6 +764,7 @@ class InstallerBase(ABC):
             )
             line = syncer_version_proc.stdout.readline()
             syncer_version_proc.wait()
+            print(line)
             string_array = line.split(", ")
             for one_str in string_array:
                 splitted = one_str.split(" ")
