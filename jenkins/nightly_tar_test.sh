@@ -59,7 +59,7 @@ DOCKER_NAMESPACE="arangodb/"
 if docker pull "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}"; then
     echo "using ready built container"
 else
-    docker build containers/docker_tar -t "${DOCKER_TAR_TAG}" || exit
+    docker build containers/docker_tar${ARCH} -t "${DOCKER_TAR_TAG}" || exit
     DOCKER_NAMESPACE=""
 fi
 
