@@ -28,6 +28,7 @@ class InstallerZip(InstallerArchive, InstallerWin):
         self.os = "win64"
         if cfg.semver > semver.VersionInfo.parse("3.9.99"):
             self.arch = "_amd64"
+            self.arch = ""
         else:
             self.arch = ""
         self.extension = "zip"
