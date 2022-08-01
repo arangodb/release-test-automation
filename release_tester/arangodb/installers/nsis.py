@@ -54,6 +54,7 @@ class InstallerNsis(InstallerWin):
         cfg.real_sbin_dir = cfg.sbin_dir
         if cfg.semver > semver.VersionInfo.parse("3.9.99"):
             self.arch = "_amd64"
+            self.arch = ""
         else:
             self.arch = ""
         self.os = 'win64'
