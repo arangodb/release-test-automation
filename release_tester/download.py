@@ -122,7 +122,10 @@ class Download:
         print("package directory: " + str(options.package_dir))
         print("verbose: " + str(options.verbose))
         self.options = options
+        self.is_nightly = semver.VersionInfo.parse(version).prerelease == "nightly"
         self.source = source
+        if not self.is_nightly and self.source == 'nightlypublic':
+            self.source = 'public'
         if options.remote_host != "":
             # external DNS to wuerg around docker dns issues...
             self.remote_host = options.remote_host
@@ -153,7 +156,6 @@ class Download:
         )
 
         self.inst = make_installer(self.cfg)
-        self.is_nightly = self.inst.semver.prerelease == "nightly"
         self.path_architecture = ""
         if self.is_nightly or self.cfg.semver > semver.VersionInfo.parse("3.9.99"):
             machine = platform.machine()
