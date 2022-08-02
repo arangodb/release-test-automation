@@ -12,8 +12,7 @@
 
     makeDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
       // All items created must contain dbCount
-      // documentation link: https://www.arangodb.com/docs/3.10/analyzers.html
-      // model_cooking.bin : https://fasttext.cc/docs/en/supervised-tutorial.html
+      // documentation link: https://www.arangodb.com/docs/3.9/analyzers.html
 
       print(`making per database data ${dbCount}`);
       function createAnalyzer(analyzerName, analyzerCreationQuery){
@@ -31,7 +30,8 @@
       //classifierSingle analyzer properties
       //classifierSingle Analyzer which is capable of classifying tokens in the input text.
       let classifierSingle = `classifierSingle_${dbCount}`;
-      let path = `${PWD}model_cooking.bin`;
+      // let path = `${PWD}model_cooking.bin`;
+      let path = `${PWD}/makedata_suites/610_model_cooking.bin`;
       let classifierSingleQuery = a.save(`${classifierSingle}`, "classification", { "model_location": `${path}` }, ["frequency", "norm", "position"]);
       
       //classifierDouble analyzer properties
@@ -62,7 +62,6 @@
     },
     checkDataDB: function (options, isCluster, isEnterprise, database, dbCount, readOnly) {
       print(`checking data ${dbCount}`);
-      progress(`checking data with ${dbCount}`);
 
       //This function will check any analyzer's properties
       function checkProperties(analyzer_name, obj1, obj2) {
@@ -121,7 +120,7 @@
       //-------------------------------classifierSingle----------------------------------
 
       let classifierSingle = `classifierSingle_${dbCount}`;
-      let path = `${PWD}model_cooking.bin`;
+      let path = `${PWD}/makedata_suites/610_model_cooking.bin`;
       let classifierSingleType = "classification";
       let classifierSingleProperties = { 
         "model_location" : `${path}`, 
@@ -136,10 +135,10 @@
         }
       ];
 
-      let classifierSingleQueryReuslt = db._query(`LET str = "Which baking dish is best to bake a banana bread ?" RETURN {"all": TOKENS(str, "${classifierSingle}")}`);
+      let classifierSingleQueryResult = db._query(`LET str = "Which baking dish is best to bake a banana bread ?" RETURN {"all": TOKENS(str, "${classifierSingle}")}`);
 
 
-      checkAnalyzer(classifierSingle, classifierSingleType, classifierSingleProperties, classifierSingleExpectedResult, classifierSingleQueryReuslt)
+      checkAnalyzer(classifierSingle, classifierSingleType, classifierSingleProperties, classifierSingleExpectedResult, classifierSingleQueryResult)
       
       //-------------------------------classifierDouble----------------------------------
 
@@ -150,7 +149,7 @@
         "top_k" : 2, 
         "threshold" : 0 
       };
-      let classifierDoubleExpectedResult =[ 
+      let classifierDoubleExpectedResult = [ 
         { 
           "double" : [ 
             "__label__baking", 
@@ -159,9 +158,9 @@
         } 
       ];
 
-      let classifierDoubleQueryReuslt = db._query(`LET str = "Which baking dish is best to bake a banana bread ?" RETURN {"double": TOKENS(str, "${classifierDouble}")}`);
+      let classifierDoubleQueryResult = db._query(`LET str = "Which baking dish is best to bake a banana bread ?" RETURN {"double": TOKENS(str, "${classifierDouble}")}`);
 
-      checkAnalyzer(classifierDouble, classifierDoubleType, classifierDoubleProperties, classifierDoubleExpectedResult, classifierDoubleQueryReuslt)
+      checkAnalyzer(classifierDouble, classifierDoubleType, classifierDoubleProperties, classifierDoubleExpectedResult, classifierDoubleQueryResult)
 
       //-------------------------------nearestNeighborsSingle----------------------------------
 
@@ -180,9 +179,9 @@
         } 
       ];
 
-      let nearestNeighborsSingleQueryReuslt = db._query(`LET str = "salt, oil"RETURN {"all": TOKENS(str, "${nearestNeighborsSingle}")}`);
+      let nearestNeighborsSingleQueryResult = db._query(`LET str = "salt, oil"RETURN {"all": TOKENS(str, "${nearestNeighborsSingle}")}`);
 
-      checkAnalyzer(nearestNeighborsSingle, nearestNeighborsSingleType, nearestNeighborsSingleProperties, nearestNeighborsSingleExpectedResult, nearestNeighborsSingleQueryReuslt)
+      checkAnalyzer(nearestNeighborsSingle, nearestNeighborsSingleType, nearestNeighborsSingleProperties, nearestNeighborsSingleExpectedResult, nearestNeighborsSingleQueryResult)
 
       //-------------------------------nearestNeighborsDouble----------------------------------
 
@@ -203,9 +202,9 @@
         }  
       ];
 
-      let nearestNeighborsDoubleQueryReuslt = db._query(`LET str = "salt, oil"RETURN {"double": TOKENS(str, "${nearestNeighborsDouble}")}`);
+      let nearestNeighborsDoubleQueryResult = db._query(`LET str = "salt, oil"RETURN {"double": TOKENS(str, "${nearestNeighborsDouble}")}`);
 
-      checkAnalyzer(nearestNeighborsDouble, nearestNeighborsDoubleType, nearestNeighborsDoubleProperties, nearestNeighborsDoubleExpectedResult, nearestNeighborsDoubleQueryReuslt)
+      checkAnalyzer(nearestNeighborsDouble, nearestNeighborsDoubleType, nearestNeighborsDoubleProperties, nearestNeighborsDoubleExpectedResult, nearestNeighborsDoubleQueryResult)
 
 
       return 0;
