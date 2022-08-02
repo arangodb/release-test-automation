@@ -3,6 +3,8 @@
 import time
 import semver
 import traceback
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import ElementNotInteractableException, TimeoutException, NoSuchElementException
 from selenium_ui_test.pages.navbar import NavigationBarPage
 
@@ -252,6 +254,48 @@ class CollectionPage(NavigationBarPage):
         time.sleep(3)
         self.webdriver.refresh()
 
+    def ace_set_value(self, query):
+        """This method will take a string argument and will execute the query on ace editor"""
+        warning = 'button-warning'
+        warning_sitem = self.locator_finder_by_class(warning)
+        # Set x and y offset positions of element
+        xOffset = 100
+        yOffset = 100
+        # Performs mouse move action onto the element
+        actions = ActionChains(self.driver).move_to_element_with_offset(warning_sitem, xOffset, yOffset)
+        actions.click()
+        actions.key_down(Keys.CONTROL).send_keys('a').send_keys(Keys.BACKSPACE).key_up(Keys.CONTROL)
+        time.sleep(1)
+        actions.send_keys(f'{query}')
+        actions.perform()
+        time.sleep(1)
+
+        print("Saving current computed value")
+        save_computed_value = 'saveComputedValuesButton'
+        save_computed_value_sitem = self.locator_finder_by_id(save_computed_value)
+        save_computed_value_sitem.click()
+        time.sleep(2)
+
+        self.driver.refresh()
+
+    def test_computed_values(self):
+        """ Testing computed value feature for v3.10.x"""
+        self.navbar_goto("collections")
+        print("Selecting computed values collections. \n")
+        col = '//*[@id="collection_computedValueCol"]/div/h5'
+        self.locator_finder_by_xpath(col).click()
+        time.sleep(1)
+
+        print("Selecting computed value tab \n")
+        computed = "//*[contains(text(),'Computed Values')]"
+        self.locator_finder_by_xpath(computed).click()
+        time.sleep(1)
+        
+        # this query will create two different computed values
+        # one for collection doc and one for index values
+        query = '[{"name": "dateCreatedHumanReadable","expression": "RETURN DATE_ISO8601(DATE_NOW())","overwrite": ' \
+                'true,},{"name": "dateCreatedForIndexing","expression": "RETURN DATE_NOW()","overwrite": true,},] '
+        self.ace_set_value(query)
 
     def checking_search_options(self, search):
         """Checking search functionality"""

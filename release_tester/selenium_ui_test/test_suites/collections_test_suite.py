@@ -27,10 +27,13 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
         self.error = None
 
         try:
+            col.create_new_collections('computedValueCol', 0, self.is_cluster)
             col.create_new_collections('TestDoc', 0, self.is_cluster)
             col.create_new_collections('TestEdge', 1, self.is_cluster)
             col.create_new_collections('Test', 0, self.is_cluster)
 
+            col.test_computed_values()
+            
             print("checking Search options\n")
             print("Searching using keyword 'Doc'\n")
             col.checking_search_options("Doc")
