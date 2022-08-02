@@ -12,7 +12,7 @@
 
     makeDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
       // All items created must contain dbCount
-      // documentation link: https://www.arangodb.com/docs/3.9/analyzers.html
+      // documentation link: https://www.arangodb.com/docs/3.10/analyzers.html
 
       print(`making per database data ${dbCount}`);
       function createAnalyzer(analyzerName, analyzerCreationQuery){
