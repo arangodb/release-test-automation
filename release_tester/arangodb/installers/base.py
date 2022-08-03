@@ -753,7 +753,7 @@ class InstallerBase(ABC):
         if not self.cfg.enterprise:
             return semver.VersionInfo.parse("0.0.0")
         if  not self.syncer_versions:
-            syncer = self.cfg.sbin_dir / ("arangosync" + FILE_EXTENSION)
+            syncer = self.cfg.real_sbin_dir / ("arangosync" + FILE_EXTENSION)
             if not syncer.is_file():
                 print("syncer not found where we searched it? " + str(syncer))
                 return semver.VersionInfo.parse("0.0.0")
