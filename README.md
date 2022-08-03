@@ -430,6 +430,11 @@ It consists of these files in test_data:
    - `609_analyzers.js` creates suported analyzers for 3.9.x version and check it's functionality.
       - Collation: An Analyzer capable of breaking up the input text into tokens in a language-agnostic manner as per Unicode  Standard Annex #29.
       - Segmentation: Analyzers to show the behavior of the different break options such as 'all', 'alpha' and  'graphic'.
+   - `610_analyzers.js` creates suported analyzers for 3.10.x version and check it's functionality.
+      - classifierSingle: An Analyzer capable of classifying tokens in the input text.
+      - classifierDouble: An Analyzer capable of classifying tokens in the input text.
+      - nearestNeighborsSingle: An Analyzer capable of finding nearest neighbors of single tokens in the input.
+      - nearestNeighborsDouble: An Analyzer capable of finding nearest neighbors of double tokens in the input.
 
 It should be considered to provide a set of hooks (000_dummy.js can be considered being a template for this):
 
