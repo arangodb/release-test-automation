@@ -56,7 +56,6 @@ INSTANCE_TYPE_STRING_MAP = {
     "syncworker": InstanceType.SYNCWORKER,
 }
 
-
 def log_line_get_date(line):
     """parse the date out of an arangod logfile line"""
     return datetime.datetime.strptime(line.split(" ")[0], "%Y-%m-%dT%H:%M:%SZ")
@@ -107,6 +106,36 @@ class Instance(ABC):
         self.ssl = ssl
 
         logging.debug("creating {0.type_str} instance: {0.name}".format(self))
+
+    def get_structure(self):
+        url = ('https' if self.ssl else 'http') + '127.0.0.1:' + str(self.port) + '/'
+        endpoint = ('ssl' if self.ssl else 'tcp') + '127.0.0.1:' + str(self.port) + '/'
+        
+        return {
+            'name': self.name,
+            'instanceRole': self.type_str,
+            'message': '',
+            'rootDir': str(self.basedir),
+            'protocol': self.protocol,
+            'authHeaders': "",
+            'restKeyFile': "",
+            'agencyConfig': {},
+            'upAndRunning': True,
+            'suspended': False,
+            'port': self.port,
+            'url': url,
+            'endpoint': endpoint,
+            'dataDir': str(self.basedir / 'data'),
+            'appDir': str(self.basedir / 'apps'),
+            'tmpDir': "",
+            'logFile': str(self.logfile),
+            'args': str(self.instance_arguments),
+            'pid': self.pid,
+            'id': self.pid,
+            'JWT': "",
+            'exitStatus': 0,
+            'serverCrashedLocal': False
+        }
 
     @abstractmethod
     def detect_pid(self, ppid, offset, full_binary_path):
