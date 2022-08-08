@@ -12,7 +12,7 @@
       }
       // strip off -nightly etc:
       ver = semver.parse(oldVersion.split('-')[0])
-      return enterprise && (cluster || semver.gte(ver, "3.10.0"));
+      return enterprise && (semver.gte(ver, "3.10.0"));
     },
     makeData: function (options, isCluster, isEnterprise, dbCount, loopCount) {
       // All items created must contain dbCount and loopCount
