@@ -7,14 +7,12 @@
 
   return {
     isSupported: function (currentVersion, oldVersion, options, enterprise, cluster) {
-      if (enterprise) {
-        egm = require('@arangodb/enterprise-graph');
-      }
       // strip off -nightly etc:
       ver = semver.parse(oldVersion.split('-')[0])
       return enterprise && (semver.gte(ver, "3.10.0"));
     },
     makeData: function (options, isCluster, isEnterprise, dbCount, loopCount) {
+      egm = require('@arangodb/enterprise-graph');
       // All items created must contain dbCount and loopCount
       print(`making data ${dbCount} ${loopCount}`);
       // And now a enterprise graph (if enterprise):
