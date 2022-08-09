@@ -54,7 +54,10 @@ class Cluster(Runner):
 let colInSync=true;
 do {
   colInSync=true;
-  arango.GET('/_api/replication/clusterInventory').collections.forEach(col => {colInSync &=col.allInSync});
+  arango.GET('/_api/replication/clusterInventory').collections.forEach(col => {
+    colInSync &= col.allInSync;
+    if (!col.allInSync) { print(col); }
+  });
   require('internal').sleep(1);
   print('.');
 } while (!colInSync);
@@ -307,7 +310,7 @@ db.testCollection.save({test: "document"})
         # this is simply to slow to be worth wile:
         # collections = self.get_collection_list()
         lh.subsubsection("wait for all shards to be in sync")
-        retval = self.starter_instances[0].execute_frontend(self.check_collections_in_sync)
+        retval = self.starter_instances[0].execute_frontend(self.check_collections_in_sync, True)
         if not retval:
             raise Exception(
                 "Failed to ensure the cluster is in sync: %s %s" % (retval, str(self.check_collections_in_sync))

@@ -1,5 +1,13 @@
 #!/bin/bash
 
+ARCH="-$(uname -m)"
+
+if test "${ARCH}" == "-x86_64"; then
+    ARCH="-amd64"
+else
+    ARCH="-arm64v8"
+fi
+
 GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
 if test -z "$GIT_VERSION"; then
     GIT_VERSION=$VERSION
@@ -33,7 +41,7 @@ mv $(pwd)/release-test-automation-helpers $(pwd)/release_tester/tools/external_h
 
 DOCKER_RPM_NAME=release-test-automation-rpm
 
-DOCKER_RPM_TAG="${DOCKER_RPM_NAME}:$(cat containers/this_version.txt)"
+DOCKER_RPM_TAG="${DOCKER_RPM_NAME}:$(cat containers/this_version.txt)${ARCH}"
 
 docker kill "${DOCKER_RPM_NAME}" || true
 docker rm "${DOCKER_RPM_NAME}" || true
@@ -46,7 +54,7 @@ DOCKER_NAMESPACE="arangodb/"
 if docker pull "${DOCKER_NAMESPACE}${DOCKER_RPM_TAG}"; then
     echo "using ready built container"
 else
-    docker build containers/docker_rpm -t "${DOCKER_RPM_TAG}" || exit
+    docker build containers/docker_rpm${ARCH} -t "${DOCKER_RPM_TAG}" || exit
     DOCKER_NAMESPACE=""
 fi
 

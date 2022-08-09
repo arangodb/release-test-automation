@@ -1,20 +1,18 @@
 #!/usr/bin/env python3
 """ base class for all testsuites """
 
+import platform
+import re
 import sys
 import traceback
-from abc import ABC
 from uuid import uuid4
 
-from allure_commons.model2 import Status, Label, StatusDetails
-from allure_commons.types import LabelType
+import distro
+from allure_commons.model2 import Status, StatusDetails
 
 # pylint: disable=import-error
 from arangodb.installers import RunProperties
 from reporting.reporting_utils import AllureTestSuiteContext, RtaTestcase, step
-import distro
-import platform
-
 from test_suites_core.models import RtaTestResult
 
 
@@ -125,7 +123,7 @@ class BaseTestSuite(metaclass=MetaTestSuite):
         testcases = [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "is_testcase")]
         results = []
         for one_testcase in testcases:
-            results.append(one_testcase(self, suite_is_broken=suite_is_broken))
+            results.extend(one_testcase(self, suite_is_broken=suite_is_broken))
         return results
 
     def has_own_testcases(self):
@@ -221,22 +219,26 @@ class BaseTestSuite(metaclass=MetaTestSuite):
                 return True
         return False
 
-    # pylint: disable=missing-function-docstring
-    @staticmethod
-    def detect_linux_distro() -> str:
-        return distro.linux_distribution(full_distribution_name=False)[0]
 
-    @staticmethod
-    def os_is_debian_based() -> bool:
-        return BaseTestSuite.detect_linux_distro() in ["debian", "ubuntu"]
+# pylint: disable=missing-function-docstring
+def detect_linux_distro() -> str:
+    return distro.linux_distribution(full_distribution_name=False)[0]
 
-    @staticmethod
-    def os_is_mac() -> bool:
-        return platform.mac_ver()[0] != ""
 
-    @staticmethod
-    def os_is_win() -> bool:
-        return platform.win32_ver()[0] != ""
+def os_is_debian_based() -> bool:
+    return detect_linux_distro() in ["debian", "ubuntu"]
+
+
+def os_is_mac() -> bool:
+    return platform.mac_ver()[0] != ""
+
+
+def os_is_win() -> bool:
+    return platform.win32_ver()[0] != ""
+
+
+def os_is_linux() -> bool:
+    return sys.platform == "linux"
 
 
 def run_before_suite(func):
@@ -298,7 +300,7 @@ def disable(arg):
 def disable_for_windows(arg):
     if callable(arg):
         testcase_func = arg
-        if BaseTestSuite.os_is_win():
+        if os_is_win():
             testcase_func.is_disabled = True
             testcase_func.disable_reasons.append("This test case is disabled for Windows.")
         return testcase_func
@@ -306,7 +308,7 @@ def disable_for_windows(arg):
         reason = arg
 
         def set_disable_reason(func):
-            if BaseTestSuite.os_is_win():
+            if os_is_win():
                 func.is_disabled = True
                 func.disable_reasons.append(reason)
             return func
@@ -317,7 +319,7 @@ def disable_for_windows(arg):
 def disable_for_mac(arg):
     if callable(arg):
         testcase_func = arg
-        if BaseTestSuite.os_is_mac():
+        if os_is_mac():
             testcase_func.is_disabled = True
             testcase_func.disable_reasons.append("This test case is disabled for MacOS.")
         return testcase_func
@@ -325,7 +327,7 @@ def disable_for_mac(arg):
         reason = arg
 
         def set_disable_reason(func):
-            if BaseTestSuite.os_is_mac():
+            if os_is_mac():
                 func.is_disabled = True
                 func.disable_reasons.append(reason)
             return func
@@ -336,7 +338,7 @@ def disable_for_mac(arg):
 def disable_for_debian(arg):
     if callable(arg):
         testcase_func = arg
-        if BaseTestSuite.os_is_debian_based():
+        if os_is_debian_based():
             testcase_func.is_disabled = True
             testcase_func.disable_reasons.append("This test case is disabled for Debian-based linux distros.")
         return testcase_func
@@ -344,7 +346,7 @@ def disable_for_debian(arg):
         reason = arg
 
         def set_disable_reason(func):
-            if BaseTestSuite.os_is_debian_based():
+            if os_is_debian_based():
                 func.is_disabled = True
                 func.disable_reasons.append(reason)
             return func
@@ -371,16 +373,26 @@ def disable_if_returns_true_at_runtime(function, reason=None):
     return set_disable_func_and_reason
 
 
+linux_only = disable_if_true(not os_is_linux(), reason="This testcase must run only on Linux.")
+windows_only = disable_if_true(not os_is_win(), reason="This testcase must run only on Windows.")
+
+
+def parameters(params):
+    def wrapper(func):
+        if not (func.is_testcase and callable(func)):
+            raise Exception('The "parameters" decorator can only be applied to a testcase function!')
+        func.is_parametrized = True
+        func.parameters = params
+        return func
+
+    return wrapper
+
+
 def testcase(title=None):
     """base testcase class decorator"""
 
-    def sanitize_kwargs_for_testcase(kwargs_dict):
-        dict = kwargs_dict.copy()
-        args_to_delete = ["suite_is_broken"]
-        for arg in args_to_delete:
-            if arg in dict:
-                del dict[arg]
-        return dict
+    def resolve_params_in_name(name: str, params: dict):
+        return name.format(**params)
 
     def decorator(func):
         def wrapper(self, *args, **kwargs):
@@ -407,48 +419,54 @@ def testcase(title=None):
                     wrapper.is_disabled = True
                     if reason:
                         wrapper.disable_reasons.append(reason)
-            with RtaTestcase(name) as my_testcase:
-                if wrapper.is_disabled:
-                    test_result = RtaTestResult(True, name, "test is skipped", None)
-                    my_testcase.context.status = Status.SKIPPED
-                    if len(wrapper.disable_reasons) > 0:
-                        message = "\n".join(wrapper.disable_reasons)
-                        my_testcase.context.statusDetails = StatusDetails(message=message)
-                elif kwargs["suite_is_broken"]:
-                    test_result = RtaTestResult(False, name, "test suite is broken", None)
-                    my_testcase.context.status = Status.BROKEN
-                else:
-                    try:
-                        self.setup_testcase()
-                        print('Running test case "%s"...' % name)
-                        func(*args, **sanitize_kwargs_for_testcase(kwargs))
-                        success = True
-                        print('Test case "%s" passed!' % name)
-                        my_testcase.context.status = Status.PASSED
-                    except Exception as ex:
-                        success = False
-                        print("Test failed!")
-                        message = str(ex)
-                        traceback_instance = "".join(traceback.TracebackException.from_exception(ex).format())
-                        print(message)
-                        print(traceback_instance)
+            test_results = []
+            for test_params in wrapper.parameters:
+                parametrized_testcase_name = resolve_params_in_name(name, test_params)
+                with RtaTestcase(parametrized_testcase_name) as my_testcase:
+                    if wrapper.is_disabled:
+                        test_result = RtaTestResult(True, parametrized_testcase_name, "test is skipped", None)
+                        my_testcase.context.status = Status.SKIPPED
+                        if len(wrapper.disable_reasons) > 0:
+                            message = "\n".join(wrapper.disable_reasons)
+                            my_testcase.context.statusDetails = StatusDetails(message=message)
+                    elif kwargs["suite_is_broken"]:
+                        test_result = RtaTestResult(False, parametrized_testcase_name, "test suite is broken", None)
+                        my_testcase.context.status = Status.BROKEN
+                    else:
                         try:
-                            self.add_crash_data_to_report()
-                        except:
-                            pass
-                        my_testcase.context.status = Status.FAILED
-                        my_testcase.context.statusDetails = StatusDetails(message=message, trace=traceback_instance)
-                    finally:
-                        try:
-                            self.teardown_testcase()
-                        except:
-                            pass
-                    test_result = RtaTestResult(success, name, message, traceback_instance)
-                return test_result
+                            self.setup_testcase()
+                            print('Running test case "%s"...' % parametrized_testcase_name)
+                            func(*args, **test_params)
+                            success = True
+                            print('Test case "%s" passed!' % parametrized_testcase_name)
+                            my_testcase.context.status = Status.PASSED
+                        except Exception as ex:
+                            success = False
+                            print("Test failed!")
+                            message = str(ex)
+                            traceback_instance = "".join(traceback.TracebackException.from_exception(ex).format())
+                            print(message)
+                            print(traceback_instance)
+                            try:
+                                self.add_crash_data_to_report()
+                            except:
+                                pass
+                            my_testcase.context.status = Status.FAILED
+                            my_testcase.context.statusDetails = StatusDetails(message=message, trace=traceback_instance)
+                        finally:
+                            try:
+                                self.teardown_testcase()
+                            except:
+                                pass
+                        test_result = RtaTestResult(success, parametrized_testcase_name, message, traceback_instance)
+                    test_results.append(test_result)
+            return test_results
 
         wrapper.is_testcase = True
         wrapper.is_disabled = False
         wrapper.disable_reasons = []
+        wrapper.is_parametrized = False
+        wrapper.parameters = [{}]
 
         # This list must contain pairs of functions and corresponding reasons.
         # The function must take one argument(the test suite object) and return a boolean value.

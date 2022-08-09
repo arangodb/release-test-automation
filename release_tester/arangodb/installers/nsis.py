@@ -17,6 +17,8 @@ from allure_commons._allure import attach
 from allure_commons.types import AttachmentType
 from mss import mss
 import psutil
+
+from arangodb.installers.windows import InstallerWin
 from reporting.reporting_utils import step
 
 from arangodb.installers.base import InstallerBase
@@ -26,7 +28,7 @@ from arangodb.installers.base import InstallerBase
 import tools.monkeypatch_psutil
 
 
-class InstallerW(InstallerBase):
+class InstallerNsis(InstallerWin):
     """install the windows NSIS package"""
 
     # pylint: disable=too-many-arguments disable=too-many-instance-attributes
@@ -50,7 +52,12 @@ class InstallerW(InstallerBase):
         cfg.sbin_dir = cfg.install_prefix / "usr" / "bin"
         cfg.real_bin_dir = cfg.bin_dir
         cfg.real_sbin_dir = cfg.sbin_dir
-
+        if cfg.semver > semver.VersionInfo.parse("3.9.99"):
+            self.arch = "_amd64"
+            self.arch = ""
+        else:
+            self.arch = ""
+        self.os = 'win64'
         super().__init__(cfg)
         self.check_stripped = False
         self.check_symlink = False
@@ -76,7 +83,6 @@ class InstallerW(InstallerBase):
 
     def calculate_package_names(self):
         enterprise = "e" if self.cfg.enterprise else ""
-        architecture = "win64"
         semdict = dict(self.cfg.semver.to_dict())
         if semdict["prerelease"]:
             semdict["prerelease"] = "-{prerelease}".format(**semdict)
@@ -87,22 +93,15 @@ class InstallerW(InstallerBase):
         self.desc = {
             "ep": enterprise,
             "ver": version,
-            "arch": architecture,
+            "os": self.os,
+            "arch": self.arch,
             "ext": self.extension,
         }
 
-        self.server_package = "ArangoDB3%s-%s_%s.exe" % (
-            enterprise,
-            version,
-            architecture,
-        )
+        self.server_package = "ArangoDB3{ep}-{ver}_{os}{arch}.exe".format(**self.desc)
         if self.cfg.semver >= semver.VersionInfo.parse("3.7.15"):
-            self.client_package = "ArangoDB3%s-client-%s_%s.exe" % (
-                enterprise,
-                version,
-                architecture,
-            )
-            self.cfg.client_install_prefix = self.cfg.base_test_dir / "arangodb3{ep}-client-{arch}_{ver}".format(
+            self.client_package = "ArangoDB3{ep}-client-{ver}_{os}{arch}.exe".format(**self.desc)
+            self.cfg.client_install_prefix = self.cfg.base_test_dir / "arangodb3{ep}-client-{os}_{ver}{arch}".format(
                 **self.desc
             )
         self.debug_package = "ArangoDB3{ep}-{ver}.pdb.zip".format(**self.desc)

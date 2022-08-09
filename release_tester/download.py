@@ -8,11 +8,13 @@ from ftplib import FTP_TLS
 from io import BytesIO
 import os
 from pathlib import Path
+import platform
 import json
 import sys
 import tarfile
 
 import click
+import semver
 from arangodb.installers import make_installer, InstallerConfig, HotBackupCliCfg, InstallerBaseConfig, OptionGroup
 import tools.loghelper as lh
 
@@ -120,7 +122,10 @@ class Download:
         print("package directory: " + str(options.package_dir))
         print("verbose: " + str(options.verbose))
         self.options = options
+        self.is_nightly = semver.VersionInfo.parse(version).prerelease == "nightly"
         self.source = source
+        if not self.is_nightly and self.source == 'nightlypublic':
+            self.source = 'public'
         if options.remote_host != "":
             # external DNS to wuerg around docker dns issues...
             self.remote_host = options.remote_host
@@ -149,8 +154,14 @@ class Download:
             stress_upgrade=False,
             ssl=False,
         )
+
         self.inst = make_installer(self.cfg)
-        self.is_nightly = self.inst.semver.prerelease == "nightly"
+        self.path_architecture = ""
+        if self.is_nightly or self.cfg.semver > semver.VersionInfo.parse("3.9.99"):
+            machine = platform.machine()
+            if machine == 'AMD64':
+                machine = 'x86_64'
+            self.path_architecture = machine + '/'
         self.calculate_package_names()
         self.packages = []
 
@@ -182,6 +193,7 @@ class Download:
             "major_version": "arangodb{major}{minor}".format(**self.cfg.semver.to_dict()),
             "bare_major_version": "{major}.{minor}".format(**self.cfg.semver.to_dict()),
             "remote_package_dir": self.inst.remote_package_dir,
+            "path_architecture": self.path_architecture,
             "enterprise": "Enterprise" if self.cfg.enterprise else "Community",
             "enterprise_magic": self.options.enterprise_magic + "/" if self.cfg.enterprise else "",
             "packages": "" if self.is_nightly else "packages",
@@ -194,13 +206,13 @@ class Download:
             "ftp:stage1": "/stage1/{full_version}/release/packages/{enterprise}/{remote_package_dir}/".format(
                 **self.params
             ),
-            "ftp:stage2": "/stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/".format(
+            "ftp:stage2": "/stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/{path_architecture}".format(
                 **self.params
             ),
-            "http:stage2": "stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/".format(
+            "http:stage2": "stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/{path_architecture}".format(
                 **self.params
             ),
-            "nightlypublic": "{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/".format(
+            "nightlypublic": "{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/{path_architecture}".format(
                 **self.params
             ).replace("///", "/"),
             "public": "{enterprise_magic}{major_version}/{enterprise}/{remote_package_dir}/".format(

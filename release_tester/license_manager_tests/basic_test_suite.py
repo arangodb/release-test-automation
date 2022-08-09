@@ -29,6 +29,7 @@ class BasicLicenseManagerTestSuite(LicenseManagerBaseTestSuite):
         self,
         versions,
         installer_base_config,
+        **kwargs,
     ):
         if len(versions) > 1:
             new_version = versions[1]

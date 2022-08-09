@@ -9,7 +9,7 @@ import platform
 import shutil
 import time
 from pathlib import Path
-from abc import abstractmethod, ABC
+from abc import abstractmethod, ABC, ABCMeta
 import semver
 import yaml
 import psutil
@@ -208,6 +208,7 @@ class InstallerBase(ABC):
     """this is the prototype for the operation system agnostic installers"""
 
     def __init__(self, cfg: InstallerConfig):
+        self.machine = platform.machine()
         self.arango_binaries = []
         self.cfg = copy.deepcopy(cfg)
         self.calculate_package_names()
@@ -224,6 +225,7 @@ class InstallerBase(ABC):
         self.client_package = ""
         self.instance = None
         self.starter_versions = {}
+        self.syncer_versions = {}
         self.cli_executor = ArangoCLIprogressiveTimeoutExecutor(self.cfg, self.instance)
         self.core_glob = "**/*core"
 
@@ -404,6 +406,7 @@ class InstallerBase(ABC):
 
     @staticmethod
     def load_config_from_file(filename=None):
+        """find config file on disk"""
         if not filename:
             filename = InstallerBase.calc_config_file_name()
         with open(filename, encoding="utf8") as fileh:
@@ -745,6 +748,32 @@ class InstallerBase(ABC):
                 print("Starter version: " + str(self.starter_versions))
         return semver.VersionInfo.parse(self.starter_versions["Version"])
 
+    def get_sync_version(self):
+        """find out the version of the starter in this package"""
+        if not self.cfg.enterprise:
+            return semver.VersionInfo.parse("0.0.0")
+        if  not self.syncer_versions:
+            syncer = self.cfg.real_sbin_dir / ("arangosync" + FILE_EXTENSION)
+            if not syncer.is_file():
+                print("syncer not found where we searched it? " + str(syncer))
+                return semver.VersionInfo.parse("0.0.0")
+            syncer_version_proc = psutil.Popen(
+                [str(syncer), "--version"],
+                stdout=subprocess.PIPE,
+                stdin=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True,
+            )
+            line = syncer_version_proc.stdout.readline()
+            syncer_version_proc.wait()
+            print(line)
+            string_array = line.split(", ")
+            for one_str in string_array:
+                splitted = one_str.split(" ")
+                self.syncer_versions[splitted[0]] = splitted[1]
+                print("ArangoSync version: " + str(self.syncer_versions))
+        return semver.VersionInfo.parse(self.syncer_versions["Version"])
+
     def check_backup_is_created(self):
         """Check that backup was created after package upgrade"""
 
@@ -760,3 +789,140 @@ class InstallerBase(ABC):
                 print("Found coredump! " + str(i))
                 return True
         return False
+
+
+class InstallerArchive(InstallerBase, metaclass=ABCMeta):
+    """base class for archive packages that need to be installed manually, e.g. .tar.gz for Linux, .zip for Windows"""
+
+    def __init__(self, cfg):
+        cfg.have_system_service = False
+        cfg.install_prefix = self.basedir
+        cfg.bin_dir = None
+        cfg.sbin_dir = None
+        cfg.real_bin_dir = None
+        cfg.real_sbin_dir = None
+
+        cfg.log_dir = Path()
+        cfg.dbdir = None
+        cfg.appdir = None
+        cfg.cfgdir = None
+
+        self.cfg = cfg
+        self.cfg.install_prefix = self.basedir
+        self.cfg.client_install_prefix = self.basedir
+        self.cfg.server_install_prefix = self.basedir
+        self.cfg.debug_install_prefix = self.basedir
+        self.server_package = None
+        self.client_package = None
+        self.debug_package = None
+        self.log_examiner = None
+        self.instance = None
+        super().__init__(cfg)
+
+    def supports_hot_backup(self):
+        """no hot backup support on the wintendo."""
+        if not self.hot_backup:
+            return False
+        return super().supports_hot_backup()
+
+    def check_service_up(self):
+        """nothing to see here"""
+
+    def start_service(self):
+        """nothing to see here"""
+
+    def stop_service(self):
+        """nothing to see here"""
+
+    @step
+    def upgrade_server_package(self, old_installer):
+        """Tar installer is the same way we did for installing."""
+        self.install_server_package()
+
+    @abstractmethod
+    def calculate_installation_dirs(self):
+        """calculate installation directories"""
+
+    @step
+    def install_server_package_impl(self):
+        logging.info("installing Arangodb " + self.installer_type + " server package")
+        logging.debug("package dir: {0.cfg.package_dir}- " "server_package: {0.server_package}".format(self))
+        if self.cfg.install_prefix.exists():
+            print("Flushing pre-existing installation directory: " + str(self.cfg.install_prefix))
+            shutil.rmtree(self.cfg.install_prefix)
+            while self.cfg.install_prefix.exists():
+                print(".")
+                time.sleep(1)
+        else:
+            self.cfg.install_prefix.mkdir(parents=True)
+
+        extract_to = self.cfg.install_prefix / ".."
+        extract_to = extract_to.resolve()
+
+        print("extracting: " + str(self.cfg.package_dir / self.server_package) + " to " + str(extract_to))
+        shutil.unpack_archive(
+            str(self.cfg.package_dir / self.server_package),
+            str(extract_to),
+        )
+        logging.info("Installation successfull")
+        self.cfg.server_package_is_installed = True
+        self.cfg.install_prefix = self.cfg.server_install_prefix
+        self.calculate_installation_dirs()
+        self.calculate_file_locations()
+
+    @step
+    def install_client_package_impl(self):
+        """install the client tar file"""
+        logging.info("installing Arangodb " + self.installer_type + "client package")
+        logging.debug("package dir: {0.cfg.package_dir}- " "client_package: {0.client_package}".format(self))
+        if not self.cfg.install_prefix.exists():
+            self.cfg.install_prefix.mkdir(parents=True)
+        print(
+            "extracting: "
+            + str(self.cfg.package_dir / self.client_package)
+            + " to "
+            + str(self.cfg.install_prefix / "..")
+        )
+        shutil.unpack_archive(
+            str(self.cfg.package_dir / self.client_package),
+            str(self.cfg.install_prefix / ".."),
+        )
+        logging.info("Installation successfull")
+        self.cfg.client_package_is_installed = True
+        self.cfg.install_prefix = self.cfg.client_install_prefix
+        self.calculate_installation_dirs()
+        self.calculate_file_locations()
+
+    @step
+    def un_install_server_package_impl(self):
+        """remove server package"""
+        self.purge_install_dir()
+
+    @step
+    def un_install_client_package_impl(self):
+        """purge client package"""
+        self.purge_install_dir()
+
+    @step
+    def uninstall_everything_impl(self):
+        """uninstall all arango packages present in the system(including those installed outside this installer)"""
+        self.purge_install_dir()
+        if self.cfg.debug_package_is_installed:
+            shutil.rmtree(self.cfg.debug_install_prefix)
+
+    def purge_install_dir(self):
+        """remove the install directory"""
+        if self.cfg.install_prefix.exists():
+            shutil.rmtree(self.cfg.install_prefix)
+
+    def broadcast_bind(self):
+        """nothing to see here"""
+
+    def check_engine_file(self):
+        """nothing to see here"""
+
+    def check_installed_paths(self):
+        """nothing to see here"""
+
+    def cleanup_system(self):
+        """nothing to see here"""

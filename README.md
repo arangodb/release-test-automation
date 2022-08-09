@@ -406,8 +406,35 @@ It consists of these files in test_data:
    - `560_smartgraph_validator.js` on top of the enterprise graph, this will check the integrity check of the server.
    - `900_oneshard.js` creates oneshard database and does stuff with it.
    - `607_analyzers.js` creates suported analyzers for 3.7.x version and check it's functionality.
+      Added Analyzers: (documentation link: https://www.arangodb.com/docs/3.7/analyzers.html)
+      - identity: An Analyzer applying the identity transformation, i.e. returning the input unmodified.
+      - delimiter: An Analyzer capable of breaking up delimited text into tokens as per RFC 4180 (without starting new  records on newlines).
+      - stem : An Analyzer capable of stemming the text, treated as a single token, for supported languages.
+      - norm Upper : An Analyzer capable of normalizing the text, treated as a single token, i.e. case conversion and accent removal. This one will Convert input string to all upper-case characters.
+      - norm Accent : This analyzer is capable of convert accented characters to their base characters.
+      - ngram : An Analyzer capable of producing n-grams from a specified input in a range of min..max (inclusive). Can optionally preserve the original input.
+      - n-Bigram Markers: This analyzer is a bigram Analyzer with preserveOriginal enabled and with start and stop markers.
+      - text : An Analyzer capable of breaking up strings into individual words while also optionally filtering out stop-words, extracting word stems, applying case conversion and accent removal.
+      - text Edge ngram: This analyzer is a custom text Analyzer with the edge n-grams feature and normalization enabled, stemming disabled and "the" defined as stop-word to exclude it.
    - `608_analyzers.js` creates suported analyzers for 3.8.x version and check it's functionality.
+      Added Analyzers: (documentation link: https://www.arangodb.com/docs/3.8/analyzers.html)
+      - Soundex: Analyzer for a phonetically similar term search.
+      - aqlConcat: Concatenating Analyzer for conditionally adding a custom prefix or suffix.
+      - aqlFilter: Filtering Analyzer that discards unwanted data based on the prefix.
+      - nGramPipeline: Normalize to all uppercase and compute bigrams.
+      - delimiterPipeline: Split at delimiting characters , and ;, then stem the tokens.
+      - stopwords: Create and use a stopword Analyzer that removes the tokens `and` and `the`
+      - stopwordsPipeline: An Analyzer capable of removing specified tokens from the input.
+      - geoJson: An Analyzer capable of breaking up a GeoJSON object into a set of indexable tokens for further usage with ArangoSearch Geo functions.
+      - geoPoint: An Analyzer capable of breaking up JSON object describing a coordinate into a set of indexable tokens for further usage with ArangoSearch Geo functions.
    - `609_analyzers.js` creates suported analyzers for 3.9.x version and check it's functionality.
+      - Collation: An Analyzer capable of breaking up the input text into tokens in a language-agnostic manner as per Unicode  Standard Annex #29.
+      - Segmentation: Analyzers to show the behavior of the different break options such as 'all', 'alpha' and  'graphic'.
+   - `610_analyzers.js` creates suported analyzers for 3.10.x version and check it's functionality.
+      - classifierSingle: An Analyzer capable of classifying tokens in the input text.
+      - classifierDouble: An Analyzer capable of classifying tokens in the input text.
+      - nearestNeighborsSingle: An Analyzer capable of finding nearest neighbors of single tokens in the input.
+      - nearestNeighborsDouble: An Analyzer capable of finding nearest neighbors of double tokens in the input.
 
 It should be considered to provide a set of hooks (000_dummy.js can be considered being a template for this):
 
