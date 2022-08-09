@@ -6,6 +6,7 @@ pexpect
 requests
 click
 semver
+magic
 # selenium >= 4.0.0
 beautifultable
 tabulate

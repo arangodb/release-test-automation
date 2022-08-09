@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """ run an installer for the detected operating system """
+import copy
 import logging
 import re
+import magic
 import os
-import copy
 import subprocess
 import platform
 import shutil
@@ -22,23 +23,6 @@ from allure_commons._allure import attach
 from reporting.reporting_utils import step
 
 FILE_PIDS = []
-
-
-@step
-def run_file_command(file_to_check):
-    """run `file file_to_check` and return the output"""
-    with subprocess.Popen(
-        ["file", file_to_check],
-        stdout=subprocess.PIPE,
-        stdin=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        universal_newlines=True,
-    ) as proc:
-        line = proc.stdout.readline()
-        FILE_PIDS.append(str(proc.pid))
-        proc.wait()
-        print(line)
-        return line
 
 
 IS_WINDOWS = platform.win32_ver()[0]
@@ -167,9 +151,21 @@ class BinaryDescription:
         # some go binaries are stripped, some not. We can't test it.
         return self.stripped
 
+    def check_stripped_windows(self):
+        """check whether this file is stripped (or not)"""
+        output = magic.from_file(str(self.path))
+        if output.find("PE32+") < 0:
+            raise Exception(f"Strip chinging for file {str(self.path)} returned {output}")
+        if output.find("(stripped") >= 0:
+            return True
+        else:
+            return False
+
     def check_stripped_linux(self):
         """check whether this file is stripped (or not)"""
-        output = run_file_command(self.path)
+        output = magic.from_file(str(self.path))
+        if output.find("ELF") < 0:
+            raise Exception(f"Strip chinging for file {str(self.path)} returned {output}")
         if output.find(", stripped") >= 0:
             return True
         if output.find(", not stripped") >= 0:
@@ -185,6 +181,8 @@ class BinaryDescription:
         if IS_MAC:
             print("")
             # is_stripped = self.check_stripped_mac()
+        elif IS_WINDOWS:
+            is_stripped = self.check_stripped_windows()
         else:
             is_stripped = self.check_stripped_linux()
             if not is_stripped and self.stripped:
