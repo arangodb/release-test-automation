@@ -165,7 +165,7 @@ class BinaryDescription:
         """check whether this file is stripped (or not)"""
         output = magic.from_file(str(self.path))
         if output.find("ELF") < 0:
-            raise Exception(f"Strip chinging for file {str(self.path)} returned [{output}]")
+            raise Exception(f"Strip checking for file {str(self.path)} returned [{output}]")
         if output.find(", stripped") >= 0:
             return True
         if output.find(", not stripped") >= 0:
