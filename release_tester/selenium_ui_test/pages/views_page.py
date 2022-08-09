@@ -683,7 +683,7 @@ class ViewsPage(NavigationBarPage):
         self.wait_for_ajax()
 
         # json tab check start here
-        # TODO bts-xxx need to be fixed
+        # TODO https://arangodb.atlassian.net/browse/BTS-901
         # print("Selecting json tab\n")
         # json_tab = '//*[@id="subNavigationBar"]/ul[2]/li[4]/a'
         # json_tab_sitem = self.locator_finder_by_xpath(json_tab)
