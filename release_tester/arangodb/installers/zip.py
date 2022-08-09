@@ -35,7 +35,6 @@ class InstallerZip(InstallerArchive, InstallerWin):
         self.hot_backup = False
         self.installer_type = ".zip Windows"
         super().__init__(cfg)
-        self.check_stripped = False
         self.check_symlink = False
         self.core_glob = "**/*.dmp"
 
