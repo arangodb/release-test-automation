@@ -16,7 +16,7 @@
 ## Linux
 
 - **debian** / **ubuntu**:
-  `apt-get install python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect python3-pyftpdlib python3-statsd python3-selenium python3-pip gdb`
+  `apt-get install python3-yamlpython3-magic python3-requests python3-click python3-distro python3-psutil python3-pexpect python3-pyftpdlib python3-statsd python3-selenium python3-pip gdb`
   
   the `python3-semver` on debian is to old - need to use the pip version instead:
   `pip3 install semver beautifultable allure_python_commons certifi tabulate`
@@ -27,17 +27,17 @@
   `pip install distro semver pexpect psutil beautifultable allure_python_commons certifi`
   
 - **centos**:
-   `yum update ; yum install python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect python3-pyftpdlib; pip3 install psutil semver beautifultable` 
+   `yum update ; yum install python3 python3-pyyaml python3-magic python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect python3-pyftpdlib; pip3 install psutil semver beautifultable` 
    `sudo yum install gdb`
 - **plain pip**:
-  `pip3 install psutil pyyaml pexpect requests click semver ftplib selenium beautifultable tabulate allure_python_commons certifi`
+  `pip3 install psutil pyyaml pexpect requests click semver magic ftplib selenium beautifultable tabulate allure_python_commons certifi`
   or:
   `pip install -r requirements.txt`
 
 ## Mac OS
 :
     `brew install gnu-tar`
-    `pip3 install click psutil requests pyyaml semver pexpect selenium beautifultable tabulate allure_python_commons certifi`
+    `pip3 install click psutil requests pyyaml semver magic pexpect selenium beautifultable tabulate allure_python_commons certifi`
     `brew install gdb`
 if `python --version` is below 3.9 you also have to download ftplib:
     `pip3 install click ftplib`

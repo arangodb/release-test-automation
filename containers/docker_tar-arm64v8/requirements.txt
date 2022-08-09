@@ -6,7 +6,7 @@ pexpect
 requests
 click
 semver
-
+magic
 beautifultable
 tabulate
 markdown

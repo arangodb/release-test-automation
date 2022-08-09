@@ -59,7 +59,6 @@ class InstallerNsis(InstallerWin):
             self.arch = ""
         self.os = 'win64'
         super().__init__(cfg)
-        self.check_stripped = False
         self.check_symlink = False
         self.core_glob = "**/*.dmp"
 
