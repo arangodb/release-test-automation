@@ -31,8 +31,10 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
             col.create_new_collections('TestDoc', 0, self.is_cluster)
             col.create_new_collections('TestEdge', 1, self.is_cluster)
             col.create_new_collections('Test', 0, self.is_cluster)
+            col.create_new_collections('ComputedValueCol', 0, self.is_cluster)
 
-            col.test_computed_values()
+            if col.current_package_version() >= semver.VersionInfo.parse("3.9.100"):
+                col.test_computed_values()
             
             print("checking Search options\n")
             print("Searching using keyword 'Doc'\n")
@@ -79,7 +81,7 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
             print("Uploading json file\n")
             col.select_choose_file_btn(str(self.test_data_dir / "ui_data" / "edges.json"))
             col.select_confirm_upload_btn()
-            self.webdriver.refresh()  # in order to clear the screen before fetching data
+            self.webdriver.refresh()
             print("Uploading " + col.getting_total_row_count() + " documents to the collection Completed\n")
             print("Selecting size of the displayed\n")
 
@@ -91,7 +93,7 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
             print("Uploading json file\n")
             col.select_choose_file_btn(str(self.test_data_dir / "ui_data" / "names_100.json"))
             col.select_confirm_upload_btn()
-            self.webdriver.refresh()  # in order to clear the screen before fetching data
+            self.webdriver.refresh()
             print("Uploading " + col.getting_total_row_count() + " documents to the collection Completed\n")
             print("Selecting size of the displayed\n")
 
@@ -126,32 +128,35 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
             print("Create new index\n")
 
             version = col.current_package_version()
-            print(version, "\n")
             print("Cluster status: ", self.is_cluster)
             col.create_new_index("Persistent", 1, self.is_cluster)
             col.create_new_index("Geo", 2, self.is_cluster)
             col.create_new_index("Fulltext", 3, self.is_cluster)
             col.create_new_index("TTL", 4, self.is_cluster)
             if version >= semver.VersionInfo.parse("3.9.0"):
-                col.create_new_index("ZKD", 5, self.is_cluster)
+                if version > semver.VersionInfo.parse("3.9.99"):
+                    col.create_new_index('ZKD', 5, self.is_cluster, True)
+                else:
+                    print('I am at 141')
+                    col.create_new_index('ZKD', 5, self.is_cluster)
+
                 print("Deleting all index started\n")
-                for _ in range(4):
-                    col.delete_all_index()
+                for i in range(4):
+                    col.delete_all_index(True)
                 print("Deleting all index completed\n")
             else:
                 print("Deleting all index started\n")
-                for _ in range(3):
+                for i in range(3):
                     col.delete_all_index()
                 print("Deleting all index completed\n")
 
             print("Select Info tab\n")
             col.select_info_tab()
-            print("Selecting Schema Tab\n")
+            # print("Selecting Schema Tab\n")
             # col.select_schema_tab()
 
             print("Select Settings tab\n")
-            col.select_settings_tab(self.is_cluster)
-            self.webdriver.refresh()
+            col.select_settings_tab(self.is_cluster, True)
             # some old bullshit
             # print("Loading and Unloading collection\n")
             # col.select_settings_unload_btn()
@@ -174,6 +179,7 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
             col.delete_collection("TestDocRenamed", col.select_renamed_doc_collection_id, self.is_cluster)
             col.delete_collection("TestEdge", col.select_edge_collection_id, self.is_cluster)
             col.delete_collection("Test", col.select_test_doc_collection_id, self.is_cluster)
+            col.delete_collection("ComputedValueCol", col.select_computedValueCol_id, self.is_cluster)
             print("Deleting Collection completed\n")
 
             if self.exception:

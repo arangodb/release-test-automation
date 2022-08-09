@@ -100,16 +100,15 @@ class CollectionPage(NavigationBarPage):
         self.select_ttl_expiry_id = "newTtlExpireAfter"
         self.select_ttl_background_id = "newTtlBackground"
 
-        self.select_index_for_delete_id = (
-            "/html//table[@id='collectionEditIndexTable']/tbody/tr[2]/th[9]/span[@title='Delete index']"
-        )
+        self.select_index_for_delete_id = "/html//table[@id='collectionEditIndexTable']/tbody/tr[2]/th[9]/span[" \
+                                          "@title='Delete index']"
         self.select_index_confirm_delete = "indexConfirmDelete"
         self.select_info_tab_id = "//*[@id='subNavigationBarPage']/ul[2]/li[3]/a"
 
         self.select_schema_tab_id = "//*[@id='subNavigationBarPage']/ul[2]/li[5]/a"
 
         self.select_settings_tab_id = "//*[@id='subNavigationBarPage']/ul[2]/li[4]/a"
-        self.select_settings_name_textbox_id = "change-collection-name"
+        self.select_settings_name_textbox_id = '//*[@id="change-collection-name"]'
         self.select_settings_wait_type_id = "change-collection-sync"
         self.select_newer_settings_save_btn_id = "modalButton4"
         self.select_new_settings_save_btn_id = "modalButton5"
@@ -140,7 +139,9 @@ class CollectionPage(NavigationBarPage):
         self.select_row4_id = "//div[@id='docPureTable']/div[2]/div[5]"
         self.document_id = "document-id"
         self.select_filter_reset_btn_id = "/html//button[@id='resetView']"
+        self.select_settings_tab_id = "//*[@id='subNavigationBar']/ul[2]/li[4]/a"
         self.select_renamed_doc_collection_id = '//*[@id="collection_testDocRenamed"]/div/h5'
+        self.select_computedValueCol_id = '//*[@id="collection_ComputedValueCol"]/div/h5'
 
     def select_collection_page(self):
         """selecting collection tab"""
@@ -262,7 +263,7 @@ class CollectionPage(NavigationBarPage):
         xOffset = 100
         yOffset = 100
         # Performs mouse move action onto the element
-        actions = ActionChains(self.driver).move_to_element_with_offset(warning_sitem, xOffset, yOffset)
+        actions = ActionChains(self.webdriver).move_to_element_with_offset(warning_sitem, xOffset, yOffset)
         actions.click()
         actions.key_down(Keys.CONTROL).send_keys('a').send_keys(Keys.BACKSPACE).key_up(Keys.CONTROL)
         time.sleep(1)
@@ -276,7 +277,7 @@ class CollectionPage(NavigationBarPage):
         save_computed_value_sitem.click()
         time.sleep(2)
 
-        self.driver.refresh()
+        self.webdriver.refresh()
 
     def test_computed_values(self):
         """ Testing computed value feature for v3.10.x"""
@@ -523,8 +524,7 @@ class CollectionPage(NavigationBarPage):
         """Selecting index menu from collection"""
         self.click_submenu_entry("Indexes")
 
-
-    def create_new_index(self, index_name, value, is_cluster):
+    def create_new_index(self, index_name, value, is_cluster, check=False):
         """ create a new Index """
         print(f"Creating {index_name} index started \n")
         create_new_index_btn_sitem = self.locator_finder_by_id(self.create_new_index_btn_id)
@@ -539,7 +539,7 @@ class CollectionPage(NavigationBarPage):
             time.sleep(1)
             self.select_persistent_fields_id.send_keys("pfields").perform()
             self.select_persistent_name_id = self.locator_finder_by_hover_item_id(self.select_persistent_name_id)
-            self.select_persistent_name_id.send_keys("pname").perform()
+            self.select_persistent_fields_id.send_keys("Persistent").perform()
             time.sleep(1)
 
             if not is_cluster:
@@ -551,9 +551,7 @@ class CollectionPage(NavigationBarPage):
             self.select_persistent_duplicate_id = self.locator_finder_by_hover_item_id(
                 self.select_persistent_duplicate_id
             )
-            self.select_persistent_background_id = self.locator_finder_by_hover_item_id(
-                self.select_persistent_background_id
-            )
+            self.select_persistent_background_id = self.locator_finder_by_hover_item_id(self.select_persistent_background_id)
             time.sleep(1)
 
         elif index_name == "Geo":
@@ -561,7 +559,7 @@ class CollectionPage(NavigationBarPage):
             self.select_geo_fields_id.send_keys("gfields").perform()
             time.sleep(1)
             self.select_geo_name_id = self.locator_finder_by_hover_item_id(self.select_geo_name_id)
-            self.select_geo_name_id.send_keys("gname").perform()
+            self.select_geo_name_id.send_keys("Geo").perform()
             time.sleep(1)
             self.select_geo_json_id = self.locator_finder_by_hover_item_id(self.select_geo_json_id)
             self.select_geo_background_id = self.locator_finder_by_hover_item_id(self.select_geo_background_id)
@@ -573,7 +571,7 @@ class CollectionPage(NavigationBarPage):
             self.select_fulltext_field_id.send_keys("ffields").perform()
             time.sleep(1)
             self.select_fulltext_name_id = self.locator_finder_by_hover_item_id(self.select_fulltext_name_id)
-            self.select_fulltext_name_id.send_keys("fname").perform()
+            self.select_fulltext_name_id.send_keys("Fulltext").perform()
             time.sleep(1)
             self.select_fulltext_length_id = self.locator_finder_by_hover_item_id(self.select_fulltext_length_id)
             self.select_fulltext_length_id.send_keys(100)
@@ -588,7 +586,7 @@ class CollectionPage(NavigationBarPage):
             self.select_ttl_field_id.send_keys("tfields").perform()
             time.sleep(1)
             self.select_ttl_name_id = self.locator_finder_by_hover_item_id(self.select_ttl_name_id)
-            self.select_ttl_name_id.send_keys("tname").perform()
+            self.select_ttl_name_id.send_keys("TTL").perform()
             time.sleep(1)
             self.select_ttl_expiry_id = self.locator_finder_by_hover_item_id(self.select_ttl_expiry_id)
             self.select_ttl_expiry_id.send_keys(1000)
@@ -597,37 +595,69 @@ class CollectionPage(NavigationBarPage):
             self.wait_for_ajax()
 
         # experimental feature
-        elif index_name == "ZKD":
-            select_zkd_field_sitem = self.locator_finder_by_id("newZkdFields")
-            select_zkd_field_sitem.click()
-            select_zkd_field_sitem.clear()
-            select_zkd_field_sitem.send_keys("zkdfileds")
-            time.sleep(1)
+        elif index_name == 'ZKD':
+            if check:
+                self.navbar_goto("collections")
+                print("Selecting computed values collections. \n")
+                col = '//*[@id="collection_ComputedValueCol"]/div/h5'
+                self.locator_finder_by_xpath(col).click()
+                time.sleep(1)
+                self.select_index_menu()
+                print(f"Creating {index_name} index started \n")
+                create_new_index_btn_sitem = self.locator_finder_by_id(self.create_new_index_btn_id)
+                create_new_index_btn_sitem.click()
+                time.sleep(2)
 
-            select_zkd_name_sitem = self.locator_finder_by_id("newZkdName")
+                print(f"selecting {index_name} from the list\n")
+                self.locator_finder_by_select(self.select_index_type_id, value)
+
+                select_zkd_field_sitem = self.locator_finder_by_id('newZkdFields')
+                select_zkd_field_sitem.click()
+                select_zkd_field_sitem.clear()
+                select_zkd_field_sitem.send_keys('x,y')
+                time.sleep(1)
+            else:
+                select_zkd_field_sitem = self.locator_finder_by_id('newZkdFields')
+                select_zkd_field_sitem.click()
+                select_zkd_field_sitem.clear()
+                select_zkd_field_sitem.send_keys('zkdfileds')
+                time.sleep(1)
+
+            select_zkd_name_sitem = self.locator_finder_by_id('newZkdName')
             select_zkd_name_sitem.click()
             select_zkd_name_sitem.clear()
-            select_zkd_name_sitem.send_keys("zkdname")
+            select_zkd_name_sitem.send_keys('ZKD')
             time.sleep(1)
 
         select_create_index_btn_sitem = self.locator_finder_by_id(self.select_create_index_btn_id)
         select_create_index_btn_sitem.click()
-        time.sleep(5)  # it takes a bit of time to create
-        self.wait_for_ajax()
+        time.sleep(10)
+        self.webdriver.refresh()
+
+        if check:
+            self.navbar_goto("collections")
+            self.select_collection("TestDoc")
+            self.select_index_menu()
 
         print(f"Creating {index_name} index completed \n")
 
-    def delete_all_index(self):
+    def delete_all_index(self, check=False):
         """this method will delete all the indexes one by one"""
         try:
-            select_index_for_delete_sitem = self.locator_finder_by_xpath(self.select_index_for_delete_id)
+            delete = '//*[@id="collectionEditIndexTable"]/tbody/tr[2]/th[10]/span'
+            if check:
+                select_index_for_delete_sitem = self.locator_finder_by_xpath(delete)
+            else:
+                select_index_for_delete_sitem = \
+                    self.locator_finder_by_xpath(self.select_index_for_delete_id)
             select_index_for_delete_sitem.click()
             time.sleep(2)
-            select_index_confirm_delete_sitem = self.locator_finder_by_id(self.select_index_confirm_delete)
+            select_index_confirm_delete_sitem = \
+                self.locator_finder_by_id(self.select_index_confirm_delete)
             select_index_confirm_delete_sitem.click()
             self.webdriver.refresh()
-        except TimeoutException as ex:
-            print("Something went wrong ", ex, "\n")
+        except TimeoutException as e:
+            print('Something went wrong', e, '\n')
 
     def select_info_tab(self):
         """Selecting info tab from the collection submenu"""
@@ -638,38 +668,162 @@ class CollectionPage(NavigationBarPage):
     def select_schema_tab(self):
         """Selecting Schema tab from the collection submenu"""
         if self.current_package_version() >= semver.VersionInfo.parse("3.8.0"):
-            select_schema_tab_sitem = self.locator_finder_by_xpath(self.select_schema_tab_id)
+            if self.current_package_version() >= semver.VersionInfo.parse("3.9.100"):
+                schema = '//*[@id="subNavigationBar"]/ul[2]/li[6]/a'
+                select_schema_tab_sitem = self.locator_finder_by_xpath(schema)
+            else:
+                select_schema_tab_sitem = self.locator_finder_by_xpath(self.select_schema_tab_id)
             select_schema_tab_sitem.click()
             time.sleep(2)
         else:
-            print("Schema check not supported for the current package \n")
-        time.sleep(2)
+            print('Schema check not supported for the current package version \n')
         self.wait_for_ajax()
 
-    def select_settings_tab(self, is_cluster):
+    def select_settings_tab(self, is_cluster, check=False):
         """Selecting settings tab from the collection submenu"""
         self.click_submenu_entry("Settings")
-        if not is_cluster:
-            select_settings_name_textbox_sitem = self.locator_finder_by_id(self.select_settings_name_textbox_id)
-            select_settings_name_textbox_sitem.click()
-            select_settings_name_textbox_sitem.clear()
-            select_settings_name_textbox_sitem.send_keys("testDocRenamed")
-            self.locator_finder_by_select(self.select_settings_wait_type_id, 0)
-        select_new_settings_save_btn_sitem = None
-        try:
-            select_new_settings_save_btn_sitem = self.locator_finder_by_id(self.select_newer_settings_save_btn_id)
-            if select_new_settings_save_btn_sitem.text != "Save":
+        if check:
+            if not is_cluster:
+                select_settings_name_textbox_sitem = self.locator_finder_by_xpath(self.select_settings_name_textbox_id)
+                select_settings_name_textbox_sitem.click()
+                select_settings_name_textbox_sitem.clear()
+                select_settings_name_textbox_sitem.send_keys("testDocRenamed")
+                self.locator_finder_by_select(self.select_settings_wait_type_id, 0)
+            select_new_settings_save_btn_sitem = None
+            try:
+                select_new_settings_save_btn_sitem = self.locator_finder_by_id(self.select_newer_settings_save_btn_id)
+                if select_new_settings_save_btn_sitem.text != "Save":
+                    select_new_settings_save_btn_sitem = self.locator_finder_by_id(self.select_new_settings_save_btn_id)
+            except TimeoutException:
                 select_new_settings_save_btn_sitem = self.locator_finder_by_id(self.select_new_settings_save_btn_id)
-        except TimeoutException:
-            select_new_settings_save_btn_sitem = self.locator_finder_by_id(self.select_new_settings_save_btn_id)
 
-        select_new_settings_save_btn_sitem.click()
-        time.sleep(2)
-        print("Loading Index into memory\n")
-        select_load_index_into_memory_sitem = self.locator_finder_by_xpath(self.select_load_index_into_memory_id)
-        select_load_index_into_memory_sitem.click()
-        time.sleep(2)
+            select_new_settings_save_btn_sitem.click()
+            time.sleep(2)
+            print("Loading Index into memory\n")
+            select_load_index_into_memory_sitem = self.locator_finder_by_xpath(self.select_load_index_into_memory_id)
+            select_load_index_into_memory_sitem.click()
+            time.sleep(2)
         self.wait_for_ajax()
+    
+    def ace_set_value(self, locator, query, check=False):
+        """take a string and adjacent locator argument of ace-editor and execute the query"""
+        # to unify ace_locator class attribute has been used
+        ace_locator = self.locator_finder_by_class(locator)
+        # Set x and y offset positions of adjacent element
+        xOffset = 100
+        yOffset = 100
+        # Performs mouse move action onto the element
+        actions = ActionChains(self.webdriver).move_to_element_with_offset(ace_locator, xOffset, yOffset)
+        actions.click()
+        actions.key_down(Keys.CONTROL).send_keys('a').send_keys(Keys.BACKSPACE).key_up(Keys.CONTROL)
+        time.sleep(1)
+        actions.send_keys(f'{query}')
+        actions.perform()
+        time.sleep(1)
+
+        if check:
+            print("Saving current computed value")
+            save_computed_value = 'saveComputedValuesButton'
+            save_computed_value_sitem = self.locator_finder_by_id(save_computed_value)
+            save_computed_value_sitem.click()
+            time.sleep(2)
+            self.webdriver.refresh()
+            time.sleep(2)
+        else:
+            create_btn = 'modalButton1'
+            self.locator_finder_by_id(create_btn).click()
+            time.sleep(1)
+
+    def select_computedValueCol(self):
+        """this method will select ComputedValueCol"""
+        col = "//*[text()='ComputedValueCol']"
+        self.locator_finder_by_xpath(col).click()
+        time.sleep(1)
+
+    def test_computed_values(self):
+        """ Testing computed value feature for v3.10.x"""
+        self.navbar_goto("collections")
+        print("Selecting computed values collections. \n")
+        col = '//*[@id="collection_ComputedValueCol"]/div/h5'
+        self.locator_finder_by_xpath(col).click()
+        time.sleep(1)
+
+        print("Selecting computed value tab \n")
+        computed = "//*[contains(text(),'Computed Values')]"
+        self.locator_finder_by_xpath(computed).click()
+        time.sleep(1)
+
+        compute_query = '[{"name": "dateCreatedHumanReadable","expression": "RETURN DATE_ISO8601(DATE_NOW())",' \
+                        '"overwrite": true,},{"name": "dateCreatedForIndexing","expression": "RETURN DATE_NOW()",' \
+                        '"overwrite": true,}, {"name": "FullName","expression": "RETURN MERGE(@doc.name, ' \
+                        '{full: CONCAT(@doc.name.first, \' \', @doc.name.last)})","overwrite": true,"computeOn": [' \
+                        '"insert", "update", "replace"]}]'
+
+        # button near to ace editor
+        warning = 'button-warning'
+        self.ace_set_value(warning, compute_query, True)
+
+        # print('go back to collection tab')
+        self.navbar_goto("collections")
+        self.select_computedValueCol()
+        # print('Select add new document to collection button')
+        add = '//*[@id="addDocumentButton"]/span/i'
+        add_sitem = self.locator_finder_by_xpath(add)
+        add_sitem.click()
+
+        # print('inserting data\n')
+        insert_data = "jsoneditor-format"
+        insert_query = '{"name": {"first": "Sam","last": "Smith"},"address": "Hans-Sachs-Str", "x": 12.9, "y": -284.0}'
+        self.ace_set_value(insert_data, insert_query)
+
+        # checking computed value from query tab
+        print('Navigating to query page\n')
+        self.navbar_goto('queries')
+        time.sleep(1)
+
+        print('select query execution area\n')
+        self.select_query_execution_area()
+        print('sending query to the area\n')
+        self.send_key_action('FOR user IN ComputedValueCol RETURN user')
+        print('execute the query\n')
+        self.query_execution_btn()
+        self.scroll()
+
+        print('Checking that dateCreatedHumanReadable computed value as been created\n')
+        computed_value = "//*[text()='dateCreatedHumanReadable']"
+        computed_value_sitem = self.locator_finder_by_xpath(computed_value).text
+        time.sleep(1)
+        computed_value = 'dateCreatedHumanReadable'
+        try:
+            assert computed_value == computed_value_sitem, \
+                f"Expected page title {computed_value} but got {computed_value_sitem}"
+        except AssertionError:
+            print(f'Assertion Error occurred! for {computed_value}\n')
+
+        print('Checking that FullName computed value as been created\n')
+        computed_full_name = "//*[text()='FullName']"
+        computed_full_name_sitem = self.locator_finder_by_xpath(computed_full_name).text
+        time.sleep(1)
+        full_name_value = 'FullName'
+        try:
+            assert full_name_value == computed_full_name_sitem, \
+                f"Expected page title {computed_value} but got {computed_full_name_sitem}"
+        except AssertionError:
+            print(f'Assertion Error occurred! for {computed_value}\n')
+
+        print('Checking that dateCreatedForIndexing computed value as been created\n')
+        computed_index_value = "//*[text()='dateCreatedForIndexing']"
+        computed_index_value_sitem = self.locator_finder_by_xpath(computed_index_value).text
+        index_value = 'dateCreatedForIndexing'
+        time.sleep(1)
+        try:
+            assert index_value == computed_index_value_sitem, \
+                f"Expected page title {index_value} but got {computed_index_value_sitem}"
+        except AssertionError:
+            print(f'Assertion Error occurred! for {index_value}\n')
+
+        # go back to collection page
+        self.navbar_goto("collections")
 
     def select_settings_unload_btn(self):
         """Loading and Unloading collection"""
@@ -718,7 +872,7 @@ class CollectionPage(NavigationBarPage):
     def delete_collection(self, collection_name, collection_locator, is_cluster):
         """This method will delete all the collection"""
         print(f"Deleting {collection_name} collection started \n")
-        self.select_collection_page()
+        self.navbar_goto("collections")
 
         try:
             self.locator_finder_by_xpath(collection_locator).click()
@@ -737,6 +891,7 @@ class CollectionPage(NavigationBarPage):
         except Exception as ex:
             traceback.print_exc()
             raise Exception("Critical Error occurred and need manual inspection!! \n") from ex
+        self.webdriver.refresh()
 
     def create_sample_collection(self, test_name):
         """selecting collection tab"""
