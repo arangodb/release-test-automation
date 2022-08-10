@@ -3,6 +3,7 @@
 import time
 import semver
 import traceback
+import json
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import ElementNotInteractableException, TimeoutException, NoSuchElementException
@@ -296,6 +297,9 @@ class CollectionPage(NavigationBarPage):
         # one for collection doc and one for index values
         query = '[{"name": "dateCreatedHumanReadable","expression": "RETURN DATE_ISO8601(DATE_NOW())","overwrite": ' \
                 'true,},{"name": "dateCreatedForIndexing","expression": "RETURN DATE_NOW()","overwrite": true,},] '
+
+        query = """[{"name": "dateCreatedHumanReadable","expression": "RETURN DATE_ISO8601(DATE_NOW())","overwrite": true,},{"name": "dateCreatedForIndexing","expression": "RETURN DATE_NOW()","overwrite": true,},]"""
+        
         self.ace_set_value(query)
 
     def checking_search_options(self, search):
@@ -753,12 +757,13 @@ class CollectionPage(NavigationBarPage):
         self.locator_finder_by_xpath(computed).click()
         time.sleep(1)
 
-        compute_query = '[{"name": "dateCreatedHumanReadable","expression": "RETURN DATE_ISO8601(DATE_NOW())",' \
-                        '"overwrite": true,},{"name": "dateCreatedForIndexing","expression": "RETURN DATE_NOW()",' \
-                        '"overwrite": true,}, {"name": "FullName","expression": "RETURN MERGE(@doc.name, ' \
-                        '{full: CONCAT(@doc.name.first, \' \', @doc.name.last)})","overwrite": true,"computeOn": [' \
-                        '"insert", "update", "replace"]}]'
-
+        python_query = [
+            {"name": "dateCreatedHumanReadable", "expression": "RETURN DATE_ISO8601(DATE_NOW())", "overwrite": True},
+            {"name": "dateCreatedForIndexing", "expression": "RETURN DATE_NOW()", "overwrite": True},
+            {"name": "FullName",
+             "expression": "RETURN MERGE(@doc.name, {full: CONCAT(@doc.name.first, ' ', @doc.name.last)})",
+             "overwrite": True, "computeOn": ["insert", "update", "replace"]}]
+        compute_query = json.dumps(python_query)
         # button near to ace editor
         warning = 'button-warning'
         self.ace_set_value(warning, compute_query, True)
@@ -773,11 +778,9 @@ class CollectionPage(NavigationBarPage):
 
         # print('inserting data\n')
         insert_data = "jsoneditor-format"
-        insert_query = '{"name": {"first": "Sam","last": "Smith"},"address": "Hans-Sachs-Str", "x": 12.9, "y": -284.0}'
+        col_query = {"name": {"first": "Sam", "last": "Smith"}, "address": "Hans-Sachs-Str", "x": 12.9, "y": -284.0}
+        insert_query = json.dumps(col_query)
         self.ace_set_value(insert_data, insert_query)
-
-        # checking computed value from query tab
-        print('Navigating to query page\n')
         self.navbar_goto('queries')
         time.sleep(1)
 
