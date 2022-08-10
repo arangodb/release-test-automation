@@ -758,11 +758,17 @@ class CollectionPage(NavigationBarPage):
         time.sleep(1)
 
         python_query = [
-            {"name": "dateCreatedHumanReadable", "expression": "RETURN DATE_ISO8601(DATE_NOW())", "overwrite": True},
-            {"name": "dateCreatedForIndexing", "expression": "RETURN DATE_NOW()", "overwrite": True},
+            {"name": "dateCreatedHumanReadable",
+             "expression": "RETURN DATE_ISO8601(DATE_NOW())",
+             "overwrite": True},
+            {"name": "dateCreatedForIndexing",
+             "expression": "RETURN DATE_NOW()",
+             "overwrite": True},
             {"name": "FullName",
-             "expression": "RETURN MERGE(@doc.name, {full: CONCAT(@doc.name.first, ' ', @doc.name.last)})",
-             "overwrite": True, "computeOn": ["insert", "update", "replace"]}]
+             "expression": "RETURN MERGE(@doc.name,"
+                           " {full: CONCAT(@doc.name.first, ' ', @doc.name.last)})",
+             "overwrite": True,
+             "computeOn": ["insert", "update", "replace"]}]
         compute_query = json.dumps(python_query)
         # button near to ace editor
         warning = 'button-warning'
@@ -778,7 +784,11 @@ class CollectionPage(NavigationBarPage):
 
         # print('inserting data\n')
         insert_data = "jsoneditor-format"
-        col_query = {"name": {"first": "Sam", "last": "Smith"}, "address": "Hans-Sachs-Str", "x": 12.9, "y": -284.0}
+        col_query = {"name": {"first": "Sam",
+                              "last": "Smith"},
+                     "address": "Hans-Sachs-Str",
+                     "x": 12.9,
+                     "y": -284.0}
         insert_query = json.dumps(col_query)
         self.ace_set_value(insert_data, insert_query)
         self.navbar_goto('queries')
