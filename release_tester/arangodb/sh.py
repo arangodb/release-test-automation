@@ -8,7 +8,7 @@ from pathlib import Path
 import tools.errorhelper as eh
 from arangodb.async_client import (
     ArangoCLIprogressiveTimeoutExecutor,
-    dummy_line_result,
+    default_line_result,
 )
 from reporting.reporting_utils import step
 
@@ -27,7 +27,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                     cmd,
                     verbose=True,
                     timeout=300,
-                    result_line=dummy_line_result,
+                    result_line=default_line_result,
                     expect_to_fail=False,
                     use_default_auth=True):
         """run a command in arangosh"""
@@ -140,7 +140,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             self.cfg.bin_dir / "arangosh",
             run_cmd,
             timeout,
-            dummy_line_result,
+            default_line_result,
             verbose,
             False,
         )
@@ -225,7 +225,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         return res
 
     @step
-    def run_in_arangosh(self, testname, args=[], moreargs=[], result_line=dummy_line_result, timeout=100):
+    def run_in_arangosh(self, testname, args=[], moreargs=[], result_line=default_line_result, timeout=100):
         # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=dangerous-default-value
         """mimic runInArangosh testing.js behaviour"""
         if testname:
@@ -257,7 +257,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         return ret
 
     @step
-    def create_test_data(self, testname, args=[], result_line=dummy_line_result, timeout=100):
+    def create_test_data(self, testname, args=[], result_line=default_line_result, timeout=100):
         # pylint: disable=dangerous-default-value
         """deploy testdata into the instance"""
         if testname:
@@ -279,7 +279,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         return ret
 
     @step
-    def check_test_data(self, testname, supports_foxx_tests, args=[], result_line=dummy_line_result):
+    def check_test_data(self, testname, supports_foxx_tests, args=[], result_line=default_line_result):
         # pylint: disable=dangerous-default-value
         """check back the testdata in the instance"""
         if testname:
@@ -303,7 +303,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         return ret
 
     @step
-    def clear_test_data(self, testname, args=[], result_line=dummy_line_result):
+    def clear_test_data(self, testname, args=[], result_line=default_line_result):
         # pylint: disable=dangerous-default-value
         """flush the testdata from the instance again"""
         if testname:

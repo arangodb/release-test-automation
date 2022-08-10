@@ -7,7 +7,7 @@ import logging
 from reporting.reporting_utils import step
 import semver
 
-from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor, dummy_line_result
+from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor, default_line_result
 
 from arangodb.async_client import CliExecutionException
 
@@ -40,7 +40,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             self.cfg.bin_dir / "arangosync",
             self.arguments,
             999,
-            dummy_line_result,
+            default_line_result,
             self.cfg.verbose,
         )
 
@@ -64,7 +64,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             self.cfg.bin_dir / "arangosync",
             args,
             999,
-            dummy_line_result,
+            default_line_result,
             self.cfg.verbose,
         )
 
@@ -84,7 +84,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             self.cfg.bin_dir / "arangosync",
             args,
             999,
-            dummy_line_result,
+            default_line_result,
             self.cfg.verbose,
         )
 
@@ -103,7 +103,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             self.cfg.bin_dir / "arangosync",
             args,
             timeout,
-            dummy_line_result,
+            default_line_result,
             self.cfg.verbose,
         )
 
@@ -121,7 +121,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             self.cfg.bin_dir / "arangosync",
             args,
             300,
-            dummy_line_result,
+            default_line_result,
             self.cfg.verbose,
         )
 
@@ -145,7 +145,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
                 executeable=self.cfg.bin_dir / "arangosync",
                 args=args,
                 timeout=300,
-                result_line=dummy_line_result,
+                result_line=default_line_result,
                 verbose=self.cfg.verbose,
                 expect_to_fail=False,
             )
@@ -183,7 +183,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
                 self.cfg.bin_dir / "arangosync",
                 args,
                 300,
-                dummy_line_result,
+                default_line_result,
                 self.cfg.verbose,
             )
             return True
