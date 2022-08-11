@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 """ Run a javascript command by spawning an arangosh
     to the configured connection """
@@ -8,14 +7,15 @@ from queue import Queue, Empty
 import platform
 import signal
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from subprocess import PIPE
 from threading import Thread
 import psutil
 from allure_commons._allure import attach
 
 from tools.asciiprint import print_progress as progress
-import tools.loghelper as lh
+# import tools.loghelper as lh
+# pylint: disable=dangerous-default-value
 
 ON_POSIX = "posix" in sys.builtin_module_names
 IS_WINDOWS = platform.win32_ver()[0] != ""
@@ -26,29 +26,52 @@ def default_line_result(wait, line, params):
     if verbose print the line. else print progress.
     """
     # pylint: disable=pointless-statement
-    if params.verbose and wait > 0 and line is None:
+    if params['verbose'] and wait > 0 and line is None:
         progress("sj" + str(wait))
         return True
     if isinstance(line, tuple):
-        if params.verbose:
-            print("e: " + str(line[0]))
+        if params['verbose']:
+            print("e: " + str(line[0], 'utf-8').rstrip())
         if not str(line[0]).startswith("#"):
-            params.output.append(line[0])
+            params['output'].append(line[0])
         else:
             return False
     return True
+def make_default_params(verbose):
+    """ create the structure to work with arrays to output the strings to """
+    return {
+        "error": "",
+        "verbose": verbose,
+        "output": [],
+        "identifier": ""
+    }
 
+def make_logfile_params(verbose, logfile):
+    """ create the structure to work with logfiles """
+    return {
+        "error": "",
+        "verbose": verbose,
+        "output": logfile.open('wb'),
+        "identifier": "",
+        "lfn": str(logfile)
+    }
 def logfile_line_result(wait, line, params):
     """ Write the line to a logfile, print progress. """
     # pylint: disable=pointless-statement
-    if params.verbose and wait > 0 and line is None:
+    if params['verbose'] and wait > 0 and line is None:
         progress("sj" + str(wait))
         return True
     if isinstance(line, tuple):
-        if params.verbose:
+        if params['verbose']:
             print("e: " + str(line[0]))
-        params.output.write(line[0])
+        params['output'].write(line[0])
     return True
+def delete_logfile_params(params):
+    """ teardown the structure to work with logfiles """
+    print(f"{params.identifier} closing {params.lfn}")
+    params['output'].flush()
+    params['output'].close()
+    print(f"{params['identifier']} {params['lfn']} closed")
 
 
 def enqueue_stdout(std_out, queue, instance, identifier):
@@ -81,17 +104,23 @@ def convert_result(result_array):
     """binary -> string"""
     result = ""
     for one_line in result_array:
-        result += "\n" + one_line[0].decode("utf-8").rstrip()
+        result += "\n" + one_line.decode("utf-8").rstrip()
     return result
 
-def add_message_to_report(outfile, string):
+def add_message_to_report(params, string):
+    """ add a message from python to the report strings/files + print it """
     print(string)
-    outfile.write(bytearray(f"{'v'*80}\n{datetime.now()}>>>{string}<<<\n{'^'*80}\n", "utf-8"))
-    outfile.flush()
+    print(dir(params['output']))
+    if isinstance(params['output'], list):
+        params['output'] += f"{'v'*80}\n{datetime.now()}>>>{string}<<<\n{'^'*80}\n"
+    else:
+        params['output'].write(bytearray(
+            f"{'v'*80}\n{datetime.now()}>>>{string}<<<\n{'^'*80}\n", "utf-8"))
+        params['output'].flush()
     sys.stdout.flush()
     return string + '\n'
 
-def kill_children(identifier, out_file, children):
+def kill_children(identifier, params, children):
     """ slash all processes enlisted in children - if they still exist """
     err = ""
     killed = []
@@ -101,7 +130,7 @@ def kill_children(identifier, out_file, children):
         try:
             killed.append(one_child.pid)
             err += add_message_to_report(
-                out_file,
+                params,
                 f"{identifier}: killing {one_child.name()} - {str(one_child.pid)}")
             one_child.resume()
         except FileNotFoundError:
@@ -131,8 +160,32 @@ class CliExecutionException(Exception):
         self.message = message
         self.have_timeout = have_timeout
 
-ID_COUNTER=0
+def expect_failure(expect_to_fail, ret, params):
+    """ convert results, throw error if wanted """
+    attach(str(ret['rc_exit']), f"Exit code: {str(ret['rc_exit'])} == {expect_to_fail}")
+    res = ()
+    if ret['progressive_timeout'] or ret['rc_exit'] != 0:
+        res = (False, convert_result(params['output']), 0, ret['line_filter'])
+        if expect_to_fail:
+            return res
+        raise CliExecutionException("Execution failed.", res, ret.progressive_timeout)
 
+    if not expect_to_fail:
+        if len(params['output']) == 0:
+            res = (True, "", 0, ret['line_filter'])
+        else:
+            res = (True, convert_result(params['output']), 0, ret['line_filter'])
+        return res
+
+    if len(params['output']) == 0:
+        res = (True, "", 0, ret['line_filter'], params['error'])
+    else:
+        res = (True, convert_result(params['output']), 0, ret['line_filter'])
+    raise CliExecutionException(
+        f"{params.identifier} Execution was expected to fail, but exited successfully.",
+        res, ret['progressive_timeout'])
+
+ID_COUNTER=0
 class ArangoCLIprogressiveTimeoutExecutor:
     """
     Abstract base class to run arangodb cli tools
@@ -147,6 +200,8 @@ class ArangoCLIprogressiveTimeoutExecutor:
         self.cfg = config
         self.deadline_signal = deadline_signal
         if self.deadline_signal == -1:
+            # pylint: disable=no-member
+            # yes, one is only there on the wintendo, the other one elsewhere.
             if IS_WINDOWS:
                 self.deadline_signal = signal.CTRL_BREAK_EVENT
             else:
@@ -157,14 +212,13 @@ class ArangoCLIprogressiveTimeoutExecutor:
             self,
             executeable,
             more_args,
-            timeout=60,
+            use_default_auth=True,
+            params={"error": "", "verbose": True, "output":[]},
+            progressive_timeout=60,
             deadline=0,
             deadline_grace_period=180,
-            result_line=default_line_result,
-            verbose=False,
+            result_line_handler=default_line_result,
             expect_to_fail=False,
-            use_default_auth=True,
-            logfile=None,
             identifier=""
     ):
         """
@@ -192,16 +246,16 @@ class ArangoCLIprogressiveTimeoutExecutor:
                 run_cmd += ["--server.password", passvoid]
 
         run_cmd += more_args
-        return self.run_monitored(executeable,
-                                  run_cmd,
-                                  timeout,
-                                  deadline,
-                                  deadline_grace_period,
-                                  result_line,
-                                  verbose,
-                                  expect_to_fail,
-                                  logfile,
-                                  identifier)
+        ret = self.run_monitored(executeable,
+                                 run_cmd,
+                                 params,
+                                 progressive_timeout,
+                                 deadline,
+                                 deadline_grace_period,
+                                 result_line_handler,
+                                 identifier)
+        return expect_failure(expect_to_fail, ret, params)
+
     # fmt: on
     def run_monitored(self,
                       executeable,
@@ -230,8 +284,14 @@ class ArangoCLIprogressiveTimeoutExecutor:
             my_no = ID_COUNTER
             ID_COUNTER += 1
             identifier = f"IO_{str(my_no)}"
-        if deadline == 0:
-            deadline = datetime.now() + progressive_timeout * 10
+        print(params)
+        params['identifier'] = identifier
+        if not isinstance(deadline,datetime):
+            if deadline == 0:
+                deadline = datetime.now() + timedelta(seconds=progressive_timeout * 10)
+            else:
+                deadline = datetime.now() + timedelta(seconds=deadline)
+        final_deadline = deadline + timedelta(seconds=deadline_grace_period)
         print(f"{identifier}: launching {str(run_cmd)}")
         with psutil.Popen(
             run_cmd,
@@ -281,10 +341,10 @@ class ArangoCLIprogressiveTimeoutExecutor:
                 # out.flush()
                 result_line_handler(tcount, None, params)
                 line = ""
-                empty = False
                 try:
                     line = queue.get(timeout=1)
-                    line_filter = line_filter or result_line_handler(0, line, params)
+                    ret = result_line_handler(0, line, params)
+                    line_filter = line_filter or ret
                     tcount = 0
                     if not isinstance(line, tuple):
                         close_count += 1
@@ -293,7 +353,6 @@ class ArangoCLIprogressiveTimeoutExecutor:
                             break
                 except Empty:
                     # print(identifier  + '..' + str(deadline_grace_count))
-                    empty = True
                     tcount += 1
                     have_progressive_timeout = tcount >= progressive_timeout
                     if have_progressive_timeout:
@@ -304,20 +363,19 @@ class ArangoCLIprogressiveTimeoutExecutor:
                         process.kill()
                         kill_children(identifier, params, children)
                         rc_exit = process.wait()
-                    if datetime.now() > deadline:
-                        have_deadline += 1
-                if have_deadline == 1:
+                if datetime.now() > deadline:
                     have_deadline += 1
+                if have_deadline == 1:
                     add_message_to_report(
                         params,
-                        f"{identifier} Execution Deadline reached - will trigger {self.deadline_signal}!")
+                        f"{identifier} Execution Deadline reached - will trigger signal {self.deadline_signal}!")
                     # Send the process our break / sigint
                     try:
                         children = process.children(recursive=True)
                     except psutil.NoSuchProcess:
                         pass
                     process.send_signal(self.deadline_signal)
-                elif have_deadline > 1 and empty:
+                elif have_deadline > 1 and datetime.now() > final_deadline:
                     try:
                         # give it some time to exit:
                         print(f"{identifier} try wait exit:")
@@ -368,41 +426,12 @@ class ArangoCLIprogressiveTimeoutExecutor:
             print(f"{identifier} OK")
 
         return {
-            "progresive_timeout": have_progressive_timeout,
+            "progressive_timeout": have_progressive_timeout,
             "have_deadline": have_deadline,
             "rc_exit": rc_exit,
             "line_filter": line_filter,
         }
 
-#    def run_monitored_with_expect_failure(**kwargs):
-#        if have_progressive_timeout or rc_exit != 0:
-#            res = (False, timeout_str,
-#                   # convert_result(result),
-#                   rc_exit, line_filter, error)
-#            #if expect_to_fail:
-#            return res
-#            #raise CliExecutionException("Execution failed. {res} {have_progressive_timeout}".format(
-#            # (res, have_progressive_timeout))
-#
-#        if not expect_to_fail:
-#            if len(result) == 0:
-#                res = (True, "", 0, line_filter, error)
-#            else:
-#                res = (True, "" ,
-#                       #convert_result(result),
-#                       0, line_filter, error)
-#            return res
-#
-#        if len(result) == 0:
-#            res = (True, "", 0, line_filter, error)
-#        else:
-#            res = (True, "",
-#                   #convert_result(result),
-#                   0, line_filter, error)
-#        raise CliExecutionException(
-#            f"{identifier} Execution was expected to fail, but exited successfully.",
-#            res, have_timeout)
-#
 
 
 #                #if not verbose:
@@ -428,9 +457,5 @@ class ArangoCLIprogressiveTimeoutExecutor:
 #                out.flush()
 #                out.close()
 #                print(f"{identifier} {logfile} closed")
-#
-#        attach(str(rc_exit), f"Exit code: {str(rc_exit)}")
-#
-#
 #                    if out:
 #                            out.write(line[0])

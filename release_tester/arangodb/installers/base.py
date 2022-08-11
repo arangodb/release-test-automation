@@ -1,21 +1,22 @@
 #!/usr/bin/env python3
 """ run an installer for the detected operating system """
+from abc import abstractmethod, ABC, ABCMeta
 import copy
 import logging
-import re
-import magic
 import os
-import subprocess
-import platform
-import shutil
-import time
 from pathlib import Path
-from abc import abstractmethod, ABC, ABCMeta
+import platform
+import re
+import shutil
+import subprocess
+import time
+
+import magic
 import semver
 import yaml
 import psutil
 
-from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor
+from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor, make_default_params
 from arangodb.installers import InstallerConfig
 from arangodb.instance import ArangodInstance
 from tools.asciiprint import print_progress as progress
@@ -156,10 +157,7 @@ class BinaryDescription:
         output = magic.from_file(str(self.path))
         if output.find("PE32+") < 0:
             raise Exception(f"Strip chinging for file {str(self.path)} returned [{output}]")
-        if output.find("(stripped") >= 0:
-            return True
-        else:
-            return False
+        return output.find("(stripped") >= 0
 
     def check_stripped_linux(self):
         """check whether this file is stripped (or not)"""
@@ -484,7 +482,7 @@ class InstallerBase(ABC):
     def output_arangod_version(self):
         """document the output of arangod --version"""
         return self.cli_executor.run_monitored(
-            executeable=self.cfg.sbin_dir / "arangod", args=["--version"], timeout=10, verbose=True
+            executeable=self.cfg.sbin_dir / "arangod", args=["--version"], params=make_default_params(True), deadline=10,
         )
 
     @step
@@ -793,6 +791,7 @@ class InstallerArchive(InstallerBase, metaclass=ABCMeta):
     """base class for archive packages that need to be installed manually, e.g. .tar.gz for Linux, .zip for Windows"""
 
     def __init__(self, cfg):
+        self.basedir=self.basedir
         cfg.have_system_service = False
         cfg.install_prefix = self.basedir
         cfg.bin_dir = None

@@ -7,7 +7,7 @@ import logging
 from reporting.reporting_utils import step
 import semver
 
-from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor, default_line_result
+from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor, make_default_params, convert_result
 
 from arangodb.async_client import CliExecutionException
 
@@ -39,9 +39,8 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         return self.run_monitored(
             self.cfg.bin_dir / "arangosync",
             self.arguments,
-            999,
-            default_line_result,
-            self.cfg.verbose,
+            params=make_default_params(self.cfg.verbose),
+            deadline=999,
         )
 
     def replace_binary_for_upgrade(self, new_install_cfg):
@@ -63,9 +62,9 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         return self.run_monitored(
             self.cfg.bin_dir / "arangosync",
             args,
-            999,
-            default_line_result,
-            self.cfg.verbose,
+            params=make_default_params(self.cfg.verbose),
+            progressive_timeout=60,
+            deadline=240
         )
 
     @step
@@ -83,14 +82,14 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         return self.run_monitored(
             self.cfg.bin_dir / "arangosync",
             args,
-            999,
-            default_line_result,
-            self.cfg.verbose,
+            params=make_default_params(self.cfg.verbose),
+            progressive_timeout=60,
+            deadline=240
         )
 
     @step
     # pylint: disable=dangerous-default-value
-    def stop_sync(self, timeout=60, more_args=[]):
+    def stop_sync(self, timeout=60, deadline=180, more_args=[]):
         """run the stop sync command"""
         args = [
             "stop",
@@ -102,9 +101,9 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         return self.run_monitored(
             self.cfg.bin_dir / "arangosync",
             args,
-            timeout,
-            default_line_result,
-            self.cfg.verbose,
+            params=make_default_params(self.cfg.verbose),
+            progressive_timeout=timeout,
+            deadline=deadline
         )
 
     @step
@@ -120,9 +119,9 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         return self.run_monitored(
             self.cfg.bin_dir / "arangosync",
             args,
-            300,
-            default_line_result,
-            self.cfg.verbose,
+            params=make_default_params(self.cfg.verbose),
+            progressive_timeout=60,
+            deadline=300
         )
 
     @step
@@ -140,20 +139,20 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             "--auth.keyfile=" + str(self.certificate_auth["clientkeyfile"]),
         ]
         logging.info("SyncManager: checking sync consistency : %s", str(args))
+        params = make_default_params(self.cfg.verbose)
         try:
             result = self.run_monitored(
                 executeable=self.cfg.bin_dir / "arangosync",
                 args=args,
-                timeout=300,
-                result_line=default_line_result,
-                verbose=self.cfg.verbose,
-                expect_to_fail=False,
+                params=params,
+                progressive_timeout=60,
+                deadline=300,
             )
         except CliExecutionException as exc:
             result = exc.execution_result
-
-        (success, output, _, _) = result
+            return result
         print("checking for magic ok string")
+        output = convert_result(params['output'])
         success = output.find("The whole data is the same") >= 0
         print("done")
         return (success, output)
@@ -182,9 +181,9 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             self.run_monitored(
                 self.cfg.bin_dir / "arangosync",
                 args,
-                300,
-                default_line_result,
-                self.cfg.verbose,
+                params=make_default_params(self.cfg.verbose),
+                progressive_timeout=60,
+                deadline=300
             )
             return True
         except CliExecutionException:
