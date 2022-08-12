@@ -36,12 +36,14 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
     @step
     def run_syncer(self):
         """launch the syncer for this instance"""
-        return self.run_monitored(
+        params=make_default_params(self.cfg.verbose)
+        ret = self.run_monitored(
             self.cfg.bin_dir / "arangosync",
             self.arguments,
-            params=make_default_params(self.cfg.verbose),
-            deadline=999,
+            params = params,
+            deadline=999
         )
+        return expect_failure(False, ret, params)
 
     def replace_binary_for_upgrade(self, new_install_cfg):
         """set the new config properties"""

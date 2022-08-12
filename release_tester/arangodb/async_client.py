@@ -110,7 +110,6 @@ def convert_result(result_array):
 def add_message_to_report(params, string):
     """ add a message from python to the report strings/files + print it """
     print(string)
-    print(dir(params['output']))
     if isinstance(params['output'], list):
         params['output'] += f"{'v'*80}\n{datetime.now()}>>>{string}<<<\n{'^'*80}\n"
     else:
@@ -165,6 +164,7 @@ def expect_failure(expect_to_fail, ret, params):
     attach(str(ret['rc_exit']), f"Exit code: {str(ret['rc_exit'])} == {expect_to_fail}")
     res = (None,None,None,None)
     if ret['have_deadline'] or ret['progressive_timeout']:
+        res = (False, convert_result(params['output']), 0, ret['line_filter'])
         raise CliExecutionException("Execution failed.",
                                     res,
                                     ret['progressive_timeout'] or ret['have_deadline'])
