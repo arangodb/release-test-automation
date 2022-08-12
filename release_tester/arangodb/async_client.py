@@ -163,12 +163,16 @@ class CliExecutionException(Exception):
 def expect_failure(expect_to_fail, ret, params):
     """ convert results, throw error if wanted """
     attach(str(ret['rc_exit']), f"Exit code: {str(ret['rc_exit'])} == {expect_to_fail}")
-    res = ()
-    if ret['progressive_timeout'] or ret['rc_exit'] != 0:
+    res = (None,None,None,None)
+    if ret['have_deadline'] or ret['progressive_timeout']:
+        raise CliExecutionException("Execution failed.",
+                                    res,
+                                    ret['progressive_timeout'] or ret['have_deadline'])
+    if ret['rc_exit'] != 0:
         res = (False, convert_result(params['output']), 0, ret['line_filter'])
         if expect_to_fail:
             return res
-        raise CliExecutionException("Execution failed.", res, ret.progressive_timeout)
+        raise CliExecutionException("Execution failed.", res, False)
 
     if not expect_to_fail:
         if len(params['output']) == 0:
