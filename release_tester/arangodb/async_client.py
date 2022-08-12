@@ -46,9 +46,10 @@ def make_default_params(verbose):
         "identifier": ""
     }
 
-def make_logfile_params(verbose, logfile):
+def make_logfile_params(verbose, logfile, trace):
     """ create the structure to work with logfiles """
     return {
+        "trace": trace,
         "error": "",
         "verbose": verbose,
         "output": logfile.open('wb'),
@@ -62,13 +63,13 @@ def logfile_line_result(wait, line, params):
         progress("sj" + str(wait))
         return True
     if isinstance(line, tuple):
-        if params['verbose']:
-            print("e: " + str(line[0]))
+        if params['trace']:
+            print("e: " + str(line[0], 'utf-8').rstrip())
         params['output'].write(line[0])
     return True
 def delete_logfile_params(params):
     """ teardown the structure to work with logfiles """
-    print(f"{params.identifier} closing {params.lfn}")
+    print(f"{params['identifier']} closing {params['lfn']}")
     params['output'].flush()
     params['output'].close()
     print(f"{params['identifier']} {params['lfn']} closed")
