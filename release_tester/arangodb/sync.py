@@ -7,9 +7,13 @@ import logging
 from reporting.reporting_utils import step
 import semver
 
-from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor, make_default_params, convert_result
-
-from arangodb.async_client import CliExecutionException
+from arangodb.async_client import (
+    ArangoCLIprogressiveTimeoutExecutor,
+    make_default_params,
+    convert_result,
+    expect_failure,
+    CliExecutionException
+)
 
 
 class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
