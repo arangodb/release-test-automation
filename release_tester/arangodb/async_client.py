@@ -105,7 +105,10 @@ def convert_result(result_array):
     """binary -> string"""
     result = ""
     for one_line in result_array:
-        result += "\n" + one_line.decode("utf-8").rstrip()
+        if isinstance(one_line, str):
+            result += "\n" + one_line.rstrip()
+        else:
+            result += "\n" + one_line.decode("utf-8").rstrip()
     return result
 
 def add_message_to_report(params, string):

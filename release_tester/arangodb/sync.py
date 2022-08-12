@@ -65,13 +65,15 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             "--auth.keyfile=" + str(self.certificate_auth["clientkeyfile"]),
             "--verbose",
         ]
-        return self.run_monitored(
+        params=make_default_params(self.cfg.verbose)
+        ret = self.run_monitored(
             self.cfg.bin_dir / "arangosync",
             args,
-            params=make_default_params(self.cfg.verbose),
+            params = params,
             progressive_timeout=60,
-            deadline=240
+            deadline=360
         )
+        return expect_failure(False, ret, params)
 
     @step
     def get_sync_tasks(self, which):
@@ -85,13 +87,15 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             "--auth.keyfile=" + str(self.certificate_auth["clientkeyfile"]),
             "--verbose",
         ]
-        return self.run_monitored(
+        params=make_default_params(self.cfg.verbose)
+        ret = self.run_monitored(
             self.cfg.bin_dir / "arangosync",
             args,
-            params=make_default_params(self.cfg.verbose),
+            params = params,
             progressive_timeout=60,
             deadline=240
         )
+        return expect_failure(False, ret, params)
 
     @step
     # pylint: disable=dangerous-default-value
@@ -104,13 +108,15 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             "--auth.keyfile=" + str(self.certificate_auth["clientkeyfile"]),
         ] + more_args
         logging.info("SyncManager: stopping sync : %s", str(args))
-        return self.run_monitored(
+        params=make_default_params(self.cfg.verbose)
+        ret = self.run_monitored(
             self.cfg.bin_dir / "arangosync",
             args,
-            params=make_default_params(self.cfg.verbose),
+            params = params,
             progressive_timeout=timeout,
             deadline=deadline
         )
+        return expect_failure(False, ret, params)
 
     @step
     def abort_sync(self):
@@ -122,13 +128,15 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             "--auth.keyfile=" + str(self.certificate_auth["clientkeyfile"]),
         ]
         logging.info("SyncManager: stopping sync : %s", str(args))
-        return self.run_monitored(
+        params=make_default_params(self.cfg.verbose)
+        ret = self.run_monitored(
             self.cfg.bin_dir / "arangosync",
             args,
-            params=make_default_params(self.cfg.verbose),
+            params = params,
             progressive_timeout=60,
             deadline=300
         )
+        return expect_failure(False, ret, params)
 
     @step
     def check_sync(self):
@@ -147,13 +155,15 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         logging.info("SyncManager: checking sync consistency : %s", str(args))
         params = make_default_params(self.cfg.verbose)
         try:
-            result = self.run_monitored(
+            params=make_default_params(self.cfg.verbose)
+            ret = self.run_monitored(
                 executeable=self.cfg.bin_dir / "arangosync",
                 args=args,
                 params=params,
                 progressive_timeout=60,
                 deadline=300,
             )
+            return expect_failure(False, ret, params)
         except CliExecutionException as exc:
             result = exc.execution_result
             return result
@@ -184,13 +194,15 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         ]
         logging.info("SyncManager: resetting failed shard : %s", str(args))
         try:
-            self.run_monitored(
+            params=make_default_params(self.cfg.verbose)
+            ret = self.run_monitored(
                 self.cfg.bin_dir / "arangosync",
                 args,
-                params=make_default_params(self.cfg.verbose),
+                params = params,
                 progressive_timeout=60,
                 deadline=300
             )
+            expect_failure(False, ret, params)
             return True
         except CliExecutionException:
             return False

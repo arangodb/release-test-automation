@@ -332,7 +332,7 @@ class Dc2Dc(Runner):
             self.state += "\n" + exc.execution_result[1]
             output = ""
             if exc.have_timeout:
-                (result, output) = self.sync_manager.check_sync()
+                (result, output, _, _) = self.sync_manager.check_sync()
                 if result:
                     print("CHECK SYNC OK!")
             raise Exception("failed to stop the synchronization; check sync:" + output) from exc
@@ -416,7 +416,7 @@ class Dc2Dc(Runner):
         self.progress(True, "waiting for the DCs to get in sync")
         output = None
         for count in range(attempts):
-            (result, output) = self.sync_manager.check_sync()
+            (result, output, _, _) = self.sync_manager.check_sync()
             if result:
                 print("CHECK SYNC OK!")
                 break
