@@ -21,8 +21,6 @@ import psutil
 from arangodb.installers.windows import InstallerWin
 from reporting.reporting_utils import step
 
-from arangodb.installers.base import InstallerBase
-
 # pylint: disable=unused-import
 # this will patch psutil for us:
 import tools.monkeypatch_psutil
@@ -57,7 +55,7 @@ class InstallerNsis(InstallerWin):
             self.arch = ""
         else:
             self.arch = ""
-        self.os = 'win64'
+        self.operating_system = 'win64'
         super().__init__(cfg)
         self.check_symlink = False
         self.core_glob = "**/*.dmp"
@@ -92,7 +90,7 @@ class InstallerNsis(InstallerWin):
         self.desc = {
             "ep": enterprise,
             "ver": version,
-            "os": self.os,
+            "os": self.operating_system,
             "arch": self.arch,
             "ext": self.extension,
         }

@@ -1,16 +1,11 @@
 #!/usr/bin/env python3
 """ run an Tar installer for the Linux/Mac based operating system """
 import platform
-import shutil
 import logging
 from pathlib import Path
-import time
 import os
 
 import semver
-
-from reporting.reporting_utils import step
-from arangodb.installers.base import InstallerBase
 
 from arangodb.installers.base import InstallerArchive
 
@@ -31,13 +26,13 @@ class InstallerTAR(InstallerArchive):
         self.extension = "tar.gz"
         self.remote_package_dir = "Linux"
         cfg.localhost = "localhost"
-        self.os = "linux"
+        self.operating_system = "linux"
         self.architecture = ""
         if cfg.semver > semver.VersionInfo.parse("3.9.99"):
             arch = platform.machine()
             if arch == 'aarch64':
                 arch = 'arm64'
-            self.architecture = '_' + arch 
+            self.architecture = '_' + arch
         self.dash = "-"
         self.installer_type = ".tar.gz Linux"
         self.hot_backup = True
@@ -57,7 +52,7 @@ class InstallerTAR(InstallerArchive):
         self.desc = {
             "ep": enterprise,
             "ver": version,
-            "os": self.os,
+            "os": self.operating_system,
             "arch": self.architecture,
             "dashus": self.dash,
             "ext": self.extension,

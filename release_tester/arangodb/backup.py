@@ -14,7 +14,7 @@ from reporting.reporting_utils import step
 from tools.asciiprint import ascii_convert_str, print_progress as progress
 import tools.loghelper as lh
 
-from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor
+from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor, make_default_params
 from arangodb.installers import HotBackupMode, HotBackupProviders
 
 HB_2_RCLONE_TYPE = {
@@ -81,8 +81,10 @@ class HotBackupConfig:
             elif hbcfg.hb_gce_service_account_file:
                 config["service_account_file"] = hbcfg.hb_gce_service_account_file
             else:
-                raise Exception("Either \"service_account_credentials\" or \"service_account_file\" parameter must be specified for Google Cloud Storage.")
-        elif self.hb_provider_cfg.mode == HotBackupMode.AZUREBLOBSTORAGE and self.hb_provider_cfg.provider == HotBackupProviders.AZURE:
+                raise Exception("Either \"service_account_credentials\" or \"service_account_file\""
+                                "parameter must be specified for Google Cloud Storage.")
+        elif (self.hb_provider_cfg.mode == HotBackupMode.AZUREBLOBSTORAGE and
+              self.hb_provider_cfg.provider == HotBackupProviders.AZURE):
             self.name = "azure"
             self.hb_timeout = 240
             config["type"] = HB_2_RCLONE_TYPE[self.hb_provider_cfg.mode]
@@ -144,7 +146,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
 
     # pylint: disable=too-many-arguments
     @step
-    def run_backup(self, arguments, name, silent=False, expect_to_fail=False, timeout=20):
+    def run_backup(self, arguments, name, silent=False, expect_to_fail=False, progressive_timeout=20):
         """run arangobackup"""
         if not silent:
             logging.info("running hot backup " + name)
@@ -154,19 +156,26 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         run_cmd += arguments
         lh.log_cmd(arguments, not silent)
 
-        def inspect_line_result(line):
-            strline = str(line)
-            if strline.find("ERROR") >= 0:
-                return True
+        def inspect_line_result(wait, line, params):
+            # pylint: disable=unused-argument
+            if isinstance(line, tuple):
+                strline = str(line[0])
+                if params['verbose']:
+                    print("e: " + str(line[0], 'utf-8').rstrip())
+                params['output'].append(line[0])
+
+                if strline.find("ERROR") >= 0:
+                    params['error'] += strline
+                    return True
             return False
 
         success, output, _, error_found = self.run_arango_tool_monitored(
             self.cfg.bin_dir / "arangobackup",
             run_cmd,
-            timeout,
-            inspect_line_result,
-            self.cfg.verbose and not silent,
-            expect_to_fail,
+            params=make_default_params(self.cfg.verbose and not silent),
+            progressive_timeout=progressive_timeout,
+            result_line_handler=inspect_line_result,
+            expect_to_fail=expect_to_fail
         )
 
         if not success:
@@ -202,7 +211,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
     def restore(self, backup_name):
         """restore an existing hot backup"""
         args = ["restore", "--identifier", backup_name]
-        self.run_backup(args, backup_name, timeout=120)
+        self.run_backup(args, backup_name, progressive_timeout=120)
 
     @step
     def delete(self, backup_name):
@@ -223,7 +232,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         ]
         # fmt: on
 
-        out = self.run_backup(args, backup_name, timeout=backup_config.hb_timeout)
+        out = self.run_backup(args, backup_name, progressive_timeout=backup_config.hb_timeout)
         for line in out.split("\n"):
             match = re.match(r".*arangobackup upload --status-id=(\d*)", str(line))
             if match:
@@ -280,7 +289,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
             '--remote-path', backup_config.construct_remote_storage_path(str(self.backup_dir))
         ]
         # fmt: on
-        out = self.run_backup(args, backup_name, timeout=backup_config.hb_timeout)
+        out = self.run_backup(args, backup_name, progressive_timeout=backup_config.hb_timeout)
         for line in out.split("\n"):
             match = re.match(r".*arangobackup download --status-id=(\d*)", str(line))
             if match:
