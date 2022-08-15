@@ -21,6 +21,7 @@ ON_POSIX = "posix" in sys.builtin_module_names
 IS_WINDOWS = platform.win32_ver()[0] != ""
 
 def print_log(string, params):
+    """ only print if thread debug logging is enabled """
     if params['trace_io']:
         print(string)
 
