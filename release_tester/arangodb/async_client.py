@@ -445,31 +445,3 @@ class ArangoCLIprogressiveTimeoutExecutor:
             "rc_exit": rc_exit,
             "line_filter": line_filter,
         }
-
-
-
-#                #if not verbose:
-#                #    progress("sj" + str(tcount))
-#
-#
-#            # ... do other things here
-#            out = None
-#            if logfile:
-#                out = logfile.open('wb')
-#
-#                if not empty:
-#                    if isinstance(line, tuple):
-#                        #if verbose:
-#                        #    print("e: " + str(line[0]))
-#                        if out:
-#                            out.write(line[0])
-#                        #if not str(line[0]).startswith("#"):
-#                        #    result.append(line)
-#                             else:
-#                                         if out:
-#                print(f"{identifier} closing {logfile}")
-#                out.flush()
-#                out.close()
-#                print(f"{identifier} {logfile} closed")
-#                    if out:
-#                            out.write(line[0])
