@@ -20,6 +20,11 @@ from tools.asciiprint import print_progress as progress
 ON_POSIX = "posix" in sys.builtin_module_names
 IS_WINDOWS = platform.win32_ver()[0] != ""
 
+def print_log(string, params):
+    """ only print if thread debug logging is enabled """
+    if params['trace_io']:
+        print(string)
+
 def default_line_result(wait, line, params):
     """
     Keep the line, filter it for leading #,
@@ -40,6 +45,7 @@ def default_line_result(wait, line, params):
 def make_default_params(verbose):
     """ create the structure to work with arrays to output the strings to """
     return {
+        "trace_io": False,
         "error": "",
         "verbose": verbose,
         "output": [],
@@ -49,6 +55,7 @@ def make_default_params(verbose):
 def make_logfile_params(verbose, logfile, trace):
     """ create the structure to work with logfiles """
     return {
+        "trace_io": True,
         "trace": trace,
         "error": "",
         "verbose": verbose,
@@ -59,7 +66,7 @@ def make_logfile_params(verbose, logfile, trace):
 def logfile_line_result(wait, line, params):
     """ Write the line to a logfile, print progress. """
     # pylint: disable=pointless-statement
-    if params['verbose'] and wait > 0 and line is None:
+    if params['trace'] and wait > 0 and line is None:
         progress("sj" + str(wait))
         return True
     if isinstance(line, tuple):
@@ -75,28 +82,28 @@ def delete_logfile_params(params):
     print(f"{params['identifier']} {params['lfn']} closed")
 
 
-def enqueue_stdout(std_out, queue, instance, identifier):
+def enqueue_stdout(std_out, queue, instance, identifier, params):
     """add stdout to the specified queue"""
     try:
         for line in iter(std_out.readline, b""):
             # print("O: " + str(line))
             queue.put((line, instance))
     except ValueError as ex:
-        print(f"{identifier} communication line seems to be closed: {str(ex)}")
-    print(f"{identifier} x0 done!")
+        print_log(f"{identifier} communication line seems to be closed: {str(ex)}", params)
+    print_log(f"{identifier} x0 done!", params)
     queue.put(-1)
     std_out.close()
 
 
-def enqueue_stderr(std_err, queue, instance, identifier):
+def enqueue_stderr(std_err, queue, instance, identifier, params):
     """add stderr to the specified queue"""
     try:
         for line in iter(std_err.readline, b""):
             # print("E: " + str(line))
             queue.put((line, instance))
     except ValueError as ex:
-        print(f"{identifier} communication line seems to be closed: {str(ex)}")
-    print(f"{identifier} x1 done!")
+        print_log(f"{identifier} communication line seems to be closed: {str(ex)}", params)
+    print_log(f"{identifier} x1 done!", params)
     queue.put(-1)
     std_err.close()
 
@@ -150,7 +157,7 @@ def kill_children(identifier, params, children):
             one_child.kill()
         except psutil.NoSuchProcess:  # pragma: no cover
             pass
-    print(f"{identifier}: Waiting for the children to terminate")
+    print_log(f"{identifier}: Waiting for the children to terminate", params)
     psutil.wait_procs(children, timeout=20)
     return err
 
@@ -312,12 +319,12 @@ class ArangoCLIprogressiveTimeoutExecutor:
             thread1 = Thread(
                 name=f"readIO {identifier}",
                 target=enqueue_stdout,
-                args=(process.stdout, queue, self.connect_instance, identifier),
+                args=(process.stdout, queue, self.connect_instance, identifier, params),
             )
             thread2 = Thread(
                 name="readErrIO {identifier}",
                 target=enqueue_stderr,
-                args=(process.stderr, queue, self.connect_instance, identifier),
+                args=(process.stderr, queue, self.connect_instance, identifier, params),
             )
             thread1.start()
             thread2.start()
@@ -356,7 +363,7 @@ class ArangoCLIprogressiveTimeoutExecutor:
                     tcount = 0
                     if not isinstance(line, tuple):
                         close_count += 1
-                        print(f"{identifier} 1 IO Thead done!")
+                        print_log(f"{identifier} 1 IO Thead done!", params)
                         if close_count == 2:
                             break
                 except Empty:
@@ -386,7 +393,7 @@ class ArangoCLIprogressiveTimeoutExecutor:
                 elif have_deadline > 1 and datetime.now() > final_deadline:
                     try:
                         # give it some time to exit:
-                        print(f"{identifier} try wait exit:")
+                        print_log(f"{identifier} try wait exit:", params)
                         try:
                             children = children + process.children(recursive=True)
                         except psutil.NoSuchProcess:
@@ -394,16 +401,16 @@ class ArangoCLIprogressiveTimeoutExecutor:
                         rc_exit = process.wait(1)
                         add_message_to_report(params, f"{identifier}  exited: {str(rc_exit)}")
                         kill_children(identifier, params, children)
-                        print(f"{identifier}  closing")
+                        print_log(f"{identifier}  closing", params)
                         process.stderr.close()
                         process.stdout.close()
                         break
                     except psutil.TimeoutExpired:
                         deadline_grace_count += 1
-                        print(f"{identifier} timeout waiting for exit {str(deadline_grace_count)}")
+                        print_log(f"{identifier} timeout waiting for exit {str(deadline_grace_count)}", params)
                         # if its not willing, use force:
                         if deadline_grace_count > deadline_grace_period:
-                            print(f"{identifier} getting children")
+                            print_log(f"{identifier} getting children", params)
                             try:
                                 children = process.children(recursive=True)
                             except psutil.NoSuchProcess:
@@ -411,27 +418,27 @@ class ArangoCLIprogressiveTimeoutExecutor:
                             kill_children(identifier, params, children)
                             add_message_to_report(params, f"{identifier} killing")
                             process.kill()
-                            print(f"{identifier} waiting")
+                            print_log(f"{identifier} waiting", params)
                             rc_exit = process.wait()
-                            print(f"{identifier} closing")
+                            print_log(f"{identifier} closing", params)
                             process.stderr.close()
                             process.stdout.close()
                             break
-            print(f"{identifier} IO-Loop done")
+            print_log(f"{identifier} IO-Loop done", params)
             timeout_str = ""
             if have_progressive_timeout:
                 timeout_str = "TIMEOUT OCCURED!"
                 print(timeout_str)
                 timeout_str += "\n"
             elif rc_exit is None:
-                print(f"{identifier} waiting for regular exit")
+                print_log(f"{identifier} waiting for regular exit", params)
                 rc_exit = process.wait()
-                print(f"{identifier} done")
+                print_log(f"{identifier} done", params)
             kill_children(identifier, params, children)
-            print(f"{identifier} joining io Threads")
+            print_log(f"{identifier} joining io Threads", params)
             thread1.join()
             thread2.join()
-            print(f"{identifier} OK")
+            print_log(f"{identifier} OK", params)
 
         return {
             "progressive_timeout": have_progressive_timeout,
@@ -439,31 +446,3 @@ class ArangoCLIprogressiveTimeoutExecutor:
             "rc_exit": rc_exit,
             "line_filter": line_filter,
         }
-
-
-
-#                #if not verbose:
-#                #    progress("sj" + str(tcount))
-#
-#
-#            # ... do other things here
-#            out = None
-#            if logfile:
-#                out = logfile.open('wb')
-#
-#                if not empty:
-#                    if isinstance(line, tuple):
-#                        #if verbose:
-#                        #    print("e: " + str(line[0]))
-#                        if out:
-#                            out.write(line[0])
-#                        #if not str(line[0]).startswith("#"):
-#                        #    result.append(line)
-#                             else:
-#                                         if out:
-#                print(f"{identifier} closing {logfile}")
-#                out.flush()
-#                out.close()
-#                print(f"{identifier} {logfile} closed")
-#                    if out:
-#                            out.write(line[0])

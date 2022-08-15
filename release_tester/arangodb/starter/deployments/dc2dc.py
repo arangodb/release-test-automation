@@ -335,6 +335,8 @@ class Dc2Dc(Runner):
                 (result, output, _, _) = self.sync_manager.check_sync()
                 if result:
                     print("CHECK SYNC OK!")
+                self.sync_manager.abort_sync()
+                return
             raise Exception("failed to stop the synchronization; check sync:" + output) from exc
 
         # From here on it is known that `arangosync stop sync` succeeded (exit code == 0).
