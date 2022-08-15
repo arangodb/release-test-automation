@@ -63,6 +63,7 @@ def make_runner(
     use_auto_certs: bool = True,
 ) -> Runner:
     """get an instance of the arangod runner - as you specify"""
+    # pylint: disable=too-many-return-statements
     assert runner_type, "no runner no cry?"
     assert len(installer_set) > 0, "no base config?"
     for one_installer_set in installer_set:

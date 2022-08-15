@@ -2,7 +2,7 @@
 """ Run a javascript command by spawning an arangosh
     to the configured connection """
 
-from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor, dummy_line_result
+from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor, default_line_result
 
 
 def get_type_args(filename):
@@ -37,7 +37,7 @@ class ArangoImportExecutor(ArangoCLIprogressiveTimeoutExecutor):
             self.cfg.bin_dir / "arangoimport",
             run_cmd,
             timeout,
-            dummy_line_result,
+            default_line_result,
             verbose,
             expect_to_fail,
         )

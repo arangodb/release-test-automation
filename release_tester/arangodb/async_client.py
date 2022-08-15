@@ -4,40 +4,106 @@
 
 import os
 from queue import Queue, Empty
+import platform
+import signal
 import sys
-from subprocess import PIPE, Popen
+from datetime import datetime, timedelta
+from subprocess import PIPE
 from threading import Thread
+import psutil
 from allure_commons._allure import attach
 
 from tools.asciiprint import print_progress as progress
-import tools.loghelper as lh
+# import tools.loghelper as lh
+# pylint: disable=dangerous-default-value
 
 ON_POSIX = "posix" in sys.builtin_module_names
+IS_WINDOWS = platform.win32_ver()[0] != ""
 
+def print_log(string, params):
+    """ only print if thread debug logging is enabled """
+    if params['trace_io']:
+        print(string)
 
-def dummy_line_result(line):
-    """do nothing with the line..."""
+def default_line_result(wait, line, params):
+    """
+    Keep the line, filter it for leading #,
+    if verbose print the line. else print progress.
+    """
     # pylint: disable=pointless-statement
-    line
+    if params['verbose'] and wait > 0 and line is None:
+        progress("sj" + str(wait))
+        return True
+    if isinstance(line, tuple):
+        if params['verbose']:
+            print("e: " + str(line[0], 'utf-8').rstrip())
+        if not str(line[0]).startswith("#"):
+            params['output'].append(line[0])
+        else:
+            return False
     return True
+def make_default_params(verbose):
+    """ create the structure to work with arrays to output the strings to """
+    return {
+        "trace_io": False,
+        "error": "",
+        "verbose": verbose,
+        "output": [],
+        "identifier": ""
+    }
+
+def make_logfile_params(verbose, logfile, trace):
+    """ create the structure to work with logfiles """
+    return {
+        "trace_io": True,
+        "trace": trace,
+        "error": "",
+        "verbose": verbose,
+        "output": logfile.open('wb'),
+        "identifier": "",
+        "lfn": str(logfile)
+    }
+def logfile_line_result(wait, line, params):
+    """ Write the line to a logfile, print progress. """
+    # pylint: disable=pointless-statement
+    if params['trace'] and wait > 0 and line is None:
+        progress("sj" + str(wait))
+        return True
+    if isinstance(line, tuple):
+        if params['trace']:
+            print("e: " + str(line[0], 'utf-8').rstrip())
+        params['output'].write(line[0])
+    return True
+def delete_logfile_params(params):
+    """ teardown the structure to work with logfiles """
+    print(f"{params['identifier']} closing {params['lfn']}")
+    params['output'].flush()
+    params['output'].close()
+    print(f"{params['identifier']} {params['lfn']} closed")
 
 
-def enqueue_stdout(std_out, queue, instance):
+def enqueue_stdout(std_out, queue, instance, identifier, params):
     """add stdout to the specified queue"""
-    for line in iter(std_out.readline, b""):
-        # print("O: " + str(line))
-        queue.put((line, instance))
-    # print('0 done!')
+    try:
+        for line in iter(std_out.readline, b""):
+            # print("O: " + str(line))
+            queue.put((line, instance))
+    except ValueError as ex:
+        print_log(f"{identifier} communication line seems to be closed: {str(ex)}", params)
+    print_log(f"{identifier} x0 done!", params)
     queue.put(-1)
     std_out.close()
 
 
-def enqueue_stderr(std_err, queue, instance):
+def enqueue_stderr(std_err, queue, instance, identifier, params):
     """add stderr to the specified queue"""
-    for line in iter(std_err.readline, b""):
-        # print("E: " + str(line))
-        queue.put((line, instance))
-    # print('1 done!')
+    try:
+        for line in iter(std_err.readline, b""):
+            # print("E: " + str(line))
+            queue.put((line, instance))
+    except ValueError as ex:
+        print_log(f"{identifier} communication line seems to be closed: {str(ex)}", params)
+    print_log(f"{identifier} x1 done!", params)
     queue.put(-1)
     std_err.close()
 
@@ -46,9 +112,54 @@ def convert_result(result_array):
     """binary -> string"""
     result = ""
     for one_line in result_array:
-        result += "\n" + one_line[0].decode("utf-8").rstrip()
+        if isinstance(one_line, str):
+            result += "\n" + one_line.rstrip()
+        else:
+            result += "\n" + one_line.decode("utf-8").rstrip()
     return result
 
+def add_message_to_report(params, string):
+    """ add a message from python to the report strings/files + print it """
+    print(string)
+    if isinstance(params['output'], list):
+        params['output'] += f"{'v'*80}\n{datetime.now()}>>>{string}<<<\n{'^'*80}\n"
+    else:
+        params['output'].write(bytearray(
+            f"{'v'*80}\n{datetime.now()}>>>{string}<<<\n{'^'*80}\n", "utf-8"))
+        params['output'].flush()
+    sys.stdout.flush()
+    return string + '\n'
+
+def kill_children(identifier, params, children):
+    """ slash all processes enlisted in children - if they still exist """
+    err = ""
+    killed = []
+    for one_child in children:
+        if one_child.pid in killed:
+            continue
+        try:
+            killed.append(one_child.pid)
+            err += add_message_to_report(
+                params,
+                f"{identifier}: killing {one_child.name()} - {str(one_child.pid)}")
+            one_child.resume()
+        except FileNotFoundError:
+            pass
+        except AttributeError:
+            pass
+        except ProcessLookupError:
+            pass
+        except psutil.NoSuchProcess:
+            pass
+        except psutil.AccessDenied:
+            pass
+        try:
+            one_child.kill()
+        except psutil.NoSuchProcess:  # pragma: no cover
+            pass
+    print_log(f"{identifier}: Waiting for the children to terminate", params)
+    psutil.wait_procs(children, timeout=20)
+    return err
 
 class CliExecutionException(Exception):
     """transport CLI error texts"""
@@ -59,7 +170,37 @@ class CliExecutionException(Exception):
         self.message = message
         self.have_timeout = have_timeout
 
+def expect_failure(expect_to_fail, ret, params):
+    """ convert results, throw error if wanted """
+    attach(str(ret['rc_exit']), f"Exit code: {str(ret['rc_exit'])} == {expect_to_fail}")
+    res = (None,None,None,None)
+    if ret['have_deadline'] or ret['progressive_timeout']:
+        res = (False, convert_result(params['output']), 0, ret['line_filter'])
+        raise CliExecutionException("Execution failed.",
+                                    res,
+                                    ret['progressive_timeout'] or ret['have_deadline'])
+    if ret['rc_exit'] != 0:
+        res = (False, convert_result(params['output']), 0, ret['line_filter'])
+        if expect_to_fail:
+            return res
+        raise CliExecutionException("Execution failed.", res, False)
 
+    if not expect_to_fail:
+        if len(params['output']) == 0:
+            res = (True, "", 0, ret['line_filter'])
+        else:
+            res = (True, convert_result(params['output']), 0, ret['line_filter'])
+        return res
+
+    if len(params['output']) == 0:
+        res = (True, "", 0, ret['line_filter'], params['error'])
+    else:
+        res = (True, convert_result(params['output']), 0, ret['line_filter'])
+    raise CliExecutionException(
+        f"{params.identifier} Execution was expected to fail, but exited successfully.",
+        res, ret['progressive_timeout'])
+
+ID_COUNTER=0
 class ArangoCLIprogressiveTimeoutExecutor:
     """
     Abstract base class to run arangodb cli tools
@@ -68,20 +209,32 @@ class ArangoCLIprogressiveTimeoutExecutor:
     """
 
     # pylint: disable=too-few-public-methods too-many-arguments disable=too-many-instance-attributes disable=too-many-statements disable=too-many-branches disable=too-many-locals
-    def __init__(self, config, connect_instance):
+    def __init__(self, config, connect_instance, deadline_signal=-1):
         """launcher class for cli tools"""
         self.connect_instance = connect_instance
         self.cfg = config
+        self.deadline_signal = deadline_signal
+        if self.deadline_signal == -1:
+            # pylint: disable=no-member
+            # yes, one is only there on the wintendo, the other one elsewhere.
+            if IS_WINDOWS:
+                self.deadline_signal = signal.CTRL_BREAK_EVENT
+            else:
+                self.deadline_signal = signal.SIGINT
+
 
     def run_arango_tool_monitored(
-        self,
-        executeable,
-        more_args,
-        timeout=60,
-        result_line=dummy_line_result,
-        verbose=False,
-        expect_to_fail=False,
-        use_default_auth=True,
+            self,
+            executeable,
+            more_args,
+            use_default_auth=True,
+            params={"error": "", "verbose": True, "output":[]},
+            progressive_timeout=60,
+            deadline=0,
+            deadline_grace_period=180,
+            result_line_handler=default_line_result,
+            expect_to_fail=False,
+            identifier=""
     ):
         """
         runs a script in background tracing with
@@ -108,19 +261,54 @@ class ArangoCLIprogressiveTimeoutExecutor:
                 run_cmd += ["--server.password", passvoid]
 
         run_cmd += more_args
-        return self.run_monitored(executeable, run_cmd, timeout, result_line, verbose, expect_to_fail)
-        # fmt: on
+        ret = self.run_monitored(executeable,
+                                 run_cmd,
+                                 params,
+                                 progressive_timeout,
+                                 deadline,
+                                 deadline_grace_period,
+                                 result_line_handler,
+                                 identifier)
+        return expect_failure(expect_to_fail, ret, params)
 
-    def run_monitored(
-        self, executeable, args, timeout=60, result_line=dummy_line_result, verbose=False, expect_to_fail=False
-    ):
+    # fmt: on
+    def run_monitored(self,
+                      executeable,
+                      args,
+                      params={"error": "", "verbose": True, "output":[]},
+                      progressive_timeout=60,
+                      deadline=0,
+                      deadline_grace_period=180,
+                      result_line_handler=default_line_result,
+                      identifier=""
+                      ):
         """
-        run a script in background tracing with a dynamic timeout that its got output (is still alive...)
+        run a script in background tracing with a dynamic timeout that its got output
+        Deadline will represent an absolute timeout at which it will be signalled to
+        exit, and yet another minute later a hard kill including sub processes will
+        follow.
+        (is still alive...)
         """
-
+        rc_exit = None
+        line_filter = False
         run_cmd = [executeable] + args
-        lh.log_cmd(run_cmd, verbose)
-        with Popen(
+        children = []
+        if identifier == "":
+            # pylint: disable=global-statement
+            global ID_COUNTER
+            my_no = ID_COUNTER
+            ID_COUNTER += 1
+            identifier = f"IO_{str(my_no)}"
+        print(params)
+        params['identifier'] = identifier
+        if not isinstance(deadline,datetime):
+            if deadline == 0:
+                deadline = datetime.now() + timedelta(seconds=progressive_timeout * 10)
+            else:
+                deadline = datetime.now() + timedelta(seconds=deadline)
+        final_deadline = deadline + timedelta(seconds=deadline_grace_period)
+        print(f"{identifier}: launching {str(run_cmd)}")
+        with psutil.Popen(
             run_cmd,
             stdout=PIPE,
             stderr=PIPE,
@@ -129,85 +317,132 @@ class ArangoCLIprogressiveTimeoutExecutor:
         ) as process:
             queue = Queue()
             thread1 = Thread(
-                name="readIO",
+                name=f"readIO {identifier}",
                 target=enqueue_stdout,
-                args=(process.stdout, queue, self.connect_instance),
+                args=(process.stdout, queue, self.connect_instance, identifier, params),
             )
             thread2 = Thread(
-                name="readErrIO",
+                name="readErrIO {identifier}",
                 target=enqueue_stderr,
-                args=(process.stderr, queue, self.connect_instance),
+                args=(process.stderr, queue, self.connect_instance, identifier, params),
             )
             thread1.start()
             thread2.start()
 
             try:
                 print(
-                    "me PID:%d launched PID:%d with LWPID:%d and LWPID:%d"
-                    % (os.getpid(), process.pid, thread1.native_id, thread2.native_id)
+                    "{0} me PID:{1} launched PID:{2} with LWPID:{3} and LWPID:{4}".format(
+                        identifier,
+                        str(os.getpid()),
+                        str(process.pid),
+                        str(thread1.native_id),
+                        str(thread2.native_id))
                 )
             except AttributeError:
-                print("me PID:%d launched PID:%d with LWPID:N/A and LWPID:N/A" % (os.getpid(), process.pid))
+                print(
+                    "{0} me PID:{1} launched PID:{2} with LWPID:N/A and LWPID:N/A".format(
+                        identifier,
+                        str(os.getpid()),
+                        str(process.pid)))
 
-            # ... do other things here
-            # out = logfile.open('wb')
             # read line without blocking
-            have_timeout = False
-            line_filter = False
+            have_progressive_timeout = False
             tcount = 0
             close_count = 0
-            result = []
-            while not have_timeout:
-                if not verbose:
-                    progress("sj" + str(tcount))
+            have_deadline = 0
+            deadline_grace_count = 0
+            while not have_progressive_timeout:
+                # if you want to tail the output, enable this:
+                # out.flush()
+                result_line_handler(tcount, None, params)
                 line = ""
                 try:
                     line = queue.get(timeout=1)
-                    line_filter = line_filter or result_line(line)
-                except Empty:
-                    tcount += 1
-                    if verbose:
-                        progress("T " + str(tcount))
-                    have_timeout = tcount >= timeout
-                else:
+                    ret = result_line_handler(0, line, params)
+                    line_filter = line_filter or ret
                     tcount = 0
-                    if isinstance(line, tuple):
-                        if verbose:
-                            print("e: " + str(line[0]))
-                        if not str(line[0]).startswith("#"):
-                            result.append(line)
-                    else:
+                    if not isinstance(line, tuple):
                         close_count += 1
+                        print_log(f"{identifier} 1 IO Thead done!", params)
                         if close_count == 2:
-                            print(" done!")
                             break
+                except Empty:
+                    # print(identifier  + '..' + str(deadline_grace_count))
+                    tcount += 1
+                    have_progressive_timeout = tcount >= progressive_timeout
+                    if have_progressive_timeout:
+                        try:
+                            children = process.children(recursive=True)
+                        except psutil.NoSuchProcess:
+                            pass
+                        process.kill()
+                        kill_children(identifier, params, children)
+                        rc_exit = process.wait()
+                if datetime.now() > deadline:
+                    have_deadline += 1
+                if have_deadline == 1:
+                    add_message_to_report(
+                        params,
+                        f"{identifier} Execution Deadline reached - will trigger signal {self.deadline_signal}!")
+                    # Send the process our break / sigint
+                    try:
+                        children = process.children(recursive=True)
+                    except psutil.NoSuchProcess:
+                        pass
+                    process.send_signal(self.deadline_signal)
+                elif have_deadline > 1 and datetime.now() > final_deadline:
+                    try:
+                        # give it some time to exit:
+                        print_log(f"{identifier} try wait exit:", params)
+                        try:
+                            children = children + process.children(recursive=True)
+                        except psutil.NoSuchProcess:
+                            pass
+                        rc_exit = process.wait(1)
+                        add_message_to_report(params, f"{identifier}  exited: {str(rc_exit)}")
+                        kill_children(identifier, params, children)
+                        print_log(f"{identifier}  closing", params)
+                        process.stderr.close()
+                        process.stdout.close()
+                        break
+                    except psutil.TimeoutExpired:
+                        deadline_grace_count += 1
+                        print_log(f"{identifier} timeout waiting for exit {str(deadline_grace_count)}", params)
+                        # if its not willing, use force:
+                        if deadline_grace_count > deadline_grace_period:
+                            print_log(f"{identifier} getting children", params)
+                            try:
+                                children = process.children(recursive=True)
+                            except psutil.NoSuchProcess:
+                                pass
+                            kill_children(identifier, params, children)
+                            add_message_to_report(params, f"{identifier} killing")
+                            process.kill()
+                            print_log(f"{identifier} waiting", params)
+                            rc_exit = process.wait()
+                            print_log(f"{identifier} closing", params)
+                            process.stderr.close()
+                            process.stdout.close()
+                            break
+            print_log(f"{identifier} IO-Loop done", params)
             timeout_str = ""
-            if have_timeout:
+            if have_progressive_timeout:
                 timeout_str = "TIMEOUT OCCURED!"
                 print(timeout_str)
                 timeout_str += "\n"
-                process.kill()
-            rc_exit = process.wait()
+            elif rc_exit is None:
+                print_log(f"{identifier} waiting for regular exit", params)
+                rc_exit = process.wait()
+                print_log(f"{identifier} done", params)
+            kill_children(identifier, params, children)
+            print_log(f"{identifier} joining io Threads", params)
             thread1.join()
             thread2.join()
+            print_log(f"{identifier} OK", params)
 
-        attach(str(rc_exit), f"Exit code: {str(rc_exit)}")
-
-        if have_timeout or rc_exit != 0:
-            res = (False, timeout_str + convert_result(result), rc_exit, line_filter)
-            if expect_to_fail:
-                return res
-            raise CliExecutionException("Execution failed.", res, have_timeout)
-
-        if not expect_to_fail:
-            if len(result) == 0:
-                res = (True, "", 0, line_filter)
-            else:
-                res = (True, convert_result(result), 0, line_filter)
-            return res
-
-        if len(result) == 0:
-            res = (True, "", 0, line_filter)
-        else:
-            res = (True, convert_result(result), 0, line_filter)
-        raise CliExecutionException("Execution was expected to fail, but exited successfully.", res, have_timeout)
+        return {
+            "progressive_timeout": have_progressive_timeout,
+            "have_deadline": have_deadline,
+            "rc_exit": rc_exit,
+            "line_filter": line_filter,
+        }

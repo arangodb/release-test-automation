@@ -1,20 +1,22 @@
 #!/usr/bin/env python3
 """ run an installer for the detected operating system """
-import logging
-import re
-import os
-import copy
-import subprocess
-import platform
-import shutil
-import time
-from pathlib import Path
 from abc import abstractmethod, ABC, ABCMeta
+import copy
+import logging
+import os
+from pathlib import Path
+import platform
+import re
+import shutil
+import subprocess
+import time
+
+import magic
 import semver
 import yaml
 import psutil
 
-from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor
+from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor, make_default_params
 from arangodb.installers import InstallerConfig
 from arangodb.instance import ArangodInstance
 from tools.asciiprint import print_progress as progress
@@ -22,23 +24,6 @@ from allure_commons._allure import attach
 from reporting.reporting_utils import step
 
 FILE_PIDS = []
-
-
-@step
-def run_file_command(file_to_check):
-    """run `file file_to_check` and return the output"""
-    with subprocess.Popen(
-        ["file", file_to_check],
-        stdout=subprocess.PIPE,
-        stdin=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        universal_newlines=True,
-    ) as proc:
-        line = proc.stdout.readline()
-        FILE_PIDS.append(str(proc.pid))
-        proc.wait()
-        print(line)
-        return line
 
 
 IS_WINDOWS = platform.win32_ver()[0]
@@ -167,15 +152,24 @@ class BinaryDescription:
         # some go binaries are stripped, some not. We can't test it.
         return self.stripped
 
+    def check_stripped_windows(self):
+        """check whether this file is stripped (or not)"""
+        output = magic.from_file(str(self.path))
+        if output.find("PE32+") < 0:
+            raise Exception(f"Strip chinging for file {str(self.path)} returned [{output}]")
+        return output.find("(stripped") >= 0
+
     def check_stripped_linux(self):
         """check whether this file is stripped (or not)"""
-        output = run_file_command(self.path)
+        output = magic.from_file(str(self.path))
+        if output.find("ELF") < 0:
+            raise Exception(f"Strip checking for file {str(self.path)} returned [{output}]")
         if output.find(", stripped") >= 0:
             return True
         if output.find(", not stripped") >= 0:
             return False
         raise Exception(
-            "Strip checking: parse error for 'file " + str(self.path) + "', unparseable output:  [" + output + "]"
+            f"Strip checking: parse error for file '{str(self.path)}', unparseable output:  [{output}]"
         )
 
     @step
@@ -185,6 +179,8 @@ class BinaryDescription:
         if IS_MAC:
             print("")
             # is_stripped = self.check_stripped_mac()
+        elif IS_WINDOWS:
+            is_stripped = self.check_stripped_windows()
         else:
             is_stripped = self.check_stripped_linux()
             if not is_stripped and self.stripped:
@@ -486,7 +482,7 @@ class InstallerBase(ABC):
     def output_arangod_version(self):
         """document the output of arangod --version"""
         return self.cli_executor.run_monitored(
-            executeable=self.cfg.sbin_dir / "arangod", args=["--version"], timeout=10, verbose=True
+            executeable=self.cfg.sbin_dir / "arangod", args=["--version"], params=make_default_params(True), deadline=10,
         )
 
     @step
@@ -795,6 +791,7 @@ class InstallerArchive(InstallerBase, metaclass=ABCMeta):
     """base class for archive packages that need to be installed manually, e.g. .tar.gz for Linux, .zip for Windows"""
 
     def __init__(self, cfg):
+        self.basedir=self.basedir
         cfg.have_system_service = False
         cfg.install_prefix = self.basedir
         cfg.bin_dir = None
