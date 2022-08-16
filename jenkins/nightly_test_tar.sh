@@ -1,5 +1,13 @@
 #!/bin/bash
 
+ARCH="-$(uname -m)"
+
+if test "${ARCH}" == "-x86_64"; then
+    ARCH="-amd64"
+else
+    ARCH="-arm64v8"
+fi
+
 VERSION=$(cat VERSION.json)
 GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
 if test -z "$GIT_VERSION"; then
@@ -38,10 +46,12 @@ trap 'docker kill "${DOCKER_TAR_NAME}";
       docker rm "${DOCKER_TAR_NAME}";
      ' EXIT
 
-if docker pull "arangodb/${DOCKER_TAR_TAG}"; then
+DOCKER_NAMESPACE="arangodb/"
+if docker pull "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}"; then
     echo "using ready built container"
 else
-    docker build containers/docker_tar -t "${DOCKER_TAR_TAG}" || exit
+    docker build "containers/docker_tar${ARCH}" -t "${DOCKER_TAR_TAG}" || exit
+    DOCKER_NAMESPACE=""
 fi
 
 # we need --init since our upgrade leans on zombies not happening:
@@ -66,7 +76,7 @@ docker run \
        --ulimit core=-1 \
        --init \
        \
-       "arangodb/${DOCKER_TAR_TAG}" \
+       "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}" \
        \
           /home/release-test-automation/release_tester/full_download_test.py \
           --new-version "${NEW_VERSION}" \
