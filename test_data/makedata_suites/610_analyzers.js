@@ -1,8 +1,9 @@
-/* global print, semver, progress, createSafe, db, PWD*/
+/* global print, semver, progress, createSafe,createCollectionSafe, db, PWD*/
 /*jslint maxlen: 130 */
 
 (function () {
   const a = require("@arangodb/analyzers");
+  const fs = require('fs')
   return {
     isSupported: function (currentVersion, oldVersion, options, enterprise, cluster) {
       let currentVersionSemver = semver.parse(semver.coerce(currentVersion));
@@ -47,7 +48,27 @@
       //nearestNeighborsDouble analyzer properties
       //nearestNeighborsDouble Analyzer capable of finding nearest neighbors of tokens in the input.
       let nearestNeighborsDouble = `nearestNeighborsDouble_${dbCount}`;
-      let nearestNeighborsDoubleQuery = a.save(`${nearestNeighborsDouble}`, "nearest_neighbors", { "model_location": `${path}`, "top_k": 2 }, ["frequency", "norm", "position"]);      
+      let nearestNeighborsDoubleQuery = a.save(`${nearestNeighborsDouble}`, "nearest_neighbors", { "model_location": `${path}`, "top_k": 2 }, ["frequency", "norm", "position"]);
+      
+      //myMinHash analyzer properties
+      let myMinHash = `myMinHash_${dbCount}`;
+      let myMinHashQuery = a.save(`${myMinHash}`, "minhash", {"numHashes": 10, "analyzer": {"type": "delimiter", "properties": {"delimiter": "#", "features": []}}})
+
+      let myMinHashCol = `myMinHashCol_${dbCount}`;
+      let minCol = createCollectionSafe(myMinHashCol, 3, 3);
+      let path01 = `${PWD}/makedata_suites/collection_0.json`;
+      var collection_data_0 = fs.read(path01)
+      minCol.save(JSON.parse(collection_data_0), {silent: true})
+
+      // let duplicationCol = `duplicationCol_${dbCount}`;
+      // let minCol2 = createCollectionSafe(duplicationCol, 3, 3);
+      // let path02 = `${PWD}/makedata_suites/duplicationCollection.json`;
+      // var duplication_data_0 = fs.read(path02)
+      // minCol2.save(JSON.parse(duplication_data_0), {silent: true})
+      
+      // delimiter
+      let myDelimiter = `myDelimiter_${dbCount}`;
+      let myDelimiterQuery = a.save(`${myDelimiter}`, "delimiter",{myDelimiter: "-"}, ["frequency", "norm", "position"]);
 
       //creating classifierSingle  analyzer
       createAnalyzer(classifierSingle, classifierSingleQuery)
@@ -57,6 +78,10 @@
       createAnalyzer(nearestNeighborsSingle, nearestNeighborsSingleQuery)
       //creating nearestNeighborsDouble  analyzer
       createAnalyzer(nearestNeighborsDouble, nearestNeighborsDoubleQuery)
+      // creating myMinhash analyzer
+      createAnalyzer(myMinHash, myMinHashQuery)
+      // creating myDelimiter analyzer
+      createAnalyzer(myDelimiter, myDelimiterQuery)
 
       return 0;
     },
@@ -205,7 +230,32 @@
       let nearestNeighborsDoubleQueryResult = db._query(`LET str = "salt, oil"RETURN {"double": TOKENS(str, "${nearestNeighborsDouble}")}`);
 
       checkAnalyzer(nearestNeighborsDouble, nearestNeighborsDoubleType, nearestNeighborsDoubleProperties, nearestNeighborsDoubleExpectedResult, nearestNeighborsDoubleQueryResult)
+      
 
+      //-------------------------------myMinHash----------------------------------
+
+      let myMinHash = `myMinHash_${dbCount}`;
+      let myMinHashCol = `myMinHashCol_${dbCount}`;
+      // let duplicationCol = `duplicationCol_${dbCount}`;
+      let myDelimiter = `myDelimiter_${dbCount}`;
+
+      let myMinHashType = "minhash";
+      let myMinHashProperties = {
+        "numHashes" : 100,
+        "analyzer" : {
+          "type" : "delimiter",
+          "properties" : {
+            "delimiter" : "#"
+          }
+        }
+      };
+      let myMinHashExpectedResult =[
+        ''
+      ];
+
+      let myMinHashQueryResult = db._query(`for d in ${myMinHashCol} filter minhash(Tokens(d.dataStr, ${myDelimiter}), 10) == d.mh10 collect with count into c return c`)
+      
+      checkAnalyzer(myMinHash, myMinHashType, myMinHashProperties, myMinHashExpectedResult, myMinHashQueryResult)
 
       return 0;
 
