@@ -55,20 +55,14 @@
       let myMinHashQuery = a.save(`${myMinHash}`, "minhash", {"numHashes": 10, "analyzer": {"type": "delimiter", "properties": {"delimiter": "#", "features": []}}})
 
       let myMinHashCol = `myMinHashCol_${dbCount}`;
-      let minCol = createCollectionSafe(myMinHashCol, 3, 3);
-      let path01 = `${PWD}/makedata_suites/collection_0.json`;
-      var collection_data_0 = fs.read(path01)
-      minCol.save(JSON.parse(collection_data_0), {silent: true})
+      let minCol = createCollectionSafe(myMinHashCol, 1, 1);
+      let path01 = `${PWD}/makedata_suites/610_minhash.json`;
+      let minhash_col = fs.read(path01)
+      minCol.save(JSON.parse(minhash_col), {silent: true})
 
-      // let duplicationCol = `duplicationCol_${dbCount}`;
-      // let minCol2 = createCollectionSafe(duplicationCol, 3, 3);
-      // let path02 = `${PWD}/makedata_suites/duplicationCollection.json`;
-      // var duplication_data_0 = fs.read(path02)
-      // minCol2.save(JSON.parse(duplication_data_0), {silent: true})
-      
       // delimiter
       let myDelimiter = `myDelimiter_${dbCount}`;
-      let myDelimiterQuery = a.save(`${myDelimiter}`, "delimiter",{myDelimiter: "-"}, ["frequency", "norm", "position"]);
+      let myDelimiterQuery = a.save(`${myDelimiter}`, "delimiter", {delimiter: "#", "features": []})
 
       //creating classifierSingle  analyzer
       createAnalyzer(classifierSingle, classifierSingleQuery)
@@ -236,24 +230,21 @@
 
       let myMinHash = `myMinHash_${dbCount}`;
       let myMinHashCol = `myMinHashCol_${dbCount}`;
-      // let duplicationCol = `duplicationCol_${dbCount}`;
-      let myDelimiter = `myDelimiter_${dbCount}`;
-
       let myMinHashType = "minhash";
-      let myMinHashProperties = {
-        "numHashes" : 100,
-        "analyzer" : {
-          "type" : "delimiter",
-          "properties" : {
-            "delimiter" : "#"
-          }
-        }
+      let myMinHashProperties = { 
+        "numHashes" : 10, 
+        "analyzer" : { 
+          "type" : "delimiter", 
+          "properties" : { 
+            "delimiter" : "#" 
+          } 
+        } 
       };
-      let myMinHashExpectedResult =[
-        ''
+      let myMinHashExpectedResult =[ 
+        8000 
       ];
 
-      let myMinHashQueryResult = db._query(`for d in ${myMinHashCol} filter minhash(Tokens(d.dataStr, ${myDelimiter}), 10) == d.mh10 collect with count into c return c`)
+      let myMinHashQueryResult = db._query(`for d in ${myMinHashCol} filter minhash(Tokens(d.dataStr, 'myDelimiter_0'), 10) == d.mh10 collect with count into c return c`)
       
       checkAnalyzer(myMinHash, myMinHashType, myMinHashProperties, myMinHashExpectedResult, myMinHashQueryResult)
 
@@ -287,6 +278,8 @@
       let classifierDouble = `classifierDouble_${dbCount}`;
       let nearestNeighborsSingle = `nearestNeighborsSingle_${dbCount}`;
       let nearestNeighborsDouble = `nearestNeighborsDouble_${dbCount}`;
+      let myMinHash = `myMinHash_${dbCount}`;
+      let myDelimiter = `myDelimiter_${dbCount}`;
 
       // deleting classifierSingle analyzer
       deleteAnalyzer(classifierSingle)
@@ -296,6 +289,19 @@
       deleteAnalyzer(nearestNeighborsSingle)
       // deleting nearestNeighborsDouble analyzer
       deleteAnalyzer(nearestNeighborsDouble)
+      // deleting myMinHashCol analyzer
+      deleteAnalyzer(myMinHash)
+      // deleting myDelimiter analyzer
+      deleteAnalyzer(myDelimiter)
+
+      //deleting created collections
+      let myMinHashCol = `myMinHashCol_${dbCount}`;
+
+      try {
+        db._drop(myMinHashCol);
+      } catch (e) {
+        print(e);
+      }
 
       return 0;
     }
