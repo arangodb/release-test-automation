@@ -1,8 +1,9 @@
-/* global print, semver, progress, createSafe, db, PWD*/
+/* global print, semver, progress, createSafe,createCollectionSafe, db, PWD*/
 /*jslint maxlen: 130 */
 
 (function () {
   const a = require("@arangodb/analyzers");
+  const fs = require('fs')
   return {
     isSupported: function (currentVersion, oldVersion, options, enterprise, cluster) {
       let currentVersionSemver = semver.parse(semver.coerce(currentVersion));
@@ -47,7 +48,21 @@
       //nearestNeighborsDouble analyzer properties
       //nearestNeighborsDouble Analyzer capable of finding nearest neighbors of tokens in the input.
       let nearestNeighborsDouble = `nearestNeighborsDouble_${dbCount}`;
-      let nearestNeighborsDoubleQuery = a.save(`${nearestNeighborsDouble}`, "nearest_neighbors", { "model_location": `${path}`, "top_k": 2 }, ["frequency", "norm", "position"]);      
+      let nearestNeighborsDoubleQuery = a.save(`${nearestNeighborsDouble}`, "nearest_neighbors", { "model_location": `${path}`, "top_k": 2 }, ["frequency", "norm", "position"]);
+      
+      //myMinHash analyzer properties
+      let myMinHash = `myMinHash_${dbCount}`;
+      let myMinHashQuery = a.save(`${myMinHash}`, "minhash", {"numHashes": 10, "analyzer": {"type": "delimiter", "properties": {"delimiter": "#", "features": []}}})
+
+      let myMinHashCol = `myMinHashCol_${dbCount}`;
+      let minCol = createCollectionSafe(myMinHashCol, 1, 1);
+      let path01 = `${PWD}/makedata_suites/610_minhash.json`;
+      let minhash_col = fs.read(path01)
+      minCol.save(JSON.parse(minhash_col), {silent: true})
+
+      // delimiter
+      let myDelimiter = `myDelimiter_${dbCount}`;
+      let myDelimiterQuery = a.save(`${myDelimiter}`, "delimiter", {delimiter: "#", "features": []})
 
       //creating classifierSingle  analyzer
       createAnalyzer(classifierSingle, classifierSingleQuery)
@@ -57,6 +72,10 @@
       createAnalyzer(nearestNeighborsSingle, nearestNeighborsSingleQuery)
       //creating nearestNeighborsDouble  analyzer
       createAnalyzer(nearestNeighborsDouble, nearestNeighborsDoubleQuery)
+      // creating myMinhash analyzer
+      createAnalyzer(myMinHash, myMinHashQuery)
+      // creating myDelimiter analyzer
+      createAnalyzer(myDelimiter, myDelimiterQuery)
 
       return 0;
     },
@@ -205,7 +224,29 @@
       let nearestNeighborsDoubleQueryResult = db._query(`LET str = "salt, oil"RETURN {"double": TOKENS(str, "${nearestNeighborsDouble}")}`);
 
       checkAnalyzer(nearestNeighborsDouble, nearestNeighborsDoubleType, nearestNeighborsDoubleProperties, nearestNeighborsDoubleExpectedResult, nearestNeighborsDoubleQueryResult)
+      
 
+      //-------------------------------myMinHash----------------------------------
+
+      let myMinHash = `myMinHash_${dbCount}`;
+      let myMinHashCol = `myMinHashCol_${dbCount}`;
+      let myMinHashType = "minhash";
+      let myMinHashProperties = { 
+        "numHashes" : 10, 
+        "analyzer" : { 
+          "type" : "delimiter", 
+          "properties" : { 
+            "delimiter" : "#" 
+          } 
+        } 
+      };
+      let myMinHashExpectedResult =[ 
+        8000 
+      ];
+
+      let myMinHashQueryResult = db._query(`for d in ${myMinHashCol} filter minhash(Tokens(d.dataStr, 'myDelimiter_0'), 10) == d.mh10 collect with count into c return c`)
+      
+      checkAnalyzer(myMinHash, myMinHashType, myMinHashProperties, myMinHashExpectedResult, myMinHashQueryResult)
 
       return 0;
 
@@ -237,6 +278,8 @@
       let classifierDouble = `classifierDouble_${dbCount}`;
       let nearestNeighborsSingle = `nearestNeighborsSingle_${dbCount}`;
       let nearestNeighborsDouble = `nearestNeighborsDouble_${dbCount}`;
+      let myMinHash = `myMinHash_${dbCount}`;
+      let myDelimiter = `myDelimiter_${dbCount}`;
 
       // deleting classifierSingle analyzer
       deleteAnalyzer(classifierSingle)
@@ -246,6 +289,19 @@
       deleteAnalyzer(nearestNeighborsSingle)
       // deleting nearestNeighborsDouble analyzer
       deleteAnalyzer(nearestNeighborsDouble)
+      // deleting myMinHashCol analyzer
+      deleteAnalyzer(myMinHash)
+      // deleting myDelimiter analyzer
+      deleteAnalyzer(myDelimiter)
+
+      //deleting created collections
+      let myMinHashCol = `myMinHashCol_${dbCount}`;
+
+      try {
+        db._drop(myMinHashCol);
+      } catch (e) {
+        print(e);
+      }
 
       return 0;
     }
