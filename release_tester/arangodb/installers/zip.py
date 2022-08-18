@@ -25,7 +25,7 @@ class InstallerZip(InstallerArchive, InstallerWin):
         self.dash = "_"
         cfg.localhost = "localhost"
         self.remote_package_dir = "Windows"
-        self.os = "win64"
+        self.operating_system = "win64"
         if cfg.semver > semver.VersionInfo.parse("3.9.99"):
             self.arch = "_amd64"
             self.arch = ""
@@ -35,7 +35,6 @@ class InstallerZip(InstallerArchive, InstallerWin):
         self.hot_backup = False
         self.installer_type = ".zip Windows"
         super().__init__(cfg)
-        self.check_stripped = False
         self.check_symlink = False
         self.core_glob = "**/*.dmp"
 
@@ -52,7 +51,7 @@ class InstallerZip(InstallerArchive, InstallerWin):
         self.desc = {
             "ep": enterprise,
             "ver": version,
-            "os": self.os,
+            "os": self.operating_system,
             "arch": self.arch,
             "dashus": self.dash,
             "ext": self.extension,
