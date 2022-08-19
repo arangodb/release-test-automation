@@ -55,6 +55,7 @@
                      _.clone(vertices),
                      _.clone(smartEdges));
       progress('writeEGraph2');
+      return 0;
     },
     checkDataDB: function (options, isCluster, isEnterprise, database, dbCount, readOnly) {
       print(`checking data in database ${database} dbCount: ${dbCount}`);
@@ -104,6 +105,7 @@
           }
       }
       progress();
+      return 0;
     },
     clearDataDB: function (options, isCluster, isEnterprise, dbCount, database) {
       print(`Clearing data. Database: ${database}. DBCount: ${dbCount}`);
@@ -119,6 +121,7 @@
       try {
         egm._drop(`G_enterprise_${dbCount}`, true);
       } catch (e) { }
+      return 0;
     }
   };
 }());
