@@ -67,7 +67,7 @@ class LoginPage(BasePage):
     def _login_fill_passvoid(self, passvoid):
         """fill the passvoid and click login"""
         while True:
-            passvoid_elm = self.webdriver.find_element_by_id("loginPassword")
+            passvoid_elm = self.locator_finder_by_id("loginPassword")
             txt = passvoid_elm.text
             print("UI-Test: xxxx [" + txt + "]")
             if len(txt) > 0:
@@ -100,7 +100,7 @@ class LoginPage(BasePage):
             return False
         if not self._login_choose_database(database):
             return False
-        self.webdriver.find_element_by_id(self.select_db_btn_id).click()
+        self.locator_finder_by_id(self.select_db_btn_id).click()
         self.progress("we're in!")
         self.wait_for_ajax()
 

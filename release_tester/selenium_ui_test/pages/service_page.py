@@ -238,8 +238,7 @@ class ServicePage(NavigationBarPage):
             # populating collections with necessary data
             if status:
                 # got to collection tab
-                collection_page = 'collections'
-                self.locator_finder_by_id(collection_page).click()
+                self.navbar_goto("collections")
                 time.sleep(2)
 
                 # looking for default collection has been created or not
