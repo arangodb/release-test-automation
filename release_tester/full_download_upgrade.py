@@ -92,7 +92,7 @@ def upgrade_package_test(
         results.append(test_driver.run_upgrade([dl_old.cfg.version, dl_new.cfg.version], props))
 
         enterprise_packages_are_present = "EE" in editions or "EP" in editions
-        community_packages_are_present = "EE" in editions or "EP" in editions
+        community_packages_are_present = "C" in editions
 
         if enterprise_packages_are_present and community_packages_are_present:
             for use_enterprise in [True, False]:
