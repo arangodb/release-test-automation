@@ -33,8 +33,7 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
                 analyzers.select_built_in_analyzers_open()
 
                 print("Checking in-built identity analyzer \n")
-                # this one is commented due to https://arangodb.atlassian.net/browse/BTS-608.
-                # analyzers.select_analyzer_to_check(analyzers.identity_analyzer, analyzers.identity_switch_view)
+                analyzers.select_analyzer_to_check(analyzers.identity_analyzer, analyzers.identity_analyzer_switch_view)
                 print("Checking in-built text_de analyzer \n")
                 analyzers.select_analyzer_to_check(analyzers.text_de, analyzers.text_de_switch_view)
                 print("Checking in-built text_en analyzer \n")
@@ -64,53 +63,53 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
                 analyzers.select_built_in_analyzers_close()
 
                 print("Adding Identity analyzer \n")
-                analyzers.add_new_analyzer("My_Identity_Analyzer", 0, 16)  # 16 represents the required div_id in the method
+                analyzers.add_new_analyzer("My_Identity_Analyzer", 0, 104)  # 104 represents the required div_id in the method
 
                 print("Adding Delimiter analyzer \n")
-                analyzers.add_new_analyzer("My_Delimiter_Analyzer", 1, 20)
+                analyzers.add_new_analyzer("My_Delimiter_Analyzer", 1, 108)
 
                 print("Adding Stem analyzer \n")
-                analyzers.add_new_analyzer("My_Stem_Analyzer", 2, 24)
+                analyzers.add_new_analyzer("My_Stem_Analyzer", 2, 112)
 
                 print("Adding Norm analyzer \n")
-                analyzers.add_new_analyzer("My_Norm_Analyzer", 3, 28)
+                analyzers.add_new_analyzer("My_Norm_Analyzer", 3, 116)
 
                 print("Adding N-Gram analyzer \n")
-                analyzers.add_new_analyzer("My_N-Gram_Analyzer", 4, 32)
+                analyzers.add_new_analyzer("My_N-Gram_Analyzer", 4, 120)
 
                 print("Adding Text analyzer \n")
-                analyzers.add_new_analyzer("My_Text_Analyzer", 5, 36)
+                analyzers.add_new_analyzer("My_Text_Analyzer", 5, 124)
 
                 print("Adding AQL analyzer \n")
-                analyzers.add_new_analyzer("My_AQL_Analyzer", 6, 40)
+                analyzers.add_new_analyzer("My_AQL_Analyzer", 6, 128)
 
                 print("Adding Stopwords analyzer \n")
-                analyzers.add_new_analyzer("My_Stopwords_Analyzer", 7, 44)
+                analyzers.add_new_analyzer("My_Stopwords_Analyzer", 7, 132)
 
                 print("Adding Collation analyzer \n")
-                analyzers.add_new_analyzer("My_Collation_Analyzer", 8, 48)
+                analyzers.add_new_analyzer("My_Collation_Analyzer", 8, 136)
 
                 print("Adding Segmentation analyzer \n")
-                analyzers.add_new_analyzer("My_Segmentation_Alpha_Analyzer", 9, 52)
+                analyzers.add_new_analyzer("My_Segmentation_Alpha_Analyzer", 9, 140)
 
                 print("Adding Pipeline analyzer \n")
-                analyzers.add_new_analyzer("My_Pipeline_Analyzer", 10, 56)
+                analyzers.add_new_analyzer("My_Pipeline_Analyzer", 10, 144)
 
                 print("Adding GeoJSON analyzer \n")
-                analyzers.add_new_analyzer("My_GeoJSON_Analyzer", 11, 60)
+                analyzers.add_new_analyzer("My_GeoJSON_Analyzer", 11, 148)
 
                 print("Adding GeoJSON analyzer \n")
-                analyzers.add_new_analyzer("My_GeoPoint_Analyzer", 12, 64)
+                analyzers.add_new_analyzer("My_GeoPoint_Analyzer", 12, 152)
 
                 # only going to work if and only all the possible type of analyzers are done creating
                 print("Checking negative scenario for the identity analyzers name \n")
-                analyzers.test_analyzer_expected_error("identity_analyzer", 0, 68)
+                analyzers.test_analyzer_expected_error("identity_analyzer", 0, 156)
                 print("Checking negative scenario for the stem analyzers locale value \n")
-                analyzers.test_analyzer_expected_error("stem_analyzer", 2, 68)
+                analyzers.test_analyzer_expected_error("stem_analyzer", 2, 156)
                 print("Checking negative scenario for the stem analyzers locale value \n")
-                analyzers.test_analyzer_expected_error("n-gram_analyzer", 4, 68)
+                analyzers.test_analyzer_expected_error("n-gram_analyzer", 4, 156)
                 print("Checking negative scenario for the AQL analyzers \n")
-                analyzers.test_analyzer_expected_error("AQL_analyzer", 6, 68)
+                analyzers.test_analyzer_expected_error("AQL_analyzer", 6, 156)
 
                 print("Checking analyzer search filter options started \n")
                 analyzers.checking_search_filter_option("de")
@@ -128,20 +127,20 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
         finally:
             if analyzers.current_package_version() >= semver.VersionInfo.parse("3.9.0"):
                 print("Analyzer deletion started.")
-                analyzers.delete_analyzer('My_AQL_Analyzer')
-                analyzers.delete_analyzer('My_Collation_Analyzer')
-                analyzers.delete_analyzer('My_Delimiter_Analyzer')
-                analyzers.delete_analyzer('My_GeoJSON_Analyzer')
-                analyzers.delete_analyzer('My_GeoPoint_Analyzer')
-                analyzers.delete_analyzer('My_Identity_Analyzer')
-                analyzers.delete_analyzer('My_N-Gram_Analyzer')
-                analyzers.delete_analyzer('My_Norm_Analyzer')
-                analyzers.delete_analyzer('My_Pipeline_Analyzer')
-                analyzers.delete_analyzer('My_Segmentation_Alpha_Analyzer')
-                analyzers.delete_analyzer('My_Stem_Analyzer')
-                analyzers.delete_analyzer('My_Stopwords_Analyzer')
-                analyzers.delete_analyzer('My_Text_Analyzer')
-                print("Analyzer deletion completed.")
+                # analyzers.delete_analyzer('My_AQL_Analyzer')
+                # analyzers.delete_analyzer('My_Collation_Analyzer')
+                # analyzers.delete_analyzer('My_Delimiter_Analyzer')
+                # analyzers.delete_analyzer('My_GeoJSON_Analyzer')
+                # analyzers.delete_analyzer('My_GeoPoint_Analyzer')
+                # analyzers.delete_analyzer('My_Identity_Analyzer')
+                # analyzers.delete_analyzer('My_N-Gram_Analyzer')
+                # analyzers.delete_analyzer('My_Norm_Analyzer')
+                # analyzers.delete_analyzer('My_Pipeline_Analyzer')
+                # analyzers.delete_analyzer('My_Segmentation_Alpha_Analyzer')
+                # analyzers.delete_analyzer('My_Stem_Analyzer')
+                # analyzers.delete_analyzer('My_Stopwords_Analyzer')
+                # analyzers.delete_analyzer('My_Text_Analyzer')
+                # print("Analyzer deletion completed.")
                 del analyzers
                 print("---------Analyzers Page Test Completed--------- \n")
                 if self.exception:
