@@ -895,7 +895,7 @@ class AnalyzerPage(NavigationBarPage):
     def delete_analyzer(self, analyzer_name, locator):
         """Deleting all the analyzer using their ID"""
         self.select_analyzers_page()
-        self.driver.refresh()
+        self.webdriver.refresh()
 
         try:
             print(f'Deletion of {analyzer_name} started \n')
