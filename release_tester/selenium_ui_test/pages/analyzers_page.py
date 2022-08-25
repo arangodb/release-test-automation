@@ -895,28 +895,35 @@ class AnalyzerPage(NavigationBarPage):
     def delete_analyzer(self, analyzer_name, locator):
         """Deleting all the analyzer using their ID"""
         self.select_analyzers_page()
-        self.webdriver.refresh()
+        self.driver.refresh()
 
         try:
             print(f'Deletion of {analyzer_name} started \n')
-            analyzer_delete_icon = '//*[@id="analyzersContent"]/div/div/table/tbody/tr[1]/td[4]/button[2]/i'
 
-            analyzer_delete_icon_sitem = self.locator_finder_by_xpath(analyzer_delete_icon)
+            # search for specific analyzer according to their name
+            search_filter = '//*[@id="filterInput"]'
+            search_filter_sitem = self.locator_finder_by_xpath(self, search_filter)
+            search_filter_sitem.click()
+            search_filter_sitem.send_keys(analyzer_name)
+            time.sleep(2)
+
+            analyzer_delete_icon = '//*[@id="analyzersContent"]/div/div/table/tbody/tr/td[4]/button[2]/i'
+            analyzer_delete_icon_sitem = self.locator_finder_by_xpath(self, analyzer_delete_icon)
             analyzer_delete_icon_sitem.click()
             time.sleep(2)
 
             # force_delete = '//*[@id="force-delete"]'
-            # force_delete.sitem = self.locator_finder_by_xpath(self, force_delete)
+            # force_delete.sitem = BaseSelenium.locator_finder_by_xpath(self, force_delete)
             # force_delete.sitem.click()
 
-            # delete_btn = f'//*[@id="modal-content-delete-0"]/div[3]/button[2]'
-            delete_btn_sitem = self.locator_finder_by_xpath(locator)
+            # delete_btn = f'//*[@id="modal-content-delete-_system::My_Collation_Analyzer"]/div[3]/button[2]'
+            delete_btn_sitem = self.locator_finder_by_xpath(self, locator)
             delete_btn_sitem.click()
-            time.sleep(2)
+            time.sleep(8)
             print(f'Deletion of {analyzer_name} completed \n')
         except TimeoutException:
             print('TimeoutException occurred! \n')
             print('Info: Analyzer has already been deleted or never created. \n')
         except Exception:
-            # traceback.print_exc()
+            traceback.print_exc()
             raise Exception('Critical Error occurred and need manual inspection!! \n')
