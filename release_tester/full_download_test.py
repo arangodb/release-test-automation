@@ -5,6 +5,8 @@ from pathlib import Path
 import sys
 
 import click
+import semver
+
 from common_options import very_common_options, common_options, download_options, full_common_options, hotbackup_options
 
 from beautifultable import BeautifulTable, ALIGN_LEFT
@@ -22,7 +24,8 @@ from download import (
 from test_driver import TestDriver
 from tools.killall import list_all_processes
 
-from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig
+from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig, RunProperties
+
 
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
 def package_test(dl_opts: DownloadOptions, new_version, new_dlstage, git_version, editions, test_driver):
@@ -74,6 +77,31 @@ def package_test(dl_opts: DownloadOptions, new_version, new_dlstage, git_version
         test_driver.reset_test_data_dir(this_test_dir)
 
         results.append(test_driver.run_test("all", [dl_new.cfg.version], props))
+
+    enterprise_packages_are_present = "EE" in editions or "EP" in editions
+    community_packages_are_present = "C" in editions
+
+    if enterprise_packages_are_present:
+        results.append(
+            test_driver.run_debugger_tests(
+                [semver.VersionInfo.parse(new_version)],
+                run_props=RunProperties(True, False, False),
+            )
+        )
+
+        results.append(
+            test_driver.run_license_manager_tests(
+                [semver.VersionInfo.parse(new_version)]
+            )
+        )
+
+    if community_packages_are_present:
+        results.append(
+            test_driver.run_debugger_tests(
+                [semver.VersionInfo.parse(new_version)],
+                run_props=RunProperties(False, False, False),
+            )
+        )
 
     print("V" * 80)
     status = True
