@@ -127,20 +127,37 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
         finally:
             if analyzers.current_package_version() >= semver.VersionInfo.parse("3.9.0"):
                 print("Analyzer deletion started.")
-                # analyzers.delete_analyzer('My_AQL_Analyzer')
-                # analyzers.delete_analyzer('My_Collation_Analyzer')
-                # analyzers.delete_analyzer('My_Delimiter_Analyzer')
-                # analyzers.delete_analyzer('My_GeoJSON_Analyzer')
-                # analyzers.delete_analyzer('My_GeoPoint_Analyzer')
-                # analyzers.delete_analyzer('My_Identity_Analyzer')
-                # analyzers.delete_analyzer('My_N-Gram_Analyzer')
-                # analyzers.delete_analyzer('My_Norm_Analyzer')
-                # analyzers.delete_analyzer('My_Pipeline_Analyzer')
-                # analyzers.delete_analyzer('My_Segmentation_Alpha_Analyzer')
-                # analyzers.delete_analyzer('My_Stem_Analyzer')
-                # analyzers.delete_analyzer('My_Stopwords_Analyzer')
-                # analyzers.delete_analyzer('My_Text_Analyzer')
-                # print("Analyzer deletion completed.")
+                analyzer_delete_template_str = \
+                    lambda name: f'//*[@id="modal-content-delete-_system::{name}"]/div[3]/button[2]'
+
+                delete_analyzer_id_list = [analyzer_delete_template_str('My_AQL_Analyzer'),
+                                           analyzer_delete_template_str('My_Collation_Analyzer'),
+                                           analyzer_delete_template_str('My_Delimiter_Analyzer'),
+                                           analyzer_delete_template_str('My_GeoJSON_Analyzer'),
+                                           analyzer_delete_template_str('My_GeoPoint_Analyzer'),
+                                           analyzer_delete_template_str('My_Identity_Analyzer'),
+                                           analyzer_delete_template_str('My_N-Gram_Analyzer'),
+                                           analyzer_delete_template_str('My_Norm_Analyzer'),
+                                           analyzer_delete_template_str('My_Pipeline_Analyzer'),
+                                           analyzer_delete_template_str('My_Segmentation_Alpha_Analyzer'),
+                                           analyzer_delete_template_str('My_Stem_Analyzer'),
+                                           analyzer_delete_template_str('My_Stopwords_Analyzer'),
+                                           analyzer_delete_template_str('My_Text_Analyzer')]
+
+                # analyzers deletion start
+                analyzers.delete_analyzer('My_AQL_Analyzer', delete_analyzer_id_list[0])
+                analyzers.delete_analyzer('My_Collation_Analyzer', delete_analyzer_id_list[1])
+                analyzers.delete_analyzer('My_Delimiter_Analyzer', delete_analyzer_id_list[2])
+                analyzers.delete_analyzer('My_GeoJSON_Analyzer', delete_analyzer_id_list[3])
+                analyzers.delete_analyzer('My_GeoPoint_Analyzer', delete_analyzer_id_list[4])
+                analyzers.delete_analyzer('My_Identity_Analyzer', delete_analyzer_id_list[5])
+                analyzers.delete_analyzer('My_N-Gram_Analyzer', delete_analyzer_id_list[6])
+                analyzers.delete_analyzer('My_Norm_Analyzer', delete_analyzer_id_list[7])
+                analyzers.delete_analyzer('My_Pipeline_Analyzer', delete_analyzer_id_list[8])
+                analyzers.delete_analyzer('My_Segmentation_Alpha_Analyzer', delete_analyzer_id_list[9])
+                analyzers.delete_analyzer('My_Stem_Analyzer', delete_analyzer_id_list[10])
+                analyzers.delete_analyzer('My_Stopwords_Analyzer', delete_analyzer_id_list[11])
+                analyzers.delete_analyzer('My_Text_Analyzer', delete_analyzer_id_list[12])
                 del analyzers
                 print("---------Analyzers Page Test Completed--------- \n")
                 if self.exception:

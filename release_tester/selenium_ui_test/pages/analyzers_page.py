@@ -892,7 +892,7 @@ class AnalyzerPage(NavigationBarPage):
             print('Info: Error occured during checking expected error!')
 
 
-    def delete_analyzer(self, analyzer_name):
+    def delete_analyzer(self, analyzer_name, locator):
         """Deleting all the analyzer using their ID"""
         self.select_analyzers_page()
         self.webdriver.refresh()
@@ -909,8 +909,8 @@ class AnalyzerPage(NavigationBarPage):
             # force_delete.sitem = self.locator_finder_by_xpath(self, force_delete)
             # force_delete.sitem.click()
 
-            delete_btn = f'//*[@id="modal-content-delete-0"]/div[3]/button[2]'
-            delete_btn_sitem = self.locator_finder_by_xpath(delete_btn)
+            # delete_btn = f'//*[@id="modal-content-delete-0"]/div[3]/button[2]'
+            delete_btn_sitem = self.locator_finder_by_xpath(locator)
             delete_btn_sitem.click()
             time.sleep(2)
             print(f'Deletion of {analyzer_name} completed \n')
