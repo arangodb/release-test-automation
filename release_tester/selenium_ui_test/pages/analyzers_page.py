@@ -549,7 +549,10 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             print(f"Stream type selection using index value for {name}\n")
-            stream_type = "/html/body/div[144]/div/div[2]/div/div[4]/fieldset/div/div[4]/select"
+            # stream_type = "/html/body/div[144]/div/div[2]/div/div[4]/fieldset/div/div[4]/select" # todo works on 3.9 or less
+
+            stream_type = '/html/body/div[144]/div/div[2]/div/div[4]/fieldset/div/div[2]/table/tbody/tr[2]/td[2]/div/div[3]/div/div[4]/select'
+
             self.locator_finder_by_select_using_xpath(stream_type, 1)
             time.sleep(2)
         # GeoJson
@@ -747,7 +750,7 @@ class AnalyzerPage(NavigationBarPage):
                 print(f"Expected error scenario for the {name} Started \n")
 
                 # filling out the name placeholder first
-                stem_analyzer = "/html/body/div[68]/div/div[2]/div/div[1]/fieldset/div/div[1]/input"
+                stem_analyzer = "/html/body/div[156]/div/div[2]/div/div[1]/fieldset/div/div[1]/input"
                 stem_analyzer_sitem = self.locator_finder_by_xpath(stem_analyzer)
                 stem_analyzer_sitem.click()
                 stem_analyzer_sitem.clear()
