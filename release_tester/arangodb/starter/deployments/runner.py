@@ -1086,7 +1086,7 @@ class Runner(ABC):
     def cert_op(self, args):
         """create a certificate"""
         print(args)
-        cmd = [self.cfg.bin_dir / "arangodb", "create"] + args
+        cmd = [self.cfg.real_bin_dir / "arangodb", "create"] + args
         run_cmd_and_log_stdout(cmd)
 
     def create_cert_dir(self):

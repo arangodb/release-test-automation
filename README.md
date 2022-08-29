@@ -402,8 +402,9 @@ It consists of these files in test_data:
    - `100_collections.js` creates a set of collections / indices
    - `400_views.js` creates some views
    - `500_community_graph.js` creates a community patent graph
-   - `550_enterprise_graph.js` creates an enterprise patent graph
+   - `550_smart_graph.js` creates a smart patent graph
    - `560_smartgraph_validator.js` on top of the enterprise graph, this will check the integrity check of the server.
+   - `570_enterprise_graph.js` creates an enterprise patent graph
    - `900_oneshard.js` creates oneshard database and does stuff with it.
    - `607_analyzers.js` creates suported analyzers for 3.7.x version and check it's functionality.
       Added Analyzers: (documentation link: https://www.arangodb.com/docs/3.7/analyzers.html)
