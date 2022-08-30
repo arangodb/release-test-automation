@@ -25,7 +25,7 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
         try:
             if analyzers.current_package_version() >= semver.VersionInfo.parse("3.9.0"):
                 analyzers.select_analyzers_page()
-                # analyzers.select_help_filter_btn()
+                analyzers.select_help_filter_btn()
 
                 print("Showing in-built Analyzers list \n")
                 analyzers.select_built_in_analyzers_open()
