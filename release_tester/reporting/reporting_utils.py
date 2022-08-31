@@ -1,4 +1,5 @@
 """ utility functions/classes for allure reporting """
+import platform
 from pathlib import Path
 from string import Template
 from uuid import uuid4
@@ -238,7 +239,15 @@ class AllureTestSuiteContext:
                 self.parent_test_suite_name = generate_suite_name()
             else:
                 self.parent_test_suite_name = None
+            # Always add cpu architecture name to the suite name.
+            # Otherwise test results of the same test ran on different platforms could be mixed in the united allure report.
+            arch = platform.processor()
+            if self.parent_test_suite_name:
+                self.parent_test_suite_name += f" ({arch})"
+            elif self.test_suite_name:
+                self.test_suite_name += f" ({arch})"
         self.sub_suite_name=sub_suite_name
+
 
         if not self.file_logger:
             if AllureTestSuiteContext.test_suite_count == 0:
