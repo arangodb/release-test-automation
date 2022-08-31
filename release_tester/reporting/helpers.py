@@ -34,7 +34,7 @@ class StepData:
 class AllureListener:
     """allure plugin implementation"""
 
-    def __init__(self, default_test_suite_name=None, default_parent_test_suite_name=None, default_sub_suite_name=None):
+    def __init__(self, default_test_suite_name=None, default_parent_test_suite_name=None, default_sub_suite_name=None, default_labels=[]):
         self.allure_logger = AllureReporter()
         self._cache = ItemCache()
         self.default_test_suite_name = default_test_suite_name
@@ -43,6 +43,7 @@ class AllureListener:
         self.container_uuid=str(uuid4())
         self.current_testcase_container_uuid = None
         self.parent_test_listener = None
+        self.default_labels = default_labels
 
     @allure_commons.hookimpl
     def attach_data(self, body, name, attachment_type, extension):
@@ -124,7 +125,7 @@ class AllureListener:
         test_result.labels.append(Label(name=LabelType.FRAMEWORK, value="ArangoDB Release Test Automation"))
         self.allure_logger.schedule_test(uuid, test_result)
         self._cache.push(test_result, uuid)
-        for label in context.labels:
+        for label in self.default_labels + context.labels:
             test_result.labels.append(label)
         self.allure_logger.update_group(self.container_uuid, children=uuid)
         parent = self.parent_test_listener
