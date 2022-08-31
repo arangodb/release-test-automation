@@ -2,6 +2,7 @@
 """ analyzer page object """
 import time
 import traceback
+import semver
 from selenium_ui_test.pages.base_page import Keys
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import TimeoutException
@@ -24,22 +25,38 @@ class AnalyzerPage(NavigationBarPage):
         built_in_analyzer_template_str = \
             lambda leaflet: f'//*[@id="analyzersContent"]/div/div/table/tbody/tr[{leaflet}]/td[4]/button/i'
 
-        built_in_analyzer_id_list = [built_in_analyzer_template_str(13),
-                                     built_in_analyzer_template_str(31),
-                                     built_in_analyzer_template_str(32),
-                                     built_in_analyzer_template_str(33),
-                                     built_in_analyzer_template_str(34),
-                                     built_in_analyzer_template_str(35),
-                                     built_in_analyzer_template_str(36),
-                                     built_in_analyzer_template_str(37),
-                                     built_in_analyzer_template_str(38),
-                                     built_in_analyzer_template_str(39),
-                                     built_in_analyzer_template_str(40),
-                                     built_in_analyzer_template_str(41),
-                                     built_in_analyzer_template_str(42)]
+        package_version = self.current_package_version()
 
-        switch_view_template_str = \
-            lambda leaflet: f'//*[@id="modal-content-view-{leaflet}"]/div[1]/div/div[2]/button'
+        if package_version >= semver.VersionInfo.parse("3.10.0"):
+            built_in_analyzer_id_list = [built_in_analyzer_template_str(13),
+                                         built_in_analyzer_template_str(31),
+                                         built_in_analyzer_template_str(32),
+                                         built_in_analyzer_template_str(33),
+                                         built_in_analyzer_template_str(34),
+                                         built_in_analyzer_template_str(35),
+                                         built_in_analyzer_template_str(36),
+                                         built_in_analyzer_template_str(37),
+                                         built_in_analyzer_template_str(38),
+                                         built_in_analyzer_template_str(39),
+                                         built_in_analyzer_template_str(40),
+                                         built_in_analyzer_template_str(41),
+                                         built_in_analyzer_template_str(42)]
+        else:
+            built_in_analyzer_id_list = [built_in_analyzer_template_str(10),
+                                         built_in_analyzer_template_str(25),
+                                         built_in_analyzer_template_str(26),
+                                         built_in_analyzer_template_str(27),
+                                         built_in_analyzer_template_str(28),
+                                         built_in_analyzer_template_str(29),
+                                         built_in_analyzer_template_str(30),
+                                         built_in_analyzer_template_str(31),
+                                         built_in_analyzer_template_str(32),
+                                         built_in_analyzer_template_str(33),
+                                         built_in_analyzer_template_str(34),
+                                         built_in_analyzer_template_str(35),
+                                         built_in_analyzer_template_str(36)]
+
+        switch_view_template_str = lambda leaflet: f'//*[@id="modal-content-view-{leaflet}"]/div[1]/div/div[2]/button'
 
         switch_view_id_list = [switch_view_template_str('identity'),
                                switch_view_template_str('text_de'),
@@ -55,9 +72,8 @@ class AnalyzerPage(NavigationBarPage):
                                switch_view_template_str('text_sv'),
                                switch_view_template_str('text_zh')]
 
-
         self.identity_analyzer = built_in_analyzer_id_list[0]
-        self.identity_analyzer_switch_view = switch_view_id_list[0]
+        self.identity_switch_view = switch_view_id_list[0]
 
         self.text_de = built_in_analyzer_id_list[1]
         self.text_de_switch_view = switch_view_id_list[1]
@@ -150,7 +166,6 @@ class AnalyzerPage(NavigationBarPage):
         time.sleep(2)
 
         print("Switch to Code view \n")
-        time.sleep(2)
         switch_to_code_view = analyzer_view
         code_view_sitem = self.locator_finder_by_xpath(switch_to_code_view)
         code_view_sitem.click()
@@ -195,9 +210,28 @@ class AnalyzerPage(NavigationBarPage):
         analyzer_name_sitem.send_keys(name)
         time.sleep(2)
 
-        print("Selecting analyzer type \n")
-        self.locator_finder_by_select_using_xpath(analyzer_type, index)
-        time.sleep(2)
+        version = self.current_package_version()
+        # for v3.9.x
+        if version <= semver.VersionInfo.parse("3.9.99"):
+            print('Selecting analyzer type \n')
+            if name == "My_Pipeline_Analyzer":
+                self.locator_finder_by_select_using_xpath(analyzer_type, 10)
+                # changing default index value to match up with the description
+                index = 12
+            elif name == "My_GeoJSON_Analyzer":
+                self.locator_finder_by_select_using_xpath(analyzer_type, 11)
+                index = 13
+            elif name == "My_GeoPoint_Analyzer":
+                self.locator_finder_by_select_using_xpath(analyzer_type, 12)
+                index = 14
+            else:
+                self.locator_finder_by_select_using_xpath(analyzer_type, index)
+            time.sleep(2)
+        # for v3.10.x
+        else:
+            print('Selecting analyzer type \n')
+            self.locator_finder_by_select_using_xpath(analyzer_type, index)
+            time.sleep(2)
 
         print(f"selecting frequency for {name} \n")
         frequency_sitem = self.locator_finder_by_xpath(frequency)
@@ -927,6 +961,17 @@ class AnalyzerPage(NavigationBarPage):
             print(f"Expected error scenario for the {name} Completed \n")
         except Exception:
             print('Info: Error occured during checking expected error!')
+    
+    def analyzer_expected_error_check(self, div_id):
+        """This will call all the error scenario methods"""
+        print('Checking negative scenario for the identity analyzers name \n')
+        self.test_analyzer_expected_error('identity_analyzer', 0, div_id)
+        print('Checking negative scenario for the stem analyzers locale value \n')
+        self.test_analyzer_expected_error('stem_analyzer', 2, div_id)
+        print('Checking negative scenario for the stem analyzers locale value \n')
+        self.test_analyzer_expected_error('n-gram_analyzer', 4, div_id)
+        print('Checking negative scenario for the AQL analyzers \n')
+        self.test_analyzer_expected_error('AQL_analyzer', 6, div_id)
 
 
     def delete_analyzer(self, analyzer_name):
