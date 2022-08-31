@@ -108,7 +108,7 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
                     analyzers.add_new_analyzer('My_GeoPoint_Analyzer', 14, 184)
 
                     print('Checking analyzer expected error scenario \n')
-                    analyzers.analyzer_expected_error_check(184)
+                    analyzers.analyzer_expected_error_check(188)
                 
                 else:
                     print('Adding Identity analyzer \n')
@@ -151,7 +151,7 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
                     analyzers.add_new_analyzer('My_GeoPoint_Analyzer', 12, 152)
 
                     print('Checking analyzer expected error scenario \n')
-                    analyzers.analyzer_expected_error_check(152)
+                    analyzers.analyzer_expected_error_check(156)
                 
                 print("Checking analyzer search filter options started \n")
                 analyzers.checking_search_filter_option("de")

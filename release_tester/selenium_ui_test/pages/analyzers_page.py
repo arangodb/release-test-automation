@@ -27,7 +27,7 @@ class AnalyzerPage(NavigationBarPage):
 
         package_version = self.current_package_version()
 
-        if package_version >= semver.VersionInfo.parse("3.10.0"):
+        if package_version >= semver.VersionInfo.parse("3.9.99"):
             built_in_analyzer_id_list = [built_in_analyzer_template_str(13),
                                          built_in_analyzer_template_str(31),
                                          built_in_analyzer_template_str(32),
@@ -74,7 +74,7 @@ class AnalyzerPage(NavigationBarPage):
 
         self.identity_analyzer = built_in_analyzer_id_list[0]
         self.identity_switch_view = switch_view_id_list[0]
-
+        
         self.text_de = built_in_analyzer_id_list[1]
         self.text_de_switch_view = switch_view_id_list[1]
 
