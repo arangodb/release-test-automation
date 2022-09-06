@@ -80,6 +80,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         cmd,
         args,
         progressive_timeout,
+        deadline=1000,
         result_line_handler=default_line_result,
         process_control=False,
         verbose=True,
@@ -114,7 +115,8 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             params=make_default_params(verbose),
             progressive_timeout=progressive_timeout,
             result_line_handler=result_line_handler,
-            expect_to_fail=expect_to_fail
+            expect_to_fail=expect_to_fail,
+            deadline=deadline
         )
 
     def run_testing(self,
@@ -234,7 +236,9 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                         args=[],
                         moreargs=[],
                         result_line_handler=default_line_result,
-                        progressive_timeout=100):
+                        deadline=1000,
+                        progressive_timeout=100,
+                        ):
         # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=dangerous-default-value
         """mimic runInArangosh testing.js behaviour"""
         if testname:
@@ -262,7 +266,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             result_line_handler=result_line_handler,
             process_control=True,
             verbose=self.cfg.verbose,
-        )
+            deadline=deadline)
         return ret
 
     @step
