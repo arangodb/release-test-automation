@@ -470,12 +470,7 @@ class ViewsPage(NavigationBarPage):
     def creating_black_collection_and_analyzer(self):
         """Creating blank col and analyzer for testing"""
         print('creating blank collection and analyzer for link tab\n')
-        # collection = 'collections'  # TODO add navbar navigation here
-        # collection_sitem = self.locator_finder_by_id(collection)
-        # collection_sitem.click()
-
         self.navbar_goto("collections")
-
         time.sleep(1)
         create_col = 'createCollection'
         create_col_sitem = self.locator_finder_by_id(create_col)
@@ -494,14 +489,8 @@ class ViewsPage(NavigationBarPage):
         time.sleep(2)
 
         # print('creating analyzer for links tab\n')
-        # # analyzer = "analyzers"  # TODO add navbar navigation here
-        # # analyzer_sitem = self.locator_finder_by_id(analyzer)
-        # # analyzer_sitem.click()
-        # # time.sleep(1)
+        # self.navbar_goto("analyzers")
 
-        self.navbar_goto("analyzers")
-
-        #
         # add_analyzer = '//*[@id="analyzersContent"]/div/div/div/div/button/i'
         # add_analyzer_sitem = self.locator_finder_by_xpath(add_analyzer)
         # add_analyzer_sitem.click()
@@ -519,10 +508,7 @@ class ViewsPage(NavigationBarPage):
         # create_analyzer_sitem.click()
 
         # go back to view tab
-        views = 'views'
-        views_sitem = self.locator_finder_by_id(views)
-        views_sitem.click()
-        time.sleep(1)
+        self.navbar_goto("views")
 
 
     def checking_improved_views_for_v310(self, name, locator, is_cluster):
@@ -546,7 +532,7 @@ class ViewsPage(NavigationBarPage):
         time.sleep(1)
 
         print(f'Checking cleanup interval for the {name} \n')
-        cleanup_interval = "/html/body/div[2]/div/div[2]/div[2]/div/div/div/div/div[1]/table/tbody/tr[2]/th[2]/input"
+        cleanup_interval = "/html/body/div[2]/div/div[2]/div[2]/div/div/div/div[1]/table/tbody/tr[2]/th[2]/input"
         cleanup_interval_sitem = self.locator_finder_by_xpath(cleanup_interval)
         cleanup_interval_sitem.click()
         cleanup_interval_sitem.clear()
@@ -554,44 +540,80 @@ class ViewsPage(NavigationBarPage):
         time.sleep(1)
 
         print(f'Checking commit interval for the {name} \n')
-        commit_interval = "/html/body/div[2]/div/div[2]/div[2]/div/div/div/div/div[1]/table/tbody/tr[3]/th[2]/input"
+        commit_interval = "/html/body/div[2]/div/div[2]/div[2]/div/div/div/div[1]/table/tbody/tr[3]/th[2]/input"
         commit_interval_sitem = self.locator_finder_by_xpath(commit_interval)
         commit_interval_sitem.click()
         commit_interval_sitem.clear()
         commit_interval_sitem.send_keys(1100)
         time.sleep(1)
-        self.wait_for_ajax()
 
         print(f'Checking consolidation interval time for the {name} \n')
-        consolidation_interval = "/html/body/div[2]/div/div[2]/div[2]/div/div/div/div/div[1]/table/tbody/tr[4]/th[" \
-                                 "2]/input "
+        consolidation_interval = "/html/body/div[2]/div/div[2]/div[2]/div/div/div/div[1]/table/tbody/tr[4]/th[2]/input"
         consolidation_interval_sitem = self.locator_finder_by_xpath(consolidation_interval)
         consolidation_interval_sitem.click()
         consolidation_interval_sitem.clear()
         consolidation_interval_sitem.send_keys(1200)
         time.sleep(2)
-        self.wait_for_ajax()
+
+        consolidation_template_str = lambda \
+            leaflet: f'/html/body/div[2]/div/div[2]/div[2]/div/div/div/div[2]/table/tbody/tr[{leaflet}]/th[2]/input'
+
+        consolidation_list = [consolidation_template_str(2),
+                              consolidation_template_str(3),
+                              consolidation_template_str(4),
+                              consolidation_template_str(5)
+                              ]
+        print("Selecting segment min \n")
+        segment_min = consolidation_list[0]
+        segment_min_sitem = self.locator_finder_by_xpath(segment_min)
+        segment_min_sitem.click()
+        segment_min_sitem.clear()
+        segment_min_sitem.send_keys("3")
+        time.sleep(2)
+
+        print("Selecting segment max \n")
+        segment_max = consolidation_list[1]
+        segment_max_sitem = self.locator_finder_by_xpath(segment_max)
+        segment_max_sitem.click()
+        segment_max_sitem.clear()
+        segment_max_sitem.send_keys("12")
+        time.sleep(2)
+
+        print("Selecting segments byte max \n")
+        segment_byte_max = consolidation_list[2]
+        segment_byte_max_sitem = self.locator_finder_by_xpath(segment_byte_max)
+        segment_byte_max_sitem.click()
+        segment_byte_max_sitem.clear()
+        segment_byte_max_sitem.send_keys("5368709128")
+        time.sleep(2)
+
+        print("Selecting segments bytes floor \n")
+        segment_byte_floor = consolidation_list[3]
+        segment_byte_floor_sitem = self.locator_finder_by_xpath(segment_byte_floor)
+        segment_byte_floor_sitem.click()
+        segment_byte_floor_sitem.clear()
+        segment_byte_floor_sitem.send_keys("2097158")
+        time.sleep(2)
 
         print(f'Checking unsaved changes pop-up dialogue \n')
-        # graphs = "graphs"  # TODO add navbar navigation here
-        # graphs_sitem = self.locator_finder_by_id(graphs)
-        # graphs_sitem.click()
-        self.navbar_goto("graphs")
+        graphs = "graphs"  # TODO add navbar navigation here
+        graphs_sitem = self.locator_finder_by_id(graphs)
+        graphs_sitem.click()
         time.sleep(3)
-        self.wait_for_ajax()
 
         cancel_popup = "modalButton0"
         cancel_popup_sitem = self.locator_finder_by_id(cancel_popup)
         cancel_popup_sitem.click()
         time.sleep(1)
 
+        # at this point views will save and good to add more things to it
         print(f'Saving the changes for the {name} \n')
         save_changes = "//*[text()='Save View']"
         save_changes_sitem = self.locator_finder_by_xpath(save_changes)
         save_changes_sitem.click()
         time.sleep(2)
-        self.wait_for_ajax()
 
+        # creating example collection & analyzer for the view
         self.creating_black_collection_and_analyzer()
 
         print(f'Selecting {name} again\n')
@@ -599,88 +621,66 @@ class ViewsPage(NavigationBarPage):
         select_view_sitem.click()
         time.sleep(1)
 
-        # Links tab start here
+        print('Selecting Link tab \n')
         links = "//div[@id='subNavigationBar']/ul[2]//a[.='Links']"
         links_sitem = self.locator_finder_by_xpath(links)
         links_sitem.click()
         time.sleep(1)
 
-        print('Selecting create link button\n')
-        # add_link = 'fa fa-plus-circle'  # class name doesn't work
-        add_link = "(//i[@class='fa fa-plus-circle'])[1]"
-        add_link_sitem = self.locator_finder_by_xpath(add_link)
-        add_link_sitem.click()
+        print('Entering collection name to the link \n')
+        select_col = "/html/body/div[2]/div/div[2]/div[2]/div/div/div/div/div/ul/li/span/input"
+        select_col_sitem = self.locator_finder_by_xpath(select_col)
+        select_col_sitem.click()
+        select_col_sitem.send_keys('my_collectio')
         time.sleep(1)
 
         print('Adding collection to the link \n')
-        add_col = '/html/body/div[2]/div/div[2]/div[2]/div/div/div/div/div/main/table/tbody/tr/td/table/tbody/tr/td[' \
-                  '1]/span/input '
+        add_col = '/html/body/div[2]/div/div[2]/div[2]/div/div/div/div/div/ul/li/span/ul/li/strong'
         add_col_stiem = self.locator_finder_by_xpath(add_col)
         add_col_stiem.click()
-        add_col_stiem.send_keys('my_collection')
         time.sleep(1)
 
-        print('adding collection to the links \n')
-        add_button = 'button-warning'
-        add_button_sitem = self.locator_finder_by_class(add_button)
-        add_button_sitem.click()
+        print('Saving the updated views links\n')
+        save_link = '//*[@id="modal-dialog"]/div/div/div[2]/button'
+        save_link_sitem = self.locator_finder_by_xpath(save_link)
+        save_link_sitem.click()
+        time.sleep(2)
+
+        print('Select my_collection \n')
+        select_my_col = "//*[text()='my_collection']"
+        select_my_col_sitem = self.locator_finder_by_xpath(select_my_col)
+        select_my_col_sitem.click()
+        time.sleep(1)
+
+        print('Selecting include all fields\n')
+        include = "//*[text()='Include All Fields']"
+        include_sitem = self.locator_finder_by_xpath(include)
+        include_sitem.click()
+        time.sleep(1)
+
+        print('Selecting Track List fields\n')
+        track_list = "// *[text() = 'Track List Positions']"
+        track_list_sitem = self.locator_finder_by_xpath(track_list)
+        track_list_sitem.click()
+        time.sleep(1)
+
+        print('Selecting stored id fields\n')
+        stored_id_list = "// *[text() = 'Store ID Values']"
+        stored_id_list_sitem = self.locator_finder_by_xpath(stored_id_list)
+        stored_id_list_sitem.click()
+        time.sleep(1)
+
+        print('Selecting background fields\n')
+        background = "// *[text() = 'In Background']"
+        background_sitem = self.locator_finder_by_xpath(background)
+        background_sitem.click()
         time.sleep(1)
 
         print('Saving updated links\n')
-        save = "/html/body/div[2]/div/div[2]/div[2]/div/div/div/button"
-        save_sitem = self.locator_finder_by_xpath(save)
+        save = "modalButton1"
+        save_sitem = self.locator_finder_by_id(save)
         save_sitem.click()
         time.sleep(2)
-        self.wait_for_ajax()
-
-        print('Consolidation policy tab check start here\n')
-        consolidation = "//div[@id='subNavigationBar']/ul[2]//a[.='Consolidation Policy']"
-        consolidation_sitem = self.locator_finder_by_xpath(consolidation)
-        consolidation_sitem.click()
-        time.sleep(1)
-
-        print("Selecting segment min \n")
-        segment_min = '/html/body/div[2]/div/div[2]/div[2]/div/div/div/div/div[1]/table/tbody/tr[2]/th[2]/input'
-        segment_min_sitem = self.locator_finder_by_xpath(segment_min)
-        segment_min_sitem.click()
-        segment_min_sitem.clear()
-        segment_min_sitem.send_keys("3")
-        time.sleep(2)
-        self.wait_for_ajax()
-
-        print("Selecting segment max \n")
-        segment_max = '/html/body/div[2]/div/div[2]/div[2]/div/div/div/div/div/table/tbody/tr[3]/th[2]/input'
-        segment_max_sitem = self.locator_finder_by_xpath(segment_max)
-        segment_max_sitem.click()
-        segment_max_sitem.clear()
-        segment_max_sitem.send_keys("12")
-        time.sleep(2)
-        self.wait_for_ajax()
-
-        print("Selecting segments byte max \n")
-        segment_byte_max = "/html/body/div[2]/div/div[2]/div[2]/div/div/div/div/div/table/tbody/tr[4]/th[2]/input"
-        segment_byte_max_sitem = self.locator_finder_by_xpath(segment_byte_max)
-        segment_byte_max_sitem.click()
-        segment_byte_max_sitem.clear()
-        segment_byte_max_sitem.send_keys("5368709128")
-        time.sleep(2)
-        self.wait_for_ajax()
-
-        print("Selecting segments bytes floor \n")
-        segment_byte_floor = "/html/body/div[2]/div/div[2]/div[2]/div/div/div/div/div/table/tbody/tr[5]/th[2]/input"
-        segment_byte_floor_sitem = self.locator_finder_by_xpath(segment_byte_floor)
-        segment_byte_floor_sitem.click()
-        segment_byte_floor_sitem.clear()
-        segment_byte_floor_sitem.send_keys("2097158")
-        time.sleep(2)
-        self.wait_for_ajax()
-
-        print('Saving the new consolidation settings\n')
-        save_btn = "//div[@id='Save']/button[@class='button-success']"
-        save_btn_sitem = self.locator_finder_by_xpath(save_btn)
-        save_btn_sitem.click()
-        time.sleep(2)
-        self.wait_for_ajax()
 
         # json tab check start here
         # TODO https://arangodb.atlassian.net/browse/BTS-901

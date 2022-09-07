@@ -116,7 +116,7 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
                 views.delete_views('renamed_view', views.select_renamed_view_id)
                 views.delete_views('second_view', views.select_second_view_id)
                 print('Deleting views completed for <= v3.8.x \n')
-
+            # deleting views for >= v3.9.x
             elif semver.VersionInfo.parse("3.8.100") < views.current_package_version() \
                     < semver.VersionInfo.parse("3.9.100"):
                 print("Views deletion started for >= v3.9.x \n")
