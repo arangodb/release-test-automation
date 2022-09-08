@@ -488,25 +488,6 @@ class ViewsPage(NavigationBarPage):
         save_btn_sitem.click()
         time.sleep(2)
 
-        # print('creating analyzer for links tab\n')
-        # self.navbar_goto("analyzers")
-
-        # add_analyzer = '//*[@id="analyzersContent"]/div/div/div/div/button/i'
-        # add_analyzer_sitem = self.locator_finder_by_xpath(add_analyzer)
-        # add_analyzer_sitem.click()
-        # time.sleep(1)
-        #
-        # analyzer_name = "(//input[@type='text'])[2]"
-        # analyzer_name_sitem = self.locator_finder_by_xpath(analyzer_name)
-        # analyzer_name_sitem.click()
-        # analyzer_name_sitem.send_keys('my_delimiter')
-        # time.sleep(1)
-        #
-        # print('Creating analyzer \n')
-        # create_analyzer = "(//button[normalize-space()='Create'])[1]"
-        # create_analyzer_sitem = self.locator_finder_by_xpath(create_analyzer)
-        # create_analyzer_sitem.click()
-
         # go back to view tab
         self.navbar_goto("views")
 
@@ -677,29 +658,31 @@ class ViewsPage(NavigationBarPage):
         time.sleep(1)
 
         print('Saving updated links\n')
-        save = "modalButton1"
-        save_sitem = self.locator_finder_by_id(save)
+        save = "//*[text()='Save View']"
+        save_sitem = self.locator_finder_by_xpath(save)
         save_sitem.click()
         time.sleep(2)
 
         # json tab check start here
-        # TODO https://arangodb.atlassian.net/browse/BTS-901
-        # print("Selecting json tab\n")
-        # json_tab = '//*[@id="subNavigationBar"]/ul[2]/li[4]/a'
-        # json_tab_sitem = self.locator_finder_by_xpath(json_tab)
-        # json_tab_sitem.click()
-        # time.sleep(1)
-        #
-        # self.select_collapse_btn()
-        # print("Selecting expand button \n")
-        # self.select_expand_btn()
-        #
-        # print('Discard the changes for JSON tab\n')
-        # discard = '//*[@id="Save"]/button'
-        # discard_sitem = self.locator_finder_by_xpath(discard)
-        # discard_sitem.click()
-        # time.sleep(1)
+        print("Selecting json tab\n")
+        json_tab = "//*[text()='JSON']"
+        json_tab_sitem = self.locator_finder_by_xpath(json_tab)
+        json_tab_sitem.click()
+        time.sleep(1)
 
+        self.select_collapse_btn()
+        time.sleep(1)
+        print("Selecting expand button \n")
+        self.select_expand_btn()
+        time.sleep(1)
+
+        print('Discard the changes for JSON tab\n')
+        discard = '//*[@id="Save"]/button'
+        discard_sitem = self.locator_finder_by_xpath(discard)
+        discard_sitem.click()
+        time.sleep(1)
+
+        # renaming views
         if is_cluster:
             print('Renaming views are disabled for the Cluster deployment')
         else:
@@ -708,23 +691,23 @@ class ViewsPage(NavigationBarPage):
 
             self.select_views_tab()
 
+            print(f'Selecting {name} for renaming \n')
             select_view_sitem = self.locator_finder_by_xpath(locator)
-            select_view_sitem.click()
+            select_view_sitem.click()   # already in the settings tab
             time.sleep(1)
 
-            modified_name = '/html/body/div[2]/div/div[2]/div[2]/div/div/div/div/div[1]/table/tbody/tr[1]/th[2]/input'
+            modified_name = "//input[@value='improved_arangosearch_view_01']"
             modified_name_sitem = self.locator_finder_by_xpath(modified_name)
             modified_name_sitem.click()
             modified_name_sitem.clear()
             modified_name_sitem.send_keys('modified_views_name')
             time.sleep(1)
 
-            save = "//div[@id='Actions']/button[@class='button-success']"
+            save = "//*[text()='Save View']"
             save_sitem = self.locator_finder_by_xpath(save)
             save_sitem.click()
             print("Rename the current Views completed \n")
         print(f'Checking {name} Completed \n')
-
 
     def checking_views_negative_scenario_for_views(self):
         """This method will check negative input for views name during creation"""
@@ -841,7 +824,7 @@ class ViewsPage(NavigationBarPage):
             setting = "//*[text()='Settings']"
             setting_sitem = self.locator_finder_by_xpath(setting)
             setting_sitem.click()
-            time.sleep(1)
+            time.sleep(2)
 
             delete = "//*[text()='Delete']"
             delete_sitem = self.locator_finder_by_xpath(delete)
