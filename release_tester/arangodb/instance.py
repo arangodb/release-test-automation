@@ -108,15 +108,16 @@ class Instance(ABC):
         logging.debug("creating {0.type_str} instance: {0.name}".format(self))
 
     def get_structure(self):
+        """ return instance structure like testing.js does """
         url = ('https' if self.ssl else 'http') + '127.0.0.1:' + str(self.port) + '/'
-        endpoint = ('ssl' if self.ssl else 'tcp') + '127.0.0.1:' + str(self.port) + '/'
-        
+        protocol = ('ssl' if self.ssl else 'tcp') 
+        endpoint = protocol + '127.0.0.1:' + str(self.port) + '/'
         return {
             'name': self.name,
             'instanceRole': self.type_str,
             'message': '',
             'rootDir': str(self.basedir),
-            'protocol': self.protocol,
+            'protocol': protocol,
             'authHeaders': "",
             'restKeyFile': "",
             'agencyConfig': {},

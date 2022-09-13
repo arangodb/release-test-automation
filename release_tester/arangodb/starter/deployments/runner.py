@@ -1132,3 +1132,12 @@ class Runner(ABC):
 
     def set_selenium_instances(self):
         """set instances in selenium runner"""
+
+    def get_process_structure(self):
+        """ resemble the testing.js INSTANCEINFO env """
+        instances = []
+        for starter in self.starter_instances:
+            for instance in starter.all_instances:
+                instances.append(instance.get_structure())
+        os.environ['INSTANCEINFO'] = json.dumps(instances)
+
