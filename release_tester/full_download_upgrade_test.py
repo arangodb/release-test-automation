@@ -100,7 +100,7 @@ def upgrade_package_test(
         # FIXME: Add custom CA to Chrome to properly validate server cert.
         # if props.ssl:
         #    selenium_driver_args += ("ignore-certificate-errors",)
-
+        these_versions = []
         for props in EXECUTION_PLAN:
             if props.directory_suffix not in editions:
                 print("skipping " + props.directory_suffix)
@@ -137,40 +137,42 @@ def upgrade_package_test(
             test_driver.reset_test_data_dir(this_test_dir)
 
             results.append(test_driver.run_upgrade([dl_old.cfg.version, dl_new.cfg.version], props))
+            these_versions.append([dl_new.cfg.version, dl_old.cfg.version])
 
-            enterprise_packages_are_present = "EE" in editions or "EP" in editions
-            community_packages_are_present = "C" in editions
+        enterprise_packages_are_present = "EE" in editions or "EP" in editions
+        community_packages_are_present = "C" in editions
+        [new_version, old_version] = these_versions[0]
 
-            if enterprise_packages_are_present and community_packages_are_present:
-                for use_enterprise in [True, False]:
-                    results.append(
-                        test_driver.run_conflict_tests(
-                            [dl_old.cfg.version, dl_new.cfg.version],
-                            enterprise=use_enterprise,
-                        )
-                    )
-
-            if enterprise_packages_are_present:
+        if enterprise_packages_are_present and community_packages_are_present:
+            for use_enterprise in [True, False]:
                 results.append(
-                    test_driver.run_debugger_tests(
-                        [semver.VersionInfo.parse(dl_old.cfg.version), semver.VersionInfo.parse(dl_new.cfg.version)],
-                        run_props=RunProperties(True, False, False),
+                    test_driver.run_conflict_tests(
+                        [old_version, new_version],
+                        enterprise=use_enterprise,
                     )
                 )
 
-                results.append(
-                    test_driver.run_license_manager_tests(
-                        [semver.VersionInfo.parse(dl_old.cfg.version), semver.VersionInfo.parse(dl_new.cfg.version)]
-                    )
+        if enterprise_packages_are_present:
+            results.append(
+                test_driver.run_debugger_tests(
+                    [semver.VersionInfo.parse(old_version), semver.VersionInfo.parse(new_version)],
+                    run_props=RunProperties(True, False, False),
                 )
+            )
 
-            if community_packages_are_present:
-                results.append(
-                    test_driver.run_debugger_tests(
-                        [semver.VersionInfo.parse(dl_old.cfg.version), semver.VersionInfo.parse(dl_new.cfg.version)],
-                        run_props=RunProperties(False, False, False),
-                    )
+            results.append(
+                test_driver.run_license_manager_tests(
+                    [semver.VersionInfo.parse(old_version), semver.VersionInfo.parse(new_version)],
                 )
+            )
+
+        if community_packages_are_present:
+            results.append(
+                test_driver.run_debugger_tests(
+                    [semver.VersionInfo.parse(old_version), semver.VersionInfo.parse(new_version)],
+                    run_props=RunProperties(False, False, False),
+                )
+            )
 
     print("V" * 80)
     status = True

@@ -457,6 +457,7 @@ class Dc2Dc(Runner):
             (self.cfg.test_data_dir / Path("tests/js/server/replication/fuzz/replication-fuzz-global.js")),
             [],
             args,
+            deadline=6000
         )
         if not res[0]:
             if not self.cfg.verbose:

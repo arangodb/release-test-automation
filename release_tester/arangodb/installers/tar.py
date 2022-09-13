@@ -23,10 +23,17 @@ class InstallerTAR(InstallerArchive):
         self.basedir = Path("/tmp")
         if "WORKSPACE_TMP" in os.environ:
             self.basedir = Path(os.environ["WORKSPACE_TMP"])
-        self.extension = "tar.gz"
-        self.remote_package_dir = "Linux"
         cfg.localhost = "localhost"
-        self.operating_system = "linux"
+        self.extension = "tar.gz"
+        if MACVER[0]:
+            self.remote_package_dir = "MacOSX"
+            self.operating_system = "macos"
+            self.installer_type = ".tar.gz MacOS"
+        else:
+            self.remote_package_dir = "Linux"
+            self.operating_system = "linux"
+            self.installer_type = ".tar.gz Linux"
+
         self.architecture = ""
         if cfg.semver > semver.VersionInfo.parse("3.9.99"):
             arch = platform.machine()
@@ -34,7 +41,6 @@ class InstallerTAR(InstallerArchive):
                 arch = 'arm64'
             self.architecture = '_' + arch
         self.dash = "-"
-        self.installer_type = ".tar.gz Linux"
         self.hot_backup = True
 
         super().__init__(cfg)

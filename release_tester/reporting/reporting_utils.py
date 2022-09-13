@@ -1,4 +1,6 @@
 """ utility functions/classes for allure reporting """
+import platform
+import sys
 from pathlib import Path
 from string import Template
 from uuid import uuid4
@@ -6,8 +8,8 @@ from uuid import uuid4
 import allure_commons
 from allure_commons._allure import attach, StepContext
 from allure_commons.logger import AllureFileLogger
-from allure_commons.model2 import Status
-from allure_commons.types import AttachmentType
+from allure_commons.model2 import Status, Label
+from allure_commons.types import AttachmentType, LabelType
 from tabulate import tabulate
 #pylint: disable=import-error
 from reporting.helpers import AllureListener
@@ -177,7 +179,8 @@ class AllureTestSuiteContext:
             suite_name=None,
             sub_suite_name=None,
             runner_type=None,
-            installer_type=None
+            installer_type=None,
+            labels=[]
     ):
         def generate_suite_name():
             if properties.enterprise:
@@ -216,7 +219,7 @@ class AllureTestSuiteContext:
                 test_suite_name = "[" + str(runner_type) + "] " + test_suite_name
 
             return test_suite_name
-
+        self.labels = labels
         test_listeners = [p for p in allure_commons.plugin_manager.get_plugins() if
                           isinstance(p, AllureListener)]
         self.previous_test_listener = None if len(test_listeners) == 0 else test_listeners[0]
@@ -227,6 +230,7 @@ class AllureTestSuiteContext:
         if self.previous_test_listener:
             self.parent_test_suite_name = self.previous_test_listener.default_parent_test_suite_name
             self.test_suite_name = self.previous_test_listener.default_test_suite_name
+            self.labels = self.previous_test_listener.default_labels
         else:
             if suite_name:
                 self.test_suite_name = suite_name
@@ -238,7 +242,19 @@ class AllureTestSuiteContext:
                 self.parent_test_suite_name = generate_suite_name()
             else:
                 self.parent_test_suite_name = None
+            # Always add cpu architecture name to the suite name.
+            # Otherwise test results of the same test ran on different platforms could be mixed in the united allure report.
+            # Add cpu arch and OS name to tags for extra convenience.
+            arch = platform.processor()
+            os = sys.platform
+            self.labels.append(Label(name=LabelType.TAG, value=arch))
+            self.labels.append(Label(name=LabelType.TAG, value=os))
+            if self.parent_test_suite_name:
+                self.parent_test_suite_name += f" ({arch})"
+            elif self.test_suite_name:
+                self.test_suite_name += f" ({arch})"
         self.sub_suite_name=sub_suite_name
+
 
         if not self.file_logger:
             if AllureTestSuiteContext.test_suite_count == 0:
@@ -253,6 +269,7 @@ class AllureTestSuiteContext:
             default_test_suite_name=self.test_suite_name,
             default_parent_test_suite_name=self.parent_test_suite_name,
             default_sub_suite_name=self.sub_suite_name,
+            default_labels=self.labels
         )
         allure_commons.plugin_manager.register(self.test_listener)
         self.test_listener.start_suite_container(self.generate_container_name())
