@@ -141,6 +141,7 @@ db.testCollection.save({test: "document"})
             node.set_passvoid("cluster", count == 0)
             count += 1
         self.passvoid = "cluster"
+        self.get_process_structure()
 
     def finish_setup_impl(self):
         self.makedata_instances = self.starter_instances[:]
