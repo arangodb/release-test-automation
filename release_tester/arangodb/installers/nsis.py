@@ -82,7 +82,7 @@ class InstallerNsis(InstallerWin):
         enterprise = "e" if self.cfg.enterprise else ""
         semdict = dict(self.cfg.semver.to_dict())
         if semdict["prerelease"]:
-            if prerelease.startswith("rc"):
+            if semdict["prerelease"].startswith("rc"):
                 semdict["prerelease"] = "-" + semdict["prerelease"].replace("rc", "rc.")
             else:
                 semdict["prerelease"] = "-{prerelease}".format(**semdict)
