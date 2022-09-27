@@ -182,7 +182,7 @@ class InstallerMac(InstallerBase):
 
     def calculate_package_names(self):
         enterprise = "e" if self.cfg.enterprise else ""
-        architecture = "x86_64"
+        architecture = "x86_64" if self.machine == "x86_64" else "arm64"
 
         prerelease = self.cfg.semver.prerelease
         semdict = dict(self.cfg.semver.to_dict())
