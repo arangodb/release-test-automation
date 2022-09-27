@@ -43,7 +43,10 @@ class InstallerZip(InstallerArchive, InstallerWin):
 
         semdict = dict(self.cfg.semver.to_dict())
         if semdict["prerelease"]:
-            semdict["prerelease"] = "-{prerelease}".format(**semdict)
+            if semdict["prerelease"].startswith("rc"):
+                semdict["prerelease"] = "-" + semdict["prerelease"].replace("rc", "rc.")
+            else:
+                semdict["prerelease"] = "-{prerelease}".format(**semdict)
         else:
             semdict["prerelease"] = ""
         version = "{major}.{minor}.{patch}{prerelease}".format(**semdict)
