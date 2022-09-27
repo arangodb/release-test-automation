@@ -101,6 +101,7 @@ function getMetricsForCollections(cols) {
 (function () {
   return {
     isSupported: function (version, oldVersion, options, enterprise, cluster) {
+      return false;
       print(process.env)
       // OldVersion is optional and used in case of upgrade.
       // It resambles the version we are upgradeing from
