@@ -194,7 +194,7 @@ class Download:
             "bare_major_version": "{major}.{minor}".format(**self.cfg.semver.to_dict()),
             "remote_package_dir": self.inst.remote_package_dir,
             "path_architecture": self.path_architecture,
-            "enterprise": "" ,# "Enterprise" if self.cfg.enterprise else "Community",
+            "enterprise": "Enterprise" if self.cfg.enterprise else "Community",
             "enterprise_magic": self.options.enterprise_magic + "/" if self.cfg.enterprise else "",
             "packages": "" if self.is_nightly else "packages",
             "nightly": "nightly" if self.is_nightly else "",

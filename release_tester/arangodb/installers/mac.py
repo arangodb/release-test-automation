@@ -197,7 +197,7 @@ class InstallerMac(InstallerBase):
         elif prerelease.startswith("beta"):
             semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
         elif prerelease.startswith("rc"):
-            semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
+            semdict["prerelease"] = "-" + semdict["prerelease"].replace("rc", "rc.")
         elif len(prerelease) > 0:
             semdict["build"] = "." + semdict["prerelease"]
             semdict["prerelease"] = ""
