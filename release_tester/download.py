@@ -201,6 +201,8 @@ class Download:
         }
         if self.is_nightly:
             self.params["enterprise"] = ""
+        else:
+            self.params["path_architecture"] = ""
 
         self.directories = {
             "ftp:stage1": "/stage1/{full_version}/release/packages/{enterprise}/{remote_package_dir}/".format(
