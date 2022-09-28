@@ -4,6 +4,7 @@ import logging
 import re
 import time
 from pathlib import Path
+import platform
 
 import requests
 import semver
@@ -28,6 +29,7 @@ SYNC_VERSIONS = {
 STARTER_VERSIONS = {"152": semver.VersionInfo.parse("0.15.2")}
 USERS_ERROR_RX = re.compile(".*_system.*_users.*DIFFERENT.*")
 STATUS_INACTIVE = "inactive"
+IS_MAC = platform.mac_ver()[0]
 
 
 def _create_headers(token):
@@ -316,6 +318,8 @@ class Dc2Dc(Runner):
         return semver.VersionInfo.parse(version)
 
     def _stop_sync(self, timeout=130):
+        if IS_MAC:
+            timeout *= 1.3
         try:
             timeout_start = time.time()
             if self._is_higher_sync_version(SYNC_VERSIONS["150"], SYNC_VERSIONS["230"]):
