@@ -105,6 +105,7 @@ class Download:
         existing_version_states={},
         new_version_states={},
         git_version="",
+        force_arch="",
     ):
         """main"""
         lh.section("configuration")
@@ -156,9 +157,14 @@ class Download:
         )
 
         self.inst = make_installer(self.cfg)
+        machine = platform.machine()
+        if force_arch != "":
+            machine = force_arch
+            self.inst.machine = machine
+        
+        
         self.path_architecture = ""
         if self.is_nightly or self.cfg.semver > semver.VersionInfo.parse("3.9.99"):
-            machine = platform.machine()
             if machine == 'AMD64':
                 machine = 'x86_64'
             self.path_architecture = machine + '/'
@@ -377,7 +383,8 @@ def main(**kwargs):
         enterprise=kwargs['enterprise'],
         zip_package=kwargs['zip_package'],
         src_testing=kwargs['src_testing'],
-        source=kwargs['source'])
+        source=kwargs['source'],
+        force_arch=kwargs['force_arch'])
     return downloader.get_packages(kwargs['force'])
 
 

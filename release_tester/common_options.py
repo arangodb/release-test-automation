@@ -321,6 +321,12 @@ def download_options(default_source="public", double_source=False, other_source=
             default=False,
             help="whether to overwrite existing target files or not.",
         )(function)
+        function = click.option(
+            "--force-arch",
+            is_flag=False,
+            default="",
+            help="whether to download for a different architecture than the host.",
+        )(function)
         if double_source:
             function = click.option(
                 "--new-source",

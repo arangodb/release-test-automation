@@ -35,17 +35,17 @@ class InstallerTAR(InstallerArchive):
             self.installer_type = ".tar.gz Linux"
 
         self.architecture = ""
-        if cfg.semver > semver.VersionInfo.parse("3.9.99"):
-            arch = platform.machine()
-            if arch == 'aarch64':
-                arch = 'arm64'
-            self.architecture = '_' + arch
         self.dash = "-"
         self.hot_backup = True
 
         super().__init__(cfg)
 
     def calculate_package_names(self):
+        if self.cfg.semver > semver.VersionInfo.parse("3.9.99"):
+            arch = self.machine
+            if arch == 'aarch64':
+                arch = 'arm64'
+            self.architecture = '_' + arch
         enterprise = "e" if self.cfg.enterprise else ""
 
         semdict = dict(self.cfg.semver.to_dict())
