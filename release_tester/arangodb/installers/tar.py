@@ -51,7 +51,7 @@ class InstallerTAR(InstallerArchive):
         semdict = dict(self.cfg.semver.to_dict())
         if semdict["prerelease"]:
             if semdict["prerelease"].startswith("rc"):
-                semdict["prerelease"] = "-" + semdict["prerelease"].replace("rc", "rc.")
+                semdict["prerelease"] = "-" + semdict["prerelease"].replace("rc", "rc.").replace('..', '.')
             else:
                 semdict["prerelease"] = "-{prerelease}".format(**semdict)
         else:
