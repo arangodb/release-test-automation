@@ -8,14 +8,18 @@ import subprocess
 import time
 
 # pylint: disable=import-error
-import winreg
+import platform
+IS_WINDOWS = platform.win32_ver()[0] != ""
+if IS_WINDOWS:
+    import winreg
 import os
 import re
 
 import semver
 from allure_commons._allure import attach
 from allure_commons.types import AttachmentType
-from mss import mss
+if IS_WINDOWS:
+    from mss import mss
 import psutil
 
 from arangodb.installers.windows import InstallerWin

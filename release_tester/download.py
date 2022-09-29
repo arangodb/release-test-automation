@@ -16,6 +16,7 @@ import tarfile
 import click
 import semver
 from arangodb.installers import make_installer, InstallerConfig, HotBackupCliCfg, InstallerBaseConfig, OptionGroup
+import arangodb.installers as installer
 import tools.loghelper as lh
 
 import requests
@@ -106,10 +107,21 @@ class Download:
         new_version_states={},
         git_version="",
         force_arch="",
+        force_os = "",
     ):
         """main"""
         lh.section("configuration")
-
+        if force_os != "":
+            if force_os == "windows":
+                installer.IS_WINDOWS = True
+                installer.IS_MAC = False
+            elif force_os == "mac":
+                installer.IS_MAC = True
+                installer.IS_WINDOWS = False
+            else:
+                installer.DISTRO = force_os
+                installer.IS_WINDOWS = False
+                installer.IS_MAC = False
         self.launch_dir = Path.cwd()
         if "WORKSPACE" in os.environ:
             self.launch_dir = Path(os.environ["WORKSPACE"])
@@ -384,7 +396,8 @@ def main(**kwargs):
         zip_package=kwargs['zip_package'],
         src_testing=kwargs['src_testing'],
         source=kwargs['source'],
-        force_arch=kwargs['force_arch'])
+        force_arch=kwargs['force_arch'],
+        force_os=kwargs['force_os'])
     return downloader.get_packages(kwargs['force'])
 
 

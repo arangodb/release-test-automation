@@ -44,6 +44,7 @@ class InstallerRPM(InstallerLinux):
 
     def calculate_package_names(self):
         enterprise = "e" if self.cfg.enterprise else ""
+        architecture = "x86_64" if self.machine == "x86_64" else "aarch64"
 
         prerelease = self.cfg.semver.prerelease
         semdict = dict(self.cfg.semver.to_dict())
@@ -81,7 +82,7 @@ class InstallerRPM(InstallerLinux):
             "ep": enterprise,
             "cfg": version,
             "ver": package_version,
-            "arch": self.machine,
+            "arch": architecture,
         }
 
         self.server_package = "arangodb3{ep}-{cfg}-{ver}.{arch}.rpm".format(**desc)

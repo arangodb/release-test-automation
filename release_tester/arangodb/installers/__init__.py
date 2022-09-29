@@ -20,6 +20,8 @@ except:
 # pylint: disable=too-few-public-methods
 
 IS_WINDOWS = platform.win32_ver()[0] != ""
+IS_MAC = platform.mac_ver()[0] != ""
+DISTRO = ""
 
 
 class HotBackupMode(Enum):
@@ -391,25 +393,25 @@ def make_installer(install_config: InstallerConfig):
 
         return InstallerTAR(install_config)
 
-    macver = platform.mac_ver()
-    if macver[0]:
+    if IS_MAC:
         from arangodb.installers.mac import InstallerMac
 
         return InstallerMac(install_config)
 
     if platform.system() in ["linux", "Linux"]:
+        dist = DISTRO
         import distro
-
-        distro = distro.linux_distribution(full_distribution_name=False)
-        if distro[0] in ["debian", "ubuntu"]:
+        if DISTRO == "":
+            dist = distro.linux_distribution(full_distribution_name=False)[0]
+        if dist in ["debian", "ubuntu"]:
             from arangodb.installers.deb import InstallerDeb
 
             return InstallerDeb(install_config)
-        if distro[0] in ["centos", "redhat", "suse", "rocky"]:
+        if dist in ["centos", "redhat", "suse", "rocky"]:
             from arangodb.installers.rpm import InstallerRPM
 
             return InstallerRPM(install_config)
-        if distro[0] in ["alpine"]:
+        if dist in ["alpine"]:
             from arangodb.installers.docker import InstallerDocker
 
             return InstallerDocker(install_config)

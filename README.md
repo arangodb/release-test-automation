@@ -223,6 +223,8 @@ Supported Parameters:
  - `--httppassvoid` secret for stage http access
  - `--verbose` if specified more logging is done
  - `--force` overwrite readily existing downloaded packages
+ - `--force-arch` override the machine architecture of the host
+ - `--force-os ['', windows, mac, ubuntu, debian, centos, redhat, alpine]`, to download the software for another OS than the one you're currently running
 
 example usage:
 `python3 release_tester/download.py --enterprise \
