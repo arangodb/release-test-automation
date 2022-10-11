@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """ run an installer for the debian based operating system """
 import logging
@@ -24,6 +25,7 @@ import psutil
 
 from arangodb.installers.windows import InstallerWin
 from reporting.reporting_utils import step
+from tools.killall import get_process_tree
 
 # pylint: disable=unused-import
 # this will patch psutil for us:
@@ -287,6 +289,7 @@ class InstallerNsis(InstallerWin):
                         name="Screenshot ({fn})".format(fn=filename),
                         attachment_type=AttachmentType.PNG,
                     )
+                print(get_process_tree())
                 uninstall.kill()
                 raise Exception("upgrade uninstall failed to complete on time") from exc
 
@@ -324,6 +327,7 @@ class InstallerNsis(InstallerWin):
                         name="Screenshot ({fn})".format(fn=filename),
                         attachment_type=AttachmentType.PNG,
                     )
+                print(get_process_tree())
                 uninstall.kill()
                 raise Exception("uninstall failed to complete on time") from exc
         if self.cfg.log_dir.exists():
@@ -374,6 +378,7 @@ class InstallerNsis(InstallerWin):
                         name="Screenshot ({fn})".format(fn=filename),
                         attachment_type=AttachmentType.PNG,
                     )
+                print(get_process_tree())
                 uninstall.kill()
                 raise Exception("uninstall failed to complete on time") from exc
         if self.cfg.log_dir.exists():
