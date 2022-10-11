@@ -23,7 +23,7 @@ from allure_commons.types import AttachmentType
 from tools.asciiprint import print_progress as progress
 from tools.timestamp import timestamp
 import tools.loghelper as lh
-import tools.killall.get_process_tree
+from tools.killall import get_process_tree
 from arangodb.instance import (
     ArangodInstance,
     ArangodRemoteInstance,

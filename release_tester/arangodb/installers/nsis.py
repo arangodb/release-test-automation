@@ -25,7 +25,7 @@ import psutil
 
 from arangodb.installers.windows import InstallerWin
 from reporting.reporting_utils import step
-import tools.killall.get_process_tree
+from tools.killall import get_process_tree
 
 # pylint: disable=unused-import
 # this will patch psutil for us:
