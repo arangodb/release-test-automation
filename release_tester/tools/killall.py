@@ -2,6 +2,7 @@
 """ tiny utility to kill all arangodb related processes """
 import logging
 # import platform
+import collections
 
 from reporting.reporting_utils import step
 import psutil
@@ -10,6 +11,36 @@ from allure_commons._allure import attach
 # yes, we catch all.
 # pylint: disable=broad-except
 
+def get_process_tree_recursive(parent, tree, indent=''):
+    """ get an ascii representation of the process tree """
+    text = ""
+    try:
+        name = psutil.Process(parent).name()
+    except psutil.Error:
+        name = "?"
+    text += f"{parent} {name}\n"
+    if parent not in tree:
+        return text
+    children = tree[parent][:-1]
+    for child in children:
+        text += indent + "|- "
+        text += get_process_tree_recursive(child, tree, indent + "| ")
+    child = tree[parent][-1]
+    text += indent + "`_ "
+    text += get_process_tree_recursive(child, tree, indent + "  ")
+    return text
+
+def get_process_tree():
+    tree = collections.defaultdict(list)
+    for process in psutil.process_iter():
+        try:
+            tree[process.ppid()].append(process.pid)
+        except (psutil.NoSuchProcess, psutil.ZombieProcess):
+            pass
+    # on systems supporting PID 0, PID 0's parent is usually 0
+    if 0 in tree and 0 in tree[0]:
+        tree[0].remove(0)
+    return get_process_tree_recursive(min(tree), tree)
 
 @step
 def get_all_processes(kill_selenium):
