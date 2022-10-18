@@ -95,7 +95,8 @@ Supported Parameters:
    - `install` to only install the package onto the system and store its setting to the temp folder (development) 
    - `tests`  to read the config file from the temp folder and run the tetss.
    - `uninstall` to clean up your system.
- - `--starter-mode [all|LF|AFO|CL|DC|DCendurance|none]` which starter test to exute, `all` of them or `none` at all or:
+ - `--starter-mode [all|SG|LF|AFO|CL|DC|DCendurance|none]` which starter test to exute, `all` of them or `none` at all or:
+   - `SG` - Single server - the most simple deployment possible
    - `LF` - Leader / Follower - setup two single instances, start replication between them
    - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
@@ -137,7 +138,8 @@ Supported Parameters:
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
  - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
  - `--verbose` if specified more logging is done
- - `--starter-mode [all|LF|AFO|CL|DC|none]` which starter test to exute, `all` of them or `none` at all or: 
+ - `--starter-mode [all|SG|LF|AFO|CL|DC|none]` which starter test to exute, `all` of them or `none` at all or:
+   - `SG` - Single server - the most simple deployment possible
    - `LF` - Leader / Follower - setup two single instances, start replication between them
    - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
@@ -221,6 +223,8 @@ Supported Parameters:
  - `--httppassvoid` secret for stage http access
  - `--verbose` if specified more logging is done
  - `--force` overwrite readily existing downloaded packages
+ - `--force-arch` override the machine architecture of the host
+ - `--force-os ['', windows, mac, ubuntu, debian, centos, redhat, alpine]`, to download the software for another OS than the one you're currently running
 
 example usage:
 `python3 release_tester/download.py --enterprise \
@@ -267,7 +271,8 @@ Supported Parameters:
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
  - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
  - `--verbose` if specified more logging is done
- - `--starter-mode [all|LF|AFO|CL|DC|none]` which starter test to exute, `all` of them or `none` at all or: 
+ - `--starter-mode [all|SG|LF|AFO|CL|DC|none]` which starter test to exute, `all` of them or `none` at all or:
+   - `SG` - Single server - the most simple deployment possible
    - `LF` - Leader / Follower - setup two single instances, start replication between them
    - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
@@ -329,7 +334,8 @@ Supported Parameters:
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
  - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
  - `--verbose` if specified more logging is done
- - `--starter-mode [all|LF|AFO|CL|DC|none]` which starter test to exute, `all` of them or `none` at all or: 
+ - `--starter-mode [all|SG|LF|AFO|CL|DC|none]` which starter test to exute, `all` of them or `none` at all or:
+   - `SG` - Single server - the most simple deployment possible
    - `LF` - Leader / Follower - setup two single instances, start replication between them
    - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 

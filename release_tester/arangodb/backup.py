@@ -251,6 +251,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
             out = self.run_backup(args, backup_name, True)
             progress(".")
             counts = {
+                "NEW": 0,
                 "ACK": 0,
                 "STARTED": 0,
                 "COMPLETED": 0,

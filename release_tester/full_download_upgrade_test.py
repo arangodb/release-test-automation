@@ -17,7 +17,8 @@ from download import Download, DownloadOptions
 from test_driver import TestDriver
 from tools.killall import list_all_processes
 
-from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig
+from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig, RunProperties
+
 
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
 def upgrade_package_test(
@@ -99,7 +100,7 @@ def upgrade_package_test(
         # FIXME: Add custom CA to Chrome to properly validate server cert.
         # if props.ssl:
         #    selenium_driver_args += ("ignore-certificate-errors",)
-
+        these_versions = []
         for props in EXECUTION_PLAN:
             if props.directory_suffix not in editions:
                 print("skipping " + props.directory_suffix)
@@ -136,28 +137,39 @@ def upgrade_package_test(
             test_driver.reset_test_data_dir(this_test_dir)
 
             results.append(test_driver.run_upgrade([dl_old.cfg.version, dl_new.cfg.version], props))
+            these_versions.append([dl_new.cfg.version, dl_old.cfg.version])
 
+        enterprise_packages_are_present = "EE" in editions or "EP" in editions
+        community_packages_are_present = "C" in editions
+        [new_version, old_version] = these_versions[0]
+
+        if enterprise_packages_are_present and community_packages_are_present:
             for use_enterprise in [True, False]:
                 results.append(
                     test_driver.run_conflict_tests(
-                        [dl_old.cfg.version, dl_new.cfg.version],
+                        [old_version, new_version],
                         enterprise=use_enterprise,
                     )
                 )
-            results.append(
-                test_driver.run_license_manager_tests(
-                    [semver.VersionInfo.parse(dl_old.cfg.version), semver.VersionInfo.parse(dl_new.cfg.version)]
-                )
-            )
+
+        if enterprise_packages_are_present:
             results.append(
                 test_driver.run_debugger_tests(
-                    [semver.VersionInfo.parse(dl_old.cfg.version), semver.VersionInfo.parse(dl_new.cfg.version)],
+                    [semver.VersionInfo.parse(old_version), semver.VersionInfo.parse(new_version)],
                     run_props=RunProperties(True, False, False),
                 )
             )
+
+            results.append(
+                test_driver.run_license_manager_tests(
+                    [semver.VersionInfo.parse(old_version), semver.VersionInfo.parse(new_version)],
+                )
+            )
+
+        if community_packages_are_present:
             results.append(
                 test_driver.run_debugger_tests(
-                    [semver.VersionInfo.parse(dl_old.cfg.version), semver.VersionInfo.parse(dl_new.cfg.version)],
+                    [semver.VersionInfo.parse(old_version), semver.VersionInfo.parse(new_version)],
                     run_props=RunProperties(False, False, False),
                 )
             )
