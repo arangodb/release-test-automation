@@ -109,9 +109,9 @@ class Instance(ABC):
 
     def get_structure(self):
         """ return instance structure like testing.js does """
-        url = ('https' if self.ssl else 'http') + '127.0.0.1:' + str(self.port) + '/'
+        url = ('https' if self.ssl else 'http') + '://' + '127.0.0.1' + ':' + str(self.port) + '/'
         protocol = ('ssl' if self.ssl else 'tcp') 
-        endpoint = protocol + '127.0.0.1:' + str(self.port) + '/'
+        endpoint = protocol + '://' + '127.0.0.1' + ':' + str(self.port) + '/'
         return {
             'name': self.name,
             'instanceRole': self.type_str,
@@ -135,7 +135,8 @@ class Instance(ABC):
             'id': self.pid,
             'JWT': "",
             'exitStatus': 0,
-            'serverCrashedLocal': False
+            'serverCrashedLocal': False,
+            'passvoid': self.passvoid,
         }
 
     @abstractmethod
@@ -705,6 +706,11 @@ class ArangodInstance(Instance):
         if serving_line:
             self.serving = log_line_get_date(serving_line)
         return self.serving
+
+    def get_structure(self):
+        structure = super().get_structure()
+        structure["uuid"] = self.get_uuid()
+        return structure
 
 
 class ArangodRemoteInstance(ArangodInstance):

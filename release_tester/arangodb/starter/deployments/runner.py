@@ -1137,7 +1137,10 @@ class Runner(ABC):
         """ resemble the testing.js INSTANCEINFO env """
         instances = []
         for starter in self.starter_instances:
+            jwt_header = starter.get_jwt_header()
             for instance in starter.all_instances:
-                instances.append(instance.get_structure())
+                struct = instance.get_structure()
+                struct["JWT_header"] = jwt_header
+                instances.append(struct)
         os.environ['INSTANCEINFO'] = json.dumps(instances)
 
