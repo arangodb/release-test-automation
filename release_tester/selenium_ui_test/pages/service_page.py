@@ -234,12 +234,13 @@ class ServicePage(NavigationBarPage):
                     status = True
                 else:
                     status = False
+                time.sleep(2)
 
             # populating collections with necessary data
             if status:
                 # got to collection tab
-                collection_page = 'collections'
-                self.locator_finder_by_id(collection_page).click()
+                self.navbar_goto("collections")
+                self.webdriver.refresh()
                 time.sleep(2)
 
                 # looking for default collection has been created or not
@@ -451,7 +452,7 @@ class ServicePage(NavigationBarPage):
         foxx_graphql_link_sitem = self.locator_finder_by_xpath(foxx_graphql_link)
         page_title = super().switch_tab(foxx_graphql_link_sitem)
 
-        expected_title = 'Introduction to ArangoDB Documentation | ArangoDB Documentation'
+        expected_title = "Introduction to ArangoDB's Technical Documentation and Ecosystem | ArangoDB Documentation"
 
         assert page_title == expected_title, f"Expected text {expected_title} but got {page_title}"
         # ---------------checking graphql's links end here---------------
@@ -474,6 +475,8 @@ class ServicePage(NavigationBarPage):
         install_btn_sitem = self.locator_finder_by_id(install_btn)
         install_btn_sitem.click()
         time.sleep(2)
+        self.webdriver.refresh()
+        self.navbar_goto("services")
 
         # at this point it will be back to service page
         print('Selecting graphql service \n')
