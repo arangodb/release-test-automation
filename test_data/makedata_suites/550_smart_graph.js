@@ -2,8 +2,8 @@
 
 (function () {
   let gsm;
-  let vertices = JSON.parse(fs.readFileSync(`${PWD}/vertices.json`));
-  let smartEdges = JSON.parse(fs.readFileSync(`${PWD}/edges.json`));
+  let vertices = JSON.parse(fs.readFileSync(`${PWD}/makedata_suites/500_550_570_vertices.json`));
+  let smartEdges = JSON.parse(fs.readFileSync(`${PWD}/makedata_suites/550_570_edges.json`));
 
   return {
     isSupported: function (currentVersion, oldVersion, options, enterprise, cluster) {
