@@ -277,7 +277,7 @@ class Runner(ABC):
             self.starter_run()
             self.finish_setup()
             self.make_data()
-            self.before_hot_backup()
+            self.after_makedata_check()
             if self.selenium:
                 self.set_selenium_instances()
                 self.selenium.test_empty_ui()
