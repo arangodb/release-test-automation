@@ -136,6 +136,14 @@ db.testCollection.save({test: "document"})
         if self.selenium:
             self.selenium.test_setup()
 
+    def after_makedata_check(self):
+        lh.subsubsection("wait for all shards to be in sync - test setup")
+        retval = self.starter_instances[0].arangosh.run_in_arangosh(
+            (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
+            [],
+            ['true'],
+        )
+
     def wait_for_restore_impl(self, backup_starter):
         for starter in self.starter_instances:
             for dbserver in starter.get_dbservers():
