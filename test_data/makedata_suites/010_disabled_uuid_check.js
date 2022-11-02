@@ -67,8 +67,9 @@
               print(s);
               print(col);
               print(ex);
-              ++found;
-              collections.push([c, s]);
+              // BTS-1107: nothing to see here!
+              // ++found;
+              // collections.push([c, s]);
             }
           });
         });
