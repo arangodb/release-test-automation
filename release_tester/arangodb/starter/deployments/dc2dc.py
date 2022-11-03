@@ -4,6 +4,7 @@ import logging
 import re
 import time
 from pathlib import Path
+import platform
 
 import requests
 import semver
@@ -28,6 +29,7 @@ SYNC_VERSIONS = {
 STARTER_VERSIONS = {"152": semver.VersionInfo.parse("0.15.2")}
 USERS_ERROR_RX = re.compile(".*_system.*_users.*DIFFERENT.*")
 STATUS_INACTIVE = "inactive"
+IS_MAC = platform.mac_ver()[0]
 
 
 def _create_headers(token):
@@ -316,6 +318,8 @@ class Dc2Dc(Runner):
         return semver.VersionInfo.parse(version)
 
     def _stop_sync(self, timeout=130):
+        if IS_MAC:
+            timeout *= 1.3
         try:
             timeout_start = time.time()
             if self._is_higher_sync_version(SYNC_VERSIONS["150"], SYNC_VERSIONS["230"]):
@@ -328,12 +332,15 @@ class Dc2Dc(Runner):
                 )
                 _, _, _, _ = self.sync_manager.stop_sync(timeout, ["--ensure-in-sync=false"])
         except CliExecutionException as exc:
+            print("Deadline reached while stopping sync! checking wehther it worked anyways?")
             self.state += "\n" + exc.execution_result[1]
             output = ""
             if exc.have_timeout:
-                (result, output) = self.sync_manager.check_sync()
+                (result, output, _, _) = self.sync_manager.check_sync()
                 if result:
                     print("CHECK SYNC OK!")
+                self.sync_manager.abort_sync()
+                return
             raise Exception("failed to stop the synchronization; check sync:" + output) from exc
 
         # From here on it is known that `arangosync stop sync` succeeded (exit code == 0).
@@ -415,7 +422,7 @@ class Dc2Dc(Runner):
         self.progress(True, "waiting for the DCs to get in sync")
         output = None
         for count in range(attempts):
-            (result, output) = self.sync_manager.check_sync()
+            (result, output, _, _) = self.sync_manager.check_sync()
             if result:
                 print("CHECK SYNC OK!")
                 break
@@ -454,6 +461,7 @@ class Dc2Dc(Runner):
             (self.cfg.test_data_dir / Path("tests/js/server/replication/fuzz/replication-fuzz-global.js")),
             [],
             args,
+            deadline=6000
         )
         if not res[0]:
             if not self.cfg.verbose:

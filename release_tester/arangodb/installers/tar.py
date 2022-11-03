@@ -1,16 +1,11 @@
 #!/usr/bin/env python3
 """ run an Tar installer for the Linux/Mac based operating system """
 import platform
-import shutil
 import logging
 from pathlib import Path
-import time
 import os
 
 import semver
-
-from reporting.reporting_utils import step
-from arangodb.installers.base import InstallerBase
 
 from arangodb.installers.base import InstallerArchive
 
@@ -28,25 +23,37 @@ class InstallerTAR(InstallerArchive):
         self.basedir = Path("/tmp")
         if "WORKSPACE_TMP" in os.environ:
             self.basedir = Path(os.environ["WORKSPACE_TMP"])
-        self.extension = "tar.gz"
-        self.remote_package_dir = "Linux"
         cfg.localhost = "localhost"
-        self.os = "linux"
+        self.extension = "tar.gz"
+        if MACVER[0]:
+            self.remote_package_dir = "MacOSX"
+            self.operating_system = "macos"
+            self.installer_type = ".tar.gz MacOS"
+        else:
+            self.remote_package_dir = "Linux"
+            self.operating_system = "linux"
+            self.installer_type = ".tar.gz Linux"
+
         self.architecture = ""
-        if cfg.semver > semver.VersionInfo.parse("3.9.99"):
-            self.architecture = '_' + platform.machine()
         self.dash = "-"
-        self.installer_type = ".tar.gz Linux"
         self.hot_backup = True
 
         super().__init__(cfg)
 
     def calculate_package_names(self):
+        if self.cfg.semver > semver.VersionInfo.parse("3.9.99"):
+            arch = self.machine
+            if arch == 'aarch64':
+                arch = 'arm64'
+            self.architecture = '_' + arch
         enterprise = "e" if self.cfg.enterprise else ""
 
         semdict = dict(self.cfg.semver.to_dict())
         if semdict["prerelease"]:
-            semdict["prerelease"] = "-{prerelease}".format(**semdict)
+            if semdict["prerelease"].startswith("rc"):
+                semdict["prerelease"] = "-" + semdict["prerelease"].replace("rc", "rc.").replace('..', '.')
+            else:
+                semdict["prerelease"] = "-{prerelease}".format(**semdict)
         else:
             semdict["prerelease"] = ""
         version = "{major}.{minor}.{patch}{prerelease}".format(**semdict)
@@ -54,7 +61,7 @@ class InstallerTAR(InstallerArchive):
         self.desc = {
             "ep": enterprise,
             "ver": version,
-            "os": self.os,
+            "os": self.operating_system,
             "arch": self.architecture,
             "dashus": self.dash,
             "ext": self.extension,

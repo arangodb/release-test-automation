@@ -5,7 +5,7 @@ import semver
 import traceback
 
 from selenium_ui_test.pages.navbar import NavigationBarPage
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import StaleElementReferenceException, NoSuchElementException, TimeoutException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 
@@ -30,6 +30,8 @@ class ViewsPage(NavigationBarPage):
     def __init__(self, driver, cfg):
         """View page initialization"""
         super().__init__(driver, cfg)
+        self.current_version = self.current_package_version()
+        self.testing_version = semver.VersionInfo.parse("3.9.100")
         self.select_views_tab_id = "/html//a[@id='views']"
         self.create_new_views_id = "/html//a[@id='createView']"
         self.naming_new_view_id = "/html//input[@id='newName']"
@@ -79,6 +81,7 @@ class ViewsPage(NavigationBarPage):
         select_create_btn_sitem = self.locator_finder_by_xpath(self.select_create_btn_id)
         select_create_btn_sitem.click()
         time.sleep(2)
+        self.wait_for_ajax()
         print(f"Creating {name} completed \n")
 
     def select_views_settings(self):
@@ -86,23 +89,35 @@ class ViewsPage(NavigationBarPage):
         select_views_settings_sitem = self.locator_finder_by_xpath(self.select_views_settings_id)
         select_views_settings_sitem.click()
         time.sleep(3)
+        self.wait_for_ajax()
 
     def select_sorting_views(self):
         """sorting multiple views into descending"""
         select_sorting_views_sitem = self.locator_finder_by_xpath(self.select_sorting_views_id)
         select_sorting_views_sitem.click()
         time.sleep(3)
+        self.wait_for_ajax()
 
     def search_views(self, expected_text, search_locator):
         search_views = self.search_views_id
-        search_views_sitem = self.locator_finder_by_xpath(search_views)
-        search_views_sitem.click()
-        search_views_sitem.clear()
-        search_views_sitem.send_keys(expected_text)
-        time.sleep(2)
+        for i in range(3):
+            try:
+                search_views_sitem = self.locator_finder_by_xpath(search_views)
+                search_views_sitem.click()
+                search_views_sitem.clear()
+                search_views_sitem.send_keys(expected_text)
+                time.sleep(2)
+                self.wait_for_ajax()
+                break
+            except StaleElementReferenceException:
+                print('stale element found, trying again\n')
+            except NoSuchElementException:
+                print("Can't find the view, trying again\n")
+            except TimeoutException as ex:
+                raise ex
 
         print(f'Checking that we get the right results for {expected_text}\n')
-        if self.current_package_version() <= semver.VersionInfo.parse("3.8.0"):
+        if self.current_package_version() <= semver.VersionInfo.parse("3.8.100"):
             if expected_text == 'firstView':
                 found = self.locator_finder_by_xpath(search_locator).text
                 assert found == expected_text, f"Expected views title {expected_text} but got {found}"
@@ -113,9 +128,13 @@ class ViewsPage(NavigationBarPage):
             if expected_text == 'improved_arangosearch_view_01':
                 found = self.locator_finder_by_xpath(search_locator).text
                 assert found == expected_text, f"Expected views title {expected_text} but got {found}"
+                time.sleep(2)
+                self.wait_for_ajax()
             elif expected_text == 'improved_arangosearch_view_02':
                 found = self.locator_finder_by_xpath(search_locator).text
                 assert found == expected_text, f"Expected views title {expected_text} but got {found}"
+                time.sleep(2)
+                self.wait_for_ajax()
         self.webdriver.refresh()
 
     def select_first_view(self):
@@ -124,16 +143,26 @@ class ViewsPage(NavigationBarPage):
         select_first_view_sitem.click()
 
     def select_collapse_btn(self):
-        """selecting collapse all btn"""
-        select_collapse_btn_sitem = self.locator_finder_by_xpath(self.select_collapse_btn_id)
+        """selecting collapse btn"""
+        if self.current_version > self.testing_version:
+            collapse_btn = 'jsoneditor-compact'
+            select_collapse_btn_sitem = self.locator_finder_by_class(collapse_btn)
+        else:
+            select_collapse_btn_sitem = self.locator_finder_by_xpath(self.select_collapse_btn_id)
         select_collapse_btn_sitem.click()
         time.sleep(3)
+        self.wait_for_ajax()
 
     def select_expand_btn(self):
         """selecting expand all btn"""
-        select_expand_btn_sitem = self.locator_finder_by_xpath(self.select_expand_btn_id)
+        if self.current_version > self.testing_version:
+            expand_btn = 'jsoneditor-format'
+            select_expand_btn_sitem = self.locator_finder_by_class(expand_btn)
+        else:
+            select_expand_btn_sitem = self.locator_finder_by_xpath(self.select_expand_btn_id)
         select_expand_btn_sitem.click()
         time.sleep(3)
+        self.wait_for_ajax()
 
     def select_editor_mode_btn(self, value):
         """selecting object tabs"""
@@ -143,31 +172,35 @@ class ViewsPage(NavigationBarPage):
             select_editor_btn_sitem = self.locator_finder_by_xpath("//*[text()='Code ▾']")
         select_editor_btn_sitem.click()
         time.sleep(3)
+        self.wait_for_ajax()
 
     def switch_to_code_editor_mode(self):
         """switching editor mode to Code"""
         switch_to_code_editor_mode_sitem = self.locator_finder_by_xpath(self.switch_to_code_editor_mode_id)
         switch_to_code_editor_mode_sitem.click()
         time.sleep(3)
+        self.wait_for_ajax()
 
     def compact_json_data(self):
         """switching editor mode to Code compact view"""
         compact_json_data_sitem = self.locator_finder_by_class(self.compact_json_data_id)
         compact_json_data_sitem.click()
         time.sleep(3)
+        self.wait_for_ajax()
 
     def switch_to_tree_editor_mode(self):
         """switching editor mode to Tree"""
         switch_to_tree_editor_mode_sitem = self.locator_finder_by_xpath(self.switch_to_tree_editor_mode_id)
         switch_to_tree_editor_mode_sitem.click()
         time.sleep(3)
+        self.wait_for_ajax()
 
     def click_arangosearch_documentation_link(self):
         """Clicking on arangosearch documentation link"""
         click_arangosearch_documentation_link_id = \
             self.locator_finder_by_link_text('ArangoSearch Views documentation')
         title = self.switch_tab(click_arangosearch_documentation_link_id)
-        expected_title = 'Views Reference | ArangoSearch | Indexing | Manual | ArangoDB Documentation'
+        expected_title = 'ArangoSearch Views Reference | ArangoSearch | Indexing | Manual | ArangoDB Documentation'
         assert title in expected_title, f"Expected page title {expected_title} but got {title}"
 
     def select_inside_search(self, keyword):
@@ -208,6 +241,7 @@ class ViewsPage(NavigationBarPage):
         rename_views_name_confirm_sitem = self.locator_finder_by_xpath(self.rename_views_name_confirm_id)
         rename_views_name_confirm_sitem.click()
         time.sleep(2)
+        self.wait_for_ajax()
         self.webdriver.back()
 
     def create_improved_views(self, view_name, types):
@@ -326,107 +360,6 @@ class ViewsPage(NavigationBarPage):
         time.sleep(2)
         self.webdriver.refresh()
     
-    def checking_modified_views(self, is_cluster):
-        """This method will check views for 3.10.x package version"""
-        print('Selecting improved views \n')
-        views = "//*[text()='improved_arangosearch_view_01']"
-        views_sitem = self.locator_finder_by_xpath(views)
-        views_sitem.click()
-        time.sleep(2)
-        self.wait_for_ajax()
-
-        print('Selecting Consolidation Policy \n')
-        policy = "//*[text()='Consolidation Policy']"
-        policy_sitem = self.locator_finder_by_xpath(policy)
-        policy_sitem.click()
-        time.sleep(2)
-
-        self.wait_for_ajax()
-        print('Selecting segments min value \n')
-        # snapping to the default value of the input field: Segments Min
-        segment_min = "(//input[@value='1'])[1]"
-        segment_min_sitem = self.locator_finder_by_xpath(segment_min)
-        segment_min_sitem.click()
-        segment_min_sitem.clear()
-        segment_min_sitem.send_keys('4')
-        time.sleep(2)
-        self.wait_for_ajax()
-
-        print('Selecting segments max value \n')
-        # snapping to the default value of the input field: Segments Max
-        segment_max = "(//input[@value='10'])[1]"
-        segment_max_sitem = self.locator_finder_by_xpath(segment_max)
-        segment_max_sitem.click()
-        segment_max_sitem.clear()
-        segment_max_sitem.send_keys('14')
-        time.sleep(2)
-
-        self.wait_for_ajax()
-        print('Selecting bytes value \n')
-        # snapping to the default value of the input field: Segments Bytes Max
-        segment_bytes = "(//input[@value='5368709120'])[1]"
-        segment_bytes_sitem = self.locator_finder_by_xpath(segment_bytes)
-        segment_bytes_sitem.click()
-        segment_bytes_sitem.clear()
-        segment_bytes_sitem.send_keys('5368709128')
-        time.sleep(2)
-
-        self.wait_for_ajax()
-        print('Selecting bytes floor value \n')
-        # snapping to the default value of the input field: Segments Bytes Floor
-        segment_floor = "(//input[@value='2097152'])[1]"
-        segment_floor_sitem = self.locator_finder_by_xpath(segment_floor)
-        segment_floor_sitem.click()
-        segment_floor_sitem.clear()
-        segment_floor_sitem.send_keys('2097158')
-        time.sleep(2)
-
-        print('Saving the consolidation policy with new value \n')
-        save = '//*[@id="modal-dialog"]/div[2]/button/i'
-        save_sitem = self.locator_finder_by_xpath(save)
-        save_sitem.click()
-        time.sleep(3)
-
-        self.wait_for_ajax()
-        print('Select JSON tab \n')
-        json = '//*[@id="subNavigationBar"]/ul[2]/li[5]/a'
-        json_sitem = self.locator_finder_by_xpath(json)
-        json_sitem.click()
-        time.sleep(1)
-
-        self.wait_for_ajax()
-        print("Switch editor mode to Compact mode Code \n")
-        compact = '//*[@id="JSON"]/div/div[2]/div/div/div/div/div[1]/button[2]'
-        compact_sitem = self.locator_finder_by_xpath(compact)
-        compact_sitem.click()
-        time.sleep(1)
-
-        print("Switch editor mode to normal mode Code \n")
-        normal = '//*[@id="JSON"]/div/div[2]/div/div/div/div/div[1]/button[1]'
-        normal_sitem = self.locator_finder_by_xpath(normal)
-        normal_sitem.click()
-
-        if is_cluster:
-            print('Changing name of the view is disabled for cluster deployment \n')
-        else:
-            print('Select Settings tab \n')
-            settings = "//*[text()='Settings']"
-            settings_sitem = self.locator_finder_by_xpath(settings)
-            settings_sitem.click()
-
-            print('Change view name \n')
-            name = "//input[@value='improved_arangosearch_view_01']"
-            name_stiem = self.locator_finder_by_xpath(name)
-            name_stiem.click()
-            name_stiem.clear()
-            name_stiem.send_keys('modified_views_name')
-            time.sleep(2)
-
-            save_btn = '//*[@id="modal-dialog"]/div[2]/button[2]'
-            save_btn_sitem = self.locator_finder_by_xpath(save_btn)
-            save_btn_sitem.click()
-            time.sleep(2)
-    
     def delete_new_views(self, name):
         """this method will delete all the newer version views"""
         self.wait_for_ajax()
@@ -472,8 +405,12 @@ class ViewsPage(NavigationBarPage):
             time.sleep(2)
             self.wait_for_ajax()
 
-        except TimeoutException as ex:
-            print(f'Error found, Can not delete views {ex} \n')
+        except TimeoutException as e:
+            print('TimeoutException occurred! \n')
+            print('Info: Views has already been deleted or never created. \n')
+        except Exception:
+            traceback.print_exc()
+            raise Exception('Critical Error occurred and need manual inspection!! \n')
 
 
     def checking_improved_views(self, name, locator, is_cluster):
@@ -530,6 +467,248 @@ class ViewsPage(NavigationBarPage):
         print(f"Checking {name} Completed \n")
 
     
+    def creating_black_collection_and_analyzer(self):
+        """Creating blank col and analyzer for testing"""
+        print('creating blank collection and analyzer for link tab\n')
+        self.navbar_goto("collections")
+        time.sleep(1)
+        create_col = 'createCollection'
+        create_col_sitem = self.locator_finder_by_id(create_col)
+        create_col_sitem.click()
+        time.sleep(1)
+
+        col_name = '//*[@id="new-collection-name"]'
+        col_name_sitem = self.locator_finder_by_xpath(col_name)
+        col_name_sitem.click()
+        col_name_sitem.send_keys('my_collection')
+        time.sleep(1)
+
+        save_btn = 'modalButton1'
+        save_btn_sitem = self.locator_finder_by_id(save_btn)
+        save_btn_sitem.click()
+        time.sleep(2)
+
+        # go back to view tab
+        self.navbar_goto("views")
+
+
+    def checking_improved_views_for_v310(self, name, locator, is_cluster):
+        """This method will check improved views for v3.10.x"""
+        print(f'Checking {name} started \n')
+        print(f"Selecting {name}'s settings button\n")
+        self.select_views_settings()
+        print("Sorting views to descending\n")
+        self.select_sorting_views()
+        print("Sorting views to ascending\n")
+        self.select_sorting_views()
+        self.select_views_settings()
+
+        print("Views search option testing\n")
+        self.search_views("improved_arangosearch_view_01", self.select_improved_arangosearch_view_01)
+        self.search_views("improved_arangosearch_view_02", self.select_improved_arangosearch_view_02)
+
+        print(f'Selecting {name} for checking \n')
+        select_view_sitem = self.locator_finder_by_xpath(locator)
+        select_view_sitem.click()
+        time.sleep(1)
+
+        print(f'Checking cleanup interval for the {name} \n')
+        cleanup_interval = "/html/body/div[2]/div/div[2]/div[2]/div/div/div/div[1]/table/tbody/tr[2]/th[2]/input"
+        cleanup_interval_sitem = self.locator_finder_by_xpath(cleanup_interval)
+        cleanup_interval_sitem.click()
+        cleanup_interval_sitem.clear()
+        cleanup_interval_sitem.send_keys(3)
+        time.sleep(1)
+
+        print(f'Checking commit interval for the {name} \n')
+        commit_interval = "/html/body/div[2]/div/div[2]/div[2]/div/div/div/div[1]/table/tbody/tr[3]/th[2]/input"
+        commit_interval_sitem = self.locator_finder_by_xpath(commit_interval)
+        commit_interval_sitem.click()
+        commit_interval_sitem.clear()
+        commit_interval_sitem.send_keys(1100)
+        time.sleep(1)
+
+        print(f'Checking consolidation interval time for the {name} \n')
+        consolidation_interval = "/html/body/div[2]/div/div[2]/div[2]/div/div/div/div[1]/table/tbody/tr[4]/th[2]/input"
+        consolidation_interval_sitem = self.locator_finder_by_xpath(consolidation_interval)
+        consolidation_interval_sitem.click()
+        consolidation_interval_sitem.clear()
+        consolidation_interval_sitem.send_keys(1200)
+        time.sleep(2)
+
+        consolidation_template_str = lambda \
+            leaflet: f'/html/body/div[2]/div/div[2]/div[2]/div/div/div/div[2]/table/tbody/tr[{leaflet}]/th[2]/input'
+
+        consolidation_list = [consolidation_template_str(2),
+                              consolidation_template_str(3),
+                              consolidation_template_str(4),
+                              consolidation_template_str(5)
+                              ]
+        print("Selecting segment min \n")
+        segment_min = consolidation_list[0]
+        segment_min_sitem = self.locator_finder_by_xpath(segment_min)
+        segment_min_sitem.click()
+        segment_min_sitem.clear()
+        segment_min_sitem.send_keys("3")
+        time.sleep(2)
+
+        print("Selecting segment max \n")
+        segment_max = consolidation_list[1]
+        segment_max_sitem = self.locator_finder_by_xpath(segment_max)
+        segment_max_sitem.click()
+        segment_max_sitem.clear()
+        segment_max_sitem.send_keys("12")
+        time.sleep(2)
+
+        print("Selecting segments byte max \n")
+        segment_byte_max = consolidation_list[2]
+        segment_byte_max_sitem = self.locator_finder_by_xpath(segment_byte_max)
+        segment_byte_max_sitem.click()
+        segment_byte_max_sitem.clear()
+        segment_byte_max_sitem.send_keys("5368709128")
+        time.sleep(2)
+
+        print("Selecting segments bytes floor \n")
+        segment_byte_floor = consolidation_list[3]
+        segment_byte_floor_sitem = self.locator_finder_by_xpath(segment_byte_floor)
+        segment_byte_floor_sitem.click()
+        segment_byte_floor_sitem.clear()
+        segment_byte_floor_sitem.send_keys("2097158")
+        time.sleep(2)
+
+        print(f'Checking unsaved changes pop-up dialogue \n')
+        graphs = "graphs"  # TODO add navbar navigation here
+        graphs_sitem = self.locator_finder_by_id(graphs)
+        graphs_sitem.click()
+        time.sleep(3)
+
+        cancel_popup = "modalButton0"
+        cancel_popup_sitem = self.locator_finder_by_id(cancel_popup)
+        cancel_popup_sitem.click()
+        time.sleep(1)
+
+        # at this point views will save and good to add more things to it
+        print(f'Saving the changes for the {name} \n')
+        save_changes = "//*[text()='Save View']"
+        save_changes_sitem = self.locator_finder_by_xpath(save_changes)
+        save_changes_sitem.click()
+        time.sleep(2)
+
+        # creating example collection & analyzer for the view
+        self.creating_black_collection_and_analyzer()
+
+        print(f'Selecting {name} again\n')
+        select_view_sitem = self.locator_finder_by_xpath(locator)
+        select_view_sitem.click()
+        time.sleep(1)
+
+        print('Selecting Link tab \n')
+        links = "//div[@id='subNavigationBar']/ul[2]//a[.='Links']"
+        links_sitem = self.locator_finder_by_xpath(links)
+        links_sitem.click()
+        time.sleep(1)
+
+        print('Entering collection name to the link \n')
+        select_col = "/html/body/div[2]/div/div[2]/div[2]/div/div/div/div/div/ul/li/span/input"
+        select_col_sitem = self.locator_finder_by_xpath(select_col)
+        select_col_sitem.click()
+        select_col_sitem.send_keys('my_collectio')
+        time.sleep(1)
+
+        print('Adding collection to the link \n')
+        add_col = '/html/body/div[2]/div/div[2]/div[2]/div/div/div/div/div/ul/li/span/ul/li/strong'
+        add_col_stiem = self.locator_finder_by_xpath(add_col)
+        add_col_stiem.click()
+        time.sleep(1)
+
+        print('Saving the updated views links\n')
+        save_link = '//*[@id="modal-dialog"]/div/div/div[2]/button'
+        save_link_sitem = self.locator_finder_by_xpath(save_link)
+        save_link_sitem.click()
+        time.sleep(2)
+
+        print('Select my_collection \n')
+        select_my_col = "//*[text()='my_collection']"
+        select_my_col_sitem = self.locator_finder_by_xpath(select_my_col)
+        select_my_col_sitem.click()
+        time.sleep(1)
+
+        print('Selecting include all fields\n')
+        include = "//*[text()='Include All Fields']"
+        include_sitem = self.locator_finder_by_xpath(include)
+        include_sitem.click()
+        time.sleep(1)
+
+        print('Selecting Track List fields\n')
+        track_list = "// *[text() = 'Track List Positions']"
+        track_list_sitem = self.locator_finder_by_xpath(track_list)
+        track_list_sitem.click()
+        time.sleep(1)
+
+        print('Selecting stored id fields\n')
+        stored_id_list = "// *[text() = 'Store ID Values']"
+        stored_id_list_sitem = self.locator_finder_by_xpath(stored_id_list)
+        stored_id_list_sitem.click()
+        time.sleep(1)
+
+        print('Selecting background fields\n')
+        background = "// *[text() = 'In Background']"
+        background_sitem = self.locator_finder_by_xpath(background)
+        background_sitem.click()
+        time.sleep(1)
+
+        print('Saving updated links\n')
+        save = "//*[text()='Save View']"
+        save_sitem = self.locator_finder_by_xpath(save)
+        save_sitem.click()
+        time.sleep(2)
+
+        # json tab check start here
+        print("Selecting json tab\n")
+        json_tab = "//*[text()='JSON']"
+        json_tab_sitem = self.locator_finder_by_xpath(json_tab)
+        json_tab_sitem.click()
+        time.sleep(1)
+
+        self.select_collapse_btn()
+        time.sleep(1)
+        print("Selecting expand button \n")
+        self.select_expand_btn()
+        time.sleep(1)
+
+        print('Discard the changes for JSON tab\n')
+        discard = '//*[@id="Save"]/button'
+        discard_sitem = self.locator_finder_by_xpath(discard)
+        discard_sitem.click()
+        time.sleep(1)
+
+        # renaming views
+        if is_cluster:
+            print('Renaming views are disabled for the Cluster deployment')
+        else:
+            print(f"Rename {name} to modified_name started \n")
+            print(f'Selecting {name} for renaming \n')
+
+            self.select_views_tab()
+
+            print(f'Selecting {name} for renaming \n')
+            select_view_sitem = self.locator_finder_by_xpath(locator)
+            select_view_sitem.click()   # already in the settings tab
+            time.sleep(1)
+
+            modified_name = "//input[@value='improved_arangosearch_view_01']"
+            modified_name_sitem = self.locator_finder_by_xpath(modified_name)
+            modified_name_sitem.click()
+            modified_name_sitem.clear()
+            modified_name_sitem.send_keys('modified_views_name')
+            time.sleep(1)
+
+            save = "//*[text()='Save View']"
+            save_sitem = self.locator_finder_by_xpath(save)
+            save_sitem.click()
+            print("Rename the current Views completed \n")
+        print(f'Checking {name} Completed \n')
+
     def checking_views_negative_scenario_for_views(self):
         """This method will check negative input for views name during creation"""
         self.select_views_tab()
@@ -537,6 +716,7 @@ class ViewsPage(NavigationBarPage):
         create_new_views_id = self.locator_finder_by_xpath(self.create_new_views_id)
         create_new_views_id.click()
         time.sleep(2)
+        self.wait_for_ajax()
 
         print('Expected error scenario for the Views name started \n')
         error_input = ['@', '/', 'שלום']
@@ -572,6 +752,7 @@ class ViewsPage(NavigationBarPage):
             advance_option_sitem = self.locator_finder_by_xpath(advance_option)
             advance_option_sitem.click()
             time.sleep(2)
+            self.wait_for_ajax()
 
             print(f'Select write buffer idle value\n')
             buffer_locator_id = "//input[@value='64']"
@@ -590,6 +771,7 @@ class ViewsPage(NavigationBarPage):
         close_btn_sitem = self.locator_finder_by_xpath(close_btn)
         close_btn_sitem.click()
         time.sleep(3)
+        self.wait_for_ajax()
 
 
     def delete_views(self, name, locator):
@@ -607,12 +789,10 @@ class ViewsPage(NavigationBarPage):
             delete_views_btn_sitem = self.locator_finder_by_id(self.delete_views_btn_id)
             delete_views_btn_sitem.click()
             time.sleep(1)
-            self.wait_for_ajax()
 
             delete_views_confirm_btn_sitem = self.locator_finder_by_xpath(self.delete_views_confirm_btn_id)
             delete_views_confirm_btn_sitem.click()
             time.sleep(1)
-            self.wait_for_ajax()
 
             final_delete_confirmation_sitem = self.locator_finder_by_id(self.final_delete_confirmation_id)
             final_delete_confirmation_sitem.click()
@@ -622,6 +802,91 @@ class ViewsPage(NavigationBarPage):
         except TimeoutException as e:
             print('TimeoutException occurred! \n')
             print('Info: Views has already been deleted or never created. \n')
+        except Exception:
+            traceback.print_exc()
+            raise Exception('Critical Error occurred and need manual inspection!! \n')
+
+    def delete_created_collection(self, col_name):
+        """this method will delete all the collection created for views"""
+        try:
+            print('Selecting collection tab\n')
+            collections = 'collections'
+            collections_sitem = self.locator_finder_by_id(collections)
+            collections_sitem.click()
+            time.sleep(1)
+
+            print('Deleting collection started\n')
+            my_collection = f"//*[text()='{col_name}']"
+            my_collection_sitem = self.locator_finder_by_xpath(my_collection)
+            my_collection_sitem.click()
+            time.sleep(1)
+
+            setting = "//*[text()='Settings']"
+            setting_sitem = self.locator_finder_by_xpath(setting)
+            setting_sitem.click()
+            time.sleep(2)
+
+            delete = "//*[text()='Delete']"
+            delete_sitem = self.locator_finder_by_xpath(delete)
+            delete_sitem.click()
+            time.sleep(1)
+
+            confirm = "/html/body/div[2]/div/div[2]/div[2]/div/div[3]/button[1]"
+            confirm_sitem = self.locator_finder_by_xpath(confirm)
+            confirm_sitem.click()
+            time.sleep(1)
+        except TimeoutException:
+            print('TimeoutException occurred! \n')
+            print(f'Info: {col_name} has already been deleted or never created. \n')
+        except Exception:
+            traceback.print_exc()
+            raise Exception('Critical Error occurred and need manual inspection!! \n')
+
+    
+    def delete_new_views(self, name):
+        """this method will delete all the newer version views"""
+        self.select_views_tab()
+        print(f"{name} start deleting \n")
+        try:
+            views = ''
+            if name == 'modified_views_name':
+                views = "//*[text()='modified_views_name']"
+            elif name == 'improved_arangosearch_view_01':
+                views = "//*[text()='improved_arangosearch_view_01']"
+            elif name == 'improved_arangosearch_view_02':
+                views = "//*[text()='improved_arangosearch_view_02']"
+
+            views_sitem = self.locator_finder_by_xpath(views)
+            views_sitem.click()
+            time.sleep(2)
+
+            delete = '//*[@id="Actions"]/button'
+            delete_sitem = self.locator_finder_by_xpath(delete)
+            delete_sitem.click()
+            time.sleep(2)
+
+            delete_btn = '/html/body/div[10]/div/div[3]/button[2]'
+            delete_btn_sitem = self.locator_finder_by_xpath(delete_btn)
+            delete_btn_sitem.click()
+            time.sleep(2)
+
+            confirm_delete_btn = ''
+            if name == 'modified_views_name':
+                confirm_delete_btn = '//*[@id="modal-content-delete-modified_views_name"]/div[3]/button[2]'
+            elif name == 'improved_arangosearch_view_01':
+                confirm_delete_btn = '//*[@id="modal-content-delete-improved_arangosearch_view_01"]/div[3]/button[2]'
+            elif name == 'improved_arangosearch_view_02':
+                confirm_delete_btn = '//*[@id="modal-content-delete-improved_arangosearch_view_02"]/div[3]/button[2]'
+
+            confirm_delete_btn_sitem = self.locator_finder_by_xpath(confirm_delete_btn)
+            confirm_delete_btn_sitem.click()
+            time.sleep(2)
+
+            self.driver.refresh()
+            time.sleep(2)
+        except TimeoutException:
+            print('TimeoutException occurred! \n')
+            print(f'Info: {name} has already been deleted or never created. \n')
         except Exception:
             traceback.print_exc()
             raise Exception('Critical Error occurred and need manual inspection!! \n')

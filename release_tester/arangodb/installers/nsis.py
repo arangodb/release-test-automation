@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """ run an installer for the debian based operating system """
 import logging
@@ -8,20 +9,23 @@ import subprocess
 import time
 
 # pylint: disable=import-error
-import winreg
+import platform
+IS_WINDOWS = platform.win32_ver()[0] != ""
+if IS_WINDOWS:
+    import winreg
 import os
 import re
 
 import semver
 from allure_commons._allure import attach
 from allure_commons.types import AttachmentType
-from mss import mss
+if IS_WINDOWS:
+    from mss import mss
 import psutil
 
 from arangodb.installers.windows import InstallerWin
 from reporting.reporting_utils import step
-
-from arangodb.installers.base import InstallerBase
+from tools.killall import get_process_tree
 
 # pylint: disable=unused-import
 # this will patch psutil for us:
@@ -53,12 +57,12 @@ class InstallerNsis(InstallerWin):
         cfg.real_bin_dir = cfg.bin_dir
         cfg.real_sbin_dir = cfg.sbin_dir
         if cfg.semver > semver.VersionInfo.parse("3.9.99"):
-            self.arch = "_x86_64"
+            self.arch = "_amd64"
+            self.arch = ""
         else:
             self.arch = ""
-        self.os = 'win64'
+        self.operating_system = 'win64'
         super().__init__(cfg)
-        self.check_stripped = False
         self.check_symlink = False
         self.core_glob = "**/*.dmp"
 
@@ -84,7 +88,10 @@ class InstallerNsis(InstallerWin):
         enterprise = "e" if self.cfg.enterprise else ""
         semdict = dict(self.cfg.semver.to_dict())
         if semdict["prerelease"]:
-            semdict["prerelease"] = "-{prerelease}".format(**semdict)
+            if semdict["prerelease"].startswith("rc"):
+                semdict["prerelease"] = "-" + semdict["prerelease"].replace("rc", "rc.")
+            else:
+                semdict["prerelease"] = "-{prerelease}".format(**semdict)
         else:
             semdict["prerelease"] = ""
         version = "{major}.{minor}.{patch}{prerelease}".format(**semdict)
@@ -92,7 +99,7 @@ class InstallerNsis(InstallerWin):
         self.desc = {
             "ep": enterprise,
             "ver": version,
-            "os": self.os,
+            "os": self.operating_system,
             "arch": self.arch,
             "ext": self.extension,
         }
@@ -282,6 +289,7 @@ class InstallerNsis(InstallerWin):
                         name="Screenshot ({fn})".format(fn=filename),
                         attachment_type=AttachmentType.PNG,
                     )
+                print(get_process_tree())
                 uninstall.kill()
                 raise Exception("upgrade uninstall failed to complete on time") from exc
 
@@ -319,6 +327,7 @@ class InstallerNsis(InstallerWin):
                         name="Screenshot ({fn})".format(fn=filename),
                         attachment_type=AttachmentType.PNG,
                     )
+                print(get_process_tree())
                 uninstall.kill()
                 raise Exception("uninstall failed to complete on time") from exc
         if self.cfg.log_dir.exists():
@@ -369,6 +378,7 @@ class InstallerNsis(InstallerWin):
                         name="Screenshot ({fn})".format(fn=filename),
                         attachment_type=AttachmentType.PNG,
                     )
+                print(get_process_tree())
                 uninstall.kill()
                 raise Exception("uninstall failed to complete on time") from exc
         if self.cfg.log_dir.exists():

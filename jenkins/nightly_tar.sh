@@ -1,15 +1,23 @@
 #!/bin/bash
 
+ARCH="-$(uname -m)"
+
+if test "${ARCH}" == "-x86_64"; then
+    ARCH="-amd64"
+else
+    ARCH="-arm64v8"
+fi
+
 VERSION=$(cat VERSION.json)
 GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
 if test -z "$GIT_VERSION"; then
     GIT_VERSION=$VERSION
 fi
 if test -z "$OLD_VERSION"; then
-    OLD_VERSION=3.8.0-nightly
+    OLD_VERSION=3.10.0-nightly
 fi
 if test -z "$NEW_VERSION"; then
-    NEW_VERSION=3.9.0-nightly
+    NEW_VERSION=3.11.0-nightly
 fi
 if test -z "${PACKAGE_CACHE}"; then
     PACKAGE_CACHE="$(pwd)/package_cache/"
@@ -32,13 +40,10 @@ mkdir -p test_dir/miniodata/home/test_dir
 rm -rf test_dir/miniodata/home/test_dir/*
 mkdir -p allure-results
 
-ssh -o StrictHostKeyChecking=no -T git@github.com
-git clone git@github.com:arangodb/release-test-automation-helpers.git
-mv $(pwd)/release-test-automation-helpers $(pwd)/release_tester/tools/external_helpers
 
 DOCKER_TAR_NAME=release-test-automation-tar
 
-DOCKER_TAR_TAG="${DOCKER_TAR_NAME}:$(cat containers/this_version.txt)"
+DOCKER_TAR_TAG="${DOCKER_TAR_NAME}:$(cat containers/this_version.txt)${ARCH}"
 
 docker kill "$DOCKER_TAR_NAME" || true
 docker rm "$DOCKER_TAR_NAME" || true
@@ -54,8 +59,14 @@ DOCKER_NAMESPACE="arangodb/"
 if docker pull "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}"; then
     echo "using ready built container"
 else
-    docker build containers/docker_tar -t "${DOCKER_TAR_TAG}" || exit
+    docker build "containers/docker_tar${ARCH}" -t "${DOCKER_TAR_TAG}" || exit
     DOCKER_NAMESPACE=""
+fi
+
+ssh -o StrictHostKeyChecking=no -T git@github.com
+if test ! -d $(pwd)/release_tester/tools/external_helpers; then
+  git clone git@github.com:arangodb/release-test-automation-helpers.git
+  mv $(pwd)/release-test-automation-helpers $(pwd)/release_tester/tools/external_helpers
 fi
 
 docker network create -d bridge minio-bridge

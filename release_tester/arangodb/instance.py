@@ -56,7 +56,6 @@ INSTANCE_TYPE_STRING_MAP = {
     "syncworker": InstanceType.SYNCWORKER,
 }
 
-
 def log_line_get_date(line):
     """parse the date out of an arangod logfile line"""
     return datetime.datetime.strptime(line.split(" ")[0], "%Y-%m-%dT%H:%M:%SZ")
@@ -107,6 +106,37 @@ class Instance(ABC):
         self.ssl = ssl
 
         logging.debug("creating {0.type_str} instance: {0.name}".format(self))
+
+    def get_structure(self):
+        """ return instance structure like testing.js does """
+        url = ('https' if self.ssl else 'http') + '127.0.0.1:' + str(self.port) + '/'
+        protocol = ('ssl' if self.ssl else 'tcp') 
+        endpoint = protocol + '127.0.0.1:' + str(self.port) + '/'
+        return {
+            'name': self.name,
+            'instanceRole': self.type_str,
+            'message': '',
+            'rootDir': str(self.basedir),
+            'protocol': protocol,
+            'authHeaders': "",
+            'restKeyFile': "",
+            'agencyConfig': {},
+            'upAndRunning': True,
+            'suspended': False,
+            'port': self.port,
+            'url': url,
+            'endpoint': endpoint,
+            'dataDir': str(self.basedir / 'data'),
+            'appDir': str(self.basedir / 'apps'),
+            'tmpDir': "",
+            'logFile': str(self.logfile),
+            'args': str(self.instance_arguments),
+            'pid': self.pid,
+            'id': self.pid,
+            'JWT': "",
+            'exitStatus': 0,
+            'serverCrashedLocal': False
+        }
 
     @abstractmethod
     def detect_pid(self, ppid, offset, full_binary_path):
@@ -577,12 +607,12 @@ class ArangodInstance(Instance):
             log_file_content = ""
             last_line = ""
 
-            for _ in range(20):
+            for _ in range(120):
                 if self.logfile.exists():
                     break
                 time.sleep(1)
             else:
-                raise TimeoutError("instance logfile '" + str(self.logfile) + "' didn't show up in 20 seconds")
+                raise TimeoutError("instance logfile '" + str(self.logfile) + "' didn't show up in 120 seconds")
 
             with open(self.logfile, errors="backslashreplace", encoding="utf8") as log_fh:
                 for line in log_fh:

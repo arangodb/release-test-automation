@@ -277,6 +277,7 @@ class Runner(ABC):
             self.starter_run()
             self.finish_setup()
             self.make_data()
+            self.after_makedata_check()
             if self.selenium:
                 self.set_selenium_instances()
                 self.selenium.test_empty_ui()
@@ -327,6 +328,7 @@ class Runner(ABC):
             lh.subsection("outputting version")
             self.new_installer.output_arangod_version()
             self.new_installer.get_starter_version()
+            self.new_installer.get_sync_version()
             self.new_installer.stop_service()
             self.cfg.set_directories(self.new_installer.cfg)
             self.new_cfg.set_directories(self.new_installer.cfg)
@@ -461,6 +463,7 @@ class Runner(ABC):
             lh.subsubsection("outputting version")
             inst.output_arangod_version()
             inst.get_starter_version()
+            inst.get_sync_version()
 
             lh.subsubsection("starting service")
 
@@ -526,6 +529,11 @@ class Runner(ABC):
         """not finish the setup"""
         self.progress(True, "{0} - finish setup".format(str(self.name)))
         self.finish_setup_impl()
+
+    @step
+    def after_makedata_check(self):
+        """just after makedata..."""
+        pass
 
     @step
     def make_data(self):
@@ -1084,7 +1092,7 @@ class Runner(ABC):
     def cert_op(self, args):
         """create a certificate"""
         print(args)
-        cmd = [self.cfg.bin_dir / "arangodb", "create"] + args
+        cmd = [self.cfg.real_bin_dir / "arangodb", "create"] + args
         run_cmd_and_log_stdout(cmd)
 
     def create_cert_dir(self):
@@ -1130,3 +1138,12 @@ class Runner(ABC):
 
     def set_selenium_instances(self):
         """set instances in selenium runner"""
+
+    def get_process_structure(self):
+        """ resemble the testing.js INSTANCEINFO env """
+        instances = []
+        for starter in self.starter_instances:
+            for instance in starter.all_instances:
+                instances.append(instance.get_structure())
+        os.environ['INSTANCEINFO'] = json.dumps(instances)
+

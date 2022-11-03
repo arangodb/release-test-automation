@@ -6,7 +6,8 @@ pexpect
 requests
 click
 semver
-selenium >= 4.0.0
+python-magic; platform_system != "Windows"
+python-magic-bin; platform_system == "Windows"
 beautifultable
 tabulate
 markdown

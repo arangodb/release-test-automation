@@ -13,7 +13,7 @@ docker build containers/docker_deb${ARCH} -t $DOCKER_DEB_TAG${ARCH} || exit
 docker push $DOCKER_DEB_TAG${ARCH} || exit
 
 DOCKER_RPM_TAG=arangodb/release-test-automation-rpm:$(cat containers/this_version.txt)
-docker build containers/docker_rpm -t $DOCKER_RPM_TAG${ARCH} || exit
+docker build containers/docker_rpm${ARCH} -t $DOCKER_RPM_TAG${ARCH} || exit
 docker push $DOCKER_RPM_TAG${ARCH} || exit
 
 DOCKER_TAR_TAG=arangodb/release-test-automation-tar:$(cat containers/this_version.txt)

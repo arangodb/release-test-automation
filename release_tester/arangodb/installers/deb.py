@@ -48,7 +48,7 @@ class InstallerDeb(InstallerLinux):
     def calculate_package_names(self):
         enterprise = "e" if self.cfg.enterprise else ""
         package_version = "1"
-        architecture = "amd64" if self.machine == "x86_64" else self.machine
+        architecture = "amd64" if self.machine == "x86_64" else "arm64"
 
         semdict = dict(self.cfg.semver.to_dict())
 
@@ -60,7 +60,7 @@ class InstallerDeb(InstallerLinux):
             elif semdict["prerelease"].startswith("beta"):
                 semdict["prerelease"] = "~{prerelease}".format(**semdict)
             elif semdict["prerelease"].startswith("rc"):
-                semdict["prerelease"] = "~{prerelease}".format(**semdict)
+                semdict["prerelease"] = "~" + semdict["prerelease"].replace("rc", "rc.").replace('..', '.')
             elif re.match(r"\d{1,2}", semdict["prerelease"]):
                 semdict["prerelease"] = ".{prerelease}".format(**semdict)
             elif len(semdict["prerelease"]) > 0:

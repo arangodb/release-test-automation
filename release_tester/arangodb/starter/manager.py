@@ -6,6 +6,7 @@
 import copy
 import datetime
 import http.client as http_client
+import json
 import logging
 import os
 import re
@@ -22,6 +23,7 @@ from allure_commons.types import AttachmentType
 from tools.asciiprint import print_progress as progress
 from tools.timestamp import timestamp
 import tools.loghelper as lh
+from tools.killall import get_process_tree
 from arangodb.instance import (
     ArangodInstance,
     ArangodRemoteInstance,
@@ -162,6 +164,35 @@ class StarterManager:
 
     def __repr__(self):
         return str(get_instances_table(self.get_instance_essentials()))
+
+    def get_structure(self):
+        instances = []
+        urls = []
+        leader_name = "";
+        if (self.is_leader):
+            leader_name = self.leader.name;
+
+        for arangod in self.all_instances:
+            struct = arangod.get_structure()
+            urls.append(struct.url)
+            instances.append(struct)
+        return {
+            'protocol': self.get_http_protocol(),
+            'options': "",
+            'addArgs': "",
+            'rootDir': str(self.basedir),
+            'leader': leader_name,
+            'agencyConfig': "",
+            'httpAuthOptions': "",
+            'urls': str(self.urls),
+            'url': self.url,
+            'endpoints': self.endpoints,
+            'endpoint': self.endpoint,
+            'arangods': d,
+            'restKeyFile': self.restKeyFile,
+            'tcpdump': self.tcpdump,
+            'cleanup': self.cleanup
+        }
 
     def name(self):
         """name of this starter"""
@@ -870,7 +901,6 @@ class StarterManager:
             message = "if that does not help try to delete: " + str(self.basedir)
             logging.error(message)
             raise Exception(message)
-
         self.show_all_instances()
 
     @step
@@ -940,6 +970,7 @@ class StarterManager:
                 "Not all instances are alive. " "The following are not running: %s",
                 str(missing_instances),
             )
+            logging.error(get_process_tree())
             raise Exception("instances missing: " + str(missing_instances))
         instances_table = get_instances_table(self.get_instance_essentials())
         logging.info("All arangod instances still running: \n%s", str(instances_table))

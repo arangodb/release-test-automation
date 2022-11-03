@@ -58,9 +58,18 @@
           let col = shardDist.results[c];
           let shards = Object.keys(col.Plan);
           shards.forEach((s) => {
-            if (col.Plan[s].leader !== col.Current[s].leader) {
-              ++found;
-              collections.push([c, s]);
+            try {
+              if (col.Plan[s].leader !== col.Current[s].leader) {
+                ++found;
+                collections.push([c, s]);
+              }
+            } catch (ex) {
+              print(s);
+              print(col);
+              print(ex);
+              // BTS-1107: nothing to see here!
+              // ++found;
+              // collections.push([c, s]);
             }
           });
         });

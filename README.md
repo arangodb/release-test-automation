@@ -16,7 +16,7 @@
 ## Linux
 
 - **debian** / **ubuntu**:
-  `apt-get install python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect python3-pyftpdlib python3-statsd python3-selenium python3-pip gdb`
+  `apt-get install python3-yaml python3-magic python3-requests python3-click python3-distro python3-psutil python3-pexpect python3-pyftpdlib python3-statsd python3-selenium python3-pip gdb`
   
   the `python3-semver` on debian is to old - need to use the pip version instead:
   `pip3 install semver beautifultable allure_python_commons certifi tabulate`
@@ -27,17 +27,17 @@
   `pip install distro semver pexpect psutil beautifultable allure_python_commons certifi`
   
 - **centos**:
-   `yum update ; yum install python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect python3-pyftpdlib; pip3 install psutil semver beautifultable` 
+   `yum update ; yum install python3 python3-pyyaml python3-magic python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect python3-pyftpdlib; pip3 install psutil semver beautifultable` 
    `sudo yum install gdb`
 - **plain pip**:
-  `pip3 install psutil pyyaml pexpect requests click semver ftplib selenium beautifultable tabulate allure_python_commons certifi`
+  `pip3 install psutil pyyaml pexpect requests click semver magic ftplib selenium beautifultable tabulate allure_python_commons certifi`
   or:
   `pip install -r requirements.txt`
 
 ## Mac OS
 :
     `brew install gnu-tar`
-    `pip3 install click psutil requests pyyaml semver pexpect selenium beautifultable tabulate allure_python_commons certifi`
+    `pip3 install click psutil requests pyyaml semver magic pexpect selenium beautifultable tabulate allure_python_commons certifi`
     `brew install gdb`
 if `python --version` is below 3.9 you also have to download ftplib:
     `pip3 install click ftplib`
@@ -95,7 +95,8 @@ Supported Parameters:
    - `install` to only install the package onto the system and store its setting to the temp folder (development) 
    - `tests`  to read the config file from the temp folder and run the tetss.
    - `uninstall` to clean up your system.
- - `--starter-mode [all|LF|AFO|CL|DC|DCendurance|none]` which starter test to exute, `all` of them or `none` at all or:
+ - `--starter-mode [all|SG|LF|AFO|CL|DC|DCendurance|none]` which starter test to exute, `all` of them or `none` at all or:
+   - `SG` - Single server - the most simple deployment possible
    - `LF` - Leader / Follower - setup two single instances, start replication between them
    - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
@@ -137,7 +138,8 @@ Supported Parameters:
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
  - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
  - `--verbose` if specified more logging is done
- - `--starter-mode [all|LF|AFO|CL|DC|none]` which starter test to exute, `all` of them or `none` at all or: 
+ - `--starter-mode [all|SG|LF|AFO|CL|DC|none]` which starter test to exute, `all` of them or `none` at all or:
+   - `SG` - Single server - the most simple deployment possible
    - `LF` - Leader / Follower - setup two single instances, start replication between them
    - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
@@ -221,6 +223,8 @@ Supported Parameters:
  - `--httppassvoid` secret for stage http access
  - `--verbose` if specified more logging is done
  - `--force` overwrite readily existing downloaded packages
+ - `--force-arch` override the machine architecture of the host
+ - `--force-os ['', windows, mac, ubuntu, debian, centos, redhat, alpine]`, to download the software for another OS than the one you're currently running
 
 example usage:
 `python3 release_tester/download.py --enterprise \
@@ -267,7 +271,8 @@ Supported Parameters:
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
  - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
  - `--verbose` if specified more logging is done
- - `--starter-mode [all|LF|AFO|CL|DC|none]` which starter test to exute, `all` of them or `none` at all or: 
+ - `--starter-mode [all|SG|LF|AFO|CL|DC|none]` which starter test to exute, `all` of them or `none` at all or:
+   - `SG` - Single server - the most simple deployment possible
    - `LF` - Leader / Follower - setup two single instances, start replication between them
    - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
@@ -329,7 +334,8 @@ Supported Parameters:
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
  - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
  - `--verbose` if specified more logging is done
- - `--starter-mode [all|LF|AFO|CL|DC|none]` which starter test to exute, `all` of them or `none` at all or: 
+ - `--starter-mode [all|SG|LF|AFO|CL|DC|none]` which starter test to exute, `all` of them or `none` at all or:
+   - `SG` - Single server - the most simple deployment possible
    - `LF` - Leader / Follower - setup two single instances, start replication between them
    - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
@@ -402,8 +408,9 @@ It consists of these files in test_data:
    - `100_collections.js` creates a set of collections / indices
    - `400_views.js` creates some views
    - `500_community_graph.js` creates a community patent graph
-   - `550_enterprise_graph.js` creates an enterprise patent graph
+   - `550_smart_graph.js` creates a smart patent graph
    - `560_smartgraph_validator.js` on top of the enterprise graph, this will check the integrity check of the server.
+   - `570_enterprise_graph.js` creates an enterprise patent graph
    - `900_oneshard.js` creates oneshard database and does stuff with it.
    - `607_analyzers.js` creates suported analyzers for 3.7.x version and check it's functionality.
       Added Analyzers: (documentation link: https://www.arangodb.com/docs/3.7/analyzers.html)
@@ -428,6 +435,13 @@ It consists of these files in test_data:
       - geoJson: An Analyzer capable of breaking up a GeoJSON object into a set of indexable tokens for further usage with ArangoSearch Geo functions.
       - geoPoint: An Analyzer capable of breaking up JSON object describing a coordinate into a set of indexable tokens for further usage with ArangoSearch Geo functions.
    - `609_analyzers.js` creates suported analyzers for 3.9.x version and check it's functionality.
+      - Collation: An Analyzer capable of breaking up the input text into tokens in a language-agnostic manner as per Unicode  Standard Annex #29.
+      - Segmentation: Analyzers to show the behavior of the different break options such as 'all', 'alpha' and  'graphic'.
+   - `610_analyzers.js` creates suported analyzers for 3.10.x version and check it's functionality.
+      - classifierSingle: An Analyzer capable of classifying tokens in the input text.
+      - classifierDouble: An Analyzer capable of classifying tokens in the input text.
+      - nearestNeighborsSingle: An Analyzer capable of finding nearest neighbors of single tokens in the input.
+      - nearestNeighborsDouble: An Analyzer capable of finding nearest neighbors of double tokens in the input.
 
 It should be considered to provide a set of hooks (000_dummy.js can be considered being a template for this):
 
