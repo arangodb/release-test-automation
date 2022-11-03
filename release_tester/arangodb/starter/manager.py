@@ -376,7 +376,7 @@ class StarterManager:
         results = []
         for instance in self.all_instances:
             if instance.instance_type == instance_type:
-                if instance.detect_gone(verbose=False):
+                if instance.detect_gone():
                     print("Instance to send request to already gone: " + repr(instance))
                 else:
                     headers["Authorization"] = "Bearer " + str(self.get_jwt_header())
@@ -514,7 +514,7 @@ class StarterManager:
 
         for instance in self.all_instances:
             instance.rename_logfile()
-            if not instance.detect_gone(verbose=False):
+            if not instance.detect_gone():
                 print("Manually terminating instance!")
                 instance.terminate_instance(False)
         # Clear instances as they have been stopped and the logfiles
