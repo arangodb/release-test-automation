@@ -266,7 +266,7 @@
       return 0;
 
     },
-    clearDataDB: function (options, isCluster, isEnterprise, dbCount, database) {
+    clearDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
       print(`609: checking data ${dbCount}`);
       // deleting analyzer
       function deleteAnalyzer(analyzerName){
