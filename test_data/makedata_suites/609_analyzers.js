@@ -1,4 +1,4 @@
-/* global print, semver, progress, createSafe, db */
+/* global print, semver, progress, createSafe, createCollectionSafe, db */
 /*jslint maxlen: 130 */
 
 (function () {
@@ -19,7 +19,7 @@
         // creating analyzer
         let text = createSafe(analyzerName,
           function () {
-            return analyzerCreationQuery
+            return analyzerCreationQuery;
           }, function () {
             if (a.analyzer(analyzerName) === null) {
               throw new Error(`609: ${analyzerName} analyzer creation failed!`);
@@ -43,7 +43,7 @@
       let collationSvView = `collationSvView_${dbCount}`;
       let collationSvCol = `collationSvCol_${dbCount}`;
 
-      let CollationSvQuery = a.save(`${collationSv}`, "collation", { locale: "en.utf-8" }, ["frequency", "norm", "position"]);
+      let CollationSvQuery = a.save(`${collationSv}`, "collation", { locale: "sv.utf-8" }, ["frequency", "norm", "position"]);
       let svCol = createCollectionSafe(collationSvCol, 2, 1); 
       svCol.insert([{ text: "a" },{ text: "å" },{ text: "b" },{ text: "z" },]);
       db._createView(`${collationSvView}`, "arangosearch",{ links: { [collationSvCol]: { analyzers: [collationSv], includeAllFields: true }}});
@@ -52,30 +52,30 @@
       //segmentAll Analyzer for a phonetically similar term search
       let segmentAll = `segmentAll_${dbCount}`;
       var all = a.save(`${segmentAll}`, "segmentation", { break: "all" }, ["frequency", "norm", "position"]);
-      let segmentAllQuery = all
+      let segmentAllQuery = all;
 
       //segmentAlpha analyzer properties
       //segmentAlpha Analyzer for a phonetically similar term search
       let segmentAlpha = `segmentAlpha_${dbCount}`;
       var alpha = a.save(`${segmentAlpha}`, "segmentation", { break: "alpha" }, ["frequency", "norm", "position"]);
-      let segmentAlphaQuery = alpha
+      let segmentAlphaQuery = alpha;
 
       //segmentAlpha analyzer properties
       //segmentAlpha Analyzer for a phonetically similar term search
       let segmentGraphic = `segmentGraphic_${dbCount}`;
       var graphic = a.save(`${segmentGraphic}`, "segmentation", { break: "graphic" }, ["frequency", "norm", "position"]);
-      let segmentGraphicQuery = graphic
+      let segmentGraphicQuery = graphic;
 
       //creating collationEn  analyzer
-      createAnalyzer(collationEn, CollationEnQuery)
+      createAnalyzer(collationEn, CollationEnQuery);
       //creating collationSv  analyzer
-      createAnalyzer(collationSv, CollationSvQuery)
+      createAnalyzer(collationSv, CollationSvQuery);
       //creating segmentAll  analyzer
-      createAnalyzer(segmentAll, segmentAllQuery)
+      createAnalyzer(segmentAll, segmentAllQuery);
       //creating segmentAlpha  analyzer
-      createAnalyzer(segmentAlpha, segmentAlphaQuery)
+      createAnalyzer(segmentAlpha, segmentAlphaQuery);
       //creating segmentGraphic  analyzer
-      createAnalyzer(segmentGraphic, segmentGraphicQuery)
+      createAnalyzer(segmentGraphic, segmentGraphicQuery);
 
       return 0;
     },
@@ -105,166 +105,154 @@
       }
 
       // this function will check everything regarding given analyzer
-      function checkAnalyzer(analyzerName, expectedType, expectedProperties, expectedResult, queryResult){
-        if (a.analyzer(analyzerName) === null) {
-          throw new Error(`609: ${analyzerName} analyzer creation failed!`);
+      function checkAnalyzer(test){
+        let queryResult = db._query(test);
+
+        if (a.analyzer(test.bindVars.analyzerName) === null) {
+          throw new Error(`609: ${test.bindVars.analyzerName} analyzer creation failed!`);
         }
 
-        //checking analyzer's name
-        let testName = a.analyzer(analyzerName).name();
-        let expectedName = `_system::${analyzerName}`;
+        progress(`609: ${test.bindVars.analyzerName} checking analyzer's name`);
+        let testName = a.analyzer(test.bindVars.analyzerName).name();
+        let expectedName = `_system::${test.bindVars.analyzerName}`;
         if (testName !== expectedName) {
-          throw new Error(`609: ${analyzerName} analyzer not found`);
+          throw new Error(`609: ${test.bindVars.analyzerName} analyzer not found`);
         }
-        progress();
 
-        //checking analyzer's type
-        let testType = a.analyzer(analyzerName).type();
-        if (testType !== expectedType){
-          throw new Error(`609: ${analyzerName} analyzer type missmatched!`);
+        progress(`609: ${test.bindVars.analyzerName} checking analyzer's type`);
+        let testType = a.analyzer(test.bindVars.analyzerName).type();
+        if (testType !== test.collationType){
+          throw new Error(`609: ${test.bindVars.analyzerName} analyzer type missmatched!`);
         }
-        progress();
 
-        //checking analyzer's properties
-        let testProperties = a.analyzer(analyzerName).properties();
-        checkProperties(analyzerName, testProperties, expectedProperties)
+        progress(`609: ${test.bindVars.analyzerName} checking analyzer's properties`);
+        let testProperties = a.analyzer(test.bindVars.analyzerName).properties();
+        checkProperties(test.bindVars.analyzerName, testProperties, test.properties);
 
-        progress();
+        progress(`609: ${test.bindVars.analyzerName} checking analyzer's query results`);
+        arraysEqual(test.expectedResult, queryResult);
 
-        //checking analyzer's query results
-        arraysEqual(expectedResult, queryResult);
-
-        progress();
+        progress(`609: ${test.bindVars.analyzerName} done`);
       }
 
-      //-------------------------------collationEn----------------------------------
-
-      let collationEn = `collationEn_${dbCount}`;
-      let collationEnView = `collationEnView_${dbCount}`;
-      let collationEnType = "collation";
-      let collationEnProperties = {
-        "locale" : "en"
-      };
-      let collationEnExpectedResult =[
-        [
-          "a",
-          "å",
-          "b"
-        ]
-      ];
-
-      let collationEnQueryReuslt = db._query(`FOR doc IN ${collationEnView} SEARCH ANALYZER(doc.text < TOKENS('c', '${collationEn}')[0], '${collationEn}') RETURN doc.text`);
-
-      checkAnalyzer(collationEn, collationEnType, collationEnProperties, collationEnExpectedResult, collationEnQueryReuslt)
-
-      //-------------------------------collationSv----------------------------------
-
-      let collationSv = `collationSv_${dbCount}`;
-      let collationSvView = `collationSvView_${dbCount}`;
-      let collationSvType = "collation";
-      let collationSvProperties = {
-        "locale" : "en"
-      };
-      let collationSvExpectedResult =[
-        [
-          "a",
-          "b"
-        ]
-      ];
-
-      let collationSvQueryReuslt = db._query(`FOR doc IN ${collationSvView} SEARCH ANALYZER(doc.text < TOKENS('c', '${collationSv}')[0], '${collationSv}') RETURN doc.text`);
-
-      checkAnalyzer(collationEn, collationSvType, collationSvProperties, collationSvExpectedResult, collationSvQueryReuslt)
-
-      //-------------------------------segmentAll----------------------------------
-
-      let segmentAll = `segmentAll_${dbCount}`;
-      let segmentAllType = "segmentation";
-      let segmentAllProperties = {
-        "case" : "lower",
-        "break" : "all"
-      };
-      let segmentAllExpectedResult =[
+      [
         {
-          "all" : [
-            "test",
-            "\t",
-            "with",
-            " ",
-            "an_email",
-            "-",
-            "address",
-            "+",
-            "123",
-            "@",
-            "example.org"
+          bindVars: {
+            analyzerName: `collationEn_${dbCount}`,
+            '@collationView': `collationEnView_${dbCount}`,
+          },
+          query: 'FOR doc IN @@collationView SEARCH ANALYZER(doc.text < TOKENS("c", @analyzerName)[0], @analyzerName) RETURN doc.text',
+          collationType: "collation",
+          properties: {
+            "locale" : "en"
+          },
+          expectedResult: [
+            [
+              "a",
+              "å",
+              "b"
+            ]
           ]
-        }
-      ];
-
-      let segmentAllQueryReuslt = db._query(`LET str = 'Test\twith An_EMAIL-address+123@example.org'RETURN {"all": TOKENS(str, '${segmentAll}'),}`);
-
-
-      checkAnalyzer(segmentAll, segmentAllType, segmentAllProperties, segmentAllQueryReuslt, segmentAllQueryReuslt)
-
-
-      //-------------------------------segmentAlpha----------------------------------
-
-      let segmentAlpha = `segmentAlpha_${dbCount}`;
-      let segmentAlphaType = "segmentation";
-      let segmentAlphaProperties = {
-        "case" : "lower",
-        "break" : "alpha"
-      };
-      let segmentAlphaExpectedResult =[
+        },
         {
-          "alpha" : [
-            "test",
-            "with",
-            "an_email",
-            "address",
-            "123",
-            "example.org"
+          bindVars: {
+            analyzerName: `collationSv_${dbCount}`,
+            '@collationView': `collationSvView_${dbCount}`,
+          },
+          query: 'FOR doc IN @@collationView SEARCH ANALYZER(doc.text < TOKENS("c", @analyzerName)[0], @analyzerName) RETURN doc.text',
+          collationType: "collation",
+          properties: {
+            "locale" : "sv"
+          },
+          expectedResult: [
+            [
+              "a",
+              "å",
+              "b"
+            ]
           ]
-        }
-      ];
-
-      let segmentAlphaQueryReuslt = db._query(`LET str = 'Test\twith An_EMAIL-address+123@example.org'RETURN {"alpha": TOKENS(str, '${segmentAlpha}'),}`);
-
-
-      checkAnalyzer(segmentAlpha, segmentAlphaType, segmentAlphaProperties, segmentAlphaExpectedResult, segmentAlphaQueryReuslt)
-
-      //-------------------------------segmentGraphic----------------------------------
-
-      let segmentGraphic = `segmentGraphic_${dbCount}`;
-      let segmentGraphicType = "segmentation";
-      let segmentGraphicProperties = {
-        "case" : "lower",
-        "break" : "graphic"
-      };
-      let segmentGraphicExpectedResult =[
+        },
         {
-          "graphic" : [
-            "test",
-            "with",
-            "an_email",
-            "-",
-            "address",
-            "+",
-            "123",
-            "@",
-            "example.org"
+          bindVars: {
+            analyzerName: `segmentAll_${dbCount}`
+          },
+          query: 'LET str = "Test\twith An_EMAIL-address+123@example.org" RETURN {"all": TOKENS(str, @analyzerName),}',
+          collationType: "segmentation",
+          properties: {
+            "case" : "lower",
+            "break" : "all"
+          },
+          expectedResult: [
+            {
+              "all" : [
+                "test",
+                "\t",
+                "with",
+                " ",
+                "an_email",
+                "-",
+                "address",
+                "+",
+                "123",
+                "@",
+                "example.org"
+              ]
+            }
           ]
-        }
-      ];
-
-      let segmentGraphicQueryReuslt = db._query(`LET str = 'Test\twith An_EMAIL-address+123@example.org'RETURN {"alpha": TOKENS(str, '${segmentGraphic}'),}`);
-
-
-      checkAnalyzer(segmentGraphic, segmentGraphicType, segmentGraphicProperties, segmentGraphicExpectedResult, segmentGraphicQueryReuslt)
-
+        },
+        {
+          bindVars: {
+            analyzerName: `segmentAlpha_${dbCount}` 
+          },
+          query: "LET str = 'Test\twith An_EMAIL-address+123@example.org' RETURN {'alpha': TOKENS(str, @analyzerName),}",
+          collationType: "segmentation",
+          properties: {
+            "case" : "lower",
+            "break" : "alpha"
+          },
+          expectedResult: [
+            {
+              "alpha" : [
+                "test",
+                "with",
+                "an_email",
+                "address",
+                "123",
+                "example.org"
+              ]
+            }
+          ]
+        },
+        {
+          bindVars: {
+            analyzerName: `segmentGraphic_${dbCount}`
+          },
+          query: "LET str = 'Test\twith An_EMAIL-address+123@example.org' RETURN {'alpha': TOKENS(str, @analyzerName),}",
+          collationType: "segmentation",
+          properties: {
+            "case" : "lower",
+            "break" : "graphic"
+          },
+          expectedResult: [
+            {
+              "graphic" : [
+                "test",
+                "with",
+                "an_email",
+                "-",
+                "address",
+                "+",
+                "123",
+                "@",
+                "example.org"
+              ]
+            }
+          ]
+        },
+      ].forEach(test => {
+        checkAnalyzer(test)
+      });
       return 0;
-
     },
     clearDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
       print(`609: checking data ${dbCount}`);
@@ -319,15 +307,15 @@
       }
 
       // deleting collationEn analyzer
-      deleteAnalyzer(collationEn)
+      deleteAnalyzer(collationEn);
       // deleting collationSv analyzer
-      deleteAnalyzer(collationSv)
+      deleteAnalyzer(collationSv);
       // deleting segmentAll analyzer
-      deleteAnalyzer(segmentAll)
+      deleteAnalyzer(segmentAll);
       // deleting segmentAlpha analyzer
-      deleteAnalyzer(segmentAlpha)
+      deleteAnalyzer(segmentAlpha);
       // deleting segmentGraphic analyzer
-      deleteAnalyzer(segmentGraphic)
+      deleteAnalyzer(segmentGraphic);
 
       return 0;
     }
