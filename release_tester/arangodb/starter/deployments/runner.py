@@ -1133,14 +1133,13 @@ class Runner(ABC):
     def set_selenium_instances(self):
         """set instances in selenium runner"""
 
-    def get_process_structure(self):
+    def export_instance_info(self):
         """ resemble the testing.js INSTANCEINFO env """
-        instances = []
+        starter_structs = []
         for starter in self.starter_instances:
-            jwt_header = starter.get_jwt_header()
-            for instance in starter.all_instances:
-                struct = instance.get_structure()
-                struct["JWT_header"] = jwt_header
-                instances.append(struct)
-        os.environ['INSTANCEINFO'] = json.dumps(instances)
+            starter_structs.append(starter.get_structure())
+        struct = starter_structs[0]
+        for starter in starter_structs[1:]:
+            struct["arangods"].extend(starter["arangods"])
+        os.environ['INSTANCEINFO'] = json.dumps(struct)
 

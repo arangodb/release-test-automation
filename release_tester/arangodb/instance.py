@@ -132,7 +132,6 @@ class Instance(ABC):
             'logFile': str(self.logfile),
             'args': str(self.instance_arguments),
             'pid': self.pid,
-            'id': self.pid,
             'JWT': "",
             'exitStatus': 0,
             'serverCrashedLocal': False,
@@ -709,7 +708,7 @@ class ArangodInstance(Instance):
 
     def get_structure(self):
         structure = super().get_structure()
-        structure["uuid"] = self.get_uuid()
+        structure["id"] = self.get_uuid()
         return structure
 
 

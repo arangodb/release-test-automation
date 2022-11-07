@@ -174,6 +174,7 @@ class StarterManager:
 
         for arangod in self.all_instances:
             struct = arangod.get_structure()
+            struct["JWT_header"]=self.get_jwt_header()
             urls.append(struct["url"])
             instances.append(struct)
         return {
@@ -185,7 +186,8 @@ class StarterManager:
             'agencyConfig': "",
             'httpAuthOptions': "",
             'urls': str(urls),
-            'arangods': str(instances),
+            'arangods': instances,
+            'JWT_header': self.get_jwt_header(),
             # 'url': self.url,
             # 'endpoints': self.endpoints,
             # 'endpoint': self.endpoint,
