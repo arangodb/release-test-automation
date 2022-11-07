@@ -22,7 +22,7 @@
     checkData: function (options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
       print(`checking data ${dbCount} ${loopCount}`);
     },
-    clearDataDB: function (options, isCluster, isEnterprise, dbCount, database) {
+    clearDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
       // check per DB
       return 0;
     },

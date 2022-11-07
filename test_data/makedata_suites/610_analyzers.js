@@ -15,7 +15,7 @@
       // All items created must contain dbCount
       // documentation link: https://www.arangodb.com/docs/3.10/analyzers.html
 
-      print(`making per database data ${dbCount}`);
+      print(`610: making per database data ${dbCount}`);
       function createAnalyzer(analyzerName, analyzerCreationQuery){
         // creating analyzer
         let text = createSafe(analyzerName,
@@ -23,7 +23,7 @@
             return analyzerCreationQuery
           }, function () {
             if (a.analyzer(analyzerName) === null) {
-              throw new Error(`${analyzerName} analyzer creation failed!`);
+              throw new Error(`610: ${analyzerName} analyzer creation failed!`);
             }
           });
       }
@@ -80,7 +80,7 @@
       return 0;
     },
     checkDataDB: function (options, isCluster, isEnterprise, database, dbCount, readOnly) {
-      print(`checking data ${dbCount}`);
+      print(`610: checking data ${dbCount}`);
 
       //This function will check any analyzer's properties
       function checkProperties(analyzer_name, obj1, obj2) {
@@ -92,35 +92,35 @@
                 (key) => obj2.hasOwnProperty(key)
                    && obj2[key] === obj1[key]);
         } else {
-          throw new Error(`${analyzer_name} analyzer's type missmatched!`);
+          throw new Error(`610: ${analyzer_name} analyzer's type missmatched!`);
         }
       };
 
       //This function will check any analyzer's equality with expected server response
       function arraysEqual(a, b) {
         if ((a === b) && (a === null || b === null) && (a.length !== b.length)){
-          throw new Error("Didn't get the expected response from the server!");
+          throw new Error("610: Didn't get the expected response from the server!");
         }
       }
 
       // this function will check everything regardin given analyzer
       function checkAnalyzer(analyzerName, expectedType, expectedProperties, expectedResult, queryResult){
         if (a.analyzer(analyzerName) === null) {
-          throw new Error(`${analyzerName} analyzer creation failed!`);
+          throw new Error(`610: ${analyzerName} analyzer creation failed!`);
         }
 
         //checking analyzer's name
         let testName = a.analyzer(analyzerName).name();
         let expectedName = `_system::${analyzerName}`;
         if (testName !== expectedName) {
-          throw new Error(`${analyzerName} analyzer not found`);
+          throw new Error(`610: ${analyzerName} analyzer not found`);
         }
         progress();
 
         //checking analyzer's type
         let testType = a.analyzer(analyzerName).type();
         if (testType !== expectedType){
-          throw new Error(`${analyzerName} analyzer type missmatched!`);
+          throw new Error(`610: ${analyzerName} analyzer type missmatched!`);
         }
         progress();
 
@@ -251,8 +251,8 @@
       return 0;
 
     },
-    clearDataDB: function (options, isCluster, isEnterprise, dbCount, database) {
-      print(`checking data ${dbCount}`);
+    clearDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
+      print(`610: checking data ${dbCount}`);
       // deleting analyzer
       function deleteAnalyzer(analyzerName){
         try {
@@ -265,7 +265,7 @@
           }
           // checking created text analyzer is deleted or not
           if (a.analyzer(analyzerName) != null) {
-            throw new Error(`${analyzerName} analyzer isn't deleted yet!`);
+            throw new Error(`610: ${analyzerName} analyzer isn't deleted yet!`);
           }
         } catch (e) {
           print(e);

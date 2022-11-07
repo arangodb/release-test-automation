@@ -150,14 +150,12 @@ class Instance(ABC):
         """retrieve the pw to connect to this instance"""
         return self.passvoid
 
-    def detect_gone(self, verbose=True):
+    def detect_gone(self):
         """revalidate that the managed process is actualy dead"""
         try:
             # we expect it to be dead anyways!
             return self.instance.wait(3) is None
         except psutil.TimeoutExpired:
-            if not verbose:
-                logging.error("was supposed to be dead, but I'm still alive? " + repr(self))
             return False
         except AttributeError:
             # logging.error("was supposed to be dead, but I don't have an instance? "
