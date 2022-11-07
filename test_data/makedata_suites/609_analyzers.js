@@ -1,7 +1,7 @@
 /* global print, semver, progress, createSafe, createCollectionSafe, db */
 /*jslint maxlen: 130 */
 
-const analyzers = require("@arangodb/analyzers");
+// const analyzers = require("@arangodb/analyzers");
 function createAnalyzer(analyzerName, analyzerCreationQuery){
   // creating analyzer
   let text = createSafe(analyzerName,
@@ -13,14 +13,15 @@ function createAnalyzer(analyzerName, analyzerCreationQuery){
                           }
                         });
 }
-function getTestData(dbCount) {
+function getTestData_609(dbCount) {
   return [
     {
+      analyzerName: `collationEn_${dbCount}`,
       bindVars: {
         analyzerName: `collationEn_${dbCount}`,
-        '@collationView': `collationEnView_${dbCount}`,
+        '@testView': `collationEnView_${dbCount}`,
       },
-      query: 'FOR doc IN @@collationView SEARCH ANALYZER(doc.text < TOKENS("c", @analyzerName)[0], @analyzerName) RETURN doc.text',
+      query: 'FOR doc IN @@testView SEARCH ANALYZER(doc.text < TOKENS("c", @analyzerName)[0], @analyzerName) RETURN doc.text',
       analyzerProperties: [
         "collation",
         { locale: "en.utf-8" },
@@ -45,11 +46,12 @@ function getTestData(dbCount) {
       ]
     },
     {
+      analyzerName: `collationSv_${dbCount}`,
       bindVars: {
         analyzerName: `collationSv_${dbCount}`,
-        '@collationView': `collationSvView_${dbCount}`,
+        '@testView': `collationSvView_${dbCount}`,
       },
-      query: 'FOR doc IN @@collationView SEARCH ANALYZER(doc.text < TOKENS("c", @analyzerName)[0], @analyzerName) RETURN doc.text',
+      query: 'FOR doc IN @@testView SEARCH ANALYZER(doc.text < TOKENS("c", @analyzerName)[0], @analyzerName) RETURN doc.text',
       analyzerProperties: [
         "collation",
         { locale: "sv.utf-8" },
@@ -74,6 +76,7 @@ function getTestData(dbCount) {
       ]
     },
     {
+      analyzerName: `segmentAll_${dbCount}`,
       bindVars: {
         analyzerName: `segmentAll_${dbCount}`
       },
@@ -112,6 +115,7 @@ function getTestData(dbCount) {
       ]
     },
     {
+      analyzerName: `segmentAlpha_${dbCount}`,
       bindVars: {
         analyzerName: `segmentAlpha_${dbCount}` 
       },
@@ -146,6 +150,7 @@ function getTestData(dbCount) {
       ]
     },
     {
+      analyzerName: `segmentGraphic_${dbCount}`,
       bindVars: {
         analyzerName: `segmentGraphic_${dbCount}`
       },
@@ -197,28 +202,28 @@ function getTestData(dbCount) {
       // documentation link: https://www.arangodb.com/docs/3.9/analyzers.html
 
       print(`609: making per database data ${dbCount}`);
-      getTestData(dbCount).forEach(test => {
-        let q = analyzers.save(test.bindVars.analyzerName,
+      getTestData_609(dbCount).forEach(test => {
+        let q = analyzers.save(test.analyzerName,
                                ...test.analyzerProperties
                               );
         if (test.hasOwnProperty('collection')) {
           progress(`609: creating ${test.collection} `);
           createCollectionSafe(test.collection, 2, 1).insert(test.colTestData);
-          progress(`609: creating ${test['@collationView']} `);
-          db._createView(test.bindVars['@collationView'],
+          progress(`609: creating ${test['@testView']} `);
+          db._createView(test.bindVars['@testView'],
                          "arangosearch", {
                            links: {
                              [test.collection]:
                              {
-                               analyzers: [test.bindVars.analyzerName],
+                               analyzers: [test.analyzerName],
                                includeAllFields: true
                              }
                            }
                          }
                         );
         }
-        progress(`609: creating ${test.bindVars.analyzerName}`);
-        createAnalyzer(test.bindVars.analyzerName, q);
+        progress(`609: creating ${test.analyzerName}`);
+        createAnalyzer(test.analyzerName, q);
       });
 
       return 0;
@@ -237,7 +242,7 @@ function getTestData(dbCount) {
             (key) => obj2.hasOwnProperty(key)
               && obj2[key] === obj1[key]);
         } else {
-          throw new Error(`609: ${analyzer_name} analyzer's type missmatched!`);
+          throw new Error(`609: ${analyzer_name} analyzer's type missmatched! ${JSON.stringify(obj1)} != ${JSON.stringify(obj2)}`);
         }
       };
 
@@ -252,34 +257,34 @@ function getTestData(dbCount) {
       function checkAnalyzer(test){
         let queryResult = db._query(test);
 
-        if (analyzers.analyzer(test.bindVars.analyzerName) === null) {
-          throw new Error(`609: ${test.bindVars.analyzerName} analyzer creation failed!`);
+        if (analyzers.analyzer(test.analyzerName) === null) {
+          throw new Error(`609: ${test.analyzerName} analyzer creation failed!`);
         }
 
-        progress(`609: ${test.bindVars.analyzerName} checking analyzer's name`);
-        let testName = analyzers.analyzer(test.bindVars.analyzerName).name();
-        let expectedName = `_system::${test.bindVars.analyzerName}`;
+        progress(`609: ${test.analyzerName} checking analyzer's name`);
+        let testName = analyzers.analyzer(test.analyzerName).name();
+        let expectedName = `_system::${test.analyzerName}`;
         if (testName !== expectedName) {
-          throw new Error(`609: ${test.bindVars.analyzerName} analyzer not found`);
+          throw new Error(`609: ${test.analyzerName} analyzer not found`);
         }
 
-        progress(`609: ${test.bindVars.analyzerName} checking analyzer's type`);
-        let testType = analyzers.analyzer(test.bindVars.analyzerName).type();
+        progress(`609: ${test.analyzerName} checking analyzer's type`);
+        let testType = analyzers.analyzer(test.analyzerName).type();
         if (testType !== test.collationType){
-          throw new Error(`609: ${test.bindVars.analyzerName} analyzer type missmatched!`);
+          throw new Error(`609: ${test.analyzerName} analyzer type missmatched!`);
         }
 
-        progress(`609: ${test.bindVars.analyzerName} checking analyzer's properties`);
-        let testProperties = analyzers.analyzer(test.bindVars.analyzerName).properties();
-        checkProperties(test.bindVars.analyzerName, testProperties, test.properties);
+        progress(`609: ${test.analyzerName} checking analyzer's properties`);
+        let testProperties = analyzers.analyzer(test.analyzerName).properties();
+        checkProperties(test.analyzerName, testProperties, test.properties);
 
-        progress(`609: ${test.bindVars.analyzerName} checking analyzer's query results`);
+        progress(`609: ${test.analyzerName} checking analyzer's query results`);
         arraysEqual(test.expectedResult, queryResult);
 
-        progress(`609: ${test.bindVars.analyzerName} done`);
+        progress(`609: ${test.analyzerName} done`);
       }
 
-      getTestData(dbCount).forEach(test => {
+      getTestData_609(dbCount).forEach(test => {
         checkAnalyzer(test);
       });
       return 0;
@@ -305,11 +310,11 @@ function getTestData(dbCount) {
         }
         progress(`609: deleted ${analyzerName}`);
       }
-      getTestData(dbCount).forEach(test => {
+      getTestData_609(dbCount).forEach(test => {
         if (test.hasOwnProperty('collection')) {
-          progress(`609: deleting view ${test.bindVars['@collationView']} `);
+          progress(`609: deleting view ${test.bindVars['@testView']} `);
           try {
-            db._dropView(test.bindVars['@collationView']);
+            db._dropView(test.bindVars['@testView']);
           } catch (ex) {
             print(ex);
           }
@@ -320,8 +325,8 @@ function getTestData(dbCount) {
             print(ex);
           }
         }
-        progress(`609: deleting Analyzer ${test.bindVars.analyzerName}`);
-        deleteAnalyzer(test.bindVars.analyzerName);
+        progress(`609: deleting Analyzer ${test.analyzerName}`);
+        deleteAnalyzer(test.analyzerName);
       });
       return 0;
     }
