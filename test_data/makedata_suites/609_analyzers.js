@@ -185,7 +185,6 @@ function getTestData(dbCount) {
   ];
 };
 (function () {
-  const a = require("@arangodb/analyzers");
   return {
     isSupported: function (currentVersion, oldVersion, options, enterprise, cluster) {
       let currentVersionSemver = semver.parse(semver.coerce(currentVersion));
@@ -253,25 +252,25 @@ function getTestData(dbCount) {
       function checkAnalyzer(test){
         let queryResult = db._query(test);
 
-        if (a.analyzer(test.bindVars.analyzerName) === null) {
+        if (analyzers.analyzer(test.bindVars.analyzerName) === null) {
           throw new Error(`609: ${test.bindVars.analyzerName} analyzer creation failed!`);
         }
 
         progress(`609: ${test.bindVars.analyzerName} checking analyzer's name`);
-        let testName = a.analyzer(test.bindVars.analyzerName).name();
+        let testName = analyzers.analyzer(test.bindVars.analyzerName).name();
         let expectedName = `_system::${test.bindVars.analyzerName}`;
         if (testName !== expectedName) {
           throw new Error(`609: ${test.bindVars.analyzerName} analyzer not found`);
         }
 
         progress(`609: ${test.bindVars.analyzerName} checking analyzer's type`);
-        let testType = a.analyzer(test.bindVars.analyzerName).type();
+        let testType = analyzers.analyzer(test.bindVars.analyzerName).type();
         if (testType !== test.collationType){
           throw new Error(`609: ${test.bindVars.analyzerName} analyzer type missmatched!`);
         }
 
         progress(`609: ${test.bindVars.analyzerName} checking analyzer's properties`);
-        let testProperties = a.analyzer(test.bindVars.analyzerName).properties();
+        let testProperties = analyzers.analyzer(test.bindVars.analyzerName).properties();
         checkProperties(test.bindVars.analyzerName, testProperties, test.properties);
 
         progress(`609: ${test.bindVars.analyzerName} checking analyzer's query results`);
@@ -290,15 +289,15 @@ function getTestData(dbCount) {
       // deleting analyzer
       function deleteAnalyzer(analyzerName){
         try {
-          const array = a.toArray();
+          const array = analyzers.toArray();
           for (let i = 0; i < array.length; i++) {
             const name = array[i];
             if (name === analyzerName) {
-              a.remove(analyzerName);
+              analyzers.remove(analyzerName);
             }
           }
           // checking created text analyzer is deleted or not
-          if (a.analyzer(analyzerName) != null) {
+          if (analyzers.analyzer(analyzerName) != null) {
             throw new Error(`609: ${analyzerName} analyzer isn't deleted yet!`);
           }
         } catch (e) {
