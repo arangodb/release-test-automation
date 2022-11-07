@@ -1,6 +1,123 @@
 /* global print, semver, progress, createSafe, createCollectionSafe, db */
 /*jslint maxlen: 130 */
 
+function getTestData(dbcount) {
+  return [
+    {
+      bindVars: {
+        analyzerName: `collationEn_${dbCount}`,
+        '@collationView': `collationEnView_${dbCount}`,
+      },
+      query: 'FOR doc IN @@collationView SEARCH ANALYZER(doc.text < TOKENS("c", @analyzerName)[0], @analyzerName) RETURN doc.text',
+      collationType: "collation",
+      properties: {
+        "locale" : "en"
+      },
+      expectedResult: [
+        [
+          "a",
+          "å",
+          "b"
+        ]
+      ]
+    },
+    {
+      bindVars: {
+        analyzerName: `collationSv_${dbCount}`,
+        '@collationView': `collationSvView_${dbCount}`,
+      },
+      query: 'FOR doc IN @@collationView SEARCH ANALYZER(doc.text < TOKENS("c", @analyzerName)[0], @analyzerName) RETURN doc.text',
+      collationType: "collation",
+      properties: {
+        "locale" : "sv"
+      },
+      expectedResult: [
+        [
+          "a",
+          "å",
+          "b"
+        ]
+      ]
+    },
+    {
+      bindVars: {
+        analyzerName: `segmentAll_${dbCount}`
+      },
+      query: 'LET str = "Test\twith An_EMAIL-address+123@example.org" RETURN {"all": TOKENS(str, @analyzerName),}',
+      collationType: "segmentation",
+      properties: {
+        "case" : "lower",
+        "break" : "all"
+      },
+      expectedResult: [
+        {
+          "all" : [
+            "test",
+            "\t",
+            "with",
+            " ",
+            "an_email",
+            "-",
+            "address",
+            "+",
+            "123",
+            "@",
+            "example.org"
+          ]
+        }
+      ]
+    },
+    {
+      bindVars: {
+        analyzerName: `segmentAlpha_${dbCount}` 
+      },
+      query: "LET str = 'Test\twith An_EMAIL-address+123@example.org' RETURN {'alpha': TOKENS(str, @analyzerName),}",
+      collationType: "segmentation",
+      properties: {
+        "case" : "lower",
+        "break" : "alpha"
+      },
+      expectedResult: [
+        {
+          "alpha" : [
+            "test",
+            "with",
+            "an_email",
+            "address",
+            "123",
+            "example.org"
+          ]
+        }
+      ]
+    },
+    {
+      bindVars: {
+        analyzerName: `segmentGraphic_${dbCount}`
+      },
+      query: "LET str = 'Test\twith An_EMAIL-address+123@example.org' RETURN {'alpha': TOKENS(str, @analyzerName),}",
+      collationType: "segmentation",
+      properties: {
+        "case" : "lower",
+        "break" : "graphic"
+      },
+      expectedResult: [
+        {
+          "graphic" : [
+            "test",
+            "with",
+            "an_email",
+            "-",
+            "address",
+            "+",
+            "123",
+            "@",
+            "example.org"
+          ]
+        }
+      ]
+    },
+  ];
+};
 (function () {
   const a = require("@arangodb/analyzers");
   return {
@@ -18,13 +135,13 @@
       function createAnalyzer(analyzerName, analyzerCreationQuery){
         // creating analyzer
         let text = createSafe(analyzerName,
-          function () {
-            return analyzerCreationQuery;
-          }, function () {
-            if (a.analyzer(analyzerName) === null) {
-              throw new Error(`609: ${analyzerName} analyzer creation failed!`);
-            }
-          });
+                              function () {
+                                return analyzerCreationQuery;
+                              }, function () {
+                                if (a.analyzer(analyzerName) === null) {
+                                  throw new Error(`609: ${analyzerName} analyzer creation failed!`);
+                                }
+                              });
       }
 
       //collationEn analyzer properties
@@ -89,9 +206,9 @@
         const obj2Length = Object.keys(obj2).length;
 
         if (obj1Length === obj2Length) {
-            return Object.keys(obj1).every(
-                (key) => obj2.hasOwnProperty(key)
-                   && obj2[key] === obj1[key]);
+          return Object.keys(obj1).every(
+            (key) => obj2.hasOwnProperty(key)
+              && obj2[key] === obj1[key]);
         } else {
           throw new Error(`609: ${analyzer_name} analyzer's type missmatched!`);
         }
@@ -135,121 +252,7 @@
         progress(`609: ${test.bindVars.analyzerName} done`);
       }
 
-      [
-        {
-          bindVars: {
-            analyzerName: `collationEn_${dbCount}`,
-            '@collationView': `collationEnView_${dbCount}`,
-          },
-          query: 'FOR doc IN @@collationView SEARCH ANALYZER(doc.text < TOKENS("c", @analyzerName)[0], @analyzerName) RETURN doc.text',
-          collationType: "collation",
-          properties: {
-            "locale" : "en"
-          },
-          expectedResult: [
-            [
-              "a",
-              "å",
-              "b"
-            ]
-          ]
-        },
-        {
-          bindVars: {
-            analyzerName: `collationSv_${dbCount}`,
-            '@collationView': `collationSvView_${dbCount}`,
-          },
-          query: 'FOR doc IN @@collationView SEARCH ANALYZER(doc.text < TOKENS("c", @analyzerName)[0], @analyzerName) RETURN doc.text',
-          collationType: "collation",
-          properties: {
-            "locale" : "sv"
-          },
-          expectedResult: [
-            [
-              "a",
-              "å",
-              "b"
-            ]
-          ]
-        },
-        {
-          bindVars: {
-            analyzerName: `segmentAll_${dbCount}`
-          },
-          query: 'LET str = "Test\twith An_EMAIL-address+123@example.org" RETURN {"all": TOKENS(str, @analyzerName),}',
-          collationType: "segmentation",
-          properties: {
-            "case" : "lower",
-            "break" : "all"
-          },
-          expectedResult: [
-            {
-              "all" : [
-                "test",
-                "\t",
-                "with",
-                " ",
-                "an_email",
-                "-",
-                "address",
-                "+",
-                "123",
-                "@",
-                "example.org"
-              ]
-            }
-          ]
-        },
-        {
-          bindVars: {
-            analyzerName: `segmentAlpha_${dbCount}` 
-          },
-          query: "LET str = 'Test\twith An_EMAIL-address+123@example.org' RETURN {'alpha': TOKENS(str, @analyzerName),}",
-          collationType: "segmentation",
-          properties: {
-            "case" : "lower",
-            "break" : "alpha"
-          },
-          expectedResult: [
-            {
-              "alpha" : [
-                "test",
-                "with",
-                "an_email",
-                "address",
-                "123",
-                "example.org"
-              ]
-            }
-          ]
-        },
-        {
-          bindVars: {
-            analyzerName: `segmentGraphic_${dbCount}`
-          },
-          query: "LET str = 'Test\twith An_EMAIL-address+123@example.org' RETURN {'alpha': TOKENS(str, @analyzerName),}",
-          collationType: "segmentation",
-          properties: {
-            "case" : "lower",
-            "break" : "graphic"
-          },
-          expectedResult: [
-            {
-              "graphic" : [
-                "test",
-                "with",
-                "an_email",
-                "-",
-                "address",
-                "+",
-                "123",
-                "@",
-                "example.org"
-              ]
-            }
-          ]
-        },
-      ].forEach(test => {
+      getTestData(dbCount).forEach(test => {
         checkAnalyzer(test)
       });
       return 0;
