@@ -1,5 +1,5 @@
 /* global print, semver, progress, createSafe, createCollectionSafe, db */
-/*jslint maxlen: 130 */
+/*jslint maxlen: 100*/
 
 // const analyzers = require("@arangodb/analyzers");
 function createAnalyzer(analyzerName, analyzerCreationQuery){
@@ -19,9 +19,9 @@ function getTestData_609(dbCount) {
       analyzerName: `collationEn_${dbCount}`,
       bindVars: {
         analyzerName: `collationEn_${dbCount}`,
-        '@testView': `collationEnView_${dbCount}`,
+        "@testView": `collationEnView_${dbCount}`
       },
-      query: 'FOR doc IN @@testView SEARCH ANALYZER(doc.text < TOKENS("c", @analyzerName)[0], @analyzerName) RETURN doc.text',
+      query: "FOR doc IN @@testView SEARCH ANALYZER(doc.text < TOKENS('c', @analyzerName)[0], @analyzerName) RETURN doc.text",
       analyzerProperties: [
         "collation",
         { locale: "en.utf-8" },
@@ -31,7 +31,7 @@ function getTestData_609(dbCount) {
           "position"
         ]
       ],
-      collationType: "collation",
+      analyzerType: "collation",
       collection: `collationEnCol_${dbCount}`,
       colTestData: [{ text: "a" },{ text: "å" },{ text: "b" },{ text: "z" }],
       properties: {
@@ -49,9 +49,9 @@ function getTestData_609(dbCount) {
       analyzerName: `collationSv_${dbCount}`,
       bindVars: {
         analyzerName: `collationSv_${dbCount}`,
-        '@testView': `collationSvView_${dbCount}`,
+        "@testView": `collationSvView_${dbCount}`
       },
-      query: 'FOR doc IN @@testView SEARCH ANALYZER(doc.text < TOKENS("c", @analyzerName)[0], @analyzerName) RETURN doc.text',
+      query: "FOR doc IN @@testView SEARCH ANALYZER(doc.text < TOKENS('c', @analyzerName)[0], @analyzerName) RETURN doc.text",
       analyzerProperties: [
         "collation",
         { locale: "sv.utf-8" },
@@ -61,7 +61,7 @@ function getTestData_609(dbCount) {
           "position"
         ]
       ],
-      collationType: "collation",
+      analyzerType: "collation",
       collection: `collationSvCol_${dbCount}`,
       colTestData: [{ text: "a" },{ text: "å" },{ text: "b" },{ text: "z" }],
       properties: {
@@ -91,7 +91,7 @@ function getTestData_609(dbCount) {
           "position"
         ]
       ],
-      collationType: "segmentation",
+      analyzerType: "segmentation",
       properties: {
         "case" : "lower",
         "break" : "all"
@@ -131,7 +131,7 @@ function getTestData_609(dbCount) {
           "position"
         ]
       ],
-      collationType: "segmentation",
+      analyzerType: "segmentation",
       properties: {
         "case" : "lower",
         "break" : "alpha"
@@ -166,7 +166,7 @@ function getTestData_609(dbCount) {
           "position"
         ]
       ],
-      collationType: "segmentation",
+      analyzerType: "segmentation",
       properties: {
         "case" : "lower",
         "break" : "graphic"
@@ -188,7 +188,8 @@ function getTestData_609(dbCount) {
       ]
     },
   ];
-};
+}
+
 (function () {
   return {
     isSupported: function (currentVersion, oldVersion, options, enterprise, cluster) {
@@ -202,15 +203,15 @@ function getTestData_609(dbCount) {
       // documentation link: https://www.arangodb.com/docs/3.9/analyzers.html
 
       print(`609: making per database data ${dbCount}`);
-      getTestData_609(dbCount).forEach(test => {
+      getTestData_609(dbCount).forEach((test) => {
         let q = analyzers.save(test.analyzerName,
                                ...test.analyzerProperties
                               );
-        if (test.hasOwnProperty('collection')) {
+        if (test.hasOwnProperty("collection")) {
           progress(`609: creating ${test.collection} `);
           createCollectionSafe(test.collection, 2, 1).insert(test.colTestData);
           progress(`609: creating ${test['@testView']} `);
-          db._createView(test.bindVars['@testView'],
+          db._createView(test.bindVars["@testView"],
                          "arangosearch", {
                            links: {
                              [test.collection]:
@@ -270,7 +271,7 @@ function getTestData_609(dbCount) {
 
         progress(`609: ${test.analyzerName} checking analyzer's type`);
         let testType = analyzers.analyzer(test.analyzerName).type();
-        if (testType !== test.collationType){
+        if (testType !== test.analyzerType){
           throw new Error(`609: ${test.analyzerName} analyzer type missmatched!`);
         }
 
@@ -311,10 +312,10 @@ function getTestData_609(dbCount) {
         progress(`609: deleted ${analyzerName}`);
       }
       getTestData_609(dbCount).forEach(test => {
-        if (test.hasOwnProperty('collection')) {
-          progress(`609: deleting view ${test.bindVars['@testView']} `);
+        if (test.hasOwnProperty("collection")) {
+          progress(`609: deleting view ${test.bindVars["@testView"]} `);
           try {
-            db._dropView(test.bindVars['@testView']);
+            db._dropView(test.bindVars["@testView"]);
           } catch (ex) {
             print(ex);
           }
