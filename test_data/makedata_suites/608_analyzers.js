@@ -31,7 +31,7 @@ function getTestData_608(dbCount) {
           "position"
         ]
       ],
-      collationType: "aql",
+      analyzerType: "aql",
       properties: {
         "queryString" : "RETURN SOUNDEX(@param)",
         "collapsePositions" : false,
@@ -62,7 +62,7 @@ function getTestData_608(dbCount) {
           "position"
         ]
       ],
-      collationType: "aql",
+      analyzerType: "aql",
       properties: {
         "queryString" : "RETURN LOWER(LEFT(@param, 5)) == 'inter' ? CONCAT(@param, 'ism') : CONCAT('inter', @param)",
         "collapsePositions" : false,
@@ -86,7 +86,7 @@ function getTestData_608(dbCount) {
       analyzerName: `aqlFilter_${dbCount}`,
       bindVars: {
         analyzerName: `aqlFilter_${dbCount}`,
-        '@testView': `aqlView_${dbCount}`,
+        "@testView": `aqlView_${dbCount}`
       },
       query: "FOR doc IN @@testView SEARCH ANALYZER(doc.value IN ['regular', 'irregular'], @analyzerName) RETURN doc",
       analyzerProperties: [
@@ -103,7 +103,7 @@ function getTestData_608(dbCount) {
       colTestData: [
         { value: "regular" },
         { value: "irregular" }],
-      collationType: "aql",
+      analyzerType: "aql",
       properties: {
         "queryString" : "FILTER LOWER(LEFT(@param, 2)) != 'ir' RETURN @param",
         "collapsePositions" : false,
@@ -133,7 +133,7 @@ function getTestData_608(dbCount) {
             { type: "norm",
               properties: {
                 locale: "en.utf-8",
-                'case': "upper" }
+                "case": "upper" }
             },{
               type: "ngram",
               properties: {
@@ -150,7 +150,7 @@ function getTestData_608(dbCount) {
           "position"
         ]
       ],
-      collationType: "pipeline",
+      analyzerType: "pipeline",
       properties: {
         "pipeline" : [
           {
@@ -214,7 +214,7 @@ function getTestData_608(dbCount) {
           "frequency", "norm", "position"
         ]
       ],
-      collationType: "pipeline",
+      analyzerType: "pipeline",
       properties: {
         "pipeline" : [
           {
@@ -259,7 +259,7 @@ function getTestData_608(dbCount) {
         },
         ["frequency", "norm", "position"]
       ],
-      collationType: "stopwords",
+      analyzerType: "stopwords",
       properties: {
         "stopwords" : [
           "616e64",
@@ -291,7 +291,7 @@ function getTestData_608(dbCount) {
         },
         ["frequency", "norm", "position"]
       ],
-      collationType: "pipeline",
+      analyzerType: "pipeline",
       properties: {
         "pipeline" : [
           {
@@ -327,7 +327,7 @@ function getTestData_608(dbCount) {
       analyzerName: `geoJson_${dbCount}`,
       bindVars: {
         analyzerName: `geoJson_${dbCount}`,
-        '@testView': `geoJsonView_${dbCount}`,
+        "@testView": `geoJsonView_${dbCount}`
       },
       query: "LET point = GEO_POINT(6.93, 50.94) FOR doc IN @@testView SEARCH ANALYZER(GEO_DISTANCE(doc.location, point) < 2000, @analyzerName) RETURN MERGE(doc, { distance: GEO_DISTANCE(doc.location, point) })",
       analyzerProperties: [
@@ -341,7 +341,7 @@ function getTestData_608(dbCount) {
         { location: { type: "Point", coordinates: [6.956, 50.941] } },
         { location: { type: "Point", coordinates: [6.962, 50.932] } }
       ],
-      collationType: "geojson",
+      analyzerType: "geojson",
       properties: {
         "type" : "shape",
         "options" : {
@@ -383,7 +383,7 @@ function getTestData_608(dbCount) {
       analyzerName: `geoPoint_${dbCount}`,
       bindVars: {
         analyzerName: `geoPoint_${dbCount}`,
-        '@testView': `geoPointView_${dbCount}`,
+        '@testView': `geoPointView_${dbCount}`
       },
       query: "LET point = GEO_POINT(6.93, 50.94) FOR doc IN @@testView SEARCH ANALYZER(GEO_DISTANCE(doc.location, point) < 2000, @analyzerName) RETURN MERGE(doc, { distance: GEO_DISTANCE([doc.location[1], doc.location[0]], point) })",
       analyzerProperties: [
@@ -397,7 +397,7 @@ function getTestData_608(dbCount) {
         { location: [50.941, 6.956] },
         { location: [50.932, 6.962] },
       ],
-      collationType: "geopoint",
+      analyzerType: "geopoint",
       properties: {
         "latitude" : [ ],
         "longitude" : [ ],
@@ -431,10 +431,9 @@ function getTestData_608(dbCount) {
       ]
     },
   ];
-};
+}
 
 (function () {
-  const a = require("@arangodb/analyzers");
   return {
     isSupported: function (currentVersion, oldVersion, options, enterprise) {
       let currentVersionSemver = semver.parse(semver.coerce(currentVersion));
@@ -447,18 +446,18 @@ function getTestData_608(dbCount) {
       // documentation link: https://www.arangodb.com/docs/3.8/analyzers.html
 
       print(`608: making per database data ${dbCount}`);
-      getTestData_608(dbCount).forEach(test => {
+      getTestData_608(dbCount).forEach((test) => {
         let q = analyzers.save(test.analyzerName,
                                ...test.analyzerProperties
                               );
         if (test.hasOwnProperty('collection')) {
-          progress(`609: creating ${test.collection} `);
+          progress(`608: creating ${test.collection} `);
           createCollectionSafe(test.collection, 2, 1).insert(test.colTestData);
-          progress(`609: creating ${test['@testView']} `);
+          progress(`608: creating ${test["@testView"]} `);
           db._createView(test.bindVars['@testView'],
                          "arangosearch", {
                            links: {
-                             [test.collection]:
+                               [test.collection]:
                              {
                                analyzers: [test.analyzerName],
                                includeAllFields: true
@@ -467,7 +466,7 @@ function getTestData_608(dbCount) {
                          }
                         );
         }
-        progress(`609: creating ${test.analyzerName}`);
+        progress(`608: creating ${test.analyzerName}`);
         createAnalyzer(test.analyzerName, q);
       });
       return 0;
@@ -514,8 +513,8 @@ function getTestData_608(dbCount) {
 
         progress(`608: ${test.analyzerName} checking analyzer's type`);
         let testType = analyzers.analyzer(test.analyzerName).type();
-        if (testType !== test.collationType){
-          throw new Error(`608: ${test.analyzerName} analyzer type missmatched! ${testType} != ${test.collationType}`);
+        if (testType !== test.analyzerType){
+          throw new Error(`608: ${test.analyzerName} analyzer type missmatched! ${testType} != ${test.analyzerType}`);
         }
 
         progress(`608: ${test.analyzerName} checking analyzer's properties`);
@@ -534,7 +533,7 @@ function getTestData_608(dbCount) {
       return 0;
     },
     clearDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
-      print(`609: checking data ${dbCount}`);
+      print(`608: checking data ${dbCount}`);
       // deleting analyzer
       function deleteAnalyzer(analyzerName){
         try {
