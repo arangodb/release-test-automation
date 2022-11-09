@@ -137,6 +137,7 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
                 views.delete_new_views('modified_views_name')
                 views.delete_new_views('improved_arangosearch_view_02')
                 views.delete_created_collection('my_collection')
+                views.delete_created_collection('c')
                 print('Deleting views completed for >= v3.10.x\n')
 
             del views
