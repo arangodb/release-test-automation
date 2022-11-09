@@ -1,11 +1,14 @@
 #!/usr/bin/python3
 """ fetch nightly packages, process upgrade """
+# pylint: disable=duplicate-code
 from pathlib import Path
 from copy import copy
 import sys
 
 import click
-from common_options import very_common_options, common_options, download_options, full_common_options
+import semver
+
+from common_options import very_common_options, common_options, download_options, full_common_options, hotbackup_options
 
 from beautifultable import BeautifulTable, ALIGN_LEFT
 
@@ -14,9 +17,10 @@ from download import Download, DownloadOptions
 from test_driver import TestDriver
 from tools.killall import list_all_processes
 
-from arangodb.installers import EXECUTION_PLAN
+from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig, RunProperties
 
-# pylint: disable=R0913 disable=R0914 disable=R0912, disable=R0915
+
+# pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
 def upgrade_package_test(
     dl_opts: DownloadOptions,
     primary_version: str,
@@ -25,7 +29,7 @@ def upgrade_package_test(
     other_source,
     git_version,
     editions,
-    test_driver
+    test_driver,
 ):
     """process fetch & tests"""
 
@@ -65,12 +69,14 @@ def upgrade_package_test(
         print("Cleanup done")
         if props.directory_suffix not in editions:
             continue
-        # pylint: disable=W0612
+        # pylint: disable=unused-variable
         dl_new = Download(
             dl_opts,
+            test_driver.base_config.hb_cli_cfg,
             primary_version,
             props.enterprise,
             test_driver.base_config.zip_package,
+            test_driver.base_config.src_testing,
             primary_dlstage,
             versions,
             fresh_versions,
@@ -81,76 +87,92 @@ def upgrade_package_test(
         this_test_dir = test_dir / props.directory_suffix
         test_driver.reset_test_data_dir(this_test_dir)
 
-        results.append(
-            test_driver.run_test(
-                "all",
-                [dl_new.cfg.version],
-                props
-            )
-        )
+        results.append(test_driver.run_test("all", [dl_new.cfg.version], props))
 
+    # pylint: disable=consider-using-enumerate
     for j in range(len(new_versions)):
         for props in EXECUTION_PLAN:
             print("Cleaning up" + props.testrun_name)
             test_driver.run_cleanup(props)
-        print("Cleanup done")
+        print("Cleanup done now running upgrade: " + str(old_versions[j]) + " -> " + new_versions[j])
 
-    # Configure Chrome to accept self-signed SSL certs and certs signed by unknown CA.
-    # FIXME: Add custom CA to Chrome to properly validate server cert.
-    #if props.ssl:
-    #    selenium_driver_args += ("ignore-certificate-errors",)
-
-    for props in EXECUTION_PLAN:
-        if props.directory_suffix not in editions:
-            print("skipping " + props.directory_suffix)
-            continue
-        # pylint: disable=W0612
-        dl_old = Download(
-            dl_opts,
-            old_versions[j],
-            props.enterprise,
-            test_driver.base_config.zip_package,
-            old_dlstages[j],
-            versions,
-            fresh_versions,
-            git_version,
-        )
-        dl_new = Download(
-            dl_opts,
-            new_versions[j],
-            props.enterprise,
-            test_driver.base_config.zip_package,
-            new_dlstages[j],
-            versions,
-            fresh_versions,
-            git_version,
-        )
-        dl_old.get_packages(dl_opts.force_dl)
-        dl_new.get_packages(dl_opts.force_dl)
-
-        this_test_dir = test_dir / props.directory_suffix
-        test_driver.reset_test_data_dir(this_test_dir)
-
-        results.append(
-            test_driver.run_upgrade(
-                [
-                    dl_old.cfg.version,
-                    dl_new.cfg.version
-                ],
-                props
+        # Configure Chrome to accept self-signed SSL certs and certs signed by unknown CA.
+        # FIXME: Add custom CA to Chrome to properly validate server cert.
+        # if props.ssl:
+        #    selenium_driver_args += ("ignore-certificate-errors",)
+        these_versions = []
+        for props in EXECUTION_PLAN:
+            if props.directory_suffix not in editions:
+                print("skipping " + props.directory_suffix)
+                continue
+            # pylint: disable=unused-variable
+            dl_old = Download(
+                dl_opts,
+                test_driver.base_config.hb_cli_cfg,
+                old_versions[j],
+                props.enterprise,
+                test_driver.base_config.zip_package,
+                test_driver.base_config.src_testing,
+                old_dlstages[j],
+                versions,
+                fresh_versions,
+                git_version,
             )
-        )
-
-    for use_enterprise in [True, False]:
-        results.append(
-            test_driver.run_conflict_tests(
-                [
-                    dl_old.cfg.version,
-                    dl_new.cfg.version
-                ],
-                enterprise=use_enterprise,
+            dl_new = Download(
+                dl_opts,
+                test_driver.base_config.hb_cli_cfg,
+                new_versions[j],
+                props.enterprise,
+                test_driver.base_config.zip_package,
+                test_driver.base_config.src_testing,
+                new_dlstages[j],
+                versions,
+                fresh_versions,
+                git_version,
             )
-        )
+            dl_old.get_packages(dl_opts.force)
+            dl_new.get_packages(dl_opts.force)
+
+            this_test_dir = test_dir / props.directory_suffix
+            test_driver.reset_test_data_dir(this_test_dir)
+
+            results.append(test_driver.run_upgrade([dl_old.cfg.version, dl_new.cfg.version], props))
+            these_versions.append([dl_new.cfg.version, dl_old.cfg.version])
+
+        enterprise_packages_are_present = "EE" in editions or "EP" in editions
+        community_packages_are_present = "C" in editions
+        [new_version, old_version] = these_versions[0]
+
+        if enterprise_packages_are_present and community_packages_are_present:
+            for use_enterprise in [True, False]:
+                results.append(
+                    test_driver.run_conflict_tests(
+                        [old_version, new_version],
+                        enterprise=use_enterprise,
+                    )
+                )
+
+        if enterprise_packages_are_present:
+            results.append(
+                test_driver.run_debugger_tests(
+                    [semver.VersionInfo.parse(old_version), semver.VersionInfo.parse(new_version)],
+                    run_props=RunProperties(True, False, False),
+                )
+            )
+
+            results.append(
+                test_driver.run_license_manager_tests(
+                    [semver.VersionInfo.parse(old_version), semver.VersionInfo.parse(new_version)],
+                )
+            )
+
+        if community_packages_are_present:
+            results.append(
+                test_driver.run_debugger_tests(
+                    [semver.VersionInfo.parse(old_version), semver.VersionInfo.parse(new_version)],
+                    run_props=RunProperties(False, False, False),
+                )
+            )
 
     print("V" * 80)
     status = True
@@ -168,14 +190,19 @@ def upgrade_package_test(
                         ]
                     )
                 else:
-                    table.rows.append(
-                        [
-                            one_result["testrun name"],
-                            one_result["testscenario"],
-                            # one_result['success'],
-                            "\n".join(one_result["messages"]) + "\n" + "H" * 40 + "\n" + one_result["progress"],
-                        ]
-                    )
+                    # pylint: disable=broad-except
+                    try:
+                        table.rows.append(
+                            [
+                                one_result["testrun name"],
+                                one_result["testscenario"],
+                                # one_result['success'],
+                                "\n".join(one_result["messages"]) + "\n" + "H" * 40 + "\n" + one_result["progress"],
+                            ]
+                        )
+                    except Exception as ex:
+                        print("result error while syntesizing " + str(one_result))
+                        print(ex)
                 status = status and one_result["success"]
     table.columns.header = [
         "Testrun",
@@ -186,11 +213,11 @@ def upgrade_package_test(
     table.columns.alignment["Message + Progress"] = ALIGN_LEFT
 
     tablestr = str(table)
-    print(tablestr)
-    Path("testfailures.txt").write_text(tablestr, encoding='utf8')
+    Path("testfailures.txt").write_text(tablestr, encoding="utf8")
     if not status:
         print("exiting with failure")
         sys.exit(1)
+    print(tablestr)
 
     return 0
 
@@ -201,6 +228,7 @@ def upgrade_package_test(
     "--upgrade-matrix", default="", help="list of upgrade operations ala '3.6.15:3.7.15;3.7.14:3.7.15;3.7.15:3.8.1'"
 )
 @very_common_options()
+@hotbackup_options()
 @common_options(
     support_multi_version=False,
     support_old=False,
@@ -209,63 +237,33 @@ def upgrade_package_test(
 )
 @download_options(default_source="ftp:stage2", other_source=True)
 # fmt: off
-# pylint: disable=R0913, disable=W0613
-def main(
-        git_version,
-        editions,
-        upgrade_matrix,
-        #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package, hot_backup,
-        # common_options
-        # old_version,
-        test_data_dir, encryption_at_rest, alluredir, clean_alluredir, ssl, use_auto_certs,
-        # no-interactive!
-        starter_mode, abort_on_error, publicip,
-        selenium, selenium_driver_args,
-        # download options:
-        enterprise_magic, force, source,
-        other_source,
-        # new_source, old_source,
-        httpuser, httppassvoid, remote_host):
-# fmt: on
+# pylint: disable=too-many-arguments, disable=unused-argument
+def main(**kwargs):
     """ main """
-    dl_opts = DownloadOptions(force,
-                              verbose,
-                              Path(package_dir),
-                              enterprise_magic,
-                              httpuser,
-                              httppassvoid,
-                              remote_host)
+    kwargs['interactive'] = False
+    kwargs['abort_on_error'] = False
+    kwargs['stress_upgrade'] = False
+    kwargs['package_dir'] = Path(kwargs['package_dir'])
+    kwargs['test_data_dir'] = Path(kwargs['test_data_dir'])
+    kwargs['alluredir'] = Path(kwargs['alluredir'])
 
-    test_driver = TestDriver(
-        verbose,
-        Path(package_dir),
-        Path(test_data_dir),
-        Path(alluredir),
-        clean_alluredir,
-        zip_package,
-        hot_backup,
-        False,  # interactive
-        starter_mode,
-        False,  # stress_upgrade,
-        False,  # abort_on_error
-        publicip,
-        selenium,
-        selenium_driver_args,
-        use_auto_certs)
+    kwargs['hb_cli_cfg'] = HotBackupCliCfg.from_dict(**kwargs)
+    kwargs['base_config'] = InstallerBaseConfig.from_dict(**kwargs)
+    dl_opts = DownloadOptions.from_dict(**kwargs)
+
+    test_driver = TestDriver(**kwargs)
 
     return upgrade_package_test(
         dl_opts,
-        new_version,
-        source,
-        upgrade_matrix,
-        other_source,
-        git_version,
-        editions,
+        kwargs['new_version'],
+        kwargs['source'],
+        kwargs['upgrade_matrix'],
+        kwargs['other_source'],
+        kwargs['git_version'],
+        kwargs['editions'],
         test_driver
     )
 
-
 if __name__ == "__main__":
-    # pylint: disable=E1120 # fix clickiness.
+    # pylint: disable=no-value-for-parameter # fix clickiness.
     sys.exit(main())

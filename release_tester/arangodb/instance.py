@@ -3,6 +3,7 @@
 import datetime
 import json
 import logging
+import platform
 import re
 import time
 from abc import abstractmethod, ABC
@@ -30,6 +31,7 @@ LOG_BLACKLIST = [
 
 # log tokens we ignore in system ugprades...
 LOG_SYSTEM_BLACKLIST = ["40e37"]  # -> upgrade required
+IS_WINDOWS = bool(platform.win32_ver()[0])
 
 
 class InstanceType(IntEnum):
@@ -48,12 +50,11 @@ INSTANCE_TYPE_STRING_MAP = {
     "coordinator": InstanceType.COORDINATOR,
     "resilientsingle": InstanceType.RESILIENT_SINGLE,
     "single": InstanceType.SINGLE,
-   "agent": InstanceType.AGENT,
+    "agent": InstanceType.AGENT,
     "dbserver": InstanceType.DBSERVER,
     "syncmaster": InstanceType.SYNCMASTER,
     "syncworker": InstanceType.SYNCWORKER,
 }
-
 
 def log_line_get_date(line):
     """parse the date out of an arangod logfile line"""
@@ -73,7 +74,7 @@ class AfoServerState(IntEnum):
 class Instance(ABC):
     """abstract instance manager"""
 
-    # pylint: disable=R0913 disable=R0902
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
     def __init__(
         self,
         instance_type,
@@ -106,6 +107,37 @@ class Instance(ABC):
 
         logging.debug("creating {0.type_str} instance: {0.name}".format(self))
 
+    def get_structure(self):
+        """ return instance structure like testing.js does """
+        url = ('https' if self.ssl else 'http') + '127.0.0.1:' + str(self.port) + '/'
+        protocol = ('ssl' if self.ssl else 'tcp') 
+        endpoint = protocol + '127.0.0.1:' + str(self.port) + '/'
+        return {
+            'name': self.name,
+            'instanceRole': self.type_str,
+            'message': '',
+            'rootDir': str(self.basedir),
+            'protocol': protocol,
+            'authHeaders': "",
+            'restKeyFile': "",
+            'agencyConfig': {},
+            'upAndRunning': True,
+            'suspended': False,
+            'port': self.port,
+            'url': url,
+            'endpoint': endpoint,
+            'dataDir': str(self.basedir / 'data'),
+            'appDir': str(self.basedir / 'apps'),
+            'tmpDir': "",
+            'logFile': str(self.logfile),
+            'args': str(self.instance_arguments),
+            'pid': self.pid,
+            'id': self.pid,
+            'JWT': "",
+            'exitStatus': 0,
+            'serverCrashedLocal': False
+        }
+
     @abstractmethod
     def detect_pid(self, ppid, offset, full_binary_path):
         """gets the PID from the running process of this instance"""
@@ -118,14 +150,12 @@ class Instance(ABC):
         """retrieve the pw to connect to this instance"""
         return self.passvoid
 
-    def detect_gone(self, verbose=True):
+    def detect_gone(self):
         """revalidate that the managed process is actualy dead"""
         try:
             # we expect it to be dead anyways!
             return self.instance.wait(3) is None
         except psutil.TimeoutExpired:
-            if not verbose:
-                logging.error("was supposed to be dead, but I'm still alive? " + repr(self))
             return False
         except AttributeError:
             # logging.error("was supposed to be dead, but I don't have an instance? "
@@ -139,7 +169,7 @@ class Instance(ABC):
 
     def analyze_starter_file_line(self, line):
         """instance specific analyzer function"""
-        # pylint: disable=W0107
+        # pylint: disable=unnecessary-pass
         pass
 
     def load_starter_instance_control_file(self):
@@ -149,9 +179,12 @@ class Instance(ABC):
         self.instance_arguments = []
         with self.instance_control_file.open(errors="backslashreplace") as filedesc:
             for line in filedesc.readlines():
+                if line.startswith("#"):
+                    continue
                 line = line.rstrip().rstrip(" \\")
-                self.analyze_starter_file_line(line)
-                self.instance_arguments.append(line)
+                if len(line) > 0:
+                    self.analyze_starter_file_line(line)
+                    self.instance_arguments.append(line)
 
     def launch_manual_from_instance_control_file(
         self, sbin_dir, old_install_prefix, new_install_prefix, moreargs, waitpid=True
@@ -306,7 +339,7 @@ class Instance(ABC):
 
     def is_line_relevant(self, line):
         """it returns true if the line from logs should be printed"""
-        # pylint: disable=R0201
+        # pylint: disable=no-self-use
         return "FATAL" in line or "ERROR" in line or "WARNING" in line or "{crash}" in line
 
     def search_for_warnings(self):
@@ -316,7 +349,7 @@ class Instance(ABC):
             return
         print(str(self.logfile))
         count = 0
-        with open(self.logfile, errors="backslashreplace", encoding='utf8') as log_fh:
+        with open(self.logfile, errors="backslashreplace", encoding="utf8") as log_fh:
             for line in log_fh:
                 if self.is_line_relevant(line):
                     if self.is_suppressed_log_line(line):
@@ -342,7 +375,7 @@ class Instance(ABC):
 class ArangodInstance(Instance):
     """represent one arangodb instance"""
 
-    # pylint: disable=R0913
+    # pylint: disable=too-many-arguments
     def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl, is_system=False):
         super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangod", ssl)
         self.is_system = is_system
@@ -371,7 +404,7 @@ class ArangodInstance(Instance):
             "url": self.get_public_login_url() if self.is_frontend() else "",
         }
 
-    # pylint: disable=R1705
+    # pylint: disable=no-else-return
     def get_protocol(self):
         """return protocol of this arangod instance (ssl/tcp)"""
         if self.ssl:
@@ -379,7 +412,7 @@ class ArangodInstance(Instance):
         else:
             return "tcp"
 
-    # pylint: disable=R1705
+    # pylint: disable=no-else-return
     def get_http_protocol(self):
         """return protocol of this arangod instance (http/https)"""
         if self.ssl:
@@ -441,7 +474,7 @@ class ArangodInstance(Instance):
 
     def is_sync_instance(self):
         """no."""
-        # pylint: disable=R0201
+        # pylint: disable=no-self-use
         return False
 
     @step
@@ -504,7 +537,7 @@ class ArangodInstance(Instance):
         while True:
             log_file_content = ""
             last_line = ""
-            with open(self.logfile, errors="backslashreplace", encoding='utf8') as log_fh:
+            with open(self.logfile, errors="backslashreplace", encoding="utf8") as log_fh:
                 for line in log_fh:
                     # skip empty lines
                     if line == "":
@@ -549,7 +582,7 @@ class ArangodInstance(Instance):
     def detect_fatal_errors(self):
         """check whether we have FATAL lines in the logfile"""
         fatal_line = None
-        with open(self.logfile, errors="backslashreplace", encoding='utf8') as log_fh:
+        with open(self.logfile, errors="backslashreplace", encoding="utf8") as log_fh:
             for line in log_fh:
                 if fatal_line is not None:
                     fatal_line += "\n" + line
@@ -562,7 +595,7 @@ class ArangodInstance(Instance):
 
     def detect_pid(self, ppid, offset=0, full_binary_path=""):
         """detect the instance"""
-        # pylint: disable=R0915 disable=R0914
+        # pylint: disable=too-many-statements disable=too-many-locals
         self.pid = 0
         self.ppid = ppid
         tries = 40
@@ -572,14 +605,14 @@ class ArangodInstance(Instance):
             log_file_content = ""
             last_line = ""
 
-            for _ in range(20):
+            for _ in range(120):
                 if self.logfile.exists():
                     break
                 time.sleep(1)
             else:
-                raise TimeoutError("instance logfile '" + str(self.logfile) + "' didn't show up in 20 seconds")
+                raise TimeoutError("instance logfile '" + str(self.logfile) + "' didn't show up in 120 seconds")
 
-            with open(self.logfile, errors="backslashreplace", encoding='utf8') as log_fh:
+            with open(self.logfile, errors="backslashreplace", encoding="utf8") as log_fh:
                 for line in log_fh:
                     # skip empty lines
                     if line == "":
@@ -663,7 +696,7 @@ class ArangodInstance(Instance):
         if not self.logfile.exists():
             print(str(self.logfile) + " doesn't exist, skipping.")
             return self.serving
-        with open(self.logfile, errors="backslashreplace", encoding='utf8') as log_fh:
+        with open(self.logfile, errors="backslashreplace", encoding="utf8") as log_fh:
             for line in log_fh:
                 if "a66dc" in line:
                     serving_line = line
@@ -675,7 +708,7 @@ class ArangodInstance(Instance):
 class ArangodRemoteInstance(ArangodInstance):
     """represent one arangodb instance"""
 
-    # pylint: disable=R0913
+    # pylint: disable=too-many-arguments
     def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl):
         super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangod", ssl)
 
@@ -683,7 +716,7 @@ class ArangodRemoteInstance(ArangodInstance):
 class SyncInstance(Instance):
     """represent one arangosync instance"""
 
-    # pylint: disable=R0913
+    # pylint: disable=too-many-arguments
     def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl):
         super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangosync", ssl)
         self.logfile_parameter = ""
@@ -761,17 +794,17 @@ class SyncInstance(Instance):
 
     def is_frontend(self):
         """no."""
-        # pylint: disable=R0201
+        # pylint: disable=no-self-use
         return False
 
     def is_dbserver(self):
         """no."""
-        # pylint: disable=R0201
+        # pylint: disable=no-self-use
         return False
 
     def is_sync_instance(self):
         """yes."""
-        # pylint: disable=R0201
+        # pylint: disable=no-self-use
         return True
 
     def is_line_relevant(self, line):

@@ -27,6 +27,7 @@ class InstallerDeb(InstallerLinux):
         self.debug_package = None
         self.log_examiner = None
         self.installer_type = "DEB"
+        self.extension = "deb"
         self.backup_dirs_number_before_upgrade = None
 
         # Are those required to be stored in the cfg?
@@ -47,15 +48,24 @@ class InstallerDeb(InstallerLinux):
     def calculate_package_names(self):
         enterprise = "e" if self.cfg.enterprise else ""
         package_version = "1"
-        architecture = "amd64"
+        architecture = "amd64" if self.machine == "x86_64" else "arm64"
 
         semdict = dict(self.cfg.semver.to_dict())
 
         if semdict["prerelease"]:
             if semdict["prerelease"].startswith("nightly"):
                 semdict["prerelease"] = "~~{prerelease}".format(**semdict)
-            else:
+            elif semdict["prerelease"].startswith("alpha"):
                 semdict["prerelease"] = "~{prerelease}".format(**semdict)
+            elif semdict["prerelease"].startswith("beta"):
+                semdict["prerelease"] = "~{prerelease}".format(**semdict)
+            elif semdict["prerelease"].startswith("rc"):
+                semdict["prerelease"] = "~" + semdict["prerelease"].replace("rc", "rc.").replace('..', '.')
+            elif re.match(r"\d{1,2}", semdict["prerelease"]):
+                semdict["prerelease"] = ".{prerelease}".format(**semdict)
+            elif len(semdict["prerelease"]) > 0:
+                # semdict["prerelease"] = semdict["prerelease"]
+                pass
         else:
             semdict["prerelease"] = ""
 
@@ -296,7 +306,7 @@ class InstallerDeb(InstallerLinux):
         package_name = "arangodb3" + ("e-client" if self.cfg.enterprise else "-client")
         self.uninstall_package(package_name)
 
-    # pylint: disable=R0201
+    # pylint: disable=no-self-use
     @step
     def uninstall_package(self, package_name, force=False):
         """uninstall package"""

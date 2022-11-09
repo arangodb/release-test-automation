@@ -1,38 +1,48 @@
+
 #!/usr/bin/env python3
 """ run an installer for the debian based operating system """
 import logging
 import multiprocessing
 from pathlib import Path, PureWindowsPath
 import shutil
+import subprocess
 import time
+
 # pylint: disable=import-error
-import winreg
+import platform
+IS_WINDOWS = platform.win32_ver()[0] != ""
+if IS_WINDOWS:
+    import winreg
 import os
 import re
 
+import semver
 from allure_commons._allure import attach
 from allure_commons.types import AttachmentType
-from mss import mss
+if IS_WINDOWS:
+    from mss import mss
 import psutil
+
+from arangodb.installers.windows import InstallerWin
 from reporting.reporting_utils import step
+from tools.killall import get_process_tree
 
-from arangodb.installers.base import InstallerBase
-
-# pylint: disable=W0611
+# pylint: disable=unused-import
 # this will patch psutil for us:
 import tools.monkeypatch_psutil
 
 
-class InstallerW(InstallerBase):
+class InstallerNsis(InstallerWin):
     """install the windows NSIS package"""
 
-    # pylint: disable=R0913 disable=R0902
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
     def __init__(self, cfg):
         self.server_package = None
         self.client_package = None
         self.service = None
         self.remote_package_dir = "Windows"
         self.installer_type = "EXE"
+        self.extension = "exe"
         self.backup_dirs_number_before_upgrade = None
 
         cfg.install_prefix = Path("C:/tmp")
@@ -46,41 +56,70 @@ class InstallerW(InstallerBase):
         cfg.sbin_dir = cfg.install_prefix / "usr" / "bin"
         cfg.real_bin_dir = cfg.bin_dir
         cfg.real_sbin_dir = cfg.sbin_dir
-
+        if cfg.semver > semver.VersionInfo.parse("3.9.99"):
+            self.arch = "_amd64"
+            self.arch = ""
+        else:
+            self.arch = ""
+        self.operating_system = 'win64'
         super().__init__(cfg)
-        self.check_stripped = False
         self.check_symlink = False
+        self.core_glob = "**/*.dmp"
 
     def supports_hot_backup(self):
         """no hot backup support on the wintendo."""
         return False
 
+    def _verify_signature(self, programm):
+        fulldir = self.cfg.package_dir / programm
+        fulldir = fulldir.resolve()
+        success_string = b"Successfully verified"
+        cmd = ["signtool", "verify", "/pa", str(fulldir)]
+        print(cmd)
+        with psutil.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
+            (signtool_str, _) = proc.communicate()
+            print(signtool_str)
+            if proc.returncode:
+                raise Exception("Signtool exited nonzero " + str(cmd) + "\n" + str(signtool_str))
+            if signtool_str.find(success_string) < 0:
+                raise Exception("Signtool didn't find signature: " + str(signtool_str))
+
     def calculate_package_names(self):
         enterprise = "e" if self.cfg.enterprise else ""
-        architecture = "win64"
         semdict = dict(self.cfg.semver.to_dict())
         if semdict["prerelease"]:
-            semdict["prerelease"] = "-{prerelease}".format(**semdict)
+            if semdict["prerelease"].startswith("rc"):
+                semdict["prerelease"] = "-" + semdict["prerelease"].replace("rc", "rc.")
+            else:
+                semdict["prerelease"] = "-{prerelease}".format(**semdict)
         else:
             semdict["prerelease"] = ""
         version = "{major}.{minor}.{patch}{prerelease}".format(**semdict)
-        self.server_package = "ArangoDB3%s-%s_%s.exe" % (
-            enterprise,
-            version,
-            architecture,
-        )
-        # self.client_package = "ArangoDB3%s-client-%s_%s.exe" % (
-        #     enterprise,
-        #     version,
-        #     architecture,
-        # )
-        self.client_package = None  # FIXME: Enable client package tests for NSIS when issue QA-182 is fixed
-        self.debug_package = None  # TODO
+
+        self.desc = {
+            "ep": enterprise,
+            "ver": version,
+            "os": self.operating_system,
+            "arch": self.arch,
+            "ext": self.extension,
+        }
+
+        self.server_package = "ArangoDB3{ep}-{ver}_{os}{arch}.exe".format(**self.desc)
+        if self.cfg.semver >= semver.VersionInfo.parse("3.7.15"):
+            self.client_package = "ArangoDB3{ep}-client-{ver}_{os}{arch}.exe".format(**self.desc)
+            self.cfg.client_install_prefix = self.cfg.base_test_dir / "arangodb3{ep}-client-{os}_{ver}{arch}".format(
+                **self.desc
+            )
+        self.debug_package = "ArangoDB3{ep}-{ver}.pdb.zip".format(**self.desc)
 
     @step
     def upgrade_server_package(self, old_installer):
+        if not (self.cfg.package_dir / self.server_package).exists():
+            raise Exception("Package not found: " + str(self.server_package))
+        self._verify_signature(self.server_package)
         self.backup_dirs_number_before_upgrade = self.count_backup_dirs()
         self.stop_service()
+        self._verify_signature(self.server_package)
         cmd = [
             str(self.cfg.package_dir / self.server_package),
             "/INSTDIR=" + str(PureWindowsPath(self.cfg.install_prefix)),
@@ -126,6 +165,9 @@ class InstallerW(InstallerBase):
 
     @step
     def install_server_package_impl(self):
+        if not (self.cfg.package_dir / self.server_package).exists():
+            raise Exception("Package not found: " + str(self.server_package))
+        self._verify_signature(self.server_package)
         cmd = [
             str(self.cfg.package_dir / self.server_package),
             "/PASSWORD=" + self.cfg.passvoid,
@@ -139,7 +181,7 @@ class InstallerW(InstallerBase):
         ]
         logging.info("running windows package installer:")
         logging.info(str(cmd))
-        attach("Command", str(cmd))
+        attach(str(cmd), "Command")
         install = psutil.Popen(cmd)
         try:
             install.wait(600)
@@ -172,6 +214,9 @@ class InstallerW(InstallerBase):
     @step
     def install_client_package_impl(self):
         """Install client package"""
+        if not (self.cfg.package_dir / self.server_package).exists():
+            raise Exception("Package not found: " + str(self.client_package))
+        self._verify_signature(self.client_package)
         cmd = [
             str(self.cfg.package_dir / self.client_package),
             "/INSTDIR=" + str(PureWindowsPath(self.cfg.install_prefix)),
@@ -203,7 +248,7 @@ class InstallerW(InstallerBase):
         """get a service handle"""
         if self.service:
             return
-        # pylint: disable=W0703
+        # pylint: disable=broad-except
         try:
             self.service = psutil.win_service_get("ArangoDB")
         except Exception as exc:
@@ -244,6 +289,7 @@ class InstallerW(InstallerBase):
                         name="Screenshot ({fn})".format(fn=filename),
                         attachment_type=AttachmentType.PNG,
                     )
+                print(get_process_tree())
                 uninstall.kill()
                 raise Exception("upgrade uninstall failed to complete on time") from exc
 
@@ -281,6 +327,7 @@ class InstallerW(InstallerBase):
                         name="Screenshot ({fn})".format(fn=filename),
                         attachment_type=AttachmentType.PNG,
                     )
+                print(get_process_tree())
                 uninstall.kill()
                 raise Exception("uninstall failed to complete on time") from exc
         if self.cfg.log_dir.exists():
@@ -291,7 +338,7 @@ class InstallerW(InstallerBase):
         # since it needs to look at all these files we
         # just unloaded into it to make sure no harm originates from them.
         time.sleep(30 / multiprocessing.cpu_count())
-        # pylint: disable=W0703, disable=W0107
+        # pylint: disable=broad-except, disable=unnecessary-pass
         try:
             logging.info(psutil.win_service_get("ArangoDB"))
             self.get_service()
@@ -331,12 +378,19 @@ class InstallerW(InstallerBase):
                         name="Screenshot ({fn})".format(fn=filename),
                         attachment_type=AttachmentType.PNG,
                     )
+                print(get_process_tree())
                 uninstall.kill()
                 raise Exception("uninstall failed to complete on time") from exc
         if self.cfg.log_dir.exists():
             shutil.rmtree(self.cfg.log_dir)
         if tmp_uninstaller.exists():
             tmp_uninstaller.unlink()
+
+    @step
+    def uninstall_everything_impl(self):
+        """uninstall all arango packages present in the system(including those installed outside this installer)"""
+        self.un_install_server_package_impl()
+        self.un_install_client_package_impl()
 
     @step
     def check_service_up(self):
@@ -349,12 +403,7 @@ class InstallerW(InstallerBase):
         if not self.service:
             logging.error("no service registered, not starting")
             return
-        # TODO: re-enable once https://github.com/giampaolo/psutil/pull/1990 is in a release
-        # post psutil 5.8.0
-        # self.service.start()
-        ret = psutil.Popen(["sc", "start", "ArangoDB"]).wait()
-        if ret != 0:
-            raise Exception("sc exited non-zero! : %d" % ret)
+        self.service.start()
         while self.service.status() != "running":
             logging.info(self.service.status())
             time.sleep(1)

@@ -5,10 +5,11 @@ RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
         curl ca-certificates apt-transport-https gnupg2 \
-        python3-pip python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect python3-pyftpdlib python3-statsd gdb python-certifi && \
+        python3-pip python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect python3-statsd gdb python-certifi && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*.deb
 
-RUN pip3 install semver
+COPY requirements.txt /tmp/
+RUN pip3 install -r /tmp/requirements.txt
 
 RUN curl -OL https://download.arangodb.com/arangodb37/DEBIAN/Release.key && \
           apt-key add - < Release.key && \

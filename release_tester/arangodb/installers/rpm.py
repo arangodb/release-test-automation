@@ -27,6 +27,7 @@ class InstallerRPM(InstallerLinux):
         self.client_package = None
         self.debug_package = None
         self.installer_type = "RPM"
+        self.extension = "rpm"
 
         cfg.install_prefix = Path("/")
         cfg.bin_dir = cfg.install_prefix / "usr" / "bin"
@@ -43,7 +44,7 @@ class InstallerRPM(InstallerLinux):
 
     def calculate_package_names(self):
         enterprise = "e" if self.cfg.enterprise else ""
-        architecture = "x86_64"
+        architecture = "x86_64" if self.machine == "x86_64" else "aarch64"
 
         prerelease = self.cfg.semver.prerelease
         semdict = dict(self.cfg.semver.to_dict())
@@ -65,8 +66,10 @@ class InstallerRPM(InstallerLinux):
             semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
             semdict["build"] = "0.501"
         elif len(prerelease) > 0:
+            semdict["build"] = semdict["prerelease"]
+            semdict["prerelease"] = ""
             # remove dots, but prepend one:
-            semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
+            # once was: semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
 
         if not semdict["build"]:
             semdict["build"] = "1.0"
@@ -302,7 +305,7 @@ class InstallerRPM(InstallerLinux):
         self.cfg.debug_package_is_installed = ret
         return ret
 
-    # pylint: disable=R0201
+    # pylint: disable=no-self-use
     @step
     def un_install_package(self, package_name: str):
         """Uninstall package"""

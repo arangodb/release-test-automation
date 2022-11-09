@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 
 """ Release testing script"""
+#pylint: disable=duplicate-code
 from pathlib import Path
 import sys
 
 import click
 import semver
 
-from common_options import very_common_options, common_options
+from common_options import very_common_options, common_options, hotbackup_options
 from test_driver import TestDriver
-from arangodb.installers import RunProperties
+from arangodb.installers import RunProperties, HotBackupCliCfg, InstallerBaseConfig
 
 
 @click.command()
@@ -27,45 +28,28 @@ from arangodb.installers import RunProperties
     help="operation mode.",
 )
 @very_common_options()
+@hotbackup_options()
 @common_options(support_old=False)
-# pylint: disable=R0913 disable=R0914, disable=W0703
-# fmt: off
-def main(mode,
-         #very_common_options
-         new_version, verbose, enterprise, package_dir, zip_package,
-         hot_backup,
-         # common_options
-         alluredir, clean_alluredir, ssl, use_auto_certs,
-         # old_version,
-         test_data_dir, encryption_at_rest, interactive, starter_mode,
-         # stress_upgrade,
-         abort_on_error, publicip, selenium, selenium_driver_args):
-    # fmt: on
-    """ main trampoline """
-    test_driver = TestDriver(
-        verbose,
-        Path(package_dir),
-        Path(test_data_dir),
-        Path(alluredir),
-        clean_alluredir,
-        zip_package,
-        hot_backup,
-        interactive,
-        starter_mode,
-        False, # stress_upgrade
-        abort_on_error,
-        publicip,
-        selenium,
-        selenium_driver_args,
-        use_auto_certs)
+def main(**kwargs):
+    """ main """
+    kwargs['stress_upgrade'] = False
+    kwargs['package_dir'] = Path(kwargs['package_dir'])
+    kwargs['test_data_dir'] = Path(kwargs['test_data_dir'])
+    kwargs['alluredir'] = Path(kwargs['alluredir'])
+
+    kwargs['hb_cli_cfg'] = HotBackupCliCfg.from_dict(**kwargs)
+    kwargs['base_config'] = InstallerBaseConfig.from_dict(**kwargs)
+
+    test_driver = TestDriver(**kwargs)
+
     test_driver.set_r_limits()
     results = test_driver.run_test(
-        mode,
-        [semver.VersionInfo.parse(new_version)],
+        kwargs['mode'],
+        [semver.VersionInfo.parse(kwargs['new_version'])],
         # pylint: disable=too-many-function-args
-        RunProperties(enterprise,
-                      encryption_at_rest,
-                      ssl))
+        RunProperties(kwargs['enterprise'],
+                      kwargs['encryption_at_rest'],
+                      kwargs['ssl']))
     print("V" * 80)
     status = True
     for one_result in results:
@@ -76,5 +60,5 @@ def main(mode,
         sys.exit(1)
 
 if __name__ == "__main__":
-    # pylint: disable=E1120 # fix clickiness.
+    # pylint: disable=no-value-for-parameter # fix clickiness.
     sys.exit(main())

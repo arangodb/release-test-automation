@@ -1,14 +1,22 @@
 #!/bin/bash
 
+ARCH="-$(uname -m)"
+
+if test "${ARCH}" == "-x86_64"; then
+    ARCH="-amd64"
+else
+    ARCH="-arm64v8"
+fi
+
 GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
 if test -z "$GIT_VERSION"; then
     GIT_VERSION=$VERSION
 fi
 if test -z "$OLD_VERSION"; then
-    OLD_VERSION=3.8.0-nightly
+    OLD_VERSION=3.10.0-nightly
 fi
 if test -z "$NEW_VERSION"; then
-    NEW_VERSION=3.9.0-nightly
+    NEW_VERSION=3.11.0-nightly
 fi
 if test -z "${PACKAGE_CACHE}"; then
     PACKAGE_CACHE="$(pwd)/package_cache/"
@@ -22,13 +30,14 @@ fi
 if test -n "$SOURCE"; then
     force_arg+=(--old-source "$SOURCE" --new-source "$SOURCE")
 else
-    force_arg+=(--remote-host "$(host nas02.arangodb.biz |sed "s;.* ;;")")
+    force_arg+=(--remote-host 172.17.4.0)
 fi
 
 VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_rpm_version.tar"
 mkdir -p "${PACKAGE_CACHE}"
 mkdir -p test_dir
 mkdir -p allure-results
+
 
 DOCKER_RPM_NAME=release-test-automation-rpm
 
@@ -45,8 +54,14 @@ DOCKER_NAMESPACE="arangodb/"
 if docker pull "${DOCKER_NAMESPACE}${DOCKER_RPM_TAG}"; then
     echo "using ready built container"
 else
-    docker build containers/docker_rpm -t "${DOCKER_RPM_TAG}" || exit
+    docker build containers/docker_rpm${ARCH} -t "${DOCKER_RPM_TAG}" || exit
     DOCKER_NAMESPACE=""
+fi
+
+ssh -o StrictHostKeyChecking=no -T git@github.com
+if test ! -d $(pwd)/release_tester/tools/external_helpers; then
+  git clone git@github.com:arangodb/release-test-automation-helpers.git
+  mv $(pwd)/release-test-automation-helpers $(pwd)/release_tester/tools/external_helpers
 fi
 
 docker run \
@@ -60,7 +75,12 @@ docker run \
        -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
        --env="BUILD_NUMBER=${BUILD_NUMBER}" \
        --env="PYTHONUNBUFFERED=1" \
+       --env="RTA_LOCAL_HTTPUSER=${RTA_LOCAL_HTTPUSER}" \
        --env="WORKSPACE=/home/release-test-automation/" \
+       --env="AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" \
+       --env="AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" \
+       --env="AWS_REGION=$AWS_REGION" \
+       --env="AWS_ACL=$AWS_ACL" \
        \
        --name="${DOCKER_RPM_NAME}" \
        --rm \

@@ -18,7 +18,7 @@ from reporting.reporting_utils import step
 class LeaderFollower(Runner):
     """this runs a leader / Follower setup with synchronisation"""
 
-    # pylint: disable=R0913 disable=R0902
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
     def __init__(
         self,
         runner_type,
@@ -42,8 +42,11 @@ class LeaderFollower(Runner):
 
         self.leader_starter_instance = None
         self.follower_starter_instance = None
+        self.passvoid = "leader"
 
         self.success = False
+        ssl = "ssl://" if self.cfg.ssl else "tcp://"
+        passvoid = self.passvoid
         self.checks = {
             "beforeReplJS": (
                 "saving document before",
@@ -76,6 +79,54 @@ if (!(db.testCollectionAfter.toArray()[0]["hello"] === "world")) {
 }
 """,
             ),
+            "waitForReplState": (
+                "Checking sync status",
+                f"""
+var internal = require("internal");
+var replication = require("@arangodb/replication");
+let compareTicks = replication.compareTicks;
+var connectToLeader = function() {{
+  arango.reconnect("{ssl}127.0.0.1:1235", "_system", "root", "{passvoid}");
+  db._flushCache();
+}};
+
+var connectToFollower = function() {{
+  arango.reconnect("{ssl}127.0.0.1:2346", "_system", "root", "{passvoid}");
+  db._flushCache();
+}};
+
+let state = {{}};
+var printed = false;
+state.lastLogTick = replication.logger.state().state.lastUncommittedLogTick;
+
+connectToFollower();
+while (true) {{
+  let followerState = replication.globalApplier.state();
+
+  if (followerState.state.lastError.errorNum > 0) {{
+    print("follower has errored:", JSON.stringify(followerState.state.lastError));
+    throw new Error(JSON.stringify(followerState.state.lastError));
+  }}
+
+  if (!followerState.state.running) {{
+    print("follower is not running");
+    break;
+  }}
+
+  if (compareTicks(followerState.state.lastAppliedContinuousTick, state.lastLogTick) >= 0 ||
+      compareTicks(followerState.state.lastProcessedContinuousTick, state.lastLogTick) >= 0) {{ // ||
+    print("follower has caught up. state.lastLogTick:", state.lastLogTick, "followerState.lastAppliedContinuousTick:", followerState.state.lastAppliedContinuousTick, "followerState.lastProcessedContinuousTick:", followerState.state.lastProcessedContinuousTick);
+    break;
+  }}
+
+  if (!printed) {{
+    print("waiting for follower to catch up");
+    printed = true;
+  }}
+  internal.wait(0.5, false);
+}}
+            """
+                ),
         }
 
     def starter_prepare_env_impl(self):
@@ -133,6 +184,15 @@ if (!(db.testCollectionAfter.toArray()[0]["hello"] === "world")) {
             moreopts=follower_opts,
         )
 
+    @step
+    def check_data_impl_sh(self, arangosh, supports_foxx_tests):
+        """ we want to see stuff is in sync! """
+        print("Checking whether the follower has caught up")
+        if not self.leader_starter_instance.execute_frontend(
+                self.checks["waitForReplState"]):
+            raise Exception("the follower would not catch up in time!")
+        super().check_data_impl_sh(arangosh, supports_foxx_tests)
+
     def starter_run_impl(self):
         self.leader_starter_instance.run_starter()
         self.follower_starter_instance.run_starter()
@@ -143,7 +203,6 @@ if (!(db.testCollectionAfter.toArray()[0]["hello"] === "world")) {
         self.leader_starter_instance.detect_instance_pids()
         self.follower_starter_instance.detect_instance_pids()
 
-        self.passvoid = "leader"
         self.leader_starter_instance.set_passvoid(self.passvoid)
         # the replication will overwrite this passvoid anyways:
         self.follower_starter_instance.set_passvoid(self.passvoid)

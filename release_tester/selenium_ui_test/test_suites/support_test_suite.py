@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ support page testsuite """
 from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
-from selenium_ui_test.test_suites.base_test_suite import testcase
+from test_suites_core.base_test_suite import testcase
 from selenium_ui_test.pages.support_page import SupportPage
 
 
@@ -11,11 +11,11 @@ class SupportTestSuite(BaseSeleniumTestSuite):
     def test_support(self):
         """testing support page"""
         print("---------Checking Support page started--------- \n")
-        # login = LoginPage(self.webdriver)
+        # login = LoginPage(self.webdriver, self.cfg)
         # login.login('root', self.root_passvoid)
 
         # creating multiple support page obj
-        support = SupportPage(self.webdriver)
+        support = SupportPage(self.webdriver, self.cfg)
 
         print("Selecting Support Page \n")
         support.select_support_page()

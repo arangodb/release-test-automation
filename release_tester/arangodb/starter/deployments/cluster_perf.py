@@ -8,7 +8,7 @@ from queue import Queue, Empty
 from threading import Thread
 
 import psutil
-import statsd
+# import statsd
 import yaml
 
 from arangodb.instance import InstanceType
@@ -20,11 +20,11 @@ import tools.loghelper as lh
 from tools.prometheus import set_prometheus_jwt
 from tools.timestamp import timestamp
 
-# pylint: disable=W0603
+# pylint: disable=global-statement
 class TestConfig:
     """this represents one tests configuration"""
 
-    # pylint: disable=R0902 disable=R0903
+    # pylint: disable=too-many-instance-attributes disable=too-few-public-methods
     def __init__(self):
         self.parallelity = 3
         self.db_count = 100
@@ -39,7 +39,7 @@ class TestConfig:
         self.progressive_timeout = 100
 
 # pylint: disable=global-variable-not-assigned
-statsdc = statsd.StatsClient("localhost", 8125)
+#statsdc = statsd.StatsClient("localhost", 8125)
 RESULTS_TXT = None
 OTHER_SH_OUTPUT = None
 
@@ -57,10 +57,10 @@ def result_line(line_tp):
                 str_line = ",".join(segments) + "\n"
                 print(str_line)
                 RESULTS_TXT.write(str_line)
-                statsdc.timing(segments[0], float(segments[2]))
+                # statsdc.timing(segments[0], float(segments[2]))
         else:
             OTHER_SH_OUTPUT.write(line_tp[1].get_endpoint() + " - " + str(line_tp[0]) + "\n")
-            statsdc.incr("completed")
+            #statsdc.incr("completed")
 
 
 def makedata_runner(queue, resq, arangosh, progressive_timeout):
@@ -86,7 +86,7 @@ def makedata_runner(queue, resq, arangosh, progressive_timeout):
 class ClusterPerf(Runner):
     """this launches a cluster setup"""
 
-    # pylint: disable=R0913 disable=R0902
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
     def __init__(
         self,
         runner_type,
@@ -128,7 +128,7 @@ class ClusterPerf(Runner):
 
         self.basecfg.index = 0
 
-        # pylint: disable=C0415
+        # pylint: disable=import-outside-toplevel
         if self.remote:
             from arangodb.starter.manager import StarterNonManager as StarterManager
         else:

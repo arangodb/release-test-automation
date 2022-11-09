@@ -4,6 +4,7 @@ import logging
 import re
 import time
 from pathlib import Path
+import platform
 
 import requests
 import semver
@@ -26,8 +27,9 @@ SYNC_VERSIONS = {
 }
 
 STARTER_VERSIONS = {"152": semver.VersionInfo.parse("0.15.2")}
-USERS_ERROR_RX = re.compile(".*\n*.*\n*.*\n*.*(_users).*DIFFERENT.*", re.MULTILINE)
+USERS_ERROR_RX = re.compile(".*_system.*_users.*DIFFERENT.*")
 STATUS_INACTIVE = "inactive"
+IS_MAC = platform.mac_ver()[0]
 
 
 def _create_headers(token):
@@ -90,7 +92,7 @@ def _get_sync_status(cluster):
 class Dc2Dc(Runner):
     """this launches two clusters in dc2dc mode"""
 
-    # pylint: disable=R0913 disable=R0902
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
     def __init__(
         self,
         runner_type,
@@ -187,11 +189,14 @@ class Dc2Dc(Runner):
             self.cert_op(["jwt-secret", "--secret=" + str(node["SyncSecret"])])
             self.cert_op(["jwt-secret", "--secret=" + str(node["JWTSecret"])])
 
-        def add_starter(val, port, moreopts=[]):
+        # pylint: disable=dangerous-default-value
+        def _add_starter(val, port, moreopts=[]):
             # fmt: off
             opts = [
                     '--all.log.level=backup=trace',
                     '--all.log.level=requests=debug',
+                    '--args.syncmasters.log.level=debug',
+                    '--args.syncworkers.log.level=debug',
                     '--starter.sync',
                     '--starter.local',
                     '--auth.jwt-secret=' +           str(val["JWTSecret"]),
@@ -232,8 +237,8 @@ class Dc2Dc(Runner):
             if port == 7528:
                 val["instance"].is_leader = True
 
-        add_starter(self.cluster1, port=7528)
-        add_starter(self.cluster2, port=9528, moreopts=['--args.dbservers.log', 'request=trace'])
+        _add_starter(self.cluster1, port=7528)
+        _add_starter(self.cluster2, port=9528, moreopts=['--args.dbservers.log', 'request=trace'])
         self.starter_instances = [self.cluster1["instance"], self.cluster2["instance"]]
 
     def starter_run_impl(self):
@@ -313,6 +318,8 @@ class Dc2Dc(Runner):
         return semver.VersionInfo.parse(version)
 
     def _stop_sync(self, timeout=130):
+        if IS_MAC:
+            timeout *= 1.3
         try:
             timeout_start = time.time()
             if self._is_higher_sync_version(SYNC_VERSIONS["150"], SYNC_VERSIONS["230"]):
@@ -325,12 +332,15 @@ class Dc2Dc(Runner):
                 )
                 _, _, _, _ = self.sync_manager.stop_sync(timeout, ["--ensure-in-sync=false"])
         except CliExecutionException as exc:
+            print("Deadline reached while stopping sync! checking wehther it worked anyways?")
             self.state += "\n" + exc.execution_result[1]
             output = ""
             if exc.have_timeout:
-                (result, output) = self.sync_manager.check_sync()
+                (result, output, _, _) = self.sync_manager.check_sync()
                 if result:
                     print("CHECK SYNC OK!")
+                self.sync_manager.abort_sync()
+                return
             raise Exception("failed to stop the synchronization; check sync:" + output) from exc
 
         # From here on it is known that `arangosync stop sync` succeeded (exit code == 0).
@@ -375,18 +385,44 @@ class Dc2Dc(Runner):
                 self.cluster2["instance"].detect_instances()
         elif last_sync_output.find("Shard is not turned on for synchronizing") >= 0:
             self.progress(True, "arangosync: sync in progress.")
-        # we want to research this to find an actual cure, so we want to see these errors:
-        #elif re.match(USERS_ERROR_RX, last_sync_output):
-        #    self.progress(True, "arangosync: resetting users collection...")
-        #    self.sync_manager.reset_failed_shard("_system", "_users")
         else:
-            self.progress(True, "arangosync: unknown error condition, doing nothing.")
+            # we want to research this to find an actual cure, so we want to see these errors:
+            # BTS-366 now has these informations, we're working on a fix, re-enable workaround for now.
+            dbline_seen = False
+            userline_seen = False
+            coll_count = 0
+            for line in last_sync_output.splitlines():
+                if not dbline_seen:
+                    dbline_seen = line.startswith('Database')
+                else:
+                    coll_count += 1
+                    if re.match(USERS_ERROR_RX, line):
+                        userline_seen = True
+            if dbline_seen and userline_seen and coll_count < 5:
+                self.progress(True, "arangosync: _users collection dump. Source DC:")
+                self._print_users(self.cluster1)
+                self.progress(True, "arangosync: _users collection dump. Target DC:")
+                self._print_users(self.cluster2)
+                self.progress(True, "arangosync: unknown error condition, doing nothing.")
+                self.progress(True, "arangosync: resetting users collection...")
+                self.sync_manager.reset_failed_shard("_system", "_users")
+
+    # pylint: disable=no-self-use
+    def _print_users(self, cluster):
+        output = cluster["instance"].arangosh.run_command(
+            ("print _users",
+             "q = db._collection('_users').all(); while (q.hasNext()) print(q.next());",
+             "--server.jwt-secret-keyfile", cluster["JWTSecret"]),
+            True,
+            use_default_auth=False
+        )
+        print(str(output))
 
     def _get_in_sync(self, attempts):
         self.progress(True, "waiting for the DCs to get in sync")
         output = None
         for count in range(attempts):
-            (result, output) = self.sync_manager.check_sync()
+            (result, output, _, _) = self.sync_manager.check_sync()
             if result:
                 print("CHECK SYNC OK!")
                 break
@@ -425,6 +461,7 @@ class Dc2Dc(Runner):
             (self.cfg.test_data_dir / Path("tests/js/server/replication/fuzz/replication-fuzz-global.js")),
             [],
             args,
+            deadline=6000
         )
         if not res[0]:
             if not self.cfg.verbose:

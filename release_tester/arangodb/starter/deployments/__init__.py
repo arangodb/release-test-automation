@@ -14,29 +14,35 @@ class RunnerType(Enum):
     """dial which runner instance you want"""
 
     NONE = 0
-    LEADER_FOLLOWER = 1
-    ACTIVE_FAILOVER = 2
-    CLUSTER = 3
-    DC2DC = 4
-    DC2DCENDURANCE = 5
+    SINGLE = 1
+    LEADER_FOLLOWER = 2
+    ACTIVE_FAILOVER = 3
+    CLUSTER = 4
+    DC2DC = 5
+    DC2DCENDURANCE = 6
+    TESTING = 7
 
 
 runner_strings = {
     RunnerType.NONE: "none",
+    RunnerType.SINGLE: "Single Server",
     RunnerType.LEADER_FOLLOWER: "Leader / Follower",
     RunnerType.ACTIVE_FAILOVER: "Active Failover",
     RunnerType.CLUSTER: "Cluster",
     RunnerType.DC2DC: "DC 2 DC",
     RunnerType.DC2DCENDURANCE: "DC 2 DC endurance",
+    RunnerType.TESTING: "Testing"
 }
 
 STARTER_MODES = {
     "all": [
+        RunnerType.SINGLE,
         RunnerType.LEADER_FOLLOWER,
         RunnerType.ACTIVE_FAILOVER,
         RunnerType.CLUSTER,
         RunnerType.DC2DC,
     ],
+    "SG": [RunnerType.SINGLE],
     "LF": [RunnerType.LEADER_FOLLOWER],
     "AFO": [RunnerType.ACTIVE_FAILOVER],
     "CL": [RunnerType.CLUSTER],
@@ -45,7 +51,7 @@ STARTER_MODES = {
     "none": [RunnerType.NONE],
 }
 
-# pylint: disable=import-outside-toplevel disable=R0913 disable=R0914 disable=E1121
+# pylint: disable=import-outside-toplevel disable=too-many-arguments disable=too-many-locals disable=too-many-function-args
 @step
 def make_runner(
     runner_type: RunnerType,
@@ -57,6 +63,7 @@ def make_runner(
     use_auto_certs: bool = True,
 ) -> Runner:
     """get an instance of the arangod runner - as you specify"""
+    # pylint: disable=too-many-return-statements
     assert runner_type, "no runner no cry?"
     assert len(installer_set) > 0, "no base config?"
     for one_installer_set in installer_set:
@@ -78,6 +85,11 @@ def make_runner(
         runner_properties.ssl,
         use_auto_certs,
     )
+
+    if runner_type == RunnerType.SINGLE:
+        from arangodb.starter.deployments.single import Single
+
+        return Single(*args)
 
     if runner_type == RunnerType.LEADER_FOLLOWER:
         from arangodb.starter.deployments.leaderfollower import LeaderFollower

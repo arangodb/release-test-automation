@@ -3,11 +3,7 @@
 - python 3
 - python requests to talk to the instances https://requests.readthedocs.io/en/latest/
 - Python expect - https://github.com/pexpect/pexpect https://pexpect.readthedocs.io/en/stable/ (linux only)
-- PS-util  https://psutil.readthedocs.io/en/latest/#windows-services on windows `_pswindows.py` needs to be copied
- into the python installation after the pip run:
-   - python install root (i.e. Users/willi/AppData/Local/Programs/Python)
-   -  /Python38-32/Lib/site-packages/psutil/_pswindows.py
- the upstream distribution doesn't enable the wrappers to start/stop service
+- PS-util  https://psutil.readthedocs.io/en/latest/#windows-services 
 - pyyaml - for parsing saved data.
 - click - for commandline parsing https://click.palletsprojects.com/en/7.x/
 - semver - semantic versioning.
@@ -20,7 +16,7 @@
 ## Linux
 
 - **debian** / **ubuntu**:
-  `apt-get install python3-yaml python3-requests python3-click python3-distro python3-psutil python3-pexpect python3-pyftpdlib python3-statsd python3-selenium python3-pip gdb`
+  `apt-get install python3-yaml python3-magic python3-requests python3-click python3-distro python3-psutil python3-pexpect python3-pyftpdlib python3-statsd python3-selenium python3-pip gdb`
   
   the `python3-semver` on debian is to old - need to use the pip version instead:
   `pip3 install semver beautifultable allure_python_commons certifi tabulate`
@@ -31,17 +27,17 @@
   `pip install distro semver pexpect psutil beautifultable allure_python_commons certifi`
   
 - **centos**:
-   `yum update ; yum install python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect python3-pyftpdlib; pip3 install psutil semver beautifultable` 
+   `yum update ; yum install python3 python3-pyyaml python3-magic python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect python3-pyftpdlib; pip3 install psutil semver beautifultable` 
    `sudo yum install gdb`
 - **plain pip**:
-  `pip3 install psutil pyyaml pexpect requests click semver ftplib selenium beautifultable tabulate allure_python_commons certifi`
+  `pip3 install psutil pyyaml pexpect requests click semver magic ftplib selenium beautifultable tabulate allure_python_commons certifi`
   or:
   `pip install -r requirements.txt`
 
 ## Mac OS
 :
     `brew install gnu-tar`
-    `pip3 install click psutil requests pyyaml semver pexpect selenium beautifultable tabulate allure_python_commons certifi`
+    `pip3 install click psutil requests pyyaml semver magic pexpect selenium beautifultable tabulate allure_python_commons certifi`
     `brew install gdb`
 if `python --version` is below 3.9 you also have to download ftplib:
     `pip3 install click ftplib`
@@ -62,7 +58,11 @@ Typical arguments that may make chrome work:
 
 ## Windows
 
-TBD
+On Windows we require `PYTHONUTF8=1` in the OS-Environment in order to avoid non supported conversions in print statements.
+
+  `pip install -r requirements.txt`
+
+should be used to install the python dependencies.
 
 # specifying versions
 
@@ -86,6 +86,7 @@ Supported Parameters:
  - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
  - `--[no-]encryption-at-rest` turn on encryption at rest for Enterprise packages
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
+ - `--src` switches to [Source directory](#source-installer) logic
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
@@ -94,7 +95,8 @@ Supported Parameters:
    - `install` to only install the package onto the system and store its setting to the temp folder (development) 
    - `tests`  to read the config file from the temp folder and run the tetss.
    - `uninstall` to clean up your system.
- - `--starter-mode [all|LF|AFO|CL|DC|DCendurance|none]` which starter test to exute, `all` of them or `none` at all or:
+ - `--starter-mode [all|SG|LF|AFO|CL|DC|DCendurance|none]` which starter test to exute, `all` of them or `none` at all or:
+   - `SG` - Single server - the most simple deployment possible
    - `LF` - Leader / Follower - setup two single instances, start replication between them
    - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
@@ -109,7 +111,6 @@ Supported Parameters:
  - `--[no-]ssl` use SSL (default = False)
  - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl) 
  - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
-
 Example usage:
  - Windows: `python ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
  - Linux (ubuntu|debian) `python3 ./release_tester/test.py --new-version 3.6.2 --no-enterprise --package-dir /home/willi/Downloads`
@@ -129,6 +130,7 @@ Supported Parameters:
  - `--old-version` which Arangodb Version you want to install to setup the old system
  - `--new-version` which Arangodb Version you want to upgrade the environment to
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
+ - `--src` switches to [Source directory](#source-installer) logic
  - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
  - `--[no-]encryption-at-rest` turn on encryption at rest for Enterprise packages
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
@@ -136,7 +138,8 @@ Supported Parameters:
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
  - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
  - `--verbose` if specified more logging is done
- - `--starter-mode [all|LF|AFO|CL|DC|none]` which starter test to exute, `all` of them or `none` at all or: 
+ - `--starter-mode [all|SG|LF|AFO|CL|DC|none]` which starter test to exute, `all` of them or `none` at all or:
+   - `SG` - Single server - the most simple deployment possible
    - `LF` - Leader / Follower - setup two single instances, start replication between them
    - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
@@ -154,6 +157,24 @@ Example usage:
  - Linux (ubuntu|debian) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
  - Linux (centos|fedora|sles) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
 
+# Using `run_test_suites.py` to run test suites
+
+This entrypoint file is used to run tests that are organized in test suites.
+Supported Parameters:
+ - `--include-test-suite` Test suite name to include in the test run. Multiple test suites can be ran by providing this parameter multiple times. This parameter cannot be used if --exclude-test-suite is set.
+ - `--exclude-test-suite` Run all test suites except for this one. Multiple test suites can be excluded by providing this parameter multiple times. This parameter cannot be used if --include-test-suite is set.
+ - `--new-version` which Arangodb Version you want to run the test on
+ - `--old-version` old version of ArangoDB to be used in tests where an older version is required.
+ - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
+ - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
+ - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
+ - `--verbose` if specified more logging is done
+ - `--alluredir` - directory to save test results in allure format (default = allure-results)
+ - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
+
+Example usage:
+ - Linux: `python3 ./release_tester/run_test_suites.py --new-version 3.10.0-nightly --old-version 3.9.1-nightly --verbose --no-enterprise --zip --package-dir /packages --include-test-suite EnterprisePackageInstallationTestSuite`
+
 # Using `conflict_checking.py` for testing of package installation process
 
 To run the tests you need to download older version packages in addition to the version you intend to test.
@@ -168,10 +189,20 @@ Supported Parameters:
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
  - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
 
+# Using `run_license_tests.py` to test the license manager feature
+
+License manager tests are only applicable to enterprise edition.   
+Supported Parameters:
+ - `--new-version` which Arangodb Version you want to run the test on
+ - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
+ - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
+ - `--verbose` if specified more logging is done
+ - `--alluredir` - directory to save test results in allure format (default = allure-results)
+ - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
+ - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
+
 Example usage:
- - Windows: `python ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
- - Linux (ubuntu|debian) `python3 ./release_tester/test.py --new-version 3.6.2 --no-enterprise --package-dir /home/willi/Downloads`
- - Linux (centos|fedora|sles) `python3 ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
+ - Linux (ubuntu|debian) `python3 ./release_tester/run_license_tests.py --new-version 3.9.0-nightly --verbose --package-dir /home/vitaly/tmp/packages --zip`
 
 # using `download.py` to download packages from stage1/stage2/live
 
@@ -192,6 +223,8 @@ Supported Parameters:
  - `--httppassvoid` secret for stage http access
  - `--verbose` if specified more logging is done
  - `--force` overwrite readily existing downloaded packages
+ - `--force-arch` override the machine architecture of the host
+ - `--force-os ['', windows, mac, ubuntu, debian, centos, redhat, alpine]`, to download the software for another OS than the one you're currently running
 
 example usage:
 `python3 release_tester/download.py --enterprise \
@@ -238,11 +271,16 @@ Supported Parameters:
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
  - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
  - `--verbose` if specified more logging is done
- - `--starter-mode [all|LF|AFO|CL|DC|none]` which starter test to exute, `all` of them or `none` at all or: 
+ - `--starter-mode [all|SG|LF|AFO|CL|DC|none]` which starter test to exute, `all` of them or `none` at all or:
+   - `SG` - Single server - the most simple deployment possible
    - `LF` - Leader / Follower - setup two single instances, start replication between them
    - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
    - `DC` - setup 2 clusters, connect them with arangosync (enterprise only)
+ - `edition` which type to launch:
+   - `C` community
+   - `EP` enterprise
+   - `EE` enterprise with encryption at rest
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
@@ -296,11 +334,16 @@ Supported Parameters:
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
  - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
  - `--verbose` if specified more logging is done
- - `--starter-mode [all|LF|AFO|CL|DC|none]` which starter test to exute, `all` of them or `none` at all or: 
+ - `--starter-mode [all|SG|LF|AFO|CL|DC|none]` which starter test to exute, `all` of them or `none` at all or:
+   - `SG` - Single server - the most simple deployment possible
    - `LF` - Leader / Follower - setup two single instances, start replication between them
    - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
    - `DC` - setup 2 clusters, connect them with arangosync (enterprise only)
+ - `edition` which type to launch:
+   - `C` community
+   - `EP` enterprise
+   - `EE` enterprise with encryption at rest
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
@@ -308,7 +351,6 @@ Supported Parameters:
  - `--[no-]ssl` use SSL (default = False)
  - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl)
  - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
-
 Example usage: 
 
 - [jenkins/nightly_tar.sh](jenkins/nightly_tar.sh) Download nightly tarball packages, and run it with selenium in `containers/docker_tar` ubuntu container
@@ -366,10 +408,40 @@ It consists of these files in test_data:
    - `100_collections.js` creates a set of collections / indices
    - `400_views.js` creates some views
    - `500_community_graph.js` creates a community patent graph
-   - `550_enterprise_graph.js` creates an enterprise patent graph
-   - `560_smartgraph_edge_validator.js` on top of the enterprise graph, this will check the integrity check of the server.
-   - `561_smartgraph_vertex_validator.js` on top of the enterprise graph, this will check the integrity check of the server.
+   - `550_smart_graph.js` creates a smart patent graph
+   - `560_smartgraph_validator.js` on top of the enterprise graph, this will check the integrity check of the server.
+   - `570_enterprise_graph.js` creates an enterprise patent graph
    - `900_oneshard.js` creates oneshard database and does stuff with it.
+   - `607_analyzers.js` creates suported analyzers for 3.7.x version and check it's functionality.
+      Added Analyzers: (documentation link: https://www.arangodb.com/docs/3.7/analyzers.html)
+      - identity: An Analyzer applying the identity transformation, i.e. returning the input unmodified.
+      - delimiter: An Analyzer capable of breaking up delimited text into tokens as per RFC 4180 (without starting new  records on newlines).
+      - stem : An Analyzer capable of stemming the text, treated as a single token, for supported languages.
+      - norm Upper : An Analyzer capable of normalizing the text, treated as a single token, i.e. case conversion and accent removal. This one will Convert input string to all upper-case characters.
+      - norm Accent : This analyzer is capable of convert accented characters to their base characters.
+      - ngram : An Analyzer capable of producing n-grams from a specified input in a range of min..max (inclusive). Can optionally preserve the original input.
+      - n-Bigram Markers: This analyzer is a bigram Analyzer with preserveOriginal enabled and with start and stop markers.
+      - text : An Analyzer capable of breaking up strings into individual words while also optionally filtering out stop-words, extracting word stems, applying case conversion and accent removal.
+      - text Edge ngram: This analyzer is a custom text Analyzer with the edge n-grams feature and normalization enabled, stemming disabled and "the" defined as stop-word to exclude it.
+   - `608_analyzers.js` creates suported analyzers for 3.8.x version and check it's functionality.
+      Added Analyzers: (documentation link: https://www.arangodb.com/docs/3.8/analyzers.html)
+      - Soundex: Analyzer for a phonetically similar term search.
+      - aqlConcat: Concatenating Analyzer for conditionally adding a custom prefix or suffix.
+      - aqlFilter: Filtering Analyzer that discards unwanted data based on the prefix.
+      - nGramPipeline: Normalize to all uppercase and compute bigrams.
+      - delimiterPipeline: Split at delimiting characters , and ;, then stem the tokens.
+      - stopwords: Create and use a stopword Analyzer that removes the tokens `and` and `the`
+      - stopwordsPipeline: An Analyzer capable of removing specified tokens from the input.
+      - geoJson: An Analyzer capable of breaking up a GeoJSON object into a set of indexable tokens for further usage with ArangoSearch Geo functions.
+      - geoPoint: An Analyzer capable of breaking up JSON object describing a coordinate into a set of indexable tokens for further usage with ArangoSearch Geo functions.
+   - `609_analyzers.js` creates suported analyzers for 3.9.x version and check it's functionality.
+      - Collation: An Analyzer capable of breaking up the input text into tokens in a language-agnostic manner as per Unicode  Standard Annex #29.
+      - Segmentation: Analyzers to show the behavior of the different break options such as 'all', 'alpha' and  'graphic'.
+   - `610_analyzers.js` creates suported analyzers for 3.10.x version and check it's functionality.
+      - classifierSingle: An Analyzer capable of classifying tokens in the input text.
+      - classifierDouble: An Analyzer capable of classifying tokens in the input text.
+      - nearestNeighborsSingle: An Analyzer capable of finding nearest neighbors of single tokens in the input.
+      - nearestNeighborsDouble: An Analyzer capable of finding nearest neighbors of double tokens in the input.
 
 It should be considered to provide a set of hooks (000_dummy.js can be considered being a template for this):
 
@@ -393,6 +465,48 @@ The replication fuzzing test should be used to ensure the above with randomness 
 Makedata is by default ran with one dataset. However, it can also be used as load generator. 
 For this case especialy, the counters have to be respected, so subsequent runs don't clash with earlier runs.
 The provided dbCount / loopCount should be used in identifiers to ensure this.
+
+To Aid development, the makedata framework can be launched from within the arangodb unittests, 
+if this repository is checked out next to it:
+
+``` bash
+./scripts/unittest rta_makedata --extremeVerbosity true --cluster true --makedata_args:bigDoc true
+```
+
+# Hot backup settings
+During the test scenarios hot backups will be created/restored and uploaded/downloaded to/from an external storage using the bundled rclone. 
+RTA supports different types of external storage. By default the backups will be just copied to another directory using rclone. 
+Other options include running minio(S3-compatible open-source storage) locally and uploading backups to a real cloud provider. 
+This is controlled using the following command line parameters:
+ - `--hb-mode` - Hot backup mode. Possible values: disabled, directory, s3bucket, googleCloudStorage, azureBlobStorage. 
+ - `--hb-provider` - Cloud storage provider. Possible values for s3bucket: minio, aws, gce, azure.
+ - `--hb-storage-path-prefix` - Subdirectory to store hot backups in cloud.
+ - `--hb-aws-access-key-id` [env `AWS_ACCESS_KEY_ID`] - AWS access key id
+ - `--hb-aws-secret-access-key` [env `AWS_SECRET_ACCESS_KEY`] - AWS secret access key
+ - `--hb-aws-region` [env `AWS_REGION`] - AWS region
+ - `--hb-aws-acl` [env `AWS_ACL`] - AWS ACL (default value: `private`)
+ - `--hb-gce-service-account-credentials` - GCE service account credentials(JSON string).
+ - `--hb-gce-service-account-file` - Path to a JSON file containing GCE service account credentials.
+ - `--hb-gce-project-number` - GCE project ID.  
+ - `--hb-azure-account` - Azure storage account.
+ - `--hb-azure-key` - Azure storage account access key.   
+ - `--hb-use-cloud-preset` (string) - Load saved hotbackup settings. To use this, create a file release_tester/tools/external_helpers/cloud_secrets.py. Inside this file define dict variables. The name of the variable is the name of the preset. The dict must contain all the hb parameters. If --hb-use-cloud-preset is set, then all other parameters which names start with hb- are ignored.
+   Example of cloud_secrets.py: 
+```python
+aws = {
+    "hb_storage_path_prefix": "/path/inside/bucket",
+    "hb_mode": "s3bucket",
+    "hb_provider": "aws",
+    "hb_aws_access_key_id": "SECRET_KEY",
+    "hb_aws_secret_access_key": "ACCESS_KEY",
+    "hb_aws_region": "eu-central-1",
+    "hb_aws_acl": "private",
+}
+```
+
+Each cloud storage may also have some specific configuration parameters, which must be set as environment variables.
+
+
 
 # Flow of testcases
 The base flow lives in `runner.py`; special deployment specific implementations in the respective derivates. 
@@ -624,7 +738,7 @@ These tests use the CSV data from the wikip
 
 # Allure reporting
 To view allure report, you must have allure installed in your system. Download link(for Linux):
-https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/2.14.0/allure-commandline-2.14.0.zip
+https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/2.17.2/allure-commandline-2.17.2.zip
 
 After the test run is finished, run the following command:
 ```bash
@@ -642,3 +756,51 @@ To disable formatting for single line, end it with `# fmt: on`.
 
 ## Linter
 We use [pylint](https://pylint.org/). Command to run it: `pylint release_tester`
+
+### source "Installer"
+In RTA an "installer" makes the ArangoDB version available in the system. By default, the native installer to the system is chosen.
+With `--zip` the Windows Zip or Mac/Linux .tar.gz package is chosen. Similar to this `--src` flips the switch of not deploying a package
+via an installer at all, but rather choose a source directory with compiled binaries to launch.
+The source directory (directories in case of running upgrade) should contain `build/bin` with the compiled result binaries inside.
+
+Several binaries are not built from with the arangodb source. They have to be added as copy or symlink to the bin directory.
+They can easily be obtained through nightly zip/tar packages or be build from their respective source directories and symlinked into the `build/bin` directories:
+- arangodb - the starter.
+- arangosync - the arangosync binary for dc2dc replication
+- rclone-arangodb 
+
+The source directory is located via 3 parameters (and if `build/bin` exists chosen accordingly):
+- `--package-dir` - in `test.py` this can be used to directly point to the source directory. Alternatively, subdirectories with symlinks can be used:
+- `--new-version` if you specify `3.10.0-devel` (a semver valid version) (and --[no-]enterprise) this will result in this directory: `[package-dir]/[E_]3.10.0-devel`
+- `--old-version` in `upgrade.py` this is used for the old version to upgrade from, works similar as `--new-version`.
+
+If `--enterprise` is specfied, RTA treats this as an enterprise deployment, HotBackup and DC2DC becomes available.
+Additionally the enterprise javascript files are added via cli parameters to arangosh and arangod / starter.
+
+```
+./release_tester/test.py --src \
+  --enterprise \
+  --package-dir ../devel \
+  --new-version 3.10.0-devel \
+  --starter-mode DC
+```
+
+or running an upgrade:
+(To adjust this a bit strict directory naming conventions, symbolic links are used)
+
+```
+mkdir arangoversions
+cd arangoversions
+ln -s /home/willi/src/stable-3.9 E_3.9.0
+ln -s /home/willi/src/devel E_3.10.0-devel
+cd ..
+./release_tester/upgrade.py --src \
+  --enterprise \
+  --package-dir $(pwd)/arangoversions \
+  --new-version 3.10.0-devel \
+  --old-version 3.9.0 \
+  --starter-mode DC
+```
+
+Will search for `/home/willi/src/rta/arangoversions/E_3.9.0/build/bin` to launch the deployment initially, and upgrade to `/home/willi/src/rta/arangoversions/E_3.10.0-devel/build/bin`.
+

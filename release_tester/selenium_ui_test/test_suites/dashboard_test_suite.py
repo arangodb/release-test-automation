@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """ dashboard testsuite """
+import semver
 from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
-from selenium_ui_test.test_suites.base_test_suite import testcase
+from test_suites_core.base_test_suite import testcase
 from selenium_ui_test.pages.dashboard_page import DashboardPage
 
 
@@ -11,15 +12,15 @@ class DashboardTestSuite(BaseSeleniumTestSuite):
     def test_dashboard(self):
         """testing dashboard page"""
         print("---------Checking Dashboard started--------- \n")
-        # login = LoginPage(self.webdriver)
+        # login = LoginPage(self.webdriver, self.cfg)
         # login.login('root', self.root_passvoid)
         # creating object for dashboard
-        dash = DashboardPage(self.webdriver, self.is_enterprise)
+        dash = DashboardPage(self.webdriver, self.cfg, self.is_enterprise)
         assert dash.current_user() == "ROOT", "current user is root?"
         assert dash.current_database() == "_SYSTEM", "current database is _system?"
         dash.navbar_goto("cluster" if self.is_cluster else "dashboard")
         dash.check_server_package_name()
-        dash.current_package_version()
+        version = dash.current_package_version()
         dash.check_current_username()
         dash.check_current_db()
         dash.check_db_status()
@@ -33,7 +34,7 @@ class DashboardTestSuite(BaseSeleniumTestSuite):
             print("Switch to Metrics tab\n")
             dash.check_system_metrics()
 
-        if self.is_cluster and dash.current_package_version() >= 3.8:
+        if self.is_cluster and version >= semver.VersionInfo.parse("3.8.0"):
             print("Checking distribution tab \n")
             dash.check_distribution_tab()
             print("Checking maintenance tab \n")

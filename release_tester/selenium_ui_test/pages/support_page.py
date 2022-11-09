@@ -1,18 +1,20 @@
 """support page model"""
 import time
+import semver
 
 from selenium_ui_test.pages.navbar import NavigationBarPage
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=C0301 disable=R0902 disable=R0915 disable=R0914
+# pylint: disable=line-too-long disable=too-many-instance-attributes disable=too-many-statements disable=too-many-locals
 
 
 class SupportPage(NavigationBarPage):
     """Class for Support page"""
 
-    def __init__(self, driver):
+    def __init__(self, driver, cfg):
         """Support page initialization"""
-        super().__init__(driver)
+        super().__init__(driver, cfg)
         self.select_support_page_id = "support"
         self.select_documentation_support_id = "documentation-support"
         self.select_community_support_id = "community-support"
@@ -302,13 +304,11 @@ class SupportPage(NavigationBarPage):
         rest_api.click()
         time.sleep(1)
 
-        version = super().current_package_version()
+        if self.current_package_version() >= semver.VersionInfo.parse("3.7.0"):
+            # checking backup restore
+            iframe = self.switch_to_iframe_id
+            self.switch_to_iframe(iframe)
 
-        # checking backup restore
-        iframe = self.switch_to_iframe_id
-        super().switch_to_iframe(iframe)
-
-        if version >= 3.7:
             print("Checking Backup Restore option started\n")
             backup_restore = '//*[@id="operations-tag-BackupRestore"]'
             backup_restore = self.locator_finder_by_xpath(backup_restore)
@@ -369,4 +369,4 @@ class SupportPage(NavigationBarPage):
         # print('Checking Backup Restore option started\n')
 
         # switching back to default view
-        super().switch_back_to_origin_window()
+        self.switch_back_to_origin_window()

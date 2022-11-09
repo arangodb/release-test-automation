@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """ baseclass to manage a starter based installation """
-# pylint: disable=C0302
+# pylint: disable=too-many-lines
 from abc import abstractmethod, ABC
 import copy
 import datetime
@@ -29,7 +29,6 @@ from reporting.reporting_utils import step
 
 from arangodb.async_client import CliExecutionException
 from arangodb.bench import load_scenarios
-from arangodb.installers import HotBackupSetting
 from arangodb.instance import InstanceType, print_instances_table
 from arangodb.sh import ArangoshExecutor
 
@@ -40,7 +39,7 @@ WINVER = platform.win32_ver()
 def detect_file_ulimit():
     """check whether the ulimit for files is to low"""
     if not WINVER[0]:
-        # pylint: disable=C0415
+        # pylint: disable=import-outside-toplevel
         import resource
 
         nofd = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
@@ -59,7 +58,7 @@ def detect_file_ulimit():
 class RunnerProperties:
     """runner properties management class"""
 
-    # pylint: disable=R0903 disable=R0913 disable=R0912
+    # pylint: disable=too-few-public-methods disable=too-many-arguments disable=too-many-branches
     def __init__(
         self,
         short_name: str,
@@ -80,7 +79,7 @@ class RunnerProperties:
 class Runner(ABC):
     """abstract starter deployment runner"""
 
-    # pylint: disable=R0913 disable=R0902 disable=R0904 disable=C0415 disable=R0914 disable=R0915 disable=R0912
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=too-many-public-methods disable=import-outside-toplevel disable=too-many-locals disable=too-many-statements disable=too-many-branches
     def __init__(
         self,
         runner_type,
@@ -127,7 +126,7 @@ class Runner(ABC):
         self.basecfg.passvoid = ""
         self.versionstr = ""
         if self.new_cfg:
-            self.new_cfg.passvoid = ""  # TODO
+            self.new_cfg.passvoid = ""
             self.versionstr = "OLD[" + self.cfg.version + "] "
 
         self.basedir = Path(properties.short_name)
@@ -165,7 +164,7 @@ class Runner(ABC):
         self.new_installer = new_inst
         self.backup_name = None
         self.hot_backup = (
-            cfg.hb_mode != HotBackupSetting.DISABLED
+            cfg.hot_backup_supported
             and properties.supports_hotbackup
             and self.old_installer.supports_hot_backup()
         )
@@ -229,10 +228,12 @@ class Runner(ABC):
             with step("Progress: " + msg):
                 pass
 
-    def ask_continue_or_exit(self, msg, output, default=True, status=1):
+    def ask_continue_or_exit(self, msg, output, default=True, status=1, invoking_exc=None):
         """ask the user whether to abort the execution or continue anyways"""
         self.progress(False, msg)
         if not self.basecfg.interactive:
+            if invoking_exc:
+                raise Exception("%s:\n%s" % (msg, output)) from invoking_exc
             raise Exception("%s:\n%s" % (msg, output))
         if not eh.ask_continue(msg, self.basecfg.interactive, default):
             print()
@@ -252,7 +253,7 @@ class Runner(ABC):
 
     def run(self):
         """run the full lifecycle flow of this deployment"""
-        # pylint: disable=R0915 disable=R0912
+        # pylint: disable=too-many-statements disable=too-many-branches
         if self.do_starter_test and not self.remote:
             detect_file_ulimit()
 
@@ -276,6 +277,7 @@ class Runner(ABC):
             self.starter_run()
             self.finish_setup()
             self.make_data()
+            self.after_makedata_check()
             if self.selenium:
                 self.set_selenium_instances()
                 self.selenium.test_empty_ui()
@@ -286,6 +288,7 @@ class Runner(ABC):
             if self.hot_backup:
                 self.progress(False, "TESTING HOTBACKUP")
                 self.backup_name = self.create_backup("thy_name_is_" + self.name)
+                self.validate_local_backup(self.backup_name)
                 self.tcp_ping_all_nodes()
                 self.create_non_backup_data()
                 backups = self.list_backup()
@@ -298,6 +301,7 @@ class Runner(ABC):
                 if len(backups) != 0:
                     raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
                 self.download_backup(self.backup_name)
+                self.validate_local_backup(self.backup_name)
                 self.tcp_ping_all_nodes()
                 backups = self.list_backup()
                 if backups[0] != self.backup_name:
@@ -324,6 +328,7 @@ class Runner(ABC):
             lh.subsection("outputting version")
             self.new_installer.output_arangod_version()
             self.new_installer.get_starter_version()
+            self.new_installer.get_sync_version()
             self.new_installer.stop_service()
             self.cfg.set_directories(self.new_installer.cfg)
             self.new_cfg.set_directories(self.new_installer.cfg)
@@ -332,7 +337,6 @@ class Runner(ABC):
             self.old_installer.un_install_server_package_for_upgrade()
             if self.is_minor_upgrade() and self.new_installer.supports_backup():
                 self.new_installer.check_backup_is_created()
-            self.make_data_after_upgrade()
             if self.hot_backup:
                 self.check_data_impl()
                 self.progress(False, "TESTING HOTBACKUP AFTER UPGRADE")
@@ -346,6 +350,7 @@ class Runner(ABC):
                 if len(backups) != 0:
                     raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
                 self.download_backup(self.backup_name)
+                self.validate_local_backup(self.backup_name)
                 self.tcp_ping_all_nodes()
                 backups = self.list_backup()
                 if backups[0] != self.backup_name:
@@ -442,13 +447,6 @@ class Runner(ABC):
 
         kill_all_processes(False)
         if self.do_install:
-            if inst.client_package:
-                lh.subsubsection("installing client package")
-                inst.install_client_package()
-                lh.subsubsection("checking files")
-                inst.check_installed_files()
-                lh.subsubsection("uninstalling client package")
-                inst.un_install_client_package()
             lh.subsubsection("installing server package")
             inst.install_server_package()
             self.cfg.set_directories(inst.cfg)
@@ -465,6 +463,7 @@ class Runner(ABC):
             lh.subsubsection("outputting version")
             inst.output_arangod_version()
             inst.get_starter_version()
+            inst.get_sync_version()
 
             lh.subsubsection("starting service")
 
@@ -481,7 +480,7 @@ class Runner(ABC):
         if inst.check_service_up():
             inst.stop_service()
         inst.start_service()
-
+        print(inst.cfg.semver)
         sys_arangosh = ArangoshExecutor(inst.cfg, inst.instance)
 
         logging.debug("self test after installation")
@@ -532,16 +531,15 @@ class Runner(ABC):
         self.finish_setup_impl()
 
     @step
+    def after_makedata_check(self):
+        """just after makedata..."""
+        pass
+
+    @step
     def make_data(self):
         """check if setup is functional"""
         self.progress(True, "{0} - make data".format(str(self.name)))
         self.make_data_impl()
-
-    @step
-    def make_data_after_upgrade(self):
-        """check if setup is functional"""
-        self.progress(True, "{0} - make data after upgrade".format(str(self.name)))
-        self.make_data_wait_for_upgrade_impl()
 
     @step
     def test_setup(self):
@@ -689,6 +687,7 @@ class Runner(ABC):
                         "make_data failed for {0.name}".format(self),
                         exc.execution_result[1],
                         False,
+                        exc
                     )
                 self.has_makedata_data = True
             self.check_data_impl_sh(arangosh, starter.supports_foxx_tests)
@@ -708,6 +707,7 @@ class Runner(ABC):
                     "check_data has data failed for {0.name}".format(self),
                     exc.execution_result[1],
                     False,
+                    exc
                 )
 
     @step
@@ -740,10 +740,6 @@ class Runner(ABC):
             arangosh = starter.arangosh
             return arangosh.hotbackup_check_for_nonbackup_data()
         raise Exception("no frontend found.")
-
-    # TODO test make data after upgrade@abstractmethod
-    def make_data_wait_for_upgrade_impl(self):
-        """check the data after the upgrade"""
 
     @step
     def before_backup(self):
@@ -795,7 +791,7 @@ class Runner(ABC):
             return starter.hb_instance.delete(name)
         raise Exception("no frontend found.")
 
-    # pylint: disable=R0201
+    # pylint: disable=no-self-use
     def wait_for_restore_impl(self, backup_starter):
         """wait for all restores to be finished"""
         backup_starter.wait_for_restore()
@@ -833,6 +829,13 @@ class Runner(ABC):
             hb_id = starter.hb_instance.download(name, starter.hb_config, "12345")
             return starter.hb_instance.upload_status(name, hb_id, self.backup_instance_count)
         raise Exception("no frontend found.")
+
+    @step
+    def validate_local_backup(self, name):
+        """validate the local backup"""
+        for starter in self.starter_instances:
+            assert starter.hb_instance, "download backup: this starter doesn't have an hb instance!"
+            starter.hb_instance.validate_local_backup(starter.basedir, name)
 
     @step
     def search_for_warnings(self):
@@ -891,12 +894,16 @@ class Runner(ABC):
         self.progress(True, "AGENCY pausing leader to trigger a failover\n%s" % repr(old_leader))
         old_leader.suspend_instance()
         time.sleep(1)
+        count = 0
         while True:
             new_leader = self.agency_get_leader()
             if old_leader != new_leader:
                 self.progress(True, "AGENCY failover has happened")
                 break
+            if count == 500:
+                raise Exception("agency failoverdidn't happen in 5 minutes!")
             time.sleep(1)
+            count += 1
         old_leader.resume_instance()
         if WINVER[0]:
             leader_mgr = None
@@ -927,9 +934,26 @@ class Runner(ABC):
         return leader
 
     @step
+    def agency_get_leader_starter_instance(self):
+        """get the starter instance that manages the current agency leader"""
+        agency = []
+        for starter_mgr in self.starter_instances:
+            agency += starter_mgr.get_agents()
+        leader = None
+        leading_date = datetime.datetime(1970, 1, 1, 0, 0, 0)
+        for starter_mgr in self.starter_instances:
+            agency = starter_mgr.get_agents()
+            for agent in agency:
+                agent_leading_date = agent.search_for_agent_serving()
+                if agent_leading_date > leading_date:
+                    leading_date = agent_leading_date
+                    leader = starter_mgr
+        return leader
+
+    @step
     def agency_acquire_dump(self):
         """turns on logging on the agency"""
-        print("Duming agency")
+        print("Dumping agency")
         commands = [
             {
                 "URL": "/_api/agency/config",
@@ -1049,7 +1073,7 @@ class Runner(ABC):
             )
         return body_json["results"][collection_name]
 
-    # pylint: disable=R1705
+    # pylint: disable=no-else-return
     def get_protocol(self):
         """return protocol of this starter (ssl/tcp)"""
         if self.cfg.ssl:
@@ -1057,7 +1081,7 @@ class Runner(ABC):
         else:
             return "tcp"
 
-    # pylint: disable=R1705
+    # pylint: disable=no-else-return
     def get_http_protocol(self):
         """return protocol of this starter (http/https)"""
         if self.cfg.ssl:
@@ -1068,7 +1092,7 @@ class Runner(ABC):
     def cert_op(self, args):
         """create a certificate"""
         print(args)
-        cmd = [self.cfg.bin_dir / "arangodb", "create"] + args
+        cmd = [self.cfg.real_bin_dir / "arangodb", "create"] + args
         run_cmd_and_log_stdout(cmd)
 
     def create_cert_dir(self):
@@ -1114,3 +1138,12 @@ class Runner(ABC):
 
     def set_selenium_instances(self):
         """set instances in selenium runner"""
+
+    def get_process_structure(self):
+        """ resemble the testing.js INSTANCEINFO env """
+        instances = []
+        for starter in self.starter_instances:
+            for instance in starter.all_instances:
+                instances.append(instance.get_structure())
+        os.environ['INSTANCEINFO'] = json.dumps(instances)
+

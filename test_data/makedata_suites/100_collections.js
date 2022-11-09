@@ -171,29 +171,29 @@ let rand = require("internal").rand;
       // Check indexes:
       progress();
 
-      if (c.getIndexes().length !== 1) { throw new Error("Banana"); }
-      if (chash.getIndexes().length !== 2) { throw new Error("Apple"); }
-      if (chash.getIndexes()[1].type !== "hash") { throw new Error("Pear"); }
-      if (cskip.getIndexes().length !== 2) { throw new Error("Tomato"); }
-      if (cskip.getIndexes()[1].type !== "skiplist") { throw new Error("Avocado"); }
-      if (cfull.getIndexes().length !== 2) { throw new Error("Mango"); }
-      if (cfull.getIndexes()[1].type !== "fulltext") { throw new Error("Cucumber"); }
-      if (cgeo.getIndexes().length !== 2) { throw new Error("Jackfruit"); }
-      if (cgeo.getIndexes()[1].type !== "geo") { throw new Error("Onion"); }
-      if (cunique.getIndexes().length !== 2) { throw new Error("Durian"); }
-      if (cunique.getIndexes()[1].unique !== true) { throw new Error("Mandarin"); }
-      if (cmulti.getIndexes().length !== 5) { throw new Error("Leek"); }
-      if (cempty.getIndexes().length !== 1) { throw new Error("Pineapple"); }
+      if (c.getIndexes().length !== 1) { throw new Error(`Banana ${c.getIndexes().length}`); }
+      if (chash.getIndexes().length !== 2) { throw new Error(`Apple ${chash.getIndexes().length}`); }
+      if (chash.getIndexes()[1].type !== 'hash') { throw new Error(`Pear ${chash.getIndexes()[1].type}`); }
+      if (cskip.getIndexes().length !== 2) { throw new Error(`Tomato ${cskip.getIndexes().length}`); }
+      if (cskip.getIndexes()[1].type !== 'skiplist') { throw new Error(`Avocado ${cskip.getIndexes()[1].type}`); }
+      if (cfull.getIndexes().length !== 2) { throw new Error(`Mango ${cfull.getIndexes().length}`); }
+      if (cfull.getIndexes()[1].type !== 'fulltext') { throw new Error(`Cucumber ${cfull.getIndexes()[1].type}`); }
+      if (cgeo.getIndexes().length !== 2) { throw new Error(`Jackfruit ${cgeo.getIndexes().length}`); }
+      if (cgeo.getIndexes()[1].type !== 'geo') { throw new Error(`Onion ${cgeo.getIndexes()[1].type}`); }
+      if (cunique.getIndexes().length !== 2) { throw new Error(`Durian ${cunique.getIndexes().length}`); }
+      if (cunique.getIndexes()[1].unique !== true) { throw new Error(`Mandarin ${cunique.getIndexes()[1].unique}`); }
+      if (cmulti.getIndexes().length !== 5) { throw new Error(`Leek ${cmulti.getIndexes().length}`); }
+      if (cempty.getIndexes().length !== 1) { throw new Error(`Pineapple ${cempty.getIndexes().length}`); }
 
       // Check data:
       progress();
-      if (c.count() !== 1000) { throw new Error("Audi"); }
-      if (chash.count() !== 12345) { throw new Error("VW"); }
-      if (cskip.count() !== 2176) { throw new Error("Tesla"); }
-      if (cgeo.count() !== 5245) { throw new Error("Mercedes"); }
-      if (cfull.count() !== 6253) { throw new Error("Renault"); }
-      if (cunique.count() !== 5362) { throw new Error("Opel"); }
-      if (cmulti.count() !== 12346) { throw new Error("Fiat"); }
+      if (c.count() !== 1000) { throw new Error(`Audi ${c.count()} !== 1000`); }
+      if (chash.count() !== 12345) { throw new Error(`VW ${chash.count()} !== 12345`); }
+      if (cskip.count() !== 2176) { throw new Error(`Tesla ${cskip.count()} !== 2176`); }
+      if (cgeo.count() !== 5245) { throw new Error(`Mercedes ${cgeo.count()} !== 5245`); }
+      if (cfull.count() !== 6253) { throw new Error(`Renault ${cfull.count()} !== 6253`); }
+      if (cunique.count() !== 5362) { throw new Error(`Opel ${cunique.count()} !== 5362`); }
+      if (cmulti.count() !== 12346) { throw new Error(`Fiat ${cmulti.count()} !== 12346`); }
 
       // Check a few queries:
       progress();

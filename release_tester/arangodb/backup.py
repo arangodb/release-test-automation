@@ -5,71 +5,131 @@ import logging
 import json
 import re
 import time
+import copy
+
+from allure_commons._allure import attach
 
 from reporting.reporting_utils import step
 
 from tools.asciiprint import ascii_convert_str, print_progress as progress
 import tools.loghelper as lh
 
-from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor
-from arangodb.installers import HotBackupSetting
+from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor, make_default_params
+from arangodb.installers import HotBackupMode, HotBackupProviders
 
 HB_2_RCLONE_TYPE = {
-    HotBackupSetting.DISABLED: "disabled",
-    HotBackupSetting.DIRECTORY: "local",
-    HotBackupSetting.S3BUCKET: "S3",
+    HotBackupMode.DISABLED: "disabled",
+    HotBackupMode.DIRECTORY: "local",
+    HotBackupMode.S3BUCKET: "s3",
+    HotBackupMode.GCS: "google cloud storage",
+    HotBackupMode.AZUREBLOBSTORAGE: "azureblob",
 }
-
-HB_2_RCLONE_PROVIDER = {
-    HotBackupSetting.DISABLED: None,
-    HotBackupSetting.DIRECTORY: None,
-    HotBackupSetting.S3BUCKET: "minio",
-}
-
 
 class HotBackupConfig:
     """manage rclone setup"""
 
-    def __init__(self, basecfg, name, raw_install_prefix):
-        self.cfg = basecfg
-        self.install_prefix = raw_install_prefix
-        self.cfg_type = HB_2_RCLONE_TYPE[basecfg.hb_mode]
-        self.name = str(name).replace("/", "_").replace(".", "_")
-        self.provider = HB_2_RCLONE_PROVIDER[basecfg.hb_mode]
-        self.acl = "private"
+    #values inside this list must be lower case
+    SECRET_PARAMETERS = ["access_key_id", "secret_access_key", "service_account_credentials", "key"]
 
+    def __init__(self, basecfg, name, raw_install_prefix):
+        self.hb_timeout = 20
+        hbcfg = basecfg.hb_cli_cfg
+        self.hb_provider_cfg = basecfg.hb_provider_cfg
+
+        self.install_prefix = raw_install_prefix
+        self.cfg_type = HB_2_RCLONE_TYPE[self.hb_provider_cfg.mode]
+        self.name = str(name).replace("/", "_").replace(".", "_")
         config = {}
         config["type"] = self.cfg_type
 
-        if basecfg.hb_mode == HotBackupSetting.S3BUCKET:
+        if (
+            self.hb_provider_cfg.mode == HotBackupMode.S3BUCKET
+            and self.hb_provider_cfg.provider == HotBackupProviders.MINIO
+        ):
             self.name = "S3"
-            config["type"] = "s3"
+            config["type"] = HB_2_RCLONE_TYPE[self.hb_provider_cfg.mode]
             config["provider"] = "minio"
             config["env_auth"] = "false"
             config["access_key_id"] = "minio"
             config["secret_access_key"] = "minio123"
             config["endpoint"] = "http://minio1:9000"
             config["region"] = "us-east-1"
-        elif basecfg.hb_mode == HotBackupSetting.DIRECTORY:
+        elif (
+            self.hb_provider_cfg.mode == HotBackupMode.S3BUCKET
+            and self.hb_provider_cfg.provider == HotBackupProviders.AWS
+        ):
+            self.name = "S3"
+            self.hb_timeout = 120
+            config["type"] = HB_2_RCLONE_TYPE[self.hb_provider_cfg.mode]
+            config["provider"] = "AWS"
+            config["env_auth"] = "false"
+            config["access_key_id"] = hbcfg.hb_aws_access_key_id
+            config["secret_access_key"] = hbcfg.hb_aws_secret_access_key
+            config["region"] = hbcfg.hb_aws_region
+            config["acl"] = hbcfg.hb_aws_acl
+        elif self.hb_provider_cfg.mode == HotBackupMode.DIRECTORY:
             config["copy-links"] = "false"
             config["links"] = "false"
             config["one_file_system"] = "true"
+        elif self.hb_provider_cfg.mode == HotBackupMode.GCS and self.hb_provider_cfg.provider == HotBackupProviders.GCE:
+            self.name = "GCE"
+            self.hb_timeout = 240
+            config["type"] = HB_2_RCLONE_TYPE[self.hb_provider_cfg.mode]
+            config["project_number"] = hbcfg.hb_gce_project_number
+            if hbcfg.hb_gce_service_account_credentials:
+                config["service_account_credentials"] = hbcfg.hb_gce_service_account_credentials
+            elif hbcfg.hb_gce_service_account_file:
+                config["service_account_file"] = hbcfg.hb_gce_service_account_file
+            else:
+                raise Exception("Either \"service_account_credentials\" or \"service_account_file\""
+                                "parameter must be specified for Google Cloud Storage.")
+        elif (self.hb_provider_cfg.mode == HotBackupMode.AZUREBLOBSTORAGE and
+              self.hb_provider_cfg.provider == HotBackupProviders.AZURE):
+            self.name = "azure"
+            self.hb_timeout = 240
+            config["type"] = HB_2_RCLONE_TYPE[self.hb_provider_cfg.mode]
+            config["account"] = hbcfg.hb_azure_account
+            config["key"] = hbcfg.hb_azure_key
         self.config = {self.name: config}
+
+    def get_config_json(self):
+        """json serializer"""
+        return json.dumps(self.config)
+
+    def get_config_json_sanitized(self):
+        """json serializer"""
+        cfg_copy = copy.deepcopy(self.config)
+        for cfg_name in cfg_copy:
+            for param_name in cfg_copy[cfg_name]:
+                if param_name.lower() in HotBackupConfig.SECRET_PARAMETERS:
+                    cfg_copy[cfg_name][param_name] = "***"
+        return json.dumps(cfg_copy)
 
     def save_config(self, filename):
         """writes a hotbackup rclone configuration file"""
         fhandle = self.install_prefix / filename
-        print(json.dumps(self.config))
-        fhandle.write_text(json.dumps(self.config))
+        lh.subsubsection("Writing RClone config:")
+        print(self.get_config_json_sanitized())
+        fhandle.write_text(self.get_config_json())
         return str(fhandle)
 
+    @step
     def get_rclone_config_file(self):
         """create a config file and return its full name"""
-        return self.save_config("rclone_config.json")
+        filename = self.save_config("rclone_config.json")
+        attach(self.get_config_json_sanitized(), "rclone_config.json", "application/json", "rclone_config.json")
+        return filename
+
+    def construct_remote_storage_path(self, postfix):
+        """ generate a working storage path from the config params """
+        result = f"{self.name}:/{self.hb_provider_cfg.path_prefix}/{postfix}"
+        while "//" in result:
+            result = result.replace("//", "/")
+        return result
 
 
 class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
-    # pylint: disable=R0902
+    # pylint: disable=too-many-instance-attributes
     """manages one arangobackup instance"""
 
     def __init__(self, config, name, raw_install_prefix, connect_instance):
@@ -84,30 +144,38 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         if not self.backup_dir.exists():
             self.backup_dir.mkdir(parents=True)
 
+    # pylint: disable=too-many-arguments
     @step
-    def run_backup(self, arguments, name, silent=False, expect_to_fail=False):
-        """launch the starter for this instance"""
+    def run_backup(self, arguments, name, silent=False, expect_to_fail=False, progressive_timeout=20):
+        """run arangobackup"""
         if not silent:
             logging.info("running hot backup " + name)
-        run_cmd = []
+        run_cmd = copy.deepcopy(self.cfg.default_backup_args)
         if self.cfg.verbose:
             run_cmd += ["--log.level=debug"]
         run_cmd += arguments
         lh.log_cmd(arguments, not silent)
 
-        def inspect_line_result(line):
-            strline = str(line)
-            if strline.find("ERROR") >= 0:
-                return True
+        def inspect_line_result(wait, line, params):
+            # pylint: disable=unused-argument
+            if isinstance(line, tuple):
+                strline = str(line[0])
+                if params['verbose']:
+                    print("e: " + str(line[0], 'utf-8').rstrip())
+                params['output'].append(line[0])
+
+                if strline.find("ERROR") >= 0:
+                    params['error'] += strline
+                    return True
             return False
 
         success, output, _, error_found = self.run_arango_tool_monitored(
             self.cfg.bin_dir / "arangobackup",
             run_cmd,
-            20,
-            inspect_line_result,
-            self.cfg.verbose and not silent,
-            expect_to_fail,
+            params=make_default_params(self.cfg.verbose and not silent),
+            progressive_timeout=progressive_timeout,
+            result_line_handler=inspect_line_result,
+            expect_to_fail=expect_to_fail
         )
 
         if not success:
@@ -143,7 +211,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
     def restore(self, backup_name):
         """restore an existing hot backup"""
         args = ["restore", "--identifier", backup_name]
-        self.run_backup(args, backup_name)
+        self.run_backup(args, backup_name, progressive_timeout=120)
 
     @step
     def delete(self, backup_name):
@@ -160,10 +228,11 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
             '--label', identifier,
             '--identifier', backup_name,
             '--rclone-config-file', backup_config.get_rclone_config_file(),
-            '--remote-path', backup_config.name + '://' + str(self.backup_dir)
+            '--remote-path', backup_config.construct_remote_storage_path(str(self.backup_dir))
         ]
         # fmt: on
-        out = self.run_backup(args, backup_name)
+
+        out = self.run_backup(args, backup_name, progressive_timeout=backup_config.hb_timeout)
         for line in out.split("\n"):
             match = re.match(r".*arangobackup upload --status-id=(\d*)", str(line))
             if match:
@@ -182,6 +251,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
             out = self.run_backup(args, backup_name, True)
             progress(".")
             counts = {
+                "NEW": 0,
                 "ACK": 0,
                 "STARTED": 0,
                 "COMPLETED": 0,
@@ -217,12 +287,43 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
             '--label', identifier,
             '--identifier', backup_name,
             '--rclone-config-file', backup_config.get_rclone_config_file(),
-            '--remote-path', backup_config.name + '://' + str(self.backup_dir)
+            '--remote-path', backup_config.construct_remote_storage_path(str(self.backup_dir))
         ]
         # fmt: on
-        out = self.run_backup(args, backup_name)
+        out = self.run_backup(args, backup_name, progressive_timeout=backup_config.hb_timeout)
         for line in out.split("\n"):
             match = re.match(r".*arangobackup download --status-id=(\d*)", str(line))
             if match:
                 return match.group(1)
         raise Exception("couldn't locate name of the upload process!")
+
+    # pylint: disable=unused-argument disable=no-self-use
+    def validate_local_backup(self, starter_basedir, backup_name):
+        """ validate backups in the local installation """
+        self.validate_backup(starter_basedir, backup_name)
+
+    def validate_backup(self, directory, backup_name):
+        """ search on the disk whether crash files exist """
+        backups_validated = 0
+        for meta_file in directory.glob( "**/*META"):
+            content = json.loads(meta_file.read_text())
+            size = 0
+            count = 0
+            for one_file in meta_file.parent.glob( "**/*"):
+                if one_file.is_dir() or one_file.name == "META":
+                    continue
+                size += one_file.stat().st_size
+                count += 1
+            backups_validated += 1
+            try:
+                if content['countIncludesFilesOnly']:
+                    if size != content['sizeInBytes']:
+                        raise Exception("Backup has different size than its META indicated! " + str(size) +
+                                        " - " + str(content))
+                    if count != content['nrFiles']:
+                        raise Exception("Backup count of files doesn't match! " + str(count) + " - " + str(content))
+                    continue
+            except KeyError:
+                pass
+            print("validation with META not supported. Size: " + str(size) + " META: " + str(content))
+        print(str(backups_validated) + " Backups validated: OK")

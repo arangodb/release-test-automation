@@ -1,12 +1,20 @@
 #!/bin/bash
 
+ARCH="-$(uname -m)"
+
+if test "${ARCH}" == "-x86_64"; then
+    ARCH="-amd64"
+else
+    ARCH="-arm64v8"
+fi
+
 VERSION=$(cat VERSION.json)
 GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
 if test -z "$GIT_VERSION"; then
     GIT_VERSION=$VERSION
 fi
 if test -z "$NEW_VERSION"; then
-    NEW_VERSION=3.9.0-nightly
+    NEW_VERSION=3.10.0-nightly
 fi
 if test -z "${PACKAGE_CACHE}"; then
     PACKAGE_CACHE="$(pwd)/package_cache/"
@@ -20,7 +28,7 @@ fi
 if test -n "$SOURCE"; then
     force_arg+=(--new-source "$SOURCE")
 else
-    force_arg+=(--remote-host "$(host nas02.arangodb.biz |sed "s;.* ;;")")
+    force_arg+=(--remote-host 172.17.4.0)
 fi
 
 mkdir -p "${PACKAGE_CACHE}"
@@ -38,10 +46,12 @@ trap 'docker kill "${DOCKER_TAR_NAME}";
       docker rm "${DOCKER_TAR_NAME}";
      ' EXIT
 
-if docker pull "arangodb/${DOCKER_TAR_TAG}"; then
+DOCKER_NAMESPACE="arangodb/"
+if docker pull "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}"; then
     echo "using ready built container"
 else
-    docker build containers/docker_tar -t "${DOCKER_TAR_TAG}" || exit
+    docker build "containers/docker_tar${ARCH}" -t "${DOCKER_TAR_TAG}" || exit
+    DOCKER_NAMESPACE=""
 fi
 
 # we need --init since our upgrade leans on zombies not happening:
@@ -55,6 +65,10 @@ docker run \
        -v /dev/shm:/dev/shm \
        --env="BUILD_NUMBER=${BUILD_NUMBER}" \
        --env="PYTHONUNBUFFERED=1" \
+       --env="AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" \
+       --env="AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" \
+       --env="AWS_REGION=$AWS_REGION" \
+       --env="AWS_ACL=$AWS_ACL" \
        \
        --name="${DOCKER_TAR_NAME}" \
        --pid=host \
@@ -62,7 +76,7 @@ docker run \
        --ulimit core=-1 \
        --init \
        \
-       "arangodb/${DOCKER_TAR_TAG}" \
+       "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}" \
        \
           /home/release-test-automation/release_tester/full_download_test.py \
           --new-version "${NEW_VERSION}" \

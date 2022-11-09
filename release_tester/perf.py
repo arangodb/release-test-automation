@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 
 """ Release testing script"""
+#pylint: disable=duplicate-code
 from pathlib import Path
 import sys
-import re
+
 import click
+import semver
+
 from common_options import very_common_options, common_options
-from tools.killall import kill_all_processes
-from arangodb.installers import create_config_installer_set, RunProperties
-from arangodb.starter.deployments.cluster_perf import ClusterPerf
-from arangodb.starter.deployments import RunnerType
-import tools.loghelper as lh
+from test_driver import TestDriver
+from arangodb.installers import RunProperties, HotBackupCliCfg, InstallerBaseConfig
 
 
 @click.command()
@@ -35,86 +35,33 @@ import tools.loghelper as lh
 @click.option("--frontends", multiple=True, help="Connection strings of remote clusters")
 @very_common_options
 @common_options(support_old=False)
-# fmt: off
-# pylint: disable=R0913 disable=W0613 disable=R0914
-def run_test(mode, scenario, frontends,
-             #very_common_options
-             new_version, verbose, enterprise, package_dir, zip_package, hot_backup,
-             # common_options
-             alluredir, clean_alluredir, ssl, use_auto_certs,
-             # old_version,
-             test_data_dir, encryption_at_rest, interactive, starter_mode,
-             # stress_upgrade,
-             abort_on_error, publicip,
-             selenium, selenium_driver_args):
-# fmt: on
+def main(**kwargs):
     """ main """
-    lh.configure_logging(verbose)
+    kwargs['stress_upgrade'] = False
+    kwargs['package_dir'] = Path(kwargs['package_dir'])
+    kwargs['test_data_dir'] = Path(kwargs['test_data_dir'])
+    kwargs['alluredir'] = Path(kwargs['alluredir'])
 
-    do_install = mode in ["all", "install"]
-    do_uninstall = mode in ["all", "uninstall"]
+    kwargs['hb_cli_cfg'] = HotBackupCliCfg("disabled","","","","","","")
+    kwargs['base_config'] = InstallerBaseConfig.from_dict(**kwargs)
 
-    lh.section("startup")
-    # pylint: disable=too-many-function-args
-    props = RunProperties(enterprise,
-                          encryption_at_rest,
-                          ssl,
-                          "perf")
-    installers = create_config_installer_set(
-        [new_version],
-        verbose,
-        zip_package,
-        hot_backup,
-        Path(package_dir),
-        Path(test_data_dir),
-        mode,
-        publicip,
-        interactive,
-        False,
-        props
-    )
+    test_driver = TestDriver(**kwargs)
 
-    inst = installers[0][1]
-    lh.section("configuration")
-    print(
-        """
-    mode: {mode}
-    {cfg_repr}
-    """.format(
-            **{"mode": str(mode), "cfg_repr": repr(installers[0][0])}
-        )
-    )
-
-    split_host = re.compile(r"([a-z]*)://([0-9.:]*):(\d*)")
-
-    if len(frontends) > 0:
-        for frontend in frontends:
-            print("remote")
-            host_parts = re.split(split_host, frontend)
-            inst.cfg.add_frontend(host_parts[1], host_parts[2], host_parts[3])
-    inst.cfg.scenario = Path(scenario)
-    runner = ClusterPerf(
-        RunnerType.CLUSTER,
-        abort_on_error,
-        installers,
-        selenium,
-        selenium_driver_args,
-        "perf",
-        ssl,
-        use_auto_certs,
-    )
-    runner.do_install = do_install
-    runner.do_uninstall = do_uninstall
-    failed = False
-    if not runner.run():
-        failed = True
-
-    if len(frontends) == 0:
-        kill_all_processes()
-
-    return 0 if not failed else 1
-
+    test_driver.set_r_limits()
+    result = test_driver.run_perf_test(
+        kwargs['mode'],
+        [semver.VersionInfo.parse(kwargs['new_version'])],
+        # pylint: disable=too-many-function-args
+        kwargs['frontends'],
+        kwargs['scenario'],
+        RunProperties(kwargs['enterprise'],
+                      kwargs['encryption_at_rest'],
+                      kwargs['ssl']))
+    print("V" * 80)
+    if not result:
+        print("exiting with failure")
+        sys.exit(1)
 
 if __name__ == "__main__":
-    # pylint: disable=E1120 # fix clickiness.
-    sys.exit(run_test())
+    # pylint: disable=no-value-for-parameter # fix clickiness.
+    sys.exit(main())

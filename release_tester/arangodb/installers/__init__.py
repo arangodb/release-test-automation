@@ -1,33 +1,153 @@
 #!/usr/bin/env python3
 """ run an installer for the detected operating system """
-from enum import Enum
-import platform
+import copy
 import os
+import platform
+from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
-from reporting.reporting_utils import step
+
 import semver
-# pylint: disable=R0903
+
+from reporting.reporting_utils import step
+
+try:
+    from tools.external_helpers import cloud_secrets
+# pylint: disable=bare-except
+except:
+    cloud_secrets = None
+
+# pylint: disable=too-few-public-methods
 
 IS_WINDOWS = platform.win32_ver()[0] != ""
+IS_MAC = platform.mac_ver()[0] != ""
+DISTRO = ""
 
-class HotBackupSetting(Enum):
+
+class HotBackupMode(Enum):
     """whether we want thot backup or not"""
 
     DISABLED = 0
     DIRECTORY = 1
     S3BUCKET = 2
+    GCS = 3
+    AZUREBLOBSTORAGE = 4
+
+
+class HotBackupProviders(Enum):
+    """list of cloud storage providers"""
+
+    MINIO = 0
+    AWS = 1
+    GCE = 2
+    AZURE = 3
 
 
 hb_strings = {
-    HotBackupSetting.DISABLED: "disabled",
-    HotBackupSetting.DIRECTORY: "directory",
-    HotBackupSetting.S3BUCKET: "s3bucket",
+    HotBackupMode.DISABLED: "disabled",
+    HotBackupMode.DIRECTORY: "directory",
+    HotBackupMode.S3BUCKET: "s3bucket",
+    HotBackupMode.GCS: "googleCloudStorage",
+    HotBackupMode.AZUREBLOBSTORAGE: "azureBlobStorage",
 }
 HB_MODES = {
-    "disabled": HotBackupSetting.DISABLED,
-    "directory": HotBackupSetting.DIRECTORY,
-    "s3bucket": HotBackupSetting.S3BUCKET,
+    "disabled": HotBackupMode.DISABLED,
+    "directory": HotBackupMode.DIRECTORY,
+    "s3bucket": HotBackupMode.S3BUCKET,
+    "googleCloudStorage": HotBackupMode.GCS,
+    "azureBlobStorage": HotBackupMode.AZUREBLOBSTORAGE,
 }
+
+HB_PROVIDERS = {
+    "minio": HotBackupProviders.MINIO,
+    "aws": HotBackupProviders.AWS,
+    "gce": HotBackupProviders.GCE,
+    "azure": HotBackupProviders.AZURE,
+}
+
+
+class HotBackupProviderCfg:
+    """different hotbackup upload setups"""
+
+    ALLOWED_PROVIDERS = {
+        HotBackupMode.DISABLED: [],
+        HotBackupMode.DIRECTORY: [],
+        HotBackupMode.S3BUCKET: [HotBackupProviders.MINIO, HotBackupProviders.AWS],
+        HotBackupMode.GCS: [HotBackupProviders.GCE],
+        HotBackupMode.AZUREBLOBSTORAGE: [HotBackupProviders.AZURE],
+    }
+
+    HB_PROVIDER_DEFAULT = {
+        HotBackupMode.DISABLED: None,
+        HotBackupMode.DIRECTORY: None,
+        HotBackupMode.S3BUCKET: HotBackupProviders.MINIO,
+        HotBackupMode.GCS: HotBackupProviders.GCE,
+        HotBackupMode.AZUREBLOBSTORAGE: HotBackupProviders.AZURE,
+    }
+
+    def __init__(self, mode: str, provider: HotBackupProviders = None, path_prefix: str = None):
+        self.mode = HB_MODES[mode]
+        if provider and provider not in HotBackupProviderCfg.ALLOWED_PROVIDERS[self.mode]:
+            raise Exception(f"Storage provider {provider} is not allowed for rclone config type {mode}!")
+        if provider:
+            self.provider = provider
+        else:
+            self.provider = HotBackupProviderCfg.HB_PROVIDER_DEFAULT[self.mode]
+        self.path_prefix = path_prefix
+        while self.path_prefix and "//" in self.path_prefix:
+            self.path_prefix = self.path_prefix.replace("//", "/")
+
+
+class OptionGroup:
+    """wrapper class to init from kwargs"""
+
+    @classmethod
+    def from_dict(cls, **options):
+        """invoke init from kwargs"""
+        # these members will be added by derivative classes:
+        # pylint: disable=no-member
+        return cls(**{k: v for k, v in options.items() if k in cls.__dataclass_fields__})
+
+
+@dataclass
+class HotBackupCliCfg(OptionGroup):
+    """map hotbackup_options"""
+
+    @classmethod
+    def from_dict(cls, **options):
+        """invoke init from kwargs"""
+        if "hb_use_cloud_preset" in options.keys() and options["hb_use_cloud_preset"] is not None:
+            if hasattr(cloud_secrets, options["hb_use_cloud_preset"]):
+                return cls(
+                    **{
+                        k: v
+                        for k, v in getattr(cloud_secrets, options["hb_use_cloud_preset"]).items()
+                        if k in cls.__dataclass_fields__
+                    }
+                )
+            else:
+                raise Exception("Presaved cloud profile with this name not found: " + options["hb_use_cloud_preset"])
+        else:
+            return cls(**{k: v for k, v in options.items() if k in cls.__dataclass_fields__})
+
+    hb_mode: str
+    hb_provider: str
+    hb_storage_path_prefix: str
+
+    # specific params for AWS
+    hb_aws_access_key_id: str = None
+    hb_aws_secret_access_key: str = None
+    hb_aws_region: str = None
+    hb_aws_acl: str = None
+
+    # specific params for GCE
+    hb_gce_service_account_credentials: str = None
+    hb_gce_service_account_file: str = None
+    hb_gce_project_number: str = None
+
+    # specific params for Azure
+    hb_azure_account: str = None
+    hb_azure_key: str = None
 
 
 class InstallerFrontend:
@@ -42,7 +162,7 @@ class InstallerFrontend:
 class InstallerConfig:
     """stores the baseline of this environment"""
 
-    # pylint: disable=R0913 disable=R0902
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=too-many-locals
     def __init__(
         self,
         version: str,
@@ -50,7 +170,8 @@ class InstallerConfig:
         enterprise: bool,
         encryption_at_rest: bool,
         zip_package: bool,
-        hot_backup: str,
+        src_testing: bool,
+        hb_cli_cfg: HotBackupCliCfg,
         package_dir: Path,
         test_dir: Path,
         deployment_mode: str,
@@ -64,6 +185,7 @@ class InstallerConfig:
         self.enterprise = enterprise
         self.encryption_at_rest = encryption_at_rest and enterprise
         self.zip_package = zip_package
+        self.src_testing = src_testing
 
         self.deployment_mode = deployment_mode
         self.verbose = verbose
@@ -90,6 +212,12 @@ class InstallerConfig:
 
         self.all_instances = {}
         self.frontends = []
+        self.default_arangosh_args = []
+        self.default_starter_args = []
+        self.default_backup_args = []
+        self.default_imp_args = []
+        self.default_restore_args = []
+
         self.reset_version(version)
         self.log_dir = Path()
         self.bin_dir = Path()
@@ -99,16 +227,15 @@ class InstallerConfig:
         self.dbdir = Path()
         self.appdir = Path()
         self.cfgdir = Path()
-        winver = platform.win32_ver()
-
-        self.hot_backup = (
-            self.enterprise and (semver.compare(self.version, "3.5.1") >= 0) and not isinstance(winver, list)
+        self.hb_cli_cfg = hb_cli_cfg
+        self.hb_provider_cfg = HotBackupProviderCfg(
+            hb_cli_cfg.hb_mode,
+            HB_PROVIDERS[hb_cli_cfg.hb_provider] if hb_cli_cfg.hb_provider else None,
+            hb_cli_cfg.hb_storage_path_prefix,
         )
-        if self.hot_backup:
-            self.hot_backup = hot_backup
-        else:
-            self.hot_backup = "disabled"
-        self.hb_mode = HB_MODES[self.hot_backup]
+        self.hot_backup_supported = (
+            self.enterprise and not IS_WINDOWS and self.hb_provider_cfg.mode != HotBackupMode.DISABLED
+        )
 
     def __repr__(self):
         return """
@@ -116,7 +243,8 @@ version: {0.version}
 using enterpise: {0.enterprise}
 using encryption at rest: {0.encryption_at_rest}
 using zip: {0.zip_package}
-hot backup mode: {0.hot_backup}
+using source: {0.src_testing}
+hot backup mode: {0.hot_backup_supported}
 package directory: {0.package_dir}
 test directory: {0.base_test_dir}
 deployment_mode: {0.deployment_mode}
@@ -131,11 +259,17 @@ verbose: {0.verbose}
         """copy constructor"""
         try:
             self.reset_version(other_cfg.version)
+            self.default_arangosh_args = copy.deepcopy(other_cfg.default_arangosh_args)
+            self.default_starter_args = copy.deepcopy(other_cfg.default_starter_args)
+            self.default_backup_args = copy.deepcopy(other_cfg.default_backup_args)
+            self.default_imp_args = copy.deepcopy(other_cfg.default_imp_args)
+            self.default_restore_args = copy.deepcopy(other_cfg.default_restore_args)
             self.publicip = other_cfg.publicip
             self.interactive = other_cfg.interactive
             self.enterprise = other_cfg.enterprise
             self.encryption_at_rest = other_cfg.encryption_at_rest
             self.zip_package = other_cfg.zip_package
+            self.src_testing = other_cfg.src_testing
 
             self.deployment_mode = other_cfg.deployment_mode
             self.verbose = other_cfg.verbose
@@ -170,8 +304,8 @@ verbose: {0.verbose}
             self.dbdir = other_cfg.dbdir
             self.appdir = other_cfg.appdir
             self.cfgdir = other_cfg.cfgdir
-            self.hot_backup = other_cfg.hot_backup
-            self.hb_mode = other_cfg.hb_mode
+            self.hot_backup_supported = other_cfg.hot_backup_supported
+            self.hb_cli_cfg = copy.deepcopy(other_cfg.hb_cli_cfg)
         except AttributeError:
             # if the config.yml gave us a wrong value, we don't care.
             pass
@@ -238,34 +372,46 @@ def make_installer(install_config: InstallerConfig):
     """detect the OS and its distro,
     choose the proper installer
     and return it"""
+
+    if install_config.src_testing:
+        from arangodb.installers.source import InstallerSource
+
+        return InstallerSource(install_config)
+
+    if IS_WINDOWS:
+        if install_config.zip_package:
+            from arangodb.installers.zip import InstallerZip
+
+            return InstallerZip(install_config)
+        else:
+            from arangodb.installers.nsis import InstallerNsis
+
+            return InstallerNsis(install_config)
+
     if install_config.zip_package:
         from arangodb.installers.tar import InstallerTAR
 
         return InstallerTAR(install_config)
-    if IS_WINDOWS:
-        from arangodb.installers.nsis import InstallerW
 
-        return InstallerW(install_config)
-
-    macver = platform.mac_ver()
-    if macver[0]:
+    if IS_MAC:
         from arangodb.installers.mac import InstallerMac
 
         return InstallerMac(install_config)
 
     if platform.system() in ["linux", "Linux"]:
+        dist = DISTRO
         import distro
-
-        distro = distro.linux_distribution(full_distribution_name=False)
-        if distro[0] in ["debian", "ubuntu"]:
+        if DISTRO == "":
+            dist = distro.linux_distribution(full_distribution_name=False)[0]
+        if dist in ["debian", "ubuntu"]:
             from arangodb.installers.deb import InstallerDeb
 
             return InstallerDeb(install_config)
-        if distro[0] in ["centos", "redhat", "suse", "rocky"]:
+        if dist in ["centos", "redhat", "suse", "rocky"]:
             from arangodb.installers.rpm import InstallerRPM
 
             return InstallerRPM(install_config)
-        if distro[0] in ["alpine"]:
+        if dist in ["alpine"]:
             from arangodb.installers.docker import InstallerDocker
 
             return InstallerDocker(install_config)
@@ -273,16 +419,13 @@ def make_installer(install_config: InstallerConfig):
     raise Exception("unsupported os" + platform.system())
 
 
-
 class RunProperties:
     """bearer class for run properties"""
+
     # pylint: disable=too-many-function-args disable=too-many-arguments
-    def __init__(self,
-                 enterprise: bool,
-                 encryption_at_rest: bool,
-                 ssl: bool,
-                 testrun_name: str = "",
-                 directory_suffix: str = ""):
+    def __init__(
+        self, enterprise: bool, encryption_at_rest: bool, ssl: bool, testrun_name: str = "", directory_suffix: str = ""
+    ):
         """set the values for this testrun"""
         self.enterprise = enterprise
         self.encryption_at_rest = encryption_at_rest
@@ -291,7 +434,7 @@ class RunProperties:
         self.directory_suffix = directory_suffix
 
     def supports_dc2dc(self):
-        """will the DC2DC case be supported by this case? """
+        """will the DC2DC case be supported by this case?"""
         return self.enterprise and not IS_WINDOWS
 
 
@@ -302,50 +445,30 @@ EXECUTION_PLAN = [
     RunProperties(False, False, False, "Community", "C"),
 ]
 
-class InstallerBaseConfig:
+
+@dataclass
+class InstallerBaseConfig(OptionGroup):
     """commandline argument config settings"""
-    # pylint: disable=too-many-instance-attributes disable=too-many-arguments
-    def __init__(self,
-                 verbose: bool,
-                 zip_package: bool,
-                 hot_backup: str,
-                 package_dir: Path,
-                 test_data_dir: Path,
-                 starter_mode: str,
-                 publicip: str,
-                 interactive: bool,
-                 stress_upgrade: bool):
-        self.verbose = verbose
-        self.zip_package = zip_package
-        self.hot_backup = hot_backup
-        self.package_dir = package_dir
-        self.test_data_dir = test_data_dir
-        self.starter_mode = starter_mode
-        self.publicip = publicip
-        self.interactive = interactive
-        self.stress_upgrade = stress_upgrade
-    def __repr__(self):
-        return """
-verbose : {0.verbose}
-zip_package : {0.zip_package}
-hot_backup : {0.hot_backup}
-package_dir : {0.package_dir}
-test_data_dir : {0.test_data_dir}
-starter_mode : {0.starter_mode}
-publicip : {0.publicip}
-interactive : {0.interactive}
-stress_upgrade : {0.stress_upgrade}
-""".format(self)
+
+    # pylint: disable=too-many-instance-attributes
+    verbose: bool
+    zip_package: bool
+    src_testing: bool
+    hb_cli_cfg: HotBackupCliCfg
+    package_dir: Path
+    test_data_dir: Path
+    starter_mode: str
+    publicip: str
+    interactive: bool
+    stress_upgrade: bool
+
 
 # pylint: disable=too-many-locals
 def create_config_installer_set(
-    versions: list,
-    base_config: InstallerBaseConfig,
-    deployment_mode: str,
-    run_properties: RunProperties
+    versions: list, base_config: InstallerBaseConfig, deployment_mode: str, run_properties: RunProperties
 ):
     """creates sets of configs and installers"""
-    # pylint: disable=R0902 disable=R0913
+    # pylint: disable=too-many-instance-attributes disable=too-many-arguments
     res = []
     for one_version in versions:
         print(str(one_version))
@@ -355,7 +478,8 @@ def create_config_installer_set(
             run_properties.enterprise,
             run_properties.encryption_at_rest,
             base_config.zip_package,
-            base_config.hot_backup,
+            base_config.src_testing,
+            base_config.hb_cli_cfg,
             base_config.package_dir,
             base_config.test_data_dir,
             deployment_mode,

@@ -14,7 +14,6 @@ force_arg=()
 if test -n "$FORCE" -o "$TEST_BRANCH" != 'master'; then
   force_arg=(--force)
 fi
-# force_arg+=(--remote-host "$(host nas02.arangodb.biz |sed "s;.* ;;")")
 
 VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_tar_version.tar"
 mkdir -p "${PACKAGE_CACHE}"
@@ -49,6 +48,11 @@ docker run \
        -v /dev/shm:/dev/shm \
        --env="BUILD_NUMBER=${BUILD_NUMBER}" \
        --env="PYTHONUNBUFFERED=1" \
+       --env="RTA_LOCAL_HTTPUSER=${RTA_LOCAL_HTTPUSER}" \
+       --env="AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" \
+       --env="AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" \
+       --env="AWS_REGION=$AWS_REGION" \
+       --env="AWS_ACL=$AWS_ACL" \
        \
        --name="${DOCKER_TAR_NAME}" \
        --pid=host \

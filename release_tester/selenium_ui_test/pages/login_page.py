@@ -11,15 +11,15 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium_ui_test.pages.base_page import BasePage
 
 # can't circumvent long lines..
-# pylint: disable=C0301
+# pylint: disable=line-too-long
 
 
 class LoginPage(BasePage):
     """Login class for selenium UI testing"""
 
-    def __init__(self, driver):
+    def __init__(self, driver, cfg):
         """Login page initialization"""
-        super().__init__(driver)
+        super().__init__(driver, cfg)
         self.username_textbox_id = "loginUsername"
         self.password_textbox_id = "loginPassword"
         self.login_button_id = "submitLogin"

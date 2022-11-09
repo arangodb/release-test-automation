@@ -15,7 +15,7 @@ FNRX = re.compile("[\n@]*")
 
 class SeleniumRunner(ABC):
     "abstract base class for selenium UI testing"
-    # pylint: disable=C0301 disable=R0904 disable=R0902 disable=R0913
+    # pylint: disable=line-too-long disable=too-many-public-methods disable=too-many-instance-attributes disable=too-many-arguments
     def __init__(self, webdriver, is_headless: bool, testrun_name: str, ssl: bool):
         """hi"""
         self.ssl = ssl
@@ -100,7 +100,7 @@ class SeleniumRunner(ABC):
                 None,
             )
             rec.created = entry["timestamp"] / 1000  # log using original timestamp.. us -> ms
-            # pylint: disable=W0703
+            # pylint: disable=broad-except
             try:
                 # add browser log to python log
                 browserlog.handle(rec)
@@ -119,7 +119,7 @@ class SeleniumRunner(ABC):
             )
 
         self.progress("Taking screenshot from: %s " % self.webdriver.current_url)
-        # pylint: disable=W0703
+        # pylint: disable=broad-except
         try:
             if self.is_headless:
                 self.progress("taking full screenshot")
@@ -144,7 +144,7 @@ class SeleniumRunner(ABC):
             attachment_type=AttachmentType.PNG,
         )
 
-    # pylint: disable=R1705
+    # pylint: disable=no-else-return
     def get_protocol(self):
         """get HTTP protocol for this runner(http/https)"""
         if self.ssl:

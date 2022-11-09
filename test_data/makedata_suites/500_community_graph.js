@@ -2,8 +2,8 @@
 
 (function () {
   const g = require('@arangodb/general-graph');
-  let vertices = JSON.parse(fs.readFileSync(`${PWD}/vertices.json`));
-  let edges = JSON.parse(fs.readFileSync(`${PWD}/edges_naive.json`));
+  let vertices = JSON.parse(fs.readFileSync(`${PWD}/makedata_suites/500_550_570_vertices.json`));
+  let edges = JSON.parse(fs.readFileSync(`${PWD}/makedata_suites/500_edges_naive.json`));
   return {
     isSupported: function (version, oldVersion, options, enterprise, cluster) {
       return true;

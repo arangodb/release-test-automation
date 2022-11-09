@@ -9,7 +9,7 @@ from selenium_ui_test.pages.navbar import NavigationBarPage
 
 
 # can't circumvent long lines.. nAttr nLines
-# pylint: disable=C0301 disable=R0902 disable=R0915 disable=R0914
+# pylint: disable=line-too-long disable=too-many-instance-attributes disable=too-many-statements disable=too-many-locals
 
 
 class ReplicationPage(NavigationBarPage):
@@ -68,7 +68,7 @@ class ReplicationPage(NavigationBarPage):
         )
         state_table = {}
         for key in self.REPL_TABLE_LOC.items():
-            state_table[key] = table_elm.find_element_by_xpath(self.REPL_TABLE_LOC[key]).text
+            state_table[key[0]] = table_elm.find_element_by_xpath(key[1]).text
         return state_table
 
     def get_replication_screen(self, is_leader, timeout=20):
@@ -97,3 +97,36 @@ class ReplicationPage(NavigationBarPage):
                 else:
                     self.webdriver.refresh()
                     time.sleep(1)
+    
+    def get_replication_information(self):
+        """checking replication information"""
+        print('checking replication tab is available\n')
+        replication = '//*[@id="replication"]'
+        replication_sitem = self.locator_finder_by_xpath(replication)
+        replication = replication_sitem.text
+        time.sleep(1)
+        assert replication == "REPLICATION", f"Expected REPLICATION but got {replication}"
+
+        
+        print('checking replication mode\n')
+        replication_mode = 'info-mode-id'
+        replication_mode_sitem = self.locator_finder_by_id(replication_mode)
+        replication_mode = replication_mode_sitem.text
+        time.sleep(1)
+        assert replication_mode == "Active Failover", f"Expected Active Failover but got {replication_mode}"
+
+        ip_list = ["tcp://localhost:9529", "tcp://localhost:9629", "tcp://localhost:9729"]
+
+        print('checking leader id\n')
+        leader_id = 'nodes-leader-id'
+        leader_id_sitem = self.locator_finder_by_id(leader_id)
+        leader = leader_id_sitem.text
+        time.sleep(1)
+        assert leader in ip_list, f"Error occcured, Couldn't find expected leader ip"
+
+        print('checking follower id\n')
+        follower_id = '//*[@id="nodes-followers-id"]/span'
+        follower_id_sitem = self.locator_finder_by_xpath(follower_id)
+        follower = follower_id_sitem.text
+        time.sleep(1)
+        assert follower in ip_list, f"Error occcured, Couldn't find expected follower ip"

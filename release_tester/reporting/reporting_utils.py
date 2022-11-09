@@ -1,4 +1,6 @@
 """ utility functions/classes for allure reporting """
+import platform
+import sys
 from pathlib import Path
 from string import Template
 from uuid import uuid4
@@ -6,9 +8,10 @@ from uuid import uuid4
 import allure_commons
 from allure_commons._allure import attach, StepContext
 from allure_commons.logger import AllureFileLogger
-from allure_commons.model2 import Status, TestResult
+from allure_commons.model2 import Status, Label
 from allure_commons.types import AttachmentType, LabelType
 from tabulate import tabulate
+#pylint: disable=import-error
 from reporting.helpers import AllureListener
 
 
@@ -50,19 +53,47 @@ def attach_table(table, title="HTML table"):
     $html_table
     </html>
     """
-    # pylint: disable=E1101
+    # pylint: disable=no-member
     template = Template(template_str)
     html_table = tabulate(table, headers=table.columns.header, tablefmt="html")
     attach(template.substitute(html_table=html_table), title, AttachmentType.HTML)
 
+def attach_http_request_to_report(method: str, url: str, headers: dict, body: str):
+    request = f"""
+    <html>
+    <p><b>Method: </b>${method.upper()}</p>
+    <p><b>URL: </b>${url}</p>
+    <p><b>Headers: </b></p>
+    <p>
+    """
+    for key in headers:
+        request += f"<b>{key}: </b>{headers[key]}<br>"
+    request += f"</p>"
+    request += f"<p><b>Body:<br></b>{body}</p>"
+    request +="</html>"
+    attach(request, "HTTP request", AttachmentType.HTML)
 
-def step(title):
+def attach_http_response_to_report(response):
+    response_html=f"""
+    <html>
+    <p><b>Status code:</b> {response.status_code}</p>
+    <p><b>Headers:</b><br>
+    """
+    for key in response.headers:
+        response_html += f"<b>{key}:</b> {response.headers[key]}<br>"
+    response_html += "</p>"
+    response_html += f"<p><b>Body: </b>{str(response.content)}</p>"
+    response_html += "</html>"
+    attach(response_html, f"HTTP response ({response.status_code})", AttachmentType.HTML)
+
+
+def step(title, params={}):
     """init allure step"""
     if callable(title):
         if title.__doc__:
-            return StepContext(title.__doc__, {})(title)
-        return StepContext(title.__name__, {})(title)
-    return StepContext(title, {})
+            return StepContext(title.__doc__, params)(title)
+        return StepContext(title.__name__, params)(title)
+    return StepContext(title, params)
 
 
 class RtaTestcase:
@@ -102,7 +133,7 @@ class RtaTestcase:
         self.context.labels.append(label)
 
 
-# pylint: disable=R0903 disable=invalid-name
+# pylint: disable=too-few-public-methods disable=invalid-name
 class TestcaseContext:
     """a class to store test case context"""
 
@@ -114,9 +145,10 @@ class TestcaseContext:
         self.statusDetails = statusDetails
         self.labels = []
 
-RESULTS_DIR=Path()
-CLEAN_DIR=False
-ZIP_PACKAGE=False
+RESULTS_DIR = Path()
+CLEAN_DIR = False
+ZIP_PACKAGE = False
+
 
 def init_allure(results_dir: Path,
                 clean: bool,
@@ -127,24 +159,28 @@ def init_allure(results_dir: Path,
     if not results_dir.exists():
         results_dir.mkdir(parents=True)
 
-    RESULTS_DIR=results_dir
-    CLEAN_DIR=clean
-    ZIP_PACKAGE=zip_package
+    RESULTS_DIR = results_dir
+    CLEAN_DIR = clean
+    ZIP_PACKAGE = zip_package
+
 
 class AllureTestSuiteContext:
     """test suite class for allure reporting"""
 
     test_suite_count = 0
+
     # pylint: disable=too-many-locals disable=dangerous-default-value disable=too-many-arguments
     def __init__(
-        self,
-        properties=None,
-        versions=[],
-        parent_test_suite_name=None,
-        auto_generate_parent_test_suite_name=True,
-        suite_name=None,
-        runner_type=None,
-        installer_type=None
+            self,
+            properties=None,
+            versions=[],
+            parent_test_suite_name=None,
+            auto_generate_parent_test_suite_name=True,
+            suite_name=None,
+            sub_suite_name=None,
+            runner_type=None,
+            installer_type=None,
+            labels=[]
     ):
         def generate_suite_name():
             if properties.enterprise:
@@ -162,46 +198,39 @@ class AllureTestSuiteContext:
                 test_suite_name = """
             ArangoDB v.{} ({}) ({} package) (enc@rest: {}) (SSL: {}) (clean install)
                                 """.format(
-                                    str(versions[0]),
-                                    edition,
-                                    package_type,
-                                    "ON" if properties.encryption_at_rest else "OFF",
-                                    "ON" if properties.ssl else "OFF"
+                    str(versions[0]),
+                    edition,
+                    package_type,
+                    "ON" if properties.encryption_at_rest else "OFF",
+                    "ON" if properties.ssl else "OFF"
                 )
             else:
                 test_suite_name = """
                             ArangoDB v.{} ({}) {} package (upgrade from {}) (enc@rest: {}) (SSL: {})
                             """.format(
-                                str(versions[0]),
-                                edition,
-                                package_type,
-                                str(versions[1]),
-                                "ON" if properties.encryption_at_rest else "OFF",
-                                "ON" if properties.ssl else "OFF",
+                    str(versions[1]),
+                    edition,
+                    package_type,
+                    str(versions[0]),
+                    "ON" if properties.encryption_at_rest else "OFF",
+                    "ON" if properties.ssl else "OFF",
                 )
             if runner_type:
                 test_suite_name = "[" + str(runner_type) + "] " + test_suite_name
 
             return test_suite_name
-
-        test_listeners = [p for p in allure_commons.plugin_manager.get_plugins() if isinstance(p, AllureListener)]
+        self.labels = labels
+        test_listeners = [p for p in allure_commons.plugin_manager.get_plugins() if
+                          isinstance(p, AllureListener)]
         self.previous_test_listener = None if len(test_listeners) == 0 else test_listeners[0]
+        file_loggers = [l for l in allure_commons.plugin_manager.get_plugins() if
+                        isinstance(l, AllureFileLogger)]
+        self.file_logger = None if len(file_loggers) == 0 else file_loggers[0]
 
         if self.previous_test_listener:
-            labels = (
-                {k: v for k, v in self.previous_test_listener._cache._items.items() if isinstance(v, TestResult)}
-                .popitem()[1]
-                .labels
-            )
-            parent_suite_label = [l for l in labels if l.name == LabelType.PARENT_SUITE][0]
-            suite_label = [l for l in labels if l.name == LabelType.SUITE][0]
-            self.parent_test_suite_name = parent_suite_label.value
-            self.test_suite_name = suite_label.value
-            self.test_listener = AllureListener(
-                default_test_suite_name=self.test_suite_name, default_parent_test_suite_name=self.parent_test_suite_name
-            )
-            allure_commons.plugin_manager.unregister(self.previous_test_listener)
-            allure_commons.plugin_manager.register(self.test_listener)
+            self.parent_test_suite_name = self.previous_test_listener.default_parent_test_suite_name
+            self.test_suite_name = self.previous_test_listener.default_test_suite_name
+            self.labels = self.previous_test_listener.default_labels
         else:
             if suite_name:
                 self.test_suite_name = suite_name
@@ -213,22 +242,58 @@ class AllureTestSuiteContext:
                 self.parent_test_suite_name = generate_suite_name()
             else:
                 self.parent_test_suite_name = None
+            # Always add cpu architecture name to the suite name.
+            # Otherwise test results of the same test ran on different platforms could be mixed in the united allure report.
+            # Add cpu arch and OS name to tags for extra convenience.
+            arch = platform.processor()
+            os = sys.platform
+            self.labels.append(Label(name=LabelType.TAG, value=arch))
+            self.labels.append(Label(name=LabelType.TAG, value=os))
+            if self.parent_test_suite_name:
+                self.parent_test_suite_name += f" ({arch})"
+            elif self.test_suite_name:
+                self.test_suite_name += f" ({arch})"
+        self.sub_suite_name=sub_suite_name
+
+
+        if not self.file_logger:
             if AllureTestSuiteContext.test_suite_count == 0:
                 self.file_logger = AllureFileLogger(RESULTS_DIR, CLEAN_DIR)
             else:
                 self.file_logger = AllureFileLogger(RESULTS_DIR, False)
-            self.test_listener = AllureListener(
-                default_test_suite_name=self.test_suite_name, default_parent_test_suite_name=self.parent_test_suite_name
-            )
-            allure_commons.plugin_manager.register(self.test_listener)
             allure_commons.plugin_manager.register(self.file_logger)
 
+        if self.previous_test_listener:
+            allure_commons.plugin_manager.unregister(self.previous_test_listener)
+        self.test_listener = AllureListener(
+            default_test_suite_name=self.test_suite_name,
+            default_parent_test_suite_name=self.parent_test_suite_name,
+            default_sub_suite_name=self.sub_suite_name,
+            default_labels=self.labels
+        )
+        allure_commons.plugin_manager.register(self.test_listener)
+        self.test_listener.start_suite_container(self.generate_container_name())
         AllureTestSuiteContext.test_suite_count += 1
+
+    def generate_container_name(self):
+        if self.sub_suite_name:
+            return self.sub_suite_name
+        elif self.test_suite_name:
+            return self.sub_suite_name
+        elif self.parent_test_suite_name:
+            return self.parent_test_suite_name
+        else:
+            return "Container name is undefined"
+
+    def destroy(self):
+        """close test suite context"""
+        self.__exit__(None, None, None)
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        self.test_listener.stop_suite_container()
         if self.previous_test_listener:
             allure_commons.plugin_manager.unregister(self.test_listener)
             allure_commons.plugin_manager.register(self.previous_test_listener)

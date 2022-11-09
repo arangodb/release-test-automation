@@ -5,15 +5,15 @@ from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import StaleElementReferenceException
 
 # can't circumvent long lines.. nAttr nLines
-# pylint: disable=C0301 disable=R0902 disable=R0915
+# pylint: disable=line-too-long disable=too-many-instance-attributes disable=too-many-statements
 
 
 class UserPage(NavigationBarPage):
     """Class for User page"""
 
-    def __init__(self, driver):
+    def __init__(self, driver, cfg):
         """User page initialization"""
-        super().__init__(driver)
+        super().__init__(driver, cfg)
         self.add_new_user_id = "createUser"
         self.enter_new_user_name_id = "newUsername"
         self.enter_new_name_id = "newName"

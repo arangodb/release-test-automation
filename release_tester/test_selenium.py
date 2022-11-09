@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 """ Release testing script"""
+#pylint: disable=duplicate-code
 from pathlib import Path
 
 import click
@@ -9,7 +10,7 @@ from arangodb.installers import create_config_installer_set, RunProperties
 from arangodb.starter.deployments import RunnerType, make_runner, STARTER_MODES
 import tools.loghelper as lh
 
-# pylint: disable=R0913 disable=R0914 disable=R0914
+# pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-locals
 def run_upgrade(
     old_version,
     new_version,
@@ -18,6 +19,8 @@ def run_upgrade(
     test_data_dir,
     zip_package,
     hot_backup,
+    hb_provider,
+    hb_storage_path_prefix,
     interactive,
     starter_mode,
     stress_upgrade,
@@ -25,7 +28,7 @@ def run_upgrade(
     publicip,
     selenium,
     selenium_driver_args,
-    run_props: RunProperties
+    run_props: RunProperties,
 ):
     """execute upgrade tests"""
     lh.configure_logging(verbose)
@@ -35,15 +38,17 @@ def run_upgrade(
     for runner_type in STARTER_MODES[starter_mode]:
         if not run_props.enterprise and runner_type == RunnerType.DC2DC:
             continue
+        # pylint: disable=too-many-function-args
         installers = create_config_installer_set(
             [old_version, new_version],
-
             verbose,
             zip_package,
             hot_backup,
+            hb_provider,
+            hb_storage_path_prefix,
             Path(package_dir),
             Path(test_data_dir),
-            "all", # deployment_mode
+            "all",  # deployment_mode
             publicip,
             interactive,
             stress_upgrade,
@@ -77,10 +82,12 @@ def run_upgrade(
 @very_common_options()
 @common_options(support_old=True)
 # fmt: off
-# pylint: disable=R0913 disable=W0613
+# pylint: disable=too-many-arguments disable=unused-argument
 def main(
         #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package, hot_backup,
+        new_version, verbose, enterprise, package_dir, zip_package, src_testing,
+        hot_backup, hb_provider, hb_storage_path_prefix,
+        hb_aws_access_key_id, hb_aws_secret_access_key, hb_aws_region, hb_aws_acl,
         # common_options
         old_version, test_data_dir, encryption_at_rest, interactive,
         starter_mode, stress_upgrade, abort_on_error, publicip,
@@ -88,7 +95,7 @@ def main(
     """ main trampoline """
     return run_upgrade(old_version, new_version, verbose,
                        package_dir, test_data_dir,
-                       zip_package, hot_backup, interactive,
+                       zip_package, hot_backup, hb_provider, hb_storage_path_prefix, interactive,
                        starter_mode, stress_upgrade, abort_on_error,
                        publicip, selenium, selenium_driver_args,
                        RunProperties(enterprise,
@@ -97,5 +104,5 @@ def main(
 # fmt: on
 
 if __name__ == "__main__":
-    # pylint: disable=E1120 # fix clickiness.
+    # pylint: disable=no-value-for-parameter # fix clickiness.
     main()

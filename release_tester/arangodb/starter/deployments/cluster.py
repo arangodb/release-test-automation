@@ -22,7 +22,7 @@ arangoversions = {
 class Cluster(Runner):
     """this launches a cluster setup"""
 
-    # pylint: disable=R0913 disable=R0902
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
     def __init__(
         self,
         runner_type,
@@ -51,12 +51,13 @@ class Cluster(Runner):
 
     def starter_prepare_env_impl(self):
         self.create_test_collection = (
+            "create test collection",
             """
 db._create("testCollection",  { numberOfShards: 6, replicationFactor: 2});
 db.testCollection.save({test: "document"})
 """,
-            "create test collection",
         )
+
         node1_opts = []
         node2_opts = ["--starter.join", "127.0.0.1:9528"]
         node3_opts = ["--starter.join", "127.0.0.1:9528"]
@@ -118,12 +119,14 @@ db.testCollection.save({test: "document"})
             node.detect_instances()
             node.detect_instance_pids()
             # self.basecfg.add_frontend('http', self.basecfg.publicip, str(node.get_frontend_port()))
+
         logging.info("instances are ready - JWT: " + self.starter_instances[0].get_jwt_header())
         count = 0
         for node in self.starter_instances:
             node.set_passvoid("cluster", count == 0)
             count += 1
         self.passvoid = "cluster"
+        self.get_process_structure()
 
     def finish_setup_impl(self):
         self.makedata_instances = self.starter_instances[:]
@@ -132,6 +135,14 @@ db.testCollection.save({test: "document"})
     def test_setup_impl(self):
         if self.selenium:
             self.selenium.test_setup()
+
+    def after_makedata_check(self):
+        lh.subsubsection("wait for all shards to be in sync - test setup")
+        retval = self.starter_instances[0].arangosh.run_in_arangosh(
+            (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
+            [],
+            ['true'],
+        )
 
     def wait_for_restore_impl(self, backup_starter):
         for starter in self.starter_instances:
@@ -163,6 +174,86 @@ db.testCollection.save({test: "document"})
 
     def upgrade_arangod_version_manual_impl(self):
         """manual upgrade this installation"""
+        lh.subsubsection("wait for all shards to be in sync - Manual upgrade")
+        retval = self.starter_instances[0].arangosh.run_in_arangosh(
+            (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
+            [],
+            ['true'],
+        )
+        if not retval:
+            raise Exception(
+                "Failed to ensure the cluster is in sync: %s" % (retval)
+            )
+        print("all in sync.")
+        self.progress(True, "manual upgrade step 1 - stop instances")
+        self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
+        for node in self.starter_instances:
+            node.replace_binary_for_upgrade(self.new_cfg, False)
+        for node in self.starter_instances:
+            node.detect_instance_pids_still_alive()
+
+        # fmt: off
+        self.progress(True, "step 2 - upgrade agents")
+        for node in self.starter_instances:
+            node.upgrade_instances(
+                [
+                    InstanceType.AGENT
+                ], [
+                    '--database.auto-upgrade', 'true',
+                    '--log.foreground-tty', 'true'
+                ],
+                # mitigate 3.6x agency shutdown issues:
+                self.cfg.version >= arangoversions['370'])
+        self.progress(True, "step 3 - upgrade db-servers")
+        for node in self.starter_instances:
+            node.upgrade_instances([
+                InstanceType.DBSERVER
+            ], ['--database.auto-upgrade', 'true',
+                '--log.foreground-tty', 'true'])
+        self.progress(True, "step 4 - coordinator upgrade")
+        # now the new cluster is running. we will now run the coordinator upgrades
+        for node in self.starter_instances:
+            logging.info("upgrading coordinator instances\n" + str(node))
+            node.upgrade_instances([
+                InstanceType.COORDINATOR
+            ], [
+                '--database.auto-upgrade', 'true',
+                '--javascript.copy-installation', 'true',
+                '--server.rest-server', 'false',
+            ])
+        # fmt: on
+        self.progress(True, "step 5 restart the full cluster ")
+        for node in self.starter_instances:
+            node.respawn_instance()
+        self.progress(True, "step 6 wait for the cluster to be up")
+        for node in self.starter_instances:
+            node.detect_instances()
+            node.wait_for_version_reply()
+
+        # now the upgrade should be done.
+        for node in self.starter_instances:
+            node.detect_instances()
+            node.wait_for_version_reply()
+            node.probe_leader()
+        self.set_frontend_instances()
+        self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
+
+        if self.selenium:
+            self.selenium.test_wait_for_upgrade()  # * 5s
+
+    def downgrade_arangod_version_manual_impl(self):
+        """manual upgrade this installation"""
+        lh.subsubsection("wait for all shards to be in sync - downgrade")
+        retval = self.starter_instances[0].arangosh.run_in_arangosh(
+            (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
+            [],
+            ['true'],
+        )
+        if not retval:
+            raise Exception(
+                "Failed to ensure the cluster is in sync: %s" % (retval)
+            )
+        print("all in sync.")
         self.progress(True, "manual upgrade step 1 - stop instances")
         self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
         for node in self.starter_instances:
@@ -224,6 +315,17 @@ db.testCollection.save({test: "document"})
         # pylint: disable=too-many-statements
         # this is simply to slow to be worth wile:
         # collections = self.get_collection_list()
+        lh.subsubsection("wait for all shards to be in sync - Jamming")
+        retval = self.starter_instances[0].arangosh.run_in_arangosh(
+            (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
+            [],
+            ['true'],
+        )
+        if not retval:
+            raise Exception(
+                "Failed to ensure the cluster is in sync: %s" % (retval)
+            )
+        print("all in sync.")
         agency_leader = self.agency_get_leader()
         terminate_instance = 2
         survive_instance = 1
@@ -259,9 +361,13 @@ db.testCollection.save({test: "document"})
         # respawn instance, and get its state fixed
         self.starter_instances[terminate_instance].respawn_instance()
         self.set_frontend_instances()
+        counter = 300
         while not self.starter_instances[terminate_instance].is_instance_up():
+            if counter <= 0:
+                raise Exception("Instance did not respawn in 5 minutes!")
             progress(".")
             time.sleep(1)
+            counter -= 1
         print()
         self.starter_instances[terminate_instance].detect_instances()
         self.starter_instances[terminate_instance].detect_instance_pids()
@@ -329,7 +435,7 @@ db.testCollection.save({test: "document"})
         )
 
     def generate_keyfile(self, keyfile):
-        """ generate the ssl certificate file """
+        """generate the ssl certificate file"""
         self.cert_op(
             [
                 "tls",

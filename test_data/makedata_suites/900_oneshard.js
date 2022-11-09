@@ -79,15 +79,18 @@
       `;
         const result = db._query(query).toArray();
         if (result.length !== 1 || result[0].v1 !== "success" || result[0].v2 !== "success") {
-          throw new Error("DOCUMENT call in OneShard database does not return data");
+          throw new Error("DOCUMENT call in OneShard database does not return data " + JSON.stringify(result));
         }
       }
       db._useDatabase('_system');
       return 0;
     },
-    clearDataDB: function (options, isCluster, isEnterprise, dbCount, database) {
+    clearDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
       // check per DB
       progress("Test OneShard teardown");
+      if (database === "_system") {
+        database = "system";
+      }
       let baseName = database;
       const databaseName = `${baseName}_${dbCount}_oneShard`;
       db._useDatabase('_system');

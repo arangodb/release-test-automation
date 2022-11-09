@@ -1,25 +1,32 @@
 #!/usr/bin/env python3
-# pylint: disable=C0301
+# pylint: disable=line-too-long
 # have long strings, need long lines.
 """ Release testing script"""
-from ftplib import FTP
+#pylint: disable=duplicate-code
+from dataclasses import dataclass
+from ftplib import FTP_TLS
 from io import BytesIO
 import os
 from pathlib import Path
+import platform
 import json
 import sys
 import tarfile
 
 import click
-from arangodb.installers import make_installer, InstallerConfig
+import semver
+from arangodb.installers import make_installer, InstallerConfig, HotBackupCliCfg, InstallerBaseConfig, OptionGroup
+import arangodb.installers as installer
 import tools.loghelper as lh
 
 import requests
 from common_options import very_common_options, download_options
 
+
 def get_tar_file_path(base_directory, versions, package_target):
     """calculate the name of the versions tar file"""
     return base_directory / f"Upgrade_{versions[0]}__{versions[1]}_{package_target}_version.tar"
+
 
 def touch_all_tars_in_dir(tar_file):
     """sets the current filestamp to all tars so jenkins preserves them"""
@@ -36,18 +43,22 @@ def touch_all_tars_in_dir(tar_file):
         # else:
         #    print("doing nothing about " + str(one_file))
 
+
 def read_versions_tar(tar_file, versions):
     """reads the versions tar"""
     try:
         fdesc = tar_file.open("rb")
-        with tarfile.open(fileobj=fdesc, mode="r:") as tar:
-            for member in tar:
-                print(member.name)
-                print(member.isfile())
-                if member.isfile():
-                    versions[member.name] = tar.extractfile(member).read().decode(encoding="utf-8")
-                    print(versions[member.name])
-            tar.close()
+        try:
+            with tarfile.open(fileobj=fdesc, mode="r:") as tar:
+                for member in tar:
+                    print(member.name)
+                    print(member.isfile())
+                    if member.isfile():
+                        versions[member.name] = tar.extractfile(member).read().decode(encoding="utf-8")
+                        print(versions[member.name])
+                tar.close()
+        except tarfile.ReadError as ex:
+            print("Ignoring exception during reading the tar file: " + str(ex))
         fdesc.close()
     except FileNotFoundError:
         pass
@@ -69,61 +80,74 @@ def write_version_tar(tar_file, versions):
         tar.close()
     fdesc.close()
 
-class DownloadOptions:
-    """ bearer class for base download options """
-    # pylint: disable=too-many-arguments disable=too-few-public-methods
-    def __init__(self,
-                 force_dl: bool,
-                 verbose: bool,
-                 package_dir: Path,
-                 enterprise_magic: str,
-                 httpuser: str,
-                 httppassvoid: str,
-                 remote_host: str):
-        self.launch_dir = Path.cwd()
-        if "WORKSPACE" in os.environ:
-            self.launch_dir = Path(os.environ["WORKSPACE"])
-        self.force_dl = force_dl
-        self.verbose = verbose
-        if not package_dir.is_absolute():
-            package_dir =  (self.launch_dir / package_dir).resolve()
-        self.package_dir = package_dir
-        self.enterprise_magic = enterprise_magic
-        self.httpuser = httpuser
-        self.httppassvoid = httppassvoid
-        self.remote_host = remote_host
+@dataclass
+class DownloadOptions(OptionGroup):
+    """bearer class for base download options"""
+    force: bool
+    verbose: bool
+    package_dir: Path
+    enterprise_magic: str
+    httpuser: str
+    remote_host:str
 
 class Download:
     """manage package downloading from any known arango package source"""
 
-    # pylint: disable=R0913 disable=R0902 disable=dangerous-default-value
-    def __init__(self,
-                 options: DownloadOptions,
-                 version,
-                 enterprise,
-                 zip_package,
-                 source,
-                 existing_version_states={},
-                 new_version_states={},
-                 git_version=""):
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=dangerous-default-value
+    def __init__(
+        self,
+        options: DownloadOptions,
+        hb_cli_cfg: HotBackupCliCfg,
+        version: str,
+        enterprise: bool,
+        zip_package: bool,
+        src_testing: bool,
+        source,
+        existing_version_states={},
+        new_version_states={},
+        git_version="",
+        force_arch="",
+        force_os = "",
+    ):
         """main"""
         lh.section("configuration")
+        if force_os != "":
+            if force_os == "windows":
+                installer.IS_WINDOWS = True
+                installer.IS_MAC = False
+            elif force_os == "mac":
+                installer.IS_MAC = True
+                installer.IS_WINDOWS = False
+            else:
+                installer.DISTRO = force_os
+                installer.IS_WINDOWS = False
+                installer.IS_MAC = False
+        self.launch_dir = Path.cwd()
+        if "WORKSPACE" in os.environ:
+            self.launch_dir = Path(os.environ["WORKSPACE"])
+
+        if not options.package_dir.is_absolute():
+            options.package_dir = (self.launch_dir / options.package_dir).resolve()
+
         print("version: " + str(version))
         print("using enterpise: " + str(enterprise))
         print("using zip: " + str(zip_package))
         print("package directory: " + str(options.package_dir))
         print("verbose: " + str(options.verbose))
         self.options = options
+        self.is_nightly = semver.VersionInfo.parse(version).prerelease == "nightly"
         self.source = source
+        if not self.is_nightly and self.source == 'nightlypublic':
+            self.source = 'public'
         if options.remote_host != "":
             # external DNS to wuerg around docker dns issues...
             self.remote_host = options.remote_host
         else:
             # dns split horizon...
             if source in ["ftp:stage1", "ftp:stage2"]:
-                self.remote_host = "Nas02.arangodb.biz"
-            elif source in ["http:stage1", "http:stage2"]:
-                self.remote_host = "fileserver.arangodb.com"
+                self.remote_host = "nas01.arangodb.biz"
+            elif source in ["http:stage2"]:
+                self.remote_host = "download.arangodb.com"
             else:
                 self.remote_host = "download.arangodb.com"
         lh.section("startup")
@@ -133,7 +157,8 @@ class Download:
             enterprise=enterprise,
             encryption_at_rest=False,
             zip_package=zip_package,
-            hot_backup="disabled", # don't care
+            src_testing=src_testing,
+            hb_cli_cfg=hb_cli_cfg,
             package_dir=options.package_dir,
             test_dir=Path("/"),
             deployment_mode="all",
@@ -142,8 +167,19 @@ class Download:
             stress_upgrade=False,
             ssl=False,
         )
+
         self.inst = make_installer(self.cfg)
-        self.is_nightly = self.inst.semver.prerelease == "nightly"
+        machine = platform.machine()
+        if force_arch != "":
+            machine = force_arch
+            self.inst.machine = machine
+        
+        
+        self.path_architecture = ""
+        if self.is_nightly or self.cfg.semver > semver.VersionInfo.parse("3.9.99"):
+            if machine == 'AMD64':
+                machine = 'x86_64'
+            self.path_architecture = machine + '/'
         self.calculate_package_names()
         self.packages = []
 
@@ -175,6 +211,7 @@ class Download:
             "major_version": "arangodb{major}{minor}".format(**self.cfg.semver.to_dict()),
             "bare_major_version": "{major}.{minor}".format(**self.cfg.semver.to_dict()),
             "remote_package_dir": self.inst.remote_package_dir,
+            "path_architecture": self.path_architecture,
             "enterprise": "Enterprise" if self.cfg.enterprise else "Community",
             "enterprise_magic": self.options.enterprise_magic + "/" if self.cfg.enterprise else "",
             "packages": "" if self.is_nightly else "packages",
@@ -182,21 +219,20 @@ class Download:
         }
         if self.is_nightly:
             self.params["enterprise"] = ""
+        else:
+            self.params["path_architecture"] = ""
 
         self.directories = {
-            "ftp:stage1": "/buildfiles/stage1/{full_version}/release/packages/{enterprise}/{remote_package_dir}/".format(
+            "ftp:stage1": "/stage1/{full_version}/release/packages/{enterprise}/{remote_package_dir}/".format(
                 **self.params
             ),
-            "ftp:stage2": "/buildfiles/stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/".format(
+            "ftp:stage2": "/stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/{path_architecture}".format(
                 **self.params
             ),
-            "http:stage1": "stage1/{full_version}/release/packages/{enterprise}/{remote_package_dir}/".format(
+            "http:stage2": "stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/{path_architecture}".format(
                 **self.params
             ),
-            "http:stage2": "stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/".format(
-                **self.params
-            ),
-            "nightlypublic": "{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/".format(
+            "nightlypublic": "{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/{path_architecture}".format(
                 **self.params
             ).replace("///", "/"),
             "public": "{enterprise_magic}{major_version}/{enterprise}/{remote_package_dir}/".format(
@@ -205,7 +241,6 @@ class Download:
             "local": None,
         }
         self.funcs = {
-            "http:stage1": self.acquire_stage1_http,
             "http:stage2": self.acquire_stage2_http,
             "ftp:stage1": self.acquire_stage1_ftp,
             "ftp:stage2": self.acquire_stage2_ftp,
@@ -214,7 +249,7 @@ class Download:
             "local": self.acquire_none,
         }
 
-    # pylint: disable=W0613 disable=R0201
+    # pylint: disable=unused-argument disable=no-self-use
     def acquire_none(self, directory, package, local_dir, force):
         """use the copy that we already have, hence do nothing"""
         print("skipping download")
@@ -225,7 +260,7 @@ class Download:
         if out.exists() and not force:
             print(stage + ": not overwriting {file} since not forced to overwrite!".format(**{"file": str(out)}))
             return
-        ftp = FTP(self.remote_host)
+        ftp = FTP_TLS(self.remote_host)
         print(stage + ": " + ftp.login(user="anonymous", passwd="anonymous", acct="anonymous"))
         print(stage + ": Downloading from " + directory)
         print(stage + ": " + ftp.cwd(directory))
@@ -239,7 +274,6 @@ class Download:
         url = "https://{user}:{passvoid}@{remote_host}:8529/{dir}{pkg}".format(
             **{
                 "remote_host": self.remote_host,
-                "passvoid": self.options.httppassvoid,
                 "user": self.options.httpuser,
                 "dir": directory,
                 "pkg": package,
@@ -265,10 +299,6 @@ class Download:
                     **{"url": url, "error": res.status_code, "msg": res.text}
                 )
             )
-
-    def acquire_stage1_http(self, directory, package, local_dir, force):
-        """download stage 1 from http"""
-        self.acquire_stage_http(directory, package, local_dir, force, "STAGE_1_HTTP")
 
     def acquire_stage2_http(self, directory, package, local_dir, force):
         """download stage 2 from http"""
@@ -342,33 +372,35 @@ class Download:
 @very_common_options()
 @download_options()
 # fmt: off
-# pylint: disable=R0913 disable=unused-argument
-def main(
-        #very_common_options
-        new_version, verbose, enterprise, package_dir, zip_package, hot_backup,
-        # download options:
-        enterprise_magic, force, source,
-        httpuser, httppassvoid, remote_host):
-# fmt: on
-    """ main wrapper """
-    dl_opts = DownloadOptions(force,
-                              verbose,
-                              Path(package_dir),
-                              enterprise_magic,
-                              httpuser,
-                              httppassvoid,
-                              remote_host)
+def main(**kwargs):
+    """ main """
+    kwargs['interactive'] = False
+    kwargs['abort_on_error'] = False
+    kwargs['package_dir'] = Path(kwargs['package_dir'])
+    kwargs['test_data_dir'] = Path()
+    kwargs['alluredir'] = Path()
+    kwargs['starter_mode'] = 'all'
+    kwargs['stress_upgrade'] = False
+    kwargs['publicip'] = "127.0.0.1"
 
-    lh.configure_logging(verbose)
+    kwargs['hb_cli_cfg'] = HotBackupCliCfg("disabled","","","","","","")
+    kwargs['base_config'] = InstallerBaseConfig.from_dict(**kwargs)
+
+    dl_opts = DownloadOptions.from_dict(**kwargs)
+    lh.configure_logging(kwargs['verbose'])
     downloader = Download(
         options=dl_opts,
-        version=new_version,
-        enterprise=enterprise,
-        zip_package=zip_package,
-        source=source)
-    return downloader.get_packages(force)
+        hb_cli_cfg=kwargs['hb_cli_cfg'],
+        version=kwargs['new_version'],
+        enterprise=kwargs['enterprise'],
+        zip_package=kwargs['zip_package'],
+        src_testing=kwargs['src_testing'],
+        source=kwargs['source'],
+        force_arch=kwargs['force_arch'],
+        force_os=kwargs['force_os'])
+    return downloader.get_packages(kwargs['force'])
 
 
 if __name__ == "__main__":
-    # pylint: disable=E1120 # fix clickiness.
+    # pylint: disable=no-value-for-parameter # fix clickiness.
     sys.exit(main())

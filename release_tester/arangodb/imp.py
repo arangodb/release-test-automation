@@ -2,7 +2,7 @@
 """ Run a javascript command by spawning an arangosh
     to the configured connection """
 
-from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor, dummy_line_result
+from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor, default_line_result
 
 
 def get_type_args(filename):
@@ -19,16 +19,16 @@ def get_type_args(filename):
 class ArangoImportExecutor(ArangoCLIprogressiveTimeoutExecutor):
     """configuration"""
 
-    # pylint: disable=W0102
+    # pylint: disable=dangerous-default-value
 
     def run_import_monitored(self, args, timeout, verbose=True, expect_to_fail=False):
-        # pylint: disable=R0913 disable=R0902 disable=R0915 disable=R0912 disable=R0914
+        # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=too-many-statements disable=too-many-branches disable=too-many-locals
         """
         runs an import in background tracing with
         a dynamic timeout that its got output
         (is still alive...)
         """
-        run_cmd = [
+        run_cmd = self.cfg.default_imp_args + [
             "--log.level",
             "debug",
         ] + args
@@ -37,7 +37,7 @@ class ArangoImportExecutor(ArangoCLIprogressiveTimeoutExecutor):
             self.cfg.bin_dir / "arangoimport",
             run_cmd,
             timeout,
-            dummy_line_result,
+            default_line_result,
             verbose,
             expect_to_fail,
         )
