@@ -5,7 +5,6 @@
     isSupported: function (currentVersion, oldVersion, options, enterprise, cluster) {
       let current = semver.parse(semver.coerce(currentVersion));
 
-      return false;
       return semver.gte(current, "3.9.0") && cluster && !options.readOnly;
     },
     checkData: function (options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
