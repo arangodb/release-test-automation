@@ -1,295 +1,224 @@
-/* global print, semver, progress, createSafe, db */
+/* global print, semver, progress, createSafe, createCollectionSafe, db */
+/*jslint maxlen: 100*/
 
-(function () {
+function createAnalyzer(analyzerName, analyzerCreationQuery){
+  // creating analyzer
+  let text = createSafe(analyzerName,
+                        function () {
+                          return analyzerCreationQuery;
+                        }, function () {
+                          if (analyzers.analyzer(analyzerName) === null) {
+                            throw new Error(`607: ${analyzerName} analyzer creation failed!`);
+                          }
+                        });
+}
+function getTestData_607(dbCount) {
   const a = require("@arangodb/analyzers");
-  return {
-    isSupported: function (currentVersion, oldVersion, options, enterprise, cluster) {
-      let currentVersionSemver = semver.parse(semver.coerce(currentVersion));
-      let oldVersionSemver = semver.parse(semver.coerce(oldVersion));
-      return semver.gt(oldVersionSemver, "3.7.0");
-    },
-
-    makeDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
-      // All items created must contain dbCount
-      // documentation link: https://www.arangodb.com/docs/3.7/analyzers.html
-
-      print(`making per database data ${dbCount}`);
-      function createAnalyzer(analyzerName, analyzerCreationQuery){
-        // creating analyzer
-        let text = createSafe(analyzerName,
-          function () {
-            return analyzerCreationQuery
-          }, function () {
-            if (a.analyzer(analyzerName) === null) {
-              throw new Error(`${analyzerName} analyzer creation failed!`);
-            }
-          });
-      }
-
-      //identity analyzer properties
-      let identity = `identity_${dbCount}`;
-      let identityQuery = a.save(`${identity}`, "identity");
-
-      //delimiter analyzer properties
-      let delimiter = `delimiter_${dbCount}`;
-      let delimiterQuery =
-      a.save(`${delimiter}`, "delimiter",
-      {delimiter: "-"}, ["frequency", "norm", "position"]);
-
-      //stem analyzer properties
-      let stem = `stem_${dbCount}`;
-      let stemQuery =
-      a.save(`${stem}`, "stem", {locale: "en.utf-8"}, ["frequency",
-      "norm", "position"]);
-
-      //norm upper analyzer properties
-      let normUpper = `normUpper_${dbCount}`;
-      let normUpperQuery =
-      a.save(`${normUpper}`, "norm", {locale: "en.utf-8", case: "upper"}, ["frequency",
-      "norm", "position"]);
-
-      //norm Accent analyzer properties
-      let normAccent = `normAccent_${dbCount}`;
-      let normAccentQuery =
-      a.save(`${normAccent}`, "norm", {locale: "en.utf-8",accent: false}, ["frequency",
-      "norm", "position"]);
-
-      //n-gram analyzer properties
-      let ngram = `ngram_${dbCount}`;
-      let ngramQuery =
-      a.save(`${ngram}`, "ngram", {min: 3,max: 3,preserveOriginal: false,streamType: "utf8"},
-      ["frequency", "norm", "position"]);
-
-      //n-gram bigram analyzer properties
-      let nBigramMarkers = `nBigramMarkers_${dbCount}`;
-      let nBigramMarkersQuery =
-      a.save(`${nBigramMarkers}`, "ngram", {min: 2, max: 2, preserveOriginal: true, startMarker: "^",
-      endMarker: "$", streamType: "utf8"}, ["frequency", "norm", "position"]);
-
-      //text edge n-gram analyzer properties
-      let textEdgeNgram = `textEdgeNgram_${dbCount}`;
-      let textEdgeNgramQuery =
-      a.save(`${textEdgeNgram}`, "text", {edgeNgram: { min: 3, max: 8, preserveOriginal: true },locale: "en.utf-8", 
-      case: "lower",accent: false,stemming: false,stopwords: [ "the" ]}, ["frequency","norm","position"])
-
-
-      //text analyzer properties
-      let text = `text_${dbCount}`;
-      let textQuery =
-      a.save(`${text}`, "text", {locale: "el.utf-8",
-      stemming: true,
-      case: "lower",
-      accent: false,
-      stopwords: []
-      }, ["frequency", "norm", "position"]);
-
-
-      //creating identity analyzer
-      createAnalyzer(identity, identityQuery)
-      //creating delimiter analyzer
-      createAnalyzer(delimiter, delimiterQuery)
-      //creating stem analyzer
-      createAnalyzer(stem, stemQuery)
-      //creating normUpper analyzer
-      createAnalyzer(normUpper, normUpperQuery)
-      //creating normAccent analyzer
-      createAnalyzer(normAccent, normAccentQuery)
-      //creating ngram analyzer
-      createAnalyzer(ngram, ngramQuery)
-      //creating ngram analyzer
-      createAnalyzer(nBigramMarkers, nBigramMarkersQuery)
-      //creating text analyzer
-      createAnalyzer(text, textQuery)
-      //creating textEdgeNgram analyzer
-      createAnalyzer(textEdgeNgram, textEdgeNgramQuery)
-
-      return 0;
-    },
-    checkDataDB: function (options, isCluster, isEnterprise, database, dbCount, readOnly) {
-      print(`checking data ${dbCount}`);
-      progress(`checking data with ${dbCount}`);
-
-      //This function will check any analyzer's properties
-      function checkProperties(analyzer_name, obj1, obj2) {
-        const obj1Length = Object.keys(obj1).length;
-        const obj2Length = Object.keys(obj2).length;
-
-        if (obj1Length === obj2Length) {
-            return Object.keys(obj1).every(
-                (key) => obj2.hasOwnProperty(key)
-                   && obj2[key] === obj1[key]);
-        } else {
-          throw new Error(`${analyzer_name} analyzer's type missmatched!`);
-        }
-      };
-
-      //This function will check any analyzer's equality with expected server response
-      function arraysEqual(a, b) {
-        if ((a === b) && (a === null || b === null) && (a.length !== b.length)){
-          throw new Error("Didn't get the expected response from the server!");
-        }
-      }
-
-      // this function will check everything regardin given analyzer
-      function checkAnalyzer(analyzerName, expectedType, expectedProperties, expectedResult, queryResult){
-        if (a.analyzer(analyzerName) === null) {
-          throw new Error(`${analyzerName} analyzer creation failed!`);
-        }
-
-        //checking analyzer's name
-        let testName = a.analyzer(analyzerName).name();
-        let expectedName = `_system::${analyzerName}`;
-        if (testName !== expectedName) {
-          throw new Error(`${analyzerName} analyzer not found`);
-        }
-        progress();
-
-        //checking analyzer's type
-        let testType = a.analyzer(analyzerName).type();
-        if (testType !== expectedType){
-          throw new Error(`${analyzerName} analyzer type missmatched!`);
-        }
-        progress();
-
-        //checking analyzer's properties
-        let testProperties = a.analyzer(analyzerName).properties();
-        checkProperties(analyzerName, testProperties, expectedProperties)
-
-        progress();
-
-        //checking analyzer's query results
-        arraysEqual(expectedResult, queryResult);
-
-        progress();
-      }
-
-      //-------------------------------identity----------------------------------
-
-      let identity = `identity_${dbCount}`;
-      let identityType = "identity";
-      let identityProperties = {};
-      let identityExpectedResult =[
+  return [
+    {
+      analyzerName: `identity_${dbCount}`,
+      bindVars: {
+        analyzerName: `identity_${dbCount}`
+      },
+      query: "RETURN TOKENS('UPPER lower dïäcríticš', @analyzerName)",
+      analyzerProperties: [
+        "identity"
+      ],
+      analyzerType: "identity",
+      properties: {
+      },
+      expectedResult: [
         [
           "UPPER lower dïäcríticš"
         ]
-      ];
-
-      let identityQueryReuslt = db._query(`RETURN TOKENS("UPPER lower dïäcríticš", "${identity}")`).toArray();
-
-      checkAnalyzer(identity, identityType, identityProperties, identityExpectedResult, identityQueryReuslt)
-
-      //-------------------------------Delimiter----------------------------------
-
-      let delimiter = `delimiter_${dbCount}`;
-      let delimiterType = "delimiter";
-      let delimiterProperties = {
+      ]
+    },
+    {
+      analyzerName: `delimiter_${dbCount}`,
+      bindVars: {
+        analyzerName: `delimiter_${dbCount}`
+      },
+      query: "RETURN TOKENS('some-delimited-words', @analyzerName)",
+      analyzerProperties: [
+        "delimiter",
+        {
+          delimiter: "-"
+        },
+        [
+          "frequency",
+          "norm",
+          "position"
+        ]
+      ],
+      analyzerType: "delimiter",
+      properties: {
         "delimiter" : "-"
-      };
-      let delimiterExpectedResult =[
+      },
+      expectedResult: [
         [
           "some",
           "delimited",
           "words"
         ]
-      ];
-
-      let delimiterQueryReuslt = db._query(`RETURN TOKENS("some-delimited-words", "${delimiter}")`).toArray();
-
-      checkAnalyzer(delimiter, delimiterType, delimiterProperties, delimiterExpectedResult, delimiterQueryReuslt)
-
-      //-------------------------------stem----------------------------------
-
-      let stem = `stem_${dbCount}`;
-      let stemType = "stem";
-      let stemProperties = {
+      ]
+    },
+    {
+      analyzerName: `stem_${dbCount}`,
+      bindVars: {
+        analyzerName: `stem_${dbCount}`
+      },
+      query: "RETURN TOKENS('databases', @analyzerName)",
+      analyzerProperties: [
+        "stem",
+        {
+          locale: "en.utf-8"
+        },
+        [
+          "frequency",
+          "norm",
+          "position"
+        ]
+      ],
+      analyzerType: "stem",
+      properties: {
         "locale" : "en"
-      };
-      let stemExpectedResult =[
+      },
+      expectedResult: [
         [
           "databas"
         ]
-      ];
-
-      let stemAnalyzerQueryReuslt = db._query(`RETURN TOKENS("databases", "${stem}")`).toArray();
-
-      checkAnalyzer(stem, stemType, stemProperties, stemExpectedResult, stemAnalyzerQueryReuslt)
-
-      //-------------------------------norm upper----------------------------------
-
-      let normUpper = `normUpper_${dbCount}`;
-      let normType = "norm";
-      let normProperties = {
+      ]
+    },
+    {
+      analyzerName: `normUpper_${dbCount}`,
+      bindVars: {
+        analyzerName: `normUpper_${dbCount}`
+      },
+      query: "RETURN TOKENS('UPPER lower dïäcríticš', @analyzerName)",
+      analyzerProperties: [
+        "norm",
+        {
+          locale: "en.utf-8",
+          case: "upper"
+        },
+        [
+          "frequency",
+          "norm",
+          "position"
+        ]
+      ],
+      analyzerType: "norm",
+      properties: {
         "locale" : "en",
         "case" : "upper",
         "accent" : true
-      };
-      let normExpectedResult =[
+      },
+      expectedResult: [
         [
           "UPPER LOWER DÏÄCRÍTICŠ"
         ]
-      ];
-
-      let normQueryReuslt = db._query(`RETURN TOKENS("UPPER lower dïäcríticš", "${normUpper}")`).toArray();
-
-      checkAnalyzer(normUpper, normType, normProperties, normExpectedResult, normQueryReuslt)
-
-      //-------------------------------norm Accent----------------------------------
-
-      let normAccent = `normAccent_${dbCount}`;
-      let normAccentType = "norm";
-      let normAccentProperties = {
+      ]
+    },
+    {
+      analyzerName: `normAccent_${dbCount}`,
+      bindVars: {
+        analyzerName: `normAccent_${dbCount}`
+      },
+      query: "RETURN TOKENS('UPPER lower dïäcríticš', @analyzerName)",
+      analyzerProperties: [
+        "norm",
+        {
+          locale: "en.utf-8",
+          accent: false
+        },
+        [
+          "frequency",
+          "norm",
+          "position"
+        ]
+      ],
+      analyzerType: "norm",
+      properties: {
         "locale" : "en",
         "case" : "none",
         "accent" : false
-      };
-      let normAccentExpectedResult =[
+      },
+      expectedResult: [
         [
           "UPPER lower diacritics"
         ]
-      ];
-
-      let normAccentQueryReuslt = db._query(`RETURN TOKENS("UPPER lower dïäcríticš", "${normAccent}")`).toArray();
-
-      checkAnalyzer(normAccent, normAccentType, normAccentProperties, normAccentExpectedResult, normAccentQueryReuslt)
-
-      //-------------------------------ngram----------------------------------
-
-      let ngram = `ngram_${dbCount}`;
-      let ngramType = "ngram";
-      let ngramProperties = {
+      ]
+    },
+    {
+      analyzerName: `ngram_${dbCount}`,
+      bindVars: {
+        analyzerName: `ngram_${dbCount}`
+      },
+      query: "RETURN TOKENS('foobar', @analyzerName)",
+      analyzerProperties: [
+        "ngram",
+        {
+          min: 3,
+          max: 3,
+          preserveOriginal: false,
+          streamType: "utf8"
+        },
+        [
+          "frequency",
+          "norm",
+          "position"
+        ]
+      ],
+      analyzerType: "ngram",
+      properties: {
         "min" : 3,
         "max" : 3,
         "preserveOriginal" : false,
         "streamType" : "utf8",
         "startMarker" : "",
         "endMarker" : ""
-      };
-      let ngramExpectedResult =[
+      },
+      expectedResult: [
         [
           "foo",
           "oob",
           "oba",
           "bar"
         ]
-      ];
-
-      let ngramQueryReuslt = db._query(`RETURN TOKENS("foobar", "${ngram}")`).toArray();
-
-      checkAnalyzer(ngram, ngramType, ngramProperties, ngramExpectedResult, ngramQueryReuslt)
-
-      //-------------------------------nBigramMarkers----------------------------------
-
-      let nBigramMarkers = `nBigramMarkers_${dbCount}`;
-      let nBigramMarkersType = "ngram";
-      let nBigramMarkersProperties = {
+      ]
+    },
+    {
+      analyzerName: `nBigramMarkers_${dbCount}`,
+      bindVars: {
+        analyzerName: `nBigramMarkers_${dbCount}`
+      },
+      query: "RETURN TOKENS('foobar', @analyzerName)",
+      analyzerProperties: [
+        "ngram",
+        {
+          min: 2,
+          max: 2,
+          preserveOriginal: true,
+          startMarker: "^",
+          endMarker: "$",
+          streamType: "utf8"
+        },
+        [
+          "frequency",
+          "norm",
+          "position"
+        ]
+      ],
+      analyzerType: "ngram",
+      properties: {
         "min" : 2,
         "max" : 2,
         "preserveOriginal" : true,
         "streamType" : "utf8",
         "startMarker" : "^",
         "endMarker" : "$"
-      };
-      let nBigramMarkersExpectedResult =[
+      },
+      expectedResult: [
         [
           "^fo",
           "^foobar",
@@ -299,44 +228,40 @@
           "ba",
           "ar$"
         ]
-      ];
-
-      let nBigramMarkersQueryReuslt = db._query(`RETURN TOKENS("foobar", "${nBigramMarkers}")`).toArray();
-
-      checkAnalyzer(nBigramMarkers, nBigramMarkersType, nBigramMarkersProperties, nBigramMarkersExpectedResult, nBigramMarkersQueryReuslt)
-
-      //---------------------------------text-------------------------------------
-
-      let text = `text_${dbCount}`;
-      let textType = "text";
-      let textProperties = {
-        "locale" : "el.utf-8",
-        "case" : "lower",
-        "stopwords" : [ ],
-        "accent" : false,
-        "stemming" : true
-      };
-      let textExpectedResult =[
+      ]
+    },
+    {
+      analyzerName: `textEdgeNgram_${dbCount}`,
+      bindVars: {
+        analyzerName: `textEdgeNgram_${dbCount}`
+      },
+      query: "RETURN TOKENS('The quick brown fox jumps over the dogWithAVeryLongName', @analyzerName)",
+      analyzerProperties: [
+        "text",
+        {edgeNgram:
+          {
+            min: 3,
+            max: 8,
+            preserveOriginal: true
+          },
+          locale: "en.utf-8", 
+          case: "lower",
+          accent: false,
+          stemming: false,
+          stopwords: [ "the" ]
+        },
         [
-          "crazy",
-          "fast",
-          "nosql",
-          "database"
+          "frequency",
+          "norm",
+          "position"
         ]
-      ];
-
-      let textQueryReuslt = db._query(`RETURN TOKENS("Crazy fast NoSQL-database!", "${text}")`).toArray();
-
-      checkAnalyzer(text, textType, textProperties, textExpectedResult, textExpectedResult)
-
-      //-------------------------------TextedgeNgram----------------------------------
-
-      let textEdgeNgram = `textEdgeNgram_${dbCount}`;
-      let textEdgeNgramType = "text";
-      let textEdgeNgramProperties = {
+      ],
+      analyzerType: "text",
+      properties: {
         "locale" : "en",
         "case" : "lower",
-        "stopwords" : [
+        "stopwords" : 
+        [
           "the"
         ],
         "accent" : false,
@@ -346,8 +271,8 @@
           "max" : 8,
           "preserveOriginal" : true
         }
-      };
-      let textEdgeNgramExpectedResult =[
+      },
+      expectedResult: [
         [
           "qui",
           "quic",
@@ -369,70 +294,190 @@
           "dogwitha",
           "dogwithaverylongname"
         ]
-      ];
+      ]
+    },
+    {
+      analyzerName: `text_${dbCount}`,
+      bindVars: {
+        analyzerName: `text_${dbCount}`
+      },
+      query: "RETURN TOKENS('Crazy fast NoSQL-database!', @analyzerName)",
+      analyzerProperties: [
+        "text",
+        {
+          locale: "el.utf-8",
+          stemming: true,
+          case: "lower",
+          accent: false,
+          stopwords: []
+        },
+        [
+          "frequency",
+          "norm",
+          "position"
+        ]
+      ],
+      analyzerType: "text",
+      properties: {
+        "locale" : "el.utf-8",
+        "case" : "lower",
+        "stopwords" : [ ],
+        "accent" : false,
+        "stemming" : true
+      },
+      expectedResult: [
+        [
+          "crazy",
+          "fast",
+          "nosql",
+          "database"
+        ]
+      ]
+    }
+  ];
+}
 
-      let textEdgeNgramQueryReuslt = db._query(`RETURN TOKENS("The quick brown fox jumps over the dogWithAVeryLongName",
-      "${textEdgeNgram}")`).toArray();
+(function () {
+  const a = require("@arangodb/analyzers");
+  return {
+    isSupported: function (currentVersion, oldVersion, options, enterprise) {
+      let currentVersionSemver = semver.parse(semver.coerce(currentVersion));
+      let oldVersionSemver = semver.parse(semver.coerce(oldVersion));
+      return semver.gt(oldVersionSemver, "3.7.0");
+    },
 
-      checkAnalyzer(textEdgeNgram, textEdgeNgramType, textEdgeNgramProperties, textEdgeNgramExpectedResult, textEdgeNgramExpectedResult)
+    makeDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
+      // All items created must contain dbCount
+      // documentation link: https://www.arangodb.com/docs/3.7/analyzers.html
 
+      print(`607: making per database data ${dbCount}`);
+      getTestData_607(dbCount).forEach((test) => {
+        let q = analyzers.save(test.analyzerName,
+                               ...test.analyzerProperties
+                              );
+        if (test.hasOwnProperty('collection')) {
+          progress(`607: creating ${test.collection} `);
+          createCollectionSafe(test.collection, 2, 1).insert(test.colTestData);
+          progress(`607: creating ${test["@testView"]} `);
+          db._createView(test.bindVars["@testView"],
+                         "arangosearch", {
+                           links: {
+                             [test.collection]:
+                             {
+                               analyzers: [test.analyzerName],
+                               includeAllFields: true
+                             }
+                           }
+                         }
+                        );
+        }
+        progress(`607: creating ${test.analyzerName}`);
+        createAnalyzer(test.analyzerName, q);
+      });
       return 0;
     },
-    clearDataDB: function (options, isCluster, isEnterprise, dbCount, database) {
-      print(`checking data ${dbCount}`);
+    checkDataDB: function (options, isCluster, isEnterprise, database, dbCount, readOnly) {
+      print(`607: checking data ${dbCount}`);
+      progress(`607: checking data with ${dbCount}`);
+
+      //This function will check any analyzer's properties
+      function checkProperties(analyzer_name, obj1, obj2) {
+        const obj1Length = Object.keys(obj1).length;
+        const obj2Length = Object.keys(obj2).length;
+
+        if (obj1Length === obj2Length) {
+            return Object.keys(obj1).every(
+                (key) => obj2.hasOwnProperty(key)
+                   && obj2[key] === obj1[key]);
+        } else {
+          throw new Error(`607: ${analyzer_name} analyzer's type missmatched! ${JSON.stringify(obj1)} != ${JSON.stringify(obj2)}`);
+        }
+      };
+
+      //This function will check any analyzer's equality with expected server response
+      function arraysEqual(a, b) {
+        if ((a === b) && (a === null || b === null) && (a.length !== b.length)){
+          throw new Error("607: Didn't get the expected response from the server!");
+        }
+      }
+
+      // this function will check everything regarding given analyzer
+      function checkAnalyzer(test){
+        let queryResult = db._query(test);
+
+        if (analyzers.analyzer(test.analyzerName) === null) {
+          throw new Error(`607: ${test.analyzerName} analyzer creation failed!`);
+        }
+
+        progress(`607: ${test.analyzerName} checking analyzer's name`);
+        let testName = analyzers.analyzer(test.analyzerName).name();
+        let expectedName = `_system::${test.analyzerName}`;
+        if (testName !== expectedName) {
+          throw new Error(`607: ${test.analyzerName} analyzer not found`);
+        }
+
+        progress(`607: ${test.analyzerName} checking analyzer's type`);
+        let testType = analyzers.analyzer(test.analyzerName).type();
+        if (testType !== test.analyzerType){
+          throw new Error(`607: ${test.analyzerName} analyzer type missmatched! ${testType} != ${test.analyzerType}`);
+        }
+
+        progress(`607: ${test.analyzerName} checking analyzer's properties`);
+        let testProperties = analyzers.analyzer(test.analyzerName).properties();
+        checkProperties(test.analyzerName, testProperties, test.properties);
+
+        progress(`607: ${test.analyzerName} checking analyzer's query results`);
+        arraysEqual(test.expectedResult, queryResult);
+
+        progress(`607: ${test.analyzerName} done`);
+      }
+
+      getTestData_607(dbCount).forEach(test => {
+        checkAnalyzer(test);
+      });
+      return 0;
+    },
+    clearDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
+      print(`607: checking data ${dbCount}`);
       // deleting analyzer
       function deleteAnalyzer(analyzerName){
         try {
-          const array = a.toArray();
+          const array = analyzers.toArray();
           for (let i = 0; i < array.length; i++) {
             const name = array[i];
             if (name === analyzerName) {
-              a.remove(analyzerName);
+              analyzers.remove(analyzerName);
             }
           }
           // checking created text analyzer is deleted or not
-          if (a.analyzer(analyzerName) != null) {
-            throw new Error(`${analyzerName} analyzer isn't deleted yet!`);
+          if (analyzers.analyzer(analyzerName) != null) {
+            throw new Error(`607: ${analyzerName} analyzer isn't deleted yet!`);
           }
         } catch (e) {
           print(e);
         }
-        progress();
+        progress(`607: deleted ${analyzerName}`);
       }
-
-      // declaring all the analyzer's name
-      let identity = `identity_${dbCount}`;
-      let delimiter = `delimiter_${dbCount}`;
-      let stem = `stem_${dbCount}`;
-      let normUpper = `normUpper_${dbCount}`;
-      let normAccent = `normAccent_${dbCount}`;
-      let ngram = `ngram_${dbCount}`;
-      let nBigramMarkers = `nBigramMarkers_${dbCount}`;
-      let text = `text_${dbCount}`;
-      let textEdgeNgram = `textEdgeNgram_${dbCount}`;
-
-      // deleting delimiter analyzer
-      deleteAnalyzer(identity)
-      progress();
-      deleteAnalyzer(delimiter)
-      progress();
-      deleteAnalyzer(stem)
-      progress();
-      deleteAnalyzer(normUpper)
-      progress();
-      deleteAnalyzer(normAccent)
-      progress();
-      deleteAnalyzer(nBigramMarkers)
-      progress();
-      deleteAnalyzer(ngram)
-      progress();
-      deleteAnalyzer(text)
-      progress();
-      deleteAnalyzer(textEdgeNgram)
-      progress();
-
+      getTestData_607(dbCount).forEach(test => {
+        if (test.hasOwnProperty('collection')) {
+          progress(`607: deleting view ${test.bindVars['@testView']} `);
+          try {
+            db._dropView(test.bindVars['@testView']);
+          } catch (ex) {
+            print(ex);
+          }
+          progress(`607: deleting collection ${test.collection} `);
+          try {
+            db._drop(test.collection);
+          } catch (ex) {
+            print(ex);
+          }
+        }
+        progress(`607: deleting Analyzer ${test.analyzerName}`);
+        deleteAnalyzer(test.analyzerName);
+      });
       return 0;
-    },
+    }
   };
 
 }());

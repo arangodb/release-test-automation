@@ -2,8 +2,8 @@
 
 (function () {
   let egm;
-  let vertices = JSON.parse(fs.readFileSync(`${PWD}/vertices.json`));
-  let smartEdges = JSON.parse(fs.readFileSync(`${PWD}/edges.json`));
+  let vertices = JSON.parse(fs.readFileSync(`${PWD}/makedata_suites/500_550_570_vertices.json`));
+  let smartEdges = JSON.parse(fs.readFileSync(`${PWD}/makedata_suites/550_570_edges.json`));
 
   return {
     isSupported: function (currentVersion, oldVersion, options, enterprise, cluster) {
@@ -107,8 +107,8 @@
       progress();
       return 0;
     },
-    clearDataDB: function (options, isCluster, isEnterprise, dbCount, database) {
-      print(`Clearing data. Database: ${database}. DBCount: ${dbCount}`);
+    clearDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
+      print(`570: Clearing data. Database: ${database}. DBCount: ${dbCount}`);
       let baseName = database;
       if (baseName === "_system") {
         baseName = "system";
@@ -117,9 +117,10 @@
       db._useDatabase(databaseName);
       // Drop graph:
       let egm = require("@arangodb/enterprise-graph");
-      progress();
       try {
         egm._drop(`G_enterprise_${dbCount}`, true);
+        db._useDatabase('_system');
+        db._dropDatabase(databaseName);
       } catch (e) { }
       return 0;
     }
