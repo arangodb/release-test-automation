@@ -9,6 +9,7 @@
     },
     checkData: function (options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
       // depends on the 550_enterprise_graph.js to be there
+      const ArangoError = require('@arangodb').ArangoError;
       print(`checking data ${dbCount} ${loopCount}`);
       try {
         const vColName = `patents_smart_${ccount}`;
@@ -27,8 +28,12 @@
             throw new Error(`Validator did not trigger on collection ${vColName} stored illegal document`);
           } catch (e) {
             // We only allow the following two errors, all others should be reported.
-            if (e.errorNum !== 4003 && e.errorNum !== 4001) {
-              throw new Error(`Validator of collection ${vColName} on attempt to store ${doc} returned unexpected error ${JSON.stringify(e)}`);
+            if (e instanceof ArangoError) {
+              if (e.errorNum !== 4003 && e.errorNum !== 4001) {
+                throw new Error(`Validator of collection ${colName} on atempt to store ${doc} returned unexpected error: ${e.errorNum} - ${e.message}`)
+              }
+            } else {
+              throw(e);
             }
           }
         }
