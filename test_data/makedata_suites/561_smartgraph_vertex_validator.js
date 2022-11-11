@@ -18,42 +18,24 @@
 
         const vCol = db._collection(vColName);
         if (!vCol) {
-          return {
-            fail: true,
-            message: `The smartGraph "${gName}" was not created correctly, collection ${vColName} missing`
-          };
+          throw new Error(`The smartGraph "${gName}" was not created correctly, collection ${vColName} missing`)
         }
 
         const testValidator = doc => {
           try {
             vCol.save(doc);
-            return {
-              fail: true,
-              message: `Validator did not trigger on collection ${vColName} stored illegal document`
-            };
+            throw new Error(`Validator did not trigger on collection ${vColName} stored illegal document`);
           } catch (e) {
             // We only allow the following two errors, all others should be reported.
             if (e.errorNum !== 4003 && e.errorNum !== 4001) {
-              return {
-                fail: true,
-                message: `Validator of collection ${vColName} on attempt to store ${doc} returned unexpected error ${JSON.stringify(e)}`
-              };
+              throw new Error(`Validator of collection ${vColName} on attempt to store ${doc} returned unexpected error ${JSON.stringify(e)}`);
             }
           }
-          return {fail: false};
         }
 
         // We try to insert a document with the wrong key. This should be rejected by the internal validator.
-        let res = testValidator(mismatchedSGAPrefixDoc);
-        if (res.fail) {
-          return res;
-        }
-        res = testValidator(missingSGAPrefixDoc);
-        if (res.fail) {
-          return res;
-        }
-
-        return {fail: false};
+        testValidator(mismatchedSGAPrefixDoc);
+        testValidator(missingSGAPrefixDoc);
       } finally {
         // Always report that we tested SmartGraph vertex Validators
         progress("Tested SmartGraph vertex validators");

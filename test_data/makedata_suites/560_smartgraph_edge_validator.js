@@ -27,42 +27,22 @@
         const testValidator = (colName, doc) => {
           let col = db._collection(colName);
           if (!col) {
-            return {
-              fail: true,
-              message: `The smartGraph "${gName}" was not created correctly, collection ${colName} missing`
-            };
+            throw new Error(`The smartGraph "${gName}" was not created correctly, collection ${colName} missing`);
           }
           try {
             col.save(doc);
-            return {
-              fail: true,
-              message: `Validator did not trigger on collection ${colName} stored illegal document`
-            };
+            throw new error(`Validator did not trigger on collection ${colName} stored illegal document`);
           } catch (e) {
             // We only allow the following two errors, all others should be reported.
             if (e.errorNum !== 1466 && e.errorNum !== 1233) {
-              return {
-                fail: true,
-                message: `Validator of collection ${colName} on atempt to store ${doc} returned unexpected error ${JSON.stringify(e)}`
-              };
+              throw new Error(`Validator of collection ${colName} on atempt to store ${doc} returned unexpected error ${JSON.stringify(e)}`)
             }
           }
-          return {fail: false};
         };
         // We try to insert a document into the wrong shard. This should be rejected by the internal validator
-        let res = testValidator(`_local_${eColName}`, remoteDocument);
-        if (res.fail) {
-          return res;
-        }
-        res = testValidator(`_from_${eColName}`, localDocument);
-        if (res.fail) {
-          return res;
-        }
-        res = testValidator(`_to_${eColName}`, localDocument);
-        if (res.fail) {
-          return res;
-        }
-        return {fail: false};
+        testValidator(`_local_${eColName}`, remoteDocument);
+        testValidator(`_from_${eColName}`, localDocument);
+        testValidator(`_to_${eColName}`, localDocument);
       } finally {
         // Always report that we tested SmartGraph edge Validators
         progress("Tested SmartGraph edge validators");
