@@ -36,6 +36,7 @@
 
 ## Mac OS
 :
+    `brew install libmagic`
     `brew install gnu-tar`
     `pip3 install click psutil requests pyyaml semver magic pexpect selenium beautifultable tabulate allure_python_commons certifi`
     `brew install gdb`
