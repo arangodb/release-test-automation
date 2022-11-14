@@ -72,7 +72,7 @@ class TestDriver:
             kwargs["package_dir"] = (self.launch_dir / kwargs["package_dir"]).resolve()
         if not kwargs["package_dir"].exists():
             kwargs["package_dir"].mkdir(parents=True, exist_ok=True)
-
+        kwargs["base_config"].package_dir = kwargs["package_dir"]
         self.base_config = kwargs["base_config"]
         lh.configure_logging(kwargs["verbose"])
         self.abort_on_error = kwargs["abort_on_error"]
