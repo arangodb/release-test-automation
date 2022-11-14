@@ -36,6 +36,12 @@ let PWD = fs.makeAbsolute(PWDRE.exec(stack)[1]);
 let isCluster = arango.GET("/_admin/server/role").role === "COORDINATOR";
 let database = "_system";
 let databaseName;
+const wantFunctions = ['makeDataDB', 'makeData'];
+
+const {
+  scanMakeDataPaths,
+  mainTestLoop
+} = require(fs.join(PWD, 'common'));
 
 const optionsDefaults = {
   minReplicationFactor: 1,
@@ -77,42 +83,6 @@ function progress (gaugeName) {
     print(`# - ${gaugeName},${tStart},${delta}`);
   }
   tStart = now;
-}
-
-let MakeDataDbFuncs = [];
-let MakeDataFuncs = [];
-
-function scanTestPaths (options) {
-  let suites = _.filter(
-    fs.list(fs.join(PWD, 'makedata_suites')),
-    function (p) {
-      return (p.substr(-3) === '.js');
-    }).map(function (x) {
-      return fs.join(fs.join(PWD, 'makedata_suites'), x);
-    }).sort();
-  suites.forEach(suitePath => {
-    let supported = "";
-    let unsupported = "";
-    let suite = require("internal").load(suitePath);
-    if (suite.isSupported(dbVersion, dbVersion, options, enterprise, isCluster)) {
-      if ('makeData' in suite) {
-        supported += "L" ;
-        MakeDataFuncs.push(suite.makeData);
-      } else {
-        unsupported += " ";
-      }
-      if ('makeDataDB' in suite) {
-        supported += "D";
-        MakeDataDbFuncs.push(suite.makeDataDB);
-      } else {
-        unsupported += " ";
-      }
-    } else {
-      supported = " ";
-      unsupported = " ";
-    }
-    print("[" + supported +"]   " + unsupported + suitePath);
-  });
 }
 
 function getShardCount (defaultShardCount) {
@@ -208,45 +178,15 @@ function createIndexSafe (options) {
   });
 }
 
-scanTestPaths(options);
-let dbCount = 0;
-while (dbCount < options.numberOfDBs) {
-  tStart = time();
-  timeLine = [tStart];
-  MakeDataDbFuncs.forEach(func => {
+const fns = scanMakeDataPaths(options, PWD, wantFunctions, 'makeData');
+mainTestLoop(options, isCluster, enterprise, fns, function(database) {
+  try {
     db._useDatabase("_system");
-    dbCount += func(options,
-                    isCluster,
-                    enterprise,
-                    database,
-                    dbCount);
-  });
-  progress('createDB');
-
-  let loopCount = options.collectionCountOffset;
-  while (loopCount < options.collectionMultiplier) {
-    progress();
-    MakeDataFuncs.forEach(func => {
-      func(options,
-           isCluster,
-           enterprise,
-           dbCount,
-           loopCount);
+    db._create('_fishbowl', {
+      isSystem: true,
+      distributeShardsLike: '_users'
     });
-    loopCount++;
-  }
-
-  console.error(timeLine.join());
-  dbCount++;
-}
-
-try {
-  db._useDatabase("_system");
-  db._create('_fishbowl', {
-    isSystem: true,
-    distributeShardsLike: '_users'
-  });
-} catch (err) {}
-
+  } catch (err) {}
+});
 print('YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY');
 print(db._databases());

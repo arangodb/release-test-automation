@@ -38,6 +38,13 @@ let isCluster = arango.GET("/_admin/server/role").role === "COORDINATOR";
 let database = "_system";
 let databaseName;
 
+const wantFunctions = ['ccheckDataDB', 'checkData'];
+
+const {
+  scanMakeDataPaths,
+  mainTestLoop
+} = require(fs.join(PWD, 'common'));
+
 const optionsDefaults = {
   disabledDbserverUUID: "",
   minReplicationFactor: 1,
@@ -80,41 +87,6 @@ function progress (gaugeName) {
   tStart = now;
 }
 
-let CheckDataFuncs = [];
-let CheckDataDbFuncs = [];
-function scanTestPaths (options) {
-  let suites = _.filter(
-    fs.list(fs.join(PWD, 'makedata_suites')),
-    function (p) {
-      return (p.substr(-3) === '.js');
-    }).map(function (x) {
-      return fs.join(fs.join(PWD, 'makedata_suites'), x);
-    }).sort();
-  suites.forEach(suitePath => {
-    let supported = "";
-    let unsupported = "";
-    let suite = require("internal").load(suitePath);
-    if (suite.isSupported(dbVersion, options.oldVersion, options, enterprise, isCluster)) {
-      if ('checkData' in suite) {
-        supported += "L" ;
-        CheckDataFuncs.push(suite.checkData);
-      } else {
-        unsupported += " ";
-      }
-      if ('checkDataDB' in suite) {
-        supported += "D";
-        CheckDataDbFuncs.push(suite.checkDataDB);
-      } else {
-        unsupported += " ";
-      }
-    } else {
-      supported = " ";
-      unsupported = " ";
-    }
-    print("[" + supported +"]   " + unsupported + suitePath);
-  });
-}
-
 function getShardCount (defaultShardCount) {
   if (options.singleShard) {
     return 1;
@@ -132,36 +104,7 @@ function getReplicationFactor (defaultReplicationFactor) {
   return defaultReplicationFactor;
 }
 
-scanTestPaths(options);
-let dbCount = 0;
-while (dbCount < options.numberOfDBs) {
-  tStart = time();
-  timeLine = [tStart];
-  db._useDatabase("_system");
-
-  CheckDataDbFuncs.forEach(func => {
-    db._useDatabase("_system");
-    dbCount += func(options,
-                    isCluster,
-                    enterprise,
-                    database,
-                    dbCount,
-                    options.readOnly);
-  });
-
-  let loopCount = options.collectionCountOffset;
-  while (loopCount < options.collectionMultiplier) {
-    progress();
-    CheckDataFuncs.forEach(func => {
-      func(options,
-           isCluster,
-           enterprise,
-           dbCount,
-           loopCount);
-    });
-    loopCount++;
-  }
-
+const fns = scanMakeDataPaths(options, PWD, wantFunctions, 'checkData');
+mainTestLoop(options, isCluster, enterprise, fns, function(database) {
   console.error(timeLine.join());
-  dbCount++;
-}
+});
