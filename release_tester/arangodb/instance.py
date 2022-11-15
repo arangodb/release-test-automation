@@ -74,7 +74,7 @@ class AfoServerState(IntEnum):
 class Instance(ABC):
     """abstract instance manager"""
 
-    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=too-many-public-methods
     def __init__(
         self,
         instance_type,
@@ -110,7 +110,7 @@ class Instance(ABC):
     def get_structure(self):
         """ return instance structure like testing.js does """
         url = ('https' if self.ssl else 'http') + '127.0.0.1:' + str(self.port) + '/'
-        protocol = ('ssl' if self.ssl else 'tcp') 
+        protocol = ('ssl' if self.ssl else 'tcp')
         endpoint = protocol + '127.0.0.1:' + str(self.port) + '/'
         return {
             'name': self.name,
@@ -494,7 +494,7 @@ class ArangodInstance(Instance):
         while until < time.time():
             reply = None
             try:
-                reply = requests.get(self.get_local_url("") + "/_api/version")
+                reply = requests.get(self.get_local_url("") + "/_api/version", timeout=20)
                 if reply.status_code == 200:
                     return
                 print("*")
@@ -510,6 +510,7 @@ class ArangodInstance(Instance):
                 self.get_local_url("") + "/_api/version",
                 auth=HTTPBasicAuth("root", self.passvoid),
                 verify=False,
+                timeout=20
             )
         except requests.exceptions.ConnectionError:
             return AfoServerState.NOT_CONNECTED
