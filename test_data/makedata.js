@@ -178,7 +178,7 @@ function createIndexSafe (options) {
   });
 }
 
-const fns = scanMakeDataPaths(options, PWD, wantFunctions, 'makeData');
+const fns = scanMakeDataPaths(options, PWD, dbVersion, dbVersion, wantFunctions, 'makeData');
 mainTestLoop(options, isCluster, enterprise, fns, function(database) {
   try {
     db._useDatabase("_system");

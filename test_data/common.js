@@ -1,7 +1,7 @@
 /* global print, ARGUMENTS */
 //
 
-function scanMakeDataPaths (options, PWD, wantFunctions, nameString) {
+function scanMakeDataPaths (options, PWD, oldVersion, newVersion, wantFunctions, nameString) {
   let fns = [[],[]];
   const FNChars = [ 'D', 'L'];
   let suites = _.filter(
@@ -15,7 +15,7 @@ function scanMakeDataPaths (options, PWD, wantFunctions, nameString) {
     let supported = "";
     let unsupported = "";
     let suite = require("internal").load(suitePath);
-    if (suite.isSupported(dbVersion, options.oldVersion, options, enterprise, isCluster)) {
+    if (suite.isSupported(oldVersion, newVersion, options, enterprise, isCluster)) {
       let count = 0;
       wantFunctions.forEach(fn => {
         if (wantFunctions[count] in suite) {

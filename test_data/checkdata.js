@@ -104,7 +104,7 @@ function getReplicationFactor (defaultReplicationFactor) {
   return defaultReplicationFactor;
 }
 
-const fns = scanMakeDataPaths(options, PWD, wantFunctions, 'checkData');
+const fns = scanMakeDataPaths(options, PWD, dbVersion, options.oldVersion, wantFunctions, 'checkData');
 mainTestLoop(options, isCluster, enterprise, fns, function(database) {
   console.error(timeLine.join());
 });
