@@ -31,6 +31,7 @@ def get_process_tree_recursive(parent, tree, indent=''):
     return text
 
 def get_process_tree():
+    """ print a process tree """
     tree = collections.defaultdict(list)
     for process in psutil.process_iter():
         try:

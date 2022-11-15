@@ -279,12 +279,10 @@ class InstallerBase(ABC):
     def un_install_server_package_for_upgrade(self):
         """if we need to do something to the old installation on upgrade, do it here."""
 
-    # pylint: disable=no-self-use
     def install_debug_package_impl(self):
         """install the debug package"""
         return False
 
-    # pylint: disable=no-self-use
     def un_install_debug_package_impl(self):
         """uninstall the debug package"""
         return False
@@ -369,7 +367,6 @@ class InstallerBase(ABC):
         there may be execptions."""
         return semver.compare(self.cfg.version, "3.5.1") >= 0
 
-    # pylint: disable=:no-self-use
     @staticmethod
     def calc_config_file_name():
         """store our config to disk - so we can be invoked partly"""
@@ -773,7 +770,6 @@ class InstallerBase(ABC):
     def check_backup_is_created(self):
         """Check that backup was created after package upgrade"""
 
-    # pylint: disable=:no-self-use
     def supports_backup(self):
         """Does this installer support automatic backup during minor upgrade?"""
         return False

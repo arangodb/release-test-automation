@@ -339,7 +339,6 @@ class Instance(ABC):
 
     def is_line_relevant(self, line):
         """it returns true if the line from logs should be printed"""
-        # pylint: disable=no-self-use
         return "FATAL" in line or "ERROR" in line or "WARNING" in line or "{crash}" in line
 
     def search_for_warnings(self):
@@ -474,7 +473,6 @@ class ArangodInstance(Instance):
 
     def is_sync_instance(self):
         """no."""
-        # pylint: disable=no-self-use
         return False
 
     @step
@@ -794,17 +792,14 @@ class SyncInstance(Instance):
 
     def is_frontend(self):
         """no."""
-        # pylint: disable=no-self-use
         return False
 
     def is_dbserver(self):
         """no."""
-        # pylint: disable=no-self-use
         return False
 
     def is_sync_instance(self):
         """yes."""
-        # pylint: disable=no-self-use
         return True
 
     def is_line_relevant(self, line):
