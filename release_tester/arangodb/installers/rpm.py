@@ -190,7 +190,7 @@ class InstallerRPM(InstallerLinux):
         while server_install.isalive():
             progress(".")
             if server_install.exitstatus != 0:
-                raise Exception("server installation " "didn't finish successfully!")
+                raise Exception("server installation didn't finish successfully!")
 
         start = reply.find("'")
         end = reply.find("'", start + 1)
@@ -202,7 +202,7 @@ class InstallerRPM(InstallerLinux):
         pwcheckarangosh = ArangoshExecutor(self.cfg, self.instance)
         if not pwcheckarangosh.js_version_check():
             logging.error(
-                "Version Check failed -" "probably setting the default random password didn't work! %s",
+                "Version Check failed - probably setting the default random password didn't work! %s",
                 self.cfg.passvoid,
             )
 
