@@ -1,8 +1,6 @@
 /* global print, semver, progress, createSafe, createCollectionSafe, db */
 /*jslint maxlen: 100*/
 
-// const fs = require('fs')
-// const analyzers = require("@arangodb/analyzers");
 function createAnalyzer(analyzerName, analyzerCreationQuery){
   // creating analyzer
   let text = createSafe(analyzerName,
@@ -36,12 +34,12 @@ function getTestData_610(dbCount) {
       analyzerType: "classification",
       properties: {
         "model_location" : `${PWD}/makedata_suites/610_model_cooking.bin`, 
-        "top_k" : 1, 
-        "threshold" : 0 
+        "top_k" : 1,
+        "threshold" : 0
       },
       expectedResult: [
         {
-          "all" : 
+          "all" :
           [
             "__label__baking"
           ]
@@ -69,16 +67,16 @@ function getTestData_610(dbCount) {
       analyzerType: "classification",
       properties: {
         "model_location" : `${PWD}/makedata_suites/610_model_cooking.bin`, 
-        "top_k" : 2, 
-        "threshold" : 0 
+        "top_k" : 2,
+        "threshold" : 0
       },
       expectedResult: [
         { 
           "double" : [
-            "__label__baking", 
-            "__label__bread" 
-          ] 
-        } 
+            "__label__baking",
+            "__label__bread"
+          ]
+        }
       ]
     },
     {
@@ -105,7 +103,7 @@ function getTestData_610(dbCount) {
       },
       expectedResult: [
         {
-          "all" : 
+          "all" :
           [
             "__label__baking"
           ]
@@ -132,58 +130,40 @@ function getTestData_610(dbCount) {
       analyzerType: "nearest_neighbors",
       properties: {
         "model_location" : `${PWD}/makedata_suites/610_model_cooking.bin`, 
-        "top_k" : 2 
+        "top_k" : 2
       },
       expectedResult: [
         { 
-          "double" : 
+          "double" :
           [ 
-            "ingredients", 
-            "whole", 
-            "as", 
-            "in" 
-          ] 
+            "ingredients",
+            "whole",
+            "as",
+            "in"
+          ]
         }
       ]
     },
     {
-      analyzerName: `myDelimiter_${dbCount}`,
+      analyzerName: `minhash_${dbCount}`,
       bindVars: {
-        analyzerName: `myDelimiter_${dbCount}`
+        analyzerName: `minhash_${dbCount}`
       },
-      query: "RETURN TOKENS('some#delimited#words', @analyzerName)",
-      analyzerProperties: [
-        "delimiter",
-        {
-          delimiter: "#"
-        },
-        [
-          "frequency",
-          "norm",
-          "position"
-        ]
-      ],
-      analyzerType: "delimiter",
-      properties: {
-        "delimiter" : "#"
-      },
-      expectedResult: [
-        [
-          "some",
-          "delimited",
-          "words"
-        ]
-      ]
-    },
-    {
-      analyzerName: `myMinHash_${dbCount}`,
-      bindVars: {
-        analyzerName: `myMinHash_${dbCount}`,
-      },
-      query: `for d in myMinHashCol_0 filter minhash(Tokens(d.dataStr, 'myDelimiter_0'), 10) == d.mh10 collect with count into c return c`,
+      query: `LET str1 = "The quick brown fox jumps over the lazy dog."LET str2 = "The fox jumps over the crazy dog."RETURN {approx: JACCARD(TOKENS(str1, @analyzerName), TOKENS(str2, @analyzerName))}`,
       analyzerProperties: [
         "minhash",
-        { locale: "en.utf-8" },
+        {
+          analyzer:
+          {
+            type: "segmentation",
+            properties:
+            {
+              break: "alpha",
+              case: "lower"
+            }
+          },
+          numHashes: 5
+         },
         [
           "frequency",
           "norm",
@@ -191,21 +171,22 @@ function getTestData_610(dbCount) {
         ]
       ],
       analyzerType: "minhash",
-      collection: `myMinHashCol_${dbCount}`,
-      colTestData: [],
       properties: {
-        "numHashes" : 10, 
-        "analyzer" : 
-        { 
-          "type" : "delimiter", 
-          "properties" : 
-          { 
-            "delimiter" : "#" 
-          } 
-        } 
+        "numHashes" : 5,
+        "analyzer" :
+        {
+          "type" : "segmentation",
+          "properties" :
+          {
+            "case" : "lower",
+            "break" : "alpha"
+          }
+        }
       },
       expectedResult: [
-        8000
+        {
+          "approx" : 0.42857142857142855
+        }
       ]
     }
   ];
@@ -229,7 +210,7 @@ function getTestData_610(dbCount) {
         let q = analyzers.save(test.analyzerName,
                                ...test.analyzerProperties
                               );
-        if (test.hasOwnProperty('collection')) {
+        if (test.hasOwnProperty("collection")) {
           progress(`610: creating ${test.collection} `);
           createCollectionSafe(test.collection, 2, 1).insert(test.colTestData);
           progress(`610: creating ${test["@testView"]} `);
@@ -334,9 +315,9 @@ function getTestData_610(dbCount) {
       }
       getTestData_610(dbCount).forEach(test => {
         if (test.hasOwnProperty('collection')) {
-          progress(`610: deleting view ${test.bindVars['@testView']} `);
+          progress(`610: deleting view ${test.bindVars["@testView"]}`);
           try {
-            db._dropView(test.bindVars['@testView']);
+            db._dropView(test.bindVars["@testView"]);
           } catch (ex) {
             print(ex);
           }
