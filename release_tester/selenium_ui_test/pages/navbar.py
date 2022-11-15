@@ -19,8 +19,8 @@ class NavigationBarPage(UserBarPage):
     def navbar_goto(self, tag):
         """click on any of the items in the 'navbar'"""
         self.wait_for_ajax()
-        bar = self.webdriver.find_element_by_id(self.navbar_id)
-        item = bar.find_element_by_id(tag)
+        self.locator_finder_by_id(self.navbar_id)
+        item = self.locator_finder_by_id(tag)
         item.click()
         self.wait_for_ajax()
 

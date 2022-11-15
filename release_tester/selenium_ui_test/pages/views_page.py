@@ -115,6 +115,7 @@ class ViewsPage(NavigationBarPage):
                 print("Can't find the view, trying again\n")
             except TimeoutException as ex:
                 raise ex
+            self.webdriver.refresh()
 
         print(f'Checking that we get the right results for {expected_text}\n')
         if self.current_package_version() <= semver.VersionInfo.parse("3.8.100"):
@@ -200,7 +201,7 @@ class ViewsPage(NavigationBarPage):
         click_arangosearch_documentation_link_id = \
             self.locator_finder_by_link_text('ArangoSearch Views documentation')
         title = self.switch_tab(click_arangosearch_documentation_link_id)
-        expected_title = 'ArangoSearch Views Reference | ArangoSearch | Indexing | Manual | ArangoDB Documentation'
+        expected_title = '<code>arangosearch</code> Views Reference | ArangoSearch | Indexing | Manual | ArangoDB Documentation'
         assert title in expected_title, f"Expected page title {expected_title} but got {title}"
 
     def select_inside_search(self, keyword):
