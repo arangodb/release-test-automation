@@ -79,7 +79,6 @@ class BaseTestSuite(metaclass=MetaTestSuite):
     def get_child_test_suite_classes(cls):
         return cls.child_test_suites
 
-    # pylint: disable=no-self-use
     def init_child_class(self, child_class):
         """initialise the child class"""
         return child_class()

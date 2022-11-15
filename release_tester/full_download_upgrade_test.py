@@ -190,7 +190,7 @@ def upgrade_package_test(
                         ]
                     )
                 else:
-                    # pylint: disable=broad-except
+                    # pylint: disable=broad-except disable=bare-except
                     try:
                         table.rows.append(
                             [

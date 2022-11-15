@@ -153,7 +153,7 @@ class Runner(ABC):
         diskused = properties.disk_usage_community if not cfg.enterprise else properties.disk_usage_enterprise
         if not is_cleanup and diskused * 1024 * 1024 > diskfree.free:
             logging.error(
-                "Scenario demanded %d MB " "but only %d MB are available in %s",
+                "Scenario demanded %d MB but only %d MB are available in %s",
                 diskused,
                 diskfree.free / (1024 * 1024),
                 str(self.basecfg.base_test_dir),
@@ -310,7 +310,7 @@ class Runner(ABC):
                 self.after_backup()
                 self.check_data_impl()
                 if not self.check_non_backup_data():
-                    raise Exception("data created after backup" " is still there??")
+                    raise Exception("data created after backup is still there??")
 
         if self.new_installer:
             if self.hot_backup:
@@ -359,7 +359,7 @@ class Runner(ABC):
                 self.tcp_ping_all_nodes()
                 self.after_backup()
                 if not self.check_non_backup_data():
-                    raise Exception("data created after " "backup is still there??")
+                    raise Exception("data created after backup is still there??")
             self.check_data_impl()
         else:
             logging.info("skipping upgrade step no new version given")
@@ -531,7 +531,6 @@ class Runner(ABC):
     @step
     def after_makedata_check(self):
         """just after makedata..."""
-        pass
 
     @step
     def make_data(self):
@@ -783,7 +782,6 @@ class Runner(ABC):
             return starter.hb_instance.delete(name)
         raise Exception("no frontend found.")
 
-    # pylint: disable=no-self-use
     def wait_for_restore_impl(self, backup_starter):
         """wait for all restores to be finished"""
         backup_starter.wait_for_restore()
@@ -993,7 +991,7 @@ class Runner(ABC):
                 InstanceType.AGENT,
                 requests.put,
                 "/_admin/log/level",
-                '{"agency":"debug", "requests":"trace", ' '"cluster":"debug", "maintenance":"debug"}',
+                '{"agency":"debug", "requests":"trace", "cluster":"debug", "maintenance":"debug"}',
             )
 
     @step
@@ -1004,7 +1002,7 @@ class Runner(ABC):
                 InstanceType.DBSERVER,
                 requests.put,
                 "/_admin/log/level",
-                '{"agency":"debug", "requests":"trace", ' '"cluster":"debug", "maintenance":"debug"}',
+                '{"agency":"debug", "requests":"trace", "cluster":"debug", "maintenance":"debug"}',
             )
 
     @step
@@ -1015,7 +1013,7 @@ class Runner(ABC):
                 InstanceType.COORDINATOR,
                 requests.put,
                 "/_admin/log/level",
-                '{"agency":"debug", "requests":"trace", ' '"cluster":"debug", "maintenance":"debug"}',
+                '{"agency":"debug", "requests":"trace", "cluster":"debug", "maintenance":"debug"}',
             )
 
     @step

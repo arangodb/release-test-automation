@@ -12,9 +12,11 @@ import semver
 from reporting.reporting_utils import step
 
 try:
+    # pylint: disable=no-name-in-module
     from tools.external_helpers import cloud_secrets
 # pylint: disable=bare-except
 except:
+    # pylint: disable=invalid-name
     cloud_secrets = None
 
 # pylint: disable=too-few-public-methods
@@ -112,7 +114,7 @@ class OptionGroup:
 @dataclass
 class HotBackupCliCfg(OptionGroup):
     """map hotbackup_options"""
-
+    # pylint: disable=too-many-instance-attributes disable=no-member disable=no-else-return disable=consider-iterating-dictionary
     @classmethod
     def from_dict(cls, **options):
         """invoke init from kwargs"""
@@ -381,21 +383,17 @@ def make_installer(install_config: InstallerConfig):
     if IS_WINDOWS:
         if install_config.zip_package:
             from arangodb.installers.zip import InstallerZip
-
             return InstallerZip(install_config)
-        else:
-            from arangodb.installers.nsis import InstallerNsis
 
-            return InstallerNsis(install_config)
+        from arangodb.installers.nsis import InstallerNsis
+        return InstallerNsis(install_config)
 
     if install_config.zip_package:
         from arangodb.installers.tar import InstallerTAR
-
         return InstallerTAR(install_config)
 
     if IS_MAC:
         from arangodb.installers.mac import InstallerMac
-
         return InstallerMac(install_config)
 
     if platform.system() in ["linux", "Linux"]:
