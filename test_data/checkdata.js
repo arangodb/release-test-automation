@@ -16,6 +16,7 @@
 // `--progress [false]          whether to output a keepalive indicator to signal the invoker that work is ongoing
 // `--disabledDbserverUUID      this server is offline, wait for shards on it to be moved
 // `--readonly                  the SUT is readonly. fail if writing is successfull.
+// `--test                      comma separated list of testcases to filter for
 'use strict';
 const fs = require('fs');
 const _ = require('lodash');
@@ -58,7 +59,8 @@ const optionsDefaults = {
   testFoxx: true,
   singleShard: false,
   progress: false,
-  oldVersion: "3.5.0"
+  oldVersion: "3.5.0",
+  test: undefined
 };
 
 let args = _.clone(ARGUMENTS);
