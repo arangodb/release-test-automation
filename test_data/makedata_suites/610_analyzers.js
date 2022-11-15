@@ -198,7 +198,7 @@ function getTestData_610(dbCount) {
     isSupported: function (currentVersion, oldVersion, options, enterprise) {
       let currentVersionSemver = semver.parse(semver.coerce(currentVersion));
       let oldVersionSemver = semver.parse(semver.coerce(oldVersion));
-      return semver.gt(oldVersionSemver, "3.10.0");
+      return enterprise && semver.gt(oldVersionSemver, "3.10.0");
     },
 
     makeDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
