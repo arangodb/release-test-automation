@@ -51,7 +51,7 @@ def detect_file_ulimit():
                 " or eqaul 65535. Currently you have"
                 " set the limit to: " + str(nofd)
             )
-        giga_byte = 2 ** 30
+        giga_byte = 2**30
         resource.setrlimit(resource.RLIMIT_CORE, (giga_byte, giga_byte))
 
 
@@ -164,9 +164,7 @@ class Runner(ABC):
         self.new_installer = new_inst
         self.backup_name = None
         self.hot_backup = (
-            cfg.hot_backup_supported
-            and properties.supports_hotbackup
-            and self.old_installer.supports_hot_backup()
+            cfg.hot_backup_supported and properties.supports_hotbackup and self.old_installer.supports_hot_backup()
         )
         self.backup_instance_count = 3
         # starter instances that make_data wil run on
@@ -684,10 +682,7 @@ class Runner(ABC):
                     if self.cfg.verbose:
                         print(exc.execution_result[1])
                     self.ask_continue_or_exit(
-                        "make_data failed for {0.name}".format(self),
-                        exc.execution_result[1],
-                        False,
-                        exc
+                        "make_data failed for {0.name}".format(self), exc.execution_result[1], False, exc
                     )
                 self.has_makedata_data = True
             self.check_data_impl_sh(arangosh, starter.supports_foxx_tests)
@@ -704,10 +699,7 @@ class Runner(ABC):
                 if not self.cfg.verbose:
                     print(exc.execution_result[1])
                 self.ask_continue_or_exit(
-                    "check_data has data failed for {0.name}".format(self),
-                    exc.execution_result[1],
-                    False,
-                    exc
+                    "check_data has data failed for {0.name}".format(self), exc.execution_result[1], False, exc
                 )
 
     @step
@@ -1140,12 +1132,11 @@ class Runner(ABC):
         """set instances in selenium runner"""
 
     def export_instance_info(self):
-        """ resemble the testing.js INSTANCEINFO env """
+        """resemble the testing.js INSTANCEINFO env"""
         starter_structs = []
         for starter in self.starter_instances:
             starter_structs.append(starter.get_structure())
         struct = starter_structs[0]
         for starter in starter_structs[1:]:
             struct["arangods"].extend(starter["arangods"])
-        os.environ['INSTANCEINFO'] = json.dumps(struct)
-
+        os.environ["INSTANCEINFO"] = json.dumps(struct)
