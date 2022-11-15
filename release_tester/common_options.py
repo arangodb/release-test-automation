@@ -237,6 +237,11 @@ def common_options(
                 default=defver,
             )(function)
         function = click.option(
+            "--test",
+            default="",
+            help="filter which makedata tests to run",
+        )(function)
+        function = click.option(
             "--test-data-dir",
             default=test_data_dir,
             help="directory create databases etc. in.",

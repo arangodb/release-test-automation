@@ -179,6 +179,7 @@ class InstallerConfig:
         interactive: bool,
         stress_upgrade: bool,
         ssl: bool,
+        test: str,
     ):
         self.publicip = publicip
         self.interactive = interactive
@@ -236,6 +237,7 @@ class InstallerConfig:
         self.hot_backup_supported = (
             self.enterprise and not IS_WINDOWS and self.hb_provider_cfg.mode != HotBackupMode.DISABLED
         )
+        self.test = test
 
     def __repr__(self):
         return """
@@ -251,6 +253,7 @@ deployment_mode: {0.deployment_mode}
 public ip: {0.publicip}
 interactive: {0.interactive}
 verbose: {0.verbose}
+test filter: {0.test}
 """.format(
             self
         )
@@ -306,6 +309,7 @@ verbose: {0.verbose}
             self.cfgdir = other_cfg.cfgdir
             self.hot_backup_supported = other_cfg.hot_backup_supported
             self.hb_cli_cfg = copy.deepcopy(other_cfg.hb_cli_cfg)
+            self.test = other_cfg.test
         except AttributeError:
             # if the config.yml gave us a wrong value, we don't care.
             pass
@@ -461,6 +465,7 @@ class InstallerBaseConfig(OptionGroup):
     publicip: str
     interactive: bool
     stress_upgrade: bool
+    test: str
 
 
 # pylint: disable=too-many-locals
@@ -487,6 +492,7 @@ def create_config_installer_set(
             base_config.interactive,
             base_config.stress_upgrade,
             run_properties.ssl,
+            base_config.test
         )
         installer = make_installer(install_config)
         installer.calculate_package_names()
