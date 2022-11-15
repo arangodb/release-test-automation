@@ -38,6 +38,13 @@ let isCluster = arango.GET("/_admin/server/role").role === "COORDINATOR";
 let database = "_system";
 let databaseName;
 
+const wantFunctions = ['clearDataDB', 'clearData'];
+
+const {
+  scanMakeDataPaths,
+  mainTestLoop
+} = require(fs.join(PWD, 'common'));
+
 const optionsDefaults = {
   minReplicationFactor: 1,
   maxReplicationFactor: 2,
@@ -80,40 +87,8 @@ function progress (gaugeName) {
   }
   tStart = now;
 }
-let ClearDataFuncs = [];
-let ClearDataDbFuncs = [];
-function scanTestPaths (options) {
-  let suites = _.filter(
-    fs.list(fs.join(PWD, 'makedata_suites')),
-    function (p) {
-      return (p.substr(-3) === '.js');
-    }).map(function (x) {
-      return fs.join(fs.join(PWD, 'makedata_suites'), x);
-    }).sort();
-  suites.forEach(suitePath => {
-    let supported = "";
-    let unsupported = "";
-    let suite = require("internal").load(suitePath);
-    if (suite.isSupported(dbVersion, options.oldVersion, options, enterprise, isCluster)) {
-      if ('clearData' in suite) {
-        supported += "L" ;
-        ClearDataFuncs.push(suite.clearData);
-      } else {
-        unsupported += " ";
-      }
-      if ('clearDataDB' in suite) {
-        supported += "D";
-        ClearDataDbFuncs.push(suite.clearDataDB);
-      } else {
-        unsupported += " ";
-      }
-    } else {
-      supported = " ";
-      unsupported = " ";
-    }
-    print("[" + supported +"]   " + unsupported + suitePath);
-  });
-}
+
+
 
 function getShardCount (defaultShardCount) {
   if (options.singleShard) {
@@ -132,47 +107,16 @@ function getReplicationFactor (defaultReplicationFactor) {
   return defaultReplicationFactor;
 }
 
-scanTestPaths(options);
-let dbCount = 0;
-while (dbCount < options.numberOfDBs) {
-  tStart = time();
-  timeLine = [tStart];
-  ClearDataDbFuncs.forEach(func => {
-    db._useDatabase("_system");
-    func(options,
-         isCluster,
-         enterprise,
-         database,
-         dbCount);
-  });
-
-  let loopCount = options.collectionCountOffset;
-  while (loopCount < options.collectionMultiplier) {
-    progress();
-    ClearDataFuncs.forEach(func => {
-      func(options,
-           isCluster,
-           enterprise,
-           dbCount,
-           loopCount);
-    });
-
-    progress();
-    loopCount ++;
-  }
-  progress();
-
+const fns = scanMakeDataPaths(options, PWD, dbVersion, options.oldVersion, wantFunctions, 'clearData');
+mainTestLoop(options, isCluster, enterprise, fns, function(database) {
   // Drop database:
-
   if (database != "_system") {
     print('#ix')
     db._useDatabase("_system");
-
+    
     if (database != "_system") {
       db._dropDatabase(databaseName);
     }
     progress();
   }
-  print(timeLine.join());
-  dbCount++;
-}
+});
