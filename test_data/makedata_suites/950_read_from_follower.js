@@ -537,6 +537,13 @@ checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTotalR
       }
       return 0;
     },
+
+    clearData: function (options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
+      print(`clearing data ${dbCount} ${loopCount}`);
+      progress();
+      db._drop(`${testCollName}_${loopCount}`, true);
+      return 0;
+    },
   };
 
 }());
