@@ -202,6 +202,9 @@ class BinaryDescription:
 # pylint: disable=attribute-defined-outside-init disable=too-many-public-methods disable=too-many-instance-attributes
 class InstallerBase(ABC):
     """this is the prototype for the operation system agnostic installers"""
+    hot_backup: bool
+    basedir: Path
+    installer_type: str
 
     def __init__(self, cfg: InstallerConfig):
         self.machine = platform.machine()
@@ -479,7 +482,10 @@ class InstallerBase(ABC):
     def output_arangod_version(self):
         """document the output of arangod --version"""
         return self.cli_executor.run_monitored(
-            executeable=self.cfg.sbin_dir / "arangod", args=["--version"], params=make_default_params(True), deadline=10,
+            executeable=self.cfg.sbin_dir / "arangod",
+            args=["--version"],
+            params=make_default_params(True),
+            deadline=10,
         )
 
     @step
@@ -787,7 +793,6 @@ class InstallerArchive(InstallerBase, metaclass=ABCMeta):
     """base class for archive packages that need to be installed manually, e.g. .tar.gz for Linux, .zip for Windows"""
 
     def __init__(self, cfg):
-        self.basedir=self.basedir
         cfg.have_system_service = False
         cfg.install_prefix = self.basedir
         cfg.bin_dir = None
