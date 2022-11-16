@@ -109,23 +109,20 @@ class Instance(ABC):
 
     def get_structure(self):
         """ return instance structure like testing.js does """
-        url = ('https' if self.ssl else 'http') + '://' + '127.0.0.1' + ':' + str(self.port) + '/'
-        protocol = ('ssl' if self.ssl else 'tcp') 
-        endpoint = protocol + '://' + '127.0.0.1' + ':' + str(self.port) + '/'
         return {
             'name': self.name,
             'instanceRole': self.type_str,
             'message': '',
             'rootDir': str(self.basedir),
-            'protocol': protocol,
+            'protocol': self.get_http_protocol(),
             'authHeaders': "",
             'restKeyFile': "",
             'agencyConfig': {},
             'upAndRunning': True,
             'suspended': False,
             'port': self.port,
-            'url': url,
-            'endpoint': endpoint,
+            'url': self.get_public_url(),
+            'endpoint': self.get_public_url(),
             'dataDir': str(self.basedir / 'data'),
             'appDir': str(self.basedir / 'apps'),
             'tmpDir': "",
@@ -370,6 +367,32 @@ class Instance(ABC):
             AttachmentType.TEXT,
         )
 
+    # pylint: disable=no-else-return
+    def get_http_protocol(self):
+        """return protocol of this arangod instance (http/https)"""
+        if self.ssl:
+            return "https"
+        else:
+            return "http"
+
+    def get_local_url(self, login):
+        """our local url"""
+        return "{protocol}://{login}{host}:{port}".format(
+            protocol=self.get_http_protocol(),
+            login=login,
+            host=self.localhost,
+            port=self.port,
+        )
+
+    def get_public_url(self, login=""):
+        """our public url"""
+        return "{protocol}://{login}{host}:{port}".format(
+            protocol=self.get_http_protocol(),
+            login=login,
+            host=self.publicip,
+            port=self.port,
+        )
+
 
 class ArangodInstance(Instance):
     """represent one arangodb instance"""
@@ -410,32 +433,6 @@ class ArangodInstance(Instance):
             return "ssl"
         else:
             return "tcp"
-
-    # pylint: disable=no-else-return
-    def get_http_protocol(self):
-        """return protocol of this arangod instance (http/https)"""
-        if self.ssl:
-            return "https"
-        else:
-            return "http"
-
-    def get_local_url(self, login):
-        """our local url"""
-        return "{protocol}://{login}{host}:{port}".format(
-            protocol=self.get_http_protocol(),
-            login=login,
-            host=self.localhost,
-            port=self.port,
-        )
-
-    def get_public_url(self, login=""):
-        """our public url"""
-        return "{protocol}://{login}{host}:{port}".format(
-            protocol=self.get_http_protocol(),
-            login=login,
-            host=self.publicip,
-            port=self.port,
-        )
 
     def get_public_login_url(self):
         """our public url with passvoid"""
