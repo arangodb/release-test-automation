@@ -412,8 +412,12 @@ class ArangodInstance(Instance):
 
     def get_uuid(self):
         """try to load the instances UUID"""
-        uuid_file = self.basedir / "data" / "UUID"
-        return uuid_file.read_text()
+        try:
+            uuid_file = self.basedir / "data" / "UUID"
+            uuid = uuid_file.read_text()
+            return uuid
+        except:
+            return None
 
     def get_essentials(self):
         """get the essential attributes of the class"""
