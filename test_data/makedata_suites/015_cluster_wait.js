@@ -1,4 +1,4 @@
-/* global print, db, internal, arango */
+/* global print, db, internal, arango, semver */
 
 /* This handler is here to wait for every shard of every collection to have an appropriate number of
  follower nodes(e.g. if replicationFactor parameter is set to 2 for a collection, then each shard

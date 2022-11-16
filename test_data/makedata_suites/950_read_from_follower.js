@@ -1,4 +1,4 @@
-/* global print, assertTrue, assertFalse, assertEqual */
+/* global print, assertTrue, assertFalse, assertEqual, db, semver, download, sleep */
 const jsunity = require('jsunity');
 
 const testCollName = "ReadFromFollowerCollection";
@@ -8,24 +8,23 @@ const httpPutMetric = "arangodb_http_request_statistics_http_put_requests_total"
 const RED = require('internal').COLORS.COLOR_RED;
 const RESET = require('internal').COLORS.COLOR_RESET;
 const wait = require("internal").wait;
-
 let instanceInfo = null;
 const nrTries = 1000;
 
-getRawMetric = function (instance, user, tags) {
+let getRawMetric = function (instance, user, tags) {
   let ex;
   let sleepTime = 0.1;
-  opts = { "jwt": instance.JWT_header };
+  let opts = { "jwt": instance.JWT_header };
   do {
     try {
-      resp = download(instance.url + '/_admin/metrics' + tags, '', opts);
+      let resp = download(instance.url + '/_admin/metrics' + tags, '', opts);
       if (resp.code !== 200) {
         throw "Error fetching metric. Server response:\n" + JSON.stringify(resp);
       } else {
         return resp;
       }
     } catch (e) {
-      ex = e;
+      let ex = e;
       print(RED + "connecting to " + instance.url + " failed - retrying (" + ex + ")" + RESET);
     }
     sleepTime *= 2;
@@ -35,7 +34,7 @@ getRawMetric = function (instance, user, tags) {
   throw ex;
 };
 
-getAllMetric = function (instance, user, tags) {
+let getAllMetric = function (instance, user, tags) {
   let res = getRawMetric(instance, user, tags);
   return res.body;
 };
@@ -49,15 +48,15 @@ function getMetricByName(text, name) {
   return Number(matches[0].replace(/^.*{.*}([0-9.]+)$/, "$1"));
 }
 
-getMetricFromInstance = function (instance, name) {
+let getMetricFromInstance = function (instance, name) {
   let text = getAllMetric(instance, 'root', '');
   return getMetricByName(text, name);
 };
 
-getMetric = getMetricFromInstance;
+let getMetric = getMetricFromInstance;
 
-getInstanceById = function (id) {
-  for (instance of instanceInfo["arangods"]) {
+let getInstanceById = function (id) {
+  for (let instance of instanceInfo["arangods"]) {
     if (instance['id'] === id) {
       return instance;
     }
@@ -65,7 +64,7 @@ getInstanceById = function (id) {
   throw "Can't find instance with such uuid: " + id;
 };
 
-moveShard = function (database, collection, shard, fromServer, toServer, dontwait, expectedResult) {
+let moveShard = function (database, collection, shard, fromServer, toServer, dontwait, expectedResult) {
   let body = { database, collection, shard, fromServer, toServer };
   let result = db._connection.POST("/_admin/cluster/moveShard", body);
   if (dontwait) {
@@ -84,16 +83,16 @@ moveShard = function (database, collection, shard, fromServer, toServer, dontwai
       throw "Timeout in waiting for moveShard to complete: " + JSON.stringify(body);
     }
     wait(1.0);
-    if (count % 10 == 0) { print(".") };
+    if (count % 10 === 0) { print("."); };
   }
 };
 
-checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTotalReadCount, expectedLeaderShare, tolerance) {
-  leaderMaxValue = expectedTotalReadCount * expectedLeaderShare + expectedTotalReadCount * tolerance;
-  leaderMinValue = expectedTotalReadCount * expectedLeaderShare - expectedTotalReadCount * tolerance;
-  followerMaxValue = expectedTotalReadCount * (1 - expectedLeaderShare) + expectedTotalReadCount * tolerance;
-  followerMinValue = expectedTotalReadCount * (1 - expectedLeaderShare) - expectedTotalReadCount * tolerance;
-  message = ` Expected total reads: ${expectedTotalReadCount}. Real total reads: ${readsOnLeader + readsOnFollower}. Reads on leader: ${readsOnLeader}. Reads on follower: ${readsOnFollower}.`;
+let checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTotalReadCount, expectedLeaderShare, tolerance) {
+  let leaderMaxValue = expectedTotalReadCount * expectedLeaderShare + expectedTotalReadCount * tolerance;
+  let leaderMinValue = expectedTotalReadCount * expectedLeaderShare - expectedTotalReadCount * tolerance;
+  let followerMaxValue = expectedTotalReadCount * (1 - expectedLeaderShare) + expectedTotalReadCount * tolerance;
+  let followerMinValue = expectedTotalReadCount * (1 - expectedLeaderShare) - expectedTotalReadCount * tolerance;
+  let message = ` Expected total reads: ${expectedTotalReadCount}. Real total reads: ${readsOnLeader + readsOnFollower}. Reads on leader: ${readsOnLeader}. Reads on follower: ${readsOnFollower}.`;
   assertTrue(readsOnLeader < leaderMaxValue, `Too many reads on leader (${readsOnLeader}). Expected a value between ${leaderMinValue} and ${leaderMaxValue}.` + message);
   assertTrue(readsOnLeader > leaderMinValue, `Too few reads on leader (${readsOnLeader}). Expected a value between ${leaderMinValue} and ${leaderMaxValue}.` + message);
   assertTrue(readsOnFollower > followerMinValue, `Too few reads on follower (${readsOnFollower}). Expected a value between ${followerMinValue} and ${followerMaxValue}.` + message);
@@ -103,22 +102,22 @@ checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTotalR
 (function () {
   let ReadDocsFromFollowerTestSuite = function (collName) {
     return function ReadDocsFromFollowerTestSuite() {
-      coll = null;
-      shards = null;
-      shardId = null;
-      leader_uuid = null;
-      follower_uuid = null;
-      leader = null;
-      follower = null;
-      keys = null;
+      let coll = null;
+      let shards = null;
+      let shardId = null;
+      let leader_uuid = null;
+      let follower_uuid = null;
+      let leader = null;
+      let follower = null;
+      let keys = null;
       return {
         setUpAll: function () {
           print(`Setting up ReadDocsFromFollowerTestSuite for collection \"${collName}\".`);
           instanceInfo = JSON.parse(require('internal').env.INSTANCEINFO);
           coll = db._collection(collName);
           shards = coll.shards(true);
-          shardIds = Object.keys(shards);
-          numberOfShards = shardIds.length;
+          let shardIds = Object.keys(shards);
+          let numberOfShards = shardIds.length;
           shardId = shardIds[0];
           leader_uuid = shards[shardId][0];
           follower_uuid = shards[shardId][1];
@@ -127,13 +126,13 @@ checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTotalR
           keys = db._query(`for d in ${collName} limit ${nrTries} return d._key`).toArray();
           //Move arrange all shards the same way as the first shard: 
           //all shards must have the same leader and follower). 
-          for (i = 1; i < numberOfShards; ++i) {
+          for (let i = 1; i < numberOfShards; ++i) {
             //read shard info
             shards = coll.shards(true);
             shardId = shardIds[i];
-            shard = shards[shardId];
-            this_leader_uuid = shard[0];
-            this_follower_uuid = shard[1];
+            let shard = shards[shardId];
+            let this_leader_uuid = shard[0];
+            let this_follower_uuid = shard[1];
             //move leader
             if (this_leader_uuid !== leader_uuid) {
               moveShard("_system", collName, shardId, this_leader_uuid, leader_uuid, false, "Finished");
@@ -276,41 +275,41 @@ checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTotalR
         }
       };
     };
-  }
+  };
   let ReadCommunityGraphFromFollowerTestSuite = function (collName) {
     return function ReadGraphFromFollowerTestSuite() {
-      coll = null;
-      shards = null;
-      shardId = null;
-      leader_uuid = null;
-      follower_uuid = null;
-      leader = null;
-      follower = null;
-      vertices = [];
+      let coll = null;
+      let shards = null;
+      let shardId = null;
+      let leader_uuid = null;
+      let follower_uuid = null;
+      let leader = null;
+      let follower = null;
+      let vertices = [];
       return {
         setUpAll: function () {
           print(`Setting up ReadCommunityGraphFromFollowerTestSuite for collection \"${collName}\".`);
           instanceInfo = JSON.parse(require('internal').env.INSTANCEINFO);
           coll = db._collection(collName);
           shards = coll.shards(true);
-          shardIds = Object.keys(shards);
-          numberOfShards = shardIds.length;
-          shardId = shardIds[0];
-          leader_uuid = shards[shardId][0];
-          follower_uuid = shards[shardId][1];
+          let shardIds = Object.keys(shards);
+          let numberOfShards = shardIds.length;
+          let shardId = shardIds[0];
+          let leader_uuid = shards[shardId][0];
+          let follower_uuid = shards[shardId][1];
           leader = getInstanceById(leader_uuid);
           follower = getInstanceById(follower_uuid);
           vertices = vertices.concat(db._query(`for d in ${collName} limit ${nrTries} return d._from`).toArray());
           vertices = vertices.concat(db._query(`for d in ${collName} limit ${nrTries} return d._to`).toArray());
           //Move arrange all shards the same way as the first shard: 
           //all shards must have the same leader and follower). 
-          for (i = 1; i < numberOfShards; ++i) {
+          for (let i = 1; i < numberOfShards; ++i) {
             //read shard info
             shards = coll.shards(true);
             shardId = shardIds[i];
-            shard = shards[shardId];
-            this_leader_uuid = shard[0];
-            this_follower_uuid = shard[1];
+            let shard = shards[shardId];
+            let this_leader_uuid = shard[0];
+            let this_follower_uuid = shard[1];
             //move leader
             if (this_leader_uuid !== leader_uuid) {
               moveShard("_system", collName, shardId, this_leader_uuid, leader_uuid, false, "Finished");
@@ -357,25 +356,25 @@ checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTotalR
         },
       };
     };
-  }
+  };
   let ReadSmartGraphFromFollowerTestSuite = function (edgeCollName, vertexCollName, databaseName) {
     return function ReadGraphFromFollowerTestSuite() {
-      coll = null;
-      shards = null;
-      shardId = null;
-      leader_uuid = null;
-      follower_uuid = null;
-      leader = null;
-      follower = null;
-      vertices = [];
+      let coll = null;
+      let shards = null;
+      let shardId = null;
+      let leader_uuid = null;
+      let follower_uuid = null;
+      let leader = null;
+      let follower = null;
+      let vertices = [];
       return {
         setUpAll: function () {
           print(`Setting up ReadSmartGraphFromFollowerTestSuite for edge collection \"${edgeCollName}\", vertex collection \"${vertexCollName}\".`);
           instanceInfo = JSON.parse(require('internal').env.INSTANCEINFO);
           coll = db._collection(vertexCollName);
           shards = coll.shards(true);
-          shardIds = Object.keys(shards);
-          numberOfShards = shardIds.length;
+          let shardIds = Object.keys(shards);
+          let numberOfShards = shardIds.length;
           shardId = shardIds[0];
           leader_uuid = shards[shardId][0];
           follower_uuid = shards[shardId][1];
@@ -385,13 +384,13 @@ checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTotalR
           vertices = vertices.concat(db._query(`for d in ${edgeCollName} limit ${nrTries} return d._to`).toArray());
           //Move arrange all shards the same way as the first shard:
           //all shards must have the same leader and follower).
-          for (i = 1; i < numberOfShards; ++i) {
+          for (let i = 1; i < numberOfShards; ++i) {
             //read shard info
             shards = coll.shards(true);
             shardId = shardIds[i];
-            shard = shards[shardId];
-            this_leader_uuid = shard[0];
-            this_follower_uuid = shard[1];
+            let shard = shards[shardId];
+            let this_leader_uuid = shard[0];
+            let this_follower_uuid = shard[1];
             //move leader
             if (this_leader_uuid !== leader_uuid) {
               moveShard(databaseName, vertexCollName, shardId, this_leader_uuid, leader_uuid, false, "Finished");
@@ -438,9 +437,9 @@ checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTotalR
         },
       };
     };
-  }
+  };
   return {
-    isSupported: function (version, oldVersion, options, enterprise, cluster) {
+    isSupported: function (currentVersion, oldVersion, options, enterprise, cluster) {
       // OldVersion is optional and used in case of upgrade.
       // It resembles the version we are upgrading from
       // Current is the version of the database we are attached to
@@ -468,7 +467,7 @@ checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTotalR
 
     checkData: function (options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
       print('asontehusaonteuhsanoetuhasoentuh');
-      failed = []
+      let failed = [];
       let docCollections = [
         `${testCollName}_${loopCount}`,
         `c_${loopCount}`,
@@ -481,14 +480,14 @@ checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTotalR
       ];
       for (let collection of docCollections) {
         jsunity.run(ReadDocsFromFollowerTestSuite(collection));
-        result = jsunity.done();
+        let result = jsunity.done();
         if (!result.status) {
           failed.push(result);
         }
       }
 
       jsunity.run(ReadCommunityGraphFromFollowerTestSuite(`citations_naive_${loopCount}`));
-      result = jsunity.done();
+      let result = jsunity.done();
       if (!result.status) {
         failed.push(result);
       }
@@ -512,20 +511,20 @@ checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTotalR
       }
       let databaseName = `${baseName}_${dbCount}_oneShard`;
       db._useDatabase(databaseName);
-      failed = [];
+      let failed = [];
       for (let ccount = 0; ccount < options.collectionMultiplier; ++ccount) {
         let collectionName = `c_${ccount}_0`;
         jsunity.run(ReadDocsFromFollowerTestSuite(collectionName));
-        result = jsunity.done();
+        let result = jsunity.done();
         if (!result.status) {
           failed.push(result);
         }
       }
 
-      databaseName = `${baseName}_${dbCount}_entGraph`
+      databaseName = `${baseName}_${dbCount}_entGraph`;
       db._useDatabase(databaseName);
       jsunity.run(ReadSmartGraphFromFollowerTestSuite(`citations_enterprise_${dbCount}`, `patents_enterprise_${dbCount}`, databaseName));
-      result = jsunity.done();
+      let result = jsunity.done();
       if (!result.status) {
         failed.push(result);
       }
@@ -540,7 +539,6 @@ checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTotalR
 
     clearData: function (options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
       print(`clearing data ${dbCount} ${loopCount}`);
-      progress();
       db._drop(`${testCollName}_${loopCount}`, true);
       return 0;
     },
