@@ -521,6 +521,7 @@ class Runner(ABC):
         """
         self.progress(True, "{0} - run starter instances".format(str(self.name)))
         self.starter_run_impl()
+        self.export_instance_info()
 
     @step
     def finish_setup(self):
