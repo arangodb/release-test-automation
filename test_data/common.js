@@ -4,9 +4,24 @@
 function scanMakeDataPaths (options, PWD, oldVersion, newVersion, wantFunctions, nameString) {
   let fns = [[],[]];
   const FNChars = [ 'D', 'L'];
+  let filters = [];
+  if (options.hasOwnProperty('test') && (typeof (options.test) !== 'undefined')) {
+    filters = options.test.split(',');
+  }
   let suites = _.filter(
     fs.list(fs.join(PWD, 'makedata_suites')),
     function (p) {
+      if (filters.length > 0) {
+        let found = false;
+        filters.forEach(flt => {
+          if (p.search(flt) >= 0) {
+            found = true;
+          }
+        });
+        if (!found) {
+          return false;
+        }
+      }
       return (p.substr(-3) === '.js');
     }).map(function (x) {
       return fs.join(fs.join(PWD, 'makedata_suites'), x);

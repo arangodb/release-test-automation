@@ -167,6 +167,7 @@ class Download:
             interactive=False,
             stress_upgrade=False,
             ssl=False,
+            test=""
         )
 
         self.inst = make_installer(self.cfg)
