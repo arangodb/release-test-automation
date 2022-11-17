@@ -1,6 +1,10 @@
 /* global print, ARGUMENTS */
 //
 
+function isCharDigit(n){
+  return !!n.trim() && n > -1;
+}
+
 function scanMakeDataPaths (options, PWD, oldVersion, newVersion, wantFunctions, nameString) {
   let fns = [[],[]];
   const FNChars = [ 'D', 'L'];
@@ -11,6 +15,9 @@ function scanMakeDataPaths (options, PWD, oldVersion, newVersion, wantFunctions,
   let suites = _.filter(
     fs.list(fs.join(PWD, 'makedata_suites')),
     function (p) {
+      if (!isCharDigit(p.charAt(0))) {
+        return false;
+      }
       if (filters.length > 0) {
         let found = false;
         filters.forEach(flt => {
