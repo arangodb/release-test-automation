@@ -130,8 +130,8 @@ while (true) {{
         }
 
     def starter_prepare_env_impl(self):
-        leader_opts = []
-        follower_opts = []
+        leader_opts = ['--all.arangosearch.columns-cache-limit=500000']
+        follower_opts = ['--all.arangosearch.columns-cache-limit=500000']
         if self.cfg.ssl and not self.cfg.use_auto_certs:
             self.create_tls_ca_cert()
             leader_tls_keyfile = self.cert_dir / Path("leader") / "tls.keyfile"

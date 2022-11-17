@@ -32,11 +32,11 @@
       };
       view1.properties(meta);
 
-      cview1.insert(
+      cview1.insert([
         {"animal": "cat", "name": "tom"},
         {"animal": "mouse", "name": "jerry"},
         {"animal": "dog", "name": "harry"}
-      );
+      ]);
       progress('createView3');
     },
     checkData: function (options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {

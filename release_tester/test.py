@@ -45,6 +45,7 @@ def main(**kwargs):
     test_driver.set_r_limits()
     results = test_driver.run_test(
         kwargs['mode'],
+        kwargs['starter_mode'],
         [semver.VersionInfo.parse(kwargs['new_version'])],
         # pylint: disable=too-many-function-args
         RunProperties(kwargs['enterprise'],

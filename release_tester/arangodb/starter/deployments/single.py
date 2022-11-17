@@ -45,7 +45,7 @@ class Single(Runner):
         self.success = False
 
     def starter_prepare_env_impl(self):
-        opts = []
+        opts = ['--all.arangosearch.columns-cache-limit=500000']
         if self.cfg.ssl and not self.cfg.use_auto_certs:
             self.create_tls_ca_cert()
             tls_keyfile = self.cert_dir / Path("single") / "tls.keyfile"

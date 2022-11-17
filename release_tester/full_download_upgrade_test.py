@@ -50,15 +50,18 @@ def upgrade_package_test(
 
     for version_pair in upgrade_matrix.split(";"):
         print("Adding: '" + version_pair + "'")
-        old, new = version_pair.split(":")
-        old_versions.append(old)
-        new_versions.append(new)
-        if old == primary_version:
-            old_dlstages.append(primary_dlstage)
-            new_dlstages.append(other_source)
-        else:
-            old_dlstages.append(other_source)
-            new_dlstages.append(primary_dlstage)
+        version_tuple = version_pair.split(":")
+        for i in range(len(version_tuple) - 1):
+            old = version_tuple[i]
+            new = version_tuple[i+1]
+            old_versions.append(old)
+            new_versions.append(new)
+            if old == primary_version:
+                old_dlstages.append(primary_dlstage)
+                new_dlstages.append(other_source)
+            else:
+                old_dlstages.append(other_source)
+                new_dlstages.append(primary_dlstage)
 
     for default_props in EXECUTION_PLAN:
         props = copy(default_props)

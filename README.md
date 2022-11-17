@@ -576,7 +576,7 @@ once the scriptlet does what you want, you can use commands like this to run the
 perf.py is intended to test the flow
  - install package (optional)
  - run starter cluster (optional)
- - nur cluster_perf.py
+ - run cluster_perf.py
  - uninstall package (optional)
 
 This sequence can be broken up by invoking perf.py with `--mode install` and subsequently multiple invokactions with `--mode tests`. The system can afterwards be cleaned with `--mode uninstall`.

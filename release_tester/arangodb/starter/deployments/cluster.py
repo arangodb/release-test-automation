@@ -58,9 +58,9 @@ db.testCollection.save({test: "document"})
 """,
         )
 
-        node1_opts = []
-        node2_opts = ["--starter.join", "127.0.0.1:9528"]
-        node3_opts = ["--starter.join", "127.0.0.1:9528"]
+        node1_opts = ['--args.all.arangosearch.columns-cache-limit=500000']
+        node2_opts = ["--starter.join", "127.0.0.1:9528", '--args.all.arangosearch.columns-cache-limit=500000']
+        node3_opts = ["--starter.join", "127.0.0.1:9528", '--args.all.arangosearch.columns-cache-limit=500000']
         if self.cfg.ssl and not self.cfg.use_auto_certs:
             self.create_tls_ca_cert()
             node1_tls_keyfile = self.cert_dir / Path("node1") / "tls.keyfile"
