@@ -1,4 +1,4 @@
-/* global print, semver, progress, createSafe, createCollectionSafe, db */
+/* global print, semver, progress, createSafe, createCollectionSafe, db, analyzers, PWD */
 /*jslint maxlen: 100*/
 
 function createAnalyzer(analyzerName, analyzerCreationQuery){
