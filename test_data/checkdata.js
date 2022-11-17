@@ -46,6 +46,12 @@ const {
   mainTestLoop
 } = require(fs.join(PWD, 'common'));
 
+const {
+  createAnalyzerSet,
+  checkAnalyzerSet,
+  deleteAnalyzerSet
+} = require(fs.join(PWD, 'makedata_suites', '_600_analyzer_base'));
+
 const optionsDefaults = {
   disabledDbserverUUID: "",
   minReplicationFactor: 1,
