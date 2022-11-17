@@ -202,6 +202,9 @@ class BinaryDescription:
 # pylint: disable=attribute-defined-outside-init disable=too-many-public-methods disable=too-many-instance-attributes
 class InstallerBase(ABC):
     """this is the prototype for the operation system agnostic installers"""
+    hot_backup: bool
+    basedir: Path
+    installer_type: str
 
     def __init__(self, cfg: InstallerConfig):
         self.machine = platform.machine()
@@ -279,12 +282,10 @@ class InstallerBase(ABC):
     def un_install_server_package_for_upgrade(self):
         """if we need to do something to the old installation on upgrade, do it here."""
 
-    # pylint: disable=no-self-use
     def install_debug_package_impl(self):
         """install the debug package"""
         return False
 
-    # pylint: disable=no-self-use
     def un_install_debug_package_impl(self):
         """uninstall the debug package"""
         return False
@@ -369,7 +370,6 @@ class InstallerBase(ABC):
         there may be execptions."""
         return semver.compare(self.cfg.version, "3.5.1") >= 0
 
-    # pylint: disable=:no-self-use
     @staticmethod
     def calc_config_file_name():
         """store our config to disk - so we can be invoked partly"""
@@ -482,7 +482,10 @@ class InstallerBase(ABC):
     def output_arangod_version(self):
         """document the output of arangod --version"""
         return self.cli_executor.run_monitored(
-            executeable=self.cfg.sbin_dir / "arangod", args=["--version"], params=make_default_params(True), deadline=10,
+            executeable=self.cfg.sbin_dir / "arangod",
+            args=["--version"],
+            params=make_default_params(True),
+            deadline=10,
         )
 
     @step
@@ -773,7 +776,6 @@ class InstallerBase(ABC):
     def check_backup_is_created(self):
         """Check that backup was created after package upgrade"""
 
-    # pylint: disable=:no-self-use
     def supports_backup(self):
         """Does this installer support automatic backup during minor upgrade?"""
         return False
@@ -791,7 +793,6 @@ class InstallerArchive(InstallerBase, metaclass=ABCMeta):
     """base class for archive packages that need to be installed manually, e.g. .tar.gz for Linux, .zip for Windows"""
 
     def __init__(self, cfg):
-        self.basedir=self.basedir
         cfg.have_system_service = False
         cfg.install_prefix = self.basedir
         cfg.bin_dir = None

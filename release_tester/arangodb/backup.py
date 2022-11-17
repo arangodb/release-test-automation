@@ -297,7 +297,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
                 return match.group(1)
         raise Exception("couldn't locate name of the upload process!")
 
-    # pylint: disable=unused-argument disable=no-self-use
+    # pylint: disable=unused-argument
     def validate_local_backup(self, starter_basedir, backup_name):
         """ validate backups in the local installation """
         self.validate_backup(starter_basedir, backup_name)

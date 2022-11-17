@@ -43,7 +43,7 @@ def _get_sync_status(cluster):
     cluster_instance = cluster["instance"]
     token = cluster_instance.get_jwt_token_from_secret_file(cluster["SyncSecret"])
     url = "https://" + cluster_instance.get_sync_master().get_public_plain_url() + "/_api/sync"
-    response = requests.get(url, headers=_create_headers(token))
+    response = requests.get(url, headers=_create_headers(token), timeout=20)
 
     if response.status_code != 200:
         raise Exception(
@@ -252,7 +252,7 @@ class Dc2Dc(Runner):
             inst.detect_instance_pids()
             cluster["smport"] = inst.get_sync_master_port()
             url = "http://{host}:{port}".format(host=self.cfg.publicip, port=str(cluster["smport"]))
-            reply = requests.get(url)
+            reply = requests.get(url, timeout=20)
             logging.info(str(reply))
             logging.info(str(reply.raw))
             logging.info("instances are ready - JWT: " + inst.get_jwt_header())
@@ -306,7 +306,7 @@ class Dc2Dc(Runner):
         token = cluster_instance.get_jwt_token_from_secret_file(self.cluster1["SyncSecret"])
         url = cluster_instance.get_sync_master().get_public_plain_url()
         url = "https://" + url + "/_api/version"
-        response = requests.get(url, headers=_create_headers(token))
+        response = requests.get(url, headers=_create_headers(token), timeout=20)
 
         if response.status_code != 200:
             raise Exception("could not fetch arangosync version from {0}".format(url))
@@ -407,7 +407,6 @@ class Dc2Dc(Runner):
                 self.progress(True, "arangosync: resetting users collection...")
                 self.sync_manager.reset_failed_shard("_system", "_users")
 
-    # pylint: disable=no-self-use
     def _print_users(self, cluster):
         output = cluster["instance"].arangosh.run_command(
             ("print _users",

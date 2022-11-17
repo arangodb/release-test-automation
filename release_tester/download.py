@@ -110,6 +110,7 @@ class Download:
         force_os = "",
     ):
         """main"""
+        # pylint: disable=too-many-branches disable=too-many-statements
         lh.section("configuration")
         if force_os != "":
             if force_os == "windows":
@@ -166,6 +167,7 @@ class Download:
             interactive=False,
             stress_upgrade=False,
             ssl=False,
+            test=""
         )
 
         self.inst = make_installer(self.cfg)
@@ -173,8 +175,7 @@ class Download:
         if force_arch != "":
             machine = force_arch
             self.inst.machine = machine
-        
-        
+
         self.path_architecture = ""
         if self.is_nightly or self.cfg.semver > semver.VersionInfo.parse("3.9.99"):
             if machine == 'AMD64':
@@ -249,7 +250,7 @@ class Download:
             "local": self.acquire_none,
         }
 
-    # pylint: disable=unused-argument disable=no-self-use
+    # pylint: disable=unused-argument
     def acquire_none(self, directory, package, local_dir, force):
         """use the copy that we already have, hence do nothing"""
         print("skipping download")
@@ -285,7 +286,7 @@ class Download:
             print(stage + ": not overwriting {file} since not forced to overwrite!".format(**{"file": str(out)}))
             return
         print(stage + ": downloading " + str(url))
-        res = requests.get(url)
+        res = requests.get(url, timeout=120)
         if res.status_code == 200:
             print(
                 stage
@@ -324,7 +325,7 @@ class Download:
             print("LIVE: not overwriting {file} since not forced to overwrite!".format(**{"file": str(out)}))
             return
         print("LIVE: downloading " + str(url))
-        res = requests.get(url)
+        res = requests.get(url, timeout=120)
         if res.status_code == 200:
             print(
                 "LIVE: writing {size} kbytes to {file}".format(

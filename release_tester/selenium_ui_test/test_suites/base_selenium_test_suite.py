@@ -132,7 +132,6 @@ class BaseSeleniumTestSuite(BaseTestSuite):
         """clean up after test case"""
         self.truncate_browser_log()
 
-    # pylint: disable=no-self-use
     def progress(self, arg):
         """state print todo"""
         print(arg)

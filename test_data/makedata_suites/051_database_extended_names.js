@@ -11,7 +11,7 @@
     },
 
     makeDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
-      print("Create databases with unicode symbols in the name");
+      print("051: Create databases with unicode symbols in the name");
       let baseName = database;
       if (baseName === "_system") {
         baseName = "system";
@@ -41,7 +41,7 @@
       if (baseName === "_system") {
         baseName = "system";
       }
-      progress("Test databases with extended unicode symbols in the name");
+      progress("051: Test databases with extended unicode symbols in the name");
       print(db._databases());
       for (let i in extendedDbNames) {
         let unicodeName = extendedDbNames[i];
@@ -55,7 +55,7 @@
       return 0;
     },
     clearDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
-      progress("Delete databases with unicode symbols in the name");
+      progress(`051: Delete databases with unicode symbols in the name ${database} ${dbCount}`);
       if (database === "_system") {
         database = "system";
       }
@@ -64,6 +64,7 @@
         let unicodeName = extendedDbNames[i];
         let databaseName = `${baseName}_${dbCount}_${unicodeName}`;
         db._useDatabase('_system');
+        print(`051: dropping ${databaseName}`);
         db._dropDatabase(databaseName);
       }
       return 0;

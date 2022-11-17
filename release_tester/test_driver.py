@@ -72,7 +72,7 @@ class TestDriver:
             kwargs["package_dir"] = (self.launch_dir / kwargs["package_dir"]).resolve()
         if not kwargs["package_dir"].exists():
             kwargs["package_dir"].mkdir(parents=True, exist_ok=True)
-
+        kwargs["base_config"].package_dir = kwargs["package_dir"]
         self.base_config = kwargs["base_config"]
         lh.configure_logging(kwargs["verbose"])
         self.abort_on_error = kwargs["abort_on_error"]
@@ -85,7 +85,6 @@ class TestDriver:
         )
         self.installer_type = None
 
-    # pylint: disable=no-self-use
     def set_r_limits(self):
         """on linux manipulate ulimit values"""
         # pylint: disable=import-outside-toplevel
@@ -138,7 +137,7 @@ class TestDriver:
         while not test_data_dir.exists():
             time.sleep(1)
 
-    # pylint: disable=broad-except
+    # pylint: disable=broad-except disable=dangerous-default-value
     def run_cleanup(self, run_properties: RunProperties, versions: list = ["3.3.3"]):
         """main"""
         installer_set = create_config_installer_set(versions, self.base_config, "all", run_properties)
@@ -376,6 +375,7 @@ class TestDriver:
                 with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
                     if not run_props.supports_dc2dc() and runner_type == RunnerType.DC2DC:
                         testcase.context.status = Status.SKIPPED
+                        # pylint disable=line-too-long
                         testcase.context.statusDetails = StatusDetails(
                             message="DC2DC is not applicable to Community packages.\nDC2DC is not supported on Windows.")
                         continue

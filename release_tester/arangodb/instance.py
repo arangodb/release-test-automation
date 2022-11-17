@@ -74,7 +74,7 @@ class AfoServerState(IntEnum):
 class Instance(ABC):
     """abstract instance manager"""
 
-    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=too-many-public-methods
     def __init__(
         self,
         instance_type,
@@ -110,7 +110,7 @@ class Instance(ABC):
     def get_structure(self):
         """ return instance structure like testing.js does """
         url = ('https' if self.ssl else 'http') + '127.0.0.1:' + str(self.port) + '/'
-        protocol = ('ssl' if self.ssl else 'tcp') 
+        protocol = ('ssl' if self.ssl else 'tcp')
         endpoint = protocol + '127.0.0.1:' + str(self.port) + '/'
         return {
             'name': self.name,
@@ -150,14 +150,12 @@ class Instance(ABC):
         """retrieve the pw to connect to this instance"""
         return self.passvoid
 
-    def detect_gone(self, verbose=True):
+    def detect_gone(self):
         """revalidate that the managed process is actualy dead"""
         try:
             # we expect it to be dead anyways!
             return self.instance.wait(3) is None
         except psutil.TimeoutExpired:
-            if not verbose:
-                logging.error("was supposed to be dead, but I'm still alive? " + repr(self))
             return False
         except AttributeError:
             # logging.error("was supposed to be dead, but I don't have an instance? "
@@ -341,7 +339,6 @@ class Instance(ABC):
 
     def is_line_relevant(self, line):
         """it returns true if the line from logs should be printed"""
-        # pylint: disable=no-self-use
         return "FATAL" in line or "ERROR" in line or "WARNING" in line or "{crash}" in line
 
     def search_for_warnings(self):
@@ -476,7 +473,6 @@ class ArangodInstance(Instance):
 
     def is_sync_instance(self):
         """no."""
-        # pylint: disable=no-self-use
         return False
 
     @step
@@ -498,7 +494,7 @@ class ArangodInstance(Instance):
         while until < time.time():
             reply = None
             try:
-                reply = requests.get(self.get_local_url("") + "/_api/version")
+                reply = requests.get(self.get_local_url("") + "/_api/version", timeout=20)
                 if reply.status_code == 200:
                     return
                 print("*")
@@ -514,6 +510,7 @@ class ArangodInstance(Instance):
                 self.get_local_url("") + "/_api/version",
                 auth=HTTPBasicAuth("root", self.passvoid),
                 verify=False,
+                timeout=20
             )
         except requests.exceptions.ConnectionError:
             return AfoServerState.NOT_CONNECTED
@@ -796,17 +793,14 @@ class SyncInstance(Instance):
 
     def is_frontend(self):
         """no."""
-        # pylint: disable=no-self-use
         return False
 
     def is_dbserver(self):
         """no."""
-        # pylint: disable=no-self-use
         return False
 
     def is_sync_instance(self):
         """yes."""
-        # pylint: disable=no-self-use
         return True
 
     def is_line_relevant(self, line):

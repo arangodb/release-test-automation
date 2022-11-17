@@ -7,30 +7,29 @@ from pathlib import Path, PureWindowsPath
 import shutil
 import subprocess
 import time
-
-# pylint: disable=import-error
-import platform
-IS_WINDOWS = platform.win32_ver()[0] != ""
-if IS_WINDOWS:
-    import winreg
 import os
 import re
+
+import platform
 
 import semver
 from allure_commons._allure import attach
 from allure_commons.types import AttachmentType
-if IS_WINDOWS:
-    from mss import mss
-import psutil
 
 from arangodb.installers.windows import InstallerWin
 from reporting.reporting_utils import step
 from tools.killall import get_process_tree
 
+import psutil
 # pylint: disable=unused-import
 # this will patch psutil for us:
 import tools.monkeypatch_psutil
 
+# pylint: disable=import-error
+IS_WINDOWS = platform.win32_ver()[0] != ""
+if IS_WINDOWS:
+    from mss import mss
+    import winreg
 
 class InstallerNsis(InstallerWin):
     """install the windows NSIS package"""
@@ -408,7 +407,7 @@ class InstallerNsis(InstallerWin):
             logging.info(self.service.status())
             time.sleep(1)
             if self.service.status() == "stopped":
-                raise Exception("arangod service stopped again on its own!" "Configuration / Port problem?")
+                raise Exception("arangod service stopped again on its own! Configuration / Port problem?")
         # should be owned by init TODO wintendo what do you do here?
         self.instance.detect_pid(1)
 

@@ -36,6 +36,7 @@
 
 ## Mac OS
 :
+    `brew install libmagic`
     `brew install gnu-tar`
     `pip3 install click psutil requests pyyaml semver magic pexpect selenium beautifultable tabulate allure_python_commons certifi`
     `brew install gdb`
@@ -102,6 +103,7 @@ Supported Parameters:
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
    - `DC` - setup 2 clusters, connect them with arangosync (enterprise only)
    - `DCendurance` - use DC setup to launch long running arangobenches (not part of `all`)
+ - `--test` filter for tests of makedata / check data; comma separated list.
  - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
  - `--verbose` if specified more logging is done
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
@@ -144,6 +146,7 @@ Supported Parameters:
    - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
    - `DC` - setup 2 clusters, connect them with arangosync (enterprise only)
+ - `--test` filter for tests of makedata / check data; comma separated list.
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
@@ -281,6 +284,7 @@ Supported Parameters:
    - `C` community
    - `EP` enterprise
    - `EE` enterprise with encryption at rest
+ - `--test` filter for tests of makedata / check data; comma separated list.
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
@@ -344,6 +348,7 @@ Supported Parameters:
    - `C` community
    - `EP` enterprise
    - `EE` enterprise with encryption at rest
+ - `--test` filter for tests of makedata / check data; comma separated list.
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
@@ -409,7 +414,8 @@ It consists of these files in test_data:
    - `400_views.js` creates some views
    - `500_community_graph.js` creates a community patent graph
    - `550_smart_graph.js` creates a smart patent graph
-   - `560_smartgraph_validator.js` on top of the enterprise graph, this will check the integrity check of the server.
+   - `560_smartgraph_edge_validator.js` on top of the enterprise graph, this will check the integrity check of the server.
+   - `561_smartgraph_vertex_validator.js` on top of the enterprise graph, this will check the integrity check of the server.
    - `570_enterprise_graph.js` creates an enterprise patent graph
    - `900_oneshard.js` creates oneshard database and does stuff with it.
    - `607_analyzers.js` creates suported analyzers for 3.7.x version and check it's functionality.
@@ -471,6 +477,11 @@ if this repository is checked out next to it:
 
 ``` bash
 ./scripts/unittest rta_makedata --extremeVerbosity true --cluster true --makedata_args:bigDoc true
+```
+
+If you want to filter for the scripts you can specify a coma separated list:
+``` bash
+./scripts/unittest rta_makedata --extremeVerbosity true --cluster true --makedata_args:bigDoc true --test '010,020,050'
 ```
 
 # Hot backup settings

@@ -107,7 +107,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             "--master.endpoint=https://{url}:{port}".format(url=self.cfg.publicip, port=str(self.clusterports[0])),
             "--auth.keyfile=" + str(self.certificate_auth["clientkeyfile"]),
         ] + more_args
-        logging.info("SyncManager: stopping sync : %s", str(args))
+        logging.info("SyncManager: stopping sync: %s", str(args))
         params=make_default_params(self.cfg.verbose)
         ret = self.run_monitored(
             self.cfg.bin_dir / "arangosync",
@@ -127,7 +127,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             "--master.endpoint=https://{url}:{port}".format(url=self.cfg.publicip, port=str(self.clusterports[0])),
             "--auth.keyfile=" + str(self.certificate_auth["clientkeyfile"]),
         ]
-        logging.info("SyncManager: stopping sync : %s", str(args))
+        logging.info("SyncManager: stopping sync: %s", str(args))
         params=make_default_params(self.cfg.verbose)
         ret = self.run_monitored(
             self.cfg.bin_dir / "arangosync",
@@ -142,7 +142,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
     def check_sync(self):
         """run the check sync command"""
         if self.version < semver.VersionInfo.parse("1.0.0"):
-            logging.warning("SyncManager: checking sync consistency :" " available since 1.0.0 of arangosync")
+            logging.warning("SyncManager: checking sync consistency: available since 1.0.0 of arangosync")
             return ("", "", True)
 
         args = [
@@ -152,7 +152,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             "--master.endpoint=https://{url}:{port}".format(url=self.cfg.publicip, port=str(self.clusterports[0])),
             "--auth.keyfile=" + str(self.certificate_auth["clientkeyfile"]),
         ]
-        logging.info("SyncManager: checking sync consistency : %s", str(args))
+        logging.info("SyncManager: checking sync consistency: %s", str(args))
         params = make_default_params(self.cfg.verbose)
         try:
             params=make_default_params(self.cfg.verbose)
@@ -177,7 +177,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
     def reset_failed_shard(self, database, collection):
         """run the check sync command"""
         if self.version < semver.VersionInfo.parse("1.0.0"):
-            logging.warning("SyncManager: checking sync consistency :" " available since 1.0.0 of arangosync")
+            logging.warning("SyncManager: checking sync consistency: available since 1.0.0 of arangosync")
             return True
 
         args = [
@@ -192,7 +192,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             "--collection",
             collection,
         ]
-        logging.info("SyncManager: resetting failed shard : %s", str(args))
+        logging.info("SyncManager: resetting failed shard: %s", str(args))
         try:
             params=make_default_params(self.cfg.verbose)
             ret = self.run_monitored(
