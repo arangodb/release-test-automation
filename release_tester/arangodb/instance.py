@@ -122,7 +122,7 @@ class Instance(ABC):
             'suspended': False,
             'port': self.port,
             'url': self.get_public_url(),
-            'endpoint': self.get_public_url(),
+            'endpoint': self.get_endpoint(),
             'dataDir': str(self.basedir / 'data'),
             'appDir': str(self.basedir / 'apps'),
             'tmpDir': "",
