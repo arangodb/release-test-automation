@@ -109,6 +109,10 @@ class Instance(ABC):
 
     def get_structure(self):
         """ return instance structure like testing.js does """
+        try:
+            endpoint = self.get_endpoint()
+        except NotImplementedError:
+            endpoint = ""
         return {
             'name': self.name,
             'instanceRole': self.type_str,
@@ -122,7 +126,7 @@ class Instance(ABC):
             'suspended': False,
             'port': self.port,
             'url': self.get_public_url(),
-            'endpoint': self.get_endpoint(),
+            'endpoint': endpoint,
             'dataDir': str(self.basedir / 'data'),
             'appDir': str(self.basedir / 'apps'),
             'tmpDir': "",
@@ -321,7 +325,7 @@ class Instance(ABC):
 
     def get_endpoint(self):
         """arangodb enpoint - to be specialized (if)"""
-        raise Exception("this instance doesn't support endpoints." + repr(self))
+        raise NotImplementedError("this instance doesn't support endpoints." + repr(self))
 
     def is_suppressed_log_line(self, line):
         """check whether this is one of the errors we can ignore"""
