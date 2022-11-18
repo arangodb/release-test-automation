@@ -109,22 +109,23 @@ class Instance(ABC):
 
     def get_structure(self):
         """ return instance structure like testing.js does """
-        url = ('https' if self.ssl else 'http') + '127.0.0.1:' + str(self.port) + '/'
-        protocol = ('ssl' if self.ssl else 'tcp')
-        endpoint = protocol + '127.0.0.1:' + str(self.port) + '/'
+        try:
+            endpoint = self.get_endpoint()
+        except NotImplementedError:
+            endpoint = ""
         return {
             'name': self.name,
             'instanceRole': self.type_str,
             'message': '',
             'rootDir': str(self.basedir),
-            'protocol': protocol,
+            'protocol': self.get_http_protocol(),
             'authHeaders': "",
             'restKeyFile': "",
             'agencyConfig': {},
             'upAndRunning': True,
             'suspended': False,
             'port': self.port,
-            'url': url,
+            'url': self.get_public_url(),
             'endpoint': endpoint,
             'dataDir': str(self.basedir / 'data'),
             'appDir': str(self.basedir / 'apps'),
@@ -132,10 +133,10 @@ class Instance(ABC):
             'logFile': str(self.logfile),
             'args': str(self.instance_arguments),
             'pid': self.pid,
-            'id': self.pid,
             'JWT': "",
             'exitStatus': 0,
-            'serverCrashedLocal': False
+            'serverCrashedLocal': False,
+            'passvoid': self.passvoid,
         }
 
     @abstractmethod
@@ -324,7 +325,7 @@ class Instance(ABC):
 
     def get_endpoint(self):
         """arangodb enpoint - to be specialized (if)"""
-        raise Exception("this instance doesn't support endpoints." + repr(self))
+        raise NotImplementedError("this instance doesn't support endpoints." + repr(self))
 
     def is_suppressed_log_line(self, line):
         """check whether this is one of the errors we can ignore"""
@@ -370,47 +371,6 @@ class Instance(ABC):
             AttachmentType.TEXT,
         )
 
-
-class ArangodInstance(Instance):
-    """represent one arangodb instance"""
-
-    # pylint: disable=too-many-arguments
-    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl, is_system=False):
-        super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangod", ssl)
-        self.is_system = is_system
-
-    def __repr__(self):
-        # raise Exception("blarg")
-        return """
- {0.name}  |  {0.type_str}  | {0.pid} | {0.logfile}
-""".format(
-            self
-        )
-
-    def get_uuid(self):
-        """try to load the instances UUID"""
-        uuid_file = self.basedir / "data" / "UUID"
-        return uuid_file.read_text()
-
-    def get_essentials(self):
-        """get the essential attributes of the class"""
-        return {
-            "name": self.name,
-            "pid": self.pid,
-            "type": self.type_str,
-            "log": self.logfile,
-            "is_frontend": self.is_frontend(),
-            "url": self.get_public_login_url() if self.is_frontend() else "",
-        }
-
-    # pylint: disable=no-else-return
-    def get_protocol(self):
-        """return protocol of this arangod instance (ssl/tcp)"""
-        if self.ssl:
-            return "ssl"
-        else:
-            return "tcp"
-
     # pylint: disable=no-else-return
     def get_http_protocol(self):
         """return protocol of this arangod instance (http/https)"""
@@ -436,6 +396,51 @@ class ArangodInstance(Instance):
             host=self.publicip,
             port=self.port,
         )
+
+
+class ArangodInstance(Instance):
+    """represent one arangodb instance"""
+
+    # pylint: disable=too-many-arguments
+    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl, is_system=False):
+        super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangod", ssl)
+        self.is_system = is_system
+
+    def __repr__(self):
+        # raise Exception("blarg")
+        return """
+ {0.name}  |  {0.type_str}  | {0.pid} | {0.logfile}
+""".format(
+            self
+        )
+
+    def get_uuid(self):
+        """try to load the instances UUID"""
+        try:
+            uuid_file = self.basedir / "data" / "UUID"
+            uuid = uuid_file.read_text()
+            return uuid
+        except:
+            return None
+
+    def get_essentials(self):
+        """get the essential attributes of the class"""
+        return {
+            "name": self.name,
+            "pid": self.pid,
+            "type": self.type_str,
+            "log": self.logfile,
+            "is_frontend": self.is_frontend(),
+            "url": self.get_public_login_url() if self.is_frontend() else "",
+        }
+
+    # pylint: disable=no-else-return
+    def get_protocol(self):
+        """return protocol of this arangod instance (ssl/tcp)"""
+        if self.ssl:
+            return "ssl"
+        else:
+            return "tcp"
 
     def get_public_login_url(self):
         """our public url with passvoid"""
@@ -702,6 +707,11 @@ class ArangodInstance(Instance):
         if serving_line:
             self.serving = log_line_get_date(serving_line)
         return self.serving
+
+    def get_structure(self):
+        structure = super().get_structure()
+        structure["id"] = self.get_uuid()
+        return structure
 
 
 class ArangodRemoteInstance(ArangodInstance):
