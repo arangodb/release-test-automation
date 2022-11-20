@@ -440,13 +440,11 @@ let checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTo
   };
   return {
     isSupported: function (currentVersion, oldVersion, options, enterprise, cluster) {
-//      if (oldVersion === "") {
-//        oldVersion = currentVersion;
-//      }
-//      let old = semver.parse(semver.coerce(oldVersion));
-//      return enterprise && cluster && semver.gte(old, "3.10.0");
-//TODO: this test suite must be re-enabled when stable
-      return false;
+      if (oldVersion === "") {
+        oldVersion = currentVersion;
+      }
+      let old = semver.parse(semver.coerce(oldVersion));
+      return enterprise && cluster && semver.gte(old, "3.10.0");
     },
 
     makeData: function (options, isCluster, isEnterprise, dbCount, loopCount) {
