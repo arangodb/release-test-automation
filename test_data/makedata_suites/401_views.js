@@ -1,4 +1,4 @@
-/* global print, progress, createCollectionSafe, db, createSafe  */
+/* global print, progress, createCollectionSafe, db, createSafe, semver */
 
 (function () {
   return {

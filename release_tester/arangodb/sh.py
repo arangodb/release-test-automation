@@ -277,13 +277,15 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             logging.info("adding test data for {0}".format(testname))
         else:
             logging.info("adding test data")
-
+        test_filter = []
+        if self.cfg.test != "":
+            test_filter = ['--test', self.cfg.test]
         ret = self.run_script_monitored(
             cmd=[
                 "setting up test data",
                 self.cfg.test_data_dir.resolve() / "makedata.js",
             ],
-            args=args + ["--progress", "true", "--passvoid", self.cfg.passvoid],
+            args=args + ["--progress", "true", "--passvoid", self.cfg.passvoid] + test_filter,
             progressive_timeout=progressive_timeout,
             result_line_handler=result_line_handler,
         )
@@ -299,6 +301,9 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         else:
             logging.info("checking test data")
 
+        test_filter = []
+        if self.cfg.test != "":
+            test_filter = ['--test', self.cfg.test]
         ret = self.run_script_monitored(
             cmd=["checking test data integrity", self.cfg.test_data_dir.resolve() / "checkdata.js"],
             # fmt: off
@@ -306,7 +311,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                 '--progress', 'true',
                 '--oldVersion', self.cfg.version,
                 '--testFoxx', 'true' if supports_foxx_tests else 'false'
-            ],
+            ] + test_filter,
             # fmt: on
             progressive_timeout=25,
             result_line_handler=result_line_handler,
@@ -323,11 +328,14 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         else:
             logging.info("removing test data")
 
+        test_filter = []
+        if self.cfg.test != "":
+            test_filter = ['--test', self.cfg.test]
         ret = self.run_script_monitored(
             cmd=[
                 "cleaning up test data",
                 self.cfg.test_data_dir.resolve() / "cleardata.js",
-            ],
+            ] + test_filter,
             args=args + ["--progress", "true"],
             progressive_timeout=5,
             result_line_handler=result_line_handler,

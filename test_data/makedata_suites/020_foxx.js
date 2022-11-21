@@ -70,7 +70,7 @@ function installFoxx (mountpoint, which, mode, options) {
 }
 
 function deleteFoxx (mountpoint) {
-  print(mountpoint)
+  print(mountpoint);
   const deleteResp = arango.DELETE('/_api/foxx/service?force=true&mount=' + mountpoint);
   assertTrue(deleteResp.hasOwnProperty('code'), "reply without code: " + JSON.stringify(deleteResp));
   assertEqual(deleteResp.code, 204, "Reply was: " + JSON.stringify(deleteResp));
@@ -105,12 +105,12 @@ const crudTestServiceSource = {
   let testFoxxRoutingReady = function() {
     for (let i = 0; i < 200; i++) {
       try {
-        reply = arango.GET_RAW('/this_route_is_not_here', onlyJson);
+        let reply = arango.GET_RAW('/this_route_is_not_here', onlyJson);
         if (reply.code === 404) {
           print("selfHeal was already executed - Foxx is ready!");
           return 0;
         }
-        print(" Not yet ready, retrying: " + msg);
+        print(" Not yet ready, retrying: " + reply.parsedBody);
       } catch (e) {
         print(" Caught - need to retry. " + JSON.stringify(e));
       }
@@ -121,7 +121,7 @@ const crudTestServiceSource = {
   let testFoxxReady = function(route) {
     for (let i = 0; i < 200; i++) {
       try {
-        reply = arango.GET_RAW(route, onlyJson);
+        let reply = arango.GET_RAW(route, onlyJson);
         if (reply.code === 200) {
           print(route + " OK");
           return 0;
