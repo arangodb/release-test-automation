@@ -49,15 +49,13 @@ class Single(Runner):
     def starter_prepare_env_impl(self):
         opts = []
 
-        print("\n\n\nVERSION ", self.versionstr)
-        input("c")
-        match = re.match(r"\w+\[(.+)\]", self.versionstr)
         version = self.versionstr
+        match = re.match(r"\w+\[(.+)\]", self.versionstr)
         if match:
+            # upgrade
             version = match[1]
         
         if semver.compare(version, "3.9.5") == 0 or semver.compare(version, "3.10.2") >= 0:
-            input("d")
             opts.append('--args.all.arangosearch.columns-cache-limit=500000')
 
         if self.cfg.ssl and not self.cfg.use_auto_certs:

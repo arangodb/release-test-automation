@@ -135,7 +135,12 @@ while (true) {{
         leader_opts = []
         follower_opts = []
 
-        version = re.match(r"\w+\[(.+)\]", self.versionstr)[1]
+        version = self.versionstr
+        match = re.match(r"\w+\[(.+)\]", self.versionstr)
+        if match:
+            # upgrade
+            version = match[1]
+        
         if semver.compare(version, "3.9.5") == 0 or semver.compare(version, "3.10.2") >= 0:
             leader_opts.append('--all.arangosearch.columns-cache-limit=500000')
             follower_opts.append('--all.arangosearch.columns-cache-limit=500000')

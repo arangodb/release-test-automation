@@ -189,28 +189,80 @@ function compareLinks(linkFromView, expectedLink) {
   return _.isEqual(linkFromView, expectedLink);
 }
 
-function getMetricName(text, name) {
+function getMetricValue(text, name) {
   let re = new RegExp("^" + name);
   let matches = text.split('\n').filter((line) => !line.match(/^#/)).filter((line) => line.match(re));
   if (!matches.length) {
     throw "Metric " + name + " not found";
   }
   return Number(matches[0].replace(/^.*{.*} ([0-9.]+)$/, "$1"));
-}
-
-getMetric = function (endpoint, name) {
-  let text = getAllMetric(endpoint, '');
-  return getMetricName(text, name);
 };
 
-getMetricSingle = function (name) {
-  let res = arango.GET_RAW("/_admin/metrics/v2");
+let instanceInfo = null;
+let jwt_key = null;
+
+function generateJWT(options) {
+  if (jwt_key != null) {
+    return;
+  }
+
+  let content = `{"username": "root","password": "${options.passvoid}" }`;  
+  let headers = 'Content-Type: application/json';
+  let reply = arango.POST_RAW("/_open/auth", content, headers);
+  let obj = reply["parsedBody"]; 
+  jwt_key = obj["jwt"];
+};
+
+getRawMetric = function (tags = "") {
+  let headers = {};
+  headers['accept'] = 'application/json';
+  headers["Authorization"] = `Bearer ${jwt_key}`;
+
+  let reply = arango.GET_RAW(`/_admin/metrics/v2${tags}`, headers);
+  return reply;
+};
+
+getMetricByName = function (name, tags) {
+  let res = getRawMetric(tags);
   if (res.code !== 200) {
     throw "error fetching metric";
   }
-  return getMetricName(res.body, name);
+  return getMetricValue(res.body, name);
 };
 
+getMetricSingle = function (name) {
+  return getMetricByName(name, "");
+};
+
+getMetricCluster = function (name) {
+  let headers = {};
+  headers['accept'] = 'application/json';
+  headers["Authorization"] = `Bearer ${jwt_key}`;
+  let clusterHealth = arango.GET_RAW("/_admin/cluster/health", headers)["parsedBody"]["Health"];
+
+  let serversId = [];
+  for (let [key, value] of Object.entries(clusterHealth)) {
+    if (value.Role.toLowerCase() == "dbserver") {
+      serversId.push(key);
+    }
+  }
+
+  let value = 0;
+  for (let i = 0; i < serversId.length; i++) {
+    value += getMetricByName(name, `?serverId=${serversId[i]}`);
+  }
+
+  return value;
+};
+
+getMetric = function (name, options) {
+  generateJWT(options);
+  if (isCluster) {
+    return getMetricCluster(name);
+  } else {
+    return getMetricSingle(name);
+  }
+};
 
 (function () {
   return {
@@ -221,7 +273,7 @@ getMetricSingle = function (name) {
       // All items created must contain dbCount and loopCount
       print(`making data ${dbCount} ${loopCount}`);
 
-      print("\n\n\n\nMAKE DATA!!!!\n\n\n\n\n")
+      print("\n\n\n\nMAKE DATA!!!!\n\n\n\n\n");
 
       // create analyzer with 'norm' feature
       analyzers.save("AqlAnalyzerHash", "aql", { queryString: "return to_hex(to_string(@param))" }, ["frequency", "norm", "position"])
@@ -254,7 +306,7 @@ getMetricSingle = function (name) {
       let prevCacheSize = cacheSize;
 
       if (checkCacheSize) {
-        cacheSize = getMetricSingle("arangodb_search_columns_cache_size");
+        cacheSize = getMetric("arangodb_search_columns_cache_size", options);
         if (cacheSize != 0) {
           throw new Error("initial cache size is not 0");
         }
@@ -286,8 +338,8 @@ getMetricSingle = function (name) {
           let utilizeCache = links[i]["utilizeCache"]
 
           // update cacheSize
-          cacheSize = getMetricSingle("arangodb_search_columns_cache_size");
-          // print(cacheSize);
+          cacheSize = getMetric("arangodb_search_columns_cache_size", options);
+          print(cacheSize);
           if ((cacheSize <= prevCacheSize) && utilizeCache) {
             throw new Error("new cache size is wrong");
           }
