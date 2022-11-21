@@ -124,7 +124,7 @@ class Runner(ABC):
         self.cert_dir = ""
         self.passvoid = None
         self.basecfg.passvoid = ""
-        self.versionstr = ""
+        self.versionstr = self.cfg.version
         if self.new_cfg:
             self.new_cfg.passvoid = ""
             self.versionstr = "OLD[" + self.cfg.version + "] "

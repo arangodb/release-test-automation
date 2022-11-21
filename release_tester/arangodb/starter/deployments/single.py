@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
 import time
+import re
+import semver
 import logging
 from pathlib import Path
 
@@ -45,7 +47,19 @@ class Single(Runner):
         self.success = False
 
     def starter_prepare_env_impl(self):
-        opts = ['--all.arangosearch.columns-cache-limit=500000']
+        opts = []
+
+        print("\n\n\nVERSION ", self.versionstr)
+        input("c")
+        match = re.match(r"\w+\[(.+)\]", self.versionstr)
+        version = self.versionstr
+        if match:
+            version = match[1]
+        
+        if semver.compare(version, "3.9.5") == 0 or semver.compare(version, "3.10.2") >= 0:
+            input("d")
+            opts.append('--args.all.arangosearch.columns-cache-limit=500000')
+
         if self.cfg.ssl and not self.cfg.use_auto_certs:
             self.create_tls_ca_cert()
             tls_keyfile = self.cert_dir / Path("single") / "tls.keyfile"
@@ -129,15 +143,21 @@ class Single(Runner):
         self.starter_instance.replace_binary_setup_for_upgrade(self.new_cfg)
         self.starter_instance.terminate_instance(True)
         self.progress(True, "step 2 - launch instances with the upgrade options set")
+
+        opts = ["--database.auto-upgrade", "true", "--javascript.copy-installation", "true"]
+
+        print("\n\n\nVERSION ", self.versionstr)
+        input("a")
+        version = re.match(r"\w+\[(.+)\]", self.versionstr)[1]
+        if semver.compare(version, "3.9.5") == 0 or semver.compare(version, "3.10.2") >= 0:
+            input("b")
+            opts.append('--args.all.arangosearch.columns-cache-limit')
+            opts.append('500000')
+
         print("launch")
         self.starter_instance.manually_launch_instances(
                 [InstanceType.SINGLE],
-                [
-                    "--database.auto-upgrade",
-                    "true",
-                    "--javascript.copy-installation",
-                    "true",
-                ],
+                opts,
             )
         self.progress(True, "step 3 - launch instances again")
         self.starter_instance.respawn_instance()
@@ -172,7 +192,7 @@ class Single(Runner):
         """set instances in selenium runner"""
         self.selenium.set_instances(
             self.cfg,
-            sself.starter_instance.arango_importer,
+            self.starter_instance.arango_importer,
             self.starter_instance.arango_restore,
             self.starter_instance.all_instances[0],
         )

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
 import time
+import re
+import semver
 import logging
 from pathlib import Path
 
@@ -130,8 +132,14 @@ while (true) {{
         }
 
     def starter_prepare_env_impl(self):
-        leader_opts = ['--all.arangosearch.columns-cache-limit=500000']
-        follower_opts = ['--all.arangosearch.columns-cache-limit=500000']
+        leader_opts = []
+        follower_opts = []
+
+        version = re.match(r"\w+\[(.+)\]", self.versionstr)[1]
+        if semver.compare(version, "3.9.5") == 0 or semver.compare(version, "3.10.2") >= 0:
+            leader_opts.append('--all.arangosearch.columns-cache-limit=500000')
+            follower_opts.append('--all.arangosearch.columns-cache-limit=500000')
+
         if self.cfg.ssl and not self.cfg.use_auto_certs:
             self.create_tls_ca_cert()
             leader_tls_keyfile = self.cert_dir / Path("leader") / "tls.keyfile"
@@ -312,15 +320,17 @@ process.exit(0);
             node.terminate_instance(True)
         self.progress(True, "step 2 - launch instances with the upgrade options set")
         for node in instances:
+
+            opts = ["--database.auto-upgrade", "true", "--javascript.copy-installation", "true"]
+            version = re.match(r"\w+\[(.+)\]", self.versionstr)[1]
+            if semver.compare(version, "3.9.5") == 0 or semver.compare(version, "3.10.2") >= 0:
+                opts.append('--args.all.arangosearch.columns-cache-limit')
+                opts.append('500000')
+
             print("launch")
             node.manually_launch_instances(
                 [InstanceType.SINGLE],
-                [
-                    "--database.auto-upgrade",
-                    "true",
-                    "--javascript.copy-installation",
-                    "true",
-                ],
+                opts,
             )
         self.progress(True, "step 3 - launch instances again")
         for node in instances:

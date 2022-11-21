@@ -3,8 +3,8 @@
 let link_no_cache = {
   "utilizeCache": false, // This value for testing purpose. It will be ignored during link creation
   includeAllFields: false,
-  storeValues : "none", 
-  trackListPositions : false,
+  storeValues: "none",
+  trackListPositions: false,
   fields: {
     animal: {},
     name: {}
@@ -16,8 +16,8 @@ let link_cache_true_top = {
   "cache": true,
   "utilizeCache": true, // This value for testing purpose. It will be ignored during link creation
   includeAllFields: false,
-  storeValues : "none", 
-  trackListPositions : false,
+  storeValues: "none",
+  trackListPositions: false,
   fields: {
     animal: {},
     name: {}
@@ -29,8 +29,8 @@ let link_cache_false_top = {
   "cache": false,
   "utilizeCache": false, // This value for testing purpose. It will be ignored during link creation
   includeAllFields: false,
-  storeValues : "none", 
-  trackListPositions : false,
+  storeValues: "none",
+  trackListPositions: false,
   fields: {
     animal: {},
     name: {}
@@ -41,8 +41,8 @@ let link_cache_false_top = {
 let link_cache_true_bottom = {
   "utilizeCache": true, // This value for testing purpose. It will be ignored during link creation
   includeAllFields: false,
-  storeValues : "none", 
-  trackListPositions : false,
+  storeValues: "none",
+  trackListPositions: false,
   fields: {
     animal: {
       "cache": true,
@@ -55,8 +55,8 @@ let link_cache_true_bottom = {
 let link_cache_false_bottom = {
   "utilizeCache": false, // This value for testing purpose. It will be ignored during link creation
   includeAllFields: false,
-  storeValues : "none", 
-  trackListPositions : false,
+  storeValues: "none",
+  trackListPositions: false,
   fields: {
     animal: {
       "cache": false,
@@ -70,8 +70,8 @@ let link_cache_true_top_true_bottom = {
   "utilizeCache": true, // This value for testing purpose. It will be ignored during link creation
   "cache": true,
   includeAllFields: false,
-  storeValues : "none", 
-  trackListPositions : false,
+  storeValues: "none",
+  trackListPositions: false,
   fields: {
     animal: {
       "cache": true,
@@ -85,8 +85,8 @@ let link_cache_true_top_false_bottom = {
   "utilizeCache": true, // This value for testing purpose. It will be ignored during link creation
   "cache": true,
   includeAllFields: false,
-  storeValues : "none", 
-  trackListPositions : false,
+  storeValues: "none",
+  trackListPositions: false,
   fields: {
     animal: {
       "cache": false,
@@ -100,8 +100,8 @@ let link_cache_false_top_true_bottom = {
   "utilizeCache": true, // This value for testing purpose. It will be ignored during link creation
   "cache": false,
   includeAllFields: false,
-  storeValues : "none", 
-  trackListPositions : false,
+  storeValues: "none",
+  trackListPositions: false,
   fields: {
     animal: {
       "cache": true,
@@ -115,8 +115,8 @@ let link_cache_false_top_false_bottom = {
   "utilizeCache": false, // This value for testing purpose. It will be ignored during link creation
   "cache": false,
   includeAllFields: false,
-  storeValues : "none", 
-  trackListPositions : false,
+  storeValues: "none",
+  trackListPositions: false,
   fields: {
     animal: {
       "cache": false,
@@ -151,15 +151,11 @@ let links = [
 function compareLinks(linkFromView, expectedLink) {
   // remove redundant 'cache': false values from link definition
   if (expectedLink.hasOwnProperty("cache")) {
-    print(1)
     if (expectedLink["cache"] == false) {
-      print(2)
 
       if (expectedLink["fields"]["animal"].hasOwnProperty("cache")) {
-        print(3)
 
         if (expectedLink["fields"]["animal"]["cache"] == false) {
-          print(4)
 
           delete expectedLink["cache"];
           delete expectedLink["fields"]["animal"]["cache"];
@@ -167,7 +163,6 @@ function compareLinks(linkFromView, expectedLink) {
           delete expectedLink["cache"];
         }
       } else {
-        print("here")
         delete expectedLink["cache"];
       }
     } else {
@@ -178,25 +173,19 @@ function compareLinks(linkFromView, expectedLink) {
       }
     }
   } else {
-      print(5)
 
     if (expectedLink["fields"]["animal"].hasOwnProperty("cache")) {
-        print(6)
 
       if (expectedLink["fields"]["animal"]["cache"] == false) {
-        print(7)
 
         delete expectedLink["fields"]["animal"]["cache"];
       }
     }
-  } 
+  }
 
   // remove redundant 'utilizeCache' values
   delete expectedLink["utilizeCache"];
 
-  print("LINK FROM VIEW = ", linkFromView)
-  print("\n\n")
-  print("EXPECTED LINK = ", expectedLink)
   return _.isEqual(linkFromView, expectedLink);
 }
 
@@ -242,30 +231,35 @@ getMetricSingle = function (name) {
       let viewNameCache = `viewCache_${loopCount}`;
       let viewCache = createSafe(viewNameCache,
         viewNameCache => {
-          return db._createView(viewNameCache, "arangosearch", {"storedValues": [{ "fields": [ "animal", "name" ], "cache": true}]});
+          return db._createView(viewNameCache, "arangosearch", { "storedValues": [{ "fields": ["animal", "name"], "cache": true }] });
         }, viewNameCache => {
           return db._view(viewNameCache);
         }
       );
-      print(viewCache.properties());
 
       progress('createViewNoCache');
       let viewNameNoCache = `viewNoCache_${loopCount}`;
       let viewNoCache = createSafe(viewNameNoCache,
         viewNameNoCache => {
-          return db._createView(viewNameNoCache, "arangosearch", {"storedValues": [{ "fields": [ "animal", "name" ], "cache": false}]});
+          return db._createView(viewNameNoCache, "arangosearch", { "storedValues": [{ "fields": ["animal", "name"], "cache": false }] });
         }, viewNameNoCache => {
           return db._view(viewNameNoCache);
         }
       );
-      print(viewNoCache.properties());
 
-      let cacheSize = getMetricSingle("arangodb_search_columns_cache_size");
-      if (cacheSize != 0) {
-        throw new Error("initial cache size is not 0");
-      }
-      let prevCacheSize = cacheSize;
       let currVersion = db._version();
+      let checkCacheSize = (semver.eq(currVersion, "3.9.5") || semver.gte(currVersion, "3.10.2"));
+
+      let cacheSize = 0;
+      let prevCacheSize = cacheSize;
+
+      if (checkCacheSize) {
+        cacheSize = getMetricSingle("arangodb_search_columns_cache_size");
+        if (cacheSize != 0) {
+          throw new Error("initial cache size is not 0");
+        }
+        prevCacheSize = cacheSize;
+      }
 
       for (let i = 0; i < links.length; i++) {
         // create collection for each testing link
@@ -276,7 +270,7 @@ getMetricSingle = function (name) {
           { "animal": "cat", "name": "tom" },
           { "animal": "mouse", "name": "jerry" },
           { "animal": "dog", "name": "harry" },
-          { "version": currVersion}
+          { "version": currVersion }
         ]);
 
         // add links to each created collection one by one
@@ -287,16 +281,18 @@ getMetricSingle = function (name) {
         viewCache.properties(meta);
         viewNoCache.properties(meta);
 
-        // Should we check that current link will use cache?
-        let utilizeCache = links[i]["utilizeCache"]
+        if (checkCacheSize) {
+          // Should we check that current link will use cache?
+          let utilizeCache = links[i]["utilizeCache"]
 
-        // update cacheSize
-        cacheSize = getMetricSingle("arangodb_search_columns_cache_size");
-        print(cacheSize);
-        if ((cacheSize <= prevCacheSize) && utilizeCache) {
-          throw new Error("new cache size is wrong");
+          // update cacheSize
+          cacheSize = getMetricSingle("arangodb_search_columns_cache_size");
+          // print(cacheSize);
+          if ((cacheSize <= prevCacheSize) && utilizeCache) {
+            throw new Error("new cache size is wrong");
+          }
+          prevCacheSize = cacheSize;
         }
-        prevCacheSize = cacheSize;
       }
     },
     checkData: function (options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
@@ -304,14 +300,19 @@ getMetricSingle = function (name) {
 
       print("\n\n\n\nCHECK DATA!!!!\n\n\n\n\n")
 
+      let currVersion = db._version();
+      let checkCache = (semver.eq(currVersion, "3.9.5") || semver.gte(currVersion, "3.10.2"));
+
       let viewCache = db._view(`viewCache_${loopCount}`);
       let viewNoCache = db._view(`viewNoCache_${loopCount}`);
 
-      if(viewCache.properties()["storedValues"][0]["cache"] != true) {
-        throw new Error("cache value for storedValues is not true!");
-      }
-      if(viewNoCache.properties()["storedValues"][0].hasOwnProperty("cache")) {
-        throw new Error("cache value for storedValues is present!");
+      if (checkCache) {
+        if (viewCache.properties()["storedValues"][0]["cache"] != true) {
+          throw new Error("cache value for storedValues is not true!");
+        }
+        if (viewNoCache.properties()["storedValues"][0].hasOwnProperty("cache")) {
+          throw new Error("cache value for storedValues is present!");
+        }
       }
 
       [viewCache, viewNoCache].forEach(view => {
@@ -321,7 +322,7 @@ getMetricSingle = function (name) {
           // get link for each collection
           let collectionName = `collectionCache${i}_${loopCount}`;
           let linkFromView = actualLinks[collectionName];
-          
+
           // for 3.10.0 and 3.10.0 we should verify that no cache is present
           let oldVersion = db._query(`for d in ${collectionName} filter HAS(d, 'version') return d.version`).toArray()[0];
           if (semver.eq(oldVersion, "3.10.0") || semver.eq(oldVersion, "3.10.1")) {
@@ -332,7 +333,6 @@ getMetricSingle = function (name) {
               throw new Error("cache value on field level should not present!");
             }
           } else {
-            print(`CHECK link ${i}`)
             let expectedLink = links[i];
             if (!compareLinks(linkFromView, expectedLink)) {
               throw new Error(`links are not equal! ${linkFromView} ${expectedLink}`)
