@@ -37,6 +37,8 @@ from arangodb.sh import ArangoshExecutor
 from arangodb.imp import ArangoImportExecutor
 from arangodb.restore import ArangoRestoreExecutor
 from arangodb.bench import ArangoBenchManager
+from tools.utils import is_column_cache_supported
+from tools.utils import COLUMN_CACHE_ARGUMENT
 
 from reporting.reporting_utils import attach_table, step, attach_http_request_to_report, attach_http_response_to_report
 
@@ -188,7 +190,6 @@ class StarterManager:
             'url': self.url,
             'endpoints': self.endpoints,
             'endpoint': self.endpoint,
-            'arangods': d,
             'restKeyFile': self.restKeyFile,
             'tcpdump': self.tcpdump,
             'cleanup': self.cleanup
@@ -285,6 +286,10 @@ class StarterManager:
         """launch the starter for this instance"""
         logging.info("running starter " + self.name)
         args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.arguments
+
+        if is_column_cache_supported(self.cfg.version):
+            args.append(COLUMN_CACHE_ARGUMENT)
+
         lh.log_cmd(args)
         self.instance = psutil.Popen(args)
         logging.info("my starter has PID:" + str(self.instance.pid))
@@ -718,6 +723,9 @@ class StarterManager:
         maybe command manual upgrade (and wait for exit)
         """
         args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.arguments + moreargs
+
+        if not is_column_cache_supported(self.cfg.version):
+            args.remove()
 
         logging.info("StarterManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)

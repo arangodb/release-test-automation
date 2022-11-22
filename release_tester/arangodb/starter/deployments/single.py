@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
 import time
-import re
-import semver
 import logging
 from pathlib import Path
 
@@ -48,15 +46,8 @@ class Single(Runner):
 
     def starter_prepare_env_impl(self):
         opts = []
-
-        version = self.versionstr
-        match = re.match(r"\w+\[(.+)\]", self.versionstr)
-        if match:
-            # upgrade
-            version = match[1]
-        
-        if semver.compare(version, "3.9.5") == 0 or semver.compare(version, "3.10.2") >= 0:
-            opts.append('--args.all.arangosearch.columns-cache-limit=500000')
+       
+        # utils.if_column_cache_supported()
 
         if self.cfg.ssl and not self.cfg.use_auto_certs:
             self.create_tls_ca_cert()
@@ -143,14 +134,6 @@ class Single(Runner):
         self.progress(True, "step 2 - launch instances with the upgrade options set")
 
         opts = ["--database.auto-upgrade", "true", "--javascript.copy-installation", "true"]
-
-        print("\n\n\nVERSION ", self.versionstr)
-        input("a")
-        version = re.match(r"\w+\[(.+)\]", self.versionstr)[1]
-        if semver.compare(version, "3.9.5") == 0 or semver.compare(version, "3.10.2") >= 0:
-            input("b")
-            opts.append('--args.all.arangosearch.columns-cache-limit')
-            opts.append('500000')
 
         print("launch")
         self.starter_instance.manually_launch_instances(

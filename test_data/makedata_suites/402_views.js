@@ -138,7 +138,9 @@ let links = [
   link_cache_false_top_false_bottom
 ];
 
-/*
+function simulateNormalization(linkDefinition) {
+  // This function will simulate field normalization inside link definition.
+  /*
   5 possible cases when we should omit 'cache' value from link definition:
                       ____                  ___
                         ____                  'cache': false
@@ -146,48 +148,76 @@ let links = [
 
                       'cache': false        'cache': false      'cache': true
                         ____                  'cache': false       'cache': true
-*/
+  */
 
-function compareLinks(linkFromView, expectedLink) {
-  // remove redundant 'cache': false values from link definition
-  if (expectedLink.hasOwnProperty("cache")) {
-    if (expectedLink["cache"] == false) {
+  let result = linkDefinition;
+  // remove 'cache' values from link definition
+  if (result.hasOwnProperty("cache")) {
+    if (result["cache"] == false) {
 
-      if (expectedLink["fields"]["animal"].hasOwnProperty("cache")) {
+      if (result["fields"]["animal"].hasOwnProperty("cache")) {
 
-        if (expectedLink["fields"]["animal"]["cache"] == false) {
+        if (result["fields"]["animal"]["cache"] == false) {
 
-          delete expectedLink["cache"];
-          delete expectedLink["fields"]["animal"]["cache"];
+          delete result["cache"];
+          delete result["fields"]["animal"]["cache"];
         } else {
-          delete expectedLink["cache"];
+          delete result["cache"];
         }
       } else {
-        delete expectedLink["cache"];
+        delete result["cache"];
       }
     } else {
-      if (expectedLink["fields"]["animal"].hasOwnProperty("cache")) {
-        if (expectedLink["fields"]["animal"]["cache"] == true) {
-          delete expectedLink["fields"]["animal"]["cache"];
+      if (result["fields"]["animal"].hasOwnProperty("cache")) {
+        if (result["fields"]["animal"]["cache"] == true) {
+          delete result["fields"]["animal"]["cache"];
         }
       }
     }
   } else {
 
-    if (expectedLink["fields"]["animal"].hasOwnProperty("cache")) {
+    if (result["fields"]["animal"].hasOwnProperty("cache")) {
 
-      if (expectedLink["fields"]["animal"]["cache"] == false) {
+      if (result["fields"]["animal"]["cache"] == false) {
 
-        delete expectedLink["fields"]["animal"]["cache"];
+        delete result["fields"]["animal"]["cache"];
       }
     }
   }
 
-  // remove redundant 'utilizeCache' values
+  return result;
+};
+
+function removeCacheFields(linkDefinition) {
+  // This function will simulate field normalization when 'cache' field is not supported
+  // i.e. it will be simply ommited everywhere
+
+  let result = linkDefinition;
+  if (result.hasOwnProperty("cache")) {
+    delete result["cache"];
+  }
+  if (result["fields"]["animal"].hasOwnProperty("cache")) {
+    delete result["fields"]["animal"]["cache"];
+  }
+
+  return result;
+};
+
+function compareLinks(cacheSizeSupported, linkFromView, expectedRawLink) {
+
+  let expectedLink;
+  if (cacheSizeSupported) {
+    expectedLink = simulateNormalization(expectedRawLink);
+  } else {
+    expectedLink = removeCacheFields(expectedRawLink);
+  }
+
+  // remove redundant 'utilizeCache' values. 
   delete expectedLink["utilizeCache"];
 
+  // actual comparison
   return _.isEqual(linkFromView, expectedLink);
-}
+};
 
 function getMetricValue(text, name) {
   let re = new RegExp("^" + name);
@@ -206,10 +236,10 @@ function generateJWT(options) {
     return;
   }
 
-  let content = `{"username": "root","password": "${options.passvoid}" }`;  
+  let content = `{"username": "root","password": "${options.passvoid}" }`;
   let headers = 'Content-Type: application/json';
   let reply = arango.POST_RAW("/_open/auth", content, headers);
-  let obj = reply["parsedBody"]; 
+  let obj = reply["parsedBody"];
   jwt_key = obj["jwt"];
 };
 
@@ -264,6 +294,10 @@ getMetric = function (name, options) {
   }
 };
 
+isCacheSizeSupported = function (version) {
+  return (semver.eq(version, "3.9.5") || semver.gte(version, "3.10.2"));
+};
+
 (function () {
   return {
     isSupported: function (version, oldVersion, enterprise, cluster) {
@@ -300,12 +334,12 @@ getMetric = function (name, options) {
       );
 
       let currVersion = db._version();
-      let checkCacheSize = (semver.eq(currVersion, "3.9.5") || semver.gte(currVersion, "3.10.2"));
+      let cacheSizeSupported = isCacheSizeSupported(currVersion);
 
       let cacheSize = 0;
       let prevCacheSize = cacheSize;
 
-      if (checkCacheSize) {
+      if (cacheSizeSupported) {
         cacheSize = getMetric("arangodb_search_columns_cache_size", options);
         if (cacheSize != 0) {
           throw new Error("initial cache size is not 0");
@@ -333,7 +367,7 @@ getMetric = function (name, options) {
         viewCache.properties(meta);
         viewNoCache.properties(meta);
 
-        if (checkCacheSize) {
+        if (cacheSizeSupported) {
           // Should we check that current link will use cache?
           let utilizeCache = links[i]["utilizeCache"]
 
@@ -348,17 +382,19 @@ getMetric = function (name, options) {
       }
     },
     checkData: function (options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
-      print(`checking data ${dbCount} ${loopCount}`);
 
-      print("\n\n\n\nCHECK DATA!!!!\n\n\n\n\n")
+      
+      print(`checking data ${dbCount} ${loopCount}`);
+      
+      print("\n\n\n\n\n\n\n\n\n\n\n\nCHECK DATA!!!!\n\n\n\n\n\n\n\n\n\n\n\n\n")
 
       let currVersion = db._version();
-      let checkCache = (semver.eq(currVersion, "3.9.5") || semver.gte(currVersion, "3.10.2"));
+      let isCacheSupported = isCacheSizeSupported(currVersion);
 
       let viewCache = db._view(`viewCache_${loopCount}`);
       let viewNoCache = db._view(`viewNoCache_${loopCount}`);
 
-      if (checkCache) {
+      if (isCacheSupported) {
         if (viewCache.properties()["storedValues"][0]["cache"] != true) {
           throw new Error("cache value for storedValues is not true!");
         }
@@ -377,7 +413,7 @@ getMetric = function (name, options) {
 
           // for 3.10.0 and 3.10.0 we should verify that no cache is present
           let oldVersion = db._query(`for d in ${collectionName} filter HAS(d, 'version') return d.version`).toArray()[0];
-          if (semver.eq(oldVersion, "3.10.0") || semver.eq(oldVersion, "3.10.1")) {
+          if (!isCacheSizeSupported(oldVersion)) {
             if (linkFromView.hasOwnProperty('cache')) {
               throw new Error("cache value on root level should not present!");
             }
@@ -386,7 +422,7 @@ getMetric = function (name, options) {
             }
           } else {
             let expectedLink = links[i];
-            if (!compareLinks(linkFromView, expectedLink)) {
+            if (!compareLinks(isCacheSupported, linkFromView, expectedLink)) {
               throw new Error(`links are not equal! ${linkFromView} ${expectedLink}`)
             }
           }
