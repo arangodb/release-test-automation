@@ -424,7 +424,7 @@ let checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTo
           for (let i = 0; i < nrTries; ++i) {
             let res = db._connection.GET_RAW(`/_api/edges/${edgeCollName}?vertex=${vertices[i % vertices.length]}`,
               { "X-Arango-Allow-Dirty-Read": "true" });
-            assertFalse(res.error);
+            assertFalse(res.error, "Server response contains an error. Response:\n" + JSON.stringify(res));
             assertEqual(200, res.code);
             assertEqual("true", res.headers["x-arango-potential-dirty-read"]);
           }
