@@ -47,8 +47,6 @@ class Single(Runner):
     def starter_prepare_env_impl(self):
         opts = []
        
-        # utils.if_column_cache_supported()
-
         if self.cfg.ssl and not self.cfg.use_auto_certs:
             self.create_tls_ca_cert()
             tls_keyfile = self.cert_dir / Path("single") / "tls.keyfile"

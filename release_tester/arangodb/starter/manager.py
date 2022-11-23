@@ -288,7 +288,12 @@ class StarterManager:
         args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.arguments
 
         if is_column_cache_supported(self.cfg.version):
-            args.append(COLUMN_CACHE_ARGUMENT)
+            if COLUMN_CACHE_ARGUMENT not in args:
+                args.append(COLUMN_CACHE_ARGUMENT)
+
+        print("run_starter")
+        print(self.cfg)
+        print("ARGS ", args)
 
         lh.log_cmd(args)
         self.instance = psutil.Popen(args)
@@ -561,7 +566,7 @@ class StarterManager:
             self.detect_instance_pids_still_alive()
         if relaunch:
             with step("replace the starter binary with a new one," + " this has not yet spawned any children"):
-                self.respawn_instance()
+                self.respawn_instance(new_install_cfg.version)
                 logging.info("StarterManager: respawned instance as [%s]", str(self.instance.pid))
 
     @step
@@ -717,15 +722,20 @@ class StarterManager:
                 node.check_version_request(20.0)
 
     @step
-    def respawn_instance(self, moreargs=[], wait_for_logfile=True):
+    def respawn_instance(self, version, moreargs=[], wait_for_logfile=True):
         """
         restart the starter instance after we killed it eventually,
         maybe command manual upgrade (and wait for exit)
         """
         args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.arguments + moreargs
 
-        if not is_column_cache_supported(self.cfg.version):
-            args.remove()
+        if not is_column_cache_supported(version):
+            if COLUMN_CACHE_ARGUMENT in args:
+                args.remove(COLUMN_CACHE_ARGUMENT)
+
+        print("respawn_instance")
+        # print(self.cfg.)
+        print("ARGS ", args)
 
         logging.info("StarterManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)

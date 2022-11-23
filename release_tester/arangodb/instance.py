@@ -18,7 +18,7 @@ import requests
 from beautifultable import BeautifulTable
 from requests.auth import HTTPBasicAuth
 from tools.asciiprint import print_progress as progress
-
+from tools.utils import COLUMN_CACHE_ARGUMENT, is_column_cache_supported
 
 # log tokens we want to suppress from our dump:
 LOG_BLACKLIST = [
@@ -191,15 +191,33 @@ class Instance(ABC):
     ):
         """launch instance without starter with additional arguments"""
         self.load_starter_instance_control_file()
-        command = [str(sbin_dir / self.instance_string)] + self.instance_arguments[1:] + moreargs
+        command = [str(sbin_dir / self.instance_string)] + self.instance_arguments[1:] + moreargs    
         dos_old_install_prefix_fwd = str(old_install_prefix).replace("\\", "/")
         dos_new_install_prefix_fwd = str(new_install_prefix).replace("\\", "/")
+
+        version = re.search("(\d+\.\d+\.\d+)", new_install_prefix.name).group(1)
+        is_cache_supported = is_column_cache_supported(version)
+        cache_arg, cache_val = COLUMN_CACHE_ARGUMENT.split("=")
+        cache_arg = "--" + cache_arg[11:] # remove '--args.all'
+        is_cache_arg_found = False
         for i, cmd in enumerate(command):
             if cmd.find(str(old_install_prefix)) >= 0:
                 command[i] = cmd.replace(str(old_install_prefix), str(new_install_prefix))
             # the wintendo may have both slash directions:
             if cmd.find(dos_old_install_prefix_fwd) >= 0:
                 command[i] = cmd.replace(dos_old_install_prefix_fwd, dos_new_install_prefix_fwd)
+            if cmd == cache_arg:
+                is_cache_arg_found = True
+                if command[i + 1] != cache_val:
+                    raise Exception("Something is wrong with ${COLUMN_CACHE_ARGUMENT}: ${command[i]} ${command[i+1]}")
+                if not is_cache_supported:
+                    del command[i+1]
+                    del command[i]
+
+        if is_cache_supported and not is_cache_arg_found:
+            command.append(cache_arg)
+            command.append(cache_val)
+
         print("Manually launching: " + str(command))
         self.instance = psutil.Popen(command)
         print("instance launched with PID:" + str(self.instance.pid))

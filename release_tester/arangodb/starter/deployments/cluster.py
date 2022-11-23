@@ -58,9 +58,9 @@ db.testCollection.save({test: "document"})
 """,
         )
 
-        node1_opts = [ ]
-        node2_opts = ["--starter.join", "127.0.0.1:9528" ]
-        node3_opts = ["--starter.join", "127.0.0.1:9528" ]
+        node1_opts = []
+        node2_opts = ["--starter.join", "127.0.0.1:9528"]
+        node3_opts = ["--starter.join", "127.0.0.1:9528"]
         if self.cfg.ssl and not self.cfg.use_auto_certs:
             self.create_tls_ca_cert()
             node1_tls_keyfile = self.cert_dir / Path("node1") / "tls.keyfile"
@@ -359,7 +359,7 @@ db.testCollection.save({test: "document"})
             raise Exception("check data failed " + ret[1])
 
         # respawn instance, and get its state fixed
-        self.starter_instances[terminate_instance].respawn_instance()
+        self.starter_instances[terminate_instance].respawn_instance(self.new_cfg.version)
         self.set_frontend_instances()
         counter = 300
         while not self.starter_instances[terminate_instance].is_instance_up():

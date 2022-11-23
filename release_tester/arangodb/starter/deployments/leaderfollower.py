@@ -135,16 +135,6 @@ while (true) {{
         leader_opts = []
         follower_opts = []
 
-        version = self.versionstr
-        match = re.match(r"\w+\[(.+)\]", self.versionstr)
-        if match:
-            # upgrade
-            version = match[1]
-        
-        # if semver.compare(version, "3.9.5") == 0 or semver.compare(version, "3.10.2") >= 0:
-        #     leader_opts.append('--all.arangosearch.columns-cache-limit=500000')
-        #     follower_opts.append('--all.arangosearch.columns-cache-limit=500000')
-
         if self.cfg.ssl and not self.cfg.use_auto_certs:
             self.create_tls_ca_cert()
             leader_tls_keyfile = self.cert_dir / Path("leader") / "tls.keyfile"
@@ -327,11 +317,6 @@ process.exit(0);
         for node in instances:
 
             opts = ["--database.auto-upgrade", "true", "--javascript.copy-installation", "true"]
-            version = re.match(r"\w+\[(.+)\]", self.versionstr)[1]
-            if semver.compare(version, "3.9.5") == 0 or semver.compare(version, "3.10.2") >= 0:
-                opts.append('--args.all.arangosearch.columns-cache-limit')
-                opts.append('500000')
-
             print("launch")
             node.manually_launch_instances(
                 [InstanceType.SINGLE],
