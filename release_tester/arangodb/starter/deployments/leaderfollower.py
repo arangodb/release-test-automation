@@ -324,7 +324,7 @@ process.exit(0);
             )
         self.progress(True, "step 3 - launch instances again")
         for node in instances:
-            node.respawn_instance()
+            node.respawn_instance(self.new_cfg.version)
         self.progress(True, "step 4 - detect system state")
         for node in instances:
             node.detect_instances()
