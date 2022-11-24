@@ -306,8 +306,6 @@ isCacheSizeSupported = function (version) {
       // All items created must contain dbCount and loopCount
       print(`making data ${dbCount} ${loopCount}`);
 
-      print("\n\n\n\nMAKE DATA!!!!\n\n\n\n\n");
-
       // create analyzer with 'norm' feature
       analyzers.save("AqlAnalyzerHash", "aql", { queryString: "return to_hex(to_string(@param))" }, ["frequency", "norm", "position"])
 
@@ -380,19 +378,14 @@ isCacheSizeSupported = function (version) {
       }
     },
     checkData: function (options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
-
-      
       print(`checking data ${dbCount} ${loopCount}`);
-      
       
       let oldVersion = db._query(`for d in version_collection_${loopCount} filter HAS(d, 'version') return d.version`).toArray()[0];
       if (semver.lt(oldVersion, '3.9.5')) {
         // old version doesn't support column cache.
         // MakeData was not called. Nothing to check here.
-        print("402_views.js:CHECK_DATA: MakeData was not called. Return")
         return; 
       } 
-      print("\n\n\n\n\n\n\n\n\n\n\n\nCHECK DATA!!!!\n\n\n\n\n\n\n\n\n\n\n\n\n")
       
       let currVersion = db._version();
       let isCacheSupported = isCacheSizeSupported(currVersion);
@@ -409,16 +402,14 @@ isCacheSizeSupported = function (version) {
          if (viewCache.properties()["storedValues"][0].hasOwnProperty("cache")) {
           throw new Error("viewCache: cache value for storedValues is present!");
         }
-        print("402_views.js:CHECK_DATA: check no cache in views")
       } else {
         // current and previous versions are aware of 'cache'. 
         // Check that value is present and equal to value from previous version
         if (viewCache.properties()["storedValues"][0]["cache"] != true) {
           throw new Error("cache value for storedValues is not 'true'!");
         }
-        print("402_views.js:CHECK_DATA: check cache in views")
       }
-      
+
       if (viewNoCache.properties()["storedValues"][0].hasOwnProperty("cache")) {
         throw new Error("viewNoCache: cache value for storedValues is present!");
       }
@@ -440,11 +431,9 @@ isCacheSizeSupported = function (version) {
             if (linkFromView["fields"]["animal"].hasOwnProperty('cache')) {
               throw new Error("cache value on field level should not present!");
             }
-            print(`402_views.js:CHECK_DATA: check no cache in links[${i}]`)
           } else {
             // current and previous versions are aware of 'cache'. 
             // Check that value is present and equal to value from previous version
-            print(`402_views.js:CHECK_DATA: check cache in links[${i}]`)
             let expectedLink = links[i];
             if (!compareLinks(isCacheSupported, linkFromView, expectedLink)) {
               throw new Error(`links are not equal! ${linkFromView} ${expectedLink}`)
