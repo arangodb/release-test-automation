@@ -25,6 +25,11 @@ let rand = require("internal").rand;
       progress('createCollection7');
       let cempty = createCollectionSafe(`cempty_${loopCount}`, 3, 1);
 
+      // create a special collection, which will store only one document - current arangodb version
+      // version is required for 402_views.js test case
+      let version_coll = createCollectionSafe(`version_collection_${loopCount}`, 3, 3);
+      version_coll.insert({"version": db._version()});
+
       // Create some indexes:
       progress('createCollection8');
       createIndexSafe({col: chash, type: "hash", fields: ["a"], unique: false});
@@ -143,7 +148,8 @@ let rand = require("internal").rand;
        `cgeo_${loopCount}`,
        `cunique_${loopCount}`,
        `cmulti_${loopCount}`,
-       `cempty_${loopCount}`].forEach(colname => {
+       `cempty_${loopCount}`,
+       `version_collection_${loopCount}`].forEach(colname => {
          let foundOne = false;
          cols.forEach(oneCol => {
            if (oneCol.name() === colname) {
@@ -167,6 +173,7 @@ let rand = require("internal").rand;
       let cunique = db._collection(`cunique_${loopCount}`);
       let cmulti = db._collection(`cmulti_${loopCount}`);
       let cempty = db._collection(`cempty_${loopCount}`);
+      let version_collection = db._collection(`version_collection_${loopCount}`);
 
       // Check indexes:
       progress();
@@ -194,6 +201,8 @@ let rand = require("internal").rand;
       if (cfull.count() !== 6253) { throw new Error(`Renault ${cfull.count()} !== 6253`); }
       if (cunique.count() !== 5362) { throw new Error(`Opel ${cunique.count()} !== 5362`); }
       if (cmulti.count() !== 12346) { throw new Error(`Fiat ${cmulti.count()} !== 12346`); }
+      if (cmulti.count() !== 12346) { throw new Error(`Fiat ${cmulti.count()} !== 12346`); }
+      if (version_collection.count() !== 1) { throw new Error(`Fiat ${version_collection.count()} !== 1`); }
 
       // Check a few queries:
       progress();

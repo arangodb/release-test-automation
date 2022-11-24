@@ -372,7 +372,6 @@ isCacheSizeSupported = function (version) {
 
           // update cacheSize
           cacheSize = getMetric("arangodb_search_columns_cache_size", options);
-          print(cacheSize);
           if ((cacheSize <= prevCacheSize) && utilizeCache) {
             throw new Error("new cache size is wrong");
           }
@@ -385,21 +384,43 @@ isCacheSizeSupported = function (version) {
       
       print(`checking data ${dbCount} ${loopCount}`);
       
+      
+      let oldVersion = db._query(`for d in version_collection_${loopCount} filter HAS(d, 'version') return d.version`).toArray()[0];
+      if (semver.lt(oldVersion, '3.9.5')) {
+        // old version doesn't support column cache.
+        // MakeData was not called. Nothing to check here.
+        print("402_views.js:CHECK_DATA: MakeData was not called. Return")
+        return; 
+      } 
       print("\n\n\n\n\n\n\n\n\n\n\n\nCHECK DATA!!!!\n\n\n\n\n\n\n\n\n\n\n\n\n")
-
+      
       let currVersion = db._version();
       let isCacheSupported = isCacheSizeSupported(currVersion);
+      let isCacheSupportedOld = isCacheSizeSupported(oldVersion);
 
       let viewCache = db._view(`viewCache_${loopCount}`);
       let viewNoCache = db._view(`viewNoCache_${loopCount}`);
 
-      if (isCacheSupported) {
+      // for 3.10.0 and 3.10.1 we should verify that no cache is present
+      if (!isCacheSupported || (!isCacheSupportedOld && isCacheSupported)) {
+        // we can't see 'cache fields' in current version OR
+        // in previous version 'cache' was not supported.
+        // So it means that in current version there should be NO 'cache' fields
+         if (viewCache.properties()["storedValues"][0].hasOwnProperty("cache")) {
+          throw new Error("viewCache: cache value for storedValues is present!");
+        }
+        print("402_views.js:CHECK_DATA: check no cache in views")
+      } else {
+        // current and previous versions are aware of 'cache'. 
+        // Check that value is present and equal to value from previous version
         if (viewCache.properties()["storedValues"][0]["cache"] != true) {
-          throw new Error("cache value is for storedValues is not true!");
+          throw new Error("cache value for storedValues is not 'true'!");
         }
-        if (viewNoCache.properties()["storedValues"][0].hasOwnProperty("cache")) {
-          throw new Error("cache value is for storedValues is present!");
-        }
+        print("402_views.js:CHECK_DATA: check cache in views")
+      }
+      
+      if (viewNoCache.properties()["storedValues"][0].hasOwnProperty("cache")) {
+        throw new Error("viewNoCache: cache value for storedValues is present!");
       }
 
       [viewCache, viewNoCache].forEach(view => {
@@ -409,17 +430,21 @@ isCacheSizeSupported = function (version) {
           // get link for each collection
           let collectionName = `collectionCache${i}_${loopCount}`;
           let linkFromView = actualLinks[collectionName];
-
-          // for 3.10.0 and 3.10.0 we should verify that no cache is present
-          let oldVersion = db._query(`for d in ${collectionName} filter HAS(d, 'version') return d.version`).toArray()[0];
-          if (!isCacheSizeSupported(oldVersion)) {
+          if (!isCacheSupported || (!isCacheSupportedOld && isCacheSupported)) {
+            // we can't see 'cache fields' in current version OR
+            // in previous version 'cache' was not supported.
+            // So it means that in current version there should be NO 'cache' fields
             if (linkFromView.hasOwnProperty('cache')) {
               throw new Error("cache value on root level should not present!");
             }
             if (linkFromView["fields"]["animal"].hasOwnProperty('cache')) {
               throw new Error("cache value on field level should not present!");
             }
+            print(`402_views.js:CHECK_DATA: check no cache in links[${i}]`)
           } else {
+            // current and previous versions are aware of 'cache'. 
+            // Check that value is present and equal to value from previous version
+            print(`402_views.js:CHECK_DATA: check cache in links[${i}]`)
             let expectedLink = links[i];
             if (!compareLinks(isCacheSupported, linkFromView, expectedLink)) {
               throw new Error(`links are not equal! ${linkFromView} ${expectedLink}`)
