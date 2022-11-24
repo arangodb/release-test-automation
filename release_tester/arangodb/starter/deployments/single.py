@@ -46,7 +46,6 @@ class Single(Runner):
 
     def starter_prepare_env_impl(self):
         opts = []
-       
         if self.cfg.ssl and not self.cfg.use_auto_certs:
             self.create_tls_ca_cert()
             tls_keyfile = self.cert_dir / Path("single") / "tls.keyfile"
@@ -130,16 +129,18 @@ class Single(Runner):
         self.starter_instance.replace_binary_setup_for_upgrade(self.new_cfg)
         self.starter_instance.terminate_instance(True)
         self.progress(True, "step 2 - launch instances with the upgrade options set")
-
-        opts = ["--database.auto-upgrade", "true", "--javascript.copy-installation", "true"]
-
         print("launch")
         self.starter_instance.manually_launch_instances(
                 [InstanceType.SINGLE],
-                opts,
+                [
+                    "--database.auto-upgrade",
+                    "true",
+                    "--javascript.copy-installation",
+                    "true"
+                ],
             )
         self.progress(True, "step 3 - launch instances again")
-        self.starter_instance.respawn_instance()
+        self.starter_instance.respawn_instance(self.new_cfg.version)
         self.progress(True, "step 4 - detect system state")
         self.starter_instance.detect_instances()
         self.starter_instance.wait_for_version_reply()

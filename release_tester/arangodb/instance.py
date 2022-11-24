@@ -191,14 +191,16 @@ class Instance(ABC):
     ):
         """launch instance without starter with additional arguments"""
         self.load_starter_instance_control_file()
-        command = [str(sbin_dir / self.instance_string)] + self.instance_arguments[1:] + moreargs    
+        command = [str(sbin_dir / self.instance_string)] + self.instance_arguments[1:] + moreargs
         dos_old_install_prefix_fwd = str(old_install_prefix).replace("\\", "/")
         dos_new_install_prefix_fwd = str(new_install_prefix).replace("\\", "/")
 
+        # extract version from strings like that: 'arangodb3e-linux-3.10.2_x86_64'
         version = re.search("(\d+\.\d+\.\d+)", new_install_prefix.name).group(1)
         is_cache_supported = is_column_cache_supported(version)
-        cache_arg, cache_val = COLUMN_CACHE_ARGUMENT.split("=")
-        cache_arg = "--" + cache_arg[11:] # remove '--args.all'
+        # in 'command' list arguments and values are splitted
+        cache_arg, cache_val = COLUMN_CACHE_ARGUMENT.split("=") 
+        cache_arg = "--" + cache_arg[11:] # remove '--args.all' prefix
         is_cache_arg_found = False
         for i, cmd in enumerate(command):
             if cmd.find(str(old_install_prefix)) >= 0:

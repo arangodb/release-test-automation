@@ -291,10 +291,6 @@ class StarterManager:
             if COLUMN_CACHE_ARGUMENT not in args:
                 args.append(COLUMN_CACHE_ARGUMENT)
 
-        print("run_starter")
-        print(self.cfg)
-        print("ARGS ", args)
-
         lh.log_cmd(args)
         self.instance = psutil.Popen(args)
         logging.info("my starter has PID:" + str(self.instance.pid))
@@ -732,10 +728,6 @@ class StarterManager:
         if not is_column_cache_supported(version):
             if COLUMN_CACHE_ARGUMENT in args:
                 args.remove(COLUMN_CACHE_ARGUMENT)
-
-        print("respawn_instance")
-        # print(self.cfg.)
-        print("ARGS ", args)
 
         logging.info("StarterManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)

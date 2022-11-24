@@ -1,7 +1,7 @@
 /* global print, progress, createCollectionSafe, db, createSafe  */
 
 let link_no_cache = {
-  "utilizeCache": false, // This value for testing purpose. It will be ignored during link creation
+  "utilizeCache": false, // This value is for testing purpose. It will be ignored during link creation
   includeAllFields: false,
   storeValues: "none",
   trackListPositions: false,
@@ -14,7 +14,7 @@ let link_no_cache = {
 
 let link_cache_true_top = {
   "cache": true,
-  "utilizeCache": true, // This value for testing purpose. It will be ignored during link creation
+  "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
   includeAllFields: false,
   storeValues: "none",
   trackListPositions: false,
@@ -27,7 +27,7 @@ let link_cache_true_top = {
 
 let link_cache_false_top = {
   "cache": false,
-  "utilizeCache": false, // This value for testing purpose. It will be ignored during link creation
+  "utilizeCache": false, // This value is for testing purpose. It will be ignored during link creation
   includeAllFields: false,
   storeValues: "none",
   trackListPositions: false,
@@ -39,7 +39,7 @@ let link_cache_false_top = {
 };
 
 let link_cache_true_bottom = {
-  "utilizeCache": true, // This value for testing purpose. It will be ignored during link creation
+  "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
   includeAllFields: false,
   storeValues: "none",
   trackListPositions: false,
@@ -53,7 +53,7 @@ let link_cache_true_bottom = {
 };
 
 let link_cache_false_bottom = {
-  "utilizeCache": false, // This value for testing purpose. It will be ignored during link creation
+  "utilizeCache": false, // This value is for testing purpose. It will be ignored during link creation
   includeAllFields: false,
   storeValues: "none",
   trackListPositions: false,
@@ -67,7 +67,7 @@ let link_cache_false_bottom = {
 };
 
 let link_cache_true_top_true_bottom = {
-  "utilizeCache": true, // This value for testing purpose. It will be ignored during link creation
+  "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
   "cache": true,
   includeAllFields: false,
   storeValues: "none",
@@ -82,7 +82,7 @@ let link_cache_true_top_true_bottom = {
 };
 
 let link_cache_true_top_false_bottom = {
-  "utilizeCache": true, // This value for testing purpose. It will be ignored during link creation
+  "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
   "cache": true,
   includeAllFields: false,
   storeValues: "none",
@@ -97,7 +97,7 @@ let link_cache_true_top_false_bottom = {
 };
 
 let link_cache_false_top_true_bottom = {
-  "utilizeCache": true, // This value for testing purpose. It will be ignored during link creation
+  "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
   "cache": false,
   includeAllFields: false,
   storeValues: "none",
@@ -112,7 +112,7 @@ let link_cache_false_top_true_bottom = {
 };
 
 let link_cache_false_top_false_bottom = {
-  "utilizeCache": false, // This value for testing purpose. It will be ignored during link creation
+  "utilizeCache": false, // This value is for testing purpose. It will be ignored during link creation
   "cache": false,
   includeAllFields: false,
   storeValues: "none",
@@ -142,12 +142,12 @@ function simulateNormalization(linkDefinition) {
   // This function will simulate field normalization inside link definition.
   /*
   5 possible cases when we should omit 'cache' value from link definition:
-                      ____                  ___
-                        ____                  'cache': false
+        1) ____                2)  ___
+               ____                  'cache': false
 
 
-                      'cache': false        'cache': false      'cache': true
-                        ____                  'cache': false       'cache': true
+        3)'cache': false    4) 'cache': false     5) 'cache': true
+                ____               'cache': false         'cache': true
   */
 
   let result = linkDefinition;
@@ -247,7 +247,6 @@ getRawMetric = function (tags = "") {
   let headers = {};
   headers['accept'] = 'application/json';
   headers["Authorization"] = `Bearer ${jwt_key}`;
-
   let reply = arango.GET_RAW(`/_admin/metrics/v2${tags}`, headers);
   return reply;
 };
@@ -396,10 +395,10 @@ isCacheSizeSupported = function (version) {
 
       if (isCacheSupported) {
         if (viewCache.properties()["storedValues"][0]["cache"] != true) {
-          throw new Error("cache value for storedValues is not true!");
+          throw new Error("cache value is for storedValues is not true!");
         }
         if (viewNoCache.properties()["storedValues"][0].hasOwnProperty("cache")) {
-          throw new Error("cache value for storedValues is present!");
+          throw new Error("cache value is for storedValues is present!");
         }
       }
 

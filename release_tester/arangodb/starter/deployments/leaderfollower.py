@@ -134,7 +134,6 @@ while (true) {{
     def starter_prepare_env_impl(self):
         leader_opts = []
         follower_opts = []
-
         if self.cfg.ssl and not self.cfg.use_auto_certs:
             self.create_tls_ca_cert()
             leader_tls_keyfile = self.cert_dir / Path("leader") / "tls.keyfile"
@@ -315,12 +314,15 @@ process.exit(0);
             node.terminate_instance(True)
         self.progress(True, "step 2 - launch instances with the upgrade options set")
         for node in instances:
-
-            opts = ["--database.auto-upgrade", "true", "--javascript.copy-installation", "true"]
             print("launch")
             node.manually_launch_instances(
                 [InstanceType.SINGLE],
-                opts,
+                [
+                    "--database.auto-upgrade",
+                    "true",
+                    "--javascript.copy-installation",
+                    "true"
+                ],
             )
         self.progress(True, "step 3 - launch instances again")
         for node in instances:
