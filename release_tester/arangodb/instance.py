@@ -85,6 +85,7 @@ class Instance(ABC):
         passvoid,
         instance_string,
         ssl,
+        version
     ):
         self.instance_type = INSTANCE_TYPE_STRING_MAP[instance_type]
         self.is_system = False
@@ -104,6 +105,7 @@ class Instance(ABC):
         self.serving = datetime.datetime(1970, 1, 1, 0, 0, 0)
         self.instance_arguments = []
         self.ssl = ssl
+        self.version = version
 
         logging.debug("creating {0.type_str} instance: {0.name}".format(self))
 
@@ -402,8 +404,8 @@ class ArangodInstance(Instance):
     """represent one arangodb instance"""
 
     # pylint: disable=too-many-arguments
-    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl, is_system=False):
-        super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangod", ssl)
+    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl, version, is_system=False):
+        super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangod", ssl, version)
         self.is_system = is_system
 
     def __repr__(self):
