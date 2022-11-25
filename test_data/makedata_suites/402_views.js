@@ -228,7 +228,6 @@ function getMetricValue(text, name) {
   return Number(matches[0].replace(/^.*{.*} ([0-9.]+)$/, "$1"));
 };
 
-let instanceInfo = null;
 let jwt_key = null;
 
 function generateJWT(options) {
