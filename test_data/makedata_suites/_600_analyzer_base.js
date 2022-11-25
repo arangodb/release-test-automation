@@ -62,6 +62,7 @@ function arraysEqual(testgroup, a, b) {
 
 // this function will check everything regarding given analyzer
 function checkAnalyzerSet(testgroup, test){
+  progress(`${testgroup}: ${test.analyzerName} running query ${test}`);
   let queryResult = db._query(test);
 
   if (analyzers.analyzer(test.analyzerName) === null) {
