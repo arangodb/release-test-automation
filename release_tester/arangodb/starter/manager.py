@@ -551,7 +551,7 @@ class StarterManager:
         """
         # On windows the install prefix may change,
         # since we can't overwrite open files:
-        self.current_version = (new_install_cfg.version
+        self.current_version = new_install_cfg.version
         self.replace_binary_setup_for_upgrade(new_install_cfg)
         with step("kill the starter processes of the old version"):
             logging.info("StarterManager: Killing my instance [%s]", str(self.instance.pid))
