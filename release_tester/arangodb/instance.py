@@ -720,16 +720,16 @@ class ArangodRemoteInstance(ArangodInstance):
     """represent one arangodb instance"""
 
     # pylint: disable=too-many-arguments
-    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl):
-        super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangod", ssl)
+    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl, version):
+        super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangod", ssl, version)
 
 
 class SyncInstance(Instance):
     """represent one arangosync instance"""
 
     # pylint: disable=too-many-arguments
-    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl):
-        super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangosync", ssl)
+    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl, version):
+        super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangosync", ssl, version)
         self.logfile_parameter = ""
 
     def __repr__(self):

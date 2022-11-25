@@ -719,7 +719,7 @@ class InstallerBase(ABC):
             basedir=(self.cfg.install_prefix / self.cfg.log_dir),
             passvoid=self.cfg.passvoid,
             ssl=False,
-            self.cfg.version
+            version=self.cfg.version
         )
 
     def get_starter_version(self):
