@@ -3,143 +3,153 @@
 
 (function () {
 
-  let link_no_cache = {
-    "utilizeCache": false, // This value is for testing purpose. It will be ignored during link creation
-    includeAllFields: false,
-    storeValues: "none",
-    trackListPositions: false,
-    fields: {
-      animal: {},
-      name: {}
+  let testCases = [
+    {
+      "collectionName": "no_cache",
+      "link": {
+        "utilizeCache": false, // This value is for testing purpose. It will be ignored during link creation
+        includeAllFields: false,
+        storeValues: "none",
+        trackListPositions: false,
+        fields: {
+          animal: {},
+          name: {}
+        },
+        "analyzers": ["AqlAnalyzerHash"]
+      }
     },
-    "analyzers": ["AqlAnalyzerHash"]
-  };
-
-  let link_cache_true_top = {
-    "cache": true,
-    "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
-    includeAllFields: false,
-    storeValues: "none",
-    trackListPositions: false,
-    fields: {
-      animal: {},
-      name: {}
-    },
-    "analyzers": ["AqlAnalyzerHash"]
-  };
-
-  let link_cache_false_top = {
-    "cache": false,
-    "utilizeCache": false, // This value is for testing purpose. It will be ignored during link creation
-    includeAllFields: false,
-    storeValues: "none",
-    trackListPositions: false,
-    fields: {
-      animal: {},
-      name: {}
-    },
-    "analyzers": ["AqlAnalyzerHash"]
-  };
-
-  let link_cache_true_bottom = {
-    "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
-    includeAllFields: false,
-    storeValues: "none",
-    trackListPositions: false,
-    fields: {
-      animal: {
+    {
+      "collectionName": "cache_true_top",
+      "link": {
         "cache": true,
-      },
-      name: {}
+        "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
+        includeAllFields: false,
+        storeValues: "none",
+        trackListPositions: false,
+        fields: {
+          animal: {},
+          name: {}
+        },
+        "analyzers": ["AqlAnalyzerHash"]
+      }
     },
-    "analyzers": ["AqlAnalyzerHash"]
-  };
-
-  let link_cache_false_bottom = {
-    "utilizeCache": false, // This value is for testing purpose. It will be ignored during link creation
-    includeAllFields: false,
-    storeValues: "none",
-    trackListPositions: false,
-    fields: {
-      animal: {
+    {
+      "collectionName": "cache_false_top",
+      "link": {
         "cache": false,
-      },
-      name: {}
+        "utilizeCache": false, // This value is for testing purpose. It will be ignored during link creation
+        includeAllFields: false,
+        storeValues: "none",
+        trackListPositions: false,
+        fields: {
+          animal: {},
+          name: {}
+        },
+        "analyzers": ["AqlAnalyzerHash"]
+      }
     },
-    "analyzers": ["AqlAnalyzerHash"]
-  };
-
-  let link_cache_true_top_true_bottom = {
-    "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
-    "cache": true,
-    includeAllFields: false,
-    storeValues: "none",
-    trackListPositions: false,
-    fields: {
-      animal: {
+    {
+      "collectionName": "cache_true_bottom",
+      "link": {
+        "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
+        includeAllFields: false,
+        storeValues: "none",
+        trackListPositions: false,
+        fields: {
+          animal: {
+            "cache": true,
+          },
+          name: {}
+        },
+        "analyzers": ["AqlAnalyzerHash"]
+      }
+    },
+    {
+      "collectionName": "cache_false_bottom",
+      "link": {
+        "utilizeCache": false, // This value is for testing purpose. It will be ignored during link creation
+        includeAllFields: false,
+        storeValues: "none",
+        trackListPositions: false,
+        fields: {
+          animal: {
+            "cache": false,
+          },
+          name: {}
+        },
+        "analyzers": ["AqlAnalyzerHash"]
+      }
+    },
+    {
+      "collectionName": "cache_true_top_true_bottom",
+      "link": {
+        "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
         "cache": true,
-      },
-      name: {}
+        includeAllFields: false,
+        storeValues: "none",
+        trackListPositions: false,
+        fields: {
+          animal: {
+            "cache": true,
+          },
+          name: {}
+        },
+        "analyzers": ["AqlAnalyzerHash"]
+      }
     },
-    "analyzers": ["AqlAnalyzerHash"]
-  };
-
-  let link_cache_true_top_false_bottom = {
-    "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
-    "cache": true,
-    includeAllFields: false,
-    storeValues: "none",
-    trackListPositions: false,
-    fields: {
-      animal: {
-        "cache": false,
-      },
-      name: {}
-    },
-    "analyzers": ["AqlAnalyzerHash"]
-  };
-
-  let link_cache_false_top_true_bottom = {
-    "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
-    "cache": false,
-    includeAllFields: false,
-    storeValues: "none",
-    trackListPositions: false,
-    fields: {
-      animal: {
+    {
+      "collectionName": "cache_true_top_false_bottom",
+      "link": {
+        "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
         "cache": true,
-      },
-      name: {}
+        includeAllFields: false,
+        storeValues: "none",
+        trackListPositions: false,
+        fields: {
+          animal: {
+            "cache": false,
+          },
+          name: {}
+        },
+        "analyzers": ["AqlAnalyzerHash"]
+      }
     },
-    "analyzers": ["AqlAnalyzerHash"]
-  };
-
-  let link_cache_false_top_false_bottom = {
-    "utilizeCache": false, // This value is for testing purpose. It will be ignored during link creation
-    "cache": false,
-    includeAllFields: false,
-    storeValues: "none",
-    trackListPositions: false,
-    fields: {
-      animal: {
+    {
+      "collectionName": "cache_false_top_true_bottom",
+      "link": {
+        "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
         "cache": false,
-      },
-      name: {}
+        includeAllFields: false,
+        storeValues: "none",
+        trackListPositions: false,
+        fields: {
+          animal: {
+            "cache": true,
+          },
+          name: {}
+        },
+        "analyzers": ["AqlAnalyzerHash"]
+      }
     },
-    "analyzers": ["AqlAnalyzerHash"]
-  };
-
-  let links = [
-    link_no_cache,
-    link_cache_true_top,
-    link_cache_false_top,
-    link_cache_true_bottom,
-    link_cache_false_bottom,
-    link_cache_true_top_true_bottom,
-    link_cache_true_top_false_bottom,
-    link_cache_false_top_true_bottom,
-    link_cache_false_top_false_bottom
+    {
+      "collectionName": "cache_false_top_false_bottom",
+      "link": {
+        "utilizeCache": false, // This value is for testing purpose. It will be ignored during link creation
+        "cache": false,
+        includeAllFields: false,
+        storeValues: "none",
+        trackListPositions: false,
+        fields: {
+          animal: {
+            "cache": false,
+          },
+          name: {}
+        },
+        "analyzers": ["AqlAnalyzerHash"]
+      }
+    }
   ];
+
 
   let simulateNormalization = function (linkDefinition) {
     // This function will simulate field normalization inside link definition.
@@ -180,9 +190,7 @@
     } else {
 
       if (result["fields"]["animal"].hasOwnProperty("cache")) {
-
         if (result["fields"]["animal"]["cache"] == false) {
-
           delete result["fields"]["animal"]["cache"];
         }
       }
@@ -345,9 +353,9 @@
         prevCacheSize = cacheSize;
       }
 
-      for (let i = 0; i < links.length; i++) {
+      testCases.forEach(test => {
         // create collection for each testing link
-        let collectionName = `collectionCache${i}_${loopCount}`;
+        let collectionName = test["collectionName"] + `_${loopCount}`;
         createCollectionSafe(collectionName, 3, 1);
         // insert some test data. Also insert version, on which 'make_data' was called
         db._collection(collectionName).insert([
@@ -361,13 +369,14 @@
         let meta = {
           links: {}
         };
-        meta.links[collectionName] = links[i];
+        meta.links[collectionName] = test["link"];
+        print(meta)
         viewCache.properties(meta);
         viewNoCache.properties(meta);
 
         if (cacheSizeSupported) {
           // Should we check that current link will use cache?
-          let utilizeCache = links[i]["utilizeCache"]
+          let utilizeCache = test["link"]["utilizeCache"]
 
           // update cacheSize
           cacheSize = getMetric("arangodb_search_columns_cache_size", options);
@@ -376,7 +385,7 @@
           }
           prevCacheSize = cacheSize;
         }
-      }
+      });
     },
     checkData: function (options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
       print(`checking data ${dbCount} ${loopCount}`);
@@ -418,9 +427,9 @@
       [viewCache, viewNoCache].forEach(view => {
         let actualLinks = view.properties().links;
 
-        for (let i = 0; i < links.length; i++) {
+        testCases.forEach(test => {
           // get link for each collection
-          let collectionName = `collectionCache${i}_${loopCount}`;
+          let collectionName = test["collectionName"] + `_${loopCount}`;
           let linkFromView = actualLinks[collectionName];
           if (!isCacheSupported || (!isCacheSupportedOld && isCacheSupported)) {
             // we can't see 'cache fields' in current version OR
@@ -435,12 +444,15 @@
           } else {
             // current and previous versions are aware of 'cache'. 
             // Check that value is present and equal to value from previous version
-            let expectedLink = links[i];
+            let expectedLink = test["link"];
             if (!compareLinks(isCacheSupported, linkFromView, expectedLink)) {
-              throw new Error(`links are not equal! ${linkFromView} ${expectedLink}`)
+              let msg = `View: ${view.name()}: Links for collection ${collectionName} are not equal! 
+              Link from view: ${JSON.stringify(linkFromView)}, Expected link: ${JSON.stringify(expectedLink)}`
+              throw new Error(msg);
             }
           }
-        }
+        });
+
       });
 
       progress();
