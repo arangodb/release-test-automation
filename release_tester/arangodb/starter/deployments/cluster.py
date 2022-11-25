@@ -126,7 +126,6 @@ db.testCollection.save({test: "document"})
             node.set_passvoid("cluster", count == 0)
             count += 1
         self.passvoid = "cluster"
-        self.get_process_structure()
 
     def finish_setup_impl(self):
         self.makedata_instances = self.starter_instances[:]
@@ -138,7 +137,7 @@ db.testCollection.save({test: "document"})
 
     def after_makedata_check(self):
         lh.subsubsection("wait for all shards to be in sync - test setup")
-        retval = self.starter_instances[0].arangosh.run_in_arangosh(
+        self.starter_instances[0].arangosh.run_in_arangosh(
             (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
             [],
             ['true'],

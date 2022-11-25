@@ -51,7 +51,7 @@ def detect_file_ulimit():
                 " or eqaul 65535. Currently you have"
                 " set the limit to: " + str(nofd)
             )
-        giga_byte = 2 ** 30
+        giga_byte = 2**30
         resource.setrlimit(resource.RLIMIT_CORE, (giga_byte, giga_byte))
 
 
@@ -153,7 +153,7 @@ class Runner(ABC):
         diskused = properties.disk_usage_community if not cfg.enterprise else properties.disk_usage_enterprise
         if not is_cleanup and diskused * 1024 * 1024 > diskfree.free:
             logging.error(
-                "Scenario demanded %d MB " "but only %d MB are available in %s",
+                "Scenario demanded %d MB but only %d MB are available in %s",
                 diskused,
                 diskfree.free / (1024 * 1024),
                 str(self.basecfg.base_test_dir),
@@ -164,9 +164,7 @@ class Runner(ABC):
         self.new_installer = new_inst
         self.backup_name = None
         self.hot_backup = (
-            cfg.hot_backup_supported
-            and properties.supports_hotbackup
-            and self.old_installer.supports_hot_backup()
+            cfg.hot_backup_supported and properties.supports_hotbackup and self.old_installer.supports_hot_backup()
         )
         self.backup_instance_count = 3
         # starter instances that make_data wil run on
@@ -312,7 +310,7 @@ class Runner(ABC):
                 self.after_backup()
                 self.check_data_impl()
                 if not self.check_non_backup_data():
-                    raise Exception("data created after backup" " is still there??")
+                    raise Exception("data created after backup is still there??")
 
         if self.new_installer:
             if self.hot_backup:
@@ -361,7 +359,7 @@ class Runner(ABC):
                 self.tcp_ping_all_nodes()
                 self.after_backup()
                 if not self.check_non_backup_data():
-                    raise Exception("data created after " "backup is still there??")
+                    raise Exception("data created after backup is still there??")
             self.check_data_impl()
         else:
             logging.info("skipping upgrade step no new version given")
@@ -523,6 +521,7 @@ class Runner(ABC):
         """
         self.progress(True, "{0} - run starter instances".format(str(self.name)))
         self.starter_run_impl()
+        self.export_instance_info()
 
     @step
     def finish_setup(self):
@@ -533,7 +532,6 @@ class Runner(ABC):
     @step
     def after_makedata_check(self):
         """just after makedata..."""
-        pass
 
     @step
     def make_data(self):
@@ -684,10 +682,7 @@ class Runner(ABC):
                     if self.cfg.verbose:
                         print(exc.execution_result[1])
                     self.ask_continue_or_exit(
-                        "make_data failed for {0.name}".format(self),
-                        exc.execution_result[1],
-                        False,
-                        exc
+                        "make_data failed for {0.name}".format(self), exc.execution_result[1], False, exc
                     )
                 self.has_makedata_data = True
             self.check_data_impl_sh(arangosh, starter.supports_foxx_tests)
@@ -704,10 +699,7 @@ class Runner(ABC):
                 if not self.cfg.verbose:
                     print(exc.execution_result[1])
                 self.ask_continue_or_exit(
-                    "check_data has data failed for {0.name}".format(self),
-                    exc.execution_result[1],
-                    False,
-                    exc
+                    "check_data has data failed for {0.name}".format(self), exc.execution_result[1], False, exc
                 )
 
     @step
@@ -1000,7 +992,7 @@ class Runner(ABC):
                 InstanceType.AGENT,
                 requests.put,
                 "/_admin/log/level",
-                '{"agency":"debug", "requests":"trace", ' '"cluster":"debug", "maintenance":"debug"}',
+                '{"agency":"debug", "requests":"trace", "cluster":"debug", "maintenance":"debug"}',
             )
 
     @step
@@ -1011,7 +1003,7 @@ class Runner(ABC):
                 InstanceType.DBSERVER,
                 requests.put,
                 "/_admin/log/level",
-                '{"agency":"debug", "requests":"trace", ' '"cluster":"debug", "maintenance":"debug"}',
+                '{"agency":"debug", "requests":"trace", "cluster":"debug", "maintenance":"debug"}',
             )
 
     @step
@@ -1022,7 +1014,7 @@ class Runner(ABC):
                 InstanceType.COORDINATOR,
                 requests.put,
                 "/_admin/log/level",
-                '{"agency":"debug", "requests":"trace", ' '"cluster":"debug", "maintenance":"debug"}',
+                '{"agency":"debug", "requests":"trace", "cluster":"debug", "maintenance":"debug"}',
             )
 
     @step
@@ -1138,11 +1130,12 @@ class Runner(ABC):
     def set_selenium_instances(self):
         """set instances in selenium runner"""
 
-    def get_process_structure(self):
-        """ resemble the testing.js INSTANCEINFO env """
-        instances = []
+    def export_instance_info(self):
+        """resemble the testing.js INSTANCEINFO env"""
+        starter_structs = []
         for starter in self.starter_instances:
-            for instance in starter.all_instances:
-                instances.append(instance.get_structure())
-        os.environ['INSTANCEINFO'] = json.dumps(instances)
-
+            starter_structs.append(starter.get_structure())
+        struct = starter_structs[0]
+        for starter in starter_structs[1:]:
+            struct["arangods"].extend(starter["arangods"])
+        os.environ["INSTANCEINFO"] = json.dumps(struct)

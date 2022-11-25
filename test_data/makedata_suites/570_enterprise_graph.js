@@ -8,7 +8,7 @@
   return {
     isSupported: function (currentVersion, oldVersion, options, enterprise, cluster) {
       // strip off -nightly etc:
-      ver = semver.parse(oldVersion.split('-')[0])
+      let ver = semver.parse(oldVersion.split('-')[0]);
       return enterprise && (semver.gte(ver, "3.10.0"));
     },
     makeDataDB: function (options, isCluster, isEnterprise, database, dbCount) {

@@ -4,7 +4,6 @@ import logging
 import shutil
 from abc import ABCMeta
 
-from arangodb.installers import InstallerConfig
 from arangodb.installers.base import InstallerBase
 from reporting.reporting_utils import step
 

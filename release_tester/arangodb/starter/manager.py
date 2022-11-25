@@ -172,11 +172,12 @@ class StarterManager:
         urls = []
         leader_name = "";
         if (self.is_leader):
-            leader_name = self.leader.name;
+            leader_name = self.name
 
         for arangod in self.all_instances:
             struct = arangod.get_structure()
-            urls.append(struct.url)
+            struct["JWT_header"]=self.get_jwt_header()
+            urls.append(struct["url"])
             instances.append(struct)
         return {
             'protocol': self.get_http_protocol(),
@@ -186,13 +187,15 @@ class StarterManager:
             'leader': leader_name,
             'agencyConfig': "",
             'httpAuthOptions': "",
-            'urls': str(self.urls),
-            'url': self.url,
-            'endpoints': self.endpoints,
-            'endpoint': self.endpoint,
-            'restKeyFile': self.restKeyFile,
-            'tcpdump': self.tcpdump,
-            'cleanup': self.cleanup
+            'urls': str(urls),
+            'arangods': instances,
+            'JWT_header': self.get_jwt_header(),
+            # 'url': self.url,
+            # 'endpoints': self.endpoints,
+            # 'endpoint': self.endpoint,
+            # 'restKeyFile': self.restKeyFile,
+            # 'tcpdump': self.tcpdump,
+            # 'cleanup': self.cleanup
         }
 
     def name(self):

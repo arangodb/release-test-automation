@@ -15,6 +15,7 @@
 // `--singleShard [false]       whether this should only be a single shard instance
 // `--progress [false]          whether to output a keepalive indicator to signal the invoker that work is ongoing
 // `--bigDoc                    Increase size of the graph documents
+// `--test                      comma separated list of testcases to filter for
 'use strict';
 const fs = require('fs');
 const _ = require('lodash');
@@ -43,6 +44,12 @@ const {
   mainTestLoop
 } = require(fs.join(PWD, 'common'));
 
+const {
+  createAnalyzerSet,
+  checkAnalyzerSet,
+  deleteAnalyzerSet
+} = require(fs.join(PWD, 'makedata_suites', '_600_analyzer_base'));
+
 const optionsDefaults = {
   minReplicationFactor: 1,
   maxReplicationFactor: 2,
@@ -57,6 +64,7 @@ const optionsDefaults = {
   newVersion: "3.5.0",
   passvoid: '',
   bigDoc: false,
+  test: undefined
 };
 
 let args = _.clone(ARGUMENTS);

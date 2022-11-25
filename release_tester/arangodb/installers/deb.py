@@ -20,7 +20,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
 class InstallerDeb(InstallerLinux):
     """install .deb's on debian or ubuntu hosts"""
-
+    # pylint: disable=too-many-instance-attributes
     def __init__(self, cfg):
         self.server_package = None
         self.client_package = None
@@ -89,7 +89,7 @@ class InstallerDeb(InstallerLinux):
         while startserver.isalive():
             progress(".")
             if startserver.exitstatus != 0:
-                raise Exception("server service start didn't" "finish successfully!")
+                raise Exception("server service start didn't finish successfully!")
         time.sleep(0.1)
         self.instance.detect_pid(1)  # should be owned by init
 
@@ -100,7 +100,7 @@ class InstallerDeb(InstallerLinux):
         while stopserver.isalive():
             progress(".")
             if stopserver.exitstatus != 0:
-                raise Exception("server service stop didn't" "finish successfully!")
+                raise Exception("server service stop didn't finish successfully!")
 
     @step
     def upgrade_server_package(self, old_installer):
@@ -222,7 +222,7 @@ class InstallerDeb(InstallerLinux):
         logging.info("Installation successfull")
         self.set_system_instance()
         if server_not_started:
-            logging.info("Environment did not start arango service," "doing this now!")
+            logging.info("Environment did not start arango service, doing this now!")
             self.start_service()
         self.instance.detect_pid(1)  # should be owned by init
 
