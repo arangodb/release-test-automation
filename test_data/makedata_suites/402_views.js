@@ -1,311 +1,313 @@
 /* global print, progress, createCollectionSafe, db, createSafe  */
 
-let link_no_cache = {
-  "utilizeCache": false, // This value is for testing purpose. It will be ignored during link creation
-  includeAllFields: false,
-  storeValues: "none",
-  trackListPositions: false,
-  fields: {
-    animal: {},
-    name: {}
-  },
-  "analyzers": ["AqlAnalyzerHash"]
-};
 
-let link_cache_true_top = {
-  "cache": true,
-  "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
-  includeAllFields: false,
-  storeValues: "none",
-  trackListPositions: false,
-  fields: {
-    animal: {},
-    name: {}
-  },
-  "analyzers": ["AqlAnalyzerHash"]
-};
+(function () {
 
-let link_cache_false_top = {
-  "cache": false,
-  "utilizeCache": false, // This value is for testing purpose. It will be ignored during link creation
-  includeAllFields: false,
-  storeValues: "none",
-  trackListPositions: false,
-  fields: {
-    animal: {},
-    name: {}
-  },
-  "analyzers": ["AqlAnalyzerHash"]
-};
-
-let link_cache_true_bottom = {
-  "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
-  includeAllFields: false,
-  storeValues: "none",
-  trackListPositions: false,
-  fields: {
-    animal: {
-      "cache": true,
+  let link_no_cache = {
+    "utilizeCache": false, // This value is for testing purpose. It will be ignored during link creation
+    includeAllFields: false,
+    storeValues: "none",
+    trackListPositions: false,
+    fields: {
+      animal: {},
+      name: {}
     },
-    name: {}
-  },
-  "analyzers": ["AqlAnalyzerHash"]
-};
+    "analyzers": ["AqlAnalyzerHash"]
+  };
 
-let link_cache_false_bottom = {
-  "utilizeCache": false, // This value is for testing purpose. It will be ignored during link creation
-  includeAllFields: false,
-  storeValues: "none",
-  trackListPositions: false,
-  fields: {
-    animal: {
-      "cache": false,
+  let link_cache_true_top = {
+    "cache": true,
+    "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
+    includeAllFields: false,
+    storeValues: "none",
+    trackListPositions: false,
+    fields: {
+      animal: {},
+      name: {}
     },
-    name: {}
-  },
-  "analyzers": ["AqlAnalyzerHash"]
-};
+    "analyzers": ["AqlAnalyzerHash"]
+  };
 
-let link_cache_true_top_true_bottom = {
-  "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
-  "cache": true,
-  includeAllFields: false,
-  storeValues: "none",
-  trackListPositions: false,
-  fields: {
-    animal: {
-      "cache": true,
+  let link_cache_false_top = {
+    "cache": false,
+    "utilizeCache": false, // This value is for testing purpose. It will be ignored during link creation
+    includeAllFields: false,
+    storeValues: "none",
+    trackListPositions: false,
+    fields: {
+      animal: {},
+      name: {}
     },
-    name: {}
-  },
-  "analyzers": ["AqlAnalyzerHash"]
-};
+    "analyzers": ["AqlAnalyzerHash"]
+  };
 
-let link_cache_true_top_false_bottom = {
-  "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
-  "cache": true,
-  includeAllFields: false,
-  storeValues: "none",
-  trackListPositions: false,
-  fields: {
-    animal: {
-      "cache": false,
+  let link_cache_true_bottom = {
+    "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
+    includeAllFields: false,
+    storeValues: "none",
+    trackListPositions: false,
+    fields: {
+      animal: {
+        "cache": true,
+      },
+      name: {}
     },
-    name: {}
-  },
-  "analyzers": ["AqlAnalyzerHash"]
-};
+    "analyzers": ["AqlAnalyzerHash"]
+  };
 
-let link_cache_false_top_true_bottom = {
-  "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
-  "cache": false,
-  includeAllFields: false,
-  storeValues: "none",
-  trackListPositions: false,
-  fields: {
-    animal: {
-      "cache": true,
+  let link_cache_false_bottom = {
+    "utilizeCache": false, // This value is for testing purpose. It will be ignored during link creation
+    includeAllFields: false,
+    storeValues: "none",
+    trackListPositions: false,
+    fields: {
+      animal: {
+        "cache": false,
+      },
+      name: {}
     },
-    name: {}
-  },
-  "analyzers": ["AqlAnalyzerHash"]
-};
+    "analyzers": ["AqlAnalyzerHash"]
+  };
 
-let link_cache_false_top_false_bottom = {
-  "utilizeCache": false, // This value is for testing purpose. It will be ignored during link creation
-  "cache": false,
-  includeAllFields: false,
-  storeValues: "none",
-  trackListPositions: false,
-  fields: {
-    animal: {
-      "cache": false,
+  let link_cache_true_top_true_bottom = {
+    "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
+    "cache": true,
+    includeAllFields: false,
+    storeValues: "none",
+    trackListPositions: false,
+    fields: {
+      animal: {
+        "cache": true,
+      },
+      name: {}
     },
-    name: {}
-  },
-  "analyzers": ["AqlAnalyzerHash"]
-};
+    "analyzers": ["AqlAnalyzerHash"]
+  };
 
-let links = [
-  link_no_cache,
-  link_cache_true_top,
-  link_cache_false_top,
-  link_cache_true_bottom,
-  link_cache_false_bottom,
-  link_cache_true_top_true_bottom,
-  link_cache_true_top_false_bottom,
-  link_cache_false_top_true_bottom,
-  link_cache_false_top_false_bottom
-];
+  let link_cache_true_top_false_bottom = {
+    "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
+    "cache": true,
+    includeAllFields: false,
+    storeValues: "none",
+    trackListPositions: false,
+    fields: {
+      animal: {
+        "cache": false,
+      },
+      name: {}
+    },
+    "analyzers": ["AqlAnalyzerHash"]
+  };
 
-function simulateNormalization(linkDefinition) {
-  // This function will simulate field normalization inside link definition.
-  /*
-  5 possible cases when we should omit 'cache' value from link definition:
-        1) ____                2)  ___
-               ____                  'cache': false
+  let link_cache_false_top_true_bottom = {
+    "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
+    "cache": false,
+    includeAllFields: false,
+    storeValues: "none",
+    trackListPositions: false,
+    fields: {
+      animal: {
+        "cache": true,
+      },
+      name: {}
+    },
+    "analyzers": ["AqlAnalyzerHash"]
+  };
 
+  let link_cache_false_top_false_bottom = {
+    "utilizeCache": false, // This value is for testing purpose. It will be ignored during link creation
+    "cache": false,
+    includeAllFields: false,
+    storeValues: "none",
+    trackListPositions: false,
+    fields: {
+      animal: {
+        "cache": false,
+      },
+      name: {}
+    },
+    "analyzers": ["AqlAnalyzerHash"]
+  };
 
-        3)'cache': false    4) 'cache': false     5) 'cache': true
-                ____               'cache': false         'cache': true
-  */
+  let links = [
+    link_no_cache,
+    link_cache_true_top,
+    link_cache_false_top,
+    link_cache_true_bottom,
+    link_cache_false_bottom,
+    link_cache_true_top_true_bottom,
+    link_cache_true_top_false_bottom,
+    link_cache_false_top_true_bottom,
+    link_cache_false_top_false_bottom
+  ];
 
-  let result = linkDefinition;
-  // remove 'cache' values from link definition
-  if (result.hasOwnProperty("cache")) {
-    if (result["cache"] == false) {
+  let simulateNormalization = function (linkDefinition) {
+    // This function will simulate field normalization inside link definition.
+    /*
+    5 possible cases when we should omit 'cache' value from link definition:
+          1) ____                2)  ___
+                 ____                  'cache': false
+  
+  
+          3)'cache': false    4) 'cache': false     5) 'cache': true
+                  ____               'cache': false         'cache': true
+    */
+
+    let result = linkDefinition;
+    // remove 'cache' values from link definition
+    if (result.hasOwnProperty("cache")) {
+      if (result["cache"] == false) {
+
+        if (result["fields"]["animal"].hasOwnProperty("cache")) {
+
+          if (result["fields"]["animal"]["cache"] == false) {
+
+            delete result["cache"];
+            delete result["fields"]["animal"]["cache"];
+          } else {
+            delete result["cache"];
+          }
+        } else {
+          delete result["cache"];
+        }
+      } else {
+        if (result["fields"]["animal"].hasOwnProperty("cache")) {
+          if (result["fields"]["animal"]["cache"] == true) {
+            delete result["fields"]["animal"]["cache"];
+          }
+        }
+      }
+    } else {
 
       if (result["fields"]["animal"].hasOwnProperty("cache")) {
 
         if (result["fields"]["animal"]["cache"] == false) {
 
-          delete result["cache"];
-          delete result["fields"]["animal"]["cache"];
-        } else {
-          delete result["cache"];
-        }
-      } else {
-        delete result["cache"];
-      }
-    } else {
-      if (result["fields"]["animal"].hasOwnProperty("cache")) {
-        if (result["fields"]["animal"]["cache"] == true) {
           delete result["fields"]["animal"]["cache"];
         }
       }
     }
-  } else {
 
+    return result;
+  };
+
+  let removeCacheFields = function (linkDefinition) {
+    // This function will simulate field normalization when 'cache' field is not supported
+    // i.e. it will be simply ommited everywhere
+
+    let result = linkDefinition;
+    if (result.hasOwnProperty("cache")) {
+      delete result["cache"];
+    }
     if (result["fields"]["animal"].hasOwnProperty("cache")) {
+      delete result["fields"]["animal"]["cache"];
+    }
 
-      if (result["fields"]["animal"]["cache"] == false) {
+    return result;
+  };
 
-        delete result["fields"]["animal"]["cache"];
+  let compareLinks = function (cacheSizeSupported, linkFromView, expectedRawLink) {
+
+    let expectedLink;
+    if (cacheSizeSupported) {
+      expectedLink = simulateNormalization(expectedRawLink);
+    } else {
+      expectedLink = removeCacheFields(expectedRawLink);
+    }
+
+    // remove redundant 'utilizeCache' values. 
+    delete expectedLink["utilizeCache"];
+
+    // actual comparison
+    return _.isEqual(linkFromView, expectedLink);
+  };
+
+  let getMetricValue = function (text, name) {
+    let re = new RegExp("^" + name);
+    let matches = text.split('\n').filter((line) => !line.match(/^#/)).filter((line) => line.match(re));
+    if (!matches.length) {
+      throw "Metric " + name + " not found";
+    }
+    return Number(matches[0].replace(/^.*{.*} ([0-9.]+)$/, "$1"));
+  };
+
+  let jwt_key = null;
+
+  let generateJWT = function (options) {
+    if (jwt_key != null) {
+      return;
+    }
+
+    let content = `{"username": "root","password": "${options.passvoid}" }`;
+    let headers = 'Content-Type: application/json';
+    let reply = arango.POST_RAW("/_open/auth", content, headers);
+    let obj = reply["parsedBody"];
+    jwt_key = obj["jwt"];
+  };
+
+  let getRawMetric = function (tags = "") {
+    let headers = {};
+    headers['accept'] = 'application/json';
+    headers["Authorization"] = `Bearer ${jwt_key}`;
+    let reply = arango.GET_RAW(`/_admin/metrics/v2${tags}`, headers);
+    return reply;
+  };
+
+  let getMetricByName = function (name, tags) {
+    let res = getRawMetric(tags);
+    if (res.code !== 200) {
+      throw "error fetching metric";
+    }
+    return getMetricValue(res.body, name);
+  };
+
+  let getMetricSingle = function (name) {
+    return getMetricByName(name, "");
+  };
+
+  let getMetricCluster = function (name) {
+    let headers = {};
+    headers['accept'] = 'application/json';
+    headers["Authorization"] = `Bearer ${jwt_key}`;
+    let clusterHealth = arango.GET_RAW("/_admin/cluster/health", headers)["parsedBody"]["Health"];
+
+    let serversId = [];
+    for (let [key, value] of Object.entries(clusterHealth)) {
+      if (value.Role.toLowerCase() == "dbserver") {
+        serversId.push(key);
       }
     }
-  }
 
-  return result;
-};
-
-function removeCacheFields(linkDefinition) {
-  // This function will simulate field normalization when 'cache' field is not supported
-  // i.e. it will be simply ommited everywhere
-
-  let result = linkDefinition;
-  if (result.hasOwnProperty("cache")) {
-    delete result["cache"];
-  }
-  if (result["fields"]["animal"].hasOwnProperty("cache")) {
-    delete result["fields"]["animal"]["cache"];
-  }
-
-  return result;
-};
-
-function compareLinks(cacheSizeSupported, linkFromView, expectedRawLink) {
-
-  let expectedLink;
-  if (cacheSizeSupported) {
-    expectedLink = simulateNormalization(expectedRawLink);
-  } else {
-    expectedLink = removeCacheFields(expectedRawLink);
-  }
-
-  // remove redundant 'utilizeCache' values. 
-  delete expectedLink["utilizeCache"];
-
-  // actual comparison
-  return _.isEqual(linkFromView, expectedLink);
-};
-
-function getMetricValue(text, name) {
-  let re = new RegExp("^" + name);
-  let matches = text.split('\n').filter((line) => !line.match(/^#/)).filter((line) => line.match(re));
-  if (!matches.length) {
-    throw "Metric " + name + " not found";
-  }
-  return Number(matches[0].replace(/^.*{.*} ([0-9.]+)$/, "$1"));
-};
-
-let jwt_key = null;
-
-function generateJWT(options) {
-  if (jwt_key != null) {
-    return;
-  }
-
-  let content = `{"username": "root","password": "${options.passvoid}" }`;
-  let headers = 'Content-Type: application/json';
-  let reply = arango.POST_RAW("/_open/auth", content, headers);
-  let obj = reply["parsedBody"];
-  jwt_key = obj["jwt"];
-};
-
-getRawMetric = function (tags = "") {
-  let headers = {};
-  headers['accept'] = 'application/json';
-  headers["Authorization"] = `Bearer ${jwt_key}`;
-  let reply = arango.GET_RAW(`/_admin/metrics/v2${tags}`, headers);
-  return reply;
-};
-
-getMetricByName = function (name, tags) {
-  let res = getRawMetric(tags);
-  if (res.code !== 200) {
-    throw "error fetching metric";
-  }
-  return getMetricValue(res.body, name);
-};
-
-getMetricSingle = function (name) {
-  return getMetricByName(name, "");
-};
-
-getMetricCluster = function (name) {
-  let headers = {};
-  headers['accept'] = 'application/json';
-  headers["Authorization"] = `Bearer ${jwt_key}`;
-  let clusterHealth = arango.GET_RAW("/_admin/cluster/health", headers)["parsedBody"]["Health"];
-
-  let serversId = [];
-  for (let [key, value] of Object.entries(clusterHealth)) {
-    if (value.Role.toLowerCase() == "dbserver") {
-      serversId.push(key);
+    let value = 0;
+    for (let i = 0; i < serversId.length; i++) {
+      value += getMetricByName(name, `?serverId=${serversId[i]}`);
     }
-  }
 
-  let value = 0;
-  for (let i = 0; i < serversId.length; i++) {
-    value += getMetricByName(name, `?serverId=${serversId[i]}`);
-  }
+    return value;
+  };
 
-  return value;
-};
+  let getMetric = function (name, options) {
+    generateJWT(options);
+    if (isCluster) {
+      return getMetricCluster(name);
+    } else {
+      return getMetricSingle(name);
+    }
+  };
 
-getMetric = function (name, options) {
-  generateJWT(options);
-  if (isCluster) {
-    return getMetricCluster(name);
-  } else {
-    return getMetricSingle(name);
-  }
-};
-
-isCacheSizeSupported = function (version) {
-  return (semver.eq(version, "3.9.5") || semver.gte(version, "3.10.2"));
-};
-
-(function () {
+  let isCacheSizeSupported = function (version) {
+    return (semver.eq(version, "3.9.5") || semver.gte(version, "3.10.2"));
+  };
   return {
     isSupported: function (version, oldVersion, enterprise, cluster) {
       return semver.gte(version, '3.9.5');
     },
     makeData: function (options, isCluster, isEnterprise, dbCount, loopCount) {
       // All items created must contain dbCount and loopCount
-      print(`making data ${dbCount} ${loopCount}`);
+      print(`making data 402 ${dbCount} ${loopCount}`);
 
       // create analyzer with 'norm' feature
+      const analyzers = require("@arangodb/analyzers");
       analyzers.save("AqlAnalyzerHash", "aql", { queryString: "return to_hex(to_string(@param))" }, ["frequency", "norm", "position"])
 
       // create views for testing
@@ -378,14 +380,14 @@ isCacheSizeSupported = function (version) {
     },
     checkData: function (options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
       print(`checking data ${dbCount} ${loopCount}`);
-      
+
       let oldVersion = db._query(`for d in version_collection_${loopCount} filter HAS(d, 'version') return d.version`).toArray()[0];
       if (semver.lt(oldVersion, '3.9.5')) {
         // old version doesn't support column cache.
         // MakeData was not called. Nothing to check here.
-        return; 
-      } 
-      
+        return;
+      }
+
       let currVersion = db._version();
       let isCacheSupported = isCacheSizeSupported(currVersion);
       let isCacheSupportedOld = isCacheSizeSupported(oldVersion);
@@ -398,7 +400,7 @@ isCacheSizeSupported = function (version) {
         // we can't see 'cache fields' in current version OR
         // in previous version 'cache' was not supported.
         // So it means that in current version there should be NO 'cache' fields
-         if (viewCache.properties()["storedValues"][0].hasOwnProperty("cache")) {
+        if (viewCache.properties()["storedValues"][0].hasOwnProperty("cache")) {
           throw new Error("viewCache: cache value for storedValues is present!");
         }
       } else {
