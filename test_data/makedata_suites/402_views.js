@@ -298,7 +298,7 @@
   };
 
   let isCacheSizeSupported = function (version) {
-    return (semver.eq(version, "3.9.5") || semver.gte(version, "3.10.2"));
+    return semver.gte(version, "3.9.5") && semver.neq(version, "3.10.0") && semver.neq(version, "3.10.1");
   };
   return {
     isSupported: function (version, oldVersion, enterprise, cluster) {
@@ -391,8 +391,8 @@
       }
 
       let currVersion = db._version();
-      let isCacheSupported = isCacheSizeSupported(currVersion);
       let isCacheSupportedOld = isCacheSizeSupported(oldVersion);
+      let isCacheSupported = isCacheSizeSupported(currVersion);
 
       let viewCache = db._view(`viewCache_${loopCount}`);
       let viewNoCache = db._view(`viewNoCache_${loopCount}`);
@@ -403,7 +403,7 @@
         // in previous version 'cache' was not supported.
         // So it means that in current version there should be NO 'cache' fields
         if (viewCache.properties()["storedValues"][0].hasOwnProperty("cache")) {
-          throw new Error("viewCache: cache value for storedValues is present!");
+          throw new Error(`viewCache: cache value for storedValues is present! oldVersion:${oldVersion}, newVersion:${currVersion}`);
         }
       } else {
         // current and previous versions are aware of 'cache'. 
@@ -414,7 +414,7 @@
       }
 
       if (viewNoCache.properties()["storedValues"][0].hasOwnProperty("cache")) {
-        throw new Error("viewNoCache: cache value for storedValues is present!");
+        throw new Error(`viewNoCache: cache value for storedValues is present! oldVersion:${oldVersion}, newVersion:${currVersion}`);
       }
 
       [viewCache, viewNoCache].forEach(view => {
@@ -429,10 +429,10 @@
             // in previous version 'cache' was not supported.
             // So it means that in current version there should be NO 'cache' fields
             if (linkFromView.hasOwnProperty('cache')) {
-              throw new Error("cache value on root level should not present!");
+              throw new Error(`cache value on root level should not present! oldVersion:${oldVersion}, newVersion:${currVersion}`);
             }
             if (linkFromView["fields"]["animal"].hasOwnProperty('cache')) {
-              throw new Error("cache value on field level should not present!");
+              throw new Error(`cache value on field level should not present! oldVersion:${oldVersion}, newVersion:${currVersion}`);
             }
           } else {
             // current and previous versions are aware of 'cache'. 
