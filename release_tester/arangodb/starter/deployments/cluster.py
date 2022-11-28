@@ -4,6 +4,7 @@ import time
 import logging
 from pathlib import Path
 import semver
+import copy
 
 from reporting.reporting_utils import step
 from tools.timestamp import timestamp
@@ -382,8 +383,10 @@ db.testCollection.save({test: "document"})
             keyfile = self.cert_dir / Path("nodeX") / "tls.keyfile"
             self.generate_keyfile(keyfile)
             moreopts.append(f"--ssl.keyfile={keyfile}")
+        curr_cfg = copy.deepcopy(self.basecfg)     
+        curr_cfg.version = self.new_cfg.version if self.new_cfg != None else self.basecfg.version
         dead_instance = StarterManager(
-            self.new_cfg if self.new_cfg != None else self.basecfg,
+            curr_cfg,
             Path("CLUSTER"),
             "nodeX",
             mode="cluster",

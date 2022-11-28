@@ -47,8 +47,7 @@ class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
             license_file.truncate()
             license_file.write(license)
         self.starter.terminate_instance()
-        version = self.new_cfg.version if self.new_cfg != None else self.cfg.version
-        self.starter.respawn_instance(version)
+        self.starter.respawn_instance(self.new_version)
 
     @step
     def start_single_server(self):
