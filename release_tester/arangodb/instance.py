@@ -190,7 +190,7 @@ class Instance(ABC):
                     self.instance_arguments.append(line)
 
     def launch_manual_from_instance_control_file(
-        self, sbin_dir, old_install_prefix, new_install_prefix, moreargs, waitpid=True
+        self, sbin_dir, old_install_prefix, new_install_prefix, current_version, moreargs, waitpid=True
     ):
         """launch instance without starter with additional arguments"""
         self.load_starter_instance_control_file()

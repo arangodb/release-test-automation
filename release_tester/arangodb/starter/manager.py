@@ -575,6 +575,7 @@ class StarterManager:
                         self.cfg.sbin_dir,
                         self.old_install_prefix,
                         self.cfg.install_prefix,
+                        self.current_version,
                         moreargs,
                         waitpid,
                     )
@@ -591,6 +592,7 @@ class StarterManager:
                         self.cfg.sbin_dir,
                         self.old_install_prefix,
                         self.cfg.install_prefix,
+                        self.current_version,
                         moreargs,
                         waitpid,
                     )
@@ -607,6 +609,7 @@ class StarterManager:
                         self.cfg.sbin_dir,
                         self.old_install_prefix,
                         self.cfg.install_prefix,
+                        self.current_version,
                         moreargs,
                         True,
                     )
@@ -614,6 +617,7 @@ class StarterManager:
                         self.cfg.sbin_dir,
                         self.old_install_prefix,
                         self.cfg.install_prefix,
+                        self.current_version,
                         [],
                         False,
                     )
