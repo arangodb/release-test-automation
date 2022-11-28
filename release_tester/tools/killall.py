@@ -52,6 +52,7 @@ def get_all_processes(kill_selenium):
     arangosyncs = []
     chromedrivers = []
     headleschromes = []
+    others = []
     logging.info("searching for leftover processes")
     processes = psutil.process_iter()
     for process in processes:
@@ -71,10 +72,12 @@ def get_all_processes(kill_selenium):
                 process = psutil.Process(process.pid)
                 if any("--headless" in s for s in process.cmdline()):
                     headleschromes.append(process)
+            elif name.startswith("tshark") :
+                others.append(psutil.Process(process.pid))
 
         except Exception as ex:
             logging.error(ex)
-    return arangodbs + arangosyncs + arangods + arangobenchs + chromedrivers + headleschromes
+    return arangodbs + arangosyncs + arangods + arangobenchs + chromedrivers + headleschromes + others
 
 
 @step
