@@ -42,6 +42,7 @@ def main(**kwargs):
     kwargs["selenium"] = "none"
     kwargs["selenium_driver_args"] = []
     kwargs["use_auto_certs"] = False
+    kwargs["test"] = ""
 
     # pylint: disable=broad-except disable=bare-except
     versions = ["3.3.3"]
