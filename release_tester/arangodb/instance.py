@@ -198,9 +198,7 @@ class Instance(ABC):
         dos_old_install_prefix_fwd = str(old_install_prefix).replace("\\", "/")
         dos_new_install_prefix_fwd = str(new_install_prefix).replace("\\", "/")
 
-        # extract version from strings like that: 'arangodb3e-linux-3.10.2_x86_64'
-        version = re.search("(\d+\.\d+\.\d+)", new_install_prefix.name).group(1)
-        is_cache_supported = is_column_cache_supported(version)
+        is_cache_supported = is_column_cache_supported(current_version)
         # in 'command' list arguments and values are splitted
         cache_arg, cache_val = COLUMN_CACHE_ARGUMENT.split("=") 
         cache_arg = "--" + cache_arg[11:] # remove '--args.all' prefix

@@ -140,7 +140,8 @@ class Single(Runner):
                 ],
             )
         self.progress(True, "step 3 - launch instances again")
-        self.starter_instance.respawn_instance(self.new_cfg.version)
+        version = self.new_cfg.version if self.new_cfg != None else self.cfg.version
+        self.starter_instance.respawn_instance(version)
         self.progress(True, "step 4 - detect system state")
         self.starter_instance.detect_instances()
         self.starter_instance.wait_for_version_reply()

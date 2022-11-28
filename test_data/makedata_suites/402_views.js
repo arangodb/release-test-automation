@@ -150,7 +150,6 @@
     }
   ];
 
-
   let simulateNormalization = function (linkDefinition) {
     // This function will simulate field normalization inside link definition.
     /*
@@ -230,14 +229,9 @@
     return _.isEqual(linkFromView, expectedLink);
   };
 
-  let getMetricValue = function (text, name) {
-    let re = new RegExp("^" + name);
-    let matches = text.split('\n').filter((line) => !line.match(/^#/)).filter((line) => line.match(re));
-    if (!matches.length) {
-      throw "Metric " + name + " not found";
-    }
-    return Number(matches[0].replace(/^.*{.*} ([0-9.]+)$/, "$1"));
-  };
+  const {
+    getMetricValue
+  } = require(fs.join(PWD, 'common'));
 
   let jwt_key = null;
 
@@ -253,7 +247,7 @@
     jwt_key = obj["jwt"];
   };
 
-  let getRawMetric = function (tags = "") {
+  let getRawMetrics = function (tags = "") {
     let headers = {};
     headers['accept'] = 'application/json';
     headers["Authorization"] = `Bearer ${jwt_key}`;
@@ -262,7 +256,7 @@
   };
 
   let getMetricByName = function (name, tags) {
-    let res = getRawMetric(tags);
+    let res = getRawMetrics(tags);
     if (res.code !== 200) {
       throw "error fetching metric";
     }
@@ -312,7 +306,7 @@
     },
     makeData: function (options, isCluster, isEnterprise, dbCount, loopCount) {
       // All items created must contain dbCount and loopCount
-      print(`making data 402 ${dbCount} ${loopCount}`);
+      print(`making data ${dbCount} ${loopCount}`);
 
       // create analyzer with 'norm' feature
       const analyzers = require("@arangodb/analyzers");
@@ -370,7 +364,6 @@
           links: {}
         };
         meta.links[collectionName] = test["link"];
-        print(meta)
         viewCache.properties(meta);
         viewNoCache.properties(meta);
 

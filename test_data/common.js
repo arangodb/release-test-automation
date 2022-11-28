@@ -93,6 +93,15 @@ function mainTestLoop(options, isCluster, enterprise, fns, endOfLoopFN) {
   }
 }
 
+function getMetricValue (text, name) {
+  let re = new RegExp("^" + name);
+  let matches = text.split('\n').filter((line) => !line.match(/^#/)).filter((line) => line.match(re));
+  if (!matches.length) {
+    throw "Metric " + name + " not found";
+  }
+  return Number(matches[0].replace(/^.*{.*} ([0-9.]+)$/, "$1"));
+}
 
 exports.scanMakeDataPaths = scanMakeDataPaths;
 exports.mainTestLoop = mainTestLoop;
+exports.getMetricValue = getMetricValue;
