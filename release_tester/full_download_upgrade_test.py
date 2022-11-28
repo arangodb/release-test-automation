@@ -87,7 +87,7 @@ def upgrade_package_test(
         this_test_dir = test_dir / props.directory_suffix
         test_driver.reset_test_data_dir(this_test_dir)
 
-        results.append(test_driver.run_test("all", [dl_new.cfg.version], props))
+        results.append(test_driver.run_test("all", "all", [dl_new.cfg.version], props))
 
     # pylint: disable=consider-using-enumerate
     for j in range(len(new_versions)):
