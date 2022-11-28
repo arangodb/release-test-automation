@@ -62,6 +62,8 @@ def get_all_processes(kill_selenium):
                 arangodbs.append(psutil.Process(process.pid))
             elif name.startswith("arangod"):
                 arangods.append(psutil.Process(process.pid))
+            elif name.startswith("arangosh"):
+                arangods.append(psutil.Process(process.pid))
             elif name.startswith("arangosync"):
                 arangosyncs.append(psutil.Process(process.pid))
             elif name.startswith("arangobench"):
