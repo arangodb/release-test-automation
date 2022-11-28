@@ -161,6 +161,7 @@ class StarterManager:
             "--log.file=true",
             "--starter.data-dir={0.basedir}".format(self),
         ] + self.moreopts
+        self.current_version = self.cfg.version
 
     def __repr__(self):
         return str(get_instances_table(self.get_instance_essentials()))
@@ -550,6 +551,7 @@ class StarterManager:
         """
         # On windows the install prefix may change,
         # since we can't overwrite open files:
+        self.current_version = new_install_cfg.version
         self.replace_binary_setup_for_upgrade(new_install_cfg)
         with step("kill the starter processes of the old version"):
             logging.info("StarterManager: Killing my instance [%s]", str(self.instance.pid))
@@ -573,6 +575,7 @@ class StarterManager:
                         self.cfg.sbin_dir,
                         self.old_install_prefix,
                         self.cfg.install_prefix,
+                        self.current_version,
                         moreargs,
                         waitpid,
                     )
@@ -589,6 +592,7 @@ class StarterManager:
                         self.cfg.sbin_dir,
                         self.old_install_prefix,
                         self.cfg.install_prefix,
+                        self.current_version,
                         moreargs,
                         waitpid,
                     )
@@ -605,6 +609,7 @@ class StarterManager:
                         self.cfg.sbin_dir,
                         self.old_install_prefix,
                         self.cfg.install_prefix,
+                        self.current_version,
                         moreargs,
                         True,
                     )
@@ -612,6 +617,7 @@ class StarterManager:
                         self.cfg.sbin_dir,
                         self.old_install_prefix,
                         self.cfg.install_prefix,
+                        self.current_version,
                         [],
                         False,
                     )
@@ -871,6 +877,7 @@ class StarterManager:
                             Path(root) / name,
                             self.passvoid,
                             self.cfg.ssl,
+                            self.current_version
                         )
                         instance.wait_for_logfile(tries)
                         instance.detect_pid(

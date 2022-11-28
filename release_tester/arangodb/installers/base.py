@@ -432,6 +432,7 @@ class InstallerBase(ABC):
             self.cfg.log_dir,
             self.cfg.passvoid,
             True,
+            self.cfg.version
         )
         self.calculate_package_names()
         self.cfg.verbose = verbose
@@ -718,6 +719,7 @@ class InstallerBase(ABC):
             basedir=(self.cfg.install_prefix / self.cfg.log_dir),
             passvoid=self.cfg.passvoid,
             ssl=False,
+            version=self.cfg.version
         )
 
     def get_starter_version(self):

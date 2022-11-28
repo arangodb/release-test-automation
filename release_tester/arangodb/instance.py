@@ -85,6 +85,7 @@ class Instance(ABC):
         passvoid,
         instance_string,
         ssl,
+        version
     ):
         self.instance_type = INSTANCE_TYPE_STRING_MAP[instance_type]
         self.is_system = False
@@ -104,6 +105,7 @@ class Instance(ABC):
         self.serving = datetime.datetime(1970, 1, 1, 0, 0, 0)
         self.instance_arguments = []
         self.ssl = ssl
+        self.version = version
 
         logging.debug("creating {0.type_str} instance: {0.name}".format(self))
 
@@ -188,7 +190,7 @@ class Instance(ABC):
                     self.instance_arguments.append(line)
 
     def launch_manual_from_instance_control_file(
-        self, sbin_dir, old_install_prefix, new_install_prefix, moreargs, waitpid=True
+        self, sbin_dir, old_install_prefix, new_install_prefix, current_version, moreargs, waitpid=True
     ):
         """launch instance without starter with additional arguments"""
         self.load_starter_instance_control_file()
@@ -402,8 +404,8 @@ class ArangodInstance(Instance):
     """represent one arangodb instance"""
 
     # pylint: disable=too-many-arguments
-    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl, is_system=False):
-        super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangod", ssl)
+    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl, version, is_system=False):
+        super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangod", ssl, version)
         self.is_system = is_system
 
     def __repr__(self):
@@ -718,16 +720,16 @@ class ArangodRemoteInstance(ArangodInstance):
     """represent one arangodb instance"""
 
     # pylint: disable=too-many-arguments
-    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl):
-        super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangod", ssl)
+    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl, version):
+        super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangod", ssl, version)
 
 
 class SyncInstance(Instance):
     """represent one arangosync instance"""
 
     # pylint: disable=too-many-arguments
-    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl):
-        super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangosync", ssl)
+    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl, version):
+        super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangosync", ssl, version)
         self.logfile_parameter = ""
 
     def __repr__(self):
