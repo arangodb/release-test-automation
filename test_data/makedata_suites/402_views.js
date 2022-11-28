@@ -339,12 +339,11 @@
       let cacheSize = 0;
       let prevCacheSize = cacheSize;
 
-      if (cacheSizeSupported) {
+      if (cacheSizeSupported && isEnterprise) {
         cacheSize = getMetric("arangodb_search_columns_cache_size", options);
         if (cacheSize != 0) {
-          throw new Error("initial cache size is not 0");
+          throw new Error(`initial cache size is ${cacheSize} (not 0)`);
         }
-        prevCacheSize = cacheSize;
       }
 
       testCases.forEach(test => {
@@ -372,11 +371,13 @@
           let utilizeCache = test["link"]["utilizeCache"]
 
           // update cacheSize
-          cacheSize = getMetric("arangodb_search_columns_cache_size", options);
-          if ((cacheSize <= prevCacheSize) && utilizeCache) {
-            throw new Error("new cache size is wrong");
+          if (isEnterprise) {
+            cacheSize = getMetric("arangodb_search_columns_cache_size", options);
+            if ((cacheSize <= prevCacheSize) && utilizeCache) {
+              throw new Error("new cache size is wrong");
+            }
+            prevCacheSize = cacheSize;
           }
-          prevCacheSize = cacheSize;
         }
       });
     },
@@ -398,7 +399,7 @@
       let viewNoCache = db._view(`viewNoCache_${loopCount}`);
 
       // for 3.10.0 and 3.10.1 we should verify that no cache is present
-      if (!isCacheSupported || (!isCacheSupportedOld && isCacheSupported)) {
+      if (!isCacheSupported || (!isCacheSupportedOld && isCacheSupported) || !isEnterprise) {
         // we can't see 'cache fields' in current version OR
         // in previous version 'cache' was not supported.
         // So it means that in current version there should be NO 'cache' fields
@@ -424,7 +425,7 @@
           // get link for each collection
           let collectionName = `${test["collectionName"]}_${loopCount}`;
           let linkFromView = actualLinks[collectionName];
-          if (!isCacheSupported || (!isCacheSupportedOld && isCacheSupported)) {
+          if (!isCacheSupported || (!isCacheSupportedOld && isCacheSupported) || !isEnterprise) {
             // we can't see 'cache fields' in current version OR
             // in previous version 'cache' was not supported.
             // So it means that in current version there should be NO 'cache' fields
