@@ -349,7 +349,7 @@
 
       testCases.forEach(test => {
         // create collection for each testing link
-        let collectionName = test["collectionName"] + `_${loopCount}`;
+        let collectionName = `${test["collectionName"]}_${loopCount}`;
         createCollectionSafe(collectionName, 3, 1);
         // insert some test data. Also insert version, on which 'make_data' was called
         db._collection(collectionName).insert([
@@ -422,7 +422,7 @@
 
         testCases.forEach(test => {
           // get link for each collection
-          let collectionName = test["collectionName"] + `_${loopCount}`;
+          let collectionName = `${test["collectionName"]}_${loopCount}`;
           let linkFromView = actualLinks[collectionName];
           if (!isCacheSupported || (!isCacheSupportedOld && isCacheSupported)) {
             // we can't see 'cache fields' in current version OR
@@ -461,11 +461,11 @@
       }
       progress();
       try {
-        for (let i = 0; i < links.length; i++) {
-          // create collection for each testing link
-          let collectionName = `collectionCache${i}_${loopCount}`;
+        testCases.forEach(test => {
+          // get link for each collection
+          let collectionName = `${test["collectionName"]}_${loopCount}`;
           db._drop(collectionName);
-        }
+        });
       } catch (e) {
         print(e);
       }
