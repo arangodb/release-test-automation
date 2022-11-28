@@ -14,7 +14,7 @@ const distributionTolerance = 0.15;
 
 let getRawMetric = function (instance, user, tags) {
   let ex;
-  let sleepTime = 0.2;
+  let sleepTime = 0.1;
   let opts = { "jwt": instance.JWT_header };
   do {
     try {
