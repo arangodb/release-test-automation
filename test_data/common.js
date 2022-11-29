@@ -100,7 +100,7 @@ function getMetricValue (text, name) {
     throw "Metric " + name + " not found";
   }
   print(matches)
-  return Number(matches[0].replace(/^.*{.*}([0-9.]+)$/, "$1"));
+  return Number(matches[0].replace(/^.*{.*}([0-9. ]+)$/, "$1"));
 }
 
 exports.scanMakeDataPaths = scanMakeDataPaths;

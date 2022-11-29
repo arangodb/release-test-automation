@@ -14,4 +14,4 @@ def extract_version(version_str):
         
 def is_column_cache_supported(version_str):
     version = extract_version(version_str)
-    return semver.compare(version, "3.9.5") == 0 or semver.compare(version, "3.10.2") >= 0
+    return semver.compare(version, "3.9.5") >= 0 and semver.compare(version, "3.10.0") != 0 and semver.compare(version, "3.10.1") != 0
