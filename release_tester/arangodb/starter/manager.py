@@ -164,6 +164,7 @@ class StarterManager:
             "--starter.data-dir={0.basedir}".format(self),
         ] + self.moreopts
         self.current_version = self.cfg.version
+        self.enterprise = self.cfg.enterprise
 
     def __repr__(self):
         return str(get_instances_table(self.get_instance_essentials()))
@@ -291,7 +292,7 @@ class StarterManager:
         logging.info("running starter " + self.name)
         args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.arguments
 
-        if is_column_cache_supported(self.cfg.version):
+        if is_column_cache_supported(self.cfg.version) and self.cfg.enterprise:
             if COLUMN_CACHE_ARGUMENT not in args:
                 args.append(COLUMN_CACHE_ARGUMENT)
 
@@ -559,6 +560,7 @@ class StarterManager:
         # On windows the install prefix may change,
         # since we can't overwrite open files:
         self.current_version = new_install_cfg.version
+        self.enterprise = new_install_cfg.enterprise
         self.replace_binary_setup_for_upgrade(new_install_cfg)
         with step("kill the starter processes of the old version"):
             logging.info("StarterManager: Killing my instance [%s]", str(self.instance.pid))
@@ -583,6 +585,7 @@ class StarterManager:
                         self.old_install_prefix,
                         self.cfg.install_prefix,
                         self.current_version,
+                        self.enterprise,
                         moreargs,
                         waitpid,
                     )
@@ -600,6 +603,7 @@ class StarterManager:
                         self.old_install_prefix,
                         self.cfg.install_prefix,
                         self.current_version,
+                        self.enterprise,
                         moreargs,
                         waitpid,
                     )
@@ -617,6 +621,7 @@ class StarterManager:
                         self.old_install_prefix,
                         self.cfg.install_prefix,
                         self.current_version,
+                        self.enterprise,
                         moreargs,
                         True,
                     )
@@ -625,6 +630,7 @@ class StarterManager:
                         self.old_install_prefix,
                         self.cfg.install_prefix,
                         self.current_version,
+                        self.enterprise,
                         [],
                         False,
                     )
@@ -734,7 +740,7 @@ class StarterManager:
         """
         args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.arguments + moreargs
 
-        if not is_column_cache_supported(version):
+        if not is_column_cache_supported(version) or not self.cfg.enterprise:
             if COLUMN_CACHE_ARGUMENT in args:
                 args.remove(COLUMN_CACHE_ARGUMENT)
 
@@ -888,7 +894,8 @@ class StarterManager:
                             Path(root) / name,
                             self.passvoid,
                             self.cfg.ssl,
-                            self.current_version
+                            self.current_version,
+                            self.enterprise
                         )
                         instance.wait_for_logfile(tries)
                         instance.detect_pid(
