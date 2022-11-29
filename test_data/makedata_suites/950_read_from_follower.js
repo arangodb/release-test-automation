@@ -10,6 +10,7 @@ const RESET = require('internal').COLORS.COLOR_RESET;
 const wait = require("internal").wait;
 let instanceInfo = null;
 const nrTries = 1000;
+const distributionTolerance = 0.15;
 
 let getRawMetric = function (instance, user, tags) {
   let ex;
@@ -88,11 +89,16 @@ let moveShard = function (database, collection, shard, fromServer, toServer, don
 };
 
 let checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTotalReadCount, expectedLeaderShare, tolerance) {
-  let leaderMaxValue = expectedTotalReadCount * expectedLeaderShare + expectedTotalReadCount * tolerance;
-  let leaderMinValue = expectedTotalReadCount * expectedLeaderShare - expectedTotalReadCount * tolerance;
-  let followerMaxValue = expectedTotalReadCount * (1 - expectedLeaderShare) + expectedTotalReadCount * tolerance;
-  let followerMinValue = expectedTotalReadCount * (1 - expectedLeaderShare) - expectedTotalReadCount * tolerance;
-  let message = ` Expected total reads: ${expectedTotalReadCount}. Real total reads: ${readsOnLeader + readsOnFollower}. Reads on leader: ${readsOnLeader}. Reads on follower: ${readsOnFollower}.`;
+  let realTotalReadCount = readsOnLeader + readsOnFollower;
+  let maxTotalReadCount = expectedTotalReadCount + expectedTotalReadCount * tolerance;
+  let minTotalReadCount = expectedTotalReadCount - expectedTotalReadCount * tolerance;
+  let leaderMaxValue = realTotalReadCount * expectedLeaderShare + realTotalReadCount * tolerance;
+  let leaderMinValue = realTotalReadCount * expectedLeaderShare - realTotalReadCount * tolerance;
+  let followerMaxValue = realTotalReadCount * (1 - expectedLeaderShare) + realTotalReadCount * tolerance;
+  let followerMinValue = realTotalReadCount * (1 - expectedLeaderShare) - realTotalReadCount * tolerance;
+  let message = ` Expected total reads: ${expectedTotalReadCount}. Real total reads: ${realTotalReadCount}. Reads on leader: ${readsOnLeader}. Reads on follower: ${readsOnFollower}.`;
+  assertTrue(realTotalReadCount < maxTotalReadCount, `Too many reads in total. Expected a value between ${minTotalReadCount} and ${maxTotalReadCount}.` + message);
+  assertTrue(realTotalReadCount > minTotalReadCount, `Too few reads in total. Expected a value between ${minTotalReadCount} and ${maxTotalReadCount}.` + message);
   assertTrue(readsOnLeader < leaderMaxValue, `Too many reads on leader (${readsOnLeader}). Expected a value between ${leaderMinValue} and ${leaderMaxValue}.` + message);
   assertTrue(readsOnLeader > leaderMinValue, `Too few reads on leader (${readsOnLeader}). Expected a value between ${leaderMinValue} and ${leaderMaxValue}.` + message);
   assertTrue(readsOnFollower > followerMinValue, `Too few reads on follower (${readsOnFollower}). Expected a value between ${followerMinValue} and ${followerMaxValue}.` + message);
@@ -176,7 +182,7 @@ let checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTo
 
           let readsOnLeader = getMetric(leader, httpGetMetric) - leaderBefore;
           let readsOnFollower = getMetric(follower, httpGetMetric) - followerBefore;
-          checkReadDistribution(readsOnLeader, readsOnFollower, nrTries, 0.5, 0.1);
+          checkReadDistribution(readsOnLeader, readsOnFollower, nrTries, 0.5, distributionTolerance);
         },
 
         testBatchDocumentReadsReadFromFollowerJSAPI: function () {
@@ -191,7 +197,7 @@ let checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTo
           let readsOnLeader = getMetric(leader, httpPutMetric) - leaderBefore;
           let readsOnFollower = getMetric(follower, httpPutMetric) - followerBefore;
 
-          checkReadDistribution(readsOnLeader, readsOnFollower, nrTries, 0.5, 0.1);
+          checkReadDistribution(readsOnLeader, readsOnFollower, nrTries, 0.5, distributionTolerance);
         },
 
         testTrxReadFromFollower: function () {
@@ -211,7 +217,7 @@ let checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTo
           let readsOnLeader = getMetric(leader, httpGetMetric) - leaderBefore;
           let readsOnFollower = getMetric(follower, httpGetMetric) - followerBefore;
 
-          checkReadDistribution(readsOnLeader, readsOnFollower, nrTries, 0.5, 0.1);
+          checkReadDistribution(readsOnLeader, readsOnFollower, nrTries, 0.5, distributionTolerance);
         },
 
         testBatchDocumentReadsReadFromFollower: function () {
@@ -232,7 +238,7 @@ let checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTo
           let readsOnLeader = getMetric(leader, httpPutMetric) - leaderBefore;
           let readsOnFollower = getMetric(follower, httpPutMetric) - followerBefore;
 
-          checkReadDistribution(readsOnLeader, readsOnFollower, nrTries, 0.5, 0.1);
+          checkReadDistribution(readsOnLeader, readsOnFollower, nrTries, 0.5, distributionTolerance);
         },
 
         testNormalAQLReadsFromFollowers: function () {
@@ -352,7 +358,7 @@ let checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTo
           let readsOnLeader = getMetric(leader, httpPutMetric) - leaderBefore;
           let readsOnFollower = getMetric(follower, httpPutMetric) - followerBefore;
 
-          checkReadDistribution(readsOnLeader, readsOnFollower, readsOnLeader + readsOnFollower, 0.5, 0.1);
+          checkReadDistribution(readsOnLeader, readsOnFollower, readsOnLeader + readsOnFollower, 0.5, distributionTolerance);
         },
       };
     };
@@ -424,7 +430,7 @@ let checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTo
           for (let i = 0; i < nrTries; ++i) {
             let res = db._connection.GET_RAW(`/_api/edges/${edgeCollName}?vertex=${vertices[i % vertices.length]}`,
               { "X-Arango-Allow-Dirty-Read": "true" });
-            assertFalse(res.error);
+            assertFalse(res.error, "Server response contains an error. Response:\n" + JSON.stringify(res));
             assertEqual(200, res.code);
             assertEqual("true", res.headers["x-arango-potential-dirty-read"]);
           }
@@ -433,20 +439,18 @@ let checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTo
           let readsOnLeader = getMetric(leader, httpPutMetric) - leaderBefore;
           let readsOnFollower = getMetric(follower, httpPutMetric) - followerBefore;
 
-          checkReadDistribution(readsOnLeader, readsOnFollower, readsOnLeader + readsOnFollower, 0.5, 0.1);
+          checkReadDistribution(readsOnLeader, readsOnFollower, readsOnLeader + readsOnFollower, 0.5, distributionTolerance);
         },
       };
     };
   };
   return {
     isSupported: function (currentVersion, oldVersion, options, enterprise, cluster) {
-//      if (oldVersion === "") {
-//        oldVersion = currentVersion;
-//      }
-//      let old = semver.parse(semver.coerce(oldVersion));
-//      return enterprise && cluster && semver.gte(old, "3.10.0");
-//TODO: this test suite must be re-enabled when stable
-      return false;
+      if (oldVersion === "") {
+        oldVersion = currentVersion;
+      }
+      let old = semver.parse(semver.coerce(oldVersion));
+      return enterprise && cluster && semver.gte(old, "3.10.0");
     },
 
     makeData: function (options, isCluster, isEnterprise, dbCount, loopCount) {
