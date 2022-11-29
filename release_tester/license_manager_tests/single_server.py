@@ -47,7 +47,7 @@ class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
             license_file.truncate()
             license_file.write(license)
         self.starter.terminate_instance()
-        self.starter.respawn_instance(self.base_cfg.version)
+        self.starter.respawn_instance(self.starter.base_cfg.version)
 
     @step
     def start_single_server(self):
