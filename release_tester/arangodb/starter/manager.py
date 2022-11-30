@@ -733,16 +733,17 @@ class StarterManager:
                 node.check_version_request(20.0)
 
     @step
-    def respawn_instance(self, version, moreargs=[], wait_for_logfile=True):
+    def respawn_instance(self, version = None, moreargs=[], wait_for_logfile=True):
         """
         restart the starter instance after we killed it eventually,
         maybe command manual upgrade (and wait for exit)
         """
         args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.arguments + moreargs
 
-        if not is_column_cache_supported(version) or not self.cfg.enterprise:
-            if COLUMN_CACHE_ARGUMENT in args:
-                args.remove(COLUMN_CACHE_ARGUMENT)
+        if version != None:
+            if not is_column_cache_supported(version) or not self.cfg.enterprise:
+                if COLUMN_CACHE_ARGUMENT in args:
+                    args.remove(COLUMN_CACHE_ARGUMENT)
 
         logging.info("StarterManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)
