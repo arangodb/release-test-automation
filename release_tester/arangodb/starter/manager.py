@@ -37,6 +37,8 @@ from arangodb.sh import ArangoshExecutor
 from arangodb.imp import ArangoImportExecutor
 from arangodb.restore import ArangoRestoreExecutor
 from arangodb.bench import ArangoBenchManager
+from tools.utils import is_column_cache_supported
+from tools.utils import COLUMN_CACHE_ARGUMENT
 
 from reporting.reporting_utils import attach_table, step, attach_http_request_to_report, attach_http_response_to_report
 
@@ -162,6 +164,7 @@ class StarterManager:
             "--starter.data-dir={0.basedir}".format(self),
         ] + self.moreopts
         self.current_version = self.cfg.version
+        self.enterprise = self.cfg.enterprise
 
     def __repr__(self):
         return str(get_instances_table(self.get_instance_essentials()))
@@ -288,6 +291,11 @@ class StarterManager:
         """launch the starter for this instance"""
         logging.info("running starter " + self.name)
         args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.arguments
+
+        if is_column_cache_supported(self.cfg.version) and self.cfg.enterprise:
+            if COLUMN_CACHE_ARGUMENT not in args:
+                args.append(COLUMN_CACHE_ARGUMENT)
+
         lh.log_cmd(args)
         self.instance = psutil.Popen(args)
         logging.info("my starter has PID:" + str(self.instance.pid))
@@ -552,6 +560,7 @@ class StarterManager:
         # On windows the install prefix may change,
         # since we can't overwrite open files:
         self.current_version = new_install_cfg.version
+        self.enterprise = new_install_cfg.enterprise
         self.replace_binary_setup_for_upgrade(new_install_cfg)
         with step("kill the starter processes of the old version"):
             logging.info("StarterManager: Killing my instance [%s]", str(self.instance.pid))
@@ -560,7 +569,7 @@ class StarterManager:
             self.detect_instance_pids_still_alive()
         if relaunch:
             with step("replace the starter binary with a new one," + " this has not yet spawned any children"):
-                self.respawn_instance()
+                self.respawn_instance(new_install_cfg.version)
                 logging.info("StarterManager: respawned instance as [%s]", str(self.instance.pid))
 
     @step
@@ -576,6 +585,7 @@ class StarterManager:
                         self.old_install_prefix,
                         self.cfg.install_prefix,
                         self.current_version,
+                        self.enterprise,
                         moreargs,
                         waitpid,
                     )
@@ -593,6 +603,7 @@ class StarterManager:
                         self.old_install_prefix,
                         self.cfg.install_prefix,
                         self.current_version,
+                        self.enterprise,
                         moreargs,
                         waitpid,
                     )
@@ -610,6 +621,7 @@ class StarterManager:
                         self.old_install_prefix,
                         self.cfg.install_prefix,
                         self.current_version,
+                        self.enterprise,
                         moreargs,
                         True,
                     )
@@ -618,6 +630,7 @@ class StarterManager:
                         self.old_install_prefix,
                         self.cfg.install_prefix,
                         self.current_version,
+                        self.enterprise,
                         [],
                         False,
                     )
@@ -720,12 +733,17 @@ class StarterManager:
                 node.check_version_request(20.0)
 
     @step
-    def respawn_instance(self, moreargs=[], wait_for_logfile=True):
+    def respawn_instance(self, version = None, moreargs=[], wait_for_logfile=True):
         """
         restart the starter instance after we killed it eventually,
         maybe command manual upgrade (and wait for exit)
         """
         args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.arguments + moreargs
+
+        if version != None:
+            if not is_column_cache_supported(version) or not self.cfg.enterprise:
+                if COLUMN_CACHE_ARGUMENT in args:
+                    args.remove(COLUMN_CACHE_ARGUMENT)
 
         logging.info("StarterManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)
@@ -877,7 +895,8 @@ class StarterManager:
                             Path(root) / name,
                             self.passvoid,
                             self.cfg.ssl,
-                            self.current_version
+                            self.current_version,
+                            self.enterprise
                         )
                         instance.wait_for_logfile(tries)
                         instance.detect_pid(

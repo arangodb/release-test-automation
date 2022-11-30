@@ -412,6 +412,7 @@ It consists of these files in test_data:
    - `050_database.js` creates databases for the test data.
    - `100_collections.js` creates a set of collections / indices
    - `400_views.js` creates some views
+   - `402_views.js` create views and links with 'cache' properties. It checks proper normalization, memory usage and presence of cached columns after updates. This feature was introduced in 3.9.5
    - `500_community_graph.js` creates a community patent graph
    - `550_smart_graph.js` creates a smart patent graph
    - `560_smartgraph_edge_validator.js` on top of the enterprise graph, this will check the integrity check of the server.
@@ -585,7 +586,7 @@ once the scriptlet does what you want, you can use commands like this to run the
 perf.py is intended to test the flow
  - install package (optional)
  - run starter cluster (optional)
- - nur cluster_perf.py
+ - run cluster_perf.py
  - uninstall package (optional)
 
 This sequence can be broken up by invoking perf.py with `--mode install` and subsequently multiple invokactions with `--mode tests`. The system can afterwards be cleaned with `--mode uninstall`.

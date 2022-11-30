@@ -3,6 +3,7 @@ __pycache__
 
 #IDE's
 .idea
+.vscode
 
 allure_results
 allure-results

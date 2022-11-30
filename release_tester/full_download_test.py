@@ -73,7 +73,7 @@ def package_test(dl_opts: DownloadOptions, new_version, new_dlstage, git_version
         this_test_dir = test_dir / props.directory_suffix
         test_driver.reset_test_data_dir(this_test_dir)
 
-        results.append(test_driver.run_test("all", [dl_new.cfg.version], props))
+        results.append(test_driver.run_test("all", "all", [dl_new.cfg.version], props))
 
     print("V" * 80)
     status = True

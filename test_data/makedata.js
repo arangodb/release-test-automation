@@ -164,9 +164,9 @@ function createSafe (name, fn1, fnErrorExists) {
   throw new Error(`${name} creation failed!`);
 }
 
-function createCollectionSafe (name, DefaultNoSharts, DefaultReplFactor) {
+function createCollectionSafe (name, DefaultNumShards, DefaultReplFactor) {
   let options = {
-    numberOfShards: getShardCount(DefaultNoSharts),
+    numberOfShards: getShardCount(DefaultNumShards),
     replicationFactor: getReplicationFactor(DefaultReplFactor)
   };
   return createSafe(name, colName => {

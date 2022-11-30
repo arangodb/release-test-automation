@@ -12,6 +12,10 @@ let instanceInfo = null;
 const nrTries = 1000;
 const distributionTolerance = 0.15;
 
+const {
+  getMetricValue
+} = require(fs.join(PWD, 'common'));
+
 let getRawMetric = function (instance, user, tags) {
   let ex;
   let sleepTime = 0.1;
@@ -40,18 +44,9 @@ let getAllMetric = function (instance, user, tags) {
   return res.body;
 };
 
-function getMetricByName(text, name) {
-  let re = new RegExp("^" + name);
-  let matches = text.split('\n').filter((line) => !line.match(/^#/)).filter((line) => line.match(re));
-  if (!matches.length) {
-    throw "Metric " + name + " not found";
-  }
-  return Number(matches[0].replace(/^.*{.*}([0-9.]+)$/, "$1"));
-}
-
 let getMetricFromInstance = function (instance, name) {
   let text = getAllMetric(instance, 'root', '');
-  return getMetricByName(text, name);
+  return getMetricValue(text, name);
 };
 
 let getMetric = getMetricFromInstance;

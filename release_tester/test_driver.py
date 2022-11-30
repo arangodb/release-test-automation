@@ -337,6 +337,7 @@ class TestDriver:
     # fmt: off
     # pylint: disable=too-many-arguments disable=too-many-locals
     def run_test(self,
+                 test_mode,
                  deployment_mode,
                  versions: list,
                  run_props: RunProperties):
@@ -344,8 +345,9 @@ class TestDriver:
         """ main """
         results = []
 
-        do_install = deployment_mode in ["all", "install"]
-        do_uninstall = deployment_mode in ["all", "uninstall"]
+        do_install = test_mode in ["all", "install"]
+        do_uninstall = test_mode in ["all", "uninstall"]
+        do_tests = test_mode in ["all", "tests"]
 
         installers = create_config_installer_set(
             versions,
@@ -359,7 +361,7 @@ class TestDriver:
         mode: {mode}
         {cfg_repr}
         """.format(
-                **{"mode": str(deployment_mode), "cfg_repr": repr(installers[0][0])}
+                **{"mode": str(test_mode), "cfg_repr": repr(installers[0][0])}
             )
         )
 
@@ -400,6 +402,8 @@ class TestDriver:
                     # only uninstall after the last test:
                     runner.do_uninstall = (count == len(
                         STARTER_MODES[deployment_mode])) and do_uninstall
+                    runner.do_starter_test = do_tests
+
                     try:
                         runner.run()
                         runner.cleanup()

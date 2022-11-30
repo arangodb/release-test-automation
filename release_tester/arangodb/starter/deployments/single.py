@@ -136,11 +136,12 @@ class Single(Runner):
                     "--database.auto-upgrade",
                     "true",
                     "--javascript.copy-installation",
-                    "true",
+                    "true"
                 ],
             )
         self.progress(True, "step 3 - launch instances again")
-        self.starter_instance.respawn_instance()
+        version = self.new_cfg.version if self.new_cfg != None else self.cfg.version
+        self.starter_instance.respawn_instance(version)
         self.progress(True, "step 4 - detect system state")
         self.starter_instance.detect_instances()
         self.starter_instance.wait_for_version_reply()
@@ -172,7 +173,7 @@ class Single(Runner):
         """set instances in selenium runner"""
         self.selenium.set_instances(
             self.cfg,
-            sself.starter_instance.arango_importer,
+            self.starter_instance.arango_importer,
             self.starter_instance.arango_restore,
             self.starter_instance.all_instances[0],
         )

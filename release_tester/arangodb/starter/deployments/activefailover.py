@@ -270,8 +270,9 @@ class ActiveFailover(Runner):
                 ["--database.auto-upgrade", "true", "--javascript.copy-installation", "true"],
             )
         self.progress(True, "step 3 - launch instances again")
+        version = self.new_cfg.version if self.new_cfg != None else self.cfg.version
         for node in self.starter_instances:
-            node.respawn_instance()
+            node.respawn_instance(version)
         self.progress(True, "step 4 - check alive status")
         for node in self.starter_instances:
             node.detect_instances()
@@ -341,7 +342,8 @@ class ActiveFailover(Runner):
             """The leader failover has happened.
 please revalidate the UI states on the new leader; you should see *one* follower.""",
         )
-        self.first_leader.respawn_instance()
+        version = self.new_cfg.version if self.new_cfg != None else self.cfg.version
+        self.first_leader.respawn_instance(version)
         self.first_leader.detect_instances()
         logging.info("waiting for old leader to show up as follower")
         while not self.first_leader.active_failover_detect_host_now_follower():

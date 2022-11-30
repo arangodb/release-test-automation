@@ -4,6 +4,7 @@ import time
 import logging
 from pathlib import Path
 import semver
+import copy
 
 from reporting.reporting_utils import step
 from tools.timestamp import timestamp
@@ -222,8 +223,9 @@ db.testCollection.save({test: "document"})
             ])
         # fmt: on
         self.progress(True, "step 5 restart the full cluster ")
+        version = self.new_cfg.version if self.new_cfg != None else self.cfg.version
         for node in self.starter_instances:
-            node.respawn_instance()
+            node.respawn_instance(version)
         self.progress(True, "step 6 wait for the cluster to be up")
         for node in self.starter_instances:
             node.detect_instances()
@@ -291,8 +293,9 @@ db.testCollection.save({test: "document"})
             ])
         # fmt: on
         self.progress(True, "step 5 restart the full cluster ")
+        version = self.new_cfg.version if self.new_cfg != None else self.cfg.version
         for node in self.starter_instances:
-            node.respawn_instance()
+            node.respawn_instance(version)
         self.progress(True, "step 6 wait for the cluster to be up")
         for node in self.starter_instances:
             node.detect_instances()
@@ -358,7 +361,8 @@ db.testCollection.save({test: "document"})
             raise Exception("check data failed " + ret[1])
 
         # respawn instance, and get its state fixed
-        self.starter_instances[terminate_instance].respawn_instance()
+        version = self.new_cfg.version if self.new_cfg != None else self.cfg.version
+        self.starter_instances[terminate_instance].respawn_instance(version)
         self.set_frontend_instances()
         counter = 300
         while not self.starter_instances[terminate_instance].is_instance_up():
@@ -379,8 +383,10 @@ db.testCollection.save({test: "document"})
             keyfile = self.cert_dir / Path("nodeX") / "tls.keyfile"
             self.generate_keyfile(keyfile)
             moreopts.append(f"--ssl.keyfile={keyfile}")
+        curr_cfg = copy.deepcopy(self.basecfg)     
+        curr_cfg.version = self.new_cfg.version if self.new_cfg != None else self.basecfg.version
         dead_instance = StarterManager(
-            self.basecfg,
+            curr_cfg,
             Path("CLUSTER"),
             "nodeX",
             mode="cluster",

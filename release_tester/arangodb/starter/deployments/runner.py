@@ -553,7 +553,7 @@ class Runner(ABC):
             True,
             "{0} - {1} upgrade setup to newer version".format(str(self.name), mode),
         )
-        logging.info("{1} -> {0}".format(self.new_installer.cfg.version, self.old_installer.cfg.version))
+        logging.info("{0} -> {1}".format(self.old_installer.cfg.version, self.new_installer.cfg.version))
 
         print("deinstall")
         print("install")
