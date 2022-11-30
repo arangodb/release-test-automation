@@ -373,7 +373,6 @@
           // update cacheSize
           if (isEnterprise) {
             cacheSize = getMetric("arangodb_search_columns_cache_size", options);
-            print(cacheSize)
             if ((cacheSize <= prevCacheSize) && utilizeCache) {
               throw new Error("new cache size is wrong");
             }
