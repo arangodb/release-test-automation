@@ -16,7 +16,35 @@ const {
   getMetricValue
 } = require(fs.join(PWD, 'common'));
 
+let waitForStats = function (instances) {
+  outerloop: for (let instance of instances) {
+    print("Fetching statistics with the 'sync' flag from the server "
+      + instance["name"] + " to force statistics processing.");
+    let ex;
+    let sleepTime = 0.1;
+    let opts = { "jwt": instance.JWT_header };
+    do {
+      try {
+        let resp = download(instance.url + '/_admin/statistics?sync=true', '', opts);
+        if (resp.code !== 200) {
+          throw "Error fetching statistics with the 'sync' flag. Server response:\n" + JSON.stringify(resp);
+        } else {
+          continue outerloop;
+        }
+      } catch (e) {
+        let ex = e;
+        print(RED + "connecting to " + instance.url + " failed - retrying (" + ex + ")" + RESET);
+      }
+      sleepTime *= 2;
+      sleep(sleepTime);
+    } while (sleepTime < 15);
+    print(RED + "giving up!" + RESET);
+    throw ex;
+  }
+};
+
 let getRawMetric = function (instance, user, tags) {
+  print("Fetching metrics from the server " + instance["name"])
   let ex;
   let sleepTime = 0.1;
   let opts = { "jwt": instance.JWT_header };
@@ -173,7 +201,7 @@ let checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTo
             assertEqual("true", res.headers["x-arango-potential-dirty-read"],
               "Server response must have header \"x-arango-potential-dirty-read\" value set to true.");
           }
-          wait(0.3);   // Give statistics time to process ops, need 250ms
+          waitForStats([leader, follower]);
 
           let readsOnLeader = getMetric(leader, httpGetMetric) - leaderBefore;
           let readsOnFollower = getMetric(follower, httpGetMetric) - followerBefore;
@@ -188,7 +216,7 @@ let checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTo
             let j = (i + 1) % keys.length;
             db._collection(collName).document([keys[i % keys.length], keys[j]], { allowDirtyReads: true });
           }
-          wait(0.3);   // Give statistics time to process ops, need 250ms
+          waitForStats([leader, follower]);
           let readsOnLeader = getMetric(leader, httpPutMetric) - leaderBefore;
           let readsOnFollower = getMetric(follower, httpPutMetric) - followerBefore;
 
@@ -208,7 +236,7 @@ let checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTo
             let d = coll.document(keys[i % keys.length]);
             trx.abort();
           }
-          wait(0.3);   // Give statistics time to process ops, need 250ms
+          waitForStats([leader, follower]);
           let readsOnLeader = getMetric(leader, httpGetMetric) - leaderBefore;
           let readsOnFollower = getMetric(follower, httpGetMetric) - followerBefore;
 
@@ -229,7 +257,7 @@ let checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTo
             let d = coll.document([keys[i % keys.length], keys[j]]);
             trx.abort();
           }
-          wait(0.3);   // Give statistics time to process ops, need 250ms
+          waitForStats([leader, follower]);
           let readsOnLeader = getMetric(leader, httpPutMetric) - leaderBefore;
           let readsOnFollower = getMetric(follower, httpPutMetric) - followerBefore;
 
@@ -247,7 +275,7 @@ let checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTo
               "FOR d IN @@coll LIMIT 10 RETURN d", { "@coll": collName });
             trx.abort();
           }
-          wait(0.3);   // Give statistics time to process ops, need 250ms
+          waitForStats([leader, follower]);
 
           let readsOnLeader = getMetric(leader, httpPutMetric) - leaderBefore;
           let readsOnFollower = getMetric(follower, httpPutMetric) - followerBefore;
@@ -267,7 +295,7 @@ let checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTo
               { "@coll": collName, l: [keys[0], keys[i % keys.length], keys[keys.length - 1]] });
             trx.abort();
           }
-          wait(0.3);   // Give statistics time to process ops, need 250ms
+          waitForStats([leader, follower]);
 
           let readsOnLeader = getMetric(leader, httpGetMetric) - leaderBefore;
           let readsOnFollower = getMetric(follower, httpGetMetric) - followerBefore;
@@ -348,7 +376,7 @@ let checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTo
             assertEqual(200, res.code);
             assertEqual("true", res.headers["x-arango-potential-dirty-read"]);
           }
-          wait(0.3);   // Give statistics time to process ops, need 250ms
+          waitForStats([leader, follower]);
 
           let readsOnLeader = getMetric(leader, httpPutMetric) - leaderBefore;
           let readsOnFollower = getMetric(follower, httpPutMetric) - followerBefore;
@@ -429,7 +457,7 @@ let checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTo
             assertEqual(200, res.code);
             assertEqual("true", res.headers["x-arango-potential-dirty-read"]);
           }
-          wait(0.3);   // Give statistics time to process ops, need 250ms
+          waitForStats([leader, follower]);
 
           let readsOnLeader = getMetric(leader, httpPutMetric) - leaderBefore;
           let readsOnFollower = getMetric(follower, httpPutMetric) - followerBefore;
