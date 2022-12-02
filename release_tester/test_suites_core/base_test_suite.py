@@ -19,6 +19,8 @@ from test_suites_core.models import RtaTestResult
 class MetaTestSuite(type):
     def __new__(mcs, name, bases, dct):
         suite_class = super().__new__(mcs, name, bases, dct)
+        suite_class.is_disabled = False
+        suite_class.disable_reasons = []
         if "child_test_suites" not in dct.keys():
             suite_class.child_test_suites = []
         return suite_class
@@ -76,6 +78,14 @@ class BaseTestSuite(metaclass=MetaTestSuite):
         )
 
     @classmethod
+    def _is_disabled(cls):
+        return cls.is_disabled
+
+    @classmethod
+    def _get_disable_reasons(cls):
+        return cls.disable_reasons
+
+    @classmethod
     def get_child_test_suite_classes(cls):
         return cls.child_test_suites
 
@@ -85,6 +95,13 @@ class BaseTestSuite(metaclass=MetaTestSuite):
 
     def run(self, parent_suite_setup_failed=False):
         """execute the test"""
+        if self._is_disabled():
+            with RtaTestcase("test suite is skipped") as my_testcase:
+                my_testcase.context.status = Status.SKIPPED
+                if len(self._get_disable_reasons()) > 0:
+                    message = "\n".join(self._get_disable_reasons())
+                    my_testcase.context.statusDetails = StatusDetails(message=message)
+            return self.test_results
         setup_failed = parent_suite_setup_failed
         if not setup_failed:
             try:

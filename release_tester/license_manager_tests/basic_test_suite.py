@@ -21,9 +21,8 @@ class BasicLicenseManagerTestSuite(LicenseManagerBaseTestSuite):
         LicenseManagerLeaderFollowerTestSuite,
         LicenseManagerAfoTestSuite,
         LicenseManagerClusterTestSuite,
+        LicenseManagerDc2DcTestSuite
     ]
-    if not IS_WINDOWS:
-        child_test_suites.append(LicenseManagerDc2DcTestSuite)
 
     def __init__(
         self,

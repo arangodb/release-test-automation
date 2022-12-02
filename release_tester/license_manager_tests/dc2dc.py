@@ -4,9 +4,10 @@
 from arangodb.async_client import CliExecutionException
 from license_manager_tests.base.dc2dc_base import LicenseManagerDc2DcBaseTestSuite
 from reporting.reporting_utils import step
-from test_suites_core.base_test_suite import testcase, disable
+from test_suites_core.base_test_suite import testcase, disable, disable_for_windows
 
 
+@disable_for_windows("DC2DC suite is disabled for Windows")
 class LicenseManagerDc2DcTestSuite(LicenseManagerDc2DcBaseTestSuite):
     """License manager tests: DC2DC"""
 
