@@ -449,7 +449,7 @@ class TestDriver:
                         one_result[
                             "messages"].append(
                             f'The following UI tests failed: {", ".join(failed_test_names)}. See allure report for details.')
-
+                    results.append(one_result)
                     kill_all_processes()
                     count += 1
 
