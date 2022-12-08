@@ -649,6 +649,7 @@ class StarterManager:
         # On windows the install prefix may change,
         # since we can't overwrite open files:
         self.cfg.set_directories(new_install_cfg)
+        self.current_version = new_install_cfg.version
         if self.cfg.hot_backup_supported:
             self.hotbackup_args = [
                 "--all.rclone.executable",
