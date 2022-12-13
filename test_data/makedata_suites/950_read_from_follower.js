@@ -12,7 +12,7 @@ let instanceInfo = null;
 const nrTries = 1000;
 const distributionTolerance = 0.15;
 
-let defaultServerLoggingSettings = null;
+let defaultServerLoggingSettings = [];
 
 const {
   getMetricValue
