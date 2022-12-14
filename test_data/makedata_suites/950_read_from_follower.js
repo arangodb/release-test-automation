@@ -1,4 +1,4 @@
-/* global print, assertTrue, assertFalse, assertEqual, db, semver, download, sleep */
+/* global print, assertTrue, assertFalse, assertEqual, db, semver, download, sleep, fs, arango, PWD */
 const jsunity = require('jsunity');
 
 const testCollName = "ReadFromFollowerCollection";
@@ -11,6 +11,8 @@ const wait = require("internal").wait;
 let instanceInfo = null;
 const nrTries = 1000;
 const distributionTolerance = 0.15;
+
+let defaultServerLoggingSettings = [];
 
 const {
   getMetricValue
@@ -44,7 +46,7 @@ let waitForStats = function (instances) {
 };
 
 let getRawMetric = function (instance, user, tags) {
-  print("Fetching metrics from the server " + instance["name"])
+  print("Fetching metrics from the server " + instance["name"]);
   let ex;
   let sleepTime = 0.1;
   let opts = { "jwt": instance.JWT_header };
@@ -126,6 +128,38 @@ let checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTo
   assertTrue(readsOnLeader > leaderMinValue, `Too few reads on leader (${readsOnLeader}). Expected a value between ${leaderMinValue} and ${leaderMaxValue}.` + message);
   assertTrue(readsOnFollower > followerMinValue, `Too few reads on follower (${readsOnFollower}). Expected a value between ${followerMinValue} and ${followerMaxValue}.` + message);
   assertTrue(readsOnFollower < followerMaxValue, `Too many reads on follower (${readsOnFollower}). Expected a value between ${followerMinValue} and ${followerMaxValue}.` + message);
+};
+
+let setLoggingLevelsForServerById = function (serverId, topic, level) {
+  let opts = {};
+  opts[topic] = level;
+  arango.PUT(`/_admin/log/level?serverId=${serverId}`, opts);
+};
+
+let setLoggingForAllServers = function (topic, level) {
+  for (let instance of instanceInfo["arangods"]) {
+    if (instance["instanceRole"] === "coordinator" || instance["instanceRole"] === "dbserver") {
+      let serverId = instance["id"];
+      setLoggingLevelsForServerById(serverId, topic, level);
+    }
+  }
+};
+
+let saveServerLoggingSettings = function () {
+  defaultServerLoggingSettings = [];
+  for (let instance of instanceInfo["arangods"]) {
+    if (instance["instanceRole"] === "coordinator" || instance["instanceRole"] === "dbserver") {
+      let serverId = instance["id"];
+      let loggingInfo = arango.GET(`/_admin/log/level?serverId=${serverId}`);
+      defaultServerLoggingSettings.push({ serverId, loggingInfo });
+    }
+  }
+};
+
+let restoreServerLoggingSettings = function (topic) {
+  for (let entry of defaultServerLoggingSettings) {
+    setLoggingLevelsForServerById(entry["serverId"], topic, entry["loggingInfo"][topic]);
+  }
 };
 
 (function () {
@@ -493,6 +527,7 @@ let checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTo
 
     checkData: function (options, isCluster, isEnterprise, dbCount, loopCount, readOnly) {
       print('asontehusaonteuhsanoetuhasoentuh');
+      instanceInfo = JSON.parse(require('internal').env.INSTANCEINFO);
       let failed = [];
       let docCollections = [
         `${testCollName}_${loopCount}`,
@@ -504,6 +539,8 @@ let checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTo
         `citations_naive_${loopCount}`,
         // `citations_smart_${loopCount}`,
       ];
+      saveServerLoggingSettings();
+      setLoggingForAllServers("requests", "trace");
       for (let collection of docCollections) {
         jsunity.run(ReadDocsFromFollowerTestSuite(collection));
         let result = jsunity.done();
@@ -523,7 +560,7 @@ let checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTo
       if (!result.status) {
         failed.push(result);
       }
-
+      restoreServerLoggingSettings("requests");
       if (failed.length > 0) {
         throw "Some tests failed. See output above.";
       }
@@ -531,6 +568,7 @@ let checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTo
     },
     checkDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
       //run ReadDocsFromFollowerTestSuite on a one-shard database created in 900_oneshard.js
+      instanceInfo = JSON.parse(require('internal').env.INSTANCEINFO);
       let baseName = database;
       if (baseName === "_system") {
         baseName = "system";
@@ -538,6 +576,8 @@ let checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTo
       let databaseName = `${baseName}_${dbCount}_oneShard`;
       db._useDatabase(databaseName);
       let failed = [];
+      saveServerLoggingSettings();
+      setLoggingForAllServers("requests", "trace");
       for (let ccount = 0; ccount < options.collectionMultiplier; ++ccount) {
         let collectionName = `c_${ccount}_0`;
         jsunity.run(ReadDocsFromFollowerTestSuite(collectionName));
@@ -556,7 +596,7 @@ let checkReadDistribution = function (readsOnLeader, readsOnFollower, expectedTo
       }
 
       db._useDatabase('_system');
-
+      restoreServerLoggingSettings("requests");
       if (failed.length > 0) {
         throw "Some tests failed. See output above.";
       }
