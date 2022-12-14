@@ -153,23 +153,31 @@
       "link": {
         "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
         "cache": true,
+        includeAllFields: false,
+        storeValues: "none",
+        trackListPositions: false,
         "fields": {
           "geo_location": {
             "analyzers": ["geo_json"]
           }
-        }
+        },
+        "analyzers": ["AqlAnalyzerHash"]
       }
     },
     {
       "collectionName": "cache_bottom_true_geojson",
       "link": {
         "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
+        includeAllFields: false,
+        storeValues: "none",
+        trackListPositions: false,
         "fields": {
           "geo_location": {
             "analyzers": ["geo_json"],
             "cache": true
           }
-        }
+        },
+        "analyzers": ["AqlAnalyzerHash"]
       }
     },
     {
@@ -177,23 +185,31 @@
       "link": {
         "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
         "cache": true,
+        includeAllFields: false,
+        storeValues: "none",
+        trackListPositions: false,
         "fields": {
           "geo_latlng": {
-            "analyzers": ["geo_json"]
+            "analyzers": ["geo_point"]
           }
-        }
+        },
+        "analyzers": ["AqlAnalyzerHash"]
       }
     },
     {
       "collectionName": "cache_bottom_true_geopoint",
       "link": {
         "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
+        includeAllFields: false,
+        storeValues: "none",
+        trackListPositions: false,
         "fields": {
           "geo_latlng": {
-            "analyzers": ["geo_json"],
+            "analyzers": ["geo_point"],
             "cache": true
           }
-        }
+        },
+        "analyzers": ["AqlAnalyzerHash"]
       }
     }
   ];
@@ -255,10 +271,11 @@
     if (result.hasOwnProperty("cache")) {
       delete result["cache"];
     }
-    if (result["fields"]["animal"].hasOwnProperty("cache")) {
-      delete result["fields"]["animal"]["cache"];
+    if (result["fields"].hasOwnProperty("animal")) {
+      if (result["fields"]["animal"].hasOwnProperty("cache")) {
+        delete result["fields"]["animal"]["cache"];
+      }
     }
-
     return result;
   };
 
@@ -361,7 +378,7 @@
       const analyzers = require("@arangodb/analyzers");
       analyzers.save("AqlAnalyzerHash", "aql", { "queryString": "return to_hex(to_string(@param))" }, ["frequency", "norm", "position"])
       analyzers.save("geo_json", "geojson", {}, ["frequency", "norm", "position"]);
-      analyzers.save("geo_pair", "geopoint", { "latitude": ["lat"], "longitude": ["lng"] }, ["frequency", "norm", "position"]);
+      analyzers.save("geo_point", "geopoint", { "latitude": ["lat"], "longitude": ["lng"] }, ["frequency", "norm", "position"]);
 
       // create views for testing
       progress('createViewCache');
@@ -483,8 +500,20 @@
             if (linkFromView.hasOwnProperty('cache')) {
               throw new Error(`cache value on root level should not present! oldVersion:${oldVersion}, newVersion:${currVersion}`);
             }
-            if (linkFromView["fields"]["animal"].hasOwnProperty('cache')) {
-              throw new Error(`cache value on field level should not present! oldVersion:${oldVersion}, newVersion:${currVersion}`);
+            if (linkFromView["fields"].hasOwnProperty("animal")) {
+              if (linkFromView["fields"]["animal"].hasOwnProperty('cache')) {
+                throw new Error(`cache value on field level should not present! oldVersion:${oldVersion}, newVersion:${currVersion}`);
+              }
+            }
+            if (linkFromView["fields"].hasOwnProperty("geo_location")) {
+              if (linkFromView["fields"]["geo_location"].hasOwnProperty('cache')) {
+                throw new Error(`cache value on field level should not present! oldVersion:${oldVersion}, newVersion:${currVersion}`);
+              }
+            }
+            if (linkFromView["fields"].hasOwnProperty("geo_latlng")) {
+              if (linkFromView["fields"]["geo_latlng"].hasOwnProperty('cache')) {
+                throw new Error(`cache value on field level should not present! oldVersion:${oldVersion}, newVersion:${currVersion}`);
+              }
             }
           } else {
             // current and previous versions are aware of 'cache'. 
