@@ -342,6 +342,7 @@ class Download:
 
     def get_packages(self, force):
         """download all packages for this version from the specified package source"""
+        ret = []
         self.packages = [self.inst.server_package]
         if self.inst.client_package:
             self.packages.append(self.inst.client_package)
@@ -350,6 +351,8 @@ class Download:
 
         for package in self.packages:
             self.funcs[self.source](self.directories[self.source], package, Path(self.options.package_dir), force)
+            ret.append(Path(self.options.package_dir) / package)
+        return ret
 
     def get_version_info(self, git_version):
         """download the nightly sourceInfo.json file, calculate more precise version of the packages"""
