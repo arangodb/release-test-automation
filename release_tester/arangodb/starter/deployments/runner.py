@@ -94,6 +94,7 @@ class Runner(ABC):
     ):
         load_scenarios()
         assert runner_type, "no runner no cry? no!"
+        mem = psutil.virtual_memory()
         os.environ["ARANGODB_OVERRIDE_DETECTED_TOTAL_MEMORY"] = str(int((mem.total * 0.8) / properties.no_arangods_non_agency))
         logging.debug(runner_type)
         self.abort_on_error = abort_on_error
