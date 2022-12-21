@@ -237,6 +237,17 @@ example usage:
                                     --force \
                                     --source ftp:stage2`
 
+# using `down_upload.py` above `download.py` to upload files to a remote test target
+
+`down_upload.py` uses `download.py` but will download enterprise and community, plus scp it to a remote host
+
+Supported Parameters (above download.py)
+- `--push-host` machine to SCP to.
+- `--push-user` user to connect to remote host. defaults to `tester`
+- `--ssh-key-file` ssh key to connect to machine
+
+It is assumed that `ssh-agent` is utilized for authentification
+
 # Using `full_download_upgrade.py` for automated upgrade testing
 
 `full_download_upgrade.py` integrates `upgrade.py` and `download_packages.py`.
