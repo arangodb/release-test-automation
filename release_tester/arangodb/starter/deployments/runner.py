@@ -13,6 +13,7 @@ import re
 import shutil
 import sys
 import time
+import psutil
 
 from allure_commons._allure import attach
 import certifi
