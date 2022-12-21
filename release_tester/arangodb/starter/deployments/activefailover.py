@@ -34,7 +34,7 @@ class ActiveFailover(Runner):
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("ActiveFailOver", 500, 600, True, ssl, use_auto_certs),
+            RunnerProperties("ActiveFailOver", 500, 600, True, ssl, use_auto_certs, 3),
             selenium,
             selenium_driver_args,
             testrun_name,
