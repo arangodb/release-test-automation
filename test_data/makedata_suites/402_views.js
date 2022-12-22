@@ -147,6 +147,70 @@
         },
         "analyzers": ["AqlAnalyzerHash"]
       }
+    },
+    {
+      "collectionName": "cache_top_true_geojson",
+      "link": {
+        "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
+        "cache": true,
+        includeAllFields: false,
+        storeValues: "none",
+        trackListPositions: false,
+        "fields": {
+          "geo_location": {
+            "analyzers": ["geo_json"]
+          }
+        },
+        "analyzers": ["AqlAnalyzerHash"]
+      }
+    },
+    {
+      "collectionName": "cache_bottom_true_geojson",
+      "link": {
+        "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
+        includeAllFields: false,
+        storeValues: "none",
+        trackListPositions: false,
+        "fields": {
+          "geo_location": {
+            "analyzers": ["geo_json"],
+            "cache": true
+          }
+        },
+        "analyzers": ["AqlAnalyzerHash"]
+      }
+    },
+    {
+      "collectionName": "cache_top_true_geopoint",
+      "link": {
+        "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
+        "cache": true,
+        includeAllFields: false,
+        storeValues: "none",
+        trackListPositions: false,
+        "fields": {
+          "geo_latlng": {
+            "analyzers": ["geo_point"]
+          }
+        },
+        "analyzers": ["AqlAnalyzerHash"]
+      }
+    },
+    {
+      "collectionName": "cache_bottom_true_geopoint",
+      "link": {
+        "utilizeCache": true, // This value is for testing purpose. It will be ignored during link creation
+        includeAllFields: false,
+        storeValues: "none",
+        trackListPositions: false,
+        "fields": {
+          "geo_latlng": {
+            "analyzers": ["geo_point"],
+            "cache": true
+          }
+        },
+        "analyzers": ["AqlAnalyzerHash"]
+      }
     }
   ];
 
@@ -161,36 +225,37 @@
           3)'cache': false    4) 'cache': false     5) 'cache': true
                   ____               'cache': false         'cache': true
     */
+                  // if (result["fields"].hasOwnProperty("animal")) {
 
     let result = linkDefinition;
     // remove 'cache' values from link definition
     if (result.hasOwnProperty("cache")) {
-      if (result["cache"] == false) {
-
-        if (result["fields"]["animal"].hasOwnProperty("cache")) {
-
-          if (result["fields"]["animal"]["cache"] == false) {
-
-            delete result["cache"];
-            delete result["fields"]["animal"]["cache"];
+      if (result["fields"].hasOwnProperty("animal")) {
+        if (result["cache"] == false) {
+          if (result["fields"]["animal"].hasOwnProperty("cache")) {
+            if (result["fields"]["animal"]["cache"] == false) {
+              delete result["cache"];
+              delete result["fields"]["animal"]["cache"];
+            } else {
+              delete result["cache"];
+            }
           } else {
             delete result["cache"];
           }
         } else {
-          delete result["cache"];
-        }
-      } else {
-        if (result["fields"]["animal"].hasOwnProperty("cache")) {
-          if (result["fields"]["animal"]["cache"] == true) {
-            delete result["fields"]["animal"]["cache"];
+          if (result["fields"]["animal"].hasOwnProperty("cache")) {
+            if (result["fields"]["animal"]["cache"] == true) {
+              delete result["fields"]["animal"]["cache"];
+            }
           }
         }
       }
     } else {
-
-      if (result["fields"]["animal"].hasOwnProperty("cache")) {
-        if (result["fields"]["animal"]["cache"] == false) {
-          delete result["fields"]["animal"]["cache"];
+      if (result["fields"].hasOwnProperty("animal")) {
+        if (result["fields"]["animal"].hasOwnProperty("cache")) {
+          if (result["fields"]["animal"]["cache"] == false) {
+            delete result["fields"]["animal"]["cache"];
+          }
         }
       }
     }
@@ -206,10 +271,11 @@
     if (result.hasOwnProperty("cache")) {
       delete result["cache"];
     }
-    if (result["fields"]["animal"].hasOwnProperty("cache")) {
-      delete result["fields"]["animal"]["cache"];
+    if (result["fields"].hasOwnProperty("animal")) {
+      if (result["fields"]["animal"].hasOwnProperty("cache")) {
+        delete result["fields"]["animal"]["cache"];
+      }
     }
-
     return result;
   };
 
@@ -310,7 +376,9 @@
 
       // create analyzer with 'norm' feature
       const analyzers = require("@arangodb/analyzers");
-      analyzers.save("AqlAnalyzerHash", "aql", { queryString: "return to_hex(to_string(@param))" }, ["frequency", "norm", "position"])
+      analyzers.save("AqlAnalyzerHash", "aql", { "queryString": "return to_hex(to_string(@param))" }, ["frequency", "norm", "position"])
+      analyzers.save("geo_json", "geojson", {}, ["frequency", "norm", "position"]);
+      analyzers.save("geo_point", "geopoint", { "latitude": ["lat"], "longitude": ["lng"] }, ["frequency", "norm", "position"]);
 
       // create views for testing
       progress('createViewCache');
@@ -352,9 +420,9 @@
         createCollectionSafe(collectionName, 3, 1);
         // insert some test data. Also insert version, on which 'make_data' was called
         db._collection(collectionName).insert([
-          { "animal": "cat", "name": "tom" },
-          { "animal": "mouse", "name": "jerry" },
-          { "animal": "dog", "name": "harry" },
+          { "animal": "cat", "name": "tom", "geo_location": { "type": "Point", "coordinates": [0.937, 50.932] }, "geo_latlng": { "lat": 50.932, "lng": 6.937 } },
+          { "animal": "mouse", "name": "jerry", "location": { "type": "Point", "coordinates": [12.7, 3.93] }, "geo_latlng": { "lat": 50.941, "lng": 6.956 } },
+          { "animal": "dog", "name": "harry", "location": { "type": "Point", "coordinates": [-6.27, 51.81] }, "geo_latlng": { "lat": 50.932, "lng": 6.962 } },
           { "version": currVersion }
         ]);
 
@@ -432,8 +500,20 @@
             if (linkFromView.hasOwnProperty('cache')) {
               throw new Error(`cache value on root level should not present! oldVersion:${oldVersion}, newVersion:${currVersion}`);
             }
-            if (linkFromView["fields"]["animal"].hasOwnProperty('cache')) {
-              throw new Error(`cache value on field level should not present! oldVersion:${oldVersion}, newVersion:${currVersion}`);
+            if (linkFromView["fields"].hasOwnProperty("animal")) {
+              if (linkFromView["fields"]["animal"].hasOwnProperty('cache')) {
+                throw new Error(`cache value on field level should not present! oldVersion:${oldVersion}, newVersion:${currVersion}`);
+              }
+            }
+            if (linkFromView["fields"].hasOwnProperty("geo_location")) {
+              if (linkFromView["fields"]["geo_location"].hasOwnProperty('cache')) {
+                throw new Error(`cache value on field level should not present! oldVersion:${oldVersion}, newVersion:${currVersion}`);
+              }
+            }
+            if (linkFromView["fields"].hasOwnProperty("geo_latlng")) {
+              if (linkFromView["fields"]["geo_latlng"].hasOwnProperty('cache')) {
+                throw new Error(`cache value on field level should not present! oldVersion:${oldVersion}, newVersion:${currVersion}`);
+              }
             }
           } else {
             // current and previous versions are aware of 'cache'. 
