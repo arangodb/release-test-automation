@@ -108,12 +108,20 @@ class OptionGroup:
         """invoke init from kwargs"""
         # these members will be added by derivative classes:
         # pylint: disable=no-member
-        return cls(**{k: v for k, v in options.items() if k in cls.__dataclass_fields__})
+        # TODO: after we upgrade to python 3.10, we should replace this with {}|{} operator
+        dict = {k: v for k, v in options.items() if k in cls.__dataclass_fields__}
+        dict2 = {
+            k: v.type.from_dict(**options) for k, v in cls.__dataclass_fields__.items() if OptionGroup in v.type.mro()
+        }
+        for k, v in dict2.items():
+            dict[k] = v
+        return cls(**(dict))
 
 
 @dataclass
 class HotBackupCliCfg(OptionGroup):
     """map hotbackup_options"""
+
     # pylint: disable=too-many-instance-attributes disable=no-member disable=no-else-return disable=consider-iterating-dictionary
     @classmethod
     def from_dict(cls, **options):
@@ -387,22 +395,27 @@ def make_installer(install_config: InstallerConfig):
     if IS_WINDOWS:
         if install_config.zip_package:
             from arangodb.installers.zip import InstallerZip
+
             return InstallerZip(install_config)
 
         from arangodb.installers.nsis import InstallerNsis
+
         return InstallerNsis(install_config)
 
     if install_config.zip_package:
         from arangodb.installers.tar import InstallerTAR
+
         return InstallerTAR(install_config)
 
     if IS_MAC:
         from arangodb.installers.mac import InstallerMac
+
         return InstallerMac(install_config)
 
     if platform.system() in ["linux", "Linux"]:
         dist = DISTRO
         import distro
+
         if DISTRO == "":
             dist = distro.linux_distribution(full_distribution_name=False)[0]
         if dist in ["debian", "ubuntu"]:
@@ -426,7 +439,12 @@ class RunProperties:
 
     # pylint: disable=too-many-function-args disable=too-many-arguments
     def __init__(
-        self, enterprise: bool, encryption_at_rest: bool, ssl: bool, testrun_name: str = "", directory_suffix: str = ""
+        self,
+        enterprise: bool,
+        encryption_at_rest: bool = False,
+        ssl: bool = False,
+        testrun_name: str = "",
+        directory_suffix: str = "",
     ):
         """set the values for this testrun"""
         self.enterprise = enterprise
@@ -490,7 +508,7 @@ def create_config_installer_set(
             base_config.interactive,
             base_config.stress_upgrade,
             run_properties.ssl,
-            base_config.test
+            base_config.test,
         )
         installer = make_installer(install_config)
         installer.calculate_package_names()

@@ -9,16 +9,15 @@ import semver
 from allure_commons._allure import attach
 from allure_commons.types import AttachmentType
 
-from arangodb.installers import InstallerBaseConfig, create_config_installer_set
+from arangodb.installers import create_config_installer_set
 from arangodb.instance import InstanceType
 from arangodb.starter.manager import StarterManager
-from debugger_tests.debug_test_steps import create_dump_for_exe, create_arangod_dump, create_arangosh_dump, store
+from debugger_tests.debug_test_steps import create_dump_for_exe, create_arangod_dump, store
 from reporting.reporting_utils import step
 from test_suites_core.base_test_suite import (
     testcase,
     disable_if_returns_true_at_runtime,
     linux_only,
-    BaseTestSuite,
     run_before_suite,
     run_after_suite,
     run_after_each_testcase,
@@ -27,6 +26,7 @@ from test_suites_core.base_test_suite import (
     parameters,
     disable,
 )
+from test_suites_core.cli_test_suite import CliStartedTestSuite, CliTestSuiteParameters
 from tools.killall import kill_all_processes
 
 os_is_windows = bool(platform.win32_ver()[0])
@@ -34,7 +34,7 @@ if os_is_windows:
     import wexpect
 
 
-class DebuggerTestSuite(BaseTestSuite):
+class DebuggerTestSuite(CliStartedTestSuite):
     """Debug symbols test suite"""
 
     if os_is_windows:
@@ -49,15 +49,8 @@ class DebuggerTestSuite(BaseTestSuite):
 
     CDB_PROMPT = re.compile(r"^\d{1,3}:\d{1,3}>", re.MULTILINE)
 
-    def __init__(self, versions: list, base_config: InstallerBaseConfig, **kwargs):
-        self.run_props = kwargs["run_props"]
-        if len(versions) > 1:
-            self.new_version = versions[1]
-        else:
-            self.new_version = versions[0]
-        self.base_cfg = base_config
-        self.auto_generate_parent_test_suite_name = False
-        self.use_subsuite = False
+    def __init__(self, params: CliTestSuiteParameters):
+        super().__init__(params)
         self.installer_set = create_config_installer_set(
             versions=[self.new_version], base_config=self.base_cfg, deployment_mode="all", run_properties=self.run_props
         )
@@ -66,7 +59,6 @@ class DebuggerTestSuite(BaseTestSuite):
         self.suite_name = (
             f"Debug symbols test suite: ArangoDB v. {str(self.new_version)} ({ent}) ({self.installer.installer_type})"
         )
-        super().__init__()
 
     def is_zip(self):
         return self.base_cfg.zip_package
@@ -164,7 +156,9 @@ class DebuggerTestSuite(BaseTestSuite):
 
     def test_debug_symbols_windows(self, executable):
         """Check that debug symbols can be used to debug arango executable using a memory dump file (Windows)"""
-        exe_file = [str(file.path) for file in self.installer.arango_binaries if file.path.name == executable + ".exe"][0]
+        exe_file = [str(file.path) for file in self.installer.arango_binaries if file.path.name == executable + ".exe"][
+            0
+        ]
         dump_file = create_dump_for_exe(exe_file, DebuggerTestSuite.DUMP_FILES_DIR)
         pdb_dir = str(self.installer.cfg.debug_install_prefix)
         with step("Check that stack trace with function names and line numbers can be acquired from cdb"):
@@ -182,15 +176,18 @@ class DebuggerTestSuite(BaseTestSuite):
 
     test_debug_symbols_windows_community = test_debug_symbols_windows
 
-    @parameters([{"executable": "arangoexport"},
-                 {"executable": "arangosh"},
-                 {"executable": "arangoimport"},
-                 {"executable": "arangodump"},
-                 {"executable": "arangorestore"},
-                 {"executable": "arangobench"},
-                 {"executable": "arangovpack"},
-                 {"executable": "arangod"},
-                 ])
+    @parameters(
+        [
+            {"executable": "arangoexport"},
+            {"executable": "arangosh"},
+            {"executable": "arangoimport"},
+            {"executable": "arangodump"},
+            {"executable": "arangorestore"},
+            {"executable": "arangobench"},
+            {"executable": "arangovpack"},
+            {"executable": "arangod"},
+        ]
+    )
     @windows_only
     @testcase("Debug {executable} executable using a memory dump file (Windows)")
     def test_debug_symbols_windows_community(self, executable):

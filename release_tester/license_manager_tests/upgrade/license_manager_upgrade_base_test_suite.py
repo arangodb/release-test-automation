@@ -1,9 +1,9 @@
 """base class for license manager test suites that require upgrading arangodbs"""
 
 # pylint: disable=import-error
-from arangodb.installers import create_config_installer_set, RunProperties
 from license_manager_tests.base.license_manager_base_test_suite import LicenseManagerBaseTestSuite
 from test_suites_core.base_test_suite import run_after_suite, run_before_suite
+from test_suites_core.cli_test_suite import CliTestSuiteParameters
 
 try:
     from tools.external_helpers.license_generator.license_generator import create_license
@@ -18,26 +18,10 @@ class LicenseManagerUpgradeBaseTestSuite(LicenseManagerBaseTestSuite):
     """base class for license manager test suites that require upgrading arangodb"""
 
     # pylint: disable=too-many-instance-attributes disable=dangerous-default-value
-    def __init__(
-        self,
-        old_version,
-        new_version,
-        installer_base_config,
-    ):
-        package_type = ".tar.gz" if installer_base_config.zip_package else ".deb/.rpm/NSIS"
-        self.suite_name = f"Licence manager test suite: ArangoDB v. {str(new_version)} ({package_type})"
-        self.auto_generate_parent_test_suite_name = False
-        super().__init__(new_version, installer_base_config)
-        self.old_version = old_version
-        run_props = RunProperties(
-            enterprise=True,
-            encryption_at_rest=False,
-            ssl=False,
-        )
+    def __init__(self, params: CliTestSuiteParameters):
+        super().__init__(params)
+        self.suite_name = "License manager tests: Upgrade"
         versions = [self.old_version, self.new_version]
-        self.installer_set = create_config_installer_set(
-            versions=versions, base_config=self.base_cfg, deployment_mode="all", run_properties=run_props
-        )
         self.old_installer = self.installer_set[0][1]
         self.new_installer = self.installer_set[1][1]
         self.installer = self.new_installer

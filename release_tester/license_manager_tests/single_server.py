@@ -10,18 +10,17 @@ from test_suites_core.base_test_suite import testcase, run_before_suite
 
 
 # pylint: disable=import-error
+from test_suites_core.cli_test_suite import CliTestSuiteParameters
 
 
 class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
     """License manager tests: single server"""
 
     # pylint: disable=dangerous-default-value
-    def __init__(self, new_version, installer_base_config):
-        super().__init__(
-            new_version,
-            installer_base_config,
-        )
+    def __init__(self, params: CliTestSuiteParameters):
+        super().__init__(params)
         self.short_name = "SingleServer"
+        self.suite_name = "License manager tests: Clean install"
 
     def get_default_instance_type(self):
         """get the instance type we should communicate with"""
@@ -70,7 +69,6 @@ class LicenseManagerSingleServerTestSuite(LicenseManagerBaseTestSuite):
         self.runner.finish_setup()
         self.runner.starter_instance.detect_arangosh_instances()
         self.starter = self.runner.starter_instance
-
 
     @testcase
     def clean_install_temp_license(self):

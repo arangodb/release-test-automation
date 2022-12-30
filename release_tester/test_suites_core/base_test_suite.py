@@ -34,47 +34,17 @@ class BaseTestSuite(metaclass=MetaTestSuite):
         self.test_results = []
         self.child_classes = self.get_child_test_suite_classes()
         self.children = []
-        self.parent = None
-        self.enterprise = False
-        if not hasattr(self, "new_version"):
-            self.new_version = None
-        self.enc_at_rest = False
-        if not hasattr(self, "old_version"):
-            self.old_version = None
-        if not hasattr(self, "parent_test_suite_name"):
-            self.parent_test_suite_name = None
-        if not hasattr(self, "auto_generate_parent_test_suite_name"):
-            self.auto_generate_parent_test_suite_name = None
-        if not hasattr(self, "suite_name"):
-            self.suite_name = None
-        self.runner_type = None
-        self.installer_type = None
-        self.ssl = False
-        if not hasattr(self, "use_subsuite"):
-            self.use_subsuite = True
-        versions = []
-        if self.old_version:
-            versions.append(self.old_version)
-        if self.new_version:
-            versions.append(self.new_version)
-        if hasattr(self, "generate_custom_suite_name"):
-            # pylint: disable=no-member
-            self.suite_name = self.generate_custom_suite_name()
-        if self.use_subsuite:
-            self.sub_suite_name = self.__doc__ if self.__doc__ else self.__class__.__name__
-        else:
-            self.sub_suite_name = None
+        self.parent_test_suite = None
+        self.suite_name = self.__doc__ or self.__class__.__name__
+        self.sub_suite_name = None
+        self.test_suite_context = None
+        self.parent_test_suite_name = None
+
+    def _init_allure(self):
         self.test_suite_context = AllureTestSuiteContext(
-            properties=RunProperties(self.enterprise, self.enc_at_rest, self.ssl),
-            versions=versions,
-            parent_test_suite_name=None if not self.parent_test_suite_name else self.parent_test_suite_name,
-            auto_generate_parent_test_suite_name=True
-            if not hasattr(self, "auto_generate_parent_test_suite_name")
-            else self.auto_generate_parent_test_suite_name,
-            suite_name=None if not self.suite_name else self.suite_name,
-            sub_suite_name=None if not self.sub_suite_name else self.sub_suite_name,
-            runner_type=None if not self.runner_type else self.runner_type,
-            installer_type=None if not self.installer_type else self.installer_type,
+            parent_test_suite_name=self.parent_test_suite_name,
+            suite_name=self.suite_name,
+            sub_suite_name=self.sub_suite_name,
         )
 
     @classmethod
@@ -95,6 +65,7 @@ class BaseTestSuite(metaclass=MetaTestSuite):
 
     def run(self, parent_suite_setup_failed=False):
         """execute the test"""
+        self._init_allure()
         if self._is_disabled():
             with RtaTestcase("test suite is skipped") as my_testcase:
                 my_testcase.context.status = Status.SKIPPED
@@ -118,7 +89,6 @@ class BaseTestSuite(metaclass=MetaTestSuite):
             self.test_results += self.run_own_testscases(suite_is_broken=setup_failed)
         for suite_class in self.child_classes:
             suite = self.init_child_class(suite_class)
-            suite.test_suite_context.test_listener.parent_test_listener = self.test_suite_context.test_listener
             self.children.append(suite)
             self.test_results += suite.run(parent_suite_setup_failed=setup_failed)
         tear_down_failed = False
