@@ -610,14 +610,18 @@ class ViewsPage(NavigationBarPage):
         time.sleep(1)
 
         print('Entering collection name to the link \n')
-        select_col = "/html/body/div[2]/div/div[2]/div[2]/div/div/div/div/div/ul/li/span/input"
+        if self.current_package_version() >= semver.VersionInfo.parse("3.10.0"):
+            select_col = "(//input[@placeholder='Enter a collection name'])[1]"
+            add_col = "(//li[@class='active'])[1]"
+        else:
+            select_col = "/html/body/div[2]/div/div[2]/div[2]/div/div/div/div/div/ul/li/span/input"
+            add_col = '/html/body/div[2]/div/div[2]/div[2]/div/div/div/div/div/ul/li/span/ul/li/strong'
         select_col_sitem = self.locator_finder_by_xpath(select_col)
         select_col_sitem.click()
         select_col_sitem.send_keys('my_collectio')
         time.sleep(1)
 
         print('Adding collection to the link \n')
-        add_col = '/html/body/div[2]/div/div[2]/div[2]/div/div/div/div/div/ul/li/span/ul/li/strong'
         add_col_stiem = self.locator_finder_by_xpath(add_col)
         add_col_stiem.click()
         time.sleep(1)
