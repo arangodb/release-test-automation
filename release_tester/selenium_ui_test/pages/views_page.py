@@ -468,10 +468,11 @@ class ViewsPage(NavigationBarPage):
         print(f"Checking {name} Completed \n")
 
     
-    def creating_black_collection_and_analyzer(self):
-        """Creating blank col and analyzer for testing"""
-        print('creating blank collection and analyzer for link tab\n')
-        self.navbar_goto("collections")
+    def create_collection(self, collection_name):
+        """Creating collection for testing"""
+        collection = 'collections'  # TODO add navbar navigation here
+        collection_sitem = self.locator_finder_by_id(collection)
+        collection_sitem.click()
         time.sleep(1)
         create_col = 'createCollection'
         create_col_sitem = self.locator_finder_by_id(create_col)
@@ -481,17 +482,103 @@ class ViewsPage(NavigationBarPage):
         col_name = '//*[@id="new-collection-name"]'
         col_name_sitem = self.locator_finder_by_xpath(col_name)
         col_name_sitem.click()
-        col_name_sitem.send_keys('my_collection')
+        col_name_sitem.send_keys(collection_name)
         time.sleep(1)
 
         save_btn = 'modalButton1'
         save_btn_sitem = self.locator_finder_by_id(save_btn)
         save_btn_sitem.click()
         time.sleep(2)
+        
+    
+    def adding_collection_to_the_link(self, collection_name):
+        """This method will add collection to the views link"""
+        print('Selecting Link tab \n')
+        links = "//div[@id='subNavigationBar']/ul[2]//a[.='Links']"
+        links_sitem = self.locator_finder_by_xpath(links)
+        links_sitem.click()
+        time.sleep(1)
 
+        print('Entering collection name to the link \n')
+        select_col = "(//input[@placeholder='Enter a collection name'])[1]"
+        select_col_sitem = self.locator_finder_by_xpath(select_col)
+        select_col_sitem.click()
+        select_col_sitem.send_keys(collection_name)
+        time.sleep(1)
+
+        print('Adding collection to the link \n')
+        add_col = "(//li[@class='active'])[1]"
+        add_col_stiem = self.locator_finder_by_xpath(add_col)
+        add_col_stiem.click()
+        time.sleep(1)
+
+        print('Saving the updated views links\n')
+        save_link = '//*[@id="modal-dialog"]/div/div/div[2]/button'
+        save_link_sitem = self.locator_finder_by_xpath(save_link)
+        save_link_sitem.click()
+        time.sleep(2)
+
+    def modify_connected_collection_of_link(self, collection_name):
+        """This method will modify the connected collection"""
+        print('Select my_collection \n')
+        select_my_col = f"//*[text()='{collection_name}']"
+        select_my_col_sitem = self.locator_finder_by_xpath(select_my_col)
+        select_my_col_sitem.click()
+        time.sleep(1)
+
+        print('add text_de analyzer to the link \n')
+        analyzer = "(//input[@placeholder='Start typing for suggestions.'])[1]"
+        analyzer_sitem = self.locator_finder_by_xpath(analyzer)
+        analyzer_sitem.click()
+        analyzer_sitem.send_keys('text_d')
+        time.sleep(1)
+
+        print("Selecting my_delimiter analyzer\n")
+        delimiter = "(//li[@class='active'])[1]"
+        delimiter_sitem = self.locator_finder_by_xpath(delimiter)
+        delimiter_sitem.click()
+        time.sleep(1)
+
+        print('Selecting include all fields\n')
+        include = "//*[text()='Include All Fields']"
+        include_sitem = self.locator_finder_by_xpath(include)
+        include_sitem.click()
+        time.sleep(1)
+
+        print('Selecting Track List fields\n')
+        track_list = "// *[text() = 'Track List Positions']"
+        track_list_sitem = self.locator_finder_by_xpath(track_list)
+        track_list_sitem.click()
+        time.sleep(1)
+
+        print('Selecting stored id fields\n')
+        stored_id_list = "// *[text() = 'Store ID Values']"
+        stored_id_list_sitem = self.locator_finder_by_xpath(stored_id_list)
+        stored_id_list_sitem.click()
+        time.sleep(1)
+
+        print('Selecting background fields\n')
+        background = "// *[text() = 'In Background']"
+        background_sitem = self.locator_finder_by_xpath(background)
+        background_sitem.click()
+        time.sleep(1)
+
+        print('Saving updated links\n')
+        save = "//*[text()='Save View']"
+        save_sitem = self.locator_finder_by_xpath(save)
+        save_sitem.click()
+        time.sleep(2)
+
+    def creating_black_collection_and_analyzer(self):
+        """Creating blank col and analyzer for testing"""
+        print('creating blank collection and analyzer for link tab\n')
+        # creating multiple character collection
+        self.create_collection('my_collection')
+        # creating single character collection
+        self.create_collection('z')
         # go back to view tab
         self.navbar_goto("views")
-
+        time.sleep(1)
 
     def checking_improved_views_for_v310(self, name, locator, is_cluster):
         """This method will check improved views for v3.10.x"""
@@ -578,9 +665,7 @@ class ViewsPage(NavigationBarPage):
         time.sleep(2)
 
         print(f'Checking unsaved changes pop-up dialogue \n')
-        graphs = "graphs"  # TODO add navbar navigation here
-        graphs_sitem = self.locator_finder_by_id(graphs)
-        graphs_sitem.click()
+        self.navbar_goto("graphs")
         time.sleep(3)
 
         cancel_popup = "modalButton0"
@@ -603,70 +688,13 @@ class ViewsPage(NavigationBarPage):
         select_view_sitem.click()
         time.sleep(1)
 
-        print('Selecting Link tab \n')
-        links = "//div[@id='subNavigationBar']/ul[2]//a[.='Links']"
-        links_sitem = self.locator_finder_by_xpath(links)
-        links_sitem.click()
-        time.sleep(1)
+        print('checking collection link started \n')
+        self.adding_collection_to_the_link('my_collectio')
+        self.modify_connected_collection_of_link('my_collection')
 
-        print('Entering collection name to the link \n')
-        if self.current_package_version() >= semver.VersionInfo.parse("3.10.0"):
-            select_col = "(//input[@placeholder='Enter a collection name'])[1]"
-            add_col = "(//li[@class='active'])[1]"
-        else:
-            select_col = "/html/body/div[2]/div/div[2]/div[2]/div/div/div/div/div/ul/li/span/input"
-            add_col = '/html/body/div[2]/div/div[2]/div[2]/div/div/div/div/div/ul/li/span/ul/li/strong'
-        select_col_sitem = self.locator_finder_by_xpath(select_col)
-        select_col_sitem.click()
-        select_col_sitem.send_keys('my_collectio')
-        time.sleep(1)
-
-        print('Adding collection to the link \n')
-        add_col_stiem = self.locator_finder_by_xpath(add_col)
-        add_col_stiem.click()
-        time.sleep(1)
-
-        print('Saving the updated views links\n')
-        save_link = '//*[@id="modal-dialog"]/div/div/div[2]/button'
-        save_link_sitem = self.locator_finder_by_xpath(save_link)
-        save_link_sitem.click()
-        time.sleep(2)
-
-        print('Select my_collection \n')
-        select_my_col = "//*[text()='my_collection']"
-        select_my_col_sitem = self.locator_finder_by_xpath(select_my_col)
-        select_my_col_sitem.click()
-        time.sleep(1)
-
-        print('Selecting include all fields\n')
-        include = "//*[text()='Include All Fields']"
-        include_sitem = self.locator_finder_by_xpath(include)
-        include_sitem.click()
-        time.sleep(1)
-
-        print('Selecting Track List fields\n')
-        track_list = "// *[text() = 'Track List Positions']"
-        track_list_sitem = self.locator_finder_by_xpath(track_list)
-        track_list_sitem.click()
-        time.sleep(1)
-
-        print('Selecting stored id fields\n')
-        stored_id_list = "// *[text() = 'Store ID Values']"
-        stored_id_list_sitem = self.locator_finder_by_xpath(stored_id_list)
-        stored_id_list_sitem.click()
-        time.sleep(1)
-
-        print('Selecting background fields\n')
-        background = "// *[text() = 'In Background']"
-        background_sitem = self.locator_finder_by_xpath(background)
-        background_sitem.click()
-        time.sleep(1)
-
-        print('Saving updated links\n')
-        save = "//*[text()='Save View']"
-        save_sitem = self.locator_finder_by_xpath(save)
-        save_sitem.click()
-        time.sleep(2)
+        self.adding_collection_to_the_link('z')
+        self.modify_connected_collection_of_link('z')
+        print('checking collection link completed \n')
 
         # json tab check start here
         print("Selecting json tab\n")
@@ -815,9 +843,7 @@ class ViewsPage(NavigationBarPage):
         """this method will delete all the collection created for views"""
         try:
             print('Selecting collection tab\n')
-            collections = 'collections'
-            collections_sitem = self.locator_finder_by_id(collections)
-            collections_sitem.click()
+            self.navbar_goto("collections")
             time.sleep(1)
 
             print('Deleting collection started\n')
