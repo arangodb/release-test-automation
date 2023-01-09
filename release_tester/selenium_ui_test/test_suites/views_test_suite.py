@@ -49,7 +49,6 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
                                                                 views.select_improved_arangosearch_view_01,
                                                                 self.is_cluster)
 
-
             elif views.current_package_version() <= semver.VersionInfo.parse("3.8.100"):
                 views.create_new_views('firstView')
                 views.create_new_views('secondView')
@@ -137,7 +136,7 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
                 views.delete_new_views('modified_views_name')
                 views.delete_new_views('improved_arangosearch_view_02')
                 views.delete_created_collection('my_collection')
-                views.delete_created_collection('c')
+                views.delete_created_collection('z')
                 print('Deleting views completed for >= v3.10.x\n')
 
             del views
