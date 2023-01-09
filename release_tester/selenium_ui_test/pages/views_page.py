@@ -470,11 +470,6 @@ class ViewsPage(NavigationBarPage):
     def create_collection(self, collection_name):
         """Creating collection for testing"""
         self.navbar_goto('collections')
-    
-    def create_collection(self, collection_name):
-        """Creating collection for testing"""
-        self.navbar_goto("collections")
-        time.sleep(1)
         create_col = 'createCollection'
         create_col_sitem = self.locator_finder_by_id(create_col)
         create_col_sitem.click()
@@ -483,7 +478,6 @@ class ViewsPage(NavigationBarPage):
         col_name = '//*[@id="new-collection-name"]'
         col_name_sitem = self.locator_finder_by_xpath(col_name)
         col_name_sitem.click()
-        col_name_sitem.send_keys(collection_name)
         col_name_sitem.send_keys(collection_name)
         time.sleep(1)
 
@@ -499,35 +493,6 @@ class ViewsPage(NavigationBarPage):
         self.create_collection('my_collection')
         # creating single character collection
         self.create_collection('z')
-    def creating_black_collection_and_analyzer(self):
-        """Creating blank col and analyzer for testing"""
-        print('creating blank collection and analyzer for link tab\n')
-        # creating multiple character collection
-        self.create_collection('my_collection')
-        # creating single character collection
-        self.create_collection('c')
-
-        # will add this once figure out what to do with analyzer test
-        # print('creating analyzer for links tab\n')
-        # self.navbar_goto("analyzers")
-        # time.sleep(1)
-
-        # add_analyzer = '//*[@id="analyzersContent"]/div/div/div/div/button/i'
-        # add_analyzer_sitem = self.locator_finder_by_xpath(add_analyzer)
-        # add_analyzer_sitem.click()
-        # time.sleep(1)
-
-        # analyzer_name = "/html/body/div[12]/div/div[2]/div/div[1]/fieldset/div/div[1]/input"
-        # analyzer_name_sitem = self.locator_finder_by_xpath(analyzer_name)
-        # analyzer_name_sitem.click()
-        # analyzer_name_sitem.send_keys('my_delimiter')
-        # time.sleep(1)
-
-        # print('Creating analyzer \n')
-        # create_analyzer = "(//button[normalize-space()='Create'])[1]"
-        # create_analyzer_sitem = self.locator_finder_by_xpath(create_analyzer)
-        # create_analyzer_sitem.click()
-
         # go back to view tab
         self.navbar_goto('views')
         time.sleep(1)
@@ -560,6 +525,41 @@ class ViewsPage(NavigationBarPage):
         save_link_sitem.click()
         time.sleep(2)
 
+        # print("Selecting my_delimiter analyzer\n")
+        # delimiter = "(//li[@class='active'])[1]"
+        # delimiter_sitem = self.locator_finder_by_xpath(delimiter)
+        # delimiter_sitem.click()
+        # time.sleep(1)
+
+        print('Selecting include all fields\n')
+        include = "//*[text()='Include All Fields']"
+        include_sitem = self.locator_finder_by_xpath(include)
+        include_sitem.click()
+        time.sleep(1)
+
+        print('Selecting Track List fields\n')
+        track_list = "// *[text() = 'Track List Positions']"
+        track_list_sitem = self.locator_finder_by_xpath(track_list)
+        track_list_sitem.click()
+        time.sleep(1)
+
+        print('Selecting stored id fields\n')
+        stored_id_list = "// *[text() = 'Store ID Values']"
+        stored_id_list_sitem = self.locator_finder_by_xpath(stored_id_list)
+        stored_id_list_sitem.click()
+        time.sleep(1)
+
+        print('Selecting background fields\n')
+        background = "// *[text() = 'In Background']"
+        background_sitem = self.locator_finder_by_xpath(background)
+        background_sitem.click()
+        time.sleep(1)
+
+        print('Saving updated links\n')
+        save = "//*[text()='Save View']"
+        save_sitem = self.locator_finder_by_xpath(save)
+        save_sitem.click()
+        time.sleep(2)
 
     def modify_connected_collection_of_link(self, collection_name):
         """This method will modify the connected collection"""
@@ -698,7 +698,6 @@ class ViewsPage(NavigationBarPage):
 
         print(f'Checking unsaved changes pop-up dialogue \n')
         self.navbar_goto('graphs')
-        self.navbar_goto("graphs")
         time.sleep(3)
 
         cancel_popup = "modalButton0"
@@ -721,9 +720,6 @@ class ViewsPage(NavigationBarPage):
         select_view_sitem.click()
         time.sleep(1)
 
-        print('checking collection link started \n')
-        self.adding_collection_to_the_link('my_collectio')
-        self.modify_connected_collection_of_link('my_collection')
         print('checking collection link started \n')
         self.adding_collection_to_the_link('my_collectio')
         self.modify_connected_collection_of_link('my_collection')
