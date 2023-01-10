@@ -28,9 +28,7 @@ class AnalyzerPage(NavigationBarPage):
         package_version = self.current_package_version()
 
         if package_version >= semver.VersionInfo.parse("3.9.99"):
-            built_in_analyzer_id_list = [built_in_analyzer_template_str(13),
-                                         built_in_analyzer_template_str(31),
-                                         built_in_analyzer_template_str(32),
+            built_in_analyzer_id_list = [built_in_analyzer_template_str(15),
                                          built_in_analyzer_template_str(33),
                                          built_in_analyzer_template_str(34),
                                          built_in_analyzer_template_str(35),
@@ -40,7 +38,9 @@ class AnalyzerPage(NavigationBarPage):
                                          built_in_analyzer_template_str(39),
                                          built_in_analyzer_template_str(40),
                                          built_in_analyzer_template_str(41),
-                                         built_in_analyzer_template_str(42)]
+                                         built_in_analyzer_template_str(42),
+                                         built_in_analyzer_template_str(43),
+                                         built_in_analyzer_template_str(44)]
         else:
             built_in_analyzer_id_list = [built_in_analyzer_template_str(10),
                                          built_in_analyzer_template_str(25),

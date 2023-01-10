@@ -63,52 +63,52 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
                 
                 if package_version >= semver.VersionInfo.parse("3.9.99"):
                     print('Adding Identity analyzer \n')
-                    analyzers.add_new_analyzer('My_Identity_Analyzer', 0, 128)  # 128 represents required div_id
+                    analyzers.add_new_analyzer('My_Identity_Analyzer', 0, 136)  # 128 represents required div_id
 
                     print('Adding Delimiter analyzer \n')
-                    analyzers.add_new_analyzer('My_Delimiter_Analyzer', 1, 132)
+                    analyzers.add_new_analyzer('My_Delimiter_Analyzer', 1, 140)
 
                     print('Adding Stem analyzer \n')
-                    analyzers.add_new_analyzer('My_Stem_Analyzer', 2, 136)
+                    analyzers.add_new_analyzer('My_Stem_Analyzer', 2, 144)
 
                     print('Adding Norm analyzer \n')
-                    analyzers.add_new_analyzer('My_Norm_Analyzer', 3, 140)
+                    analyzers.add_new_analyzer('My_Norm_Analyzer', 3, 148)
 
                     print('Adding N-Gram analyzer \n')
-                    analyzers.add_new_analyzer('My_N-Gram_Analyzer', 4, 144)
+                    analyzers.add_new_analyzer('My_N-Gram_Analyzer', 4, 152)
 
                     print('Adding Text analyzer \n')
-                    analyzers.add_new_analyzer('My_Text_Analyzer', 5, 148)
+                    analyzers.add_new_analyzer('My_Text_Analyzer', 5, 156)
 
                     print('Adding AQL analyzer \n')
-                    analyzers.add_new_analyzer('My_AQL_Analyzer', 6, 152)
+                    analyzers.add_new_analyzer('My_AQL_Analyzer', 6, 160)
 
                     print('Adding Stopwords analyzer \n')
-                    analyzers.add_new_analyzer('My_Stopwords_Analyzer', 7, 156)
+                    analyzers.add_new_analyzer('My_Stopwords_Analyzer', 7, 164)
 
                     print('Adding Collation analyzer \n')
-                    analyzers.add_new_analyzer('My_Collation_Analyzer', 8, 160)
+                    analyzers.add_new_analyzer('My_Collation_Analyzer', 8, 168)
 
                     print('Adding Segmentation analyzer \n')
-                    analyzers.add_new_analyzer('My_Segmentation_Alpha_Analyzer', 9, 164)
+                    analyzers.add_new_analyzer('My_Segmentation_Alpha_Analyzer', 9, 172)
 
                     print('Adding nearest-neighbor analyzer \n')
-                    analyzers.add_new_analyzer('My_Nearest_Neighbor_Analyzer', 10, 168, self.test_data_dir)
+                    analyzers.add_new_analyzer('My_Nearest_Neighbor_Analyzer', 10, 176, self.test_data_dir)
 
                     print('Adding classification analyzer \n')
-                    analyzers.add_new_analyzer('My_Classification_Analyzer', 11, 172, self.test_data_dir)
+                    analyzers.add_new_analyzer('My_Classification_Analyzer', 11, 180, self.test_data_dir)
 
                     print('Adding Pipeline analyzer \n')
-                    analyzers.add_new_analyzer('My_Pipeline_Analyzer', 12, 176)
+                    analyzers.add_new_analyzer('My_Pipeline_Analyzer', 12, 184)
 
                     print('Adding GeoJSON analyzer \n')
-                    analyzers.add_new_analyzer('My_GeoJSON_Analyzer', 13, 180)
+                    analyzers.add_new_analyzer('My_GeoJSON_Analyzer', 13, 188)
 
                     print('Adding GeoPoint analyzer \n')
-                    analyzers.add_new_analyzer('My_GeoPoint_Analyzer', 14, 184)
+                    analyzers.add_new_analyzer('My_GeoPoint_Analyzer', 14, 192)
 
                     print('Checking analyzer expected error scenario \n')
-                    analyzers.analyzer_expected_error_check(188)
+                    analyzers.analyzer_expected_error_check(196)
                 
                 else:
                     print('Adding Identity analyzer \n')
