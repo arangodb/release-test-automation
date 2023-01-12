@@ -185,18 +185,16 @@ class TestDriver:
                 "all",
                 run_props,
             )
-            old_inst = installers[0][1]
-            new_inst = installers[1][1]
 
             with AllureTestSuiteContext(
-                properties=run_props,
-                versions=versions,
-                parent_test_suite_name=None,
-                auto_generate_parent_test_suite_name=True,
-                suite_name=runner_strings[runner_type],
-                runner_type=None,
-                installer_type=new_inst.installer_type,
-            ):
+                    properties=run_props,
+                    versions=[versions[0], versions[1]], #TODO @alexey: LOGGING SHOULD BE FIXED
+                    parent_test_suite_name=None,
+                    auto_generate_parent_test_suite_name=True,
+                    suite_name=runner_strings[runner_type],
+                    runner_type=None,
+                    installer_type=installers[0][1], # TODO @alexey: LOGGING SHOULD BE FIXED
+                ):
                 with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
                     if not run_props.supports_dc2dc() and runner_type == RunnerType.DC2DC:
                         testcase.context.status = Status.SKIPPED
@@ -223,8 +221,8 @@ class TestDriver:
                         """.format(
                                 **{
                                     "starter_mode": str(self.base_config.starter_mode),
-                                    "old_version": str(versions[0]),
-                                    "cfg_repr": repr(installers[1][0]),
+                                    "old_version": str(versions[0]), #TODO @alexey: LOGGING SHOULD BE FIXED
+                                    "cfg_repr": repr(installers[1][0]), #TODO @alexey: LOGGING SHOULD BE FIXED
                                 }
                             )
                         )
@@ -266,9 +264,11 @@ class TestDriver:
                                     )
                                     traceback.print_exc()
                                     lh.section("uninstall on error")
-                                    old_inst.un_install_debug_package()
-                                    old_inst.un_install_server_package()
-                                    old_inst.cleanup_system()
+                                    for i in range(len(installers)):
+                                        installer = installers[i][1]
+                                        installer.un_install_debug_package()
+                                        installer.un_install_server_package()
+                                        installer.cleanup_system()
                                     try:
                                         runner.cleanup()
                                     finally:
@@ -287,19 +287,17 @@ class TestDriver:
                                         + "See allure report for details."
                                     )
                         lh.section("uninstall")
-                        new_inst.un_install_server_package()
-                        lh.section("check system")
-                        new_inst.check_uninstall_cleanup()
-                        lh.section("remove residuals")
-                        try:
-                            old_inst.cleanup_system()
-                        except Exception:
-                            print("Ignoring old cleanup error!")
-                        try:
-                            print("Ignoring new cleanup error!")
-                            new_inst.cleanup_system()
-                        except Exception:
-                            print("Ignoring general cleanup error!")
+                        for i in range(len(installers)):
+                            installer = installers[i][1]
+                            installer.un_install_server_package()
+                            lh.section("check system")
+                            installer.check_uninstall_cleanup()
+                            try:
+                                lh.section("remove residuals")
+                                installer.cleanup_system()
+                            except Exception:
+                                print("Ignoring cleanup error!")
+
                     except Exception as ex:
                         print("Caught. " + str(ex))
                         one_result["success"] = False
@@ -319,18 +317,14 @@ class TestDriver:
                                 print("".join(traceback.TracebackException.from_exception(exception).format()))
                         try:
                             print("Cleaning up system after error:")
-                            old_inst.un_install_debug_package()
-                            old_inst.un_install_server_package()
-                            old_inst.cleanup_system()
+                            for i in range(len(installers)):
+                                installer = installers[i][1]
+                                installer.un_install_debug_package()
+                                installer.un_install_server_package()
+                                installer.cleanup_system()
                         except Exception:
                             print("Ignoring old cleanup error!")
-                        try:
-                            print("Ignoring new cleanup error!")
-                            new_inst.un_install_debug_package()
-                            new_inst.un_install_server_package()
-                            new_inst.cleanup_system()
-                        except Exception:
-                            print("Ignoring new cleanup error!")
+
                     results.append(one_result)
         return results
 

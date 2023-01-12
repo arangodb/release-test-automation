@@ -514,6 +514,7 @@ class StarterManager:
             raise Exception("Starter %s exited with %d" % (self.basedir, exit_code))
 
         old_log = self.basedir / "arangodb.log.old"
+        # old_log = self.basedir / "arangodb.log.{}".format(self.instance.ppid()) 
         logging.info(
             "StarterManager: done - moving logfile from %s to %s",
             str(self.log_file),
@@ -525,6 +526,7 @@ class StarterManager:
 
         for instance in self.all_instances:
             instance.rename_logfile()
+            # instance.rename_logfile(suffix=".{}".self.instance.ppid())
             if not instance.detect_gone():
                 print("Manually terminating instance!")
                 instance.terminate_instance(False)
