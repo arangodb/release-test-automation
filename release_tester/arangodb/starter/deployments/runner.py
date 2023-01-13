@@ -234,7 +234,6 @@ class Runner(ABC):
                 raise Exception("%s:\n%s" % (msg, output)) from invoking_exc
             raise Exception("%s:\n%s" % (msg, output))
         if not eh.ask_continue(msg, self.basecfg.interactive, default):
-            print()
             print("Abort requested (default action)")
             raise Exception("must not continue from here - bye " + str(status))
         if self.abort_on_error:
@@ -279,11 +278,14 @@ class Runner(ABC):
                     False,
                     "PREPARING DEPLOYMENT of {0}".format(str(self.name)),
                 )
-                self.starter_prepare_env()
-                self.starter_run()
-                self.finish_setup()
-                self.make_data()
-                self.after_makedata_check()
+                if i == 0:
+                    self.starter_prepare_env()
+                    self.starter_run()
+                    self.finish_setup()
+                    self.make_data()
+                    self.after_makedata_check()
+
+                # self.check_data_impl()
                 if self.selenium:
                     self.set_selenium_instances()
                     self.selenium.test_empty_ui()
@@ -315,6 +317,7 @@ class Runner(ABC):
                     self.restore_backup(backups[0])
                     self.tcp_ping_all_nodes()
                     self.after_backup()
+                    time.sleep(20)  # TODO fix
                     self.check_data_impl()
                     if not self.check_non_backup_data():
                         raise Exception("data created after backup is still there??")
@@ -359,13 +362,17 @@ class Runner(ABC):
                     backups = self.list_backup()
                     if backups[0] != self.backup_name:
                         raise Exception("downloaded backup has different name? " + str(backups))
-                    time.sleep(20)  # TODO fix
                     self.before_backup()
                     self.restore_backup(backups[0])
                     self.tcp_ping_all_nodes()
                     self.after_backup()
                     if not self.check_non_backup_data():
                         raise Exception("data created after backup is still there??")
+                    self.delete_backup(backups[0])
+                    self.tcp_ping_all_nodes()
+                    backups = self.list_backup()
+                    if len(backups) != 0:
+                        raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
                 self.check_data_impl()
             else:
                 logging.info("skipping upgrade step no new version given")
@@ -380,7 +387,6 @@ class Runner(ABC):
                     self.jam_attempt()
                     if not is_keep_db_dir:
                         self.starter_shutdown()
-                        input("DETECT FATAL ERRORS")
                         for starter in self.starter_instances:
                             starter.detect_fatal_errors()
                 if self.do_uninstall and is_uninstall: #TODO @alexey: ambigous
@@ -571,7 +577,7 @@ class Runner(ABC):
         else:
             print("upgrading instances in manual mode")
             self.upgrade_arangod_version_manual_impl()
-        print("check data in instaces")
+        print("check data in instances")
 
     @step
     def jam_attempt(self):

@@ -19,16 +19,6 @@ from tools.killall import list_all_processes
 
 from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig, RunProperties
 
-
-# class Version:
-#     def __init__(self, name: str, source: str) -> None:
-#         self.version_name = name
-#         self.source = source
-
-# class ChainUpdate:
-#     def __init__(self, ) -> None:
-        
-
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
 def upgrade_package_test(
     dl_opts: DownloadOptions,
@@ -127,7 +117,7 @@ def upgrade_package_test(
             test_driver.run_cleanup(props)
             test_driver.reset_test_data_dir(this_test_dir)
             print("Cleanup done")
-            
+
             results.append(test_driver.run_upgrade(scenario, props))
 
         for i in range(len(scenario) - 1):

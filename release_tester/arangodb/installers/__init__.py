@@ -298,6 +298,7 @@ test filter: {0.test}
             self.port = other_cfg.port
             self.localhost = other_cfg.localhost
             self.ssl = other_cfg.ssl
+            self.version = other_cfg.version
 
             self.all_instances = other_cfg.all_instances
             self.frontends = other_cfg.frontends
@@ -370,6 +371,10 @@ test filter: {0.test}
         if other.install_prefix is None:
             raise Exception("install_prefix: must not copy in None!")
         self.install_prefix = other.install_prefix
+        # if other.version is None:
+        #     raise Exception("version: must not copy in None!")
+        # input(other.version)
+        # self.version = other.version
 
 
 # pylint: disable=import-outside-toplevel
