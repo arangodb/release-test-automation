@@ -371,9 +371,14 @@ test filter: {0.test}
         if other.install_prefix is None:
             raise Exception("install_prefix: must not copy in None!")
         self.install_prefix = other.install_prefix
+        if other.client_install_prefix is None:
+            raise Exception("client_install_prefix: must not copy in None!")
+        self.client_install_prefix = other.client_install_prefix
+        if other.server_install_prefix is None:
+            raise Exception("server_install_prefix: must not copy in None!")
+        self.server_install_prefix = other.server_install_prefix
         # if other.version is None:
         #     raise Exception("version: must not copy in None!")
-        # input(other.version)
         # self.version = other.version
 
 

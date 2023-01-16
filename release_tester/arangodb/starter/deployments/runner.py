@@ -284,8 +284,10 @@ class Runner(ABC):
                     self.finish_setup()
                     self.make_data()
                     self.after_makedata_check()
+                else:
+                    self.update_starter_version()
 
-                # self.check_data_impl()
+                self.check_data_impl()
                 if self.selenium:
                     self.set_selenium_instances()
                     self.selenium.test_empty_ui()
@@ -362,6 +364,7 @@ class Runner(ABC):
                     backups = self.list_backup()
                     if backups[0] != self.backup_name:
                         raise Exception("downloaded backup has different name? " + str(backups))
+                    time.sleep(20)  # TODO fix    
                     self.before_backup()
                     self.restore_backup(backups[0])
                     self.tcp_ping_all_nodes()
@@ -698,7 +701,7 @@ class Runner(ABC):
                         "make_data failed for {0.name}".format(self), exc.execution_result[1], False, exc
                     )
                 self.has_makedata_data = True
-            self.check_data_impl_sh(arangosh, starter.supports_foxx_tests)
+            # self.check_data_impl_sh(arangosh, starter.supports_foxx_tests)
         if not self.has_makedata_data:
             raise Exception("didn't find makedata instances, no data created!")
 

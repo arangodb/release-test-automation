@@ -690,8 +690,6 @@ class StarterManager:
     @step
     def wait_for_upgrade(self, timeout=60):
         """wait for the upgrade commanding starter to finish"""
-        # for line in self.upgradeprocess.stderr:
-        #    ascii_print(line)
         ret = None
         try:
             ret = self.upgradeprocess.wait(timeout=timeout)

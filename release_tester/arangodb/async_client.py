@@ -367,7 +367,6 @@ class ArangoCLIprogressiveTimeoutExecutor:
                         if close_count == 2:
                             break
                 except Empty:
-                    # print(identifier  + '..' + str(deadline_grace_count))
                     tcount += 1
                     have_progressive_timeout = tcount >= progressive_timeout
                     if have_progressive_timeout:
