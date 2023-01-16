@@ -118,6 +118,7 @@ class Runner(ABC):
         self.basecfg = copy.deepcopy(cfg)
         self.new_cfg = new_cfg
         self.cfg = self.basecfg
+        self.old_version = cfg.version
         self.cfg.ssl = properties.ssl
         self.cfg.use_auto_certs = properties.use_auto_certs
         self.certificate_auth = {}
@@ -142,8 +143,6 @@ class Runner(ABC):
                 if count > 20:
                     break
                 self.basecfg.base_test_dir.mkdir()
-                print(self.basecfg.base_test_dir)
-                print(self.basecfg.base_test_dir.exists())
                 time.sleep(1)
                 print(".")
 
@@ -256,8 +255,8 @@ class Runner(ABC):
 
         versions_count = len(self.installers)
         for i in range(0, versions_count - 1):
-            old_installer = self.installers[i][1]
-            new_installer = self.installers[i+1][1]
+            self.old_installer = self.installers[i][1]
+            self.new_installer = self.installers[i+1][1]
 
             is_keep_db_dir = True if i != versions_count - 2 else False
             is_uninstall = True if i == versions_count - 2 else False
@@ -269,9 +268,10 @@ class Runner(ABC):
                     False,
                     "INSTALLATION for {0}".format(str(self.name)),
                 )
-                self.install(old_installer)
+                self.install(self.old_installer)
             else:
-                self.basecfg.set_directories(old_installer.cfg)
+                self.basecfg.set_directories(self.old_installer.cfg)
+                self.cfg.set_directories(self.old_installer.cfg)
 
             if self.do_starter_test:
                 self.progress(
@@ -284,8 +284,8 @@ class Runner(ABC):
                     self.finish_setup()
                     self.make_data()
                     self.after_makedata_check()
-                else:
-                    self.update_starter_version()
+                # else:
+                #     self.update_starter_version()
 
                 self.check_data_impl()
                 if self.selenium:
@@ -324,7 +324,7 @@ class Runner(ABC):
                     if not self.check_non_backup_data():
                         raise Exception("data created after backup is still there??")
 
-            if new_installer:
+            if self.new_installer:
                 if self.hot_backup:
                     self.create_non_backup_data()
                 self.versionstr = "NEW[" + self.new_cfg.version + "] "
@@ -333,20 +333,20 @@ class Runner(ABC):
                     False,
                     "UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),
                 )
-                new_installer.calculate_package_names()
-                new_installer.upgrade_server_package(old_installer)
+                self.new_installer.calculate_package_names()
+                self.new_installer.upgrade_server_package(self.old_installer)
                 lh.subsection("outputting version")
-                new_installer.output_arangod_version()
-                new_installer.get_starter_version()
-                new_installer.get_sync_version()
-                new_installer.stop_service()
-                self.cfg.set_directories(new_installer.cfg)
-                self.new_cfg.set_directories(new_installer.cfg)
+                self.new_installer.output_arangod_version()
+                self.new_installer.get_starter_version()
+                self.new_installer.get_sync_version()
+                self.new_installer.stop_service()
+                self.cfg.set_directories(self.new_installer.cfg)
+                self.new_cfg.set_directories(self.new_installer.cfg)
 
                 self.upgrade_arangod_version()  # make sure to pass new version
-                old_installer.un_install_server_package_for_upgrade()
-                if self.is_minor_upgrade() and new_installer.supports_backup():
-                    new_installer.check_backup_is_created()
+                self.old_installer.un_install_server_package_for_upgrade()
+                if self.is_minor_upgrade() and self.new_installer.supports_backup():
+                    self.new_installer.check_backup_is_created()
                 if self.hot_backup:
                     self.check_data_impl()
                     self.progress(False, "TESTING HOTBACKUP AFTER UPGRADE")
@@ -393,7 +393,7 @@ class Runner(ABC):
                         for starter in self.starter_instances:
                             starter.detect_fatal_errors()
                 if self.do_uninstall and is_uninstall: #TODO @alexey: ambigous
-                    self.uninstall(old_installer if not new_installer else new_installer)
+                    self.uninstall(self.old_installer if not self.new_installer else self.new_installer)
             finally:
                 if self.selenium:
                     ui_test_results_table = BeautifulTable(maxwidth=160)

@@ -377,9 +377,9 @@ test filter: {0.test}
         if other.server_install_prefix is None:
             raise Exception("server_install_prefix: must not copy in None!")
         self.server_install_prefix = other.server_install_prefix
-        # if other.version is None:
-        #     raise Exception("version: must not copy in None!")
-        # self.version = other.version
+        if other.version is None:
+            raise Exception("version: must not copy in None!")
+        self.version = other.version
 
 
 # pylint: disable=import-outside-toplevel

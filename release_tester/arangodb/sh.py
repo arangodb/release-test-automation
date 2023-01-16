@@ -309,7 +309,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             # fmt: off
             args=args + [
                 '--progress', 'true',
-                '--oldVersion', self.cfg.version,
+                '--oldVersion', self.old_version,
                 '--testFoxx', 'true' if supports_foxx_tests else 'false'
             ] + test_filter,
             # fmt: on

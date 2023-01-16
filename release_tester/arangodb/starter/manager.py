@@ -163,7 +163,7 @@ class StarterManager:
             "--log.file=true",
             "--starter.data-dir={0.basedir}".format(self),
         ] + self.moreopts
-        self.current_version = self.cfg.version
+        self.old_version = self.cfg.version
         self.enterprise = self.cfg.enterprise
 
     def __repr__(self):
@@ -561,7 +561,7 @@ class StarterManager:
         """
         # On windows the install prefix may change,
         # since we can't overwrite open files:
-        self.current_version = new_install_cfg.version
+        self.cfg.version = new_install_cfg.version
         self.enterprise = new_install_cfg.enterprise
         self.replace_binary_setup_for_upgrade(new_install_cfg)
         with step("kill the starter processes of the old version"):
@@ -586,7 +586,7 @@ class StarterManager:
                         self.cfg.sbin_dir,
                         self.old_install_prefix,
                         self.cfg.install_prefix,
-                        self.current_version,
+                        self.cfg.version,
                         self.enterprise,
                         moreargs,
                         waitpid,
@@ -604,7 +604,7 @@ class StarterManager:
                         self.cfg.sbin_dir,
                         self.old_install_prefix,
                         self.cfg.install_prefix,
-                        self.current_version,
+                        self.cfg.version,
                         self.enterprise,
                         moreargs,
                         waitpid,
@@ -622,7 +622,7 @@ class StarterManager:
                         self.cfg.sbin_dir,
                         self.old_install_prefix,
                         self.cfg.install_prefix,
-                        self.current_version,
+                        self.cfg.version,
                         self.enterprise,
                         moreargs,
                         True,
@@ -631,7 +631,7 @@ class StarterManager:
                         self.cfg.sbin_dir,
                         self.old_install_prefix,
                         self.cfg.install_prefix,
-                        self.current_version,
+                        self.cfg.version,
                         self.enterprise,
                         [],
                         False,
@@ -651,7 +651,6 @@ class StarterManager:
         # On windows the install prefix may change,
         # since we can't overwrite open files:
         self.cfg.set_directories(new_install_cfg)
-        self.current_version = new_install_cfg.version
         if self.cfg.hot_backup_supported:
             self.hotbackup_args = [
                 "--all.rclone.executable",
@@ -896,7 +895,7 @@ class StarterManager:
                             Path(root) / name,
                             self.passvoid,
                             self.cfg.ssl,
-                            self.current_version,
+                            self.cfg.version,
                             self.enterprise
                         )
                         instance.wait_for_logfile(tries)

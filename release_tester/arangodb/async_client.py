@@ -213,6 +213,7 @@ class ArangoCLIprogressiveTimeoutExecutor:
         """launcher class for cli tools"""
         self.connect_instance = connect_instance
         self.cfg = config
+        self.old_version = config.version
         self.deadline_signal = deadline_signal
         if self.deadline_signal == -1:
             # pylint: disable=no-member
