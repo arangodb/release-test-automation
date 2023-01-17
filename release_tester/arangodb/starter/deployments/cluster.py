@@ -371,7 +371,6 @@ db.testCollection.save({test: "document"})
             progress(".")
             time.sleep(1)
             counter -= 1
-        print()
         self.starter_instances[terminate_instance].detect_instances()
         self.starter_instances[terminate_instance].detect_instance_pids()
         self.starter_instances[terminate_instance].detect_instance_pids_still_alive()

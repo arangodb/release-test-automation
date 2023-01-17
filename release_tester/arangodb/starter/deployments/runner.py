@@ -54,6 +54,21 @@ def detect_file_ulimit():
         giga_byte = 2**30
         resource.setrlimit(resource.RLIMIT_CORE, (giga_byte, giga_byte))
 
+def remove_node_x_from_json(starter_dir):
+    path_to_cfg = Path(starter_dir, "setup.json")
+    content = {}
+    with open(path_to_cfg, "r") as setup_file:
+        content = json.load(setup_file)
+        peers = []
+        reg_exp = re.compile("^.*\/nodeX$")
+        for p in content["peers"]["Peers"]:
+            if not reg_exp.match(p["DataDir"]):
+                # Add only existing nodes. Skip nodeX peer
+                peers.append(p)
+        content["peers"]["Peers"] = peers # update 'peers' array
+    
+    with open(path_to_cfg, "w") as setup_file:
+        json.dump(content, setup_file)
 
 class RunnerProperties:
     """runner properties management class"""
@@ -106,7 +121,7 @@ class Runner(ABC):
         new_inst = None
         self.must_create_backup = False
         if len(install_set) > 1:
-            new_cfg = install_set[1][1].cfg
+            new_cfg = copy.deepcopy(install_set[1][1].cfg)
             new_inst = install_set[1][1]
 
         self.do_install = cfg.deployment_mode in ["all", "install"]
@@ -340,7 +355,7 @@ class Runner(ABC):
                 self.new_installer.get_starter_version()
                 self.new_installer.get_sync_version()
                 self.new_installer.stop_service()
-                self.cfg.set_directories(self.new_installer.cfg)
+                # self.cfg.set_directories(self.new_installer.cfg)
                 self.new_cfg.set_directories(self.new_installer.cfg)
 
                 self.upgrade_arangod_version()  # make sure to pass new version
@@ -440,7 +455,7 @@ class Runner(ABC):
                 False,
                 "UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),
             )
-            self.cfg.set_directories(self.new_installer.cfg)
+            # self.cfg.set_directories(self.new_installer.cfg)
             self.new_cfg.set_directories(self.new_installer.cfg)
 
         if self.do_starter_test:
@@ -587,6 +602,12 @@ class Runner(ABC):
         """check resilience of setup by obstructing its instances"""
         self.progress(True, "{0}{1} - try to jam setup".format(self.versionstr, str(self.name)))
         self.jam_attempt_impl()
+        # After attempt of jamming, we have peer for nodeX in setup.json.
+        # This peer will brake further updates because this peer is unavailable.
+        # It is necessary to remove this peer from json for each starter instance
+        for instance in self.starter_instances:
+            remove_node_x_from_json(instance.basedir)
+
 
     @step
     def starter_shutdown(self):

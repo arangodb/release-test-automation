@@ -380,6 +380,9 @@ test filter: {0.test}
         if other.version is None:
             raise Exception("version: must not copy in None!")
         self.version = other.version
+        if other.semver is None:
+            raise Exception("semver: must not copy in None!")
+        self.semver = other.semver
 
 
 # pylint: disable=import-outside-toplevel

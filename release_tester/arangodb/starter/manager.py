@@ -561,7 +561,7 @@ class StarterManager:
         """
         # On windows the install prefix may change,
         # since we can't overwrite open files:
-        self.cfg.version = new_install_cfg.version
+        # self.cfg.version = new_install_cfg.version
         self.enterprise = new_install_cfg.enterprise
         self.replace_binary_setup_for_upgrade(new_install_cfg)
         with step("kill the starter processes of the old version"):
@@ -740,10 +740,10 @@ class StarterManager:
         """
         args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.arguments + moreargs
 
-        if version != None:
-            if not is_column_cache_supported(version) or not self.cfg.enterprise:
-                if COLUMN_CACHE_ARGUMENT in args:
-                    args.remove(COLUMN_CACHE_ARGUMENT)
+        assert version != None
+        if not is_column_cache_supported(version) or not self.cfg.enterprise:
+            if COLUMN_CACHE_ARGUMENT in args:
+                args.remove(COLUMN_CACHE_ARGUMENT)
 
         logging.info("StarterManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)
