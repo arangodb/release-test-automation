@@ -66,12 +66,19 @@
       const databaseName = `${baseName}_${dbCount}_entGraph`;
       db._useDatabase(databaseName);
       const vColName = `patents_enterprise_${dbCount}`;
+      let colNames = db._collections();
+      if (colNames.find(cn => cn.name() === vColName) === undefined) {
+        throw new Error(vColName + " doesn't exist!");
+      }
       let patentsSmart = db._collection(vColName);
       if (patentsSmart.count() !== 761) {
         throw new Error(vColName + " expected count to be 761 but is: " + patentsSmart.count());
       }
       progress();
       const eColName = `citations_enterprise_${dbCount}`;
+      if (colNames.find(cn => cn.name() === eColName) === undefined) {
+        throw new Error(eColName + " doesn't exist!");
+      }
       let citationsSmart = db._collection(eColName);
       if (citationsSmart.count() !== 1000) {
         throw new Error(eColName + "count expected to be 1000 but is: " + citationsSmart.count());
