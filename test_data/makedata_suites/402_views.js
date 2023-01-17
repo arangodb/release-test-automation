@@ -542,6 +542,12 @@
       }
       progress();
       try {
+        db._dropView(`viewNoCache_${loopCount}`);
+      } catch (e) {
+        print(e);
+      }
+      progress();
+      try {
         testCases.forEach(test => {
           // get link for each collection
           let collectionName = `${test["collectionName"]}_${loopCount}`;
