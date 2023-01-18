@@ -41,6 +41,9 @@ function createAnalyzerSet(testgroup, test) {
 
 //This function will check any analyzer's properties
 function checkProperties(testgroup, analyzer_name, obj1, obj2) {
+  if (obj1.hasOwnProperty('legacy')) {
+    obj2['legacy'] = obj1['legacy'];
+  }
   const obj1Length = Object.keys(obj1).length;
   const obj2Length = Object.keys(obj2).length;
   
