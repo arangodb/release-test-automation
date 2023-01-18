@@ -172,7 +172,15 @@ class AllureTestSuiteContext:
     test_suite_count = 0
 
     # pylint: disable=too-many-locals disable=dangerous-default-value disable=too-many-arguments
-    def __init__(self, parent_test_suite_name=None, suite_name=None, sub_suite_name=None, labels=[]):
+    def __init__(
+        self,
+        parent_test_suite_name=None,
+        suite_name=None,
+        sub_suite_name=None,
+        labels=[],
+        inherit_parent_test_suite_name=False,
+        inherit_test_suite_name=False,
+    ):
         self.labels = labels
         test_listeners = [p for p in allure_commons.plugin_manager.get_plugins() if isinstance(p, AllureListener)]
         self.previous_test_listener = None if len(test_listeners) == 0 else test_listeners[0]
@@ -196,6 +204,14 @@ class AllureTestSuiteContext:
         elif self.test_suite_name:
             self.test_suite_name += f" ({arch})"
         self.sub_suite_name = sub_suite_name
+
+        # Simply copy suite name and parent suite name from the enveloping test suite,
+        # if this is requested specifically.
+        # This is a workaround for selenium test suites that run during main test flow.
+        if inherit_parent_test_suite_name:
+            self.parent_test_suite_name = self.previous_test_listener.default_parent_test_suite_name
+        if inherit_test_suite_name:
+            self.test_suite_name = self.previous_test_listener.default_test_suite_name
 
         if not self.file_logger:
             if AllureTestSuiteContext.test_suite_count == 0:
