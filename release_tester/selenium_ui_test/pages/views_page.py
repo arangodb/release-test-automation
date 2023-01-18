@@ -201,7 +201,8 @@ class ViewsPage(NavigationBarPage):
         click_arangosearch_documentation_link_id = \
             self.locator_finder_by_link_text('ArangoSearch Views documentation')
         title = self.switch_tab(click_arangosearch_documentation_link_id)
-        expected_title = '<code>arangosearch</code> Views Reference | ArangoSearch | Indexing | Manual | ArangoDB Documentation'
+        # expected_title = '<code>arangosearch</code> Views Reference | ArangoSearch | Indexing | Manual | ArangoDB Documentation'
+        expected_title = 'arangosearch Views Reference | ArangoDB Documentation'
         assert title in expected_title, f"Expected page title {expected_title} but got {title}"
 
     def select_inside_search(self, keyword):
