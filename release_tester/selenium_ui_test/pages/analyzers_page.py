@@ -21,7 +21,7 @@ class AnalyzerPage(NavigationBarPage):
             "//button[text()='Close' and not(ancestor::div[contains(@style,'display:none')]) "
             "and not(ancestor::div[contains(@style,'display: none')])]"
         )
-        
+
     def select_analyzers_page(self):
         """Selecting analyzers page"""
         self.webdriver.refresh()
@@ -719,10 +719,8 @@ class AnalyzerPage(NavigationBarPage):
             # ------------------------------------Stem analyzer's Locale value test------------------------------------
             if index == 4:
                 print(f"Expected error scenario for the {name} Started \n")
-
                 # filling out the name placeholder first
                 ngram_analyzer_sitem = self.locator_finder_by_xpath(self, analyzer_name)
-                ngram_analyzer_sitem = self.locator_finder_by_xpath(ngram_analyzer)
                 ngram_analyzer_sitem.click()
                 ngram_analyzer_sitem.clear()
                 ngram_analyzer_sitem.send_keys(name)
@@ -770,7 +768,6 @@ class AnalyzerPage(NavigationBarPage):
                 print(f"Expected error scenario for the {name} Started \n")
                 # filling out the name placeholder first
                 aql_analyzer_sitem = self.locator_finder_by_xpath(self, analyzer_name)
-                aql_analyzer_sitem = self.locator_finder_by_xpath(aql_analyzer)
                 aql_analyzer_sitem.click()
                 aql_analyzer_sitem.clear()
                 aql_analyzer_sitem.send_keys(name)

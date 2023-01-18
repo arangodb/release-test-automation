@@ -31,127 +31,127 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
                 print("Showing in-built Analyzers list \n")
                 analyzers.select_built_in_analyzers_open()
 
-                print("Checking in-built identity analyzer \n")
-                analyzers.select_analyzer_to_check(analyzers.identity_analyzer, analyzers.identity_switch_view)
-                print("Checking in-built text_de analyzer \n")
-                analyzers.select_analyzer_to_check(analyzers.text_de, analyzers.text_de_switch_view)
-                print("Checking in-built text_en analyzer \n")
-                analyzers.select_analyzer_to_check(analyzers.text_en, analyzers.text_en_switch_view)
-                print("Checking in-built text_es analyzer \n")
-                analyzers.select_analyzer_to_check(analyzers.text_es, analyzers.text_es_switch_view)
-                print("Checking in-built text_fi analyzer \n")
-                analyzers.select_analyzer_to_check(analyzers.text_fi, analyzers.text_fi_switch_view)
-                print("Checking in-built text_fr analyzer \n")
-                analyzers.select_analyzer_to_check(analyzers.text_fr, analyzers.text_fr_switch_view)
-                print("Checking in-built text_it analyzer \n")
-                analyzers.select_analyzer_to_check(analyzers.text_it, analyzers.text_it_switch_view)
-                print("Checking in-built text_nl analyzer \n")
-                analyzers.select_analyzer_to_check(analyzers.text_nl, analyzers.text_nl_switch_view)
-                print("Checking in-built text_no analyzer \n")
-                analyzers.select_analyzer_to_check(analyzers.text_no, analyzers.text_no_switch_view)
-                print("Checking in-built text_pt analyzer \n")
-                analyzers.select_analyzer_to_check(analyzers.text_pt, analyzers.text_pt_switch_view)
-                print("Checking in-built text_ru analyzer \n")
-                analyzers.select_analyzer_to_check(analyzers.text_ru, analyzers.text_ru_switch_view)
-                print("Checking in-built text_sv analyzer \n")
-                analyzers.select_analyzer_to_check(analyzers.text_sv, analyzers.text_sv_switch_view)
-                print("Checking in-built text_zh analyzer \n")
-                analyzers.select_analyzer_to_check(analyzers.text_zh, analyzers.text_zh_switch_view)
+                print('Checking in-built identity analyzer \n')
+                analyzers.select_analyzer_to_check(2)
+                print('Checking in-built text_de analyzer \n')
+                analyzers.select_analyzer_to_check(3)
+                print('Checking in-built text_en analyzer \n')
+                analyzers.select_analyzer_to_check(4)
+                print('Checking in-built text_es analyzer \n')
+                analyzers.select_analyzer_to_check(5)
+                print('Checking in-built text_fi analyzer \n')
+                analyzers.select_analyzer_to_check(6)
+                print('Checking in-built text_fr analyzer \n')
+                analyzers.select_analyzer_to_check(7)
+                print('Checking in-built text_it analyzer \n')
+                analyzers.select_analyzer_to_check(8)
+                print('Checking in-built text_nl analyzer \n')
+                analyzers.select_analyzer_to_check(9)
+                print('Checking in-built text_no analyzer \n')
+                analyzers.select_analyzer_to_check(10)
+                print('Checking in-built text_pt analyzer \n')
+                analyzers.select_analyzer_to_check(11)
+                print('Checking in-built text_ru analyzer \n')
+                analyzers.select_analyzer_to_check(12)
+                print('Checking in-built text_sv analyzer \n')
+                analyzers.select_analyzer_to_check(13)
+                print('Checking in-built text_zh analyzer \n')
+                analyzers.select_analyzer_to_check(14)
 
                 print("Hiding in-built Analyzers list \n")
                 analyzers.select_built_in_analyzers_close()
                 
                 if package_version >= semver.VersionInfo.parse("3.9.99"):
                     print('Adding Identity analyzer \n')
-                    analyzers.add_new_analyzer('My_Identity_Analyzer', 0, 136)  # 128 represents required div_id
+                    analyzers.add_new_analyzer('My_Identity_Analyzer', 0)  # 128 represents required div_id
 
                     print('Adding Delimiter analyzer \n')
-                    analyzers.add_new_analyzer('My_Delimiter_Analyzer', 1, 140)
+                    analyzers.add_new_analyzer('My_Delimiter_Analyzer', 1)
 
                     print('Adding Stem analyzer \n')
-                    analyzers.add_new_analyzer('My_Stem_Analyzer', 2, 144)
+                    analyzers.add_new_analyzer('My_Stem_Analyzer', 2)
 
                     print('Adding Norm analyzer \n')
-                    analyzers.add_new_analyzer('My_Norm_Analyzer', 3, 148)
+                    analyzers.add_new_analyzer('My_Norm_Analyzer', 3)
 
                     print('Adding N-Gram analyzer \n')
-                    analyzers.add_new_analyzer('My_N-Gram_Analyzer', 4, 152)
+                    analyzers.add_new_analyzer('My_N-Gram_Analyzer', 4)
 
                     print('Adding Text analyzer \n')
-                    analyzers.add_new_analyzer('My_Text_Analyzer', 5, 156)
+                    analyzers.add_new_analyzer('My_Text_Analyzer', 5)
 
                     print('Adding AQL analyzer \n')
-                    analyzers.add_new_analyzer('My_AQL_Analyzer', 6, 160)
+                    analyzers.add_new_analyzer('My_AQL_Analyzer', 6)
 
                     print('Adding Stopwords analyzer \n')
-                    analyzers.add_new_analyzer('My_Stopwords_Analyzer', 7, 164)
+                    analyzers.add_new_analyzer('My_Stopwords_Analyzer', 7)
 
                     print('Adding Collation analyzer \n')
-                    analyzers.add_new_analyzer('My_Collation_Analyzer', 8, 168)
+                    analyzers.add_new_analyzer('My_Collation_Analyzer', 8)
 
                     print('Adding Segmentation analyzer \n')
-                    analyzers.add_new_analyzer('My_Segmentation_Alpha_Analyzer', 9, 172)
+                    analyzers.add_new_analyzer('My_Segmentation_Alpha_Analyzer', 9)
 
                     print('Adding nearest-neighbor analyzer \n')
-                    analyzers.add_new_analyzer('My_Nearest_Neighbor_Analyzer', 10, 176, self.test_data_dir)
+                    analyzers.add_new_analyzer('My_Nearest_Neighbor_Analyzer', 10, self.test_data_dir)
 
                     print('Adding classification analyzer \n')
-                    analyzers.add_new_analyzer('My_Classification_Analyzer', 11, 180, self.test_data_dir)
+                    analyzers.add_new_analyzer('My_Classification_Analyzer', 11, self.test_data_dir)
 
                     print('Adding Pipeline analyzer \n')
-                    analyzers.add_new_analyzer('My_Pipeline_Analyzer', 12, 184)
+                    analyzers.add_new_analyzer('My_Pipeline_Analyzer', 12)
 
                     print('Adding GeoJSON analyzer \n')
-                    analyzers.add_new_analyzer('My_GeoJSON_Analyzer', 13, 188)
+                    analyzers.add_new_analyzer('My_GeoJSON_Analyzer', 13)
 
                     print('Adding GeoPoint analyzer \n')
-                    analyzers.add_new_analyzer('My_GeoPoint_Analyzer', 14, 192)
+                    analyzers.add_new_analyzer('My_GeoPoint_Analyzer', 14)
 
                     print('Checking analyzer expected error scenario \n')
-                    analyzers.analyzer_expected_error_check(196)
+                    analyzers.analyzer_expected_error_check()
                 
                 else:
                     print('Adding Identity analyzer \n')
-                    analyzers.add_new_analyzer('My_Identity_Analyzer', 0, 104)  # 104 represents required div_id
+                    analyzers.add_new_analyzer('My_Identity_Analyzer', 0)
 
                     print('Adding Delimiter analyzer \n')
-                    analyzers.add_new_analyzer('My_Delimiter_Analyzer', 1, 108)
+                    analyzers.add_new_analyzer('My_Delimiter_Analyzer', 1)
 
                     print('Adding Stem analyzer \n')
-                    analyzers.add_new_analyzer('My_Stem_Analyzer', 2, 112)
+                    analyzers.add_new_analyzer('My_Stem_Analyzer', 2)
 
                     print('Adding Norm analyzer \n')
-                    analyzers.add_new_analyzer('My_Norm_Analyzer', 3, 116)
+                    analyzers.add_new_analyzer('My_Norm_Analyzer', 3)
 
                     print('Adding N-Gram analyzer \n')
-                    analyzers.add_new_analyzer('My_N-Gram_Analyzer', 4, 120)
+                    analyzers.add_new_analyzer('My_N-Gram_Analyzer', 4)
 
                     print('Adding Text analyzer \n')
-                    analyzers.add_new_analyzer('My_Text_Analyzer', 5, 124)
+                    analyzers.add_new_analyzer('My_Text_Analyzer', 5)
 
                     print('Adding AQL analyzer \n')
-                    analyzers.add_new_analyzer('My_AQL_Analyzer', 6, 128)
+                    analyzers.add_new_analyzer('My_AQL_Analyzer', 6)
 
                     print('Adding Stopwords analyzer \n')
-                    analyzers.add_new_analyzer('My_Stopwords_Analyzer', 7, 132)
+                    analyzers.add_new_analyzer('My_Stopwords_Analyzer', 7)
 
                     print('Adding Collation analyzer \n')
-                    analyzers.add_new_analyzer('My_Collation_Analyzer', 8, 136)
+                    analyzers.add_new_analyzer('My_Collation_Analyzer', 8)
 
                     print('Adding Segmentation analyzer \n')
-                    analyzers.add_new_analyzer('My_Segmentation_Alpha_Analyzer', 9, 140)
+                    analyzers.add_new_analyzer('My_Segmentation_Alpha_Analyzer', 9)
 
                     print('Adding Pipeline analyzer \n')
-                    analyzers.add_new_analyzer('My_Pipeline_Analyzer', 10, 144)
+                    analyzers.add_new_analyzer('My_Pipeline_Analyzer', 10)
 
                     print('Adding GeoJSON analyzer \n')
-                    analyzers.add_new_analyzer('My_GeoJSON_Analyzer', 11, 148)
+                    analyzers.add_new_analyzer('My_GeoJSON_Analyzer', 11)
 
                     print('Adding GeoPoint analyzer \n')
-                    analyzers.add_new_analyzer('My_GeoPoint_Analyzer', 12, 152)
+                    analyzers.add_new_analyzer('My_GeoPoint_Analyzer', 12)
 
                     print('Checking analyzer expected error scenario \n')
-                    analyzers.analyzer_expected_error_check(156)
+                    analyzers.analyzer_expected_error_check()
                 
                 print("Checking analyzer search filter options started \n")
                 analyzers.checking_search_filter_option("de")
