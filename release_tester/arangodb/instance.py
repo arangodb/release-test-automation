@@ -647,7 +647,7 @@ class ArangodInstance(Instance):
                     debug = True
                 for line in log_fh:
                     # skip empty lines
-                    if 'DEBUG' in line or 'TRACE' in line:
+                    if 'DEBUG' in line or 'TRACE' in line or '{requests}' in line:
                         continue
                     if debug:
                         print(line)
