@@ -640,11 +640,15 @@ class ArangodInstance(Instance):
 
             with open(self.logfile, errors="backslashreplace", encoding="utf8") as log_fh:
                 file_size = self.logfile.stat().st_size
+                debug = False
                 if file_size > 10 * 1024 * 1024:
                     print(f"detect_pid(): large logfile {file_size / 1024 / 1024}. Seeking forward to the last 10k.")
                     log_fh.seek(file_size - 10 * 1024)
+                    debug = True
                 for line in log_fh:
                     # skip empty lines
+                    if debug:
+                        print(line)
                     if line == "":
                         time.sleep(1)
                         continue
@@ -655,6 +659,8 @@ class ArangodInstance(Instance):
                     # (why not slurp the whole file?)
                     last_line = line
                     log_file_content += "\n" + line
+                if debug:
+                    print('done looping')
 
             # check last line or continue
             match = re.search(r"Z \[(\d*)\]", last_line)
