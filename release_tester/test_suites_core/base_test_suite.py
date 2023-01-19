@@ -75,35 +75,35 @@ class BaseTestSuite(metaclass=MetaTestSuite):
                 if len(self._get_disable_reasons()) > 0:
                     message = "\n".join(self._get_disable_reasons())
                     my_testcase.context.statusDetails = StatusDetails(message=message)
-            return self.test_results
-        setup_failed = parent_suite_setup_failed
-        if not setup_failed:
-            try:
-                self.setup_test_suite()
-            # pylint: disable=bare-except
-            except:
-                setup_failed = True
+        else:
+            setup_failed = parent_suite_setup_failed
+            if not setup_failed:
                 try:
-                    self.add_crash_data_to_report()
+                    self.setup_test_suite()
                 # pylint: disable=bare-except
                 except:
-                    pass
-        if self.has_own_testcases():
-            self.test_results += self.run_own_testscases(suite_is_broken=setup_failed)
-        for suite_class in self.child_classes:
-            suite = self.init_child_class(suite_class)
-            self.children.append(suite)
-            self.test_results += suite.run(parent_suite_setup_failed=setup_failed)
-        tear_down_failed = False
-        try:
-            self.tear_down_test_suite()
-        # pylint: disable=bare-except
-        except:
-            tear_down_failed = True
+                    setup_failed = True
+                    try:
+                        self.add_crash_data_to_report()
+                    # pylint: disable=bare-except
+                    except:
+                        pass
+            if self.has_own_testcases():
+                self.test_results += self.run_own_testscases(suite_is_broken=setup_failed)
+            for suite_class in self.child_classes:
+                suite = self.init_child_class(suite_class)
+                self.children.append(suite)
+                self.test_results += suite.run(parent_suite_setup_failed=setup_failed)
+            tear_down_failed = False
             try:
-                self.add_crash_data_to_report()
+                self.tear_down_test_suite()
+            # pylint: disable=bare-except
             except:
-                pass
+                tear_down_failed = True
+                try:
+                    self.add_crash_data_to_report()
+                except:
+                    pass
         self.test_suite_context.destroy()
         return self.test_results
 
