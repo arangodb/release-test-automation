@@ -76,7 +76,8 @@ class StarterManager:
         # self.moreopts += ["--all.log.escape-unicode-chars=true"]
         if (basecfg.semver.major==3 and basecfg.semver.minor>=9) or (basecfg.semver.major>3):
             self.moreopts += ["--args.all.database.extended-names-databases=true"]
-
+        # doesn't work since it will put anything into one directory:
+        # self.moreopts += ['--all.log.output', 'general=file://./arangod.log', '--all.log.output', 'requests=file://./requests.log']
         # directories
         self.raw_basedir = install_prefix
         self.old_install_prefix = self.cfg.install_prefix

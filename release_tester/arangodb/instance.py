@@ -639,6 +639,10 @@ class ArangodInstance(Instance):
                 raise TimeoutError("instance logfile '" + str(self.logfile) + "' didn't show up in 120 seconds")
 
             with open(self.logfile, errors="backslashreplace", encoding="utf8") as log_fh:
+                file_size = self.logfile.stat().st_size
+                if file_size > 10 * 1024 * 1024:
+                    print(f"detect_pid(): large logfile {file_size / 1024 / 1024}. Seeking forward to the last 10k.")
+                    log_fh.seek(file_size - 10 * 1024)
                 for line in log_fh:
                     # skip empty lines
                     if line == "":
