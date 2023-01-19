@@ -167,6 +167,7 @@ class Download:
             interactive=False,
             stress_upgrade=False,
             ssl=False,
+            use_auto_certs=False,
             test=""
         )
 

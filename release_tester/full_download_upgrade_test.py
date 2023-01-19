@@ -85,6 +85,8 @@ def upgrade_package_test(
                     res.get_packages(dl_opts.force)
 
 
+    # TODO: UNCOMMENT THIS!
+    
     # # STEP 2: Run test for primary version
     # for default_props in EXECUTION_PLAN:
     #     props = copy(default_props)

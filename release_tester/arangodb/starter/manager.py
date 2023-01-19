@@ -292,6 +292,7 @@ class StarterManager:
         logging.info("running starter " + self.name)
         args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.arguments
 
+        assert self.cfg.version
         if is_column_cache_supported(self.cfg.version) and self.cfg.enterprise:
             if COLUMN_CACHE_ARGUMENT not in args:
                 args.append(COLUMN_CACHE_ARGUMENT)
@@ -561,7 +562,6 @@ class StarterManager:
         """
         # On windows the install prefix may change,
         # since we can't overwrite open files:
-        # self.cfg.version = new_install_cfg.version
         self.enterprise = new_install_cfg.enterprise
         self.replace_binary_setup_for_upgrade(new_install_cfg)
         with step("kill the starter processes of the old version"):
@@ -733,7 +733,7 @@ class StarterManager:
                 node.check_version_request(20.0)
 
     @step
-    def respawn_instance(self, version = None, moreargs=[], wait_for_logfile=True):
+    def respawn_instance(self, version, moreargs=[], wait_for_logfile=True):
         """
         restart the starter instance after we killed it eventually,
         maybe command manual upgrade (and wait for exit)

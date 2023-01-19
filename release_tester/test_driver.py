@@ -140,7 +140,7 @@ class TestDriver:
     # pylint: disable=broad-except disable=dangerous-default-value
     def run_cleanup(self, run_properties: RunProperties, versions: list = ["3.3.3"]):
         """main"""
-        installer_set = create_config_installer_set(versions, self.base_config, "all", run_properties)
+        installer_set = create_config_installer_set(versions, self.base_config, "all", run_properties, False)
         inst = installer_set[0][1]
         if inst.calc_config_file_name().is_file():
             inst.load_config()
@@ -184,6 +184,7 @@ class TestDriver:
                 self.base_config,
                 "all",
                 run_props,
+                self.use_auto_certs
             )
 
             with AllureTestSuiteContext(

@@ -181,6 +181,7 @@ class InstallerConfig:
         interactive: bool,
         stress_upgrade: bool,
         ssl: bool,
+        use_auto_certs: bool,
         test: str,
     ):
         self.publicip = publicip
@@ -212,6 +213,7 @@ class InstallerConfig:
         self.port = 8529
         self.localhost = "localhost"
         self.ssl = ssl
+        self.use_auto_certs = use_auto_certs
 
         self.all_instances = {}
         self.frontends = []
@@ -481,7 +483,8 @@ class InstallerBaseConfig(OptionGroup):
 
 # pylint: disable=too-many-locals
 def create_config_installer_set(
-    versions: list, base_config: InstallerBaseConfig, deployment_mode: str, run_properties: RunProperties
+    versions: list, base_config: InstallerBaseConfig, deployment_mode: str, run_properties: RunProperties,
+    use_auto_certs: bool
 ):
     """creates sets of configs and installers"""
     # pylint: disable=too-many-instance-attributes disable=too-many-arguments
@@ -503,6 +506,7 @@ def create_config_installer_set(
             base_config.interactive,
             base_config.stress_upgrade,
             run_properties.ssl,
+            use_auto_certs,
             base_config.test
         )
         installer = make_installer(install_config)
