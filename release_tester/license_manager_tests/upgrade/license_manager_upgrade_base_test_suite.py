@@ -2,6 +2,7 @@
 
 # pylint: disable=import-error
 from license_manager_tests.base.license_manager_base_test_suite import LicenseManagerBaseTestSuite
+from reporting.reporting_utils import step
 from test_suites_core.base_test_suite import run_after_suite, run_before_suite
 from test_suites_core.cli_test_suite import CliTestSuiteParameters
 
@@ -45,3 +46,15 @@ class LicenseManagerUpgradeBaseTestSuite(LicenseManagerBaseTestSuite):
         """clean up the system before running the license manager test suites"""
         self.old_installer.install_server_package()
         self.old_installer.stop_service()
+
+    @step
+    def upgrade(self):
+        """upgrade a deployment"""
+        self.new_installer.calculate_package_names()
+        self.new_installer.upgrade_server_package(self.old_installer)
+        self.new_installer.output_arangod_version()
+        self.new_installer.stop_service()
+        self.runner.cfg.set_directories(self.new_installer.cfg)
+        self.runner.new_cfg.set_directories(self.new_installer.cfg)
+        self.runner.upgrade_arangod_version()  # make sure to pass new version
+        self.old_installer.un_install_server_package_for_upgrade()
