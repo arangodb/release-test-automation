@@ -255,6 +255,10 @@ let rand = require("internal").rand;
         db._drop(`cempty_${loopCount}`);
       } catch (e) {}
       progress();
+      try {
+        db._drop(`version_collection_${loopCount}`);
+      } catch (e) {}
+      progress();
     }
   };
 }());
