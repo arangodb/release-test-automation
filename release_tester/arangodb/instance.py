@@ -647,7 +647,12 @@ class ArangodInstance(Instance):
                     debug = True
                 for line in log_fh:
                     # skip empty lines
-                    if 'DEBUG' in line or 'TRACE' in line or '{requests}' in line:
+                    if ('DEBUG' in line or
+                        'TRACE' in line or
+                        '{requests}' in line or
+                        'U_USING_DEFAULT_WARNING' in line or
+                        '{maintenance}' in line or
+                        '{replication}' in line):
                         continue
                     if debug:
                         print(line)
@@ -669,7 +674,7 @@ class ArangodInstance(Instance):
             match = re.search(r"Z \[(\d*)\]", last_line)
             if match is None:
                 tries -= 1
-                logging.info("no PID in [%s]: %s", self.logfile, last_line)
+                print("no PID in [%s]: %s", self.logfile, last_line)
                 progress(".")
                 time.sleep(1)
                 continue
