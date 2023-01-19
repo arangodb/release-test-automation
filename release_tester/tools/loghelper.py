@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """ invoke subprocesses and timestamped print their output """
-# import subprocess
+# pylint: disable=no-member,no-name-in-module
 import logging
 from logging import StreamHandler, Handler
 import sys

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Debug symbols test suite"""
+# pylint: disable=import-error
 import platform
 import re
 import shutil
@@ -29,15 +30,15 @@ from test_suites_core.base_test_suite import (
 from test_suites_core.cli_test_suite import CliStartedTestSuite, CliTestSuiteParameters
 from tools.killall import kill_all_processes
 
-os_is_windows = bool(platform.win32_ver()[0])
-if os_is_windows:
+OS_IS_WINDOWS = bool(platform.win32_ver()[0])
+if OS_IS_WINDOWS:
     import wexpect
 
 
 class DebuggerTestSuite(CliStartedTestSuite):
     """Debug symbols test suite"""
 
-    if os_is_windows:
+    if OS_IS_WINDOWS:
         TMP_DIR = Path("C:\\TMP")
     else:
         TMP_DIR = Path("/tmp")
@@ -174,7 +175,6 @@ class DebuggerTestSuite(CliStartedTestSuite):
             assert f"{executable}!main" in stack, "Stack must contain real function names."
             assert f"{executable}.cpp" in stack, "Stack must contain real source file names."
 
-    test_debug_symbols_windows_community = test_debug_symbols_windows
 
     @parameters(
         [
@@ -272,7 +272,8 @@ class DebuggerTestSuite(CliStartedTestSuite):
     @testcase
     def test_debug_network_symbol_server_windows(self):
         """Check that debug symbols can be found on the ArangoDB symbol server and then used to debug arangod executable"""
-        # This testcase is needed to check the state of the symbol server and is not meant to run during ArangoDB product testing.
+        # This testcase is needed to check the state of the symbol server and is not meant
+        # to run during ArangoDB product testing.
         version = semver.VersionInfo.parse(self.installer.cfg.version)
         symsrv_dir = "\\\\symbol.arangodb.biz\\symbol\\symsrv_arangodb" + str(version.major) + str(version.minor)
         dump_file = create_arangod_dump(

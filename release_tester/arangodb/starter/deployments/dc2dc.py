@@ -554,7 +554,7 @@ class Dc2Dc(Runner):
                 ],
             )
         self.progress(True, "step 5 restart the full cluster ")
-        version = self.new_cfg.version if self.new_cfg != None else self.cfg.version
+        version = self.new_cfg.version if self.new_cfg is not None else self.cfg.version
         for node in self.starter_instances:
             node.respawn_instance(version)
         self.progress(True, "step 6 wait for the cluster to be up")

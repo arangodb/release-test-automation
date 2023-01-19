@@ -2,7 +2,7 @@
 # pylint: disable=line-too-long
 # have long strings, need long lines.
 """ Release testing script"""
-#pylint: disable=duplicate-code
+# pylint: disable=duplicate-code
 from dataclasses import dataclass
 from ftplib import FTP_TLS
 from io import BytesIO

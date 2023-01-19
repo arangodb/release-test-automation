@@ -109,13 +109,15 @@ class OptionGroup:
         # these members will be added by derivative classes:
         # pylint: disable=no-member
         # TODO: after we upgrade to python 3.10, we should replace this with {}|{} operator
-        dict = {k: v for k, v in options.items() if k in cls.__dataclass_fields__}
+        dict1 = {key: value for key, value in options.items() if key in cls.__dataclass_fields__}
         dict2 = {
-            k: v.type.from_dict(**options) for k, v in cls.__dataclass_fields__.items() if OptionGroup in v.type.mro()
+            key: value.type.from_dict(**options)
+            for key, value in cls.__dataclass_fields__.items()
+            if OptionGroup in value.type.mro()
         }
-        for k, v in dict2.items():
-            dict[k] = v
-        return cls(**(dict))
+        for key, value in dict2.items():
+            dict1[key] = value
+        return cls(**(dict1))
 
 
 @dataclass

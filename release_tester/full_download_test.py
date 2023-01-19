@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ fetch nightly packages, process upgrade """
-#pylint: disable=duplicate-code
+# pylint: disable=duplicate-code
 from pathlib import Path
 import sys
 

@@ -49,14 +49,17 @@ class BaseTestSuite(metaclass=MetaTestSuite):
 
     @classmethod
     def _is_disabled(cls):
+        # pylint: disable=no-member
         return cls.is_disabled
 
     @classmethod
     def _get_disable_reasons(cls):
+        # pylint: disable=no-member
         return cls.disable_reasons
 
     @classmethod
     def get_child_test_suite_classes(cls):
+        # pylint: disable=no-member
         return cls.child_test_suites
 
     def init_child_class(self, child_class):

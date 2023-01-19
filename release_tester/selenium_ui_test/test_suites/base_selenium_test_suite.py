@@ -54,6 +54,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
     def ui_assert(self, conditionstate, message):
         """python assert sucks. fuckit."""
         if not conditionstate:
+            # pylint: disable=no-member
             logging.error(message)
             self.save_page_source()
             self.take_screenshot()

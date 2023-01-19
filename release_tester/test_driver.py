@@ -511,62 +511,6 @@ class TestDriver:
             kill_all_processes()
         return failed
 
-    # pylint: disable=too-many-arguments disable=too-many-locals, disable=broad-except, disable=too-many-branches, disable=too-many-statements
-    def run_conflict_tests(
-            self,
-            versions: list,
-            enterprise: bool
-    ):
-        """run package conflict tests"""
-        # pylint: disable=import-outside-toplevel
-        if enterprise:
-            testSuite = EnterprisePackageInstallationTestSuite
-        else:
-            testSuite = CommunityPackageInstallationTestSuite
-        suite = testSuite(
-            versions=versions,
-            base_config=self.base_config
-        )
-        suite.run()
-        result = {
-            "testrun name": suite.suite_name,
-            "testscenario": "",
-            "success": True,
-            "messages": [],
-            "progress": "",
-        }
-        if suite.there_are_failed_tests():
-            result["success"] = False
-            for one_result in suite.test_results:
-                result["messages"].append(one_result.message)
-        return [result]
-
-    def run_debugger_tests(
-            self,
-            versions: list,
-            **kwargs
-    ):
-        """run package conflict tests"""
-        # pylint: disable=import-outside-toplevel
-        suite = DebuggerTestSuite(
-            versions=versions,
-            base_config=self.base_config,
-            **kwargs
-        )
-        suite.run()
-        result = {
-            "testrun name": suite.suite_name,
-            "testscenario": "",
-            "success": True,
-            "messages": [],
-            "progress": "",
-        }
-        if suite.there_are_failed_tests():
-            result["success"] = False
-            for one_result in suite.test_results:
-                result["messages"].append(one_result.message)
-        return [result]
-
     def run_test_suites(self, include_suites: tuple = (), exclude_suites: tuple = (), params: CliTestSuiteParameters = None):
         """run a testsuite"""
         if not params:

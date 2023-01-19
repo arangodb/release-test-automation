@@ -1,6 +1,6 @@
 """ utility functions/classes for allure reporting """
 
-#pylint: disable=import-error
+# pylint: disable=import-error
 from arangodb.installers import RunProperties
 
 global RESULTS_DIR, CLEAN_DIR, ZIP_PACKAGE
@@ -13,6 +13,7 @@ def generate_suite_name(properties: RunProperties, versions: list, runner_type, 
     if installer_type:
         package_type = installer_type
     else:
+        # pylint: disable=undefined-variable
         if ZIP_PACKAGE:
             package_type = "universal binary archive"
         else:
