@@ -5,9 +5,10 @@ from arangodb.async_client import CliExecutionException
 from license_manager_tests.base.single_server_base import LicenseManagerSingleServerBaseTestSuite
 from license_manager_tests.upgrade.license_manager_upgrade_base_test_suite import LicenseManagerUpgradeBaseTestSuite
 from reporting.reporting_utils import step
-from test_suites_core.base_test_suite import testcase
+from test_suites_core.base_test_suite import testcase, disable
 
 
+@disable("Waiting for QA-358")
 class LicenseManagerSingleServerUpgradeTestSuite(
     LicenseManagerSingleServerBaseTestSuite, LicenseManagerUpgradeBaseTestSuite
 ):
