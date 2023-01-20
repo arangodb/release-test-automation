@@ -36,7 +36,7 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
         )
         self.sub_suite_name = self.__doc__ if self.__doc__ else self.__class__.__name__
         self.installer_set = create_config_installer_set(
-            versions=[self.old_version, self.new_version],
+            versions=[self.old_version, self.new_version] if self.old_version else [self.new_version],
             base_config=self.base_cfg,
             deployment_mode="all",
             run_properties=self.run_props,
