@@ -7,7 +7,6 @@
 
   return {
     isSupported: function (currentVersion, oldVersion, options, enterprise, cluster) {
-      return false; // this test is known to be broken.
       // strip off -nightly etc:
       let ver = semver.parse(oldVersion.split('-')[0]);
       return enterprise && (semver.gte(ver, "3.10.0"));
