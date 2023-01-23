@@ -587,6 +587,8 @@ let restoreServerLoggingSettings = function (topic) {
         }
       }
 
+      restoreServerLoggingSettings("requests");
+      return 0;
       databaseName = `${baseName}_${dbCount}_entGraph`;
       db._useDatabase(databaseName);
       jsunity.run(ReadSmartGraphFromFollowerTestSuite(`citations_enterprise_${dbCount}`, `patents_enterprise_${dbCount}`, databaseName));
