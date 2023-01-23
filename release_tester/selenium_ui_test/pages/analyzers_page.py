@@ -17,10 +17,10 @@ class AnalyzerPage(NavigationBarPage):
         self.in_built_analyzer = "icon_arangodb_settings2"
         self.add_new_analyzer_btn = '//*[@id="analyzersContent"]/div/div/div/div/button/i'
 
-        self.close_analyzer_btn = (
-            "//button[text()='Close' and not(ancestor::div[contains(@style,'display:none')]) "
-            "and not(ancestor::div[contains(@style,'display: none')])]"
-        )
+        self.close_analyzer_btn = "//button[text()='Close' and not(ancestor::div[contains(@style,'display:none')]) " \
+                                  "and not(ancestor::div[contains(@style,'display: none')])] "
+        self.index = 0
+        self.package_version = self.current_package_version()
 
     def select_analyzers_page(self):
         """Selecting analyzers page"""
@@ -48,7 +48,7 @@ class AnalyzerPage(NavigationBarPage):
 
     def select_built_in_analyzers_open(self):
         """Checking in-built analyzers list and description"""
-        show_built_in_analyzers = self.in_built_analyzer
+        show_built_in_analyzers = "icon_arangodb_settings2"
         show_built_in_analyzers_sitem = self.locator_finder_by_class(show_built_in_analyzers)
         show_built_in_analyzers_sitem.click()
         time.sleep(2)
@@ -65,40 +65,157 @@ class AnalyzerPage(NavigationBarPage):
         built_in_sitem.click()
         time.sleep(2)
 
-        show_built_in_analyzers = self.in_built_analyzer
+        show_built_in_analyzers = "icon_arangodb_settings2"
         show_built_in_analyzers_sitem = self.locator_finder_by_class(show_built_in_analyzers)
         show_built_in_analyzers_sitem.click()
         time.sleep(2)
 
-    def select_analyzer_to_check(self, eye_num):
+
+    def select_analyzer_to_check(self, analyzer_name, locators):
         """Checking in-built analyzers one by one"""
+        print(f"Checking {analyzer_name} analyzer\n")
+
         print('Selecting analyzer from the in-built analyzers list \n')
-        analyzer_eye_btn = f'(//i[@class="fa fa-eye"][not(@disabled)])[{eye_num}]'
-        analyzer_sitem = self.locator_finder_by_xpath(self, analyzer_eye_btn)
-        analyzer_sitem.click()
+        self.locator_finder_by_xpath(self, locators).click()
         time.sleep(2)
 
+        switch_view_template_str = lambda id_name: f"//div[@id='modal-content-view-{id_name}']/child::div//div/div[" \
+                                                   f"2]/button"
+        # this will create all the built-in switch view to {code/form} locators as needed
+        switch_view_id_list = [switch_view_template_str('identity'),
+                               switch_view_template_str('text_de'),
+                               switch_view_template_str('text_en'),
+                               switch_view_template_str('text_es'),
+                               switch_view_template_str('text_fi'),
+                               switch_view_template_str('text_fr'),
+                               switch_view_template_str('text_it'),
+                               switch_view_template_str('text_nl'),
+                               switch_view_template_str('text_no'),
+                               switch_view_template_str('text_pt'),
+                               switch_view_template_str('text_ru'),
+                               switch_view_template_str('text_sv'),
+                               switch_view_template_str('text_zh')]
+
+        # assigning all the switch view locators for finding the element
         print('Switch to Code view \n')
-        switch_to_code_view = f'(//button[@class="button-info" and text()="Switch to code view"])[{eye_num}]'
-        code_view_sitem = self.locator_finder_by_xpath(self, switch_to_code_view)
-        code_view_sitem.click()
-        time.sleep(2)
+        if analyzer_name == "identity":
+            switch_view = switch_view_id_list[0]
+        elif analyzer_name == "text_de":
+            switch_view = switch_view_id_list[1]
+        elif analyzer_name == "text_en":
+            switch_view = switch_view_id_list[2]
+        elif analyzer_name == "text_es":
+            switch_view = switch_view_id_list[3]
+        elif analyzer_name == "text_fi":
+            switch_view = switch_view_id_list[4]
+        elif analyzer_name == "text_fr":
+            switch_view = switch_view_id_list[5]
+        elif analyzer_name == "text_it":
+            switch_view = switch_view_id_list[6]
+        elif analyzer_name == "text_nl":
+            switch_view = switch_view_id_list[7]
+        elif analyzer_name == "text_no":
+            switch_view = switch_view_id_list[8]
+        elif analyzer_name == "text_pt":
+            switch_view = switch_view_id_list[9]
+        elif analyzer_name == "text_ru":
+            switch_view = switch_view_id_list[10]
+        elif analyzer_name == "text_sv":
+            switch_view = switch_view_id_list[11]
+        else:
+            switch_view = switch_view_id_list[12]
 
-        print('Switch to form view \n')
-        switch_to_form_view = '(//button[@class="button-info" and text()="Switch to form view"])'
-        form_view_sitem = self.locator_finder_by_xpath(self, switch_to_form_view)
-        form_view_sitem.click()
+        self.locator_finder_by_xpath(self, switch_view).click()
         time.sleep(2)
 
         print('Closing the analyzer \n')
         close_sitem = self.locator_finder_by_xpath(self, self.close_analyzer_btn)
         close_sitem.click()
         time.sleep(2)
+    
+
+    def checking_all_built_in_analyzer(self):
+        print('Showing in-built Analyzers list \n')
+        self.select_built_in_analyzers_open()
+
+        print('Checking in-built identity analyzer \n')
+        self.select_analyzer_to_check("identity", '//tr/td[text()="identity"]/following-sibling::td[2]/button')
+        print('Checking in-built text_de analyzer \n')
+        self.select_analyzer_to_check("text_de", '//tr/td[text()="text_de"]/following-sibling::td[2]/button')
+        print('Checking in-built text_en analyzer \n')
+        self.select_analyzer_to_check('text_en', '//tr/td[text()="text_en"]/following-sibling::td[2]/button')
+        print('Checking in-built text_es analyzer \n')
+        self.select_analyzer_to_check('text_es', '//tr/td[text()="text_es"]/following-sibling::td[2]/button')
+        print('Checking in-built text_fi analyzer \n')
+        self.select_analyzer_to_check('text_fi', '//tr/td[text()="text_fi"]/following-sibling::td[2]/button')
+        print('Checking in-built text_fr analyzer \n')
+        self.select_analyzer_to_check('text_fr', '//tr/td[text()="text_fr"]/following-sibling::td[2]/button')
+        print('Checking in-built text_it analyzer \n')
+        self.select_analyzer_to_check('text_it', '//tr/td[text()="text_it"]/following-sibling::td[2]/button')
+        print('Checking in-built text_nl analyzer \n')
+        self.select_analyzer_to_check('text_nl', '//tr/td[text()="text_nl"]/following-sibling::td[2]/button')
+        print('Checking in-built text_no analyzer \n')
+        self.select_analyzer_to_check('text_no', '//tr/td[text()="text_no"]/following-sibling::td[2]/button')
+        print('Checking in-built text_pt analyzer \n')
+        self.select_analyzer_to_check('text_pt', '//tr/td[text()="text_pt"]/following-sibling::td[2]/button')
+        print('Checking in-built text_ru analyzer \n')
+        self.select_analyzer_to_check('text_ru', '//tr/td[text()="text_ru"]/following-sibling::td[2]/button')
+        print('Checking in-built text_sv analyzer \n')
+        self.select_analyzer_to_check('text_sv', '//tr/td[text()="text_sv"]/following-sibling::td[2]/button')
+        print('Checking in-built text_zh analyzer \n')
+        self.select_analyzer_to_check('text_zh', '//tr/td[text()="text_zh"]/following-sibling::td[2]/button')
+
+        print('Hiding in-built Analyzers list \n')
+        self.select_built_in_analyzers_close()
 
 
-    def add_new_analyzer(self, name, index, test_data_dir=None):
+    def add_new_analyzer(self, name, test_data_dir=None):
         """Adding analyzer type delimiter with necessary features"""
         # pylint: disable=too-many-locals disable=too-many-branches disable=too-many-statements
+        index = self.index
+        match name:
+            case "My_Identity_Analyzer":
+                index = 0
+            case "My_Delimiter_Analyzer":
+                index = 1
+            case "My_Stem_Analyzer":
+                index = 2
+            case "My_Norm_Analyzer":
+                index = 3
+            case "Gram_Analyzer":
+                index = 4
+            case "My_Text_Analyzer":
+                index = 5
+            case "My_AQL_Analyzer":
+                index = 6
+            case "My_Stopwords_Analyzer":
+                index = 7
+            case "My_Collation_Analyzer":
+                index = 8
+            case "My_Segmentation_Alpha_Analyzer":
+                index = 9
+            case "My_Nearest_Neighbor_Analyzer":
+                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
+                    index = 10
+            case "My_Classification_Analyzer":
+                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
+                    index = 11
+            case "My_Pipeline_Analyzer":
+                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
+                    index = 12
+                else:
+                    index = 10
+            case "My_GeoJSON_Analyzer":
+                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
+                    index = 13
+                else:
+                    index = 11
+            case "My_GeoPoint_Analyzer":
+                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
+                    index = 14
+                else:
+                    index = 12
+
         self.select_analyzers_page()
         self.webdriver.refresh()
 
@@ -110,6 +227,8 @@ class AnalyzerPage(NavigationBarPage):
 
         print(f"Creating {name} started \n")
         # common attributes for all the analyzers
+        print(f'Creating {name} started \n')
+        # common attributes for all the analyzer
         analyzer_name = '//div[label[text()="Analyzer Name"]]/input[not(@disabled)]'
         analyzer_type = '//div[label[text()="Analyzer Type"]]/select[not(@disabled)]'
         frequency = '//div[label[text()="Frequency"]]/input[not(@disabled)]'
@@ -127,28 +246,9 @@ class AnalyzerPage(NavigationBarPage):
         analyzer_name_sitem.send_keys(name)
         time.sleep(2)
 
-        version = self.current_package_version()
-        # for v3.9.x
-        if version <= semver.VersionInfo.parse("3.9.99"):
-            print('Selecting analyzer type \n')
-            if name == "My_Pipeline_Analyzer":
-                self.locator_finder_by_select_using_xpath(analyzer_type, 10)
-                # changing default index value to match up with the description
-                index = 12
-            elif name == "My_GeoJSON_Analyzer":
-                self.locator_finder_by_select_using_xpath(analyzer_type, 11)
-                index = 13
-            elif name == "My_GeoPoint_Analyzer":
-                self.locator_finder_by_select_using_xpath(analyzer_type, 12)
-                index = 14
-            else:
-                self.locator_finder_by_select_using_xpath(analyzer_type, index)
-            time.sleep(2)
-        # for v3.10.x
-        else:
-            print('Selecting analyzer type \n')
-            self.locator_finder_by_select_using_xpath(analyzer_type, index)
-            time.sleep(2)
+        print('Selecting analyzer type \n')
+        self.locator_finder_by_select_using_xpath(self, analyzer_type, index)
+        time.sleep(2)
 
         print(f"selecting frequency for {name} \n")
         frequency_sitem = self.locator_finder_by_xpath(frequency)
@@ -254,8 +354,8 @@ class AnalyzerPage(NavigationBarPage):
 
             # need to properly define the path of the stopwords
             # print('Selecting path for stopwords \n')
-            # stopwords_path = f'/html/body/div[{div_id}/div/div[2]/div/div[4]/fieldset/div/div[2]/div/div[1]/input'
-            # stopwords_path_sitem = self.locator_finder_by_xpath(stopwords_path)
+            # stopwords_path = '//div[label[text()="Stopwords Path"]]//input[not(@disabled)]'
+            # stopwords_path_sitem = BaseSelenium.locator_finder_by_xpath(self, stopwords_path)
             # stopwords_path_sitem.click()
             # stopwords_path_sitem.clear()
             # stopwords_path_sitem.send_keys('/home/username/Desktop/')
@@ -275,7 +375,6 @@ class AnalyzerPage(NavigationBarPage):
             stopwords_sitem.send_keys('the')
 
             print(f"Selecting case for the analyzer from the dropdown menu for {name} \n")
-            print(f'Selecting case for the analyzer from the dropdown menu for {name} \n')
             self.locator_finder_by_select_using_xpath(self, case_placeholder, 1)
 
             print('Selecting stem for the analyzer \n')
@@ -446,11 +545,9 @@ class AnalyzerPage(NavigationBarPage):
             locale_sitem.send_keys(value)
             time.sleep(2)
 
-            # print(f'Selecting case value to upper for Norm analyzer of {name} \n')
-            # # case = f'/html/body/div[{div_id}]/div/div[2]/div/div[4]/fieldset/div' \
-            # #        '/div[2]/table/tbody/tr/td[2]/div/div[3]/div/div[2]/select'
-            # self.locator_finder_by_select_using_xpath(self, case_placeholder, 1)  # 1 represents upper from the dropdown
-            # time.sleep(2)
+            print(f'Selecting case value to upper for Norm analyzer of {name} \n')
+            self.locator_finder_by_select_using_xpath(self, case_placeholder, 1)
+            time.sleep(2)
 
             # ----------------------adding second pipeline analyzer as N-Gram analyzer--------------------------
             print(f'Selecting add analyzer button for {name} \n')
@@ -600,6 +697,66 @@ class AnalyzerPage(NavigationBarPage):
             print("Error occurred!! required manual inspection.\n")
         print(f"Creating {name} completed successfully \n")
 
+    
+    def creating_all_supported_analyzer(self):
+        """This method will create all the supported version specific analyzers"""
+        print('Adding Identity analyzer \n')
+        self.add_new_analyzer('My_Identity_Analyzer')
+
+        print('Adding Delimiter analyzer \n')
+        self.add_new_analyzer('My_Delimiter_Analyzer')
+
+        print('Adding Stem analyzer \n')
+        self.add_new_analyzer('My_Stem_Analyzer')
+
+        print('Adding Norm analyzer \n')
+        self.add_new_analyzer('My_Norm_Analyzer')
+
+        print('Adding N-Gram analyzer \n')
+        self.add_new_analyzer('My_N-Gram_Analyzer')
+
+        print('Adding Text analyzer \n')
+        self.add_new_analyzer('My_Text_Analyzer')
+
+        print('Adding AQL analyzer \n')
+        self.add_new_analyzer('My_AQL_Analyzer')
+
+        print('Adding Stopwords analyzer \n')
+        self.add_new_analyzer('My_Stopwords_Analyzer')
+
+        print('Adding Collation analyzer \n')
+        self.add_new_analyzer('My_Collation_Analyzer')
+
+        print('Adding Segmentation analyzer \n')
+        self.add_new_analyzer('My_Segmentation_Alpha_Analyzer')
+
+        if self.package_version >= semver.VersionInfo.parse('3.10.0'):
+            print('Adding nearest-neighbor analyzer \n')
+            self.add_new_analyzer('My_Nearest_Neighbor_Analyzer')
+
+            print('Adding classification analyzer \n')
+            self.add_new_analyzer('My_Classification_Analyzer')
+
+            print('Adding Pipeline analyzer \n')
+            self.add_new_analyzer('My_Pipeline_Analyzer')
+
+            print('Adding GeoJSON analyzer \n')
+            self.add_new_analyzer('My_GeoJSON_Analyzer')
+
+            print('Adding GeoPoint analyzer \n')
+            self.add_new_analyzer('My_GeoPoint_Analyzer')
+
+        else:
+            print('Adding Pipeline analyzer \n')
+            self.add_new_analyzer('My_Pipeline_Analyzer')
+
+            print('Adding GeoJSON analyzer \n')
+            self.add_new_analyzer('My_GeoJSON_Analyzer')
+
+            print('Adding GeoPoint analyzer \n')
+            self.add_new_analyzer('My_GeoJSON_Analyzer')
+
+    
     def checking_search_filter_option(self, value, builtin=True):
         """checking the filter option on Analyzer tab"""
         self.select_analyzers_page()
@@ -639,9 +796,20 @@ class AnalyzerPage(NavigationBarPage):
         except Exception as ex:
             raise Exception("Error occurred!! required manual inspection.\n") from ex
 
-    def test_analyzer_expected_error(self, name, index):
+    def test_analyzer_expected_error(self, name):
         # pylint: disable=too-many-locals disable=too-many-statements
         """testing analyzers negative scenarios"""
+        index = self.index
+        match name:
+            case "Identity_analyzer":
+                index = 0
+            case "Stem_Analyzer":
+                index = 2
+            case "N_Gram_Analyzer":
+                index = 4
+            case "AQL_Analyzer":
+                index = 6
+
         self.select_analyzers_page()
         self.webdriver.refresh()
 
@@ -700,7 +868,7 @@ class AnalyzerPage(NavigationBarPage):
                 analyzer_name_print_statement = [f'Checking {name} with input "aaaaaaaaaa12"']
                 analyzer_name_error_message = [
                     "Failure: Got unexpected server response: Failure initializing an "
-                    "arangosearch analyzer instance for name '_system::stem_analyzer' type "
+                    "arangosearch analyzer instance for name '_system::Stem_Analyzer' type "
                     "'stem'. Properties '{ \"locale\" : \"aaaaaaaaaa12\" }' was rejected by "
                     "analyzer. Please check documentation for corresponding analyzer type."
                 ]
@@ -740,12 +908,12 @@ class AnalyzerPage(NavigationBarPage):
                 analyzer_name_error_message = [
                     "Failure: Got unexpected server response: Failure initializing "
                     "an arangosearch analyzer instance for "
-                    "name '_system::n-gram_analyzer' type 'ngram'. Properties "
+                    "name '_system::N_Gram_Analyzer' type 'ngram'. Properties "
                     '\'{ "min" : -1, "max" : 4, "preserveOriginal" : false }\' '
                     "was rejected by analyzer. Please check documentation for "
                     "corresponding analyzer type.",
                     "Failure: Got unexpected server response: Failure initializing an "
-                    "arangosearch analyzer instance for name '_system::n-gram_analyzer' type "
+                    "arangosearch analyzer instance for name '_system::N_Gram_Analyzer' type "
                     '\'ngram\'. Properties \'{ "min" : 99999999999999990000000, "max" : 4, '
                     '"preserveOriginal" : false }\' was rejected by analyzer. Please check '
                     "documentation for corresponding analyzer type.",
@@ -792,12 +960,12 @@ class AnalyzerPage(NavigationBarPage):
                 analyzer_name_print_statement = [f'Checking {name} with input "1001"', f'Checking {name} with input "-1"']
                 analyzer_name_error_message = [
                     "Failure: Got unexpected server response: Failure initializing an "
-                    "arangosearch analyzer instance for name '_system::AQL_analyzer' type "
+                    "arangosearch analyzer instance for name '_system::AQL_Analyzer' type "
                     "'aql'. Properties '{ \"queryString\" : \"FOR year IN 2010..2015 RETURN "
                     'year", "memoryLimit" : 200, "batchSize" : 1001 }\' was rejected by '
                     "analyzer. Please check documentation for corresponding analyzer type.",
                     "Failure: Got unexpected server response: Failure initializing an "
-                    "arangosearch analyzer instance for name '_system::AQL_analyzer' type "
+                    "arangosearch analyzer instance for name '_system::AQL_Analyzer' type "
                     "'aql'. Properties '{ \"queryString\" : \"FOR year IN 2010..2015 RETURN "
                     'year", "memoryLimit" : 200, "batchSize" : -1 }\' was rejected by '
                     "analyzer. Please check documentation for corresponding analyzer type.",
@@ -828,15 +996,23 @@ class AnalyzerPage(NavigationBarPage):
     def analyzer_expected_error_check(self):
         """This will call all the error scenario methods"""
         print('Checking negative scenario for the identity analyzers name \n')
-        self.test_analyzer_expected_error('identity_analyzer', 0)
+        self.test_analyzer_expected_error('Identity_Analyzer')
         print('Checking negative scenario for the stem analyzers locale value \n')
-        self.test_analyzer_expected_error('stem_analyzer', 2)
+        self.test_analyzer_expected_error('Stem_Analyzer')
         print('Checking negative scenario for the stem analyzers locale value \n')
-        self.test_analyzer_expected_error('n-gram_analyzer', 4)
+        self.test_analyzer_expected_error('N_Gram_Analyzer')
         print('Checking negative scenario for the AQL analyzers \n')
-        self.test_analyzer_expected_error('AQL_analyzer', 6)
+        self.test_analyzer_expected_error('AQL_Analyzer')
 
 
+    def checking_search_filter(self):
+        """This method will check analyzer's search filter option"""
+        print('Checking analyzer search filter options started \n')
+        self.checking_search_filter_option('de')
+        self.checking_search_filter_option('geo', False)  # false indicating builtIn option will be disabled
+        print('Checking analyzer search filter options completed \n')
+
+    
     def delete_analyzer(self, analyzer_name):
         """Deleting all the analyzer using their ID"""
         self.select_analyzers_page()
@@ -872,3 +1048,22 @@ class AnalyzerPage(NavigationBarPage):
         except Exception:
             traceback.print_exc()
             raise Exception('Critical Error occurred and need manual inspection!! \n')
+    
+
+    def deleting_all_created_analyzers(self):
+        """Deleting all the created analyzers"""
+        self.delete_analyzer('My_AQL_Analyzer')
+        self.delete_analyzer('My_Collation_Analyzer')
+        self.delete_analyzer('My_Delimiter_Analyzer')
+        self.delete_analyzer('My_GeoJSON_Analyzer')
+        self.delete_analyzer('My_GeoPoint_Analyzer')
+        self.delete_analyzer('My_Identity_Analyzer')
+        self.delete_analyzer('My_N-Gram_Analyzer')
+        self.delete_analyzer('My_Norm_Analyzer')
+        self.delete_analyzer('My_Pipeline_Analyzer')
+        self.delete_analyzer('My_Segmentation_Alpha_Analyzer')
+        self.delete_analyzer('My_Stem_Analyzer')
+        self.delete_analyzer('My_Stopwords_Analyzer')
+        self.delete_analyzer('My_Text_Analyzer')
+        self.delete_analyzer('My_Nearest_Neighbor_Analyzer')
+        self.delete_analyzer('My_Classification_Analyzer')
