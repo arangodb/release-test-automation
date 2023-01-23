@@ -588,6 +588,7 @@ let restoreServerLoggingSettings = function (topic) {
       }
 
       restoreServerLoggingSettings("requests");
+      db._useDatabase('_system');
       return 0;
       databaseName = `${baseName}_${dbCount}_entGraph`;
       db._useDatabase(databaseName);
