@@ -575,6 +575,15 @@ class StarterManager:
                 logging.info("StarterManager: respawned instance as [%s]", str(self.instance.pid))
 
     @step
+    def kill_specific_instance(self, which_instances):
+        """kill specific instances of this starter
+        (it won't kill starter itself)"""
+        for instance_type in which_instances:
+            for instance in self.all_instances:
+                if instance.instance_type == instance_type:
+                    instance.kill_instance()
+
+    @step
     def manually_launch_instances(self, which_instances, moreargs, waitpid=True, kill_instance=False):
         """launch the instances of this starter with optional arguments"""
         for instance_type in which_instances:

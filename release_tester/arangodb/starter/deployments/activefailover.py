@@ -14,7 +14,6 @@ from arangodb.starter.manager import StarterManager
 from tools.asciiprint import print_progress as progress
 from tools.interact import prompt_user
 
-
 class ActiveFailover(Runner):
     """This launches an active failover setup"""
 
@@ -293,7 +292,7 @@ class ActiveFailover(Runner):
         self.first_leader.terminate_instance(keep_instances=True)
         logging.info("relaunching agent!")
         self.first_leader.manually_launch_instances([InstanceType.AGENT], [], False, False)
-
+        
         logging.info("waiting for new leader...")
         self.new_leader = None
 
@@ -316,7 +315,6 @@ class ActiveFailover(Runner):
                 raise TimeoutError("Timeout waiting for new leader!")
             count += 1
 
-        print()
         ret = self.new_leader.arangosh.check_test_data("checking active failover new leader node", True)
         if not ret[0]:
             raise Exception("check data failed " + ret[1])
@@ -343,13 +341,13 @@ class ActiveFailover(Runner):
 please revalidate the UI states on the new leader; you should see *one* follower.""",
         )
         version = self.new_cfg.version if self.new_cfg != None else self.cfg.version
+        self.first_leader.kill_specific_instance([InstanceType.AGENT])
         self.first_leader.respawn_instance(version)
         self.first_leader.detect_instances()
         logging.info("waiting for old leader to show up as follower")
         while not self.first_leader.active_failover_detect_host_now_follower():
             progress(".")
             time.sleep(1)
-        print()
 
         url = self.first_leader.get_frontend().get_local_url("")
 
@@ -365,7 +363,28 @@ please revalidate the UI states on the new leader; you should see *one* follower
             "The old leader has been respawned as follower (%s),"
             " so there should be two followers again." % self.first_leader.get_frontend().get_public_url("root@"),
         )
+        
+        self.makedata_instances[0] = self.new_leader
+        # makedata_instance = self.makedata_instances[0]
+        # new_frontend = self.new_leader.get_frontend()
 
+        # makedata_instance.arangosh.connect_instance = new_frontend
+        # makedata_instance.arangosh.cfg.port = new_frontend.port
+
+        # makedata_instance.arango_restore.connect_instance = new_frontend
+        # makedata_instance.arango_restore.cfg.port = new_frontend.port
+
+        # makedata_instance.arango_importer.connect_instance = new_frontend
+        # makedata_instance.arango_importer.cfg.port = new_frontend.port
+        
+        # if self.hot_backup:
+        #     makedata_instance.hb_instance.connect_instance = new_frontend
+        #     makedata_instance.hb_instance.cfg.port = new_frontend.port
+        # makedata_instance.
+
+
+        self.new_leader = None
+        self.first_leader = None
         logging.info("state of this test is: %s", "Success" if self.success else "Failed")
         if self.selenium:
             # cfg = self.new_cfg if self.new_cfg else self.cfg
