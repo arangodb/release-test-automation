@@ -44,7 +44,7 @@ class Cluster(Runner):
             selenium_driver_args,
             testrun_name,
         )
-        # self.basecfg.frontends = []
+        # self.cfg.frontends = []
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
         self.create_test_collection = ""
@@ -78,7 +78,7 @@ db.testCollection.save({test: "document"})
         def add_starter(name, port, opts):
             self.starter_instances.append(
                 StarterManager(
-                    self.basecfg,
+                    self.cfg,
                     self.basedir,
                     name,
                     mode="cluster",
@@ -119,7 +119,7 @@ db.testCollection.save({test: "document"})
         for node in self.starter_instances:
             node.detect_instances()
             node.detect_instance_pids()
-            # self.basecfg.add_frontend('http', self.basecfg.publicip, str(node.get_frontend_port()))
+            # self.cfg.add_frontend('http', self.cfg.publicip, str(node.get_frontend_port()))
 
         logging.info("instances are ready - JWT: " + self.starter_instances[0].get_jwt_header())
         count = 0
@@ -340,11 +340,11 @@ db.testCollection.save({test: "document"})
         uuid = self.starter_instances[terminate_instance].get_dbservers()[0].get_uuid()
         self.starter_instances[terminate_instance].terminate_instance(keep_instances=True)
         logging.info("relaunching agent!")
-        self.starter_instances[terminate_instance].manually_launch_instances([InstanceType.AGENT], [], False, False)
+        # self.starter_instances[terminate_instance].manually_launch_instances([InstanceType.AGENT], [], False, False)
 
         self.set_frontend_instances()
 
-        prompt_user(self.basecfg, "instance stopped")
+        prompt_user(self.cfg, "instance stopped")
         if self.selenium:
             self.selenium.jam_step_1()
 

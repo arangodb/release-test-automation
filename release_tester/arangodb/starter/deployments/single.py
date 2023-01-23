@@ -63,7 +63,7 @@ class Single(Runner):
             opts.append(f"--ssl.keyfile={tls_keyfile}")
 
         self.starter_instance = StarterManager(
-            self.basecfg,
+            self.cfg,
             self.basedir,
             "single",
             mode="single",
@@ -151,7 +151,7 @@ class Single(Runner):
     @step
     def jam_attempt_impl(self):
         """run the replication fuzzing test"""
-        prompt_user(self.basecfg, "please test the installation.")
+        prompt_user(self.cfg, "please test the installation.")
         if self.selenium:
             self.selenium.test_jam_attempt()
 

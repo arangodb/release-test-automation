@@ -130,16 +130,12 @@ class Runner(ABC):
         self.do_starter_test = cfg.deployment_mode in ["all", "tests"]
         self.supports_rolling_upgrade = WINVER[0] == ""
 
-        self.basecfg = copy.deepcopy(cfg)
-        self.new_cfg = new_cfg
-        self.cfg = self.basecfg
-        self.old_version = cfg.version
-        self.cfg.ssl = properties.ssl
-        self.cfg.use_auto_certs = properties.use_auto_certs
+        self.new_cfg = copy.deepcopy(new_cfg)
+        self.cfg = copy.deepcopy(cfg)
+        self.old_version = cfg.version # The first version of ArangoDB which is used in current launch
         self.certificate_auth = {}
         self.cert_dir = ""
         self.passvoid = None
-        self.basecfg.passvoid = ""
         self.versionstr = ""
         if self.new_cfg:
             self.new_cfg.passvoid = ""
@@ -151,18 +147,18 @@ class Runner(ABC):
         count = 1
         while True:
             try:
-                diskfree = shutil.disk_usage(str(self.basecfg.base_test_dir))
+                diskfree = shutil.disk_usage(str(self.cfg.base_test_dir))
                 break
             except FileNotFoundError:
                 count += 1
                 if count > 20:
                     break
-                self.basecfg.base_test_dir.mkdir()
+                self.cfg.base_test_dir.mkdir()
                 time.sleep(1)
                 print(".")
 
         if count > 20:
-            raise TimeoutError("disk_usage on " + str(self.basecfg.base_test_dir) + " not working")
+            raise TimeoutError("disk_usage on " + str(self.cfg.base_test_dir) + " not working")
         is_cleanup = self.cfg.version == "3.3.3"
         diskused = properties.disk_usage_community if not cfg.enterprise else properties.disk_usage_enterprise
         if not is_cleanup and diskused * 1024 * 1024 > diskfree.free:
@@ -170,7 +166,7 @@ class Runner(ABC):
                 "Scenario demanded %d MB but only %d MB are available in %s",
                 diskused,
                 diskfree.free / (1024 * 1024),
-                str(self.basecfg.base_test_dir),
+                str(self.cfg.base_test_dir),
             )
             raise Exception("not enough free disk space to execute test!")
 
@@ -190,7 +186,7 @@ class Runner(ABC):
         # errors that occured during run
         self.errors = []
         self.starter_instances = []
-        self.remote = len(self.basecfg.frontends) > 0
+        self.remote = len(self.cfg.frontends) > 0
         if not self.remote:
             self.cleanup(False)
         if selenium_worker == "none":
@@ -243,11 +239,11 @@ class Runner(ABC):
     def ask_continue_or_exit(self, msg, output, default=True, status=1, invoking_exc=None):
         """ask the user whether to abort the execution or continue anyways"""
         self.progress(False, msg)
-        if not self.basecfg.interactive:
+        if not self.cfg.interactive:
             if invoking_exc:
                 raise Exception("%s:\n%s" % (msg, output)) from invoking_exc
             raise Exception("%s:\n%s" % (msg, output))
-        if not eh.ask_continue(msg, self.basecfg.interactive, default):
+        if not eh.ask_continue(msg, self.cfg.interactive, default):
             print("Abort requested (default action)")
             raise Exception("must not continue from here - bye " + str(status))
         if self.abort_on_error:
@@ -272,6 +268,10 @@ class Runner(ABC):
         for i in range(0, versions_count - 1):
             self.old_installer = self.installers[i][1]
             self.new_installer = self.installers[i+1][1]
+            if i == 0:
+                # if i != 0, it means that self.cfg was already updated after chain-upgrade
+                self.cfg = copy.deepcopy(self.old_installer.cfg)
+            self.new_cfg = copy.deepcopy(self.new_installer.cfg)
 
             is_keep_db_dir = True if i != versions_count - 2 else False
             is_uninstall = True if i == versions_count - 2 else False
@@ -285,7 +285,6 @@ class Runner(ABC):
                 )
                 self.install(self.old_installer)
             else:
-                self.basecfg.set_directories(self.old_installer.cfg)
                 self.cfg.set_directories(self.old_installer.cfg)
 
             if self.do_starter_test:
@@ -300,14 +299,14 @@ class Runner(ABC):
                     self.make_data()
                     self.after_makedata_check()
                 # else:
-                #     self.update_starter_version()
+                #     self.u
 
                 self.check_data_impl()
                 if self.selenium:
                     self.set_selenium_instances()
                     self.selenium.test_empty_ui()
                 ti.prompt_user(
-                    self.basecfg,
+                    self.cfg,
                     "{0}{1} Deployment started. Please test the UI!".format((self.versionstr), str(self.name)),
                 )
                 if self.hot_backup:
@@ -355,10 +354,11 @@ class Runner(ABC):
                 self.new_installer.get_starter_version()
                 self.new_installer.get_sync_version()
                 self.new_installer.stop_service()
-                # self.cfg.set_directories(self.new_installer.cfg)
-                self.new_cfg.set_directories(self.new_installer.cfg)
-
+                
                 self.upgrade_arangod_version()  # make sure to pass new version
+                self.new_cfg.set_directories(self.new_installer.cfg)
+                self.cfg = copy.deepcopy(self.new_cfg)
+
                 self.old_installer.un_install_server_package_for_upgrade()
                 if self.is_minor_upgrade() and self.new_installer.supports_backup():
                     self.new_installer.check_backup_is_created()
@@ -433,7 +433,7 @@ class Runner(ABC):
         self.progress(False, "Runner of type {0}".format(str(self.name)), "<3")
         self.old_installer.load_config()
         self.old_installer.calculate_file_locations()
-        self.basecfg.set_directories(self.old_installer.cfg)
+        self.cfg.set_directories(self.old_installer.cfg)
         if self.do_starter_test:
             self.progress(
                 False,
@@ -651,9 +651,9 @@ class Runner(ABC):
     @step
     def set_frontend_instances(self):
         """actualises the list of available frontends"""
-        self.basecfg.frontends = []  # reset the array...
+        self.cfg.frontends = []  # reset the array...
         for frontend in self.get_frontend_instances():
-            self.basecfg.add_frontend(self.get_http_protocol(), self.basecfg.publicip, frontend.port)
+            self.cfg.add_frontend(self.get_http_protocol(), self.cfg.publicip, frontend.port)
 
     def get_frontend_instances(self):
         """fetch all frontend instances"""
@@ -893,8 +893,8 @@ class Runner(ABC):
             ver,
             build_number,
         )
-        if self.basecfg.base_test_dir.exists():
-            archive = shutil.make_archive(filename, "bztar", self.basecfg.base_test_dir, self.basedir)
+        if self.cfg.base_test_dir.exists():
+            archive = shutil.make_archive(filename, "bztar", self.cfg.base_test_dir, self.basedir)
             attach.file(archive, "test dir archive", "application/x-bzip2", "tar.bz2")
         else:
             print("test basedir doesn't exist, won't create report tar")
@@ -902,7 +902,7 @@ class Runner(ABC):
     @step
     def cleanup(self, reset_tmp=True):
         """remove all directories created by this test"""
-        testdir = self.basecfg.base_test_dir / self.basedir
+        testdir = self.cfg.base_test_dir / self.basedir
         print("cleaning up " + str(testdir))
         try:
             if testdir.exists():

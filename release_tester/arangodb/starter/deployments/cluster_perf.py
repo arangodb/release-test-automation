@@ -126,7 +126,7 @@ class ClusterPerf(Runner):
         mem = psutil.virtual_memory()
         os.environ["ARANGODB_OVERRIDE_DETECTED_TOTAL_MEMORY"] = str(int((mem.total * 0.8) / 9))
 
-        self.basecfg.index = 0
+        self.cfg.index = 0
 
         # pylint: disable=import-outside-toplevel
         if self.remote:
@@ -182,7 +182,7 @@ class ClusterPerf(Runner):
 
         self.starter_instances.append(
             StarterManager(
-                self.basecfg,
+                self.cfg,
                 self.basedir,
                 "node1",
                 mode="cluster",
@@ -199,7 +199,7 @@ class ClusterPerf(Runner):
         )
         self.starter_instances.append(
             StarterManager(
-                self.basecfg,
+                self.cfg,
                 self.basedir,
                 "node2",
                 mode="cluster",
@@ -216,7 +216,7 @@ class ClusterPerf(Runner):
         )
         self.starter_instances.append(
             StarterManager(
-                self.basecfg,
+                self.cfg,
                 self.basedir,
                 "node3",
                 mode="cluster",
@@ -265,7 +265,7 @@ class ClusterPerf(Runner):
         for node in self.starter_instances:
             node.detect_instances()
             node.detect_instance_pids()
-            # self.basecfg.add_frontend('http', self.basecfg.publicip, str(node.get_frontend_port()))
+            # self.cfg.add_frontend('http', self.cfg.publicip, str(node.get_frontend_port()))
         logging.info("instances are ready")
 
     def finish_setup_impl(self):
@@ -361,7 +361,7 @@ class ClusterPerf(Runner):
 
         for worker in workers:
             worker.join()
-        ti.prompt_user(self.basecfg, "DONE! press any key to shut down the SUT.")
+        ti.prompt_user(self.cfg, "DONE! press any key to shut down the SUT.")
 
     def shutdown_impl(self):
         for node in self.starter_instances:

@@ -188,7 +188,6 @@ class Instance(ABC):
                     continue
                 line = line.rstrip().rstrip(" \\")
                 if len(line) > 0:
-                    self.analyze_starter_file_line(line)
                     self.instance_arguments.append(line)
 
     def launch_manual_from_instance_control_file(

@@ -164,7 +164,7 @@ while (true) {{
             follower_opts.append(f"--ssl.keyfile={follower_tls_keyfile}")
 
         self.leader_starter_instance = StarterManager(
-            self.basecfg,
+            self.cfg,
             self.basedir,
             "leader",
             mode="single",
@@ -176,7 +176,7 @@ while (true) {{
         self.leader_starter_instance.is_leader = True
 
         self.follower_starter_instance = StarterManager(
-            self.basecfg,
+            self.cfg,
             self.basedir,
             "follower",
             mode="single",
@@ -351,7 +351,7 @@ process.exit(0);
                 print(ret[1])
             raise Exception("replication fuzzing test failed")
 
-        prompt_user(self.basecfg, "please test the installation.")
+        prompt_user(self.cfg, "please test the installation.")
         if self.selenium:
             self.selenium.test_jam_attempt()
 

@@ -62,8 +62,8 @@ class StarterManager:
     ):
         self.expect_instances = expect_instances
         self.expect_instances.sort()
-        self.moreopts = basecfg.default_starter_args + moreopts
         self.cfg = copy.deepcopy(basecfg)
+        self.moreopts = self.cfg.default_starter_args + moreopts
         if self.cfg.verbose:
             self.moreopts += ["--log.verbose=true"]
             # self.moreopts += ['--all.log', 'startup=debug']
@@ -74,7 +74,7 @@ class StarterManager:
         # self.moreopts += ["--all.log.level=engines=trace"]
         # self.moreopts += ["--all.log.escape-control-chars=true"]
         # self.moreopts += ["--all.log.escape-unicode-chars=true"]
-        if (basecfg.semver.major==3 and basecfg.semver.minor>=9) or (basecfg.semver.major>3):
+        if (self.cfg.semver.major==3 and self.cfg.semver.minor>=9) or (self.cfg.semver.major>3):
             self.moreopts += ["--args.all.database.extended-names-databases=true"]
 
         # directories
@@ -1167,20 +1167,20 @@ class StarterNonManager(StarterManager):
             moreopts,
         )
 
-        if basecfg.index >= len(basecfg.frontends):
-            basecfg.index = 0
+        if self.cfg.index >= len(self.cfg.frontends):
+            self.cfg.index = 0
         inst = ArangodRemoteInstance(
             "coordinator",
-            basecfg.frontends[basecfg.index].port,
+            self.cfg.frontends[self.cfg.index].port,
             # self.cfg.localhost,
-            basecfg.frontends[basecfg.index].ip,
-            basecfg.frontends[basecfg.index].ip,
+            self.cfg.frontends[self.cfg.index].ip,
+            self.cfg.frontends[self.cfg.index].ip,
             Path("/"),
             self.cfg.passvoid,
             self.cfg.ssl,
         )
         self.all_instances.append(inst)
-        basecfg.index += 1
+        self.cfg.index += 1
 
     @step
     def run_starter(self, expect_to_fail=False):

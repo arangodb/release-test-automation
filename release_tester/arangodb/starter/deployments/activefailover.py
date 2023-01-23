@@ -115,7 +115,7 @@ class ActiveFailover(Runner):
         def add_starter(name, port, opts):
             self.starter_instances.append(
                 StarterManager(
-                    self.basecfg,
+                    self.cfg,
                     self.basedir,
                     name,
                     mode="activefailover",
@@ -338,7 +338,7 @@ class ActiveFailover(Runner):
             self.selenium.test_jam_attempt()
 
         prompt_user(
-            self.basecfg,
+            self.cfg,
             """The leader failover has happened.
 please revalidate the UI states on the new leader; you should see *one* follower.""",
         )
@@ -361,7 +361,7 @@ please revalidate the UI states on the new leader; you should see *one* follower
             self.success = False
 
         prompt_user(
-            self.basecfg,
+            self.cfg,
             "The old leader has been respawned as follower (%s),"
             " so there should be two followers again." % self.first_leader.get_frontend().get_public_url("root@"),
         )

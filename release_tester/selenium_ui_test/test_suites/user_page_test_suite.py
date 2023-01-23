@@ -18,7 +18,7 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
         """testing user page"""
         print("---------User Test Begin--------- \n")
         login = LoginPage(self.webdriver, self.cfg)
-        # login.login('root', self.self.root_passvoid)
+        # login.login('root', self.root_passvoid)
         self.webdriver.refresh()
         user = UserPage(self.webdriver, self.cfg)
         try:
