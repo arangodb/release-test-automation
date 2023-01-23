@@ -27,6 +27,7 @@ LOG_BLACKLIST = [
     "40e37",  # -> upgrade required TODO remove me from here, add system instance handling.
     "d72fb",  # -> license is going to expire...
     "1afb1",  # -> unlicensed enterprise instance
+    "9afd3",  # -> noisy 'icu::Collator from locale 'en' : 'U_USING_DEFAULT_WARNING'
 ]
 
 # log tokens we ignore in system ugprades...
