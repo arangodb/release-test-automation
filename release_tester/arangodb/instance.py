@@ -656,7 +656,7 @@ class ArangodInstance(Instance):
                         '{replication}' in line):
                         continue
                     if debug:
-                        print(line)
+                        print(line.rstrip())
                     if line == "":
                         time.sleep(1)
                         continue
@@ -710,7 +710,7 @@ class ArangodInstance(Instance):
                 continue
 
             t_start = match.group(1)
-            logging.debug(
+            print(
                 "found pid {0} for instance with logfile {1} at {2}.".format(self.pid, str(self.logfile), t_start)
             )
             try:
@@ -724,10 +724,10 @@ class ArangodInstance(Instance):
 
         if self.pid == 0:
             print()
-            logging.error("could not get pid for instance: " + repr(self))
-            logging.error("inspect: " + str(self.logfile))
+            print("could not get pid for instance: " + repr(self))
+            print("inspect: " + str(self.logfile))
             raise TimeoutError("could not get pid for instance: " + repr(self))
-        logging.info(
+        print(
             "found process for pid {0} for "
             "instance with logfile {1} at {2}.".format(self.pid, str(self.logfile), t_start)
         )
