@@ -403,7 +403,42 @@ class Runner(ABC):
                         "{0} TESTS FOR {1}".format(self.testrun_name, str(self.name)),
                     )
                     self.test_setup()
+
+                    # DEBUG OUTPUT VVVVVVVVVVVV
+                    print("starter_instances: before")
+                    for i in range(len(self.starter_instances)):
+                        for j in range(len(self.starter_instances[i].all_instances)):
+                            print("starter_instance: {}-{}, pid: {}, ppid:{}".format(
+                                i, j,
+                                self.starter_instances[i].all_instances[j].pid,
+                                self.starter_instances[i].all_instances[j].ppid))
+                    
+                    print("makedata_instances: before")
+                    for i in range(len(self.makedata_instances)):
+                        for j in range(len(self.makedata_instances[i].all_instances)):
+                            print("make_instance: {}-{}, pid: {}, ppid:{}".format(
+                                i,j,
+                                self.makedata_instances[i].all_instances[j].pid,
+                                self.makedata_instances[i].all_instances[j].ppid))
+
                     self.jam_attempt()
+
+                    print("starter_instances: after")
+                    for i in range(len(self.starter_instances)):
+                        for j in range(len(self.starter_instances[i].all_instances)):
+                            print("starter_instance: {}-{}, pid: {}, ppid:{}".format(
+                                i, j,
+                                self.starter_instances[i].all_instances[j].pid,
+                                self.starter_instances[i].all_instances[j].ppid))
+                    
+                    print("makedata_instances: after")
+                    for i in range(len(self.makedata_instances)):
+                        for j in range(len(self.makedata_instances[i].all_instances)):
+                            print("make_instance: {}-{}, pid: {}, ppid:{}".format(
+                                i, j,
+                                self.makedata_instances[i].all_instances[j].pid,
+                                self.makedata_instances[i].all_instances[j].ppid))
+
                     self.check_data_impl()
                     if not is_keep_db_dir:
                         self.starter_shutdown()

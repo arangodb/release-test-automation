@@ -531,9 +531,14 @@ class StarterManager:
             if not instance.detect_gone():
                 print("Manually terminating instance!")
                 instance.terminate_instance(False)
-        # Clear instances as they have been stopped and the logfiles
-        # have been moved.
-        if not keep_instances:
+
+        if keep_instances:
+            for i in self.all_instances:
+                i.pid = None
+                i.ppid = None     
+        else:   
+            # Clear instances as they have been stopped and the logfiles
+            # have been moved.
             self.is_leader = False
             self.all_instances = []
 
@@ -550,6 +555,7 @@ class StarterManager:
             raise Exception("Failed to KILL the starter instance? " + repr(self)) from ex
 
         logging.info("StarterManager: Instance now dead.")
+        self.instance = None
 
     def replace_binary_for_upgrade(self, new_install_cfg, relaunch=True):
         """
@@ -756,6 +762,8 @@ class StarterManager:
 
         logging.info("StarterManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)
+        self.pid = self.instance.pid
+        self.ppid = self.instance.ppid()
         print("respawned with PID:" + str(self.instance.pid))
         if wait_for_logfile:
             self.wait_for_logfile()
