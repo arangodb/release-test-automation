@@ -393,7 +393,7 @@ class BasePage:
     # pylint: disable=too-many-arguments
     def check_expected_error_messages_for_analyzer(
         self, error_input, print_statement, error_message, locators_id, error_message_id
-    ):
+        ):
         """This method will take three lists and check for expected error condition against user's inputs"""
         i = 0
         # looping through all the error scenario for test
@@ -402,7 +402,7 @@ class BasePage:
             print(print_statement[i])  # print_statement will hold a list of all general print statements for the test
             locators = locators_id  # locator id of the input placeholder where testing will take place
             # if div_id is not None:
-            locator_sitem = self.locator_finder_by_xpath(self, locators)
+            locator_sitem = self.locator_finder_by_xpath(locators)
             locator_sitem.click()
             locator_sitem.clear()
             locator_sitem.send_keys(error_input[i])
@@ -411,13 +411,13 @@ class BasePage:
             time.sleep(2)
             
             create_btn = '//*[@id="modal-content-add-analyzer"]/div[3]/button[2]'
-            create_btn_sitem = self.locator_finder_by_xpath(self, create_btn)
+            create_btn_sitem = self.locator_finder_by_xpath(create_btn)
             create_btn_sitem.click()
             time.sleep(2)
 
             try:
                 # placeholder's error message id
-                error_sitem = BasePage.locator_finder_by_xpath(self, error_message_id).text
+                error_sitem = BasePage.locator_finder_by_xpath(error_message_id).text
                 print("Expected error found: ", error_sitem, "\n")
                 time.sleep(2)
                 error_sitem = self.locator_finder_by_xpath(error_message_id).text

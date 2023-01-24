@@ -32,7 +32,7 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
                 analyzers.checking_all_built_in_analyzer()
 
                 print('Creating all supported analyzers\n')
-                analyzers.creating_all_supported_analyzer()
+                analyzers.creating_all_supported_analyzer(self.is_enterprise, self.test_data_dir)
 
                 print('Checking expected negative scenarios for analyzers\n')
                 analyzers.analyzer_expected_error_check()

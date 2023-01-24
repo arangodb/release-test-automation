@@ -13,7 +13,7 @@ class AnalyzerPage(NavigationBarPage):
     # pylint: disable=too-many-instance-attributes
     def __init__(self, webdriver, cfg):
         super().__init__(webdriver, cfg)
-        self.analyzers_page = "analyzers"  # list of in-built analyzers
+        self.analyzers_page = "analyzers"
         self.in_built_analyzer = "icon_arangodb_settings2"
         self.add_new_analyzer_btn = '//*[@id="analyzersContent"]/div/div/div/div/button/i'
 
@@ -76,11 +76,10 @@ class AnalyzerPage(NavigationBarPage):
         print(f"Checking {analyzer_name} analyzer\n")
 
         print('Selecting analyzer from the in-built analyzers list \n')
-        self.locator_finder_by_xpath(self, locators).click()
+        self.locator_finder_by_xpath(locators).click()
         time.sleep(2)
 
-        switch_view_template_str = lambda id_name: f"//div[@id='modal-content-view-{id_name}']/child::div//div/div[" \
-                                                   f"2]/button"
+        switch_view_template_str = lambda id_name: f"//div[@id='modal-content-view-{id_name}']/child::div//div/div[2]/button"
         # this will create all the built-in switch view to {code/form} locators as needed
         switch_view_id_list = [switch_view_template_str('identity'),
                                switch_view_template_str('text_de'),
@@ -125,11 +124,11 @@ class AnalyzerPage(NavigationBarPage):
         else:
             switch_view = switch_view_id_list[12]
 
-        self.locator_finder_by_xpath(self, switch_view).click()
+        self.locator_finder_by_xpath(switch_view).click()
         time.sleep(2)
 
         print('Closing the analyzer \n')
-        close_sitem = self.locator_finder_by_xpath(self, self.close_analyzer_btn)
+        close_sitem = self.locator_finder_by_xpath(self.close_analyzer_btn)
         close_sitem.click()
         time.sleep(2)
     
@@ -173,48 +172,49 @@ class AnalyzerPage(NavigationBarPage):
         """Adding analyzer type delimiter with necessary features"""
         # pylint: disable=too-many-locals disable=too-many-branches disable=too-many-statements
         index = self.index
-        match name:
-            case "My_Identity_Analyzer":
-                index = 0
-            case "My_Delimiter_Analyzer":
-                index = 1
-            case "My_Stem_Analyzer":
-                index = 2
-            case "My_Norm_Analyzer":
-                index = 3
-            case "Gram_Analyzer":
-                index = 4
-            case "My_Text_Analyzer":
-                index = 5
-            case "My_AQL_Analyzer":
-                index = 6
-            case "My_Stopwords_Analyzer":
-                index = 7
-            case "My_Collation_Analyzer":
-                index = 8
-            case "My_Segmentation_Alpha_Analyzer":
-                index = 9
-            case "My_Nearest_Neighbor_Analyzer":
-                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
-                    index = 10
-            case "My_Classification_Analyzer":
-                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
-                    index = 11
-            case "My_Pipeline_Analyzer":
-                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
-                    index = 12
-                else:
-                    index = 10
-            case "My_GeoJSON_Analyzer":
-                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
-                    index = 13
-                else:
-                    index = 11
-            case "My_GeoPoint_Analyzer":
+        if name == "My_Identity_Analyzer":
+            index = 0
+        elif name == "My_Delimiter_Analyzer":
+            index = 1
+        elif name == "My_Stem_Analyzer":
+            index = 2
+        elif name == "My_Norm_Analyzer":
+            index = 3
+        elif name == "Gram_Analyzer":
+            index = 4
+        elif name == "My_Text_Analyzer":
+            index = 5
+        elif name == "My_AQL_Analyzer":
+            index = 6
+        elif name == "My_Stopwords_Analyzer":
+            index = 7
+        elif name == "My_Collation_Analyzer":
+            index = 8
+        elif name == "My_Segmentation_Alpha_Analyzer":
+            index = 9
+        elif name == "My_Nearest_Neighbor_Analyzer":
+            if self.package_version >= semver.VersionInfo.parse('3.10.0'):
+                index = 10
+        elif name == "My_Classification_Analyzer":
+            if self.package_version >= semver.VersionInfo.parse('3.10.0'):
+                index = 11
+        elif name == "My_Pipeline_Analyzer":
+            if self.package_version >= semver.VersionInfo.parse('3.10.0'):
+                index = 12
+            else:
+                index = 10
+        elif name == "My_GeoJSON_Analyzer":
+            if self.package_version >= semver.VersionInfo.parse('3.10.0'):
+                index = 13
+            else:
+                index = 11
+        elif name== "My_GeoPoint_Analyzer":
                 if self.package_version >= semver.VersionInfo.parse('3.10.0'):
                     index = 14
                 else:
                     index = 12
+        else:
+            print("Something went wrong\n")
 
         self.select_analyzers_page()
         self.webdriver.refresh()
@@ -247,7 +247,7 @@ class AnalyzerPage(NavigationBarPage):
         time.sleep(2)
 
         print('Selecting analyzer type \n')
-        self.locator_finder_by_select_using_xpath(self, analyzer_type, index)
+        self.locator_finder_by_select_using_xpath(analyzer_type, index)
         time.sleep(2)
 
         print(f"selecting frequency for {name} \n")
@@ -278,24 +278,24 @@ class AnalyzerPage(NavigationBarPage):
         # for stem
         elif index == 2:
             value = 'en_US.utf-8'
-            locale_sitem = self.locator_finder_by_xpath(self, local_placeholder)
+            locale_sitem = self.locator_finder_by_xpath(local_placeholder)
             locale_sitem.click()
             locale_sitem.clear()
             locale_sitem.send_keys(value)
         # for norm
         elif index == 3:
             value = 'en_US.utf-8'
-            locale_sitem = self.locator_finder_by_xpath(self, local_placeholder)
+            locale_sitem = self.locator_finder_by_xpath(local_placeholder)
             locale_sitem.click()
             locale_sitem.clear()
             locale_sitem.send_keys(value)
 
             print('Selecting case for norm analyzer using index value \n')
-            self.locator_finder_by_select_using_xpath(self, case_placeholder, 0)
+            self.locator_finder_by_select_using_xpath(case_placeholder, 0)
 
             print('Selecting accent for norm analyzer \n')
             accent = '//div[label[text()="Accent"]]//input[not(@disabled)]'
-            accent_sitem = self.locator_finder_by_xpath(self, accent)
+            accent_sitem = self.locator_finder_by_xpath(accent)
             accent_sitem.click()
             time.sleep(2)
 
@@ -303,7 +303,7 @@ class AnalyzerPage(NavigationBarPage):
         elif index == 4:
             print(f'Adding minimum n-gram length for {name} \n')
             min_length = '//div[label[text()="Minimum N-Gram Length"]]//input[not(@disabled)]'
-            min_length_sitem = self.locator_finder_by_xpath(self, min_length)
+            min_length_sitem = self.locator_finder_by_xpath(min_length)
             min_length_sitem.click()
             min_length_sitem.clear()
             min_length_sitem.send_keys('2')
@@ -311,7 +311,7 @@ class AnalyzerPage(NavigationBarPage):
 
             print(f'Adding maximum n-gram length for {name} \n')
             max_length = '//div[label[text()="Maximum N-Gram Length"]]//input[not(@disabled)]'
-            max_length_sitem = self.locator_finder_by_xpath(self, max_length)
+            max_length_sitem = self.locator_finder_by_xpath(max_length)
             max_length_sitem.click()
             max_length_sitem.clear()
             max_length_sitem.send_keys('3')
@@ -319,13 +319,13 @@ class AnalyzerPage(NavigationBarPage):
 
             print(f'Preserve original value for {name}\n')
             preserve = '//div[label[text()="Preserve Original"]]//input[not(@disabled)]'
-            preserve_sitem = self.locator_finder_by_xpath(self, preserve)
+            preserve_sitem = self.locator_finder_by_xpath(preserve)
             preserve_sitem.click()
             time.sleep(2)
 
             print(f'Start marker value {name}\n')
             start_marker = '//div[label[text()="Start Marker"]]//input[not(@disabled)]'
-            start_marker_sitem = self.locator_finder_by_xpath(self, start_marker)
+            start_marker_sitem = self.locator_finder_by_xpath(start_marker)
             start_marker_sitem.click()
             start_marker_sitem.clear()
             start_marker_sitem.send_keys('^')
@@ -333,7 +333,7 @@ class AnalyzerPage(NavigationBarPage):
 
             print(f'End marker value for {name} \n')
             end_marker = '//div[label[text()="End Marker"]]//input[not(@disabled)]'
-            end_marker_sitem = self.locator_finder_by_xpath(self, end_marker)
+            end_marker_sitem = self.locator_finder_by_xpath(end_marker)
             end_marker_sitem.click()
             end_marker_sitem.clear()
             end_marker_sitem.send_keys('$')
@@ -341,12 +341,12 @@ class AnalyzerPage(NavigationBarPage):
 
             print(f'Stream type selection using index value for {name}\n')
             stream_type = '//div[label[text()="Stream Type"]]//select[not(@disabled)]'
-            self.locator_finder_by_select_using_xpath(self, stream_type, 1)
+            self.locator_finder_by_select_using_xpath(stream_type, 1)
             time.sleep(2)
         # for text
         elif index == 5:
             value = 'en_US.utf-8'
-            locale_sitem = self.locator_finder_by_xpath(self, local_placeholder)
+            locale_sitem = self.locator_finder_by_xpath(local_placeholder)
             locale_sitem.click()
             locale_sitem.clear()
             locale_sitem.send_keys(value)
@@ -355,14 +355,14 @@ class AnalyzerPage(NavigationBarPage):
             # need to properly define the path of the stopwords
             # print('Selecting path for stopwords \n')
             # stopwords_path = '//div[label[text()="Stopwords Path"]]//input[not(@disabled)]'
-            # stopwords_path_sitem = BaseSelenium.locator_finder_by_xpath(self, stopwords_path)
+            # stopwords_path_sitem = BaseSelenium.locator_finder_by_xpath(stopwords_path)
             # stopwords_path_sitem.click()
             # stopwords_path_sitem.clear()
             # stopwords_path_sitem.send_keys('/home/username/Desktop/')
 
             print(f'Selecting stopwords for the {name} \n')
             stopwords = '//div[label[text()="Stopwords (One per line)"]]//textarea[not(@disabled)]'
-            stopwords_sitem = self.locator_finder_by_xpath(self, stopwords)
+            stopwords_sitem = self.locator_finder_by_xpath(stopwords)
             stopwords_sitem.clear()
             stopwords_sitem.send_keys('dog')
             stopwords_sitem.send_keys(Keys.ENTER)
@@ -375,51 +375,51 @@ class AnalyzerPage(NavigationBarPage):
             stopwords_sitem.send_keys('the')
 
             print(f"Selecting case for the analyzer from the dropdown menu for {name} \n")
-            self.locator_finder_by_select_using_xpath(self, case_placeholder, 1)
+            self.locator_finder_by_select_using_xpath(case_placeholder, 1)
 
             print('Selecting stem for the analyzer \n')
             stem = '//div[label[text()="Stemming"]]//input[not(@disabled)]'
-            stem_sitem = self.locator_finder_by_xpath(self, stem)
+            stem_sitem = self.locator_finder_by_xpath(stem)
             stem_sitem.click()
             time.sleep(2)
 
             print('Selecting accent for the analyzer \n')
             accent = '//div[label[text()="Accent"]]//input[not(@disabled)]'
-            accent_sitem = self.locator_finder_by_xpath(self, accent)
+            accent_sitem = self.locator_finder_by_xpath(accent)
             accent_sitem.click()
             time.sleep(2)
 
             print(f'Selecting minimum N-Gram length for {name} \n')
             ngram_length_min = '//div[label[text()="Minimum N-Gram Length"]]//input[not(@disabled)]'
-            ngram_length_min_sitem = self.locator_finder_by_xpath(self, ngram_length_min)
+            ngram_length_min_sitem = self.locator_finder_by_xpath(ngram_length_min)
             ngram_length_min_sitem.click()
             ngram_length_min_sitem.send_keys('2')
             time.sleep(2)
 
             print(f'Selecting maximum N-Gram length for {name} \n')
             ngram_length_max_length = '//div[label[text()="Maximum N-Gram Length"]]//input[not(@disabled)]'
-            ngram_length_max_length_sitem = self.locator_finder_by_xpath(self, ngram_length_max_length)
+            ngram_length_max_length_sitem = self.locator_finder_by_xpath(ngram_length_max_length)
             ngram_length_max_length_sitem.click()
             ngram_length_max_length_sitem.send_keys('3')
             time.sleep(2)
 
             print(f'Selecting preserve original for {name} \n')
             preserve = '//div[label[text()="Preserve Original"]]//input[not(@disabled)]'
-            preserve_sitem = self.locator_finder_by_xpath(self, preserve)
+            preserve_sitem = self.locator_finder_by_xpath(preserve)
             preserve_sitem.click()
             preserve_sitem.send_keys('3')
             time.sleep(2)
         # for AQL analyzer
         elif index == 6:
             print(f'Selecting query string for {name} \n')
-            query_string = '//div[label[text()="Query String"]]/textarea'
-            query_string_sitem = self.locator_finder_by_xpath(self, query_string)
+            query_string = '//div[label[text()="Query String"]]/textarea[not(@disabled)]'
+            query_string_sitem = self.locator_finder_by_xpath(query_string)
             query_string_sitem.send_keys('FOR year IN 2010..2015 RETURN year')
             time.sleep(2)
 
             print(f'Selecting batch size for {name} \n')
             batch_size = '//div[label[text()="Batch Size"]]//input[not(@disabled)]'
-            batch_size_sitem = self.locator_finder_by_xpath(self, batch_size)
+            batch_size_sitem = self.locator_finder_by_xpath(batch_size)
             batch_size_sitem.click()
             batch_size_sitem.clear()
             batch_size_sitem.send_keys('100')
@@ -427,7 +427,7 @@ class AnalyzerPage(NavigationBarPage):
 
             print(f'Selecting memory limit for {name} \n')
             memory_limit = '//div[label[text()="Memory Limit"]]//input[not(@disabled)]'
-            memory_limit_sitem = self.locator_finder_by_xpath(self, memory_limit)
+            memory_limit_sitem = self.locator_finder_by_xpath(memory_limit)
             memory_limit_sitem.click()
             memory_limit_sitem.clear()
             memory_limit_sitem.send_keys('200')
@@ -435,25 +435,25 @@ class AnalyzerPage(NavigationBarPage):
 
             print(f'Selecting collapse position for {name} \n')
             collapse = '//div[label[text()="Collapse Positions"]]//input[not(@disabled)]'
-            collapse_sitem = self.locator_finder_by_xpath(self, collapse)
+            collapse_sitem = self.locator_finder_by_xpath(collapse)
             collapse_sitem.click()
             time.sleep(2)
 
             print(f'Selecting keep null for {name} \n')
             keep_null = '//div[label[text()="Keep Null"]]//input[not(@disabled)]'
-            keep_null_sitem = self.locator_finder_by_xpath(self, keep_null)
+            keep_null_sitem = self.locator_finder_by_xpath(keep_null)
             keep_null_sitem.click()
             time.sleep(2)
 
             print(f'Selecting Return type for {name} \n')
             return_type = '//div[label[text()="Return Type"]]//select[not(@disabled)]'
-            self.locator_finder_by_select_using_xpath(self, return_type, 1)
+            self.locator_finder_by_select_using_xpath(return_type, 1)
             time.sleep(2)
         # for stopwords
         elif index == 7:
             print(f'Selecting stopwords for {name} \n')
             stopwords = '//div[label[text()="Stopwords (One per line)"]]//textarea[not(@disabled)]'
-            stopwords_sitem = self.locator_finder_by_xpath(self, stopwords)
+            stopwords_sitem = self.locator_finder_by_xpath(stopwords)
             stopwords_sitem.click()
             stopwords_sitem.clear()
             stopwords_sitem.send_keys('616e64')
@@ -465,7 +465,7 @@ class AnalyzerPage(NavigationBarPage):
 
             print(f'Selecting hex value for {name} \n')
             hex_value = '//div[label[text()="Hex"]]//input[not(@disabled)]'
-            hex_sitem = self.locator_finder_by_xpath(self, hex_value)
+            hex_sitem = self.locator_finder_by_xpath(hex_value)
             hex_sitem.click()
             time.sleep(2)
 
@@ -473,7 +473,7 @@ class AnalyzerPage(NavigationBarPage):
         elif index == 8:
             print(f'Selecting locale for {name} \n')
             value = 'en_US.utf-8'
-            locale_sitem = self.locator_finder_by_xpath(self, local_placeholder)
+            locale_sitem = self.locator_finder_by_xpath(local_placeholder)
             locale_sitem.click()
             locale_sitem.clear()
             locale_sitem.send_keys(value)
@@ -481,12 +481,12 @@ class AnalyzerPage(NavigationBarPage):
         elif index == 9:
             print(f'Selecting segmentation break as alpha for {name} \n')
             alpha_break = '//div[label[text()="Break"]]//select[not(@disabled)]'
-            self.locator_finder_by_select_using_xpath(self, alpha_break, 1)
+            self.locator_finder_by_select_using_xpath(alpha_break, 1)
             time.sleep(2)
 
             print(f'Selecting segmentation case as lower for {name} \n')
             case_lower = '//div[label[text()="Case"]]//select[not(@disabled)]'
-            self.locator_finder_by_select_using_xpath(self, case_lower, 0)
+            self.locator_finder_by_select_using_xpath(case_lower, 0)
             time.sleep(2)
 
         # for nearest neighbor analyzer introduced on 3.10.x
@@ -495,7 +495,7 @@ class AnalyzerPage(NavigationBarPage):
             print(f'Selecting model location for {name} \n')
             model_location = '//div[label[text()="Model Location"]]//input[not(@disabled)]'
             model_location_sitem = self.locator_finder_by_xpath(model_location)
-            model_location_sitem.send_keys(location)
+            model_location_sitem.send_keys(str(location.absolute()))
             time.sleep(2)
 
             print(f'Selecting Top K value for {name}\n')
@@ -510,7 +510,7 @@ class AnalyzerPage(NavigationBarPage):
             print(f'Selecting model location for {name} \n')
             model_location = '//div[label[text()="Model Location"]]//input[not(@disabled)]'
             model_location_sitem = self.locator_finder_by_xpath(model_location)
-            model_location_sitem.send_keys(location)
+            model_location_sitem.send_keys(str(location.absolute()))
             time.sleep(2)
 
             print(f'Selecting Top K value for {name}\n')
@@ -529,41 +529,41 @@ class AnalyzerPage(NavigationBarPage):
             # ----------------------adding first pipeline analyzer as Norm analyzer--------------------------
             print(f'Selecting add analyzer button for {name} \n')
             add_analyzer01 = '(//button[@class="button-warning"][not(@disabled)])[2]'
-            add_analyzer01_sitem = self.locator_finder_by_xpath(self, add_analyzer01)
+            add_analyzer01_sitem = self.locator_finder_by_xpath(add_analyzer01)
             add_analyzer01_sitem.click()
             time.sleep(1)
 
             print(f'Selecting first pipeline analyzer as Norm for {name} \n')
             norm = '(//div[label[text()="Analyzer Type"]]//select[not(@disabled)])[2]'
-            self.locator_finder_by_select_using_xpath(self, norm, 2)  # 2 for norm from the drop-down list
+            self.locator_finder_by_select_using_xpath(norm, 2)  # 2 for norm from the drop-down list
             time.sleep(2)
 
             print(f'Selecting locale value for Norm analyzer of {name} \n')
             value = 'en_US.utf-8'
-            locale_sitem = self.locator_finder_by_xpath(self, local_placeholder)
+            locale_sitem = self.locator_finder_by_xpath(local_placeholder)
             locale_sitem.click()
             locale_sitem.send_keys(value)
             time.sleep(2)
 
             print(f'Selecting case value to upper for Norm analyzer of {name} \n')
-            self.locator_finder_by_select_using_xpath(self, case_placeholder, 1)
+            self.locator_finder_by_select_using_xpath(case_placeholder, 1)
             time.sleep(2)
 
             # ----------------------adding second pipeline analyzer as N-Gram analyzer--------------------------
             print(f'Selecting add analyzer button for {name} \n')
             new_analyzer = '(//button[@class="button-warning"][not(@disabled)])[3]'
-            new_analyzer_sitem = self.locator_finder_by_xpath(self, new_analyzer)
+            new_analyzer_sitem = self.locator_finder_by_xpath(new_analyzer)
             new_analyzer_sitem.click()
             time.sleep(2)
 
             print(f'Selecting second pipeline analyzer as N-Gram for {name} \n')
             ngram = '(//div[label[text()="Analyzer Type"]]//select[not(@disabled)])[3]'
-            self.locator_finder_by_select_using_xpath(self, ngram, 3)  # 3 represents N-Gram from the dropdown
+            self.locator_finder_by_select_using_xpath(ngram, 3)  # 3 represents N-Gram from the dropdown
             time.sleep(2)
 
             print(f'Selecting N-Gram minimum length for {name} \n')
             min_length = '//div[label[text()="Minimum N-Gram Length"]]//input[not(@disabled)]'
-            min_length_sitem = self.locator_finder_by_xpath(self, min_length)
+            min_length_sitem = self.locator_finder_by_xpath(min_length)
             min_length_sitem.click()
             min_length_sitem.clear()
             min_length_sitem.send_keys(3)
@@ -571,20 +571,20 @@ class AnalyzerPage(NavigationBarPage):
 
             print(f'Selecting N-Gram maximum length for {name} \n')
             max_length = '//div[label[text()="Maximum N-Gram Length"]]//input[not(@disabled)]'
-            max_length_sitem = self.locator_finder_by_xpath(self, max_length)
+            max_length_sitem = self.locator_finder_by_xpath(max_length)
             max_length_sitem.click()
             max_length_sitem.clear()
             max_length_sitem.send_keys(3)
 
             print(f'Selecting Preserve original value for {name}\n')
             preserve = '//div[label[text()="Preserve Original"]]//input[not(@disabled)]'
-            preserve_sitem = self.locator_finder_by_xpath(self, preserve)
+            preserve_sitem = self.locator_finder_by_xpath(preserve)
             preserve_sitem.click()
             time.sleep(2)
 
             print(f'Start marker value {name}\n')
             start_marker = '//div[label[text()="Start Marker"]]//input[not(@disabled)]'
-            start_marker_sitem = self.locator_finder_by_xpath(self, start_marker)
+            start_marker_sitem = self.locator_finder_by_xpath(start_marker)
             start_marker_sitem.click()
             start_marker_sitem.clear()
             start_marker_sitem.send_keys('^')
@@ -592,7 +592,7 @@ class AnalyzerPage(NavigationBarPage):
 
             print(f'End marker value for {name} \n')
             end_marker = '//div[label[text()="End Marker"]]//input[not(@disabled)]'
-            end_marker_sitem = self.locator_finder_by_xpath(self, end_marker)
+            end_marker_sitem = self.locator_finder_by_xpath(end_marker)
             end_marker_sitem.click()
             end_marker_sitem.clear()
             end_marker_sitem.send_keys('$')
@@ -600,19 +600,19 @@ class AnalyzerPage(NavigationBarPage):
 
             print(f'Stream type selection using index value for {name}\n')
             stream_type = '//div[label[text()="Stream Type"]]//select[not(@disabled)]'
-            self.locator_finder_by_select_using_xpath(self, stream_type, 1)
+            self.locator_finder_by_select_using_xpath(stream_type, 1)
             time.sleep(2)
         # GeoJson
         elif index == 13:
             print(f'Selecting type for {name} \n')
             types = '//div[label[text()="Type"]]//select[not(@disabled)]'
-            types_sitem = self.locator_finder_by_xpath(self, types)
+            types_sitem = self.locator_finder_by_xpath(types)
             types_sitem.click()
             time.sleep(2)
 
             print(f'Selecting max S2 cells value for {name} \n')
             max_s2_cells = '//div[label[text()="Max S2 Cells"]]//input[not(@disabled)]'
-            max_s2_cells_sitem = self.locator_finder_by_xpath(self, max_s2_cells)
+            max_s2_cells_sitem = self.locator_finder_by_xpath(max_s2_cells)
             max_s2_cells_sitem.click()
             max_s2_cells_sitem.clear()
             max_s2_cells_sitem.send_keys('20')
@@ -620,7 +620,7 @@ class AnalyzerPage(NavigationBarPage):
 
             print(f'Selecting least precise S2 levels for {name} \n')
             least_precise = '//div[label[text()="Least Precise S2 Level"]]//input[not(@disabled)]'
-            least_precise_sitem = self.locator_finder_by_xpath(self, least_precise)
+            least_precise_sitem = self.locator_finder_by_xpath(least_precise)
             least_precise_sitem.click()
             least_precise_sitem.clear()
             least_precise_sitem.send_keys('10')
@@ -628,7 +628,7 @@ class AnalyzerPage(NavigationBarPage):
 
             print(f'Selecting most precise S2 levels for {name} \n')
             most_precise = '//div[label[text()="Most Precise S2 Level"]]//input[not(@disabled)]'
-            most_precise_sitem = self.locator_finder_by_xpath(self, most_precise)
+            most_precise_sitem = self.locator_finder_by_xpath(most_precise)
             most_precise_sitem.click()
             most_precise_sitem.send_keys('30')
             time.sleep(2)
@@ -636,46 +636,46 @@ class AnalyzerPage(NavigationBarPage):
         elif index == 14:
             print(f'Selecting Latitude Path for {name} \n')
             latitude_paths = '//div[label[text()="Latitude Path"]]//input[not(@disabled)]'
-            latitude_paths_sitem = self.locator_finder_by_xpath(self, latitude_paths)
+            latitude_paths_sitem = self.locator_finder_by_xpath(latitude_paths)
             latitude_paths_sitem.click()
             latitude_paths_sitem.send_keys('40.78')
             time.sleep(2)
 
             print(f'Selecting Longitude Path for {name} \n')
             longitude_paths = '//div[label[text()="Longitude Path"]]//input[not(@disabled)]'
-            longitude_paths_sitem = self.locator_finder_by_xpath(self, longitude_paths)
+            longitude_paths_sitem = self.locator_finder_by_xpath(longitude_paths)
             longitude_paths_sitem.click()
             longitude_paths_sitem.send_keys('-73.97')
             time.sleep(2)
 
             print(f'Selecting max S2 cells value for {name} \n')
             max_s2_cells = '//div[label[text()="Max S2 Cells"]]//input[not(@disabled)]'
-            max_s2_cells_sitem = self.locator_finder_by_xpath(self, max_s2_cells)
+            max_s2_cells_sitem = self.locator_finder_by_xpath(max_s2_cells)
             max_s2_cells_sitem.click()
             max_s2_cells_sitem.send_keys('20')
             time.sleep(2)
 
             print(f'Selecting least precise S2 levels for {name} \n')
             least_precise = '//div[label[text()="Least Precise S2 Level"]]//input[not(@disabled)]'
-            least_precise_sitem = self.locator_finder_by_xpath(self, least_precise)
+            least_precise_sitem = self.locator_finder_by_xpath(least_precise)
             least_precise_sitem.click()
             least_precise_sitem.send_keys('4')
             time.sleep(2)
 
             print(f'Selecting most precise S2 levels for {name} \n')
             most_precise = '//div[label[text()="Most Precise S2 Level"]]//input[not(@disabled)]'
-            most_precise_sitem = self.locator_finder_by_xpath(self, most_precise)
+            most_precise_sitem = self.locator_finder_by_xpath(most_precise)
             most_precise_sitem.click()
             most_precise_sitem.send_keys('23')
             time.sleep(2)
         
         print(f'Switching current view to form view for {name}\n')
-        code_view_sitem = self.locator_finder_by_xpath(self, switch_view_btn)
+        code_view_sitem = self.locator_finder_by_xpath(switch_view_btn)
         code_view_sitem.click()
         time.sleep(3)
 
         print(f'Switching current view to code view for {name}\n')
-        form_view_sitem = self.locator_finder_by_xpath(self, switch_form_btn)
+        form_view_sitem = self.locator_finder_by_xpath(switch_form_btn)
         form_view_sitem.click()
         time.sleep(3)
 
@@ -698,7 +698,7 @@ class AnalyzerPage(NavigationBarPage):
         print(f"Creating {name} completed successfully \n")
 
     
-    def creating_all_supported_analyzer(self):
+    def creating_all_supported_analyzer(self, enterprise, model_location=None):
         """This method will create all the supported version specific analyzers"""
         print('Adding Identity analyzer \n')
         self.add_new_analyzer('My_Identity_Analyzer')
@@ -730,12 +730,13 @@ class AnalyzerPage(NavigationBarPage):
         print('Adding Segmentation analyzer \n')
         self.add_new_analyzer('My_Segmentation_Alpha_Analyzer')
 
-        if self.package_version >= semver.VersionInfo.parse('3.10.0'):
-            print('Adding nearest-neighbor analyzer \n')
-            self.add_new_analyzer('My_Nearest_Neighbor_Analyzer')
+        if self.package_version >= semver.VersionInfo.parse('3.10.0'): 
+            if enterprise:
+                print('Adding nearest-neighbor analyzer \n')
+                self.add_new_analyzer('My_Nearest_Neighbor_Analyzer', model_location)
 
-            print('Adding classification analyzer \n')
-            self.add_new_analyzer('My_Classification_Analyzer')
+                print('Adding classification analyzer \n')
+                self.add_new_analyzer('My_Classification_Analyzer', model_location)
 
             print('Adding Pipeline analyzer \n')
             self.add_new_analyzer('My_Pipeline_Analyzer')
@@ -800,15 +801,16 @@ class AnalyzerPage(NavigationBarPage):
         # pylint: disable=too-many-locals disable=too-many-statements
         """testing analyzers negative scenarios"""
         index = self.index
-        match name:
-            case "Identity_analyzer":
-                index = 0
-            case "Stem_Analyzer":
-                index = 2
-            case "N_Gram_Analyzer":
-                index = 4
-            case "AQL_Analyzer":
-                index = 6
+        if name == "Identity_Analyzer":
+            index = 0
+        elif name == "Stem_Analyzer":
+            index = 2
+        elif name == "N_Gram_Analyzer":
+            index = 4
+        elif name == "AQL_Analyzer":
+            index = 6
+        else:
+            print("Something went wrong\n")
 
         self.select_analyzers_page()
         self.webdriver.refresh()
@@ -859,7 +861,7 @@ class AnalyzerPage(NavigationBarPage):
             if index == 2:
                 print(f"Expected error scenario for the {name} Started \n")
                 # filling out the name placeholder first
-                stem_sitem = self.locator_finder_by_xpath(self, analyzer_name)
+                stem_sitem = self.locator_finder_by_xpath(analyzer_name)
                 stem_sitem.click()
                 stem_sitem.clear()
                 stem_sitem.send_keys(name)
@@ -888,7 +890,7 @@ class AnalyzerPage(NavigationBarPage):
             if index == 4:
                 print(f"Expected error scenario for the {name} Started \n")
                 # filling out the name placeholder first
-                ngram_analyzer_sitem = self.locator_finder_by_xpath(self, analyzer_name)
+                ngram_analyzer_sitem = self.locator_finder_by_xpath(analyzer_name)
                 ngram_analyzer_sitem.click()
                 ngram_analyzer_sitem.clear()
                 ngram_analyzer_sitem.send_keys(name)
@@ -919,7 +921,7 @@ class AnalyzerPage(NavigationBarPage):
                     "documentation for corresponding analyzer type.",
                 ]
 
-                # for stem analyzer locale placeholder
+                # min _ngram_length for initiate the test
                 min_ngram_length_id = '//div[label[text()="Minimum N-Gram Length"]]//input[not(@disabled)]'
 
                 # method template (self, error_input, print_statement, error_message, locators_id, error_message_id, div_id)
@@ -935,7 +937,7 @@ class AnalyzerPage(NavigationBarPage):
             if index == 6:
                 print(f"Expected error scenario for the {name} Started \n")
                 # filling out the name placeholder first
-                aql_analyzer_sitem = self.locator_finder_by_xpath(self, analyzer_name)
+                aql_analyzer_sitem = self.locator_finder_by_xpath(analyzer_name)
                 aql_analyzer_sitem.click()
                 aql_analyzer_sitem.clear()
                 aql_analyzer_sitem.send_keys(name)
@@ -1034,7 +1036,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             # force_delete = '//*[@id="force-delete"]'
-            # force_delete.sitem = self.locator_finder_by_xpath(self, force_delete)
+            # force_delete.sitem = self.locator_finder_by_xpath(force_delete)
             # force_delete.sitem.click()
 
             delete_btn = f'//*[@id="modal-content-delete-_system::{analyzer_name}"]/div[3]/button[2]'
