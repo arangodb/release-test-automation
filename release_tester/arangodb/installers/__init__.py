@@ -114,6 +114,7 @@ class OptionGroup:
 @dataclass
 class HotBackupCliCfg(OptionGroup):
     """map hotbackup_options"""
+
     # pylint: disable=too-many-instance-attributes disable=no-member disable=no-else-return disable=consider-iterating-dictionary
     @classmethod
     def from_dict(cls, **options):
@@ -387,22 +388,27 @@ def make_installer(install_config: InstallerConfig):
     if IS_WINDOWS:
         if install_config.zip_package:
             from arangodb.installers.zip import InstallerZip
+
             return InstallerZip(install_config)
 
         from arangodb.installers.nsis import InstallerNsis
+
         return InstallerNsis(install_config)
 
     if install_config.zip_package:
         from arangodb.installers.tar import InstallerTAR
+
         return InstallerTAR(install_config)
 
     if IS_MAC:
         from arangodb.installers.mac import InstallerMac
+
         return InstallerMac(install_config)
 
     if platform.system() in ["linux", "Linux"]:
         dist = DISTRO
         import distro
+
         if DISTRO == "":
             dist = distro.linux_distribution(full_distribution_name=False)[0]
         if dist in ["debian", "ubuntu"]:
@@ -434,6 +440,16 @@ class RunProperties:
         self.ssl = ssl
         self.testrun_name = testrun_name
         self.directory_suffix = directory_suffix
+
+    def __repr__(self):
+        return """{0.__class__.__name__}
+enterprise: {0.enterprise}
+encryption_at_rest: {0.encryption_at_rest}
+ssl: {0.ssl}
+testrun_name: {0.testrun_name}
+directory_suffix: {0.directory_suffix}""".format(
+            self
+        )
 
     def supports_dc2dc(self):
         """will the DC2DC case be supported by this case?"""
@@ -490,7 +506,7 @@ def create_config_installer_set(
             base_config.interactive,
             base_config.stress_upgrade,
             run_properties.ssl,
-            base_config.test
+            base_config.test,
         )
         installer = make_installer(install_config)
         installer.calculate_package_names()

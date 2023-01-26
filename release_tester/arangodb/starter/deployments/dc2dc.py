@@ -194,7 +194,7 @@ class Dc2Dc(Runner):
             # fmt: off
             opts = [
                     '--all.log.level=backup=trace',
-                    '--all.log.level=requests=debug',
+                    # '--all.log.level=requests=debug',
                     '--args.syncmasters.log.level=debug',
                     '--args.syncworkers.log.level=debug',
                     '--starter.sync',
@@ -238,7 +238,9 @@ class Dc2Dc(Runner):
                 val["instance"].is_leader = True
 
         _add_starter(self.cluster1, port=7528)
-        _add_starter(self.cluster2, port=9528, moreopts=['--args.dbservers.log', 'request=trace'])
+        _add_starter(self.cluster2, port=9528# ,
+                     # moreopts=['--args.dbservers.log', 'request=trace']
+                     )
         self.starter_instances = [self.cluster1["instance"], self.cluster2["instance"]]
 
     def starter_run_impl(self):
