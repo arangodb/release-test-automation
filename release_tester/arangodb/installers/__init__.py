@@ -455,6 +455,16 @@ class RunProperties:
         self.testrun_name = testrun_name
         self.directory_suffix = directory_suffix
 
+    def __repr__(self):
+        return """{0.__class__.__name__}
+enterprise: {0.enterprise}
+encryption_at_rest: {0.encryption_at_rest}
+ssl: {0.ssl}
+testrun_name: {0.testrun_name}
+directory_suffix: {0.directory_suffix}""".format(
+            self
+        )
+
     def supports_dc2dc(self):
         """will the DC2DC case be supported by this case?"""
         return self.enterprise and not IS_WINDOWS

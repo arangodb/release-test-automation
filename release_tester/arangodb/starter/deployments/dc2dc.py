@@ -334,7 +334,7 @@ class Dc2Dc(Runner):
                 )
                 _, _, _, _ = self.sync_manager.stop_sync(timeout, ["--ensure-in-sync=false"])
         except CliExecutionException as exc:
-            print("Deadline reached while stopping sync! checking wehther it worked anyways?")
+            print("Deadline reached while stopping sync! checking wether it worked anyways?")
             self.state += "\n" + exc.execution_result[1]
             output = ""
             if exc.have_timeout:
