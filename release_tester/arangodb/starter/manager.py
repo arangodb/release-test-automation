@@ -587,7 +587,8 @@ class StarterManager:
         for instance_type in which_instances:
             for instance in self.all_instances:
                 if instance.instance_type == instance_type:
-                    instance.kill_instance()
+                    instance.terminate_instance()
+                    # time.sleep(20)
 
     @step
     def manually_launch_instances(self, which_instances, moreargs, waitpid=True, kill_instance=False):
@@ -606,6 +607,8 @@ class StarterManager:
                         moreargs,
                         waitpid,
                     )
+                    # instance.detect_pid(self.ppid)
+                    # time.sleep(20)
 
     @step
     def manually_launch_instances_for_upgrade(self, which_instances, moreargs, waitpid=True, kill_instance=False):
@@ -624,6 +627,8 @@ class StarterManager:
                         moreargs,
                         waitpid,
                     )
+                    # i.detect_pid(self.ppid)
+                    # time.sleep(20)
 
     # pylint: disable=unused-argument
     @step
@@ -642,6 +647,8 @@ class StarterManager:
                         moreargs,
                         True,
                     )
+                    # i.detect_pid(self.ppid)
+                    # time.sleep(20)
                     i.launch_manual_from_instance_control_file(
                         self.cfg.sbin_dir,
                         self.old_install_prefix,
@@ -651,6 +658,8 @@ class StarterManager:
                         [],
                         False,
                     )
+                    # i.detect_pid(self.ppid)
+                    # time.sleep(20)
 
     @step
     def restart_arangods(self):

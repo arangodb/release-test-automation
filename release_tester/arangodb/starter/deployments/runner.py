@@ -356,9 +356,26 @@ class Runner(ABC):
                 self.new_installer.get_sync_version()
                 self.new_installer.stop_service()
                 
+                # print("starter_instances: before upgrade")
+                # for i in range(len(self.starter_instances)):
+                #     for j in range(len(self.starter_instances[i].all_instances)):
+                #         print("starter_instance: {}-{}, pid: {}, ppid:{}".format(
+                #             i, j,
+                #             self.starter_instances[i].all_instances[j].pid,
+                #             self.starter_instances[i].all_instances[j].ppid))
+
                 self.upgrade_arangod_version()  # make sure to pass new version
                 self.new_cfg.set_directories(self.new_installer.cfg)
                 self.cfg = copy.deepcopy(self.new_cfg)
+
+
+                # print("starter_instances: after upgrade")
+                # for i in range(len(self.starter_instances)):
+                #     for j in range(len(self.starter_instances[i].all_instances)):
+                #         print("starter_instance: {}-{}, pid: {}, ppid:{}".format(
+                #             i, j,
+                #             self.starter_instances[i].all_instances[j].pid,
+                #             self.starter_instances[i].all_instances[j].ppid))
 
                 self.old_installer.un_install_server_package_for_upgrade()
                 if self.is_minor_upgrade() and self.new_installer.supports_backup():
@@ -405,39 +422,71 @@ class Runner(ABC):
                     self.test_setup()
 
                     # DEBUG OUTPUT VVVVVVVVVVVV
-                    print("starter_instances: before")
-                    for i in range(len(self.starter_instances)):
-                        for j in range(len(self.starter_instances[i].all_instances)):
-                            print("starter_instance: {}-{}, pid: {}, ppid:{}".format(
-                                i, j,
-                                self.starter_instances[i].all_instances[j].pid,
-                                self.starter_instances[i].all_instances[j].ppid))
+                    # print("starter_instances: before jam_attempt")
+                    # for i in range(len(self.starter_instances)):
+                    #     for j in range(len(self.starter_instances[i].all_instances)):
+                    #         print("starter_instance: {}-{}, pid: {}, ppid:{}".format(
+                    #             i, j,
+                    #             self.starter_instances[i].all_instances[j].pid,
+                    #             self.starter_instances[i].all_instances[j].ppid))
                     
-                    print("makedata_instances: before")
-                    for i in range(len(self.makedata_instances)):
-                        for j in range(len(self.makedata_instances[i].all_instances)):
-                            print("make_instance: {}-{}, pid: {}, ppid:{}".format(
-                                i,j,
-                                self.makedata_instances[i].all_instances[j].pid,
-                                self.makedata_instances[i].all_instances[j].ppid))
+                    # print("makedata_instances: before jam_attempt")
+                    # for i in range(len(self.makedata_instances)):
+                    #     for j in range(len(self.makedata_instances[i].all_instances)):
+                    #         print("make_instance: {}-{}, pid: {}, ppid:{}".format(
+                    #             i,j,
+                    #             self.makedata_instances[i].all_instances[j].pid,
+                    #             self.makedata_instances[i].all_instances[j].ppid))
+
+                    # print("leader: before jam_attempt")
+                    # for i in range(len(self.leader.all_instances)):
+                    #     print("leader: frontend:{}, i: {}, pid: {}, ppid:{}".format(
+                    #         self.leader.frontend_port,
+                    #         i,
+                    #         self.leader.all_instances[i].pid,
+                    #         self.leader.all_instances[i].ppid))   
+
+                    # print("follower_nodes: before jam_attempt")
+                    # for i in range(len(self.follower_nodes)):
+                    #     for j in range(len(self.follower_nodes[i].all_instances)):
+                    #         print("follower: {}-{}, pid: {}, ppid:{}".format(
+                    #             i, j,
+                    #             self.follower_nodes[i].all_instances[j].pid,
+                    #             self.follower_nodes[i].all_instances[j].ppid))                 
 
                     self.jam_attempt()
 
-                    print("starter_instances: after")
-                    for i in range(len(self.starter_instances)):
-                        for j in range(len(self.starter_instances[i].all_instances)):
-                            print("starter_instance: {}-{}, pid: {}, ppid:{}".format(
-                                i, j,
-                                self.starter_instances[i].all_instances[j].pid,
-                                self.starter_instances[i].all_instances[j].ppid))
+                    # print("starter_instances: after jam_attempt")
+                    # for i in range(len(self.starter_instances)):
+                    #     for j in range(len(self.starter_instances[i].all_instances)):
+                    #         print("starter_instance: {}-{}, pid: {}, ppid:{}".format(
+                    #             i, j,
+                    #             self.starter_instances[i].all_instances[j].pid,
+                    #             self.starter_instances[i].all_instances[j].ppid))
                     
-                    print("makedata_instances: after")
-                    for i in range(len(self.makedata_instances)):
-                        for j in range(len(self.makedata_instances[i].all_instances)):
-                            print("make_instance: {}-{}, pid: {}, ppid:{}".format(
-                                i, j,
-                                self.makedata_instances[i].all_instances[j].pid,
-                                self.makedata_instances[i].all_instances[j].ppid))
+                    # print("makedata_instances: after jam_attempt")
+                    # for i in range(len(self.makedata_instances)):
+                    #     for j in range(len(self.makedata_instances[i].all_instances)):
+                    #         print("make_instance: {}-{}, pid: {}, ppid:{}".format(
+                    #             i, j,
+                    #             self.makedata_instances[i].all_instances[j].pid,
+                    #             self.makedata_instances[i].all_instances[j].ppid))
+
+                    # print("leader: after jam_attempt")
+                    # for i in range(len(self.leader.all_instances)):
+                    #     print("leader: frontend:{}, i: {}, pid: {}, ppid:{}".format(
+                    #         self.leader.frontend_port,
+                    #         i,
+                    #         self.leader.all_instances[i].pid,
+                    #         self.leader.all_instances[i].ppid))   
+
+                    # print("follower_nodes: after jam_attempt")
+                    # for i in range(len(self.follower_nodes)):
+                    #     for j in range(len(self.follower_nodes[i].all_instances)):
+                    #         print("follower: {}-{}, pid: {}, ppid:{}".format(
+                    #             i, j,
+                    #             self.follower_nodes[i].all_instances[j].pid,
+                    #             self.follower_nodes[i].all_instances[j].ppid))                  
 
                     self.check_data_impl()
                     if not is_keep_db_dir:

@@ -4,6 +4,7 @@ import logging
 import sys
 import time
 from pathlib import Path
+import os
 
 import requests
 from requests.auth import HTTPBasicAuth
@@ -266,17 +267,64 @@ class ActiveFailover(Runner):
         if self.selenium:
             self.selenium.test_wait_for_upgrade()
 
+    def dbg_output(self):
+        print("\nstarter_instances:")
+        for i in range(len(self.starter_instances)):
+            for j in range(len(self.starter_instances[i].all_instances)):
+                print("starter_instance: {}-{}, pid: {}, ppid:{}".format(
+                    i, j,
+                    self.starter_instances[i].all_instances[j].pid,
+                    self.starter_instances[i].all_instances[j].ppid))
+        print("\nmakedata_instances:")
+        for i in range(len(self.makedata_instances)):
+            for j in range(len(self.makedata_instances[i].all_instances)):
+                print("make_instance: {}-{}, pid: {}, ppid:{}".format(
+                    i,j,
+                    self.makedata_instances[i].all_instances[j].pid,
+                    self.makedata_instances[i].all_instances[j].ppid))
+        print("\nleader:")
+        for i in range(len(self.leader.all_instances)):
+            print("leader: frontend:{}, i: {}, pid: {}, ppid:{}".format(
+                self.leader.frontend_port,
+                i,
+                self.leader.all_instances[i].pid,
+                self.leader.all_instances[i].ppid))   
+        print("\nfollower_nodes:")
+        for i in range(len(self.follower_nodes)):
+            for j in range(len(self.follower_nodes[i].all_instances)):
+                print("follower: {}-{}, pid: {}, ppid:{}".format(
+                    i, j,
+                    self.follower_nodes[i].all_instances[j].pid,
+                    self.follower_nodes[i].all_instances[j].ppid)) 
+        return  
+
     def jam_attempt_impl(self):
-        # pylint: disable=too-many-statements
+        # pylint: disable=too-many-statements       
         agency_leader = self.agency_get_leader()
         if self.leader.have_this_instance(agency_leader):
             print("AFO-Leader and agency leader are attached by the same starter!")
             self.agency_trigger_leader_relection(agency_leader)
 
+        # print("\n\n==============================================\n\n")
+        # print("BEfore terminating leader starter instance")
+        # self.dbg_output()
+        # os.system("sudo lsof -i -P -n | grep LISTEN | grep arango")
+
         self.leader.terminate_instance(keep_instances=True)
+
+        # print("\n\n==============================================\n\n")
+        # print("After terminating leader starter instance")
+        # self.dbg_output()
+        # os.system("sudo lsof -i -P -n | grep LISTEN | grep arango")
+
         logging.info("relaunching agent!")
         self.leader.manually_launch_instances([InstanceType.AGENT], [], False, False)
         
+        # print("\n\n==============================================\n\n")
+        # print("After launching agent manually")
+        # self.dbg_output()
+        # os.system("sudo lsof -i -P -n | grep LISTEN | grep arango")
+
         logging.info("waiting for new leader...")
         curr_leader = None
 
@@ -323,14 +371,43 @@ class ActiveFailover(Runner):
             """The leader failover has happened.
 please revalidate the UI states on the new leader; you should see *one* follower.""",
         )
+        # print("1")
+        # self.dbg_output()
+
         version = self.new_cfg.version if self.new_cfg != None else self.cfg.version
         self.leader.kill_specific_instance([InstanceType.AGENT])
+
+        # print("\n\n==============================================\n\n")
+        # print("After killing agent manually")
+        # self.dbg_output()
+        # os.system("sudo lsof -i -P -n | grep LISTEN | grep arango")
+
+        # time.sleep(4)
         self.leader.respawn_instance(version)
+
+        # print("\n\n==============================================\n\n")
+        # print("After respawn instance")
+        # self.dbg_output()
+        # os.system("sudo lsof -i -P -n | grep LISTEN | grep arango")
+
+        # time.sleep(4)
         self.leader.detect_instances()
         logging.info("waiting for old leader to show up as follower")
+
+        # print("\n\n==============================================\n\n")
+        # print("After detect instance")
+        # self.dbg_output()
+        # os.system("sudo lsof -i -P -n | grep LISTEN | grep arango")
+
         while not self.leader.active_failover_detect_host_now_follower():
             progress(".")
             time.sleep(1)
+
+
+        # print("\n\n==============================================\n\n")
+        # print("After detecting follower")
+        # self.dbg_output()
+        # os.system("sudo lsof -i -P -n | grep LISTEN | grep arango")
 
         url = self.leader.get_frontend().get_local_url("")
 
@@ -347,6 +424,12 @@ please revalidate the UI states on the new leader; you should see *one* follower
             " so there should be two followers again." % self.leader.get_frontend().get_public_url("root@"),
         )
         self.detect_leader()
+
+        # print("\n\n==============================================\n\n")
+        # print("After detecting leader")
+        # self.dbg_output()
+        # os.system("sudo lsof -i -P -n | grep LISTEN | grep arango")
+
         self.makedata_instances[0] = self.leader
 
         logging.info("state of this test is: %s", "Success" if self.success else "Failed")
@@ -354,6 +437,11 @@ please revalidate the UI states on the new leader; you should see *one* follower
             # cfg = self.new_cfg if self.new_cfg else self.cfg
             self.set_selenium_instances()
             self.selenium.test_wait_for_upgrade()
+
+        # print("\n\n==============================================\n\n")
+        # print("END")
+        # self.dbg_output()
+        # os.system("sudo lsof -i -P -n | grep LISTEN | grep arango")   
 
     def shutdown_impl(self):
         for node in self.starter_instances:
@@ -363,7 +451,7 @@ please revalidate the UI states on the new leader; you should see *one* follower
 
     def before_backup_impl(self):
         """put into maintainance mode according to
-        https://www.arangodb.com/docs/3.7/programs-arangobackup-limitations.html#active-failover-special-limitations
+        https://www.arangodb.com/docs/3.10/programs-arangobackup-limitations.html#active-failover-special-limitations
         """
         self.leader.maintainance(True, InstanceType.RESILIENT_SINGLE)
 
