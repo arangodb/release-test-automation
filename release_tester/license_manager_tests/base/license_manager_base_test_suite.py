@@ -30,10 +30,6 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
     # pylint: disable=too-many-instance-attributes disable=dangerous-default-value
     def __init__(self, params: CliTestSuiteParameters):
         super().__init__(params)
-        package_type = ".tar.gz" if self.base_cfg.zip_package else ".deb/.rpm/NSIS"
-        self.parent_test_suite_name = (
-            f"Licence manager test suite: ArangoDB v. {str(self.new_version)} ({package_type})"
-        )
         self.sub_suite_name = self.__doc__ if self.__doc__ else self.__class__.__name__
         self.installer_set = create_config_installer_set(
             versions=[self.old_version, self.new_version] if self.old_version else [self.new_version],
@@ -47,6 +43,9 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
         self.runner = None
         self.passvoid = "license_manager_tests"
         self.publicip = self.base_cfg.publicip
+        self.parent_test_suite_name = (
+            f"Licence manager test suite: ArangoDB v. {str(self.new_version)} ({self.installer.installer_type})"
+        )
 
     # pylint: disable=no-self-use
     def init_child_class(self, child_class):
@@ -56,7 +55,8 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
     @run_after_suite
     def teardown_suite(self):
         """License manager base test suite: teardown"""
-        self.runner.starter_shutdown()
+        if self.runner:
+            self.runner.starter_shutdown()
         kill_all_processes()
 
     @collect_crash_data
