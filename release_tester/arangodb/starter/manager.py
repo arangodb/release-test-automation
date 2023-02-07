@@ -515,7 +515,6 @@ class StarterManager:
             raise Exception("Starter %s exited with %d" % (self.basedir, exit_code))
 
         old_log = self.basedir / "arangodb.log.old"
-        # old_log = self.basedir / "arangodb.log.{}".format(self.instance.ppid()) 
         logging.info(
             "StarterManager: done - moving logfile from %s to %s",
             str(self.log_file),
@@ -527,7 +526,6 @@ class StarterManager:
 
         for instance in self.all_instances:
             instance.rename_logfile()
-            # instance.rename_logfile(suffix=".{}".self.instance.ppid())
             if not instance.detect_gone():
                 print("Manually terminating instance!")
                 instance.terminate_instance(False)
@@ -588,7 +586,6 @@ class StarterManager:
             for instance in self.all_instances:
                 if instance.instance_type == instance_type:
                     instance.terminate_instance()
-                    # time.sleep(20)
 
     @step
     def manually_launch_instances(self, which_instances, moreargs, waitpid=True, kill_instance=False):
@@ -607,8 +604,6 @@ class StarterManager:
                         moreargs,
                         waitpid,
                     )
-                    # instance.detect_pid(self.ppid)
-                    # time.sleep(20)
 
     @step
     def manually_launch_instances_for_upgrade(self, which_instances, moreargs, waitpid=True, kill_instance=False):
@@ -627,8 +622,6 @@ class StarterManager:
                         moreargs,
                         waitpid,
                     )
-                    # i.detect_pid(self.ppid)
-                    # time.sleep(20)
 
     # pylint: disable=unused-argument
     @step
@@ -647,8 +640,6 @@ class StarterManager:
                         moreargs,
                         True,
                     )
-                    # i.detect_pid(self.ppid)
-                    # time.sleep(20)
                     i.launch_manual_from_instance_control_file(
                         self.cfg.sbin_dir,
                         self.old_install_prefix,
@@ -658,8 +649,6 @@ class StarterManager:
                         [],
                         False,
                     )
-                    # i.detect_pid(self.ppid)
-                    # time.sleep(20)
 
     @step
     def restart_arangods(self):

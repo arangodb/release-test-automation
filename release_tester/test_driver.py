@@ -189,7 +189,7 @@ class TestDriver:
 
             with AllureTestSuiteContext(
                     properties=run_props,
-                    versions=[versions[0], versions[1]], #TODO @alexey: LOGGING SHOULD BE FIXED
+                    versions=versions,
                     parent_test_suite_name=None,
                     auto_generate_parent_test_suite_name=True,
                     suite_name=runner_strings[runner_type],
@@ -222,8 +222,8 @@ class TestDriver:
                         """.format(
                                 **{
                                     "starter_mode": str(self.base_config.starter_mode),
-                                    "old_version": str(versions[0]), #TODO @alexey: LOGGING SHOULD BE FIXED
-                                    "cfg_repr": repr(installers[1][0]), #TODO @alexey: LOGGING SHOULD BE FIXED
+                                    "old_version": str(versions[0]),
+                                    "cfg_repr": repr(installers[1][0]),
                                 }
                             )
                         )

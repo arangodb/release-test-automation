@@ -265,16 +265,20 @@ class Runner(ABC):
             detect_file_ulimit()
 
         versions_count = len(self.installers)
-        for i in range(0, versions_count - 1):
+        is_single_test = True if versions_count == 1 else False
+        bound = 1 if is_single_test else versions_count - 1
+
+        for i in range(0, bound):
             self.old_installer = self.installers[i][1]
-            self.new_installer = self.installers[i+1][1]
             if i == 0:
                 # if i != 0, it means that self.cfg was already updated after chain-upgrade
                 self.cfg = copy.deepcopy(self.old_installer.cfg)
-            self.new_cfg = copy.deepcopy(self.new_installer.cfg)
+            if not is_single_test: 
+                self.new_installer = self.installers[i+1][1]
+                self.new_cfg = copy.deepcopy(self.new_installer.cfg)
 
-            is_keep_db_dir = True if i != versions_count - 2 else False
-            is_uninstall = True if i == versions_count - 2 else False
+            is_keep_db_dir = True if i != bound - 1 else False
+            is_uninstall_now = True if i == bound - 1 else False
 
             self.progress(False, "Runner of type {0}".format(str(self.name)), "<3")
 
@@ -354,28 +358,11 @@ class Runner(ABC):
                 self.new_installer.output_arangod_version()
                 self.new_installer.get_starter_version()
                 self.new_installer.get_sync_version()
-                self.new_installer.stop_service()
-                
-                # print("starter_instances: before upgrade")
-                # for i in range(len(self.starter_instances)):
-                #     for j in range(len(self.starter_instances[i].all_instances)):
-                #         print("starter_instance: {}-{}, pid: {}, ppid:{}".format(
-                #             i, j,
-                #             self.starter_instances[i].all_instances[j].pid,
-                #             self.starter_instances[i].all_instances[j].ppid))
+                self.new_installer.stop_service()              
 
                 self.upgrade_arangod_version()  # make sure to pass new version
                 self.new_cfg.set_directories(self.new_installer.cfg)
                 self.cfg = copy.deepcopy(self.new_cfg)
-
-
-                # print("starter_instances: after upgrade")
-                # for i in range(len(self.starter_instances)):
-                #     for j in range(len(self.starter_instances[i].all_instances)):
-                #         print("starter_instance: {}-{}, pid: {}, ppid:{}".format(
-                #             i, j,
-                #             self.starter_instances[i].all_instances[j].pid,
-                #             self.starter_instances[i].all_instances[j].ppid))
 
                 self.old_installer.un_install_server_package_for_upgrade()
                 if self.is_minor_upgrade() and self.new_installer.supports_backup():
@@ -410,6 +397,7 @@ class Runner(ABC):
                     if len(backups) != 0:
                         raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
                 self.check_data_impl()
+                self.versionstr = "OLD[" + self.new_cfg.version + "] "
             else:
                 logging.info("skipping upgrade step no new version given")
 
@@ -419,81 +407,14 @@ class Runner(ABC):
                         False,
                         "{0} TESTS FOR {1}".format(self.testrun_name, str(self.name)),
                     )
-                    self.test_setup()
-
-                    # DEBUG OUTPUT VVVVVVVVVVVV
-                    # print("starter_instances: before jam_attempt")
-                    # for i in range(len(self.starter_instances)):
-                    #     for j in range(len(self.starter_instances[i].all_instances)):
-                    #         print("starter_instance: {}-{}, pid: {}, ppid:{}".format(
-                    #             i, j,
-                    #             self.starter_instances[i].all_instances[j].pid,
-                    #             self.starter_instances[i].all_instances[j].ppid))
-                    
-                    # print("makedata_instances: before jam_attempt")
-                    # for i in range(len(self.makedata_instances)):
-                    #     for j in range(len(self.makedata_instances[i].all_instances)):
-                    #         print("make_instance: {}-{}, pid: {}, ppid:{}".format(
-                    #             i,j,
-                    #             self.makedata_instances[i].all_instances[j].pid,
-                    #             self.makedata_instances[i].all_instances[j].ppid))
-
-                    # print("leader: before jam_attempt")
-                    # for i in range(len(self.leader.all_instances)):
-                    #     print("leader: frontend:{}, i: {}, pid: {}, ppid:{}".format(
-                    #         self.leader.frontend_port,
-                    #         i,
-                    #         self.leader.all_instances[i].pid,
-                    #         self.leader.all_instances[i].ppid))   
-
-                    # print("follower_nodes: before jam_attempt")
-                    # for i in range(len(self.follower_nodes)):
-                    #     for j in range(len(self.follower_nodes[i].all_instances)):
-                    #         print("follower: {}-{}, pid: {}, ppid:{}".format(
-                    #             i, j,
-                    #             self.follower_nodes[i].all_instances[j].pid,
-                    #             self.follower_nodes[i].all_instances[j].ppid))                 
-
+                    self.test_setup()     
                     self.jam_attempt()
-
-                    # print("starter_instances: after jam_attempt")
-                    # for i in range(len(self.starter_instances)):
-                    #     for j in range(len(self.starter_instances[i].all_instances)):
-                    #         print("starter_instance: {}-{}, pid: {}, ppid:{}".format(
-                    #             i, j,
-                    #             self.starter_instances[i].all_instances[j].pid,
-                    #             self.starter_instances[i].all_instances[j].ppid))
-                    
-                    # print("makedata_instances: after jam_attempt")
-                    # for i in range(len(self.makedata_instances)):
-                    #     for j in range(len(self.makedata_instances[i].all_instances)):
-                    #         print("make_instance: {}-{}, pid: {}, ppid:{}".format(
-                    #             i, j,
-                    #             self.makedata_instances[i].all_instances[j].pid,
-                    #             self.makedata_instances[i].all_instances[j].ppid))
-
-                    # print("leader: after jam_attempt")
-                    # for i in range(len(self.leader.all_instances)):
-                    #     print("leader: frontend:{}, i: {}, pid: {}, ppid:{}".format(
-                    #         self.leader.frontend_port,
-                    #         i,
-                    #         self.leader.all_instances[i].pid,
-                    #         self.leader.all_instances[i].ppid))   
-
-                    # print("follower_nodes: after jam_attempt")
-                    # for i in range(len(self.follower_nodes)):
-                    #     for j in range(len(self.follower_nodes[i].all_instances)):
-                    #         print("follower: {}-{}, pid: {}, ppid:{}".format(
-                    #             i, j,
-                    #             self.follower_nodes[i].all_instances[j].pid,
-                    #             self.follower_nodes[i].all_instances[j].ppid))                  
-
                     self.check_data_impl()
                     if not is_keep_db_dir:
                         self.starter_shutdown()
                         for starter in self.starter_instances:
                             starter.detect_fatal_errors()
-                if self.do_uninstall and is_uninstall: #TODO @alexey: ambigous
+                if self.do_uninstall and is_uninstall_now:
                     self.uninstall(self.old_installer if not self.new_installer else self.new_installer)
             finally:
                 if self.selenium:
