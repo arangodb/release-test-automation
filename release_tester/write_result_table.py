@@ -13,7 +13,7 @@ def write_table(results):
                             one_result["testrun name"],
                             one_result["testscenario"],
                             # one_result['success'],
-                            ("\n".join(one_result["messages"])).sub('\t', '    '),
+                            ("\n".join(one_result["messages"])).replace('\t', '    '),
                         ]
                     )
                 else:
@@ -22,7 +22,7 @@ def write_table(results):
                             one_result["testrun name"],
                             one_result["testscenario"],
                             # one_result['success'],
-                            ("\n".join(one_result["messages"]) + "\n" + "H" * 40 + "\n" + one_result["progress"]).sub('\t', '    '),
+                            ("\n".join(one_result["messages"]) + "\n" + "H" * 40 + "\n" + one_result["progress"]).replace('\t', '    '),
                         ]
                     )
                 status = status and one_result["success"]
