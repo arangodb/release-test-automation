@@ -539,8 +539,8 @@ let restoreServerLoggingSettings = function (topic) {
         `citations_naive_${loopCount}`,
         // `citations_smart_${loopCount}`,
       ];
-//      saveServerLoggingSettings();
-//      setLoggingForAllServers("requests", "trace");
+      saveServerLoggingSettings();
+      setLoggingForAllServers("requests", "trace");
       for (let collection of docCollections) {
         jsunity.run(ReadDocsFromFollowerTestSuite(collection));
         let result = jsunity.done();
@@ -560,7 +560,7 @@ let restoreServerLoggingSettings = function (topic) {
       if (!result.status) {
         failed.push(result);
       }
-//      restoreServerLoggingSettings("requests");
+      restoreServerLoggingSettings("requests");
       if (failed.length > 0) {
         throw "Some tests failed. See output above.";
       }
@@ -576,8 +576,8 @@ let restoreServerLoggingSettings = function (topic) {
       let databaseName = `${baseName}_${dbCount}_oneShard`;
       db._useDatabase(databaseName);
       let failed = [];
-//      saveServerLoggingSettings();
-//      setLoggingForAllServers("requests", "trace");
+      saveServerLoggingSettings();
+      setLoggingForAllServers("requests", "trace");
       for (let ccount = 0; ccount < options.collectionMultiplier; ++ccount) {
         let collectionName = `c_${ccount}_0`;
         jsunity.run(ReadDocsFromFollowerTestSuite(collectionName));
@@ -587,7 +587,7 @@ let restoreServerLoggingSettings = function (topic) {
         }
       }
 
-//      restoreServerLoggingSettings("requests");
+      restoreServerLoggingSettings("requests");
       db._useDatabase('_system');
       return 0;
       databaseName = `${baseName}_${dbCount}_entGraph`;
