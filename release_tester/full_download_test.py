@@ -7,7 +7,7 @@ import sys
 import click
 from common_options import very_common_options, common_options, download_options, full_common_options, hotbackup_options
 
-from beautifultable import BeautifulTable, ALIGN_LEFT
+from write_result_table import write_table
 
 import tools.loghelper as lh
 from download import (
@@ -76,50 +76,15 @@ def package_test(dl_opts: DownloadOptions, new_version, new_dlstage, git_version
         results.append(test_driver.run_test("all", "all", [dl_new.cfg.version], props))
 
     print("V" * 80)
-    status = True
-    table = BeautifulTable(maxwidth=140)
-    for one_suite_result in results:
-        if len(one_suite_result) > 0:
-            for one_result in one_suite_result:
-                if one_result["success"]:
-                    table.rows.append(
-                        [
-                            one_result["testrun name"],
-                            one_result["testscenario"],
-                            # one_result['success'],
-                            "\n".join(one_result["messages"]),
-                        ]
-                    )
-                else:
-                    table.rows.append(
-                        [
-                            one_result["testrun name"],
-                            one_result["testscenario"],
-                            # one_result['success'],
-                            "\n".join(one_result["messages"]) + "\n" + "H" * 40 + "\n" + one_result["progress"],
-                        ]
-                    )
-                status = status and one_result["success"]
-    table.columns.header = [
-        "Testrun",
-        "Test Scenario",
-        # 'success', we also have this in message.
-        "Message + Progress",
-    ]
-    table.columns.alignment["Message + Progress"] = ALIGN_LEFT
-
-    tablestr = str(table)
-    Path("testfailures.txt").write_text(tablestr, encoding="utf8")
-    if not status:
+    if not write_table(results):
         print("exiting with failure")
-        sys.exit(1)
+        return 1
 
     if dl_opts.force:
         touch_all_tars_in_dir(version_state_tar)
     else:
         write_version_tar(version_state_tar, fresh_versions)
-    print(tablestr)
-
+    return 0
 
 @click.command()
 @full_common_options

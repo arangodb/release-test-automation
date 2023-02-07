@@ -35,6 +35,7 @@ else
 fi
 
 VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_tar_version.tar"
+docker rm minio1
 mkdir -p "${PACKAGE_CACHE}"
 mkdir -p test_dir/miniodata/home/test_dir
 rm -rf test_dir/miniodata/home/test_dir/*
