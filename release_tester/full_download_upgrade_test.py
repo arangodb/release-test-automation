@@ -6,7 +6,6 @@ from copy import copy, deepcopy
 from pathlib import Path
 
 import click
-from beautifultable import BeautifulTable, ALIGN_LEFT
 
 import tools.loghelper as lh
 from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig
@@ -14,6 +13,7 @@ from common_options import very_common_options, common_options, download_options
 from download import Download, DownloadOptions
 from test_driver import TestDriver
 from tools.killall import list_all_processes
+from write_result_table import write_table
 
 
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
@@ -177,50 +177,9 @@ def upgrade_package_test(
             )
 
     print("V" * 80)
-    status = True
-    table = BeautifulTable(maxwidth=140)
-    for one_suite_result in results:
-        if len(one_suite_result) > 0:
-            for one_result in one_suite_result:
-                if one_result["success"]:
-                    table.rows.append(
-                        [
-                            one_result["testrun name"],
-                            one_result["testscenario"],
-                            # one_result['success'],
-                            "\n".join(one_result["messages"]),
-                        ]
-                    )
-                else:
-                    # pylint: disable=broad-except disable=bare-except
-                    try:
-                        table.rows.append(
-                            [
-                                one_result["testrun name"],
-                                one_result["testscenario"],
-                                # one_result['success'],
-                                "\n".join(one_result["messages"]) + "\n" + "H" * 40 + "\n" + one_result["progress"],
-                            ]
-                        )
-                    except Exception as ex:
-                        print("result error while syntesizing " + str(one_result))
-                        print(ex)
-                status = status and one_result["success"]
-    table.columns.header = [
-        "Testrun",
-        "Test Scenario",
-        # 'success', we also have this in message.
-        "Message + Progress",
-    ]
-    table.columns.alignment["Message + Progress"] = ALIGN_LEFT
-
-    tablestr = str(table)
-    Path("testfailures.txt").write_text(tablestr, encoding="utf8")
-    if not status:
+    if not write_table(results):
         print("exiting with failure")
-        sys.exit(1)
-    print(tablestr)
-
+        return 1
     return 0
 
 
