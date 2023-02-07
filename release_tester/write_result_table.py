@@ -1,4 +1,5 @@
 from beautifultable import BeautifulTable, ALIGN_LEFT
+from pathlib import Path
 
 def write_table(results):
     status = True
