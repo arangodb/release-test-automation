@@ -1,5 +1,11 @@
-/* global print, assertTrue, assertFalse, assertEqual, db, semver, download, sleep, fs, arango, PWD */
+/* global print, db, semver, sleep, fs, arango, PWD */
 const jsunity = require('jsunity');
+const download = internal.download;
+const {
+  assertTrue,
+  assertFalse,
+  assertEqual
+} = require("jsunity").jsUnity.assertions;
 
 const testCollName = "ReadFromFollowerCollection";
 const httpGetMetric = "arangodb_http_request_statistics_http_get_requests_total";
