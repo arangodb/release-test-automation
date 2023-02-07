@@ -447,18 +447,19 @@ class TestDriver:
                         one_result[
                             "messages"].append(
                             f'The following UI tests failed: {", ".join(failed_test_names)}. See allure report for details.')
-                    lh.section("uninstall")
-                    installers[0][1].un_install_server_package()
-                    lh.section("check system")
-                    installers[0][1].check_uninstall_cleanup()
-                    lh.section("remove residuals")
-                    try:
-                        installers[0][1].cleanup_system()
-                    except Exception:
-                        print("Ignoring cleanup error!")
                     results.append(one_result)
                     kill_all_processes()
                     count += 1
+
+        lh.section("uninstall")
+        installers[0][1].un_install_server_package()
+        lh.section("check system")
+        installers[0][1].check_uninstall_cleanup()
+        lh.section("remove residuals")
+        try:
+            installers[0][1].cleanup_system()
+        except Exception:
+            print("Ignoring cleanup error!")
 
         return results
 
