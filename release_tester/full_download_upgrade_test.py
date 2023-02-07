@@ -42,15 +42,11 @@ def upgrade_package_test(
     fresh_versions = {}
 
     results = []
-    new_versions = []
-    old_versions = []
-    old_dlstages = []
-    new_dlstages = []
-          
+         
     upgrade_scenarios = []
     packages = {}
 
-    # STEP 1: Prepare
+    # STEP 1: Prepare. Download all required packages for current launch
     for v_sequence in upgrade_matrix.split(";"):
         versions_list = v_sequence.split(":")
         upgrade_scenarios.append(versions_list)
@@ -84,28 +80,21 @@ def upgrade_package_test(
                     packages[version_name][props.directory_suffix] = res
                     res.get_packages(dl_opts.force)
 
+    # STEP 2: Run test for primary version
+    for default_props in EXECUTION_PLAN:
+        props = copy(default_props)
+        if props.directory_suffix not in editions:
+            continue
 
-    # TODO: UNCOMMENT THIS!
-    
-    # # STEP 2: Run test for primary version
-    # for default_props in EXECUTION_PLAN:
-    #     props = copy(default_props)
-    #     if props.directory_suffix not in editions:
-    #         continue
+        props.testrun_name = "test_" + props.testrun_name
 
-    #     props.testrun_name = "test_" + props.testrun_name
+        test_driver.run_cleanup(props)
+        print("Cleanup done")
 
-    #     test_driver.run_cleanup(props)
-    #     print("Cleanup done")
+        this_test_dir = test_dir / props.directory_suffix
+        test_driver.reset_test_data_dir(this_test_dir)
 
-    #     this_test_dir = test_dir / props.directory_suffix
-    #     test_driver.reset_test_data_dir(this_test_dir)
-
-    #     results.append(test_driver.run_test("all", "all", [packages[primary_version][props.directory_suffix].cfg.version], props))    
-
-
-
-
+        results.append(test_driver.run_test("all", "all", [packages[primary_version][props.directory_suffix].cfg.version], props))    
 
     # STEP 3: Run upgrade tests
     for scenario in upgrade_scenarios:

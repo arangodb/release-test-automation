@@ -348,7 +348,8 @@ class TestDriver:
             versions,
             self.base_config,
             deployment_mode,
-            run_props
+            run_props,
+            self.use_auto_certs
         )
         lh.section("configuration")
         print(
@@ -467,7 +468,8 @@ class TestDriver:
             versions,
             self.base_config,
             deployment_mode,
-            run_props
+            run_props,
+            self.use_auto_certs
         )
         lh.section("configuration")
         print(

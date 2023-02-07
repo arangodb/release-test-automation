@@ -36,7 +36,7 @@ class LicenseManagerUpgradeBaseTestSuite(LicenseManagerBaseTestSuite):
         )
         versions = [self.old_version, self.new_version]
         self.installer_set = create_config_installer_set(
-            versions=versions, base_config=self.base_cfg, deployment_mode="all", run_properties=run_props
+            versions=versions, base_config=self.base_cfg, deployment_mode="all", run_properties=run_props, use_auto_certs=self.use_auto_certs
         )
         self.old_installer = self.installer_set[0][1]
         self.new_installer = self.installer_set[1][1]

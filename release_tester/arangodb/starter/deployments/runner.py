@@ -310,38 +310,38 @@ class Runner(ABC):
                     self.cfg,
                     "{0}{1} Deployment started. Please test the UI!".format((self.versionstr), str(self.name)),
                 )
-                # if self.hot_backup:
-                #     self.progress(False, "TESTING HOTBACKUP")
-                #     self.backup_name = self.create_backup("thy_name_is_" + self.name)
-                #     self.validate_local_backup(self.backup_name)
-                #     self.tcp_ping_all_nodes()
-                #     self.create_non_backup_data()
-                #     backups = self.list_backup()
-                #     self.upload_backup(backups[0])
-                #     self.tcp_ping_all_nodes()
-                #     self.delete_backup(backups[0])
-                #     self.tcp_ping_all_nodes()
-                #     backups = self.list_backup()
-                #     if len(backups) != 0:
-                #         raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
-                #     self.download_backup(self.backup_name)
-                #     self.validate_local_backup(self.backup_name)
-                #     self.tcp_ping_all_nodes()
-                #     backups = self.list_backup()
-                #     if backups[0] != self.backup_name:
-                #         raise Exception("downloaded backup has different name? " + str(backups))
-                #     self.before_backup()
-                #     self.restore_backup(backups[0])
-                #     self.tcp_ping_all_nodes()
-                #     self.after_backup()
-                #     time.sleep(20)  # TODO fix
-                #     self.check_data_impl()
-                #     if not self.check_non_backup_data():
-                #         raise Exception("data created after backup is still there??")
+                if self.hot_backup:
+                    self.progress(False, "TESTING HOTBACKUP")
+                    self.backup_name = self.create_backup("thy_name_is_" + self.name)
+                    self.validate_local_backup(self.backup_name)
+                    self.tcp_ping_all_nodes()
+                    self.create_non_backup_data()
+                    backups = self.list_backup()
+                    self.upload_backup(backups[0])
+                    self.tcp_ping_all_nodes()
+                    self.delete_backup(backups[0])
+                    self.tcp_ping_all_nodes()
+                    backups = self.list_backup()
+                    if len(backups) != 0:
+                        raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
+                    self.download_backup(self.backup_name)
+                    self.validate_local_backup(self.backup_name)
+                    self.tcp_ping_all_nodes()
+                    backups = self.list_backup()
+                    if backups[0] != self.backup_name:
+                        raise Exception("downloaded backup has different name? " + str(backups))
+                    self.before_backup()
+                    self.restore_backup(backups[0])
+                    self.tcp_ping_all_nodes()
+                    self.after_backup()
+                    time.sleep(20)  # TODO fix
+                    self.check_data_impl()
+                    if not self.check_non_backup_data():
+                        raise Exception("data created after backup is still there??")
 
             if self.new_installer:
-                # if self.hot_backup:
-                #     self.create_non_backup_data()
+                if self.hot_backup:
+                    self.create_non_backup_data()
                 self.versionstr = "NEW[" + self.new_cfg.version + "] "
 
                 self.progress(
@@ -380,35 +380,35 @@ class Runner(ABC):
                 self.old_installer.un_install_server_package_for_upgrade()
                 if self.is_minor_upgrade() and self.new_installer.supports_backup():
                     self.new_installer.check_backup_is_created()
-                # if self.hot_backup:
-                #     self.check_data_impl()
-                #     self.progress(False, "TESTING HOTBACKUP AFTER UPGRADE")
-                #     backups = self.list_backup()
-                #     self.upload_backup(backups[0])
-                #     self.tcp_ping_all_nodes()
-                #     self.delete_backup(backups[0])
-                #     self.tcp_ping_all_nodes()
-                #     backups = self.list_backup()
-                #     if len(backups) != 0:
-                #         raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
-                #     self.download_backup(self.backup_name)
-                #     self.validate_local_backup(self.backup_name)
-                #     self.tcp_ping_all_nodes()
-                #     backups = self.list_backup()
-                #     if backups[0] != self.backup_name:
-                #         raise Exception("downloaded backup has different name? " + str(backups))
-                #     time.sleep(20)  # TODO fix    
-                #     self.before_backup()
-                #     self.restore_backup(backups[0])
-                #     self.tcp_ping_all_nodes()
-                #     self.after_backup()
-                #     if not self.check_non_backup_data():
-                #         raise Exception("data created after backup is still there??")
-                #     self.delete_backup(backups[0])
-                #     self.tcp_ping_all_nodes()
-                #     backups = self.list_backup()
-                #     if len(backups) != 0:
-                #         raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
+                if self.hot_backup:
+                    self.check_data_impl()
+                    self.progress(False, "TESTING HOTBACKUP AFTER UPGRADE")
+                    backups = self.list_backup()
+                    self.upload_backup(backups[0])
+                    self.tcp_ping_all_nodes()
+                    self.delete_backup(backups[0])
+                    self.tcp_ping_all_nodes()
+                    backups = self.list_backup()
+                    if len(backups) != 0:
+                        raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
+                    self.download_backup(self.backup_name)
+                    self.validate_local_backup(self.backup_name)
+                    self.tcp_ping_all_nodes()
+                    backups = self.list_backup()
+                    if backups[0] != self.backup_name:
+                        raise Exception("downloaded backup has different name? " + str(backups))
+                    time.sleep(20)  # TODO fix    
+                    self.before_backup()
+                    self.restore_backup(backups[0])
+                    self.tcp_ping_all_nodes()
+                    self.after_backup()
+                    if not self.check_non_backup_data():
+                        raise Exception("data created after backup is still there??")
+                    self.delete_backup(backups[0])
+                    self.tcp_ping_all_nodes()
+                    backups = self.list_backup()
+                    if len(backups) != 0:
+                        raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
                 self.check_data_impl()
             else:
                 logging.info("skipping upgrade step no new version given")
@@ -549,9 +549,9 @@ class Runner(ABC):
                 False,
                 "TESTS FOR {0}".format(str(self.name)),
             )
-            # self.test_setup()
-            # self.jam_attempt()
-            # self.starter_shutdown()
+            self.test_setup()
+            self.jam_attempt()
+            self.starter_shutdown()
         if self.selenium:
             self.selenium.disconnect()
         self.progress(False, "Runner of type {0} - Finished!".format(str(self.name)))
