@@ -140,6 +140,7 @@ class ActiveFailover(Runner):
             node.run_starter()
 
         logging.info("waiting for the starters to become alive")
+        count = 0
         while (
             not self.starter_instances[0].is_instance_up()
             and not self.starter_instances[1].is_instance_up()
@@ -147,6 +148,9 @@ class ActiveFailover(Runner):
         ):
             sys.stdout.write(".")
             time.sleep(1)
+            count += 1
+            if count > 120:
+                raise Exception("Active failover installation didn't come up in two minutes!")
 
         logging.info("waiting for the cluster instances to become alive")
         for node in self.starter_instances:
@@ -270,7 +274,7 @@ class ActiveFailover(Runner):
                 ["--database.auto-upgrade", "true", "--javascript.copy-installation", "true"],
             )
         self.progress(True, "step 3 - launch instances again")
-        version = self.new_cfg.version if self.new_cfg != None else self.cfg.version
+        version = self.new_cfg.version if self.new_cfg is not None else self.cfg.version
         for node in self.starter_instances:
             node.respawn_instance(version)
         self.progress(True, "step 4 - check alive status")
