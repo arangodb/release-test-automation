@@ -247,9 +247,14 @@ class Dc2Dc(Runner):
         def launch(cluster):
             inst = cluster["instance"]
             inst.run_starter()
+            count = 0
             while not inst.is_instance_up():
                 logging.info(".")
                 time.sleep(1)
+                count += 1
+                if count > 120:
+                    raise Exception("DC2DC Cluster installation didn't come up in two minutes!")
+
             inst.detect_instances()
             inst.detect_instance_pids()
             cluster["smport"] = inst.get_sync_master_port()
