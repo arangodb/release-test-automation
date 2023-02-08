@@ -76,28 +76,27 @@ def package_test(dl_opts: DownloadOptions, new_version, new_dlstage, git_version
 
         results.append(test_driver.run_test("all", "all", [dl_new.cfg.version], props))
 
-        enterprise_packages_are_present = "EE" in editions or "EP" in editions
-        community_packages_are_present = "C" in editions
-        params = deepcopy(test_driver.cli_test_suite_params)
-        params.new_version = dl_new.cfg.version
-        if enterprise_packages_are_present:
-            params.enterprise = True
-            results.append(
-                test_driver.run_test_suites(
-                    include_suites=(
-                    "DebuggerTestSuite", "BasicLicenseManagerTestSuite"),
-                    params=params,
-                )
+    enterprise_packages_are_present = "EE" in editions or "EP" in editions
+    community_packages_are_present = "C" in editions
+    params = deepcopy(test_driver.cli_test_suite_params)
+    params.new_version = dl_new.cfg.version
+    if enterprise_packages_are_present:
+        params.enterprise = True
+        results.append(
+            test_driver.run_test_suites(
+                include_suites=(
+                "DebuggerTestSuite", "BasicLicenseManagerTestSuite"),
+                params=params,
             )
-
-        if community_packages_are_present:
-            params.enterprise = False
-            results.append(
-                test_driver.run_test_suites(
-                    include_suites=("DebuggerTestSuite",),
-                    params=params,
-                )
+        )
+    if community_packages_are_present:
+        params.enterprise = False
+        results.append(
+            test_driver.run_test_suites(
+                include_suites=("DebuggerTestSuite",),
+                params=params,
             )
+        )
 
     print("V" * 80)
     if not write_table(results):
