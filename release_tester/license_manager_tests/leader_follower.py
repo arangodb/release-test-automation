@@ -5,10 +5,15 @@ from arangodb.async_client import CliExecutionException
 from license_manager_tests.base.leader_follower_base import LicenseManagerLeaderFollowerBaseTestSuite
 from reporting.reporting_utils import step
 from test_suites_core.base_test_suite import testcase, disable
+from test_suites_core.cli_test_suite import CliTestSuiteParameters
 
 
 class LicenseManagerLeaderFollowerTestSuite(LicenseManagerLeaderFollowerBaseTestSuite):
     """License manager tests: leader-follower"""
+
+    def __init__(self, params: CliTestSuiteParameters):
+        super().__init__(params)
+        self.suite_name = "License manager tests: Clean install"
 
     @testcase
     def clean_install_temp_license(self):

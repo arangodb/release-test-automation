@@ -1,17 +1,15 @@
 #!/usr/bin/python3
 """ fetch nightly packages, process upgrade """
-# pylint: disable=duplicate-code
-from pathlib import Path
 import sys
+# pylint: disable=duplicate-code
+from copy import deepcopy
+from pathlib import Path
 
 import click
-import semver
-
-from common_options import very_common_options, common_options, download_options, full_common_options, hotbackup_options
-
-from write_result_table import write_table
 
 import tools.loghelper as lh
+from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig
+from common_options import very_common_options, common_options, download_options, full_common_options, hotbackup_options
 from download import (
     get_tar_file_path,
     read_versions_tar,
@@ -22,8 +20,7 @@ from download import (
 )
 from test_driver import TestDriver
 from tools.killall import list_all_processes
-
-from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig, RunProperties
+from write_result_table import write_table
 
 
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
@@ -96,35 +93,40 @@ def upgrade_package_test(
     enterprise_packages_are_present = "EE" in editions or "EP" in editions
     community_packages_are_present = "C" in editions
 
-    [new_version, old_version] = versions[0]
+    params = deepcopy(test_driver.cli_test_suite_params)
+    params.new_version = dl_new.cfg.version
+    params.old_version = dl_old.cfg.version
     if enterprise_packages_are_present and community_packages_are_present:
-        for use_enterprise in [True, False]:
-            results.append(
-                test_driver.run_conflict_tests(
-                    [old_version, new_version],
-                    enterprise=use_enterprise,
-                )
-            )
-
-    if enterprise_packages_are_present:
+        params.enterprise = True
         results.append(
-            test_driver.run_debugger_tests(
-                [semver.VersionInfo.parse(old_version), semver.VersionInfo.parse(new_version)],
-                run_props=RunProperties(True, False, False),
+            test_driver.run_test_suites(
+                include_suites=("EnterprisePackageInstallationTestSuite",),
+                params=params,
+            )
+        )
+        params.enterprise = False
+        results.append(
+            test_driver.run_test_suites(
+                include_suites=("CommunityPackageInstallationTestSuite",),
+                params=params,
             )
         )
 
+    if enterprise_packages_are_present:
+        params.enterprise = True
         results.append(
-            test_driver.run_license_manager_tests(
-                [semver.VersionInfo.parse(old_version), semver.VersionInfo.parse(new_version)]
+            test_driver.run_test_suites(
+                include_suites=("DebuggerTestSuite", "BasicLicenseManagerTestSuite", "UpgradeLicenseManagerTestSuite"),
+                params=params,
             )
         )
 
     if community_packages_are_present:
+        params.enterprise = False
         results.append(
-            test_driver.run_debugger_tests(
-                [semver.VersionInfo.parse(old_version), semver.VersionInfo.parse(new_version)],
-                run_props=RunProperties(False, False, False),
+            test_driver.run_test_suites(
+                include_suites=("DebuggerTestSuite",),
+                params=params,
             )
         )
 

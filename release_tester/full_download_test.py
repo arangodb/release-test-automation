@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 """ fetch nightly packages, process upgrade """
-#pylint: disable=duplicate-code
+# pylint: disable=duplicate-code
+from copy import deepcopy
 from pathlib import Path
 import sys
 
@@ -74,6 +75,28 @@ def package_test(dl_opts: DownloadOptions, new_version, new_dlstage, git_version
         test_driver.reset_test_data_dir(this_test_dir)
 
         results.append(test_driver.run_test("all", "all", [dl_new.cfg.version], props))
+
+    enterprise_packages_are_present = "EE" in editions or "EP" in editions
+    community_packages_are_present = "C" in editions
+    params = deepcopy(test_driver.cli_test_suite_params)
+    params.new_version = dl_new.cfg.version
+    if enterprise_packages_are_present:
+        params.enterprise = True
+        results.append(
+            test_driver.run_test_suites(
+                include_suites=(
+                "DebuggerTestSuite", "BasicLicenseManagerTestSuite"),
+                params=params,
+            )
+        )
+    if community_packages_are_present:
+        params.enterprise = False
+        results.append(
+            test_driver.run_test_suites(
+                include_suites=("DebuggerTestSuite",),
+                params=params,
+            )
+        )
 
     print("V" * 80)
     if not write_table(results):

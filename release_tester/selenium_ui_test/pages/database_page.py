@@ -25,7 +25,7 @@ class DatabasePage(NavigationBarPage):
 
     def create_new_db(self, db_name, index, cluster):
         """Creating and checking new database"""
-        #pylint: disable=too-many-locals
+        # pylint: disable=too-many-locals
         self.select_database_page()
         print(f"Creating {db_name} database started \n")
         create_new_db_btn = self.create_new_db_btn
@@ -124,7 +124,7 @@ class DatabasePage(NavigationBarPage):
 
     def test_database_expected_error(self, cluster):
         """This method will test all negative scenario"""
-        #pylint: disable=too-many-statements disable=too-many-statements  disable=too-many-locals
+        # pylint: disable=too-many-statements disable=too-many-statements  disable=too-many-locals
         self.select_database_page()
         print("Expected error scenario for the Database name Started. \n")
         create_new_db_btn = self.create_new_db_btn

@@ -3,10 +3,15 @@
 # pylint: disable=import-error
 from license_manager_tests.base.afo_base import LicenseManagerAfoBaseTestSuite
 from test_suites_core.base_test_suite import testcase
+from test_suites_core.cli_test_suite import CliTestSuiteParameters
 
 
 class LicenseManagerAfoTestSuite(LicenseManagerAfoBaseTestSuite):
     """License manager tests: active failover"""
+
+    def __init__(self, params: CliTestSuiteParameters):
+        super().__init__(params)
+        self.suite_name = "License manager tests: Clean install"
 
     @testcase
     def clean_install_temp_license(self):
