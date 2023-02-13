@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """test drivers"""
-import logging
 import os
 import platform
 import re
@@ -28,6 +27,8 @@ from license_manager_tests.upgrade.upgrade_test_suite import UpgradeLicenseManag
 from package_installation_tests.community_package_installation_test_suite import CommunityPackageInstallationTestSuite
 from package_installation_tests.enterprise_package_installation_test_suite import EnterprisePackageInstallationTestSuite
 from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext, init_allure
+from reporting.reporting_utils2 import generate_suite_name
+from test_suites_core.cli_test_suite import CliTestSuiteParameters
 from tools.killall import kill_all_processes
 
 try:
@@ -84,6 +85,7 @@ class TestDriver:
             results_dir=kwargs["alluredir"], clean=kwargs["clean_alluredir"], zip_package=self.base_config.zip_package
         )
         self.installer_type = None
+        self.cli_test_suite_params = CliTestSuiteParameters.from_dict(**kwargs)
 
     def set_r_limits(self):
         """on linux manipulate ulimit values"""
@@ -186,16 +188,17 @@ class TestDriver:
                 run_props,
                 self.use_auto_certs
             )
+            old_inst = installers[0][1]
+            new_inst = installers[1][1]
+
+            parent_test_suite_name = generate_suite_name(
+                properties=run_props, versions=versions, runner_type=None, installer_type=new_inst.installer_type
+            )
 
             with AllureTestSuiteContext(
-                    properties=run_props,
-                    versions=versions,
-                    parent_test_suite_name=None,
-                    auto_generate_parent_test_suite_name=True,
-                    suite_name=runner_strings[runner_type],
-                    runner_type=None,
-                    installer_type=installers[0][1], # TODO @alexey: LOGGING SHOULD BE FIXED
-                ):
+                parent_test_suite_name=parent_test_suite_name,
+                suite_name=runner_strings[runner_type],
+            ):
                 with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
                     if not run_props.supports_dc2dc() and runner_type == RunnerType.DC2DC:
                         testcase.context.status = Status.SKIPPED
@@ -363,13 +366,10 @@ class TestDriver:
 
         count = 1
         for runner_type in STARTER_MODES[self.base_config.starter_mode]:
-            with AllureTestSuiteContext(properties=run_props,
-                                        versions=versions,
-                                        parent_test_suite_name=None,
-                                        auto_generate_parent_test_suite_name=True,
-                                        suite_name=runner_strings[runner_type],
-                                        runner_type=None,
-                                        installer_type=installers[0][1].installer_type):
+            parent_test_suite_name = generate_suite_name(properties=run_props, versions=versions, runner_type=None,
+                                                         installer_type=installers[0][1].installer_type)
+            with AllureTestSuiteContext(parent_test_suite_name=parent_test_suite_name,
+                                        suite_name=runner_strings[runner_type]):
                 with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
                     if not run_props.supports_dc2dc() and runner_type == RunnerType.DC2DC:
                         testcase.context.status = Status.SKIPPED
@@ -445,9 +445,21 @@ class TestDriver:
                         one_result[
                             "messages"].append(
                             f'The following UI tests failed: {", ".join(failed_test_names)}. See allure report for details.')
-
+                    results.append(one_result)
                     kill_all_processes()
                     count += 1
+
+        lh.section("uninstall")
+        installers[0][1].un_install_server_package()
+        lh.section("check system")
+        installers[0][1].check_uninstall_cleanup()
+        lh.section("remove residuals")
+        try:
+            for i in range(len(installers)):
+                installer = installers[i][1]
+                installer.cleanup_system()
+        except Exception:
+            print("Ignoring cleanup error!")
 
         return results
 
@@ -510,136 +522,13 @@ class TestDriver:
             kill_all_processes()
         return failed
 
-    # pylint: disable=too-many-arguments disable=too-many-locals, disable=broad-except, disable=too-many-branches, disable=too-many-statements
-    def run_conflict_tests(
-            self,
-            versions: list,
-            enterprise: bool
-    ):
-        """run package conflict tests"""
-        # pylint: disable=import-outside-toplevel
-        if enterprise:
-            testSuite = EnterprisePackageInstallationTestSuite
-        else:
-            testSuite = CommunityPackageInstallationTestSuite
-        suite = testSuite(
-            versions=versions,
-            base_config=self.base_config
-        )
-        suite.run()
-        result = {
-            "testrun name": suite.suite_name,
-            "testscenario": "",
-            "success": True,
-            "messages": [],
-            "progress": "",
-        }
-        if suite.there_are_failed_tests():
-            result["success"] = False
-            for one_result in suite.test_results:
-                result["messages"].append(one_result.message)
-        return [result]
-
-    def run_debugger_tests(
-            self,
-            versions: list,
-            **kwargs
-    ):
-        """run package conflict tests"""
-        # pylint: disable=import-outside-toplevel
-        suite = DebuggerTestSuite(
-            versions=versions,
-            base_config=self.base_config,
-            **kwargs
-        )
-        suite.run()
-        result = {
-            "testrun name": suite.suite_name,
-            "testscenario": "",
-            "success": True,
-            "messages": [],
-            "progress": "",
-        }
-        if suite.there_are_failed_tests():
-            result["success"] = False
-            for one_result in suite.test_results:
-                result["messages"].append(one_result.message)
-        return [result]
-
-    def run_license_manager_tests(
-            self,
-            versions
-    ):
-        """run license manager tests"""
-        if len(versions) == 1:
-            new_version = versions[0]
-        elif len(versions) > 1:
-            old_version = versions[0]
-            new_version = versions[1]
-        if new_version < "3.9.0-nightly":
-            logging.info("License manager test suite is only applicable to versions 3.9 and newer.")
-            return [
-                {
-                    "testrun name": "License manager test suite is only applicable to versions 3.9 and newer.",
-                    "testscenario": "",
-                    "success": True,
-                    "messages": [],
-                    "progress": "",
-                }
-            ]
-        if not EXTERNAL_HELPERS_LOADED:
-            logging.info(
-                "License manager test suite cannot run, because external helpers are not present.")
-            return [
-                {
-                    "testrun name": "License manager test suite cannot run, because external helpers are not present.",
-                    "testscenario": "",
-                    "success": False,
-                    "messages": [],
-                    "progress": "",
-                }
-            ]
-        results = []
-        suites_classes = []
-        suites_classes.append(BasicLicenseManagerTestSuite)
-        if (len(versions) > 1 and
-                old_version > "3.9.0-nightly" and
-                new_version > "3.9.0-nightly"):
-            suites_classes.append(UpgradeLicenseManagerTestSuite)
-        args = (versions, self.base_config)
-
-        for suites_class in suites_classes:
-            suite = suites_class(*args)
-            suite.run()
-            result = {
-                "testrun name": suite.suite_name,
-                "testscenario": "",
-                "success": True,
-                "messages": [],
-                "progress": "",
-            }
-            if suite.there_are_failed_tests():
-                result["success"] = False
-                for one_result in suite.test_results:
-                    result["messages"].append(one_result.message)
-            results.append(result)
-        return results
-
-    def run_all_test_suites(self, versions):
-        """Run all independent test suites"""
-        results = []
-        results.extend(self.run_conflict_tests(versions, True))
-        results.extend(self.run_conflict_tests(versions, False))
-        results.extend(self.run_license_manager_tests(versions))
-        results.extend(self.run_debugger_tests(versions, True))
-        results.extend(self.run_debugger_tests(versions, False))
-        return results
-
-    def run_test_suites(self, versions: list, include_suites=(), exclude_suites=(), **kwargs):
+    def run_test_suites(self, include_suites: tuple = (), exclude_suites: tuple = (), params: CliTestSuiteParameters = None):
         """run a testsuite"""
+        if not params:
+            params = self.cli_test_suite_params
         suite_classes=[]
         if len(include_suites) == 0 and len(exclude_suites) == 0:
-            return self.run_all_test_suites(versions)
+            suite_classes.extend(FULL_TEST_SUITE_LIST)
         if len(include_suites) > 0 and len(exclude_suites) == 0:
             for suite_class in FULL_TEST_SUITE_LIST:
                 if suite_class.__name__ in include_suites:
@@ -656,9 +545,8 @@ class TestDriver:
                 "Please specify one or none of the following parameters: --exclude-test-suite, --include-test-suite.")
 
         results = []
-        args = (versions, self.base_config)
         for suite_class in suite_classes:
-            suite = suite_class(*args, **kwargs)
+            suite = suite_class(params)
             suite.run()
             result = {
                 "testrun name": suite.suite_name,

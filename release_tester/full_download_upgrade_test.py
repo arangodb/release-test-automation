@@ -1,23 +1,19 @@
 #!/usr/bin/python3
 """ fetch nightly packages, process upgrade """
+import sys
+from copy import copy, deepcopy
 # pylint: disable=duplicate-code
 from pathlib import Path
-from copy import copy
-import sys
 
 import click
-import semver
-
-from common_options import very_common_options, common_options, download_options, full_common_options, hotbackup_options
-
-from write_result_table import write_table
 
 import tools.loghelper as lh
+from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig
+from common_options import very_common_options, common_options, download_options, full_common_options, hotbackup_options
 from download import Download, DownloadOptions
 from test_driver import TestDriver
 from tools.killall import list_all_processes
-
-from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig, RunProperties
+from write_result_table import write_table
 
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
 def upgrade_package_test(
@@ -80,8 +76,12 @@ def upgrade_package_test(
                     packages[version_name][props.directory_suffix] = res
                     res.get_packages(dl_opts.force)
 
+    params = deepcopy(test_driver.cli_test_suite_params)
+
     # STEP 2: Run test for primary version
     for default_props in EXECUTION_PLAN:
+        if default_props.directory_suffix not in editions:
+            continue
         props = copy(default_props)
         if props.directory_suffix not in editions:
             continue
@@ -94,7 +94,7 @@ def upgrade_package_test(
         this_test_dir = test_dir / props.directory_suffix
         test_driver.reset_test_data_dir(this_test_dir)
 
-        results.append(test_driver.run_test("all", "all", [packages[primary_version][props.directory_suffix].cfg.version], props))    
+        results.append(test_driver.run_test("all", params.base_cfg.starter_mode, [packages[primary_version][props.directory_suffix].cfg.version], props))    
 
     # STEP 3: Run upgrade tests
     for scenario in upgrade_scenarios:
@@ -118,37 +118,44 @@ def upgrade_package_test(
             enterprise_packages_are_present = "EE" in editions or "EP" in editions
             community_packages_are_present = "C" in editions
 
+            params.new_version = new_version
+            params.old_version = old_version
+
             if enterprise_packages_are_present and community_packages_are_present:
-                for use_enterprise in [True, False]:
-                    results.append(
-                        test_driver.run_conflict_tests(
-                            [old_version, new_version],
-                            enterprise=use_enterprise,
-                        )
+                params.enterprise = True
+                results.append(
+                    test_driver.run_test_suites(
+                        include_suites=("EnterprisePackageInstallationTestSuite",),
+                        params=params,
                     )
+                )
+                params.enterprise = False
+                results.append(
+                    test_driver.run_test_suites(
+                        include_suites=("CommunityPackageInstallationTestSuite",),
+                        params=params
+                    )
+                )
 
             if enterprise_packages_are_present:
+                params.enterprise = True
                 results.append(
-                    test_driver.run_debugger_tests(
-                        [semver.VersionInfo.parse(old_version), semver.VersionInfo.parse(new_version)],
-                        run_props=RunProperties(True, False, False),
+                    test_driver.run_test_suites(
+                        include_suites=(
+                        "DebuggerTestSuite", "BasicLicenseManagerTestSuite", "UpgradeLicenseManagerTestSuite"),
+                        params=params,
                     )
                 )
-
-            results.append(
-                test_driver.run_license_manager_tests(
-                    [semver.VersionInfo.parse(old_version), semver.VersionInfo.parse(new_version)],
-                )
-            )
 
             if community_packages_are_present:
+                params.enterprise = False
                 results.append(
-                    test_driver.run_debugger_tests(
-                        [semver.VersionInfo.parse(old_version), semver.VersionInfo.parse(new_version)],
-                        run_props=RunProperties(False, False, False),
+                    test_driver.run_test_suites(
+                        include_suites=("DebuggerTestSuite",),
+                        params=params,
                     )
-                )    
- 
+                )
+
     print("V" * 80)
     if not write_table(results):
         print("exiting with failure")

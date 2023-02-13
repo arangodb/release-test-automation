@@ -9,10 +9,10 @@ from arangodb.async_client import CliExecutionException
 from arangodb.installers import create_config_installer_set, RunProperties
 from reporting.reporting_utils import step
 from test_suites_core.base_test_suite import (
-    BaseTestSuite,
     run_after_suite,
     collect_crash_data,
 )
+from test_suites_core.cli_test_suite import CliStartedTestSuite, CliTestSuiteParameters
 from tools.killall import kill_all_processes
 
 try:
@@ -24,42 +24,40 @@ except ModuleNotFoundError as exc:
     EXTERNAL_HELPERS_LOADED = False
 
 
-class LicenseManagerBaseTestSuite(BaseTestSuite):
+class LicenseManagerBaseTestSuite(CliStartedTestSuite):
     """base class for license manager test suites"""
 
     # pylint: disable=too-many-instance-attributes disable=dangerous-default-value
-    def __init__(self, new_version, installer_base_config):
-        self.new_version = new_version
-        self.base_cfg = installer_base_config
-        package_type = ".tar.gz" if installer_base_config.zip_package else ".deb/.rpm/NSIS"
-        self.suite_name = f"Licence manager test suite: ArangoDB v. {str(new_version)} ({package_type})"
-        self.auto_generate_parent_test_suite_name = False
-        super().__init__()
-        self.use_subsuite = True
-        run_props = RunProperties(
-            enterprise=True,
-            encryption_at_rest=False,
-            ssl=False,
-        )
+    def __init__(self, params: CliTestSuiteParameters):
+        super().__init__(params)
+        self.sub_suite_name = self.__doc__ if self.__doc__ else self.__class__.__name__
         self.installer_set = create_config_installer_set(
-            versions=[new_version], base_config=self.base_cfg, deployment_mode="all", run_properties=run_props, use_auto_certs=self.use_auto_certs
+            versions=[self.old_version, self.new_version] if self.old_version else [self.new_version],
+            base_config=self.base_cfg,
+            deployment_mode="all",
+            run_properties=self.run_props,
+            use_auto_certs=False
         )
         self.installer = self.installer_set[0][1]
         self.starter = None
         self.instance = None
         self.runner = None
         self.passvoid = "license_manager_tests"
-        self.publicip = installer_base_config.publicip
+        self.publicip = self.base_cfg.publicip
+        self.parent_test_suite_name = (
+            f"Licence manager test suite: ArangoDB v. {str(self.new_version)} ({self.installer.installer_type})"
+        )
 
     # pylint: disable=no-self-use
     def init_child_class(self, child_class):
         """initialise the child class"""
-        return child_class(self.new_version, self.base_cfg)
+        return child_class(self.params)
 
     @run_after_suite
     def teardown_suite(self):
         """License manager base test suite: teardown"""
-        self.runner.starter_shutdown()
+        if self.runner:
+            self.runner.starter_shutdown()
         kill_all_processes()
 
     @collect_crash_data

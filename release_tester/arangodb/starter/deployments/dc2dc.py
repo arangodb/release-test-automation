@@ -247,9 +247,14 @@ class Dc2Dc(Runner):
         def launch(cluster):
             inst = cluster["instance"]
             inst.run_starter()
+            count = 0
             while not inst.is_instance_up():
                 logging.info(".")
                 time.sleep(1)
+                count += 1
+                if count > 120:
+                    raise Exception("DC2DC Cluster installation didn't come up in two minutes!")
+
             inst.detect_instances()
             inst.detect_instance_pids()
             cluster["smport"] = inst.get_sync_master_port()
@@ -556,7 +561,7 @@ class Dc2Dc(Runner):
                 ],
             )
         self.progress(True, "step 5 restart the full cluster ")
-        version = self.new_cfg.version if self.new_cfg != None else self.cfg.version
+        version = self.new_cfg.version if self.new_cfg is not None else self.cfg.version
         for node in self.starter_instances:
             node.respawn_instance(version)
         self.progress(True, "step 6 wait for the cluster to be up")

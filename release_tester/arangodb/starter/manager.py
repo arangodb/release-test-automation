@@ -74,6 +74,8 @@ class StarterManager:
         # self.moreopts += ["--all.log.level=engines=trace"]
         # self.moreopts += ["--all.log.escape-control-chars=true"]
         # self.moreopts += ["--all.log.escape-unicode-chars=true"]
+        # self.moreopts += ["--starter.disable-ipv6=false"]
+        # self.moreopts += ["--starter.host=127.0.0.1"]
         if (self.cfg.semver.major==3 and self.cfg.semver.minor>=9) or (self.cfg.semver.major>3):
             self.moreopts += ["--args.all.database.extended-names-databases=true"]
 

@@ -12,34 +12,27 @@ from test_suites_core.base_test_suite import (
     run_after_each_testcase,
     collect_crash_data,
 )
+from test_suites_core.cli_test_suite import CliStartedTestSuite, CliTestSuiteParameters
 
 
-class BasePackageInstallationTestSuite(BaseTestSuite):
+class BasePackageInstallationTestSuite(CliStartedTestSuite):
     # pylint: disable=too-many-instance-attributes disable=too-many-arguments
     """base class for package conflict checking"""
 
-    def __init__(self, versions: list, base_config: InstallerBaseConfig):
-        self.new_version = versions[1]
-        self.old_version = versions[0]
-        self.zip_package = base_config.zip_package
-        self.enc_at_rest = None
-        self.parent_test_suite_name = None
-        self.auto_generate_parent_test_suite_name = False
-        self.suite_name = None
-        self.runner_type = None
-        self.installer_type = None
-        self.use_subsuite = False
+    def __init__(self, params: CliTestSuiteParameters):
+        super().__init__(params)
         self.installers = {}
+        versions = [self.old_version, self.new_version]
         self.installers["community"] = create_config_installer_set(
             versions=versions,
-            base_config=base_config,
+            base_config=self.base_cfg,
             deployment_mode="all",
             run_properties=RunProperties(enterprise=False, encryption_at_rest=False, ssl=False),
             use_auto_certs=False
         )
         self.installers["enterprise"] = create_config_installer_set(
             versions=versions,
-            base_config=base_config,
+            base_config=self.base_cfg,
             deployment_mode="all",
             run_properties=RunProperties(enterprise=True, encryption_at_rest=False, ssl=False),
             use_auto_certs=False
@@ -48,7 +41,6 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
         self.new_inst_e = self.installers["enterprise"][1][1]
         self.old_inst_c = self.installers["community"][0][1]
         self.new_inst_c = self.installers["community"][1][1]
-        super().__init__()
 
     # pylint: disable=missing-function-docstring
     def is_zip(self):

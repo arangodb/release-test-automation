@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """ Release testing script"""
-#pylint: disable=duplicate-code
+# pylint: disable=duplicate-code
 
 from pathlib import Path
 import sys
