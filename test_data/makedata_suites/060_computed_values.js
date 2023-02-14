@@ -12,11 +12,9 @@
   
       makeDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
         // All items created must contain dbCount
-        // documentation link: https://www.arangodb.com/docs/3.9/analyzers.html
-  
         print(`making per database data ${dbCount}`);
         
-        //creating sample computed values collections
+        //creation computed values with sample collections
         let c1 = `c1_${dbCount}`;
         let a1 = createCollectionSafe(c1, 3, 3);
         a1.properties({computedValues: [{"name": "default", "expression": "RETURN SOUNDEX('sky')", overwrite: true}]});
@@ -65,6 +63,87 @@
         let a12 = createCollectionSafe(c12, 3, 3);
         a12.properties({computedValues: [{"name": "default", "expression": "RETURN [{from_doc: CONCAT(@doc.name, ' ', @doc.field), system:{_key: @doc._key, _rev: @doc._rev, _id: @doc._id}, values: [RANGE(1, 10)]}]", overwrite: true}]});
         
+        //-------------------------------------------------------x-------------------------------------------------------------
+        
+        // this function will check everything regarding given ComVal
+        function checkComValProperties(comValueName, obj1, obj2) {
+          print(obj1);
+          print(obj2);
+
+          const obj1Length = Object.keys(obj1).length;
+          const obj2Length = Object.keys(obj2).length;
+
+          if (obj1Length === obj2Length) {
+            return Object.keys(obj1).every(
+                (key) => obj2.hasOwnProperty(key)
+                    && obj2[key] === obj1[key]);
+                  } else {
+                    throw new Error(`${comValueName} properties missmatched!`);
+                  }
+                };
+        
+        //Perform modification and comparision for desired output of Computed Values
+        //for c1 comVal
+        let c1_exp_modification = [
+          { 
+            "name" : "cv_field", 
+            "expression" : "RETURN SOUNDEX('sky')", 
+            "computeOn" : [ 
+              "insert", 
+              "update", 
+              "replace" 
+            ], 
+            "overwrite" : true, 
+            "failOnWarning" : false, 
+            "keepNull" : true 
+          } 
+        ]
+        
+        let c1_actual_modification = a1.properties({computedValues: [{"name": "cv_field", "expression": "RETURN SOUNDEX('sky')", overwrite: true}]})
+        
+        checkComValProperties(c1, c1_exp_modification, c1_actual_modification.computedValues);
+
+        //for c2 comVal
+        let c2_exp_modification = [
+          { 
+            "name" : "default", 
+            "expression" : "RETURN SOUNDEX('dog')", 
+            "computeOn" : [ 
+              "insert", 
+              "update", 
+              "replace" 
+            ], 
+            "overwrite" : true, 
+            "failOnWarning" : false, 
+            "keepNull" : true 
+          } 
+      
+        ]
+        
+        let c2_actual_modification = a2.properties({computedValues: [{"name": "cv_field", "expression": "RETURN SOUNDEX('dog')", "overwrite": true}]})
+        
+        checkComValProperties(c2, c2_exp_modification, c2_actual_modification.computedValues);
+
+        //for c3 comVal
+        let c3_exp_modification = [
+          { 
+            "name" : "default_insert", 
+            "expression" : "RETURN SOUNDEX('frog')", 
+            "computeOn" : [ 
+              "insert" 
+            ], 
+            "overwrite" : true, 
+            "failOnWarning" : false, 
+            "keepNull" : true 
+          } 
+        ]
+        
+        let c3_actual_modification = a3.properties({computedValues: [{"name": "cv_field_insert", "expression": "RETURN SOUNDEX('frog')", "computeOn": ["insert"], "overwrite": true}]})
+        
+        checkComValProperties(c3_insert, c3_exp_modification, c3_actual_modification.computedValues);
+
+
+
         return 0;
       },
       checkDataDB: function (options, isCluster, isEnterprise, database, dbCount, readOnly) {
