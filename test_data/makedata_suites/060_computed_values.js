@@ -1,4 +1,4 @@
-/* global print, semver, progress, createCollectionSafe, createSafe, db */
+/* global print, semver, progress, createCollectionSafe, db, fs, PWD */
 /*jslint maxlen: 130 */
 
 (function () {
@@ -65,11 +65,8 @@
         
         //-------------------------------------------------------x-------------------------------------------------------------
         
-        // this function will check everything regarding given ComVal
+        // this function will check Computed Values properties
         function checkComValProperties(comValueName, obj1, obj2) {
-          print(obj1);
-          print(obj2);
-
           const obj1Length = Object.keys(obj1).length;
           const obj2Length = Object.keys(obj2).length;
 
@@ -342,7 +339,17 @@
         
         checkComValProperties(c12, c12_exp_modification, c12_actual_modification.computedValues);
 
+      //-------------------------------------------------------x-------------------------------------------------------------
 
+      //inserting data to all collection
+      
+      let Collection_array = [a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12]
+      let docsAsStr = fs.read(`${PWD}/makedata_suites/060_computed_value.json`)
+
+      // this function will read and insert all the neccessary data to the respective collection
+      Collection_array.forEach(col => {
+        col.save(JSON.parse(docsAsStr), {silent: true});
+      })
 
         return 0;
       },
