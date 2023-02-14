@@ -124,7 +124,7 @@
         
         checkComValProperties(c2, c2_exp_modification, c2_actual_modification.computedValues);
 
-        //for c3 comVal
+        //for c3_insert comVal
         let c3_exp_modification = [
           { 
             "name" : "default_insert", 
@@ -141,6 +141,206 @@
         let c3_actual_modification = a3.properties({computedValues: [{"name": "cv_field_insert", "expression": "RETURN SOUNDEX('frog')", "computeOn": ["insert"], "overwrite": true}]})
         
         checkComValProperties(c3_insert, c3_exp_modification, c3_actual_modification.computedValues);
+
+        //for c4_update comVal
+        let c4_exp_modification = [
+          { 
+            "name" : "cv_field_update", 
+            "expression" : "RETURN SOUNDEX('beer')", 
+            "computeOn" : [ 
+              "update" 
+            ], 
+            "overwrite" : true, 
+            "failOnWarning" : false, 
+            "keepNull" : true 
+          }  
+        ]
+        
+        let c4_actual_modification = a4.properties({computedValues: [{"name": "cv_field_update", "expression": "RETURN SOUNDEX('beer')", "computeOn": ["update"], "overwrite": true}]})
+        
+        checkComValProperties(c4_update, c4_exp_modification, c4_actual_modification.computedValues);
+
+        //for c5_replace comVal
+        let c5_exp_modification = [
+          { 
+            "name" : "cv_field_update", 
+            "expression" : "RETURN SOUNDEX('beer')", 
+            "computeOn" : [ 
+              "update" 
+            ], 
+            "overwrite" : true, 
+            "failOnWarning" : false, 
+            "keepNull" : true 
+          }  
+        ]
+        
+        let c5_actual_modification = a5.properties({computedValues: [{"name": "cv_field_replace", "expression": "RETURN SOUNDEX('water')", "computeOn": ["replace"], "overwrite": true}]})
+        
+        checkComValProperties(c5_replace, c5_exp_modification, c5_actual_modification.computedValues);
+
+        //for c6_not_null comVal
+        let c6_exp_modification = [
+          { 
+            "name" : "cv_field", 
+            "expression" : "RETURN null", 
+            "computeOn" : [ 
+              "insert", 
+              "update", 
+              "replace" 
+            ], 
+            "overwrite" : true, 
+            "failOnWarning" : false, 
+            "keepNull" : false 
+          }   
+        ]
+        
+        let c6_actual_modification = a6.properties({computedValues: [{"name": "cv_field", "expression": "RETURN null", "overwrite": true, "keepNull": false}]})
+        
+        checkComValProperties(c6_not_null, c6_exp_modification, c6_actual_modification.computedValues);
+
+        //for c7_hex comVal
+        let c7_exp_modification = [
+          { 
+            "name" : "cv_field", 
+            "expression" : "RETURN TO_HEX(@doc.name)", 
+            "computeOn" : [ 
+              "insert", 
+              "update", 
+              "replace" 
+            ], 
+            "overwrite" : true, 
+            "failOnWarning" : false, 
+            "keepNull" : true 
+          }    
+        ]
+        
+        let c7_actual_modification = a7.properties({computedValues: [{"name": "cv_field", "expression": "RETURN TO_HEX(@doc.name)", "overwrite": true}]})
+        
+        checkComValProperties(c7_hex, c7_exp_modification, c7_actual_modification.computedValues);
+
+        //for c8_overwriteFalse comVal
+        let c8_exp_modification = [
+          { 
+            "name" : "cv_field", 
+            "expression" : "RETURN CONCAT('42_', TO_STRING(@doc.field))", 
+            "computeOn" : [ 
+              "insert", 
+              "update", 
+              "replace" 
+            ], 
+            "overwrite" : false, 
+            "failOnWarning" : false, 
+            "keepNull" : true 
+          }   
+        ]
+        
+        let c8_actual_modification = a8.properties({computedValues: [{"name": "cv_field", "expression": "RETURN CONCAT('42_', TO_STRING(@doc.field))", "overwrite": false}]})
+        
+        checkComValProperties(c8_overwriteFalse, c8_exp_modification, c8_actual_modification.computedValues);
+
+        //for c9_overwriteTrue comVal
+        let c9_exp_modification = [
+          { 
+            "name" : "cv_field", 
+            "expression" : "RETURN CONCAT('42_', TO_STRING(@doc.field))", 
+            "computeOn" : [ 
+              "insert", 
+              "update", 
+              "replace" 
+            ], 
+            "overwrite" : false, 
+            "failOnWarning" : false, 
+            "keepNull" : true 
+          }   
+        ]
+        
+        let c9_actual_modification = a9.properties({computedValues: [{"name": "cv_field", "expression": "RETURN CONCAT('42_', TO_STRING(@doc.field))", "overwrite": true}]})
+        
+        checkComValProperties(c9_overwriteTrue, c9_exp_modification, c9_actual_modification.computedValues);
+
+        //for c10_multiple comVal
+        let c10_exp_modification = [
+          { 
+            "name" : "cv_field1", 
+            "expression" : "RETURN 'foo'", 
+            "computeOn" : [ 
+              "insert", 
+              "update", 
+              "replace" 
+            ], 
+            "overwrite" : true, 
+            "failOnWarning" : false, 
+            "keepNull" : true 
+          }, 
+          { 
+            "name" : "cv_field2", 
+            "expression" : "RETURN 'bar'", 
+            "computeOn" : [ 
+              "insert", 
+              "update", 
+              "replace" 
+            ], 
+            "overwrite" : true, 
+            "failOnWarning" : false, 
+            "keepNull" : true 
+          }, 
+          { 
+            "name" : "cv_field3", 
+            "expression" : "RETURN 'baz'", 
+            "computeOn" : [ 
+              "insert", 
+              "update", 
+              "replace" 
+            ], 
+            "overwrite" : true, 
+            "failOnWarning" : false, 
+            "keepNull" : true 
+          }
+        ]
+        
+        let c10_actual_modification = a10.properties({computedValues: [{"name": "cv_field1", "expression": "RETURN 'foo'", "overwrite": true}, {"name": "cv_field2", "expression": "RETURN 'bar'", "overwrite": true}, {"name": "cv_field3", "expression": "RETURN 'baz'", "overwrite": true}]})
+        
+        checkComValProperties(c10_multiple, c10_exp_modification, c10_actual_modification.computedValues);
+
+        //for c11 comVal
+        let c11_exp_modification = [ 
+          { 
+            "name" : "cv_field", 
+            "expression" : "RETURN CONCAT(@doc._key, ' ', @doc._id, ' ', @doc._rev)", 
+            "computeOn" : [ 
+              "insert", 
+              "update", 
+              "replace" 
+            ], 
+            "overwrite" : true, 
+            "failOnWarning" : false, 
+            "keepNull" : true 
+          } 
+        ]
+        
+        let c11_actual_modification = a11.properties({computedValues: [{"name": "cv_field", "expression": "RETURN CONCAT(@doc._key, ' ', @doc._id, ' ', @doc._rev)", "overwrite": true}]})
+        
+        checkComValProperties(c11, c11_exp_modification, c11_actual_modification.computedValues);
+
+        //for c12_overwriteTrue comVal
+        let c12_exp_modification = [
+          {
+            "name" : "cv_field",
+            "expression" : "RETURN CONCAT(@doc._key, ' ', @doc._id, ' ', @doc._rev)",
+            "computeOn" : [
+              "insert",
+              "update",
+              "replace"
+            ],
+            "overwrite" : true,
+            "failOnWarning" : false,
+            "keepNull" : true
+          }    
+        ]
+        
+        let c12_actual_modification = a12.properties({computedValues: [{"name": "cv_field", "expression": "RETURN [{from_doc: CONCAT(@doc.name, ' ', @doc.field), system:{_key: @doc._key, _rev: @doc._rev, _id: @doc._id}, values: [RANGE(1, 10)]}]", "overwrite": true}]})
+        
+        checkComValProperties(c12, c12_exp_modification, c12_actual_modification.computedValues);
 
 
 
