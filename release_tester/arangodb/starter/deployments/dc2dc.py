@@ -108,7 +108,7 @@ class Dc2Dc(Runner):
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("DC2DC", 0, 4500, True, ssl, use_auto_certs),
+            RunnerProperties("DC2DC", 0, 4500, True, ssl, use_auto_certs, 12),
             selenium,
             selenium_driver_args,
             testrun_name,
