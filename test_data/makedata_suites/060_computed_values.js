@@ -368,7 +368,7 @@
             print(`ok`)
           }
         }else{
-          print(`test not performed!`)
+          print(`test skipped intentionally!`)
         }
       })
 
@@ -381,6 +381,35 @@
     },
     clearDataDB: function (options, isCluster, isEnterprise, dbCount, database) {
       print(`checking data ${dbCount}`);
+      let c1 = `c1_${dbCount}`;
+      let c2 = `c2_${dbCount}`;
+      let c3_insert = `c3_insert_${dbCount}`;
+      let c4_update = `c4_update_${dbCount}`;
+      let c5_replace = `c5_replace_${dbCount}`;
+      let c6_not_null = `c6_not_null_${dbCount}`;
+      let c7_hex = `c7_hex_${dbCount}`;
+      let c8_overwriteFalse = `c8_overwriteFalse_${dbCount}`;
+      let c9_overwriteTrue = `c9_overwriteTrue_${dbCount}`;
+      let c10_multiple = `c10_multiple_${dbCount}`;
+      let c11 = `c11_${dbCount}`;
+      let c12 = `c12_${dbCount}`;
+
+      Collection_array = [c1, c2, c3_insert, c4_update, c5_replace, c6_not_null, c7_hex, c8_overwriteFalse, c9_overwriteTrue, c10_multiple, c11, c12]
+
+      Collection_array.forEach(col => {
+        db.col.properties({computedValues: []})
+        //checking the properties set to null properly
+        if(db.col.properties()["computedValues"] === null){
+          print('ok')
+          //drop the collection after check
+          db._drop(col);
+          progress(`deleting ${col} collection`);
+        }else{
+          throw new Error(`${col} deletion failed!`);
+        }
+        
+      })
+      
 
       return 0;
     }
