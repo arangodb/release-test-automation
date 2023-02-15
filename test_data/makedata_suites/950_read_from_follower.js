@@ -503,13 +503,11 @@ let restoreServerLoggingSettings = function (topic) {
   };
   return {
     isSupported: function (currentVersion, oldVersion, options, enterprise, cluster) {
-        return false;
-//FIXME: re-enable this test when BTS-1217 is fixed
-//      if (oldVersion === "") {
-//        oldVersion = currentVersion;
-//      }
-//      let old = semver.parse(semver.coerce(oldVersion));
-//      return enterprise && cluster && semver.gte(old, "3.10.0");
+      if (oldVersion === "") {
+        oldVersion = currentVersion;
+      }
+      let old = semver.parse(semver.coerce(oldVersion));
+      return enterprise && cluster && semver.gte(old, "3.10.0");
     },
 
     makeData: function (options, isCluster, isEnterprise, dbCount, loopCount) {
