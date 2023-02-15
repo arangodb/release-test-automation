@@ -269,7 +269,7 @@ class Runner(ABC):
         bound = 1 if is_single_test else versions_count - 1
 
         for i in range(0, bound):
-            self.old_installer = self.installers[i][1]
+            self.old_installer = copy.deepcopy(self.installers[i][1])
             if i == 0:
                 # if i != 0, it means that self.cfg was already updated after chain-upgrade
                 self.cfg = copy.deepcopy(self.old_installer.cfg)
@@ -282,7 +282,7 @@ class Runner(ABC):
 
             self.progress(False, "Runner of type {0}".format(str(self.name)), "<3")
 
-            if i == 0 and (self.do_install or self.do_system_test):
+            if i == 0 and self.do_install:
                 self.progress(
                     False,
                     "INSTALLATION for {0}".format(str(self.name)),
@@ -528,7 +528,7 @@ class Runner(ABC):
             # TODO: here we should invoke Makedata for the system installation.
 
             logging.debug("stop system service to make ports available for starter")
-            inst.stop_service()
+        inst.stop_service()
 
     @step
     def quit_selenium(self):

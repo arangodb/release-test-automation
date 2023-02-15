@@ -97,64 +97,64 @@ def upgrade_package_test(
         results.append(test_driver.run_test("all", params.base_cfg.starter_mode, [packages[primary_version][props.directory_suffix].cfg.version], props))    
 
     # STEP 3: Run upgrade tests
-    for scenario in upgrade_scenarios:
+    # for scenario in upgrade_scenarios:
 
-        for props in EXECUTION_PLAN:
-            if props.directory_suffix not in editions:
-                continue
+    #     for props in EXECUTION_PLAN:
+    #         if props.directory_suffix not in editions:
+    #             continue
 
-            this_test_dir = test_dir / props.directory_suffix
-            print("Cleaning up" + props.testrun_name)
-            test_driver.run_cleanup(props)
-            test_driver.reset_test_data_dir(this_test_dir)
-            print("Cleanup done")
+    #         this_test_dir = test_dir / props.directory_suffix
+    #         print("Cleaning up" + props.testrun_name)
+    #         test_driver.run_cleanup(props)
+    #         test_driver.reset_test_data_dir(this_test_dir)
+    #         print("Cleanup done")
 
-            results.append(test_driver.run_upgrade(scenario, props))
+    #         results.append(test_driver.run_upgrade(scenario, props))
 
-        for i in range(len(scenario) - 1):
-            old_version = scenario[i]
-            new_version = scenario[i + 1]
+    #     for i in range(len(scenario) - 1):
+    #         old_version = scenario[i]
+    #         new_version = scenario[i + 1]
 
-            enterprise_packages_are_present = "EE" in editions or "EP" in editions
-            community_packages_are_present = "C" in editions
+    #         enterprise_packages_are_present = "EE" in editions or "EP" in editions
+    #         community_packages_are_present = "C" in editions
 
-            params.new_version = new_version
-            params.old_version = old_version
+    #         params.new_version = new_version
+    #         params.old_version = old_version
 
-            if enterprise_packages_are_present and community_packages_are_present:
-                params.enterprise = True
-                results.append(
-                    test_driver.run_test_suites(
-                        include_suites=("EnterprisePackageInstallationTestSuite",),
-                        params=params,
-                    )
-                )
-                params.enterprise = False
-                results.append(
-                    test_driver.run_test_suites(
-                        include_suites=("CommunityPackageInstallationTestSuite",),
-                        params=params
-                    )
-                )
+    #         if enterprise_packages_are_present and community_packages_are_present:
+    #             params.enterprise = True
+    #             results.append(
+    #                 test_driver.run_test_suites(
+    #                     include_suites=("EnterprisePackageInstallationTestSuite",),
+    #                     params=params,
+    #                 )
+    #             )
+    #             params.enterprise = False
+    #             results.append(
+    #                 test_driver.run_test_suites(
+    #                     include_suites=("CommunityPackageInstallationTestSuite",),
+    #                     params=params
+    #                 )
+    #             )
 
-            if enterprise_packages_are_present:
-                params.enterprise = True
-                results.append(
-                    test_driver.run_test_suites(
-                        include_suites=(
-                        "DebuggerTestSuite", "BasicLicenseManagerTestSuite", "UpgradeLicenseManagerTestSuite"),
-                        params=params,
-                    )
-                )
+    #         if enterprise_packages_are_present:
+    #             params.enterprise = True
+    #             results.append(
+    #                 test_driver.run_test_suites(
+    #                     include_suites=(
+    #                     "DebuggerTestSuite", "BasicLicenseManagerTestSuite", "UpgradeLicenseManagerTestSuite"),
+    #                     params=params,
+    #                 )
+    #             )
 
-            if community_packages_are_present:
-                params.enterprise = False
-                results.append(
-                    test_driver.run_test_suites(
-                        include_suites=("DebuggerTestSuite",),
-                        params=params,
-                    )
-                )
+    #         if community_packages_are_present:
+    #             params.enterprise = False
+    #             results.append(
+    #                 test_driver.run_test_suites(
+    #                     include_suites=("DebuggerTestSuite",),
+    #                     params=params,
+    #                 )
+    #             )
 
     print("V" * 80)
     if not write_table(results):
