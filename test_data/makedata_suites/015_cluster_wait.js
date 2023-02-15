@@ -8,11 +8,13 @@
 (function () {
   return {
     isSupported: function (version, oldVersion, options, enterprise, cluster) {
-      let old = semver.parse(semver.coerce(oldVersion));
-      return (options.disabledDbserverUUID !== "" &&
-              enterprise &&
-              cluster &&
-              semver.gte(old, "3.10.0"));
+        return false;
+//FIXME: re-enable this test when QA-362 is fixed
+//      let old = semver.parse(semver.coerce(oldVersion));
+//      return (options.disabledDbserverUUID !== "" &&
+//              enterprise &&
+//              cluster &&
+//              semver.gte(old, "3.10.0"));
     },
     checkDataDB: function (options, isCluster, isEnterprise, dbCount, readOnly) {
       print(`checking data ${dbCount}`);
