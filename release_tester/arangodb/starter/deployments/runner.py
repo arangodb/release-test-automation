@@ -269,7 +269,8 @@ class Runner(ABC):
         bound = 1 if is_single_test else versions_count - 1
 
         for i in range(0, bound):
-            self.old_installer = copy.deepcopy(self.installers[i][1])
+            self.old_installer = self.installers[i][1]
+            self.old_installer.cfg.passvoid = ''
             if i == 0:
                 # if i != 0, it means that self.cfg was already updated after chain-upgrade
                 self.cfg = copy.deepcopy(self.old_installer.cfg)
@@ -303,9 +304,6 @@ class Runner(ABC):
                     self.make_data()
                     self.after_makedata_check()
                     self.check_data_impl()
-
-                # else:
-                #     self.u
 
                 if self.selenium:
                     self.set_selenium_instances()
