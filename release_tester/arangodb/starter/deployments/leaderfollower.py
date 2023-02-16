@@ -36,7 +36,7 @@ class LeaderFollower(Runner):
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("LeaderFollower", 400, 500, False, ssl, use_auto_certs),
+            RunnerProperties("LeaderFollower", 400, 500, False, ssl, use_auto_certs, 2),
             selenium,
             selenium_driver_args,
             testrun_name,

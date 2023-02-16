@@ -111,7 +111,7 @@ class ClusterPerf(Runner):
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("CLUSTER", 9999999, 99999999, False, ssl, use_auto_certs),
+            RunnerProperties("CLUSTER", 9999999, 99999999, False, ssl, use_auto_certs, 6),
             selenium,
             selenium_driver_args,
             testrun_name,
