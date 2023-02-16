@@ -59,4 +59,5 @@ class LicenseManagerSingleServerBaseTestSuite(LicenseManagerBaseTestSuite):
             license_file.truncate()
             license_file.write(license)
         self.starter.terminate_instance()
-        self.starter.respawn_instance()
+        version = self.runner.new_cfg.version if self.runner.new_cfg != None else self.runner.cfg.version
+        self.starter.respawn_instance(version)
