@@ -341,6 +341,48 @@
 
       //-------------------------------------------------------x-------------------------------------------------------------
 
+      // creating indexes for the collections
+      a1.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]})
+      a1.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true})
+
+      a2.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]})
+      a2.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true})
+
+      a3.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}, "cv_field_insert"]})
+      a3.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true})
+
+      a4.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]})
+      a4.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true})
+
+      a5.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]})
+      a5.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true})
+
+      a6.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]})
+      a6.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true})
+
+      a7.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]})
+      a7.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true})
+
+      a8.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]})
+      a8.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true})
+
+      a9.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]})
+      a9.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true})
+
+      a10.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field1"},{"name":"cv_field2"},{"name":"cv_field3"}]})
+      a10.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field1", "cv_field2", "cv_field3"], "sparse": true})
+
+      a11.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]})
+      a11.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true})
+
+      a12.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field", "nested": ["from_doc"]}]})
+      
+      //-------------------------------------------------------x-------------------------------------------------------------
+
+     
+
+      //-------------------------------------------------------x-------------------------------------------------------------
+
       //inserting data to all collection
 
       let Collection_array = [a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12]
