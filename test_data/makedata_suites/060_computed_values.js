@@ -379,7 +379,172 @@
       
       //-------------------------------------------------------x-------------------------------------------------------------
 
-     
+      // creating views for the collections
+      db._createView("testView", "arangosearch")
+
+      let queryOutput = db.testView.properties(
+        {"links":{
+          "c1_0":{"includeAllFields":true},
+          "c2_0":{"includeAllFields":true},
+          "c3_insert_0":{"includeAllFields":true},
+          "c4_update_0":{"includeAllFields":true},
+          "c5_replace_0":{"includeAllFields":true},
+          "c6_not_null_0":{"includeAllFields":true},
+          "c7_hex_0":{"includeAllFields":true},
+          "c8_overwriteFalse_0":{"includeAllFields":true},
+          "c9_overwriteTrue_0":{"includeAllFields":true},
+          "c10_multiple_0":{"includeAllFields":true},
+          "c11_0":{"includeAllFields":true},
+          "c12_0":{"includeAllFields":true}
+        }
+      })
+
+      expected_output = {
+        "cleanupIntervalStep" : 2,
+        "commitIntervalMsec" : 1000,
+        "consolidationIntervalMsec" : 1000,
+        "consolidationPolicy" : {
+          "type" : "tier",
+          "segmentsBytesFloor" : 2097152,
+          "segmentsBytesMax" : 5368709120,
+          "segmentsMax" : 10,
+          "segmentsMin" : 1,
+          "minScore" : 0
+        },
+        "primarySort" : [ ],
+        "primarySortCompression" : "lz4",
+        "storedValues" : [ ],
+        "writebufferActive" : 0,
+        "writebufferIdle" : 64,
+        "writebufferSizeMax" : 33554432,
+        "links" : {
+          "c1_0" : {
+            "analyzers" : [
+              "identity"
+            ],
+            "fields" : {
+            },
+            "includeAllFields" : true,
+            "storeValues" : "none",
+            "trackListPositions" : false
+          },
+          "c2_0" : {
+            "analyzers" : [
+              "identity"
+            ],
+            "fields" : {
+            },
+            "includeAllFields" : true,
+            "storeValues" : "none",
+            "trackListPositions" : false
+          },
+          "c3_insert_0" : {
+            "analyzers" : [
+              "identity"
+            ],
+            "fields" : {
+            },
+            "includeAllFields" : true,
+            "storeValues" : "none",
+            "trackListPositions" : false
+          },
+          "c4_update_0" : {
+            "analyzers" : [
+              "identity"
+            ],
+            "fields" : {
+            },
+            "includeAllFields" : true,
+            "storeValues" : "none",
+            "trackListPositions" : false
+          },
+          "c5_replace_0" : {
+            "analyzers" : [
+              "identity"
+            ],
+            "fields" : {
+            },
+            "includeAllFields" : true,
+            "storeValues" : "none",
+            "trackListPositions" : false
+          },
+          "c6_not_null_0" : {
+            "analyzers" : [
+              "identity"
+            ],
+            "fields" : {
+            },
+            "includeAllFields" : true,
+            "storeValues" : "none",
+            "trackListPositions" : false
+          },
+          "c7_hex_0" : {
+            "analyzers" : [
+              "identity"
+            ],
+            "fields" : {
+            },
+            "includeAllFields" : true,
+            "storeValues" : "none",
+            "trackListPositions" : false
+          },
+          "c8_overwriteFalse_0" : {
+            "analyzers" : [
+              "identity"
+            ],
+            "fields" : {
+            },
+            "includeAllFields" : true,
+            "storeValues" : "none",
+            "trackListPositions" : false
+          },
+          "c9_overwriteTrue_0" : {
+            "analyzers" : [
+              "identity"
+            ],
+            "fields" : {
+            },
+            "includeAllFields" : true,
+            "storeValues" : "none",
+            "trackListPositions" : false
+          },
+          "c10_multiple_0" : {
+            "analyzers" : [
+              "identity"
+            ],
+            "fields" : {
+            },
+            "includeAllFields" : true,
+            "storeValues" : "none",
+            "trackListPositions" : false
+          },
+          "c11_0" : {
+            "analyzers" : [
+              "identity"
+            ],
+            "fields" : {
+            },
+            "includeAllFields" : true,
+            "storeValues" : "none",
+            "trackListPositions" : false
+          },
+          "c12_0" : {
+            "analyzers" : [
+              "identity"
+           ],
+           "fields" : {
+           },
+           "includeAllFields" : true,
+           "storeValues" : "none",
+           "trackListPositions" : false
+         }
+       }
+     }
+      print(queryOutput)
+
+      if (expected_output === queryOutput){
+        print(`ok`)
+      }
 
       //-------------------------------------------------------x-------------------------------------------------------------
 
