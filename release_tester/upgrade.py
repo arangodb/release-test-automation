@@ -36,6 +36,7 @@ def main(**kwargs):
         RunProperties(kwargs['enterprise'],
                       kwargs['encryption_at_rest'],
                       kwargs['ssl']))
+    test_driver.stop_monitor()
     print("V" * 80)
     status = True
     for one_result in results:

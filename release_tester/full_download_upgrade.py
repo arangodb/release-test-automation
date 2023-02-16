@@ -139,6 +139,7 @@ def upgrade_package_test(
         touch_all_tars_in_dir(version_state_tar)
     else:
         write_version_tar(version_state_tar, fresh_versions)
+    test_driver.stop_monitor()
     return 0
 
 

@@ -180,6 +180,7 @@ def upgrade_package_test(
     if not write_table(results):
         print("exiting with failure")
         return 1
+    test_driver.stop_monitor()
     return 0
 
 

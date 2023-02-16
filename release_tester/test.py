@@ -53,6 +53,7 @@ def main(**kwargs):
                       kwargs['ssl']))
     print("V" * 80)
     status = True
+    test_driver.stop_monitor()
     for one_result in results:
         print(one_result)
         status = status and one_result["success"]

@@ -107,6 +107,7 @@ def package_test(dl_opts: DownloadOptions, new_version, new_dlstage, git_version
         touch_all_tars_in_dir(version_state_tar)
     else:
         write_version_tar(version_state_tar, fresh_versions)
+    test_driver.stop_monitor()
     return 0
 
 @click.command()

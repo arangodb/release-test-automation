@@ -30,7 +30,7 @@ from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext, init_
 from reporting.reporting_utils2 import generate_suite_name
 from test_suites_core.cli_test_suite import CliTestSuiteParameters
 from tools.killall import kill_all_processes
-
+from overload_thread import spawn_overload_watcher_thread, shutdown_overload_watcher_thread
 try:
     # pylint: disable=unused-import
     from tools.external_helpers.license_generator.license_generator import create_license
@@ -57,6 +57,7 @@ class TestDriver:
 
     # pylint: disable=too-many-arguments disable=too-many-locals
     def __init__(self, **kwargs):
+        spawn_overload_watcher_thread()
         self.launch_dir = Path.cwd()
         if IS_WINDOWS and "PYTHONUTF8" not in os.environ:
             raise Exception("require PYTHONUTF8=1 in the environment")
@@ -86,6 +87,9 @@ class TestDriver:
         )
         self.installer_type = None
         self.cli_test_suite_params = CliTestSuiteParameters.from_dict(**kwargs)
+
+    def stop_monitor(self):
+        shutdown_overload_watcher_thread()
 
     def set_r_limits(self):
         """on linux manipulate ulimit values"""
