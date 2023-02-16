@@ -27,6 +27,7 @@ LOG_BLACKLIST = [
     "40e37",  # -> upgrade required TODO remove me from here, add system instance handling.
     "d72fb",  # -> license is going to expire...
     "1afb1",  # -> unlicensed enterprise instance
+    "9afd3",  # -> noisy 'icu::Collator from locale 'en' : 'U_USING_DEFAULT_WARNING'
 ]
 
 # log tokens we ignore in system ugprades...
@@ -639,8 +640,23 @@ class ArangodInstance(Instance):
                 raise TimeoutError("instance logfile '" + str(self.logfile) + "' didn't show up in 120 seconds")
 
             with open(self.logfile, errors="backslashreplace", encoding="utf8") as log_fh:
+                file_size = self.logfile.stat().st_size
+                debug = False
+                if file_size > 10 * 1024 * 1024:
+                    #print(f"detect_pid(): large logfile {file_size / 1024 / 1024}. Seeking forward to the last 10k.")
+                    #log_fh.seek(file_size - 10 * 1024)
+                    debug = True
                 for line in log_fh:
                     # skip empty lines
+                    if ('DEBUG' in line or
+                        'TRACE' in line or
+                        '{requests}' in line or
+                        'U_USING_DEFAULT_WARNING' in line or
+                        '{maintenance}' in line or
+                        '{replication}' in line):
+                        continue
+                    if debug:
+                        print(line.rstrip())
                     if line == "":
                         time.sleep(1)
                         continue
@@ -651,12 +667,15 @@ class ArangodInstance(Instance):
                     # (why not slurp the whole file?)
                     last_line = line
                     log_file_content += "\n" + line
+                if debug:
+                    print('done looping')
+                    print(last_line)
 
             # check last line or continue
             match = re.search(r"Z \[(\d*)\]", last_line)
             if match is None:
                 tries -= 1
-                logging.info("no PID in [%s]: %s", self.logfile, last_line)
+                print("no PID in [%s]: %s", self.logfile, last_line)
                 progress(".")
                 time.sleep(1)
                 continue
@@ -691,7 +710,7 @@ class ArangodInstance(Instance):
                 continue
 
             t_start = match.group(1)
-            logging.debug(
+            print(
                 "found pid {0} for instance with logfile {1} at {2}.".format(self.pid, str(self.logfile), t_start)
             )
             try:
@@ -705,10 +724,10 @@ class ArangodInstance(Instance):
 
         if self.pid == 0:
             print()
-            logging.error("could not get pid for instance: " + repr(self))
-            logging.error("inspect: " + str(self.logfile))
+            print("could not get pid for instance: " + repr(self))
+            print("inspect: " + str(self.logfile))
             raise TimeoutError("could not get pid for instance: " + repr(self))
-        logging.info(
+        print(
             "found process for pid {0} for "
             "instance with logfile {1} at {2}.".format(self.pid, str(self.logfile), t_start)
         )
