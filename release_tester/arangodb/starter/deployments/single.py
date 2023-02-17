@@ -34,7 +34,7 @@ class Single(Runner):
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("Single", 400, 500, True, ssl, use_auto_certs),
+            RunnerProperties("Single", 400, 500, True, ssl, use_auto_certs, 1),
             selenium,
             selenium_driver_args,
             testrun_name,

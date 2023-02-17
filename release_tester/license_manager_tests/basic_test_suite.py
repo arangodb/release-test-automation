@@ -14,28 +14,15 @@ IS_WINDOWS = platform.win32_ver()[0] != ""
 
 
 class BasicLicenseManagerTestSuite(LicenseManagerBaseTestSuite):
-    """License manager test suite(clean installation)"""
+    """License manager test suite: Clean installation"""
 
     child_test_suites = [
         LicenseManagerSingleServerTestSuite,
         LicenseManagerLeaderFollowerTestSuite,
         LicenseManagerAfoTestSuite,
         LicenseManagerClusterTestSuite,
+        LicenseManagerDc2DcTestSuite,
     ]
-    if not IS_WINDOWS:
-        child_test_suites.append(LicenseManagerDc2DcTestSuite)
-
-    def __init__(
-        self,
-        versions,
-        installer_base_config,
-        **kwargs,
-    ):
-        if len(versions) > 1:
-            new_version = versions[1]
-        else:
-            new_version = versions[0]
-        super().__init__(new_version, installer_base_config)
 
     @run_after_suite
     def uninstall_package(self):

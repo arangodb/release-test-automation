@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """ invoke subprocesses and timestamped print their output """
-# import subprocess
+# pylint: disable=no-member,no-name-in-module
 import logging
 from logging import StreamHandler, Handler
 import sys
 
 from allure_commons._allure import attach
+from allure_commons.types import AttachmentType
 
 
 class StdOutHandler(StreamHandler):
@@ -91,7 +92,7 @@ def log_cmd(cmd, print_cmd=True):
     """log string"""
     if not isinstance(cmd, str):
         cmd = str(" ".join([str(x) for x in cmd]))
-    attach(cmd, "Command")
+    attach(cmd, "Command", attachment_type=AttachmentType.TEXT)
     if print_cmd:
         line("<")
         print("executing: " + cmd)

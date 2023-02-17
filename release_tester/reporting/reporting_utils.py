@@ -11,7 +11,8 @@ from allure_commons.logger import AllureFileLogger
 from allure_commons.model2 import Status, Label
 from allure_commons.types import AttachmentType, LabelType
 from tabulate import tabulate
-#pylint: disable=import-error
+
+# pylint: disable=import-error
 from reporting.helpers import AllureListener
 
 
@@ -58,6 +59,7 @@ def attach_table(table, title="HTML table"):
     html_table = tabulate(table, headers=table.columns.header, tablefmt="html")
     attach(template.substitute(html_table=html_table), title, AttachmentType.HTML)
 
+
 def attach_http_request_to_report(method: str, url: str, headers: dict, body: str):
     request = f"""
     <html>
@@ -70,11 +72,12 @@ def attach_http_request_to_report(method: str, url: str, headers: dict, body: st
         request += f"<b>{key}: </b>{headers[key]}<br>"
     request += f"</p>"
     request += f"<p><b>Body:<br></b>{body}</p>"
-    request +="</html>"
+    request += "</html>"
     attach(request, "HTTP request", AttachmentType.HTML)
 
+
 def attach_http_response_to_report(response):
-    response_html=f"""
+    response_html = f"""
     <html>
     <p><b>Status code:</b> {response.status_code}</p>
     <p><b>Headers:</b><br>
@@ -145,15 +148,14 @@ class TestcaseContext:
         self.statusDetails = statusDetails
         self.labels = []
 
+
 RESULTS_DIR = Path()
 CLEAN_DIR = False
 ZIP_PACKAGE = False
 
 
-def init_allure(results_dir: Path,
-                clean: bool,
-                zip_package: bool):
-    """ globally init this module"""
+def init_allure(results_dir: Path, clean: bool, zip_package: bool):
+    """globally init this module"""
     # pylint: disable=global-statement
     global RESULTS_DIR, CLEAN_DIR, ZIP_PACKAGE
     if not results_dir.exists():
@@ -171,90 +173,45 @@ class AllureTestSuiteContext:
 
     # pylint: disable=too-many-locals disable=dangerous-default-value disable=too-many-arguments
     def __init__(
-            self,
-            properties=None,
-            versions=[],
-            parent_test_suite_name=None,
-            auto_generate_parent_test_suite_name=True,
-            suite_name=None,
-            sub_suite_name=None,
-            runner_type=None,
-            installer_type=None,
-            labels=[]
+        self,
+        parent_test_suite_name=None,
+        suite_name=None,
+        sub_suite_name=None,
+        labels=[],
+        inherit_parent_test_suite_name=False,
+        inherit_test_suite_name=False,
     ):
-        def generate_suite_name():
-            if properties.enterprise:
-                edition = "Enterprise"
-            else:
-                edition = "Community"
-            if installer_type:
-                package_type = installer_type
-            else:
-                if ZIP_PACKAGE:
-                    package_type = "universal binary archive"
-                else:
-                    package_type = "deb/rpm/nsis/dmg"
-            if len(versions) == 1:
-                test_suite_name = """
-            ArangoDB v.{} ({}) ({} package) (enc@rest: {}) (SSL: {}) (clean install)
-                                """.format(
-                    str(versions[0]),
-                    edition,
-                    package_type,
-                    "ON" if properties.encryption_at_rest else "OFF",
-                    "ON" if properties.ssl else "OFF"
-                )
-            else:
-                test_suite_name = """
-                            ArangoDB v.{} ({}) {} package (upgrade from {}) (enc@rest: {}) (SSL: {})
-                            """.format(
-                    str(versions[1]),
-                    edition,
-                    package_type,
-                    str(versions[0]),
-                    "ON" if properties.encryption_at_rest else "OFF",
-                    "ON" if properties.ssl else "OFF",
-                )
-            if runner_type:
-                test_suite_name = "[" + str(runner_type) + "] " + test_suite_name
-
-            return test_suite_name
         self.labels = labels
-        test_listeners = [p for p in allure_commons.plugin_manager.get_plugins() if
-                          isinstance(p, AllureListener)]
+        test_listeners = [p for p in allure_commons.plugin_manager.get_plugins() if isinstance(p, AllureListener)]
         self.previous_test_listener = None if len(test_listeners) == 0 else test_listeners[0]
-        file_loggers = [l for l in allure_commons.plugin_manager.get_plugins() if
-                        isinstance(l, AllureFileLogger)]
+        file_loggers = [l for l in allure_commons.plugin_manager.get_plugins() if isinstance(l, AllureFileLogger)]
         self.file_logger = None if len(file_loggers) == 0 else file_loggers[0]
 
-        if self.previous_test_listener:
-            self.parent_test_suite_name = self.previous_test_listener.default_parent_test_suite_name
-            self.test_suite_name = self.previous_test_listener.default_test_suite_name
-            self.labels = self.previous_test_listener.default_labels
+        self.test_suite_name = suite_name
+        if parent_test_suite_name:
+            self.parent_test_suite_name = parent_test_suite_name
         else:
-            if suite_name:
-                self.test_suite_name = suite_name
-            else:
-                self.test_suite_name = generate_suite_name()
-            if parent_test_suite_name:
-                self.parent_test_suite_name = parent_test_suite_name
-            elif suite_name and auto_generate_parent_test_suite_name:
-                self.parent_test_suite_name = generate_suite_name()
-            else:
-                self.parent_test_suite_name = None
-            # Always add cpu architecture name to the suite name.
-            # Otherwise test results of the same test ran on different platforms could be mixed in the united allure report.
-            # Add cpu arch and OS name to tags for extra convenience.
-            arch = platform.processor()
-            os = sys.platform
-            self.labels.append(Label(name=LabelType.TAG, value=arch))
-            self.labels.append(Label(name=LabelType.TAG, value=os))
-            if self.parent_test_suite_name:
-                self.parent_test_suite_name += f" ({arch})"
-            elif self.test_suite_name:
-                self.test_suite_name += f" ({arch})"
-        self.sub_suite_name=sub_suite_name
+            self.parent_test_suite_name = None
+        # Always add cpu architecture name to the suite name.
+        # Otherwise test results of the same test ran on different platforms could be mixed in the united allure report.
+        # Add cpu arch and OS name to tags for extra convenience.
+        arch = platform.processor()
+        os = sys.platform
+        self.labels.append(Label(name=LabelType.TAG, value=arch))
+        self.labels.append(Label(name=LabelType.TAG, value=os))
+        if self.parent_test_suite_name:
+            self.parent_test_suite_name += f" ({arch})"
+        elif self.test_suite_name:
+            self.test_suite_name += f" ({arch})"
+        self.sub_suite_name = sub_suite_name
 
+        # Simply copy suite name and parent suite name from the enveloping test suite,
+        # if this is requested specifically.
+        # This is a workaround for selenium test suites that run during main test flow.
+        if inherit_parent_test_suite_name:
+            self.parent_test_suite_name = self.previous_test_listener.default_parent_test_suite_name
+        if inherit_test_suite_name:
+            self.test_suite_name = self.previous_test_listener.default_test_suite_name
 
         if not self.file_logger:
             if AllureTestSuiteContext.test_suite_count == 0:
@@ -269,7 +226,7 @@ class AllureTestSuiteContext:
             default_test_suite_name=self.test_suite_name,
             default_parent_test_suite_name=self.parent_test_suite_name,
             default_sub_suite_name=self.sub_suite_name,
-            default_labels=self.labels
+            default_labels=self.labels,
         )
         allure_commons.plugin_manager.register(self.test_listener)
         self.test_listener.start_suite_container(self.generate_container_name())

@@ -20,7 +20,7 @@ from test_suites_core.base_test_suite import (
     run_after_each_testcase,
     collect_crash_data,
 )
-from reporting.reporting_utils import attach_table
+from reporting.reporting_utils import attach_table, AllureTestSuiteContext
 
 
 class BaseSeleniumTestSuite(BaseTestSuite):
@@ -41,6 +41,12 @@ class BaseSeleniumTestSuite(BaseTestSuite):
         self.test_data_dir = selenium_runner.cfg.test_data_dir.resolve()
         self.is_enterprise = selenium_runner.cfg.enterprise
         self.is_headless = selenium_runner.is_headless
+        self.sub_suite_name = self.__doc__ or self.__class__.__name__
+
+    def _init_allure(self):
+        self.test_suite_context = AllureTestSuiteContext(
+            sub_suite_name=self.sub_suite_name, inherit_test_suite_name=True, inherit_parent_test_suite_name=True
+        )
 
     def init_child_class(self, child_class):
         return child_class(self.selenium_runner)
@@ -48,6 +54,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
     def ui_assert(self, conditionstate, message):
         """python assert sucks. fuckit."""
         if not conditionstate:
+            # pylint: disable=no-member
             logging.error(message)
             self.save_page_source()
             self.take_screenshot()
