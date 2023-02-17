@@ -354,6 +354,10 @@ def disable_if_true(value, reason=None):
     return set_disable_reason
 
 
+def disable_if_false(value, reason=None):
+    return disable_if_true(not value, reason)
+
+
 def disable_if_returns_true_at_runtime(function, reason=None):
     def set_disable_func_and_reason(testcase_func):
         testcase_func.disable_functions.append((function, reason))
