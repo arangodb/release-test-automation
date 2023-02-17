@@ -465,7 +465,6 @@ class Runner(ABC):
                 False,
                 "UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),
             )
-            # self.cfg.set_directories(self.new_installer.cfg)
             self.new_cfg.set_directories(self.new_installer.cfg)
 
         if self.do_starter_test:
@@ -732,7 +731,6 @@ class Runner(ABC):
                         "make_data failed for {0.name}".format(self), exc.execution_result[1], False, exc
                     )
                 self.has_makedata_data = True
-            # self.check_data_impl_sh(arangosh, starter.supports_foxx_tests)
         if not self.has_makedata_data:
             raise Exception("didn't find makedata instances, no data created!")
 

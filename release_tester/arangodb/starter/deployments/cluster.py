@@ -344,7 +344,7 @@ db.testCollection.save({test: "document"})
         uuid = self.starter_instances[terminate_instance].get_dbservers()[0].get_uuid()
         self.starter_instances[terminate_instance].terminate_instance(keep_instances=True)
         logging.info("relaunching agent!")
-        # self.starter_instances[terminate_instance].manually_launch_instances([InstanceType.AGENT], [], False, False)
+        self.starter_instances[terminate_instance].manually_launch_instances([InstanceType.AGENT], [], False, False)
 
         self.set_frontend_instances()
 
@@ -364,6 +364,8 @@ db.testCollection.save({test: "document"})
         if not ret[0]:
             raise Exception("check data failed " + ret[1])
 
+        self.starter_instances[terminate_instance].kill_specific_instance([InstanceType.AGENT])
+        
         # respawn instance, and get its state fixed
         version = self.new_cfg.version if self.new_cfg != None else self.cfg.version
         self.starter_instances[terminate_instance].respawn_instance(version)
