@@ -97,6 +97,7 @@ def package_test(dl_opts: DownloadOptions, new_version, new_dlstage, git_version
             )
         )
 
+    test_driver.destructor()
     print("V" * 80)
     if not write_table(results):
         print("exiting with failure")
@@ -106,7 +107,6 @@ def package_test(dl_opts: DownloadOptions, new_version, new_dlstage, git_version
         touch_all_tars_in_dir(version_state_tar)
     else:
         write_version_tar(version_state_tar, fresh_versions)
-    test_driver.destructor()
     return 0
 
 
