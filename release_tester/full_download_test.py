@@ -84,8 +84,7 @@ def package_test(dl_opts: DownloadOptions, new_version, new_dlstage, git_version
         params.enterprise = True
         results.append(
             test_driver.run_test_suites(
-                include_suites=(
-                "DebuggerTestSuite", "BasicLicenseManagerTestSuite"),
+                include_suites=("DebuggerTestSuite", "BasicLicenseManagerTestSuite"),
                 params=params,
             )
         )
@@ -107,8 +106,9 @@ def package_test(dl_opts: DownloadOptions, new_version, new_dlstage, git_version
         touch_all_tars_in_dir(version_state_tar)
     else:
         write_version_tar(version_state_tar, fresh_versions)
-    test_driver.stop_monitor()
+    test_driver.destructor()
     return 0
+
 
 @click.command()
 @full_common_options

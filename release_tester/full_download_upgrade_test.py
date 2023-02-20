@@ -2,6 +2,7 @@
 """ fetch nightly packages, process upgrade """
 import sys
 from copy import copy, deepcopy
+
 # pylint: disable=duplicate-code
 from pathlib import Path
 
@@ -162,7 +163,10 @@ def upgrade_package_test(
             results.append(
                 test_driver.run_test_suites(
                     include_suites=(
-                    "DebuggerTestSuite", "BasicLicenseManagerTestSuite", "UpgradeLicenseManagerTestSuite"),
+                        "DebuggerTestSuite",
+                        "BasicLicenseManagerTestSuite",
+                        "UpgradeLicenseManagerTestSuite",
+                    ),
                     params=params,
                 )
             )
@@ -180,7 +184,7 @@ def upgrade_package_test(
     if not write_table(results):
         print("exiting with failure")
         return 1
-    test_driver.stop_monitor()
+    test_driver.destructor()
     return 0
 
 

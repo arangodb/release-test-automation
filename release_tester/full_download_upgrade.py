@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 """ fetch nightly packages, process upgrade """
 import sys
+
 # pylint: disable=duplicate-code
 from copy import deepcopy
 from pathlib import Path
@@ -139,7 +140,7 @@ def upgrade_package_test(
         touch_all_tars_in_dir(version_state_tar)
     else:
         write_version_tar(version_state_tar, fresh_versions)
-    test_driver.stop_monitor()
+    test_driver.destructor()
     return 0
 
 

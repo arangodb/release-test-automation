@@ -31,6 +31,7 @@ from reporting.reporting_utils2 import generate_suite_name
 from test_suites_core.cli_test_suite import CliTestSuiteParameters
 from tools.killall import kill_all_processes
 from overload_thread import spawn_overload_watcher_thread, shutdown_overload_watcher_thread
+
 try:
     # pylint: disable=unused-import
     from tools.external_helpers.license_generator.license_generator import create_license
@@ -88,7 +89,10 @@ class TestDriver:
         self.installer_type = None
         self.cli_test_suite_params = CliTestSuiteParameters.from_dict(**kwargs)
 
-    def stop_monitor(self):
+    def destructor(self):
+        self._stop_monitor()
+
+    def _stop_monitor(self):
         shutdown_overload_watcher_thread()
 
     def set_r_limits(self):
