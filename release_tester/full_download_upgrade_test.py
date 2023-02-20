@@ -19,7 +19,7 @@ from write_result_table import write_table
 def upgrade_package_test(
     dl_opts: DownloadOptions,
     primary_version: str,
-    primary_source: str,
+    primary_dlstage: str,
     upgrade_matrix: str,
     other_source,
     git_version,
@@ -60,7 +60,7 @@ def upgrade_package_test(
                     props.testrun_name = "test_" + props.testrun_name
 
                     # Verify that all required packages are exist or can be downloaded
-                    source = primary_source if primary_version == version_name else other_source
+                    source = primary_dlstage if primary_version == version_name else other_source
                     res = Download(
                         dl_opts,
                         test_driver.base_config.hb_cli_cfg,
