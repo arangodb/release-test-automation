@@ -1,5 +1,5 @@
 /* global print, semver, progress, createCollectionSafe, db, fs, PWD */
-/*jslint maxlen: 130 */
+
 
 const { count } = require("console");
 const { stringify } = require("querystring");
@@ -80,7 +80,7 @@ const { stringify } = require("querystring");
         } else {
           throw new Error(`${comValueName} properties missmatched!`);
         }
-      };
+      }
 
       //Perform modification and comparision for desired output of Computed Values
       //for c1 comVal
@@ -97,9 +97,9 @@ const { stringify } = require("querystring");
           "failOnWarning": false,
           "keepNull": true
         }
-      ]
+      ];
 
-      let c1_actual_modification = a1.properties({ computedValues: [{ "name": "cv_field", "expression": "RETURN SOUNDEX('sky')", overwrite: true }] })
+      let c1_actual_modification = a1.properties({ computedValues: [{ "name": "cv_field", "expression": "RETURN SOUNDEX('sky')", overwrite: true }] });
 
       checkComValProperties(c1, c1_exp_modification, c1_actual_modification.computedValues);
 
@@ -118,7 +118,7 @@ const { stringify } = require("querystring");
           "keepNull": true
         }
 
-      ]
+      ];
 
       let c2_actual_modification = a2.properties({ computedValues: [{ "name": "cv_field", "expression": "RETURN SOUNDEX('dog')", "overwrite": true }] })
 
@@ -136,7 +136,7 @@ const { stringify } = require("querystring");
           "failOnWarning": false,
           "keepNull": true
         }
-      ]
+      ];
 
       let c3_actual_modification = a3.properties({ computedValues: [{ "name": "cv_field_insert", "expression": "RETURN SOUNDEX('frog')", "computeOn": ["insert"], "overwrite": true }] })
 
@@ -154,9 +154,9 @@ const { stringify } = require("querystring");
           "failOnWarning": false,
           "keepNull": true
         }
-      ]
+      ];
 
-      let c4_actual_modification = a4.properties({ computedValues: [{ "name": "cv_field_update", "expression": "RETURN SOUNDEX('beer')", "computeOn": ["update"], "overwrite": true }] })
+      let c4_actual_modification = a4.properties({ computedValues: [{ "name": "cv_field_update", "expression": "RETURN SOUNDEX('beer')", "computeOn": ["update"], "overwrite": true }] });
 
       checkComValProperties(c4_update, c4_exp_modification, c4_actual_modification.computedValues);
 
@@ -172,7 +172,7 @@ const { stringify } = require("querystring");
           "failOnWarning": false,
           "keepNull": true
         }
-      ]
+      ];
 
       let c5_actual_modification = a5.properties({ computedValues: [{ "name": "cv_field_replace", "expression": "RETURN SOUNDEX('water')", "computeOn": ["replace"], "overwrite": true }] })
 
@@ -194,7 +194,7 @@ const { stringify } = require("querystring");
         }
       ]
 
-      let c6_actual_modification = a6.properties({ computedValues: [{ "name": "cv_field", "expression": "RETURN null", "overwrite": true, "keepNull": false }] })
+      let c6_actual_modification = a6.properties({ computedValues: [{ "name": "cv_field", "expression": "RETURN null", "overwrite": true, "keepNull": false }] });
 
       checkComValProperties(c6_not_null, c6_exp_modification, c6_actual_modification.computedValues);
 
@@ -214,7 +214,7 @@ const { stringify } = require("querystring");
         }
       ]
 
-      let c7_actual_modification = a7.properties({ computedValues: [{ "name": "cv_field", "expression": "RETURN TO_HEX(@doc.name)", "overwrite": true }] })
+      let c7_actual_modification = a7.properties({ computedValues: [{ "name": "cv_field", "expression": "RETURN TO_HEX(@doc.name)", "overwrite": true }] });
 
       checkComValProperties(c7_hex, c7_exp_modification, c7_actual_modification.computedValues);
 
@@ -232,9 +232,9 @@ const { stringify } = require("querystring");
           "failOnWarning": false,
           "keepNull": true
         }
-      ]
+      ];
 
-      let c8_actual_modification = a8.properties({ computedValues: [{ "name": "cv_field", "expression": "RETURN CONCAT('42_', TO_STRING(@doc.field))", "overwrite": false }] })
+      let c8_actual_modification = a8.properties({ computedValues: [{ "name": "cv_field", "expression": "RETURN CONCAT('42_', TO_STRING(@doc.field))", "overwrite": false }] });
 
       checkComValProperties(c8_overwriteFalse, c8_exp_modification, c8_actual_modification.computedValues);
 
@@ -252,9 +252,9 @@ const { stringify } = require("querystring");
           "failOnWarning": false,
           "keepNull": true
         }
-      ]
+      ];
 
-      let c9_actual_modification = a9.properties({ computedValues: [{ "name": "cv_field", "expression": "RETURN CONCAT('42_', TO_STRING(@doc.field))", "overwrite": true }] })
+      let c9_actual_modification = a9.properties({ computedValues: [{ "name": "cv_field", "expression": "RETURN CONCAT('42_', TO_STRING(@doc.field))", "overwrite": true }] });
 
       checkComValProperties(c9_overwriteTrue, c9_exp_modification, c9_actual_modification.computedValues);
 
@@ -296,7 +296,7 @@ const { stringify } = require("querystring");
           "failOnWarning": false,
           "keepNull": true
         }
-      ]
+      ];
 
       let c10_actual_modification = a10.properties({ computedValues: [{ "name": "cv_field1", "expression": "RETURN 'foo'", "overwrite": true }, { "name": "cv_field2", "expression": "RETURN 'bar'", "overwrite": true }, { "name": "cv_field3", "expression": "RETURN 'baz'", "overwrite": true }] })
 
@@ -316,9 +316,9 @@ const { stringify } = require("querystring");
           "failOnWarning": false,
           "keepNull": true
         }
-      ]
+      ];
 
-      let c11_actual_modification = a11.properties({ computedValues: [{ "name": "cv_field", "expression": "RETURN CONCAT(@doc._key, ' ', @doc._id, ' ', @doc._rev)", "overwrite": true }] })
+      let c11_actual_modification = a11.properties({ computedValues: [{ "name": "cv_field", "expression": "RETURN CONCAT(@doc._key, ' ', @doc._id, ' ', @doc._rev)", "overwrite": true }] });
 
       checkComValProperties(c11, c11_exp_modification, c11_actual_modification.computedValues);
 
@@ -336,54 +336,54 @@ const { stringify } = require("querystring");
           "failOnWarning": false,
           "keepNull": true
         }
-      ]
+      ];
 
-      let c12_actual_modification = a12.properties({ computedValues: [{ "name": "cv_field", "expression": "RETURN [{from_doc: CONCAT(@doc.name, ' ', @doc.field), system:{_key: @doc._key, _rev: @doc._rev, _id: @doc._id}, values: [RANGE(1, 10)]}]", "overwrite": true }] })
+      let c12_actual_modification = a12.properties({ computedValues: [{ "name": "cv_field", "expression": "RETURN [{from_doc: CONCAT(@doc.name, ' ', @doc.field), system:{_key: @doc._key, _rev: @doc._rev, _id: @doc._id}, values: [RANGE(1, 10)]}]", "overwrite": true }] });
 
       checkComValProperties(c12, c12_exp_modification, c12_actual_modification.computedValues);
 
       //-------------------------------------------------------x-------------------------------------------------------------
 
       // creating indexes for the collections
-      a1.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]})
-      a1.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true})
+      a1.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]});
+      a1.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true});
 
-      a2.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]})
-      a2.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true})
+      a2.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]});
+      a2.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true});
 
-      a3.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}, "cv_field_insert"]})
-      a3.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true})
+      a3.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}, "cv_field_insert"]});
+      a3.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true});
 
-      a4.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]})
-      a4.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true})
+      a4.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]});
+      a4.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true});
 
-      a5.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]})
-      a5.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true})
+      a5.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]});
+      a5.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true});
 
-      a6.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]})
-      a6.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true})
+      a6.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]});
+      a6.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true});
 
-      a7.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]})
-      a7.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true})
+      a7.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]});
+      a7.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true});
 
-      a8.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]})
-      a8.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true})
+      a8.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]});
+      a8.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true});
 
-      a9.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]})
-      a9.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true})
+      a9.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]});
+      a9.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true});
 
-      a10.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field1"},{"name":"cv_field2"},{"name":"cv_field3"}]})
-      a10.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field1", "cv_field2", "cv_field3"], "sparse": true})
+      a10.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field1"},{"name":"cv_field2"},{"name":"cv_field3"}]});
+      a10.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field1", "cv_field2", "cv_field3"], "sparse": true});
 
-      a11.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]})
-      a11.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true})
+      a11.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]});
+      a11.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true});
 
-      a12.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field", "nested": ["from_doc"]}]})
+      a12.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field", "nested": ["from_doc"]}]});
       
       //-------------------------------------------------------x-------------------------------------------------------------
 
       // creating views for the collections
-      db._createView("testView", "arangosearch")
+      db._createView("testView", "arangosearch");
 
       let queryOutput = db.testView.properties(
         {"links":{
@@ -400,161 +400,161 @@ const { stringify } = require("querystring");
           "c11_0":{"includeAllFields":true},
           "c12_0":{"includeAllFields":true}
         }
-      })
+      });
 
       expected_output = {
         "cleanupIntervalStep" : 2,
-        "commitIntervalMsec" : 1000,
-        "consolidationIntervalMsec" : 1000,
-        "consolidationPolicy" : {
-          "type" : "tier",
-          "segmentsBytesFloor" : 2097152,
-          "segmentsBytesMax" : 5368709120,
-          "segmentsMax" : 10,
-          "segmentsMin" : 1,
-          "minScore" : 0
-        },
-        "primarySort" : [ ],
-        "primarySortCompression" : "lz4",
-        "storedValues" : [ ],
-        "writebufferActive" : 0,
-        "writebufferIdle" : 64,
-        "writebufferSizeMax" : 33554432,
-        "links" : {
-          "c1_0" : {
-            "analyzers" : [
-              "identity"
-            ],
-            "fields" : {
-            },
-            "includeAllFields" : true,
-            "storeValues" : "none",
-            "trackListPositions" : false
-          },
-          "c2_0" : {
-            "analyzers" : [
-              "identity"
-            ],
-            "fields" : {
-            },
-            "includeAllFields" : true,
-            "storeValues" : "none",
-            "trackListPositions" : false
-          },
-          "c3_insert_0" : {
-            "analyzers" : [
-              "identity"
-            ],
-            "fields" : {
-            },
-            "includeAllFields" : true,
-            "storeValues" : "none",
-            "trackListPositions" : false
-          },
-          "c4_update_0" : {
-            "analyzers" : [
-              "identity"
-            ],
-            "fields" : {
-            },
-            "includeAllFields" : true,
-            "storeValues" : "none",
-            "trackListPositions" : false
-          },
-          "c5_replace_0" : {
-            "analyzers" : [
-              "identity"
-            ],
-            "fields" : {
-            },
-            "includeAllFields" : true,
-            "storeValues" : "none",
-            "trackListPositions" : false
-          },
-          "c6_not_null_0" : {
-            "analyzers" : [
-              "identity"
-            ],
-            "fields" : {
-            },
-            "includeAllFields" : true,
-            "storeValues" : "none",
-            "trackListPositions" : false
-          },
-          "c7_hex_0" : {
-            "analyzers" : [
-              "identity"
-            ],
-            "fields" : {
-            },
-            "includeAllFields" : true,
-            "storeValues" : "none",
-            "trackListPositions" : false
-          },
-          "c8_overwriteFalse_0" : {
-            "analyzers" : [
-              "identity"
-            ],
-            "fields" : {
-            },
-            "includeAllFields" : true,
-            "storeValues" : "none",
-            "trackListPositions" : false
-          },
-          "c9_overwriteTrue_0" : {
-            "analyzers" : [
-              "identity"
-            ],
-            "fields" : {
-            },
-            "includeAllFields" : true,
-            "storeValues" : "none",
-            "trackListPositions" : false
-          },
-          "c10_multiple_0" : {
-            "analyzers" : [
-              "identity"
-            ],
-            "fields" : {
-            },
-            "includeAllFields" : true,
-            "storeValues" : "none",
-            "trackListPositions" : false
-          },
-          "c11_0" : {
-            "analyzers" : [
-              "identity"
-            ],
-            "fields" : {
-            },
-            "includeAllFields" : true,
-            "storeValues" : "none",
-            "trackListPositions" : false
-          },
-          "c12_0" : {
-            "analyzers" : [
-              "identity"
-           ],
-           "fields" : {
-           },
-           "includeAllFields" : true,
-           "storeValues" : "none",
-           "trackListPositions" : false
-         }
-       }
-     }
+             "commitIntervalMsec" : 1000,
+             "consolidationIntervalMsec" : 1000,
+             "consolidationPolicy" : {
+               "type" : "tier",
+               "segmentsBytesFloor" : 2097152,
+               "segmentsBytesMax" : 5368709120,
+               "segmentsMax" : 10,
+               "segmentsMin" : 1,
+               "minScore" : 0
+             },
+             "primarySort" : [ ],
+             "primarySortCompression" : "lz4",
+             "storedValues" : [ ],
+             "writebufferActive" : 0,
+             "writebufferIdle" : 64,
+             "writebufferSizeMax" : 33554432,
+             "links" : {
+               "c1_0" : {
+                 "analyzers" : [
+                   "identity"
+                 ],
+                 "fields" : {
+                 },
+                 "includeAllFields" : true,
+                 "storeValues" : "none",
+                 "trackListPositions" : false
+               },
+               "c2_0" : {
+                 "analyzers" : [
+                   "identity"
+                 ],
+                 "fields" : {
+                 },
+                 "includeAllFields" : true,
+                 "storeValues" : "none",
+                 "trackListPositions" : false
+               },
+               "c3_insert_0" : {
+                 "analyzers" : [
+                   "identity"
+                 ],
+                 "fields" : {
+                 },
+                 "includeAllFields" : true,
+                 "storeValues" : "none",
+                 "trackListPositions" : false
+               },
+               "c4_update_0" : {
+                 "analyzers" : [
+                   "identity"
+                 ],
+                 "fields" : {
+                 },
+                 "includeAllFields" : true,
+                 "storeValues" : "none",
+                 "trackListPositions" : false
+               },
+               "c5_replace_0" : {
+                 "analyzers" : [
+                   "identity"
+                 ],
+                 "fields" : {
+                 },
+                 "includeAllFields" : true,
+                 "storeValues" : "none",
+                 "trackListPositions" : false
+               },
+               "c6_not_null_0" : {
+                 "analyzers" : [
+                   "identity"
+                 ],
+                 "fields" : {
+                 },
+                 "includeAllFields" : true,
+                 "storeValues" : "none",
+                 "trackListPositions" : false
+               },
+               "c7_hex_0" : {
+                 "analyzers" : [
+                   "identity"
+                 ],
+                 "fields" : {
+                 },
+                 "includeAllFields" : true,
+                 "storeValues" : "none",
+                 "trackListPositions" : false
+               },
+               "c8_overwriteFalse_0" : {
+                 "analyzers" : [
+                   "identity"
+                 ],
+                 "fields" : {
+                 },
+                 "includeAllFields" : true,
+                 "storeValues" : "none",
+                 "trackListPositions" : false
+               },
+               "c9_overwriteTrue_0" : {
+                 "analyzers" : [
+                   "identity"
+                 ],
+                 "fields" : {
+                 },
+                 "includeAllFields" : true,
+                 "storeValues" : "none",
+                 "trackListPositions" : false
+               },
+               "c10_multiple_0" : {
+                 "analyzers" : [
+                   "identity"
+                 ],
+                 "fields" : {
+                 },
+                 "includeAllFields" : true,
+                 "storeValues" : "none",
+                 "trackListPositions" : false
+               },
+               "c11_0" : {
+                 "analyzers" : [
+                   "identity"
+                 ],
+                 "fields" : {
+                 },
+                 "includeAllFields" : true,
+                 "storeValues" : "none",
+                 "trackListPositions" : false
+               },
+               "c12_0" : {
+                 "analyzers" : [
+                   "identity"
+                 ],
+                 "fields" : {
+                 },
+                 "includeAllFields" : true,
+                 "storeValues" : "none",
+                 "trackListPositions" : false
+               }
+             }
+      }
+
       print(queryOutput)
 
       if (expected_output === queryOutput){
-        print(`ok`)
+        print(`ok`);
       }
 
-
       // creating testviewV2 allias
-      db._createView('testViewV2', 'search-alias', {
-        'indexes': [
+      db._createView("testViewV2", "search-alias", {
+        "indexes": [
           {
-            'collection': 'c1_0',
+            "collection": "c1_0",
             'index': 'inverted'
           },
           {
@@ -607,16 +607,16 @@ const { stringify } = require("querystring");
       //-------------------------------------------------------x-------------------------------------------------------------
 
       //inserting data to all collection
-      let Collection_array = [a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12]
-      let docsAsStr = fs.read(`${PWD}/makedata_suites/060_computed_value.json`)
+      let Collection_array = [a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12];
+      let docsAsStr = fs.read(`${PWD}/makedata_suites/060_computed_value.json`);
 
       // this function will read and insert and check all the neccessary data for the respective collection
       Collection_array.forEach(col => {
         col.save(JSON.parse(docsAsStr), { silent: true });
 
         //this cmd will find one docs from the collection
-        let expected_field = col.all().limit(1).toArray()
-        print(expected_field);
+        let expected_field = col.all().limit(1).toArray();
+        // print(expected_field);
         // print(expected_field[0].cv_field)
         //checking computed value field exit on the collection's doc
         if (col === a1 || col === a2 || col === a7 || col === a8 || col === a9 || col === a11 || col === a12) {
@@ -640,9 +640,9 @@ const { stringify } = require("querystring");
       let resultComparision = (input_array, output_array) =>{
         for(let i=0; i<input_array.length; i++){
           let output = db._query(input_array[i]).toArray()
-          
+
           if(Number(output) === output_array[i]){
-            print('ok')
+            print("ok")
           }else{
             throw new Error(`Index query ${output} didn't match with ${output_array[i]}!`);
           }
@@ -720,7 +720,7 @@ const { stringify } = require("querystring");
       let resultComparision = (input_array, output_array) =>{
         for(let i=0; i<input_array.length; i++){
           let output = db._query(input_array[i]).toArray()
-          
+
           if(Number(output) === output_array[i]){
             print('ok')
           }else{
@@ -728,7 +728,7 @@ const { stringify } = require("querystring");
           }
         }
       }
-      
+
       //execute queries which use indexes and verify that the proper amount of docs are returned
       let index_array = [
         `for doc in ${c1} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == SOUNDEX('sky') collect with count into c return c`,
@@ -810,9 +810,9 @@ const { stringify } = require("querystring");
         }else{
           throw new Error(`${col} deletion failed!`);
         }
-        
+
       })
-      
+
 
       return 0;
     }
