@@ -3,16 +3,18 @@
 import platform
 
 from license_manager_tests.afo import LicenseManagerAfoTestSuite
-from license_manager_tests.base.license_manager_base_test_suite import LicenseManagerBaseTestSuite
+from license_manager_tests.base.license_manager_base_test_suite import LicenseManagerBaseTestSuite, \
+    EXTERNAL_HELPERS_LOADED
 from license_manager_tests.cluster import LicenseManagerClusterTestSuite
 from license_manager_tests.dc2dc import LicenseManagerDc2DcTestSuite
 from license_manager_tests.leader_follower import LicenseManagerLeaderFollowerTestSuite
 from license_manager_tests.single_server import LicenseManagerSingleServerTestSuite
-from test_suites_core.base_test_suite import run_before_suite, run_after_suite
+from test_suites_core.base_test_suite import run_before_suite, run_after_suite, disable_if_false
 
 IS_WINDOWS = platform.win32_ver()[0] != ""
 
 
+@disable_if_false(EXTERNAL_HELPERS_LOADED, "External helpers not found. License manager tests will not run.")
 class BasicLicenseManagerTestSuite(LicenseManagerBaseTestSuite):
     """License manager test suite: Clean installation"""
 
