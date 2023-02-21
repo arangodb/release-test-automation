@@ -62,12 +62,12 @@ def remove_node_x_from_json(starter_dir):
         content = json.load(setup_file)
         peers = []
         reg_exp = re.compile("^.*\/nodeX$")
-        for p in content["peers"]["Peers"]:
-            if not reg_exp.match(p["DataDir"]):
+        for peer in content["peers"]["Peers"]:
+            if not reg_exp.match(peer["DataDir"]):
                 # Add only existing nodes. Skip nodeX peer
-                peers.append(p)
+                peers.append(peer)
         content["peers"]["Peers"] = peers # update 'peers' array
-    
+
     with open(path_to_cfg, "w") as setup_file:
         json.dump(content, setup_file)
 
@@ -361,7 +361,7 @@ class Runner(ABC):
                 self.new_installer.output_arangod_version()
                 self.new_installer.get_starter_version()
                 self.new_installer.get_sync_version()
-                self.new_installer.stop_service()              
+                self.new_installer.stop_service()      
 
                 self.upgrade_arangod_version()  # make sure to pass new version
                 self.new_cfg.set_directories(self.new_installer.cfg)
@@ -387,7 +387,7 @@ class Runner(ABC):
                     backups = self.list_backup()
                     if backups[0] != self.backup_name:
                         raise Exception("downloaded backup has different name? " + str(backups))
-                    time.sleep(20)  # TODO fix    
+                    time.sleep(20)  # TODO fix
                     self.before_backup()
                     self.restore_backup(backups[0])
                     self.tcp_ping_all_nodes()
@@ -410,7 +410,7 @@ class Runner(ABC):
                         False,
                         "{0} TESTS FOR {1}".format(self.testrun_name, str(self.name)),
                     )
-                    self.test_setup()     
+                    self.test_setup()
                     self.jam_attempt()
                     self.check_data_impl()
                     if not is_keep_db_dir:

@@ -6,7 +6,6 @@
 import copy
 import datetime
 import http.client as http_client
-import json
 import logging
 import os
 import re
@@ -174,8 +173,8 @@ class StarterManager:
     def get_structure(self):
         instances = []
         urls = []
-        leader_name = "";
-        if (self.is_leader):
+        leader_name = ""
+        if self.is_leader:
             leader_name = self.name
 
         for arangod in self.all_instances:
@@ -755,7 +754,7 @@ class StarterManager:
         """
         args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.arguments + moreargs
 
-        assert version != None
+        assert version is not None
         if not is_column_cache_supported(version) or not self.cfg.enterprise:
             if COLUMN_CACHE_ARGUMENT in args:
                 args.remove(COLUMN_CACHE_ARGUMENT)
@@ -1195,6 +1194,8 @@ class StarterNonManager(StarterManager):
             Path("/"),
             self.cfg.passvoid,
             self.cfg.ssl,
+            self.cfg.enterpise,
+            self.cfg.version
         )
         self.all_instances.append(inst)
         self.cfg.index += 1

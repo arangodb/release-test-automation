@@ -6,7 +6,7 @@ import requests
 
 # pylint: disable=import-error
 from arangodb.async_client import CliExecutionException
-from arangodb.installers import create_config_installer_set, RunProperties
+from arangodb.installers import create_config_installer_set
 from reporting.reporting_utils import step
 from test_suites_core.base_test_suite import (
     run_after_suite,

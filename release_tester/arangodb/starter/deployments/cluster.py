@@ -3,8 +3,8 @@
 import time
 import logging
 from pathlib import Path
-import semver
 import copy
+import semver
 
 from reporting.reporting_utils import step
 from tools.timestamp import timestamp
@@ -365,9 +365,9 @@ db.testCollection.save({test: "document"})
             raise Exception("check data failed " + ret[1])
 
         self.starter_instances[terminate_instance].kill_specific_instance([InstanceType.AGENT])
-        
+
         # respawn instance, and get its state fixed
-        version = self.new_cfg.version if self.new_cfg != None else self.cfg.version
+        version = self.new_cfg.version if self.new_cfg is not None else self.cfg.version
         self.starter_instances[terminate_instance].respawn_instance(version)
         self.set_frontend_instances()
         counter = 300
@@ -384,16 +384,16 @@ db.testCollection.save({test: "document"})
 
         logging.info("jamming: Starting instance without jwt")
         moreopts = ["--starter.join", "127.0.0.1:9528"]
-        curr_cfg = {}    
-        if self.new_cfg != None:
-            curr_cfg = copy.deepcopy(self.new_cfg)     
+        curr_cfg = {}
+        if self.new_cfg is not None:
+            curr_cfg = copy.deepcopy(self.new_cfg)
         else:
-            curr_cfg = copy.deepcopy(self.cfg)    
+            curr_cfg = copy.deepcopy(self.cfg)
 
         if curr_cfg.ssl and not curr_cfg.use_auto_certs:
             keyfile = self.cert_dir / Path("nodeX") / "tls.keyfile"
             self.generate_keyfile(keyfile)
-            moreopts.append(f"--ssl.keyfile={keyfile}") 
+            moreopts.append(f"--ssl.keyfile={keyfile}")
         dead_instance = StarterManager(
             curr_cfg,
             Path("CLUSTER"),

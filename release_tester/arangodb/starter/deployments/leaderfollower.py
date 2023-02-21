@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
 import time
-import re
-import semver
 import logging
 from pathlib import Path
 
@@ -325,7 +323,7 @@ process.exit(0);
                 ],
             )
         self.progress(True, "step 3 - launch instances again")
-        version = self.new_cfg.version if self.new_cfg != None else self.cfg.version
+        version = self.new_cfg.version if self.new_cfg is not None else self.cfg.version
         for node in instances:
             node.respawn_instance(version)
         self.progress(True, "step 4 - detect system state")

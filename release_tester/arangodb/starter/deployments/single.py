@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
-import time
 import logging
 from pathlib import Path
 
@@ -10,7 +9,6 @@ from arangodb.starter.manager import StarterManager
 from arangodb.instance import InstanceType
 from arangodb.starter.deployments.runner import Runner, RunnerProperties
 import tools.loghelper as lh
-from tools.asciiprint import print_progress as progress
 
 from reporting.reporting_utils import step
 
@@ -97,7 +95,6 @@ class Single(Runner):
     @step
     def test_setup_impl(self):
         logging.info("testing the single server setup")
-        tries = 30
         lh.subsection("single server - check test data", "-")
 
         if self.selenium:
@@ -125,7 +122,6 @@ class Single(Runner):
     def upgrade_arangod_version_manual_impl(self):
         """manual upgrade this installation"""
         self.progress(True, "step 1 - shut down instances")
-        instances = [self.starter_instance]
         self.starter_instance.replace_binary_setup_for_upgrade(self.new_cfg)
         self.starter_instance.terminate_instance(True)
         self.progress(True, "step 2 - launch instances with the upgrade options set")
@@ -140,7 +136,7 @@ class Single(Runner):
                 ],
             )
         self.progress(True, "step 3 - launch instances again")
-        version = self.new_cfg.version if self.new_cfg != None else self.cfg.version
+        version = self.new_cfg.version if self.new_cfg is not None else self.cfg.version
         self.starter_instance.respawn_instance(version)
         self.progress(True, "step 4 - detect system state")
         self.starter_instance.detect_instances()

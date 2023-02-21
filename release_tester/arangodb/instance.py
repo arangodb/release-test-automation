@@ -254,7 +254,7 @@ class Instance(ABC):
         if self.instance:
             print("force-killing {0} instance PID:[{1}]".format(self.type_str, self.instance.pid))
             self.instance.kill()
- 
+
             self.instance = None
             self.pid = None
             self.ppid = None
