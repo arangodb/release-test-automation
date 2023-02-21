@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 """ fetch nightly packages, process upgrade """
 import sys
+
 # pylint: disable=duplicate-code
 from copy import deepcopy
 from pathlib import Path
@@ -130,6 +131,7 @@ def upgrade_package_test(
             )
         )
 
+    test_driver.destructor()
     print("V" * 80)
     if not write_table(results):
         print("exiting with failure")
