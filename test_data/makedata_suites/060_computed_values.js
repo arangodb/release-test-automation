@@ -636,7 +636,19 @@ const { stringify } = require("querystring");
         }
       })
 
-      // let index_output;
+      // This method will take input and output array and compare both's results
+      let resultComparision = (input_array, output_array) =>{
+        for(let i=0; i<input_array.length; i++){
+          let output = db._query(input_array[i]).toArray()
+          
+          if(Number(output) === output_array[i]){
+            print('ok')
+          }else{
+            throw new Error(`Index query ${output} didn't match with ${output_array[i]}!`);
+          }
+        }
+      }
+
       //execute queries which use indexes and verify that the proper amount of docs are returned
       let index_array = [
         `for doc in ${c1} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == SOUNDEX('sky') collect with count into c return c`,
@@ -656,18 +668,6 @@ const { stringify } = require("querystring");
       ];
 
       let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 64000, 32000, 64000, 64000, 64000]
-      
-      let resultComparision = (input_array, output_array) =>{
-        for(let i=0; i<input_array.length; i++){
-          let output = db._query(input_array[i]).toArray()
-          
-          if(Number(output) === output_array[i]){
-            print('ok')
-          }else{
-            throw new Error(`Index query ${output} didn't match with ${output_array[i]}!`);
-          }
-        }
-      }
 
       resultComparision(index_array, index_exp_output)
 
@@ -703,6 +703,83 @@ const { stringify } = require("querystring");
     },
     checkDataDB: function (options, isCluster, isEnterprise, database, dbCount, readOnly) {
       print(`checking data ${dbCount}`);
+      let c1 = `c1_${dbCount}`;
+      let c2 = `c2_${dbCount}`;
+      let c3_insert = `c3_insert_${dbCount}`;
+      let c4_update = `c4_update_${dbCount}`;
+      let c5_replace = `c5_replace_${dbCount}`;
+      let c6_not_null = `c6_not_null_${dbCount}`;
+      let c7_hex = `c7_hex_${dbCount}`;
+      let c8_overwriteFalse = `c8_overwriteFalse_${dbCount}`;
+      let c9_overwriteTrue = `c9_overwriteTrue_${dbCount}`;
+      let c10_multiple = `c10_multiple_${dbCount}`;
+      let c11 = `c11_${dbCount}`;
+      let c12 = `c12_${dbCount}`;
+
+      // This method will take input and output array and compare both's results
+      let resultComparision = (input_array, output_array) =>{
+        for(let i=0; i<input_array.length; i++){
+          let output = db._query(input_array[i]).toArray()
+          
+          if(Number(output) === output_array[i]){
+            print('ok')
+          }else{
+            throw new Error(`Index query ${output} didn't match with ${output_array[i]}!`);
+          }
+        }
+      }
+      
+      //execute queries which use indexes and verify that the proper amount of docs are returned
+      let index_array = [
+        `for doc in ${c1} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == SOUNDEX('sky') collect with count into c return c`,
+        `for doc in ${c1} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == SOUNDEX('sky') collect with count into c return c`,
+        `for doc in ${c2} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == SOUNDEX('dog') collect with count into c return c`,
+        `for doc in ${c2} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == SOUNDEX('dog') collect with count into c return c`,
+        `for doc in ${c3_insert} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
+        `for doc in ${c3_insert} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
+        `for doc in ${c4_update} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_update == SOUNDEX('beer') collect with count into c return c`,
+        `for doc in ${c5_replace} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
+        `for doc in ${c6_not_null} OPTIONS { indexHint : 'persistent' } filter has(doc, 'cv_field') == true collect with count into c return c`,
+        `for doc in ${c7_hex} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == TO_HEX(doc.name) collect with count into c return c`,
+        `for doc in ${c8_overwriteFalse} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == CONCAT('42_', TO_STRING(doc.field)) collect with count into c return c`,
+        `for doc in ${c9_overwriteTrue} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == CONCAT('42_', TO_STRING(doc.field)) collect with count into c return c`,
+        `for doc in ${c10_multiple} OPTIONS { indexHint : 'persistent' } filter doc.cv_field1 == 'foo' and doc.cv_field2 == 'bar' and doc.cv_field3 == 'baz' collect with count into c return c`,
+        `for doc in ${c11} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == CONCAT(doc._key, ' ', doc._id, ' ', doc._rev) collect with count into c return c`,
+      ];
+
+      let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 64000, 32000, 64000, 64000, 64000]
+
+      resultComparision(index_array, index_exp_output)
+
+      //execute queries which use views and verify that the proper amount of docs are returned
+      // let views_output;
+      let views_array = [
+        `for doc in testView search doc.cv_field == SOUNDEX('sky') collect with count into c return c`,
+        `for doc in testView search doc.cv_field == SOUNDEX('dog') collect with count into c return c`,
+        `for doc in testView search doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
+        `for doc in testView search doc.cv_field_update == SOUNDEX('beer') collect with count into c return c`,
+        `for doc in testView search doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
+        `for doc in testView filter doc.cv_field == to_hex(doc.name) collect with count into c return c`,
+        `for doc in testView filter doc.cv_field == CONCAT('42_', TO_STRING(doc.field)) collect with count into c return c`,
+        `for doc in testView search doc.cv_field1=='foo' and doc.cv_field2=='bar' and doc.cv_field3=='baz' collect with count into c return c`,
+        `for doc in testView filter doc.cv_field == CONCAT(doc._key, ' ', doc._id, ' ', doc._rev) collect with count into c return c`,
+        `for doc in testViewV2 search doc.cv_field == SOUNDEX('sky') collect with count into c return c`, 
+        `for doc in testViewV2 search doc.cv_field == SOUNDEX('dog') collect with count into c return c`,
+        `for doc in testViewV2 search doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
+        `for doc in testViewV2 search doc.cv_field_update == SOUNDEX('beer') collect with count into c return c`,
+        `for doc in testViewV2 search doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
+        `for doc in testViewV2 search doc.cv_field == null collect with count into c return c`,
+        `for doc in testViewV2 filter doc.cv_field == to_hex(doc.name) collect with count into c return c`,
+        `for doc in testViewV2 filter doc.cv_field == CONCAT('42_', TO_STRING(doc.field)) collect with count into c return c`,
+        `for doc in testViewV2 search doc.cv_field1=='foo' and doc.cv_field2=='bar' and doc.cv_field3=='baz' collect with count into c return c`,
+        `for doc in testViewV2 filter doc.cv_field == CONCAT(doc._key, ' ', doc._id, ' ', doc._rev) collect with count into c return c`
+      ]
+
+      let views_exp_output = [64000, 64000, 64000, 0, 0, 64000, 96000, 64000, 64000, 64000, 64000, 64000, 0, 0, 160000, 64000, 96000, 64000, 64000]
+
+      resultComparision(views_array, views_exp_output)
+
+
       return 0;
     },
     clearDataDB: function (options, isCluster, isEnterprise, dbCount, database) {
