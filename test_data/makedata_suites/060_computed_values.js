@@ -549,6 +549,61 @@ const { stringify } = require("querystring");
         print(`ok`)
       }
 
+
+      // creating testviewV2 allias
+      db._createView('testViewV2', 'search-alias', {
+        'indexes': [
+          {
+            'collection': 'c1_0',
+            'index': 'inverted'
+          },
+          {
+            'collection': 'c2_0',
+            'index': 'inverted'
+          },
+          {
+            'collection': 'c3_insert_0',
+            'index': 'inverted'
+          },
+          {
+            'collection': 'c4_update_0',
+            'index': 'inverted'
+          },
+          {
+            'collection': 'c5_replace_0',
+            'index': 'inverted'
+          },
+          {
+            'collection': 'c6_not_null_0',
+            'index': 'inverted'
+          },
+          {
+            'collection': 'c7_hex_0',
+            'index': 'inverted'
+          },
+          {
+            'collection': 'c8_overwriteFalse_0',
+            'index': 'inverted'
+          },
+          {
+            'collection': 'c9_overwriteTrue_0',
+            'index': 'inverted'
+          },
+          {
+            'collection': 'c10_multiple_0',
+            'index': 'inverted'
+          },
+          {
+            'collection': 'c11_0',
+            'index': 'inverted'
+          },
+          {
+            'collection': 'c12_0',
+            'index': 'inverted'
+          }
+        ]
+      })
+
       //-------------------------------------------------------x-------------------------------------------------------------
 
       //inserting data to all collection
@@ -581,8 +636,9 @@ const { stringify } = require("querystring");
         }
       })
 
-      //execute queries which indexes and verify that the proper amount of docs are returned
-      let queries_array = [
+      let index_output;
+      //execute queries which use indexes and verify that the proper amount of docs are returned
+      let index_array = [
         `for doc in ${c1} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == SOUNDEX('sky') collect with count into c return c`,
         `for doc in ${c1} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == SOUNDEX('sky') collect with count into c return c`,
         `for doc in ${c2} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == SOUNDEX('dog') collect with count into c return c`,
@@ -590,12 +646,63 @@ const { stringify } = require("querystring");
         `for doc in ${c3_insert} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
         `for doc in ${c3_insert} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
         `for doc in ${c4_update} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_update == SOUNDEX('beer') collect with count into c return c`,
-        `for doc in ${c4_update} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`
+        `for doc in ${c5_replace} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
+        `for doc in ${c6_not_null} OPTIONS { indexHint : 'persistent' } filter has(doc, 'cv_field') == true collect with count into c return c`,
+        `for doc in ${c7_hex} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == TO_HEX(doc.name) collect with count into c return c`,
+        `for doc in ${c8_overwriteFalse} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == CONCAT('42_', TO_STRING(doc.field)) collect with count into c return c`,
+        `for doc in ${c9_overwriteTrue} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == CONCAT('42_', TO_STRING(doc.field)) collect with count into c return c`,
+        `for doc in ${c10_multiple} OPTIONS { indexHint : 'persistent' } filter doc.cv_field1 == 'foo' and doc.cv_field2 == 'bar' and doc.cv_field3 == 'baz' collect with count into c return c`,
+        `for doc in ${c11} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == CONCAT(doc._key, ' ', doc._id, ' ', doc._rev) collect with count into c return c`,
+      ];
+
+      let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 64000, 32000, 64000, 64000, 64000]
+      // comparing returnd collections number with expected collections number
+      for(let i=0; i<index_array.length; i++){
+        index_output = db._query(index_array[i]).toArray()
+        
+        if(Number(index_output) === index_exp_output[i]){
+          print('ok')
+        }else{
+          throw new Error(`Index query ${output} didn't match with ${index_exp_output[i]}!`);
+        }
+      }
+
+
+      //execute queries which use views and verify that the proper amount of docs are returned
+      let views_output;
+      let views_array = [
+        `for doc in testView search doc.cv_field == SOUNDEX('sky') collect with count into c return c`,
+        `for doc in testView search doc.cv_field == SOUNDEX('dog') collect with count into c return c`,
+        `for doc in testView search doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
+        `for doc in testView search doc.cv_field_update == SOUNDEX('beer') collect with count into c return c`,
+        `for doc in testView search doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
+        `for doc in testView filter doc.cv_field == to_hex(doc.name) collect with count into c return c`,
+        `for doc in testView filter doc.cv_field == CONCAT('42_', TO_STRING(doc.field)) collect with count into c return c`,
+        `for doc in testView search doc.cv_field1=='foo' and doc.cv_field2=='bar' and doc.cv_field3=='baz' collect with count into c return c`,
+        `for doc in testView filter doc.cv_field == CONCAT(doc._key, ' ', doc._id, ' ', doc._rev) collect with count into c return c`,
+        `for doc in testViewV2 search doc.cv_field == SOUNDEX('sky') collect with count into c return c`, 
+        `for doc in testViewV2 search doc.cv_field == SOUNDEX('dog') collect with count into c return c`,
+        `for doc in testViewV2 search doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
+        `for doc in testViewV2 search doc.cv_field_update == SOUNDEX('beer') collect with count into c return c`,
+        `for doc in testViewV2 search doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
+        `for doc in testViewV2 search doc.cv_field == null collect with count into c return c`,
+        `for doc in testViewV2 filter doc.cv_field == to_hex(doc.name) collect with count into c return c`,
+        `for doc in testViewV2 filter doc.cv_field == CONCAT('42_', TO_STRING(doc.field)) collect with count into c return c`,
+        `for doc in testViewV2 search doc.cv_field1=='foo' and doc.cv_field2=='bar' and doc.cv_field3=='baz' collect with count into c return c`,
+        `for doc in testViewV2 filter doc.cv_field == CONCAT(doc._key, ' ', doc._id, ' ', doc._rev) collect with count into c return c`
       ]
 
+      let views_exp_output = [64000, 64000, 64000, 0, 0, 64000, 96000, 64000, 64000, 64000, 64000, 64000, 0, 0, 160000, 64000, 96000, 64000, 64000]
       // comparing returnd collections number with expected collections number
-      for(let i=0; i<queries_array.length; i++){
-        db._query(queries_array[i])
+      for(let i=0; i<views_array.length; i++){
+        views_output = db._query(views_array[i]).toArray()
+        print(`output_views: ${views_output}`)
+        
+        if(Number(views_output) === views_exp_output[i]){
+          print('ok')
+        }else{
+          throw new Error(`Index query ${views_output} didn't match with ${views_exp_output[i]}!`);
+        }
       }
 
       return 0;
