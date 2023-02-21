@@ -636,7 +636,7 @@ const { stringify } = require("querystring");
         }
       })
 
-      let index_output;
+      // let index_output;
       //execute queries which use indexes and verify that the proper amount of docs are returned
       let index_array = [
         `for doc in ${c1} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == SOUNDEX('sky') collect with count into c return c`,
@@ -656,20 +656,23 @@ const { stringify } = require("querystring");
       ];
 
       let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 64000, 32000, 64000, 64000, 64000]
-      // comparing returnd collections number with expected collections number
-      for(let i=0; i<index_array.length; i++){
-        index_output = db._query(index_array[i]).toArray()
-        
-        if(Number(index_output) === index_exp_output[i]){
-          print('ok')
-        }else{
-          throw new Error(`Index query ${output} didn't match with ${index_exp_output[i]}!`);
+      
+      let resultComparision = (input_array, output_array) =>{
+        for(let i=0; i<input_array.length; i++){
+          let output = db._query(input_array[i]).toArray()
+          
+          if(Number(output) === output_array[i]){
+            print('ok')
+          }else{
+            throw new Error(`Index query ${output} didn't match with ${output_array[i]}!`);
+          }
         }
       }
 
+      resultComparision(index_array, index_exp_output)
 
       //execute queries which use views and verify that the proper amount of docs are returned
-      let views_output;
+      // let views_output;
       let views_array = [
         `for doc in testView search doc.cv_field == SOUNDEX('sky') collect with count into c return c`,
         `for doc in testView search doc.cv_field == SOUNDEX('dog') collect with count into c return c`,
@@ -693,23 +696,13 @@ const { stringify } = require("querystring");
       ]
 
       let views_exp_output = [64000, 64000, 64000, 0, 0, 64000, 96000, 64000, 64000, 64000, 64000, 64000, 0, 0, 160000, 64000, 96000, 64000, 64000]
-      // comparing returnd collections number with expected collections number
-      for(let i=0; i<views_array.length; i++){
-        views_output = db._query(views_array[i]).toArray()
-        print(`output_views: ${views_output}`)
-        
-        if(Number(views_output) === views_exp_output[i]){
-          print('ok')
-        }else{
-          throw new Error(`Index query ${views_output} didn't match with ${views_exp_output[i]}!`);
-        }
-      }
+
+      resultComparision(views_array, views_exp_output)
 
       return 0;
     },
     checkDataDB: function (options, isCluster, isEnterprise, database, dbCount, readOnly) {
       print(`checking data ${dbCount}`);
-
       return 0;
     },
     clearDataDB: function (options, isCluster, isEnterprise, dbCount, database) {
