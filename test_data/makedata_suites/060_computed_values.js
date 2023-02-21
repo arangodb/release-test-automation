@@ -1,6 +1,9 @@
 /* global print, semver, progress, createCollectionSafe, db, fs, PWD */
 /*jslint maxlen: 130 */
 
+const { count } = require("console");
+const { stringify } = require("querystring");
+
 (function () {
   const a = require("@arangodb/analyzers");
   return {
@@ -549,7 +552,6 @@
       //-------------------------------------------------------x-------------------------------------------------------------
 
       //inserting data to all collection
-
       let Collection_array = [a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12]
       let docsAsStr = fs.read(`${PWD}/makedata_suites/060_computed_value.json`)
 
@@ -578,6 +580,23 @@
           print(`test skipped intentionally!`)
         }
       })
+
+      //execute queries which indexes and verify that the proper amount of docs are returned
+      let queries_array = [
+        `for doc in ${c1} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == SOUNDEX('sky') collect with count into c return c`,
+        `for doc in ${c1} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == SOUNDEX('sky') collect with count into c return c`,
+        `for doc in ${c2} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == SOUNDEX('dog') collect with count into c return c`,
+        `for doc in ${c2} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == SOUNDEX('dog') collect with count into c return c`,
+        `for doc in ${c3_insert} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
+        `for doc in ${c3_insert} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
+        `for doc in ${c4_update} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_update == SOUNDEX('beer') collect with count into c return c`,
+        `for doc in ${c4_update} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`
+      ]
+
+      // comparing returnd collections number with expected collections number
+      for(let i=0; i<queries_array.length; i++){
+        db._query(queries_array[i])
+      }
 
       return 0;
     },
