@@ -1,17 +1,16 @@
 #!/usr/bin/python3
 """ fetch nightly packages, process upgrade """
-# pylint: disable=duplicate-code
-from pathlib import Path
 import sys
 
+# pylint: disable=duplicate-code
+from copy import deepcopy
+from pathlib import Path
+
 import click
-import semver
-
-from common_options import very_common_options, common_options, download_options, full_common_options, hotbackup_options
-
-from beautifultable import BeautifulTable, ALIGN_LEFT
 
 import tools.loghelper as lh
+from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig
+from common_options import very_common_options, common_options, download_options, full_common_options, hotbackup_options
 from download import (
     get_tar_file_path,
     read_versions_tar,
@@ -22,8 +21,7 @@ from download import (
 )
 from test_driver import TestDriver
 from tools.killall import list_all_processes
-
-from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig, RunProperties
+from write_result_table import write_table
 
 
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
@@ -96,83 +94,53 @@ def upgrade_package_test(
     enterprise_packages_are_present = "EE" in editions or "EP" in editions
     community_packages_are_present = "C" in editions
 
-    [new_version, old_version] = versions[0]
+    params = deepcopy(test_driver.cli_test_suite_params)
+    params.new_version = dl_new.cfg.version
+    params.old_version = dl_old.cfg.version
     if enterprise_packages_are_present and community_packages_are_present:
-        for use_enterprise in [True, False]:
-            results.append(
-                test_driver.run_conflict_tests(
-                    [old_version, new_version],
-                    enterprise=use_enterprise,
-                )
-            )
-
-    if enterprise_packages_are_present:
+        params.enterprise = True
         results.append(
-            test_driver.run_debugger_tests(
-                [semver.VersionInfo.parse(old_version), semver.VersionInfo.parse(new_version)],
-                run_props=RunProperties(True, False, False),
+            test_driver.run_test_suites(
+                include_suites=("EnterprisePackageInstallationTestSuite",),
+                params=params,
+            )
+        )
+        params.enterprise = False
+        results.append(
+            test_driver.run_test_suites(
+                include_suites=("CommunityPackageInstallationTestSuite",),
+                params=params,
             )
         )
 
+    if enterprise_packages_are_present:
+        params.enterprise = True
         results.append(
-            test_driver.run_license_manager_tests(
-                [semver.VersionInfo.parse(old_version), semver.VersionInfo.parse(new_version)]
+            test_driver.run_test_suites(
+                include_suites=("DebuggerTestSuite", "BasicLicenseManagerTestSuite", "UpgradeLicenseManagerTestSuite"),
+                params=params,
             )
         )
 
     if community_packages_are_present:
+        params.enterprise = False
         results.append(
-            test_driver.run_debugger_tests(
-                [semver.VersionInfo.parse(old_version), semver.VersionInfo.parse(new_version)],
-                run_props=RunProperties(False, False, False),
+            test_driver.run_test_suites(
+                include_suites=("DebuggerTestSuite",),
+                params=params,
             )
         )
 
+    test_driver.destructor()
     print("V" * 80)
-    status = True
-    table = BeautifulTable(maxwidth=140)
-    for one_suite_result in results:
-        if len(one_suite_result) > 0:
-            for one_result in one_suite_result:
-                if one_result["success"]:
-                    table.rows.append(
-                        [
-                            one_result["testrun name"],
-                            one_result["testscenario"],
-                            # one_result['success'],
-                            "\n".join(one_result["messages"]),
-                        ]
-                    )
-                else:
-                    table.rows.append(
-                        [
-                            one_result["testrun name"],
-                            one_result["testscenario"],
-                            # one_result['success'],
-                            "\n".join(one_result["messages"]) + "\n" + "H" * 40 + "\n" + one_result["progress"],
-                        ]
-                    )
-                status = status and one_result["success"]
-    table.columns.header = [
-        "Testrun",
-        "Test Scenario",
-        # 'success', we also have this in message.
-        "Message + Progress",
-    ]
-    table.columns.alignment["Message + Progress"] = ALIGN_LEFT
-
-    tablestr = str(table)
-    Path("testfailures.txt").write_text(tablestr, encoding="utf8")
-    if not status:
+    if not write_table(results):
         print("exiting with failure")
-        sys.exit(1)
+        return 1
 
     if dl_opts.force:
         touch_all_tars_in_dir(version_state_tar)
     else:
         write_version_tar(version_state_tar, fresh_versions)
-    print(tablestr)
-
     return 0
 
 

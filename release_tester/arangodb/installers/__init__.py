@@ -108,7 +108,16 @@ class OptionGroup:
         """invoke init from kwargs"""
         # these members will be added by derivative classes:
         # pylint: disable=no-member
-        return cls(**{k: v for k, v in options.items() if k in cls.__dataclass_fields__})
+        # TODO: after we upgrade to python 3.10, we should replace this with {}|{} operator
+        dict1 = {key: value for key, value in options.items() if key in cls.__dataclass_fields__}
+        dict2 = {
+            key: value.type.from_dict(**options)
+            for key, value in cls.__dataclass_fields__.items()
+            if OptionGroup in value.type.mro()
+        }
+        for key, value in dict2.items():
+            dict1[key] = value
+        return cls(**(dict1))
 
 
 @dataclass
@@ -432,7 +441,12 @@ class RunProperties:
 
     # pylint: disable=too-many-function-args disable=too-many-arguments
     def __init__(
-        self, enterprise: bool, encryption_at_rest: bool, ssl: bool, testrun_name: str = "", directory_suffix: str = ""
+        self,
+        enterprise: bool,
+        encryption_at_rest: bool = False,
+        ssl: bool = False,
+        testrun_name: str = "",
+        directory_suffix: str = "",
     ):
         """set the values for this testrun"""
         self.enterprise = enterprise

@@ -18,14 +18,16 @@ from test_suites_core.base_test_suite import (
     disable_for_windows,
     disable_for_mac,
 )
+from test_suites_core.cli_test_suite import CliTestSuiteParameters
 
 
 class CommunityPackageInstallationTestSuite(BasePackageInstallationTestSuite):
     """testsuite for community packages"""
 
-    # pylint: disable=too-many-arguments disable=line-too-long
-    def __init__(self, versions: list, base_config: InstallerBaseConfig, **kwargs):
-        super().__init__(versions=versions, base_config=base_config)
+    # pylint: disable=missing-function-docstring
+    def __init__(self, params: CliTestSuiteParameters):
+        super().__init__(params)
+        self.suite_name = f"Test package installation/uninstallation. New version: {self.new_version}. Old version: {self.old_version}. Package type: {str(self.new_inst_e.installer_type)}. Community edition."
 
     disable_for_debian_bts_684 = disable_for_debian(
         "Package installation/uninstallation tests are temporarily disabled for debian-based linux distros. Waiting for BTS-684."
@@ -37,9 +39,6 @@ class CommunityPackageInstallationTestSuite(BasePackageInstallationTestSuite):
         BasePackageInstallationTestSuite.client_package_is_not_present,
         "Test case is skipped because client package is not present for given installer type.",
     )
-    # pylint: disable=missing-function-docstring
-    def generate_custom_suite_name(self):
-        return f"Test package installation/uninstallation. New version: {self.new_version}. Old version: {self.old_version}. Package type: {str(self.new_inst_e.installer_type)}. Community edition."
 
     @disable_for_debian_bts_684
     @disable_for_windows

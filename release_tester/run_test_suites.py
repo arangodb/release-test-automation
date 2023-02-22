@@ -5,9 +5,8 @@
 from pathlib import Path
 
 import click
-import semver
 
-from arangodb.installers import HotBackupCliCfg, InstallerBaseConfig, RunProperties
+from arangodb.installers import HotBackupCliCfg, InstallerBaseConfig
 from common_options import very_common_options, common_options, hotbackup_options, test_suite_filtering_options
 from test_driver import TestDriver
 
@@ -35,10 +34,8 @@ def main(**kwargs):
     test_driver.set_r_limits()
 
     results = test_driver.run_test_suites(
-        versions=[semver.VersionInfo.parse(kwargs["old_version"]), semver.VersionInfo.parse(kwargs["new_version"])],
         include_suites=kwargs["include_test_suites"],
         exclude_suites=kwargs["exclude_test_suites"],
-        run_props=RunProperties(kwargs["enterprise"], kwargs["encryption_at_rest"], kwargs["ssl"]),
     )
     for result in results:
         if not result["success"]:

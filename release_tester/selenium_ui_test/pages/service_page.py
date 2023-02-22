@@ -343,7 +343,6 @@ class ServicePage(NavigationBarPage):
                     intersection = 'geoIntersection'
                     self.locator_finder_by_id(intersection).click()
                     time.sleep(3)
-                    self.webdriver.close() # closes the browser active window
                     print('Switching back to original window \n')
                     self.webdriver.close()
                     self.webdriver.switch_to.window(self.webdriver.window_handles[0])

@@ -780,6 +780,16 @@ To disable formatting for single line, end it with `# fmt: on`.
 ## Linter
 We use [pylint](https://pylint.org/). Command to run it: `pylint release_tester`
 
+## Pre-commit hooks
+We have pre-commit hooks to enforce the use of linter and formatter. 
+The hooks are managed using the [pre-commit tool](https://pre-commit.com/). The configuration is stored in the `.pre-commit-config.yaml` file.  
+To install pre-commit hooks:
+- Run `pip install -r requirements.txt`
+- Run `pre-commit install`   
+
+Now, each time you run `git commit`, the linter and formatter will be ran automatically. The hooks will prevent you from commiting code if the changed files have any unresolved issues found by the linter.  
+  If the formatter changed anything in the files staged for commit, the hook will also not commit anything. You should review changes made by the formatter, stage them by running `git add` and run `git commit` again.
+
 ### source "Installer"
 In RTA an "installer" makes the ArangoDB version available in the system. By default, the native installer to the system is chosen.
 With `--zip` the Windows Zip or Mac/Linux .tar.gz package is chosen. Similar to this `--src` flips the switch of not deploying a package

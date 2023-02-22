@@ -5,23 +5,12 @@ from arangodb.async_client import CliExecutionException
 from license_manager_tests.base.dc2dc_base import LicenseManagerDc2DcBaseTestSuite
 from license_manager_tests.upgrade.license_manager_upgrade_base_test_suite import LicenseManagerUpgradeBaseTestSuite
 from reporting.reporting_utils import step
-from test_suites_core.base_test_suite import testcase
+from test_suites_core.base_test_suite import testcase, disable_for_windows
 
 
+@disable_for_windows("DC2DC suite is disabled for Windows")
 class LicenseManagerDc2DcUpgradeTestSuite(LicenseManagerDc2DcBaseTestSuite, LicenseManagerUpgradeBaseTestSuite):
     """License manager tests: upgrade DC2DC setup"""
-
-    @step
-    def upgrade_dc2dc(self):
-        """upgrade a cluster setup"""
-        self.new_installer.calculate_package_names()
-        self.new_installer.upgrade_server_package(self.old_installer)
-        self.new_installer.output_arangod_version()
-        self.new_installer.stop_service()
-        self.runner.cfg.set_directories(self.new_installer.cfg)
-        self.runner.new_cfg.set_directories(self.new_installer.cfg)
-        self.runner.upgrade_arangod_version()  # make sure to pass new version
-        self.old_installer.un_install_server_package_for_upgrade()
 
     @testcase
     def upgrade_when_license_is_expired(self):
@@ -44,7 +33,7 @@ class LicenseManagerDc2DcUpgradeTestSuite(LicenseManagerDc2DcBaseTestSuite, Lice
                 expect_to_fail=False,
             )
         self.expire_license()
-        self.upgrade_dc2dc()
+        self.upgrade()
         with step("check that data is present after the upgrade"):
             try:
                 self.starter.arangosh.run_command(

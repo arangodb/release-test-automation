@@ -39,7 +39,7 @@ class Cluster(Runner):
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("CLUSTER", 400, 600, True, ssl, use_auto_certs),
+            RunnerProperties("CLUSTER", 400, 600, True, ssl, use_auto_certs, 6),
             selenium,
             selenium_driver_args,
             testrun_name,
@@ -108,12 +108,16 @@ db.testCollection.save({test: "document"})
 
         logging.info("waiting for the starters to become alive")
         not_started = self.starter_instances[:]  # This is a explicit copy
+        count = 0
         while not_started:
             logging.debug("waiting for mananger with logfile:" + str(not_started[-1].log_file))
             if not_started[-1].is_instance_up():
                 not_started.pop()
             progress(".")
             time.sleep(1)
+            count += 1
+            if count > 120:
+                raise Exception("Active failover installation didn't come up in two minutes!")
 
         logging.info("waiting for the cluster instances to become alive")
         for node in self.starter_instances:
@@ -223,7 +227,7 @@ db.testCollection.save({test: "document"})
             ])
         # fmt: on
         self.progress(True, "step 5 restart the full cluster ")
-        version = self.new_cfg.version if self.new_cfg != None else self.cfg.version
+        version = self.new_cfg.version if self.new_cfg is not None else self.cfg.version
         for node in self.starter_instances:
             node.respawn_instance(version)
         self.progress(True, "step 6 wait for the cluster to be up")
@@ -293,7 +297,7 @@ db.testCollection.save({test: "document"})
             ])
         # fmt: on
         self.progress(True, "step 5 restart the full cluster ")
-        version = self.new_cfg.version if self.new_cfg != None else self.cfg.version
+        version = self.new_cfg.version if self.new_cfg is not None else self.cfg.version
         for node in self.starter_instances:
             node.respawn_instance(version)
         self.progress(True, "step 6 wait for the cluster to be up")

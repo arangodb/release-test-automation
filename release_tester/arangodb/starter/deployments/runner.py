@@ -13,6 +13,7 @@ import re
 import shutil
 import sys
 import time
+import psutil
 
 from allure_commons._allure import attach
 import certifi
@@ -67,6 +68,7 @@ class RunnerProperties:
         supports_hotbackup: bool,
         ssl: bool,
         use_auto_certs: bool,
+        no_arangods_non_agency: int
     ):
         self.short_name = short_name
         self.disk_usage_community = disk_usage_community
@@ -74,6 +76,7 @@ class RunnerProperties:
         self.supports_hotbackup = supports_hotbackup
         self.ssl = ssl
         self.use_auto_certs = use_auto_certs
+        self.no_arangods_non_agency = no_arangods_non_agency
 
 
 class Runner(ABC):
@@ -92,6 +95,8 @@ class Runner(ABC):
     ):
         load_scenarios()
         assert runner_type, "no runner no cry? no!"
+        mem = psutil.virtual_memory()
+        os.environ["ARANGODB_OVERRIDE_DETECTED_TOTAL_MEMORY"] = str(int((mem.total * 0.8) / properties.no_arangods_non_agency))
         logging.debug(runner_type)
         self.abort_on_error = abort_on_error
         self.testrun_name = testrun_name
