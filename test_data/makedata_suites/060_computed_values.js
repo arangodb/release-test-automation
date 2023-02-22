@@ -704,7 +704,7 @@
       let c4_update = `c4_update_060_${dbCount}`;
       let c5_replace = `c5_replace_060_${dbCount}`;
       let c6_not_null = `c6_not_null_060_${dbCount}`;
-      let c7_hex = `c7_hex_${dbCount}`;
+      let c7_hex = `c7_hex_060_${dbCount}`;
       let c8_overwriteFalse = `c8_overwriteFalse_060_${dbCount}`;
       let c9_overwriteTrue = `c9_overwriteTrue_060_${dbCount}`;
       let c10_multiple = `c10_multiple_060_${dbCount}`;
