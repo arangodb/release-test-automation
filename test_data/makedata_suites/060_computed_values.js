@@ -1,68 +1,63 @@
 /* global print, semver, progress, createCollectionSafe, db, fs, PWD */
 
-
-const { count } = require("console");
-const { stringify } = require("querystring");
-
 (function () {
   const a = require("@arangodb/analyzers");
   return {
     isSupported: function (currentVersion, oldVersion, options, enterprise, cluster) {
-      let currentVersionSemver = semver.parse(semver.coerce(currentVersion));
       let oldVersionSemver = semver.parse(semver.coerce(oldVersion));
       return semver.gte(oldVersionSemver, "3.10.0");
     },
 
     makeDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
       // All items created must contain dbCount
-      print(`making per database data ${dbCount}`);
+      print(`060: making per database data ${dbCount}`);
 
       //creation computed values with sample collections
-      let c1 = `c1_${dbCount}`;
+      let c1 = `c1_060_${dbCount}`;
       let a1 = createCollectionSafe(c1, 3, 3);
       a1.properties({ computedValues: [{ "name": "default", "expression": "RETURN SOUNDEX('sky')", overwrite: true }] });
 
-      let c2 = `c2_${dbCount}`;
+      let c2 = `c2_060_${dbCount}`;
       let a2 = createCollectionSafe(c2, 3, 3);
       a2.properties({ computedValues: [{ "name": "default", "expression": "RETURN SOUNDEX('dog')", overwrite: true }] });
 
-      let c3_insert = `c3_insert_${dbCount}`;
+      let c3_insert = `c3_insert_060_${dbCount}`;
       let a3 = createCollectionSafe(c3_insert, 3, 3);
       a3.properties({ computedValues: [{ "name": "default_insert", "expression": "RETURN SOUNDEX('frog')", computeOn: ["insert"], overwrite: true }] });
 
-      let c4_update = `c4_update_${dbCount}`;
+      let c4_update = `c4_update_060_${dbCount}`;
       let a4 = createCollectionSafe(c4_update, 3, 3);
       a4.properties({ computedValues: [{ "name": "default_update", "expression": "RETURN SOUNDEX('beer')", computeOn: ["update"], overwrite: true }] });
 
-      let c5_replace = `c5_replace_${dbCount}`;
+      let c5_replace = `c5_replace_060_${dbCount}`;
       let a5 = createCollectionSafe(c5_replace, 3, 3);
       a5.properties({ computedValues: [{ "name": "default_replace", "expression": "RETURN SOUNDEX('water')", computeOn: ["replace"], overwrite: true }] });
 
-      let c6_not_null = `c6_not_null_${dbCount}`;
+      let c6_not_null = `c6_not_null_060_${dbCount}`;
       let a6 = createCollectionSafe(c6_not_null, 3, 3);
       a6.properties({ computedValues: [{ "name": "default", "expression": "RETURN null", overwrite: true, keepNull: false }] });
 
-      let c7_hex = `c7_hex_${dbCount}`;
+      let c7_hex = `c7_hex_060_${dbCount}`;
       let a7 = createCollectionSafe(c7_hex, 3, 3);
       a7.properties({ computedValues: [{ "name": "default", "expression": "RETURN TO_HEX(@doc.name)", overwrite: true }] });
 
-      let c8_overwriteFalse = `c8_overwriteFalse_${dbCount}`;
+      let c8_overwriteFalse = `c8_overwriteFalse_060_${dbCount}`;
       let a8 = createCollectionSafe(c8_overwriteFalse, 3, 3);
       a8.properties({ computedValues: [{ "name": "default", "expression": "RETURN CONCAT('42_', TO_STRING(@doc.field))", overwrite: false }] });
 
-      let c9_overwriteTrue = `c9_overwriteTrue_${dbCount}`;
+      let c9_overwriteTrue = `c9_overwriteTrue_060_${dbCount}`;
       let a9 = createCollectionSafe(c9_overwriteTrue, 3, 3);
       a9.properties({ computedValues: [{ "name": "default", "expression": "RETURN CONCAT('42_', TO_STRING(@doc.field))", overwrite: true }] });
 
-      let c10_multiple = `c10_multiple_${dbCount}`;
+      let c10_multiple = `c10_multiple_060_${dbCount}`;
       let a10 = createCollectionSafe(c10_multiple, 3, 3);
       a10.properties({ computedValues: [{ "name": "default1", "expression": "RETURN 'foo'", overwrite: true }, { "name": "default2", "expression": "RETURN 'bar'", overwrite: true }, { "name": "default3", "expression": "RETURN 'baz'", overwrite: true }] });
 
-      let c11 = `c11_${dbCount}`;
+      let c11 = `c11_060_${dbCount}`;
       let a11 = createCollectionSafe(c11, 3, 3);
       a11.properties({ computedValues: [{ "name": "default", "expression": "RETURN CONCAT(@doc._key, ' ', @doc._id, ' ', @doc._rev)", overwrite: true }] });
 
-      let c12 = `c12_${dbCount}`;
+      let c12 = `c12_060_${dbCount}`;
       let a12 = createCollectionSafe(c12, 3, 3);
       a12.properties({ computedValues: [{ "name": "default", "expression": "RETURN [{from_doc: CONCAT(@doc.name, ' ', @doc.field), system:{_key: @doc._key, _rev: @doc._rev, _id: @doc._id}, values: [RANGE(1, 10)]}]", overwrite: true }] });
 
@@ -387,18 +382,18 @@ const { stringify } = require("querystring");
 
       let queryOutput = db.testView.properties(
         {"links":{
-          "c1_0":{"includeAllFields":true},
-          "c2_0":{"includeAllFields":true},
-          "c3_insert_0":{"includeAllFields":true},
-          "c4_update_0":{"includeAllFields":true},
-          "c5_replace_0":{"includeAllFields":true},
-          "c6_not_null_0":{"includeAllFields":true},
-          "c7_hex_0":{"includeAllFields":true},
-          "c8_overwriteFalse_0":{"includeAllFields":true},
-          "c9_overwriteTrue_0":{"includeAllFields":true},
-          "c10_multiple_0":{"includeAllFields":true},
-          "c11_0":{"includeAllFields":true},
-          "c12_0":{"includeAllFields":true}
+          "c1_060_0":{"includeAllFields":true},
+          "c2_060_0":{"includeAllFields":true},
+          "c3_insert_060_0":{"includeAllFields":true},
+          "c4_update_060_0":{"includeAllFields":true},
+          "c5_replace_060_0":{"includeAllFields":true},
+          "c6_not_null_060_0":{"includeAllFields":true},
+          "c7_hex_060_0":{"includeAllFields":true},
+          "c8_overwriteFalse_060_0":{"includeAllFields":true},
+          "c9_overwriteTrue_060_0":{"includeAllFields":true},
+          "c10_multiple_060_0":{"includeAllFields":true},
+          "c11_060_0":{"includeAllFields":true},
+          "c12_060_0":{"includeAllFields":true}
         }
       });
 
@@ -421,7 +416,7 @@ const { stringify } = require("querystring");
              "writebufferIdle" : 64,
              "writebufferSizeMax" : 33554432,
              "links" : {
-               "c1_0" : {
+               "c1_060_0" : {
                  "analyzers" : [
                    "identity"
                  ],
@@ -431,7 +426,7 @@ const { stringify } = require("querystring");
                  "storeValues" : "none",
                  "trackListPositions" : false
                },
-               "c2_0" : {
+               "c2_060_0" : {
                  "analyzers" : [
                    "identity"
                  ],
@@ -441,7 +436,7 @@ const { stringify } = require("querystring");
                  "storeValues" : "none",
                  "trackListPositions" : false
                },
-               "c3_insert_0" : {
+               "c3_insert_060_0" : {
                  "analyzers" : [
                    "identity"
                  ],
@@ -451,7 +446,7 @@ const { stringify } = require("querystring");
                  "storeValues" : "none",
                  "trackListPositions" : false
                },
-               "c4_update_0" : {
+               "c4_update_060_0" : {
                  "analyzers" : [
                    "identity"
                  ],
@@ -461,7 +456,7 @@ const { stringify } = require("querystring");
                  "storeValues" : "none",
                  "trackListPositions" : false
                },
-               "c5_replace_0" : {
+               "c5_replace_060_0" : {
                  "analyzers" : [
                    "identity"
                  ],
@@ -471,7 +466,7 @@ const { stringify } = require("querystring");
                  "storeValues" : "none",
                  "trackListPositions" : false
                },
-               "c6_not_null_0" : {
+               "c6_not_null_060_0" : {
                  "analyzers" : [
                    "identity"
                  ],
@@ -481,7 +476,7 @@ const { stringify } = require("querystring");
                  "storeValues" : "none",
                  "trackListPositions" : false
                },
-               "c7_hex_0" : {
+               "c7_hex_060_0" : {
                  "analyzers" : [
                    "identity"
                  ],
@@ -491,7 +486,7 @@ const { stringify } = require("querystring");
                  "storeValues" : "none",
                  "trackListPositions" : false
                },
-               "c8_overwriteFalse_0" : {
+               "c8_overwriteFalse_060_0" : {
                  "analyzers" : [
                    "identity"
                  ],
@@ -501,7 +496,7 @@ const { stringify } = require("querystring");
                  "storeValues" : "none",
                  "trackListPositions" : false
                },
-               "c9_overwriteTrue_0" : {
+               "c9_overwriteTrue_060_0" : {
                  "analyzers" : [
                    "identity"
                  ],
@@ -511,7 +506,7 @@ const { stringify } = require("querystring");
                  "storeValues" : "none",
                  "trackListPositions" : false
                },
-               "c10_multiple_0" : {
+               "c10_multiple_060_0" : {
                  "analyzers" : [
                    "identity"
                  ],
@@ -521,7 +516,7 @@ const { stringify } = require("querystring");
                  "storeValues" : "none",
                  "trackListPositions" : false
                },
-               "c11_0" : {
+               "c11_060_0" : {
                  "analyzers" : [
                    "identity"
                  ],
@@ -531,7 +526,7 @@ const { stringify } = require("querystring");
                  "storeValues" : "none",
                  "trackListPositions" : false
                },
-               "c12_0" : {
+               "c12_060_0" : {
                  "analyzers" : [
                    "identity"
                  ],
@@ -544,61 +539,61 @@ const { stringify } = require("querystring");
              }
       }
 
-      print(queryOutput)
+      // print(queryOutput)
 
       if (expected_output === queryOutput){
-        print(`ok`);
+        print(`060: ok`);
       }
 
       // creating testviewV2 allias
       db._createView("testViewV2", "search-alias", {
         "indexes": [
           {
-            "collection": "c1_0",
+            'collection': c1,
             'index': 'inverted'
           },
           {
-            'collection': 'c2_0',
+            'collection': c2,
             'index': 'inverted'
           },
           {
-            'collection': 'c3_insert_0',
+            'collection': c3_insert,
             'index': 'inverted'
           },
           {
-            'collection': 'c4_update_0',
+            'collection': c4_update,
             'index': 'inverted'
           },
           {
-            'collection': 'c5_replace_0',
+            'collection': c5_replace,
             'index': 'inverted'
           },
           {
-            'collection': 'c6_not_null_0',
+            'collection': c6_not_null,
             'index': 'inverted'
           },
           {
-            'collection': 'c7_hex_0',
+            'collection': c7_hex,
             'index': 'inverted'
           },
           {
-            'collection': 'c8_overwriteFalse_0',
+            'collection': c8_overwriteFalse,
             'index': 'inverted'
           },
           {
-            'collection': 'c9_overwriteTrue_0',
+            'collection': c9_overwriteTrue,
             'index': 'inverted'
           },
           {
-            'collection': 'c10_multiple_0',
+            'collection': c10_multiple,
             'index': 'inverted'
           },
           {
-            'collection': 'c11_0',
+            'collection': c11,
             'index': 'inverted'
           },
           {
-            'collection': 'c12_0',
+            'collection': c12,
             'index': 'inverted'
           }
         ]
@@ -621,18 +616,18 @@ const { stringify } = require("querystring");
         //checking computed value field exit on the collection's doc
         if (col === a1 || col === a2 || col === a7 || col === a8 || col === a9 || col === a11 || col === a12) {
           if (expected_field[0].cv_field !== null) {
-            print(`ok`)
+            print(`060: ok`)
           }
         } else if (col === a3) {
           if (expected_field[0].cv_field_insert !== null) {
-            print(`ok`)
+            print(`060: ok`)
           }
         } else if (col === a10) {
           if (expected_field[0].cv_field1 !== null) {
-            print(`ok`)
+            print(`060: ok`)
           }
         }else{
-          print(`test skipped intentionally!`)
+          print(`060: test skipped intentionally!`)
         }
       })
 
@@ -641,9 +636,9 @@ const { stringify } = require("querystring");
         for(let i=0; i<input_array.length; i++){
           let output = db._query(input_array[i]).toArray()
 
-          if(Number(output) === output_array[i]){
-            print("ok")
-          }else{
+          if (Number(output) === output_array[i]) {
+            print("060: ok")
+          } else {
             throw new Error(`Index query ${output} didn't match with ${output_array[i]}!`);
           }
         }
@@ -702,28 +697,28 @@ const { stringify } = require("querystring");
       return 0;
     },
     checkDataDB: function (options, isCluster, isEnterprise, database, dbCount, readOnly) {
-      print(`checking data ${dbCount}`);
-      let c1 = `c1_${dbCount}`;
-      let c2 = `c2_${dbCount}`;
-      let c3_insert = `c3_insert_${dbCount}`;
-      let c4_update = `c4_update_${dbCount}`;
-      let c5_replace = `c5_replace_${dbCount}`;
-      let c6_not_null = `c6_not_null_${dbCount}`;
+      print(`060: checking data ${dbCount}`);
+      let c1 = `c1_060_${dbCount}`;
+      let c2 = `c2_060_${dbCount}`;
+      let c3_insert = `c3_insert_060_${dbCount}`;
+      let c4_update = `c4_update_060_${dbCount}`;
+      let c5_replace = `c5_replace_060_${dbCount}`;
+      let c6_not_null = `c6_not_null_060_${dbCount}`;
       let c7_hex = `c7_hex_${dbCount}`;
-      let c8_overwriteFalse = `c8_overwriteFalse_${dbCount}`;
-      let c9_overwriteTrue = `c9_overwriteTrue_${dbCount}`;
-      let c10_multiple = `c10_multiple_${dbCount}`;
-      let c11 = `c11_${dbCount}`;
-      let c12 = `c12_${dbCount}`;
+      let c8_overwriteFalse = `c8_overwriteFalse_060_${dbCount}`;
+      let c9_overwriteTrue = `c9_overwriteTrue_060_${dbCount}`;
+      let c10_multiple = `c10_multiple_060_${dbCount}`;
+      let c11 = `c11_060_${dbCount}`;
+      let c12 = `c12_060_${dbCount}`;
 
       // This method will take input and output array and compare both's results
       let resultComparision = (input_array, output_array) =>{
         for(let i=0; i<input_array.length; i++){
           let output = db._query(input_array[i]).toArray()
 
-          if(Number(output) === output_array[i]){
-            print('ok')
-          }else{
+          if (Number(output) === output_array[i]) {
+            print('060: ok')
+          } else {
             throw new Error(`Index query ${output} didn't match with ${output_array[i]}!`);
           }
         }
@@ -783,37 +778,36 @@ const { stringify } = require("querystring");
       return 0;
     },
     clearDataDB: function (options, isCluster, isEnterprise, dbCount, database) {
-      print(`checking data ${dbCount}`);
-      let c1 = `c1_${dbCount}`;
-      let c2 = `c2_${dbCount}`;
-      let c3_insert = `c3_insert_${dbCount}`;
-      let c4_update = `c4_update_${dbCount}`;
-      let c5_replace = `c5_replace_${dbCount}`;
-      let c6_not_null = `c6_not_null_${dbCount}`;
-      let c7_hex = `c7_hex_${dbCount}`;
-      let c8_overwriteFalse = `c8_overwriteFalse_${dbCount}`;
-      let c9_overwriteTrue = `c9_overwriteTrue_${dbCount}`;
-      let c10_multiple = `c10_multiple_${dbCount}`;
-      let c11 = `c11_${dbCount}`;
-      let c12 = `c12_${dbCount}`;
+      print(`060: checking data ${dbCount}`);
+      let c1 = `c1_060_${dbCount}`;
+      let c2 = `c2_060_${dbCount}`;
+      let c3_insert = `c3_insert_060_${dbCount}`;
+      let c4_update = `c4_update_060_${dbCount}`;
+      let c5_replace = `c5_replace_060_${dbCount}`;
+      let c6_not_null = `c6_not_null_060_${dbCount}`;
+      let c7_hex = `c7_hex_060_${dbCount}`;
+      let c8_overwriteFalse = `c8_overwriteFalse_060_${dbCount}`;
+      let c9_overwriteTrue = `c9_overwriteTrue_060_${dbCount}`;
+      let c10_multiple = `c10_multiple_060_${dbCount}`;
+      let c11 = `c11_060_${dbCount}`;
+      let c12 = `c12_060_${dbCount}`;
 
       Collection_array = [c1, c2, c3_insert, c4_update, c5_replace, c6_not_null, c7_hex, c8_overwriteFalse, c9_overwriteTrue, c10_multiple, c11, c12]
 
       Collection_array.forEach(col => {
         db.col.properties({computedValues: []})
         //checking the properties set to null properly
-        if(db.col.properties()["computedValues"] === null){
-          print('ok')
+        if (db.col.properties()["computedValues"] === null) {
+          print('060: ok')
           //drop the collection after check
           db._drop(col);
           progress(`deleting ${col} collection`);
-        }else{
+        } else {
           throw new Error(`${col} deletion failed!`);
         }
 
       })
-
-
+      
       return 0;
     }
   };
