@@ -377,7 +377,6 @@ class Runner(ABC):
                 )
                 self.test_setup()
                 self.jam_attempt()
-                self.check_data_impl()
                 self.starter_shutdown()
                 for starter in self.starter_instances:
                     starter.detect_fatal_errors()

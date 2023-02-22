@@ -587,7 +587,7 @@ class Dc2Dc(Runner):
         self._stop_sync()
         self.progress(True, "creating volatile data on secondary DC")
         self.cluster2["instance"].arangosh.hotbackup_create_nonbackup_data()
-        ret = self.cluster2["instance"].arangosh.check_test_data("cluster1 after dissolving", True)
+        ret = self.cluster1["instance"].arangosh.check_test_data("cluster1 after dissolving", True)
         if not ret[0]:
             raise Exception("check data on cluster 1 after dissolving failed " + ret[1])
         ret = self.cluster2["instance"].arangosh.check_test_data("cluster2 after dissolving", True)
