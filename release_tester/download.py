@@ -133,6 +133,8 @@ class Download:
         if not options.package_dir.is_absolute():
             options.package_dir = (self.launch_dir / options.package_dir).resolve()
 
+        if not options.package_dir.exists() or not options.package_dir.is_directory():
+            raise Exception(f"download target directory doesn't exist: {options.package_dir}")
         print("version: " + str(version))
         print("using enterpise: " + str(enterprise))
         print("using zip: " + str(zip_package))
