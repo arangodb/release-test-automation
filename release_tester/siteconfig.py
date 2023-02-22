@@ -38,7 +38,7 @@ if IS_WINDOWS:
     signal.signal(signal.SIGINT, sigint_boomerang_handler)
     # pylint: disable=unused-import
     # this will patch psutil for us:
-    import monkeypatch_psutil
+    import tools.monkeypatch_psutil
 
 def get_workspace():
     """ evaluates the directory to put reports to """
