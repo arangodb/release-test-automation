@@ -14,16 +14,13 @@
 
       //creation computed values with sample collections
       let c1 = `c1_060_${dbCount}`;
-      let a1 = createCollectionSafe(c1, 3, 3);
-      a1.properties({ computedValues: [{ "name": "default", "expression": "RETURN SOUNDEX('sky')", overwrite: true }] });
+      let a1 = createCollectionSafe(c1, 3, 3, { computedValues: [{ "name": "default", "expression": "RETURN SOUNDEX('sky')", overwrite: true }] });
 
       let c2 = `c2_060_${dbCount}`;
-      let a2 = createCollectionSafe(c2, 3, 3);
-      a2.properties({ computedValues: [{ "name": "default", "expression": "RETURN SOUNDEX('dog')", overwrite: true }] });
+      let a2 = createCollectionSafe(c2, 3, 3, { computedValues: [{ "name": "default", "expression": "RETURN SOUNDEX('dog')", overwrite: true }] });
 
       let c3_insert = `c3_insert_060_${dbCount}`;
-      let a3 = createCollectionSafe(c3_insert, 3, 3);
-      a3.properties({ computedValues: [{ "name": "default_insert", "expression": "RETURN SOUNDEX('frog')", computeOn: ["insert"], overwrite: true }] });
+      let a3 = createCollectionSafe(c3_insert, 3, 3, { computedValues: [{ "name": "default_insert", "expression": "RETURN SOUNDEX('frog')", computeOn: ["insert"], overwrite: true }] });
 
       let c4_update = `c4_update_060_${dbCount}`;
       let a4 = createCollectionSafe(c4_update, 3, 3);
