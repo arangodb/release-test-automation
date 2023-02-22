@@ -2,6 +2,7 @@
 """ fetch nightly packages, process upgrade """
 import sys
 from copy import copy, deepcopy
+
 # pylint: disable=duplicate-code
 from pathlib import Path
 
@@ -38,7 +39,7 @@ def upgrade_package_test(
     fresh_versions = {}
 
     results = []
-         
+
     upgrade_scenarios = []
     packages = {}
 
@@ -50,31 +51,28 @@ def upgrade_package_test(
             print(version_name)
             if version_name in packages:
                 continue
-            else:
-                packages[version_name] = {}
-                for default_props in EXECUTION_PLAN:
-                    props = copy(default_props)
-                    if props.directory_suffix not in editions:
-                        continue
-
-                    props.testrun_name = "test_" + props.testrun_name
-
-                    # Verify that all required packages are exist or can be downloaded
-                    source = primary_dlstage if primary_version == version_name else other_source
-                    res = Download(
-                        dl_opts,
-                        test_driver.base_config.hb_cli_cfg,
-                        version_name,
-                        props.enterprise,
-                        test_driver.base_config.zip_package,
-                        test_driver.base_config.src_testing,
-                        source,
-                        versions,
-                        fresh_versions,
-                        git_version,
-                    )
-                    packages[version_name][props.directory_suffix] = res
-                    res.get_packages(dl_opts.force)
+            packages[version_name] = {}
+            for default_props in EXECUTION_PLAN:
+                props = copy(default_props)
+                if props.directory_suffix not in editions:
+                    continue
+                props.testrun_name = "test_" + props.testrun_name
+                # Verify that all required packages are exist or can be downloaded
+                source = primary_dlstage if primary_version == version_name else other_source
+                res = Download(
+                    dl_opts,
+                    test_driver.base_config.hb_cli_cfg,
+                    version_name,
+                    props.enterprise,
+                    test_driver.base_config.zip_package,
+                    test_driver.base_config.src_testing,
+                    source,
+                    versions,
+                    fresh_versions,
+                    git_version,
+                )
+                packages[version_name][props.directory_suffix] = res
+                res.get_packages(dl_opts.force)
 
     params = deepcopy(test_driver.cli_test_suite_params)
 
@@ -94,7 +92,14 @@ def upgrade_package_test(
         this_test_dir = test_dir / props.directory_suffix
         test_driver.reset_test_data_dir(this_test_dir)
 
-        results.append(test_driver.run_test("all", params.base_cfg.starter_mode, [packages[primary_version][props.directory_suffix].cfg.version], props))    
+        results.append(
+            test_driver.run_test(
+                "all",
+                params.base_cfg.starter_mode,
+                [packages[primary_version][props.directory_suffix].cfg.version],
+                props,
+            )
+        )
 
     # STEP 3: Run upgrade tests
     for scenario in upgrade_scenarios:
@@ -111,50 +116,56 @@ def upgrade_package_test(
 
             results.append(test_driver.run_upgrade(scenario, props))
 
+    upgrade_pairs = []
+    for scenario in upgrade_scenarios:
         for i in range(len(scenario) - 1):
             old_version = scenario[i]
             new_version = scenario[i + 1]
+            pair = [new_version, old_version]
+            if pair not in upgrade_pairs:
+                upgrade_pairs.append(pair)
 
-            enterprise_packages_are_present = "EE" in editions or "EP" in editions
-            community_packages_are_present = "C" in editions
+    enterprise_packages_are_present = "EE" in editions or "EP" in editions
+    community_packages_are_present = "C" in editions
 
-            params.new_version = new_version
-            params.old_version = old_version
+    for pair in upgrade_pairs:
+        params.new_version = pair[0]
+        params.old_version = pair[1]
 
-            if enterprise_packages_are_present and community_packages_are_present:
-                params.enterprise = True
-                results.append(
-                    test_driver.run_test_suites(
-                        include_suites=("EnterprisePackageInstallationTestSuite",),
-                        params=params,
-                    )
+        if enterprise_packages_are_present and community_packages_are_present:
+            params.enterprise = True
+            results.append(
+                test_driver.run_test_suites(
+                    include_suites=("EnterprisePackageInstallationTestSuite",),
+                    params=params,
                 )
-                params.enterprise = False
-                results.append(
-                    test_driver.run_test_suites(
-                        include_suites=("CommunityPackageInstallationTestSuite",),
-                        params=params
-                    )
-                )
+            )
+            params.enterprise = False
+            results.append(
+                test_driver.run_test_suites(include_suites=("CommunityPackageInstallationTestSuite",), params=params)
+            )
 
-            if enterprise_packages_are_present:
-                params.enterprise = True
-                results.append(
-                    test_driver.run_test_suites(
-                        include_suites=(
-                        "DebuggerTestSuite", "BasicLicenseManagerTestSuite", "UpgradeLicenseManagerTestSuite"),
-                        params=params,
-                    )
+        if enterprise_packages_are_present:
+            params.enterprise = True
+            results.append(
+                test_driver.run_test_suites(
+                    include_suites=(
+                        "DebuggerTestSuite",
+                        "BasicLicenseManagerTestSuite",
+                        "UpgradeLicenseManagerTestSuite",
+                    ),
+                    params=params,
                 )
+            )
 
-            if community_packages_are_present:
-                params.enterprise = False
-                results.append(
-                    test_driver.run_test_suites(
-                        include_suites=("DebuggerTestSuite",),
-                        params=params,
-                    )
+        if community_packages_are_present:
+            params.enterprise = False
+            results.append(
+                test_driver.run_test_suites(
+                    include_suites=("DebuggerTestSuite",),
+                    params=params,
                 )
+            )
 
     print("V" * 80)
     if not write_table(results):
