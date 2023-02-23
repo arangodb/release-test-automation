@@ -63,6 +63,7 @@ def main(**kwargs):
     test_driver = TestDriver(**kwargs)
     test_driver.set_r_limits()
     test_driver.run_cleanup(RunProperties(enterprise, False, False), versions)
+    test_driver.destructor()
 
 
 if __name__ == "__main__":
