@@ -101,7 +101,7 @@ Supported Parameters:
    - `LF` - Leader / Follower - setup two single instances, start replication between them
    - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
-   - `DC` - setup 2 clusters, connect them with arangosync (enterprise only)
+   - `DC` - setup 2 clusters, connect them with arangosync (enterprise only, non-Windows)
    - `DCendurance` - use DC setup to launch long running arangobenches (not part of `all`)
  - `--test` filter for tests of makedata / check data; comma separated list.
  - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
@@ -145,7 +145,7 @@ Supported Parameters:
    - `LF` - Leader / Follower - setup two single instances, start replication between them
    - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
-   - `DC` - setup 2 clusters, connect them with arangosync (enterprise only)
+   - `DC` - setup 2 clusters, connect them with arangosync (enterprise only, non Windows and non Mac)
  - `--test` filter for tests of makedata / check data; comma separated list.
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
@@ -290,7 +290,7 @@ Supported Parameters:
    - `LF` - Leader / Follower - setup two single instances, start replication between them
    - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
-   - `DC` - setup 2 clusters, connect them with arangosync (enterprise only)
+   - `DC` - setup 2 clusters, connect them with arangosync (enterprise only, non-Windows and non-Mac)
  - `edition` which type to launch:
    - `C` community
    - `EP` enterprise
@@ -354,7 +354,7 @@ Supported Parameters:
    - `LF` - Leader / Follower - setup two single instances, start replication between them
    - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
-   - `DC` - setup 2 clusters, connect them with arangosync (enterprise only)
+   - `DC` - setup 2 clusters, connect them with arangosync (enterprise only, non-Windows, upgrade non Mac)
  - `edition` which type to launch:
    - `C` community
    - `EP` enterprise
