@@ -84,8 +84,7 @@ def package_test(dl_opts: DownloadOptions, new_version, new_dlstage, git_version
         params.enterprise = True
         results.append(
             test_driver.run_test_suites(
-                include_suites=(
-                "DebuggerTestSuite", "BasicLicenseManagerTestSuite"),
+                include_suites=("DebuggerTestSuite", "BasicLicenseManagerTestSuite"),
                 params=params,
             )
         )
@@ -98,6 +97,7 @@ def package_test(dl_opts: DownloadOptions, new_version, new_dlstage, git_version
             )
         )
 
+    test_driver.destructor()
     print("V" * 80)
     if not write_table(results):
         print("exiting with failure")
@@ -108,6 +108,7 @@ def package_test(dl_opts: DownloadOptions, new_version, new_dlstage, git_version
     else:
         write_version_tar(version_state_tar, fresh_versions)
     return 0
+
 
 @click.command()
 @full_common_options

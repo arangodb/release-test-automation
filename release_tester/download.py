@@ -80,15 +80,18 @@ def write_version_tar(tar_file, versions):
         tar.close()
     fdesc.close()
 
+
 @dataclass
 class DownloadOptions(OptionGroup):
     """bearer class for base download options"""
+
     force: bool
     verbose: bool
     package_dir: Path
     enterprise_magic: str
     httpuser: str
-    remote_host:str
+    remote_host: str
+
 
 class Download:
     """manage package downloading from any known arango package source"""
@@ -107,7 +110,7 @@ class Download:
         new_version_states={},
         git_version="",
         force_arch="",
-        force_os = "",
+        force_os="",
     ):
         """main"""
         # pylint: disable=too-many-branches disable=too-many-statements
@@ -130,6 +133,8 @@ class Download:
         if not options.package_dir.is_absolute():
             options.package_dir = (self.launch_dir / options.package_dir).resolve()
 
+        if not options.package_dir.exists() or not options.package_dir.is_dir():
+            raise Exception(f"download target directory doesn't exist: {options.package_dir}")
         print("version: " + str(version))
         print("using enterpise: " + str(enterprise))
         print("using zip: " + str(zip_package))
@@ -138,8 +143,8 @@ class Download:
         self.options = options
         self.is_nightly = semver.VersionInfo.parse(version).prerelease == "nightly"
         self.source = source
-        if not self.is_nightly and self.source == 'nightlypublic':
-            self.source = 'public'
+        if not self.is_nightly and self.source == "nightlypublic":
+            self.source = "public"
         if options.remote_host != "":
             # external DNS to wuerg around docker dns issues...
             self.remote_host = options.remote_host
@@ -179,9 +184,9 @@ class Download:
 
         self.path_architecture = ""
         if self.is_nightly or self.cfg.semver > semver.VersionInfo.parse("3.9.99"):
-            if machine == 'AMD64':
-                machine = 'x86_64'
-            self.path_architecture = machine + '/'
+            if machine == "AMD64":
+                machine = "x86_64"
+            self.path_architecture = machine + "/"
         self.calculate_package_names()
         self.packages = []
 
@@ -236,7 +241,9 @@ class Download:
             ),
             "nightlypublic": "{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/{path_architecture}".format(
                 **self.params
-            ).replace("///", "/"),
+            ).replace(
+                "///", "/"
+            ),
             "public": "{enterprise_magic}{major_version}/{enterprise}/{remote_package_dir}/".format(
                 **self.params
             ).replace("///", "/"),
@@ -393,6 +400,9 @@ def main(**kwargs):
     kwargs['starter_mode'] = 'all'
     kwargs['stress_upgrade'] = False
     kwargs['publicip'] = "127.0.0.1"
+    kwargs['hb_mode'] = "disabled"
+    kwargs['hb_storage_path_prefix'] = ""
+    kwargs['hb_provider'] = ""
 
     kwargs['hb_cli_cfg'] = HotBackupCliCfg("disabled","","","","","","")
     kwargs['test'] = ''

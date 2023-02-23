@@ -30,6 +30,7 @@ from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext, init_
 from reporting.reporting_utils2 import generate_suite_name
 from test_suites_core.cli_test_suite import CliTestSuiteParameters
 from tools.killall import kill_all_processes
+from overload_thread import spawn_overload_watcher_thread, shutdown_overload_watcher_thread
 
 try:
     # pylint: disable=unused-import
@@ -57,6 +58,7 @@ class TestDriver:
 
     # pylint: disable=too-many-arguments disable=too-many-locals
     def __init__(self, **kwargs):
+        spawn_overload_watcher_thread()
         self.launch_dir = Path.cwd()
         if IS_WINDOWS and "PYTHONUTF8" not in os.environ:
             raise Exception("require PYTHONUTF8=1 in the environment")
@@ -86,6 +88,12 @@ class TestDriver:
         )
         self.installer_type = None
         self.cli_test_suite_params = CliTestSuiteParameters.from_dict(**kwargs)
+
+    def destructor(self):
+        self._stop_monitor()
+
+    def _stop_monitor(self):
+        shutdown_overload_watcher_thread()
 
     def set_r_limits(self):
         """on linux manipulate ulimit values"""
@@ -200,7 +208,7 @@ class TestDriver:
                 suite_name=runner_strings[runner_type],
             ):
                 with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
-                    if not run_props.supports_dc2dc() and runner_type == RunnerType.DC2DC:
+                    if not run_props.supports_dc2dc(True) and runner_type == RunnerType.DC2DC:
                         testcase.context.status = Status.SKIPPED
                         testcase.context.statusDetails = StatusDetails(
                             message="DC2DC is not applicable to Community packages.\nDC2DC is not supported on Windows."
@@ -371,7 +379,7 @@ class TestDriver:
             with AllureTestSuiteContext(parent_test_suite_name=parent_test_suite_name,
                                         suite_name=runner_strings[runner_type]):
                 with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
-                    if not run_props.supports_dc2dc() and runner_type == RunnerType.DC2DC:
+                    if not run_props.supports_dc2dc(False) and runner_type == RunnerType.DC2DC:
                         testcase.context.status = Status.SKIPPED
                         # pylint disable=line-too-long
                         testcase.context.statusDetails = StatusDetails(

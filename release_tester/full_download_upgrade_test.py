@@ -167,6 +167,7 @@ def upgrade_package_test(
                 )
             )
 
+    test_driver.destructor()
     print("V" * 80)
     if not write_table(results):
         print("exiting with failure")
