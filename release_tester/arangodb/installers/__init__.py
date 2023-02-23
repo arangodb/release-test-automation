@@ -465,9 +465,15 @@ directory_suffix: {0.directory_suffix}""".format(
             self
         )
 
-    def supports_dc2dc(self):
+    def supports_dc2dc(self, is_upgrade):
         """will the DC2DC case be supported by this case?"""
-        return self.enterprise and not IS_WINDOWS
+        if not self.enterprise:
+            return False
+        if IS_WINDOWS:
+            return False
+        if IS_MAC and is_upgrade:
+            return False
+        return True
 
 
 # pylint: disable=too-many-function-args

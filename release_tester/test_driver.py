@@ -207,7 +207,7 @@ class TestDriver:
                 suite_name=runner_strings[runner_type],
             ):
                 with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
-                    if not run_props.supports_dc2dc() and runner_type == RunnerType.DC2DC:
+                    if not run_props.supports_dc2dc(True) and runner_type == RunnerType.DC2DC:
                         testcase.context.status = Status.SKIPPED
                         testcase.context.statusDetails = StatusDetails(
                             message="DC2DC is not applicable to Community packages.\nDC2DC is not supported on Windows."
@@ -381,7 +381,7 @@ class TestDriver:
             with AllureTestSuiteContext(parent_test_suite_name=parent_test_suite_name,
                                         suite_name=runner_strings[runner_type]):
                 with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
-                    if not run_props.supports_dc2dc() and runner_type == RunnerType.DC2DC:
+                    if not run_props.supports_dc2dc(False) and runner_type == RunnerType.DC2DC:
                         testcase.context.status = Status.SKIPPED
                         # pylint disable=line-too-long
                         testcase.context.statusDetails = StatusDetails(
