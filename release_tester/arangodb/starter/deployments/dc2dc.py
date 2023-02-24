@@ -482,32 +482,30 @@ class Dc2Dc(Runner):
     def upgrade_arangod_version_impl(self):
         """rolling upgrade this installation"""
         self._stop_sync(300)
-        print("aoeu" * 30)
-        print(self.cfg)
         self.sync_manager.replace_binary_for_upgrade(self.new_cfg)
         self.cluster1["instance"].replace_binary_for_upgrade(self.new_cfg)
         self.cluster2["instance"].replace_binary_for_upgrade(self.new_cfg)
         if self.new_installer.get_starter_version() >= STARTER_VERSIONS["152"]:
             print("Attempting parallel upgrade")
-            self.cluster1["instance"].command_upgrade()
-            self.cluster2["instance"].command_upgrade()
             # workaround: kill the sync'ers by hand, the starter doesn't
             # self._stop_sync()
             self.cluster1["instance"].kill_sync_processes()
             self.cluster2["instance"].kill_sync_processes()
+            self.cluster1["instance"].command_upgrade()
+            self.cluster2["instance"].command_upgrade()
             self.cluster1["instance"].wait_for_upgrade(300)
             self.cluster1["instance"].detect_instances()
             self.cluster2["instance"].wait_for_upgrade(300)
             self.cluster2["instance"].detect_instances()
         else:
             print("Attempting sequential upgrade")
-            self.cluster1["instance"].command_upgrade()
             self.cluster1["instance"].kill_sync_processes()
+            self.cluster1["instance"].command_upgrade()
             self.cluster1["instance"].wait_for_upgrade(300)
             self.cluster1["instance"].detect_instances()
 
-            self.cluster2["instance"].command_upgrade()
             self.cluster2["instance"].kill_sync_processes()
+            self.cluster2["instance"].command_upgrade()
             self.cluster2["instance"].wait_for_upgrade(300)
             self.cluster2["instance"].detect_instances()
         # self.sync_manager.start_sync()
