@@ -180,7 +180,7 @@ class AnalyzerPage(NavigationBarPage):
             index = 2
         elif name == "My_Norm_Analyzer":
             index = 3
-        elif name == "NGram_Analyzer":
+        elif name == "Gram_Analyzer":
             index = 4
         elif name == "My_Text_Analyzer":
             index = 5
@@ -268,7 +268,7 @@ class AnalyzerPage(NavigationBarPage):
         # ------------------ here all the different configuration would be given----------------------
         print(f"selecting value for the placeholder for {name} \n")
         # for delimiter
-        if name == "My_Delimiter_Analyzer":
+        if index == 1:
             delimiter = '//div[label[text()="Delimiter (characters to split on)"]]//input[not(@disabled)]'
             value = "_"
             delimiter_sitem = self.locator_finder_by_xpath(delimiter)
@@ -276,14 +276,14 @@ class AnalyzerPage(NavigationBarPage):
             delimiter_sitem.clear()
             delimiter_sitem.send_keys(value)
         # for stem
-        elif name == "My_Stem_Analyzer":
+        elif index == 2:
             value = 'en_US.utf-8'
             locale_sitem = self.locator_finder_by_xpath(local_placeholder)
             locale_sitem.click()
             locale_sitem.clear()
             locale_sitem.send_keys(value)
         # for norm
-        elif name == "My_Norm_Analyzer":
+        elif index == 3:
             value = 'en_US.utf-8'
             locale_sitem = self.locator_finder_by_xpath(local_placeholder)
             locale_sitem.click()
@@ -300,7 +300,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
         # for N-Gram
-        elif name == "NGram_Analyzer":
+        elif index == 4:
             print(f'Adding minimum n-gram length for {name} \n')
             min_length = '//div[label[text()="Minimum N-Gram Length"]]//input[not(@disabled)]'
             min_length_sitem = self.locator_finder_by_xpath(min_length)
@@ -344,7 +344,7 @@ class AnalyzerPage(NavigationBarPage):
             self.locator_finder_by_select_using_xpath(stream_type, 1)
             time.sleep(2)
         # for text
-        elif name == "My_Text_Analyzer":
+        elif index == 5:
             value = 'en_US.utf-8'
             locale_sitem = self.locator_finder_by_xpath(local_placeholder)
             locale_sitem.click()
@@ -410,7 +410,7 @@ class AnalyzerPage(NavigationBarPage):
             preserve_sitem.send_keys('3')
             time.sleep(2)
         # for AQL analyzer
-        elif name == "My_AQL_Analyzer":
+        elif index == 6:
             print(f'Selecting query string for {name} \n')
             query_string = '//div[label[text()="Query String"]]/textarea[not(@disabled)]'
             query_string_sitem = self.locator_finder_by_xpath(query_string)
@@ -450,7 +450,7 @@ class AnalyzerPage(NavigationBarPage):
             self.locator_finder_by_select_using_xpath(return_type, 1)
             time.sleep(2)
         # for stopwords
-        elif name == "My_Stopwords_Analyzer":
+        elif index == 7:
             print(f'Selecting stopwords for {name} \n')
             stopwords = '//div[label[text()="Stopwords (One per line)"]]//textarea[not(@disabled)]'
             stopwords_sitem = self.locator_finder_by_xpath(stopwords)
@@ -470,15 +470,15 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
         # Collation
-        elif name == "My_Collation_Analyzer":
+        elif index == 8:
             print(f'Selecting locale for {name} \n')
             value = 'en_US.utf-8'
             locale_sitem = self.locator_finder_by_xpath(local_placeholder)
             locale_sitem.click()
             locale_sitem.clear()
             locale_sitem.send_keys(value)
-        # Segmentation alpha 
-        elif name == "My_Segmentation_Alpha_Analyzer":
+        # Segmentation alpha
+        elif index == 9:
             print(f'Selecting segmentation break as alpha for {name} \n')
             alpha_break = '//div[label[text()="Break"]]//select[not(@disabled)]'
             self.locator_finder_by_select_using_xpath(alpha_break, 1)
@@ -490,7 +490,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
         # for nearest neighbor analyzer introduced on 3.10.x
-        elif name == "My_Nearest_Neighbor_Analyzer":
+        elif index == 10:
             location = test_data_dir / "makedata_suites" / "610_model_cooking.bin"
             print(f'Selecting model location for {name} \n')
             model_location = '//div[label[text()="Model Location"]]//input[not(@disabled)]'
@@ -505,7 +505,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
         # for classification analyzer introduced on 3.10.x
-        elif name == "My_Classification_Analyzer":
+        elif index == 11:
             location = test_data_dir / "makedata_suites" / "610_model_cooking.bin"
             print(f'Selecting model location for {name} \n')
             model_location = '//div[label[text()="Model Location"]]//input[not(@disabled)]'
@@ -525,7 +525,7 @@ class AnalyzerPage(NavigationBarPage):
             threshold_sitem.send_keys('.80')
 
         # Pipeline
-        elif name == "My_Pipeline_Analyzer":
+        elif index == 12:
             # ----------------------adding first pipeline analyzer as Norm analyzer--------------------------
             print(f'Selecting add analyzer button for {name} \n')
             add_analyzer01 = '(//button[@class="button-warning"][not(@disabled)])[2]'
@@ -603,7 +603,7 @@ class AnalyzerPage(NavigationBarPage):
             self.locator_finder_by_select_using_xpath(stream_type, 1)
             time.sleep(2)
         # GeoJson
-        elif name == "My_GeoJSON_Analyzer":
+        elif index == 13:
             print(f'Selecting type for {name} \n')
             types = '//div[label[text()="Type"]]//select[not(@disabled)]'
             types_sitem = self.locator_finder_by_xpath(types)
@@ -632,8 +632,8 @@ class AnalyzerPage(NavigationBarPage):
             most_precise_sitem.click()
             most_precise_sitem.send_keys('30')
             time.sleep(2)
-        # GeoPoint
-        elif name == "My_GeoPoint_Analyzer":
+            # GeoJson
+        elif index == 14:
             print(f'Selecting Latitude Path for {name} \n')
             latitude_paths = '//div[label[text()="Latitude Path"]]//input[not(@disabled)]'
             latitude_paths_sitem = self.locator_finder_by_xpath(latitude_paths)
@@ -755,7 +755,7 @@ class AnalyzerPage(NavigationBarPage):
             self.add_new_analyzer('My_GeoJSON_Analyzer')
 
             print('Adding GeoPoint analyzer \n')
-            self.add_new_analyzer('My_GeoPoint_Analyzer')
+            self.add_new_analyzer('My_GeoJSON_Analyzer')
 
     
     def checking_search_filter_option(self, value, builtin=True):
