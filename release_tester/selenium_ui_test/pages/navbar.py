@@ -28,7 +28,7 @@ class NavigationBarPage(UserBarPage):
         """Clicking on twitter link on dashboard"""
         click_twitter_link_sitem = self.locator_finder_by_xpath(self.click_twitter_link_id)
         title = self.switch_tab(click_twitter_link_sitem)  # this method will call switch tab and close tab
-        expected_title = "arangodb (@arangodb) / Twitter"
+        expected_title = "ArangoDB (@arangodb) / Twitter"
         assert title in expected_title, f"Expected page title {expected_title} but got {title}"
 
     def click_slack_link(self):
