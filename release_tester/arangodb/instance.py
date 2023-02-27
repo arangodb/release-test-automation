@@ -271,6 +271,8 @@ class Instance(ABC):
                 self.instance.wait(600)
                 if add_logfile_to_report:
                     self.add_logfile_to_report()
+            except psutil.NoSuchProcess:
+                logging.info("instance already dead: " + str(self.instance))        
             except psutil.TimeoutExpired as exc:
                 print("friendly terminating timed out, force killing:" + repr(self))
                 self.kill_instance()
