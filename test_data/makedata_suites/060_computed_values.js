@@ -11,7 +11,7 @@
     makeDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
       // All items created must contain dbCount
       print(`060: making per database data ${dbCount}`);
-
+      print("060: creation computed values with sample collections");
       //creation computed values with sample collections
       let c1 = `c1_060_${dbCount}`;
       let a1 = createCollectionSafe(c1, 3, 3, { computedValues: [{ "name": "default", "expression": "RETURN SOUNDEX('sky')", overwrite: true }] });
@@ -64,7 +64,7 @@
         }
       }
 
-      //Perform modification and comparision for desired output of Computed Values
+      print("060: Perform modification and comparision for desired output of Computed Values");
       //for c1 comVal
       let c1_exp_modification = [
         {
@@ -363,175 +363,274 @@
       a12.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field", "nested": ["from_doc"]}]});
       
       //-------------------------------------------------------x-------------------------------------------------------------
-
+      
       // creating views for the collections
+      print("060: creation computed values with sample collections");
       db._createView("testView", "arangosearch");
 
-      let queryOutput = db.testView.properties(
+      let creationOutput  = db.testView.properties(
         {"links":{
-          "c1_060_0":{"includeAllFields":true},
-          "c2_060_0":{"includeAllFields":true},
-          "c3_insert_060_0":{"includeAllFields":true},
-          "c4_update_060_0":{"includeAllFields":true},
-          "c5_replace_060_0":{"includeAllFields":true},
-          "c6_not_null_060_0":{"includeAllFields":true},
-          "c7_hex_060_0":{"includeAllFields":true},
-          "c8_overwriteFalse_060_0":{"includeAllFields":true},
-          "c9_overwriteTrue_060_0":{"includeAllFields":true},
-          "c10_multiple_060_0":{"includeAllFields":true},
-          "c11_060_0":{"includeAllFields":true},
-          "c12_060_0":{"includeAllFields":true}
+          "c1_060_0":{"fields": {"cv_field": {}},"includeAllFields":true},
+          "c2_060_0":{"fields": {"cv_field": {}},"includeAllFields":true},
+          "c3_insert_060_0":{"fields": {"cv_field": {}},"includeAllFields":true},
+          "c4_update_060_0":{"fields": {"cv_field": {}},"includeAllFields":true},
+          "c5_replace_060_0":{"fields": {"cv_field": {}},"includeAllFields":true},
+          "c6_not_null_060_0":{"fields": {"cv_field": {}},"includeAllFields":true},
+          "c7_hex_060_0":{"fields": {"cv_field": {}},"includeAllFields":true},
+          "c8_overwriteFalse_060_0":{"fields": {"cv_field": {}},"includeAllFields":true},
+          "c9_overwriteTrue_060_0":{"fields": {"cv_field": {}},"includeAllFields":true},
+          "c10_multiple_060_0":{"fields": {"cv_field": {}},"includeAllFields":true},
+          "c11_060_0":{"fields": {"cv_field": {}},"includeAllFields":true},
+          "c12_060_0":{"fields": {"cv_field": {}},"includeAllFields":true}
         }
       });
 
-      expected_output = {
+      let expected_output = {
         "cleanupIntervalStep" : 2,
-             "commitIntervalMsec" : 1000,
-             "consolidationIntervalMsec" : 1000,
-             "consolidationPolicy" : {
-               "type" : "tier",
-               "segmentsBytesFloor" : 2097152,
-               "segmentsBytesMax" : 5368709120,
-               "segmentsMax" : 10,
-               "segmentsMin" : 1,
-               "minScore" : 0
-             },
-             "primarySort" : [ ],
-             "primarySortCompression" : "lz4",
-             "storedValues" : [ ],
-             "writebufferActive" : 0,
-             "writebufferIdle" : 64,
-             "writebufferSizeMax" : 33554432,
-             "links" : {
-               "c1_060_0" : {
-                 "analyzers" : [
-                   "identity"
-                 ],
-                 "fields" : {
-                 },
-                 "includeAllFields" : true,
-                 "storeValues" : "none",
-                 "trackListPositions" : false
-               },
-               "c2_060_0" : {
-                 "analyzers" : [
-                   "identity"
-                 ],
-                 "fields" : {
-                 },
-                 "includeAllFields" : true,
-                 "storeValues" : "none",
-                 "trackListPositions" : false
-               },
-               "c3_insert_060_0" : {
-                 "analyzers" : [
-                   "identity"
-                 ],
-                 "fields" : {
-                 },
-                 "includeAllFields" : true,
-                 "storeValues" : "none",
-                 "trackListPositions" : false
-               },
-               "c4_update_060_0" : {
-                 "analyzers" : [
-                   "identity"
-                 ],
-                 "fields" : {
-                 },
-                 "includeAllFields" : true,
-                 "storeValues" : "none",
-                 "trackListPositions" : false
-               },
-               "c5_replace_060_0" : {
-                 "analyzers" : [
-                   "identity"
-                 ],
-                 "fields" : {
-                 },
-                 "includeAllFields" : true,
-                 "storeValues" : "none",
-                 "trackListPositions" : false
-               },
-               "c6_not_null_060_0" : {
-                 "analyzers" : [
-                   "identity"
-                 ],
-                 "fields" : {
-                 },
-                 "includeAllFields" : true,
-                 "storeValues" : "none",
-                 "trackListPositions" : false
-               },
-               "c7_hex_060_0" : {
-                 "analyzers" : [
-                   "identity"
-                 ],
-                 "fields" : {
-                 },
-                 "includeAllFields" : true,
-                 "storeValues" : "none",
-                 "trackListPositions" : false
-               },
-               "c8_overwriteFalse_060_0" : {
-                 "analyzers" : [
-                   "identity"
-                 ],
-                 "fields" : {
-                 },
-                 "includeAllFields" : true,
-                 "storeValues" : "none",
-                 "trackListPositions" : false
-               },
-               "c9_overwriteTrue_060_0" : {
-                 "analyzers" : [
-                   "identity"
-                 ],
-                 "fields" : {
-                 },
-                 "includeAllFields" : true,
-                 "storeValues" : "none",
-                 "trackListPositions" : false
-               },
-               "c10_multiple_060_0" : {
-                 "analyzers" : [
-                   "identity"
-                 ],
-                 "fields" : {
-                 },
-                 "includeAllFields" : true,
-                 "storeValues" : "none",
-                 "trackListPositions" : false
-               },
-               "c11_060_0" : {
-                 "analyzers" : [
-                   "identity"
-                 ],
-                 "fields" : {
-                 },
-                 "includeAllFields" : true,
-                 "storeValues" : "none",
-                 "trackListPositions" : false
-               },
-               "c12_060_0" : {
-                 "analyzers" : [
-                   "identity"
-                 ],
-                 "fields" : {
-                 },
-                 "includeAllFields" : true,
-                 "storeValues" : "none",
-                 "trackListPositions" : false
-               }
-             }
+        "commitIntervalMsec" : 1000,
+        "consolidationIntervalMsec" : 1000,
+        "consolidationPolicy" : {
+          "type" : "tier",
+          "segmentsBytesFloor" : 2097152,
+          "segmentsBytesMax" : 5368709120,
+          "segmentsMax" : 10,
+          "segmentsMin" : 1,
+          "minScore" : 0
+        },
+        "primarySort" : [ ],
+        "primarySortCompression" : "lz4",
+        "storedValues" : [ ],
+        "writebufferActive" : 0,
+        "writebufferIdle" : 64,
+        "writebufferSizeMax" : 33554432,
+        "links" : {
+          "c1_060_0" : {
+            "analyzers" : [
+              "identity"
+            ],
+            "fields" : {
+              "cv_field" : {
+              }
+            },
+            "includeAllFields" : true,
+            "storeValues" : "none",
+            "trackListPositions" : false
+          },
+          "c2_060_0" : {
+            "analyzers" : [
+              "identity"
+            ],
+            "fields" : {
+              "cv_field" : {
+              }
+            },
+            "includeAllFields" : true,
+            "storeValues" : "none",
+            "trackListPositions" : false
+          },
+          "c3_insert_060_0" : {
+            "analyzers" : [
+              "identity"
+            ],
+            "fields" : {
+              "cv_field" : {
+              }
+            },
+            "includeAllFields" : true,
+            "storeValues" : "none",
+            "trackListPositions" : false
+          },
+          "c4_update_060_0" : {
+            "analyzers" : [
+              "identity"
+            ],
+            "fields" : {
+              "cv_field" : {
+              }
+            },
+            "includeAllFields" : true,
+            "storeValues" : "none",
+            "trackListPositions" : false
+          },
+          "c5_replace_060_0" : {
+            "analyzers" : [
+              "identity"
+            ],
+            "fields" : {
+              "cv_field" : {
+              }
+            },
+            "includeAllFields" : true,
+            "storeValues" : "none",
+            "trackListPositions" : false
+          },
+          "c6_not_null_060_0" : {
+            "analyzers" : [
+              "identity"
+            ],
+            "fields" : {
+              "cv_field" : {
+              }
+            },
+            "includeAllFields" : true,
+            "storeValues" : "none",
+            "trackListPositions" : false
+          },
+          "c7_hex_060_0" : {
+            "analyzers" : [
+              "identity"
+            ],
+            "fields" : {
+              "cv_field" : {
+              }
+            },
+            "includeAllFields" : true,
+            "storeValues" : "none",
+            "trackListPositions" : false
+          },
+          "c8_overwriteFalse_060_0" : {
+            "analyzers" : [
+              "identity"
+            ],
+            "fields" : {
+              "cv_field" : {
+              }
+            },
+            "includeAllFields" : true,
+            "storeValues" : "none",
+            "trackListPositions" : false
+          },
+          "c9_overwriteTrue_060_0" : {
+            "analyzers" : [
+              "identity"
+            ],
+            "fields" : {
+              "cv_field" : {
+              }
+            },
+            "includeAllFields" : true,
+            "storeValues" : "none",
+            "trackListPositions" : false
+          },
+          "c10_multiple_060_0" : {
+            "analyzers" : [
+              "identity"
+            ],
+            "fields" : {
+              "cv_field" : {
+              }
+            },
+            "includeAllFields" : true,
+            "storeValues" : "none",
+            "trackListPositions" : false
+          },
+          "c11_060_0" : {
+            "analyzers" : [
+              "identity"
+            ],
+            "fields" : {
+              "cv_field" : {
+              }
+            },
+            "includeAllFields" : true,
+            "storeValues" : "none",
+            "trackListPositions" : false
+          },
+          "c12_060_0" : {
+            "analyzers" : [
+              "identity"
+            ],
+            "fields" : {
+              "cv_field" : {
+              }
+            },
+            "includeAllFields" : true,
+            "storeValues" : "none",
+            "trackListPositions" : false
+          }
+        }
       }
 
-      // print(queryOutput)
+      // this methdo will compare two outputs
+      checkComValProperties("TestView", creationOutput, expected_output);
+        
 
-      if (expected_output === queryOutput){
-        print(`060: ok`);
+      //-------------------------------------------------------x-------------------------------------------------------------
+
+      function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    
+    async function demo() {
+        for (let i = 0; i < 5; i++) {
+            console.log(`Waiting ${i} seconds...`);
+            await sleep(i * 1000);
+        }
+        console.log('Done');
+    }
+      
+      //inserting data to all collection
+      let Collection_array = [a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12];
+      let docsAsStr = fs.read(`${PWD}/makedata_suites/060_computed_value.json`);
+
+      // this function will read and insert and check all the neccessary data for the respective collection
+      Collection_array.forEach(col => {
+        col.save(JSON.parse(docsAsStr), { silent: true });
+
+        //this cmd will find one docs from the collection
+        let expected_field = col.all().limit(5).toArray();
+          print( `expected_field type: ` + typeof expected_field)
+          print( `expected_field type: ` + typeof expected_field[0].cv_field)
+
+          sleep(5000)
+
+        //checking computed value field exit on the collection's doc
+        if (col === a1 || col === a2 || col === a7 || col === a8 || col === a9 || col === a11 || col === a12) {
+          if (expected_field[0].cv_field !== null) {   
+          } else {
+            throw new Error(`Computed value field missing from collection`);
+          }
+        } 
+        else if (col === a3) {
+          if (expected_field[0].cv_field_insert !== null) {
+          } else {
+            throw new Error(`Computed value field missing from collection`);
+          }
+        }
+        else if (col === a4 || col === a5) {
+          if (expected_field[2].cv_field !== null) {
+          } else {
+            throw new Error(`Computed value field missing from collection`);
+          }
+        }
+        else if (col === a6) {
+          if (expected_field[4].field !== null) {
+          } else {
+            throw new Error(`Computed value field missing from collection`);
+          }
+        } 
+        else if (col === a10) {
+          if (expected_field[0].cv_field1 !== null) {
+          } 
+          else {
+            throw new Error(`Computed value field missing from collection`);
+          }
+        }
+      })
+
+      // This method will take input and output array and compare both's results
+      let resultComparision = (input_array, output_array) =>{
+        for(let i=0; i<input_array.length; i++){
+          let output = db._query(input_array[i]).toArray()
+
+          if (Number(output) === output_array[i]) {
+            print("060: ok")
+          } else {
+            throw new Error(`Index query ${output} didn't match with ${output_array[i]}!`);
+          }
+        }
       }
-
+      
       // creating testviewV2 allias
       db._createView("testViewV2", "search-alias", {
         "indexes": [
@@ -585,51 +684,6 @@
           }
         ]
       })
-
-      //-------------------------------------------------------x-------------------------------------------------------------
-
-      //inserting data to all collection
-      let Collection_array = [a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12];
-      let docsAsStr = fs.read(`${PWD}/makedata_suites/060_computed_value.json`);
-
-      // this function will read and insert and check all the neccessary data for the respective collection
-      Collection_array.forEach(col => {
-        col.save(JSON.parse(docsAsStr), { silent: true });
-
-        //this cmd will find one docs from the collection
-        let expected_field = col.all().limit(1).toArray();
-        // print(expected_field);
-        // print(expected_field[0].cv_field)
-        //checking computed value field exit on the collection's doc
-        if (col === a1 || col === a2 || col === a7 || col === a8 || col === a9 || col === a11 || col === a12) {
-          if (expected_field[0].cv_field !== null) {
-            print(`060: ok`)
-          }
-        } else if (col === a3) {
-          if (expected_field[0].cv_field_insert !== null) {
-            print(`060: ok`)
-          }
-        } else if (col === a10) {
-          if (expected_field[0].cv_field1 !== null) {
-            print(`060: ok`)
-          }
-        }else{
-          print(`060: test skipped intentionally!`)
-        }
-      })
-
-      // This method will take input and output array and compare both's results
-      let resultComparision = (input_array, output_array) =>{
-        for(let i=0; i<input_array.length; i++){
-          let output = db._query(input_array[i]).toArray()
-
-          if (Number(output) === output_array[i]) {
-            print("060: ok")
-          } else {
-            throw new Error(`Index query ${output} didn't match with ${output_array[i]}!`);
-          }
-        }
-      }
 
       //execute queries which use indexes and verify that the proper amount of docs are returned
       let index_array = [
