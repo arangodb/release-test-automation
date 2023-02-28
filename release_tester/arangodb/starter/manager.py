@@ -567,7 +567,7 @@ class StarterManager:
         with step("kill the starter processes of the old version"):
             logging.info("StarterManager: Killing my instance [%s]", str(self.instance.pid))
             self.kill_instance()
-        with step("revalidate that the old arangods are still running and alive"):
+        with step("revalidate that the old arangod are still running and alive"):
             self.detect_instance_pids_still_alive()
         if relaunch:
             with step("replace the starter binary with a new one," + " this has not yet spawned any children"):
