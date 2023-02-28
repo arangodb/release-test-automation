@@ -564,12 +564,12 @@ class Runner(ABC):
         print("install")
         print("replace starter")
         if self.supports_rolling_upgrade:
-            print("upgrading instances in roling mode")
+            print("upgrading instances in rolling mode")
             self.upgrade_arangod_version_impl()
         else:
             print("upgrading instances in manual mode")
             self.upgrade_arangod_version_manual_impl()
-        print("check data in instaces")
+        print("check data in instances")
 
     @step
     def jam_attempt(self):
