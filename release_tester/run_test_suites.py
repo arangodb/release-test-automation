@@ -37,6 +37,7 @@ def main(**kwargs):
         include_suites=kwargs["include_test_suites"],
         exclude_suites=kwargs["exclude_test_suites"],
     )
+    test_driver.destructor()
     for result in results:
         if not result["success"]:
             raise Exception("There are failed tests")
