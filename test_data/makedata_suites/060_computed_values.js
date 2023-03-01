@@ -1,5 +1,18 @@
 /* global print, semver, progress, createCollectionSafe, db, fs, PWD */
 
+// This method will take input and output array and compare both's results
+let resultComparision = (db, input_array, output_array) =>{
+  for(let i=0; i<input_array.length; i++){
+    let output = db._query(input_array[i]).toArray()
+
+    if (Number(output) === output_array[i]) {
+      print("060: ok")
+    } else {
+      throw new Error(`Index query ${output} didn't match with ${output_array[i]}!`);
+    }
+  }
+}
+
 (function () {
   const a = require("@arangodb/analyzers");
   return {
@@ -570,11 +583,11 @@
     }
       
       //inserting data to all collection
-      let Collection_array = [a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12];
+      let data_array = [a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12];
       let docsAsStr = fs.read(`${PWD}/makedata_suites/060_computed_value.json`);
 
       // this function will read and insert and check all the neccessary data for the respective collection
-      Collection_array.forEach(col => {
+      data_array.forEach(col => {
         col.save(JSON.parse(docsAsStr), { silent: true });
 
         //this cmd will find one docs from the collection
@@ -618,19 +631,6 @@
         }
       })
 
-      // This method will take input and output array and compare both's results
-      let resultComparision = (input_array, output_array) =>{
-        for(let i=0; i<input_array.length; i++){
-          let output = db._query(input_array[i]).toArray()
-
-          if (Number(output) === output_array[i]) {
-            print("060: ok")
-          } else {
-            throw new Error(`Index query ${output} didn't match with ${output_array[i]}!`);
-          }
-        }
-      }
-      
       // creating testviewV2 allias
       db._createView("testViewV2", "search-alias", {
         "indexes": [
@@ -705,7 +705,7 @@
 
       let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 64000, 32000, 64000, 64000, 64000]
 
-      resultComparision(index_array, index_exp_output)
+      resultComparision(db, index_array, index_exp_output)
 
       //execute queries which use views and verify that the proper amount of docs are returned
       // let views_output;
@@ -733,7 +733,7 @@
 
       let views_exp_output = [64000, 64000, 64000, 0, 0, 64000, 96000, 64000, 64000, 64000, 64000, 64000, 0, 0, 160000, 64000, 96000, 64000, 64000]
 
-      resultComparision(views_array, views_exp_output)
+      resultComparision(db, views_array, views_exp_output)
 
       return 0;
     },
@@ -752,20 +752,6 @@
       let c11 = `c11_060_${dbCount}`;
       let c12 = `c12_060_${dbCount}`;
 
-      // This method will take input and output array and compare both's results
-      let resultComparision = (input_array, output_array) =>{
-        for(let i=0; i<input_array.length; i++){
-          let output = db._query(input_array[i]).toArray()
-
-          if (Number(output) === output_array[i]) {
-            print('060: ok')
-          } else {
-            throw new Error(`Index query ${output} didn't match with ${output_array[i]}!`);
-          }
-        }
-      }
-
-      //execute queries which use indexes and verify that the proper amount of docs are returned
       let index_array = [
         `for doc in ${c1} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == SOUNDEX('sky') collect with count into c return c`,
         `for doc in ${c1} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == SOUNDEX('sky') collect with count into c return c`,
@@ -785,7 +771,7 @@
 
       let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 64000, 32000, 64000, 64000, 64000]
 
-      resultComparision(index_array, index_exp_output)
+      resultComparision(db, index_array, index_exp_output)
 
       //execute queries which use views and verify that the proper amount of docs are returned
       // let views_output;
@@ -813,7 +799,7 @@
 
       let views_exp_output = [64000, 64000, 64000, 0, 0, 64000, 96000, 64000, 64000, 64000, 64000, 64000, 0, 0, 160000, 64000, 96000, 64000, 64000]
 
-      resultComparision(views_array, views_exp_output)
+      resultComparision(db, views_array, views_exp_output)
 
 
       return 0;
@@ -833,9 +819,9 @@
       let c11 = `c11_060_${dbCount}`;
       let c12 = `c12_060_${dbCount}`;
 
-      Collection_array = [c1, c2, c3_insert, c4_update, c5_replace, c6_not_null, c7_hex, c8_overwriteFalse, c9_overwriteTrue, c10_multiple, c11, c12]
+      collection_array = [c1, c2, c3_insert, c4_update, c5_replace, c6_not_null, c7_hex, c8_overwriteFalse, c9_overwriteTrue, c10_multiple, c11, c12]
 
-      Collection_array.forEach(col => {
+      collection_array.forEach(col => {
         db.col.properties({computedValues: []})
         //checking the properties set to null properly
         if (db.col.properties()["computedValues"] === null) {
