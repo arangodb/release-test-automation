@@ -491,10 +491,9 @@ class Dc2Dc(Runner):
             print("Attempting parallel upgrade")
             self.cluster1["instance"].command_upgrade()
             self.cluster2["instance"].command_upgrade()
-            # workaround: kill the sync'ers by hand, the starter doesn't
-            # self._stop_sync()
-            self.cluster1["instance"].kill_sync_processes()
-            self.cluster2["instance"].kill_sync_processes()
+            # Don't kill sync processes, because ArangoDB Starter should restart them.
+            # self.cluster1["instance"].kill_sync_processes()
+            # self.cluster2["instance"].kill_sync_processes()
             self.cluster1["instance"].wait_for_upgrade(300)
             self.cluster1["instance"].detect_instances()
             self.cluster2["instance"].wait_for_upgrade(300)
