@@ -13,6 +13,34 @@ let resultComparision = (db, input_array, output_array) =>{
   }
 }
 
+// this function will provide all the queries for views
+function viewsArray() {
+  let views_array = [
+    `for doc in testView search doc.cv_field == SOUNDEX('sky') collect with count into c return c`,
+    `for doc in testView search doc.cv_field == SOUNDEX('dog') collect with count into c return c`,
+    `for doc in testView search doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
+    `for doc in testView search doc.cv_field_update == SOUNDEX('beer') collect with count into c return c`,
+    `for doc in testView search doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
+    `for doc in testView filter doc.cv_field == to_hex(doc.name) collect with count into c return c`,
+    `for doc in testView filter doc.cv_field == CONCAT('42_', TO_STRING(doc.field)) collect with count into c return c`,
+    `for doc in testView search doc.cv_field1=='foo' and doc.cv_field2=='bar' and doc.cv_field3=='baz' collect with count into c return c`,
+    `for doc in testView filter doc.cv_field == CONCAT(doc._key, ' ', doc._id, ' ', doc._rev) collect with count into c return c`,
+    `for doc in testViewV2 search doc.cv_field == SOUNDEX('sky') collect with count into c return c`, 
+    `for doc in testViewV2 search doc.cv_field == SOUNDEX('dog') collect with count into c return c`,
+    `for doc in testViewV2 search doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
+    `for doc in testViewV2 search doc.cv_field_update == SOUNDEX('beer') collect with count into c return c`,
+    `for doc in testViewV2 search doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
+    `for doc in testViewV2 search doc.cv_field == null collect with count into c return c`,
+    `for doc in testViewV2 filter doc.cv_field == to_hex(doc.name) collect with count into c return c`,
+    `for doc in testViewV2 filter doc.cv_field == CONCAT('42_', TO_STRING(doc.field)) collect with count into c return c`,
+    `for doc in testViewV2 search doc.cv_field1=='foo' and doc.cv_field2=='bar' and doc.cv_field3=='baz' collect with count into c return c`,
+    `for doc in testViewV2 filter doc.cv_field == CONCAT(doc._key, ' ', doc._id, ' ', doc._rev) collect with count into c return c`
+  ]
+
+  return views_array;
+}
+
+
 (function () {
   const a = require("@arangodb/analyzers");
   return {
@@ -24,8 +52,8 @@ let resultComparision = (db, input_array, output_array) =>{
     makeDataDB: function (options, isCluster, isEnterprise, database, dbCount) {
       // All items created must contain dbCount
       print(`060: making per database data ${dbCount}`);
-      print("060: creation computed values with sample collections");
-      //creation computed values with sample collections
+      print("060: Creating computed values with sample collections");
+      //Creating computed values with sample collections
       let c1 = `c1_060_${dbCount}`;
       let a1 = createCollectionSafe(c1, 3, 3, { computedValues: [{ "name": "default", "expression": "RETURN SOUNDEX('sky')", overwrite: true }] });
 
@@ -378,7 +406,7 @@ let resultComparision = (db, input_array, output_array) =>{
       //-------------------------------------------------------x-------------------------------------------------------------
       
       // creating views for the collections
-      print("060: creation computed values with sample collections");
+      print("060: Creating computed values with sample collections");
       db._createView("testView", "arangosearch");
 
       let creationOutput  = db.testView.properties(
@@ -569,19 +597,6 @@ let resultComparision = (db, input_array, output_array) =>{
         
 
       //-------------------------------------------------------x-------------------------------------------------------------
-
-      function sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
-    
-    async function demo() {
-        for (let i = 0; i < 5; i++) {
-            console.log(`Waiting ${i} seconds...`);
-            await sleep(i * 1000);
-        }
-        console.log('Done');
-    }
-      
       //inserting data to all collection
       let data_array = [a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12];
       let docsAsStr = fs.read(`${PWD}/makedata_suites/060_computed_value.json`);
@@ -592,11 +607,6 @@ let resultComparision = (db, input_array, output_array) =>{
 
         //this cmd will find one docs from the collection
         let expected_field = col.all().limit(5).toArray();
-          print( `expected_field type: ` + typeof expected_field)
-          print( `expected_field type: ` + typeof expected_field[0].cv_field)
-
-          sleep(5000)
-
         //checking computed value field exit on the collection's doc
         if (col === a1 || col === a2 || col === a7 || col === a8 || col === a9 || col === a11 || col === a12) {
           if (expected_field[0].cv_field !== null) {   
@@ -708,32 +718,9 @@ let resultComparision = (db, input_array, output_array) =>{
       resultComparision(db, index_array, index_exp_output)
 
       //execute queries which use views and verify that the proper amount of docs are returned
-      // let views_output;
-      let views_array = [
-        `for doc in testView search doc.cv_field == SOUNDEX('sky') collect with count into c return c`,
-        `for doc in testView search doc.cv_field == SOUNDEX('dog') collect with count into c return c`,
-        `for doc in testView search doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
-        `for doc in testView search doc.cv_field_update == SOUNDEX('beer') collect with count into c return c`,
-        `for doc in testView search doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
-        `for doc in testView filter doc.cv_field == to_hex(doc.name) collect with count into c return c`,
-        `for doc in testView filter doc.cv_field == CONCAT('42_', TO_STRING(doc.field)) collect with count into c return c`,
-        `for doc in testView search doc.cv_field1=='foo' and doc.cv_field2=='bar' and doc.cv_field3=='baz' collect with count into c return c`,
-        `for doc in testView filter doc.cv_field == CONCAT(doc._key, ' ', doc._id, ' ', doc._rev) collect with count into c return c`,
-        `for doc in testViewV2 search doc.cv_field == SOUNDEX('sky') collect with count into c return c`, 
-        `for doc in testViewV2 search doc.cv_field == SOUNDEX('dog') collect with count into c return c`,
-        `for doc in testViewV2 search doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
-        `for doc in testViewV2 search doc.cv_field_update == SOUNDEX('beer') collect with count into c return c`,
-        `for doc in testViewV2 search doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
-        `for doc in testViewV2 search doc.cv_field == null collect with count into c return c`,
-        `for doc in testViewV2 filter doc.cv_field == to_hex(doc.name) collect with count into c return c`,
-        `for doc in testViewV2 filter doc.cv_field == CONCAT('42_', TO_STRING(doc.field)) collect with count into c return c`,
-        `for doc in testViewV2 search doc.cv_field1=='foo' and doc.cv_field2=='bar' and doc.cv_field3=='baz' collect with count into c return c`,
-        `for doc in testViewV2 filter doc.cv_field == CONCAT(doc._key, ' ', doc._id, ' ', doc._rev) collect with count into c return c`
-      ]
-
+      let myArray = viewsArray();
       let views_exp_output = [64000, 64000, 64000, 0, 0, 64000, 96000, 64000, 64000, 64000, 64000, 64000, 0, 0, 160000, 64000, 96000, 64000, 64000]
-
-      resultComparision(db, views_array, views_exp_output)
+      resultComparision(db, myArray, views_exp_output)
 
       return 0;
     },
@@ -774,32 +761,9 @@ let resultComparision = (db, input_array, output_array) =>{
       resultComparision(db, index_array, index_exp_output)
 
       //execute queries which use views and verify that the proper amount of docs are returned
-      // let views_output;
-      let views_array = [
-        `for doc in testView search doc.cv_field == SOUNDEX('sky') collect with count into c return c`,
-        `for doc in testView search doc.cv_field == SOUNDEX('dog') collect with count into c return c`,
-        `for doc in testView search doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
-        `for doc in testView search doc.cv_field_update == SOUNDEX('beer') collect with count into c return c`,
-        `for doc in testView search doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
-        `for doc in testView filter doc.cv_field == to_hex(doc.name) collect with count into c return c`,
-        `for doc in testView filter doc.cv_field == CONCAT('42_', TO_STRING(doc.field)) collect with count into c return c`,
-        `for doc in testView search doc.cv_field1=='foo' and doc.cv_field2=='bar' and doc.cv_field3=='baz' collect with count into c return c`,
-        `for doc in testView filter doc.cv_field == CONCAT(doc._key, ' ', doc._id, ' ', doc._rev) collect with count into c return c`,
-        `for doc in testViewV2 search doc.cv_field == SOUNDEX('sky') collect with count into c return c`, 
-        `for doc in testViewV2 search doc.cv_field == SOUNDEX('dog') collect with count into c return c`,
-        `for doc in testViewV2 search doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
-        `for doc in testViewV2 search doc.cv_field_update == SOUNDEX('beer') collect with count into c return c`,
-        `for doc in testViewV2 search doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
-        `for doc in testViewV2 search doc.cv_field == null collect with count into c return c`,
-        `for doc in testViewV2 filter doc.cv_field == to_hex(doc.name) collect with count into c return c`,
-        `for doc in testViewV2 filter doc.cv_field == CONCAT('42_', TO_STRING(doc.field)) collect with count into c return c`,
-        `for doc in testViewV2 search doc.cv_field1=='foo' and doc.cv_field2=='bar' and doc.cv_field3=='baz' collect with count into c return c`,
-        `for doc in testViewV2 filter doc.cv_field == CONCAT(doc._key, ' ', doc._id, ' ', doc._rev) collect with count into c return c`
-      ]
-
+      let myArray = viewsArray()
       let views_exp_output = [64000, 64000, 64000, 0, 0, 64000, 96000, 64000, 64000, 64000, 64000, 64000, 0, 0, 160000, 64000, 96000, 64000, 64000]
-
-      resultComparision(db, views_array, views_exp_output)
+      resultComparision(db, myArray, views_exp_output)
 
 
       return 0;
@@ -819,13 +783,20 @@ let resultComparision = (db, input_array, output_array) =>{
       let c11 = `c11_060_${dbCount}`;
       let c12 = `c12_060_${dbCount}`;
 
+      // try {
+      //   db._dropView(`testView`);
+      //   db._dropView(`testViewV2`);
+      // } catch (e) {
+      //   print(e);
+      // }
+      // progress();
+
       collection_array = [c1, c2, c3_insert, c4_update, c5_replace, c6_not_null, c7_hex, c8_overwriteFalse, c9_overwriteTrue, c10_multiple, c11, c12]
 
       collection_array.forEach(col => {
         db.col.properties({computedValues: []})
         //checking the properties set to null properly
-        if (db.col.properties()["computedValues"] === null) {
-          print('060: ok')
+        if (db.col.properties()["computedValues"] == null) {
           //drop the collection after check
           db._drop(col);
           progress(`deleting ${col} collection`);
