@@ -194,7 +194,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
     def create(self, backup_name):
         """create a hot backup"""
         args = ["create", "--label", backup_name, "--max-wait-for-lock", "180"]
-        out = self._run_backup(args, backup_name, progressive_timeout)
+        out = self._run_backup(args, backup_name, progressive_timeout=120)
         for line in out.split("\n"):
             match = re.match(r".*identifier '(.*)'", str(line))
             if match:

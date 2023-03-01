@@ -6,7 +6,6 @@
 import copy
 import datetime
 import http.client as http_client
-import json
 import logging
 import os
 import re
@@ -17,13 +16,10 @@ import time
 from pathlib import Path
 import psutil
 import requests
+import semver
 from allure_commons._allure import attach
 from allure_commons.types import AttachmentType
 
-from tools.asciiprint import print_progress as progress
-from tools.timestamp import timestamp
-import tools.loghelper as lh
-from tools.killall import get_process_tree
 from arangodb.instance import (
     ArangodInstance,
     ArangodRemoteInstance,
@@ -37,8 +33,12 @@ from arangodb.sh import ArangoshExecutor
 from arangodb.imp import ArangoImportExecutor
 from arangodb.restore import ArangoRestoreExecutor
 from arangodb.bench import ArangoBenchManager
-from tools.utils import is_column_cache_supported
-from tools.utils import COLUMN_CACHE_ARGUMENT
+
+from tools.asciiprint import print_progress as progress
+from tools.timestamp import timestamp
+import tools.loghelper as lh
+from tools.killall import get_process_tree
+from tools.utils import is_column_cache_supported, COLUMN_CACHE_ARGUMENT
 
 from reporting.reporting_utils import attach_table, step, attach_http_request_to_report, attach_http_response_to_report
 
@@ -76,7 +76,7 @@ class StarterManager:
         # self.moreopts += ["--all.log.escape-unicode-chars=true"]
         # self.moreopts += ["--starter.disable-ipv6=false"]
         # self.moreopts += ["--starter.host=127.0.0.1"]
-        if (basecfg.semver.major==3 and basecfg.semver.minor>=9) or (basecfg.semver.major>3):
+        if (basecfg.semver.major == 3 and basecfg.semver.minor >= 9) or (basecfg.semver.major > 3):
             self.moreopts += ["--args.all.database.extended-names-databases=true"]
 
         # directories
@@ -172,28 +172,29 @@ class StarterManager:
         return str(get_instances_table(self.get_instance_essentials()))
 
     def get_structure(self):
+        """serialize the instance info compatible with testing.js"""
         instances = []
         urls = []
-        leader_name = "";
-        if (self.is_leader):
+        leader_name = ""
+        if self.is_leader:
             leader_name = self.name
 
         for arangod in self.all_instances:
             struct = arangod.get_structure()
-            struct["JWT_header"]=self.get_jwt_header()
+            struct["JWT_header"] = self.get_jwt_header()
             urls.append(struct["url"])
             instances.append(struct)
         return {
-            'protocol': self.get_http_protocol(),
-            'options': "",
-            'addArgs': "",
-            'rootDir': str(self.basedir),
-            'leader': leader_name,
-            'agencyConfig': "",
-            'httpAuthOptions': "",
-            'urls': str(urls),
-            'arangods': instances,
-            'JWT_header': self.get_jwt_header(),
+            "protocol": self.get_http_protocol(),
+            "options": "",
+            "addArgs": "",
+            "rootDir": str(self.basedir),
+            "leader": leader_name,
+            "agencyConfig": "",
+            "httpAuthOptions": "",
+            "urls": str(urls),
+            "arangods": instances,
+            "JWT_header": self.get_jwt_header(),
             # 'url': self.url,
             # 'endpoints': self.endpoints,
             # 'endpoint': self.endpoint,
@@ -659,10 +660,13 @@ class StarterManager:
             ]
 
     @step
-    def kill_sync_processes(self):
+    def kill_sync_processes(self, force, rev):
         """kill all arangosync instances we posses"""
         for i in self.all_instances:
             if i.is_sync_instance():
+                if not force and i.pid_file is not None and rev > semver.VersionInfo.parse("0.15.0"):
+                    print("Skipping manual kill")
+                    return
                 logging.info("manually killing syncer: " + str(i.pid))
                 i.terminate_instance()
 
@@ -736,14 +740,14 @@ class StarterManager:
                 node.check_version_request(20.0)
 
     @step
-    def respawn_instance(self, version = None, moreargs=[], wait_for_logfile=True):
+    def respawn_instance(self, version=None, moreargs=[], wait_for_logfile=True):
         """
         restart the starter instance after we killed it eventually,
         maybe command manual upgrade (and wait for exit)
         """
         args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.arguments + moreargs
 
-        if version != None:
+        if version is not None:
             if not is_column_cache_supported(version) or not self.cfg.enterprise:
                 if COLUMN_CACHE_ARGUMENT in args:
                     args.remove(COLUMN_CACHE_ARGUMENT)
@@ -899,7 +903,7 @@ class StarterManager:
                             self.passvoid,
                             self.cfg.ssl,
                             self.current_version,
-                            self.enterprise
+                            self.enterprise,
                         )
                         instance.wait_for_logfile(tries)
                         instance.detect_pid(
@@ -1041,7 +1045,7 @@ class StarterManager:
         lfs = self.read_db_logfile()
 
         became_leader = lfs.find("Became leader in") >= 0
-        took_over = lfs.find("Successful leadership takeover:" " All your base are belong to us") >= 0
+        took_over = lfs.find("Successful leadership takeover:" + " All your base are belong to us") >= 0
         self.is_leader = became_leader or took_over
         if self.is_leader:
             url = self.get_frontend().get_local_url("")

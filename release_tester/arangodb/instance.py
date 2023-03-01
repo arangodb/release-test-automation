@@ -27,6 +27,7 @@ LOG_BLACKLIST = [
     "40e37",  # -> upgrade required TODO remove me from here, add system instance handling.
     "d72fb",  # -> license is going to expire...
     "1afb1",  # -> unlicensed enterprise instance
+    "9afd3",  # -> Warning while instantiation of icu::Collator
 ]
 
 # log tokens we ignore in system ugprades...
@@ -56,6 +57,7 @@ INSTANCE_TYPE_STRING_MAP = {
     "syncworker": InstanceType.SYNCWORKER,
 }
 
+
 def log_line_get_date(line):
     """parse the date out of an arangod logfile line"""
     return datetime.datetime.strptime(line.split(" ")[0], "%Y-%m-%dT%H:%M:%SZ")
@@ -76,17 +78,7 @@ class Instance(ABC):
 
     # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=too-many-public-methods
     def __init__(
-        self,
-        instance_type,
-        port,
-        basedir,
-        localhost,
-        publicip,
-        passvoid,
-        instance_string,
-        ssl,
-        version,
-        enterprise
+        self, instance_type, port, basedir, localhost, publicip, passvoid, instance_string, ssl, version, enterprise
     ):
         self.instance_type = INSTANCE_TYPE_STRING_MAP[instance_type]
         self.is_system = False
@@ -112,35 +104,35 @@ class Instance(ABC):
         logging.debug("creating {0.type_str} instance: {0.name}".format(self))
 
     def get_structure(self):
-        """ return instance structure like testing.js does """
+        """return instance structure like testing.js does"""
         try:
             endpoint = self.get_endpoint()
         except NotImplementedError:
             endpoint = ""
         return {
-            'name': self.name,
-            'instanceRole': self.type_str,
-            'message': '',
-            'rootDir': str(self.basedir),
-            'protocol': self.get_http_protocol(),
-            'authHeaders': "",
-            'restKeyFile': "",
-            'agencyConfig': {},
-            'upAndRunning': True,
-            'suspended': False,
-            'port': self.port,
-            'url': self.get_public_url(),
-            'endpoint': endpoint,
-            'dataDir': str(self.basedir / 'data'),
-            'appDir': str(self.basedir / 'apps'),
-            'tmpDir': "",
-            'logFile': str(self.logfile),
-            'args': str(self.instance_arguments),
-            'pid': self.pid,
-            'JWT': "",
-            'exitStatus': 0,
-            'serverCrashedLocal': False,
-            'passvoid': self.passvoid,
+            "name": self.name,
+            "instanceRole": self.type_str,
+            "message": "",
+            "rootDir": str(self.basedir),
+            "protocol": self.get_http_protocol(),
+            "authHeaders": "",
+            "restKeyFile": "",
+            "agencyConfig": {},
+            "upAndRunning": True,
+            "suspended": False,
+            "port": self.port,
+            "url": self.get_public_url(),
+            "endpoint": endpoint,
+            "dataDir": str(self.basedir / "data"),
+            "appDir": str(self.basedir / "apps"),
+            "tmpDir": "",
+            "logFile": str(self.logfile),
+            "args": str(self.instance_arguments),
+            "pid": self.pid,
+            "JWT": "",
+            "exitStatus": 0,
+            "serverCrashedLocal": False,
+            "passvoid": self.passvoid,
         }
 
     @abstractmethod
@@ -202,8 +194,8 @@ class Instance(ABC):
 
         is_cache_supported = is_column_cache_supported(current_version) and enterprise
         # in 'command' list arguments and values are splitted
-        cache_arg, cache_val = COLUMN_CACHE_ARGUMENT.split("=") 
-        cache_arg = "--" + cache_arg[11:] # remove '--args.all' prefix
+        cache_arg, cache_val = COLUMN_CACHE_ARGUMENT.split("=")
+        cache_arg = "--" + cache_arg[11:]  # remove '--args.all' prefix
         is_cache_arg_found = False
         for i, cmd in enumerate(command):
             if cmd.find(str(old_install_prefix)) >= 0:
@@ -216,7 +208,7 @@ class Instance(ABC):
                 if command[i + 1] != cache_val:
                     raise Exception("Something is wrong with ${COLUMN_CACHE_ARGUMENT}: ${command[i]} ${command[i+1]}")
                 if not is_cache_supported:
-                    del command[i+1]
+                    del command[i + 1]
                     del command[i]
 
         if is_cache_supported and not is_cache_arg_found:
@@ -537,7 +529,7 @@ class ArangodInstance(Instance):
                 self.get_local_url("") + "/_api/version",
                 auth=HTTPBasicAuth("root", self.passvoid),
                 verify=False,
-                timeout=20
+                timeout=20,
             )
         except requests.exceptions.ConnectionError:
             return AfoServerState.NOT_CONNECTED
@@ -751,6 +743,7 @@ class SyncInstance(Instance):
     def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl, version, enterprise):
         super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangosync", ssl, version, enterprise)
         self.logfile_parameter = ""
+        self.pid_file = None
 
     def __repr__(self):
         """dump us"""
@@ -781,6 +774,20 @@ class SyncInstance(Instance):
         # first get the starter provided commandline:
         self.ppid = ppid
         self.load_starter_instance_control_file()
+        try:
+            pidfile = Path(self.instance_arguments[self.instance_arguments.index("--pid-file") + 1])
+            if pidfile.exists():
+                pid = int(pidfile.read_text())
+                for process in psutil.process_iter():
+                    if process.ppid() == ppid and process.pid == pid and process.name() == "arangosync":
+                        print(f"identified instance by pid file {pid}")
+                        self.pid_file = pidfile
+                        self.pid = pid
+                        self.instance = psutil.Process(self.pid)
+                        return
+        except ValueError:
+            pass
+
         logfile_parameter_raw = ""
         if self.logfile_parameter == "--log.file":
             # newer starters will use '--foo bar' instead of '--foo=bar'

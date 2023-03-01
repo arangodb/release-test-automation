@@ -12,7 +12,7 @@ from arangodb.async_client import (
     make_default_params,
     convert_result,
     expect_failure,
-    CliExecutionException
+    CliExecutionException,
 )
 
 
@@ -40,13 +40,8 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
     @step
     def run_syncer(self):
         """launch the syncer for this instance"""
-        params=make_default_params(self.cfg.verbose)
-        ret = self.run_monitored(
-            self.cfg.bin_dir / "arangosync",
-            self.arguments,
-            params = params,
-            deadline=999
-        )
+        params = make_default_params(self.cfg.verbose)
+        ret = self.run_monitored(self.cfg.bin_dir / "arangosync", self.arguments, params=params, deadline=999)
         return expect_failure(False, ret, params)
 
     def replace_binary_for_upgrade(self, new_install_cfg):
@@ -65,14 +60,13 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             "--auth.keyfile=" + str(self.certificate_auth["clientkeyfile"]),
             "--verbose",
         ]
-        params=make_default_params(self.cfg.verbose)
+        params = make_default_params(self.cfg.verbose)
         ret = self.run_monitored(
-            self.cfg.bin_dir / "arangosync",
-            args,
-            params = params,
-            progressive_timeout=60,
-            deadline=360
+            self.cfg.bin_dir / "arangosync", args, params=params, progressive_timeout=60, deadline=360
         )
+
+        print(ret)
+        "Database.*Collection.*Shard.*Duration"
         return expect_failure(False, ret, params)
 
     @step
@@ -87,13 +81,9 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             "--auth.keyfile=" + str(self.certificate_auth["clientkeyfile"]),
             "--verbose",
         ]
-        params=make_default_params(self.cfg.verbose)
+        params = make_default_params(self.cfg.verbose)
         ret = self.run_monitored(
-            self.cfg.bin_dir / "arangosync",
-            args,
-            params = params,
-            progressive_timeout=60,
-            deadline=240
+            self.cfg.bin_dir / "arangosync", args, params=params, progressive_timeout=60, deadline=240
         )
         return expect_failure(False, ret, params)
 
@@ -108,13 +98,9 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             "--auth.keyfile=" + str(self.certificate_auth["clientkeyfile"]),
         ] + more_args
         logging.info("SyncManager: stopping sync: %s", str(args))
-        params=make_default_params(self.cfg.verbose)
+        params = make_default_params(self.cfg.verbose)
         ret = self.run_monitored(
-            self.cfg.bin_dir / "arangosync",
-            args,
-            params = params,
-            progressive_timeout=timeout,
-            deadline=deadline
+            self.cfg.bin_dir / "arangosync", args, params=params, progressive_timeout=timeout, deadline=deadline
         )
         return expect_failure(False, ret, params)
 
@@ -128,13 +114,9 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             "--auth.keyfile=" + str(self.certificate_auth["clientkeyfile"]),
         ]
         logging.info("SyncManager: stopping sync: %s", str(args))
-        params=make_default_params(self.cfg.verbose)
+        params = make_default_params(self.cfg.verbose)
         ret = self.run_monitored(
-            self.cfg.bin_dir / "arangosync",
-            args,
-            params = params,
-            progressive_timeout=60,
-            deadline=300
+            self.cfg.bin_dir / "arangosync", args, params=params, progressive_timeout=60, deadline=300
         )
         return expect_failure(False, ret, params)
 
@@ -155,7 +137,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         logging.info("SyncManager: checking sync consistency: %s", str(args))
         params = make_default_params(self.cfg.verbose)
         try:
-            params=make_default_params(self.cfg.verbose)
+            params = make_default_params(self.cfg.verbose)
             ret = self.run_monitored(
                 executeable=self.cfg.bin_dir / "arangosync",
                 args=args,
@@ -168,7 +150,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             result = exc.execution_result
             return result
         print("checking for magic ok string")
-        output = convert_result(params['output'])
+        output = convert_result(params["output"])
         success = output.find("The whole data is the same") >= 0
         print("done")
         return (success, output)
@@ -194,13 +176,9 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         ]
         logging.info("SyncManager: resetting failed shard: %s", str(args))
         try:
-            params=make_default_params(self.cfg.verbose)
+            params = make_default_params(self.cfg.verbose)
             ret = self.run_monitored(
-                self.cfg.bin_dir / "arangosync",
-                args,
-                params = params,
-                progressive_timeout=60,
-                deadline=300
+                self.cfg.bin_dir / "arangosync", args, params=params, progressive_timeout=60, deadline=300
             )
             expect_failure(False, ret, params)
             return True
