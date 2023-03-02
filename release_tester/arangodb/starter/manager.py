@@ -664,7 +664,7 @@ class StarterManager:
         """kill all arangosync instances we posses"""
         for i in self.all_instances:
             if i.is_sync_instance():
-                if not force and i.pid_file is not None and rev > semver.VersionInfo.parse("0.15.0"):
+                if not force and i.pid_file is not None and rev >= semver.VersionInfo.parse("0.15.0"):
                     print("Skipping manual kill")
                     return
                 logging.info("manually killing syncer: " + str(i.pid))

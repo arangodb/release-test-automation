@@ -26,7 +26,10 @@ SYNC_VERSIONS = {
     "260": semver.VersionInfo.parse("2.6.0"),
 }
 
-STARTER_VERSIONS = {"152": semver.VersionInfo.parse("0.15.2")}
+STARTER_VERSIONS = {
+    "150": semver.VersionInfo.parse("0.15.0"),
+    "152": semver.VersionInfo.parse("0.15.2"),
+}
 USERS_ERROR_RX = re.compile(".*_system.*_users.*DIFFERENT.*")
 STATUS_INACTIVE = "inactive"
 IS_MAC = platform.mac_ver()[0]
@@ -387,8 +390,8 @@ class Dc2Dc(Runner):
                 )
             else:
                 self.progress(True, "arangosync: restarting instances...")
-                self.cluster1["instance"].kill_sync_processes(True, SYNC_VERSIONS["140"])
-                self.cluster2["instance"].kill_sync_processes(True, SYNC_VERSIONS["140"])
+                self.cluster1["instance"].kill_sync_processes(True, STARTER_VERSIONS["152"])
+                self.cluster2["instance"].kill_sync_processes(True, STARTER_VERSIONS["152"])
                 time.sleep(3)
                 self.cluster1["instance"].detect_instances()
                 self.cluster2["instance"].detect_instances()
