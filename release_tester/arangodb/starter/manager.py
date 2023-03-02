@@ -62,8 +62,8 @@ class StarterManager:
     ):
         self.expect_instances = expect_instances
         self.expect_instances.sort()
-        self.moreopts = basecfg.default_starter_args + moreopts
         self.cfg = copy.deepcopy(basecfg)
+        self.moreopts = self.cfg.default_starter_args + moreopts
         if self.cfg.verbose:
             self.moreopts += ["--log.verbose=true"]
             # self.moreopts += ['--all.log', 'startup=debug']
@@ -76,7 +76,7 @@ class StarterManager:
         # self.moreopts += ["--all.log.escape-unicode-chars=true"]
         # self.moreopts += ["--starter.disable-ipv6=false"]
         # self.moreopts += ["--starter.host=127.0.0.1"]
-        if (basecfg.semver.major == 3 and basecfg.semver.minor >= 9) or (basecfg.semver.major > 3):
+        if (self.cfg.semver.major==3 and self.cfg.semver.minor>=9) or (self.cfg.semver.major>3):
             self.moreopts += ["--args.all.database.extended-names-databases=true"]
 
         # directories
@@ -165,7 +165,7 @@ class StarterManager:
             "--log.file=true",
             "--starter.data-dir={0.basedir}".format(self),
         ] + self.moreopts
-        self.current_version = self.cfg.version
+        self.old_version = self.cfg.version
         self.enterprise = self.cfg.enterprise
 
     def __repr__(self):
@@ -295,6 +295,7 @@ class StarterManager:
         logging.info("running starter " + self.name)
         args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.arguments
 
+        assert self.cfg.version
         if is_column_cache_supported(self.cfg.version) and self.cfg.enterprise:
             if COLUMN_CACHE_ARGUMENT not in args:
                 args.append(COLUMN_CACHE_ARGUMENT)
@@ -531,9 +532,14 @@ class StarterManager:
             if not instance.detect_gone():
                 print("Manually terminating instance!")
                 instance.terminate_instance(False)
-        # Clear instances as they have been stopped and the logfiles
-        # have been moved.
-        if not keep_instances:
+
+        if keep_instances:
+            for i in self.all_instances:
+                i.pid = None
+                i.ppid = None     
+        else:   
+            # Clear instances as they have been stopped and the logfiles
+            # have been moved.
             self.is_leader = False
             self.all_instances = []
 
@@ -550,6 +556,7 @@ class StarterManager:
             raise Exception("Failed to KILL the starter instance? " + repr(self)) from ex
 
         logging.info("StarterManager: Instance now dead.")
+        self.instance = None
 
     def replace_binary_for_upgrade(self, new_install_cfg, relaunch=True):
         """
@@ -562,7 +569,6 @@ class StarterManager:
         """
         # On windows the install prefix may change,
         # since we can't overwrite open files:
-        self.current_version = new_install_cfg.version
         self.enterprise = new_install_cfg.enterprise
         self.replace_binary_setup_for_upgrade(new_install_cfg)
         with step("kill the starter processes of the old version"):
@@ -576,6 +582,15 @@ class StarterManager:
                 logging.info("StarterManager: respawned instance as [%s]", str(self.instance.pid))
 
     @step
+    def kill_specific_instance(self, which_instances):
+        """kill specific instances of this starter
+        (it won't kill starter itself)"""
+        for instance_type in which_instances:
+            for instance in self.all_instances:
+                if instance.instance_type == instance_type:
+                    instance.terminate_instance()
+
+    @step
     def manually_launch_instances(self, which_instances, moreargs, waitpid=True, kill_instance=False):
         """launch the instances of this starter with optional arguments"""
         for instance_type in which_instances:
@@ -587,7 +602,7 @@ class StarterManager:
                         self.cfg.sbin_dir,
                         self.old_install_prefix,
                         self.cfg.install_prefix,
-                        self.current_version,
+                        self.cfg.version,
                         self.enterprise,
                         moreargs,
                         waitpid,
@@ -605,7 +620,7 @@ class StarterManager:
                         self.cfg.sbin_dir,
                         self.old_install_prefix,
                         self.cfg.install_prefix,
-                        self.current_version,
+                        self.cfg.version,
                         self.enterprise,
                         moreargs,
                         waitpid,
@@ -623,7 +638,7 @@ class StarterManager:
                         self.cfg.sbin_dir,
                         self.old_install_prefix,
                         self.cfg.install_prefix,
-                        self.current_version,
+                        self.cfg.version,
                         self.enterprise,
                         moreargs,
                         True,
@@ -632,7 +647,7 @@ class StarterManager:
                         self.cfg.sbin_dir,
                         self.old_install_prefix,
                         self.cfg.install_prefix,
-                        self.current_version,
+                        self.cfg.version,
                         self.enterprise,
                         [],
                         False,
@@ -652,7 +667,6 @@ class StarterManager:
         # On windows the install prefix may change,
         # since we can't overwrite open files:
         self.cfg.set_directories(new_install_cfg)
-        self.current_version = new_install_cfg.version
         if self.cfg.hot_backup_supported:
             self.hotbackup_args = [
                 "--all.rclone.executable",
@@ -694,8 +708,6 @@ class StarterManager:
     @step
     def wait_for_upgrade(self, timeout=60):
         """wait for the upgrade commanding starter to finish"""
-        # for line in self.upgradeprocess.stderr:
-        #    ascii_print(line)
         ret = None
         try:
             ret = self.upgradeprocess.wait(timeout=timeout)
@@ -740,20 +752,22 @@ class StarterManager:
                 node.check_version_request(20.0)
 
     @step
-    def respawn_instance(self, version=None, moreargs=[], wait_for_logfile=True):
+    def respawn_instance(self, version, moreargs=[], wait_for_logfile=True):
         """
         restart the starter instance after we killed it eventually,
         maybe command manual upgrade (and wait for exit)
         """
         args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.arguments + moreargs
 
-        if version is not None:
-            if not is_column_cache_supported(version) or not self.cfg.enterprise:
-                if COLUMN_CACHE_ARGUMENT in args:
-                    args.remove(COLUMN_CACHE_ARGUMENT)
+        assert version is not None
+        if not is_column_cache_supported(version) or not self.cfg.enterprise:
+            if COLUMN_CACHE_ARGUMENT in args:
+                args.remove(COLUMN_CACHE_ARGUMENT)
 
         logging.info("StarterManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)
+        self.pid = self.instance.pid
+        self.ppid = self.instance.ppid()
         print("respawned with PID:" + str(self.instance.pid))
         if wait_for_logfile:
             self.wait_for_logfile()
@@ -902,8 +916,8 @@ class StarterManager:
                             Path(root) / name,
                             self.passvoid,
                             self.cfg.ssl,
-                            self.current_version,
-                            self.enterprise,
+                            self.cfg.version,
+                            self.enterprise
                         )
                         instance.wait_for_logfile(tries)
                         instance.detect_pid(
@@ -1174,20 +1188,22 @@ class StarterNonManager(StarterManager):
             moreopts,
         )
 
-        if basecfg.index >= len(basecfg.frontends):
-            basecfg.index = 0
+        if self.cfg.index >= len(self.cfg.frontends):
+            self.cfg.index = 0
         inst = ArangodRemoteInstance(
             "coordinator",
-            basecfg.frontends[basecfg.index].port,
+            self.cfg.frontends[self.cfg.index].port,
             # self.cfg.localhost,
-            basecfg.frontends[basecfg.index].ip,
-            basecfg.frontends[basecfg.index].ip,
+            self.cfg.frontends[self.cfg.index].ip,
+            self.cfg.frontends[self.cfg.index].ip,
             Path("/"),
             self.cfg.passvoid,
             self.cfg.ssl,
+            self.cfg.enterpise,
+            self.cfg.version
         )
         self.all_instances.append(inst)
-        basecfg.index += 1
+        self.cfg.index += 1
 
     @step
     def run_starter(self, expect_to_fail=False):

@@ -490,8 +490,6 @@ class Dc2Dc(Runner):
     def upgrade_arangod_version_impl(self):
         """rolling upgrade this installation"""
         self._stop_sync(300)
-        print("aoeu" * 30)
-        print(self.cfg)
         self.sync_manager.replace_binary_for_upgrade(self.new_cfg)
         self.cluster1["instance"].replace_binary_for_upgrade(self.new_cfg)
         self.cluster2["instance"].replace_binary_for_upgrade(self.new_cfg)
@@ -597,7 +595,7 @@ class Dc2Dc(Runner):
         self._stop_sync()
         self.progress(True, "creating volatile data on secondary DC")
         self.cluster2["instance"].arangosh.hotbackup_create_nonbackup_data()
-        ret = self.cluster2["instance"].arangosh.check_test_data("cluster1 after dissolving", True)
+        ret = self.cluster1["instance"].arangosh.check_test_data("cluster1 after dissolving", True)
         if not ret[0]:
             raise Exception("check data on cluster 1 after dissolving failed " + ret[1])
         ret = self.cluster2["instance"].arangosh.check_test_data("cluster2 after dissolving", True)
@@ -630,6 +628,12 @@ class Dc2Dc(Runner):
         ret = self.cluster2["instance"].arangosh.check_test_data("cluster2 after reversing direction", True)
         if not ret[0]:
             raise Exception("check data on cluster 2 failed after reversing " + ret[1])
+
+        self.progress(True, "stopping sync")
+        self._stop_sync(120)    
+        self.progress(True, "reversing sync direction to initial")
+        self._launch_sync(True)
+        self._get_in_sync(20)
 
     def shutdown_impl(self):
         self.cluster1["instance"].terminate_instance()

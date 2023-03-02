@@ -217,7 +217,10 @@ class Instance(ABC):
 
         print("Manually launching: " + str(command))
         self.instance = psutil.Popen(command)
-        print("instance launched with PID:" + str(self.instance.pid))
+        self.pid = self.instance.pid
+        self.ppid = self.instance.ppid()
+
+        print("instance launched with PID:" + str(self.pid))
         if waitpid:
             exit_code = self.instance.wait()
             try:
@@ -241,14 +244,12 @@ class Instance(ABC):
     def kill_instance(self):
         """terminate the process represented by this wrapper class"""
         if self.instance:
-            try:
-                print("force-killing {0} instance PID:[{1}]".format(self.type_str, self.instance.pid))
-                self.instance.kill()
-                # if the starter is stopped, will never end:
-                # self.instance.wait()
-            except psutil.NoSuchProcess:
-                logging.info("instance already dead: " + str(self.instance))
+            print("force-killing {0} instance PID:[{1}]".format(self.type_str, self.instance.pid))
+            self.instance.kill()
+
             self.instance = None
+            self.pid = None
+            self.ppid = None
         else:
             logging.info("I'm already dead, jim!" + str(repr(self)))
 
@@ -263,7 +264,7 @@ class Instance(ABC):
                 if add_logfile_to_report:
                     self.add_logfile_to_report()
             except psutil.NoSuchProcess:
-                logging.info("instance already dead: " + str(self.instance))
+                logging.info("instance already dead: " + str(self.instance))        
             except psutil.TimeoutExpired as exc:
                 print("friendly terminating timed out, force killing:" + repr(self))
                 self.kill_instance()
@@ -304,25 +305,23 @@ class Instance(ABC):
     def crash_instance(self):
         """send SIG-11 to instance..."""
         if self.instance:
-            try:
-                print(self.instance.status())
-                if self.instance.status() == psutil.STATUS_RUNNING or self.instance.status() == psutil.STATUS_SLEEPING:
-                    print("generating coredump for " + str(self.instance))
-                    gcore = psutil.Popen(["gcore", str(self.instance.pid)], cwd=self.basedir)
-                    print("generating core with PID:" + str(gcore.pid))
-                    gcore.wait()
-                    print(
-                        "Killing {0} instance PID:[{1}] {3}".format(
-                            self.type_str, self.instance.pid, self.instance.cmdline()
-                        )
+            # try:
+            print(self.instance.status())
+            if self.instance.status() == psutil.STATUS_RUNNING or self.instance.status() == psutil.STATUS_SLEEPING:
+                print("generating coredump for " + str(self.instance))
+                gcore = psutil.Popen(["gcore", str(self.instance.pid)], cwd=self.basedir)
+                print("generating core with PID:" + str(gcore.pid))
+                gcore.wait()
+                print(
+                    "Killing {0} instance PID:[{1}] {3}".format(
+                        self.type_str, self.instance.pid, self.instance.cmdline()
                     )
-                    self.instance.kill()
-                    self.instance.wait()
-                    self.add_logfile_to_report()
-                else:
-                    print("NOT generating coredump for " + str(self.instance))
-            except psutil.NoSuchProcess:
-                logging.info("instance already dead: " + str(self.instance))
+                )
+                self.instance.kill()
+                self.instance.wait()
+                self.add_logfile_to_report()
+            else:
+                print("NOT generating coredump for " + str(self.instance))
             self.instance = None
         else:
             logging.info("I'm already dead, jim!" + str(repr(self)))

@@ -6,7 +6,7 @@ import requests
 
 # pylint: disable=import-error
 from arangodb.async_client import CliExecutionException
-from arangodb.installers import create_config_installer_set, RunProperties
+from arangodb.installers import create_config_installer_set
 from reporting.reporting_utils import step
 from test_suites_core.base_test_suite import (
     run_after_suite,
@@ -36,6 +36,7 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
             base_config=self.base_cfg,
             deployment_mode="all",
             run_properties=self.run_props,
+            use_auto_certs=False
         )
         self.installer = self.installer_set[0][1]
         self.starter = None
