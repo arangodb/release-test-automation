@@ -65,7 +65,6 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             self.cfg.bin_dir / "arangosync", args, params=params, progressive_timeout=60, deadline=360
         )
 
-        print(ret)
         "Database.*Collection.*Shard.*Duration"
         return expect_failure(False, ret, params)
 
