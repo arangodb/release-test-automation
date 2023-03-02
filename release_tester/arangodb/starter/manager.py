@@ -76,7 +76,7 @@ class StarterManager:
         # self.moreopts += ["--all.log.escape-unicode-chars=true"]
         # self.moreopts += ["--starter.disable-ipv6=false"]
         # self.moreopts += ["--starter.host=127.0.0.1"]
-        if (self.cfg.semver.major==3 and self.cfg.semver.minor>=9) or (self.cfg.semver.major>3):
+        if (self.cfg.semver.major == 3 and self.cfg.semver.minor >= 9) or (self.cfg.semver.major > 3):
             self.moreopts += ["--args.all.database.extended-names-databases=true"]
 
         # directories
@@ -536,8 +536,8 @@ class StarterManager:
         if keep_instances:
             for i in self.all_instances:
                 i.pid = None
-                i.ppid = None     
-        else:   
+                i.ppid = None
+        else:
             # Clear instances as they have been stopped and the logfiles
             # have been moved.
             self.is_leader = False
@@ -917,7 +917,7 @@ class StarterManager:
                             self.passvoid,
                             self.cfg.ssl,
                             self.cfg.version,
-                            self.enterprise
+                            self.enterprise,
                         )
                         instance.wait_for_logfile(tries)
                         instance.detect_pid(
@@ -1200,7 +1200,7 @@ class StarterNonManager(StarterManager):
             self.cfg.passvoid,
             self.cfg.ssl,
             self.cfg.enterpise,
-            self.cfg.version
+            self.cfg.version,
         )
         self.all_instances.append(inst)
         self.cfg.index += 1

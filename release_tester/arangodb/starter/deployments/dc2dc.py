@@ -630,7 +630,7 @@ class Dc2Dc(Runner):
             raise Exception("check data on cluster 2 failed after reversing " + ret[1])
 
         self.progress(True, "stopping sync")
-        self._stop_sync(120)    
+        self._stop_sync(120)
         self.progress(True, "reversing sync direction to initial")
         self._launch_sync(True)
         self._get_in_sync(20)
