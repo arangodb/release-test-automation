@@ -30,6 +30,11 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
     # pylint: disable=too-many-instance-attributes disable=dangerous-default-value
     def __init__(self, params: CliTestSuiteParameters):
         super().__init__(params)
+        if self.new_version < "3.9.0-nightly" or self.old_version < "3.9.0-nightly":
+            self.__class__.is_disabled = True
+            self.__class__.disable_reasons.append(
+                "License manager test suite is only applicable to versions 3.9 and newer."
+            )
         self.sub_suite_name = self.__doc__ if self.__doc__ else self.__class__.__name__
         self.installer_set = create_config_installer_set(
             versions=[self.old_version, self.new_version] if self.old_version else [self.new_version],
@@ -48,7 +53,6 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
             f"Licence manager test suite: ArangoDB v. {str(self.new_version)} ({self.installer.installer_type})"
         )
 
-    # pylint: disable=no-self-use
     def init_child_class(self, child_class):
         """initialise the child class"""
         return child_class(self.params)
@@ -125,6 +129,7 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
         license = create_license(new_timestamp, server_id)
         self.set_license(license)
 
+    # pylint: disable=fixme
     # FIXME: set valid license before each test case
     #    @run_before_each_testcase
     def set_valid_license(self):
@@ -143,6 +148,7 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
             result = self.starter.arangosh.run_command(
                 ("try to create collection", 'db._create("checkReadOnlyMode");'), True, expect_to_fail=True
             )
+        # pylint: disable=redefined-outer-name
         except CliExecutionException as exc:
             self.starter.arangosh.run_command(
                 ("delete collection", 'db._drop("checkReadOnlyMode");'), True, expect_to_fail=False
@@ -159,6 +165,7 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
             self.starter.arangosh.run_command(
                 ("try to create collection", 'db._create("checkNotReadOnlyMode");'), True, expect_to_fail=False
             )
+        # pylint: disable=redefined-outer-name
         except CliExecutionException as exc:
             raise Exception("Couldn't create collection. The system is expected not to be in read-only mode.") from exc
         self.starter.arangosh.run_command(
