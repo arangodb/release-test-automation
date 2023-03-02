@@ -435,17 +435,27 @@ class Dc2Dc(Runner):
     def _get_in_sync(self, attempts):
         self.progress(True, "waiting for the DCs to get in sync")
         output = None
-        for count in range(attempts):
+        counts = []
+        last_count = 999999
+        no_count_change = 0
+        while True:
             (result, output, _, _) = self.sync_manager.check_sync()
             if result:
                 print("CHECK SYNC OK!")
                 break
+            count = output.count("\n")
+            counts.append(count)
+            if count >= last_count:
+                no_count_change += 1
+            else:
+                last_count = count
+                no_count_change = 0
             progress("sx" + str(count))
             self._mitigate_known_issues(output)
             time.sleep(10)
-        else:
-            self.state += "\n" + output
-            raise Exception("failed to get the sync status")
+            if no_count_change == attempts:
+                self.state += "\n" + output
+                raise Exception(f"failed to get the DCs in sync {str(counts)}")
 
     def test_setup_impl(self):
         ret = self.cluster1["instance"].arangosh.check_test_data("dc2dc (post setup - dc1)", True)
