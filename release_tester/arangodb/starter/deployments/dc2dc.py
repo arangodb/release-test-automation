@@ -238,9 +238,11 @@ class Dc2Dc(Runner):
                 val["instance"].is_leader = True
 
         _add_starter(self.cluster1, port=7528)
-        _add_starter(self.cluster2, port=9528# ,
-                     # moreopts=['--args.dbservers.log', 'request=trace']
-                     )
+        _add_starter(
+            self.cluster2,
+            port=9528  # ,
+            # moreopts=['--args.dbservers.log', 'request=trace']
+        )
         self.starter_instances = [self.cluster1["instance"], self.cluster2["instance"]]
 
     def starter_run_impl(self):
@@ -400,7 +402,7 @@ class Dc2Dc(Runner):
             coll_count = 0
             for line in last_sync_output.splitlines():
                 if not dbline_seen:
-                    dbline_seen = line.startswith('Database')
+                    dbline_seen = line.startswith("Database")
                 else:
                     coll_count += 1
                     if re.match(USERS_ERROR_RX, line):
@@ -416,28 +418,41 @@ class Dc2Dc(Runner):
 
     def _print_users(self, cluster):
         output = cluster["instance"].arangosh.run_command(
-            ("print _users",
-             "q = db._collection('_users').all(); while (q.hasNext()) print(q.next());",
-             "--server.jwt-secret-keyfile", cluster["JWTSecret"]),
+            (
+                "print _users",
+                "q = db._collection('_users').all(); while (q.hasNext()) print(q.next());",
+                "--server.jwt-secret-keyfile",
+                cluster["JWTSecret"],
+            ),
             True,
-            use_default_auth=False
+            use_default_auth=False,
         )
         print(str(output))
 
     def _get_in_sync(self, attempts):
         self.progress(True, "waiting for the DCs to get in sync")
         output = None
-        for count in range(attempts):
+        counts = []
+        last_count = 999999
+        no_count_change = 0
+        while True:
             (result, output, _, _) = self.sync_manager.check_sync()
             if result:
                 print("CHECK SYNC OK!")
                 break
+            count = output.count("\n")
+            counts.append(count)
+            if count >= last_count:
+                no_count_change += 1
+            else:
+                last_count = count
+                no_count_change = 0
             progress("sx" + str(count))
             self._mitigate_known_issues(output)
             time.sleep(10)
-        else:
-            self.state += "\n" + output
-            raise Exception("failed to get the sync status")
+            if no_count_change == attempts:
+                self.state += "\n" + output
+                raise Exception(f"failed to get the DCs in sync {str(counts)}")
 
     def test_setup_impl(self):
         ret = self.cluster1["instance"].arangosh.check_test_data("dc2dc (post setup - dc1)", True)
@@ -467,7 +482,7 @@ class Dc2Dc(Runner):
             (self.cfg.test_data_dir / Path("tests/js/server/replication/fuzz/replication-fuzz-global.js")),
             [],
             args,
-            deadline=6000
+            deadline=6000,
         )
         if not res[0]:
             if not self.cfg.verbose:
@@ -619,7 +634,7 @@ class Dc2Dc(Runner):
             raise Exception("check data on cluster 2 failed after reversing " + ret[1])
 
         self.progress(True, "stopping sync")
-        self._stop_sync(120)    
+        self._stop_sync(120)
         self.progress(True, "reversing sync direction to initial")
         self._launch_sync(True)
         self._get_in_sync(20)
