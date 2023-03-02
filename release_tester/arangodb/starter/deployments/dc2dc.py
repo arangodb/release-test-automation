@@ -26,7 +26,10 @@ SYNC_VERSIONS = {
     "260": semver.VersionInfo.parse("2.6.0"),
 }
 
-STARTER_VERSIONS = {"152": semver.VersionInfo.parse("0.15.2")}
+STARTER_VERSIONS = {
+    "150": semver.VersionInfo.parse("0.15.0"),
+    "152": semver.VersionInfo.parse("0.15.2"),
+}
 USERS_ERROR_RX = re.compile(".*_system.*_users.*DIFFERENT.*")
 STATUS_INACTIVE = "inactive"
 IS_MAC = platform.mac_ver()[0]
@@ -238,9 +241,11 @@ class Dc2Dc(Runner):
                 val["instance"].is_leader = True
 
         _add_starter(self.cluster1, port=7528)
-        _add_starter(self.cluster2, port=9528# ,
-                     # moreopts=['--args.dbservers.log', 'request=trace']
-                     )
+        _add_starter(
+            self.cluster2,
+            port=9528  # ,
+            # moreopts=['--args.dbservers.log', 'request=trace']
+        )
         self.starter_instances = [self.cluster1["instance"], self.cluster2["instance"]]
 
     def starter_run_impl(self):
@@ -385,8 +390,8 @@ class Dc2Dc(Runner):
                 )
             else:
                 self.progress(True, "arangosync: restarting instances...")
-                self.cluster1["instance"].kill_sync_processes()
-                self.cluster2["instance"].kill_sync_processes()
+                self.cluster1["instance"].kill_sync_processes(True, STARTER_VERSIONS["152"])
+                self.cluster2["instance"].kill_sync_processes(True, STARTER_VERSIONS["152"])
                 time.sleep(3)
                 self.cluster1["instance"].detect_instances()
                 self.cluster2["instance"].detect_instances()
@@ -400,7 +405,7 @@ class Dc2Dc(Runner):
             coll_count = 0
             for line in last_sync_output.splitlines():
                 if not dbline_seen:
-                    dbline_seen = line.startswith('Database')
+                    dbline_seen = line.startswith("Database")
                 else:
                     coll_count += 1
                     if re.match(USERS_ERROR_RX, line):
@@ -416,11 +421,14 @@ class Dc2Dc(Runner):
 
     def _print_users(self, cluster):
         output = cluster["instance"].arangosh.run_command(
-            ("print _users",
-             "q = db._collection('_users').all(); while (q.hasNext()) print(q.next());",
-             "--server.jwt-secret-keyfile", cluster["JWTSecret"]),
+            (
+                "print _users",
+                "q = db._collection('_users').all(); while (q.hasNext()) print(q.next());",
+                "--server.jwt-secret-keyfile",
+                cluster["JWTSecret"],
+            ),
             True,
-            use_default_auth=False
+            use_default_auth=False,
         )
         print(str(output))
 
@@ -467,7 +475,7 @@ class Dc2Dc(Runner):
             (self.cfg.test_data_dir / Path("tests/js/server/replication/fuzz/replication-fuzz-global.js")),
             [],
             args,
-            deadline=6000
+            deadline=6000,
         )
         if not res[0]:
             if not self.cfg.verbose:
@@ -485,26 +493,29 @@ class Dc2Dc(Runner):
         self.sync_manager.replace_binary_for_upgrade(self.new_cfg)
         self.cluster1["instance"].replace_binary_for_upgrade(self.new_cfg)
         self.cluster2["instance"].replace_binary_for_upgrade(self.new_cfg)
-        if self.new_installer.get_starter_version() >= STARTER_VERSIONS["152"]:
+        rev = self.new_installer.get_starter_version()
+        if rev >= STARTER_VERSIONS["152"]:
             print("Attempting parallel upgrade")
             self.cluster1["instance"].command_upgrade()
             self.cluster2["instance"].command_upgrade()
             # Don't kill sync processes, because ArangoDB Starter should restart them.
-            # self.cluster1["instance"].kill_sync_processes()
-            # self.cluster2["instance"].kill_sync_processes()
+            # workaround: kill the sync'ers by hand, the starter doesn't
+            # self._stop_sync()
+            self.cluster1["instance"].kill_sync_processes(False, rev)
+            self.cluster2["instance"].kill_sync_processes(False, rev)
             self.cluster1["instance"].wait_for_upgrade(300)
             self.cluster1["instance"].detect_instances()
             self.cluster2["instance"].wait_for_upgrade(300)
             self.cluster2["instance"].detect_instances()
         else:
             print("Attempting sequential upgrade")
-            self.cluster1["instance"].kill_sync_processes()
             self.cluster1["instance"].command_upgrade()
+            self.cluster1["instance"].kill_sync_processes(False, rev)
             self.cluster1["instance"].wait_for_upgrade(300)
             self.cluster1["instance"].detect_instances()
 
-            self.cluster2["instance"].kill_sync_processes()
             self.cluster2["instance"].command_upgrade()
+            self.cluster2["instance"].kill_sync_processes(False, rev)
             self.cluster2["instance"].wait_for_upgrade(300)
             self.cluster2["instance"].detect_instances()
         # self.sync_manager.start_sync()
@@ -619,7 +630,7 @@ class Dc2Dc(Runner):
             raise Exception("check data on cluster 2 failed after reversing " + ret[1])
 
         self.progress(True, "stopping sync")
-        self._stop_sync(120)    
+        self._stop_sync(120)
         self.progress(True, "reversing sync direction to initial")
         self._launch_sync(True)
         self._get_in_sync(20)

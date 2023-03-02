@@ -12,7 +12,6 @@ from pathlib import Path
 from allure_commons._allure import attach
 from allure_commons.model2 import Status, StatusDetails
 
-import tools.loghelper as lh
 from arangodb.installers import create_config_installer_set, RunProperties
 from arangodb.starter.deployments import (
     RunnerType,
@@ -28,9 +27,12 @@ from package_installation_tests.community_package_installation_test_suite import
 from package_installation_tests.enterprise_package_installation_test_suite import EnterprisePackageInstallationTestSuite
 from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext, init_allure
 from reporting.reporting_utils2 import generate_suite_name
+from siteconfig import SiteConfig
 from test_suites_core.cli_test_suite import CliTestSuiteParameters
-from tools.killall import kill_all_processes
 from overload_thread import spawn_overload_watcher_thread, shutdown_overload_watcher_thread
+
+import tools.loghelper as lh
+from tools.killall import kill_all_processes
 
 try:
     # pylint: disable=unused-import
@@ -58,7 +60,8 @@ class TestDriver:
 
     # pylint: disable=too-many-arguments disable=too-many-locals
     def __init__(self, **kwargs):
-        spawn_overload_watcher_thread()
+        self.sitecfg = SiteConfig("")
+        spawn_overload_watcher_thread(self.sitecfg)
         self.launch_dir = Path.cwd()
         if IS_WINDOWS and "PYTHONUTF8" not in os.environ:
             raise Exception("require PYTHONUTF8=1 in the environment")
@@ -90,6 +93,7 @@ class TestDriver:
         self.cli_test_suite_params = CliTestSuiteParameters.from_dict(**kwargs)
 
     def destructor(self):
+        """shutdown this environment"""
         self._stop_monitor()
 
     def _stop_monitor(self):
@@ -132,7 +136,9 @@ class TestDriver:
         """get the [DEB|RPM|EXE|DMG|ZIP|targz] from the installer"""
         if self.installer_type:
             return self.installer_type
-        installers = create_config_installer_set(["3.3.3"], self.base_config, "all", RunProperties(False, False, False), False)
+        installers = create_config_installer_set(
+            ["3.3.3"], self.base_config, "all", RunProperties(False, False, False), False
+        )
         self.installer_type = installers[0][1].installer_type.split(" ")[0].replace(".", "")
         return self.installer_type
 
@@ -189,13 +195,7 @@ class TestDriver:
         lh.section("startup")
         results = []
         for runner_type in STARTER_MODES[self.base_config.starter_mode]:
-            installers = create_config_installer_set(
-                versions,
-                self.base_config,
-                "all",
-                run_props,
-                self.use_auto_certs
-            )
+            installers = create_config_installer_set(versions, self.base_config, "all", run_props, self.use_auto_certs)
             old_inst = installers[0][1]
             new_inst = installers[1][1]
 

@@ -4,7 +4,6 @@
 from threading import Thread, Lock
 import time
 import psutil
-from siteconfig import SiteConfig
 from tools.socket_counter import get_socket_count
 
 END_THREAD_LOCK = Lock()
@@ -32,10 +31,10 @@ def overload_thread(sitecfg, _):
     print("exiting load monitoring thread")
 
 
-def spawn_overload_watcher_thread():
+def spawn_overload_watcher_thread(siteconfig):
     """launch the overload watcher thread"""
     global OVERLOAD_THREAD
-    OVERLOAD_THREAD = Thread(target=overload_thread, args=(SiteConfig(""), True))
+    OVERLOAD_THREAD = Thread(target=overload_thread, args=(siteconfig, True))
     OVERLOAD_THREAD.start()
 
 
