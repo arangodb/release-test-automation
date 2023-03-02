@@ -53,7 +53,11 @@ class DebuggerTestSuite(CliStartedTestSuite):
     def __init__(self, params: CliTestSuiteParameters):
         super().__init__(params)
         self.installer_set = create_config_installer_set(
-            versions=[self.new_version], base_config=self.base_cfg, deployment_mode="all", run_properties=self.run_props
+            versions=[self.new_version], 
+            base_config=self.base_cfg, 
+            deployment_mode="all", 
+            run_properties=self.run_props, 
+            use_auto_certs=False
         )
         self.installer = self.installer_set[0][1]
         ent = "Enterprise" if self.run_props.enterprise else "Community"

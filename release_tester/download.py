@@ -172,7 +172,8 @@ class Download:
             interactive=False,
             stress_upgrade=False,
             ssl=False,
-            test="",
+            use_auto_certs=False,
+            test=""
         )
 
         self.inst = make_installer(self.cfg)
@@ -254,13 +255,19 @@ class Download:
             "ftp:stage2": self.acquire_stage2_ftp,
             "nightlypublic": self.acquire_live,
             "public": self.acquire_live,
-            "local": self.acquire_none,
+            "local": self.acquire_local,
         }
 
     # pylint: disable=unused-argument
-    def acquire_none(self, directory, package, local_dir, force):
+    def acquire_local(self, directory, package, local_dir, force):
         """use the copy that we already have, hence do nothing"""
-        print("skipping download")
+        out = local_dir / package
+        if not out.exists():
+            raise Exception(
+                "Failed to locate package {package} in direcory {local_dir}".format(
+                    **{"package": package, "local_dir": local_dir}
+                )
+            )
 
     def acquire_stage_ftp(self, directory, package, local_dir, force, stage):
         """download one file from the ftp server"""

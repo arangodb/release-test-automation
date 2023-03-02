@@ -4,9 +4,8 @@ import shutil
 
 from allure_commons._allure import attach
 
-from arangodb.installers import create_config_installer_set, RunProperties, InstallerBaseConfig
+from arangodb.installers import create_config_installer_set, RunProperties
 from test_suites_core.base_test_suite import (
-    BaseTestSuite,
     run_before_suite,
     run_after_suite,
     run_after_each_testcase,
@@ -28,12 +27,14 @@ class BasePackageInstallationTestSuite(CliStartedTestSuite):
             base_config=self.base_cfg,
             deployment_mode="all",
             run_properties=RunProperties(enterprise=False, encryption_at_rest=False, ssl=False),
+            use_auto_certs=False
         )
         self.installers["enterprise"] = create_config_installer_set(
             versions=versions,
             base_config=self.base_cfg,
             deployment_mode="all",
             run_properties=RunProperties(enterprise=True, encryption_at_rest=False, ssl=False),
+            use_auto_certs=False
         )
         self.old_inst_e = self.installers["enterprise"][0][1]
         self.new_inst_e = self.installers["enterprise"][1][1]

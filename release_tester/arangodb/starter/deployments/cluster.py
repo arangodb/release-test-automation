@@ -3,8 +3,8 @@
 import time
 import logging
 from pathlib import Path
-import semver
 import copy
+import semver
 
 from reporting.reporting_utils import step
 from tools.timestamp import timestamp
@@ -44,7 +44,7 @@ class Cluster(Runner):
             selenium_driver_args,
             testrun_name,
         )
-        # self.basecfg.frontends = []
+        # self.cfg.frontends = []
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
         self.create_test_collection = ""
@@ -78,7 +78,7 @@ db.testCollection.save({test: "document"})
         def add_starter(name, port, opts):
             self.starter_instances.append(
                 StarterManager(
-                    self.basecfg,
+                    self.cfg,
                     self.basedir,
                     name,
                     mode="cluster",
@@ -123,7 +123,7 @@ db.testCollection.save({test: "document"})
         for node in self.starter_instances:
             node.detect_instances()
             node.detect_instance_pids()
-            # self.basecfg.add_frontend('http', self.basecfg.publicip, str(node.get_frontend_port()))
+            # self.cfg.add_frontend('http', self.cfg.publicip, str(node.get_frontend_port()))
 
         logging.info("instances are ready - JWT: " + self.starter_instances[0].get_jwt_header())
         count = 0
@@ -348,7 +348,7 @@ db.testCollection.save({test: "document"})
 
         self.set_frontend_instances()
 
-        prompt_user(self.basecfg, "instance stopped")
+        prompt_user(self.cfg, "instance stopped")
         if self.selenium:
             self.selenium.jam_step_1()
 
@@ -364,8 +364,10 @@ db.testCollection.save({test: "document"})
         if not ret[0]:
             raise Exception("check data failed " + ret[1])
 
+        self.starter_instances[terminate_instance].kill_specific_instance([InstanceType.AGENT])
+
         # respawn instance, and get its state fixed
-        version = self.new_cfg.version if self.new_cfg != None else self.cfg.version
+        version = self.new_cfg.version if self.new_cfg is not None else self.cfg.version
         self.starter_instances[terminate_instance].respawn_instance(version)
         self.set_frontend_instances()
         counter = 300
@@ -375,7 +377,6 @@ db.testCollection.save({test: "document"})
             progress(".")
             time.sleep(1)
             counter -= 1
-        print()
         self.starter_instances[terminate_instance].detect_instances()
         self.starter_instances[terminate_instance].detect_instance_pids()
         self.starter_instances[terminate_instance].detect_instance_pids_still_alive()
@@ -383,12 +384,16 @@ db.testCollection.save({test: "document"})
 
         logging.info("jamming: Starting instance without jwt")
         moreopts = ["--starter.join", "127.0.0.1:9528"]
-        if self.cfg.ssl and not self.cfg.use_auto_certs:
+        curr_cfg = {}
+        if self.new_cfg is not None:
+            curr_cfg = copy.deepcopy(self.new_cfg)
+        else:
+            curr_cfg = copy.deepcopy(self.cfg)
+
+        if curr_cfg.ssl and not curr_cfg.use_auto_certs:
             keyfile = self.cert_dir / Path("nodeX") / "tls.keyfile"
             self.generate_keyfile(keyfile)
             moreopts.append(f"--ssl.keyfile={keyfile}")
-        curr_cfg = copy.deepcopy(self.basecfg)     
-        curr_cfg.version = self.new_cfg.version if self.new_cfg != None else self.basecfg.version
         dead_instance = StarterManager(
             curr_cfg,
             Path("CLUSTER"),
@@ -418,7 +423,7 @@ db.testCollection.save({test: "document"})
         logging.info(str(dead_instance.instance.wait(timeout=320)))
         logging.info("dead instance is dead?")
 
-        prompt_user(self.basecfg, "cluster should be up")
+        prompt_user(curr_cfg, "cluster should be up")
         if self.selenium:
             self.selenium.jam_step_2()
 

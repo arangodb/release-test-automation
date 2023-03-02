@@ -184,6 +184,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         logging.debug("script to be executed: " + str(js_set_passvoid_str))
         res = self.run_command(["set passvoid", js_set_passvoid_str], self.cfg.verbose)
         logging.debug("set passvoid check result: " + str(res))
+        self.cfg.passvoid = passvoid
 
         if not res:
             eh.ask_continue_or_exit("setting passvoid failed", self.cfg.interactive)
@@ -309,7 +310,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             # fmt: off
             args=args + [
                 '--progress', 'true',
-                '--oldVersion', self.cfg.version,
+                '--oldVersion', self.old_version,
                 '--testFoxx', 'true' if supports_foxx_tests else 'false'
             ] + test_filter,
             # fmt: on

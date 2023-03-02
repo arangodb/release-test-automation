@@ -132,7 +132,7 @@ class TestDriver:
         """get the [DEB|RPM|EXE|DMG|ZIP|targz] from the installer"""
         if self.installer_type:
             return self.installer_type
-        installers = create_config_installer_set(["3.3.3"], self.base_config, "all", RunProperties(False, False, False))
+        installers = create_config_installer_set(["3.3.3"], self.base_config, "all", RunProperties(False, False, False), False)
         self.installer_type = installers[0][1].installer_type.split(" ")[0].replace(".", "")
         return self.installer_type
 
@@ -150,7 +150,7 @@ class TestDriver:
     # pylint: disable=broad-except disable=dangerous-default-value
     def run_cleanup(self, run_properties: RunProperties, versions: list = ["3.3.3"]):
         """main"""
-        installer_set = create_config_installer_set(versions, self.base_config, "all", run_properties)
+        installer_set = create_config_installer_set(versions, self.base_config, "all", run_properties, False)
         inst = installer_set[0][1]
         if inst.calc_config_file_name().is_file():
             inst.load_config()
@@ -194,6 +194,7 @@ class TestDriver:
                 self.base_config,
                 "all",
                 run_props,
+                self.use_auto_certs
             )
             old_inst = installers[0][1]
             new_inst = installers[1][1]
@@ -275,9 +276,11 @@ class TestDriver:
                                     )
                                     traceback.print_exc()
                                     lh.section("uninstall on error")
-                                    old_inst.un_install_debug_package()
-                                    old_inst.un_install_server_package()
-                                    old_inst.cleanup_system()
+                                    for i in range(len(installers)):
+                                        installer = installers[i][1]
+                                        installer.un_install_debug_package()
+                                        installer.un_install_server_package()
+                                        installer.cleanup_system()
                                     try:
                                         runner.cleanup()
                                     finally:
@@ -296,19 +299,17 @@ class TestDriver:
                                         + "See allure report for details."
                                     )
                         lh.section("uninstall")
-                        new_inst.un_install_server_package()
-                        lh.section("check system")
-                        new_inst.check_uninstall_cleanup()
-                        lh.section("remove residuals")
-                        try:
-                            old_inst.cleanup_system()
-                        except Exception:
-                            print("Ignoring old cleanup error!")
-                        try:
-                            print("Ignoring new cleanup error!")
-                            new_inst.cleanup_system()
-                        except Exception:
-                            print("Ignoring general cleanup error!")
+                        for i in range(len(installers)):
+                            installer = installers[i][1]
+                            installer.un_install_server_package()
+                            lh.section("check system")
+                            installer.check_uninstall_cleanup()
+                            try:
+                                lh.section("remove residuals")
+                                installer.cleanup_system()
+                            except Exception:
+                                print("Ignoring cleanup error!")
+
                     except Exception as ex:
                         print("Caught. " + str(ex))
                         one_result["success"] = False
@@ -328,18 +329,14 @@ class TestDriver:
                                 print("".join(traceback.TracebackException.from_exception(exception).format()))
                         try:
                             print("Cleaning up system after error:")
-                            old_inst.un_install_debug_package()
-                            old_inst.un_install_server_package()
-                            old_inst.cleanup_system()
+                            for i in range(len(installers)):
+                                installer = installers[i][1]
+                                installer.un_install_debug_package()
+                                installer.un_install_server_package()
+                                installer.cleanup_system()
                         except Exception:
                             print("Ignoring old cleanup error!")
-                        try:
-                            print("Ignoring new cleanup error!")
-                            new_inst.un_install_debug_package()
-                            new_inst.un_install_server_package()
-                            new_inst.cleanup_system()
-                        except Exception:
-                            print("Ignoring new cleanup error!")
+
                     results.append(one_result)
         return results
 
@@ -362,7 +359,8 @@ class TestDriver:
             versions,
             self.base_config,
             deployment_mode,
-            run_props
+            run_props,
+            self.use_auto_certs
         )
         lh.section("configuration")
         print(
@@ -465,7 +463,9 @@ class TestDriver:
         installers[0][1].check_uninstall_cleanup()
         lh.section("remove residuals")
         try:
-            installers[0][1].cleanup_system()
+            for i in range(len(installers)):
+                installer = installers[i][1]
+                installer.cleanup_system()
         except Exception:
             print("Ignoring cleanup error!")
 
@@ -488,7 +488,8 @@ class TestDriver:
             versions,
             self.base_config,
             deployment_mode,
-            run_props
+            run_props,
+            self.use_auto_certs
         )
         lh.section("configuration")
         print(

@@ -16,7 +16,6 @@ from test_driver import TestDriver
 from tools.killall import list_all_processes
 from write_result_table import write_table
 
-
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
 def upgrade_package_test(
     dl_opts: DownloadOptions,
@@ -40,108 +39,99 @@ def upgrade_package_test(
     fresh_versions = {}
 
     results = []
-    new_versions = []
-    old_versions = []
-    old_dlstages = []
-    new_dlstages = []
 
-    for version_pair in upgrade_matrix.split(";"):
-        print("Adding: '" + version_pair + "'")
-        old, new = version_pair.split(":")
-        old_versions.append(old)
-        new_versions.append(new)
-        if old == primary_version:
-            old_dlstages.append(primary_dlstage)
-            new_dlstages.append(other_source)
-        else:
-            old_dlstages.append(other_source)
-            new_dlstages.append(primary_dlstage)
+    upgrade_scenarios = []
+    packages = {}
 
+    # STEP 1: Prepare. Download all required packages for current launch
+    for v_sequence in upgrade_matrix.split(";"):
+        versions_list = v_sequence.split(":")
+        upgrade_scenarios.append(versions_list)
+        for version_name in versions_list:
+            print(version_name)
+            if version_name in packages:
+                continue
+            packages[version_name] = {}
+            for default_props in EXECUTION_PLAN:
+                props = copy(default_props)
+                if props.directory_suffix not in editions:
+                    continue
+                props.testrun_name = "test_" + props.testrun_name
+                # Verify that all required packages are exist or can be downloaded
+                source = primary_dlstage if primary_version == version_name else other_source
+                res = Download(
+                    dl_opts,
+                    test_driver.base_config.hb_cli_cfg,
+                    version_name,
+                    props.enterprise,
+                    test_driver.base_config.zip_package,
+                    test_driver.base_config.src_testing,
+                    source,
+                    versions,
+                    fresh_versions,
+                    git_version,
+                )
+                packages[version_name][props.directory_suffix] = res
+                res.get_packages(dl_opts.force)
+
+    params = deepcopy(test_driver.cli_test_suite_params)
+
+    # STEP 2: Run test for primary version
     for default_props in EXECUTION_PLAN:
         if default_props.directory_suffix not in editions:
             continue
         props = copy(default_props)
+        if props.directory_suffix not in editions:
+            continue
+
         props.testrun_name = "test_" + props.testrun_name
-        props.directory_suffix = props.directory_suffix + "_t"
 
         test_driver.run_cleanup(props)
         print("Cleanup done")
-        # pylint: disable=unused-variable
-        dl_new = Download(
-            dl_opts,
-            test_driver.base_config.hb_cli_cfg,
-            primary_version,
-            props.enterprise,
-            test_driver.base_config.zip_package,
-            test_driver.base_config.src_testing,
-            primary_dlstage,
-            versions,
-            fresh_versions,
-            git_version,
-        )
-        dl_new.get_packages(dl_opts.force)
 
         this_test_dir = test_dir / props.directory_suffix
         test_driver.reset_test_data_dir(this_test_dir)
 
-        results.append(test_driver.run_test("all", "all", [dl_new.cfg.version], props))
+        results.append(
+            test_driver.run_test(
+                "all",
+                params.base_cfg.starter_mode,
+                [packages[primary_version][props.directory_suffix].cfg.version],
+                props,
+            )
+        )
 
-    # pylint: disable=consider-using-enumerate
-    for j in range(len(new_versions)):
-        for props in EXECUTION_PLAN:
-            print("Cleaning up" + props.testrun_name)
-            test_driver.run_cleanup(props)
-        print("Cleanup done now running upgrade: " + str(old_versions[j]) + " -> " + new_versions[j])
+    # STEP 3: Run upgrade tests
+    for scenario in upgrade_scenarios:
 
-        # Configure Chrome to accept self-signed SSL certs and certs signed by unknown CA.
-        # FIXME: Add custom CA to Chrome to properly validate server cert.
-        # if props.ssl:
-        #    selenium_driver_args += ("ignore-certificate-errors",)
-        these_versions = []
         for props in EXECUTION_PLAN:
             if props.directory_suffix not in editions:
-                print("skipping " + props.directory_suffix)
                 continue
-            # pylint: disable=unused-variable
-            dl_old = Download(
-                dl_opts,
-                test_driver.base_config.hb_cli_cfg,
-                old_versions[j],
-                props.enterprise,
-                test_driver.base_config.zip_package,
-                test_driver.base_config.src_testing,
-                old_dlstages[j],
-                versions,
-                fresh_versions,
-                git_version,
-            )
-            dl_new = Download(
-                dl_opts,
-                test_driver.base_config.hb_cli_cfg,
-                new_versions[j],
-                props.enterprise,
-                test_driver.base_config.zip_package,
-                test_driver.base_config.src_testing,
-                new_dlstages[j],
-                versions,
-                fresh_versions,
-                git_version,
-            )
-            dl_old.get_packages(dl_opts.force)
-            dl_new.get_packages(dl_opts.force)
 
             this_test_dir = test_dir / props.directory_suffix
+            print("Cleaning up" + props.testrun_name)
+            test_driver.run_cleanup(props)
             test_driver.reset_test_data_dir(this_test_dir)
+            print("Cleanup done")
 
-            results.append(test_driver.run_upgrade([dl_old.cfg.version, dl_new.cfg.version], props))
-            these_versions.append([dl_new.cfg.version, dl_old.cfg.version])
+            results.append(test_driver.run_upgrade(scenario, props))
 
-        enterprise_packages_are_present = "EE" in editions or "EP" in editions
-        community_packages_are_present = "C" in editions
+    upgrade_pairs = []
+    for scenario in upgrade_scenarios:
+        for i in range(len(scenario) - 1):
+            old_version = scenario[i]
+            new_version = scenario[i + 1]
+            pair = [new_version, old_version]
+            if pair not in upgrade_pairs:
+                upgrade_pairs.append(pair)
 
-        params = deepcopy(test_driver.cli_test_suite_params)
-        params.new_version = dl_new.cfg.version
-        params.old_version = dl_old.cfg.version
+    enterprise_packages_are_present = "EE" in editions or "EP" in editions
+    community_packages_are_present = "C" in editions
+
+    for pair in upgrade_pairs:
+        params.new_version = pair[0]
+        params.old_version = pair[1]
+
         if enterprise_packages_are_present and community_packages_are_present:
             params.enterprise = True
             results.append(
@@ -152,10 +142,7 @@ def upgrade_package_test(
             )
             params.enterprise = False
             results.append(
-                test_driver.run_test_suites(
-                    include_suites=("CommunityPackageInstallationTestSuite",),
-                    params=params,
-                )
+                test_driver.run_test_suites(include_suites=("CommunityPackageInstallationTestSuite",), params=params)
             )
 
         if enterprise_packages_are_present:
