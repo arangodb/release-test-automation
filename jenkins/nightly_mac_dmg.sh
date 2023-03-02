@@ -38,8 +38,6 @@ mv $(pwd)/release-test-automation-helpers $(pwd)/release_tester/tools/external_h
 
 ulimit -n 65535
 
-export PATH=/usr/local/bin:$PATH
-
 python3 $(pwd)/release_tester/full_download_upgrade.py \
       --version-state-tar "${WORKSPACE}/${VERSION_TAR_NAME}" \
       --package-dir "${PACKAGE_CACHE}" \
