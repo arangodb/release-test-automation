@@ -380,9 +380,9 @@ test filter: {0.test}
         if other.cfgdir is None:
             raise Exception("cfgdir: must not copy in None!")
         self.cfgdir = other.cfgdir
-        if other.install_prefix is None:
-            raise Exception("install_prefix: must not copy in None!")
-        self.install_prefix = other.install_prefix
+        # if other.install_prefix is None:
+        #     raise Exception("install_prefix: must not copy in None!")
+        # self.install_prefix = other.install_prefix
         if other.version is None:
             raise Exception("version: must not copy in None!")
         self.version = other.version
