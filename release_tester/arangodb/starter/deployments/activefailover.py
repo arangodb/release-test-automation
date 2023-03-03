@@ -227,7 +227,7 @@ class ActiveFailover(Runner):
     def upgrade_arangod_version_impl(self):
         """rolling upgrade this installation"""
         for node in self.starter_instances:
-            node.replace_binary_for_upgrade(self.new_cfg)
+            node.replace_binary_for_upgrade(self.new_installer.cfg)
         for node in self.starter_instances:
             node.detect_instance_pids_still_alive()
         self.starter_instances[1].command_upgrade()
@@ -243,7 +243,7 @@ class ActiveFailover(Runner):
         self.progress(True, "manual upgrade step 1 - stop system")
         self.leader.maintainance(True, InstanceType.RESILIENT_SINGLE)
         for node in self.starter_instances:
-            node.replace_binary_for_upgrade(self.new_cfg)
+            node.replace_binary_for_upgrade(self.new_installer.cfg)
             node.terminate_instance(True)
         self.progress(True, "step 2 - upgrade database directories")
         for node in self.starter_instances:

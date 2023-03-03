@@ -143,7 +143,7 @@ class InstallerMac(InstallerBase):
         self.baseetcdir = Path.home() / "Library" / "ArangoDB-etc"
         self.installer_type = "DMG"
 
-        cfg.install_prefix = None
+        cfg.install_prefix = Path("/")
         cfg.localhost = "localhost"
         cfg.passvoid = ""  # default mac install doesn't set passvoid
 
