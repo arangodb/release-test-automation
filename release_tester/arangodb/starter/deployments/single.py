@@ -108,7 +108,7 @@ class Single(Runner):
     @step
     def upgrade_arangod_version_impl(self):
         """rolling upgrade this installation"""
-        self.starter_instance.replace_binary_for_upgrade(self.new_cfg)
+        self.starter_instance.replace_binary_for_upgrade(self.new_installer.cfg)
         self.starter_instance.command_upgrade()
         self.starter_instance.wait_for_upgrade()
         self.starter_instance.wait_for_upgrade_done_in_log()
@@ -122,7 +122,7 @@ class Single(Runner):
     def upgrade_arangod_version_manual_impl(self):
         """manual upgrade this installation"""
         self.progress(True, "step 1 - shut down instances")
-        self.starter_instance.replace_binary_setup_for_upgrade(self.new_cfg)
+        self.starter_instance.replace_binary_setup_for_upgrade(self.new_installer.cfg)
         self.starter_instance.terminate_instance(True)
         self.progress(True, "step 2 - launch instances with the upgrade options set")
         print("launch")
