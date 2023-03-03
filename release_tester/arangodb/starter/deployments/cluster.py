@@ -161,7 +161,7 @@ db.testCollection.save({test: "document"})
             bench_instances.append(self.starter_instances[0].launch_arangobench("cluster_upgrade_scenario_1"))
             bench_instances.append(self.starter_instances[1].launch_arangobench("cluster_upgrade_scenario_2"))
         for node in self.starter_instances:
-            node.replace_binary_for_upgrade(self.new_cfg)
+            node.replace_binary_for_upgrade(self.new_installer.cfg)
 
         for node in self.starter_instances:
             node.detect_instance_pids_still_alive()
@@ -192,7 +192,7 @@ db.testCollection.save({test: "document"})
         self.progress(True, "manual upgrade step 1 - stop instances")
         self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
         for node in self.starter_instances:
-            node.replace_binary_for_upgrade(self.new_cfg, False)
+            node.replace_binary_for_upgrade(self.new_installer.cfg, False)
         for node in self.starter_instances:
             node.detect_instance_pids_still_alive()
 
@@ -262,7 +262,7 @@ db.testCollection.save({test: "document"})
         self.progress(True, "manual upgrade step 1 - stop instances")
         self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
         for node in self.starter_instances:
-            node.replace_binary_for_upgrade(self.new_cfg, False)
+            node.replace_binary_for_upgrade(self.new_installer.cfg, False)
         for node in self.starter_instances:
             node.detect_instance_pids_still_alive()
 

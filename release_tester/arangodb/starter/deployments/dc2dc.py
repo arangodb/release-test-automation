@@ -500,9 +500,9 @@ class Dc2Dc(Runner):
     def upgrade_arangod_version_impl(self):
         """rolling upgrade this installation"""
         self._stop_sync(300)
-        self.sync_manager.replace_binary_for_upgrade(self.new_cfg)
-        self.cluster1["instance"].replace_binary_for_upgrade(self.new_cfg)
-        self.cluster2["instance"].replace_binary_for_upgrade(self.new_cfg)
+        self.sync_manager.replace_binary_for_upgrade(self.new_installer.cfg)
+        self.cluster1["instance"].replace_binary_for_upgrade(self.new_installer.cfg)
+        self.cluster2["instance"].replace_binary_for_upgrade(self.new_installer.cfg)
         rev = self.new_installer.get_starter_version()
         if rev >= STARTER_VERSIONS["152"]:
             print("Attempting parallel upgrade")
@@ -545,11 +545,11 @@ class Dc2Dc(Runner):
     def upgrade_arangod_version_manual_impl(self):
         """manual upgrade this installation"""
         self._stop_sync(300)
-        self.sync_manager.replace_binary_for_upgrade(self.new_cfg)
+        self.sync_manager.replace_binary_for_upgrade(self.new_installer.cfg)
         self.progress(True, "manual upgrade step 1 - stop instances")
         self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
         for node in self.starter_instances:
-            node.replace_binary_for_upgrade(self.new_cfg, False)
+            node.replace_binary_for_upgrade(self.new_installer.cfg, False)
         for node in self.starter_instances:
             node.detect_instance_pids_still_alive()
 

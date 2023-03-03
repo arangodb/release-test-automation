@@ -393,7 +393,6 @@ test filter: {0.test}
             if other.client_install_prefix is None:
                 raise Exception("client_install_prefix: must not copy in None!")
             self.client_install_prefix = other.client_install_prefix
-
             if other.server_install_prefix is None:
                 raise Exception("server_install_prefix: must not copy in None!")
             self.server_install_prefix = other.server_install_prefix
