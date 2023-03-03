@@ -305,6 +305,7 @@ class StarterManager:
         logging.info("my starter has PID:" + str(self.instance.pid))
         if not expect_to_fail:
             self.wait_for_logfile()
+            self.wait_for_port_bind()
 
     @step
     def attach_running_starter(self):
@@ -453,6 +454,21 @@ class StarterManager:
                 logging.info("Found: " + str(self.log_file) + "\n")
                 keep_going = False
             time.sleep(1)
+
+    @step
+    def wait_for_port_bind(self):
+        """wait for our instance to bind its TCP-ports"""
+        if self.starter_port is not None:
+            count = 0
+            while count < 10:
+                for socket in self.instance.connections():
+                    if socket.status == "LISTEN" and socket.laddr.port == self.starter_port:
+                        print("socket found!")
+                        return
+                count += 1
+                time.sleep(1)
+            raise Exception(f"starter didn't bind {self.starter_port} on time!")
+        print("dont know port")
 
     @step
     def wait_for_upgrade_done_in_log(self, timeout=120):
@@ -771,6 +787,7 @@ class StarterManager:
         print("respawned with PID:" + str(self.instance.pid))
         if wait_for_logfile:
             self.wait_for_logfile()
+            self.wait_for_port_bind()
         else:
             print("Waiting for starter to exit")
             print("Starter exited %d" % self.instance.wait())
