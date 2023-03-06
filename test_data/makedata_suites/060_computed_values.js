@@ -93,15 +93,8 @@ function viewsArray() {
 
       // this function will check Computed Values properties
       function checkComValProperties(comValueName, obj1, obj2) {
-        const obj1Length = Object.keys(obj1).length;
-        const obj2Length = Object.keys(obj2).length;
-
-        if (obj1Length === obj2Length) {
-          return Object.keys(obj1).every(
-            (key) => obj2.hasOwnProperty(key)
-              && obj2[key] === obj1[key]);
-        } else {
-          throw new Error(`${comValueName} properties missmatched!`);
+        if(_.isEqual(obj1, obj2)== false){
+          throw new Error(`Properties missmatched for the collection ${comValueName}`);
         }
       }
 
@@ -109,16 +102,12 @@ function viewsArray() {
       //for c1 comVal
       let c1_exp_modification = [
         {
-          "name": "cv_field",
-          "expression": "RETURN SOUNDEX('sky')",
-          "computeOn": [
-            "insert",
-            "update",
-            "replace"
-          ],
-          "overwrite": true,
-          "failOnWarning": false,
-          "keepNull": true
+          name: 'cv_field',
+          expression: "RETURN SOUNDEX('sky')",
+          computeOn: [ 'insert', 'update', 'replace' ],
+          overwrite: true,
+          failOnWarning: false,
+          keepNull: true
         }
       ];
 
@@ -129,18 +118,13 @@ function viewsArray() {
       //for c2 comVal
       let c2_exp_modification = [
         {
-          "name": "default",
-          "expression": "RETURN SOUNDEX('dog')",
-          "computeOn": [
-            "insert",
-            "update",
-            "replace"
-          ],
-          "overwrite": true,
-          "failOnWarning": false,
-          "keepNull": true
+          name: 'cv_field',
+          expression: "RETURN SOUNDEX('dog')",
+          computeOn: [ 'insert', 'update', 'replace' ],
+          overwrite: true,
+          failOnWarning: false,
+          keepNull: true
         }
-
       ];
 
       let c2_actual_modification = a2.properties({ computedValues: [{ "name": "cv_field", "expression": "RETURN SOUNDEX('dog')", "overwrite": true }] })
@@ -150,14 +134,12 @@ function viewsArray() {
       //for c3_insert comVal
       let c3_exp_modification = [
         {
-          "name": "default_insert",
-          "expression": "RETURN SOUNDEX('frog')",
-          "computeOn": [
-            "insert"
-          ],
-          "overwrite": true,
-          "failOnWarning": false,
-          "keepNull": true
+          name: 'cv_field_insert',
+          expression: "RETURN SOUNDEX('frog')",
+          computeOn: [ 'insert' ],
+          overwrite: true,
+          failOnWarning: false,
+          keepNull: true
         }
       ];
 
@@ -168,14 +150,12 @@ function viewsArray() {
       //for c4_update comVal
       let c4_exp_modification = [
         {
-          "name": "cv_field_update",
-          "expression": "RETURN SOUNDEX('beer')",
-          "computeOn": [
-            "update"
-          ],
-          "overwrite": true,
-          "failOnWarning": false,
-          "keepNull": true
+          name: 'cv_field_update',
+          expression: "RETURN SOUNDEX('beer')",
+          computeOn: [ 'update' ],
+          overwrite: true,
+          failOnWarning: false,
+          keepNull: true
         }
       ];
 
@@ -186,14 +166,12 @@ function viewsArray() {
       //for c5_replace comVal
       let c5_exp_modification = [
         {
-          "name": "cv_field_update",
-          "expression": "RETURN SOUNDEX('beer')",
-          "computeOn": [
-            "update"
-          ],
-          "overwrite": true,
-          "failOnWarning": false,
-          "keepNull": true
+          name: 'cv_field_replace',
+          expression: "RETURN SOUNDEX('water')",
+          computeOn: [ 'replace' ],
+          overwrite: true,
+          failOnWarning: false,
+          keepNull: true
         }
       ];
 
@@ -204,18 +182,14 @@ function viewsArray() {
       //for c6_not_null comVal
       let c6_exp_modification = [
         {
-          "name": "cv_field",
-          "expression": "RETURN null",
-          "computeOn": [
-            "insert",
-            "update",
-            "replace"
-          ],
-          "overwrite": true,
-          "failOnWarning": false,
-          "keepNull": false
+          name: 'cv_field',
+          expression: 'RETURN null',
+          computeOn: [ 'insert', 'update', 'replace' ],
+          overwrite: true,
+          failOnWarning: false,
+          keepNull: false
         }
-      ]
+      ];
 
       let c6_actual_modification = a6.properties({ computedValues: [{ "name": "cv_field", "expression": "RETURN null", "overwrite": true, "keepNull": false }] });
 
@@ -224,18 +198,14 @@ function viewsArray() {
       //for c7_hex comVal
       let c7_exp_modification = [
         {
-          "name": "cv_field",
-          "expression": "RETURN TO_HEX(@doc.name)",
-          "computeOn": [
-            "insert",
-            "update",
-            "replace"
-          ],
-          "overwrite": true,
-          "failOnWarning": false,
-          "keepNull": true
+          name: 'cv_field',
+          expression: 'RETURN TO_HEX(@doc.name)',
+          computeOn: [ 'insert', 'update', 'replace' ],
+          overwrite: true,
+          failOnWarning: false,
+          keepNull: true
         }
-      ]
+      ];
 
       let c7_actual_modification = a7.properties({ computedValues: [{ "name": "cv_field", "expression": "RETURN TO_HEX(@doc.name)", "overwrite": true }] });
 
@@ -244,16 +214,12 @@ function viewsArray() {
       //for c8_overwriteFalse comVal
       let c8_exp_modification = [
         {
-          "name": "cv_field",
-          "expression": "RETURN CONCAT('42_', TO_STRING(@doc.field))",
-          "computeOn": [
-            "insert",
-            "update",
-            "replace"
-          ],
-          "overwrite": false,
-          "failOnWarning": false,
-          "keepNull": true
+          name: 'cv_field',
+          expression: "RETURN CONCAT('42_', TO_STRING(@doc.field))",
+          computeOn: [ 'insert', 'update', 'replace' ],
+          overwrite: false,
+          failOnWarning: false,
+          keepNull: true
         }
       ];
 
@@ -264,16 +230,12 @@ function viewsArray() {
       //for c9_overwriteTrue comVal
       let c9_exp_modification = [
         {
-          "name": "cv_field",
-          "expression": "RETURN CONCAT('42_', TO_STRING(@doc.field))",
-          "computeOn": [
-            "insert",
-            "update",
-            "replace"
-          ],
-          "overwrite": false,
-          "failOnWarning": false,
-          "keepNull": true
+          name: 'cv_field',
+          expression: "RETURN CONCAT('42_', TO_STRING(@doc.field))",
+          computeOn: [ 'insert', 'update', 'replace' ],
+          overwrite: true,
+          failOnWarning: false,
+          keepNull: true
         }
       ];
 
@@ -284,40 +246,28 @@ function viewsArray() {
       //for c10_multiple comVal
       let c10_exp_modification = [
         {
-          "name": "cv_field1",
-          "expression": "RETURN 'foo'",
-          "computeOn": [
-            "insert",
-            "update",
-            "replace"
-          ],
-          "overwrite": true,
-          "failOnWarning": false,
-          "keepNull": true
+          name: 'cv_field1',
+          expression: "RETURN 'foo'",
+          computeOn: [ 'insert', 'update', 'replace' ],
+          overwrite: true,
+          failOnWarning: false,
+          keepNull: true
         },
         {
-          "name": "cv_field2",
-          "expression": "RETURN 'bar'",
-          "computeOn": [
-            "insert",
-            "update",
-            "replace"
-          ],
-          "overwrite": true,
-          "failOnWarning": false,
-          "keepNull": true
+          name: 'cv_field2',
+          expression: "RETURN 'bar'",
+          computeOn: [ 'insert', 'update', 'replace' ],
+          overwrite: true,
+          failOnWarning: false,
+          keepNull: true
         },
         {
-          "name": "cv_field3",
-          "expression": "RETURN 'baz'",
-          "computeOn": [
-            "insert",
-            "update",
-            "replace"
-          ],
-          "overwrite": true,
-          "failOnWarning": false,
-          "keepNull": true
+          name: 'cv_field3',
+          expression: "RETURN 'baz'",
+          computeOn: [ 'insert', 'update', 'replace' ],
+          overwrite: true,
+          failOnWarning: false,
+          keepNull: true
         }
       ];
 
@@ -328,16 +278,12 @@ function viewsArray() {
       //for c11 comVal
       let c11_exp_modification = [
         {
-          "name": "cv_field",
-          "expression": "RETURN CONCAT(@doc._key, ' ', @doc._id, ' ', @doc._rev)",
-          "computeOn": [
-            "insert",
-            "update",
-            "replace"
-          ],
-          "overwrite": true,
-          "failOnWarning": false,
-          "keepNull": true
+          name: 'cv_field',
+          expression: "RETURN CONCAT(@doc._key, ' ', @doc._id, ' ', @doc._rev)",
+          computeOn: [ 'insert', 'update', 'replace' ],
+          overwrite: true,
+          failOnWarning: false,
+          keepNull: true
         }
       ];
 
@@ -348,16 +294,12 @@ function viewsArray() {
       //for c12_overwriteTrue comVal
       let c12_exp_modification = [
         {
-          "name": "cv_field",
-          "expression": "RETURN CONCAT(@doc._key, ' ', @doc._id, ' ', @doc._rev)",
-          "computeOn": [
-            "insert",
-            "update",
-            "replace"
-          ],
-          "overwrite": true,
-          "failOnWarning": false,
-          "keepNull": true
+          name: 'cv_field',
+          expression: "RETURN [{from_doc: CONCAT(@doc.name, ' ', @doc.field), system:{_key: @doc._key, _rev: @doc._rev, _id: @doc._id}, values: [RANGE(1, 10)]}]",
+          computeOn: [ 'insert', 'update', 'replace' ],
+          overwrite: true,
+          failOnWarning: false,
+          keepNull: true
         }
       ];
 
