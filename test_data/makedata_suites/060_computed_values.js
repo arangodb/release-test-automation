@@ -1,14 +1,22 @@
 /* global print, semver, progress, createCollectionSafe, db, fs, PWD */
 
+// this function will check Computed Values properties
+function check(comValueName, obj1, obj2) {
+  if(_.isEqual(obj1, obj2)== false){
+    throw new Error(`Properties missmatched for the collection ${comValueName}`);
+  }
+}
+
 // This method will take input and output array and compare both's results
-let resultComparision = (db, input_array, output_array) =>{
+let resultComparision = (db, input_array, expected_output_array) =>{
   for(let i=0; i<input_array.length; i++){
     let output = db._query(input_array[i]).toArray()
-
-    if (Number(output) === output_array[i]) {
-      print("060: ok")
-    } else {
-      throw new Error(`Index query ${output} didn't match with ${output_array[i]}!`);
+    let newOuput = Number(output)
+    // print("output:" + newOuput)
+    // print("type:" + typeof newOuput)
+    // print("outputArray: " + expected_output_array[i])
+    if (newOuput !== expected_output_array[i]) {
+      throw new Error(`Index query's ${newOuput} value didn't match with ecxpected ${expected_output_array[i]} value!`);
     }
   }
 }
@@ -536,52 +544,7 @@ function viewsArray() {
 
       // this methdo will compare two outputs
       checkComValProperties("TestView", creationOutput, expected_output);
-        
 
-      //-------------------------------------------------------x-------------------------------------------------------------
-      //inserting data to all collection
-      let data_array = [a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12];
-      let docsAsStr = fs.read(`${PWD}/makedata_suites/060_computed_value.json`);
-
-      // this function will read and insert and check all the neccessary data for the respective collection
-      data_array.forEach(col => {
-        col.save(JSON.parse(docsAsStr), { silent: true });
-
-        //this cmd will find one docs from the collection
-        let expected_field = col.all().limit(5).toArray();
-        //checking computed value field exit on the collection's doc
-        if (col === a1 || col === a2 || col === a7 || col === a8 || col === a9 || col === a11 || col === a12) {
-          if (expected_field[0].cv_field !== null) {   
-          } else {
-            throw new Error(`Computed value field missing from collection`);
-          }
-        } 
-        else if (col === a3) {
-          if (expected_field[0].cv_field_insert !== null) {
-          } else {
-            throw new Error(`Computed value field missing from collection`);
-          }
-        }
-        else if (col === a4 || col === a5) {
-          if (expected_field[2].cv_field !== null) {
-          } else {
-            throw new Error(`Computed value field missing from collection`);
-          }
-        }
-        else if (col === a6) {
-          if (expected_field[4].field !== null) {
-          } else {
-            throw new Error(`Computed value field missing from collection`);
-          }
-        } 
-        else if (col === a10) {
-          if (expected_field[0].cv_field1 !== null) {
-          } 
-          else {
-            throw new Error(`Computed value field missing from collection`);
-          }
-        }
-      })
 
       // creating testviewV2 allias
       db._createView("testViewV2", "search-alias", {
@@ -635,6 +598,52 @@ function viewsArray() {
             'index': 'inverted'
           }
         ]
+      })
+        
+
+      //-------------------------------------------------------x-------------------------------------------------------------
+      //inserting data to all collection
+      let data_array = [a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12];
+      let docsAsStr = fs.read(`${PWD}/makedata_suites/060_computed_value.json`);
+
+      // this function will read and insert and check all the neccessary data for the respective collection
+      data_array.forEach(col => {
+        col.save(JSON.parse(docsAsStr), { silent: true });
+
+        //this cmd will find one docs from the collection
+        let expected_field = col.all().limit(5).toArray();
+        //checking computed value field exit on the collection's doc
+        if (col === a1 || col === a2 || col === a7 || col === a8 || col === a9 || col === a11 || col === a12) {
+          if (expected_field[0].cv_field !== null) {   
+          } else {
+            throw new Error(`Computed value field missing from collection`);
+          }
+        } 
+        else if (col === a3) {
+          if (expected_field[0].cv_field_insert !== null) {
+          } else {
+            throw new Error(`Computed value field missing from collection`);
+          }
+        }
+        else if (col === a4 || col === a5) {
+          if (expected_field[2].cv_field !== null) {
+          } else {
+            throw new Error(`Computed value field missing from collection`);
+          }
+        }
+        else if (col === a6) {
+          if (expected_field[4].field !== null) {
+          } else {
+            throw new Error(`Computed value field missing from collection`);
+          }
+        } 
+        else if (col === a10) {
+          if (expected_field[0].cv_field1 !== null) {
+          } 
+          else {
+            throw new Error(`Computed value field missing from collection`);
+          }
+        }
       })
 
       //execute queries which use indexes and verify that the proper amount of docs are returned
@@ -706,6 +715,11 @@ function viewsArray() {
       let myArray = viewsArray()
       let views_exp_output = [64000, 64000, 64000, 0, 0, 64000, 96000, 64000, 64000, 64000, 64000, 64000, 0, 0, 160000, 64000, 96000, 64000, 64000]
       resultComparision(db, myArray, views_exp_output)
+
+
+
+      // Check computedValues and try to break it
+
 
 
       return 0;
