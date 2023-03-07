@@ -30,7 +30,12 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
     # pylint: disable=too-many-instance-attributes disable=dangerous-default-value
     def __init__(self, params: CliTestSuiteParameters):
         super().__init__(params)
-        if self.new_version < "3.9.0-nightly" or self.old_version < "3.9.0-nightly":
+        if (
+            self.new_version is not None
+            and self.new_version < "3.9.0-nightly"
+            or self.old_version is not None
+            and self.old_version < "3.9.0-nightly"
+        ):
             self.__class__.is_disabled = True
             self.__class__.disable_reasons.append(
                 "License manager test suite is only applicable to versions 3.9 and newer."
@@ -41,7 +46,7 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
             base_config=self.base_cfg,
             deployment_mode="all",
             run_properties=self.run_props,
-            use_auto_certs=False
+            use_auto_certs=False,
         )
         self.installer = self.installer_set[0][1]
         self.starter = None
