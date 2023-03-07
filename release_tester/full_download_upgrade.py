@@ -131,7 +131,6 @@ def upgrade_package_test(
             )
         )
 
-    test_driver.destructor()
     print("V" * 80)
     if not write_table(results):
         print("exiting with failure")
@@ -172,18 +171,23 @@ def main(**kwargs):
     kwargs["base_config"] = InstallerBaseConfig.from_dict(**kwargs)
     dl_opts = DownloadOptions.from_dict(**kwargs)
 
-    test_driver = TestDriver(**kwargs)
-
-    return upgrade_package_test(
-        dl_opts,
-        kwargs["new_version"],
-        kwargs["old_version"],
-        kwargs["new_source"],
-        kwargs["old_source"],
-        kwargs["git_version"],
-        kwargs["editions"],
-        test_driver,
-    )
+    test_driver = None
+    ret = 1
+    try:
+        test_driver = TestDriver(**kwargs)
+        ret = upgrade_package_test(
+            dl_opts,
+            kwargs["new_version"],
+            kwargs["old_version"],
+            kwargs["new_source"],
+            kwargs["old_source"],
+            kwargs["git_version"],
+            kwargs["editions"],
+            test_driver,
+        )
+    finally:
+        test_driver.destructor()
+    return ret
 
 
 if __name__ == "__main__":
