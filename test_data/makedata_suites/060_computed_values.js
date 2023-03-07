@@ -1,20 +1,13 @@
 /* global print, semver, progress, createCollectionSafe, db, fs, PWD */
 
-// this function will check Computed Values properties
-function check(comValueName, obj1, obj2) {
-  if(_.isEqual(obj1, obj2)== false){
-    throw new Error(`Properties missmatched for the collection ${comValueName}`);
-  }
-}
-
 // This method will take input and output array and compare both's results
 let resultComparision = (db, input_array, expected_output_array) =>{
   for(let i=0; i<input_array.length; i++){
     let output = db._query(input_array[i]).toArray()
     let newOuput = Number(output)
-    // print("output:" + newOuput)
-    // print("type:" + typeof newOuput)
-    // print("outputArray: " + expected_output_array[i])
+    print("output:" + newOuput)
+    print("type:" + typeof newOuput)
+    print("outputArray: " + expected_output_array[i])
     if (newOuput !== expected_output_array[i]) {
       throw new Error(`Index query's ${newOuput} value didn't match with ecxpected ${expected_output_array[i]} value!`);
     }
@@ -604,7 +597,7 @@ function viewsArray() {
       //-------------------------------------------------------x-------------------------------------------------------------
       //inserting data to all collection
       let data_array = [a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12];
-      let docsAsStr = fs.read(`${PWD}/makedata_suites/060_computed_value.json`);
+      let docsAsStr = fs.read(`${PWD}/makedata_suites/060_computed_values.json`);
 
       // this function will read and insert and check all the neccessary data for the respective collection
       data_array.forEach(col => {
@@ -739,13 +732,12 @@ function viewsArray() {
       let c11 = `c11_060_${dbCount}`;
       let c12 = `c12_060_${dbCount}`;
 
-      // try {
-      //   db._dropView(`testView`);
-      //   db._dropView(`testViewV2`);
-      // } catch (e) {
-      //   print(e);
-      // }
-      // progress();
+      try {
+        db._dropView(`testView`);
+      } catch (e) {
+        print(e);
+      }
+      progress();
 
       collection_array = [c1, c2, c3_insert, c4_update, c5_replace, c6_not_null, c7_hex, c8_overwriteFalse, c9_overwriteTrue, c10_multiple, c11, c12]
 
