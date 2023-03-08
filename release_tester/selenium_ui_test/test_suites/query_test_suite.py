@@ -18,6 +18,10 @@ class QueryTestSuite(BaseSeleniumTestSuite):
 
         assert query_page.current_user() == "ROOT", "current user is root?"
         assert query_page.current_database() == "_SYSTEM", "current database is _system?"
+        
+        print("Checking saved query feature \n")
+        query_page.saved_query_check()
+        
         print("Importing IMDB collections \n")
         query_page.import_collections(self.restore, self.test_data_dir, self.is_cluster)
 
