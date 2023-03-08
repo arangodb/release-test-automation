@@ -18,10 +18,15 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
         """testing user page"""
         print("---------User Test Begin--------- \n")
         login = LoginPage(self.webdriver, self.cfg)
+        col = CollectionPage(self.webdriver, self.cfg)
         # login.login('root', self.root_passvoid)
         self.webdriver.refresh()
         user = UserPage(self.webdriver, self.cfg)
         try:
+            col.create_new_collections('a', 0, self.is_cluster)
+            col.create_new_collections('o', 1, self.is_cluster)
+            col.create_new_collections('z', 0, self.is_cluster)
+
             print("New user creation begins \n")
             user.user_tab()
             user.add_new_user("tester")
