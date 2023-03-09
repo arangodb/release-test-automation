@@ -737,3 +737,135 @@ RETURN c"""
 
         # clearing all text from the execution area
         self.clear_all_text(self.query_execution_area)
+
+    def delete_saved_query(self):
+        """This method will delete all the saved query"""
+        delete = '//i[@class="fa fa-minus-circle"]'
+        delete_sitem = self.locator_finder_by_xpath(delete)
+        delete_sitem.click()
+        time.sleep(1)
+
+        delete_confirm = 'modalButton1'
+        delete_confirm_sitem = self.locator_finder_by_id(delete_confirm)
+        delete_confirm_sitem.click()
+        time.sleep(1)
+
+        delete_final = 'modal-confirm-delete'
+        delete_final_sitem = self.locator_finder_by_id(delete_final)
+        delete_final_sitem.click()
+        time.sleep(1)
+
+    def saved_query_settings(self):
+        """this method will check saved query sorting setting"""
+        settings = 'sortOptionsToggle'
+        settings_sitem = self.locator_finder_by_id(settings)
+        settings_sitem.click()
+        time.sleep(1)
+
+        sort_by_date_created = "sortDateAdded"
+        sort_by_date_created_sitem = self.locator_finder_by_id(sort_by_date_created)
+        sort_by_date_created_sitem.click()
+        time.sleep(1)
+
+        sort_by_date_modified = "sortDateModified"
+        sort_by_date_modified_sitem = self.locator_finder_by_id(sort_by_date_modified)
+        sort_by_date_modified_sitem.click()
+        time.sleep(1)
+
+        query_sort_order = "querySortOrder"
+        query_sort_order_sitem = self.locator_finder_by_id(query_sort_order)
+        query_sort_order_sitem.click()
+        time.sleep(1)
+
+    def toggle_query_btn(self):
+        """This method will toggle the saved query button"""
+        toggle_query = 'toggleQueries1'
+        toggle_query = self.locator_finder_by_id(toggle_query)
+        toggle_query.click()
+        time.sleep(1)
+    def save_query(self, query_name):
+        """his method will check saved query featured that introduced on 3.11.x"""
+        save_query = self.save_current_query_id
+        save_query = self.locator_finder_by_id(save_query)
+        save_query.click()
+        time.sleep(1)
+
+        saved_query_btn = "(//input[@id='new-query-name'])[1]"
+        saved_query_btn_sitem = self.locator_finder_by_xpath(saved_query_btn)
+        saved_query_btn_sitem.click()
+        saved_query_btn_sitem.send_keys(query_name)
+        time.sleep(1)
+
+        save_new_query_btn = "modalButton1"
+        self.locator_finder_by_id(save_new_query_btn).click()
+        time.sleep(1)
+
+    def search_inside_saved_query(self, query_name):
+        """This method will search saved query by given string"""
+        print("Searching through saved query\n")
+        search = "querySearchInput"
+        saved_query_btn_sitem = self.locator_finder_by_id(search)
+        saved_query_btn_sitem.click()
+        saved_query_btn_sitem.clear()
+        saved_query_btn_sitem.send_keys(query_name)
+        time.sleep(1)
+
+        print("Checking that found the exact query\n")
+        find = f"//*[text()='{query_name}']"
+        find_sitem = self.locator_finder_by_xpath(find).text
+        assert query_name == find_sitem, f"Expected page title {query_name} but got {find_sitem}"
+        saved_query_btn_sitem.clear()
+
+    def saved_query_check(self):
+        """This method will check saved query"""
+        print("Saved query check started\n")
+        self.selecting_query_page()
+
+        self.select_query_execution_area()
+        # start 1st query for saving
+        super().send_key_action('FOR i IN 1..1000')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action(Keys.TAB)
+        super().send_key_action('INSERT {name: CONCAT("test", i),')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action('status: 1 + (i % 5)} IN myCollection')
+        self.save_query('insertQuery')
+
+        # start 2nd query for saving
+        self.select_query_execution_area()
+        # clear the execution area
+        self.clear_query_area()
+        # start 2nd query for saving
+        super().send_key_action('FOR i IN 1..1000')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action(Keys.TAB)
+        super().send_key_action('INSERT { name: CONCAT("test", i) } IN myCollection')
+        self.save_query('concatQuery')
+
+        # start 3rd query for saving
+        self.select_query_execution_area()
+        # clear the execution area
+        self.clear_query_area()
+        # start 3rd query for saving
+        super().send_key_action('FOR doc IN myCollection')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action(Keys.TAB)
+        super().send_key_action('SORT RAND()')
+        super().send_key_action(Keys.ENTER)
+        super().send_key_action(Keys.TAB)
+        super().send_key_action('LIMIT 10 RETURN doc')
+        self.save_query('zSortquery')
+
+        self.toggle_query_btn()
+        self.search_inside_saved_query('zSortquery')
+        self.search_inside_saved_query('insertQuery')
+        self.search_inside_saved_query('concatQuery')
+
+        self.saved_query_settings()
+
+        print("Deleting all the saved query\n")
+        for _ in range(3):
+            self.delete_saved_query()
+
+        print("Return back to query page \n")
+        self.selecting_query_page()
