@@ -18,7 +18,7 @@ run mkdir -p /home/release-test-automation \
  /home/entrypoint
 RUN mkdir -p /home/entrypoint
 
-RUN yum -y update; yum install -y python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect initscripts file gdb chromedriver chromium python3-markdown python3-dataclasses;
+RUN yum -y update; yum install -y python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect initscripts file gdb chromedriver chromium python3-markdown python3-dataclasses python3-setuptools;
 COPY requirements.txt /tmp/
 RUN pip3 install -r /tmp/requirements.txt
 
