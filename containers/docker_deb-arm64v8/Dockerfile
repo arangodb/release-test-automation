@@ -10,7 +10,7 @@ ENV TZ=Europe/Berlin
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apt-get update ; \
-    apt-get install -y wget unzip sudo python3-yaml python3-requests python3-magic python3-click python3-distro python3-psutil python3-pexpect python3-statsd python3-pip python3-markdown gdb git systemd locales python3-selenium python3-certifi; \
+    apt-get install -y wget unzip sudo python3-yaml python3-requests python3-magic python3-click python3-distro python3-psutil python3-pexpect python3-statsd python3-pip python3-markdown gdb git systemd locales python3-selenium python3-certifi python3-setuptools; \
  \
     wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
   || apt-get update -qqy \
