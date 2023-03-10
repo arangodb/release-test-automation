@@ -23,4 +23,5 @@ docker; platform_system == "Linux"
 py7zr
 paramiko
 scp
+unipath
 pre-commit
