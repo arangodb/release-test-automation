@@ -17,6 +17,8 @@ import tools.loghelper as lh
 from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor, make_default_params
 from arangodb.installers import HotBackupMode, HotBackupProviders
 
+from siteconfig import IS_MAC
+
 HB_2_RCLONE_TYPE = {
     HotBackupMode.DISABLED: "disabled",
     HotBackupMode.DIRECTORY: "local",
@@ -24,6 +26,10 @@ HB_2_RCLONE_TYPE = {
     HotBackupMode.GCS: "google cloud storage",
     HotBackupMode.AZUREBLOBSTORAGE: "azureblob",
 }
+
+DEFAULT_PROGRESSIVE_TIMEOUT = 20
+if IS_MAC:
+    DEFAULT_PROGRESSIVE_TIMEOUT = 40
 
 
 class HotBackupConfig:
@@ -151,7 +157,9 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
 
     # pylint: disable=too-many-arguments
     @step
-    def _run_backup(self, arguments, name, silent=False, expect_to_fail=False, progressive_timeout=20):
+    def _run_backup(
+        self, arguments, name, silent=False, expect_to_fail=False, progressive_timeout=DEFAULT_PROGRESSIVE_TIMEOUT
+    ):
         """run arangobackup"""
         if not silent:
             logging.info("running hot backup " + name)
