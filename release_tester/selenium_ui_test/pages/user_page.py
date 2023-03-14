@@ -3,6 +3,7 @@
 import time
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import StaleElementReferenceException
+from selenium.webdriver.common.by import By
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=line-too-long disable=too-many-instance-attributes disable=too-many-statements
@@ -20,7 +21,7 @@ class UserPage(NavigationBarPage):
         self.enter_new_password_id = "newPassword"
         self.create_user_btn_id = "modalButton1"
         self.selecting_user_tester_id = "tester"
-        self.tester_id = '//*[@id="userManagementThumbnailsIn"]/div[3]/div/h5'
+        self.select_tester_id = '//*[@id="userManagementThumbnailsIn"]/div[3]/div/h5'
         self.permission_link_id = "//*[@id='subNavigationBarPage']/ul[2]/li[2]/a"
         self.db_permission_read_only = "//*[@id='*-db']/div[3]/input"
         self.db_permission_read_write = '//*[@id="*-db"]/div[2]/input'
@@ -30,6 +31,9 @@ class UserPage(NavigationBarPage):
         self.select_collection_page_id = "collections"
         self.select_create_collection_id = "createCollection"
         self.select_new_collection_name_id = "new-collection-name"
+        self.a_first_id = '//h5[@class="collectionName"][text()="a_first"]'
+        self.m_middle_id = '//h5[@class="collectionName"][text()="m_middle"]'
+        self.z_last_id = '//h5[@class="collectionName"][text()="z_last"]'
 
     def user_tab(self):
         """selecting user tab"""
@@ -106,7 +110,7 @@ class UserPage(NavigationBarPage):
 
     def selecting_new_user(self):
         """select a user"""
-        tester_sitem = self.locator_finder_by_xpath(self.tester_id)
+        tester_sitem = self.locator_finder_by_xpath(self.select_tester_id)
         tester_sitem.click()
         time.sleep(4)
 
@@ -120,3 +124,40 @@ class UserPage(NavigationBarPage):
         select_confirm_delete_btn_sitem = self.locator_finder_by_id(self.select_confirm_delete_btn)
         select_confirm_delete_btn_sitem.click()
         time.sleep(3)
+
+    def check_user_collection_sort(self):
+        """This method will check user's collection sorting in user's permission tab"""
+        print("check_user_collection_sort started \n")
+        # selecting root user
+        root_user = '//h5[@class="collectionName"][text()="root "]'
+        root_user_sitem = self.locator_finder_by_xpath(root_user)
+        root_user_sitem.click()
+        time.sleep(1)
+
+        permission_tab = '//li[@class="subMenuEntry "]//a[text()="Permissions"]'
+        permission_tab_sitem = self.locator_finder_by_xpath(permission_tab)
+        permission_tab_sitem.click()
+        time.sleep(1)
+
+        select_system_db = '//i[@class="fa fa-caret-right"][1]'
+        select_system_db_sitem = self.locator_finder_by_xpath(select_system_db)
+        select_system_db_sitem.click()
+        time.sleep(1)
+
+        col_id_list = '//*[@class="collName"]'
+        collections_array = self.webdriver.find_elements(By.XPATH, col_id_list)
+
+        a_first, m_middle, z_last = 0,0,0
+        # this loop will run through all the collections and find the index for desired one
+        for index, item in enumerate(collections_array):
+            if item.text == "a_first":
+                a_first = index
+            elif item.text == "m_middle":
+                m_middle = index
+            elif item.text == "z_last":
+                z_last = index
+
+        if a_first < m_middle < z_last:
+            print("Sorting check successfully completed.\n")
+        else:
+            raise Exception("Sorting inside user collection failed and need manual inspection!\n")

@@ -2,6 +2,7 @@
 """ launch and manage an arango deployment using the starter"""
 import logging
 from pathlib import Path
+import time
 
 from tools.interact import prompt_user
 from tools.killall import get_all_processes
@@ -10,6 +11,7 @@ from arangodb.instance import InstanceType
 from arangodb.starter.deployments.runner import Runner, RunnerProperties
 import tools.loghelper as lh
 
+from siteconfig import IS_MAC
 from reporting.reporting_utils import step
 
 
@@ -127,14 +129,9 @@ class Single(Runner):
         self.progress(True, "step 2 - launch instances with the upgrade options set")
         print("launch")
         self.starter_instance.manually_launch_instances(
-                [InstanceType.SINGLE],
-                [
-                    "--database.auto-upgrade",
-                    "true",
-                    "--javascript.copy-installation",
-                    "true"
-                ],
-            )
+            [InstanceType.SINGLE],
+            ["--database.auto-upgrade", "true", "--javascript.copy-installation", "true"],
+        )
         self.progress(True, "step 3 - launch instances again")
         version = self.new_cfg.version if self.new_cfg is not None else self.cfg.version
         self.starter_instance.respawn_instance(version)
@@ -164,6 +161,10 @@ class Single(Runner):
 
     def after_backup_impl(self):
         """nothing to see here"""
+        if IS_MAC:
+            time.sleep(10)
+        else:
+            time.sleep(2)
 
     def set_selenium_instances(self):
         """set instances in selenium runner"""
