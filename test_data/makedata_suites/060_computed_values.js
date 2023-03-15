@@ -5,6 +5,11 @@ let resultComparision = (db, input_array, expected_output_array) =>{
   for(let i=0; i<input_array.length; i++){
     var output = db._query(input_array[i]).toArray();
     var newOuput = Number(output);
+
+    print("i: "+ i);
+    print("newOutput: "+ newOuput);
+    print("expected: "+ expected_output_array[i]);
+
     progress(``);
     if (newOuput !== expected_output_array[i]) {
       throw new Error(`Index query's ${newOuput} value didn't match with ecxpected ${expected_output_array[i]} value!`);
@@ -315,14 +320,14 @@ function viewsArray() {
       a2.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]});
       a2.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true});
 
-      a3.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}, "cv_field_insert"]});
-      a3.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true});
+      a3.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name": "cv_field_insert"}]})
+      a3.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field_insert"], "sparse": true})
 
-      a4.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]});
-      a4.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true});
+      a4.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field_update"}]})
+      a4.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field_update"], "sparse": true})
 
-      a5.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]});
-      a5.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true});
+      a5.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field_replace"}]})
+      a5.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field_replace"], "sparse": true})
 
       a6.ensureIndex({"type":"inverted","name":"inverted","fields":[{"name":"cv_field"}]});
       a6.ensureIndex({"type":"persistent","name":"persistent","fields":["cv_field"], "sparse": true});
@@ -645,7 +650,9 @@ function viewsArray() {
         `for doc in ${c2} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == SOUNDEX('dog') collect with count into c return c`,
         `for doc in ${c3_insert} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
         `for doc in ${c3_insert} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
+        `for doc in ${c4_update} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field_update == SOUNDEX('beer') collect with count into c return c`,
         `for doc in ${c4_update} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_update == SOUNDEX('beer') collect with count into c return c`,
+        `for doc in ${c5_replace} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
         `for doc in ${c5_replace} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
         `for doc in ${c6_not_null} OPTIONS { indexHint : 'persistent' } filter has(doc, 'cv_field') == true collect with count into c return c`,
         `for doc in ${c7_hex} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == TO_HEX(doc.name) collect with count into c return c`,
@@ -655,13 +662,13 @@ function viewsArray() {
         `for doc in ${c11} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == CONCAT(doc._key, ' ', doc._id, ' ', doc._rev) collect with count into c return c`,
       ];
 
-      let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 64000, 32000, 64000, 64000, 64000]
+      let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 0, 0, 64000, 32000, 64000, 64000, 64000]
 
       resultComparision(db, index_array, index_exp_output);
 
       //execute queries which use views and verify that the proper amount of docs are returned
       let myArray = viewsArray();
-      let views_exp_output = [64000, 64000, 64000, 0, 0, 64000, 96000, 64000, 64000, 64000, 64000, 64000, 0, 0, 160000, 64000, 96000, 64000, 64000]
+      let views_exp_output = [64000, 64000, 64000, 0, 0, 64000, 96000, 64000, 64000, 64000, 64000, 64000, 0, 0, 64000, 64000, 96000, 64000, 64000]
       resultComparision(db, myArray, views_exp_output);
 
       return 0;
@@ -688,7 +695,9 @@ function viewsArray() {
         `for doc in ${c2} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == SOUNDEX('dog') collect with count into c return c`,
         `for doc in ${c3_insert} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
         `for doc in ${c3_insert} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
+        `for doc in ${c4_update} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field_update == SOUNDEX('beer') collect with count into c return c`,
         `for doc in ${c4_update} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_update == SOUNDEX('beer') collect with count into c return c`,
+        `for doc in ${c5_replace} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
         `for doc in ${c5_replace} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
         `for doc in ${c6_not_null} OPTIONS { indexHint : 'persistent' } filter has(doc, 'cv_field') == true collect with count into c return c`,
         `for doc in ${c7_hex} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == TO_HEX(doc.name) collect with count into c return c`,
@@ -698,13 +707,13 @@ function viewsArray() {
         `for doc in ${c11} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == CONCAT(doc._key, ' ', doc._id, ' ', doc._rev) collect with count into c return c`,
       ];
 
-      let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 64000, 32000, 64000, 64000, 64000]
+      let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 0, 0, 64000, 32000, 64000, 64000, 64000]
 
       resultComparision(db, index_array, index_exp_output);
 
       //execute queries which use views and verify that the proper amount of docs are returned
       let myArray = viewsArray()
-      let views_exp_output = [64000, 64000, 64000, 0, 0, 64000, 96000, 64000, 64000, 64000, 64000, 64000, 0, 0, 160000, 64000, 96000, 64000, 64000]
+      let views_exp_output = [64000, 64000, 64000, 0, 0, 64000, 96000, 64000, 64000, 64000, 64000, 64000, 0, 0, 64000, 64000, 96000, 64000, 64000]
       resultComparision(db, myArray, views_exp_output);
 
       return 0;
