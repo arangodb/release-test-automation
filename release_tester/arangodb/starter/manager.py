@@ -74,11 +74,14 @@ class StarterManager:
         # self.moreopts += ["--all.log.level=engines=trace"]
         # self.moreopts += ["--all.log.escape-control-chars=true"]
         # self.moreopts += ["--all.log.escape-unicode-chars=true"]
+        # Split logmessages of facilities into several logfiles to reduce load on the main log:
+        # self.moreopts += ["--all.log.output=general=file://@ARANGODB_SERVER_DIR@/arangod.log"]
+        # self.moreopts += ["--all.log.output=startup=file://@ARANGODB_SERVER_DIR@/arangod_startup.log"]
         # self.moreopts += ["--starter.disable-ipv6=false"]
         # self.moreopts += ["--starter.host=127.0.0.1"]
         if (self.cfg.semver.major == 3 and self.cfg.semver.minor >= 9) or (self.cfg.semver.major > 3):
             self.moreopts += ["--args.all.database.extended-names-databases=true"]
-
+        print(self.moreopts)
         # directories
         self.raw_basedir = install_prefix
         self.old_install_prefix = self.cfg.install_prefix
