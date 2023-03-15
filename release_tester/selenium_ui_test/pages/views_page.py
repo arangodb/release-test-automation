@@ -380,15 +380,9 @@ class ViewsPage(NavigationBarPage):
             time.sleep(2)
             self.wait_for_ajax()
 
-            settings_tab = "//*[text()='Settings']"
-            settings_tab_sitem = self.locator_finder_by_xpath(settings_tab)
-            settings_tab_sitem.click()
-            time.sleep(2)
-            self.wait_for_ajax()
-
-            delete_btn = '//*[@id="modal-dialog"]/div[2]/button[1]'
-            delete_btn_sitem = self.locator_finder_by_xpath(delete_btn)
-            delete_btn_sitem.click()
+            delete = "/html//div[@id='content']/div[@class='css-1ijbxy6']//button[@class='button-danger']"
+            delete_sitem = self.locator_finder_by_xpath(delete)
+            delete_sitem.click()
             time.sleep(2)
 
             confirm_delete_btn = ''
@@ -574,11 +568,65 @@ class ViewsPage(NavigationBarPage):
         """Creating blank col and analyzer for testing"""
         print('creating blank collection and analyzer for link tab\n')
         # creating multiple character collection
-        self.create_collection('my_collection')
+        self.create_collection('views_collection')
         # creating single character collection
         self.create_collection('z')
         # go back to view tab
         self.navbar_goto("views")
+        time.sleep(1)
+    
+    def check_views_changes_saved(self, name, ex_msg=None):
+        """checking the creation of the view using the green notification bar appears at the bottom"""
+        try:
+            print(f'Checking successful creation of the {name} \n')
+            success_message = 'noty_body'
+            success_message_sitem = self.locator_finder_by_class(success_message).text
+            print('Notification: ', success_message_sitem, '\n')
+            if ex_msg is None:
+                expected_msg = f"Success: Updated View: {name}"
+            else:
+                expected_msg = ex_msg
+            assert expected_msg == success_message_sitem, f"Expected {expected_msg} but got {success_message_sitem}"
+        except TimeoutException:
+            print('Error occurred!! required manual inspection.\n')
+        print(f'Creating {name} completed successfully \n')
+    
+    def open_tier_tab(self):
+        """This method will open tier tab inside consolidation tab of views"""
+        tier = "//tr[@id='row_change-view-policyType']//select"
+        tier_sitem = self.locator_finder_by_xpath(tier)
+        tier_sitem.click()
+        time.sleep(1)
+
+    def open_general_tab(self):
+        """this method will open the general tab of views"""
+        print("Selecting views general tab \n")
+        general = "(//button[@id='accordion-button-2'])[1]"
+        general_sitem = self.locator_finder_by_xpath(general)
+        general_sitem.click()
+        time.sleep(1)
+
+    def open_consolidation_policy_tab(self):
+        """this method will open the consolidation_policy tab of views"""
+        print("Selecting views consolidation_policy tab \n")
+        consolidation = "(//span[@class='css-1eziwv'])[3]"
+        consolidation_sitem = self.locator_finder_by_xpath(consolidation)
+        consolidation_sitem.click()
+        time.sleep(1)
+    def open_primary_sort_tab(self):
+        """this method will open the primary_sort tab of views"""
+        print("Selecting views primary_sort tab \n")
+        sort = "(//span[@class='css-1eziwv'])[4]"
+        sort_sitem = self.locator_finder_by_xpath(sort)
+        sort_sitem.click()
+        time.sleep(1)
+
+    def open_stored_value_tab(self):
+        """this method will open the stored_value tab of views"""
+        print("Selecting views stored_value tab \n")
+        sort = "(//span[@class='css-1eziwv'])[5]"
+        sort_sitem = self.locator_finder_by_xpath(sort)
+        sort_sitem.click()
         time.sleep(1)
 
     def checking_improved_views_for_v310(self, name, locator, is_cluster):
