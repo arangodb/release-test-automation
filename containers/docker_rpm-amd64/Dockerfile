@@ -10,7 +10,6 @@ ARG CHROME_VERSION="google-chrome-stable"
 ARG PYTHON_VERSION="3.10.10"
 ARG OPENSSL_VERSION="1.1.1t"
 ARG PYENV_APP_VERSION="2.3.15"
-ARG PYENV_VIRTUALENV_VERSION="1.2.1"
 
 # COPY epel.repo /etc/yum.repos.d/epel.repo
 RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
@@ -27,18 +26,16 @@ RUN yum -y update; yum install -y bzip2-devel chromedriver chromium file gcc gdb
 # Build newest python from source
 #============================================
 # Build OpenSSL from source
-RUN curl -L https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz | (cd /usr/src; tar xz)
-RUN cd /usr/src/openssl-${OPENSSL_VERSION} && ./config --prefix=/usr/local && make -j`nproc` && make install
+RUN curl -L https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz | (cd /usr/src; tar xz) ; \
+    cd /usr/src/openssl-${OPENSSL_VERSION} && ./config --prefix=/usr/local && make -j`nproc` && make install ; \
+    rm -rf /usr/src/openssl-${OPENSSL_VERSION}
 
 # Install pyenv
 RUN git clone https://github.com/pyenv/pyenv.git /usr/local/pyenv && \
     cd /usr/local/pyenv && \
     git checkout v${PYENV_APP_VERSION} && \
     src/configure && make -C src && \
-    cd - && \
-    git clone https://github.com/pyenv/pyenv-virtualenv.git /usr/local/pyenv/plugins/pyenv-virtualenv && \
-    cd /usr/local/pyenv/plugins/pyenv-virtualenv && \
-    git checkout v${PYENV_VIRTUALENV_VERSION} && \
+    rm -rf /usr/local/pyenv/src && \
     cd -
 ENV PYENV_ROOT="/usr/local/pyenv"
 ENV PATH="/usr/local/pyenv/bin:${PATH}"
@@ -46,8 +43,7 @@ RUN echo "export PYENV_ROOT=/usr/local/pyenv" >> /etc/environment && \
     echo "export PATH=$PATH" >> /etc/environment
 RUN echo >> ~/.bashrc \
     && echo 'export PATH="/root/.pyenv/bin:$PATH"' >> ~/.bashrc \
-    && echo 'eval "$(pyenv init -)"' >> ~/.bashrc \
-    && echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc
+    && echo 'eval "$(pyenv init -)"' >> ~/.bashrc
 
 # Install python
 RUN bash -l -c 'CFLAGS="$CFLAGS $(pkg-config --cflags openssl11)" LDFLAGS="$LDFLAGS $(pkg-config --libs openssl11)" CONFIGURE_OPTS="--with-openssl=/usr/local --with-openssl-rpath=auto" pyenv install ${PYTHON_VERSION}'

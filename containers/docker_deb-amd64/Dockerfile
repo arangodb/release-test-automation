@@ -10,7 +10,6 @@ ARG CHROME_VERSION="google-chrome-stable"
 ARG PYTHON_VERSION="3.10.10"
 ARG OPENSSL_VERSION="1.1.1t"
 ARG PYENV_APP_VERSION="2.3.15"
-ARG PYENV_VIRTUALENV_VERSION="1.2.1"
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
@@ -60,18 +59,16 @@ RUN if [ -z "$CHROME_DRIVER_VERSION" ]; \
 # Build newest python from source
 #============================================
 # Build OpenSSL from source
-RUN curl -L https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz | (cd /usr/src; tar xz)
-RUN cd /usr/src/openssl-${OPENSSL_VERSION} && ./config --prefix=/usr/local && make -j`nproc` && make install
+RUN curl -L https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz | (cd /usr/src; tar xz) ; \
+    cd /usr/src/openssl-${OPENSSL_VERSION} && ./config --prefix=/usr/local && make -j`nproc` && make install ; \
+    rm -rf /usr/src/openssl-${OPENSSL_VERSION}
 
 # Install pyenv
 RUN git clone https://github.com/pyenv/pyenv.git /usr/local/pyenv && \
     cd /usr/local/pyenv && \
     git checkout v${PYENV_APP_VERSION} && \
     src/configure && make -C src && \
-    cd - && \
-    git clone https://github.com/pyenv/pyenv-virtualenv.git /usr/local/pyenv/plugins/pyenv-virtualenv && \
-    cd /usr/local/pyenv/plugins/pyenv-virtualenv && \
-    git checkout v${PYENV_VIRTUALENV_VERSION} && \
+    rm -rf /usr/local/pyenv/src && \
     cd -
 ENV PYENV_ROOT="/usr/local/pyenv"
 ENV PATH="/usr/local/pyenv/bin:${PATH}"
@@ -83,8 +80,7 @@ RUN bash -l -c 'CONFIGURE_OPTS="--with-openssl=/usr/local --with-openssl-rpath=a
 RUN pyenv global ${PYTHON_VERSION}
 RUN echo >> ~/.bashrc \
     && echo 'export PATH="/root/.pyenv/bin:$PATH"' >> ~/.bashrc \
-    && echo 'eval "$(pyenv init -)"' >> ~/.bashrc \
-    && echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc
+    && echo 'eval "$(pyenv init -)"' >> ~/.bashrc
 
 # Install python libraries
 COPY requirements.txt /tmp/
