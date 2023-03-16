@@ -21,7 +21,7 @@ run mkdir -p /home/release-test-automation \
  /home/entrypoint
 RUN mkdir -p /home/entrypoint
 
-RUN yum -y update; yum install -y bzip2-devel chromedriver chromium file gcc gdb git initscripts libffi-devel make ncurses-devel openssl11-devel openssl11-lib openssl-devel perl platform-python-devel python3 python36-click python36-distro python36-pexpect python36-PyYAML python3-click python3-dataclasses python3-devel python3-distro python3-markdown python3-pexpect python3-pyyaml python3-requests python3-setuptools readline-devel sql xz-devel zlib-devel;
+RUN yum -y update; yum install -y bzip2-devel chromedriver chromium file gcc gdb git initscripts libffi-devel make ncurses-devel openssl11-devel openssl11-lib openssl-devel perl readline-devel sql xz-devel zlib-devel;
 
 #============================================
 # Build newest python from source
@@ -57,6 +57,10 @@ RUN pyenv global ${PYTHON_VERSION}
 # Install python libraries
 COPY requirements.txt /tmp/
 RUN pyenv exec pip3 install -r /tmp/requirements.txt
+
+# Replace system python with newly built
+RUN rm /usr/bin/python3 ; \
+    ln -s /usr/local/pyenv/shims/python3 /usr/bin/python3
 
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in ; do [ $i == systemd-tmpfiles-setup.service ] || rm -f $i; done); \
   rm -rf /lib/systemd/system/multi-user.target.wants/;\

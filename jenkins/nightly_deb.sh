@@ -92,8 +92,6 @@ docker run \
 
 docker exec \
           "${DOCKER_DEB_NAME}" \
-          pyenv exec \
-          python3 \
           /home/release-test-automation/release_tester/full_download_upgrade.py \
           --old-version "${OLD_VERSION}" \
           --new-version "${NEW_VERSION}" \

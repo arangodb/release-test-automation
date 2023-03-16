@@ -87,8 +87,6 @@ docker run \
 
 docker exec \
           "${DOCKER_RPM_NAME}" \
-          pyenv exec \
-          python3 \
           /home/release-test-automation/release_tester/full_download_test.py \
           --new-version "${NEW_VERSION}" \
           --no-zip \
