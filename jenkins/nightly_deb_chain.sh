@@ -16,7 +16,7 @@ if test -z "$NEW_VERSION"; then
     NEW_VERSION=3.11.0-nightly
 fi
 if test -z "$UPGRADE_MATRIX"; then
-    NEW_VERSION=3.8.9-nightly:3.9.10-nightly:3.10.5-nightly:3.11.0-nightly
+    UPGRADE_MATRIX=3.8.9-nightly:3.9.10-nightly:3.10.5-nightly:3.11.0-nightly
 fi
 if test -z "${PACKAGE_CACHE}"; then
     PACKAGE_CACHE="$(pwd)/package_cache/"
