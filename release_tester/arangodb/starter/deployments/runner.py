@@ -14,6 +14,7 @@ import shutil
 import sys
 import time
 import psutil
+import py7zr
 
 from allure_commons._allure import attach
 import certifi
@@ -36,6 +37,8 @@ from arangodb.sh import ArangoshExecutor
 FNRX = re.compile("[\n@ ]*")
 WINVER = platform.win32_ver()
 
+shutil.register_archive_format("7zip", py7zr.pack_7zarchive, description="7zip archive")
+
 
 def detect_file_ulimit():
     """check whether the ulimit for files is to low"""
@@ -55,21 +58,26 @@ def detect_file_ulimit():
         giga_byte = 2**30
         resource.setrlimit(resource.RLIMIT_CORE, (giga_byte, giga_byte))
 
+
 def remove_node_x_from_json(starter_dir):
+    """remove node X from setup.json"""
     path_to_cfg = Path(starter_dir, "setup.json")
     content = {}
+    # pylint: disable=unspecified-encoding
     with open(path_to_cfg, "r") as setup_file:
         content = json.load(setup_file)
         peers = []
-        reg_exp = re.compile("^.*\/nodeX$")
+        reg_exp = re.compile(r"^.*\/nodeX$")
         for peer in content["peers"]["Peers"]:
             if not reg_exp.match(peer["DataDir"]):
                 # Add only existing nodes. Skip nodeX peer
                 peers.append(peer)
-        content["peers"]["Peers"] = peers # update 'peers' array
+        content["peers"]["Peers"] = peers  # update 'peers' array
 
+    # pylint: disable=unspecified-encoding
     with open(path_to_cfg, "w") as setup_file:
         json.dump(content, setup_file)
+
 
 class RunnerProperties:
     """runner properties management class"""
@@ -83,7 +91,7 @@ class RunnerProperties:
         supports_hotbackup: bool,
         ssl: bool,
         use_auto_certs: bool,
-        no_arangods_non_agency: int
+        no_arangods_non_agency: int,
     ):
         self.short_name = short_name
         self.disk_usage_community = disk_usage_community
@@ -111,7 +119,9 @@ class Runner(ABC):
         load_scenarios()
         assert runner_type, "no runner no cry? no!"
         mem = psutil.virtual_memory()
-        os.environ["ARANGODB_OVERRIDE_DETECTED_TOTAL_MEMORY"] = str(int((mem.total * 0.8) / properties.no_arangods_non_agency))
+        os.environ["ARANGODB_OVERRIDE_DETECTED_TOTAL_MEMORY"] = str(
+            int((mem.total * 0.8) / properties.no_arangods_non_agency)
+        )
         logging.debug(runner_type)
         self.abort_on_error = abort_on_error
         self.testrun_name = testrun_name
@@ -137,7 +147,7 @@ class Runner(ABC):
 
         self.new_cfg = copy.deepcopy(new_cfg)
         self.cfg = copy.deepcopy(cfg)
-        self.old_version = cfg.version # The first version of ArangoDB which is used in current launch
+        self.old_version = cfg.version  # The first version of ArangoDB which is used in current launch
         self.certificate_auth = {}
         self.cert_dir = ""
         self.passvoid = None
@@ -275,12 +285,12 @@ class Runner(ABC):
 
         for i in range(0, bound):
             self.old_installer = self.installers[i][1]
-            self.old_installer.cfg.passvoid = ''
+            self.old_installer.cfg.passvoid = ""
             if i == 0:
                 # if i != 0, it means that self.cfg was already updated after chain-upgrade
                 self.cfg = copy.deepcopy(self.old_installer.cfg)
-            if not is_single_test: 
-                self.new_installer = self.installers[i+1][1]
+            if not is_single_test:
+                self.new_installer = self.installers[i + 1][1]
                 self.new_cfg = copy.deepcopy(self.new_installer.cfg)
 
             is_keep_db_dir = True if i != bound - 1 else False
@@ -361,7 +371,7 @@ class Runner(ABC):
                 self.new_installer.output_arangod_version()
                 self.new_installer.get_starter_version()
                 self.new_installer.get_sync_version()
-                self.new_installer.stop_service()      
+                self.new_installer.stop_service()
 
                 self.upgrade_arangod_version()  # make sure to pass new version
                 self.new_cfg.set_directories(self.new_installer.cfg)
@@ -616,7 +626,6 @@ class Runner(ABC):
         # It is necessary to remove this peer from json for each starter instance
         for instance in self.starter_instances:
             remove_node_x_from_json(instance.basedir)
-
 
     @step
     def starter_shutdown(self):
@@ -902,8 +911,8 @@ class Runner(ABC):
             build_number,
         )
         if self.cfg.base_test_dir.exists():
-            archive = shutil.make_archive(filename, "bztar", self.cfg.base_test_dir, self.basedir)
-            attach.file(archive, "test dir archive", "application/x-bzip2", "tar.bz2")
+            archive = shutil.make_archive(filename, "7zip", self.cfg.base_test_dir, self.basedir)
+            attach.file(archive, "test dir archive", "application/x-7z-compressed", "7z")
         else:
             print("test basedir doesn't exist, won't create report tar")
 
