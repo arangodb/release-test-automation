@@ -4,8 +4,12 @@ ARCH="-$(uname -m)"
 
 if test "${ARCH}" == "-x86_64"; then
     ARCH="-amd64"
+    NEW_VERSION=$NEW_VERSION_X86
+    UPGRADE_MATRIX=$UPGRADE_MATRIX_X86
 else
     ARCH="-arm64v8"
+    NEW_VERSION=$NEW_VERSION_AARCH64
+    UPGRADE_MATRIX=$UPGRADE_MATRIX_AARCH64
 fi
 
 GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
