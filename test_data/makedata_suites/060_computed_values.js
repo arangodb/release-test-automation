@@ -12,7 +12,7 @@ let resultComparision = (db, input_array, expected_output_array) =>{
 
     progress(``);
     if (newOuput !== expected_output_array[i]) {
-      throw new Error(`Index query's ${newOuput} value didn't match with ecxpected ${expected_output_array[i]} value!`);
+      throw new Error(`Index query's ${input_array[i]}'s output didn't match with ecxpected ${expected_output_array[i]} output!`);
     }
   }
 }
@@ -43,6 +43,9 @@ function viewsArray() {
 
   return views_array;
 }
+
+// Expected output array for the TestView query output 
+let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 0, 0, 11, 64000, 17, 32000, 33, 64000, 64000, 1, 64000];
 
 
 (function () {
@@ -655,14 +658,16 @@ function viewsArray() {
         `for doc in ${c5_replace} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
         `for doc in ${c5_replace} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
         `for doc in ${c6_not_null} OPTIONS { indexHint : 'persistent' } filter has(doc, 'cv_field') == true collect with count into c return c`,
+        `for doc in ${c7_hex} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == TO_HEX(123) collect with count into c return c`,
         `for doc in ${c7_hex} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == TO_HEX(doc.name) collect with count into c return c`,
+        `for doc in ${c8_overwriteFalse} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == CONCAT('42_', FIRST(for d in ${c8_overwriteFalse} limit 100, 1 return d.field)) collect with count into c return c`,
         `for doc in ${c8_overwriteFalse} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == CONCAT('42_', TO_STRING(doc.field)) collect with count into c return c`,
+        `for doc in ${c9_overwriteTrue} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == CONCAT('42_', FIRST(for d in ${c9_overwriteTrue} limit 101, 1 return d.field)) collect with count into c return c`,
         `for doc in ${c9_overwriteTrue} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == CONCAT('42_', TO_STRING(doc.field)) collect with count into c return c`,
         `for doc in ${c10_multiple} OPTIONS { indexHint : 'persistent' } filter doc.cv_field1 == 'foo' and doc.cv_field2 == 'bar' and doc.cv_field3 == 'baz' collect with count into c return c`,
+        `for doc in ${c11} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == FIRST(for d in ${c11} limit 1001, 1 return CONCAT(d._key, ' ', d._id, ' ', d._rev)) collect with count into c return c`,
         `for doc in ${c11} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == CONCAT(doc._key, ' ', doc._id, ' ', doc._rev) collect with count into c return c`,
       ];
-
-      let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 0, 0, 64000, 32000, 64000, 64000, 64000]
 
       resultComparision(db, index_array, index_exp_output);
 
@@ -700,20 +705,22 @@ function viewsArray() {
         `for doc in ${c5_replace} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
         `for doc in ${c5_replace} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
         `for doc in ${c6_not_null} OPTIONS { indexHint : 'persistent' } filter has(doc, 'cv_field') == true collect with count into c return c`,
+        `for doc in ${c7_hex} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == TO_HEX(123) collect with count into c return c`,
         `for doc in ${c7_hex} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == TO_HEX(doc.name) collect with count into c return c`,
+        `for doc in ${c8_overwriteFalse} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == CONCAT('42_', FIRST(for d in ${c8_overwriteFalse} limit 100, 1 return d.field)) collect with count into c return c`,
         `for doc in ${c8_overwriteFalse} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == CONCAT('42_', TO_STRING(doc.field)) collect with count into c return c`,
+        `for doc in ${c9_overwriteTrue} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == CONCAT('42_', FIRST(for d in ${c9_overwriteTrue} limit 101, 1 return d.field)) collect with count into c return c`,
         `for doc in ${c9_overwriteTrue} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == CONCAT('42_', TO_STRING(doc.field)) collect with count into c return c`,
         `for doc in ${c10_multiple} OPTIONS { indexHint : 'persistent' } filter doc.cv_field1 == 'foo' and doc.cv_field2 == 'bar' and doc.cv_field3 == 'baz' collect with count into c return c`,
+        `for doc in ${c11} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == FIRST(for d in ${c11} limit 1001, 1 return CONCAT(d._key, ' ', d._id, ' ', d._rev)) collect with count into c return c`,
         `for doc in ${c11} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == CONCAT(doc._key, ' ', doc._id, ' ', doc._rev) collect with count into c return c`,
       ];
-
-      let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 0, 0, 64000, 32000, 64000, 64000, 64000]
 
       resultComparision(db, index_array, index_exp_output);
 
       //execute queries which use views and verify that the proper amount of docs are returned
       let myArray = viewsArray()
-      let views_exp_output = [64000, 64000, 64000, 0, 0, 64000, 96000, 64000, 64000, 64000, 64000, 64000, 0, 0, 64000, 64000, 96000, 64000, 64000]
+      let views_exp_output = [64000, 64000, 64000, 0, 0, 64000, 96000, 64000, 64000, 64000, 64000, 64000, 0, 0, 64000, 64000, 96000, 64000, 64000];
       resultComparision(db, myArray, views_exp_output);
 
       return 0;
