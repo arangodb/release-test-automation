@@ -4,12 +4,8 @@ ARCH="-$(uname -m)"
 
 if test "${ARCH}" == "-x86_64"; then
     ARCH="-amd64"
-    NEW_VERSION=$NEW_VERSION_X86
-    UPGRADE_MATRIX=$UPGRADE_MATRIX_X86
 else
     ARCH="-arm64v8"
-    NEW_VERSION=$NEW_VERSION_AARCH64
-    UPGRADE_MATRIX=$UPGRADE_MATRIX_AARCH64
 fi
 
 VERSION=$(cat VERSION.json)
@@ -18,7 +14,7 @@ if test -z "$GIT_VERSION"; then
     GIT_VERSION=$VERSION
 fi
 if test -z "$UPGRADE_MATRIX"; then
-    UPGRADE_MATRIX=3.8.9-nightly:3.9.10-nightly:3.10.5-nightly:3.11.0-nightly
+    UPGRADE_MATRIX=3.10.5-nightly:3.11.0-nightly
 fi
 if test -z "$NEW_VERSION"; then
     NEW_VERSION=3.11.0-nightly
