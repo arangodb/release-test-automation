@@ -5,6 +5,8 @@ from time import time
 import requests
 
 # pylint: disable=import-error
+import semver
+
 from arangodb.async_client import CliExecutionException
 from arangodb.installers import create_config_installer_set
 from reporting.reporting_utils import step
@@ -29,12 +31,13 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
 
     # pylint: disable=too-many-instance-attributes disable=dangerous-default-value
     def __init__(self, params: CliTestSuiteParameters):
+        min_version = semver.VersionInfo.parse("3.9.0-nightly")
         super().__init__(params)
         if (
             self.new_version is not None
-            and self.new_version < "3.9.0-nightly"
+            and semver.VersionInfo.parse(self.new_version) < min_version
             or self.old_version is not None
-            and self.old_version < "3.9.0-nightly"
+            and semver.VersionInfo.parse(self.old_version) < min_version
         ):
             self.__class__.is_disabled = True
             self.__class__.disable_reasons.append(
@@ -85,7 +88,7 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
         if time_left >= 0:
             message = f"License expires in {time_left} seconds."
         else:
-            message = f"License expired {-1*time_left} seconds ago."
+            message = f"License expired {-1 * time_left} seconds ago."
         assert (
             time_left > time_left_threshold
         ), f"{message} Expected time left: more than {time_left_threshold} seconds."
