@@ -111,13 +111,13 @@ docker run \
        -v "$(pwd)/test_dir:/home/test_dir" \
        -v "$(pwd)/allure-results:/home/allure-results" \
        --rm \
-       "${DOCKER_RPM_TAG}" \
+       "${DOCKER_NAMESPACE}${DOCKER_RPM_TAG}" \
        chown -R "$(id -u):$(id -g)" /home/test_dir /home/allure-results
 
 docker run \
        -v /tmp/tmp:/tmp/ \
        --rm \
-       "${DOCKER_RPM_TAG}" \
+       "${DOCKER_NAMESPACE}${DOCKER_RPM_TAG}" \
        rm -f /tmp/config.yml 
 
 if test "${result}" -eq "0"; then
