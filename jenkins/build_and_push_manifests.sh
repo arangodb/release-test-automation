@@ -14,7 +14,7 @@ docker manifest rm $DOCKER_RPM_TAG
 docker manifest create $DOCKER_RPM_TAG \
 --amend $DOCKER_RPM_TAG-amd64 \
 --amend $DOCKER_RPM_TAG-arm64v8
-docker manifest push --purge $DOCKER_TAR_TAG
+docker manifest push --purge $DOCKER_RPM_TAG
 
 docker manifest rm $DOCKER_TAR_TAG
 docker manifest create $DOCKER_TAR_TAG \

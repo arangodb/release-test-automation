@@ -60,6 +60,7 @@ RUN pyenv global ${PYTHON_VERSION}
 # Install python libraries
 COPY requirements.txt /tmp/
 RUN pyenv exec pip3 install -r /tmp/requirements.txt
+RUN pyenv exec pip3 install python-magic selenium setuptools
 
 # Replace system python with newly built
 RUN rm /usr/bin/python3 ; \
