@@ -7,10 +7,21 @@ ENV container docker
 #ENV LC_ALL en_US.UTF-8
 ENV PYTHONPATH /home/release-test-automation/release_tester
 ARG CHROME_VERSION="google-chrome-stable"
+ARG PYTHON_VERSION="3.10.10"
+ARG OPENSSL_VERSION="1.1.1t"
+ARG PYENV_APP_VERSION="2.3.15"
 
 # COPY epel.repo /etc/yum.repos.d/epel.repo
-RUN localectl set-locale en_US.UTF-8
+RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-* && yum -y update
+RUN yum install glibc-common glibc-locale-source glibc-langpack-en -y && \
+  localedef -c -i en_US -f UTF-8 en_US.UTF-8 && \
+  echo "LANG=en_US.UTF-8" > /etc/locale.conf
+ENV LANG en_US.UTF-8
+#RUN localectl set-locale en_US.UTF-8
 RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+
+RUN yum -y update; yum install -y bzip2-devel chromedriver chromium file gcc gdb git initscripts libffi-devel make ncurses-devel perl readline-devel xz-devel zlib-devel
+
 VOLUME [ "/sys/fs/cgroup" ]
 run mkdir -p /home/release-test-automation \
  /home/package_cache \
@@ -18,9 +29,41 @@ run mkdir -p /home/release-test-automation \
  /home/entrypoint
 RUN mkdir -p /home/entrypoint
 
-RUN yum -y update; yum install -y python3 python3-pyyaml python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect initscripts file gdb chromedriver chromium python3-markdown python3-dataclasses python3-setuptools;
+#============================================
+# Build newest python from source
+#============================================
+# Build OpenSSL from source
+RUN curl -L https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz | (cd /usr/src; tar xz) ; \
+    cd /usr/src/openssl-${OPENSSL_VERSION} && ./config --prefix=/usr/local && make -j`nproc` && make install ; \
+    rm -rf /usr/src/openssl-${OPENSSL_VERSION}
+
+# Install pyenv
+RUN git clone https://github.com/pyenv/pyenv.git /usr/local/pyenv && \
+    cd /usr/local/pyenv && \
+    git checkout v${PYENV_APP_VERSION} && \
+    src/configure && make -C src && \
+    rm -rf /usr/local/pyenv/src && \
+    cd -
+ENV PYENV_ROOT="/usr/local/pyenv"
+ENV PATH="/usr/local/pyenv/bin:${PATH}"
+RUN echo "export PYENV_ROOT=/usr/local/pyenv" >> /etc/environment && \
+    echo "export PATH=$PATH" >> /etc/environment
+RUN echo >> ~/.bashrc \
+    && echo 'export PATH="/root/.pyenv/bin:$PATH"' >> ~/.bashrc \
+    && echo 'eval "$(pyenv init -)"' >> ~/.bashrc
+
+# Install python
+RUN bash -l -c 'CFLAGS="$CFLAGS $(pkg-config --cflags openssl11)" LDFLAGS="$LDFLAGS $(pkg-config --libs openssl11)" CONFIGURE_OPTS="--with-openssl=/usr/local --with-openssl-rpath=auto" pyenv install ${PYTHON_VERSION}'
+RUN source ~/.bashrc
+RUN pyenv global ${PYTHON_VERSION}
+
+# Install python libraries
 COPY requirements.txt /tmp/
-RUN pip3 install -r /tmp/requirements.txt
+RUN pyenv exec pip3 install -r /tmp/requirements.txt
+
+# Replace system python with newly built
+RUN rm /usr/bin/python3 ; \
+    ln -s /usr/local/pyenv/shims/python3 /usr/bin/python3 
 
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in ; do [ $i == systemd-tmpfiles-setup.service ] || rm -f $i; done); \
   rm -rf /lib/systemd/system/multi-user.target.wants/;\

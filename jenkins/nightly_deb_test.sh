@@ -97,7 +97,7 @@ docker exec \
           "${@}"
 result=$?
 
-docker stop "${DOCKER_TAR_NAME}"
+docker stop "${DOCKER_DEB_NAME}"
 
 # Cleanup ownership:
 docker run \
@@ -110,7 +110,7 @@ docker run \
 docker run \
        -v /tmp/tmp:/tmp/ \
        --rm \
-       "${DOCKER_TAR_TAG}" \
+       "${DOCKER_DEB_TAG}" \
        rm -f /tmp/config.yml 
 
 if test "${result}" -eq "0"; then

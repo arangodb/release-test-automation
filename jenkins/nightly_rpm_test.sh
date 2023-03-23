@@ -110,7 +110,7 @@ docker run \
 docker run \
        -v /tmp/tmp:/tmp/ \
        --rm \
-       "${DOCKER_TAR_TAG}" \
+       "${DOCKER_RPM_TAG}" \
        rm -f /tmp/config.yml 
 
 if test "${result}" -eq "0"; then
