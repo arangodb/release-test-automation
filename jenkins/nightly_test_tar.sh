@@ -98,7 +98,7 @@ docker run \
        -v "$(pwd)/test_dir:/home/test_dir" \
        -v "$(pwd)/allure-results:/home/allure-results" \
        --rm \
-       "${DOCKER_TAR_TAG}" \
+       "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}" \
        chown -R "$(id -u):$(id -g)" /home/test_dir /home/allure-results
 
 if test "${result}" -eq "0"; then
