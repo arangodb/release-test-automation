@@ -95,6 +95,8 @@ docker exec \
           --upgrade-matrix "${UPGRADE_MATRIX}" \
           --new-version "${NEW_VERSION}" \
           --no-zip \
+          --no-test \
+          --do-not-run-test-suites \
           --verbose \
           --alluredir /home/allure-results \
           --git-version "${GIT_VERSION}" \

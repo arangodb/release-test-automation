@@ -25,6 +25,8 @@ def upgrade_package_test(
     other_source,
     git_version,
     editions,
+    run_test,
+    run_test_suites,
     test_driver,
 ):
     """process fetch & tests"""
@@ -77,29 +79,30 @@ def upgrade_package_test(
     params = deepcopy(test_driver.cli_test_suite_params)
 
     # STEP 2: Run test for primary version
-    for default_props in EXECUTION_PLAN:
-        if default_props.directory_suffix not in editions:
-            continue
-        props = copy(default_props)
-        if props.directory_suffix not in editions:
-            continue
+    if run_test:
+        for default_props in EXECUTION_PLAN:
+            if default_props.directory_suffix not in editions:
+                continue
+            props = copy(default_props)
+            if props.directory_suffix not in editions:
+                continue
 
-        props.testrun_name = "test_" + props.testrun_name
+            props.testrun_name = "test_" + props.testrun_name
 
-        test_driver.run_cleanup(props)
-        print("Cleanup done")
+            test_driver.run_cleanup(props)
+            print("Cleanup done")
 
-        this_test_dir = test_dir / props.directory_suffix
-        test_driver.reset_test_data_dir(this_test_dir)
+            this_test_dir = test_dir / props.directory_suffix
+            test_driver.reset_test_data_dir(this_test_dir)
 
-        results.append(
-            test_driver.run_test(
-                "all",
-                params.base_cfg.starter_mode,
-                [packages[primary_version][props.directory_suffix].cfg.version],
-                props,
+            results.append(
+                test_driver.run_test(
+                    "all",
+                    params.base_cfg.starter_mode,
+                    [packages[primary_version][props.directory_suffix].cfg.version],
+                    props,
+                )
             )
-        )
 
     # STEP 3: Run upgrade tests
     for scenario in upgrade_scenarios:
@@ -125,47 +128,51 @@ def upgrade_package_test(
             if pair not in upgrade_pairs:
                 upgrade_pairs.append(pair)
 
-    enterprise_packages_are_present = "EE" in editions or "EP" in editions
-    community_packages_are_present = "C" in editions
+    # STEP 4: Run other test suites
+    if run_test_suites:
+        enterprise_packages_are_present = "EE" in editions or "EP" in editions
+        community_packages_are_present = "C" in editions
 
-    for pair in upgrade_pairs:
-        params.new_version = pair[0]
-        params.old_version = pair[1]
+        for pair in upgrade_pairs:
+            params.new_version = pair[0]
+            params.old_version = pair[1]
 
-        if enterprise_packages_are_present and community_packages_are_present:
-            params.enterprise = True
-            results.append(
-                test_driver.run_test_suites(
-                    include_suites=("EnterprisePackageInstallationTestSuite",),
-                    params=params,
+            if enterprise_packages_are_present and community_packages_are_present:
+                params.enterprise = True
+                results.append(
+                    test_driver.run_test_suites(
+                        include_suites=("EnterprisePackageInstallationTestSuite",),
+                        params=params,
+                    )
                 )
-            )
-            params.enterprise = False
-            results.append(
-                test_driver.run_test_suites(include_suites=("CommunityPackageInstallationTestSuite",), params=params)
-            )
-
-        if enterprise_packages_are_present:
-            params.enterprise = True
-            results.append(
-                test_driver.run_test_suites(
-                    include_suites=(
-                        "DebuggerTestSuite",
-                        "BasicLicenseManagerTestSuite",
-                        "UpgradeLicenseManagerTestSuite",
-                    ),
-                    params=params,
+                params.enterprise = False
+                results.append(
+                    test_driver.run_test_suites(
+                        include_suites=("CommunityPackageInstallationTestSuite",), params=params
+                    )
                 )
-            )
 
-        if community_packages_are_present:
-            params.enterprise = False
-            results.append(
-                test_driver.run_test_suites(
-                    include_suites=("DebuggerTestSuite",),
-                    params=params,
+            if enterprise_packages_are_present:
+                params.enterprise = True
+                results.append(
+                    test_driver.run_test_suites(
+                        include_suites=(
+                            "DebuggerTestSuite",
+                            "BasicLicenseManagerTestSuite",
+                            "UpgradeLicenseManagerTestSuite",
+                        ),
+                        params=params,
+                    )
                 )
-            )
+
+            if community_packages_are_present:
+                params.enterprise = False
+                results.append(
+                    test_driver.run_test_suites(
+                        include_suites=("DebuggerTestSuite",),
+                        params=params,
+                    )
+                )
 
     test_driver.destructor()
     print("V" * 80)
@@ -179,6 +186,20 @@ def upgrade_package_test(
 @full_common_options
 @click.option(
     "--upgrade-matrix", default="", help="list of upgrade operations ala '3.6.15:3.7.15;3.7.14:3.7.15;3.7.15:3.8.1'"
+)
+@click.option(
+    "--test/--no-test",
+    "run_test",
+    is_flag=True,
+    default=True,
+    help="Run clean installation test for primary version.",
+)
+@click.option(
+    "--run-test-suites/--do-not-run-test-suites",
+    "run_test_suites",
+    is_flag=True,
+    default=True,
+    help="Run test suites for each version pair.",
 )
 @very_common_options()
 @hotbackup_options()
@@ -214,6 +235,8 @@ def main(**kwargs):
         kwargs['other_source'],
         kwargs['git_version'],
         kwargs['editions'],
+        kwargs['run_test'],
+        kwargs['run_test_suites'],
         test_driver
     )
 

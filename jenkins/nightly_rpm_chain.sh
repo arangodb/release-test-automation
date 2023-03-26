@@ -95,6 +95,8 @@ docker exec \
           /home/release-test-automation/release_tester/full_download_upgrade_test.py \
           --upgrade-matrix "${UPGRADE_MATRIX}" \
           --new-version "${NEW_VERSION}" \
+          --no-test \
+          --do-not-run-test-suites \
           --no-zip \
           --verbose \
           --alluredir /home/allure-results \

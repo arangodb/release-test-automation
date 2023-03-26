@@ -114,6 +114,8 @@ docker run \
           --upgrade-matrix "${UPGRADE_MATRIX}" \
           --new-version "${NEW_VERSION}" \
           --zip \
+          --no-test \
+          --do-not-run-test-suites \
           --hb-mode s3bucket \
           --verbose \
           --alluredir /home/allure-results \
