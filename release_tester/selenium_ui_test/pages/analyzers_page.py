@@ -133,6 +133,53 @@ class AnalyzerPage(NavigationBarPage):
         time.sleep(2)
     
 
+    def checking_analyzer_page_transition(self, keyword):
+        """This methdo will check page transition error for BTS-902"""
+        """
+        Login to the web UI
+        Click in the menu on “Analyzers”
+        Click in the menu on “Collections”
+        Click in the menu on “Analyzers” again
+        Click the search icon from the search/filter box
+        """
+
+        self.navbar_goto("analyzers")
+        self.navbar_goto("collections")
+        self.navbar_goto("analyzers")
+
+        try:
+            filter_input = "filterInput"
+            filter_input_sitem = self.locator_finder_by_id(filter_input)
+            filter_input_sitem.click()
+            filter_input_sitem.clear()
+            filter_input_sitem.send_keys(keyword)
+            filter_input_sitem.send_keys(Keys.ENTER)
+            time.sleep(1)
+
+            search = '//i[@class="fa fa-search"]'
+            search_sitem = self.locator_finder_by_xpath(search)
+            search_sitem.click()
+            time.sleep(1)
+
+            # trying to add new analyzer to confirm that we are still in analyzer page and not in collection page
+            print("Selecting add new analyzer button \n")
+            add_analyzer = self.add_new_analyzer_btn
+            add_analyzer_sitem = self.locator_finder_by_xpath(add_analyzer)
+            add_analyzer_sitem.click()
+            time.sleep(1)
+
+            create_btn = "//*[text()='Create']"
+            create_btn_sitem = self.locator_finder_by_xpath(create_btn).text
+            expected_text = 'Create'
+            assert create_btn_sitem == expected_text, f"Expected text {expected_text} " \
+                                                             f"but got {create_btn_sitem}"
+        except Exception as ex:
+            raise Exception("checking_analyzer_page_transition() test failed. need manual inspection!\n") from ex
+
+        # going back to analyzer page for the rest of the tests
+        self.select_analyzers_page()
+
+    
     def checking_all_built_in_analyzer(self):
         print('Showing in-built Analyzers list \n')
         self.select_built_in_analyzers_open()

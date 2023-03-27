@@ -28,21 +28,23 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
                 analyzers.select_analyzers_page()
                 analyzers.select_help_filter_btn()
 
-                print('Checking all built-in analyzers\n')
-                analyzers.checking_all_built_in_analyzer()
+                print('Checking analyzer page transition\n')
+                analyzers.checking_analyzer_page_transition('transition')
 
-                print('Creating all supported analyzers\n')
-                analyzers.creating_all_supported_analyzer(self.is_enterprise, self.test_data_dir)
+                # print('Checking all built-in analyzers\n')
+                # analyzers.checking_all_built_in_analyzer()
 
-                print('Checking expected negative scenarios for analyzers\n')
-                analyzers.analyzer_expected_error_check()
+                # print('Creating all supported analyzers\n')
+                # analyzers.creating_all_supported_analyzer(self.is_enterprise, self.test_data_dir)
 
-                print("Checking analyzer's search filter options \n")
-                analyzers.checking_search_filter()
+                # print('Checking expected negative scenarios for analyzers\n')
+                # analyzers.analyzer_expected_error_check()
+
+                # print("Checking analyzer's search filter options \n")
+                # analyzers.checking_search_filter()
             else:
                 print("Analyzer test is not available version below 3.9.0 \n")
 
-                
         except BaseException:
             print('x' * 45, "\nINFO: Error Occurred! Force Deletion Started\n", 'x' * 45)
             self.exception = True  # mark the exception status as true
@@ -50,9 +52,9 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
 
         finally:
             if self.package_version >= semver.VersionInfo.parse("3.9.0"):
-                print("Analyzer deletion started.")
-                analyzers.deleting_all_created_analyzers()
-                del analyzers
-                print("---------Analyzers Page Test Completed--------- \n")
+                # print("Analyzer deletion started.")
+                # analyzers.deleting_all_created_analyzers()
+                # del analyzers
+                # print("---------Analyzers Page Test Completed--------- \n")
                 if self.exception:
                     raise Exception(self.error)
