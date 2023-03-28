@@ -28,6 +28,9 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
                 analyzers.select_analyzers_page()
                 analyzers.select_help_filter_btn()
 
+                print('Checking analyzer page transition\n')
+                analyzers.checking_analyzer_page_transition('transition')
+
                 print('Checking all built-in analyzers\n')
                 analyzers.checking_all_built_in_analyzer()
 
@@ -42,7 +45,6 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
             else:
                 print("Analyzer test is not available version below 3.9.0 \n")
 
-                
         except BaseException:
             print('x' * 45, "\nINFO: Error Occurred! Force Deletion Started\n", 'x' * 45)
             self.exception = True  # mark the exception status as true
