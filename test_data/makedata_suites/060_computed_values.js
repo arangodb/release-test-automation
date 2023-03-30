@@ -1,5 +1,26 @@
 /* global print, semver, progress, createCollectionSafe, db, fs, PWD */
 
+// this method will declare all the collection name with proper dbCount
+let collection_declaration = (dbCount) =>{
+
+  let collection_array = [
+    `c1_060_${dbCount}`,
+    `c2_060_${dbCount}`,
+    `c3_insert_060_${dbCount}`,
+    `c4_update_060_${dbCount}`,
+    `c5_replace_060_${dbCount}`,
+    `c6_not_null_060_${dbCount}`,
+    `c7_hex_060_${dbCount}`,
+    `c8_overwriteFalse_060_${dbCount}`,
+    `c9_overwriteTrue_060_${dbCount}`,
+    `c10_multiple_060_${dbCount}`,
+    `c11_060_${dbCount}`,
+    `c12_060_${dbCount}`
+  ];
+
+  return collection_array;
+}
+
 // This method will take input and output array and compare both's results
 let resultComparision = (db, input_array, expected_output_array) =>{
   for(let i=0; i<input_array.length; i++){
@@ -61,41 +82,44 @@ let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 0, 0,
       print(`060: making per database data ${dbCount}`);
       print("060: Creating computed values with sample collections");
       //Creating computed values with sample collections
-      let c1 = `c1_060_${dbCount}`;
-      let a1 = createCollectionSafe(c1, 3, 3, { computedValues: [{ "name": "default", "expression": "RETURN SOUNDEX('sky')", overwrite: true }] });
+      
+      let c = collection_declaration(dbCount);
 
-      let c2 = `c2_060_${dbCount}`;
-      let a2 = createCollectionSafe(c2, 3, 3, { computedValues: [{ "name": "default", "expression": "RETURN SOUNDEX('dog')", overwrite: true }] });
+      // let c1 = `c1_060_${dbCount}`;
+      let a1 = createCollectionSafe(c[0], 3, 3, { computedValues: [{ "name": "default", "expression": "RETURN SOUNDEX('sky')", overwrite: true }] });
 
-      let c3_insert = `c3_insert_060_${dbCount}`;
-      let a3 = createCollectionSafe(c3_insert, 3, 3, { computedValues: [{ "name": "default_insert", "expression": "RETURN SOUNDEX('frog')", computeOn: ["insert"], overwrite: true }] });
+      // let c2 = `c2_060_${dbCount}`;
+      let a2 = createCollectionSafe(c[1], 3, 3, { computedValues: [{ "name": "default", "expression": "RETURN SOUNDEX('dog')", overwrite: true }] });
 
-      let c4_update = `c4_update_060_${dbCount}`;
-      let a4 = createCollectionSafe(c4_update, 3, 3, { computedValues: [{ "name": "default_update", "expression": "RETURN SOUNDEX('beer')", computeOn: ["update"], overwrite: true }] });
+      // let c3_insert = `c3_insert_060_${dbCount}`;
+      let a3 = createCollectionSafe(c[2], 3, 3, { computedValues: [{ "name": "default_insert", "expression": "RETURN SOUNDEX('frog')", computeOn: ["insert"], overwrite: true }] });
 
-      let c5_replace = `c5_replace_060_${dbCount}`;
-      let a5 = createCollectionSafe(c5_replace, 3, 3, { computedValues: [{ "name": "default_replace", "expression": "RETURN SOUNDEX('water')", computeOn: ["replace"], overwrite: true }] });
+      // let c4_update = `c4_update_060_${dbCount}`;
+      let a4 = createCollectionSafe(c[3], 3, 3, { computedValues: [{ "name": "default_update", "expression": "RETURN SOUNDEX('beer')", computeOn: ["update"], overwrite: true }] });
 
-      let c6_not_null = `c6_not_null_060_${dbCount}`;
-      let a6 = createCollectionSafe(c6_not_null, 3, 3, { computedValues: [{ "name": "default", "expression": "RETURN null", overwrite: true, keepNull: false }] });
+      // let c5_replace = `c5_replace_060_${dbCount}`;
+      let a5 = createCollectionSafe(c[4], 3, 3, { computedValues: [{ "name": "default_replace", "expression": "RETURN SOUNDEX('water')", computeOn: ["replace"], overwrite: true }] });
 
-      let c7_hex = `c7_hex_060_${dbCount}`;
-      let a7 = createCollectionSafe(c7_hex, 3, 3, { computedValues: [{ "name": "default", "expression": "RETURN TO_HEX(@doc.name)", overwrite: true }] });
+      // let c6_not_null = `c6_not_null_060_${dbCount}`;
+      let a6 = createCollectionSafe(c[5], 3, 3, { computedValues: [{ "name": "default", "expression": "RETURN null", overwrite: true, keepNull: false }] });
 
-      let c8_overwriteFalse = `c8_overwriteFalse_060_${dbCount}`;
-      let a8 = createCollectionSafe(c8_overwriteFalse, 3, 3, { computedValues: [{ "name": "default", "expression": "RETURN CONCAT('42_', TO_STRING(@doc.field))", overwrite: false }] });
+      // let c7_hex = `c7_hex_060_${dbCount}`;
+      let a7 = createCollectionSafe(c[6], 3, 3, { computedValues: [{ "name": "default", "expression": "RETURN TO_HEX(@doc.name)", overwrite: true }] });
 
-      let c9_overwriteTrue = `c9_overwriteTrue_060_${dbCount}`;
-      let a9 = createCollectionSafe(c9_overwriteTrue, 3, 3, { computedValues: [{ "name": "default", "expression": "RETURN CONCAT('42_', TO_STRING(@doc.field))", overwrite: true }] });
+      // let c8_overwriteFalse = `c8_overwriteFalse_060_${dbCount}`;
+      let a8 = createCollectionSafe(c[7], 3, 3, { computedValues: [{ "name": "default", "expression": "RETURN CONCAT('42_', TO_STRING(@doc.field))", overwrite: false }] });
 
-      let c10_multiple = `c10_multiple_060_${dbCount}`;
-      let a10 = createCollectionSafe(c10_multiple, 3, 3, { computedValues: [{ "name": "default1", "expression": "RETURN 'foo'", overwrite: true }, { "name": "default2", "expression": "RETURN 'bar'", overwrite: true }, { "name": "default3", "expression": "RETURN 'baz'", overwrite: true }] });
+      // let c9_overwriteTrue = `c9_overwriteTrue_060_${dbCount}`;
+      let a9 = createCollectionSafe(c[8], 3, 3, { computedValues: [{ "name": "default", "expression": "RETURN CONCAT('42_', TO_STRING(@doc.field))", overwrite: true }] });
 
-      let c11 = `c11_060_${dbCount}`;
-      let a11 = createCollectionSafe(c11, 1, 3, { computedValues: [{ "name": "default", "expression": "RETURN CONCAT(@doc._key, ' ', @doc._id, ' ', @doc._rev)", overwrite: true }] });
+      // let c10_multiple = `c10_multiple_060_${dbCount}`;
+      let a10 = createCollectionSafe(c[9], 3, 3, { computedValues: [{ "name": "default1", "expression": "RETURN 'foo'", overwrite: true }, { "name": "default2", "expression": "RETURN 'bar'", overwrite: true }, { "name": "default3", "expression": "RETURN 'baz'", overwrite: true }] });
 
-      let c12 = `c12_060_${dbCount}`;
-      let a12 = createCollectionSafe(c12, 3, 3, { computedValues: [{ "name": "default", "expression": "RETURN [{from_doc: CONCAT(@doc.name, ' ', @doc.field), system:{_key: @doc._key, _rev: @doc._rev, _id: @doc._id}, values: [RANGE(1, 10)]}]", overwrite: true }] });
+      // let c11 = `c11_060_${dbCount}`;
+      let a11 = createCollectionSafe(c[10], 1, 3, { computedValues: [{ "name": "default", "expression": "RETURN CONCAT(@doc._key, ' ', @doc._id, ' ', @doc._rev)", overwrite: true }] });
+
+      // let c12 = `c12_060_${dbCount}`;
+      let a12 = createCollectionSafe(c[11], 3, 3, { computedValues: [{ "name": "default", "expression": "RETURN [{from_doc: CONCAT(@doc.name, ' ', @doc.field), system:{_key: @doc._key, _rev: @doc._rev, _id: @doc._id}, values: [RANGE(1, 10)]}]", overwrite: true }] });
       //-------------------------------------------------------x-------------------------------------------------------------
 
       // this function will check Computed Values properties
@@ -120,7 +144,7 @@ let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 0, 0,
 
       let c1_actual_modification = a1.properties({ computedValues: [{ "name": "cv_field", "expression": "RETURN SOUNDEX('sky')", overwrite: true }] });
 
-      checkComValProperties(c1, c1_exp_modification, c1_actual_modification.computedValues);
+      checkComValProperties(c[0], c1_exp_modification, c1_actual_modification.computedValues);
 
       //for c2 comVal
       let c2_exp_modification = [
@@ -136,7 +160,7 @@ let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 0, 0,
 
       let c2_actual_modification = a2.properties({ computedValues: [{ "name": "cv_field", "expression": "RETURN SOUNDEX('dog')", "overwrite": true }] })
 
-      checkComValProperties(c2, c2_exp_modification, c2_actual_modification.computedValues);
+      checkComValProperties(c[1], c2_exp_modification, c2_actual_modification.computedValues);
 
       //for c3_insert comVal
       let c3_exp_modification = [
@@ -152,7 +176,7 @@ let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 0, 0,
 
       let c3_actual_modification = a3.properties({ computedValues: [{ "name": "cv_field_insert", "expression": "RETURN SOUNDEX('frog')", "computeOn": ["insert"], "overwrite": true }] })
 
-      checkComValProperties(c3_insert, c3_exp_modification, c3_actual_modification.computedValues);
+      checkComValProperties(c[2], c3_exp_modification, c3_actual_modification.computedValues);
 
       //for c4_update comVal
       let c4_exp_modification = [
@@ -168,7 +192,7 @@ let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 0, 0,
 
       let c4_actual_modification = a4.properties({ computedValues: [{ "name": "cv_field_update", "expression": "RETURN SOUNDEX('beer')", "computeOn": ["update"], "overwrite": true }] });
 
-      checkComValProperties(c4_update, c4_exp_modification, c4_actual_modification.computedValues);
+      checkComValProperties(c[3], c4_exp_modification, c4_actual_modification.computedValues);
 
       //for c5_replace comVal
       let c5_exp_modification = [
@@ -184,7 +208,7 @@ let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 0, 0,
 
       let c5_actual_modification = a5.properties({ computedValues: [{ "name": "cv_field_replace", "expression": "RETURN SOUNDEX('water')", "computeOn": ["replace"], "overwrite": true }] })
 
-      checkComValProperties(c5_replace, c5_exp_modification, c5_actual_modification.computedValues);
+      checkComValProperties(c[4], c5_exp_modification, c5_actual_modification.computedValues);
 
       //for c6_not_null comVal
       let c6_exp_modification = [
@@ -200,7 +224,7 @@ let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 0, 0,
 
       let c6_actual_modification = a6.properties({ computedValues: [{ "name": "cv_field", "expression": "RETURN null", "overwrite": true, "keepNull": false }] });
 
-      checkComValProperties(c6_not_null, c6_exp_modification, c6_actual_modification.computedValues);
+      checkComValProperties(c[5], c6_exp_modification, c6_actual_modification.computedValues);
 
       //for c7_hex comVal
       let c7_exp_modification = [
@@ -216,7 +240,7 @@ let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 0, 0,
 
       let c7_actual_modification = a7.properties({ computedValues: [{ "name": "cv_field", "expression": "RETURN TO_HEX(@doc.name)", "overwrite": true }] });
 
-      checkComValProperties(c7_hex, c7_exp_modification, c7_actual_modification.computedValues);
+      checkComValProperties(c[6], c7_exp_modification, c7_actual_modification.computedValues);
 
       //for c8_overwriteFalse comVal
       let c8_exp_modification = [
@@ -232,7 +256,7 @@ let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 0, 0,
 
       let c8_actual_modification = a8.properties({ computedValues: [{ "name": "cv_field", "expression": "RETURN CONCAT('42_', TO_STRING(@doc.field))", "overwrite": false }] });
 
-      checkComValProperties(c8_overwriteFalse, c8_exp_modification, c8_actual_modification.computedValues);
+      checkComValProperties(c[7], c8_exp_modification, c8_actual_modification.computedValues);
 
       //for c9_overwriteTrue comVal
       let c9_exp_modification = [
@@ -248,7 +272,7 @@ let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 0, 0,
 
       let c9_actual_modification = a9.properties({ computedValues: [{ "name": "cv_field", "expression": "RETURN CONCAT('42_', TO_STRING(@doc.field))", "overwrite": true }] });
 
-      checkComValProperties(c9_overwriteTrue, c9_exp_modification, c9_actual_modification.computedValues);
+      checkComValProperties(c[8], c9_exp_modification, c9_actual_modification.computedValues);
 
       //for c10_multiple comVal
       let c10_exp_modification = [
@@ -280,7 +304,7 @@ let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 0, 0,
 
       let c10_actual_modification = a10.properties({ computedValues: [{ "name": "cv_field1", "expression": "RETURN 'foo'", "overwrite": true }, { "name": "cv_field2", "expression": "RETURN 'bar'", "overwrite": true }, { "name": "cv_field3", "expression": "RETURN 'baz'", "overwrite": true }] })
 
-      checkComValProperties(c10_multiple, c10_exp_modification, c10_actual_modification.computedValues);
+      checkComValProperties(c[9], c10_exp_modification, c10_actual_modification.computedValues);
 
       //for c11 comVal
       let c11_exp_modification = [
@@ -296,7 +320,7 @@ let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 0, 0,
 
       let c11_actual_modification = a11.properties({ computedValues: [{ "name": "cv_field", "expression": "RETURN CONCAT(@doc._key, ' ', @doc._id, ' ', @doc._rev)", "overwrite": true }] });
 
-      checkComValProperties(c11, c11_exp_modification, c11_actual_modification.computedValues);
+      checkComValProperties(c[10], c11_exp_modification, c11_actual_modification.computedValues);
 
       //for c12_overwriteTrue comVal
       let c12_exp_modification = [
@@ -312,7 +336,7 @@ let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 0, 0,
 
       let c12_actual_modification = a12.properties({ computedValues: [{ "name": "cv_field", "expression": "RETURN [{from_doc: CONCAT(@doc.name, ' ', @doc.field), system:{_key: @doc._key, _rev: @doc._rev, _id: @doc._id}, values: [RANGE(1, 10)]}]", "overwrite": true }] });
 
-      checkComValProperties(c12, c12_exp_modification, c12_actual_modification.computedValues);
+      checkComValProperties(c[11], c12_exp_modification, c12_actual_modification.computedValues);
 
       //-------------------------------------------------------x-------------------------------------------------------------
 
@@ -541,7 +565,7 @@ let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 0, 0,
         }
       }
 
-      // this methdo will compare two outputs
+      // this method will compare two outputs
       checkComValProperties("TestView", creationOutput, expected_output);
 
 
@@ -549,51 +573,51 @@ let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 0, 0,
       db._createView("testViewV2", "search-alias", {
         "indexes": [
           {
-            'collection': c1,
+            'collection': c[0],
             'index': 'inverted'
           },
           {
-            'collection': c2,
+            'collection': c[1],
             'index': 'inverted'
           },
           {
-            'collection': c3_insert,
+            'collection': c[2],
             'index': 'inverted'
           },
           {
-            'collection': c4_update,
+            'collection': c[3],
             'index': 'inverted'
           },
           {
-            'collection': c5_replace,
+            'collection': c[4],
             'index': 'inverted'
           },
           {
-            'collection': c6_not_null,
+            'collection': c[5],
             'index': 'inverted'
           },
           {
-            'collection': c7_hex,
+            'collection': c[6],
             'index': 'inverted'
           },
           {
-            'collection': c8_overwriteFalse,
+            'collection': c[7],
             'index': 'inverted'
           },
           {
-            'collection': c9_overwriteTrue,
+            'collection': c[8],
             'index': 'inverted'
           },
           {
-            'collection': c10_multiple,
+            'collection': c[9],
             'index': 'inverted'
           },
           {
-            'collection': c11,
+            'collection': c[10],
             'index': 'inverted'
           },
           {
-            'collection': c12,
+            'collection': c[11],
             'index': 'inverted'
           }
         ]
@@ -647,26 +671,26 @@ let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 0, 0,
 
       //execute queries which use indexes and verify that the proper amount of docs are returned
       let index_array = [
-        `for doc in ${c1} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == SOUNDEX('sky') collect with count into c return c`,
-        `for doc in ${c1} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == SOUNDEX('sky') collect with count into c return c`,
-        `for doc in ${c2} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == SOUNDEX('dog') collect with count into c return c`,
-        `for doc in ${c2} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == SOUNDEX('dog') collect with count into c return c`,
-        `for doc in ${c3_insert} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
-        `for doc in ${c3_insert} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
-        `for doc in ${c4_update} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field_update == SOUNDEX('beer') collect with count into c return c`,
-        `for doc in ${c4_update} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_update == SOUNDEX('beer') collect with count into c return c`,
-        `for doc in ${c5_replace} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
-        `for doc in ${c5_replace} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
-        `for doc in ${c6_not_null} OPTIONS { indexHint : 'persistent' } filter has(doc, 'cv_field') == true collect with count into c return c`,
-        `for doc in ${c7_hex} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == TO_HEX(123) collect with count into c return c`,
-        `for doc in ${c7_hex} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == TO_HEX(doc.name) collect with count into c return c`,
-        `for doc in ${c8_overwriteFalse} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == CONCAT('42_', FIRST(for d in ${c8_overwriteFalse} limit 100, 1 return d.field)) collect with count into c return c`,
-        `for doc in ${c8_overwriteFalse} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == CONCAT('42_', TO_STRING(doc.field)) collect with count into c return c`,
-        `for doc in ${c9_overwriteTrue} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == CONCAT('42_', FIRST(for d in ${c9_overwriteTrue} limit 101, 1 return d.field)) collect with count into c return c`,
-        `for doc in ${c9_overwriteTrue} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == CONCAT('42_', TO_STRING(doc.field)) collect with count into c return c`,
-        `for doc in ${c10_multiple} OPTIONS { indexHint : 'persistent' } filter doc.cv_field1 == 'foo' and doc.cv_field2 == 'bar' and doc.cv_field3 == 'baz' collect with count into c return c`,
-        `for doc in ${c11} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == FIRST(for d in ${c11} limit 1001, 1 return CONCAT(d._key, ' ', d._id, ' ', d._rev)) collect with count into c return c`,
-        `for doc in ${c11} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == CONCAT(doc._key, ' ', doc._id, ' ', doc._rev) collect with count into c return c`,
+        `for doc in ${c[0]} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == SOUNDEX('sky') collect with count into c return c`,
+        `for doc in ${c[0]} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == SOUNDEX('sky') collect with count into c return c`,
+        `for doc in ${c[1]} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == SOUNDEX('dog') collect with count into c return c`,
+        `for doc in ${c[1]} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == SOUNDEX('dog') collect with count into c return c`,
+        `for doc in ${c[2]} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
+        `for doc in ${c[2]} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
+        `for doc in ${c[3]} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field_update == SOUNDEX('beer') collect with count into c return c`,
+        `for doc in ${c[3]} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_update == SOUNDEX('beer') collect with count into c return c`,
+        `for doc in ${c[4]} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
+        `for doc in ${c[4]} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
+        `for doc in ${c[5]} OPTIONS { indexHint : 'persistent' } filter has(doc, 'cv_field') == true collect with count into c return c`,
+        `for doc in ${c[6]} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == TO_HEX(123) collect with count into c return c`,
+        `for doc in ${c[6]} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == TO_HEX(doc.name) collect with count into c return c`,
+        `for doc in ${c[7]} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == CONCAT('42_', FIRST(for d in ${c[7]} limit 100, 1 return d.field)) collect with count into c return c`,
+        `for doc in ${c[7]} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == CONCAT('42_', TO_STRING(doc.field)) collect with count into c return c`,
+        `for doc in ${c[8]} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == CONCAT('42_', FIRST(for d in ${c[8]} limit 101, 1 return d.field)) collect with count into c return c`,
+        `for doc in ${c[8]} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == CONCAT('42_', TO_STRING(doc.field)) collect with count into c return c`,
+        `for doc in ${c[9]} OPTIONS { indexHint : 'persistent' } filter doc.cv_field1 == 'foo' and doc.cv_field2 == 'bar' and doc.cv_field3 == 'baz' collect with count into c return c`,
+        `for doc in ${c[10]} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == FIRST(for d in ${c[10]} limit 1001, 1 return CONCAT(d._key, ' ', d._id, ' ', d._rev)) collect with count into c return c`,
+        `for doc in ${c[10]} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == CONCAT(doc._key, ' ', doc._id, ' ', doc._rev) collect with count into c return c`,
       ];
 
       resultComparision(db, index_array, index_exp_output);
@@ -680,40 +704,30 @@ let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 0, 0,
     },
     checkDataDB: function (options, isCluster, isEnterprise, database, dbCount, readOnly) {
       print(`060: checking data ${dbCount}`);
-      let c1 = `c1_060_${dbCount}`;
-      let c2 = `c2_060_${dbCount}`;
-      let c3_insert = `c3_insert_060_${dbCount}`;
-      let c4_update = `c4_update_060_${dbCount}`;
-      let c5_replace = `c5_replace_060_${dbCount}`;
-      let c6_not_null = `c6_not_null_060_${dbCount}`;
-      let c7_hex = `c7_hex_060_${dbCount}`;
-      let c8_overwriteFalse = `c8_overwriteFalse_060_${dbCount}`;
-      let c9_overwriteTrue = `c9_overwriteTrue_060_${dbCount}`;
-      let c10_multiple = `c10_multiple_060_${dbCount}`;
-      let c11 = `c11_060_${dbCount}`;
-      let c12 = `c12_060_${dbCount}`;
+
+      let c = collection_declaration(dbCount);
 
       let index_array = [
-        `for doc in ${c1} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == SOUNDEX('sky') collect with count into c return c`,
-        `for doc in ${c1} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == SOUNDEX('sky') collect with count into c return c`,
-        `for doc in ${c2} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == SOUNDEX('dog') collect with count into c return c`,
-        `for doc in ${c2} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == SOUNDEX('dog') collect with count into c return c`,
-        `for doc in ${c3_insert} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
-        `for doc in ${c3_insert} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
-        `for doc in ${c4_update} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field_update == SOUNDEX('beer') collect with count into c return c`,
-        `for doc in ${c4_update} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_update == SOUNDEX('beer') collect with count into c return c`,
-        `for doc in ${c5_replace} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
-        `for doc in ${c5_replace} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
-        `for doc in ${c6_not_null} OPTIONS { indexHint : 'persistent' } filter has(doc, 'cv_field') == true collect with count into c return c`,
-        `for doc in ${c7_hex} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == TO_HEX(123) collect with count into c return c`,
-        `for doc in ${c7_hex} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == TO_HEX(doc.name) collect with count into c return c`,
-        `for doc in ${c8_overwriteFalse} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == CONCAT('42_', FIRST(for d in ${c8_overwriteFalse} limit 100, 1 return d.field)) collect with count into c return c`,
-        `for doc in ${c8_overwriteFalse} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == CONCAT('42_', TO_STRING(doc.field)) collect with count into c return c`,
-        `for doc in ${c9_overwriteTrue} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == CONCAT('42_', FIRST(for d in ${c9_overwriteTrue} limit 101, 1 return d.field)) collect with count into c return c`,
-        `for doc in ${c9_overwriteTrue} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == CONCAT('42_', TO_STRING(doc.field)) collect with count into c return c`,
-        `for doc in ${c10_multiple} OPTIONS { indexHint : 'persistent' } filter doc.cv_field1 == 'foo' and doc.cv_field2 == 'bar' and doc.cv_field3 == 'baz' collect with count into c return c`,
-        `for doc in ${c11} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == FIRST(for d in ${c11} limit 1001, 1 return CONCAT(d._key, ' ', d._id, ' ', d._rev)) collect with count into c return c`,
-        `for doc in ${c11} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == CONCAT(doc._key, ' ', doc._id, ' ', doc._rev) collect with count into c return c`,
+        `for doc in ${c[0]} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == SOUNDEX('sky') collect with count into c return c`,
+        `for doc in ${c[0]} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == SOUNDEX('sky') collect with count into c return c`,
+        `for doc in ${c[1]} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == SOUNDEX('dog') collect with count into c return c`,
+        `for doc in ${c[1]} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == SOUNDEX('dog') collect with count into c return c`,
+        `for doc in ${c[2]} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
+        `for doc in ${c[2]} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_insert == SOUNDEX('frog') collect with count into c return c`,
+        `for doc in ${c[3]} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field_update == SOUNDEX('beer') collect with count into c return c`,
+        `for doc in ${c[3]} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_update == SOUNDEX('beer') collect with count into c return c`,
+        `for doc in ${c[4]} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
+        `for doc in ${c[4]} OPTIONS { indexHint : 'persistent' } filter doc.cv_field_replace == SOUNDEX('water') collect with count into c return c`,
+        `for doc in ${c[5]} OPTIONS { indexHint : 'persistent' } filter has(doc, 'cv_field') == true collect with count into c return c`,
+        `for doc in ${c[6]} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == TO_HEX(123) collect with count into c return c`,
+        `for doc in ${c[6]} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == TO_HEX(doc.name) collect with count into c return c`,
+        `for doc in ${c[7]} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == CONCAT('42_', FIRST(for d in ${c[7]} limit 100, 1 return d.field)) collect with count into c return c`,
+        `for doc in ${c[7]} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == CONCAT('42_', TO_STRING(doc.field)) collect with count into c return c`,
+        `for doc in ${c[8]} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == CONCAT('42_', FIRST(for d in ${c[8]} limit 101, 1 return d.field)) collect with count into c return c`,
+        `for doc in ${c[8]} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == CONCAT('42_', TO_STRING(doc.field)) collect with count into c return c`,
+        `for doc in ${c[9]} OPTIONS { indexHint : 'persistent' } filter doc.cv_field1 == 'foo' and doc.cv_field2 == 'bar' and doc.cv_field3 == 'baz' collect with count into c return c`,
+        `for doc in ${c[10]} OPTIONS { indexHint : 'inverted', forceIndexHint: true, waitForSync: true } filter doc.cv_field == FIRST(for d in ${c[10]} limit 1001, 1 return CONCAT(d._key, ' ', d._id, ' ', d._rev)) collect with count into c return c`,
+        `for doc in ${c[10]} OPTIONS { indexHint : 'persistent' } filter doc.cv_field == CONCAT(doc._key, ' ', doc._id, ' ', doc._rev) collect with count into c return c`,
       ];
 
       resultComparision(db, index_array, index_exp_output);
@@ -727,18 +741,6 @@ let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 0, 0,
     },
     clearDataDB: function (options, isCluster, isEnterprise, dbCount, database) {
       print(`060: checking data ${dbCount}`);
-      let c1 = `c1_060_${dbCount}`;
-      let c2 = `c2_060_${dbCount}`;
-      let c3_insert = `c3_insert_060_${dbCount}`;
-      let c4_update = `c4_update_060_${dbCount}`;
-      let c5_replace = `c5_replace_060_${dbCount}`;
-      let c6_not_null = `c6_not_null_060_${dbCount}`;
-      let c7_hex = `c7_hex_060_${dbCount}`;
-      let c8_overwriteFalse = `c8_overwriteFalse_060_${dbCount}`;
-      let c9_overwriteTrue = `c9_overwriteTrue_060_${dbCount}`;
-      let c10_multiple = `c10_multiple_060_${dbCount}`;
-      let c11 = `c11_060_${dbCount}`;
-      let c12 = `c12_060_${dbCount}`;
 
       try {
         db._dropView(`testView`);
@@ -747,9 +749,9 @@ let index_exp_output = [64000, 64000, 64000, 64000, 64000, 64000, 0, 0, 0, 0, 0,
       }
       progress();
 
-      collection_array = [c1, c2, c3_insert, c4_update, c5_replace, c6_not_null, c7_hex, c8_overwriteFalse, c9_overwriteTrue, c10_multiple, c11, c12]
+      let c = collection_declaration(dbCount);
 
-      collection_array.forEach(col => {
+      c.forEach(col => {
         db.col.properties({computedValues: []})
         //checking the properties set to null properly
         if (db.col.properties()["computedValues"] == null) {
