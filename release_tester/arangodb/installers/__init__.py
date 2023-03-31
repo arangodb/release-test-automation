@@ -214,7 +214,8 @@ class InstallerConfig:
 
         self.base_test_dir = test_dir
         self.pwd = Path(os.path.dirname(os.path.realpath(__file__)))
-        self.test_data_dir = self.pwd / ".." / ".." / ".." / "test_data"
+        self.test_data_dir = self.pwd / ".." / ".." / ".." / "rta_makedata" / "test_data"
+        self.ui_data_dir = self.pwd / ".." / ".." / ".." / "test_data"
 
         self.username = "root"
         self.passvoid = ""
@@ -520,8 +521,11 @@ class InstallerBaseConfig(OptionGroup):
 
 # pylint: disable=too-many-locals
 def create_config_installer_set(
-    versions: list, base_config: InstallerBaseConfig, deployment_mode: str, run_properties: RunProperties,
-    use_auto_certs: bool
+    versions: list,
+    base_config: InstallerBaseConfig,
+    deployment_mode: str,
+    run_properties: RunProperties,
+    use_auto_certs: bool,
 ):
     """creates sets of configs and installers"""
     # pylint: disable=too-many-instance-attributes disable=too-many-arguments
@@ -544,7 +548,7 @@ def create_config_installer_set(
             base_config.stress_upgrade,
             run_properties.ssl,
             use_auto_certs,
-            base_config.test
+            base_config.test,
         )
         installer = make_installer(install_config)
         installer.calculate_package_names()
