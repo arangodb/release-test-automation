@@ -1,5 +1,3 @@
-[submodule "rta_makedata"]
-	path = rta-makedata
-	url = https://github.com/arangodb/rta_makedata
 [submodule "rta-makedata/"]
+	path = rta-makedata
 	url = https://github.com/arangodb/rta-makedata
