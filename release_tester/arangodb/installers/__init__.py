@@ -214,7 +214,7 @@ class InstallerConfig:
 
         self.base_test_dir = test_dir
         self.pwd = Path(os.path.dirname(os.path.realpath(__file__)))
-        self.test_data_dir = self.pwd / ".." / ".." / ".." / "rta_makedata" / "test_data"
+        self.test_data_dir = self.pwd / ".." / ".." / ".." / "rta-makedata" / "test_data"
         self.ui_data_dir = self.pwd / ".." / ".." / ".." / "test_data"
 
         self.username = "root"
