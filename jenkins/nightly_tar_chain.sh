@@ -112,12 +112,10 @@ docker run \
        \
        "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}" \
        \
-          /home/release-test-automation/release_tester/full_download_upgrade_test.py \
-          --upgrade-matrix "${UPGRADE_MATRIX}" \
-          --new-version "${NEW_VERSION}" \
+          /home/release-test-automation/release_tester/run_chain_upgrade.py \
+          --release-tracker-username ${RELEASE_TRACKER_USERNAME} \
+          --release-tracker-password ${RELEASE_TRACKER_PASSWORD} \
           --zip \
-          --no-test \
-          --do-not-run-test-suites \
           --hb-mode s3bucket \
           --verbose \
           --alluredir /home/allure-results \

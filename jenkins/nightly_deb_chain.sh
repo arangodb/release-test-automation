@@ -93,12 +93,10 @@ docker run \
 
 docker exec \
           "${DOCKER_DEB_NAME}" \
-          /home/release-test-automation/release_tester/full_download_upgrade_test.py \
-          --upgrade-matrix "${UPGRADE_MATRIX}" \
-          --new-version "${NEW_VERSION}" \
+          /home/release-test-automation/release_tester/run_chain_upgrade.py \
+          --release-tracker-username ${RELEASE_TRACKER_USERNAME} \
+          --release-tracker-password ${RELEASE_TRACKER_PASSWORD} \
           --no-zip \
-          --no-test \
-          --do-not-run-test-suites \
           --verbose \
           --alluredir /home/allure-results \
           --git-version "${GIT_VERSION}" \
