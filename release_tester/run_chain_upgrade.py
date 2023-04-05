@@ -51,8 +51,6 @@ def main(**kwargs):
     kwargs['base_config'] = InstallerBaseConfig.from_dict(**kwargs)
     dl_opts = DownloadOptions.from_dict(**kwargs)
 
-    test_driver = TestDriver(**kwargs)
-
     os = None
     if platform.win32_ver()[0] != "":
         os = OS.WINDOWS
@@ -84,18 +82,23 @@ def main(**kwargs):
     upgrade_list.append(new_version)
     upgrade_matrix = ":".join(upgrade_list)
 
-    return upgrade_package_test(
-        dl_opts,
-        new_version,
-        kwargs['source'],
-        upgrade_matrix,
-        kwargs['other_source'],
-        kwargs['git_version'],
-        kwargs['editions'],
-        False,
-        False,
-        test_driver
-    )
+    test_driver = TestDriver(**kwargs)
+    try:
+        results = upgrade_package_test(
+            dl_opts,
+            new_version,
+            kwargs['source'],
+            upgrade_matrix,
+            kwargs['other_source'],
+            kwargs['git_version'],
+            kwargs['editions'],
+            False,
+            False,
+            test_driver
+        )
+    finally:
+        test_driver.destructor()
+    return results
 
 
 if __name__ == "__main__":
