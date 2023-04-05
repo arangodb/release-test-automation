@@ -94,6 +94,7 @@ docker run \
 docker exec \
           "${DOCKER_DEB_NAME}" \
           /home/release-test-automation/release_tester/run_chain_upgrade.py \
+          --enterprise-magic ${ENTERPRISE_DOWNLOAD_KEY} \
           --release-tracker-username ${RELEASE_TRACKER_USERNAME} \
           --release-tracker-password ${RELEASE_TRACKER_PASSWORD} \
           --no-zip \
