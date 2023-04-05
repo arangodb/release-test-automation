@@ -5,6 +5,9 @@ from enum import Enum
 import requests
 
 # pylint: disable=missing-class-docstring
+from requests import HTTPError
+
+
 class OS(Enum):
     LINUX = "linux"
     WINDOWS = "win"
@@ -38,11 +41,8 @@ class ReleaseTrackerApiClient:
 
     def _make_request(self, relative_url: str, params=None):
         response = requests.get(url=self.api_url + relative_url, params=params, timeout=120)
-        try:
-            response.raise_for_status()
-            return response.json()
-        except Exception as exc:
-            raise Exception(str(response.content)) from exc
+        response.raise_for_status()
+        return response.json()
 
     def nightly_branches(self) -> list[str]:
         return self._make_request("nightly-branches")
@@ -67,6 +67,14 @@ class ReleaseTrackerApiClient:
         if arch:
             params["arch"] = arch.value
         return self._make_request(url, params)
+
+    def get_latest_release_if_any(self, branch: str, os: OS = None, arch: Arch = None) -> str:
+        try:
+            return self.latest_release(branch, os, arch)
+        except HTTPError as error:
+            if error.response.status_code == 404:
+                return None
+            raise
 
     def releases_for_all_branches(self, os: OS = None, arch: Arch = None) -> str:
         url = "list-releases-for-stable-branches"
@@ -94,3 +102,11 @@ class ReleaseTrackerApiClient:
         if arch:
             params["arch"] = arch.value
         return self._make_request(url, params)
+
+    def get_latest_nightly_if_any(self, branch: str, os: OS = None, arch: Arch = None) -> str:
+        try:
+            return self.latest_nightly_for_branch(branch, os, arch)
+        except HTTPError as error:
+            if error.response.status_code == 404:
+                return None
+            raise
