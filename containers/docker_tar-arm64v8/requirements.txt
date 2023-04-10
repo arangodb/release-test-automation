@@ -18,3 +18,4 @@ distro
 dataclasses
 statsd
 wexpect; platform_system == "Windows"
+py7zr

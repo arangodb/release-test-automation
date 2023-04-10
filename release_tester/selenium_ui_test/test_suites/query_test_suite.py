@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """ query testsuite """
+import semver
 from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 from test_suites_core.base_test_suite import testcase
 from selenium_ui_test.pages.query_page import QueryPage
@@ -18,6 +19,12 @@ class QueryTestSuite(BaseSeleniumTestSuite):
 
         assert query_page.current_user() == "ROOT", "current user is root?"
         assert query_page.current_database() == "_SYSTEM", "current database is _system?"
+        current_version = query_page.current_package_version()
+        
+        print("Checking saved query feature \n")
+        if current_version >= semver.VersionInfo.parse("3.11.0"):
+            query_page.saved_query_check()
+        
         print("Importing IMDB collections \n")
         query_page.import_collections(self.restore, self.test_data_dir, self.is_cluster)
 

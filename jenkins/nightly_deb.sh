@@ -62,6 +62,8 @@ if test ! -d $(pwd)/release_tester/tools/external_helpers; then
   git clone git@github.com:arangodb/release-test-automation-helpers.git
   mv $(pwd)/release-test-automation-helpers $(pwd)/release_tester/tools/external_helpers
 fi
+git submodule init
+git submodule update
 
 docker run \
        --ulimit core=-1 \
@@ -103,20 +105,20 @@ docker exec \
           "${@}"
 result=$?
 
-docker stop "${DOCKER_TAR_NAME}"
+docker stop "${DOCKER_DEB_NAME}"
 
 # Cleanup ownership:
 docker run \
        -v "$(pwd)/test_dir:/home/test_dir" \
        -v "$(pwd)/allure-results:/home/allure-results" \
        --rm \
-       "${DOCKER_DEB_TAG}" \
+       "${DOCKER_NAMESPACE}${DOCKER_DEB_TAG}" \
        chown -R "$(id -u):$(id -g)" /home/test_dir /home/allure-results
 
 docker run \
        -v /tmp/tmp:/tmp/ \
        --rm \
-       "${DOCKER_TAR_TAG}" \
+       "${DOCKER_NAMESPACE}${DOCKER_DEB_TAG}" \
        rm -f /tmp/config.yml 
 
 if test "${result}" -eq "0"; then

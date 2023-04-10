@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
 import time
-import re
-import semver
 import logging
 from pathlib import Path
 
@@ -164,7 +162,7 @@ while (true) {{
             follower_opts.append(f"--ssl.keyfile={follower_tls_keyfile}")
 
         self.leader_starter_instance = StarterManager(
-            self.basecfg,
+            self.cfg,
             self.basedir,
             "leader",
             mode="single",
@@ -176,7 +174,7 @@ while (true) {{
         self.leader_starter_instance.is_leader = True
 
         self.follower_starter_instance = StarterManager(
-            self.basecfg,
+            self.cfg,
             self.basedir,
             "follower",
             mode="single",
@@ -292,7 +290,7 @@ process.exit(0);
     def upgrade_arangod_version_impl(self):
         """rolling upgrade this installation"""
         for node in [self.leader_starter_instance, self.follower_starter_instance]:
-            node.replace_binary_for_upgrade(self.new_cfg)
+            node.replace_binary_for_upgrade(self.new_installer.cfg)
         for node in [self.leader_starter_instance, self.follower_starter_instance]:
             node.command_upgrade()
             node.wait_for_upgrade()
@@ -325,7 +323,7 @@ process.exit(0);
                 ],
             )
         self.progress(True, "step 3 - launch instances again")
-        version = self.new_cfg.version if self.new_cfg != None else self.cfg.version
+        version = self.new_cfg.version if self.new_cfg is not None else self.cfg.version
         for node in instances:
             node.respawn_instance(version)
         self.progress(True, "step 4 - detect system state")
@@ -351,7 +349,7 @@ process.exit(0);
                 print(ret[1])
             raise Exception("replication fuzzing test failed")
 
-        prompt_user(self.basecfg, "please test the installation.")
+        prompt_user(self.cfg, "please test the installation.")
         if self.selenium:
             self.selenium.test_jam_attempt()
 

@@ -7,12 +7,15 @@ ENV LC_ALL en_US.UTF-8
 ENV PYTHONPATH /home/release-test-automation/release_tester
 ENV TZ=Europe/Berlin
 ARG CHROME_VERSION="google-chrome-stable"
+ARG PYTHON_VERSION="3.10.10"
+ARG OPENSSL_VERSION="1.1.1t"
+ARG PYENV_APP_VERSION="2.3.15"
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apt-get update ; \
-    apt-get install -y wget unzip sudo python3-yaml python3-magic python3-requests python3-click python3-distro python3-psutil python3-pexpect python3-statsd python3-pip python3-markdown gdb git systemd locales python3-selenium python3-certifi; \
- \
+    apt-get install -y build-essential curl gdb git libbz2-dev libffi-dev libgdbm-dev liblzma-dev libncurses5-dev libnss3-dev libreadline-dev libsqlite3-dev libssl-dev locales sudo systemd unzip wget zlib1g-dev; \
+    \
     wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
   && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list \
   && apt-get update -qqy \
@@ -52,9 +55,40 @@ RUN if [ -z "$CHROME_DRIVER_VERSION" ]; \
   && chmod 755 /opt/selenium/chromedriver-$CHROME_DRIVER_VERSION \
   && sudo ln -fs /opt/selenium/chromedriver-$CHROME_DRIVER_VERSION /usr/bin/chromedriver
 
+#============================================
+# Build newest python from source
+#============================================
+# Build OpenSSL from source
+RUN curl -L https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz | (cd /usr/src; tar xz) ; \
+    cd /usr/src/openssl-${OPENSSL_VERSION} && ./config --prefix=/usr/local && make -j`nproc` && make install ; \
+    rm -rf /usr/src/openssl-${OPENSSL_VERSION}
 
+# Install pyenv
+RUN git clone https://github.com/pyenv/pyenv.git /usr/local/pyenv && \
+    cd /usr/local/pyenv && \
+    git checkout v${PYENV_APP_VERSION} && \
+    src/configure && make -C src && \
+    rm -rf /usr/local/pyenv/src && \
+    cd -
+ENV PYENV_ROOT="/usr/local/pyenv"
+ENV PATH="/usr/local/pyenv/bin:${PATH}"
+RUN echo "export PYENV_ROOT=/usr/local/pyenv" >> /etc/environment && \
+    echo "export PATH=$PATH" >> /etc/environment
+
+# Install python
+RUN bash -l -c 'CONFIGURE_OPTS="--with-openssl=/usr/local --with-openssl-rpath=auto" pyenv install ${PYTHON_VERSION}'
+RUN pyenv global ${PYTHON_VERSION}
+RUN echo >> ~/.bashrc \
+    && echo 'export PATH="/root/.pyenv/bin:$PATH"' >> ~/.bashrc \
+    && echo 'eval "$(pyenv init -)"' >> ~/.bashrc
+
+# Install python libraries
 COPY requirements.txt /tmp/
-RUN pip3 install -r /tmp/requirements.txt
+RUN pyenv exec pip3 install -r /tmp/requirements.txt
+
+# Replace system python with newly built
+RUN rm /usr/bin/python3 ; \
+    ln -s /usr/local/pyenv/shims/python3 /usr/bin/python3
 
 run mkdir -p /home/release-test-automation \
  /home/package_cache \

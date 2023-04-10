@@ -37,10 +37,6 @@ mkdir -p test_dir/miniodata/home/test_dir
 rm -rf test_dir/miniodata/home/test_dir/*
 mkdir -p allure-results
 
-ssh -o StrictHostKeyChecking=no -T git@github.com
-git clone git@github.com:arangodb/release-test-automation-helpers.git
-mv $(pwd)/release-test-automation-helpers $(pwd)/release_tester/tools/external_helpers
-
 DOCKER_TAR_NAME=release-test-automation-tar
 
 DOCKER_TAR_TAG="${DOCKER_TAR_NAME}:$(cat containers/this_version.txt)${ARCH}"
@@ -62,6 +58,14 @@ else
     docker build containers/docker_tar${ARCH} -t "${DOCKER_TAR_TAG}" || exit
     DOCKER_NAMESPACE=""
 fi
+
+ssh -o StrictHostKeyChecking=no -T git@github.com
+if test ! -d $(pwd)/release_tester/tools/external_helpers; then
+  git clone git@github.com:arangodb/release-test-automation-helpers.git
+  mv $(pwd)/release-test-automation-helpers $(pwd)/release_tester/tools/external_helpers
+fi
+git submodule init
+git submodule update
 
 docker network create -d bridge minio-bridge
 
@@ -123,13 +127,13 @@ docker run \
        -v "$(pwd)/allure-results:/home/allure-results" \
        -v $(pwd)/test_dir/miniodata:/data \
        --rm \
-       "${DOCKER_TAR_TAG}" \
+       "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}" \
        chown -R "$(id -u):$(id -g)" /home/test_dir /home/allure-results /data/*
 
 docker run \
        -v /tmp/tmp:/tmp/ \
        --rm \
-       "${DOCKER_TAR_TAG}" \
+       "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}" \
        rm -f /tmp/config.yml 
 
 if test "${result}" -eq "0"; then

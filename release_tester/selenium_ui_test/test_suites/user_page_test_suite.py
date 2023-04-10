@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """ user page testsuite """
+import semver
 from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 from test_suites_core.base_test_suite import testcase
 
@@ -18,10 +19,26 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
         """testing user page"""
         print("---------User Test Begin--------- \n")
         login = LoginPage(self.webdriver, self.cfg)
-        # login.login('root', self.self.root_passvoid)
         self.webdriver.refresh()
         user = UserPage(self.webdriver, self.cfg)
+        collection_page = CollectionPage(self.webdriver, self.cfg)
+        current_version = user.current_package_version()
+
         try:
+            
+            if current_version >= semver.VersionInfo.parse("3.10.0"):
+                collection_page.create_new_collections('a_first', 0, self.is_cluster)
+                collection_page.create_new_collections('m_middle', 1, self.is_cluster)
+                collection_page.create_new_collections('z_last', 0, self.is_cluster)
+
+                collection_page.navbar_goto("users")
+
+                user.check_user_collection_sort()
+
+                collection_page.delete_collection("a_first", user.a_first_id, self.is_cluster)
+                collection_page.delete_collection("m_middle", user.m_middle_id, self.is_cluster)
+                collection_page.delete_collection("z_last", user.z_last_id, self.is_cluster)
+
             print("New user creation begins \n")
             user.user_tab()
             user.add_new_user("tester")
@@ -92,6 +109,8 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
             print("Deleting created user begins\n")
             user.delete_user_btn()
             user.confirm_delete_btn()
+            del user
+            del collection_page
         print("Deleting created user completed \n")
         print("---------User Test Completed---------\n")
 

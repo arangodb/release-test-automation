@@ -54,6 +54,14 @@ else
     DOCKER_NAMESPACE=""
 fi
 
+ssh -o StrictHostKeyChecking=no -T git@github.com
+if test ! -d $(pwd)/release_tester/tools/external_helpers; then
+  git clone git@github.com:arangodb/release-test-automation-helpers.git
+  mv $(pwd)/release-test-automation-helpers $(pwd)/release_tester/tools/external_helpers
+fi
+git submodule init
+git submodule update
+
 # we need --init since our upgrade leans on zombies not happening:
 docker run \
        --ulimit core=-1 \
@@ -98,7 +106,7 @@ docker run \
        -v "$(pwd)/test_dir:/home/test_dir" \
        -v "$(pwd)/allure-results:/home/allure-results" \
        --rm \
-       "${DOCKER_TAR_TAG}" \
+       "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}" \
        chown -R "$(id -u):$(id -g)" /home/test_dir /home/allure-results
 
 if test "${result}" -eq "0"; then

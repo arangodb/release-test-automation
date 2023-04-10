@@ -146,11 +146,18 @@ class DatabasePage(NavigationBarPage):
                 'Checking with dot value "."',
                 'Checking with slash "/"',
             ]
-            db_name_error_message = [
+            if version >= "3.10.0":
+                db_name_error_message = [
+                "DB: Invalid parameters: database name invalid",
+                "DB: Invalid parameters: database name invalid",
+                "DB: Invalid parameters: database name invalid"
+                ]
+            else:
+                db_name_error_message = [
                 "DB: Invalid Parameters: database name invalid",
                 "DB: Invalid Parameters: database name invalid",
-                "DB: Invalid Parameters: database name invalid",
-            ]
+                "DB: Invalid Parameters: database name invalid"
+                ]
             db_name = "newDatabaseName"
             db_name_error = "/html/body/div[10]/div/div[1]"
         else:

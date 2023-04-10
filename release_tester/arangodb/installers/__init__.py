@@ -191,6 +191,7 @@ class InstallerConfig:
         interactive: bool,
         stress_upgrade: bool,
         ssl: bool,
+        use_auto_certs: bool,
         test: str,
     ):
         self.publicip = publicip
@@ -213,7 +214,8 @@ class InstallerConfig:
 
         self.base_test_dir = test_dir
         self.pwd = Path(os.path.dirname(os.path.realpath(__file__)))
-        self.test_data_dir = self.pwd / ".." / ".." / ".." / "test_data"
+        self.test_data_dir = self.pwd / ".." / ".." / ".." / "rta-makedata" / "test_data"
+        self.ui_data_dir = self.pwd / ".." / ".." / ".." / "test_data"
 
         self.username = "root"
         self.passvoid = ""
@@ -222,6 +224,7 @@ class InstallerConfig:
         self.port = 8529
         self.localhost = "localhost"
         self.ssl = ssl
+        self.use_auto_certs = use_auto_certs
 
         self.all_instances = {}
         self.frontends = []
@@ -308,6 +311,7 @@ test filter: {0.test}
             self.port = other_cfg.port
             self.localhost = other_cfg.localhost
             self.ssl = other_cfg.ssl
+            self.version = other_cfg.version
 
             self.all_instances = other_cfg.all_instances
             self.frontends = other_cfg.frontends
@@ -380,6 +384,19 @@ test filter: {0.test}
         if other.install_prefix is None:
             raise Exception("install_prefix: must not copy in None!")
         self.install_prefix = other.install_prefix
+        if other.version is None:
+            raise Exception("version: must not copy in None!")
+        self.version = other.version
+        if other.semver is None:
+            raise Exception("semver: must not copy in None!")
+        self.semver = other.semver
+        if self.zip_package:
+            if other.client_install_prefix is None:
+                raise Exception("client_install_prefix: must not copy in None!")
+            self.client_install_prefix = other.client_install_prefix
+            if other.server_install_prefix is None:
+                raise Exception("server_install_prefix: must not copy in None!")
+            self.server_install_prefix = other.server_install_prefix
 
 
 # pylint: disable=import-outside-toplevel
@@ -504,7 +521,11 @@ class InstallerBaseConfig(OptionGroup):
 
 # pylint: disable=too-many-locals
 def create_config_installer_set(
-    versions: list, base_config: InstallerBaseConfig, deployment_mode: str, run_properties: RunProperties
+    versions: list,
+    base_config: InstallerBaseConfig,
+    deployment_mode: str,
+    run_properties: RunProperties,
+    use_auto_certs: bool,
 ):
     """creates sets of configs and installers"""
     # pylint: disable=too-many-instance-attributes disable=too-many-arguments
@@ -526,6 +547,7 @@ def create_config_installer_set(
             base_config.interactive,
             base_config.stress_upgrade,
             run_properties.ssl,
+            use_auto_certs,
             base_config.test,
         )
         installer = make_installer(install_config)

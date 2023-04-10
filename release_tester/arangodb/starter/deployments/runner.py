@@ -14,6 +14,7 @@ import shutil
 import sys
 import time
 import psutil
+import py7zr
 
 from allure_commons._allure import attach
 import certifi
@@ -36,6 +37,8 @@ from arangodb.sh import ArangoshExecutor
 FNRX = re.compile("[\n@ ]*")
 WINVER = platform.win32_ver()
 
+shutil.register_archive_format("7zip", py7zr.pack_7zarchive, description="7zip archive")
+
 
 def detect_file_ulimit():
     """check whether the ulimit for files is to low"""
@@ -49,11 +52,31 @@ def detect_file_ulimit():
                 "please use ulimit -n <count>"
                 " to adjust the number of allowed"
                 " filedescriptors to a value greater"
-                " or eqaul 65535. Currently you have"
+                " or equal 65535. Currently you have"
                 " set the limit to: " + str(nofd)
             )
         giga_byte = 2**30
         resource.setrlimit(resource.RLIMIT_CORE, (giga_byte, giga_byte))
+
+
+def remove_node_x_from_json(starter_dir):
+    """remove node X from setup.json"""
+    path_to_cfg = Path(starter_dir, "setup.json")
+    content = {}
+    # pylint: disable=unspecified-encoding
+    with open(path_to_cfg, "r") as setup_file:
+        content = json.load(setup_file)
+        peers = []
+        reg_exp = re.compile(r"^.*\/nodeX$")
+        for peer in content["peers"]["Peers"]:
+            if not reg_exp.match(peer["DataDir"]):
+                # Add only existing nodes. Skip nodeX peer
+                peers.append(peer)
+        content["peers"]["Peers"] = peers  # update 'peers' array
+
+    # pylint: disable=unspecified-encoding
+    with open(path_to_cfg, "w") as setup_file:
+        json.dump(content, setup_file)
 
 
 class RunnerProperties:
@@ -68,7 +91,7 @@ class RunnerProperties:
         supports_hotbackup: bool,
         ssl: bool,
         use_auto_certs: bool,
-        no_arangods_non_agency: int
+        no_arangods_non_agency: int,
     ):
         self.short_name = short_name
         self.disk_usage_community = disk_usage_community
@@ -96,7 +119,9 @@ class Runner(ABC):
         load_scenarios()
         assert runner_type, "no runner no cry? no!"
         mem = psutil.virtual_memory()
-        os.environ["ARANGODB_OVERRIDE_DETECTED_TOTAL_MEMORY"] = str(int((mem.total * 0.8) / properties.no_arangods_non_agency))
+        os.environ["ARANGODB_OVERRIDE_DETECTED_TOTAL_MEMORY"] = str(
+            int((mem.total * 0.8) / properties.no_arangods_non_agency)
+        )
         logging.debug(runner_type)
         self.abort_on_error = abort_on_error
         self.testrun_name = testrun_name
@@ -104,31 +129,28 @@ class Runner(ABC):
         self.state = ""
         self.runner_type = runner_type
         self.name = str(self.runner_type).split(".")[1]
+        self.installers = install_set
         cfg = install_set[0][1].cfg
         old_inst = install_set[0][1]
         new_cfg = None
         new_inst = None
         self.must_create_backup = False
         if len(install_set) > 1:
-            new_cfg = install_set[1][1].cfg
+            new_cfg = copy.deepcopy(install_set[1][1].cfg)
             new_inst = install_set[1][1]
 
         self.do_install = cfg.deployment_mode in ["all", "install"]
         self.do_uninstall = cfg.deployment_mode in ["all", "uninstall"]
         self.do_system_test = cfg.deployment_mode in ["all", "system"] and cfg.have_system_service
         self.do_starter_test = cfg.deployment_mode in ["all", "tests"]
-        self.do_upgrade = False
         self.supports_rolling_upgrade = WINVER[0] == ""
 
-        self.basecfg = copy.deepcopy(cfg)
-        self.new_cfg = new_cfg
-        self.cfg = self.basecfg
-        self.cfg.ssl = properties.ssl
-        self.cfg.use_auto_certs = properties.use_auto_certs
+        self.new_cfg = copy.deepcopy(new_cfg)
+        self.cfg = copy.deepcopy(cfg)
+        self.old_version = cfg.version  # The first version of ArangoDB which is used in current launch
         self.certificate_auth = {}
         self.cert_dir = ""
         self.passvoid = None
-        self.basecfg.passvoid = ""
         self.versionstr = ""
         if self.new_cfg:
             self.new_cfg.passvoid = ""
@@ -140,20 +162,18 @@ class Runner(ABC):
         count = 1
         while True:
             try:
-                diskfree = shutil.disk_usage(str(self.basecfg.base_test_dir))
+                diskfree = shutil.disk_usage(str(self.cfg.base_test_dir))
                 break
             except FileNotFoundError:
                 count += 1
                 if count > 20:
                     break
-                self.basecfg.base_test_dir.mkdir()
-                print(self.basecfg.base_test_dir)
-                print(self.basecfg.base_test_dir.exists())
+                self.cfg.base_test_dir.mkdir()
                 time.sleep(1)
                 print(".")
 
         if count > 20:
-            raise TimeoutError("disk_usage on " + str(self.basecfg.base_test_dir) + " not working")
+            raise TimeoutError("disk_usage on " + str(self.cfg.base_test_dir) + " not working")
         is_cleanup = self.cfg.version == "3.3.3"
         diskused = properties.disk_usage_community if not cfg.enterprise else properties.disk_usage_enterprise
         if not is_cleanup and diskused * 1024 * 1024 > diskfree.free:
@@ -161,7 +181,7 @@ class Runner(ABC):
                 "Scenario demanded %d MB but only %d MB are available in %s",
                 diskused,
                 diskfree.free / (1024 * 1024),
-                str(self.basecfg.base_test_dir),
+                str(self.cfg.base_test_dir),
             )
             raise Exception("not enough free disk space to execute test!")
 
@@ -181,7 +201,7 @@ class Runner(ABC):
         # errors that occured during run
         self.errors = []
         self.starter_instances = []
-        self.remote = len(self.basecfg.frontends) > 0
+        self.remote = len(self.cfg.frontends) > 0
         if not self.remote:
             self.cleanup(False)
         if selenium_worker == "none":
@@ -234,12 +254,11 @@ class Runner(ABC):
     def ask_continue_or_exit(self, msg, output, default=True, status=1, invoking_exc=None):
         """ask the user whether to abort the execution or continue anyways"""
         self.progress(False, msg)
-        if not self.basecfg.interactive:
+        if not self.cfg.interactive:
             if invoking_exc:
                 raise Exception("%s:\n%s" % (msg, output)) from invoking_exc
             raise Exception("%s:\n%s" % (msg, output))
-        if not eh.ask_continue(msg, self.basecfg.interactive, default):
-            print()
+        if not eh.ask_continue(msg, self.cfg.interactive, default):
             print("Abort requested (default action)")
             raise Exception("must not continue from here - bye " + str(status))
         if self.abort_on_error:
@@ -260,143 +279,171 @@ class Runner(ABC):
         if self.do_starter_test and not self.remote:
             detect_file_ulimit()
 
-        self.progress(False, "Runner of type {0}".format(str(self.name)), "<3")
+        versions_count = len(self.installers)
+        is_single_test = True if versions_count == 1 else False
+        bound = 1 if is_single_test else versions_count - 1
 
-        if self.do_install or self.do_system_test:
-            self.progress(
-                False,
-                "INSTALLATION for {0}".format(str(self.name)),
-            )
-            self.install(self.old_installer)
-        else:
-            self.basecfg.set_directories(self.old_installer.cfg)
+        for i in range(0, bound):
+            self.old_installer = self.installers[i][1]
+            self.old_installer.cfg.passvoid = ""
+            if i == 0:
+                # if i != 0, it means that self.cfg was already updated after chain-upgrade
+                self.cfg = copy.deepcopy(self.old_installer.cfg)
+            if not is_single_test:
+                self.new_installer = self.installers[i + 1][1]
+                self.new_cfg = copy.deepcopy(self.new_installer.cfg)
 
-        if self.do_starter_test:
-            self.progress(
-                False,
-                "PREPARING DEPLOYMENT of {0}".format(str(self.name)),
-            )
-            self.starter_prepare_env()
-            self.starter_run()
-            self.finish_setup()
-            self.make_data()
-            self.after_makedata_check()
-            if self.selenium:
-                self.set_selenium_instances()
-                self.selenium.test_empty_ui()
-            ti.prompt_user(
-                self.basecfg,
-                "{0}{1} Deployment started. Please test the UI!".format((self.versionstr), str(self.name)),
-            )
-            if self.hot_backup:
-                self.progress(False, "TESTING HOTBACKUP")
-                self.backup_name = self.create_backup("thy_name_is_" + self.name)
-                self.validate_local_backup(self.backup_name)
-                self.tcp_ping_all_nodes()
-                self.create_non_backup_data()
-                backups = self.list_backup()
-                print(backups)
-                self.upload_backup(backups[0])
-                self.tcp_ping_all_nodes()
-                self.delete_backup(backups[0])
-                self.tcp_ping_all_nodes()
-                backups = self.list_backup()
-                if len(backups) != 0:
-                    raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
-                self.download_backup(self.backup_name)
-                self.validate_local_backup(self.backup_name)
-                self.tcp_ping_all_nodes()
-                backups = self.list_backup()
-                if backups[0] != self.backup_name:
-                    raise Exception("downloaded backup has different name? " + str(backups))
-                self.before_backup()
-                self.restore_backup(backups[0])
-                self.tcp_ping_all_nodes()
-                self.after_backup()
-                self.check_data_impl()
-                if not self.check_non_backup_data():
-                    raise Exception("data created after backup is still there??")
+            is_keep_db_dir = True if i != bound - 1 else False
+            is_uninstall_now = True if i == bound - 1 else False
 
-        if self.new_installer:
-            if self.hot_backup:
-                self.create_non_backup_data()
-            self.versionstr = "NEW[" + self.new_cfg.version + "] "
+            self.progress(False, "Runner of type {0}".format(str(self.name)), "<3")
 
-            self.progress(
-                False,
-                "UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),
-            )
-            self.new_installer.calculate_package_names()
-            self.new_installer.upgrade_server_package(self.old_installer)
-            lh.subsection("outputting version")
-            self.new_installer.output_arangod_version()
-            self.new_installer.get_starter_version()
-            self.new_installer.get_sync_version()
-            self.new_installer.stop_service()
-            self.cfg.set_directories(self.new_installer.cfg)
-            self.new_cfg.set_directories(self.new_installer.cfg)
+            if i == 0 and self.do_install:
+                self.progress(
+                    False,
+                    "INSTALLATION for {0}".format(str(self.name)),
+                )
+                self.install(self.old_installer)
+            else:
+                self.cfg.set_directories(self.old_installer.cfg)
 
-            self.upgrade_arangod_version()  # make sure to pass new version
-            self.old_installer.un_install_server_package_for_upgrade()
-            if self.is_minor_upgrade() and self.new_installer.supports_backup():
-                self.new_installer.check_backup_is_created()
-            if self.hot_backup:
-                self.check_data_impl()
-                self.progress(False, "TESTING HOTBACKUP AFTER UPGRADE")
-                backups = self.list_backup()
-                print(backups)
-                self.upload_backup(backups[0])
-                self.tcp_ping_all_nodes()
-                self.delete_backup(backups[0])
-                self.tcp_ping_all_nodes()
-                backups = self.list_backup()
-                if len(backups) != 0:
-                    raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
-                self.download_backup(self.backup_name)
-                self.validate_local_backup(self.backup_name)
-                self.tcp_ping_all_nodes()
-                backups = self.list_backup()
-                if backups[0] != self.backup_name:
-                    raise Exception("downloaded backup has different name? " + str(backups))
-                time.sleep(20)  # TODO fix
-                self.before_backup()
-                self.restore_backup(backups[0])
-                self.tcp_ping_all_nodes()
-                self.after_backup()
-                if not self.check_non_backup_data():
-                    raise Exception("data created after backup is still there??")
-            self.check_data_impl()
-        else:
-            logging.info("skipping upgrade step no new version given")
-
-        try:
             if self.do_starter_test:
                 self.progress(
                     False,
-                    "{0} TESTS FOR {1}".format(self.testrun_name, str(self.name)),
+                    "PREPARING DEPLOYMENT of {0}".format(str(self.name)),
                 )
-                self.test_setup()
-                self.jam_attempt()
-                self.starter_shutdown()
-                for starter in self.starter_instances:
-                    starter.detect_fatal_errors()
-            if self.do_uninstall:
-                self.uninstall(self.old_installer if not self.new_installer else self.new_installer)
-        finally:
-            if self.selenium:
-                ui_test_results_table = BeautifulTable(maxwidth=160)
-                for result in self.selenium.test_results:
-                    ui_test_results_table.rows.append(
-                        [result.name, "PASSED" if result.success else "FAILED", result.message, result.traceback]
-                    )
-                    if not result.success:
-                        self.ui_tests_failed = True
-                ui_test_results_table.columns.header = ["Name", "Result", "Message", "Traceback"]
-                self.progress(False, "UI test results table:", supress_allure=True)
-                self.progress(False, "\n" + str(ui_test_results_table), supress_allure=True)
-                self.ui_test_results_table = ui_test_results_table
+                if i == 0:
+                    self.starter_prepare_env()
+                    self.starter_run()
+                    self.finish_setup()
+                    self.make_data()
+                    self.after_makedata_check()
+                    self.check_data_impl()
 
-                self.quit_selenium()
+                if self.selenium:
+                    self.set_selenium_instances()
+                    self.selenium.test_empty_ui()
+                ti.prompt_user(
+                    self.cfg,
+                    "{0}{1} Deployment started. Please test the UI!".format((self.versionstr), str(self.name)),
+                )
+                if self.hot_backup:
+                    self.progress(False, "TESTING HOTBACKUP")
+                    self.backup_name = self.create_backup("thy_name_is_" + self.name)
+                    self.validate_local_backup(self.backup_name)
+                    self.tcp_ping_all_nodes()
+                    self.create_non_backup_data()
+                    backups = self.list_backup()
+                    self.upload_backup(backups[0])
+                    self.tcp_ping_all_nodes()
+                    self.delete_backup(backups[0])
+                    self.tcp_ping_all_nodes()
+                    backups = self.list_backup()
+                    if len(backups) != 0:
+                        raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
+                    self.download_backup(self.backup_name)
+                    self.validate_local_backup(self.backup_name)
+                    self.tcp_ping_all_nodes()
+                    backups = self.list_backup()
+                    if backups[0] != self.backup_name:
+                        raise Exception("downloaded backup has different name? " + str(backups))
+                    self.before_backup()
+                    self.restore_backup(backups[0])
+                    self.tcp_ping_all_nodes()
+                    self.after_backup()
+                    time.sleep(20)  # TODO fix
+                    self.check_data_impl()
+                    if not self.check_non_backup_data():
+                        raise Exception("data created after backup is still there??")
+
+            if self.new_installer:
+                if self.hot_backup:
+                    self.create_non_backup_data()
+                self.versionstr = "NEW[" + self.new_cfg.version + "] "
+
+                self.progress(
+                    False,
+                    "UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),
+                )
+                self.new_installer.calculate_package_names()
+                self.new_installer.upgrade_server_package(self.old_installer)
+                lh.subsection("outputting version")
+                self.new_installer.output_arangod_version()
+                self.new_installer.get_starter_version()
+                self.new_installer.get_sync_version()
+                self.new_installer.stop_service()
+
+                self.upgrade_arangod_version()  # make sure to pass new version
+                self.new_cfg.set_directories(self.new_installer.cfg)
+                self.cfg = copy.deepcopy(self.new_cfg)
+
+                self.old_installer.un_install_server_package_for_upgrade()
+                if self.is_minor_upgrade() and self.new_installer.supports_backup():
+                    self.new_installer.check_backup_is_created()
+                if self.hot_backup:
+                    self.check_data_impl()
+                    self.progress(False, "TESTING HOTBACKUP AFTER UPGRADE")
+                    backups = self.list_backup()
+                    self.upload_backup(backups[0])
+                    self.tcp_ping_all_nodes()
+                    self.delete_backup(backups[0])
+                    self.tcp_ping_all_nodes()
+                    backups = self.list_backup()
+                    if len(backups) != 0:
+                        raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
+                    self.download_backup(self.backup_name)
+                    self.validate_local_backup(self.backup_name)
+                    self.tcp_ping_all_nodes()
+                    backups = self.list_backup()
+                    if backups[0] != self.backup_name:
+                        raise Exception("downloaded backup has different name? " + str(backups))
+                    time.sleep(20)  # TODO fix
+                    self.before_backup()
+                    self.restore_backup(backups[0])
+                    self.tcp_ping_all_nodes()
+                    self.after_backup()
+                    if not self.check_non_backup_data():
+                        raise Exception("data created after backup is still there??")
+                    self.delete_backup(backups[0])
+                    self.tcp_ping_all_nodes()
+                    backups = self.list_backup()
+                    if len(backups) != 0:
+                        raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
+                self.check_data_impl()
+                self.versionstr = "OLD[" + self.new_cfg.version + "] "
+            else:
+                logging.info("skipping upgrade step no new version given")
+
+            try:
+                if self.do_starter_test:
+                    self.progress(
+                        False,
+                        "{0} TESTS FOR {1}".format(self.testrun_name, str(self.name)),
+                    )
+                    self.test_setup()
+                    self.jam_attempt()
+                    self.check_data_impl()
+                    if not is_keep_db_dir:
+                        self.starter_shutdown()
+                        for starter in self.starter_instances:
+                            starter.detect_fatal_errors()
+                if self.do_uninstall and is_uninstall_now:
+                    self.uninstall(self.old_installer if not self.new_installer else self.new_installer)
+            finally:
+                if self.selenium:
+                    ui_test_results_table = BeautifulTable(maxwidth=160)
+                    for result in self.selenium.test_results:
+                        ui_test_results_table.rows.append(
+                            [result.name, "PASSED" if result.success else "FAILED", result.message, result.traceback]
+                        )
+                        if not result.success:
+                            self.ui_tests_failed = True
+                    ui_test_results_table.columns.header = ["Name", "Result", "Message", "Traceback"]
+                    self.progress(False, "UI test results table:", supress_allure=True)
+                    self.progress(False, "\n" + str(ui_test_results_table), supress_allure=True)
+                    self.ui_test_results_table = ui_test_results_table
+
+                    self.quit_selenium()
 
         self.progress(False, "Runner of type {0} - Finished!".format(str(self.name)))
 
@@ -406,7 +453,7 @@ class Runner(ABC):
         self.progress(False, "Runner of type {0}".format(str(self.name)), "<3")
         self.old_installer.load_config()
         self.old_installer.calculate_file_locations()
-        self.basecfg.set_directories(self.old_installer.cfg)
+        self.cfg.set_directories(self.old_installer.cfg)
         if self.do_starter_test:
             self.progress(
                 False,
@@ -428,7 +475,6 @@ class Runner(ABC):
                 False,
                 "UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),
             )
-            self.cfg.set_directories(self.new_installer.cfg)
             self.new_cfg.set_directories(self.new_installer.cfg)
 
         if self.do_starter_test:
@@ -436,9 +482,9 @@ class Runner(ABC):
                 False,
                 "TESTS FOR {0}".format(str(self.name)),
             )
-            # self.test_setup()
-            # self.jam_attempt()
-            # self.starter_shutdown()
+            self.test_setup()
+            self.jam_attempt()
+            self.starter_shutdown()
         if self.selenium:
             self.selenium.disconnect()
         self.progress(False, "Runner of type {0} - Finished!".format(str(self.name)))
@@ -483,7 +529,6 @@ class Runner(ABC):
         if inst.check_service_up():
             inst.stop_service()
         inst.start_service()
-        print(inst.cfg.semver)
         sys_arangosh = ArangoshExecutor(inst.cfg, inst.instance)
 
         logging.debug("self test after installation")
@@ -495,7 +540,7 @@ class Runner(ABC):
             # TODO: here we should invoke Makedata for the system installation.
 
             logging.debug("stop system service to make ports available for starter")
-            inst.stop_service()
+        inst.stop_service()
 
     @step
     def quit_selenium(self):
@@ -564,18 +609,23 @@ class Runner(ABC):
         print("install")
         print("replace starter")
         if self.supports_rolling_upgrade:
-            print("upgrading instances in roling mode")
+            print("upgrading instances in rolling mode")
             self.upgrade_arangod_version_impl()
         else:
             print("upgrading instances in manual mode")
             self.upgrade_arangod_version_manual_impl()
-        print("check data in instaces")
+        print("check data in instances")
 
     @step
     def jam_attempt(self):
         """check resilience of setup by obstructing its instances"""
         self.progress(True, "{0}{1} - try to jam setup".format(self.versionstr, str(self.name)))
         self.jam_attempt_impl()
+        # After attempt of jamming, we have peer for nodeX in setup.json.
+        # This peer will brake further updates because this peer is unavailable.
+        # It is necessary to remove this peer from json for each starter instance
+        for instance in self.starter_instances:
+            remove_node_x_from_json(instance.basedir)
 
     @step
     def starter_shutdown(self):
@@ -619,9 +669,9 @@ class Runner(ABC):
     @step
     def set_frontend_instances(self):
         """actualises the list of available frontends"""
-        self.basecfg.frontends = []  # reset the array...
+        self.cfg.frontends = []  # reset the array...
         for frontend in self.get_frontend_instances():
-            self.basecfg.add_frontend(self.get_http_protocol(), self.basecfg.publicip, frontend.port)
+            self.cfg.add_frontend(self.get_http_protocol(), self.cfg.publicip, frontend.port)
 
     def get_frontend_instances(self):
         """fetch all frontend instances"""
@@ -690,7 +740,6 @@ class Runner(ABC):
                         "make_data failed for {0.name}".format(self), exc.execution_result[1], False, exc
                     )
                 self.has_makedata_data = True
-            self.check_data_impl_sh(arangosh, starter.supports_foxx_tests)
         if not self.has_makedata_data:
             raise Exception("didn't find makedata instances, no data created!")
 
@@ -861,16 +910,16 @@ class Runner(ABC):
             ver,
             build_number,
         )
-        if self.basecfg.base_test_dir.exists():
-            archive = shutil.make_archive(filename, "bztar", self.basecfg.base_test_dir, self.basedir)
-            attach.file(archive, "test dir archive", "application/x-bzip2", "tar.bz2")
+        if self.cfg.base_test_dir.exists():
+            archive = shutil.make_archive(filename, "7zip", self.cfg.base_test_dir, self.basedir)
+            attach.file(archive, "test dir archive", "application/x-7z-compressed", "7z")
         else:
             print("test basedir doesn't exist, won't create report tar")
 
     @step
     def cleanup(self, reset_tmp=True):
         """remove all directories created by this test"""
-        testdir = self.basecfg.base_test_dir / self.basedir
+        testdir = self.cfg.base_test_dir / self.basedir
         print("cleaning up " + str(testdir))
         try:
             if testdir.exists():

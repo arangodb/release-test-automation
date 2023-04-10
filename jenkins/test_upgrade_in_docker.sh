@@ -21,7 +21,6 @@ else
     force_arg+=(--remote-host 172.17.4.0)
 fi
 
-
 trap "docker kill $DOCKER_DEB_NAME; \
      docker rm $DOCKER_DEB_NAME; \
      docker kill $DOCKER_RPM_NAME; \
@@ -31,6 +30,14 @@ version=$(git rev-parse --verify HEAD)
 
 docker build containers/docker_deb -t $DOCKER_DEB_TAG || exit
 docker build containers/docker_rpm -t $DOCKER_RPM_TAG || exit
+
+ssh -o StrictHostKeyChecking=no -T git@github.com
+if test ! -d $(pwd)/release_tester/tools/external_helpers; then
+  git clone git@github.com:arangodb/release-test-automation-helpers.git
+  mv $(pwd)/release-test-automation-helpers $(pwd)/release_tester/tools/external_helpers
+fi
+git submodule init
+git submodule update
 
 docker run -itd \
        --ulimit core=-1 \
