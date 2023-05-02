@@ -311,7 +311,8 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             args=args + [
                 '--progress', 'true',
                 '--oldVersion', self.old_version,
-                '--testFoxx', 'true' if supports_foxx_tests else 'false'
+                '--testFoxx', 'true' if supports_foxx_tests else 'false',
+                '--passvoid', self.cfg.passvoid
             ] + test_filter,
             # fmt: on
             progressive_timeout=25,

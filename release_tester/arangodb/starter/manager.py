@@ -299,6 +299,12 @@ class StarterManager:
         args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.arguments
 
         assert self.cfg.version
+        # Remove it if it is not needed
+        if not is_column_cache_supported(self.cfg.version) or not self.cfg.enterprise:
+            if COLUMN_CACHE_ARGUMENT in args:
+                args.remove(COLUMN_CACHE_ARGUMENT)
+        
+        # Add it if it is required
         if is_column_cache_supported(self.cfg.version) and self.cfg.enterprise:
             if COLUMN_CACHE_ARGUMENT not in args:
                 args.append(COLUMN_CACHE_ARGUMENT)
@@ -779,9 +785,15 @@ class StarterManager:
         args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.arguments + moreargs
 
         assert version is not None
+        # Remove it if it is not needed
         if not is_column_cache_supported(version) or not self.cfg.enterprise:
             if COLUMN_CACHE_ARGUMENT in args:
                 args.remove(COLUMN_CACHE_ARGUMENT)
+
+        # Add it if it is required
+        if is_column_cache_supported(version) and self.cfg.enterprise:
+            if COLUMN_CACHE_ARGUMENT not in args:
+                args.append(COLUMN_CACHE_ARGUMENT)
 
         logging.info("StarterManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)
