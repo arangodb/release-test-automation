@@ -26,18 +26,19 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
 
         try:
             
-            if current_version >= semver.VersionInfo.parse("3.10.0"):
-                collection_page.create_new_collections('a_first', 0, self.is_cluster)
-                collection_page.create_new_collections('m_middle', 1, self.is_cluster)
-                collection_page.create_new_collections('z_last', 0, self.is_cluster)
+            # TODO this feature has been changed thus commented out for now.
+            # if current_version >= semver.VersionInfo.parse("3.10.0"):
+                # collection_page.create_new_collections('a_first', 0, self.is_cluster)
+                # collection_page.create_new_collections('m_middle', 1, self.is_cluster)
+                # collection_page.create_new_collections('z_last', 0, self.is_cluster)
 
-                collection_page.navbar_goto("users")
+                # collection_page.navbar_goto("users")
 
-                user.check_user_collection_sort()
+                # user.check_user_collection_sort()
 
-                collection_page.delete_collection("a_first", user.a_first_id, self.is_cluster)
-                collection_page.delete_collection("m_middle", user.m_middle_id, self.is_cluster)
-                collection_page.delete_collection("z_last", user.z_last_id, self.is_cluster)
+                # collection_page.delete_collection("a_first", user.a_first_id, self.is_cluster)
+                # collection_page.delete_collection("m_middle", user.m_middle_id, self.is_cluster)
+                # collection_page.delete_collection("z_last", user.z_last_id, self.is_cluster)
 
             print("New user creation begins \n")
             user.user_tab()
