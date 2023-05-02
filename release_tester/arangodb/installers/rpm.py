@@ -66,7 +66,7 @@ class InstallerRPM(InstallerLinux):
             semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
             semdict["build"] = "0.501"
         elif len(prerelease) > 0:
-            semdict["build"] = semdict["prerelease"]
+            semdict["build"] = "1." + semdict["prerelease"]
             semdict["prerelease"] = ""
             # remove dots, but prepend one:
             # once was: semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
@@ -258,7 +258,7 @@ class InstallerRPM(InstallerLinux):
 
     @step
     def un_install_server_package_impl(self):
-        """ uninstall the server package """
+        """uninstall the server package"""
         self.stop_service()
         cmd = ["rpm", "-e", "arangodb3" + ("e" if self.cfg.enterprise else "")]
         lh.log_cmd(cmd)
