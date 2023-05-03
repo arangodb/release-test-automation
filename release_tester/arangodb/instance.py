@@ -172,7 +172,13 @@ class Instance(ABC):
 
     def load_starter_instance_control_file(self):
         """load & parse the <instance_string>_command.txt file of the starter"""
-        if not self.instance_control_file.exists():
+        count = 20
+        while not self.instance_control_file.exists() and count > 0:
+            count -= 1
+            print("Instance control file not yet there?" + str(self.instance_control_file))
+            time.sleep(0.5)
+
+        if self.instance_control_file.exists():
             raise FileNotFoundError("Instance control file not found! " + str(self.instance_control_file))
         self.instance_arguments = []
         with self.instance_control_file.open(errors="backslashreplace") as filedesc:
