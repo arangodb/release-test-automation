@@ -178,7 +178,7 @@ class Instance(ABC):
             print("Instance control file not yet there?" + str(self.instance_control_file))
             time.sleep(0.5)
 
-        if self.instance_control_file.exists():
+        if not self.instance_control_file.exists():
             raise FileNotFoundError("Instance control file not found! " + str(self.instance_control_file))
         self.instance_arguments = []
         with self.instance_control_file.open(errors="backslashreplace") as filedesc:
