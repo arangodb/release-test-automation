@@ -183,7 +183,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
     def js_set_passvoid(self, user, passvoid):
         """connect to the instance, and set a passvoid for the user"""
         js_set_passvoid_str = f"""
-        if (!arangodb.isConnected()) {{
+        if (!arango.isConnected()) {{
           throw new Error('connecting the database failed');
         }}
         require('org/arangodb/users').update('{user}', '{passvoid}');
@@ -208,7 +208,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         """
         logging.info("creating volatile testdata")
         js_script_string = """
-            if (!arangodb.isConnected()) {
+            if (!arango.isConnected()) {
               throw new Error('connecting the database failed');
             }
             db._create("this_collection_will_not_be_backed_up");
@@ -230,7 +230,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         #  || db.this_collection_will_not_be_backed_up._length() != 0
         # // do we care?
         js_script_string = """
-            if (!arangodb.isConnected()) {
+            if (!arango.isConnected()) {
               throw new Error('connecting the database failed');
             }
             if (db._collection("this_collection_will_not_be_backed_up")
