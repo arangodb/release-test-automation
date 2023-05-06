@@ -168,9 +168,7 @@ class BinaryDescription:
             return True
         if output.find(", not stripped") >= 0:
             return False
-        raise Exception(
-            f"Strip checking: parse error for file '{str(self.path)}', unparseable output:  [{output}]"
-        )
+        raise Exception(f"Strip checking: parse error for file '{str(self.path)}', unparseable output:  [{output}]")
 
     @step
     def check_stripped(self):
@@ -202,6 +200,7 @@ class BinaryDescription:
 # pylint: disable=attribute-defined-outside-init disable=too-many-public-methods disable=too-many-instance-attributes
 class InstallerBase(ABC):
     """this is the prototype for the operation system agnostic installers"""
+
     hot_backup: bool
     basedir: Path
     installer_type: str
@@ -433,7 +432,7 @@ class InstallerBase(ABC):
             self.cfg.passvoid,
             True,
             self.cfg.version,
-            self.cfg.enterprise
+            self.cfg.enterprise,
         )
         self.calculate_package_names()
         self.cfg.verbose = verbose
@@ -721,7 +720,7 @@ class InstallerBase(ABC):
             passvoid=self.cfg.passvoid,
             ssl=False,
             version=self.cfg.version,
-            enterprise=self.cfg.enterprise
+            enterprise=self.cfg.enterprise,
         )
 
     def get_starter_version(self):
@@ -739,7 +738,6 @@ class InstallerBase(ABC):
                 [str(starter), "--version"],
                 stdout=subprocess.PIPE,
                 stdin=subprocess.PIPE,
-                stderr=subprocess.PIPE,
                 universal_newlines=True,
             )
             line = starter_version_proc.stdout.readline()
@@ -755,7 +753,7 @@ class InstallerBase(ABC):
         """find out the version of the starter in this package"""
         if not self.cfg.enterprise:
             return semver.VersionInfo.parse("0.0.0")
-        if  not self.syncer_versions:
+        if not self.syncer_versions:
             syncer = self.cfg.real_sbin_dir / ("arangosync" + FILE_EXTENSION)
             if not syncer.is_file():
                 print("syncer not found where we searched it? " + str(syncer))
@@ -764,7 +762,6 @@ class InstallerBase(ABC):
                 [str(syncer), "--version"],
                 stdout=subprocess.PIPE,
                 stdin=subprocess.PIPE,
-                stderr=subprocess.PIPE,
                 universal_newlines=True,
             )
             line = syncer_version_proc.stdout.readline()
