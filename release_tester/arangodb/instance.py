@@ -360,7 +360,7 @@ class Instance(ABC):
 
     def is_line_relevant(self, line):
         """it returns true if the line from logs should be printed"""
-        return "FATAL" in line or "ERROR" in line or "WARNING" in line or "{crash}" in line
+        return ("FATAL" in line or "ERROR" in line or "WARNING" in line) or "{crash}" in line
 
     def search_for_warnings(self):
         """browse our logfile for warnings and errors"""
