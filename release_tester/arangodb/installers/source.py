@@ -76,6 +76,7 @@ class InstallerSource(InstallerBase):
         self.check_stripped = False
         self.cfg.have_system_service = False
         self.arangosh = ArangoshExecutor(self.cfg, self.instance)
+        self.copy_for_result = False
 
     def supports_hot_backup(self):
         """no hot backup support on the wintendo."""

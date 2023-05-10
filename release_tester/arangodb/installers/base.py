@@ -226,6 +226,7 @@ class InstallerBase(ABC):
         self.syncer_versions = {}
         self.cli_executor = ArangoCLIprogressiveTimeoutExecutor(self.cfg, self.instance)
         self.core_glob = "**/*core"
+        self.copy_for_result = True
 
     def reset_version(self, version):
         """re-configure the version we work with"""
@@ -784,7 +785,7 @@ class InstallerBase(ABC):
     def find_crash(self, base_path):
         """search on the disk whether crash files exist"""
         for i in base_path.glob(self.core_glob):
-            if str(i).find("node_modules") == -1:
+            if str(i).find("node_modules") == -1 and str(i).find("boost") == -1:
                 print("Found coredump! " + str(i))
                 return True
         return False

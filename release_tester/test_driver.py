@@ -109,6 +109,9 @@ class TestDriver:
 
     def copy_packages_to_result(self, installers):
         """copy packages in test to the report directory (including debug symbols)"""
+        if not installers[0][1].copy_for_result:
+            print("Skiping copy_packages_to_result for this installer")
+
         if not installers[0][1].find_crash(installers[0][0].base_test_dir):
             return
         for installer_set in installers:
