@@ -46,11 +46,11 @@ class LicenseManagerSingleServerBaseTestSuite(LicenseManagerBaseTestSuite):
         self.runner.starter_instance.detect_arangosh_instances()
         self.starter = self.runner.starter_instance
 
-    # pylint: disable=consider-using-with disable=unspecified-encoding
+    # pylint: disable=consider-using-with
     def get_server_id(self):
         """read server id from data dir"""
         datadir = self.starter.all_instances[0].basedir / "data"
-        server_file_content = json.load(open(datadir / "SERVER"))
+        server_file_content = json.load(open(datadir / "SERVER", encoding="utf-8"))
         server_id = server_file_content["serverId"]
         return server_id
 
@@ -58,7 +58,7 @@ class LicenseManagerSingleServerBaseTestSuite(LicenseManagerBaseTestSuite):
     def set_license(self, license):
         """set new license"""
         datadir = self.starter.all_instances[0].basedir / "data"
-        with open(datadir / ".license", "w") as license_file:
+        with open(datadir / ".license", "w", encoding="utf-8") as license_file:
             license_file.truncate()
             license_file.write(license)
         self.starter.terminate_instance()
