@@ -63,8 +63,7 @@ def remove_node_x_from_json(starter_dir):
     """remove node X from setup.json"""
     path_to_cfg = Path(starter_dir, "setup.json")
     content = {}
-    # pylint: disable=unspecified-encoding
-    with open(path_to_cfg, "r") as setup_file:
+    with open(path_to_cfg, "r", encoding="utf-8") as setup_file:
         content = json.load(setup_file)
         peers = []
         reg_exp = re.compile(r"^.*\/nodeX$")
@@ -74,8 +73,7 @@ def remove_node_x_from_json(starter_dir):
                 peers.append(peer)
         content["peers"]["Peers"] = peers  # update 'peers' array
 
-    # pylint: disable=unspecified-encoding
-    with open(path_to_cfg, "w") as setup_file:
+    with open(path_to_cfg, "w", encoding="utf-8") as setup_file:
         json.dump(content, setup_file)
 
 
@@ -280,7 +278,7 @@ class Runner(ABC):
             detect_file_ulimit()
 
         versions_count = len(self.installers)
-        is_single_test = True if versions_count == 1 else False
+        is_single_test = versions_count == 1
         bound = 1 if is_single_test else versions_count - 1
 
         for i in range(0, bound):
@@ -293,8 +291,8 @@ class Runner(ABC):
                 self.new_installer = self.installers[i + 1][1]
                 self.new_cfg = copy.deepcopy(self.new_installer.cfg)
 
-            is_keep_db_dir = True if i != bound - 1 else False
-            is_uninstall_now = True if i == bound - 1 else False
+            is_keep_db_dir = i != bound - 1
+            is_uninstall_now = i == bound - 1
 
             self.progress(False, "Runner of type {0}".format(str(self.name)), "<3")
 
