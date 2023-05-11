@@ -117,6 +117,11 @@ docker run \
        "${DOCKER_NAMESPACE}${DOCKER_RPM_TAG}" \
        rm -f /tmp/config.yml 
 
+if [ `ls -1 $(pwd)/test_dir/core* 2>/dev/null | wc -l ` -gt 0 ]; then
+    7z a coredumps $(pwd)/test_dir/core*
+    rm -f $(pwd)/test_dir/core*
+fi
+
 if test "${result}" -eq "0"; then
     echo "OK"
 else
