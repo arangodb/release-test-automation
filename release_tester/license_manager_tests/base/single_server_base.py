@@ -1,4 +1,5 @@
-"""License manager tests: single server"""
+# pylint: disable=duplicate-code
+"""License manager tests: single server (base)"""
 import json
 
 # pylint: disable=import-error
@@ -11,7 +12,7 @@ from test_suites_core.base_test_suite import run_before_suite
 
 
 class LicenseManagerSingleServerBaseTestSuite(LicenseManagerBaseTestSuite):
-    """License manager tests: single server"""
+    """License manager tests: single server (base class)"""
 
     def get_default_instance_type(self):
         """get the instance type we should communicate with"""
@@ -22,6 +23,7 @@ class LicenseManagerSingleServerBaseTestSuite(LicenseManagerBaseTestSuite):
         """start a single server setup before running tests"""
         self.start_single_server()
 
+    # pylint: disable=attribute-defined-outside-init
     @step
     def start_single_server(self):
         """start a single server setup"""
@@ -44,6 +46,7 @@ class LicenseManagerSingleServerBaseTestSuite(LicenseManagerBaseTestSuite):
         self.runner.starter_instance.detect_arangosh_instances()
         self.starter = self.runner.starter_instance
 
+    # pylint: disable=consider-using-with disable=unspecified-encoding
     def get_server_id(self):
         """read server id from data dir"""
         datadir = self.starter.all_instances[0].basedir / "data"
@@ -61,3 +64,5 @@ class LicenseManagerSingleServerBaseTestSuite(LicenseManagerBaseTestSuite):
         self.starter.terminate_instance()
         version = self.runner.new_cfg.version if self.runner.new_cfg is not None else self.runner.cfg.version
         self.starter.respawn_instance(version)
+        self.starter.detect_instances()
+        self.wait()

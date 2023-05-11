@@ -22,6 +22,7 @@ class LicenseManagerLeaderFollowerBaseTestSuite(LicenseManagerBaseTestSuite):
         """clean up the system before running license manager tests on a leader-follower setup"""
         self.start_leader_follower()
 
+    # pylint: disable=consider-using-with disable=unspecified-encoding
     def get_server_id(self):
         """read server id from data dir"""
         datadir = self.starter.all_instances[0].basedir / "data"
@@ -29,7 +30,7 @@ class LicenseManagerLeaderFollowerBaseTestSuite(LicenseManagerBaseTestSuite):
         server_id = server_file_content["serverId"]
         return server_id
 
-    # pylint: disable=redefined-builtin disable=arguments-differ
+    # pylint: disable=redefined-builtin disable=arguments-differ disable=unspecified-encoding
     def set_license(self, license, starter_instance=None):
         """set new license"""
         if not starter_instance:
@@ -39,6 +40,7 @@ class LicenseManagerLeaderFollowerBaseTestSuite(LicenseManagerBaseTestSuite):
             license_file.truncate()
             license_file.write(license)
         starter_instance.restart_arangods()
+        self.wait()
 
     @step
     def start_leader_follower(self):
