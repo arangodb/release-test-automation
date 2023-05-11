@@ -1,5 +1,6 @@
 #!/bin/bash
-
+echo "sanoteuhsaonetuh"
+cat /proc/sys/kernel/core_pattern
 ARCH="-$(uname -m)"
 
 if test "${ARCH}" == "-x86_64"; then
