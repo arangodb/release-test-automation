@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 """ run an installer for the debian based operating system """
 import logging
@@ -21,6 +20,7 @@ from reporting.reporting_utils import step
 from tools.killall import get_process_tree
 
 import psutil
+
 # pylint: disable=unused-import
 # this will patch psutil for us:
 import tools.monkeypatch_psutil
@@ -30,6 +30,7 @@ IS_WINDOWS = platform.win32_ver()[0] != ""
 if IS_WINDOWS:
     from mss import mss
     import winreg
+
 
 class InstallerNsis(InstallerWin):
     """install the windows NSIS package"""
@@ -60,7 +61,7 @@ class InstallerNsis(InstallerWin):
             self.arch = ""
         else:
             self.arch = ""
-        self.operating_system = 'win64'
+        self.operating_system = "win64"
         super().__init__(cfg)
         self.check_symlink = False
         self.core_glob = "**/*.dmp"
@@ -88,7 +89,7 @@ class InstallerNsis(InstallerWin):
         semdict = dict(self.cfg.semver.to_dict())
         if semdict["prerelease"]:
             if semdict["prerelease"].startswith("rc"):
-                semdict["prerelease"] = "-" + semdict["prerelease"].replace("rc", "rc.")
+                semdict["prerelease"] = "-" + semdict["prerelease"].replace("rc", "rc.").replace("..", ".")
             else:
                 semdict["prerelease"] = "-{prerelease}".format(**semdict)
         else:
