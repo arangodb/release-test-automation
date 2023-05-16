@@ -245,6 +245,31 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         return res
 
     @step
+    def hotbackup_wait_for_ready_after_restore(self):
+        """check whether the data is in there or not."""
+        logging.info("running version check")
+        #  || db.this_collection_will_not_be_backed_up._length() != 0
+        # // do we care?
+        js_script_string = """
+        if (!arango.isConnected()) {
+          throw new Error('connecting the database failed');
+        }
+        let timeout = 15;
+        while (db._databases().length == 0)  {
+          if (timeout == 0) {		
+            throw new Error("Databases array is still empty after 15s!");		
+          }		
+          require("internal").sleep(1);		
+          timeout -= 1;
+        }
+        """
+        logging.debug("script to be executed: " + str(js_script_string))
+        res = self.run_command(["check whether non backup data exists", js_script_string], True)  # self.cfg.verbose)
+        logging.debug("SUT readiness result: " + str(res))
+
+        return res
+
+    @step
     def run_in_arangosh(
         self,
         testname,
