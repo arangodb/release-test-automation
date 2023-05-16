@@ -247,9 +247,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
     @step
     def hotbackup_wait_for_ready_after_restore(self):
         """check that array with databases is not empty."""
-        logging.info("running version check")
-        #  || db.this_collection_will_not_be_backed_up._length() != 0
-        # // do we care?
+        logging.info("running database readiness check")
         js_script_string = """
         if (!arango.isConnected()) {
           throw new Error('connecting the database failed');
@@ -264,7 +262,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         }
         """
         logging.debug("script to be executed: " + str(js_script_string))
-        res = self.run_command(["check whether non backup data exists", js_script_string], True)  # self.cfg.verbose)
+        res = self.run_command(["check whether all databases were restored", js_script_string], self.cfg.verbose)
         logging.debug("SUT readiness result: " + str(res))
 
         return res
