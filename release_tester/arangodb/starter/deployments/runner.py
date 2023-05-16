@@ -800,6 +800,13 @@ class Runner(ABC):
         """HotBackup has happened, prepare the SUT to continue testing"""
         self.progress(True, "{0} - preparing SUT for tests after HotBackup".format(str(self.name)))
         self.after_backup_impl()
+        for starter in self.makedata_instances:
+            if not starter.is_leader:
+                continue
+            assert starter.arangosh, "check after backup: this starter doesn't have an arangosh!"
+            arangosh = starter.arangosh
+            return arangosh.hotbackup_wait_for_ready_after_restore()
+        raise Exception("no frontend found.")
 
     @abstractmethod
     def after_backup_impl(self):

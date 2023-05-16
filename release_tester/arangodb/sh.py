@@ -245,6 +245,29 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         return res
 
     @step
+    def hotbackup_wait_for_ready_after_restore(self):
+        """check that array with databases is not empty."""
+        logging.info("running database readiness check")
+        js_script_string = """
+        if (!arango.isConnected()) {
+          throw new Error('connecting the database failed');
+        }
+        let timeout = 15;
+        while (db._databases().length == 0)  {
+          if (timeout == 0) {		
+            throw new Error("Databases array is still empty after 15s!");		
+          }		
+          require("internal").sleep(1);		
+          timeout -= 1;
+        }
+        """
+        logging.debug("script to be executed: " + str(js_script_string))
+        res = self.run_command(["check whether all databases were restored", js_script_string], self.cfg.verbose)
+        logging.debug("SUT readiness result: " + str(res))
+
+        return res
+
+    @step
     def run_in_arangosh(
         self,
         testname,
