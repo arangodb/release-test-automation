@@ -246,7 +246,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
 
     @step
     def hotbackup_wait_for_ready_after_restore(self):
-        """check whether the data is in there or not."""
+        """check that array with databases is not empty."""
         logging.info("running version check")
         #  || db.this_collection_will_not_be_backed_up._length() != 0
         # // do we care?
