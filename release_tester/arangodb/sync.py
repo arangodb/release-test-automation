@@ -65,7 +65,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             self.cfg.bin_dir / "arangosync", args, params=params, progressive_timeout=60, deadline=360
         )
 
-        "Database.*Collection.*Shard.*Duration"
+        # "Database.*Collection.*Shard.*Duration"
         return expect_failure(False, ret, params)
 
     @step
@@ -93,6 +93,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         args = [
             "stop",
             "sync",
+            "--timeout=2m",
             "--master.endpoint=https://{url}:{port}".format(url=self.cfg.publicip, port=str(self.clusterports[0])),
             "--auth.keyfile=" + str(self.certificate_auth["clientkeyfile"]),
         ] + more_args
@@ -109,6 +110,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         args = [
             "abort",
             "sync",
+            "--timeout=2m",
             "--master.endpoint=https://{url}:{port}".format(url=self.cfg.publicip, port=str(self.clusterports[0])),
             "--auth.keyfile=" + str(self.certificate_auth["clientkeyfile"]),
         ]
