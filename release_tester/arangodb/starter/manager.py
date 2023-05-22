@@ -79,6 +79,11 @@ class StarterManager:
         # self.moreopts += ["--all.log.output=startup=file://@ARANGODB_SERVER_DIR@/arangod_startup.log"]
         # self.moreopts += ["--starter.disable-ipv6=false"]
         # self.moreopts += ["--starter.host=127.0.0.1"]
+
+        self.moreopts += [
+            "--all.rclone.argument=--log-level=DEBUG",
+            "--all.rclone.argument=--log-file=@ARANGODB_SERVER_DIR@/rclone.log",
+        ]
         if (self.cfg.semver.major == 3 and self.cfg.semver.minor >= 9) or (self.cfg.semver.major > 3):
             self.moreopts += ["--args.all.database.extended-names-databases=true"]
         print(self.moreopts)
@@ -303,7 +308,7 @@ class StarterManager:
         if not is_column_cache_supported(self.cfg.version) or not self.cfg.enterprise:
             if COLUMN_CACHE_ARGUMENT in args:
                 args.remove(COLUMN_CACHE_ARGUMENT)
-        
+
         # Add it if it is required
         if is_column_cache_supported(self.cfg.version) and self.cfg.enterprise:
             if COLUMN_CACHE_ARGUMENT not in args:
