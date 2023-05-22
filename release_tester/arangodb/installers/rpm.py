@@ -57,14 +57,14 @@ class InstallerRPM(InstallerLinux):
             semdict["prerelease"] = ""
         elif prerelease.startswith("alpha"):
             semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
-            semdict["build"] = "0.101"
+            semdict["build"] = "0.10" + prerelease.replace("alpha.", "")
         elif prerelease.startswith("beta"):
             semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
-            semdict["build"] = "0.201"
+            semdict["build"] = "0.20" + prerelease.replace("beta.", "")
         elif prerelease.startswith("rc"):
             # remove dots, but prepend one:
             semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
-            semdict["build"] = "0.501"
+            semdict["build"] = "0.50" + prerelease.replace("rc.", "")
         elif len(prerelease) > 0:
             semdict["build"] = "1." + semdict["prerelease"]
             semdict["prerelease"] = ""
