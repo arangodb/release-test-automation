@@ -135,14 +135,21 @@ class InstallerRPM(InstallerLinux):
             )
             print(server_upgrade.before)
         except pexpect.exceptions.EOF as exc:
-            lh.line("X")
+            lh.line("X EOF")
             ascii_print(server_upgrade.before)
             lh.line("X")
             print("exception : " + str(exc))
             lh.line("X")
             logging.error("Upgrade failed!")
             raise exc
-
+        except pexpect.exceptions.TIMEOUT as exc:
+            lh.line("X Timeout:")
+            ascii_print(server_upgrade.before)
+            lh.line("X")
+            print("exception : " + str(exc))
+            lh.line("X")
+            logging.error("Upgrade failed!")
+            raise exc
         logging.debug("found: upgrade message")
 
         logging.info("waiting for the upgrade to finish")
@@ -182,10 +189,22 @@ class InstallerRPM(InstallerLinux):
             server_install.expect(pexpect.EOF, timeout=60)
             reply = server_install.before
             ascii_print(reply)
-        except pexpect.exceptions.EOF as ex:
+        except pexpect.exceptions.EOF as exc:
+            lh.line("I EOF")
             ascii_print(server_install.before)
-            logging.info("Installation failed!")
-            raise ex
+            lh.line("I")
+            print("exception : " + str(exc))
+            lh.line("I")
+            logging.error("RPM install failed!")
+            raise exc
+        except pexpect.exceptions.TIMEOUT as exc:
+            lh.line("X Timeout:")
+            ascii_print(server_install.before)
+            lh.line("X")
+            print("exception : " + str(exc))
+            lh.line("X")
+            logging.error("RPM install failed!")
+            raise exc
 
         while server_install.isalive():
             progress(".")
