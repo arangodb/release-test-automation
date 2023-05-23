@@ -80,10 +80,10 @@ class StarterManager:
         # self.moreopts += ["--starter.disable-ipv6=false"]
         # self.moreopts += ["--starter.host=127.0.0.1"]
 
-        self.moreopts += [
-            "--all.rclone.argument=--log-level=DEBUG",
-            "--all.rclone.argument=--log-file=@ARANGODB_SERVER_DIR@/rclone.log",
-        ]
+        # self.moreopts += [
+        #    "--all.rclone.argument=--log-level=DEBUG",
+        #    "--all.rclone.argument=--log-file=@ARANGODB_SERVER_DIR@/rclone.log",
+        # ]
         if (self.cfg.semver.major == 3 and self.cfg.semver.minor >= 9) or (self.cfg.semver.major > 3):
             self.moreopts += ["--args.all.database.extended-names-databases=true"]
         print(self.moreopts)
