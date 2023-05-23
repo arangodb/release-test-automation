@@ -128,27 +128,35 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
             print("Create new index\n")
 
             version = col.current_package_version()
-            print("Cluster status: ", self.is_cluster)
-            col.create_new_index("Persistent", 1, self.is_cluster)
-            col.create_new_index("Geo", 2, self.is_cluster)
-            col.create_new_index("Fulltext", 3, self.is_cluster)
-            col.create_new_index("TTL", 4, self.is_cluster)
-            if version >= semver.VersionInfo.parse("3.9.0"):
-                if version > semver.VersionInfo.parse("3.9.99"):
-                    col.create_new_index('ZKD', 5, self.is_cluster, True)
-                else:
-                    print('I am at 141')
-                    col.create_new_index('ZKD', 5, self.is_cluster)
-
-                print("Deleting all index started\n")
-                for i in range(4):
-                    col.delete_all_index(True)
-                print("Deleting all index completed\n")
+            
+            if version >= semver.VersionInfo.parse("3.10.99"):
+                col.create_index('Persistent')
+                col.create_index('Geo')
+                col.create_index('Fulltext')
+                col.create_index('TTL')
+                col.create_index('Inverted Index')
+                col.create_index('ZKD')
             else:
-                print("Deleting all index started\n")
-                for i in range(3):
-                    col.delete_all_index()
-                print("Deleting all index completed\n")
+                print("Cluster status: ", self.is_cluster)
+                col.create_new_index("Persistent", 1, self.is_cluster)
+                col.create_new_index("Geo", 2, self.is_cluster)
+                col.create_new_index("Fulltext", 3, self.is_cluster)
+                col.create_new_index("TTL", 4, self.is_cluster)
+                if version >= semver.VersionInfo.parse("3.9.0"):
+                    if version > semver.VersionInfo.parse("3.9.99"):
+                        col.create_new_index('ZKD', 5, self.is_cluster, True)
+                    else:
+                        col.create_new_index('ZKD', 5, self.is_cluster)
+
+                    print("Deleting all index started\n")
+                    for i in range(4):
+                        col.delete_all_index(True)
+                    print("Deleting all index completed\n")
+                else:
+                    print("Deleting all index started\n")
+                    for i in range(3):
+                        col.delete_all_index()
+                    print("Deleting all index completed\n")
 
             print("Select Info tab\n")
             col.select_info_tab()

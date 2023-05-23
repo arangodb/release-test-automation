@@ -528,6 +528,157 @@ class CollectionPage(NavigationBarPage):
         """Selecting index menu from collection"""
         self.click_submenu_entry("Indexes")
 
+    def select_desired_index_from_the_list(self, index_name):
+        """this method will find the desired index from the list using given locator"""
+        select_index = "(//*[name()='svg'][@class='css-8mmkcg'])"
+        select_index_sitem = self.locator_finder_by_xpath(select_index)
+        select_index_sitem.click()
+        time.sleep(1)
+
+        element = self.locator_finder_by_xpath(f"//*[contains(text(), '{index_name}')]")
+        actions = ActionChains(self.driver)
+        # Move the mouse pointer to the element containing the text
+        actions.move_to_element(element)
+        # Perform a click action
+        actions.click().perform()
+    
+    def create_index(self, index_name):
+        """This method will create indexes for >= v3.11.0"""
+        print(f"Creating {index_name} index started \n")
+        create_new_index_btn_sitem = self.locator_finder_by_xpath(self.create_new_index_btn_id)
+        create_new_index_btn_sitem.click()
+        time.sleep(2)
+
+        print(f"selecting {index_name} from the list\n")
+
+        if index_name == 'Persistent':
+            # selecting persistent index's filed
+            persistent_field = "/html//input[@id='fields']"
+            persistent_field_sitem = self.locator_finder_by_xpath(persistent_field)
+            persistent_field_sitem.click()
+            persistent_field_sitem.send_keys('name')
+
+            # selecting persistent index's name
+            persistent_name = "/html//input[@id='name']"
+            persistent_name_sitem = self.locator_finder_by_xpath(persistent_name)
+            persistent_name_sitem.click()
+            persistent_name_sitem.send_keys(index_name)
+
+            # selecting persistent index's extra value
+            extra_value = "/html//input[@id='storedValues']"
+            extra_value_sitem = self.locator_finder_by_xpath(extra_value)
+            extra_value_sitem.click()
+            extra_value_sitem.send_keys('email, likes')
+
+            # selecting persistent index's sparse value
+            sparse = "(//span[@aria-hidden='true'])[1]"
+            sparse_sitem = self.locator_finder_by_xpath(sparse)
+            sparse_sitem.click()
+
+            # selecting persistent index's duplicate array value
+            duplicate_array = '//*[@id="content-react"]/div/div[3]/form/div/div[1]/div[11]/label/span/span'
+            duplicate_array_sitem = self.locator_finder_by_xpath(duplicate_array)
+            duplicate_array_sitem.click()
+
+            memory_cache = '//*[@id="content-react"]/div/div[3]/form/div/div[1]/div[15]/label/span/span'
+            memory_cache_sitem = self.locator_finder_by_xpath(memory_cache)
+            memory_cache_sitem.click()
+
+        elif index_name == 'Geo':
+            self.select_desired_index_from_the_list('Geo Index')
+            # selecting geo index's filed
+            geo_field = "/html//input[@id='fields']"
+            geo_field_sitem = self.locator_finder_by_xpath(geo_field)
+            geo_field_sitem.click()
+            geo_field_sitem.send_keys('region')
+
+            # selecting geo index's name
+            geo_name = "/html//input[@id='name']"
+            geo_name_sitem = self.locator_finder_by_xpath(geo_name)
+            geo_name_sitem.click()
+            geo_name_sitem.send_keys(index_name)
+
+        elif index_name == 'Fulltext':
+            self.select_desired_index_from_the_list('Fulltext Index')
+            # selecting fullText index's filed
+            full_text_field = "/html//input[@id='fields']"
+            full_text_field_sitem = self.locator_finder_by_xpath(full_text_field)
+            full_text_field_sitem.click()
+            full_text_field_sitem.send_keys('region')
+
+            # selecting fullText index's name
+            full_text_name = "/html//input[@id='name']"
+            full_text_name_sitem = self.locator_finder_by_xpath(full_text_name)
+            full_text_name_sitem.click()
+            full_text_name_sitem.send_keys(index_name)
+
+            # selecting fullText index's min length
+            min_length = "/html//input[@id='minLength']"
+            min_length_sitem = self.locator_finder_by_xpath(min_length)
+            min_length_sitem.click()
+            min_length_sitem.send_keys()
+
+        elif index_name == 'TTL':
+            self.select_desired_index_from_the_list('TTL Index')
+            # selecting ttl index's filed
+            ttl_field = "/html//input[@id='fields']"
+            ttl_field_sitem = self.locator_finder_by_xpath(ttl_field)
+            ttl_field_sitem.click()
+            ttl_field_sitem.send_keys('region')
+
+            # selecting ttl index's name
+            ttl_name = "/html//input[@id='name']"
+            ttl_name_sitem = self.locator_finder_by_xpath(ttl_name)
+            ttl_name_sitem.click()
+            ttl_name_sitem.send_keys(index_name)
+
+            ttl_expire = "/html//input[@id='expireAfter']"
+            ttl_expire_sitem = self.locator_finder_by_xpath(ttl_expire)
+            ttl_expire_sitem.click()
+            ttl_expire_sitem.send_keys(1000)
+
+        elif index_name == 'Inverted Index':
+            self.select_desired_index_from_the_list('Inverted Index')
+
+            inverted_fields = "(//div[contains(@class,'css-1d6mnfj')])[2]"
+            inverted_fields_sitem = self.locator_finder_by_xpath(inverted_fields)
+            inverted_fields_sitem.click()
+            inverted_fields_sitem.send_keys('name, gender')
+            inverted_fields_sitem.send_keys(Keys.ENTER)
+
+        else:
+            self.select_collection_page()  # TODO add navbar
+            print("Selecting computed values collections. \n")
+            col = '//*[@id="collection_ComputedValueCol"]/div/h5'
+            self.locator_finder_by_xpath(col).click()
+            time.sleep(1)
+
+            self.select_index_menu()
+
+            create_new_index_btn_sitem = self.locator_finder_by_xpath(self.create_new_index_btn_id)
+            create_new_index_btn_sitem.click()
+            time.sleep(2)
+
+            print('ZKD Index (EXPERIMENTAL)')
+            zkd_field = "/html//input[@id='fields']"
+            zkd_field = self.locator_finder_by_xpath(zkd_field)
+            zkd_field.click()
+            zkd_field.send_keys('x,y')
+
+            # selecting ttl index's name
+            zkd_name = "/html//input[@id='name']"
+            zkd_name_sitem = self.locator_finder_by_xpath(zkd_name)
+            zkd_name_sitem.click()
+            zkd_name_sitem.send_keys(index_name)
+
+
+        # create the index
+        create_btn = '//*[@id="content-react"]/div/div[3]/form/div/div[2]/button[2]'
+        create_btn_sitem = self.locator_finder_by_xpath(create_btn)
+        create_btn_sitem.click()
+        time.sleep(2)
+
+
     def create_new_index(self, index_name, value, is_cluster, check=False):
         """ create a new Index """
         print(f"Creating {index_name} index started \n")
