@@ -109,7 +109,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         args = [
             "abort",
             "sync",
-            "--timeout=4m",
+            "--timeout=5m",
             "--master.endpoint=https://{url}:{port}".format(url=self.cfg.publicip, port=str(self.clusterports[0])),
             "--auth.keyfile=" + str(self.certificate_auth["clientkeyfile"]),
         ]
