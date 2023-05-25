@@ -101,6 +101,11 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         ret = self.run_monitored(
             self.cfg.bin_dir / "arangosync", args, params=params, progressive_timeout=timeout, deadline=deadline
         )
+        if ret["rc_exit"] != 0:
+            print("trying to stop a second time:")
+            ret = self.run_monitored(
+                self.cfg.bin_dir / "arangosync", args, params=params, progressive_timeout=timeout, deadline=deadline
+            )
         return expect_failure(False, ret, params)
 
     @step
