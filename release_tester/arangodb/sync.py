@@ -65,7 +65,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             self.cfg.bin_dir / "arangosync", args, params=params, progressive_timeout=60, deadline=360
         )
 
-        "Database.*Collection.*Shard.*Duration"
+        # "Database.*Collection.*Shard.*Duration"
         return expect_failure(False, ret, params)
 
     @step
@@ -101,6 +101,11 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         ret = self.run_monitored(
             self.cfg.bin_dir / "arangosync", args, params=params, progressive_timeout=timeout, deadline=deadline
         )
+        if ret["rc_exit"] != 0:
+            print("trying to stop a second time:")
+            ret = self.run_monitored(
+                self.cfg.bin_dir / "arangosync", args, params=params, progressive_timeout=timeout, deadline=deadline
+            )
         return expect_failure(False, ret, params)
 
     @step
@@ -109,6 +114,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         args = [
             "abort",
             "sync",
+            "--timeout=5m",
             "--master.endpoint=https://{url}:{port}".format(url=self.cfg.publicip, port=str(self.clusterports[0])),
             "--auth.keyfile=" + str(self.certificate_auth["clientkeyfile"]),
         ]

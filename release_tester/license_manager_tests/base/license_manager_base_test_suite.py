@@ -137,6 +137,11 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
         license = create_license(new_timestamp, server_id)
         self.set_license(license)
 
+    @step
+    def wait(self):
+        """wait for the SUT to become responsive"""
+        self.runner.tcp_ping_all_nodes()
+
     # pylint: disable=fixme
     # FIXME: set valid license before each test case
     #    @run_before_each_testcase

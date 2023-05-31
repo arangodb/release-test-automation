@@ -172,6 +172,12 @@ class Instance(ABC):
 
     def load_starter_instance_control_file(self):
         """load & parse the <instance_string>_command.txt file of the starter"""
+        count = 20
+        while not self.instance_control_file.exists() and count > 0:
+            count -= 1
+            print("Instance control file not yet there?" + str(self.instance_control_file))
+            time.sleep(0.5)
+
         if not self.instance_control_file.exists():
             raise FileNotFoundError("Instance control file not found! " + str(self.instance_control_file))
         self.instance_arguments = []
@@ -354,7 +360,7 @@ class Instance(ABC):
 
     def is_line_relevant(self, line):
         """it returns true if the line from logs should be printed"""
-        return "FATAL" in line or "ERROR" in line or "WARNING" in line or "{crash}" in line
+        return ("FATAL" in line or "ERROR" in line or "WARNING" in line) or "{crash}" in line
 
     def search_for_warnings(self):
         """browse our logfile for warnings and errors"""

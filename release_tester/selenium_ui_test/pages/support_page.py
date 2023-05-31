@@ -316,38 +316,27 @@ class SupportPage(NavigationBarPage):
             time.sleep(1)
 
         # all documentation example list for Backup restore option
-        create_backup = '//*[@id="operations-BackupRestore-CreateBackup"]/div/span[1]'
-        create_backup01 = '// *[@id = "operations-BackupRestore-CreateBackup"]/div[1]/span[1]'
-
-        delete_backup = '//*[@id="operations-BackupRestore-DeleteABackup"]/div/span[1]'
-        delete_backup01 = '//*[@id="operations-BackupRestore-DeleteABackup"]/div[1]/span[1]'
-
-        download_backup = '//*[@id="operations-BackupRestore-DownloadABackupFromARemoteRepository"]/div/span[1]'
-        download_backup01 = '//*[@id="operations-BackupRestore-DownloadABackupFromARemoteRepository"]/div[1]/span[1]'
-
-        list_backup = '//*[@id="operations-BackupRestore-ListBackups"]/div/span[1]'
-        list_backup01 = '//*[@id="operations-BackupRestore-ListBackups"]/div[1]/span[1]'
-
-        restore_backup = '//*[@id="operations-BackupRestore-RestoreBackup"]/div/span[1]'
-        restore_backup01 = '//*[@id="operations-BackupRestore-RestoreBackup"]/div/span[1]'
-
-        upload_remote_repository = '//*[@id="operations-BackupRestore-UploadABackupToARemoteRepository"]/div/span[1]'
-        upload_remote_repository01 = '//*[@id="operations-BackupRestore-UploadABackupToARemoteRepository"]/div/span[1]'
+        create_backup = "(//span[contains(text(),'POST')])[1]"
+        delete_backup = "(//span[contains(text(),'POST')])[2]"
+        download_backup = "(//span[contains(text(),'POST')])[3]"
+        list_backup = "(//span[contains(text(),'POST')])[4]"
+        restore_backup = "(//span[contains(text(),'POST')])[5]"
+        upload_remote_repository = "(//span[contains(text(),'POST')])[6]"
 
         # making a list out of these documentation list
         backup_restore_list = [
             create_backup,
-            create_backup01,
+            create_backup,
             delete_backup,
-            delete_backup01,
+            delete_backup,
             download_backup,
-            download_backup01,
+            download_backup,
             list_backup,
-            list_backup01,
+            list_backup,
             restore_backup,
-            restore_backup01,
+            restore_backup,
             upload_remote_repository,
-            upload_remote_repository01,
+            upload_remote_repository,
         ]
 
         backup_restore_print_statement = [
