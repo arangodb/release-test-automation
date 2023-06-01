@@ -986,14 +986,11 @@ class Runner(ABC):
     @step
     def agency_get_leader_starter_instance(self):
         """get the starter instance that manages the current agency leader"""
-        agency = []
-        for starter_mgr in self.starter_instances:
-            agency += starter_mgr.get_agents()
         leader = None
         leading_date = datetime.datetime(1970, 1, 1, 0, 0, 0)
         for starter_mgr in self.starter_instances:
-            agency = starter_mgr.get_agents()
-            for agent in agency:
+            agents = starter_mgr.get_agents()
+            for agent in agents:
                 agent_leading_date = agent.search_for_agent_serving()
                 if agent_leading_date > leading_date:
                     leading_date = agent_leading_date

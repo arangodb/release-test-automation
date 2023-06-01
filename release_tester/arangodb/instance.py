@@ -190,6 +190,7 @@ class Instance(ABC):
                     self.analyze_starter_file_line(line)
                     self.instance_arguments.append(line)
 
+    # pylint: disable=too-many-locals
     def launch_manual_from_instance_control_file(
         self, sbin_dir, old_install_prefix, new_install_prefix, current_version, enterprise, moreargs, waitpid=True
     ):
@@ -434,6 +435,7 @@ class ArangodInstance(Instance):
             self
         )
 
+    # pylint: disable=bare-except
     def get_uuid(self):
         """try to load the instances UUID"""
         try:
@@ -715,6 +717,10 @@ class ArangodInstance(Instance):
         """this string is emitted by the agent, if he is leading the agency:
         2021-05-19T16:02:18Z [3447] INFO [a66dc] {agency} AGNT-0dc4dd67-4340-4645-913f-9415adfbeda7
           rebuilt key-value stores - serving.
+          this string is emitted when the agent stops leading:
+          2023-05-22T02:49:25Z [127808] INFO [f370f] {agency} Set _role to FOLLOWER in term 4
+          We search for the latest "serving" string and return its timestamp, if it is not followed
+          by the "follower" string
         """
         serving_line = None
         if not self.logfile.exists():
@@ -724,6 +730,8 @@ class ArangodInstance(Instance):
             for line in log_fh:
                 if "a66dc" in line:
                     serving_line = line
+                elif "f370f" in line:
+                    serving_line = None
         if serving_line:
             self.serving = log_line_get_date(serving_line)
         return self.serving
@@ -776,6 +784,7 @@ class SyncInstance(Instance):
         if line.find("--log.file") >= 0:
             self.logfile_parameter = line
 
+    # pylint: disable=too-many-branches
     def detect_pid(self, ppid, offset, full_binary_path):
         # first get the starter provided commandline:
         self.ppid = ppid
@@ -783,7 +792,7 @@ class SyncInstance(Instance):
         try:
             pidfile = Path(self.instance_arguments[self.instance_arguments.index("--pid-file") + 1])
             if pidfile.exists():
-                pid = int(pidfile.read_text())
+                pid = int(pidfile.read_text(encoding='utf-8'))
                 for process in psutil.process_iter():
                     if process.ppid() == ppid and process.pid == pid and process.name() == "arangosync":
                         print(f"identified instance by pid file {pid}")
