@@ -74,8 +74,9 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
             col.sort_descending()
             print("Sorting collections by name\n")
             col.sort_by_name()
-
+            self.webdriver.refresh()
             col.select_edge_collection_upload()
+            col.navigate_to_col_content_tab()
             print("Uploading file to the collection started\n")
             col.select_upload_btn()
             print("Uploading json file\n")
@@ -88,6 +89,7 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
             self.webdriver.back()
 
             col.select_collection("TestDoc")
+            col.navigate_to_col_content_tab()
             print("Uploading file to the collection started\n")
             col.select_upload_btn()
             print("Uploading json file\n")
@@ -129,7 +131,7 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
 
             version = col.current_package_version()
             
-            if version >= semver.VersionInfo.parse("3.10.99"):
+            if version >= semver.VersionInfo.parse("3.11.0"):
                 col.create_index('Persistent')
                 col.create_index('Geo')
                 col.create_index('Fulltext')
@@ -142,6 +144,7 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
                 col.create_new_index("Geo", 2, self.is_cluster)
                 col.create_new_index("Fulltext", 3, self.is_cluster)
                 col.create_new_index("TTL", 4, self.is_cluster)
+                
                 if version >= semver.VersionInfo.parse("3.9.0"):
                     if version > semver.VersionInfo.parse("3.9.99"):
                         col.create_new_index('ZKD', 5, self.is_cluster, True)
@@ -154,8 +157,17 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
                     print("Deleting all index completed\n")
                 else:
                     print("Deleting all index started\n")
-                    for i in range(3):
-                        col.delete_all_index()
+                    collection = "collections"
+                    collection_sitem = self.locator_finder_by_id(collection)
+                    collection_sitem.click()
+
+                    col.select_collection("TestDoc")
+                    col.select_index_menu()
+                    col.delete_index(2)
+                    col.delete_index(3)
+                    col.delete_index(4)
+                    col.delete_index(5)
+                    col.delete_index(7)
                     print("Deleting all index completed\n")
 
             print("Select Info tab\n")
