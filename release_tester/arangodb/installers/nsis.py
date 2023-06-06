@@ -141,7 +141,7 @@ class InstallerNsis(InstallerWin):
             filename = "windows_upgrade_screenshot.png"
             with mss() as sct:
                 sct.shot(output=filename)
-                attach(
+                attach.file(
                     filename,
                     name="Screenshot ({fn})".format(fn=filename),
                     attachment_type=AttachmentType.PNG,
@@ -190,7 +190,7 @@ class InstallerNsis(InstallerWin):
             filename = "windows_upgrade_screenshot.png"
             with mss() as sct:
                 sct.shot(output=filename)
-                attach(
+                attach.file(
                     filename,
                     name="Screenshot ({fn})".format(fn=filename),
                     attachment_type=AttachmentType.PNG,
@@ -235,7 +235,7 @@ class InstallerNsis(InstallerWin):
             filename = "windows_install_client_package.png"
             with mss() as sct:
                 sct.shot(output=filename)
-                attach(
+                attach.file(
                     filename,
                     name="Screenshot ({fn})".format(fn=filename),
                     attachment_type=AttachmentType.PNG,
@@ -284,7 +284,7 @@ class InstallerNsis(InstallerWin):
                 filename = "windows_upgrade_screenshot.png"
                 with mss() as sct:
                     sct.shot(output=filename)
-                    attach(
+                    attach.file(
                         filename,
                         name="Screenshot ({fn})".format(fn=filename),
                         attachment_type=AttachmentType.PNG,
@@ -322,7 +322,7 @@ class InstallerNsis(InstallerWin):
                 filename = "windows_upgrade_screenshot.png"
                 with mss() as sct:
                     sct.shot(output=filename)
-                    attach(
+                    attach.file(
                         filename,
                         name="Screenshot ({fn})".format(fn=filename),
                         attachment_type=AttachmentType.PNG,
@@ -373,7 +373,7 @@ class InstallerNsis(InstallerWin):
                 filename = "windows_uninstall_client_package_screenshot.png"
                 with mss() as sct:
                     sct.shot(output=filename)
-                    attach(
+                    attach.file(
                         filename,
                         name="Screenshot ({fn})".format(fn=filename),
                         attachment_type=AttachmentType.PNG,
