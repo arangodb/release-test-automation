@@ -250,6 +250,13 @@ class ServicePage(NavigationBarPage):
                 if neighbourhoods_collection_sitem.text == 'neighborhoods':
                     print('open it and populate necessary data into it \n')
                     neighbourhoods_collection_sitem.click()
+
+                    # selecting content submenu
+                    content = "//div[@id='subNavigationBar']/ul[2]//a[.='Content']"
+                    content_sitem = self.locator_finder_by_xpath(content)
+                    content_sitem.click()
+                    time.sleep(1)
+
                     print('select upload button \n')
                     upload = '//*[@id="importCollection"]/span/i'
                     self.locator_finder_by_xpath(upload).click()
@@ -280,6 +287,12 @@ class ServicePage(NavigationBarPage):
                 if restaurants_collection_sitem.text == 'restaurants':
                     print('open it and populate necessary data into it \n')
                     restaurants_collection_sitem.click()
+                    # selecting content submenu
+                    content = "//div[@id='subNavigationBar']/ul[2]//a[.='Content']"
+                    content_sitem = self.locator_finder_by_xpath(content)
+                    content_sitem.click()
+                    time.sleep(1)
+
                     print('select upload button \n')
                     upload = '//*[@id="importCollection"]/span/i'
                     self.locator_finder_by_xpath(upload).click()
