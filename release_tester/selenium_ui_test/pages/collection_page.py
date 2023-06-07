@@ -73,9 +73,7 @@ class CollectionPage(NavigationBarPage):
         self.select_collection_delete_btn_id = "deleteSelected"
         self.collection_delete_confirm_btn_id = """//div[@id="modalPlaceholder"]//button[text()="Delete"]"""
         self.collection_really_dlt_btn_id = "/html//button[@id='modal-confirm-delete']"
-        # self.select_index_menu_id = "//*[@id='subNavigationBarPage']/ul[2]/li[2]/a"
         self.select_index_menu_id = "//*[@id='subNavigationBar']/ul[2]/li[2]/a"
-        # self.create_new_index_btn_id = "addIndex"
         self.create_new_index_btn_id = "/html//i[@id='addIndex']"
         self.select_index_type_id = "newIndexType"
 
