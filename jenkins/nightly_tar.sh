@@ -14,10 +14,10 @@ if test -z "$GIT_VERSION"; then
     GIT_VERSION=$VERSION
 fi
 if test -z "$OLD_VERSION"; then
-    OLD_VERSION=3.10.0-nightly
+    OLD_VERSION=3.11.0-nightly
 fi
 if test -z "$NEW_VERSION"; then
-    NEW_VERSION=3.11.0-nightly
+    NEW_VERSION=3.12.0-nightly
 fi
 if test -z "${PACKAGE_CACHE}"; then
     PACKAGE_CACHE="$(pwd)/package_cache/"
