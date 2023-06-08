@@ -308,6 +308,12 @@ def common_options(
             default=False,
             help="use self-signed SSL certs",
         )(function)
+        function = click.option(
+            "--monitoring/--no-monitoring",
+            is_flag=True,
+            default=True,
+            help="enable hardware resources monitoring",
+        )(function)
         return function
 
     return inner_func
