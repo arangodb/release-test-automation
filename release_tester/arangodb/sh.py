@@ -252,13 +252,14 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         if (!arango.isConnected()) {
           throw new Error('connecting the database failed');
         }
-        let timeout = 15;
+        let timeout = 60;
         while (db._databases().length == 0)  {
-          if (timeout == 0) {		
+          if (timeout == 0) {
             throw new Error("Databases array is still empty after 15s!");		
-          }		
-          require("internal").sleep(1);		
+          }
+          require("internal").sleep(1);
           timeout -= 1;
+          print('.');
         }
         """
         logging.debug("script to be executed: " + str(js_script_string))
