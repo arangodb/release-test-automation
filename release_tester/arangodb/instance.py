@@ -28,7 +28,6 @@ LOG_BLACKLIST = [
     "d72fb",  # -> license is going to expire...
     "1afb1",  # -> unlicensed enterprise instance
     "9afd3",  # -> Warning while instantiation of icu::Collator
-    "32781",  # -> BTS-1263 - starter launches instances before the agency is ready
 ]
 
 # log tokens we ignore in system ugprades...
