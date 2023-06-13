@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """ run an installer for the debian based operating system """
+import os
+from pathlib import Path
 import platform
 from arangodb.sh import ArangoshExecutor
 from arangodb.installers.base import InstallerArchive
@@ -38,7 +40,14 @@ class InstallerSource(InstallerArchive):
         sub_dir = str(self.cfg.version)
         if self.cfg.enterprise:
             sub_dir = "E_" + sub_dir
-        test_dir = self.cfg.package_dir / sub_dir
+        # Oskar integration: pick the base_dir
+        if "BASE_DIR" in os.environ:
+            test_dir = Path(os.environ["BASE_DIR"])
+            oskar_dir = test_dir / "work" / "ArangoDB"
+            if oskar_dir.exists():
+                test_dir = oskar_dir
+        else:  # other source integration:
+            test_dir = self.cfg.package_dir / sub_dir
         if not test_dir.exists():
             print("source version sub-directory doesn't exist: " + str(test_dir))
             test_dir = self.cfg.package_dir

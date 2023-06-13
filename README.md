@@ -374,6 +374,68 @@ Example usage:
 - [jenkins/nightly_rpm.sh](jenkins/nightly_rpm.sh) Download nightly redhat packages, and run them with selenium in `containers/docker_rpm` centos 7 container
 
 
+# Using `mixed_download_upgrade_test.py` for automated mixed source & zip testing
+
+`mixed_download_upgrade_test.py` integrates `test.py`, `upgrade.py` and `download_packages.py`.
+It intends to use a source built to upgrade from/to. Hence we cannot switch between community & enterprise. 
+Thus it requires `--edition C` to be specified switch between Enterprise and community setups. 
+It will download tar/zip packages, while `-nightly` will first attempt
+to resolve the proper version of the nightly package, since `-nightly` allways is a suffix to the latest released version + 1.
+
+The `BASE_DIR` environment variable is meant to be specified by oskar to find the typical directory structure in there. 
+
+It will then run the `upgrade.py` mechanic for either:
+ - enterprise with encryption at rest enabled
+ - enterprise 
+or:
+ - community
+
+and create a final report at the end of the run.
+
+The downloading of packages can be circumvented by specifying `--source local`.
+
+Supported Parameters:
+ - `--new-version`
+   - new: This is the to be released version. it will be downloaded from `--source`.
+ - `--upgrade-matrix list` specify a list of upgrades to run. For all other versions, `--other-source` will
+   be used to specify the download source. The list is specified in the format of: (without blanks)
+     `first-From : first-To ; second-From : second-To`
+ - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
+ - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
+ - `--enterprise-magic` specify your secret enterprise download key here.
+ - `--[other-]source [public|nightlypublic|[ftp|http]:stage1|[ftp|http]:stage2]`
+   - `nightlypublic` will download the packages from the nightly builds at downloads.arangodb.com
+   - `local` no packages will be downloaded at all, but rather are expected to be found in `package-dir`.
+   - `public` (default) will download the packages from downloads.arangodb.com
+   - `stage1` will download the files from the staging fileserver - level 1 - ftp: internal http external requires credentials
+   - `stage2` will download the files from the staging fileserver - level 2 - ftp: internal http external requires credentials
+ - `--httpuser` username for stage http access
+ - `--httppassvoid` secret for stage http access
+ - `--force` overwrite readily existing downloaded packages
+ - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
+ - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
+ - `--verbose` if specified more logging is done
+ - `--starter-mode [all|SG|LF|AFO|CL|DC|none]` which starter test to exute, `all` of them or `none` at all or:
+   - `SG` - Single server - the most simple deployment possible
+   - `LF` - Leader / Follower - setup two single instances, start replication between them
+   - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
+   - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
+   - `DC` - setup 2 clusters, connect them with arangosync (enterprise only, non-Windows, upgrade non Mac)
+ - `edition` which type to launch:
+   - `C` community
+   - `EP` enterprise
+   - `EE` enterprise with encryption at rest
+ - `--test` filter for tests of makedata / check data; comma separated list.
+ - `--selenium` - specify the webdriver to be used to work with selenium (if)
+ - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
+ - `--alluredir` - directory to save test results in allure format (default = allure-results)
+ - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
+ - `--[no-]ssl` use SSL (default = False)
+ - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl)
+ - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
+Example usage: 
+
+
 # Using cleanup.py to clean out the system
 
 `cleanup.py` will try to invoke all known cleanup mechanisms, to bring your system as much as possible into a 'pure' state.
