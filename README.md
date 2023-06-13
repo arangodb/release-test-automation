@@ -433,8 +433,12 @@ Supported Parameters:
  - `--[no-]ssl` use SSL (default = False)
  - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl)
  - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
-Example usage: 
 
+Example usage: 
+```
+export BASE_DIR=/home/willi/src/develc/release-test-automation
+./release_tester/mixed_download_upgrade_test.py --new-version 3.12.0 --upgrade-matrix '3.11.0-nightly:3.12.0-src' --starter-mode SG
+```
 
 # Using cleanup.py to clean out the system
 
