@@ -93,7 +93,7 @@ docker run -d \
 # we need --init since our upgrade leans on zombies not happening:
 docker run \
        --ulimit core=-1 \
-       -v "$(pwd)/../../ArangoDB:/oskar" \
+       -v "$(pwd)/../../:/oskar" \
        -v "$(pwd):/home/release-test-automation" \
        -v "$(pwd)/test_dir:/home/test_dir" \
        -v "$(pwd)/allure-results:/home/allure-results" \
