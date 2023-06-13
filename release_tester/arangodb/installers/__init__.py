@@ -261,6 +261,7 @@ using enterpise: {0.enterprise}
 using encryption at rest: {0.encryption_at_rest}
 using zip: {0.zip_package}
 using source: {0.src_testing}
+using binary dir: {0.real_bin_dir}
 hot backup mode: {0.hot_backup_supported}
 package directory: {0.package_dir}
 test directory: {0.base_test_dir}

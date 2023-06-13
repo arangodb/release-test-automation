@@ -484,7 +484,7 @@ class InstallerBase(ABC):
     def output_arangod_version(self):
         """document the output of arangod --version"""
         return self.cli_executor.run_monitored(
-            executeable=self.cfg.sbin_dir / "arangod",
+            executeable=self.cfg.real_sbin_dir / "arangod",
             args=["--version"],
             params=make_default_params(True),
             deadline=10,

@@ -63,7 +63,8 @@ class StarterManager:
         self.expect_instances = expect_instances
         self.expect_instances.sort()
         self.cfg = copy.deepcopy(basecfg)
-        self.moreopts = self.cfg.default_starter_args + moreopts
+        self.default_starter_args = self.cfg.default_starter_args.copy()
+        self.moreopts = moreopts
         if self.cfg.verbose:
             self.moreopts += ["--log.verbose=true"]
             # self.moreopts += ['--all.log', 'startup=debug']
@@ -302,7 +303,7 @@ class StarterManager:
     def run_starter(self, expect_to_fail=False):
         """launch the starter for this instance"""
         logging.info("running starter " + self.name)
-        args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.arguments
+        args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.default_starter_args + self.arguments
 
         assert self.cfg.version
         # Remove it if it is not needed
@@ -534,7 +535,9 @@ class StarterManager:
         (it should kill all its managed services)"""
 
         lh.subsubsection("terminating instances for: " + str(self.name))
-        logging.info("StarterManager: Terminating starter instance: %s", str(self.arguments))
+        logging.info(
+            "StarterManager: Terminating starter instance: %s", str(self.default_starter_args + self.arguments)
+        )
 
         logging.info("This should terminate all child processes")
         self.instance.terminate()
@@ -578,7 +581,7 @@ class StarterManager:
     def kill_instance(self):
         """kill the instance of this starter
         (it won't kill its managed services)"""
-        logging.info("StarterManager: Killing: %s", str(self.arguments))
+        logging.info("StarterManager: Killing: %s", str(self.default_starter_args + self.arguments))
         self.instance.kill()
         try:
             logging.info(str(self.instance.wait(timeout=45)))
@@ -600,6 +603,7 @@ class StarterManager:
         """
         # On windows the install prefix may change,
         # since we can't overwrite open files:
+        self.default_starter_args = new_install_cfg.default_starter_args.copy()
         self.enterprise = new_install_cfg.enterprise
         self.replace_binary_setup_for_upgrade(new_install_cfg)
         with step("kill the starter processes of the old version"):
@@ -788,7 +792,13 @@ class StarterManager:
         restart the starter instance after we killed it eventually,
         maybe command manual upgrade (and wait for exit)
         """
-        args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.arguments + moreargs
+        args = (
+            [self.cfg.bin_dir / "arangodb"]
+            + self.hotbackup_args
+            + self.default_starter_args
+            + self.arguments
+            + moreargs
+        )
 
         assert version is not None
         # Remove it if it is not needed
@@ -1149,7 +1159,7 @@ class StarterManager:
     def search_for_warnings(self):
         """dump out instance args, and what could be fishy in my log"""
         log = str()
-        print(self.arguments)
+        print(self.default_starter_args + self.arguments)
         if not self.log_file.exists():
             print(str(self.log_file) + " not there. Skipping search")
             return
