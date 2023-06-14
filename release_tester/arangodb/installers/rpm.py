@@ -124,7 +124,7 @@ class InstallerRPM(InstallerLinux):
         # https://access.redhat.com/solutions/1189
         cmd = "rpm --upgrade " + str(self.cfg.package_dir / self.server_package)
         lh.log_cmd(cmd)
-        server_upgrade = pexpect.spawnu(cmd)
+        server_upgrade = pexpect.spawnu(cmd, timeout=60)
         server_upgrade.logfile = sys.stdout
 
         try:
@@ -179,7 +179,7 @@ class InstallerRPM(InstallerLinux):
 
         cmd = "rpm " + "-i " + str(package)
         lh.log_cmd(cmd)
-        server_install = pexpect.spawnu(cmd)
+        server_install = pexpect.spawnu(cmd, timeout=60)
         server_install.logfile = sys.stdout
         reply = None
 
@@ -231,7 +231,7 @@ class InstallerRPM(InstallerLinux):
 
         self.cfg.passvoid = "RPM_passvoid_%d" % os.getpid()
         lh.log_cmd("/usr/sbin/arango-secure-installation")
-        with pexpect.spawnu("/usr/sbin/arango-secure-installation") as etpw:
+        with pexpect.spawnu("/usr/sbin/arango-secure-installation", timeout=60) as etpw:
             etpw.logfile = sys.stdout
             result = None
             try:
@@ -293,7 +293,7 @@ class InstallerRPM(InstallerLinux):
             option = "--install"
         cmd = f"rpm {option} {package}"
         lh.log_cmd(cmd)
-        install = pexpect.spawnu(cmd)
+        install = pexpect.spawnu(cmd, timeout=60)
         install.logfile = sys.stdout
         try:
             logging.info("waiting for the installation to finish")
@@ -328,7 +328,7 @@ class InstallerRPM(InstallerLinux):
     def un_install_package(self, package_name: str):
         """Uninstall package"""
         print('uninstalling rpm package "%s"' % package_name)
-        uninstall = pexpect.spawnu("rpm -e " + package_name)
+        uninstall = pexpect.spawnu("rpm -e " + package_name, timeout=60)
         uninstall.logfile = sys.stdout
         try:
             uninstall.expect(pexpect.EOF, timeout=30)
