@@ -101,6 +101,7 @@ class Instance(ABC):
         self.ssl = ssl
         self.version = version
         self.enterprise = enterprise
+        self.logfiles = []
 
         logging.debug("creating {0.type_str} instance: {0.name}".format(self))
 
@@ -241,12 +242,16 @@ class Instance(ABC):
     @step
     def rename_logfile(self, suffix=".old"):
         """to ease further analysis, move old logfile out of our way"""
+        number = len(self.logfiles) + 1
         logfile = str(self.logfile)
-        new_logfile = Path(logfile + suffix)
-        logging.info("renaming instance logfile: %s -> %s", logfile, str(new_logfile))
+        new_logfile = Path(logfile + suffix + "." + str(number))
+        msg = ""
         if new_logfile.exists():
             new_logfile.unlink()
+            msg = "removed old"
+        logging.info("renaming instance logfile: %s -> %s" + msg, logfile, str(new_logfile))
         self.logfile.rename(new_logfile)
+        self.logfiles.append(new_logfile)
 
     @step
     def kill_instance(self):
@@ -361,22 +366,23 @@ class Instance(ABC):
 
     def is_line_relevant(self, line):
         """it returns true if the line from logs should be printed"""
-        return ("FATAL" in line or "ERROR" in line or "WARNING" in line) or "{crash}" in line
+        return "FATAL" in line or "ERROR" in line or "WARNING" in line or "{crash}" in line
 
     def search_for_warnings(self):
         """browse our logfile for warnings and errors"""
         if not self.logfile.exists():
             print(str(self.logfile) + " doesn't exist, skipping.")
             return
-        print(str(self.logfile))
         count = 0
-        with open(self.logfile, errors="backslashreplace", encoding="utf8") as log_fh:
-            for line in log_fh:
-                if self.is_line_relevant(line):
-                    if self.is_suppressed_log_line(line):
-                        count += 1
-                    else:
-                        print(line.rstrip())
+        for logfile in [self.logfile] + self.logfiles:
+            print(str(logfile))
+            with open(logfile, errors="backslashreplace", encoding="utf8") as log_fh:
+                for line in log_fh:
+                    if self.is_line_relevant(line):
+                        if self.is_suppressed_log_line(line):
+                            count += 1
+                        else:
+                            print(line.rstrip())
         if count > 0:
             print(" %d lines suppressed by filters" % count)
 
@@ -608,12 +614,14 @@ class ArangodInstance(Instance):
     def detect_fatal_errors(self):
         """check whether we have FATAL lines in the logfile"""
         fatal_line = None
-        with open(self.logfile, errors="backslashreplace", encoding="utf8") as log_fh:
-            for line in log_fh:
-                if fatal_line is not None:
-                    fatal_line += "\n" + line
-                elif "] FATAL [" in line:
-                    fatal_line = line
+        for logfile in [self.logfile] + self.logfiles:
+            print(str(logfile))
+            with open(logfile, errors="backslashreplace", encoding="utf8") as log_fh:
+                for line in log_fh:
+                    if fatal_line is not None:
+                        fatal_line += "\n" + line
+                    elif "] FATAL [" in line:
+                        fatal_line = line
 
         if fatal_line is not None:
             print("Error: ", fatal_line)
@@ -792,7 +800,7 @@ class SyncInstance(Instance):
         try:
             pidfile = Path(self.instance_arguments[self.instance_arguments.index("--pid-file") + 1])
             if pidfile.exists():
-                pid = int(pidfile.read_text(encoding='utf-8'))
+                pid = int(pidfile.read_text(encoding="utf-8"))
                 for process in psutil.process_iter():
                     if process.ppid() == ppid and process.pid == pid and process.name() == "arangosync":
                         print(f"identified instance by pid file {pid}")
