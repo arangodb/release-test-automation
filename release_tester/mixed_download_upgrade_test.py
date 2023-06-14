@@ -253,7 +253,7 @@ def upgrade_package_test(
     "--run-test-suites/--do-not-run-test-suites",
     "run_test_suites",
     is_flag=True,
-    default=True,
+    default=False,
     help="Run test suites for each version pair.",
 )
 @very_common_options()
