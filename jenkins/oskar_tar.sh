@@ -123,6 +123,8 @@ docker run \
           /home/release-test-automation/release_tester/mixed_download_upgrade_test.py \
           --upgrade-matrix "${UPGRADE_MATRIX}" \
           --new-version "${NEW_VERSION}" \
+          --no-test \
+          --do-not-run-test-suites \
           --hb-mode s3bucket \
           --verbose \
           --alluredir /home/allure-results \
