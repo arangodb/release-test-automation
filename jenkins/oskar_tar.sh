@@ -33,7 +33,7 @@ if test -z "$UPGRADE_MATRIX"; then
 fi
 
 if test -n "$SOURCE"; then
-    force_arg+=(--old-source "$SOURCE" --new-source "$SOURCE")
+    force_arg+=(--other-source "$SOURCE")
 else
     force_arg+=(--remote-host 172.17.4.0)
 fi
