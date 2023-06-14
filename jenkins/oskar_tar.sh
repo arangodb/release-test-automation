@@ -1,4 +1,5 @@
 #!/bin/bash
+set
 cat /proc/sys/kernel/core_pattern
 ARCH="-$(uname -m)"
 
