@@ -81,7 +81,7 @@ class StarterManager:
         # self.moreopts += ["--starter.disable-ipv6=false"]
         # self.moreopts += ["--starter.host=127.0.0.1"]
 
-        #if self.cfg.enterprise:
+        # if self.cfg.enterprise:
         #    self.moreopts += [
         #        "--all.rclone.argument=--log-level=DEBUG",
         #        "--all.rclone.argument=--log-file=@ARANGODB_SERVER_DIR@/rclone.log",
@@ -615,6 +615,8 @@ class StarterManager:
             with step("replace the starter binary with a new one," + " this has not yet spawned any children"):
                 self.respawn_instance(new_install_cfg.version)
                 logging.info("StarterManager: respawned instance as [%s]", str(self.instance.pid))
+        self.arangosh = None
+        self.detect_arangosh_instances(new_install_cfg)
 
     @step
     def kill_specific_instance(self, which_instances):
@@ -1011,7 +1013,7 @@ class StarterManager:
             )
 
         self.show_all_instances()
-        self.detect_arangosh_instances()
+        self.detect_arangosh_instances(self.cfg)
 
     @step
     def detect_fatal_errors(self):
@@ -1020,28 +1022,28 @@ class StarterManager:
             instance.detect_fatal_errors()
 
     @step
-    def detect_arangosh_instances(self):
+    def detect_arangosh_instances(self, config):
         """
         gets the arangosh instance to speak to the frontend of this starter
         """
         if self.arangosh is None:
-            self.cfg.port = self.get_frontend_port()
+            config.port = self.get_frontend_port()
 
-            self.arangosh = ArangoshExecutor(self.cfg, self.get_frontend())
-            self.arango_importer = ArangoImportExecutor(self.cfg, self.get_frontend())
-            self.arango_restore = ArangoRestoreExecutor(self.cfg, self.get_frontend())
-            if self.cfg.hot_backup_supported:
-                self.cfg.passvoid = self.passvoid
+            self.arangosh = ArangoshExecutor(config, self.get_frontend())
+            self.arango_importer = ArangoImportExecutor(config, self.get_frontend())
+            self.arango_restore = ArangoRestoreExecutor(config, self.get_frontend())
+            if config.hot_backup_supported:
+                config.passvoid = self.passvoid
                 self.hb_instance = HotBackupManager(
-                    self.cfg,
+                    config,
                     self.raw_basedir,
-                    self.cfg.base_test_dir / self.raw_basedir,
+                    config.base_test_dir / self.raw_basedir,
                     self.get_frontend(),
                 )
                 self.hb_config = HotBackupConfig(
-                    self.cfg,
+                    config,
                     self.raw_basedir,
-                    self.cfg.base_test_dir / self.raw_basedir,
+                    config.base_test_dir / self.raw_basedir,
                 )
 
     @step
@@ -1259,7 +1261,7 @@ class StarterNonManager(StarterManager):
 
     @step
     def detect_instances(self):
-        self.detect_arangosh_instances()
+        self.detect_arangosh_instances(self.cfg)
 
     @step
     def detect_instance_pids(self):

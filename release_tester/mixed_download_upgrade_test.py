@@ -133,9 +133,7 @@ def upgrade_package_test(
                 )
                 packages[version_name][props.directory_suffix] = res
                 res.get_packages(dl_opts.force)
-
     params = deepcopy(test_driver.cli_test_suite_params)
-
     # STEP 2: Run test for primary version
     if run_test:
         for default_props in EXECUTION_PLAN:
@@ -174,7 +172,6 @@ def upgrade_package_test(
             test_driver.run_cleanup(props)
             test_driver.reset_test_data_dir(this_test_dir)
             print("Cleanup done")
-
             results.append(test_driver.run_upgrade(scenario, props))
 
     upgrade_pairs = []

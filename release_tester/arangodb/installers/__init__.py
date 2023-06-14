@@ -533,9 +533,8 @@ def create_config_installer_set(
     res = []
 
     for one_version in versions:
-        print(str(one_version))
-        zipit = (base_config.zip_package,)
-        srcit = (base_config.src_testing,)
+        zipit = base_config.zip_package
+        srcit = base_config.src_testing
         if str(one_version).find("src") >= 0:
             zipit = False
             srcit = True
@@ -560,7 +559,4 @@ def create_config_installer_set(
         installer = make_installer(install_config)
         installer.calculate_package_names()
         res.append([install_config, installer])
-
-    print(res)
-    # raise Exception('sanoteuh')
     return res

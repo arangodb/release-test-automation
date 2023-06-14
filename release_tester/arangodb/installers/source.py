@@ -143,6 +143,7 @@ class InstallerSource(InstallerArchive):
 
     def upgrade_server_package(self, old_installer):
         """nothing to see here"""
+        self.calculate_installation_dirs()
 
     def check_engine_file(self):
         """nothing to see here"""
