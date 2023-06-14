@@ -285,8 +285,8 @@ def main(**kwargs):
     kwargs['base_config_src'] = InstallerBaseConfig.from_dict(**kwargs)
     dl_opts = DownloadOptions.from_dict(**kwargs)
     # we run either enterprise or community:
-    if kwargs['editions'] != ['C']:
-        kwargs['editions'] = ["EE", "EP"]
+    if len(kwargs['editions']) == 3:
+        kwargs['editions'] = ["EP"]
 
     test_driver = TestDriver(**kwargs)
     if not 'src' in kwargs['new_version']:
