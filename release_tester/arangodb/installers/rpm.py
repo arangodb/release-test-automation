@@ -57,16 +57,16 @@ class InstallerRPM(InstallerLinux):
             semdict["prerelease"] = ""
         elif prerelease.startswith("alpha"):
             semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
-            semdict["build"] = "0.10" + prerelease.replace("alpha.", "")
+            semdict["build"] = "0.101"
         elif prerelease.startswith("beta"):
             semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
-            semdict["build"] = "0.20" + prerelease.replace("beta.", "")
+            semdict["build"] = "0.201"
         elif prerelease.startswith("rc"):
             # remove dots, but prepend one:
             semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
-            semdict["build"] = "0.50" + prerelease.replace("rc.", "")
+            semdict["build"] = "0.501"
         elif len(prerelease) > 0:
-            semdict["build"] = "1." + semdict["prerelease"]
+            semdict["build"] = semdict["prerelease"]
             semdict["prerelease"] = ""
             # remove dots, but prepend one:
             # once was: semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
@@ -124,7 +124,7 @@ class InstallerRPM(InstallerLinux):
         # https://access.redhat.com/solutions/1189
         cmd = "rpm --upgrade " + str(self.cfg.package_dir / self.server_package)
         lh.log_cmd(cmd)
-        server_upgrade = pexpect.spawnu(cmd, timeout=60)
+        server_upgrade = pexpect.spawnu(cmd)
         server_upgrade.logfile = sys.stdout
 
         try:
@@ -135,21 +135,14 @@ class InstallerRPM(InstallerLinux):
             )
             print(server_upgrade.before)
         except pexpect.exceptions.EOF as exc:
-            lh.line("X EOF")
+            lh.line("X")
             ascii_print(server_upgrade.before)
             lh.line("X")
             print("exception : " + str(exc))
             lh.line("X")
             logging.error("Upgrade failed!")
             raise exc
-        except pexpect.exceptions.TIMEOUT as exc:
-            lh.line("X Timeout:")
-            ascii_print(server_upgrade.before)
-            lh.line("X")
-            print("exception : " + str(exc))
-            lh.line("X")
-            logging.error("Upgrade failed!")
-            raise exc
+
         logging.debug("found: upgrade message")
 
         logging.info("waiting for the upgrade to finish")
@@ -179,7 +172,7 @@ class InstallerRPM(InstallerLinux):
 
         cmd = "rpm " + "-i " + str(package)
         lh.log_cmd(cmd)
-        server_install = pexpect.spawnu(cmd, timeout=60)
+        server_install = pexpect.spawnu(cmd)
         server_install.logfile = sys.stdout
         reply = None
 
@@ -189,22 +182,10 @@ class InstallerRPM(InstallerLinux):
             server_install.expect(pexpect.EOF, timeout=60)
             reply = server_install.before
             ascii_print(reply)
-        except pexpect.exceptions.EOF as exc:
-            lh.line("I EOF")
+        except pexpect.exceptions.EOF as ex:
             ascii_print(server_install.before)
-            lh.line("I")
-            print("exception : " + str(exc))
-            lh.line("I")
-            logging.error("RPM install failed!")
-            raise exc
-        except pexpect.exceptions.TIMEOUT as exc:
-            lh.line("X Timeout:")
-            ascii_print(server_install.before)
-            lh.line("X")
-            print("exception : " + str(exc))
-            lh.line("X")
-            logging.error("RPM install failed!")
-            raise exc
+            logging.info("Installation failed!")
+            raise ex
 
         while server_install.isalive():
             progress(".")
@@ -231,7 +212,7 @@ class InstallerRPM(InstallerLinux):
 
         self.cfg.passvoid = "RPM_passvoid_%d" % os.getpid()
         lh.log_cmd("/usr/sbin/arango-secure-installation")
-        with pexpect.spawnu("/usr/sbin/arango-secure-installation", timeout=60) as etpw:
+        with pexpect.spawnu("/usr/sbin/arango-secure-installation") as etpw:
             etpw.logfile = sys.stdout
             result = None
             try:
@@ -277,7 +258,7 @@ class InstallerRPM(InstallerLinux):
 
     @step
     def un_install_server_package_impl(self):
-        """uninstall the server package"""
+        """ uninstall the server package """
         self.stop_service()
         cmd = ["rpm", "-e", "arangodb3" + ("e" if self.cfg.enterprise else "")]
         lh.log_cmd(cmd)
@@ -293,7 +274,7 @@ class InstallerRPM(InstallerLinux):
             option = "--install"
         cmd = f"rpm {option} {package}"
         lh.log_cmd(cmd)
-        install = pexpect.spawnu(cmd, timeout=60)
+        install = pexpect.spawnu(cmd)
         install.logfile = sys.stdout
         try:
             logging.info("waiting for the installation to finish")
@@ -328,7 +309,7 @@ class InstallerRPM(InstallerLinux):
     def un_install_package(self, package_name: str):
         """Uninstall package"""
         print('uninstalling rpm package "%s"' % package_name)
-        uninstall = pexpect.spawnu("rpm -e " + package_name, timeout=60)
+        uninstall = pexpect.spawnu("rpm -e " + package_name)
         uninstall.logfile = sys.stdout
         try:
             uninstall.expect(pexpect.EOF, timeout=30)

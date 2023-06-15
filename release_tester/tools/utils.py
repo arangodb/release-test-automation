@@ -2,7 +2,7 @@
 import re
 import semver
 
-COLUMN_CACHE_ARGUMENT = "--args.all.arangosearch.columns-cache-limit=10000"
+COLUMN_CACHE_ARGUMENT = "--args.all.arangosearch.columns-cache-limit=5000"
 
 def extract_version(version_str):
     match = re.match(r"\w+\[(.+)\]", version_str)

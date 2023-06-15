@@ -125,8 +125,8 @@ while (true) {{
   }}
   internal.wait(0.5, false);
 }}
-            """,
-            ),
+            """
+                ),
         }
 
     def starter_prepare_env_impl(self):
@@ -186,9 +186,10 @@ while (true) {{
 
     @step
     def check_data_impl_sh(self, arangosh, supports_foxx_tests):
-        """we want to see stuff is in sync!"""
+        """ we want to see stuff is in sync! """
         print("Checking whether the follower has caught up")
-        if not self.leader_starter_instance.execute_frontend(self.checks["waitForReplState"]):
+        if not self.leader_starter_instance.execute_frontend(
+                self.checks["waitForReplState"]):
             raise Exception("the follower would not catch up in time!")
         super().check_data_impl_sh(arangosh, supports_foxx_tests)
 
@@ -314,12 +315,19 @@ process.exit(0);
             print("launch")
             node.manually_launch_instances(
                 [InstanceType.SINGLE],
-                ["--database.auto-upgrade", "true", "--javascript.copy-installation", "true"],
+                [
+                    "--database.auto-upgrade",
+                    "true",
+                    "--javascript.copy-installation",
+                    "true"
+                ],
             )
         self.progress(True, "step 3 - launch instances again")
         version = self.new_cfg.version if self.new_cfg is not None else self.cfg.version
         for node in instances:
             node.respawn_instance(version)
+        self.progress(True, "step 4 - detect system state")
+        for node in instances:
             node.detect_instances()
             node.wait_for_version_reply()
         if self.selenium:

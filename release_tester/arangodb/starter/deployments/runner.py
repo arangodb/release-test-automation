@@ -63,7 +63,8 @@ def remove_node_x_from_json(starter_dir):
     """remove node X from setup.json"""
     path_to_cfg = Path(starter_dir, "setup.json")
     content = {}
-    with open(path_to_cfg, "r", encoding="utf-8") as setup_file:
+    # pylint: disable=unspecified-encoding
+    with open(path_to_cfg, "r") as setup_file:
         content = json.load(setup_file)
         peers = []
         reg_exp = re.compile(r"^.*\/nodeX$")
@@ -73,7 +74,8 @@ def remove_node_x_from_json(starter_dir):
                 peers.append(peer)
         content["peers"]["Peers"] = peers  # update 'peers' array
 
-    with open(path_to_cfg, "w", encoding="utf-8") as setup_file:
+    # pylint: disable=unspecified-encoding
+    with open(path_to_cfg, "w") as setup_file:
         json.dump(content, setup_file)
 
 
@@ -278,7 +280,7 @@ class Runner(ABC):
             detect_file_ulimit()
 
         versions_count = len(self.installers)
-        is_single_test = versions_count == 1
+        is_single_test = True if versions_count == 1 else False
         bound = 1 if is_single_test else versions_count - 1
 
         for i in range(0, bound):
@@ -291,8 +293,8 @@ class Runner(ABC):
                 self.new_installer = self.installers[i + 1][1]
                 self.new_cfg = copy.deepcopy(self.new_installer.cfg)
 
-            is_keep_db_dir = i != bound - 1
-            is_uninstall_now = i == bound - 1
+            is_keep_db_dir = True if i != bound - 1 else False
+            is_uninstall_now = True if i == bound - 1 else False
 
             self.progress(False, "Runner of type {0}".format(str(self.name)), "<3")
 
@@ -800,13 +802,6 @@ class Runner(ABC):
         """HotBackup has happened, prepare the SUT to continue testing"""
         self.progress(True, "{0} - preparing SUT for tests after HotBackup".format(str(self.name)))
         self.after_backup_impl()
-        for starter in self.makedata_instances:
-            if not starter.is_leader:
-                continue
-            assert starter.arangosh, "check after backup: this starter doesn't have an arangosh!"
-            arangosh = starter.arangosh
-            return arangosh.hotbackup_wait_for_ready_after_restore()
-        raise Exception("no frontend found.")
 
     @abstractmethod
     def after_backup_impl(self):
@@ -899,7 +894,7 @@ class Runner(ABC):
 
     @step
     def zip_test_dir(self):
-        """💾 store the test directory for later analysis"""
+        """stores the test directory for later analysis"""
         build_number = os.environ.get("BUILD_NUMBER")
         if build_number:
             build_number = "_" + build_number
@@ -986,11 +981,14 @@ class Runner(ABC):
     @step
     def agency_get_leader_starter_instance(self):
         """get the starter instance that manages the current agency leader"""
+        agency = []
+        for starter_mgr in self.starter_instances:
+            agency += starter_mgr.get_agents()
         leader = None
         leading_date = datetime.datetime(1970, 1, 1, 0, 0, 0)
         for starter_mgr in self.starter_instances:
-            agents = starter_mgr.get_agents()
-            for agent in agents:
+            agency = starter_mgr.get_agents()
+            for agent in agency:
                 agent_leading_date = agent.search_for_agent_serving()
                 if agent_leading_date > leading_date:
                     leading_date = agent_leading_date
