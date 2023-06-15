@@ -65,7 +65,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             self.cfg.bin_dir / "arangosync", args, params=params, progressive_timeout=60, deadline=360
         )
 
-        "Database.*Collection.*Shard.*Duration"
+        # "Database.*Collection.*Shard.*Duration"
         return expect_failure(False, ret, params)
 
     @step
@@ -101,6 +101,11 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         ret = self.run_monitored(
             self.cfg.bin_dir / "arangosync", args, params=params, progressive_timeout=timeout, deadline=deadline
         )
+        if ret["rc_exit"] != 0:
+            print("trying to stop a second time:")
+            ret = self.run_monitored(
+                self.cfg.bin_dir / "arangosync", args, params=params, progressive_timeout=timeout, deadline=deadline
+            )
         return expect_failure(False, ret, params)
 
     @step
@@ -109,6 +114,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         args = [
             "abort",
             "sync",
+            "--timeout=5m",
             "--master.endpoint=https://{url}:{port}".format(url=self.cfg.publicip, port=str(self.clusterports[0])),
             "--auth.keyfile=" + str(self.certificate_auth["clientkeyfile"]),
         ]
@@ -133,12 +139,13 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             "--master.endpoint=https://{url}:{port}".format(url=self.cfg.publicip, port=str(self.clusterports[0])),
             "--auth.keyfile=" + str(self.certificate_auth["clientkeyfile"]),
         ]
-        logging.info("SyncManager: checking sync consistency: %s", str(args))
+        bin_path = self.cfg.bin_dir / "arangosync"
+        logging.info("SyncManager: checking sync consistency: %s %s.",  bin_path, str(args))
         params = make_default_params(self.cfg.verbose)
         try:
             params = make_default_params(self.cfg.verbose)
             ret = self.run_monitored(
-                executeable=self.cfg.bin_dir / "arangosync",
+                executeable=bin_path,
                 args=args,
                 params=params,
                 progressive_timeout=60,
@@ -156,7 +163,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
 
     @step
     def reset_failed_shard(self, database, collection):
-        """run the check sync command"""
+        """run the reset failed shard command"""
         if self.version < semver.VersionInfo.parse("1.0.0"):
             logging.warning("SyncManager: checking sync consistency: available since 1.0.0 of arangosync")
             return True

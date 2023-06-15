@@ -34,7 +34,11 @@ def main(**kwargs):
     kwargs['stress_upgrade'] = False
     kwargs['publicip'] = "127.0.0.1"
 
+    kwargs['hb_mode'] = "disabled"
+    kwargs['hb_provider'] = ""
+    kwargs['hb_storage_path_prefix'] = ""
     kwargs['hb_cli_cfg'] = HotBackupCliCfg("disabled","","","","","","")
+
     kwargs['test'] = ''
     kwargs['base_config'] = InstallerBaseConfig.from_dict(**kwargs)
 
@@ -50,20 +54,21 @@ def main(**kwargs):
         f'mkdir -p {kwargs["upload_path"]}'
     ])
 
-    for com_ep in [True, False]:
-        downloader = Download(
-            options=dl_opts,
-            hb_cli_cfg=kwargs['hb_cli_cfg'],
-            version=kwargs['new_version'],
-            enterprise=com_ep,
-            zip_package=kwargs['zip_package'],
-            src_testing=kwargs['src_testing'],
-            source=kwargs['source'],
-            force_arch=kwargs['force_arch'],
-            force_os=kwargs['force_os'])
-        packages = downloader.get_packages(kwargs['force'])
-        print(packages)
-        client.bulk_upload(packages)
+    for zipit in [True, False]:
+        for com_ep in [True, False]:
+            downloader = Download(
+                options=dl_opts,
+                hb_cli_cfg=kwargs['hb_cli_cfg'],
+                version=kwargs['new_version'],
+                enterprise=com_ep,
+                zip_package=zipit,
+                src_testing=kwargs['src_testing'],
+                source=kwargs['source'],
+                force_arch=kwargs['force_arch'],
+                force_os=kwargs['force_os'])
+            packages = downloader.get_packages(kwargs['force'])
+            print(packages)
+            client.bulk_upload(packages)
     # client.disconnect()
 
 
