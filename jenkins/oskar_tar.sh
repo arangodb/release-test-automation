@@ -90,6 +90,13 @@ docker run -d \
   -e "MINIO_ROOT_PASSWORD=minio123" \
   quay.io/minio/minio server /data --console-address ":9001"
 
+ALLURE_DIR="$(pwd)/allure-results"
+if test -n "$WORKSPACE"; then
+    ALLURE_DIR="${WORKSPACE}/allure-results"
+fi
+if test ! -d "${ALLURE_DIR}"; then 
+    mkdir -p "${ALLURE_DIR}"
+fi
 
 # we need --init since our upgrade leans on zombies not happening:
 docker run \
@@ -97,7 +104,7 @@ docker run \
        -v "$(pwd)/../../:/oskar" \
        -v "$(pwd):/home/release-test-automation" \
        -v "$(pwd)/test_dir:/home/test_dir" \
-       -v "$(pwd)/allure-results:/home/allure-results" \
+       -v "$ALLURE_DIR:/home/allure-results" \
        -v "${PACKAGE_CACHE}:/home/release-test-automation/package_cache" \
        -v /tmp/tmp:/tmp/ \
        -v /dev/shm:/dev/shm \
