@@ -375,6 +375,28 @@ def download_options(default_source="public", double_source=False, other_source=
     return inner_func
 
 
+def matrix_options(function):
+    """these are options available in scripts running upgrade matrices"""
+    function = click.option(
+        "--upgrade-matrix", default="", help="list of upgrade operations ala '3.6.15:3.7.15;3.7.14:3.7.15;3.7.15:3.8.1'"
+    )(function)
+    function = click.option(
+        "--test/--no-test",
+        "run_test",
+        is_flag=True,
+        default=True,
+        help="Run clean installation test for primary version.",
+    )(function)
+    function = click.option(
+        "--run-test-suites/--do-not-run-test-suites",
+        "run_test_suites",
+        is_flag=True,
+        default=False,
+        help="Run test suites for each version pair.",
+    )(function)
+    return function
+
+
 def full_common_options(function):
     """full test/& upgrade options"""
     function = click.option(
