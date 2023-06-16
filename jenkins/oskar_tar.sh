@@ -85,7 +85,7 @@ docker run -d \
   -p 9001:9001 \
   --network=minio-bridge \
   --name minio1 \
-  -v $(pwd)/test_dir/miniodata:/data \
+  -v "$(pwd)/test_dir/miniodata:/data" \
   -e "MINIO_ROOT_USER=minio" \
   -e "MINIO_ROOT_PASSWORD=minio123" \
   quay.io/minio/minio server /data --console-address ":9001"
@@ -146,7 +146,7 @@ result=$?
 docker run \
        -v "$(pwd)/test_dir:/home/test_dir" \
        -v "$ALLURE_DIR:/home/allure-results" \
-       -v $(pwd)/test_dir/miniodata:/data \
+       -v "$(pwd)/test_dir/miniodata:/data" \
        --rm \
        "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}" \
        chown -R "$(id -u):$(id -g)" /home/test_dir /home/allure-results /data/*
@@ -157,11 +157,11 @@ docker run \
        "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}" \
        rm -f /tmp/config.yml 
 
-if [ `ls -1 $(pwd)/test_dir/core* 2>/dev/null | wc -l ` -gt 0 ]; then
+if [ `ls -1 "$(pwd)/test_dir/core"* 2>/dev/null | wc -l ` -gt 0 ]; then
     7z a coredumps $(pwd)/test_dir/core*
-    printf "\nCoredumps found after testrun:\n $(ls -l $(pwd)/test_dir/core*)\n" >> $(pwd)/test_dir/testfailures.txt
-    rm -f $(pwd)/test_dir/core*
-    mv coredumps.7z $(pwd)/test_dir/
+    printf "\nCoredumps found after testrun:\n $(ls -l "$(pwd)/test_dir/core"*)\n" >> "$(pwd)/test_dir/testfailures.txt"
+    rm -f "$(pwd)/test_dir/core"*
+    mv coredumps.7z "$(pwd)/test_dir/"
     echo "FAILED BY COREDUMP FOUND!"
     exit 1
 fi
