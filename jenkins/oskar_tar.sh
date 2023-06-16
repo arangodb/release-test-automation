@@ -145,7 +145,7 @@ result=$?
 # Cleanup ownership:
 docker run \
        -v "$(pwd)/test_dir:/home/test_dir" \
-       -v "$(pwd)/allure-results:/home/allure-results" \
+       -v "$ALLURE_DIR:/home/allure-results" \
        -v $(pwd)/test_dir/miniodata:/data \
        --rm \
        "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}" \
