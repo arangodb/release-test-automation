@@ -94,6 +94,7 @@ def upgrade_package_test(
 
     upgrade_scenarios = []
     packages = {}
+    map_versions = {}
 
     # STEP 1: Prepare. Download all required packages for current launch
     for v_sequence in upgrade_matrix.split(";"):
@@ -103,7 +104,7 @@ def upgrade_package_test(
             print(version_name)
             if version_name in packages:
                 continue
-            packages[version_name] = {}
+            ver = {}
             for default_props in EXECUTION_PLAN:
                 props = copy(default_props)
                 if props.directory_suffix not in editions:
@@ -111,7 +112,7 @@ def upgrade_package_test(
                 props.testrun_name = "test_" + props.testrun_name
                 if version_name == primary_version:
                     print("skipping source package download")
-                    packages[version_name][props.directory_suffix] = DownloadDummy(
+                    ver[props.directory_suffix] = DownloadDummy(
                         dl_opts,
                         test_driver.base_config.hb_cli_cfg,
                         version_name,
@@ -138,8 +139,14 @@ def upgrade_package_test(
                     fresh_versions,
                     git_version,
                 )
-                packages[version_name][props.directory_suffix] = res
+                new_version_name = str(res.cfg.version)
+                if version_name != new_version_name:
+                    map_versions[version_name] = new_version_name
+                    print(f"mapping {version_name} to {new_version_name}")
+                    version_name = new_version_name
+                ver[props.directory_suffix] = res
                 res.get_packages(dl_opts.force)
+            packages[version_name] = res
     params = deepcopy(test_driver.cli_test_suite_params)
     # STEP 2: Run test for primary version
     if run_test:
@@ -157,7 +164,6 @@ def upgrade_package_test(
 
             this_test_dir = test_dir / props.directory_suffix
             test_driver.reset_test_data_dir(this_test_dir)
-
             results.append(
                 test_driver.run_test(
                     "all",
@@ -169,16 +175,18 @@ def upgrade_package_test(
 
     # STEP 3: Run upgrade tests
     for scenario in upgrade_scenarios:
-
         for props in EXECUTION_PLAN:
             if props.directory_suffix not in editions:
                 continue
-
             this_test_dir = test_dir / props.directory_suffix
             print("Cleaning up" + props.testrun_name)
             test_driver.run_cleanup(props)
             test_driver.reset_test_data_dir(this_test_dir)
             print("Cleanup done")
+            for i in [0, 1]:
+                if scenario[i] in map_versions:
+                    print(f"remapping {scenario[i]} to {map_versions[scenario[i]]}!")
+                    scenario[i] = map_versions[scenario[i]]
             results.append(test_driver.run_upgrade(scenario, props))
 
     upgrade_pairs = []
@@ -186,6 +194,12 @@ def upgrade_package_test(
         for i in range(len(scenario) - 1):
             old_version = scenario[i]
             new_version = scenario[i + 1]
+            if old_version in map_versions:
+                print(f"remapping {old_version} to {map_versions[old_version]}!")
+                old_version = map_versions[old_version]
+            if new_version in map_versions:
+                print(f"remapping {new_version} to {map_versions[new_version]}!")
+                new_version = map_versions[new_version]
             pair = [new_version, old_version]
             if pair not in upgrade_pairs:
                 upgrade_pairs.append(pair)
