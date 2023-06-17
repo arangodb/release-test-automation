@@ -1028,12 +1028,11 @@ class StarterManager:
         """
         if self.arangosh is None:
             config.port = self.get_frontend_port()
-
+            config.passvoid = self.passvoid
             self.arangosh = ArangoshExecutor(config, self.get_frontend())
             self.arango_importer = ArangoImportExecutor(config, self.get_frontend())
             self.arango_restore = ArangoRestoreExecutor(config, self.get_frontend())
             if config.hot_backup_supported:
-                config.passvoid = self.passvoid
                 self.hb_instance = HotBackupManager(
                     config,
                     self.raw_basedir,
