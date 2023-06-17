@@ -76,7 +76,7 @@ class InstallerZip(InstallerArchive, InstallerWin):
         self.cfg.log_dir = self.cfg.install_prefix  # n/A
 
     def calculate_installation_dirs(self):
-        self.cfg.bin_dir = self.test_dir.install_prefix / "usr" / "bin"
-        self.cfg.sbin_dir = self.test_dir.install_prefix / "usr" / "bin"
-        self.cfg.real_bin_dir = self.test_dir.bin_dir
-        self.cfg.real_sbin_dir = self.test_dir.sbin_dir
+        self.cfg.bin_dir = self.test_dir / "usr" / "bin"
+        self.cfg.sbin_dir = self.test_dir / "usr" / "bin"
+        self.cfg.real_bin_dir = self.cfg.bin_dir
+        self.cfg.real_sbin_dir = self.cfg.sbin_dir
