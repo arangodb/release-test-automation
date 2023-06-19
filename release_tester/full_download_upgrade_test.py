@@ -191,7 +191,7 @@ def upgrade_package_test(
 
 @click.command()
 @full_common_options
-@matrix_options
+@matrix_options()
 @very_common_options()
 @hotbackup_options()
 @common_options(

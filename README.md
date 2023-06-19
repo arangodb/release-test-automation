@@ -334,7 +334,7 @@ Supported Parameters:
  - `--upgrade-matrix list` specify a list of upgrades to run. For all other versions, `--other-source` will
    be used to specify the download source. The list is specified in the format of: (without blanks)
      `first-From : first-To ; second-From : second-To`
- - `--test/--no-test` specify whether to run clean installation tests on the new version(default: yes)
+ - `--test/--no-test` specify whether to run clean installation tests on the new version(default = True)
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--enterprise-magic` specify your secret enterprise download key here.
@@ -402,7 +402,7 @@ Supported Parameters:
  - `--upgrade-matrix list` specify a list of upgrades to run. For all other versions, `--other-source` will
    be used to specify the download source. The list is specified in the format of: (without blanks)
      `first-From : first-To ; second-From : second-To`
- - `--test/--no-test` specify whether to run clean installation tests on the new version(default: yes)
+ - `--test/--no-test` specify whether to run clean installation tests on the new version(default = False)
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--enterprise-magic` specify your secret enterprise download key here.

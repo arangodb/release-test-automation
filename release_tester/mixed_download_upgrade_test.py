@@ -27,7 +27,7 @@ from write_result_table import write_table
 class DownloadDummy:
     """mimic download class interface for source directory"""
 
-    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=dangerous-default-value
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=dangerous-default-value disable=unused-argument disable=too-few-public-methods
     def __init__(
         self,
         options: DownloadOptions,
@@ -260,7 +260,7 @@ def upgrade_package_test(
 
 @click.command()
 @full_common_options
-@matrix_options
+@matrix_options(test_default_value=False, test_suites_default_value=False)
 @very_common_options()
 @hotbackup_options()
 @common_options(
