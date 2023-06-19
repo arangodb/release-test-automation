@@ -62,6 +62,6 @@ class LicenseManagerLeaderFollowerBaseTestSuite(LicenseManagerBaseTestSuite):
         self.runner.starter_prepare_env()
         self.runner.starter_run()
         self.runner.finish_setup()
-        self.runner.leader_starter_instance.detect_arangosh_instances()
-        self.runner.follower_starter_instance.detect_arangosh_instances()
+        self.runner.leader_starter_instance.detect_arangosh_instances(self.runner.leader_starter_instance.cfg)
+        self.runner.follower_starter_instance.detect_arangosh_instances(self.runner.follower_starter_instance.cfg)
         self.starter = self.runner.leader_starter_instance

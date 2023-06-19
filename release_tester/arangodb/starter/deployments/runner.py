@@ -722,7 +722,6 @@ class Runner(ABC):
         args = []
         if self.min_replication_factor:
             args += ["--minReplicationFactor", str(self.min_replication_factor)]
-
         for starter in self.makedata_instances:
             assert starter.arangosh, "make: this starter doesn't have an arangosh!"
             arangosh = starter.arangosh

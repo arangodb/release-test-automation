@@ -484,7 +484,7 @@ class InstallerBase(ABC):
     def output_arangod_version(self):
         """document the output of arangod --version"""
         return self.cli_executor.run_monitored(
-            executeable=self.cfg.sbin_dir / "arangod",
+            executeable=self.cfg.real_sbin_dir / "arangod",
             args=["--version"],
             params=make_default_params(True),
             deadline=10,
@@ -838,6 +838,7 @@ class InstallerArchive(InstallerBase, metaclass=ABCMeta):
     def upgrade_server_package(self, old_installer):
         """Tar installer is the same way we did for installing."""
         self.install_server_package()
+        self.calculate_installation_dirs()
 
     @abstractmethod
     def calculate_installation_dirs(self):
