@@ -43,7 +43,7 @@ class LicenseManagerSingleServerBaseTestSuite(LicenseManagerBaseTestSuite):
         self.runner.starter_prepare_env()
         self.runner.starter_run()
         self.runner.finish_setup()
-        self.runner.starter_instance.detect_arangosh_instances(self.runner.starter_instance, self.cfg.version)
+        self.runner.starter_instance.detect_arangosh_instances(self.runner.starter_instance, self.runner.cfg.version)
         self.starter = self.runner.starter_instance
 
     # pylint: disable=consider-using-with
