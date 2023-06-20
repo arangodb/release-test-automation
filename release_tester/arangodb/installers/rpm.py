@@ -218,7 +218,7 @@ class InstallerRPM(InstallerLinux):
         self.start_service()
         self.instance.detect_pid(1)  # should be owned by init
 
-        pwcheckarangosh = ArangoshExecutor(self.cfg, self.instance)
+        pwcheckarangosh = ArangoshExecutor(self.cfg, self.instance, self.cfg.version)
         if not pwcheckarangosh.js_version_check():
             logging.error(
                 "Version Check failed - probably setting the default random password didn't work! %s",

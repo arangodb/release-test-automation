@@ -527,7 +527,7 @@ class Runner(ABC):
         if inst.check_service_up():
             inst.stop_service()
         inst.start_service()
-        sys_arangosh = ArangoshExecutor(inst.cfg, inst.instance)
+        sys_arangosh = ArangoshExecutor(inst.cfg, inst.instance, self.cfg.version)
 
         logging.debug("self test after installation")
         if inst.cfg.have_system_service:
@@ -722,7 +722,6 @@ class Runner(ABC):
         args = []
         if self.min_replication_factor:
             args += ["--minReplicationFactor", str(self.min_replication_factor)]
-
         for starter in self.makedata_instances:
             assert starter.arangosh, "make: this starter doesn't have an arangosh!"
             arangosh = starter.arangosh
