@@ -189,7 +189,8 @@ class TestDriver:
             print("Cannot uninstall package without config.yml!")
         inst.cleanup_system()
 
-    # pylint: disable=too-many-arguments disable=too-many-locals, disable=broad-except, disable=too-many-branches, disable=too-many-statements
+    # pylint: disable=too-many-arguments disable=too-many-locals,
+    # pylint: disable=broad-except, disable=too-many-branches, disable=too-many-statements
     def run_upgrade(self, versions: list, run_props: RunProperties):
         """execute upgrade tests"""
         lh.section("startup")

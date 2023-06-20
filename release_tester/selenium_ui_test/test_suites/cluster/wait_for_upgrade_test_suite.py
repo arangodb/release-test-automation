@@ -27,7 +27,7 @@ class ClusterWaitForUpgradeTestSuite(BaseSeleniumTestSuite):
         while not upgrade_done:
             table = []
             try:
-                table = NodesPage(self.webdriver).cluster_get_nodes_table(300)
+                table = NodesPage(self.webdriver, self.cfg).cluster_get_nodes_table(300)
             except StaleElementReferenceException:
                 self.progress(" skip once")
                 continue

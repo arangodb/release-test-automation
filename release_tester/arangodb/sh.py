@@ -19,9 +19,10 @@ ON_POSIX = "posix" in sys.builtin_module_names
 class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
     """configuration"""
 
-    def __init__(self, config, connect_instance):
+    def __init__(self, config, connect_instance, old_version):
         self.read_only = False
         super().__init__(config, connect_instance)
+        self.old_version = old_version
 
     # pylint: disable=too-many-arguments
     def run_command(self,

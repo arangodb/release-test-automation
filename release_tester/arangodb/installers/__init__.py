@@ -261,6 +261,7 @@ using enterpise: {0.enterprise}
 using encryption at rest: {0.encryption_at_rest}
 using zip: {0.zip_package}
 using source: {0.src_testing}
+using binary dir: {0.real_bin_dir}
 hot backup mode: {0.hot_backup_supported}
 package directory: {0.package_dir}
 test directory: {0.base_test_dir}
@@ -530,15 +531,20 @@ def create_config_installer_set(
     """creates sets of configs and installers"""
     # pylint: disable=too-many-instance-attributes disable=too-many-arguments
     res = []
+
     for one_version in versions:
-        print(str(one_version))
+        zipit = base_config.zip_package
+        srcit = base_config.src_testing
+        if str(one_version).find("src") >= 0:
+            zipit = False
+            srcit = True
         install_config = InstallerConfig(
             str(one_version),
             base_config.verbose,
             run_properties.enterprise,
             run_properties.encryption_at_rest,
-            base_config.zip_package,
-            base_config.src_testing,
+            zipit,
+            srcit,
             base_config.hb_cli_cfg,
             base_config.package_dir,
             base_config.test_data_dir,
