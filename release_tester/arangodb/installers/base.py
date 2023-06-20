@@ -224,6 +224,7 @@ class InstallerBase(ABC):
         self.instance = None
         self.starter_versions = {}
         self.syncer_versions = {}
+        self.rclone_versions = {}
         self.cli_executor = ArangoCLIprogressiveTimeoutExecutor(self.cfg, self.instance)
         self.core_glob = "**/*core"
         self.copy_for_result = True
@@ -749,6 +750,35 @@ class InstallerBase(ABC):
                 self.starter_versions[splitted[0]] = splitted[1]
                 print("Starter version: " + str(self.starter_versions))
         return semver.VersionInfo.parse(self.starter_versions["Version"])
+
+    def get_rclone_version(self):
+        """find out the version of the starter in this package"""
+        if not self.cfg.enterprise:
+            return semver.VersionInfo.parse("0.0.0")
+        if not self.rclone_versions:
+            rclone = self.cfg.real_sbin_dir / ("rclone-arangodb" + FILE_EXTENSION)
+            if not rclone.is_file():
+                print("rclone not found where we searched it? " + str(rclone))
+                return semver.VersionInfo.parse("0.0.0")
+            print(rclone.stat())
+            # print(rclone.owner())
+            # print(rclone.group())
+            print(magic.from_file(str(rclone)))
+            rclone_version_proc = psutil.Popen(
+                [str(rclone), "--version"],
+                stdout=subprocess.PIPE,
+                stdin=subprocess.PIPE,
+                universal_newlines=True,
+            )
+            line = rclone_version_proc.stdout.readline()
+            rclone_version_proc.wait()
+            print(line)
+            string_array = line.split(", ")
+            for one_str in string_array:
+                splitted = one_str.split(" ")
+                self.rclone_versions[splitted[0]] = splitted[1].rstrip()[1:]
+                print("rclone version: " + str(self.rclone_versions))
+        return semver.VersionInfo.parse(self.rclone_versions["rclone"])
 
     def get_sync_version(self):
         """find out the version of the starter in this package"""
