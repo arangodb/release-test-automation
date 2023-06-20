@@ -49,7 +49,7 @@ class InstallerSource(InstallerArchive):
         self.reset_version(self.cfg.version)
         self.check_stripped = False
         self.cfg.have_system_service = False
-        self.arangosh = ArangoshExecutor(self.cfg, self.instance)
+        self.arangosh = ArangoshExecutor(self.cfg, self.instance, self.cfg.version)
         self.copy_for_result = False
         self.hot_backup = self.cfg.enterprise
 

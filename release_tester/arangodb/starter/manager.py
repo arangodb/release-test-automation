@@ -603,6 +603,7 @@ class StarterManager:
         """
         # On windows the install prefix may change,
         # since we can't overwrite open files:
+        old_version = self.cfg.version
         self.default_starter_args = new_install_cfg.default_starter_args.copy()
         self.enterprise = new_install_cfg.enterprise
         self.replace_binary_setup_for_upgrade(new_install_cfg)
@@ -616,7 +617,7 @@ class StarterManager:
                 self.respawn_instance(new_install_cfg.version)
                 logging.info("StarterManager: respawned instance as [%s]", str(self.instance.pid))
         self.arangosh = None
-        self.detect_arangosh_instances(new_install_cfg)
+        self.detect_arangosh_instances(new_install_cfg, old_version)
 
     @step
     def kill_specific_instance(self, which_instances):
@@ -1013,7 +1014,7 @@ class StarterManager:
             )
 
         self.show_all_instances()
-        self.detect_arangosh_instances(self.cfg)
+        self.detect_arangosh_instances(self.cfg, self.cfg.version)
 
     @step
     def detect_fatal_errors(self):
@@ -1022,14 +1023,14 @@ class StarterManager:
             instance.detect_fatal_errors()
 
     @step
-    def detect_arangosh_instances(self, config):
+    def detect_arangosh_instances(self, config, old_version):
         """
         gets the arangosh instance to speak to the frontend of this starter
         """
         if self.arangosh is None:
             config.port = self.get_frontend_port()
             config.passvoid = self.passvoid
-            self.arangosh = ArangoshExecutor(config, self.get_frontend())
+            self.arangosh = ArangoshExecutor(config, self.get_frontend(), old_version)
             self.arango_importer = ArangoImportExecutor(config, self.get_frontend())
             self.arango_restore = ArangoRestoreExecutor(config, self.get_frontend())
             if config.hot_backup_supported:
@@ -1260,7 +1261,7 @@ class StarterNonManager(StarterManager):
 
     @step
     def detect_instances(self):
-        self.detect_arangosh_instances(self.cfg)
+        self.detect_arangosh_instances(self.cfg, self.cfg.version)
 
     @step
     def detect_instance_pids(self):
