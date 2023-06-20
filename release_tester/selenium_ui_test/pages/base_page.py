@@ -558,8 +558,7 @@ class BasePage:
         locator = """//li[contains(@class, 'subMenuEntry')]/a[text()='%s']""" % text
         self.locator_finder_by_xpath(locator).click()
 
-    @staticmethod
-    def progress(arg):
+    def progress(self, arg):
         """state print""" # todo
         print(arg)
 
