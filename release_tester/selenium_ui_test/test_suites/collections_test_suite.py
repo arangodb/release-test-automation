@@ -27,7 +27,6 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
         self.error = None
 
         try:
-            col.create_new_collections('computedValueCol', 0, self.is_cluster)
             col.create_new_collections('TestDoc', 0, self.is_cluster)
             col.create_new_collections('TestEdge', 1, self.is_cluster)
             col.create_new_collections('Test', 0, self.is_cluster)
@@ -85,8 +84,8 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
             self.webdriver.refresh()
             print("Uploading " + col.getting_total_row_count() + " documents to the collection Completed\n")
             print("Selecting size of the displayed\n")
-
-            self.webdriver.back()
+            
+            col.select_collection_page()
 
             col.select_collection("TestDoc")
             col.navigate_to_col_content_tab()
@@ -145,7 +144,7 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
                 col.create_new_index("Fulltext", 3, self.is_cluster)
                 col.create_new_index("TTL", 4, self.is_cluster)
                 
-                if version >= semver.VersionInfo.parse("3.9.0"):
+                if version <= semver.VersionInfo.parse("3.10.99"):
                     if version > semver.VersionInfo.parse("3.9.99"):
                         col.create_new_index('ZKD', 5, self.is_cluster, True)
                     else:

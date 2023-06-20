@@ -279,28 +279,6 @@ class CollectionPage(NavigationBarPage):
 
         self.webdriver.refresh()
 
-    def test_computed_values(self):
-        """ Testing computed value feature for v3.10.x"""
-        self.navbar_goto("collections")
-        print("Selecting computed values collections. \n")
-        col = '//*[@id="collection_computedValueCol"]/div/h5'
-        self.locator_finder_by_xpath(col).click()
-        time.sleep(1)
-
-        print("Selecting computed value tab \n")
-        computed = "//*[contains(text(),'Computed Values')]"
-        self.locator_finder_by_xpath(computed).click()
-        time.sleep(1)
-        
-        # this query will create two different computed values
-        # one for collection doc and one for index values
-        query = '[{"name": "dateCreatedHumanReadable","expression": "RETURN DATE_ISO8601(DATE_NOW())","overwrite": ' \
-                'true,},{"name": "dateCreatedForIndexing","expression": "RETURN DATE_NOW()","overwrite": true,},] '
-
-        query = """[{"name": "dateCreatedHumanReadable","expression": "RETURN DATE_ISO8601(DATE_NOW())","overwrite": true,},{"name": "dateCreatedForIndexing","expression": "RETURN DATE_NOW()","overwrite": true,},]"""
-        
-        self.ace_set_value(query)
-
     def checking_search_options(self, search):
         """Checking search functionality"""
         select_collection_search_sitem = self.locator_finder_by_xpath(self.select_collection_search_id)
@@ -1105,6 +1083,9 @@ class CollectionPage(NavigationBarPage):
         # print('go back to collection tab')
         self.navbar_goto("collections")
         self.select_computedValueCol()
+        
+        self.navigate_to_col_content_tab()
+
         # print('Select add new document to collection button')
         add = '//*[@id="addDocumentButton"]/span/i'
         add_sitem = self.locator_finder_by_xpath(add)
