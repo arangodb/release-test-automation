@@ -893,15 +893,17 @@ class CollectionPage(NavigationBarPage):
                 print("Selecting computed values collections. \n")
                 col = '//*[@id="collection_ComputedValueCol"]/div/h5'
                 self.locator_finder_by_xpath(col).click()
-                time.sleep(1)
                 self.select_index_menu()
+
                 print(f"Creating {index_name} index started \n")
-                create_new_index_btn_sitem = self.locator_finder_by_id(self.create_new_index_btn_id)
+                create_new_index_btn_sitem = self.locator_finder_by_xpath(self.create_new_index_btn_id)
                 create_new_index_btn_sitem.click()
                 time.sleep(2)
 
                 print(f"selecting {index_name} from the list\n")
-                self.locator_finder_by_select(self.select_index_type_id, value)
+                self.locator_finder_by_select(self.select_index_type_id, 5)
+
+                time.sleep(1)
 
                 select_zkd_field_sitem = self.locator_finder_by_id('newZkdFields')
                 select_zkd_field_sitem.click()
