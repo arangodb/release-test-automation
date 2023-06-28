@@ -209,6 +209,7 @@ class InstallerBase(ABC):
         self.arangods = cfg.arangods
         self.machine = platform.machine()
         self.arango_binaries = []
+        self.backup_arangod_name = None
         self.cfg = copy.deepcopy(cfg)
         self.calculate_package_names()
 
@@ -244,13 +245,22 @@ class InstallerBase(ABC):
         self.install_server_package_impl()
         self.cfg.server_package_is_installed = True
         self.calculate_file_locations()
+
+    @step
+    def copy_binaries(self):
+        """store arangod binary for probable later analysis"""
         eps = "E_" if self.cfg.enterprise else ""
-        arangod_name = str(self.cfg.base_test_dir / f"arangod_{eps}_{self.cfg.version}{FILE_EXTENSION}")
+        self.backup_arangod_name = str(self.cfg.base_test_dir / f"arangod_{eps}_{self.cfg.version}{FILE_EXTENSION}")
         arangod_src = str(self.cfg.real_sbin_dir / f"arangod{FILE_EXTENSION}")
-        if not arangod_name in self.arangods:
-            self.arangods.append(arangod_name)
-            print("copying " + arangod_src + " to " + arangod_name)
-            shutil.copy(arangod_src, arangod_name)
+        if not self.backup_arangod_name in self.arangods:
+            self.arangods.append(self.backup_arangod_name)
+            print("copying " + arangod_src + " to " + self.backup_arangod_name)
+            shutil.copy(arangod_src, self.backup_arangod_name)
+
+    @step
+    def get_arangod_binary(self, target_dir):
+        """adding arangod binary to report tarball"""
+        shutil.copy(self.backup_arangod_name, target_dir)
 
     @step
     def un_install_server_package(self):
