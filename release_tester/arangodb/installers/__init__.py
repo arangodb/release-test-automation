@@ -193,6 +193,7 @@ class InstallerConfig:
         ssl: bool,
         use_auto_certs: bool,
         test: str,
+        arangods: list,
     ):
         self.publicip = publicip
         self.interactive = interactive
@@ -253,6 +254,7 @@ class InstallerConfig:
             self.enterprise and not IS_WINDOWS and self.hb_provider_cfg.mode != HotBackupMode.DISABLED
         )
         self.test = test
+        self.arangods = arangods
 
     def __repr__(self):
         return """
@@ -555,6 +557,7 @@ def create_config_installer_set(
             run_properties.ssl,
             use_auto_certs,
             base_config.test,
+            base_config.arangods,
         )
         installer = make_installer(install_config)
         installer.calculate_package_names()

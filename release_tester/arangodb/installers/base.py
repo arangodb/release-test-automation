@@ -206,6 +206,7 @@ class InstallerBase(ABC):
     installer_type: str
 
     def __init__(self, cfg: InstallerConfig):
+        self.arangods = cfg.arangods
         self.machine = platform.machine()
         self.arango_binaries = []
         self.cfg = copy.deepcopy(cfg)
@@ -243,6 +244,13 @@ class InstallerBase(ABC):
         self.install_server_package_impl()
         self.cfg.server_package_is_installed = True
         self.calculate_file_locations()
+        eps = "E_" if self.cfg.enterprise else ""
+        arangod_name = str(self.cfg.base_test_dir / f"arangod_{eps}_{self.cfg.version}{FILE_EXTENSION}")
+        arangod_src = str(self.cfg.real_sbin_dir / f"arangod{FILE_EXTENSION}")
+        if not arangod_name in self.arangods:
+            self.arangods.append(arangod_name)
+            print("copying " + arangod_src + " to " + arangod_name)
+            shutil.copy(arangod_src, arangod_name)
 
     @step
     def un_install_server_package(self):
