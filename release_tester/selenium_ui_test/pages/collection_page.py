@@ -73,16 +73,12 @@ class CollectionPage(NavigationBarPage):
         self.select_collection_delete_btn_id = "deleteSelected"
         self.collection_delete_confirm_btn_id = """//div[@id="modalPlaceholder"]//button[text()="Delete"]"""
         self.collection_really_dlt_btn_id = "/html//button[@id='modal-confirm-delete']"
-        self.create_new_index_btn_id = "/html//i[@id='addIndex']"
         self.select_index_type_id = "newIndexType"
 
         self.select_geo_fields_id = "newGeoFields"
         self.select_geo_name_id = "newGeoName"
         self.select_geo_json_id = "newGeoJson"
         self.select_geo_background_id = "newGeoBackground"
-
-        self.select_create_index_btn_id = "createIndex"
-
         self.select_persistent_fields_id = "newPersistentFields"
         self.select_persistent_name_id = "newPersistentName"
         self.select_persistent_unique_id = "newPersistentUnique"
@@ -522,7 +518,8 @@ class CollectionPage(NavigationBarPage):
     def create_index(self, index_name):
         """This method will create indexes for >= v3.11.0"""
         print(f"Creating {index_name} index started \n")
-        create_new_index_btn_sitem = self.locator_finder_by_xpath(self.create_new_index_btn_id)
+        add_index = '//*[@id="content-react"]/div/div/button'
+        create_new_index_btn_sitem = self.locator_finder_by_xpath(add_index)
         create_new_index_btn_sitem.click()
         time.sleep(2)
 
@@ -792,7 +789,7 @@ class CollectionPage(NavigationBarPage):
 
             self.select_index_menu()
 
-            create_new_index_btn_sitem = self.locator_finder_by_xpath(self.create_new_index_btn_id)
+            create_new_index_btn_sitem = self.locator_finder_by_xpath(add_index)
             create_new_index_btn_sitem.click()
             time.sleep(2)
 
@@ -819,8 +816,8 @@ class CollectionPage(NavigationBarPage):
     def create_new_index(self, index_name, value, is_cluster, check=False):
         """ create a new Index """
         print(f"Creating {index_name} index started \n")
-        create_new_index_btn_sitem = self.locator_finder_by_xpath(self.create_new_index_btn_id)
-        create_new_index_btn_sitem.click()
+        add_index = "/html//i[@id='addIndex']"
+        self.locator_finder_by_xpath(add_index).click()
         time.sleep(2)
 
         print(f"selecting {index_name} from the list\n")
@@ -896,8 +893,7 @@ class CollectionPage(NavigationBarPage):
                 self.select_index_menu()
 
                 print(f"Creating {index_name} index started \n")
-                create_new_index_btn_sitem = self.locator_finder_by_xpath(self.create_new_index_btn_id)
-                create_new_index_btn_sitem.click()
+                self.locator_finder_by_xpath(add_index).click()
                 time.sleep(2)
 
                 print(f"selecting {index_name} from the list\n")
@@ -923,8 +919,8 @@ class CollectionPage(NavigationBarPage):
             select_zkd_name_sitem.send_keys('ZKD')
             time.sleep(1)
 
-        select_create_index_btn_sitem = self.locator_finder_by_id(self.select_create_index_btn_id)
-        select_create_index_btn_sitem.click()
+        select_create_index_btn_id = "createIndex"
+        self.locator_finder_by_id(select_create_index_btn_id).click()
         time.sleep(10)
         self.webdriver.refresh()
 
