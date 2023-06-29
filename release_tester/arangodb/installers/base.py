@@ -260,6 +260,7 @@ class InstallerBase(ABC):
     @step
     def get_arangod_binary(self, target_dir):
         """adding arangod binary to report tarball"""
+        print(f"copying {self.backup_arangod_name} => {target_dir}")
         shutil.copy(self.backup_arangod_name, target_dir)
 
     @step
