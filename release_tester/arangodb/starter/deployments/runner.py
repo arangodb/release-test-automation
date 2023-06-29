@@ -371,6 +371,7 @@ class Runner(ABC):
                 self.new_installer.output_arangod_version()
                 self.new_installer.get_starter_version()
                 self.new_installer.get_sync_version()
+                self.new_installer.get_rclone_version()
                 self.new_installer.stop_service()
 
                 self.upgrade_arangod_version()  # make sure to pass new version
@@ -513,6 +514,7 @@ class Runner(ABC):
             inst.output_arangod_version()
             inst.get_starter_version()
             inst.get_sync_version()
+            inst.get_rclone_version()
 
             lh.subsubsection("starting service")
 
