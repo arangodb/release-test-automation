@@ -919,6 +919,7 @@ class Runner(ABC):
             build_number,
         )
         if self.cfg.base_test_dir.exists():
+            print("zipping test dir")
             for installer_set in self.installers:
                 installer_set[1].get_arangod_binary(self.basedir)
             archive = shutil.make_archive(filename, "7zip", self.cfg.base_test_dir, self.basedir)
