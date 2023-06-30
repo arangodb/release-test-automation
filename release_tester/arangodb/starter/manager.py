@@ -58,8 +58,10 @@ class StarterManager:
         mode=None,
         port=None,
         jwt_str=None,
-        moreopts=[],
+        moreopts=None,
     ):
+        if moreopts == None:
+            moreopts = []
         self.expect_instances = expect_instances
         self.expect_instances.sort()
         self.cfg = copy.deepcopy(basecfg)
