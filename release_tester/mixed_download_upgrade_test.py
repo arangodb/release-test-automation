@@ -42,6 +42,7 @@ class DownloadDummy:
         git_version="",
         force_arch="",
         force_os="",
+        arangods=[],
     ):
         """main"""
         self.cfg = InstallerConfig(
@@ -61,7 +62,7 @@ class DownloadDummy:
             ssl=False,
             use_auto_certs=False,
             test="",
-            arangods=[],
+            arangods=arangods,
         )
 
         self.inst = make_installer(self.cfg)
