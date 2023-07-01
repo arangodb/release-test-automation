@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """ tiny utility to kill all arangodb related processes """
 import logging
+
 # import platform
 import collections
 
@@ -10,14 +11,34 @@ from allure_commons._allure import attach
 
 # yes, we catch all.
 # pylint: disable=broad-except
+NON_INT_PROC = [
+    "kworker",
+    "(udev-worker",
+    "irq/",
+    "scsi_",
+    "migration",
+    "ksoftirqd",
+    "cpuhp",
+    "rcu_",
+    "ccp-",
+    "ext4",
+    "usb-storage",
+]
 
-def get_process_tree_recursive(parent, tree, indent=''):
-    """ get an ascii representation of the process tree """
+
+def get_process_tree_recursive(parent, tree, indent=""):
+    """get an ascii representation of the process tree"""
     text = ""
     try:
         name = psutil.Process(parent).name()
     except psutil.Error:
         name = "?"
+    skip = False
+    for blacklistitem in NON_INT_PROC:
+        if name.startswith(blacklistitem):
+            skip = True
+    if skip:
+        return ""
     text += f"{parent} {name}\n"
     if parent not in tree:
         return text
@@ -30,8 +51,10 @@ def get_process_tree_recursive(parent, tree, indent=''):
     text += get_process_tree_recursive(child, tree, indent + "  ")
     return text
 
+
 def get_process_tree():
-    """ print a process tree """
+    """print a process tree"""
+    print("xxxx")
     tree = collections.defaultdict(list)
     for process in psutil.process_iter():
         try:
@@ -42,6 +65,7 @@ def get_process_tree():
     if 0 in tree and 0 in tree[0]:
         tree[0].remove(0)
     return get_process_tree_recursive(min(tree), tree)
+
 
 @step
 def get_all_processes(kill_selenium):
@@ -74,7 +98,7 @@ def get_all_processes(kill_selenium):
                 process = psutil.Process(process.pid)
                 if any("--headless" in s for s in process.cmdline()):
                     headleschromes.append(process)
-            elif name.startswith("tshark") :
+            elif name.startswith("tshark"):
                 others.append(psutil.Process(process.pid))
 
         except Exception as ex:
@@ -126,10 +150,16 @@ def kill_all_processes(kill_selenium=True):
 @step
 def list_all_processes():
     """list all processes for later reference"""
-    pseaf = "PID  Process"
+    logging.info("PID  Process")
     # pylint: disable=catching-non-exception
     for process in psutil.process_iter(["pid", "name"]):
-        cmdline = process.name
+        cmdline = str(process.name())
+        skip = False
+        for blacklistitem in NON_INT_PROC:
+            if cmdline.startswith(blacklistitem):
+                skip = True
+        if skip:
+            continue
         try:
             cmdline = str(process.cmdline())
             if cmdline == "[]":
@@ -141,4 +171,3 @@ def list_all_processes():
         except psutil.NoSuchProcess:
             pass
         logging.info("{pid} {proc}".format(pid=process.pid, proc=cmdline))
-    print(pseaf)
