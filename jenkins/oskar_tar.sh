@@ -10,6 +10,7 @@ else
 fi
 
 VERSION=$(cat VERSION.json)
+git status
 GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
 if test -z "$GIT_VERSION"; then
     GIT_VERSION=$VERSION

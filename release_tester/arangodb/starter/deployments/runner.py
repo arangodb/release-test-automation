@@ -367,6 +367,7 @@ class Runner(ABC):
                 )
                 self.new_installer.calculate_package_names()
                 self.new_installer.upgrade_server_package(self.old_installer)
+                self.new_installer.copy_binaries()
                 lh.subsection("outputting version")
                 self.new_installer.output_arangod_version()
                 self.new_installer.get_starter_version()
@@ -499,6 +500,7 @@ class Runner(ABC):
         if self.do_install:
             lh.subsubsection("installing server package")
             inst.install_server_package()
+            inst.copy_binaries()
             self.cfg.set_directories(inst.cfg)
             lh.subsubsection("checking files")
             inst.check_installed_files()
@@ -912,6 +914,9 @@ class Runner(ABC):
             build_number,
         )
         if self.cfg.base_test_dir.exists():
+            print("zipping test dir")
+            for installer_set in self.installers:
+                installer_set[1].get_arangod_binary(self.cfg.base_test_dir / self.basedir)
             archive = shutil.make_archive(filename, "7zip", self.cfg.base_test_dir, self.basedir)
             attach.file(archive, "test dir archive", "application/x-7z-compressed", "7z")
         else:

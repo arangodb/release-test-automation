@@ -80,6 +80,9 @@ class TestDriver:
             kwargs["package_dir"].mkdir(parents=True, exist_ok=True)
         kwargs["base_config"].package_dir = kwargs["package_dir"]
         self.base_config = kwargs["base_config"]
+        self.arangods = []
+        self.base_config.arangods = self.arangods
+
         lh.configure_logging(kwargs["verbose"])
         self.abort_on_error = kwargs["abort_on_error"]
 
@@ -90,6 +93,7 @@ class TestDriver:
             results_dir=kwargs["alluredir"], clean=kwargs["clean_alluredir"], zip_package=self.base_config.zip_package
         )
         self.installer_type = None
+
         self.cli_test_suite_params = CliTestSuiteParameters.from_dict(**kwargs)
 
     def destructor(self):
