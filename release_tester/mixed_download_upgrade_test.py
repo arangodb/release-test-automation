@@ -42,6 +42,7 @@ class DownloadDummy:
         git_version="",
         force_arch="",
         force_os="",
+        arangods=[],
     ):
         """main"""
         self.cfg = InstallerConfig(
@@ -61,6 +62,7 @@ class DownloadDummy:
             ssl=False,
             use_auto_certs=False,
             test="",
+            arangods=arangods,
         )
 
         self.inst = make_installer(self.cfg)
@@ -103,6 +105,7 @@ def upgrade_package_test(
         for version_name in versions_list:
             print(version_name)
             if version_name in packages:
+                print("already there" + version_name)
                 continue
             ver = {}
             for default_props in EXECUTION_PLAN:
@@ -146,7 +149,7 @@ def upgrade_package_test(
                     version_name = new_version_name
                 ver[props.directory_suffix] = res
                 res.get_packages(dl_opts.force)
-            packages[version_name] = res
+                packages[version_name] = res
     params = deepcopy(test_driver.cli_test_suite_params)
     # STEP 2: Run test for primary version
     if run_test:
