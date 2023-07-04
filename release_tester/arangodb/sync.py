@@ -6,6 +6,7 @@ import copy
 import logging
 from reporting.reporting_utils import step
 import semver
+from tools.versionhelper import is_higher_version
 
 from arangodb.async_client import (
     ArangoCLIprogressiveTimeoutExecutor,
@@ -96,6 +97,8 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             "--master.endpoint=https://{url}:{port}".format(url=self.cfg.publicip, port=str(self.clusterports[0])),
             "--auth.keyfile=" + str(self.certificate_auth["clientkeyfile"]),
         ] + more_args
+        if is_higher_version(self.version, semver.VersionInfo.parse("2.18.0")):
+            args = args + [f"--timeout={round(timeout*0.95)}s"]
         logging.info("SyncManager: stopping sync: %s", str(args))
         params = make_default_params(self.cfg.verbose)
         ret = self.run_monitored(
@@ -133,7 +136,8 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
             "--master.endpoint=https://{url}:{port}".format(url=self.cfg.publicip, port=str(self.clusterports[0])),
             "--auth.keyfile=" + str(self.certificate_auth["clientkeyfile"]),
         ]
-        logging.info("SyncManager: checking sync consistency: %s", str(args))
+        bin_path = self.cfg.bin_dir / "arangosync"
+        logging.info("SyncManager: checking sync consistency: %s %s.", bin_path, str(args))
         params = make_default_params(self.cfg.verbose)
         try:
             params = make_default_params(self.cfg.verbose)
