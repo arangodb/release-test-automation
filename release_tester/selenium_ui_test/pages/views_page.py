@@ -32,9 +32,9 @@ class ViewsPage(NavigationBarPage):
         super().__init__(driver, cfg)
         self.current_version = self.current_package_version()
         self.testing_version = semver.VersionInfo.parse("3.9.100")
-        self.select_views_tab_id = "/html//a[@id='views']"
-        self.create_new_views_id = "/html//a[@id='createView']"
-        self.naming_new_view_id = "/html//input[@id='newName']"
+        self.select_views_tab_id = "views"
+        self.create_new_view = 'createView'
+        self.naming_new_view_id = '//input[@id="name"]'
         self.select_create_btn_id = "//div[@id='modal-dialog']//button[@class='button-success']"
         self.select_views_settings_id = "//a[@id='viewsToggle']/span[@title='Settings']"
         self.select_sorting_views_id = '//*[@id="viewsDropdown"]/ul/li[2]/a/label/i'
@@ -63,8 +63,8 @@ class ViewsPage(NavigationBarPage):
 
     def select_views_tab(self):
         """selecting views tab"""
-        select_views_tab_sitem = self.locator_finder_by_xpath(self.select_views_tab_id)
-        select_views_tab_sitem.click()
+        create_new_views_sitem = self.locator_finder_by_id(self.select_views_tab_id)
+        create_new_views_sitem.click()
 
     def create_new_views(self, name):
         """creating new views tab"""
@@ -253,13 +253,13 @@ class ViewsPage(NavigationBarPage):
         This method will create the improved views for v3.9+
         """
         print("Selecting views create button \n")
-        create_new_views_id = self.locator_finder_by_xpath(self.create_new_views_id)
+        create_new_views_id = self.locator_finder_by_id(self.create_new_view)
         create_new_views_id.click()
         time.sleep(2)
 
         self.wait_for_ajax()
         print(f"Select name for the {view_name} \n")
-        name_id = "newName"
+        name_id = 'newName'
         name_id_sitem = self.locator_finder_by_id(name_id)
         name_id_sitem.click()
         name_id_sitem.clear()
@@ -785,7 +785,7 @@ class ViewsPage(NavigationBarPage):
         """This method will check negative input for views name during creation"""
         self.select_views_tab()
         print('Selecting views create button \n')
-        create_new_views_id = self.locator_finder_by_xpath(self.create_new_views_id)
+        create_new_views_id = self.locator_finder_by_id(self.create_new_view)
         create_new_views_id.click()
         time.sleep(2)
         self.wait_for_ajax()

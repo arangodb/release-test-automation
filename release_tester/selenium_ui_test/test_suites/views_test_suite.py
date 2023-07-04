@@ -26,7 +26,7 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
 
         try:
             print("Selecting Views tab\n")
-            views.select_views_tab()
+            views.navbar_goto("views")
 
             # creating v3.9.x and v3.10.x for improved views
             if views.current_package_version() >= semver.VersionInfo.parse("3.9.0"):
@@ -130,7 +130,7 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
             # deleting improved views for v3.10.x
             elif views.current_package_version() > semver.VersionInfo.parse("3.9.100"):
                 print("Selecting Views tab\n")
-                views.select_views_tab()
+                views.navbar_goto("views")
 
                 print('Deleting views started for >= v3.10.x\n')
                 views.delete_new_views('improved_arangosearch_view_01')
