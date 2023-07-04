@@ -46,9 +46,9 @@ class DownloadDummy:
     ):
         """main"""
         if existing_version_states is None:
-            existing_version_states = []
+            existing_version_states = {}
         if new_version_states is None:
-            new_version_states = []
+            new_version_states = {}
         self.cfg = InstallerConfig(
             version=version,
             verbose=options.verbose,
