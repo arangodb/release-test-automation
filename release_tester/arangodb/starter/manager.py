@@ -1219,7 +1219,7 @@ class StarterManager:
 class StarterNonManager(StarterManager):
     """this class is a dummy starter manager to work with similar interface"""
 
-    # pylint: disable=dangerous-default-value disable=too-many-arguments
+    # pylint: disable=too-many-arguments
     def __init__(
         self,
         basecfg,
@@ -1229,9 +1229,10 @@ class StarterNonManager(StarterManager):
         mode=None,
         port=None,
         jwt_str=None,
-        moreopts=[],
+        moreopts=None,
     ):
-
+        if moreopts is None:
+            moreopts = []
         super().__init__(
             basecfg,
             install_prefix,

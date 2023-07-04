@@ -29,7 +29,7 @@ except ModuleNotFoundError as exc:
 class LicenseManagerBaseTestSuite(CliStartedTestSuite):
     """base class for license manager test suites"""
 
-    # pylint: disable=too-many-instance-attributes disable=dangerous-default-value
+    # pylint: disable=too-many-instance-attributes
     def __init__(self, params: CliTestSuiteParameters):
         min_version = semver.VersionInfo.parse("3.9.0-nightly")
         super().__init__(params)
@@ -40,6 +40,7 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
             and semver.VersionInfo.parse(self.old_version) < min_version
         ):
             self.__class__.is_disabled = True
+            # pylint: disable=no-member
             self.__class__.disable_reasons.append(
                 "License manager test suite is only applicable to versions 3.9 and newer."
             )
@@ -98,7 +99,7 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
         raise NotImplementedError(f"Default instance type is not set for {type(self)}")
 
     # pylint: disable=too-many-arguments
-    def send_request(self, method, url, data=None, headers={}, timeout=None, instance_type=None):
+    def send_request(self, method, url, data=None, headers=None, timeout=None, instance_type=None):
         """send HTTP request to an instance"""
         if not instance_type:
             instance_type = self.get_default_instance_type()
@@ -107,7 +108,7 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
             verb_method=method,
             url=url,
             data=data,
-            headers=headers,
+            headers={} if headers is None else headers,
             timeout=timeout,
         )
         return resp

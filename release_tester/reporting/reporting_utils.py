@@ -90,8 +90,10 @@ def attach_http_response_to_report(response):
     attach(response_html, f"HTTP response ({response.status_code})", AttachmentType.HTML)
 
 
-def step(title, params={}):
+def step(title, params=None):
     """init allure step"""
+    if params is None:
+        params = []
     if callable(title):
         if title.__doc__:
             return StepContext(title.__doc__, params)(title)
@@ -102,8 +104,9 @@ def step(title, params={}):
 class RtaTestcase:
     """test case class for allure reporting"""
 
-    # pylint: disable=dangerous-default-value
-    def __init__(self, name, labels=[]):
+    def __init__(self, name, labels=None):
+        if labels is None:
+            labels = []
         self.name = name
         self._uuid = str(uuid4())
         self.context = TestcaseContext()
@@ -171,17 +174,17 @@ class AllureTestSuiteContext:
 
     test_suite_count = 0
 
-    # pylint: disable=too-many-locals disable=dangerous-default-value disable=too-many-arguments
+    # pylint: disable=too-many-locals disable=too-many-arguments
     def __init__(
         self,
         parent_test_suite_name=None,
         suite_name=None,
         sub_suite_name=None,
-        labels=[],
+        labels=None,
         inherit_parent_test_suite_name=False,
         inherit_test_suite_name=False,
     ):
-        self.labels = labels
+        self.labels = [] if labels is None else labels
         test_listeners = [p for p in allure_commons.plugin_manager.get_plugins() if isinstance(p, AllureListener)]
         self.previous_test_listener = None if len(test_listeners) == 0 else test_listeners[0]
         file_loggers = [l for l in allure_commons.plugin_manager.get_plugins() if isinstance(l, AllureFileLogger)]
