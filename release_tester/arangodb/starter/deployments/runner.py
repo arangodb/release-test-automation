@@ -365,10 +365,12 @@ class Runner(ABC):
                 )
                 self.new_installer.calculate_package_names()
                 self.new_installer.upgrade_server_package(self.old_installer)
+                self.new_installer.copy_binaries()
                 lh.subsection("outputting version")
                 self.new_installer.output_arangod_version()
                 self.new_installer.get_starter_version()
                 self.new_installer.get_sync_version()
+                self.new_installer.get_rclone_version()
                 self.new_installer.stop_service()
 
                 self.upgrade_arangod_version()  # make sure to pass new version
@@ -496,6 +498,7 @@ class Runner(ABC):
         if self.do_install:
             lh.subsubsection("installing server package")
             inst.install_server_package()
+            inst.copy_binaries()
             self.cfg.set_directories(inst.cfg)
             lh.subsubsection("checking files")
             inst.check_installed_files()
@@ -511,6 +514,7 @@ class Runner(ABC):
             inst.output_arangod_version()
             inst.get_starter_version()
             inst.get_sync_version()
+            inst.get_rclone_version()
 
             lh.subsubsection("starting service")
 
@@ -527,7 +531,7 @@ class Runner(ABC):
         if inst.check_service_up():
             inst.stop_service()
         inst.start_service()
-        sys_arangosh = ArangoshExecutor(inst.cfg, inst.instance)
+        sys_arangosh = ArangoshExecutor(inst.cfg, inst.instance, self.cfg.version)
 
         logging.debug("self test after installation")
         if inst.cfg.have_system_service:
@@ -722,7 +726,6 @@ class Runner(ABC):
         args = []
         if self.min_replication_factor:
             args += ["--minReplicationFactor", str(self.min_replication_factor)]
-
         for starter in self.makedata_instances:
             assert starter.arangosh, "make: this starter doesn't have an arangosh!"
             arangosh = starter.arangosh
@@ -916,6 +919,9 @@ class Runner(ABC):
             build_number,
         )
         if self.cfg.base_test_dir.exists():
+            print("zipping test dir")
+            for installer_set in self.installers:
+                installer_set[1].get_arangod_binary(self.cfg.base_test_dir / self.basedir)
             archive = shutil.make_archive(filename, "7zip", self.cfg.base_test_dir, self.basedir)
             attach.file(archive, "test dir archive", "application/x-7z-compressed", "7z")
         else:

@@ -91,25 +91,24 @@ class ReplicationPage(NavigationBarPage):
                 retry_count += 1
                 if retry_count < 5:
                     self.progress("re-trying goto replication")
-                    NavigationBarPage(self.webdriver).navbar_goto("replication")
+                    self.navbar_goto("replication")
                 elif retry_count > 20:
                     raise ex
                 else:
                     self.webdriver.refresh()
                     time.sleep(1)
-    
+
     def get_replication_information(self):
         """checking replication information"""
-        print('checking replication tab is available\n')
+        print("checking replication tab is available\n")
         replication = '//*[@id="replication"]'
         replication_sitem = self.locator_finder_by_xpath(replication)
         replication = replication_sitem.text
         time.sleep(1)
         assert replication == "REPLICATION", f"Expected REPLICATION but got {replication}"
 
-        
-        print('checking replication mode\n')
-        replication_mode = 'info-mode-id'
+        print("checking replication mode\n")
+        replication_mode = "info-mode-id"
         replication_mode_sitem = self.locator_finder_by_id(replication_mode)
         replication_mode = replication_mode_sitem.text
         time.sleep(1)
@@ -117,14 +116,14 @@ class ReplicationPage(NavigationBarPage):
 
         ip_list = ["tcp://localhost:9529", "tcp://localhost:9629", "tcp://localhost:9729"]
 
-        print('checking leader id\n')
-        leader_id = 'nodes-leader-id'
+        print("checking leader id\n")
+        leader_id = "nodes-leader-id"
         leader_id_sitem = self.locator_finder_by_id(leader_id)
         leader = leader_id_sitem.text
         time.sleep(1)
         assert leader in ip_list, f"Error occcured, Couldn't find expected leader ip"
 
-        print('checking follower id\n')
+        print("checking follower id\n")
         follower_id = '//*[@id="nodes-followers-id"]/span'
         follower_id_sitem = self.locator_finder_by_xpath(follower_id)
         follower = follower_id_sitem.text
