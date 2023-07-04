@@ -48,7 +48,7 @@ IS_WINDOWS = sys.platform == "win32"
 class StarterManager:
     """manages one starter instance"""
 
-    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=dangerous-default-value disable=too-many-statements disable=too-many-public-methods disable=method-hidden disable=too-many-branches
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=too-many-statements disable=too-many-public-methods disable=method-hidden disable=too-many-branches
     def __init__(
         self,
         basecfg,
@@ -58,13 +58,16 @@ class StarterManager:
         mode=None,
         port=None,
         jwt_str=None,
-        moreopts=[],
+        moreopts=None,
     ):
         self.expect_instances = expect_instances
         self.expect_instances.sort()
         self.cfg = copy.deepcopy(basecfg)
         self.default_starter_args = self.cfg.default_starter_args.copy()
-        self.moreopts = moreopts
+        if moreopts is None:
+            self.moreopts = []
+        else:
+            self.moreopts = moreopts
         if self.cfg.verbose:
             self.moreopts += ["--log.verbose=true"]
             # self.moreopts += ['--all.log', 'startup=debug']
@@ -177,6 +180,8 @@ class StarterManager:
         ] + self.moreopts
         self.old_version = self.cfg.version
         self.enterprise = self.cfg.enterprise
+        self.pid = None
+        self.ppid = None
 
     def __repr__(self):
         return str(get_instances_table(self.get_instance_essentials()))
@@ -401,8 +406,12 @@ class StarterManager:
         return self.passvoid
 
     @step
-    def send_request(self, instance_type, verb_method, url, data=None, headers={}, timeout=None):
+    def send_request(self, instance_type, verb_method, url, data=None, headers=None, timeout=None):
         """send an http request to the instance"""
+        if headers is None:
+            request_headers = {}
+        else:
+            request_headers = dict(headers)
         http_client.HTTPConnection.debuglevel = 1
 
         results = []
@@ -411,14 +420,14 @@ class StarterManager:
                 if instance.detect_gone():
                     print("Instance to send request to already gone: " + repr(instance))
                 else:
-                    headers["Authorization"] = "Bearer " + str(self.get_jwt_header())
+                    request_headers["Authorization"] = "Bearer " + str(self.get_jwt_header())
                     base_url = instance.get_public_plain_url()
                     full_url = self.get_http_protocol() + "://" + base_url + url
-                    attach_http_request_to_report(verb_method.__name__, full_url, headers, data)
+                    attach_http_request_to_report(verb_method.__name__, full_url, request_headers, data)
                     reply = verb_method(
                         full_url,
                         data=data,
-                        headers=headers,
+                        headers=request_headers,
                         allow_redirects=False,
                         timeout=timeout,
                         verify=False,
@@ -790,18 +799,14 @@ class StarterManager:
                 node.check_version_request(20.0)
 
     @step
-    def respawn_instance(self, version, moreargs=[], wait_for_logfile=True):
+    def respawn_instance(self, version, moreargs=None, wait_for_logfile=True):
         """
         restart the starter instance after we killed it eventually,
         maybe command manual upgrade (and wait for exit)
         """
-        args = (
-            [self.cfg.bin_dir / "arangodb"]
-            + self.hotbackup_args
-            + self.default_starter_args
-            + self.arguments
-            + moreargs
-        )
+        args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.default_starter_args + self.arguments
+        if moreargs is not None:
+            args.extend(moreargs)
 
         assert version is not None
         # Remove it if it is not needed
@@ -1047,7 +1052,7 @@ class StarterManager:
                 )
 
     @step
-    def launch_arangobench(self, testacse_no, moreopts=[]):
+    def launch_arangobench(self, testacse_no, moreopts=None):
         """launch an arangobench instance to the frontend of this starter"""
         arangobench = ArangoBenchManager(self.cfg, self.get_frontend())
         arangobench.launch(testacse_no, moreopts)
@@ -1066,7 +1071,7 @@ class StarterManager:
 
         if len(missing_instances) > 0:
             logging.error(
-                "Not all instances are alive. " "The following are not running: %s",
+                "Not all instances are alive. The following are not running: %s",
                 str(missing_instances),
             )
             logging.error(get_process_tree())
@@ -1113,7 +1118,7 @@ class StarterManager:
         self.is_leader = became_leader or took_over
         if self.is_leader:
             url = self.get_frontend().get_local_url("")
-            reply = requests.get(url, auth=requests.auth.HTTPBasicAuth("root", self.passvoid))
+            reply = requests.get(url, auth=requests.auth.HTTPBasicAuth("root", self.passvoid), timeout=120)
             print(str(reply))
             if reply.status_code == 503:
                 self.is_leader = False

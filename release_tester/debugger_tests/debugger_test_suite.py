@@ -53,11 +53,11 @@ class DebuggerTestSuite(CliStartedTestSuite):
     def __init__(self, params: CliTestSuiteParameters):
         super().__init__(params)
         self.installer_set = create_config_installer_set(
-            versions=[self.new_version], 
-            base_config=self.base_cfg, 
-            deployment_mode="all", 
-            run_properties=self.run_props, 
-            use_auto_certs=False
+            versions=[self.new_version],
+            base_config=self.base_cfg,
+            deployment_mode="all",
+            run_properties=self.run_props,
+            use_auto_certs=False,
         )
         self.installer = self.installer_set[0][1]
         ent = "Enterprise" if self.run_props.enterprise else "Community"
@@ -65,6 +65,7 @@ class DebuggerTestSuite(CliStartedTestSuite):
             f"Debug symbols test suite: ArangoDB v. {str(self.new_version)} ({ent}) ({self.installer.installer_type})"
         )
 
+    # pylint: disable=missing-function-docstring
     def is_zip(self):
         return self.base_cfg.zip_package
 
@@ -179,7 +180,6 @@ class DebuggerTestSuite(CliStartedTestSuite):
             assert f"{executable}!main" in stack, "Stack must contain real function names."
             assert f"{executable}.cpp" in stack, "Stack must contain real source file names."
 
-
     @parameters(
         [
             {"executable": "arangoexport"},
@@ -215,7 +215,6 @@ class DebuggerTestSuite(CliStartedTestSuite):
             expect_instances=[InstanceType.SINGLE],
             mode="single",
             jwt_str="single",
-            moreopts=[],
         )
         try:
             with step("Start a single server deployment"):
@@ -276,7 +275,8 @@ class DebuggerTestSuite(CliStartedTestSuite):
     @disable("This test case must only be ran manually")
     @testcase
     def test_debug_network_symbol_server_windows(self):
-        """Check that debug symbols can be found on the ArangoDB symbol server and then used to debug arangod executable"""
+        """Check that debug symbols can be found on the ArangoDB symbol server
+        and then used to debug arangod executable"""
         # This testcase is needed to check the state of the symbol server and is not meant
         # to run during ArangoDB product testing.
         version = semver.VersionInfo.parse(self.installer.cfg.version)
