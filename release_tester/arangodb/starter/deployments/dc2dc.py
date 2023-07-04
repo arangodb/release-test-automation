@@ -331,7 +331,7 @@ class Dc2Dc(Runner):
 
     def _stop_sync(self, timeout=130):
         if IS_MAC:
-            timeout *= 1.3
+            timeout *= 2
         try:
             timeout_start = time.time()
             if self._is_higher_sync_version(SYNC_VERSIONS["150"], SYNC_VERSIONS["230"]):
