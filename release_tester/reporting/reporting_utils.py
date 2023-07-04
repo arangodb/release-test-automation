@@ -93,7 +93,7 @@ def attach_http_response_to_report(response):
 def step(title, params=None):
     """init allure step"""
     if params is None:
-        params = []
+        params = {}
     if callable(title):
         if title.__doc__:
             return StepContext(title.__doc__, params)(title)
