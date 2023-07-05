@@ -26,7 +26,7 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
 
         try:
             
-            if current_version >= semver.VersionInfo.parse("3.10.0"):
+            if current_version >= semver.VersionInfo.parse("3.11.0"):
                 collection_page.create_new_collections('a_first', 0, self.is_cluster)
                 collection_page.create_new_collections('m_middle', 1, self.is_cluster)
                 collection_page.create_new_collections('z_last', 0, self.is_cluster)

@@ -215,6 +215,7 @@ class DebuggerTestSuite(CliStartedTestSuite):
             expect_instances=[InstanceType.SINGLE],
             mode="single",
             jwt_str="single",
+            moreopts=[],
         )
         try:
             with step("Start a single server deployment"):

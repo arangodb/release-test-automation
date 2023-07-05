@@ -37,6 +37,7 @@ class InstallerZip(InstallerArchive, InstallerWin):
         super().__init__(cfg)
         self.check_symlink = False
         self.core_glob = "**/*.dmp"
+        self.test_dir = self.cfg.install_prefix
 
     def calculate_package_names(self):
         enterprise = "e" if self.cfg.enterprise else ""
@@ -44,7 +45,7 @@ class InstallerZip(InstallerArchive, InstallerWin):
         semdict = dict(self.cfg.semver.to_dict())
         if semdict["prerelease"]:
             if semdict["prerelease"].startswith("rc"):
-                semdict["prerelease"] = "-" + semdict["prerelease"].replace("rc", "rc.")
+                semdict["prerelease"] = "-" + semdict["prerelease"].replace("rc", "rc.").replace("..", ".")
             else:
                 semdict["prerelease"] = "-{prerelease}".format(**semdict)
         else:
@@ -75,7 +76,7 @@ class InstallerZip(InstallerArchive, InstallerWin):
         self.cfg.log_dir = self.cfg.install_prefix  # n/A
 
     def calculate_installation_dirs(self):
-        self.cfg.bin_dir = self.cfg.install_prefix / "usr" / "bin"
-        self.cfg.sbin_dir = self.cfg.install_prefix / "usr" / "bin"
+        self.cfg.bin_dir = self.test_dir / "usr" / "bin"
+        self.cfg.sbin_dir = self.test_dir / "usr" / "bin"
         self.cfg.real_bin_dir = self.cfg.bin_dir
         self.cfg.real_sbin_dir = self.cfg.sbin_dir

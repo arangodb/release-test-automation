@@ -80,6 +80,9 @@ class TestDriver:
             kwargs["package_dir"].mkdir(parents=True, exist_ok=True)
         kwargs["base_config"].package_dir = kwargs["package_dir"]
         self.base_config = kwargs["base_config"]
+        self.arangods = []
+        self.base_config.arangods = self.arangods
+
         lh.configure_logging(kwargs["verbose"])
         self.abort_on_error = kwargs["abort_on_error"]
 
@@ -90,6 +93,7 @@ class TestDriver:
             results_dir=kwargs["alluredir"], clean=kwargs["clean_alluredir"], zip_package=self.base_config.zip_package
         )
         self.installer_type = None
+
         self.cli_test_suite_params = CliTestSuiteParameters.from_dict(**kwargs)
 
     def destructor(self):
@@ -109,6 +113,10 @@ class TestDriver:
 
     def copy_packages_to_result(self, installers):
         """copy packages in test to the report directory (including debug symbols)"""
+        if not installers[0][1].copy_for_result:
+            print("Skipping copy_packages_to_result for this installer")
+            return
+
         if not installers[0][1].find_crash(installers[0][0].base_test_dir):
             return
         for installer_set in installers:
@@ -189,7 +197,8 @@ class TestDriver:
             print("Cannot uninstall package without config.yml!")
         inst.cleanup_system()
 
-    # pylint: disable=too-many-arguments disable=too-many-locals, disable=broad-except, disable=too-many-branches, disable=too-many-statements
+    # pylint: disable=too-many-arguments disable=too-many-locals,
+    # pylint: disable=broad-except, disable=too-many-branches, disable=too-many-statements
     def run_upgrade(self, versions: list, run_props: RunProperties):
         """execute upgrade tests"""
         lh.section("startup")

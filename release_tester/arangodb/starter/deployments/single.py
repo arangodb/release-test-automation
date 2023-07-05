@@ -4,6 +4,8 @@ import logging
 from pathlib import Path
 import time
 
+import requests
+
 from tools.interact import prompt_user
 from tools.killall import get_all_processes
 from arangodb.starter.manager import StarterManager
@@ -11,7 +13,6 @@ from arangodb.instance import InstanceType
 from arangodb.starter.deployments.runner import Runner, RunnerProperties
 import tools.loghelper as lh
 
-from siteconfig import IS_MAC
 from reporting.reporting_utils import step
 
 
@@ -161,10 +162,19 @@ class Single(Runner):
 
     def after_backup_impl(self):
         """nothing to see here"""
-        if IS_MAC:
-            time.sleep(10)
-        else:
-            time.sleep(2)
+        time.sleep(1)
+        count = 0
+        while True:
+            try:
+                reply = self.starter_instance.send_request(InstanceType.SINGLE, requests.get, "/_api/collection", None)
+                if reply[0].status_code == 200:
+                    break
+            except Exception:
+                print("waiting")
+            count += 1
+            if count > 50:
+                raise Exception("system doesn't become responsive after restore")
+            time.sleep(1)
 
     def set_selenium_instances(self):
         """set instances in selenium runner"""

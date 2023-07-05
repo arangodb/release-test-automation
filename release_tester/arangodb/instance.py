@@ -101,6 +101,7 @@ class Instance(ABC):
         self.ssl = ssl
         self.version = version
         self.enterprise = enterprise
+        self.logfiles = []
 
         logging.debug("creating {0.type_str} instance: {0.name}".format(self))
 
@@ -172,6 +173,12 @@ class Instance(ABC):
 
     def load_starter_instance_control_file(self):
         """load & parse the <instance_string>_command.txt file of the starter"""
+        count = 20
+        while not self.instance_control_file.exists() and count > 0:
+            count -= 1
+            print("Instance control file not yet there?" + str(self.instance_control_file))
+            time.sleep(0.5)
+
         if not self.instance_control_file.exists():
             raise FileNotFoundError("Instance control file not found! " + str(self.instance_control_file))
         self.instance_arguments = []
@@ -184,6 +191,7 @@ class Instance(ABC):
                     self.analyze_starter_file_line(line)
                     self.instance_arguments.append(line)
 
+    # pylint: disable=too-many-locals
     def launch_manual_from_instance_control_file(
         self, sbin_dir, old_install_prefix, new_install_prefix, current_version, enterprise, moreargs, waitpid=True
     ):
@@ -234,12 +242,16 @@ class Instance(ABC):
     @step
     def rename_logfile(self, suffix=".old"):
         """to ease further analysis, move old logfile out of our way"""
+        number = len(self.logfiles) + 1
         logfile = str(self.logfile)
-        new_logfile = Path(logfile + suffix)
-        logging.info("renaming instance logfile: %s -> %s", logfile, str(new_logfile))
+        new_logfile = Path(logfile + suffix + "." + str(number))
+        msg = ""
         if new_logfile.exists():
             new_logfile.unlink()
+            msg = "removed old"
+        logging.info("renaming instance logfile: %s -> %s" + msg, logfile, str(new_logfile))
         self.logfile.rename(new_logfile)
+        self.logfiles.append(new_logfile)
 
     @step
     def kill_instance(self):
@@ -361,15 +373,16 @@ class Instance(ABC):
         if not self.logfile.exists():
             print(str(self.logfile) + " doesn't exist, skipping.")
             return
-        print(str(self.logfile))
         count = 0
-        with open(self.logfile, errors="backslashreplace", encoding="utf8") as log_fh:
-            for line in log_fh:
-                if self.is_line_relevant(line):
-                    if self.is_suppressed_log_line(line):
-                        count += 1
-                    else:
-                        print(line.rstrip())
+        for logfile in [self.logfile] + self.logfiles:
+            print(str(logfile))
+            with open(logfile, errors="backslashreplace", encoding="utf8") as log_fh:
+                for line in log_fh:
+                    if self.is_line_relevant(line):
+                        if self.is_suppressed_log_line(line):
+                            count += 1
+                        else:
+                            print(line.rstrip())
         if count > 0:
             print(" %d lines suppressed by filters" % count)
 
@@ -428,6 +441,7 @@ class ArangodInstance(Instance):
             self
         )
 
+    # pylint: disable=bare-except
     def get_uuid(self):
         """try to load the instances UUID"""
         try:
@@ -600,12 +614,14 @@ class ArangodInstance(Instance):
     def detect_fatal_errors(self):
         """check whether we have FATAL lines in the logfile"""
         fatal_line = None
-        with open(self.logfile, errors="backslashreplace", encoding="utf8") as log_fh:
-            for line in log_fh:
-                if fatal_line is not None:
-                    fatal_line += "\n" + line
-                elif "] FATAL [" in line:
-                    fatal_line = line
+        for logfile in [self.logfile] + self.logfiles:
+            print(str(logfile))
+            with open(logfile, errors="backslashreplace", encoding="utf8") as log_fh:
+                for line in log_fh:
+                    if fatal_line is not None:
+                        fatal_line += "\n" + line
+                    elif "] FATAL [" in line:
+                        fatal_line = line
 
         if fatal_line is not None:
             print("Error: ", fatal_line)
@@ -709,6 +725,10 @@ class ArangodInstance(Instance):
         """this string is emitted by the agent, if he is leading the agency:
         2021-05-19T16:02:18Z [3447] INFO [a66dc] {agency} AGNT-0dc4dd67-4340-4645-913f-9415adfbeda7
           rebuilt key-value stores - serving.
+          this string is emitted when the agent stops leading:
+          2023-05-22T02:49:25Z [127808] INFO [f370f] {agency} Set _role to FOLLOWER in term 4
+          We search for the latest "serving" string and return its timestamp, if it is not followed
+          by the "follower" string
         """
         serving_line = None
         if not self.logfile.exists():
@@ -718,6 +738,8 @@ class ArangodInstance(Instance):
             for line in log_fh:
                 if "a66dc" in line:
                     serving_line = line
+                elif "f370f" in line:
+                    serving_line = None
         if serving_line:
             self.serving = log_line_get_date(serving_line)
         return self.serving
@@ -770,6 +792,7 @@ class SyncInstance(Instance):
         if line.find("--log.file") >= 0:
             self.logfile_parameter = line
 
+    # pylint: disable=too-many-branches
     def detect_pid(self, ppid, offset, full_binary_path):
         # first get the starter provided commandline:
         self.ppid = ppid
@@ -777,7 +800,7 @@ class SyncInstance(Instance):
         try:
             pidfile = Path(self.instance_arguments[self.instance_arguments.index("--pid-file") + 1])
             if pidfile.exists():
-                pid = int(pidfile.read_text())
+                pid = int(pidfile.read_text(encoding="utf-8"))
                 for process in psutil.process_iter():
                     if process.ppid() == ppid and process.pid == pid and process.name() == "arangosync":
                         print(f"identified instance by pid file {pid}")

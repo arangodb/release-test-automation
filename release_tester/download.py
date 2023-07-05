@@ -173,7 +173,8 @@ class Download:
             stress_upgrade=False,
             ssl=False,
             use_auto_certs=False,
-            test=""
+            test="",
+            arangods=[],
         )
 
         self.inst = make_installer(self.cfg)

@@ -32,9 +32,9 @@ class ViewsPage(NavigationBarPage):
         super().__init__(driver, cfg)
         self.current_version = self.current_package_version()
         self.testing_version = semver.VersionInfo.parse("3.9.100")
-        self.select_views_tab_id = "/html//a[@id='views']"
-        self.create_new_views_id = "/html//a[@id='createView']"
-        self.naming_new_view_id = "/html//input[@id='newName']"
+        self.select_views_tab_id = "views"
+        self.create_new_view = 'createView'
+        self.naming_new_view_id = '//input[@id="name"]'
         self.select_create_btn_id = "//div[@id='modal-dialog']//button[@class='button-success']"
         self.select_views_settings_id = "//a[@id='viewsToggle']/span[@title='Settings']"
         self.select_sorting_views_id = '//*[@id="viewsDropdown"]/ul/li[2]/a/label/i'
@@ -63,8 +63,8 @@ class ViewsPage(NavigationBarPage):
 
     def select_views_tab(self):
         """selecting views tab"""
-        select_views_tab_sitem = self.locator_finder_by_xpath(self.select_views_tab_id)
-        select_views_tab_sitem.click()
+        create_new_views_sitem = self.locator_finder_by_id(self.select_views_tab_id)
+        create_new_views_sitem.click()
 
     def create_new_views(self, name):
         """creating new views tab"""
@@ -253,13 +253,13 @@ class ViewsPage(NavigationBarPage):
         This method will create the improved views for v3.9+
         """
         print("Selecting views create button \n")
-        create_new_views_id = self.locator_finder_by_xpath(self.create_new_views_id)
+        create_new_views_id = self.locator_finder_by_id(self.create_new_view)
         create_new_views_id.click()
         time.sleep(2)
 
         self.wait_for_ajax()
         print(f"Select name for the {view_name} \n")
-        name_id = "newName"
+        name_id = 'newName'
         name_id_sitem = self.locator_finder_by_id(name_id)
         name_id_sitem.click()
         name_id_sitem.clear()
@@ -520,6 +520,25 @@ class ViewsPage(NavigationBarPage):
     def creating_black_collection_and_analyzer(self):
         """Creating blank col and analyzer for testing"""
         print('creating blank collection and analyzer for link tab\n')
+        self.navbar_goto("collections")
+        time.sleep(1)
+        create_col = 'createCollection'
+        create_col_sitem = self.locator_finder_by_id(create_col)
+        create_col_sitem.click()
+        time.sleep(1)
+
+        col_name = '//*[@id="new-collection-name"]'
+        col_name_sitem = self.locator_finder_by_xpath(col_name)
+        col_name_sitem.click()
+        col_name_sitem.send_keys('views_collection')
+        time.sleep(1)
+
+        save_btn = 'modalButton1'
+        save_btn_sitem = self.locator_finder_by_id(save_btn)
+        save_btn_sitem.click()
+        time.sleep(2)
+
+        # go back to view tab
         self.navbar_goto("views")
         time.sleep(1)
     
@@ -598,8 +617,6 @@ class ViewsPage(NavigationBarPage):
         select_view_sitem.click()
         time.sleep(1)
 
-        self.open_general_tab()
-
         print("Changing cleanup interval step \n")
         cleanup = "//tr[@id='row_change-view-cleanupIntervalStep']//input[@value='2']"
         cleanup_sitem = self.locator_finder_by_xpath(cleanup)
@@ -624,8 +641,6 @@ class ViewsPage(NavigationBarPage):
         consolidation_sitem.send_keys("2000")
         time.sleep(1)
 
-        self.open_general_tab()
-        self.open_consolidation_policy_tab()
         self.open_tier_tab()
         self.open_tier_tab()
 
@@ -661,14 +676,6 @@ class ViewsPage(NavigationBarPage):
         segment_byte_floor_sitem.send_keys("2097158")
         time.sleep(2)
 
-        self.open_consolidation_policy_tab()
-
-        self.open_primary_sort_tab()
-        self.open_primary_sort_tab()
-
-        self.open_stored_value_tab()
-        self.open_stored_value_tab()
-
         print("Saving the changes \n")
         save_btn = "(//button[@class='button-success'])[1]"
         save_btn_sitem = self.locator_finder_by_xpath(save_btn)
@@ -686,16 +693,22 @@ class ViewsPage(NavigationBarPage):
         time.sleep(1)
 
         print('Selecting Link tab \n')
-        links = '//*[@id="accordion-panel-1"]/div/div/div/div[1]/div[1]'
-        links_sitem = self.locator_finder_by_hover_item(links)
-        links_sitem.send_keys(Keys.DOWN + Keys.ENTER)
-        links_sitem.perform()
+        links = '//*[@id="subNavigationBar"]/ul[2]/li[2]/a'
+        links_sitem = self.locator_finder_by_xpath(links)
+        links_sitem.click()
         time.sleep(1)
 
-        print('Select my_collection \n')
-        select_col = '//*[@id="accordion-panel-1"]/div/div/div/div[1]/div[1]/a/div'
+        print('Select views_collection \n')
+        select_col = "(//input[@placeholder='Enter a collection name'])[1]"
         select_col_sitem = self.locator_finder_by_xpath(select_col)
         select_col_sitem.click()
+        select_col_sitem.send_keys('views_collectio')
+        select_col_sitem.send_keys(Keys.ENTER)
+        time.sleep(1)
+
+        select_views = "(//a[normalize-space()='views_collection'])[1]"
+        select_views_sitem = self.locator_finder_by_xpath(select_views)
+        select_views_sitem.click()
         time.sleep(1)
 
         print('Selecting include all fields\n')
@@ -723,14 +736,15 @@ class ViewsPage(NavigationBarPage):
         time.sleep(1)
 
         print('Selecting analyzer for the views collection\n')
-        analyzer =  "//div[contains(text(),'Start typing for suggestions')]"
-        analyzer_sitem = self.locator_finder_by_hover_item(analyzer)
-        analyzer_sitem.send_keys(Keys.DOWN + Keys.ENTER)
-        analyzer_sitem.perform()
+        analyzer =  "(//input[@placeholder='Start typing for suggestions.'])[1]"
+        analyzer_sitem = self.locator_finder_by_xpath(analyzer)
+        analyzer_sitem.click()
+        analyzer_sitem.send_keys("text_d")
+        analyzer_sitem.send_keys(Keys.ENTER)
         time.sleep(1)
 
         print("Saving the changes \n")
-        save_btn = "/html//div[@id='content']/div[@class='css-1ijbxy6']//button[@class='button-success']"
+        save_btn = '//*[@id="Save"]/button'
         save_btn_sitem = self.locator_finder_by_xpath(save_btn)
         save_btn_sitem.click()
         time.sleep(1)
@@ -751,11 +765,7 @@ class ViewsPage(NavigationBarPage):
             select_view_sitem.click()   # already in the settings tab
             time.sleep(1)
 
-            select_name = "/html//div[@id='content']//div[@class='css-70qvj9']/i"
-            self.locator_finder_by_xpath(select_name).click()
-            time.sleep(1)
-
-            modified_name = "/html//div[@id='content']//input[@value='improved_arangosearch_view_01']"
+            modified_name = "(//input[@value='improved_arangosearch_view_01'])[1]"
             modified_name_sitem = self.locator_finder_by_xpath(modified_name)
             modified_name_sitem.click()
             modified_name_sitem.clear()
@@ -775,7 +785,7 @@ class ViewsPage(NavigationBarPage):
         """This method will check negative input for views name during creation"""
         self.select_views_tab()
         print('Selecting views create button \n')
-        create_new_views_id = self.locator_finder_by_xpath(self.create_new_views_id)
+        create_new_views_id = self.locator_finder_by_id(self.create_new_view)
         create_new_views_id.click()
         time.sleep(2)
         self.wait_for_ajax()
@@ -921,7 +931,7 @@ class ViewsPage(NavigationBarPage):
             time.sleep(2)
             self.wait_for_ajax()
 
-            delete = "/html//div[@id='content']/div[@class='css-1ijbxy6']//button[@class='button-danger']"
+            delete = '//*[@id="Actions"]/button'
             delete_sitem = self.locator_finder_by_xpath(delete)
             delete_sitem.click()
             time.sleep(2)

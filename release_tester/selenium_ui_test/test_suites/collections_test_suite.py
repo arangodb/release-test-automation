@@ -27,7 +27,6 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
         self.error = None
 
         try:
-            col.create_new_collections('computedValueCol', 0, self.is_cluster)
             col.create_new_collections('TestDoc', 0, self.is_cluster)
             col.create_new_collections('TestEdge', 1, self.is_cluster)
             col.create_new_collections('Test', 0, self.is_cluster)
@@ -74,8 +73,9 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
             col.sort_descending()
             print("Sorting collections by name\n")
             col.sort_by_name()
-
+            self.webdriver.refresh()
             col.select_edge_collection_upload()
+            col.navigate_to_col_content_tab()
             print("Uploading file to the collection started\n")
             col.select_upload_btn()
             print("Uploading json file\n")
@@ -84,10 +84,11 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
             self.webdriver.refresh()
             print("Uploading " + col.getting_total_row_count() + " documents to the collection Completed\n")
             print("Selecting size of the displayed\n")
-
-            self.webdriver.back()
+            
+            col.select_collection_page()
 
             col.select_collection("TestDoc")
+            col.navigate_to_col_content_tab()
             print("Uploading file to the collection started\n")
             col.select_upload_btn()
             print("Uploading json file\n")
@@ -128,27 +129,45 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
             print("Create new index\n")
 
             version = col.current_package_version()
-            print("Cluster status: ", self.is_cluster)
-            col.create_new_index("Persistent", 1, self.is_cluster)
-            col.create_new_index("Geo", 2, self.is_cluster)
-            col.create_new_index("Fulltext", 3, self.is_cluster)
-            col.create_new_index("TTL", 4, self.is_cluster)
-            if version >= semver.VersionInfo.parse("3.9.0"):
-                if version > semver.VersionInfo.parse("3.9.99"):
-                    col.create_new_index('ZKD', 5, self.is_cluster, True)
-                else:
-                    print('I am at 141')
-                    col.create_new_index('ZKD', 5, self.is_cluster)
-
-                print("Deleting all index started\n")
-                for i in range(4):
-                    col.delete_all_index(True)
-                print("Deleting all index completed\n")
+            
+            if version >= semver.VersionInfo.parse("3.11.0"):
+                col.create_index('Persistent')
+                col.create_index('Geo')
+                col.create_index('Fulltext')
+                col.create_index('TTL')
+                col.create_index('Inverted Index')
+                col.create_index('ZKD')
             else:
-                print("Deleting all index started\n")
-                for i in range(3):
-                    col.delete_all_index()
-                print("Deleting all index completed\n")
+                print("Cluster status: ", self.is_cluster)
+                col.create_new_index("Persistent", 1, self.is_cluster)
+                col.create_new_index("Geo", 2, self.is_cluster)
+                col.create_new_index("Fulltext", 3, self.is_cluster)
+                col.create_new_index("TTL", 4, self.is_cluster)
+                
+                if version <= semver.VersionInfo.parse("3.10.99"):
+                    if version > semver.VersionInfo.parse("3.9.99"):
+                        col.create_new_index('ZKD', 5, self.is_cluster, True)
+                    else:
+                        col.create_new_index('ZKD', 5, self.is_cluster)
+
+                    print("Deleting all index started\n")
+                    for i in range(4):
+                        col.delete_all_index(True)
+                    print("Deleting all index completed\n")
+                else:
+                    print("Deleting all index started\n")
+                    collection = "collections"
+                    collection_sitem = self.locator_finder_by_id(collection)
+                    collection_sitem.click()
+
+                    col.select_collection("TestDoc")
+                    col.select_index_menu()
+                    col.delete_index(2)
+                    col.delete_index(3)
+                    col.delete_index(4)
+                    col.delete_index(5)
+                    col.delete_index(7)
+                    print("Deleting all index completed\n")
 
             print("Select Info tab\n")
             col.select_info_tab()
