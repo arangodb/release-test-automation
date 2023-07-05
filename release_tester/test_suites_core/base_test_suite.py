@@ -29,7 +29,7 @@ class MetaTestSuite(type):
 class BaseTestSuite(metaclass=MetaTestSuite):
     """base class for testsuites"""
 
-    # pylint: disable=dangerous-default-value disable=too-many-instance-attributes
+    # pylint: disable=too-many-instance-attributes
     def __init__(self):
         self.test_results = []
         self.child_classes = self.get_child_test_suite_classes()

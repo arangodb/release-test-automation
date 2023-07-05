@@ -18,7 +18,7 @@ def load_scenarios():
     yamldir = pathlib.Path(__file__).parent.absolute() / ".." / ".." / "scenarios" / "arangobench"
     for one_yaml in yamldir.iterdir():
         if one_yaml.is_file():
-            with open(one_yaml, encoding='utf8') as fileh:
+            with open(one_yaml, encoding="utf8") as fileh:
                 obj = yaml.load(fileh, Loader=yaml.Loader)
                 for key in obj.keys():
                     if isinstance(obj[key], bool):
@@ -52,12 +52,13 @@ class ArangoBenchManager:
         self.passvoid = "testpassvoid"
         self.instance = None
 
-    # pylint: disable=dangerous-default-value
     @allure.step
-    def launch(self, testcase_no, moreopts=[]):
+    def launch(self, testcase_no, moreopts=None):
         """run arangobench"""
         testcase = BENCH_TODOS[testcase_no]
-        arguments = [self.cfg.real_bin_dir / "arangobench"] + self.moreopts + moreopts
+        arguments = [self.cfg.real_bin_dir / "arangobench"] + self.moreopts
+        if moreopts is not None:
+            arguments.extend(moreopts)
         for key in testcase.keys():
             arguments.append("--" + key)
             arguments.append(str(testcase[key]))

@@ -26,7 +26,7 @@ from reporting.reporting_utils import attach_table, AllureTestSuiteContext
 class BaseSeleniumTestSuite(BaseTestSuite):
     """base class for all selenium testsuites"""
 
-    # pylint: disable=dangerous-default-value disable=too-many-instance-attributes
+    # pylint: disable=too-many-instance-attributes
     def __init__(self, selenium_runner):
         self.selenium_runner = selenium_runner
         super().__init__()

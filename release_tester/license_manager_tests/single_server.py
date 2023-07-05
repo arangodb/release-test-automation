@@ -10,7 +10,6 @@ from test_suites_core.cli_test_suite import CliTestSuiteParameters
 class LicenseManagerSingleServerTestSuite(LicenseManagerSingleServerBaseTestSuite):
     """License manager tests: single server"""
 
-    # pylint: disable=dangerous-default-value
     def __init__(self, params: CliTestSuiteParameters):
         super().__init__(params)
         self.suite_name = "License manager tests: Clean install"
