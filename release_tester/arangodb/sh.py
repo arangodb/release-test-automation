@@ -279,12 +279,12 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         deadline=1000,
         progressive_timeout=100,
     ):
+        """mimic runInArangosh testing.js behaviour"""
+        # pylint: disable=too-many-arguments disable=too-many-instance-attributes
         if args is None:
             args = []
         if moreargs is None:
             moreargs = []
-        # pylint: disable=too-many-arguments disable=too-many-instance-attributes
-        """mimic runInArangosh testing.js behaviour"""
         if testname:
             logging.info("adding test data for {0}".format(testname))
         else:
