@@ -190,7 +190,7 @@ class ServicePage(NavigationBarPage):
         assert page_title == expected_title, f"Expected text {expected_title} but got {page_title}"
         self.webdriver.back()
 
-    def install_demo_geo_s2_service(self, mount_path, test_data_dir):
+    def install_demo_geo_s2_service(self, mount_path, ui_data_dir):
         """Installing demo geo s2 service from the list"""
         self.select_demo_geo_s2_service()
 
@@ -250,12 +250,19 @@ class ServicePage(NavigationBarPage):
                 if neighbourhoods_collection_sitem.text == 'neighborhoods':
                     print('open it and populate necessary data into it \n')
                     neighbourhoods_collection_sitem.click()
+
+                    # selecting content submenu
+                    content = "//div[@id='subNavigationBar']/ul[2]//a[.='Content']"
+                    content_sitem = self.locator_finder_by_xpath(content)
+                    content_sitem.click()
+                    time.sleep(1)
+
                     print('select upload button \n')
                     upload = '//*[@id="importCollection"]/span/i'
                     self.locator_finder_by_xpath(upload).click()
                     time.sleep(1)
 
-                    path1 = test_data_dir / "ui_data" / "service_page" / "demo_geo_s2" / "neighborhoods.json"
+                    path1 = ui_data_dir / "ui_data" / "service_page" / "demo_geo_s2" / "neighborhoods.json"
                     print(f'Providing neighborhood collection path {path1} \n')
                     choose_file_btn = 'importDocuments'
                     choose_file_btn_sitem = self.locator_finder_by_id(choose_file_btn)
@@ -272,6 +279,10 @@ class ServicePage(NavigationBarPage):
                 else:
                     raise Exception('neighbourhood Collection not found!')
 
+                collection_page = 'collections'
+                self.locator_finder_by_id(collection_page).click()
+                time.sleep(1)
+                
                 # looking for restaurants collection has been created or not
                 restaurants_collection = '//*[@id="collection_restaurants"]/div/h5'
                 restaurants_collection_sitem = self.locator_finder_by_xpath(restaurants_collection)
@@ -280,12 +291,18 @@ class ServicePage(NavigationBarPage):
                 if restaurants_collection_sitem.text == 'restaurants':
                     print('open it and populate necessary data into it \n')
                     restaurants_collection_sitem.click()
+                    # selecting content submenu
+                    content = "//div[@id='subNavigationBar']/ul[2]//a[.='Content']"
+                    content_sitem = self.locator_finder_by_xpath(content)
+                    content_sitem.click()
+                    time.sleep(1)
+
                     print('select upload button \n')
                     upload = '//*[@id="importCollection"]/span/i'
                     self.locator_finder_by_xpath(upload).click()
                     time.sleep(1)
 
-                    path2 = test_data_dir / "ui_data" / "service_page" / "demo_geo_s2" / "neighborhoods.json"
+                    path2 = ui_data_dir / "ui_data" / "service_page" / "demo_geo_s2" / "neighborhoods.json"
                     print(f'Providing restaurants collection path {path2} \n')
                     choose_file_btn = 'importDocuments'
                     choose_file_btn_sitem = self.locator_finder_by_id(choose_file_btn)
