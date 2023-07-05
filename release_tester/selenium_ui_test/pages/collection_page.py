@@ -73,17 +73,12 @@ class CollectionPage(NavigationBarPage):
         self.select_collection_delete_btn_id = "deleteSelected"
         self.collection_delete_confirm_btn_id = """//div[@id="modalPlaceholder"]//button[text()="Delete"]"""
         self.collection_really_dlt_btn_id = "/html//button[@id='modal-confirm-delete']"
-        self.select_index_menu_id = "//*[@id='subNavigationBarPage']/ul[2]/li[2]/a"
-        self.create_new_index_btn_id = "addIndex"
         self.select_index_type_id = "newIndexType"
 
         self.select_geo_fields_id = "newGeoFields"
         self.select_geo_name_id = "newGeoName"
         self.select_geo_json_id = "newGeoJson"
         self.select_geo_background_id = "newGeoBackground"
-
-        self.select_create_index_btn_id = "createIndex"
-
         self.select_persistent_fields_id = "newPersistentFields"
         self.select_persistent_name_id = "newPersistentName"
         self.select_persistent_unique_id = "newPersistentUnique"
@@ -279,28 +274,6 @@ class CollectionPage(NavigationBarPage):
         time.sleep(2)
 
         self.webdriver.refresh()
-
-    def test_computed_values(self):
-        """ Testing computed value feature for v3.10.x"""
-        self.navbar_goto("collections")
-        print("Selecting computed values collections. \n")
-        col = '//*[@id="collection_computedValueCol"]/div/h5'
-        self.locator_finder_by_xpath(col).click()
-        time.sleep(1)
-
-        print("Selecting computed value tab \n")
-        computed = "//*[contains(text(),'Computed Values')]"
-        self.locator_finder_by_xpath(computed).click()
-        time.sleep(1)
-        
-        # this query will create two different computed values
-        # one for collection doc and one for index values
-        query = '[{"name": "dateCreatedHumanReadable","expression": "RETURN DATE_ISO8601(DATE_NOW())","overwrite": ' \
-                'true,},{"name": "dateCreatedForIndexing","expression": "RETURN DATE_NOW()","overwrite": true,},] '
-
-        query = """[{"name": "dateCreatedHumanReadable","expression": "RETURN DATE_ISO8601(DATE_NOW())","overwrite": true,},{"name": "dateCreatedForIndexing","expression": "RETURN DATE_NOW()","overwrite": true,},]"""
-        
-        self.ace_set_value(query)
 
     def checking_search_options(self, search):
         """Checking search functionality"""
@@ -528,11 +501,323 @@ class CollectionPage(NavigationBarPage):
         """Selecting index menu from collection"""
         self.click_submenu_entry("Indexes")
 
+    def select_desired_index_from_the_list(self, index_name):
+        """this method will find the desired index from the list using given locator"""
+        select_index = "(//*[name()='svg'][@class='css-8mmkcg'])"
+        select_index_sitem = self.locator_finder_by_xpath(select_index)
+        select_index_sitem.click()
+        time.sleep(1)
+
+        element = self.locator_finder_by_xpath(f"//*[contains(text(), '{index_name}')]")
+        actions = ActionChains(self.driver)
+        # Move the mouse pointer to the element containing the text
+        actions.move_to_element(element)
+        # Perform a click action
+        actions.click().perform()
+    
+    def create_index(self, index_name):
+        """This method will create indexes for >= v3.11.0"""
+        print(f"Creating {index_name} index started \n")
+        add_index = '//*[@id="content-react"]/div/div/button'
+        create_new_index_btn_sitem = self.locator_finder_by_xpath(add_index)
+        create_new_index_btn_sitem.click()
+        time.sleep(2)
+
+        print(f"selecting {index_name} from the list\n")
+
+        if index_name == 'Persistent':
+            # selecting persistent index's filed
+            persistent_field = "/html//input[@id='fields']"
+            persistent_field_sitem = self.locator_finder_by_xpath(persistent_field)
+            persistent_field_sitem.click()
+            persistent_field_sitem.send_keys('name')
+
+            # selecting persistent index's name
+            persistent_name = "/html//input[@id='name']"
+            persistent_name_sitem = self.locator_finder_by_xpath(persistent_name)
+            persistent_name_sitem.click()
+            persistent_name_sitem.send_keys(index_name)
+
+            # selecting persistent index's extra value
+            extra_value = "/html//input[@id='storedValues']"
+            extra_value_sitem = self.locator_finder_by_xpath(extra_value)
+            extra_value_sitem.click()
+            extra_value_sitem.send_keys('email, likes')
+
+            # selecting persistent index's sparse value
+            sparse = "(//span[@aria-hidden='true'])[1]"
+            sparse_sitem = self.locator_finder_by_xpath(sparse)
+            sparse_sitem.click()
+
+            # selecting persistent index's duplicate array value
+            duplicate_array = '//*[@id="content-react"]/div/div[3]/form/div/div[1]/div[11]/label/span/span'
+            duplicate_array_sitem = self.locator_finder_by_xpath(duplicate_array)
+            duplicate_array_sitem.click()
+
+            memory_cache = '//*[@id="content-react"]/div/div[3]/form/div/div[1]/div[15]/label/span/span'
+            memory_cache_sitem = self.locator_finder_by_xpath(memory_cache)
+            memory_cache_sitem.click()
+
+        elif index_name == 'Geo':
+            self.select_desired_index_from_the_list('Geo Index')
+            # selecting geo index's filed
+            geo_field = "/html//input[@id='fields']"
+            geo_field_sitem = self.locator_finder_by_xpath(geo_field)
+            geo_field_sitem.click()
+            geo_field_sitem.send_keys('region')
+
+            # selecting geo index's name
+            geo_name = "/html//input[@id='name']"
+            geo_name_sitem = self.locator_finder_by_xpath(geo_name)
+            geo_name_sitem.click()
+            geo_name_sitem.send_keys(index_name)
+
+        elif index_name == 'Fulltext':
+            self.select_desired_index_from_the_list('Fulltext Index')
+            # selecting fullText index's filed
+            full_text_field = "/html//input[@id='fields']"
+            full_text_field_sitem = self.locator_finder_by_xpath(full_text_field)
+            full_text_field_sitem.click()
+            full_text_field_sitem.send_keys('region')
+
+            # selecting fullText index's name
+            full_text_name = "/html//input[@id='name']"
+            full_text_name_sitem = self.locator_finder_by_xpath(full_text_name)
+            full_text_name_sitem.click()
+            full_text_name_sitem.send_keys(index_name)
+
+            # selecting fullText index's min length
+            min_length = "/html//input[@id='minLength']"
+            min_length_sitem = self.locator_finder_by_xpath(min_length)
+            min_length_sitem.click()
+            min_length_sitem.send_keys()
+
+        elif index_name == 'TTL':
+            self.select_desired_index_from_the_list('TTL Index')
+            # selecting ttl index's filed
+            ttl_field = "/html//input[@id='fields']"
+            ttl_field_sitem = self.locator_finder_by_xpath(ttl_field)
+            ttl_field_sitem.click()
+            ttl_field_sitem.send_keys('region')
+
+            # selecting ttl index's name
+            ttl_name = "/html//input[@id='name']"
+            ttl_name_sitem = self.locator_finder_by_xpath(ttl_name)
+            ttl_name_sitem.click()
+            ttl_name_sitem.send_keys(index_name)
+
+            ttl_expire = "/html//input[@id='expireAfter']"
+            ttl_expire_sitem = self.locator_finder_by_xpath(ttl_expire)
+            ttl_expire_sitem.click()
+            ttl_expire_sitem.send_keys(1000)
+
+        elif index_name == 'Inverted Index':
+            action = ActionChains(self.driver)
+            self.select_desired_index_from_the_list('Inverted Index')
+
+            fields = "(//div[contains(@class,'css-1d6mnfj')])[2]"
+            fields_sitem = self.locator_finder_by_xpath(fields)
+            fields_sitem.click()
+            action.send_keys('region').send_keys(Keys.ENTER).send_keys('name').send_keys(Keys.ENTER).perform()
+            time.sleep(1)
+
+            analyzer = "//*[text()='Analyzer']"
+            analyzer_sitem = self.locator_finder_by_xpath(analyzer)
+            analyzer_sitem.click()
+            action.send_keys(Keys.DOWN).send_keys(Keys.ENTER).perform()
+            time.sleep(1)
+
+            include_all_fields = "//*[text()='Include All Fields']"
+            include_all_fields_sitem = self.locator_finder_by_xpath(include_all_fields)
+            include_all_fields_sitem.click()
+            time.sleep(1)
+
+            track_all_position = "//*[text()='Track List Positions']"
+            track_all_position_sitem = self.locator_finder_by_xpath(track_all_position)
+            track_all_position_sitem.click()
+            time.sleep(1)
+
+            search_fields = "//*[text()='Search Field']"
+            search_fields_sitem = self.locator_finder_by_xpath(search_fields)
+            search_fields_sitem.click()
+            time.sleep(1)
+
+            general_name = "//*[text()='Name']"
+            general_name_sitem = self.locator_finder_by_xpath(general_name)
+            general_name_sitem.click()
+            action.send_keys('Inverted').perform()
+            time.sleep(1)
+
+            general_writebuffer_idle = "//*[text()='Writebuffer Idle']"
+            general_writebuffer_idle_sitem = self.locator_finder_by_xpath(general_writebuffer_idle)
+            general_writebuffer_idle_sitem.click()
+            action.key_down(Keys.CONTROL).\
+                send_keys("a").\
+                key_up(Keys.CONTROL).send_keys(Keys.BACKSPACE).\
+                send_keys(100).perform()
+            time.sleep(1)
+
+            general_writebuffer_active = "//*[text()='Writebuffer Active']"
+            general_writebuffer_active_sitem = self.locator_finder_by_xpath(general_writebuffer_active)
+            general_writebuffer_active_sitem.click()
+            action.key_down(Keys.CONTROL). \
+                send_keys("a"). \
+                key_up(Keys.CONTROL).send_keys(Keys.BACKSPACE). \
+                send_keys(1).perform()
+            time.sleep(1)
+
+            general_writebuffer_size_max = "//*[text()='Writebuffer Size Max']"
+            general_writebuffer_size_max_sitem = self.locator_finder_by_xpath(
+                general_writebuffer_size_max)
+            general_writebuffer_size_max_sitem.click()
+            action.key_down(Keys.CONTROL). \
+                send_keys("a"). \
+                key_up(Keys.CONTROL).send_keys(Keys.BACKSPACE). \
+                send_keys(33554438).perform()
+            time.sleep(1)
+
+            general_cleanup_startup_steps = "//*[text()='Cleanup Interval Step']"
+            general_cleanup_startup_steps_sitem = self.locator_finder_by_xpath(
+                general_cleanup_startup_steps)
+            general_cleanup_startup_steps_sitem.click()
+            action.key_down(Keys.CONTROL). \
+                send_keys("a"). \
+                key_up(Keys.CONTROL).send_keys(Keys.BACKSPACE). \
+                send_keys(3).perform()
+            time.sleep(1)
+
+            general_commit_interval = "//*[text()='Commit Interval (msec)']"
+            general_commit_interval_sitem = self.locator_finder_by_xpath(
+                general_commit_interval)
+            general_commit_interval_sitem.click()
+            action.key_down(Keys.CONTROL). \
+                send_keys("a"). \
+                key_up(Keys.CONTROL).send_keys(Keys.BACKSPACE). \
+                send_keys(1010).perform()
+            time.sleep(1)
+
+            general_consolidation_interval = "//*[text()='Consolidation Interval (msec)']"
+            general_consolidation_interval_sitem = self.locator_finder_by_xpath(
+                general_consolidation_interval)
+            general_consolidation_interval_sitem.click()
+            action.key_down(Keys.CONTROL). \
+                send_keys("a"). \
+                key_up(Keys.CONTROL).send_keys(Keys.BACKSPACE). \
+                send_keys(1010).perform()
+            time.sleep(1)
+
+            primary_sort = "//*[text()='Primary Sort']"
+            primary_sort_sitem = self.locator_finder_by_xpath(
+                primary_sort)
+            primary_sort_sitem.click()
+            time.sleep(1)
+
+            primary_sort_field = "//*[text()='Field']"
+            primary_sort_field_sitem = self.locator_finder_by_xpath(
+                primary_sort_field)
+            primary_sort_field_sitem.click()
+            action.key_down(Keys.CONTROL). \
+                send_keys("a"). \
+                key_up(Keys.CONTROL).send_keys(Keys.BACKSPACE). \
+                send_keys("name").perform()
+            time.sleep(1)
+
+            stored_value = "//*[text()='Stored Values']"
+            stored_value_sitem = self.locator_finder_by_xpath(
+                stored_value)
+            stored_value_sitem.click()
+            time.sleep(1)
+
+            action.key_down(Keys.CONTROL). \
+                send_keys("a"). \
+                key_up(Keys.CONTROL).send_keys(Keys.BACKSPACE). \
+                send_keys("age").perform()
+            time.sleep(1)
+
+            consolidation_policy = "//*[text()='Consolidation Policy']"
+            consolidation_policy_sitem = self.locator_finder_by_xpath(
+                consolidation_policy)
+            consolidation_policy_sitem.click()
+            time.sleep(1)
+
+            segment_min = "//*[text()='Segments Min']"
+            segment_min_sitem = self.locator_finder_by_xpath(
+                segment_min)
+            segment_min_sitem.click()
+            action.key_down(Keys.CONTROL). \
+                send_keys("a"). \
+                key_up(Keys.CONTROL).send_keys(Keys.BACKSPACE). \
+                send_keys(2).perform()
+            time.sleep(1)
+
+            segment_max = "//*[text()='Segments Max']"
+            segment_max_sitem = self.locator_finder_by_xpath(
+                segment_max)
+            segment_max_sitem.click()
+            action.key_down(Keys.CONTROL). \
+                send_keys("a"). \
+                key_up(Keys.CONTROL).send_keys(Keys.BACKSPACE). \
+                send_keys(12).perform()
+            time.sleep(1)
+
+            segment_byte_max = "//*[text()='Segments Bytes Max']"
+            segment_byte_max_sitem = self.locator_finder_by_xpath(
+                segment_byte_max)
+            segment_byte_max_sitem.click()
+            action.key_down(Keys.CONTROL). \
+                send_keys("a"). \
+                key_up(Keys.CONTROL).send_keys(Keys.BACKSPACE). \
+                send_keys(5368709120).perform()
+            time.sleep(1)
+
+            segment_bytes_floor = "//*[text()='Segments Bytes Floor']"
+            segment_bytes_floor_sitem = self.locator_finder_by_xpath(
+                segment_bytes_floor)
+            segment_bytes_floor_sitem.click()
+            action.key_down(Keys.CONTROL). \
+                send_keys("a"). \
+                key_up(Keys.CONTROL).send_keys(Keys.BACKSPACE). \
+                send_keys(5368709128).perform()
+            time.sleep(1)
+
+        else:
+            self.navbar_goto("collections")
+            print("Selecting computed values collections. \n")
+            col = '//*[@id="collection_ComputedValueCol"]/div/h5'
+            self.locator_finder_by_xpath(col).click()
+            time.sleep(1)
+
+            self.select_index_menu()
+
+            create_new_index_btn_sitem = self.locator_finder_by_xpath(add_index)
+            create_new_index_btn_sitem.click()
+            time.sleep(2)
+
+            print('ZKD Index (EXPERIMENTAL)')
+            zkd_field = "/html//input[@id='fields']"
+            zkd_field = self.locator_finder_by_xpath(zkd_field)
+            zkd_field.click()
+            zkd_field.send_keys('x,y')
+
+            # selecting ZKD index's name
+            zkd_name = "/html//input[@id='name']"
+            zkd_name_sitem = self.locator_finder_by_xpath(zkd_name)
+            zkd_name_sitem.click()
+            zkd_name_sitem.send_keys(index_name)
+
+
+        # create the index
+        create_btn = "//*[text()='Create']"
+        create_btn_sitem = self.locator_finder_by_xpath(create_btn)
+        create_btn_sitem.click()
+        time.sleep(2)
+
+
     def create_new_index(self, index_name, value, is_cluster, check=False):
         """ create a new Index """
         print(f"Creating {index_name} index started \n")
-        create_new_index_btn_sitem = self.locator_finder_by_id(self.create_new_index_btn_id)
-        create_new_index_btn_sitem.click()
+        add_index = "/html//i[@id='addIndex']"
+        self.locator_finder_by_xpath(add_index).click()
         time.sleep(2)
 
         print(f"selecting {index_name} from the list\n")
@@ -605,15 +890,16 @@ class CollectionPage(NavigationBarPage):
                 print("Selecting computed values collections. \n")
                 col = '//*[@id="collection_ComputedValueCol"]/div/h5'
                 self.locator_finder_by_xpath(col).click()
-                time.sleep(1)
                 self.select_index_menu()
+
                 print(f"Creating {index_name} index started \n")
-                create_new_index_btn_sitem = self.locator_finder_by_id(self.create_new_index_btn_id)
-                create_new_index_btn_sitem.click()
+                self.locator_finder_by_xpath(add_index).click()
                 time.sleep(2)
 
                 print(f"selecting {index_name} from the list\n")
-                self.locator_finder_by_select(self.select_index_type_id, value)
+                self.locator_finder_by_select(self.select_index_type_id, 5)
+
+                time.sleep(1)
 
                 select_zkd_field_sitem = self.locator_finder_by_id('newZkdFields')
                 select_zkd_field_sitem.click()
@@ -633,8 +919,8 @@ class CollectionPage(NavigationBarPage):
             select_zkd_name_sitem.send_keys('ZKD')
             time.sleep(1)
 
-        select_create_index_btn_sitem = self.locator_finder_by_id(self.select_create_index_btn_id)
-        select_create_index_btn_sitem.click()
+        select_create_index_btn_id = "createIndex"
+        self.locator_finder_by_id(select_create_index_btn_id).click()
         time.sleep(10)
         self.webdriver.refresh()
 
@@ -662,6 +948,17 @@ class CollectionPage(NavigationBarPage):
             self.webdriver.refresh()
         except TimeoutException as e:
             print('Something went wrong', e, '\n')
+    
+    def delete_index(self, index):
+        """this method will delete all the indexes one by one"""
+        delete = f"(//*[name()='svg'][@class='chakra-icon css-onkibi'])[{index}]"
+        delete_sitem = self.locator_finder_by_xpath(delete)
+        delete_sitem.click()
+        time.sleep(1)
+        delete_confirmation = "//*[text()='Delete']"
+        delete_confirmation_stiem = self.locator_finder_by_xpath(delete_confirmation)
+        delete_confirmation_stiem.click()
+        time.sleep(1)
 
     def select_info_tab(self):
         """Selecting info tab from the collection submenu"""
@@ -743,6 +1040,13 @@ class CollectionPage(NavigationBarPage):
         col = "//*[text()='ComputedValueCol']"
         self.locator_finder_by_xpath(col).click()
         time.sleep(1)
+    
+    def navigate_to_col_content_tab(self):
+        """ this method will take to collection content tab"""
+        content = "//div[@id='subNavigationBar']/ul[2]//a[.='Content']"
+        content_sitem = self.locator_finder_by_xpath(content)
+        content_sitem.click()
+        time.sleep(1)
 
     def test_computed_values(self):
         """ Testing computed value feature for v3.10.x"""
@@ -777,6 +1081,9 @@ class CollectionPage(NavigationBarPage):
         # print('go back to collection tab')
         self.navbar_goto("collections")
         self.select_computedValueCol()
+        
+        self.navigate_to_col_content_tab()
+
         # print('Select add new document to collection button')
         add = '//*[@id="addDocumentButton"]/span/i'
         add_sitem = self.locator_finder_by_xpath(add)
