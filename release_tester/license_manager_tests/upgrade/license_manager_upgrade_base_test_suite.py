@@ -18,7 +18,7 @@ except ModuleNotFoundError as exc:
 class LicenseManagerUpgradeBaseTestSuite(LicenseManagerBaseTestSuite):
     """base class for license manager test suites that require upgrading arangodb"""
 
-    # pylint: disable=too-many-instance-attributes disable=dangerous-default-value
+    # pylint: disable=too-many-instance-attributes
     def __init__(self, params: CliTestSuiteParameters):
         super().__init__(params)
         self.suite_name = "License manager tests: Upgrade"
@@ -27,7 +27,7 @@ class LicenseManagerUpgradeBaseTestSuite(LicenseManagerBaseTestSuite):
         self.new_installer = self.installer_set[1][1]
         self.installer = self.new_installer
 
-    # pylint: disable=no-self-use
+    # pylint: disable=useless-option-value
     def init_child_class(self, child_class):
         """initialise the child class"""
         return child_class(self.new_version, self.base_cfg, self.old_version)

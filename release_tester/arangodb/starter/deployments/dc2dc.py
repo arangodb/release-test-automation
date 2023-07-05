@@ -192,9 +192,10 @@ class Dc2Dc(Runner):
             self.cert_op(["jwt-secret", "--secret=" + str(node["SyncSecret"])])
             self.cert_op(["jwt-secret", "--secret=" + str(node["JWTSecret"])])
 
-        # pylint: disable=dangerous-default-value
-        def _add_starter(val, port, moreopts=[]):
+        def _add_starter(val, port, moreopts=None):
             # fmt: off
+            if moreopts is None:
+                moreopts = []
             opts = [
                     '--all.log.level=backup=trace',
                     # '--all.log.level=requests=debug',

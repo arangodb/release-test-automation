@@ -28,7 +28,7 @@ class GraphTestSuite(BaseSeleniumTestSuite):
                 print("Creating '%s' Graph" % graph.get_name())
                 this_graph.navbar_goto("graphs")
                 self.webdriver.refresh()
-                this_graph.create_graph(graph_id, self.importer, self.test_data_dir)
+                this_graph.create_graph(graph_id, self.importer, self.ui_data_dir)
                 this_graph.check_required_collections(graph_id)
 
                 this_graph.select_graph_page()
@@ -48,7 +48,7 @@ class GraphTestSuite(BaseSeleniumTestSuite):
                 this_graph.navbar_goto("graphs")
                 self.webdriver.refresh()
                 print("Creating '%s' Graph" % graph.get_name())
-                this_graph.create_graph(graph_id, self.importer, self.test_data_dir)
+                this_graph.create_graph(graph_id, self.importer, self.ui_data_dir)
                 this_graph.check_required_collections(graph_id)
 
                 this_graph.select_graph_page()

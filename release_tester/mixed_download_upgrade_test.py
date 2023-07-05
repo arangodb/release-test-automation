@@ -27,7 +27,7 @@ from write_result_table import write_table
 class DownloadDummy:
     """mimic download class interface for source directory"""
 
-    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=dangerous-default-value disable=unused-argument disable=too-few-public-methods
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=unused-argument disable=too-few-public-methods
     def __init__(
         self,
         options: DownloadOptions,
@@ -37,14 +37,18 @@ class DownloadDummy:
         zip_package: bool,
         src_testing: bool,
         source,
-        existing_version_states={},
-        new_version_states={},
+        existing_version_states=None,
+        new_version_states=None,
         git_version="",
         force_arch="",
         force_os="",
-        arangods=[],
+        arangods=None,
     ):
         """main"""
+        if existing_version_states is None:
+            existing_version_states = {}
+        if new_version_states is None:
+            new_version_states = {}
         self.cfg = InstallerConfig(
             version=version,
             verbose=options.verbose,
@@ -62,7 +66,7 @@ class DownloadDummy:
             ssl=False,
             use_auto_certs=False,
             test="",
-            arangods=arangods,
+            arangods=[] if arangods is None else arangods,
         )
 
         self.inst = make_installer(self.cfg)
