@@ -39,19 +39,20 @@ class InstallerTAR(InstallerArchive):
         self.hot_backup = True
 
         super().__init__(cfg)
+        self.test_dir = self.cfg.install_prefix
 
     def calculate_package_names(self):
         if self.cfg.semver > semver.VersionInfo.parse("3.9.99"):
             arch = self.machine
-            if arch == 'aarch64':
-                arch = 'arm64'
-            self.architecture = '_' + arch
+            if arch == "aarch64":
+                arch = "arm64"
+            self.architecture = "_" + arch
         enterprise = "e" if self.cfg.enterprise else ""
 
         semdict = dict(self.cfg.semver.to_dict())
         if semdict["prerelease"]:
             if semdict["prerelease"].startswith("rc"):
-                semdict["prerelease"] = "-" + semdict["prerelease"].replace("rc", "rc.").replace('..', '.')
+                semdict["prerelease"] = "-" + semdict["prerelease"].replace("rc", "rc.").replace("..", ".")
             else:
                 semdict["prerelease"] = "-{prerelease}".format(**semdict)
         else:
@@ -87,7 +88,7 @@ class InstallerTAR(InstallerArchive):
         self.cfg.log_dir = self.cfg.install_prefix  # n/A
 
     def calculate_installation_dirs(self):
-        self.cfg.bin_dir = self.cfg.install_prefix / "bin"
-        self.cfg.sbin_dir = self.cfg.install_prefix / "usr" / "sbin"
-        self.cfg.real_bin_dir = self.cfg.install_prefix / "usr" / "bin"
+        self.cfg.bin_dir = self.test_dir / "bin"
+        self.cfg.sbin_dir = self.test_dir / "usr" / "sbin"
+        self.cfg.real_bin_dir = self.test_dir / "usr" / "bin"
         self.cfg.real_sbin_dir = self.cfg.sbin_dir
