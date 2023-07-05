@@ -39,12 +39,7 @@ class AnalyzerPage(NavigationBarPage):
         help_sitem = self.locator_finder_by_xpath(help_filter)
         help_sitem.click()
         time.sleep(3)
-
-        print("Closing Analyzers help filter \n")
-        help_filter_close = '//button[@class="button-close"][1]'
-        help_close_sitem = self.locator_finder_by_xpath(help_filter_close)
-        help_close_sitem.click()
-        time.sleep(2)
+        self.webdriver.refresh()
 
     def select_built_in_analyzers_open(self):
         """Checking in-built analyzers list and description"""
@@ -281,9 +276,7 @@ class AnalyzerPage(NavigationBarPage):
         frequency = '//div[label[text()="Frequency"]]/input[not(@disabled)]'
         norm = '//div[label[text()="Norm"]]/input[not(@disabled)]'
         position = '//div[label[text()="Position"]]/input[not(@disabled)]'
-        switch_view_btn = '//*[@id="modal-content-add-analyzer"]/div[1]/div/div[2]/div/div[2]/button'
-        switch_form_btn = '//*[@id="modal-content-add-analyzer"]/div[1]/div/div[2]/div/div[2]/button'
-        create = '//*[@id="modal-content-add-analyzer"]/div[3]/button[2]'
+        switch_form_btn = "//*[text()='Switch to form view']"
         local_placeholder = '//div[label[text()="Locale"]]//input[not(@disabled)]'
         case_placeholder = '//div[label[text()="Case"]]//select[not(@disabled)]'
 
@@ -717,18 +710,23 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
         
         print(f'Switching current view to form view for {name}\n')
+        switch_view_btn = '//*[@id="modal-content-add-analyzer"]/div[1]/div/div[2]/div/div[2]/button'
         code_view_sitem = self.locator_finder_by_xpath(switch_view_btn)
         code_view_sitem.click()
         time.sleep(3)
 
         print(f'Switching current view to code view for {name}\n')
-        form_view_sitem = self.locator_finder_by_xpath(switch_form_btn)
+        form_view_sitem = self.locator_finder_by_xpath(switch_view_btn)
         form_view_sitem.click()
         time.sleep(3)
 
         print(f"Selecting the create button for the {name} \n")
-        create_btn = create
-        create_btn_sitem = self.locator_finder_by_xpath(create_btn)
+        if self.package_version >= semver.VersionInfo.parse('3.11.0'):
+            create = '//*[@id="chakra-modal-2"]/footer/button[2]'
+        else:
+            create = "//*[text()='Create']"
+
+        create_btn_sitem = self.locator_finder_by_xpath(create)
         create_btn_sitem.click()
         time.sleep(2)
 
