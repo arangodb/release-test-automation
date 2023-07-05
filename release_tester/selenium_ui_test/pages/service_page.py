@@ -190,7 +190,7 @@ class ServicePage(NavigationBarPage):
         assert page_title == expected_title, f"Expected text {expected_title} but got {page_title}"
         self.webdriver.back()
 
-    def install_demo_geo_s2_service(self, mount_path, test_data_dir):
+    def install_demo_geo_s2_service(self, mount_path, ui_data_dir):
         """Installing demo geo s2 service from the list"""
         self.select_demo_geo_s2_service()
 
@@ -262,7 +262,7 @@ class ServicePage(NavigationBarPage):
                     self.locator_finder_by_xpath(upload).click()
                     time.sleep(1)
 
-                    path1 = test_data_dir / "ui_data" / "service_page" / "demo_geo_s2" / "neighborhoods.json"
+                    path1 = ui_data_dir / "ui_data" / "service_page" / "demo_geo_s2" / "neighborhoods.json"
                     print(f'Providing neighborhood collection path {path1} \n')
                     choose_file_btn = 'importDocuments'
                     choose_file_btn_sitem = self.locator_finder_by_id(choose_file_btn)
@@ -302,7 +302,7 @@ class ServicePage(NavigationBarPage):
                     self.locator_finder_by_xpath(upload).click()
                     time.sleep(1)
 
-                    path2 = test_data_dir / "ui_data" / "service_page" / "demo_geo_s2" / "neighborhoods.json"
+                    path2 = ui_data_dir / "ui_data" / "service_page" / "demo_geo_s2" / "neighborhoods.json"
                     print(f'Providing restaurants collection path {path2} \n')
                     choose_file_btn = 'importDocuments'
                     choose_file_btn_sitem = self.locator_finder_by_id(choose_file_btn)

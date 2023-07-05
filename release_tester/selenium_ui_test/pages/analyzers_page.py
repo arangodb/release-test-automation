@@ -210,7 +210,7 @@ class AnalyzerPage(NavigationBarPage):
         self.select_built_in_analyzers_close()
 
 
-    def add_new_analyzer(self, name, test_data_dir=None):
+    def add_new_analyzer(self, name, ui_data_dir=None):
         """Adding analyzer type delimiter with necessary features"""
         # pylint: disable=too-many-locals disable=too-many-branches disable=too-many-statements
         index = self.index
@@ -531,7 +531,7 @@ class AnalyzerPage(NavigationBarPage):
 
         # for nearest neighbor analyzer introduced on 3.10.x
         elif name == "My_Nearest_Neighbor_Analyzer":
-            location = test_data_dir / "makedata_suites" / "610_model_cooking.bin"
+            location = ui_data_dir / "ui_data" / "analyzer_page" / "610_model_cooking.bin"
             print(f'Selecting model location for {name} \n')
             model_location = '//div[label[text()="Model Location"]]//input[not(@disabled)]'
             model_location_sitem = self.locator_finder_by_xpath(model_location)
@@ -546,7 +546,7 @@ class AnalyzerPage(NavigationBarPage):
 
         # for classification analyzer introduced on 3.10.x
         elif name == "My_Classification_Analyzer":
-            location = test_data_dir / "makedata_suites" / "610_model_cooking.bin"
+            location = ui_data_dir / "ui_data" / "analyzer_page" / "610_model_cooking.bin"
             print(f'Selecting model location for {name} \n')
             model_location = '//div[label[text()="Model Location"]]//input[not(@disabled)]'
             model_location_sitem = self.locator_finder_by_xpath(model_location)
