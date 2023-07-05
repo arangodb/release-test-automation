@@ -279,6 +279,10 @@ class ServicePage(NavigationBarPage):
                 else:
                     raise Exception('neighbourhood Collection not found!')
 
+                collection_page = 'collections'
+                self.locator_finder_by_id(collection_page).click()
+                time.sleep(1)
+                
                 # looking for restaurants collection has been created or not
                 restaurants_collection = '//*[@id="collection_restaurants"]/div/h5'
                 restaurants_collection_sitem = self.locator_finder_by_xpath(restaurants_collection)
