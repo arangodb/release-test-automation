@@ -192,9 +192,10 @@ class Dc2Dc(Runner):
             self.cert_op(["jwt-secret", "--secret=" + str(node["SyncSecret"])])
             self.cert_op(["jwt-secret", "--secret=" + str(node["JWTSecret"])])
 
-        # pylint: disable=dangerous-default-value
-        def _add_starter(val, port, moreopts=[]):
+        def _add_starter(val, port, moreopts=None):
             # fmt: off
+            if moreopts is None:
+                moreopts = []
             opts = [
                     '--all.log.level=backup=trace',
                     # '--all.log.level=requests=debug',
@@ -331,7 +332,7 @@ class Dc2Dc(Runner):
 
     def _stop_sync(self, timeout=130):
         if IS_MAC:
-            timeout *= 1.3
+            timeout *= 2
         try:
             timeout_start = time.time()
             if self._is_higher_sync_version(SYNC_VERSIONS["150"], SYNC_VERSIONS["230"]):

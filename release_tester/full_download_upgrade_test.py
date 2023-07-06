@@ -10,7 +10,14 @@ import click
 
 import tools.loghelper as lh
 from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig
-from common_options import very_common_options, common_options, download_options, full_common_options, hotbackup_options
+from common_options import (
+    very_common_options,
+    common_options,
+    download_options,
+    full_common_options,
+    hotbackup_options,
+    matrix_options,
+)
 from download import Download, DownloadOptions
 from test_driver import TestDriver
 from tools.killall import list_all_processes
@@ -184,23 +191,7 @@ def upgrade_package_test(
 
 @click.command()
 @full_common_options
-@click.option(
-    "--upgrade-matrix", default="", help="list of upgrade operations ala '3.6.15:3.7.15;3.7.14:3.7.15;3.7.15:3.8.1'"
-)
-@click.option(
-    "--test/--no-test",
-    "run_test",
-    is_flag=True,
-    default=True,
-    help="Run clean installation test for primary version.",
-)
-@click.option(
-    "--run-test-suites/--do-not-run-test-suites",
-    "run_test_suites",
-    is_flag=True,
-    default=True,
-    help="Run test suites for each version pair.",
-)
+@matrix_options()
 @very_common_options()
 @hotbackup_options()
 @common_options(

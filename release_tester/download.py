@@ -96,7 +96,7 @@ class DownloadOptions(OptionGroup):
 class Download:
     """manage package downloading from any known arango package source"""
 
-    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=dangerous-default-value
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
     def __init__(
         self,
         options: DownloadOptions,
@@ -106,13 +106,17 @@ class Download:
         zip_package: bool,
         src_testing: bool,
         source,
-        existing_version_states={},
-        new_version_states={},
+        existing_version_states=None,
+        new_version_states=None,
         git_version="",
         force_arch="",
         force_os="",
     ):
         """main"""
+        if existing_version_states is None:
+            existing_version_states = {}
+        if new_version_states is None:
+            new_version_states = {}
         # pylint: disable=too-many-branches disable=too-many-statements
         lh.section("configuration")
         if force_os != "":
@@ -173,7 +177,8 @@ class Download:
             stress_upgrade=False,
             ssl=False,
             use_auto_certs=False,
-            test=""
+            test="",
+            arangods=[],
         )
 
         self.inst = make_installer(self.cfg)

@@ -28,7 +28,7 @@ class QueryPage(NavigationBarPage):
         self.save_current_query_id = "saveCurrentQuery"
         self.new_query_name_id = "new-query-name"
         self.select_query_size_id = "querySize"
-        self.json_to_table_span_it = "switchTypes"
+        # self.json_to_table_span_it = "switchTypes"
         self.collection_settings_id = "//*[@id='subNavigationBarPage']/ul[2]/li[4]/a"
         self.graph_page = "graphs"
         self.select_create_graph_id = "createGraph"
@@ -201,6 +201,13 @@ RETURN c
         self.send_key_action(Keys.ENTER)
         time.sleep(2)
 
+    def navigate_to_col_content_tab(self):
+        """ this method will take to collection content tab"""
+        content = "//div[@id='subNavigationBar']/ul[2]//a[.='Content']"
+        content_sitem = self.locator_finder_by_xpath(content)
+        content_sitem.click()
+        time.sleep(1)
+
     def update_documents(self):
         """update some documents"""
         print("Navigating to Collection page \n")
@@ -214,6 +221,8 @@ RETURN c
         col_name = self.locator_finder_by_xpath(col_name)
         col_name.click()
         time.sleep(1)
+        
+        self.navigate_to_col_content_tab()
 
         # get key text from the first row
         row_id = "//div[@id='docPureTable']/div[2]/div[1]"
@@ -322,16 +331,16 @@ FOR doc IN Characters
 
         self.scroll()
 
-        json = self.json_to_table_span_it
-        table = self.json_to_table_span_it
+        json = "//*[text()='JSON']"
+        table = "//*[text()='Table']"
 
         print("Changing execution format JSON format to Table format\n")
-        json = self.locator_finder_by_id(json)
+        json = self.locator_finder_by_xpath(json)
         json.click()
         time.sleep(3)
 
         print("Changing execution format Table format to JSON format\n")
-        table = self.locator_finder_by_id(table)
+        table = self.locator_finder_by_xpath(table)
         table.click()
         time.sleep(3)
 

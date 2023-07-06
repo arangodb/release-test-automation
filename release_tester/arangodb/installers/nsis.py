@@ -30,6 +30,7 @@ IS_WINDOWS = platform.win32_ver()[0] != ""
 if IS_WINDOWS:
     from mss import mss
     import winreg
+    import win32api
 
 
 class InstallerNsis(InstallerWin):
@@ -138,6 +139,12 @@ class InstallerNsis(InstallerWin):
             install.wait(600)
         except psutil.TimeoutExpired as exc:
             print("upgrading timed out, taking screenshot, re-raising!")
+            print("shaking mouse.")
+            win32api.SetCursorPos((10, 10))
+            time.sleep(1)
+            win32api.SetCursorPos((50, 50))
+            time.sleep(5)
+            print("taking screenshot")
             filename = "windows_upgrade_screenshot.png"
             with mss() as sct:
                 sct.shot(output=filename)
@@ -187,6 +194,12 @@ class InstallerNsis(InstallerWin):
             install.wait(600)
         except psutil.TimeoutExpired as exc:
             print("installing timed out, taking screenshot, re-raising!")
+            print("shaking mouse.")
+            win32api.SetCursorPos((10, 10))
+            time.sleep(1)
+            win32api.SetCursorPos((50, 50))
+            time.sleep(5)
+            print("taking screenshot")
             filename = "windows_upgrade_screenshot.png"
             with mss() as sct:
                 sct.shot(output=filename)
@@ -232,6 +245,12 @@ class InstallerNsis(InstallerWin):
             install.wait(600)
         except psutil.TimeoutExpired as exc:
             print("installing timed out, taking screenshot, re-raising!")
+            print("shaking mouse.")
+            win32api.SetCursorPos((10, 10))
+            time.sleep(1)
+            win32api.SetCursorPos((50, 50))
+            time.sleep(5)
+            print("taking screenshot")
             filename = "windows_install_client_package.png"
             with mss() as sct:
                 sct.shot(output=filename)
@@ -281,6 +300,12 @@ class InstallerNsis(InstallerWin):
                 uninstall.wait(600)
             except psutil.TimeoutExpired as exc:
                 print("upgrade uninstall timed out, taking screenshot, re-raising!")
+                print("shaking mouse.")
+                win32api.SetCursorPos((10, 10))
+                time.sleep(1)
+                win32api.SetCursorPos((50, 50))
+                time.sleep(5)
+                print("taking screenshot")
                 filename = "windows_upgrade_screenshot.png"
                 with mss() as sct:
                     sct.shot(output=filename)
@@ -319,6 +344,12 @@ class InstallerNsis(InstallerWin):
                 uninstall.wait(600)
             except psutil.TimeoutExpired as exc:
                 print("uninstall timed out, taking screenshot, re-raising!")
+                print("shaking mouse.")
+                win32api.SetCursorPos((10, 10))
+                time.sleep(1)
+                win32api.SetCursorPos((50, 50))
+                time.sleep(5)
+                print("taking screenshot")
                 filename = "windows_upgrade_screenshot.png"
                 with mss() as sct:
                     sct.shot(output=filename)
@@ -370,6 +401,12 @@ class InstallerNsis(InstallerWin):
                 uninstall.wait(600)
             except psutil.TimeoutExpired as exc:
                 print("uninstall timed out, taking screenshot, re-raising!")
+                print("shaking mouse.")
+                win32api.SetCursorPos((10, 10))
+                time.sleep(1)
+                win32api.SetCursorPos((50, 50))
+                time.sleep(5)
+                print("taking screenshot")
                 filename = "windows_uninstall_client_package_screenshot.png"
                 with mss() as sct:
                     sct.shot(output=filename)

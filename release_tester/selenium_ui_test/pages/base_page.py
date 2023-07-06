@@ -323,6 +323,7 @@ class BasePage:
         )
         if self.locator is None:
             print("UI-Test: ", locator_name, " locator has not found.")
+            return None
         else:
             return self.locator
 
@@ -392,7 +393,7 @@ class BasePage:
 
     # pylint: disable=too-many-arguments
     def check_expected_error_messages_for_analyzer(
-        self, error_input, print_statement, error_message, locators_id, error_message_id
+            self, error_input, print_statement, error_message, locators_id, error_message_id
         ):
         """This method will take three lists and check for expected error condition against user's inputs"""
         i = 0
@@ -438,7 +439,7 @@ class BasePage:
 
     # pylint: disable=too-many-arguments
     def check_expected_error_messages_for_database(
-        self, error_input, print_statement, error_message, locators_id, error_message_id, value=False
+            self, error_input, print_statement, error_message, locators_id, error_message_id, value=False
     ):
         """This method will take three lists and check for expected error condition against user's inputs"""
         # value represent true because cluster rf and write concern has different wat to catch the error

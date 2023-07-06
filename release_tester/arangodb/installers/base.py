@@ -206,8 +206,10 @@ class InstallerBase(ABC):
     installer_type: str
 
     def __init__(self, cfg: InstallerConfig):
+        self.arangods = cfg.arangods
         self.machine = platform.machine()
         self.arango_binaries = []
+        self.backup_arangod_name = None
         self.cfg = copy.deepcopy(cfg)
         self.calculate_package_names()
 
@@ -224,6 +226,7 @@ class InstallerBase(ABC):
         self.instance = None
         self.starter_versions = {}
         self.syncer_versions = {}
+        self.rclone_versions = {}
         self.cli_executor = ArangoCLIprogressiveTimeoutExecutor(self.cfg, self.instance)
         self.core_glob = "**/*core"
         self.copy_for_result = True
@@ -242,6 +245,24 @@ class InstallerBase(ABC):
         self.install_server_package_impl()
         self.cfg.server_package_is_installed = True
         self.calculate_file_locations()
+
+    @step
+    def copy_binaries(self):
+        """store arangod binary for probable later analysis"""
+        eps = "E_" if self.cfg.enterprise else ""
+        self.backup_arangod_name = str(self.cfg.base_test_dir / f"arangod_{eps}_{self.cfg.version}{FILE_EXTENSION}")
+        arangod_src = str(self.cfg.real_sbin_dir / f"arangod{FILE_EXTENSION}")
+        if not self.backup_arangod_name in self.arangods:
+            self.arangods.append(self.backup_arangod_name)
+            print("copying " + arangod_src + " to " + self.backup_arangod_name)
+            shutil.copy(arangod_src, self.backup_arangod_name)
+
+    @step
+    def get_arangod_binary(self, target_dir):
+        """adding arangod binary to report tarball"""
+        print(f"copying {self.backup_arangod_name} => {target_dir}")
+        if self.backup_arangod_name is not None:
+            shutil.copy(self.backup_arangod_name, target_dir)
 
     @step
     def un_install_server_package(self):
@@ -484,7 +505,7 @@ class InstallerBase(ABC):
     def output_arangod_version(self):
         """document the output of arangod --version"""
         return self.cli_executor.run_monitored(
-            executeable=self.cfg.sbin_dir / "arangod",
+            executeable=self.cfg.real_sbin_dir / "arangod",
             args=["--version"],
             params=make_default_params(True),
             deadline=10,
@@ -750,6 +771,35 @@ class InstallerBase(ABC):
                 print("Starter version: " + str(self.starter_versions))
         return semver.VersionInfo.parse(self.starter_versions["Version"])
 
+    def get_rclone_version(self):
+        """find out the version of the starter in this package"""
+        if not self.cfg.enterprise:
+            return semver.VersionInfo.parse("0.0.0")
+        if not self.rclone_versions:
+            rclone = self.cfg.real_sbin_dir / ("rclone-arangodb" + FILE_EXTENSION)
+            if not rclone.is_file():
+                print("rclone not found where we searched it? " + str(rclone))
+                return semver.VersionInfo.parse("0.0.0")
+            print(rclone.stat())
+            # print(rclone.owner())
+            # print(rclone.group())
+            print(magic.from_file(str(rclone)))
+            rclone_version_proc = psutil.Popen(
+                [str(rclone), "--version"],
+                stdout=subprocess.PIPE,
+                stdin=subprocess.PIPE,
+                universal_newlines=True,
+            )
+            line = rclone_version_proc.stdout.readline()
+            rclone_version_proc.wait()
+            print(line)
+            string_array = line.split(", ")
+            for one_str in string_array:
+                splitted = one_str.split(" ")
+                self.rclone_versions[splitted[0]] = splitted[1].rstrip()[1:]
+                print("rclone version: " + str(self.rclone_versions))
+        return semver.VersionInfo.parse(self.rclone_versions["rclone"])
+
     def get_sync_version(self):
         """find out the version of the starter in this package"""
         if not self.cfg.enterprise:
@@ -838,6 +888,7 @@ class InstallerArchive(InstallerBase, metaclass=ABCMeta):
     def upgrade_server_package(self, old_installer):
         """Tar installer is the same way we did for installing."""
         self.install_server_package()
+        self.calculate_installation_dirs()
 
     @abstractmethod
     def calculate_installation_dirs(self):

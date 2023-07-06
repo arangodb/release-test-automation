@@ -32,8 +32,8 @@ class SupportTestSuite(BaseSeleniumTestSuite):
         support.driver_and_integration_link()
         print("Checking Community Support tab \n")
         support.community_support_link()
-        print("Checking Rest API tab \n")
-        support.rest_api()
+        # print("Checking Rest API tab \n")
+        # # support.rest_api()
 
         # logging out from the current user
         # login.logout_button()

@@ -17,7 +17,6 @@ import tools.loghelper as lh
 from tools.asciiprint import print_progress as progress
 
 # import tools.loghelper as lh
-# pylint: disable=dangerous-default-value
 
 ON_POSIX = "posix" in sys.builtin_module_names
 IS_WINDOWS = platform.win32_ver()[0] != ""
@@ -243,7 +242,7 @@ deadline_signal: {0.deadline_signal}""".format(
         executeable,
         more_args,
         use_default_auth=True,
-        params={"error": "", "verbose": True, "output": []},
+        params=None,
         progressive_timeout=60,
         deadline=0,
         deadline_grace_period=180,
@@ -256,6 +255,8 @@ deadline_signal: {0.deadline_signal}""".format(
         a dynamic timeout that its got output
         (is still alive...)
         """
+        if params is None:
+            params = {"error": "", "verbose": True, "output": []}
         # fmt: off
         passvoid = ''
         if self.cfg.passvoid:
@@ -291,7 +292,7 @@ deadline_signal: {0.deadline_signal}""".format(
         self,
         executeable,
         args,
-        params={"error": "", "verbose": True, "output": []},
+        params=None,
         progressive_timeout=60,
         deadline=0,
         deadline_grace_period=180,
@@ -305,6 +306,8 @@ deadline_signal: {0.deadline_signal}""".format(
         follow.
         (is still alive...)
         """
+        if params is None:
+            params = {"error": "", "verbose": True, "output": []}
         rc_exit = None
         line_filter = False
         run_cmd = [executeable] + args
