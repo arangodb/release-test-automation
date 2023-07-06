@@ -88,15 +88,16 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         return expect_failure(False, ret, params)
 
     @step
-    # pylint: disable=dangerous-default-value
-    def stop_sync(self, timeout=60, deadline=180, more_args=[]):
+    def stop_sync(self, timeout=60, deadline=180, more_args=None):
         """run the stop sync command"""
         args = [
             "stop",
             "sync",
             "--master.endpoint=https://{url}:{port}".format(url=self.cfg.publicip, port=str(self.clusterports[0])),
             "--auth.keyfile=" + str(self.certificate_auth["clientkeyfile"]),
-        ] + more_args
+        ]
+        if more_args is not None:
+            args.extend(more_args)
         if is_higher_version(self.version, semver.VersionInfo.parse("2.18.0")):
             args = args + [f"--timeout={round(timeout*0.95)}s"]
         logging.info("SyncManager: stopping sync: %s", str(args))

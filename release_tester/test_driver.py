@@ -161,9 +161,11 @@ class TestDriver:
         while not test_data_dir.exists():
             time.sleep(1)
 
-    # pylint: disable=broad-except disable=dangerous-default-value
-    def run_cleanup(self, run_properties: RunProperties, versions: list = ["3.3.3"]):
+    # pylint: disable=broad-except
+    def run_cleanup(self, run_properties: RunProperties, versions=None):
         """main"""
+        if versions is None:
+            versions = ["3.3.3"]
         installer_set = create_config_installer_set(versions, self.base_config, "all", run_properties, False)
         inst = installer_set[0][1]
         if inst.calc_config_file_name().is_file():
