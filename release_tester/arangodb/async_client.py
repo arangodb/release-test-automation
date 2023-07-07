@@ -12,6 +12,7 @@ from subprocess import PIPE
 from threading import Thread
 import psutil
 from allure_commons._allure import attach
+import tools.loghelper as lh
 
 from tools.asciiprint import print_progress as progress
 
@@ -325,7 +326,7 @@ deadline_signal: {0.deadline_signal}""".format(
             else:
                 deadline = datetime.now() + timedelta(seconds=deadline)
         final_deadline = deadline + timedelta(seconds=deadline_grace_period)
-        print(f"{identifier}: launching {str(run_cmd)}")
+        lh.log_cmd(run_cmd)
         with psutil.Popen(
             run_cmd,
             stdout=PIPE,

@@ -61,7 +61,9 @@ class TestDriver:
     # pylint: disable=too-many-arguments disable=too-many-locals
     def __init__(self, **kwargs):
         self.sitecfg = SiteConfig("")
-        spawn_overload_watcher_thread(self.sitecfg)
+        self.use_monitoring = kwargs["monitoring"]
+        if self.use_monitoring:
+            spawn_overload_watcher_thread(self.sitecfg)
         self.launch_dir = Path.cwd()
         if IS_WINDOWS and "PYTHONUTF8" not in os.environ:
             raise Exception("require PYTHONUTF8=1 in the environment")
@@ -101,7 +103,8 @@ class TestDriver:
         self._stop_monitor()
 
     def _stop_monitor(self):
-        shutdown_overload_watcher_thread()
+        if self.use_monitoring:
+            shutdown_overload_watcher_thread()
 
     def set_r_limits(self):
         """on linux manipulate ulimit values"""
