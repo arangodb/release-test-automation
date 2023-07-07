@@ -20,6 +20,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
 class InstallerDeb(InstallerLinux):
     """install .deb's on debian or ubuntu hosts"""
+
     # pylint: disable=too-many-instance-attributes
     def __init__(self, cfg):
         self.server_package = None
@@ -60,7 +61,7 @@ class InstallerDeb(InstallerLinux):
             elif semdict["prerelease"].startswith("beta"):
                 semdict["prerelease"] = "~{prerelease}".format(**semdict)
             elif semdict["prerelease"].startswith("rc"):
-                semdict["prerelease"] = "~" + semdict["prerelease"].replace("rc", "rc.").replace('..', '.')
+                semdict["prerelease"] = "~" + semdict["prerelease"].replace("rc", "rc.").replace("..", ".")
             elif re.match(r"\d{1,2}", semdict["prerelease"]):
                 semdict["prerelease"] = ".{prerelease}".format(**semdict)
             elif len(semdict["prerelease"]) > 0:
@@ -228,7 +229,7 @@ class InstallerDeb(InstallerLinux):
 
     @step
     def un_install_server_package_impl(self):
-        """ uninstall server package """
+        """uninstall server package"""
         cmd = "dpkg --purge " + "arangodb3" + ("e" if self.cfg.enterprise else "")
         lh.log_cmd(cmd)
         uninstall = pexpect.spawnu(cmd)
@@ -240,7 +241,8 @@ class InstallerDeb(InstallerLinux):
         except pexpect.exceptions.EOF as ex:
             ascii_print(uninstall.before)
             raise ex
-        self.instance.search_for_warnings()
+        if self.instance:
+            self.instance.search_for_warnings()
 
     @step
     def install_debug_package_impl(self):
