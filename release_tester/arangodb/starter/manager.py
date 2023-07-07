@@ -742,7 +742,8 @@ class StarterManager:
             "--starter.endpoint",
             self.get_http_protocol() + "://127.0.0.1:" + str(self.get_my_port()),
         ]
-        logging.info("StarterManager: Commanding upgrade %s", str(args))
+        logging.info("StarterManager: Commanding upgrade:")
+        lh.log_cmd(" ".join([str(arg) for arg in args]))
         self.upgradeprocess = psutil.Popen(
             args,
             # stdout=subprocess.PIPE,
