@@ -38,7 +38,6 @@ from tools.asciiprint import print_progress as progress
 from tools.timestamp import timestamp
 import tools.loghelper as lh
 from tools.killall import get_process_tree
-from tools.utils import is_column_cache_supported, COLUMN_CACHE_ARGUMENT
 
 from reporting.reporting_utils import attach_table, step, attach_http_request_to_report, attach_http_response_to_report
 
@@ -89,8 +88,6 @@ class StarterManager:
                 "--all.rclone.argument=--log-level=DEBUG",
                 "--all.rclone.argument=--log-file=@ARANGODB_SERVER_DIR@/rclone.log",
             ]
-        if (self.cfg.semver.major == 3 and self.cfg.semver.minor >= 9) or (self.cfg.semver.major > 3):
-            self.moreopts += ["--args.all.database.extended-names-databases=true"]
         print(self.moreopts)
         # directories
         self.raw_basedir = install_prefix
@@ -173,18 +170,49 @@ class StarterManager:
 
         self.upgradeprocess = None
 
-        self.arguments = [
-            "--log.console=false",
-            "--log.file=true",
-            "--starter.data-dir={0.basedir}".format(self),
-        ] + self.moreopts
         self.old_version = self.cfg.version
         self.enterprise = self.cfg.enterprise
         self.pid = None
         self.ppid = None
 
+    def _get_arguments(self):
+        return (
+            [
+                "--log.console=false",
+                "--log.file=true",
+                "--starter.data-dir={0.basedir}".format(self),
+            ]
+            + self.moreopts
+            + self.get_version_specific_arguments(self.cfg.version)
+        )
+
+    arguments = property(fget=_get_arguments, doc="List of CLI arguments of the starter.")
+
     def __repr__(self):
         return str(get_instances_table(self.get_instance_essentials()))
+
+    def get_version_specific_arguments(self, version: str):
+        """list starter arguments that must be applied conditionally based on version"""
+        result = []
+        semversion = semver.VersionInfo.parse(version)
+
+        # Extended database names were introduced in 3.9.0
+        if (semversion.major == 3 and semversion.minor >= 9) or (semversion.major > 3):
+            result += ["--args.all.database.extended-names-databases=true"]
+
+        # Telemetry was introduced in 3.11.0
+        if (semversion.major == 3 and semversion.minor >= 11) or (semversion.major > 3):
+            result += ["--all.server.telemetrics-api=false"]
+
+        # Column cache
+        if (
+            semver.compare(version, "3.9.5") >= 0
+            and semver.compare(version, "3.10.0") != 0
+            and semver.compare(version, "3.10.1") != 0
+        ):
+            result += ["--args.all.arangosearch.columns-cache-limit=10000"]
+
+        return result
 
     def get_structure(self):
         """serialize the instance info compatible with testing.js"""
@@ -309,17 +337,6 @@ class StarterManager:
         """launch the starter for this instance"""
         logging.info("running starter " + self.name)
         args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.default_starter_args + self.arguments
-
-        assert self.cfg.version
-        # Remove it if it is not needed
-        if not is_column_cache_supported(self.cfg.version) or not self.cfg.enterprise:
-            if COLUMN_CACHE_ARGUMENT in args:
-                args.remove(COLUMN_CACHE_ARGUMENT)
-
-        # Add it if it is required
-        if is_column_cache_supported(self.cfg.version) and self.cfg.enterprise:
-            if COLUMN_CACHE_ARGUMENT not in args:
-                args.append(COLUMN_CACHE_ARGUMENT)
 
         lh.log_cmd(args)
         self.instance = psutil.Popen(args)
@@ -805,20 +822,11 @@ class StarterManager:
         restart the starter instance after we killed it eventually,
         maybe command manual upgrade (and wait for exit)
         """
+        assert version is not None
+        self.cfg.version = version
         args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.default_starter_args + self.arguments
         if moreargs is not None:
             args.extend(moreargs)
-
-        assert version is not None
-        # Remove it if it is not needed
-        if not is_column_cache_supported(version) or not self.cfg.enterprise:
-            if COLUMN_CACHE_ARGUMENT in args:
-                args.remove(COLUMN_CACHE_ARGUMENT)
-
-        # Add it if it is required
-        if is_column_cache_supported(version) and self.cfg.enterprise:
-            if COLUMN_CACHE_ARGUMENT not in args:
-                args.append(COLUMN_CACHE_ARGUMENT)
 
         logging.info("StarterManager: respawning instance %s", str(args))
         self.instance = psutil.Popen(args)
