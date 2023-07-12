@@ -206,7 +206,8 @@ class StarterManager:
 
         # Column cache
         if (
-            semver.compare(version, "3.9.5") >= 0
+            self.cfg.enterprise
+            and semver.compare(version, "3.9.5") >= 0
             and semver.compare(version, "3.10.0") != 0
             and semver.compare(version, "3.10.1") != 0
         ):
