@@ -11,14 +11,7 @@ from common_options import very_common_options, common_options, download_options
 from write_result_table import write_table
 
 import tools.loghelper as lh
-from download import (
-    get_tar_file_path,
-    read_versions_tar,
-    write_version_tar,
-    touch_all_tars_in_dir,
-    Download,
-    DownloadOptions,
-)
+from download import Download, DownloadOptions
 
 from test_driver import TestDriver
 from tools.killall import list_all_processes
@@ -35,14 +28,8 @@ def package_test(dl_opts: DownloadOptions, new_version, new_dlstage, git_version
     list_all_processes()
     test_dir = test_driver.base_config.test_data_dir
 
-    versions = {}
     fresh_versions = {}
-    version_state_tar = get_tar_file_path(
-        test_driver.launch_dir, ["0.0.0", new_version], test_driver.get_packaging_shorthand()
-    )
-    read_versions_tar(version_state_tar, versions)
-    print(versions)
-
+    versions = {}
     results = []
     # do the actual work:
     for props in EXECUTION_PLAN:
@@ -102,11 +89,6 @@ def package_test(dl_opts: DownloadOptions, new_version, new_dlstage, git_version
     if not write_table(results):
         print("exiting with failure")
         return 1
-
-    if dl_opts.force:
-        touch_all_tars_in_dir(version_state_tar)
-    else:
-        write_version_tar(version_state_tar, fresh_versions)
     return 0
 
 
