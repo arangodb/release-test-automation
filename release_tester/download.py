@@ -5,13 +5,11 @@
 # pylint: disable=duplicate-code
 from dataclasses import dataclass
 from ftplib import FTP_TLS
-from io import BytesIO
 import os
 from pathlib import Path
 import platform
 import json
 import sys
-import tarfile
 
 import click
 import semver
@@ -21,64 +19,6 @@ import tools.loghelper as lh
 
 import requests
 from common_options import very_common_options, download_options
-
-
-def get_tar_file_path(base_directory, versions, package_target):
-    """calculate the name of the versions tar file"""
-    return base_directory / f"Upgrade_{versions[0]}__{versions[1]}_{package_target}_version.tar"
-
-
-def touch_all_tars_in_dir(tar_file):
-    """sets the current filestamp to all tars so jenkins preserves them"""
-    print("touching " + str(tar_file))
-    tar_file.touch()
-    directory = tar_file.parent
-    if not directory.is_dir():
-        print("we don't seem to have found a dir from the tarfile? " + str(directory))
-        return
-    for one_file in directory.iterdir():
-        if str(one_file).endswith("version.tar"):
-            print("touching " + str(one_file))
-            one_file.touch()
-        # else:
-        #    print("doing nothing about " + str(one_file))
-
-
-def read_versions_tar(tar_file, versions):
-    """reads the versions tar"""
-    try:
-        fdesc = tar_file.open("rb")
-        try:
-            with tarfile.open(fileobj=fdesc, mode="r:") as tar:
-                for member in tar:
-                    print(member.name)
-                    print(member.isfile())
-                    if member.isfile():
-                        versions[member.name] = tar.extractfile(member).read().decode(encoding="utf-8")
-                        print(versions[member.name])
-                tar.close()
-        except tarfile.ReadError as ex:
-            print("Ignoring exception during reading the tar file: " + str(ex))
-        fdesc.close()
-    except FileNotFoundError:
-        pass
-
-
-def write_version_tar(tar_file, versions):
-    """write the versions tar"""
-    print("writing " + str(tar_file))
-    fdesc = tar_file.open("wb")
-    with tarfile.open(fileobj=fdesc, mode="w:") as tar:
-        for version_name in versions:
-            data = versions[version_name].encode("utf-8")
-            print(version_name)
-            print(versions[version_name])
-            file_obj = BytesIO(data)
-            info = tarfile.TarInfo(name=version_name)
-            info.size = len(data)
-            tar.addfile(tarinfo=info, fileobj=file_obj)
-        tar.close()
-    fdesc.close()
 
 
 @dataclass
