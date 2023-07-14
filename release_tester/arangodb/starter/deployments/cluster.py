@@ -117,7 +117,7 @@ db.testCollection.save({test: "document"})
             time.sleep(1)
             count += 1
             if count > 120:
-                raise Exception("Active failover installation didn't come up in two minutes!")
+                raise Exception("Cluster installation didn't come up in two minutes!")
 
         logging.info("waiting for the cluster instances to become alive")
         for node in self.starter_instances:
