@@ -314,9 +314,9 @@ class Runner(ABC):
                     self.starter_prepare_env()
                     self.starter_run()
                     self.finish_setup()
-                    self.make_data()
-                    self.after_makedata_check()
-                    self.check_data_impl()
+                self.make_data()
+                self.after_makedata_check()
+                self.check_data_impl()
 
                 if self.selenium:
                     self.set_selenium_instances()
@@ -723,7 +723,7 @@ class Runner(ABC):
         assert self.makedata_instances, "don't have makedata instance!"
         logging.debug("makedata instances")
         self.print_makedata_instances_table()
-        args = []
+        args = ["--tempDataDir", str(self.cfg.base_test_dir / self.basedir / "makedata_tmp")]
         if self.min_replication_factor:
             args += ["--minReplicationFactor", str(self.min_replication_factor)]
         for starter in self.makedata_instances:
@@ -731,7 +731,7 @@ class Runner(ABC):
             arangosh = starter.arangosh
 
             # must be writabe that the setup may not have already data
-            if not arangosh.read_only and not self.has_makedata_data:
+            if not arangosh.read_only:  # and not self.has_makedata_data:
                 try:
                     arangosh.create_test_data(self.name, args=args)
                 except CliExecutionException as exc:
