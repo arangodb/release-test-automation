@@ -231,11 +231,19 @@ class Instance(ABC):
 
         print("instance launched with PID:" + str(self.pid))
         if waitpid:
-            exit_code = self.instance.wait()
+            exception = None
+            exit_code = None
+            try:
+                exit_code = self.instance.wait(timeout=300)
+            except psutil.TimeoutExpired as ex:
+                exception = ex
+                print("timeout occured waiting for " + str(command))
             try:
                 self.search_for_warnings()
             except Exception as ex:
                 raise Exception(str(command) + " exited with code: " + str(exit_code)) from ex
+            if exception is not None:
+                raise exception
             if exit_code != 0:
                 raise Exception(str(command) + " exited non zero: " + str(exit_code))
 
