@@ -523,7 +523,7 @@ class TestDriver:
                 print("remote")
                 host_parts = re.split(split_host, frontend)
                 inst.cfg.add_frontend(host_parts[1], host_parts[2], host_parts[3])
-        inst.cfg.scenario = Path(scenario)
+        inst.cfg.scenario = self.launch_dir / scenario
         runner = ClusterPerf(
             RunnerType.CLUSTER,
             self.abort_on_error,

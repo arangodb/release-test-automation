@@ -1,4 +1,4 @@
-!!python/object:arangodb.starter.deployments.cluster_perf.testConfig
+!!python/object:arangodb.starter.deployments.cluster_perf.TestConfig
 collection_multiplier: 1
 data_multiplier: 4
 db_count: 100

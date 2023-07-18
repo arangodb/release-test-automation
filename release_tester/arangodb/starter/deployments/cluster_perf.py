@@ -17,7 +17,7 @@ from arangodb.starter.deployments.runner import Runner, RunnerProperties
 from tools.asciiprint import print_progress as progress
 import tools.interact as ti
 import tools.loghelper as lh
-from tools.prometheus import set_prometheus_jwt
+# from tools.prometheus import set_prometheus_jwt
 from tools.timestamp import timestamp
 
 # pylint: disable=global-statement
@@ -36,7 +36,7 @@ class TestConfig:
         self.launch_delay = 1.3
         self.single_shard = False
         self.db_offset = 0
-        self.progressive_timeout = 100
+        self.progressive_timeout = 10000
 
 # pylint: disable=global-variable-not-assigned
 #statsdc = statsd.StatsClient("localhost", 8125)
@@ -44,12 +44,13 @@ RESULTS_TXT = None
 OTHER_SH_OUTPUT = None
 
 
-def result_line(line_tp):
+def result_line(wait, line, params):
     """get one result line"""
     global OTHER_SH_OUTPUT, RESULTS_TXT
-    if isinstance(line_tp, tuple):
-        if line_tp[0].startswith(b"#"):
-            str_line = str(line_tp[0])[6:-3]
+    if isinstance(line, tuple):
+        print(line[0])
+        if line[0].startswith(b"#"):
+            str_line = str(line[0])[6:-3]
             segments = str_line.split(",")
             if len(segments) < 3:
                 print("n/a")
@@ -59,8 +60,10 @@ def result_line(line_tp):
                 RESULTS_TXT.write(str_line)
                 # statsdc.timing(segments[0], float(segments[2]))
         else:
-            OTHER_SH_OUTPUT.write(line_tp[1].get_endpoint() + " - " + str(line_tp[0]) + "\n")
+            OTHER_SH_OUTPUT.write(line[1].get_endpoint() + " - " + str(line[0]) + "\n")
             #statsdc.incr("completed")
+            return False
+    return True
 
 
 def makedata_runner(queue, resq, arangosh, progressive_timeout):
@@ -70,7 +73,10 @@ def makedata_runner(queue, resq, arangosh, progressive_timeout):
             # all tasks are already there. if done:
             job = queue.get(timeout=0.1)
             print("starting my task! " + str(job["args"]))
-            res = arangosh.create_test_data("xx", job["args"], result_line=result_line, timeout=progressive_timeout)
+            res = arangosh.create_test_data("xx",
+                                            args=job["args"],
+                                            result_line_handler=result_line,
+                                            progressive_timeout=progressive_timeout)
             if not res[0]:
                 print("error executing test - giving up.")
                 print(res[1])
@@ -99,19 +105,19 @@ class ClusterPerf(Runner):
         use_auto_certs: bool,
     ):
         global OTHER_SH_OUTPUT, RESULTS_TXT
-        cfg = installer_set[0][0]
+        cfg = installer_set[0][1].cfg
         if not cfg.scenario.exists():
             cfg.scenario.write_text(yaml.dump(TestConfig()))
             raise Exception("have written %s with default config" % str(cfg.scenario))
 
-        with open(cfg.scenario, encoding='utf8') as fileh:
+        with open(cfg.scenario, encoding='utf8', mode="r") as fileh:
             self.scenario = yaml.load(fileh, Loader=yaml.Loader)
 
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("CLUSTER", 9999999, 99999999, False, ssl, use_auto_certs, 6),
+            RunnerProperties("CLUSTER", 400, 600, False, ssl, use_auto_certs, 6),
             selenium,
             selenium_driver_args,
             testrun_name,
@@ -277,7 +283,7 @@ class ClusterPerf(Runner):
         self.dbserver_set_debug_logging()
         self.coordinator_set_debug_logging()
 
-        set_prometheus_jwt(self.starter_instances[0].get_jwt_header())
+        # set_prometheus_jwt(self.starter_instances[0].get_jwt_header())
 
     def test_setup_impl(self):
         pass

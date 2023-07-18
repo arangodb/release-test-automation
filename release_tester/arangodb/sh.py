@@ -216,7 +216,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             db.this_collection_will_not_be_backed_up.save(
                {"this": "document will be gone"});
         """
-        logging.debug("script to be executed: " + str(js_script_string))
+        logging.debug("script to be executed: " + str(js_script_string) + str(self.connect_instance))
         res = self.run_command(["create volatile data", js_script_string], True)  # self.cfg.verbose)
         logging.debug("data create result: " + str(res))
 
