@@ -7,12 +7,14 @@ from pathlib import Path
 from queue import Queue, Empty
 from threading import Thread
 
+from reporting.reporting_utils import step
 import psutil
 # import statsd
 import yaml
 
 from arangodb.instance import InstanceType
 from arangodb.starter.deployments.runner import Runner, RunnerProperties
+from arangodb.starter.deployments.cluster import Cluster
 
 from tools.asciiprint import print_progress as progress
 import tools.interact as ti
@@ -37,6 +39,7 @@ class TestConfig:
         self.single_shard = False
         self.db_offset = 0
         self.progressive_timeout = 10000
+        self.hot_backup = False
 
 # pylint: disable=global-variable-not-assigned
 #statsdc = statsd.StatsClient("localhost", 8125)
@@ -60,7 +63,7 @@ def result_line(wait, line, params):
                 RESULTS_TXT.write(str_line)
                 # statsdc.timing(segments[0], float(segments[2]))
         else:
-            OTHER_SH_OUTPUT.write(line[1].get_endpoint() + " - " + str(line[0]) + "\n")
+            # OTHER_SH_OUTPUT.write(line[1].get_endpoint() + " - " + str(line[0]) + "\n")
             #statsdc.incr("completed")
             return False
     return True
@@ -123,15 +126,15 @@ class ClusterPerf(Runner):
             testrun_name,
         )
         self.success = False
+        # self.cfg.frontends = []
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
+        self.create_test_collection = ""
+        self.min_replication_factor = 2
         RESULTS_TXT = Path("/tmp/results.txt").open("w", encoding='utf8')
         OTHER_SH_OUTPUT = Path("/tmp/errors.txt").open("w", encoding='utf8')
 
     def starter_prepare_env_impl(self):
-        mem = psutil.virtual_memory()
-        os.environ["ARANGODB_OVERRIDE_DETECTED_TOTAL_MEMORY"] = str(int((mem.total * 0.8) / 9))
-
         self.cfg.index = 0
 
         # pylint: disable=import-outside-toplevel
@@ -139,6 +142,13 @@ class ClusterPerf(Runner):
             from arangodb.starter.manager import StarterNonManager as StarterManager
         else:
             from arangodb.starter.manager import StarterManager
+        self.create_test_collection = (
+            "create test collection",
+            """
+db._create("testCollection",  { numberOfShards: 6, replicationFactor: 2});
+db.testCollection.save({test: "document"})
+""",
+        )
 
         node1_opts = []
         node2_opts = ["--starter.join", "127.0.0.1:9528"]
@@ -149,94 +159,36 @@ class ClusterPerf(Runner):
             node2_tls_keyfile = self.cert_dir / Path("node2") / "tls.keyfile"
             node3_tls_keyfile = self.cert_dir / Path("node3") / "tls.keyfile"
 
-            self.cert_op(
-                [
-                    "tls",
-                    "keyfile",
-                    "--cacert=" + str(self.certificate_auth["cert"]),
-                    "--cakey=" + str(self.certificate_auth["key"]),
-                    "--keyfile=" + str(node1_tls_keyfile),
-                    "--host=" + self.cfg.publicip,
-                    "--host=localhost",
-                ]
-            )
-            self.cert_op(
-                [
-                    "tls",
-                    "keyfile",
-                    "--cacert=" + str(self.certificate_auth["cert"]),
-                    "--cakey=" + str(self.certificate_auth["key"]),
-                    "--keyfile=" + str(node2_tls_keyfile),
-                    "--host=" + self.cfg.publicip,
-                    "--host=localhost",
-                ]
-            )
-            self.cert_op(
-                [
-                    "tls",
-                    "keyfile",
-                    "--cacert=" + str(self.certificate_auth["cert"]),
-                    "--cakey=" + str(self.certificate_auth["key"]),
-                    "--keyfile=" + str(node3_tls_keyfile),
-                    "--host=" + self.cfg.publicip,
-                    "--host=localhost",
-                ]
-            )
+            for keyfile in [node1_tls_keyfile, node2_tls_keyfile, node3_tls_keyfile]:
+                self.generate_keyfile(keyfile)
+
             node1_opts.append(f"--ssl.keyfile={node1_tls_keyfile}")
             node2_opts.append(f"--ssl.keyfile={node2_tls_keyfile}")
-            node3_opts.append(f"--ssl.keyfile={node2_tls_keyfile}")
+            node3_opts.append(f"--ssl.keyfile={node3_tls_keyfile}")
 
-        self.starter_instances.append(
-            StarterManager(
-                self.cfg,
-                self.basedir,
-                "node1",
-                mode="cluster",
-                jwt_str=self.jwtdatastr,
-                port=9528,
-                expect_instances=[
-                    InstanceType.AGENT,
-                    InstanceType.COORDINATOR,
-                    InstanceType.DBSERVER,
-                ],
-                moreopts=node1_opts  # += ['--agents.agency.election-timeout-min=5',
-                #     '--agents.agency.election-timeout-max=10',]
+        def add_starter(name, port, opts):
+            self.starter_instances.append(
+                StarterManager(
+                    self.cfg,
+                    self.basedir,
+                    name,
+                    mode="cluster",
+                    jwt_str=self.jwtdatastr,
+                    port=port,
+                    expect_instances=[
+                        InstanceType.AGENT,
+                        InstanceType.COORDINATOR,
+                        InstanceType.DBSERVER,
+                    ],
+                    moreopts=opts,
+                )
             )
-        )
-        self.starter_instances.append(
-            StarterManager(
-                self.cfg,
-                self.basedir,
-                "node2",
-                mode="cluster",
-                jwt_str=self.jwtdatastr,
-                port=9628,
-                expect_instances=[
-                    InstanceType.AGENT,
-                    InstanceType.COORDINATOR,
-                    InstanceType.DBSERVER,
-                ],
-                moreopts=node2_opts  # += ['--agents.agency.election-timeout-min=5',
-                #     '--agents.agency.election-timeout-max=10',]
-            )
-        )
-        self.starter_instances.append(
-            StarterManager(
-                self.cfg,
-                self.basedir,
-                "node3",
-                mode="cluster",
-                jwt_str=self.jwtdatastr,
-                port=9728,
-                expect_instances=[
-                    InstanceType.AGENT,
-                    InstanceType.COORDINATOR,
-                    InstanceType.DBSERVER,
-                ],
-                moreopts=node3_opts  # += ['--agents.agency.election-timeout-min=5',
-                #     '--agents.agency.election-timeout-max=10',]
-            )
-        )
+
+        add_starter("node1", 9528, node1_opts)
+        add_starter("node2", 9628, node2_opts)
+        add_starter("node3", 9728, node3_opts)
+         # += ['--agents.agency.election-timeout-min=5',
+         #     '--agents.agency.election-timeout-max=10',]
         for instance in self.starter_instances:
             instance.is_leader = True
 
@@ -260,30 +212,47 @@ class ClusterPerf(Runner):
 
         logging.info("waiting for the starters to become alive")
         not_started = self.starter_instances[:]  # This is a explicit copy
+        count = 0
         while not_started:
             logging.debug("waiting for mananger with logfile:" + str(not_started[-1].log_file))
             if not_started[-1].is_instance_up():
                 not_started.pop()
             progress(".")
             time.sleep(1)
+            count += 1
+            if count > 120:
+                raise Exception("Cluster installation didn't come up in two minutes!")
 
         logging.info("waiting for the cluster instances to become alive")
         for node in self.starter_instances:
             node.detect_instances()
             node.detect_instance_pids()
             # self.cfg.add_frontend('http', self.cfg.publicip, str(node.get_frontend_port()))
-        logging.info("instances are ready")
+
+        logging.info("instances are ready - JWT: " + self.starter_instances[0].get_jwt_header())
+        count = 0
+        for node in self.starter_instances:
+            node.set_passvoid("cluster", count == 0)
+            count += 1
+        self.passvoid = "cluster"
 
     def finish_setup_impl(self):
         if self.remote:
             logging.info("running remote, skipping")
             return
-
-        self.agency_set_debug_logging()
-        self.dbserver_set_debug_logging()
-        self.coordinator_set_debug_logging()
+        self.makedata_instances = self.starter_instances[:]
+        self.set_frontend_instances()
+        # self.agency_set_debug_logging()
+        # self.dbserver_set_debug_logging()
+        # self.coordinator_set_debug_logging()
 
         # set_prometheus_jwt(self.starter_instances[0].get_jwt_header())
+
+    def test_setup_impl(self):
+        pass
+
+    def after_makedata_check(self):
+        pass
 
     def test_setup_impl(self):
         pass
@@ -292,11 +261,169 @@ class ClusterPerf(Runner):
         pass
 
     def upgrade_arangod_version_impl(self):
-        pass
+        """rolling upgrade this installation"""
+        # self.agency_set_debug_logging()
+        bench_instances = []
+        if self.cfg.stress_upgrade:
+            bench_instances.append(self.starter_instances[0].launch_arangobench("cluster_upgrade_scenario_1"))
+            bench_instances.append(self.starter_instances[1].launch_arangobench("cluster_upgrade_scenario_2"))
+        for node in self.starter_instances:
+            node.replace_binary_for_upgrade(self.new_installer.cfg)
+
+        for node in self.starter_instances:
+            node.detect_instance_pids_still_alive()
+
+        self.starter_instances[1].command_upgrade()
+        if self.selenium:
+            self.selenium.test_wait_for_upgrade()  # * 5s
+        self.starter_instances[1].wait_for_upgrade(300)
+        if self.cfg.stress_upgrade:
+            bench_instances[0].wait()
+            bench_instances[1].wait()
+        for node in self.starter_instances:
+            node.detect_instance_pids()
 
     def upgrade_arangod_version_manual_impl(self):
-        pass
+        """manual upgrade this installation"""
+        lh.subsubsection("wait for all shards to be in sync - Manual upgrade")
+        retval = self.starter_instances[0].arangosh.run_in_arangosh(
+            (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
+            [],
+            ['true'],
+        )
+        if not retval:
+            raise Exception(
+                "Failed to ensure the cluster is in sync: %s" % (retval)
+            )
+        print("all in sync.")
+        self.progress(True, "manual upgrade step 1 - stop instances")
+        self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
+        for node in self.starter_instances:
+            node.replace_binary_for_upgrade(self.new_installer.cfg, False)
+        for node in self.starter_instances:
+            node.detect_instance_pids_still_alive()
 
+        # fmt: off
+        self.progress(True, "step 2 - upgrade agents")
+        for node in self.starter_instances:
+            node.upgrade_instances(
+                [
+                    InstanceType.AGENT
+                ], [
+                    '--database.auto-upgrade', 'true',
+                    '--log.foreground-tty', 'true'
+                ],
+                # mitigate 3.6x agency shutdown issues:
+                self.cfg.version >= arangoversions['370'])
+        self.progress(True, "step 3 - upgrade db-servers")
+        for node in self.starter_instances:
+            node.upgrade_instances([
+                InstanceType.DBSERVER
+            ], ['--database.auto-upgrade', 'true',
+                '--log.foreground-tty', 'true'])
+        self.progress(True, "step 4 - coordinator upgrade")
+        # now the new cluster is running. we will now run the coordinator upgrades
+        for node in self.starter_instances:
+            logging.info("upgrading coordinator instances\n" + str(node))
+            node.upgrade_instances([
+                InstanceType.COORDINATOR
+            ], [
+                '--database.auto-upgrade', 'true',
+                '--javascript.copy-installation', 'true',
+                '--server.rest-server', 'false',
+            ])
+        # fmt: on
+        self.progress(True, "step 5 restart the full cluster ")
+        version = self.new_cfg.version if self.new_cfg is not None else self.cfg.version
+        for node in self.starter_instances:
+            node.respawn_instance(version)
+        self.progress(True, "step 6 wait for the cluster to be up")
+        for node in self.starter_instances:
+            node.detect_instances()
+            node.wait_for_version_reply()
+
+        # now the upgrade should be done.
+        for node in self.starter_instances:
+            node.detect_instances()
+            node.wait_for_version_reply()
+            node.probe_leader()
+        self.set_frontend_instances()
+        self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
+
+        if self.selenium:
+            self.selenium.test_wait_for_upgrade()  # * 5s
+
+    def downgrade_arangod_version_manual_impl(self):
+        """manual upgrade this installation"""
+        lh.subsubsection("wait for all shards to be in sync - downgrade")
+        retval = self.starter_instances[0].arangosh.run_in_arangosh(
+            (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
+            [],
+            ['true'],
+        )
+        if not retval:
+            raise Exception(
+                "Failed to ensure the cluster is in sync: %s" % (retval)
+            )
+        print("all in sync.")
+        self.progress(True, "manual upgrade step 1 - stop instances")
+        self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
+        for node in self.starter_instances:
+            node.replace_binary_for_upgrade(self.new_installer.cfg, False)
+        for node in self.starter_instances:
+            node.detect_instance_pids_still_alive()
+
+        # fmt: off
+        self.progress(True, "step 2 - upgrade agents")
+        for node in self.starter_instances:
+            node.upgrade_instances(
+                [
+                    InstanceType.AGENT
+                ], [
+                    '--database.auto-upgrade', 'true',
+                    '--log.foreground-tty', 'true'
+                ],
+                # mitigate 3.6x agency shutdown issues:
+                self.cfg.version >= arangoversions['370'])
+        self.progress(True, "step 3 - upgrade db-servers")
+        for node in self.starter_instances:
+            node.upgrade_instances([
+                InstanceType.DBSERVER
+            ], ['--database.auto-upgrade', 'true',
+                '--log.foreground-tty', 'true'])
+        self.progress(True, "step 4 - coordinator upgrade")
+        # now the new cluster is running. we will now run the coordinator upgrades
+        for node in self.starter_instances:
+            logging.info("upgrading coordinator instances\n" + str(node))
+            node.upgrade_instances([
+                InstanceType.COORDINATOR
+            ], [
+                '--database.auto-upgrade', 'true',
+                '--javascript.copy-installation', 'true',
+                '--server.rest-server', 'false',
+            ])
+        # fmt: on
+        self.progress(True, "step 5 restart the full cluster ")
+        version = self.new_cfg.version if self.new_cfg is not None else self.cfg.version
+        for node in self.starter_instances:
+            node.respawn_instance(version)
+        self.progress(True, "step 6 wait for the cluster to be up")
+        for node in self.starter_instances:
+            node.detect_instances()
+            node.wait_for_version_reply()
+
+        # now the upgrade should be done.
+        for node in self.starter_instances:
+            node.detect_instances()
+            node.wait_for_version_reply()
+            node.probe_leader()
+        self.set_frontend_instances()
+        self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
+
+        if self.selenium:
+            self.selenium.test_wait_for_upgrade()  # * 5s
+
+    @step
     def jam_attempt_impl(self):
         self.makedata_instances = self.starter_instances[:]
         logging.info("jamming: starting data stress")
@@ -375,7 +502,33 @@ class ClusterPerf(Runner):
         logging.info("test ended")
 
     def before_backup_impl(self):
+        
         pass
 
     def after_backup_impl(self):
+        
         pass
+
+    def set_selenium_instances(self):
+        """set instances in selenium runner"""
+        self.selenium.set_instances(
+            self.cfg,
+            self.starter_instances[0].arango_importer,
+            self.starter_instances[0].arango_restore,
+            [x for x in self.starter_instances[0].all_instances if x.instance_type == InstanceType.COORDINATOR][0],
+            self.new_cfg,
+        )
+
+    def generate_keyfile(self, keyfile):
+        """generate the ssl certificate file"""
+        self.cert_op(
+            [
+                "tls",
+                "keyfile",
+                "--cacert=" + str(self.certificate_auth["cert"]),
+                "--cakey=" + str(self.certificate_auth["key"]),
+                "--keyfile=" + str(keyfile),
+                "--host=" + self.cfg.publicip,
+                "--host=localhost",
+            ]
+        )
