@@ -3,6 +3,7 @@
     to the configured connection """
 
 import os
+from copy import deepcopy
 from queue import Queue, Empty
 import platform
 import signal
@@ -218,7 +219,9 @@ class ArangoCLIprogressiveTimeoutExecutor:
     def __init__(self, config, connect_instance, deadline_signal=-1):
         """launcher class for cli tools"""
         self.connect_instance = connect_instance
-        self.cfg = config
+        # if we don't copy the config, it causes chain upgrade tests to fail,
+        # because passvoid attribute gets wiped somehow
+        self.cfg = deepcopy(config)
         self.old_version = config.version
         self.deadline_signal = deadline_signal
         if self.deadline_signal == -1:

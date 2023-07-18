@@ -830,6 +830,7 @@ class StarterManager:
             args.extend(moreargs)
 
         logging.info("StarterManager: respawning instance %s", str(args))
+        lh.log_cmd(str(args))
         self.instance = psutil.Popen(args)
         self.pid = self.instance.pid
         self.ppid = self.instance.ppid()
