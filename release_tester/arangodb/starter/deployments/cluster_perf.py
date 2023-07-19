@@ -39,6 +39,7 @@ class TestConfig:
         self.db_offset = 0
         self.progressive_timeout = 10000
         self.hot_backup = False
+        self.bench_todos = []
 
 # pylint: disable=global-variable-not-assigned
 #statsdc = statsd.StatsClient("localhost", 8125)
@@ -278,6 +279,11 @@ class ClusterPerf(Cluster):
             self._start_makedata_workers()
             # Let the test heat up before we continue with the backup:
             time.sleep(120)
+        if self.scenario.phase == "backupbench":
+            for bench_job in self.scenario.bench_todos:
+                self.workers.append(self.starter_instances[0].launch_arangobench("cluster_upgrade_scenario_1"))
+                time.sleep(1)
+            time.sleep(10)
 
     def after_backup_create_impl(self):
         if self.scenario.phase == "backup":
@@ -291,3 +297,7 @@ class ClusterPerf(Cluster):
             self._shutdown_load_workers()
 
             ti.prompt_user(self.cfg, "DONE! press any key to shut down the SUT.")
+        if self.scenario.phase == "backupbench":
+            for bench_worker in self.workers:
+                bench_worker.terminate()
+                bench_worker.wait()
