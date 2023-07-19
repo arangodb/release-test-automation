@@ -50,7 +50,7 @@ class Cluster(Runner):
         self.create_test_collection = ""
         self.min_replication_factor = 2
 
-    def starter_prepare_env_impl(self):
+    def starter_prepare_env_impl(self, sm=None):
         self.create_test_collection = (
             "create test collection",
             """
@@ -75,9 +75,11 @@ db.testCollection.save({test: "document"})
             node2_opts.append(f"--ssl.keyfile={node2_tls_keyfile}")
             node3_opts.append(f"--ssl.keyfile={node3_tls_keyfile}")
 
-        def add_starter(name, port, opts):
+        def add_starter(name, port, opts, sm):
+            if sm is None:
+                sm = StarterManager
             self.starter_instances.append(
-                StarterManager(
+                sm(
                     self.cfg,
                     self.basedir,
                     name,
@@ -93,9 +95,9 @@ db.testCollection.save({test: "document"})
                 )
             )
 
-        add_starter("node1", 9528, node1_opts)
-        add_starter("node2", 9628, node2_opts)
-        add_starter("node3", 9728, node3_opts)
+        add_starter("node1", 9528, node1_opts, sm)
+        add_starter("node2", 9628, node2_opts, sm)
+        add_starter("node3", 9728, node3_opts, sm)
 
         for instance in self.starter_instances:
             instance.is_leader = True
