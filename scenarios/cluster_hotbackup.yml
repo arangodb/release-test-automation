@@ -1,5 +1,5 @@
 !!python/object:arangodb.starter.deployments.cluster_perf.TestConfig
-phase: jam
+phase: backup
 collection_multiplier: 1
 data_multiplier: 4
 db_count: 100

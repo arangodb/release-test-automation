@@ -26,6 +26,7 @@ class TestConfig:
 
     # pylint: disable=too-many-instance-attributes disable=too-few-public-methods
     def __init__(self):
+        self.phase = "jam"
         self.parallelity = 3
         self.db_count = 100
         self.db_count_chunks = 5
@@ -84,8 +85,8 @@ def makedata_runner(queue, resq, arangosh, progressive_timeout):
                 resq.put(1)
                 break
             resq.put(res)
-        except Empty:
-            print("No more work!")
+        except Exception as ex:
+            print("No more work!" + str(ex))
             resq.put(-1)
             break
 
@@ -121,7 +122,7 @@ class ClusterPerf(Cluster):
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("CLUSTER", 400, 600, False, ssl, use_auto_certs, 6),
+            RunnerProperties("CLUSTER", 400, 600, self.scenario.hot_backup, ssl, use_auto_certs, 6),
             selenium,
             selenium_driver_args,
             testrun_name,
@@ -132,9 +133,78 @@ class ClusterPerf(Cluster):
         self.jwtdatastr = str(timestamp())
         self.create_test_collection = ""
         self.min_replication_factor = 2
+        self.jobs = Queue()
+        self.resultq = Queue()
+        self.results = []
+        self.workers = []
+        self.no_dbs = self.scenario.db_count
+
         # pylint: disable=consider-using-with
         RESULTS_TXT = Path("/tmp/results.txt").open("w", encoding='utf8')
         OTHER_SH_OUTPUT = Path("/tmp/errors.txt").open("w", encoding='utf8')
+
+    def _generate_jobs(self):
+        """ generate the workers instructions including offsets against overlapping """
+        self.tcount = 0
+        for i in range(self.scenario.db_count_chunks):
+            self.jobs.put(
+                {
+                    "args": [
+                        "TESTDB",
+                        "--minReplicationFactor",
+                        str(self.scenario.min_replication_factor),
+                        "--maxReplicationFactor",
+                        str(self.scenario.max_replication_factor),
+                        "--dataMultiplier",
+                        str(self.scenario.data_multiplier),
+                        "--numberOfDBs",
+                        str(self.no_dbs),
+                        "--countOffset",
+                        str((i + self.scenario.db_offset) * self.no_dbs + 1),
+                        "--collectionMultiplier",
+                        str(self.scenario.collection_multiplier),
+                        "--singleShard",
+                        "true" if self.scenario.single_shard else "false",
+                        "--progress",
+                        "true"
+                    ]
+                }
+            )
+
+    def _start_makedata_workers(self):
+        """ launch the worker threads """
+        self.makedata_instances = self.starter_instances[:]
+        assert self.makedata_instances, "no makedata instance!"
+        logging.debug("makedata instances")
+        for i in self.makedata_instances:
+            logging.debug(str(i))
+        while len(self.workers) < self.scenario.parallelity:
+            starter = self.makedata_instances[len(self.workers) % len(self.makedata_instances)]
+            assert starter.arangosh, "no starter associated arangosh!"
+            arangosh = starter.arangosh
+
+            # must be writabe that the setup may not have already data
+            if not arangosh.read_only and not self.has_makedata_data:
+                self.workers.append(
+                    Thread(
+                        target=makedata_runner,
+                        args=(
+                            self.jobs,
+                            self.resultq,
+                            arangosh,
+                            self.scenario.progressive_timeout,
+                        ),
+                    )
+                )
+        self.thread_count = len(self.workers)
+        for worker in self.workers:
+            worker.start()
+            time.sleep(self.scenario.launch_delay)
+
+    def _shutdown_load_workers(self):
+        """ wait for the worker threads to be done """
+        for worker in self.workers:
+            worker.join()
 
     def starter_prepare_env_impl(self, sm=None):
         self.cfg.index = 0
@@ -186,79 +256,38 @@ class ClusterPerf(Cluster):
         pass
     @step
     def jam_attempt_impl(self):
-        self.makedata_instances = self.starter_instances[:]
-        logging.info("jamming: starting data stress")
-        assert self.makedata_instances, "no makedata instance!"
-        logging.debug("makedata instances")
-        for i in self.makedata_instances:
-            logging.debug(str(i))
+        if self.scenario.phase == "jam":
+            logging.info("jamming: starting data stress")
+            self._generate_jobs()
+            self._start_makedata_workers()
 
-        tcount = 0
-        jobs = Queue()
-        resultq = Queue()
-        results = []
-        workers = []
-        no_dbs = self.scenario.db_count
-        for i in range(self.scenario.db_count_chunks):
-            jobs.put(
-                {
-                    "args": [
-                        "TESTDB",
-                        "--minReplicationFactor",
-                        str(self.scenario.min_replication_factor),
-                        "--maxReplicationFactor",
-                        str(self.scenario.max_replication_factor),
-                        "--dataMultiplier",
-                        str(self.scenario.data_multiplier),
-                        "--numberOfDBs",
-                        str(no_dbs),
-                        "--countOffset",
-                        str((i + self.scenario.db_offset) * no_dbs + 1),
-                        "--collectionMultiplier",
-                        str(self.scenario.collection_multiplier),
-                        "--singleShard",
-                        "true" if self.scenario.single_shard else "false",
-                    ]
-                }
-            )
+            while self.tcount < self.thread_count:
+                res_line = self.resultq.get()
+                if isinstance(res_line, bytes):
+                    self.results.append(str(res_line).split(","))
+                else:
+                    self.tcount += 1
+            self._shutdown_load_workers()
 
-        while len(workers) < self.scenario.parallelity:
-            starter = self.makedata_instances[len(workers) % len(self.makedata_instances)]
-            assert starter.arangosh, "no starter associated arangosh!"
-            arangosh = starter.arangosh
+            ti.prompt_user(self.cfg, "DONE! press any key to shut down the SUT.")
 
-            # must be writabe that the setup may not have already data
-            if not arangosh.read_only and not self.has_makedata_data:
-                workers.append(
-                    Thread(
-                        target=makedata_runner,
-                        args=(
-                            jobs,
-                            resultq,
-                            arangosh,
-                            self.scenario.progressive_timeout,
-                        ),
-                    )
-                )
+    def before_backup_create_impl(self):
+        if self.scenario.phase == "backup":
+            logging.info("backup: starting data stress")
+            self._generate_jobs()
+            self._start_makedata_workers()
+            # Let the test heat up before we continue with the backup:
+            time.sleep(120)
 
-        thread_count = len(workers)
-        for worker in workers:
-            worker.start()
-            time.sleep(self.scenario.launch_delay)
+    def after_backup_create_impl(self):
+        if self.scenario.phase == "backup":
+            logging.info("backup: joining data stress")
+            while self.tcount < self.thread_count:
+                res_line = self.resultq.get()
+                if isinstance(res_line, bytes):
+                    self.results.append(str(res_line).split(","))
+                else:
+                    self.tcount += 1
+            self._shutdown_load_workers()
 
-        while tcount < thread_count:
-            res_line = resultq.get()
-            if isinstance(res_line, bytes):
-                results.append(str(res_line).split(","))
-            else:
-                tcount += 1
-
-        for worker in workers:
-            worker.join()
-        ti.prompt_user(self.cfg, "DONE! press any key to shut down the SUT.")
-
-    def before_backup_impl(self):
-        pass
-
-    def after_backup_impl(self):
-        pass
+            ti.prompt_user(self.cfg, "DONE! press any key to shut down the SUT.")

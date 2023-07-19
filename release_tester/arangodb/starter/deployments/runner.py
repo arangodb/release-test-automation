@@ -798,6 +798,10 @@ class Runner(ABC):
     def before_backup_impl(self):
         """preparing SUT for the execution of the backup steps"""
 
+    @abstractmethod
+    def before_backup_create_impl(self):
+        """preparing SUT for the execution of the backup steps"""
+
     @step
     def after_backup(self):
         """HotBackup has happened, prepare the SUT to continue testing"""
@@ -815,14 +819,20 @@ class Runner(ABC):
     def after_backup_impl(self):
         """HotBackup has happened, prepare the SUT to continue testing"""
 
+    @abstractmethod
+    def after_backup_create_impl(self):
+        """HotBackup has happened, prepare the SUT to continue testing"""
+
     @step
     def create_backup(self, name):
         """create a backup on the installation"""
+        self.before_backup_create_impl()
         for starter in self.makedata_instances:
             if not starter.is_leader:
                 continue
             assert starter.hb_instance, "create backup: this starter doesn't have an hb instance!"
             return starter.hb_instance.create(name)
+        self.after_backup_create_impl()
         raise Exception("no frontend found.")
 
     @step
