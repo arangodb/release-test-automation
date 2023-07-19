@@ -44,7 +44,7 @@ class TestConfig:
 RESULTS_TXT = None
 OTHER_SH_OUTPUT = None
 
-
+# pylint: disable=unused-argument
 def result_line(wait, line, params):
     """get one result line"""
     global OTHER_SH_OUTPUT, RESULTS_TXT
@@ -132,6 +132,7 @@ class ClusterPerf(Cluster):
         self.jwtdatastr = str(timestamp())
         self.create_test_collection = ""
         self.min_replication_factor = 2
+        # pylint: disable=consider-using-with
         RESULTS_TXT = Path("/tmp/results.txt").open("w", encoding='utf8')
         OTHER_SH_OUTPUT = Path("/tmp/errors.txt").open("w", encoding='utf8')
 
