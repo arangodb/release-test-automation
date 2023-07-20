@@ -1,5 +1,7 @@
 !!python/object:arangodb.starter.deployments.cluster_perf.TestConfig
-phase: backupbench
+phase:
+  - backupbench
+  - backuparangosh
 collection_multiplier: 1
 data_multiplier: 4
 db_count: 100
@@ -12,33 +14,9 @@ db_offset: 0
 progressive_timeout: 100
 single_shard: false
 hot_backup: true
-bench_todos:
+system_makedata: true
+bench_jobs:
 - cluster_upgrade_scenario_1
 - cluster_upgrade_scenario_2
-- dc2dc_A
-- dc2dc_B
-- dc2dc_C
-- dc2dc_D
-- dc2dc_E
-- dc2dc_F
-- dc2dc_G
-- dc2dc_H
-- testing_scenario_01
-- testing_scenario_02
-- testing_scenario_03
-- testing_scenario_04
-- testing_scenario_05
-- testing_scenario_06
-- testing_scenario_07
-- testing_scenario_08
-- testing_scenario_09
-- testing_scenario_10
-- testing_scenario_11
-- testing_scenario_12
-- testing_scenario_13
-- testing_scenario_14
-- testing_scenario_15
-- testing_scenario_16
-- testing_scenario_17
-- testing_scenario_18
-- testing_scenario_19
+arangosh_jobs:
+- test.js

@@ -4,7 +4,7 @@ import time
 import logging
 # import os
 from pathlib import Path
-from queue import Queue, Empty
+from queue import Queue
 from threading import Thread
 
 from reporting.reporting_utils import step
@@ -39,7 +39,9 @@ class TestConfig:
         self.db_offset = 0
         self.progressive_timeout = 10000
         self.hot_backup = False
-        self.bench_todos = []
+        self.bench_jobs = []
+        self.arangosh_jobs = []
+        self.system_makedata = False
 
 # pylint: disable=global-variable-not-assigned
 #statsdc = statsd.StatsClient("localhost", 8125)
@@ -80,6 +82,31 @@ def makedata_runner(queue, resq, arangosh, progressive_timeout):
                                             args=job["args"],
                                             result_line_handler=result_line,
                                             progressive_timeout=progressive_timeout)
+            if not res[0]:
+                print("error executing test - giving up.")
+                print(res[1])
+                resq.put(1)
+                break
+            resq.put(res)
+        except Exception as ex:
+            print("No more work!" + str(ex))
+            resq.put(-1)
+            break
+
+def arangosh_runner(queue, resq, arangosh, progressive_timeout):
+    """operate one arangosh instance"""
+    while True:
+        try:
+            # all tasks are already there. if done:
+            job = queue.get(timeout=0.1)
+            print("starting my arangosh task! " + str(job["args"]) + str(job['script']))
+            res = arangosh.run_script_monitored([
+                "stress job",
+                arangosh.cfg.test_data_dir.resolve() / job["script"],
+                ],
+                                                args=job["args"],
+                                                result_line_handler=result_line,
+                                                progressive_timeout=progressive_timeout)
             if not res[0]:
                 print("error executing test - giving up.")
                 print(res[1])
@@ -137,16 +164,21 @@ class ClusterPerf(Cluster):
         self.jobs = Queue()
         self.resultq = Queue()
         self.results = []
-        self.workers = []
+        self.makedata_workers = []
+        self.arangosh_workers = []
+        self.arangobench_workers = []
+        self.arangosh_workers = []
+        self.arangosh_instances = []
         self.no_dbs = self.scenario.db_count
+        self.thread_count = 0
+        self.tcount = 0
 
         # pylint: disable=consider-using-with
         RESULTS_TXT = Path("/tmp/results.txt").open("w", encoding='utf8')
         OTHER_SH_OUTPUT = Path("/tmp/errors.txt").open("w", encoding='utf8')
 
-    def _generate_jobs(self):
+    def _generate_makedata_jobs(self):
         """ generate the workers instructions including offsets against overlapping """
-        self.tcount = 0
         for i in range(self.scenario.db_count_chunks):
             self.jobs.put(
                 {
@@ -179,14 +211,14 @@ class ClusterPerf(Cluster):
         logging.debug("makedata instances")
         for i in self.makedata_instances:
             logging.debug(str(i))
-        while len(self.workers) < self.scenario.parallelity:
-            starter = self.makedata_instances[len(self.workers) % len(self.makedata_instances)]
+        while len(self.makedata_workers) < self.scenario.parallelity:
+            starter = self.makedata_instances[len(self.makedata_workers) % len(self.makedata_instances)]
             assert starter.arangosh, "no starter associated arangosh!"
             arangosh = starter.arangosh
 
             # must be writabe that the setup may not have already data
             if not arangosh.read_only and not self.has_makedata_data:
-                self.workers.append(
+                self.makedata_workers.append(
                     Thread(
                         target=makedata_runner,
                         args=(
@@ -197,14 +229,46 @@ class ClusterPerf(Cluster):
                         ),
                     )
                 )
-        self.thread_count = len(self.workers)
-        for worker in self.workers:
+        self.thread_count = len(self.makedata_workers)
+        for worker in self.makedata_workers:
+            worker.start()
+            time.sleep(self.scenario.launch_delay)
+
+    def _start_arangosh_workers(self):
+        """ launch the worker threads """
+        self.makedata_instances = self.starter_instances[:]
+        assert self.makedata_instances, "no makedata instance!"
+        print("arangosh instances")
+        while len(self.arangosh_workers) < self.scenario.parallelity:
+            starter = self.makedata_instances[len(self.arangosh_workers) % len(self.makedata_instances)]
+            assert starter.arangosh, "no starter associated arangosh!"
+            arangosh = starter.arangosh
+
+            # must be writabe that the setup may not have already data
+            if not arangosh.read_only:
+                self.arangosh_workers.append(
+                    Thread(
+                        target=arangosh_runner,
+                        args=(
+                            self.jobs,
+                            self.resultq,
+                            arangosh,
+                            self.scenario.progressive_timeout,
+                        ),
+                    )
+                )
+        self.thread_count = len(self.arangosh_workers)
+        for worker in self.arangosh_workers:
             worker.start()
             time.sleep(self.scenario.launch_delay)
 
     def _shutdown_load_workers(self):
         """ wait for the worker threads to be done """
-        for worker in self.workers:
+        for worker in self.makedata_workers:
+            worker.join()
+        for worker in self.arangosh_workers:
+            worker.join()
+        for worker in self.arangobench_workers:
             worker.join()
 
     def starter_prepare_env_impl(self, sm=None):
@@ -220,13 +284,16 @@ class ClusterPerf(Cluster):
          #     '--agents.agency.election-timeout-max=10',]
 
     def make_data_impl(self):
-        pass  # we do this later.
+        if self.scenario.system_makedata:
+            super().make_data_impl()
 
     def check_data_impl_sh(self, arangosh, supports_foxx_tests):
-        pass  # we don't care
+        if self.scenario.system_makedata:
+            super().check_data_impl_sh(arangosh, supports_foxx_tests)
 
     def check_data_impl(self):
-        pass
+        if self.scenario.system_makedata:
+            super().check_data_impl()
 
     def starter_run_impl(self):
         lh.subsection("instance setup")
@@ -257,9 +324,9 @@ class ClusterPerf(Cluster):
         pass
     @step
     def jam_attempt_impl(self):
-        if self.scenario.phase == "jam":
+        if "jam" in self.scenario.phase:
             logging.info("jamming: starting data stress")
-            self._generate_jobs()
+            self._generate_makedata_jobs()
             self._start_makedata_workers()
 
             while self.tcount < self.thread_count:
@@ -273,20 +340,30 @@ class ClusterPerf(Cluster):
             ti.prompt_user(self.cfg, "DONE! press any key to shut down the SUT.")
 
     def before_backup_create_impl(self):
-        if self.scenario.phase == "backup":
+        if "backup" in self.scenario.phase:
             logging.info("backup: starting data stress")
-            self._generate_jobs()
+            self._generate_makedata_jobs()
             self._start_makedata_workers()
             # Let the test heat up before we continue with the backup:
             time.sleep(120)
-        if self.scenario.phase == "backupbench":
-            for bench_job in self.scenario.bench_todos:
-                self.workers.append(self.starter_instances[0].launch_arangobench("cluster_upgrade_scenario_1"))
-                time.sleep(1)
-            time.sleep(10)
+        if "backuparangosh" in self.scenario.phase:
+            count = 0
+            for arangosh_job in self.scenario.arangosh_jobs:
+                self.jobs.put({"args": [ "--count", str(count)], "script": arangosh_job})
+                count += 1
+            self._start_arangosh_workers()
+
+        if "backupbench" in self.scenario.phase:
+            count = 0
+            for bench_job in self.scenario.bench_jobs:
+                self.arangobench_workers.append(
+                    self.starter_instances[count % 3].launch_arangobench(bench_job))
+                time.sleep(.1)
+                count += 1
+            time.sleep(0.5)
 
     def after_backup_create_impl(self):
-        if self.scenario.phase == "backup":
+        if "backup" in self.scenario.phase:
             logging.info("backup: joining data stress")
             while self.tcount < self.thread_count:
                 res_line = self.resultq.get()
@@ -297,7 +374,7 @@ class ClusterPerf(Cluster):
             self._shutdown_load_workers()
 
             ti.prompt_user(self.cfg, "DONE! press any key to shut down the SUT.")
-        if self.scenario.phase == "backupbench":
-            for bench_worker in self.workers:
+        if "backupbench" in self.scenario.phase:
+            for bench_worker in self.arangobench_workers:
                 bench_worker.terminate()
                 bench_worker.wait()
