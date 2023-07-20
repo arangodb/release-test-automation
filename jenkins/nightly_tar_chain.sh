@@ -139,9 +139,9 @@ docker run \
        ls -la /home/allure-results ; \
        id -u ; \
        id -g ; \
-       chown -R "$(id -u):$(id -g)" /home/test_dir /home/allure-results /data/*
+       chown -R "$(id -u):$(id -g)" /home/test_dir /home/allure-results /data/* ; \
        ls -la /home/test_dir ; \
-       ls -la /home/allure-results ; \
+       ls -la /home/allure-results
 
 docker run \
        -v /tmp/tmp:/tmp/ \
