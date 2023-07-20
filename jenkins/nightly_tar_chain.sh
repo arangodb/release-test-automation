@@ -134,14 +134,7 @@ docker run \
        -v $(pwd)/test_dir/miniodata:/data \
        --rm \
        "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}" \
-# add debug print. remove before merging
-       ls -la /home/test_dir ; \
-       ls -la /home/allure-results ; \
-       id -u ; \
-       id -g ; \
-       chown -R "$(id -u):$(id -g)" /home/test_dir /home/allure-results /data/* ; \
-       ls -la /home/test_dir ; \
-       ls -la /home/allure-results
+       chown -R "$(id -u):$(id -g)" /home/test_dir /home/allure-results /data/*
 
 docker run \
        -v /tmp/tmp:/tmp/ \
