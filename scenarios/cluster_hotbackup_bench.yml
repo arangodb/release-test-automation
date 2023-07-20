@@ -19,10 +19,10 @@ bench_jobs:
 - cluster_upgrade_scenario_1
 - cluster_upgrade_scenario_2
 arangosh_jobs:
-- test.js
-- test.js
-- test.js
-- test.js
-- test.js
-- test.js
-- test.js
+- transaction_write_load.js
+- transaction_write_load.js
+- transaction_write_load.js
+- transaction_write_load.js
+- transaction_write_load.js
+- transaction_write_load.js
+- transaction_write_load.js
