@@ -131,7 +131,7 @@ result=$?
 docker run \
        -v "$(pwd)/test_dir:/home/test_dir" \
        -v "$(pwd)/allure-results:/home/allure-results" \
-       -v $(pwd)/test_dir/miniodata:/data \
+       -v "$(pwd)/test_dir/miniodata:/data" \
        --rm \
        "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}" \
        chown -R "$(id -u):$(id -g)" /home/test_dir /home/allure-results /data/*
