@@ -436,8 +436,11 @@ db.testCollection.save({test: "document"})
 
     def before_backup_impl(self):
         pass
-
     def after_backup_impl(self):
+        pass
+    def before_backup_create_impl(self):
+        pass
+    def after_backup_create_impl(self):
         pass
 
     def set_selenium_instances(self):

@@ -362,6 +362,11 @@ class ClusterPerf(Cluster):
                 count += 1
             time.sleep(0.5)
 
+        count = 0;
+        while count < 100:
+            self.makedata_instances[count % 3].hb_instance.create(f"ABC{count}")
+            count += 1
+
     def after_backup_create_impl(self):
         if "backup" in self.scenario.phase:
             logging.info("backup: joining data stress")

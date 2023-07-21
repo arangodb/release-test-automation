@@ -370,6 +370,10 @@ please revalidate the UI states on the new leader; you should see *one* follower
 
         logging.info("test ended")
 
+    def before_backup_create_impl(self):
+        pass
+    def after_backup_create_impl(self):
+        pass
     def before_backup_impl(self):
         """put into maintainance mode according to
         https://www.arangodb.com/docs/3.10/programs-arangobackup-limitations.html#active-failover-special-limitations
