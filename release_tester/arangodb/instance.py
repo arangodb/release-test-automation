@@ -574,7 +574,8 @@ class ArangodInstance(Instance):
     def detect_restore_restart(self):
         """has the server restored their backup restored and is back up"""
         logging.debug("scanning " + str(self.logfile))
-        while True:
+        count = 0
+        while count < 3000:
             log_file_content = ""
             last_line = ""
             with open(self.logfile, errors="backslashreplace", encoding="utf8") as log_fh:
@@ -618,6 +619,8 @@ class ArangodInstance(Instance):
                 return
             progress(",")
             time.sleep(0.1)
+            count += 1
+        raise Exception("timeout waiting for restore restart reached")
 
     def detect_fatal_errors(self):
         """check whether we have FATAL lines in the logfile"""
