@@ -19,13 +19,13 @@ bench_jobs:
 - cluster_upgrade_scenario_1
 - cluster_upgrade_scenario_2
 arangosh_jobs:
-- transaction_write_load.js
-- smart_graph.js
-- transaction_write_load.js
-- smart_graph.js
-- transaction_write_load.js
-- smart_graph.js
-- transaction_write_load.js
-- smart_graph.js
-- transaction_write_load.js
-- smart_graph.js
+- stress/transaction_write_load.js
+- stress/smart_graph.js
+- stress/transaction_write_load.js
+- stress/smart_graph.js
+- stress/transaction_write_load.js
+- stress/smart_graph.js
+- stress/transaction_write_load.js
+- stress/smart_graph.js
+- stress/transaction_write_load.js
+- stress/smart_graph.js
