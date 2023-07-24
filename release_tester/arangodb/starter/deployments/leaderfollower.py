@@ -355,10 +355,13 @@ process.exit(0);
         logging.info("test ended")
 
     def before_backup_impl(self):
-        """nothing to see here"""
-
+        pass
     def after_backup_impl(self):
-        """nothing to see here"""
+        pass
+    def before_backup_create_impl(self):
+        pass
+    def after_backup_create_impl(self):
+        pass
 
     def set_selenium_instances(self):
         """set instances in selenium runner"""

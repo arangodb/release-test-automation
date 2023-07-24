@@ -71,6 +71,10 @@ class ArangoBenchManager:
         self.instance = psutil.Popen(arguments)
         print("az" * 40)
 
+    def kill(self):
+        """command to exit"""
+        self.instance.kill()
+
     def wait(self):
         """wait for our instance to finish"""
         return self.instance.wait() == 0

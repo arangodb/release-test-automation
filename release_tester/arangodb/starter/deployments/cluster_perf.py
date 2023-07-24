@@ -4,6 +4,7 @@ import time
 import logging
 # import os
 from pathlib import Path
+import psutil
 from queue import Queue
 from threading import Thread
 
@@ -69,7 +70,6 @@ def result_line(wait, line, params):
             #statsdc.incr("completed")
             return False
     return True
-
 
 def makedata_runner(queue, resq, arangosh, progressive_timeout):
     """operate one makedata instance"""
@@ -262,6 +262,20 @@ class ClusterPerf(Cluster):
             worker.start()
             time.sleep(self.scenario.launch_delay)
 
+    def _kill_load_workers(self):
+        """ terminate them so it all ends quickly"""
+        processes = psutil.process_iter()
+        for process in processes:
+            try:
+                name = process.name()
+                if name.startswith("arangosh"):
+                    print(f"killing {process.name}  {process.pid}")
+                    process.kill()
+            except Exception as ex:
+                logging.error(ex)
+        for worker in self.arangobench_workers:
+            worker.kill()
+
     def _shutdown_load_workers(self):
         """ wait for the worker threads to be done """
         for worker in self.makedata_workers:
@@ -269,7 +283,7 @@ class ClusterPerf(Cluster):
         for worker in self.arangosh_workers:
             worker.join()
         for worker in self.arangobench_workers:
-            worker.join()
+            worker.wait()
 
     def starter_prepare_env_impl(self, sm=None):
         self.cfg.index = 0
@@ -320,8 +334,8 @@ class ClusterPerf(Cluster):
     def after_makedata_check(self):
         pass
 
-    def wait_for_restore_impl(self, backup_starter):
-        pass
+    #def wait_for_restore_impl(self, backup_starter):
+    #    pass
     @step
     def jam_attempt_impl(self):
         if "jam" in self.scenario.phase:
@@ -362,10 +376,23 @@ class ClusterPerf(Cluster):
                 count += 1
             time.sleep(0.5)
 
-        count = 0;
-        while count < 100:
-            self.makedata_instances[count % 3].hb_instance.create(f"ABC{count}")
-            count += 1
+        try:
+            count = 0;
+            while count < 100:
+                self.makedata_instances[count % 3].hb_instance.create(f"ABC{count}")
+                count += 1
+
+            count = 0;
+            while count < 100:
+                self.makedata_instances[count % 3].hb_instance.restore(f"ABC{count}")
+                self.wait_for_restore()
+                count += 1
+        except Exception as ex:
+            print(ex)
+            print("aborting test!")
+            self._kill_load_workers()
+            self._shutdown_load_workers()
+            raise ex
 
     def after_backup_create_impl(self):
         if "backup" in self.scenario.phase:
@@ -381,5 +408,5 @@ class ClusterPerf(Cluster):
             ti.prompt_user(self.cfg, "DONE! press any key to shut down the SUT.")
         if "backupbench" in self.scenario.phase:
             for bench_worker in self.arangobench_workers:
-                bench_worker.terminate()
+                bench_worker.kill()
                 bench_worker.wait()

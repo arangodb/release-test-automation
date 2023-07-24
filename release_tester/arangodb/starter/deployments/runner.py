@@ -332,21 +332,22 @@ class Runner(ABC):
                     self.tcp_ping_all_nodes()
                     self.create_non_backup_data()
                     taken_backups = self.list_backup()
-                    self.upload_backup(taken_backups[0])
+                    backup_no = len(taken_backups) - 1
+                    self.upload_backup(taken_backups[backup_no])
                     self.tcp_ping_all_nodes()
-                    self.delete_backup(taken_backups[0])
+                    self.delete_backup(taken_backups[backup_no])
                     self.tcp_ping_all_nodes()
                     backups = self.list_backup()
-                    if len(backups) != taken_backups - 1:
+                    if len(backups) != len(taken_backups) - 1:
                         raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
                     self.download_backup(self.backup_name)
                     self.validate_local_backup(self.backup_name)
                     self.tcp_ping_all_nodes()
                     backups = self.list_backup()
-                    if backups[0] != self.backup_name:
+                    if backups[len(backups)-1] != self.backup_name:
                         raise Exception("downloaded backup has different name? " + str(backups))
                     self.before_backup()
-                    self.restore_backup(backups[0])
+                    self.restore_backup(backups[len(backups)-1])
                     self.tcp_ping_all_nodes()
                     self.after_backup()
                     time.sleep(20)  # TODO fix
@@ -831,8 +832,9 @@ class Runner(ABC):
             if not starter.is_leader:
                 continue
             assert starter.hb_instance, "create backup: this starter doesn't have an hb instance!"
-            return starter.hb_instance.create(name)
-        self.after_backup_create_impl()
+            ret = starter.hb_instance.create(name)
+            self.after_backup_create_impl()
+            return ret
         raise Exception("no frontend found.")
 
     @step

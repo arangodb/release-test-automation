@@ -543,16 +543,25 @@ class TestDriver:
         runner.do_install = do_install
         runner.do_uninstall = do_uninstall
         failed = False
-        if not runner.run():
+        try:
+            if not runner.run():
+                failed = True
+                results.append({
+                    "testrun name": runner.testrun_name,
+                    "testscenario": runner_strings[RunnerType.CLUSTER],
+                    "success": not failed,
+                    "messages": [],
+                    "progress": "",
+                })
+        except Exception as ex:
             failed = True
-        results.append({
-            "testrun name": runner.testrun_name,
-            "testscenario": runner_strings[RunnerType.CLUSTER],
-            "success": not failed,
-            "messages": [],
-            "progress": "",
-        })
-
+            results.append({
+                "testrun name": runner.testrun_name,
+                "testscenario": runner_strings[RunnerType.CLUSTER],
+                "success": False,
+                "messages": [str(ex)],
+                "progress": "",
+            })
         if len(frontends) == 0:
             kill_all_processes()
         return results
