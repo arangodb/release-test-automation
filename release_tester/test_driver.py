@@ -58,7 +58,7 @@ FULL_TEST_SUITE_LIST = [
 class TestDriver:
     """driver base class to run different tests"""
 
-    # pylint: disable=too-many-arguments disable=too-many-locals
+    # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-instance-attributes
     def __init__(self, **kwargs):
         self.sitecfg = SiteConfig("")
         self.use_monitoring = kwargs["monitoring"]
@@ -210,6 +210,7 @@ class TestDriver:
         results = []
         for runner_type in STARTER_MODES[self.base_config.starter_mode]:
             installers = create_config_installer_set(versions, self.base_config, "all", run_props, self.use_auto_certs)
+            # pylint: disable=unused-variable
             old_inst = installers[0][1]
             new_inst = installers[1][1]
 
@@ -290,6 +291,7 @@ class TestDriver:
                                     )
                                     traceback.print_exc()
                                     lh.section("uninstall on error")
+                                    # pylint: disable=consider-using-enumerate
                                     for i in range(len(installers)):
                                         installer = installers[i][1]
                                         installer.un_install_debug_package()
@@ -313,6 +315,7 @@ class TestDriver:
                                         + "See allure report for details."
                                     )
                         lh.section("uninstall")
+                        # pylint: disable=consider-using-enumerate
                         for i in range(len(installers)):
                             installer = installers[i][1]
                             installer.un_install_server_package()
@@ -343,6 +346,7 @@ class TestDriver:
                                 print("".join(traceback.TracebackException.from_exception(exception).format()))
                         try:
                             print("Cleaning up system after error:")
+                            # pylint: disable=consider-using-enumerate
                             for i in range(len(installers)):
                                 installer = installers[i][1]
                                 installer.un_install_debug_package()
@@ -395,9 +399,9 @@ class TestDriver:
                 with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
                     if not run_props.supports_dc2dc(False) and runner_type == RunnerType.DC2DC:
                         testcase.context.status = Status.SKIPPED
-                        # pylint disable=line-too-long
                         testcase.context.statusDetails = StatusDetails(
-                            message="DC2DC is not applicable to Community packages.\nDC2DC is not supported on Windows.")
+                            message="DC2DC is not applicable to Community packages.\n"
+                                    "DC2DC is not supported on Windows.")
                         continue
                     one_result = {
                         "testrun name": run_props.testrun_name,
@@ -477,6 +481,7 @@ class TestDriver:
         installers[0][1].check_uninstall_cleanup()
         lh.section("remove residuals")
         try:
+            # pylint: disable=consider-using-enumerate
             for i in range(len(installers)):
                 installer = installers[i][1]
                 installer.cleanup_system()
@@ -552,7 +557,8 @@ class TestDriver:
             kill_all_processes()
         return results
 
-    def run_test_suites(self, include_suites: tuple = (), exclude_suites: tuple = (), params: CliTestSuiteParameters = None):
+    def run_test_suites(self, include_suites: tuple = (), exclude_suites: tuple = (),
+                        params: CliTestSuiteParameters = None):
         """run a testsuite"""
         if not params:
             params = self.cli_test_suite_params
@@ -566,7 +572,7 @@ class TestDriver:
         elif len(exclude_suites) > 0 and len(include_suites) == 0:
             suite_classes.extend(FULL_TEST_SUITE_LIST)
             for exclude_suite_class in exclude_suites:
-                for suite_class in suite_classes:
+                for suite_class in suite_classes.copy():
                     if suite_class.__name__ == exclude_suite_class:
                         suite_classes.remove(suite_class)
                         break
