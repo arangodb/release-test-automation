@@ -331,13 +331,13 @@ class Runner(ABC):
                     self.validate_local_backup(self.backup_name)
                     self.tcp_ping_all_nodes()
                     self.create_non_backup_data()
-                    backups = self.list_backup()
-                    self.upload_backup(backups[0])
+                    taken_backups = self.list_backup()
+                    self.upload_backup(taken_backups[0])
                     self.tcp_ping_all_nodes()
-                    self.delete_backup(backups[0])
+                    self.delete_backup(taken_backups[0])
                     self.tcp_ping_all_nodes()
                     backups = self.list_backup()
-                    if len(backups) != 0:
+                    if len(backups) != taken_backups - 1:
                         raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
                     self.download_backup(self.backup_name)
                     self.validate_local_backup(self.backup_name)
