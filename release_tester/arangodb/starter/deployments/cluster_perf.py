@@ -2,19 +2,20 @@
 """ launch and manage an arango deployment using the starter"""
 import time
 import logging
-import os
+# import os
 from pathlib import Path
-from queue import Queue, Empty
+import psutil
+from queue import Queue
 from threading import Thread
 
-import psutil
+from reporting.reporting_utils import step
 # import statsd
 import yaml
 
-from arangodb.instance import InstanceType
 from arangodb.starter.deployments.runner import Runner, RunnerProperties
+from arangodb.starter.deployments.cluster import Cluster
 
-from tools.asciiprint import print_progress as progress
+# from tools.asciiprint import print_progress as progress
 import tools.interact as ti
 import tools.loghelper as lh
 # from tools.prometheus import set_prometheus_jwt
@@ -26,6 +27,7 @@ class TestConfig:
 
     # pylint: disable=too-many-instance-attributes disable=too-few-public-methods
     def __init__(self):
+        self.phase = "jam"
         self.parallelity = 3
         self.db_count = 100
         self.db_count_chunks = 5
@@ -37,13 +39,17 @@ class TestConfig:
         self.single_shard = False
         self.db_offset = 0
         self.progressive_timeout = 10000
+        self.hot_backup = False
+        self.bench_jobs = []
+        self.arangosh_jobs = []
+        self.system_makedata = False
 
 # pylint: disable=global-variable-not-assigned
 #statsdc = statsd.StatsClient("localhost", 8125)
 RESULTS_TXT = None
 OTHER_SH_OUTPUT = None
 
-
+# pylint: disable=unused-argument
 def result_line(wait, line, params):
     """get one result line"""
     global OTHER_SH_OUTPUT, RESULTS_TXT
@@ -60,11 +66,10 @@ def result_line(wait, line, params):
                 RESULTS_TXT.write(str_line)
                 # statsdc.timing(segments[0], float(segments[2]))
         else:
-            OTHER_SH_OUTPUT.write(line[1].get_endpoint() + " - " + str(line[0]) + "\n")
+            # OTHER_SH_OUTPUT.write(line[1].get_endpoint() + " - " + str(line[0]) + "\n")
             #statsdc.incr("completed")
             return False
     return True
-
 
 def makedata_runner(queue, resq, arangosh, progressive_timeout):
     """operate one makedata instance"""
@@ -83,16 +88,42 @@ def makedata_runner(queue, resq, arangosh, progressive_timeout):
                 resq.put(1)
                 break
             resq.put(res)
-        except Empty:
-            print("No more work!")
+        except Exception as ex:
+            print("No more work!" + str(ex))
+            resq.put(-1)
+            break
+
+def arangosh_runner(queue, resq, arangosh, progressive_timeout):
+    """operate one arangosh instance"""
+    while True:
+        try:
+            # all tasks are already there. if done:
+            job = queue.get(timeout=0.1)
+            print("starting my arangosh task! " + str(job["args"]) + str(job['script']))
+            res = arangosh.run_script_monitored([
+                "stress job",
+                arangosh.cfg.test_data_dir.resolve() / job["script"],
+                ],
+                                                args=job["args"],
+                                                result_line_handler=result_line,
+                                                progressive_timeout=progressive_timeout)
+            if not res[0]:
+                print("error executing test - giving up.")
+                print(res[1])
+                resq.put(1)
+                break
+            resq.put(res)
+        except Exception as ex:
+            print("No more work!" + str(ex))
             resq.put(-1)
             break
 
 
-class ClusterPerf(Runner):
+class ClusterPerf(Cluster):
     """this launches a cluster setup"""
 
     # pylint: disable=too-many-arguments disable=too-many-instance-attributes
+    # pylint: disable=super-init-not-called
     def __init__(
         self,
         runner_type,
@@ -112,207 +143,44 @@ class ClusterPerf(Runner):
 
         with open(cfg.scenario, encoding='utf8', mode="r") as fileh:
             self.scenario = yaml.load(fileh, Loader=yaml.Loader)
-
-        super().__init__(
+        # we want to skip Cluster.__init__
+        # pylint: disable=non-parent-init-called
+        Runner.__init__(
+            self,
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("CLUSTER", 400, 600, False, ssl, use_auto_certs, 6),
+            RunnerProperties("CLUSTER", 400, 600, self.scenario.hot_backup, ssl, use_auto_certs, 6),
             selenium,
             selenium_driver_args,
             testrun_name,
         )
         self.success = False
+        # self.cfg.frontends = []
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
+        self.create_test_collection = ""
+        self.min_replication_factor = 2
+        self.jobs = Queue()
+        self.resultq = Queue()
+        self.results = []
+        self.makedata_workers = []
+        self.arangosh_workers = []
+        self.arangobench_workers = []
+        self.arangosh_workers = []
+        self.arangosh_instances = []
+        self.no_dbs = self.scenario.db_count
+        self.thread_count = 0
+        self.tcount = 0
+
+        # pylint: disable=consider-using-with
         RESULTS_TXT = Path("/tmp/results.txt").open("w", encoding='utf8')
         OTHER_SH_OUTPUT = Path("/tmp/errors.txt").open("w", encoding='utf8')
 
-    def starter_prepare_env_impl(self):
-        mem = psutil.virtual_memory()
-        os.environ["ARANGODB_OVERRIDE_DETECTED_TOTAL_MEMORY"] = str(int((mem.total * 0.8) / 9))
-
-        self.cfg.index = 0
-
-        # pylint: disable=import-outside-toplevel
-        if self.remote:
-            from arangodb.starter.manager import StarterNonManager as StarterManager
-        else:
-            from arangodb.starter.manager import StarterManager
-
-        node1_opts = []
-        node2_opts = ["--starter.join", "127.0.0.1:9528"]
-        node3_opts = ["--starter.join", "127.0.0.1:9528"]
-        if self.cfg.ssl and not self.cfg.use_auto_certs:
-            self.create_tls_ca_cert()
-            node1_tls_keyfile = self.cert_dir / Path("node1") / "tls.keyfile"
-            node2_tls_keyfile = self.cert_dir / Path("node2") / "tls.keyfile"
-            node3_tls_keyfile = self.cert_dir / Path("node3") / "tls.keyfile"
-
-            self.cert_op(
-                [
-                    "tls",
-                    "keyfile",
-                    "--cacert=" + str(self.certificate_auth["cert"]),
-                    "--cakey=" + str(self.certificate_auth["key"]),
-                    "--keyfile=" + str(node1_tls_keyfile),
-                    "--host=" + self.cfg.publicip,
-                    "--host=localhost",
-                ]
-            )
-            self.cert_op(
-                [
-                    "tls",
-                    "keyfile",
-                    "--cacert=" + str(self.certificate_auth["cert"]),
-                    "--cakey=" + str(self.certificate_auth["key"]),
-                    "--keyfile=" + str(node2_tls_keyfile),
-                    "--host=" + self.cfg.publicip,
-                    "--host=localhost",
-                ]
-            )
-            self.cert_op(
-                [
-                    "tls",
-                    "keyfile",
-                    "--cacert=" + str(self.certificate_auth["cert"]),
-                    "--cakey=" + str(self.certificate_auth["key"]),
-                    "--keyfile=" + str(node3_tls_keyfile),
-                    "--host=" + self.cfg.publicip,
-                    "--host=localhost",
-                ]
-            )
-            node1_opts.append(f"--ssl.keyfile={node1_tls_keyfile}")
-            node2_opts.append(f"--ssl.keyfile={node2_tls_keyfile}")
-            node3_opts.append(f"--ssl.keyfile={node2_tls_keyfile}")
-
-        self.starter_instances.append(
-            StarterManager(
-                self.cfg,
-                self.basedir,
-                "node1",
-                mode="cluster",
-                jwt_str=self.jwtdatastr,
-                port=9528,
-                expect_instances=[
-                    InstanceType.AGENT,
-                    InstanceType.COORDINATOR,
-                    InstanceType.DBSERVER,
-                ],
-                moreopts=node1_opts  # += ['--agents.agency.election-timeout-min=5',
-                #     '--agents.agency.election-timeout-max=10',]
-            )
-        )
-        self.starter_instances.append(
-            StarterManager(
-                self.cfg,
-                self.basedir,
-                "node2",
-                mode="cluster",
-                jwt_str=self.jwtdatastr,
-                port=9628,
-                expect_instances=[
-                    InstanceType.AGENT,
-                    InstanceType.COORDINATOR,
-                    InstanceType.DBSERVER,
-                ],
-                moreopts=node2_opts  # += ['--agents.agency.election-timeout-min=5',
-                #     '--agents.agency.election-timeout-max=10',]
-            )
-        )
-        self.starter_instances.append(
-            StarterManager(
-                self.cfg,
-                self.basedir,
-                "node3",
-                mode="cluster",
-                jwt_str=self.jwtdatastr,
-                port=9728,
-                expect_instances=[
-                    InstanceType.AGENT,
-                    InstanceType.COORDINATOR,
-                    InstanceType.DBSERVER,
-                ],
-                moreopts=node3_opts  # += ['--agents.agency.election-timeout-min=5',
-                #     '--agents.agency.election-timeout-max=10',]
-            )
-        )
-        for instance in self.starter_instances:
-            instance.is_leader = True
-
-    def make_data_impl(self):
-        pass  # we do this later.
-
-    def check_data_impl_sh(self, arangosh, supports_foxx_tests):
-        pass  # we don't care
-
-    def check_data_impl(self):
-        pass
-
-    def starter_run_impl(self):
-        lh.subsection("instance setup")
-        # if self.remote:
-        #    logging.info("running remote, skipping")
-        #    return
-        for manager in self.starter_instances:
-            logging.info("Spawning instance")
-            manager.run_starter()
-
-        logging.info("waiting for the starters to become alive")
-        not_started = self.starter_instances[:]  # This is a explicit copy
-        while not_started:
-            logging.debug("waiting for mananger with logfile:" + str(not_started[-1].log_file))
-            if not_started[-1].is_instance_up():
-                not_started.pop()
-            progress(".")
-            time.sleep(1)
-
-        logging.info("waiting for the cluster instances to become alive")
-        for node in self.starter_instances:
-            node.detect_instances()
-            node.detect_instance_pids()
-            # self.cfg.add_frontend('http', self.cfg.publicip, str(node.get_frontend_port()))
-        logging.info("instances are ready")
-
-    def finish_setup_impl(self):
-        if self.remote:
-            logging.info("running remote, skipping")
-            return
-
-        self.agency_set_debug_logging()
-        self.dbserver_set_debug_logging()
-        self.coordinator_set_debug_logging()
-
-        # set_prometheus_jwt(self.starter_instances[0].get_jwt_header())
-
-    def test_setup_impl(self):
-        pass
-
-    def wait_for_restore_impl(self, backup_starter):
-        pass
-
-    def upgrade_arangod_version_impl(self):
-        pass
-
-    def upgrade_arangod_version_manual_impl(self):
-        pass
-
-    def jam_attempt_impl(self):
-        self.makedata_instances = self.starter_instances[:]
-        logging.info("jamming: starting data stress")
-        assert self.makedata_instances, "no makedata instance!"
-        logging.debug("makedata instances")
-        for i in self.makedata_instances:
-            logging.debug(str(i))
-
-        tcount = 0
-        jobs = Queue()
-        resultq = Queue()
-        results = []
-        workers = []
-        no_dbs = self.scenario.db_count
+    def _generate_makedata_jobs(self):
+        """ generate the workers instructions including offsets against overlapping """
         for i in range(self.scenario.db_count_chunks):
-            jobs.put(
+            self.jobs.put(
                 {
                     "args": [
                         "TESTDB",
@@ -323,59 +191,222 @@ class ClusterPerf(Runner):
                         "--dataMultiplier",
                         str(self.scenario.data_multiplier),
                         "--numberOfDBs",
-                        str(no_dbs),
+                        str(self.no_dbs),
                         "--countOffset",
-                        str((i + self.scenario.db_offset) * no_dbs + 1),
+                        str((i + self.scenario.db_offset) * self.no_dbs + 1),
                         "--collectionMultiplier",
                         str(self.scenario.collection_multiplier),
                         "--singleShard",
                         "true" if self.scenario.single_shard else "false",
+                        "--progress",
+                        "true"
                     ]
                 }
             )
 
-        while len(workers) < self.scenario.parallelity:
-            starter = self.makedata_instances[len(workers) % len(self.makedata_instances)]
+    def _start_makedata_workers(self):
+        """ launch the worker threads """
+        self.makedata_instances = self.starter_instances[:]
+        assert self.makedata_instances, "no makedata instance!"
+        logging.debug("makedata instances")
+        for i in self.makedata_instances:
+            logging.debug(str(i))
+        while len(self.makedata_workers) < self.scenario.parallelity:
+            starter = self.makedata_instances[len(self.makedata_workers) % len(self.makedata_instances)]
             assert starter.arangosh, "no starter associated arangosh!"
             arangosh = starter.arangosh
 
             # must be writabe that the setup may not have already data
             if not arangosh.read_only and not self.has_makedata_data:
-                workers.append(
+                self.makedata_workers.append(
                     Thread(
                         target=makedata_runner,
                         args=(
-                            jobs,
-                            resultq,
+                            self.jobs,
+                            self.resultq,
                             arangosh,
                             self.scenario.progressive_timeout,
                         ),
                     )
                 )
-
-        thread_count = len(workers)
-        for worker in workers:
+        self.thread_count = len(self.makedata_workers)
+        for worker in self.makedata_workers:
             worker.start()
             time.sleep(self.scenario.launch_delay)
 
-        while tcount < thread_count:
-            res_line = resultq.get()
-            if isinstance(res_line, bytes):
-                results.append(str(res_line).split(","))
-            else:
-                tcount += 1
+    def _start_arangosh_workers(self):
+        """ launch the worker threads """
+        self.makedata_instances = self.starter_instances[:]
+        assert self.makedata_instances, "no makedata instance!"
+        print("arangosh instances")
+        while len(self.arangosh_workers) < self.scenario.parallelity:
+            starter = self.makedata_instances[len(self.arangosh_workers) % len(self.makedata_instances)]
+            assert starter.arangosh, "no starter associated arangosh!"
+            arangosh = starter.arangosh
 
-        for worker in workers:
+            # must be writabe that the setup may not have already data
+            if not arangosh.read_only:
+                self.arangosh_workers.append(
+                    Thread(
+                        target=arangosh_runner,
+                        args=(
+                            self.jobs,
+                            self.resultq,
+                            arangosh,
+                            self.scenario.progressive_timeout,
+                        ),
+                    )
+                )
+        self.thread_count = len(self.arangosh_workers)
+        for worker in self.arangosh_workers:
+            worker.start()
+            time.sleep(self.scenario.launch_delay)
+
+    def _kill_load_workers(self):
+        """ terminate them so it all ends quickly"""
+        processes = psutil.process_iter()
+        for process in processes:
+            try:
+                name = process.name()
+                if name.startswith("arangosh"):
+                    print(f"killing {process.name}  {process.pid}")
+                    process.kill()
+            except Exception as ex:
+                logging.error(ex)
+        for worker in self.arangobench_workers:
+            worker.kill()
+
+    def _shutdown_load_workers(self):
+        """ wait for the worker threads to be done """
+        for worker in self.makedata_workers:
             worker.join()
-        ti.prompt_user(self.cfg, "DONE! press any key to shut down the SUT.")
+        for worker in self.arangosh_workers:
+            worker.join()
+        for worker in self.arangobench_workers:
+            worker.wait()
 
-    def shutdown_impl(self):
-        for node in self.starter_instances:
-            node.terminate_instance()
-        logging.info("test ended")
+    def starter_prepare_env_impl(self, sm=None):
+        self.cfg.index = 0
 
-    def before_backup_impl(self):
+        # pylint: disable=import-outside-toplevel
+        if self.remote:
+            from arangodb.starter.manager import StarterNonManager as StarterManager
+        else:
+            from arangodb.starter.manager import StarterManager
+        super().starter_prepare_env_impl(StarterManager)
+         # += ['--agents.agency.election-timeout-min=5',
+         #     '--agents.agency.election-timeout-max=10',]
+
+    def make_data_impl(self):
+        if self.scenario.system_makedata:
+            super().make_data_impl()
+
+    def check_data_impl_sh(self, arangosh, supports_foxx_tests):
+        if self.scenario.system_makedata:
+            super().check_data_impl_sh(arangosh, supports_foxx_tests)
+
+    def check_data_impl(self):
+        if self.scenario.system_makedata:
+            super().check_data_impl()
+
+    def starter_run_impl(self):
+        lh.subsection("instance setup")
+        # if self.remote:
+        #    logging.info("running remote, skipping")
+        #    return
+        super().starter_run_impl()
+
+    def finish_setup_impl(self):
+        if self.remote:
+            logging.info("running remote, skipping")
+            return
+        self.makedata_instances = self.starter_instances[:]
+        self.set_frontend_instances()
+        # self.agency_set_debug_logging()
+        # self.dbserver_set_debug_logging()
+        # self.coordinator_set_debug_logging()
+
+        # set_prometheus_jwt(self.starter_instances[0].get_jwt_header())
+
+    def test_setup_impl(self):
         pass
 
-    def after_backup_impl(self):
+    def after_makedata_check(self):
         pass
+
+    #def wait_for_restore_impl(self, backup_starter):
+    #    pass
+    @step
+    def jam_attempt_impl(self):
+        if "jam" in self.scenario.phase:
+            logging.info("jamming: starting data stress")
+            self._generate_makedata_jobs()
+            self._start_makedata_workers()
+
+            while self.tcount < self.thread_count:
+                res_line = self.resultq.get()
+                if isinstance(res_line, bytes):
+                    self.results.append(str(res_line).split(","))
+                else:
+                    self.tcount += 1
+            self._shutdown_load_workers()
+
+            ti.prompt_user(self.cfg, "DONE! press any key to shut down the SUT.")
+
+    def before_backup_create_impl(self):
+        if "backup" in self.scenario.phase:
+            logging.info("backup: starting data stress")
+            self._generate_makedata_jobs()
+            self._start_makedata_workers()
+            # Let the test heat up before we continue with the backup:
+            time.sleep(120)
+        if "backuparangosh" in self.scenario.phase:
+            count = 0
+            for arangosh_job in self.scenario.arangosh_jobs:
+                self.jobs.put({"args": [ "--count", str(count)], "script": arangosh_job})
+                count += 1
+            self._start_arangosh_workers()
+
+        if "backupbench" in self.scenario.phase:
+            count = 0
+            for bench_job in self.scenario.bench_jobs:
+                self.arangobench_workers.append(
+                    self.starter_instances[count % 3].launch_arangobench(bench_job))
+                time.sleep(.1)
+                count += 1
+            time.sleep(0.5)
+
+        try:
+            count = 0;
+            while count < 100:
+                self.makedata_instances[count % 3].hb_instance.create(f"ABC{count}")
+                count += 1
+
+            count = 0;
+            while count < 100:
+                self.makedata_instances[count % 3].hb_instance.restore(f"ABC{count}")
+                self.wait_for_restore()
+                count += 1
+        except Exception as ex:
+            print(ex)
+            print("aborting test!")
+            self._kill_load_workers()
+            self._shutdown_load_workers()
+            raise ex
+
+    def after_backup_create_impl(self):
+        if "backup" in self.scenario.phase:
+            logging.info("backup: joining data stress")
+            while self.tcount < self.thread_count:
+                res_line = self.resultq.get()
+                if isinstance(res_line, bytes):
+                    self.results.append(str(res_line).split(","))
+                else:
+                    self.tcount += 1
+            self._shutdown_load_workers()
+
+            ti.prompt_user(self.cfg, "DONE! press any key to shut down the SUT.")
+        if "backupbench" in self.scenario.phase:
+            for bench_worker in self.arangobench_workers:
+                bench_worker.kill()
+                bench_worker.wait()

@@ -331,22 +331,23 @@ class Runner(ABC):
                     self.validate_local_backup(self.backup_name)
                     self.tcp_ping_all_nodes()
                     self.create_non_backup_data()
-                    backups = self.list_backup()
-                    self.upload_backup(backups[0])
+                    taken_backups = self.list_backup()
+                    backup_no = len(taken_backups) - 1
+                    self.upload_backup(taken_backups[backup_no])
                     self.tcp_ping_all_nodes()
-                    self.delete_backup(backups[0])
+                    self.delete_backup(taken_backups[backup_no])
                     self.tcp_ping_all_nodes()
                     backups = self.list_backup()
-                    if len(backups) != 0:
+                    if len(backups) != len(taken_backups) - 1:
                         raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
                     self.download_backup(self.backup_name)
                     self.validate_local_backup(self.backup_name)
                     self.tcp_ping_all_nodes()
                     backups = self.list_backup()
-                    if backups[0] != self.backup_name:
+                    if backups[len(backups)-1] != self.backup_name:
                         raise Exception("downloaded backup has different name? " + str(backups))
                     self.before_backup()
-                    self.restore_backup(backups[0])
+                    self.restore_backup(backups[len(backups)-1])
                     self.tcp_ping_all_nodes()
                     self.after_backup()
                     time.sleep(20)  # TODO fix
@@ -798,6 +799,10 @@ class Runner(ABC):
     def before_backup_impl(self):
         """preparing SUT for the execution of the backup steps"""
 
+    @abstractmethod
+    def before_backup_create_impl(self):
+        """preparing SUT for the execution of the backup steps"""
+
     @step
     def after_backup(self):
         """HotBackup has happened, prepare the SUT to continue testing"""
@@ -815,14 +820,21 @@ class Runner(ABC):
     def after_backup_impl(self):
         """HotBackup has happened, prepare the SUT to continue testing"""
 
+    @abstractmethod
+    def after_backup_create_impl(self):
+        """HotBackup has happened, prepare the SUT to continue testing"""
+
     @step
     def create_backup(self, name):
         """create a backup on the installation"""
+        self.before_backup_create_impl()
         for starter in self.makedata_instances:
             if not starter.is_leader:
                 continue
             assert starter.hb_instance, "create backup: this starter doesn't have an hb instance!"
-            return starter.hb_instance.create(name)
+            ret = starter.hb_instance.create(name)
+            self.after_backup_create_impl()
+            return ret
         raise Exception("no frontend found.")
 
     @step
