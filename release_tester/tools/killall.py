@@ -118,6 +118,8 @@ def kill_all_processes(kill_selenium=True):
                 process.wait(timeout=1)
             except psutil.TimeoutExpired:
                 pass
+            except psutil.NoSuchProcess:
+                pass
         elif process.is_running():
             cmdline = str(process)
             try:
