@@ -113,7 +113,12 @@ def kill_all_processes(kill_selenium=True):
     print(processlist)
     attach(str(processlist), "List of processes")
     for process in processlist:
-        if process.is_running():
+        if process.status() == "zombie":
+            try:
+                process.wait(timout=1)
+            except psutil.TimeoutExpired:
+                pass
+        elif process.is_running():
             cmdline = str(process)
             try:
                 cmdline = process.cmdline()
