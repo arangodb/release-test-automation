@@ -115,7 +115,7 @@ def kill_all_processes(kill_selenium=True):
     for process in processlist:
         if process.status() == "zombie":
             try:
-                process.wait(timout=1)
+                process.wait(timeout=1)
             except psutil.TimeoutExpired:
                 pass
         elif process.is_running():
