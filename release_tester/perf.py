@@ -12,6 +12,7 @@ from common_options import very_common_options, common_options, hotbackup_option
 from test_driver import TestDriver
 from arangodb.installers import RunProperties, HotBackupCliCfg, InstallerBaseConfig
 
+from write_result_table import write_table
 
 @click.command()
 @click.option(
@@ -61,12 +62,12 @@ def main(**kwargs):
     print("V" * 80)
     status = True
     test_driver.destructor()
-    for one_result in results:
-        print(one_result)
-        status = status and one_result["success"]
-    if not status:
+    print("V" * 80)
+    print(results)
+    if not write_table([results]):
         print("exiting with failure")
-        sys.exit(1)
+        return 1
+    return 0
 
 if __name__ == "__main__":
     # pylint: disable=no-value-for-parameter # fix clickiness.
