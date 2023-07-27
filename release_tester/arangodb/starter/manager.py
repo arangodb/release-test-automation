@@ -85,7 +85,7 @@ class StarterManager:
 
         if (self.cfg.hot_backup_supported and
             self.cfg.semver.prerelease is not None and
-            self.cfg.semver.semversion.minor >= 9):
+            self.cfg.semver.minor >= 9):
             self.moreopts += [
                 "--all.rclone.argument=--log-level=DEBUG",
                 "--all.rclone.argument=--log-file=@ARANGODB_SERVER_DIR@/rclone.log",
