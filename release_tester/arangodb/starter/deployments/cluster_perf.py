@@ -354,38 +354,41 @@ class ClusterPerf(Cluster):
             ti.prompt_user(self.cfg, "DONE! press any key to shut down the SUT.")
 
     def before_backup_create_impl(self):
+        count = 0
         if "backup" in self.scenario.phase:
             logging.info("backup: starting data stress")
+            count += 1
             self._generate_makedata_jobs()
             self._start_makedata_workers()
             # Let the test heat up before we continue with the backup:
             time.sleep(120)
         if "backuparangosh" in self.scenario.phase:
-            count = 0
             for arangosh_job in self.scenario.arangosh_jobs:
                 self.jobs.put({"args": [ "--count", str(count)], "script": arangosh_job})
                 count += 1
             self._start_arangosh_workers()
 
         if "backupbench" in self.scenario.phase:
-            count = 0
             for bench_job in self.scenario.bench_jobs:
                 self.arangobench_workers.append(
                     self.starter_instances[count % 3].launch_arangobench(bench_job))
                 time.sleep(.1)
                 count += 1
             time.sleep(0.5)
-
+        time.sleep(count * 5)
+        print(count)
+        print('pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp')
         try:
             count = 0;
             while count < 100:
                 self.makedata_instances[count % 3].hb_instance.create(f"ABC{count}")
                 count += 1
 
+            all_backups = self.list_backup()
             count = 0;
-            while count < 100:
-                self.makedata_instances[count % 3].hb_instance.restore(f"ABC{count}")
-                self.wait_for_restore()
+            for one_backup in all_backups:
+                self.makedata_instances[count % 3].hb_instance.restore(one_backup)
+                self.wait_for_restore_impl(self.makedata_instances[count % 3].hb_instance)
                 count += 1
         except Exception as ex:
             print(ex)
