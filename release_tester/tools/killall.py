@@ -161,14 +161,14 @@ def list_all_processes():
     logging.info("PID  Process")
     # pylint: disable=catching-non-exception
     for process in psutil.process_iter(["pid", "name"]):
-        cmdline = str(process.name())
-        skip = False
-        for blacklistitem in NON_INT_PROC:
-            if cmdline.startswith(blacklistitem):
-                skip = True
-        if skip:
-            continue
         try:
+            cmdline = str(process.name())
+            skip = False
+            for blacklistitem in NON_INT_PROC:
+                if cmdline.startswith(blacklistitem):
+                    skip = True
+            if skip:
+                continue
             cmdline = str(process.cmdline())
             if cmdline == "[]":
                 cmdline = "[" + process.name() + "]"
