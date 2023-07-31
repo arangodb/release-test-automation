@@ -344,10 +344,10 @@ class Runner(ABC):
                     self.validate_local_backup(self.backup_name)
                     self.tcp_ping_all_nodes()
                     backups = self.list_backup()
-                    if backups[len(backups)-1] != self.backup_name:
+                    if backups[len(backups) - 1] != self.backup_name:
                         raise Exception("downloaded backup has different name? " + str(backups))
                     self.before_backup()
-                    self.restore_backup(backups[len(backups)-1])
+                    self.restore_backup(backups[len(backups) - 1])
                     self.tcp_ping_all_nodes()
                     self.after_backup()
                     time.sleep(20)  # TODO fix
