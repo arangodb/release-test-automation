@@ -280,15 +280,19 @@ class Download:
         )
 
         out = local_dir / package
-        if out.exists() and not force:
+        exists = out.exists()
+        if exists and not force:
             print("LIVE: not overwriting {file} since not forced to overwrite!".format(**{"file": str(out)}))
             return
         print("LIVE: downloading " + str(url))
         res = requests.get(url, timeout=120)
         if res.status_code == 200:
             print(
-                "LIVE: writing {size} kbytes to {file}".format(
-                    **{"size": str(len(res.content) / 1024), "file": str(out)}
+                "LIVE: writing {size} kbytes to {existing}{file}".format(
+                    **{"size": str(len(res.content) / 1024),
+                       "file": str(out),
+                       "existing": "existing " if exists else ""
+                       }
                 )
             )
             out.write_bytes(res.content)

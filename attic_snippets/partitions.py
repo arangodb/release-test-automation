@@ -25,36 +25,46 @@ for p in partitions:
                 # must not choose NVME management device:
                 if os.major(dev.lstat().st_rdev) != 248:
                     baseDevice = dev.name
-        print('='*20)
-        print(baseDevice)
-        drive = Path('/dev/') / baseDevice
-        props = drive.lstat()
-        print(os.major(props.st_rdev))
-        print(os.minor(props.st_rdev))
-        
-        print(p.mountpoint, psutil.disk_usage(p.mountpoint).percent)
-        print(p.mountpoint)
-        print(len(p.mountpoint))
-        if mountpoint is None:
-            mountpoint = p.mountpoint
-            major = os.major(props.st_rdev)
-            minor = os.minor(props.st_rdev)
-            device = baseDevice
-            print('1')
-        elif len(p.mountpoint) > len(mountpoint):
-            print('2')
-            mountpoint = p.mountpoint
-            major = os.major(props.st_rdev)
-            minor = os.minor(props.st_rdev)
-            device = baseDevice
+if baseDevice is not None:
+    print('='*20)
+    print(baseDevice)
+    drive = Path('/dev/') / baseDevice
+    props = drive.lstat()
+    print(os.major(props.st_rdev))
+    print(os.minor(props.st_rdev))
+    print(p.mountpoint, psutil.disk_usage(p.mountpoint).percent)
+    print(p.mountpoint)
+    print(len(p.mountpoint))
+    if mountpoint is None:
+        mountpoint = p.mountpoint
+        major = os.major(props.st_rdev)
+        minor = os.minor(props.st_rdev)
+        device = baseDevice
+        print('1')
+    elif len(p.mountpoint) > len(mountpoint):
+        print('2')
+        mountpoint = p.mountpoint
+        major = os.major(props.st_rdev)
+        minor = os.minor(props.st_rdev)
+        device = baseDevice
 
-print(mountpoint)
-print(device)
-print(major)
-print(minor)
+    print(mountpoint)
+    print(device)
+    print(major)
+    print(minor)
 
-#sudo modprobe bfq
-#echo "bfq" | sudo tee /sys/block/sda/queue/scheduler
+    cgdir = Path('/sys/fs/cgroup/throttle_arangodb')
+    if not cgdir.exists():
+        cgdir.mkdir()
 
-#echo "8:32  1073741824" > /sys/fs/cgroup/blkio/blkio.throttle.write_bps_device
-#echo "8:32  1073741824" > /sys/fs/cgroup/blkio/blkio.throttle.read_bps_device
+    iomax = cgdir / 'io.max'
+    val = f"{major}:{minor} rbps=1048576 wiops=1048576"
+    print(val)
+    print(iomax)
+    iomax.write_text(val)
+else:
+    print("Mountpoint not found")
+
+# add shell in there:
+# echo $$ > /sys/fs/cgroup/throttle_arangodb/tasks
+# https://facebookmicrosites.github.io/cgroup2/docs/io-controller.html

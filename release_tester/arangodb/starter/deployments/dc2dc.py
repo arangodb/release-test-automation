@@ -650,6 +650,10 @@ class Dc2Dc(Runner):
         self.cluster1["instance"].terminate_instance()
         self.cluster2["instance"].terminate_instance()
 
+    def before_backup_create_impl(self):
+        pass
+    def after_backup_create_impl(self):
+        pass
     def before_backup_impl(self):
         self.sync_manager.abort_sync()
 

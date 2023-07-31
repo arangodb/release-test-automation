@@ -12,6 +12,7 @@ import tools.loghelper as lh
 
 BENCH_TODOS = {}
 
+BENCH_COUNT = 0
 
 def load_scenarios():
     """load the yaml testcases"""
@@ -25,11 +26,12 @@ def load_scenarios():
                         obj[key] = "true" if obj[key] else "false"
                 BENCH_TODOS[one_yaml.name[:-4]] = obj
 
-
 class ArangoBenchManager:
     """manages one arangobackup instance"""
 
     def __init__(self, basecfg, connect_instance):
+        global BENCH_COUNT
+        self.collection = f'arangobench_{BENCH_COUNT}'
         self.connect_instance = connect_instance
         self.arguments = None
         self.cfg = basecfg
@@ -42,7 +44,8 @@ class ArangoBenchManager:
             '--server.connection-timeout', '10',
             # else the wintendo may stay mute:
             '--log.force-direct', 'true',
-            '--log.foreground-tty', 'true'
+            '--log.foreground-tty', 'true',
+            '--collection', self.collection
         ]
         # fmt: on
         if self.cfg.verbose:
@@ -67,6 +70,10 @@ class ArangoBenchManager:
         self.arguments = arguments
         self.instance = psutil.Popen(arguments)
         print("az" * 40)
+
+    def kill(self):
+        """command to exit"""
+        self.instance.kill()
 
     def wait(self):
         """wait for our instance to finish"""

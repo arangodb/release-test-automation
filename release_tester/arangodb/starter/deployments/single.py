@@ -157,6 +157,10 @@ class Single(Runner):
             raise Exception("Not all processes terminated! [%s]" % str(pslist))
         logging.info("test ended")
 
+    def before_backup_create_impl(self):
+        pass
+    def after_backup_create_impl(self):
+        pass
     def before_backup_impl(self):
         """nothing to see here"""
 
