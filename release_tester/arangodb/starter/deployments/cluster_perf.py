@@ -4,9 +4,10 @@ import time
 import logging
 # import os
 from pathlib import Path
-import psutil
 from queue import Queue
 from threading import Thread
+
+import psutil
 
 from reporting.reporting_utils import step
 # import statsd
@@ -177,32 +178,33 @@ class ClusterPerf(Cluster):
         RESULTS_TXT = Path("/tmp/results.txt").open("w", encoding='utf8')
         OTHER_SH_OUTPUT = Path("/tmp/errors.txt").open("w", encoding='utf8')
 
+    def _get_one_job(self, count):
+        return {
+            "args": [
+                "TESTDB",
+                "--minReplicationFactor",
+                str(self.scenario.min_replication_factor),
+                "--maxReplicationFactor",
+                str(self.scenario.max_replication_factor),
+                "--dataMultiplier",
+                str(self.scenario.data_multiplier),
+                "--numberOfDBs",
+                str(self.no_dbs),
+                "--countOffset",
+                str((count + self.scenario.db_offset) * self.no_dbs + 1),
+                "--collectionMultiplier",
+                str(self.scenario.collection_multiplier),
+                "--singleShard",
+                "true" if self.scenario.single_shard else "false",
+                "--progress",
+                "true"
+            ]
+        }
+
     def _generate_makedata_jobs(self):
         """ generate the workers instructions including offsets against overlapping """
         for i in range(self.scenario.db_count_chunks):
-            self.jobs.put(
-                {
-                    "args": [
-                        "TESTDB",
-                        "--minReplicationFactor",
-                        str(self.scenario.min_replication_factor),
-                        "--maxReplicationFactor",
-                        str(self.scenario.max_replication_factor),
-                        "--dataMultiplier",
-                        str(self.scenario.data_multiplier),
-                        "--numberOfDBs",
-                        str(self.no_dbs),
-                        "--countOffset",
-                        str((i + self.scenario.db_offset) * self.no_dbs + 1),
-                        "--collectionMultiplier",
-                        str(self.scenario.collection_multiplier),
-                        "--singleShard",
-                        "true" if self.scenario.single_shard else "false",
-                        "--progress",
-                        "true"
-                    ]
-                }
-            )
+            self.jobs.put(self._get_one_job(i))
 
     def _start_makedata_workers(self):
         """ launch the worker threads """
@@ -379,13 +381,37 @@ class ClusterPerf(Cluster):
         print(count)
         print('pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp')
         try:
-            count = 0;
+            count = 0
             while count < 100:
                 self.makedata_instances[count % 3].hb_instance.create(f"ABC{count}")
                 count += 1
 
+            hb_job_params = self._get_one_job(9999)# TODO calculate number
+
+            starter = self.starter_instances[0]
+            assert starter.arangosh, "no starter associated arangosh!"
+            arangosh = starter.arangosh
+            arangosh.create_test_data("xx",
+                                      args=hb_job_params['args'],
+                                      result_line_handler=result_line,
+                                      progressive_timeout=self.scenario.progressive_timeout)
+            self.makedata_instances[count % 3].hb_instance.create(f"AFTER_LOAD")
+            self._kill_load_workers()
+            self._shutdown_load_workers()
+
             all_backups = self.list_backup()
-            count = 0;
+            count = 0
+            for one_backup in all_backups:
+                if one_backup.find('AFTER_LOAD') >= 0:
+                    print(one_backup)
+                    self.makedata_instances[count % 3].hb_instance.restore(one_backup)
+                    self.wait_for_restore_impl(self.makedata_instances[count % 3].hb_instance)
+                    arangosh.check_test_data("xx",
+                                             supports_foxx_tests=True,
+                                             args=hb_job_params['args'],
+                                             result_line_handler=result_line)
+                count += 1
+            count = 0
             for one_backup in all_backups:
                 self.makedata_instances[count % 3].hb_instance.restore(one_backup)
                 self.wait_for_restore_impl(self.makedata_instances[count % 3].hb_instance)
