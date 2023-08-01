@@ -150,6 +150,10 @@ class StarterManager:
                 if "--starter.sync" in moreopts:
                     self.expect_instance_count += 2  # syncmaster + syncworker
 
+        semversion = semver.VersionInfo.parse(self.cfg.version)
+        self.supportsExtendedNames = ((semversion.major == 3 and
+                                      semversion.minor >= 9) or
+                                      (semversion.major > 3))
         self.username = "root"
         self.passvoid = ""
 
@@ -199,7 +203,7 @@ class StarterManager:
         semversion = semver.VersionInfo.parse(version)
 
         # Extended database names were introduced in 3.9.0
-        if (semversion.major == 3 and semversion.minor >= 9) or (semversion.major > 3):
+        if self.supportsExtendedNames:
             result += ["--args.all.database.extended-names-databases=true"]
 
         # Telemetry was introduced in 3.11.0
