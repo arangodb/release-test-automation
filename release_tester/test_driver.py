@@ -560,6 +560,7 @@ class TestDriver:
                 "testscenario": runner_strings[RunnerType.CLUSTER],
                 "success": False,
                 "messages": [str(ex)],
+                "trace": "\n".join(traceback.TracebackException.from_exception(ex).format()),
                 "progress": "",
             })
         if len(frontends) == 0:
