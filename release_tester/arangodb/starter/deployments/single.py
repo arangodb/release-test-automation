@@ -29,13 +29,14 @@ class Single(Runner):
         selenium_driver_args,
         testrun_name: str,
         ssl: bool,
+        replication2: bool,
         use_auto_certs: bool,
     ):
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("Single", 400, 500, True, ssl, use_auto_certs, 1),
+            RunnerProperties("Single", 400, 500, True, ssl, replication2, use_auto_certs, 1),
             selenium,
             selenium_driver_args,
             testrun_name,
@@ -159,8 +160,10 @@ class Single(Runner):
 
     def before_backup_create_impl(self):
         pass
+
     def after_backup_create_impl(self):
         pass
+
     def before_backup_impl(self):
         """nothing to see here"""
 

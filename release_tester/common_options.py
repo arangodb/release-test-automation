@@ -314,6 +314,12 @@ def common_options(
             default=True,
             help="enable hardware resources monitoring",
         )(function)
+        function = click.option(
+            "--replication2/--no-replication2",
+            is_flag=True,
+            default=False,
+            help="use replication v.2 where applicable(only for clean installation tests of versions 3.12.0+)",
+        )(function)
         return function
 
     return inner_func

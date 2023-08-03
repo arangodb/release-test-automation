@@ -465,6 +465,7 @@ class RunProperties:
         enterprise: bool,
         encryption_at_rest: bool = False,
         ssl: bool = False,
+        replication2: bool = False,
         testrun_name: str = "",
         directory_suffix: str = "",
     ):
@@ -474,12 +475,14 @@ class RunProperties:
         self.ssl = ssl
         self.testrun_name = testrun_name
         self.directory_suffix = directory_suffix
+        self.replication2 = replication2
 
     def __repr__(self):
         return """{0.__class__.__name__}
 enterprise: {0.enterprise}
 encryption_at_rest: {0.encryption_at_rest}
 ssl: {0.ssl}
+replication2: {0.replication2}
 testrun_name: {0.testrun_name}
 directory_suffix: {0.directory_suffix}""".format(
             self
