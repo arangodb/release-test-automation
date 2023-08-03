@@ -1,4 +1,3 @@
-
 !!python/object:arangodb.starter.deployments.cluster_perf.TestConfig
 phase:
   - backupbench
@@ -17,6 +16,8 @@ single_shard: false
 hot_backup: true
 system_makedata: true
 bench_jobs:
+- cluster_upgrade_scenario_1
+- cluster_upgrade_scenario_2
 arangosh_jobs:
 - stress/transaction_write_load.js
 - stress/smart_graph.js

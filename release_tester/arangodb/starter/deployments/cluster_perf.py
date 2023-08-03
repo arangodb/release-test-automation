@@ -15,6 +15,7 @@ import yaml
 
 from arangodb.starter.deployments.runner import Runner, RunnerProperties
 from arangodb.starter.deployments.cluster import Cluster
+#from arangodb.starter.deployments.activefailover import ActiveFailover
 
 # from tools.asciiprint import print_progress as progress
 import tools.interact as ti
@@ -120,7 +121,9 @@ def arangosh_runner(queue, resq, arangosh, progressive_timeout):
             break
 
 
+#class ClusterPerf(Cluster):
 class ClusterPerf(Cluster):
+#class ClusterPerf(ActiveFailover):
     """this launches a cluster setup"""
 
     # pylint: disable=too-many-arguments disable=too-many-instance-attributes
@@ -173,10 +176,16 @@ class ClusterPerf(Cluster):
         self.no_dbs = self.scenario.db_count
         self.thread_count = 0
         self.tcount = 0
+        # AFO
+        # self.backup_instance_count = 1
 
         # pylint: disable=consider-using-with
         RESULTS_TXT = Path("/tmp/results.txt").open("w", encoding='utf8')
         OTHER_SH_OUTPUT = Path("/tmp/errors.txt").open("w", encoding='utf8')
+
+    def _prolongue_backup_timeout(self):
+        for starter in self.starter_instances:
+            starter.hb_config.hb_timeout = 200000
 
     def _get_one_job(self, count):
         return {
@@ -206,15 +215,15 @@ class ClusterPerf(Cluster):
         for i in range(self.scenario.db_count_chunks):
             self.jobs.put(self._get_one_job(i))
 
-    def _start_makedata_workers(self):
+    def _start_makedata_workers(self, frontends):
         """ launch the worker threads """
-        self.makedata_instances = self.starter_instances[:]
+        # self.makedata_instances = self.starter_instances[:]
         assert self.makedata_instances, "no makedata instance!"
         logging.debug("makedata instances")
-        for i in self.makedata_instances:
+        for i in frontends:
             logging.debug(str(i))
-        while len(self.makedata_workers) < self.scenario.parallelity:
-            starter = self.makedata_instances[len(self.makedata_workers) % len(self.makedata_instances)]
+        while len(frontends) < self.scenario.parallelity:
+            starter = frontends[len(self.makedata_workers) % len(frontends)]
             assert starter.arangosh, "no starter associated arangosh!"
             arangosh = starter.arangosh
 
@@ -236,13 +245,13 @@ class ClusterPerf(Cluster):
             worker.start()
             time.sleep(self.scenario.launch_delay)
 
-    def _start_arangosh_workers(self):
+    def _start_arangosh_workers(self, frontends):
         """ launch the worker threads """
-        self.makedata_instances = self.starter_instances[:]
+        # self.makedata_instances = self.starter_instances[:]
         assert self.makedata_instances, "no makedata instance!"
         print("arangosh instances")
         while len(self.arangosh_workers) < self.scenario.parallelity:
-            starter = self.makedata_instances[len(self.arangosh_workers) % len(self.makedata_instances)]
+            starter = frontends[len(self.arangosh_workers) % len(frontends)]
             assert starter.arangosh, "no starter associated arangosh!"
             arangosh = starter.arangosh
 
@@ -295,9 +304,10 @@ class ClusterPerf(Cluster):
             from arangodb.starter.manager import StarterNonManager as StarterManager
         else:
             from arangodb.starter.manager import StarterManager
-        super().starter_prepare_env_impl(StarterManager)
-         # += ['--agents.agency.election-timeout-min=5',
-         #     '--agents.agency.election-timeout-max=10',]
+            super().starter_prepare_env_impl()
+        #super().starter_prepare_env_impl(StarterManager)
+        # += ['--agents.agency.election-timeout-min=5',
+        #     '--agents.agency.election-timeout-max=10',]
 
     def make_data_impl(self):
         if self.scenario.system_makedata:
@@ -322,8 +332,7 @@ class ClusterPerf(Cluster):
         if self.remote:
             logging.info("running remote, skipping")
             return
-        self.makedata_instances = self.starter_instances[:]
-        self.set_frontend_instances()
+        super().finish_setup_impl()
         # self.agency_set_debug_logging()
         # self.dbserver_set_debug_logging()
         # self.coordinator_set_debug_logging()
@@ -356,24 +365,29 @@ class ClusterPerf(Cluster):
             ti.prompt_user(self.cfg, "DONE! press any key to shut down the SUT.")
 
     def before_backup_create_impl(self):
+        self._prolongue_backup_timeout()
         count = 0
+        frontends = self.get_frontend_starters()
         if "backup" in self.scenario.phase:
             logging.info("backup: starting data stress")
             count += 1
-            self._generate_makedata_jobs()
-            self._start_makedata_workers()
+            self._generate_makedata_jobs(frontends)
+            self._start_makedata_workers(frontends)
             # Let the test heat up before we continue with the backup:
             time.sleep(120)
         if "backuparangosh" in self.scenario.phase:
             for arangosh_job in self.scenario.arangosh_jobs:
-                self.jobs.put({"args": [ "--count", str(count)], "script": arangosh_job})
+                self.jobs.put({"args": [
+                    "--count", str(count)],
+                               # "--directory", self.
+                    "script": arangosh_job})
                 count += 1
-            self._start_arangosh_workers()
+            self._start_arangosh_workers(frontends)
 
         if "backupbench" in self.scenario.phase:
             for bench_job in self.scenario.bench_jobs:
                 self.arangobench_workers.append(
-                    self.starter_instances[count % 3].launch_arangobench(bench_job))
+                    frontends[count % len(frontends)].launch_arangobench(bench_job))
                 time.sleep(.1)
                 count += 1
             time.sleep(0.5)
@@ -383,19 +397,19 @@ class ClusterPerf(Cluster):
         try:
             count = 0
             while count < 100:
-                self.makedata_instances[count % 3].hb_instance.create(f"ABC{count}")
+                frontends[count % len(frontends)].hb_instance.create(f"ABC{count}")
                 count += 1
 
             hb_job_params = self._get_one_job(9999)# TODO calculate number
 
-            starter = self.starter_instances[0]
+            starter = frontends[0]
             assert starter.arangosh, "no starter associated arangosh!"
             arangosh = starter.arangosh
             arangosh.create_test_data("xx",
                                       args=hb_job_params['args'],
                                       result_line_handler=result_line,
                                       progressive_timeout=self.scenario.progressive_timeout)
-            self.makedata_instances[count % 3].hb_instance.create(f"AFTER_LOAD")
+            frontends[count % len(frontends)].hb_instance.create(f"AFTER_LOAD")
             self._kill_load_workers()
             self._shutdown_load_workers()
 
@@ -404,8 +418,17 @@ class ClusterPerf(Cluster):
             for one_backup in all_backups:
                 if one_backup.find('AFTER_LOAD') >= 0:
                     print(one_backup)
-                    self.makedata_instances[count % 3].hb_instance.restore(one_backup)
-                    self.wait_for_restore_impl(self.makedata_instances[count % 3].hb_instance)
+                    self.upload_backup(one_backup)
+                    self.delete_backup(one_backup)
+                    print("Listing after locally deleting:")
+                    self.list_backup()
+                    self.download_backup(one_backup)
+                    frontends[count % len(frontends)].hb_instance.restore(one_backup)
+                    self.wait_for_restore_impl(frontends[count % len(frontends)])
+                    frontends = self.get_frontend_starters()
+                    starter = frontends[0]
+                    assert starter.arangosh, "no starter associated arangosh!"
+                    arangosh = starter.arangosh
                     arangosh.check_test_data("xx",
                                              supports_foxx_tests=True,
                                              args=hb_job_params['args'],
@@ -413,8 +436,12 @@ class ClusterPerf(Cluster):
                 count += 1
             count = 0
             for one_backup in all_backups:
-                self.makedata_instances[count % 3].hb_instance.restore(one_backup)
-                self.wait_for_restore_impl(self.makedata_instances[count % 3].hb_instance)
+                frontends[count % len(frontends)].hb_instance.restore(one_backup)
+                self.wait_for_restore_impl(frontends[count % len(frontends)])
+                frontends = self.get_frontend_starters()
+                starter = frontends[0]
+                assert starter.arangosh, "no starter associated arangosh!"
+                arangosh = starter.arangosh
                 count += 1
         except Exception as ex:
             print(ex)

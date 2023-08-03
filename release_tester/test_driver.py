@@ -555,12 +555,13 @@ class TestDriver:
                 })
         except Exception as ex:
             failed = True
+            print("".join(traceback.TracebackException.from_exception(ex).format()))
             results.append({
                 "testrun name": runner.testrun_name,
                 "testscenario": runner_strings[RunnerType.CLUSTER],
                 "success": False,
                 "messages": [str(ex)],
-                "trace": "\n".join(traceback.TracebackException.from_exception(ex).format()),
+                "trace": "".join(traceback.TracebackException.from_exception(ex).format()),
                 "progress": "",
             })
         if len(frontends) == 0:

@@ -154,6 +154,11 @@ db.testCollection.save({test: "document"})
         for starter in self.starter_instances:
             for dbserver in starter.get_dbservers():
                 dbserver.detect_restore_restart()
+        self.starter_instances[0].arangosh.run_in_arangosh(
+            (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
+            [],
+            ['true'],
+        )
 
     def upgrade_arangod_version_impl(self):
         """rolling upgrade this installation"""

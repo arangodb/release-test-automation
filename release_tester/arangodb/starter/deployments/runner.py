@@ -686,6 +686,16 @@ class Runner(ABC):
                 frontends.append(frontend)
         return frontends
 
+    def get_frontend_starters(self):
+        """fetch all frontend instances"""
+        frontends = []
+        for starter in self.starter_instances:
+            if not starter.is_leader:
+                continue
+            if len(starter.get_frontends()) > 0:
+                frontends.append(starter)
+        return frontends
+
     @step
     def tcp_ping_all_nodes(self):
         """check whether all nodes react via tcp connection"""
@@ -932,8 +942,8 @@ class Runner(ABC):
         )
         if self.cfg.base_test_dir.exists():
             print("zipping test dir")
-            # for installer_set in self.installers:
-            #    installer_set[1].get_arangod_binary(self.cfg.base_test_dir / self.basedir)
+            #for installer_set in self.installers:
+            #   installer_set[1].get_arangod_binary(self.cfg.base_test_dir / self.basedir)
             archive = shutil.make_archive(filename, "7zip", self.cfg.base_test_dir, self.basedir)
             attach.file(archive, "test dir archive", "application/x-7z-compressed", "7z")
         else:

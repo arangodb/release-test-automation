@@ -52,6 +52,8 @@ class ActiveFailover(Runner):
             for node in self.starter_instances:
                 if node.detect_leader():
                     self.leader = node
+            time.sleep(0.5)
+            print('.')
         self.leader.wait_for_version_reply()
         self.follower_nodes = []
         for node in self.starter_instances:
