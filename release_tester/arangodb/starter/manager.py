@@ -811,7 +811,7 @@ class StarterManager:
                 node.detect_restore_restart()
 
     @step
-    def tcp_ping_nodes(self):
+    def tcp_ping_nodes(self, timeout=20.0):
         """
         tries to wait for the server to restart after the 'restore' command
         """
@@ -821,7 +821,7 @@ class StarterManager:
                 InstanceType.SINGLE,
                 InstanceType.DBSERVER,
             ]:
-                node.check_version_request(20.0)
+                node.check_version_request(timeout)
 
     @step
     def respawn_instance(self, version, moreargs=None, wait_for_logfile=True):

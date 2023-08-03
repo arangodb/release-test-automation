@@ -532,15 +532,20 @@ class ArangodInstance(Instance):
     def check_version_request(self, timeout):
         """wait for the instance to reply with 200 to api/version"""
         until = time.time() + timeout
-        while until < time.time():
+        while True:
             reply = None
             try:
-                reply = requests.get(self.get_local_url("") + "/_api/version", timeout=20)
+                print('fetch version')
+                reply = requests.get(self.get_local_url("") + "/_api/version",
+                                     auth=HTTPBasicAuth("root", self.passvoid),
+                                     timeout=20)
                 if reply.status_code == 200:
                     return
-                print("*")
+                print(f'got {reply} - {reply.content}')
             except requests.exceptions.ConnectionError:
                 print("&")
+            if  time.time() > until:
+                raise TimeoutError("the host would not respond to the version requests on time")
             time.sleep(0.5)
 
     def get_afo_state(self):

@@ -121,6 +121,13 @@ class Single(Runner):
         if self.selenium:
             self.selenium.test_after_install()
 
+    def wait_for_restore_impl(self, backup_starter):
+        print("wait start")
+        super().wait_for_restore_impl(backup_starter)
+        time.sleep(1)
+        print('ping')
+        self.starter_instance.tcp_ping_nodes(timeout=60.0)
+
     @step
     def upgrade_arangod_version_manual_impl(self):
         """manual upgrade this installation"""
