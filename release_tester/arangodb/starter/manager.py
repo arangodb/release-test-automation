@@ -1135,7 +1135,7 @@ class StarterManager:
         if self.is_leader:
             url = self.get_frontend().get_local_url("")
             reply = requests.get(url, auth=requests.auth.HTTPBasicAuth("root", self.passvoid), timeout=120)
-            print(str(reply))
+            print(f"{url} =>  {str(reply)}")
             if reply.status_code == 503:
                 self.is_leader = False
         return self.is_leader
