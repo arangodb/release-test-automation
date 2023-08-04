@@ -79,7 +79,18 @@ class Instance(ABC):
 
     # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=too-many-public-methods
     def __init__(
-        self, instance_type, port, basedir, localhost, publicip, passvoid, instance_string, ssl, version, enterprise
+        self,
+        instance_type,
+        port,
+        basedir,
+        localhost,
+        publicip,
+        passvoid,
+        instance_string,
+        ssl,
+        version,
+        enterprise,
+        jwt="",
     ):
         self.instance_type = INSTANCE_TYPE_STRING_MAP[instance_type]
         self.is_system = False
@@ -102,7 +113,7 @@ class Instance(ABC):
         self.version = version
         self.enterprise = enterprise
         self.logfiles = []
-
+        self.jwt = jwt
         logging.debug("creating {0.type_str} instance: {0.name}".format(self))
 
     def get_structure(self):
@@ -437,8 +448,10 @@ class ArangodInstance(Instance):
     """represent one arangodb instance"""
 
     # pylint: disable=too-many-arguments
-    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl, version, enterprise, is_system=False):
-        super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangod", ssl, version, enterprise)
+    def __init__(
+        self, typ, port, localhost, publicip, basedir, passvoid, ssl, version, enterprise, is_system=False, jwt=""
+    ):
+        super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangod", ssl, version, enterprise, jwt)
         self.is_system = is_system
 
     def __repr__(self):
@@ -532,15 +545,31 @@ class ArangodInstance(Instance):
     def check_version_request(self, timeout):
         """wait for the instance to reply with 200 to api/version"""
         until = time.time() + timeout
-        while until < time.time():
+        request_headers = {}
+        if self.jwt != "":
+            request_headers["Authorization"] = "Bearer " + str(self.jwt)
+        while True:
             reply = None
             try:
-                reply = requests.get(self.get_local_url("") + "/_api/version", timeout=20)
+                reply = {}
+                if self.is_frontend():
+                    print("fetch frontend version")
+                    reply = requests.get(
+                        self.get_local_url("") + "/_api/version",
+                        auth=HTTPBasicAuth("root", self.passvoid),
+                        headers=request_headers,
+                        timeout=20,
+                    )
+                else:
+                    print("fetch backend version")
+                    reply = requests.get(self.get_local_url("") + "/_api/version", headers=request_headers, timeout=20)
                 if reply.status_code == 200:
                     return
-                print("*")
+                print(f'{self.get_local_url("")} got {reply} - {reply.content}')
             except requests.exceptions.ConnectionError:
                 print("&")
+            if time.time() > until:
+                raise TimeoutError("the host would not respond to the version requests on time")
             time.sleep(0.5)
 
     def get_afo_state(self):
@@ -765,16 +794,16 @@ class ArangodRemoteInstance(ArangodInstance):
     """represent one arangodb instance"""
 
     # pylint: disable=too-many-arguments
-    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl, version, enterprise):
-        super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangod", ssl, version, enterprise)
+    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl, version, enterprise, jwt=""):
+        super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangod", ssl, version, enterprise, jwt)
 
 
 class SyncInstance(Instance):
     """represent one arangosync instance"""
 
     # pylint: disable=too-many-arguments
-    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl, version, enterprise):
-        super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangosync", ssl, version, enterprise)
+    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl, version, enterprise, jwt=""):
+        super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangosync", ssl, version, enterprise, jwt)
         self.logfile_parameter = ""
         self.pid_file = None
 

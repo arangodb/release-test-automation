@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
-import time
 import logging
+import time
 
 # import os
 from pathlib import Path
@@ -10,22 +10,21 @@ from threading import Thread
 
 import psutil
 
-from reporting.reporting_utils import step
-
 # import statsd
 import yaml
-
-from arangodb.starter.deployments.runner import Runner, RunnerProperties
-from arangodb.starter.deployments.cluster import Cluster
-
-# from arangodb.starter.deployments.activefailover import ActiveFailover
 
 # from tools.asciiprint import print_progress as progress
 import tools.interact as ti
 import tools.loghelper as lh
+from arangodb.starter.deployments.cluster import Cluster
+from arangodb.starter.deployments.runner import Runner, RunnerProperties
+from reporting.reporting_utils import step
 
 # from tools.prometheus import set_prometheus_jwt
 from tools.timestamp import timestamp
+
+
+# from arangodb.starter.deployments.activefailover import ActiveFailover
 
 # pylint: disable=global-statement
 class TestConfig:
@@ -129,7 +128,7 @@ def arangosh_runner(queue, resq, arangosh, progressive_timeout):
             break
 
 
-# class ClusterPerf(Cluster):
+# class ClusterPerf(Single):
 class ClusterPerf(Cluster):
     # class ClusterPerf(ActiveFailover):
     """this launches a cluster setup"""
@@ -185,7 +184,7 @@ class ClusterPerf(Cluster):
         self.no_dbs = self.scenario.db_count
         self.thread_count = 0
         self.tcount = 0
-        # AFO
+        # AFO / SG
         # self.backup_instance_count = 1
 
         # pylint: disable=consider-using-with
@@ -295,6 +294,7 @@ class ClusterPerf(Cluster):
                 logging.error(ex)
         for worker in self.arangobench_workers:
             worker.kill()
+        self.arangobench_workers = []
 
     def _shutdown_load_workers(self):
         """wait for the worker threads to be done"""
@@ -310,9 +310,8 @@ class ClusterPerf(Cluster):
 
         # pylint: disable=import-outside-toplevel
         if self.remote:
-            from arangodb.starter.manager import StarterNonManager as StarterManager
+            pass
         else:
-            from arangodb.starter.manager import StarterManager
 
             super().starter_prepare_env_impl()
         # super().starter_prepare_env_impl(StarterManager)
@@ -476,6 +475,4 @@ class ClusterPerf(Cluster):
 
             ti.prompt_user(self.cfg, "DONE! press any key to shut down the SUT.")
         if "backupbench" in self.scenario.phase:
-            for bench_worker in self.arangobench_workers:
-                bench_worker.kill()
-                bench_worker.wait()
+            self._kill_load_workers()
