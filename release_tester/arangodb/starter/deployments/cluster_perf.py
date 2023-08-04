@@ -122,8 +122,8 @@ def arangosh_runner(queue, resq, arangosh, progressive_timeout):
             break
 
 
-class ClusterPerf(Single):
-#class ClusterPerf(Cluster):
+#class ClusterPerf(Single):
+class ClusterPerf(Cluster):
 #class ClusterPerf(ActiveFailover):
     """this launches a cluster setup"""
 
@@ -178,7 +178,7 @@ class ClusterPerf(Single):
         self.thread_count = 0
         self.tcount = 0
         # AFO / SG
-        self.backup_instance_count = 1
+        #self.backup_instance_count = 1
 
         # pylint: disable=consider-using-with
         RESULTS_TXT = Path("/tmp/results.txt").open("w", encoding='utf8')

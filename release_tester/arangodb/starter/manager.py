@@ -941,6 +941,7 @@ class StarterManager:
     def detect_instances(self):
         """see which arangods where spawned and inspect their logfiles"""
         lh.subsection("Instance Detection for {0.name}".format(self))
+        jwt = self.get_jwt_header()
         self.all_instances = []
         logging.debug("waiting for frontend")
         logfiles = set()  # logfiles that can be used for debugging
@@ -990,6 +991,7 @@ class StarterManager:
                             self.cfg.ssl,
                             self.cfg.version,
                             self.enterprise,
+                            jwt=jwt,
                         )
                         instance.wait_for_logfile(tries)
                         instance.detect_pid(
