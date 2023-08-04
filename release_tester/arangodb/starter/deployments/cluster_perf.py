@@ -15,6 +15,7 @@ import yaml
 
 from arangodb.starter.deployments.runner import Runner, RunnerProperties
 from arangodb.starter.deployments.cluster import Cluster
+from arangodb.starter.deployments.single import Single
 #from arangodb.starter.deployments.activefailover import ActiveFailover
 
 # from tools.asciiprint import print_progress as progress
@@ -121,7 +122,7 @@ def arangosh_runner(queue, resq, arangosh, progressive_timeout):
             break
 
 
-#class ClusterPerf(Cluster):
+#class ClusterPerf(Single):
 class ClusterPerf(Cluster):
 #class ClusterPerf(ActiveFailover):
     """this launches a cluster setup"""
@@ -176,8 +177,8 @@ class ClusterPerf(Cluster):
         self.no_dbs = self.scenario.db_count
         self.thread_count = 0
         self.tcount = 0
-        # AFO
-        # self.backup_instance_count = 1
+        # AFO / SG
+        #self.backup_instance_count = 1
 
         # pylint: disable=consider-using-with
         RESULTS_TXT = Path("/tmp/results.txt").open("w", encoding='utf8')
@@ -286,6 +287,7 @@ class ClusterPerf(Cluster):
                 logging.error(ex)
         for worker in self.arangobench_workers:
             worker.kill()
+        self.arangobench_workers = []
 
     def _shutdown_load_workers(self):
         """ wait for the worker threads to be done """
@@ -463,6 +465,4 @@ class ClusterPerf(Cluster):
 
             ti.prompt_user(self.cfg, "DONE! press any key to shut down the SUT.")
         if "backupbench" in self.scenario.phase:
-            for bench_worker in self.arangobench_workers:
-                bench_worker.kill()
-                bench_worker.wait()
+            self._kill_load_workers()
