@@ -257,7 +257,6 @@ def upgrade_package_test(
                     )
                 )
 
-    test_driver.destructor()
     print("V" * 80)
     if not write_table(results):
         print("exiting with failure")
@@ -301,20 +300,24 @@ def main(**kwargs):
         kwargs['editions'] = ["EP"]
 
     test_driver = TestDriver(**kwargs)
-    if not 'src' in kwargs['new_version']:
-        kwargs['new_version'] = kwargs['new_version'] + '-src'
-    return upgrade_package_test(
-        dl_opts,
-        kwargs['new_version'],
-        kwargs['source'],
-        kwargs['upgrade_matrix'],
-        kwargs['other_source'],
-        kwargs['git_version'],
-        kwargs['editions'],
-        kwargs['run_test'],
-        kwargs['run_test_suites'],
-        test_driver
-    )
+    try:
+        if 'src' not in kwargs['new_version']:
+            kwargs['new_version'] = kwargs['new_version'] + '-src'
+        return upgrade_package_test(
+            dl_opts,
+            kwargs['new_version'],
+            kwargs['source'],
+            kwargs['upgrade_matrix'],
+            kwargs['other_source'],
+            kwargs['git_version'],
+            kwargs['editions'],
+            kwargs['run_test'],
+            kwargs['run_test_suites'],
+            test_driver
+        )
+    finally:
+        test_driver.destructor()
+
 
 if __name__ == "__main__":
     # pylint: disable=no-value-for-parameter # fix clickiness.

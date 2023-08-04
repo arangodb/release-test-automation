@@ -84,7 +84,6 @@ def package_test(dl_opts: DownloadOptions, new_version, new_dlstage, git_version
             )
         )
 
-    test_driver.destructor()
     print("V" * 80)
     if not write_table(results):
         print("exiting with failure")
@@ -118,15 +117,17 @@ def main(**kwargs):
     dl_opts = DownloadOptions.from_dict(**kwargs)
 
     test_driver = TestDriver(**kwargs)
-
-    return package_test(
-        dl_opts,
-        kwargs['new_version'],
-        kwargs['new_source'],
-        kwargs['git_version'],
-        kwargs['editions'],
-        test_driver
-    )
+    try:
+        return package_test(
+            dl_opts,
+            kwargs['new_version'],
+            kwargs['new_source'],
+            kwargs['git_version'],
+            kwargs['editions'],
+            test_driver
+        )
+    finally:
+        test_driver.destructor()
 
 if __name__ == "__main__":
     # pylint: disable=no-value-for-parameter # fix clickiness.
