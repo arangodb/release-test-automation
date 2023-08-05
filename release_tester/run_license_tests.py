@@ -29,14 +29,17 @@ def main(**kwargs):
     kwargs["base_config"] = InstallerBaseConfig.from_dict(**kwargs)
 
     test_driver = TestDriver(**kwargs)
-    test_driver.set_r_limits()
-    results = test_driver.run_test_suites(
-        include_suites=("BasicLicenseManagerTestSuite", "UpgradeLicenseManagerTestSuite"),
-        params=CliTestSuiteParameters.from_dict(**kwargs),
-    )
-    for result in results:
-        if not result["success"]:
-            raise Exception("There are failed tests")
+    try:
+        test_driver.set_r_limits()
+        results = test_driver.run_test_suites(
+            include_suites=("BasicLicenseManagerTestSuite", "UpgradeLicenseManagerTestSuite"),
+            params=CliTestSuiteParameters.from_dict(**kwargs),
+        )
+        for result in results:
+            if not result["success"]:
+                raise Exception("There are failed tests")
+    finally:
+        test_driver.destructor()
 
 
 if __name__ == "__main__":

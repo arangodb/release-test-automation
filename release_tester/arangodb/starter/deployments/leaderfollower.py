@@ -28,13 +28,14 @@ class LeaderFollower(Runner):
         selenium_driver_args,
         testrun_name: str,
         ssl: bool,
+        replication2: bool,
         use_auto_certs: bool,
     ):
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("LeaderFollower", 400, 500, False, ssl, use_auto_certs, 2),
+            RunnerProperties("LeaderFollower", 400, 500, False, ssl, replication2, use_auto_certs, 2),
             selenium,
             selenium_driver_args,
             testrun_name,
@@ -356,10 +357,13 @@ process.exit(0);
 
     def before_backup_impl(self):
         pass
+
     def after_backup_impl(self):
         pass
+
     def before_backup_create_impl(self):
         pass
+
     def after_backup_create_impl(self):
         pass
 

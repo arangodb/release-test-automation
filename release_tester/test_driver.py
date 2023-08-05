@@ -98,6 +98,9 @@ class TestDriver:
 
         self.cli_test_suite_params = CliTestSuiteParameters.from_dict(**kwargs)
 
+    def __del__(self):
+        self.destructor()
+
     def destructor(self):
         """shutdown this environment"""
         self._stop_monitor()
@@ -537,7 +540,8 @@ class TestDriver:
             self.selenium,
             self.selenium_driver_args,
             "perf",
-            run_props,
+            run_props.ssl,
+            run_props.replication2,
             use_auto_certs=self.use_auto_certs
         )
         runner.do_install = do_install

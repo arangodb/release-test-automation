@@ -257,7 +257,6 @@ def upgrade_package_test(
                     )
                 )
 
-    test_driver.destructor()
     print("V" * 80)
     if not write_table(results):
         print("exiting with failure")
@@ -267,7 +266,7 @@ def upgrade_package_test(
 
 @click.command()
 @full_common_options
-@matrix_options(test_default_value=False, test_suites_default_value=False)
+@matrix_options(test_default_value=False)
 @very_common_options()
 @hotbackup_options()
 @common_options(
@@ -275,6 +274,7 @@ def upgrade_package_test(
     support_old=False,
     interactive=False,
     test_data_dir="/home/test_dir",
+    test_suites_default_value=False,
 )
 @download_options(default_source="ftp:stage2", other_source=True)
 # fmt: off
@@ -301,20 +301,24 @@ def main(**kwargs):
         kwargs['editions'] = ["EP"]
 
     test_driver = TestDriver(**kwargs)
-    if not 'src' in kwargs['new_version']:
-        kwargs['new_version'] = kwargs['new_version'] + '-src'
-    return upgrade_package_test(
-        dl_opts,
-        kwargs['new_version'],
-        kwargs['source'],
-        kwargs['upgrade_matrix'],
-        kwargs['other_source'],
-        kwargs['git_version'],
-        kwargs['editions'],
-        kwargs['run_test'],
-        kwargs['run_test_suites'],
-        test_driver
-    )
+    try:
+        if 'src' not in kwargs['new_version']:
+            kwargs['new_version'] = kwargs['new_version'] + '-src'
+        return upgrade_package_test(
+            dl_opts,
+            kwargs['new_version'],
+            kwargs['source'],
+            kwargs['upgrade_matrix'],
+            kwargs['other_source'],
+            kwargs['git_version'],
+            kwargs['editions'],
+            kwargs['run_test'],
+            kwargs['run_test_suites'],
+            test_driver
+        )
+    finally:
+        test_driver.destructor()
+
 
 if __name__ == "__main__":
     # pylint: disable=no-value-for-parameter # fix clickiness.

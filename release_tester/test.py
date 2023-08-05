@@ -41,18 +41,19 @@ def main(**kwargs):
     kwargs["base_config"] = InstallerBaseConfig.from_dict(**kwargs)
 
     test_driver = TestDriver(**kwargs)
-
-    test_driver.set_r_limits()
-    results = test_driver.run_test(
-        kwargs["mode"],
-        kwargs["starter_mode"],
-        [semver.VersionInfo.parse(kwargs["new_version"])],
-        # pylint: disable=too-many-function-args
-        RunProperties(kwargs["enterprise"], kwargs["encryption_at_rest"], kwargs["ssl"]),
-    )
-    print("V" * 80)
-    status = True
-    test_driver.destructor()
+    try:
+        test_driver.set_r_limits()
+        results = test_driver.run_test(
+            kwargs["mode"],
+            kwargs["starter_mode"],
+            [semver.VersionInfo.parse(kwargs["new_version"])],
+            # pylint: disable=too-many-function-args
+            RunProperties(kwargs["enterprise"], kwargs["encryption_at_rest"], kwargs["ssl"], kwargs["replication2"]),
+        )
+        print("V" * 80)
+        status = True
+    finally:
+        test_driver.destructor()
     for one_result in results:
         print(one_result)
         status = status and one_result["success"]

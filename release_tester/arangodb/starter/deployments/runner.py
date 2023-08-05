@@ -88,6 +88,7 @@ class RunnerProperties:
         disk_usage_enterprise: int,
         supports_hotbackup: bool,
         ssl: bool,
+        replication2: bool,
         use_auto_certs: bool,
         no_arangods_non_agency: int,
     ):
@@ -96,6 +97,7 @@ class RunnerProperties:
         self.disk_usage_enterprise = disk_usage_enterprise
         self.supports_hotbackup = supports_hotbackup
         self.ssl = ssl
+        self.replication2 = replication2
         self.use_auto_certs = use_auto_certs
         self.no_arangods_non_agency = no_arangods_non_agency
 
@@ -229,6 +231,16 @@ class Runner(ABC):
                 os.environ["TEMP"] = str(tmpdir)
             else:
                 os.environ["TMPDIR"] = str(tmpdir)
+            # only enable replication2 for clean installation tests
+            # of versions 3.12.0 and above, and if it requested with CLI param
+            self.replication2 = (
+                properties.replication2
+                and (
+                    (self.old_installer.semver.major == 3 and self.old_installer.semver.minor >= 12)
+                    or self.old_installer.semver.major > 3
+                )
+                and self.new_installer is None
+            )
 
     def progress(self, is_sub, msg, separator="x", supress_allure=False):
         """report user message, record for error handling."""
@@ -344,10 +356,10 @@ class Runner(ABC):
                     self.validate_local_backup(self.backup_name)
                     self.tcp_ping_all_nodes()
                     backups = self.list_backup()
-                    if backups[len(backups)-1] != self.backup_name:
+                    if backups[len(backups) - 1] != self.backup_name:
                         raise Exception("downloaded backup has different name? " + str(backups))
                     self.before_backup()
-                    self.restore_backup(backups[len(backups)-1])
+                    self.restore_backup(backups[len(backups) - 1])
                     self.tcp_ping_all_nodes()
                     self.after_backup()
                     time.sleep(20)  # TODO fix
@@ -942,7 +954,7 @@ class Runner(ABC):
         )
         if self.cfg.base_test_dir.exists():
             print("zipping test dir")
-            #for installer_set in self.installers:
+            # for installer_set in self.installers:
             #   installer_set[1].get_arangod_binary(self.cfg.base_test_dir / self.basedir)
             archive = shutil.make_archive(filename, "7zip", self.cfg.base_test_dir, self.basedir)
             attach.file(archive, "test dir archive", "application/x-7z-compressed", "7z")

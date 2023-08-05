@@ -17,13 +17,14 @@ class NoStarter(Runner):
         selenium_driver_args,
         testrun_name: str,
         ssl: bool,
+        replication2: bool,
         use_auto_certs: bool,
     ):
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("none", 0, 0, False, ssl, use_auto_certs, 0),
+            RunnerProperties("none", 0, 0, False, ssl, replication2, use_auto_certs, 0),
             selenium,
             selenium_driver_args,
             testrun_name,

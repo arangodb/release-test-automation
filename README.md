@@ -111,6 +111,7 @@ Supported Parameters:
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
  - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
  - `--[no-]ssl` use SSL (default = False)
+ - `--[no-]replication2` use replication v.2 if applicable(version must be 3.12.0 or above) (default = False)
  - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl) 
  - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
 Example usage:

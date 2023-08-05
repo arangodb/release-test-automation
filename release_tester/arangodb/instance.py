@@ -79,7 +79,18 @@ class Instance(ABC):
 
     # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=too-many-public-methods
     def __init__(
-            self, instance_type, port, basedir, localhost, publicip, passvoid, instance_string, ssl, version, enterprise, jwt=""
+        self,
+        instance_type,
+        port,
+        basedir,
+        localhost,
+        publicip,
+        passvoid,
+        instance_string,
+        ssl,
+        version,
+        enterprise,
+        jwt="",
     ):
         self.instance_type = INSTANCE_TYPE_STRING_MAP[instance_type]
         self.is_system = False
@@ -437,7 +448,9 @@ class ArangodInstance(Instance):
     """represent one arangodb instance"""
 
     # pylint: disable=too-many-arguments
-    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl, version, enterprise, is_system=False, jwt=""):
+    def __init__(
+        self, typ, port, localhost, publicip, basedir, passvoid, ssl, version, enterprise, is_system=False, jwt=""
+    ):
         super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangod", ssl, version, enterprise, jwt)
         self.is_system = is_system
 
@@ -540,22 +553,22 @@ class ArangodInstance(Instance):
             try:
                 reply = {}
                 if self.is_frontend():
-                    print('fetch frontend version')
-                    reply = requests.get(self.get_local_url("") + "/_api/version",
-                                         auth=HTTPBasicAuth("root", self.passvoid),
-                                         headers=request_headers,
-                                         timeout=20)
+                    print("fetch frontend version")
+                    reply = requests.get(
+                        self.get_local_url("") + "/_api/version",
+                        auth=HTTPBasicAuth("root", self.passvoid),
+                        headers=request_headers,
+                        timeout=20,
+                    )
                 else:
-                    print('fetch backend version')
-                    reply = requests.get(self.get_local_url("") + "/_api/version",
-                                         headers=request_headers,
-                                         timeout=20)
+                    print("fetch backend version")
+                    reply = requests.get(self.get_local_url("") + "/_api/version", headers=request_headers, timeout=20)
                 if reply.status_code == 200:
                     return
                 print(f'{self.get_local_url("")} got {reply} - {reply.content}')
             except requests.exceptions.ConnectionError:
                 print("&")
-            if  time.time() > until:
+            if time.time() > until:
                 raise TimeoutError("the host would not respond to the version requests on time")
             time.sleep(0.5)
 

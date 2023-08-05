@@ -83,9 +83,7 @@ class StarterManager:
         # self.moreopts += ["--starter.disable-ipv6=false"]
         # self.moreopts += ["--starter.host=127.0.0.1"]
 
-        if (self.cfg.hot_backup_supported and
-            self.cfg.semver.prerelease is not None and
-            self.cfg.semver.minor >= 9):
+        if self.cfg.hot_backup_supported and self.cfg.semver.prerelease is not None and self.cfg.semver.minor >= 9:
             self.moreopts += [
                 "--all.rclone.argument=--log-level=DEBUG",
                 "--all.rclone.argument=--log-file=@ARANGODB_SERVER_DIR@/rclone.log",
@@ -151,9 +149,7 @@ class StarterManager:
                     self.expect_instance_count += 2  # syncmaster + syncworker
 
         semversion = semver.VersionInfo.parse(self.cfg.version)
-        self.supportsExtendedNames = ((semversion.major == 3 and
-                                      semversion.minor >= 9) or
-                                      (semversion.major > 3))
+        self.supportsExtendedNames = (semversion.major == 3 and semversion.minor >= 9) or (semversion.major > 3)
         self.username = "root"
         self.passvoid = ""
 

@@ -27,12 +27,14 @@ def main(**kwargs):
     kwargs["base_config"] = InstallerBaseConfig.from_dict(**kwargs)
 
     test_driver = TestDriver(**kwargs)
-    test_driver.set_r_limits()
-    results = test_driver.run_upgrade(
-        [semver.VersionInfo.parse(kwargs["old_version"]), semver.VersionInfo.parse(kwargs["new_version"])],
-        RunProperties(kwargs["enterprise"], kwargs["encryption_at_rest"], kwargs["ssl"]),
-    )
-    test_driver.destructor()
+    try:
+        test_driver.set_r_limits()
+        results = test_driver.run_upgrade(
+            [semver.VersionInfo.parse(kwargs["old_version"]), semver.VersionInfo.parse(kwargs["new_version"])],
+            RunProperties(kwargs["enterprise"], kwargs["encryption_at_rest"], kwargs["ssl"]),
+        )
+    finally:
+        test_driver.destructor()
     print("V" * 80)
     status = True
     for one_result in results:

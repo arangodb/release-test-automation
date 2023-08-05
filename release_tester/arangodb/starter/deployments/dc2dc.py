@@ -105,13 +105,14 @@ class Dc2Dc(Runner):
         selenium_driver_args,
         testrun_name: str,
         ssl: bool,
+        replication2: bool,
         use_auto_certs: bool,
     ):
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("DC2DC", 0, 4500, True, ssl, use_auto_certs, 12),
+            RunnerProperties("DC2DC", 0, 4500, True, ssl, replication2, use_auto_certs, 12),
             selenium,
             selenium_driver_args,
             testrun_name,
@@ -241,10 +242,18 @@ class Dc2Dc(Runner):
             if port == 7528:
                 val["instance"].is_leader = True
 
-        _add_starter(self.cluster1, port=7528)
+        common_opts = []
+        if self.replication2:
+            common_opts += [
+                "--dbservers.database.default-replication-version=2",
+                "--coordinators.database.default-replication-version=2",
+                "--all.log.level=replication2=debug",
+            ]
+        _add_starter(self.cluster1, port=7528, moreopts=common_opts)
         _add_starter(
             self.cluster2,
-            port=9528  # ,
+            port=9528,
+            moreopts=common_opts
             # moreopts=['--args.dbservers.log', 'request=trace']
         )
         self.starter_instances = [self.cluster1["instance"], self.cluster2["instance"]]
@@ -652,8 +661,10 @@ class Dc2Dc(Runner):
 
     def before_backup_create_impl(self):
         pass
+
     def after_backup_create_impl(self):
         pass
+
     def before_backup_impl(self):
         self.sync_manager.abort_sync()
 
