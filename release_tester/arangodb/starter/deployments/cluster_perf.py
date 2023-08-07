@@ -2,10 +2,11 @@
 """ launch and manage an arango deployment using the starter"""
 import logging
 import time
+import traceback
 
 # import os
 from pathlib import Path
-from queue import Queue
+from queue import Queue, Empty
 from threading import Thread
 
 import psutil
@@ -16,7 +17,9 @@ import yaml
 # from tools.asciiprint import print_progress as progress
 import tools.interact as ti
 import tools.loghelper as lh
-from arangodb.starter.deployments.cluster import Cluster
+#from arangodb.starter.deployments.cluster import Cluster
+# from arangodb.starter.deployments.activefailover import ActiveFailover
+from arangodb.starter.deployments.single import Single
 from arangodb.starter.deployments.runner import Runner, RunnerProperties
 from reporting.reporting_utils import step
 
@@ -47,6 +50,8 @@ class TestConfig:
         self.hot_backup = False
         self.bench_jobs = []
         self.arangosh_jobs = []
+        self.dump_jobs = []
+        self.restore_jobs = []
         self.system_makedata = False
 
 
@@ -127,9 +132,64 @@ def arangosh_runner(queue, resq, arangosh, progressive_timeout):
             resq.put(-1)
             break
 
+def dump_runner(queue, resq, dump, progressive_timeout):
+    """operate one arangosh instance"""
+    while True:
+        try:
+            # all tasks are already there. if done:
+            job = queue.get(timeout=0.1)
+            print(job)
+            print("starting my dump task! " + str(job["args"]) + str(job["dir"]))
+            res = dump.run_dump_monitored(
+                basepath=str(dump.cfg.test_data_dir.resolve() / job["dir"]),
+                args=job["args"],
+                result_line_handler=result_line,
+                progressive_timeout=progressive_timeout,
+            )
+            if not res[0]:
+                print("error executing test - giving up.")
+                print(res[1])
+                resq.put(1)
+                break
+            resq.put(res)
+        except Empty as ex:
+            print("No more work!" + str(ex))
+            resq.put(-1)
+            break
+        except Exception as ex:
+            print("".join(traceback.TracebackException.from_exception(ex).format()))
+            break
 
-# class ClusterPerf(Single):
-class ClusterPerf(Cluster):
+def restore_runner(queue, resq, restore, progressive_timeout):
+    """operate one arangosh instance"""
+    while True:
+        try:
+            # all tasks are already there. if done:
+            job = queue.get(timeout=0.1)
+            print("starting my arangosh task! " + str(job["args"]) + str(job["script"]))
+            res = restore.run_restore_monitored(
+                basepath=str(restore.cfg.test_data_dir.resolve() / job["dir"]),
+                args=job["args"],
+                result_line_handler=result_line,
+                progressive_timeout=progressive_timeout,
+            )
+            if not res[0]:
+                print("error executing test - giving up.")
+                print(res[1])
+                resq.put(1)
+                break
+            resq.put(res)
+        except Empty as ex:
+            print("No more work!" + str(ex))
+            resq.put(-1)
+            break
+        except Exception as ex:
+            print("".join(traceback.TracebackException.from_exception(ex).format()))
+            break
+
+
+class ClusterPerf(Single):
+#class ClusterPerf(Cluster):
     # class ClusterPerf(ActiveFailover):
     """this launches a cluster setup"""
 
@@ -178,6 +238,8 @@ class ClusterPerf(Cluster):
         self.results = []
         self.makedata_workers = []
         self.arangosh_workers = []
+        self.dump_workers = []
+        self.restore_workers = []
         self.arangobench_workers = []
         self.arangosh_workers = []
         self.arangosh_instances = []
@@ -185,7 +247,7 @@ class ClusterPerf(Cluster):
         self.thread_count = 0
         self.tcount = 0
         # AFO / SG
-        # self.backup_instance_count = 1
+        self.backup_instance_count = 1
 
         # pylint: disable=consider-using-with
         RESULTS_TXT = Path("/tmp/results.txt").open("w", encoding="utf8")
@@ -222,6 +284,12 @@ class ClusterPerf(Cluster):
         """generate the workers instructions including offsets against overlapping"""
         for i in range(self.scenario.db_count_chunks):
             self.jobs.put(self._get_one_job(i))
+
+    def _generate_dump_jobs(self):
+        """generate the workers instructions including offsets against overlapping"""
+        print(self.scenario.dump_jobs)
+        for one_job in self.scenario.dump_jobs:
+            self.jobs.put(one_job)
 
     def _start_makedata_workers(self, frontends):
         """launch the worker threads"""
@@ -276,8 +344,60 @@ class ClusterPerf(Cluster):
                         ),
                     )
                 )
-        self.thread_count = len(self.arangosh_workers)
+        self.thread_count += len(self.arangosh_workers)
         for worker in self.arangosh_workers:
+            worker.start()
+            time.sleep(self.scenario.launch_delay)
+
+    def _start_dump_workers(self, frontends):
+        """launch the worker threads"""
+        # self.makedata_instances = self.starter_instances[:]
+        assert self.makedata_instances, "no makedata instance!"
+        print("dump instances")
+        while len(self.dump_workers) < self.scenario.parallelity:
+            print('launch')
+            starter = frontends[len(self.dump_workers) % len(frontends)]
+            assert starter.arango_dump, "no starter associated dump!"
+            arango_dump = starter.arango_dump
+
+            self.dump_workers.append(
+                Thread(
+                    target=dump_runner,
+                    args=(
+                            self.jobs,
+                        self.resultq,
+                        arango_dump,
+                        self.scenario.progressive_timeout,
+                    ),
+                )
+                )
+        self.thread_count += len(self.dump_workers)
+        for worker in self.dump_workers:
+            worker.start()
+            time.sleep(self.scenario.launch_delay)
+
+    def _start_restore_workers(self, frontends):
+        """launch the worker threads"""
+        # self.makedata_instances = self.starter_instances[:]
+        assert self.makedata_instances, "no makedata instance!"
+        print("restore instances")
+        while len(self.restore_workers) < self.scenario.parallelity:
+            starter = frontends[len(self.restore_workers) % len(frontends)]
+            assert starter.arango_restore, "no starter associated arangosh!"
+            arango_restore = starter.arangosh
+            self.restore_workers.append(
+                Thread(
+                    target=restore_runner,
+                    args=(
+                        self.jobs,
+                        self.resultq,
+                        arango_restore,
+                        self.scenario.progressive_timeout,
+                    ),
+                )
+            )
+        self.thread_count += len(self.restore_workers)
+        for worker in self.restore_workers:
             worker.start()
             time.sleep(self.scenario.launch_delay)
 
@@ -304,6 +424,10 @@ class ClusterPerf(Cluster):
             worker.join()
         for worker in self.arangobench_workers:
             worker.wait()
+        for worker in self.dump_workers:
+            worker.join()
+        for worker in self.restore_workers:
+            worker.join()
 
     def starter_prepare_env_impl(self, sm=None):
         self.cfg.index = 0
@@ -377,6 +501,13 @@ class ClusterPerf(Cluster):
         self._prolongue_backup_timeout()
         count = 0
         frontends = self.get_frontend_starters()
+        print(self.scenario.phase)
+        if "dump" in self.scenario.phase:
+            print('dump')
+            self._generate_dump_jobs()
+            self._start_dump_workers(frontends)
+            time.sleep(30)
+            print('xxxx')
         if "backup" in self.scenario.phase:
             logging.info("backup: starting data stress")
             count += 1
@@ -402,65 +533,66 @@ class ClusterPerf(Cluster):
                 time.sleep(0.1)
                 count += 1
             time.sleep(0.5)
+
         time.sleep(count * 5)
         print(count)
         print("pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp")
-        try:
-            count = 0
-            while count < 100:
-                frontends[count % len(frontends)].hb_instance.create(f"ABC{count}")
-                count += 1
-
-            hb_job_params = self._get_one_job(9999)  # TODO calculate number
-
-            starter = frontends[0]
-            assert starter.arangosh, "no starter associated arangosh!"
-            arangosh = starter.arangosh
-            arangosh.create_test_data(
-                "xx",
-                args=hb_job_params["args"],
-                result_line_handler=result_line,
-                progressive_timeout=self.scenario.progressive_timeout,
-            )
-            frontends[count % len(frontends)].hb_instance.create(f"AFTER_LOAD")
-            self._kill_load_workers()
-            self._shutdown_load_workers()
-
-            all_backups = self.list_backup()
-            count = 0
-            for one_backup in all_backups:
-                if one_backup.find("AFTER_LOAD") >= 0:
-                    print(one_backup)
-                    self.upload_backup(one_backup)
-                    self.delete_backup(one_backup)
-                    print("Listing after locally deleting:")
-                    self.list_backup()
-                    self.download_backup(one_backup)
-                    frontends[count % len(frontends)].hb_instance.restore(one_backup)
-                    self.wait_for_restore_impl(frontends[count % len(frontends)])
-                    frontends = self.get_frontend_starters()
-                    starter = frontends[0]
-                    assert starter.arangosh, "no starter associated arangosh!"
-                    arangosh = starter.arangosh
-                    arangosh.check_test_data(
-                        "xx", supports_foxx_tests=True, args=hb_job_params["args"], result_line_handler=result_line
-                    )
-                count += 1
-            count = 0
-            for one_backup in all_backups:
-                frontends[count % len(frontends)].hb_instance.restore(one_backup)
-                self.wait_for_restore_impl(frontends[count % len(frontends)])
-                frontends = self.get_frontend_starters()
-                starter = frontends[0]
-                assert starter.arangosh, "no starter associated arangosh!"
-                arangosh = starter.arangosh
-                count += 1
-        except Exception as ex:
-            print(ex)
-            print("aborting test!")
-            self._kill_load_workers()
-            self._shutdown_load_workers()
-            raise ex
+        #try:
+        #    count = 0
+        #    while count < 100:
+        #        frontends[count % len(frontends)].hb_instance.create(f"ABC{count}")
+        #        count += 1
+        #
+        #    hb_job_params = self._get_one_job(9999)  # TODO calculate number
+        #
+        #    starter = frontends[0]
+        #    assert starter.arangosh, "no starter associated arangosh!"
+        #    arangosh = starter.arangosh
+        #    arangosh.create_test_data(
+        #        "xx",
+        #        args=hb_job_params["args"],
+        #        result_line_handler=result_line,
+        #        progressive_timeout=self.scenario.progressive_timeout,
+        #    )
+        #    frontends[count % len(frontends)].hb_instance.create(f"AFTER_LOAD")
+        #    self._kill_load_workers()
+        #    self._shutdown_load_workers()
+        #
+        #    all_backups = self.list_backup()
+        #    count = 0
+        #    for one_backup in all_backups:
+        #        if one_backup.find("AFTER_LOAD") >= 0:
+        #            print(one_backup)
+        #            self.upload_backup(one_backup)
+        #            self.delete_backup(one_backup)
+        #            print("Listing after locally deleting:")
+        #            self.list_backup()
+        #            self.download_backup(one_backup)
+        #            frontends[count % len(frontends)].hb_instance.restore(one_backup)
+        #            self.wait_for_restore_impl(frontends[count % len(frontends)])
+        #            frontends = self.get_frontend_starters()
+        #            starter = frontends[0]
+        #            assert starter.arangosh, "no starter associated arangosh!"
+        #            arangosh = starter.arangosh
+        #            arangosh.check_test_data(
+        #                "xx", supports_foxx_tests=True, args=hb_job_params["args"], result_line_handler=result_line
+        #            )
+        #        count += 1
+        #    count = 0
+        #    for one_backup in all_backups:
+        #        frontends[count % len(frontends)].hb_instance.restore(one_backup)
+        #        self.wait_for_restore_impl(frontends[count % len(frontends)])
+        #        frontends = self.get_frontend_starters()
+        #        starter = frontends[0]
+        #        assert starter.arangosh, "no starter associated arangosh!"
+        #        arangosh = starter.arangosh
+        #        count += 1
+        #except Exception as ex:
+        #    print(ex)
+        #    print("aborting test!")
+        #    self._kill_load_workers()
+        #    self._shutdown_load_workers()
+        #    raise ex
 
     def after_backup_create_impl(self):
         if "backup" in self.scenario.phase:

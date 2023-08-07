@@ -32,6 +32,7 @@ from arangodb.backup import HotBackupConfig, HotBackupManager
 from arangodb.sh import ArangoshExecutor
 from arangodb.imp import ArangoImportExecutor
 from arangodb.restore import ArangoRestoreExecutor
+from arangodb.dump import ArangoDumpExecutor
 from arangodb.bench import ArangoBenchManager
 
 from tools.asciiprint import print_progress as progress
@@ -161,6 +162,7 @@ class StarterManager:
         self.is_leader = False
         self.arangosh = None
         self.arango_importer = None
+        self.arango_dump = None
         self.arango_restore = None
         self.arangobench = None
         self.executor = None  # meaning?
@@ -1052,6 +1054,7 @@ class StarterManager:
             self.arangosh = ArangoshExecutor(config, self.get_frontend(), old_version)
             self.arango_importer = ArangoImportExecutor(config, self.get_frontend())
             self.arango_restore = ArangoRestoreExecutor(config, self.get_frontend())
+            self.arango_dump = ArangoDumpExecutor(config, self.get_frontend())
             if config.hot_backup_supported:
                 self.hb_instance = HotBackupManager(
                     config,
