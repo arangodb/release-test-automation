@@ -202,19 +202,19 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         """Create a collection with documents after taking a backup
           (to verify its not in the backup)"""
     )
-    def hotbackup_create_nonbackup_data(self):
+    def hotbackup_create_nonbackup_data(self, suff=""):
         """
         create a collection with documents after taking a backup
         to verify its not in the backup
         """
         logging.info("creating volatile testdata")
-        js_script_string = """
-            if (!arango.isConnected()) {
+        js_script_string = f"""
+            if (!arango.isConnected()) {{
               throw new Error('connecting the database failed');
-            }
-            db._create("this_collection_will_not_be_backed_up");
-            db.this_collection_will_not_be_backed_up.save(
-               {"this": "document will be gone"});
+            }}
+            db._create("this_collection_will_not_be_backed_up{suff}");
+            db.this_collection_will_not_be_backed_up{suff}.save(
+               {{"this": "document will be gone"}});
         """
         logging.debug("script to be executed: " + str(js_script_string) + str(self.connect_instance))
         res = self.run_command(["create volatile data", js_script_string], True)  # self.cfg.verbose)
@@ -225,19 +225,19 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         return res
 
     @step
-    def hotbackup_check_for_nonbackup_data(self):
+    def hotbackup_check_for_nonbackup_data(self, suff=""):
         """check whether the data is in there or not."""
-        logging.info("running version check")
+        logging.info("running check of volatile data")
         #  || db.this_collection_will_not_be_backed_up._length() != 0
         # // do we care?
-        js_script_string = """
-            if (!arango.isConnected()) {
+        js_script_string = f"""
+            if (!arango.isConnected()) {{
               throw new Error('connecting the database failed');
-            }
-            if (db._collection("this_collection_will_not_be_backed_up")
-                 != null) {
+            }}
+            if (db._collection("this_collection_will_not_be_backed_up{suff}")
+                 != null) {{
               throw new Error(`data is there!`);
-            }
+            }}
         """
         logging.debug("script to be executed: " + str(js_script_string))
         res = self.run_command(["check whether non backup data exists", js_script_string], True)  # self.cfg.verbose)
@@ -256,7 +256,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         let timeout = 60;
         while (db._databases().length == 0)  {
           if (timeout == 0) {
-            throw new Error("Databases array is still empty after 15s!");		
+            throw new Error("Databases array is still empty after 15s!");
           }
           require("internal").sleep(1);
           timeout -= 1;
