@@ -202,6 +202,7 @@ class Dc2Dc(Runner):
                     # '--all.log.level=requests=debug',
                     '--args.syncmasters.log.level=debug',
                     '--args.syncworkers.log.level=debug',
+                    '--args.sync.log.stderr=false',
                     '--starter.sync',
                     '--starter.local',
                     '--auth.jwt-secret=' +           str(val["JWTSecret"]),
