@@ -256,7 +256,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         let timeout = 60;
         while (db._databases().length == 0)  {
           if (timeout == 0) {
-            throw new Error("Databases array is still empty after 15s!");		
+            throw new Error("Databases array is still empty after 15s!");
           }
           require("internal").sleep(1);
           timeout -= 1;
