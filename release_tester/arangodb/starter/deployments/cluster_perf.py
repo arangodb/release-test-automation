@@ -593,6 +593,12 @@ class ClusterPerf(Single):
         #    self._kill_load_workers()
         #    self._shutdown_load_workers()
         #    raise ex
+        if "dump" in self.scenario.phase:
+            print('dump')
+            self._generate_dump_jobs()
+            self._start_dump_workers(frontends)
+            time.sleep(30)
+            print('xxxx')
 
     def after_backup_create_impl(self):
         if "backup" in self.scenario.phase:
