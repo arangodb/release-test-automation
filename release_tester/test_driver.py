@@ -271,6 +271,8 @@ class TestDriver:
                                     runner.run()
                                     runner.cleanup()
                                     testcase.context.status = Status.PASSED
+                                    if runner.search_for_warnings(False):
+                                        raise Exception("fatal log lines found")
                                 except Exception as ex:
                                     one_result["success"] = False
                                     one_result["messages"].append(str(ex))
@@ -433,6 +435,8 @@ class TestDriver:
                         runner.run()
                         runner.cleanup()
                         testcase.context.status = Status.PASSED
+                        if runner.search_for_warnings(False):
+                            raise Exception("fatal log lines found")
                     # pylint: disable=broad-except
                     except Exception as ex:
                         one_result["success"] = False
@@ -557,6 +561,8 @@ class TestDriver:
                     "messages": [],
                     "progress": "",
                 })
+            if runner.search_for_warnings(False):
+                raise Exception("fatal log lines found")
         except Exception as ex:
             failed = True
             print("".join(traceback.TracebackException.from_exception(ex).format()))
